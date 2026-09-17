@@ -25,18 +25,21 @@ const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 /// The GMEOW namespace every fixture IRI shares.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
-/// The repo root this crate lives under — used ONLY to copy the real,
-/// structurally-complete rubric module bytes into each fixture's temp root (so
-/// the fixture never has to reconstruct the full tier-ladder/axis scaffolding).
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .expect("repo root resolves")
-}
+/// Minimal complete measurement standard for loader and authority-boundary tests.
+/// Shipped rubric content is checked by its separate corpus consumer.
+const RUBRIC: &str = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:fixtureTier a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:fixtureThreshold gmeow:thresholdTier gmeow:fixtureTier ; gmeow:thresholdFloor 0.0 .
+gmeow:axisMaximalGrounding a gmeow:QualityAxis ;
+    gmeow:axisProducer "fixture_grounding" ;
+    gmeow:axisDimension gmeow:qualityDimensionGrounding ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:fixtureThreshold .
+"#;
 
 /// A throwaway temp repo root carrying a structurally-complete rubric slice
-/// (the real repo's module copied verbatim) plus whatever extra slices a test
+/// (a small synthetic measurement standard) plus whatever extra slices a test
 /// adds via [`Fixture::add_slice`].
 ///
 /// The root is owned by the [`tempfile::TempDir`] the fixture holds, so the whole
@@ -54,9 +57,7 @@ impl Fixture {
         let root = tmp.path().join(format!("gmeow-cross-slice-floors-{name}"));
         std::fs::create_dir_all(&root).unwrap();
 
-        // The canonical rubric slice: copy the real repo's structurally-complete
-        // module verbatim, so the measurement standard (tier ladder + axes) loads
-        // cleanly without reconstructing that scaffolding by hand in the fixture.
+        // A complete synthetic tier/axis scaffold isolates the distributed loader.
         let rubric_dir = root.join("slices/core/slice-quality-rubric");
         std::fs::create_dir_all(&rubric_dir).unwrap();
         std::fs::write(
@@ -64,10 +65,7 @@ impl Fixture {
             format!("{PREFIXES}<{GMEOW}slices/slice-quality-rubric> a gmeow:Slice .\n"),
         )
         .unwrap();
-        let real_rubric_module = repo_root().join("slices/core/slice-quality-rubric/module.ttl");
-        let bytes = std::fs::read(&real_rubric_module)
-            .unwrap_or_else(|e| panic!("real rubric module must read: {e}"));
-        std::fs::write(rubric_dir.join("module.ttl"), bytes).unwrap();
+        std::fs::write(rubric_dir.join("module.ttl"), RUBRIC).unwrap();
 
         Self { _tmp: tmp, root }
     }
@@ -182,7 +180,7 @@ fn centralized_axis_authored_outside_rubric_hard_fails() {
          \x20   gmeow:axisProducer \"rogue_producer\" ;\n\
          \x20   gmeow:axisDimension gmeow:qualityDimensionGrounding ;\n\
          \x20   gmeow:axisContextScope gmeow:scopeSliceLocal ;\n\
-         \x20   gmeow:axisThreshold gmeow:thrGroundingGrounded .\n",
+         \x20   gmeow:axisThreshold gmeow:fixtureThreshold .\n",
     );
 
     let err = gmeow_slice_quality::load_repo_floors(f.root())

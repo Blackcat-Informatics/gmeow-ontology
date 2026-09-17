@@ -15,7 +15,7 @@ use crate::projections::{ProjectionResult, rdf, target_meta};
 
 use super::{RDF_META_SENTINEL, escape_string};
 
-use purrdf::{RdfDataset, TermRef, parse_dataset};
+use purrdf::{RdfDataset, TermRef};
 
 /// `xsd:string` — the datatype the dataset assigns a plain literal; emitted CGIF distinguishes
 /// a plain `(lit "x")` from a typed `(lit "x" "dt")` by suppressing this datatype (so the
@@ -43,7 +43,7 @@ pub fn project_cgif(program: &LogicProgram) -> gmeow_errors::Result<ProjectionRe
 
     // ── Idiomatic conceptual-graph channel (human-readable rendering) ───────────
     // Rules and formulas are rendered as readable conceptual graphs. This channel is
-    // WRITE-ONLY: the canonical IR carries an `obj_is_literal` bit on a rule term (and a
+    // WRITE-ONLY: the canonical IR carries contextual source data (and a
     // rule's minted reifier-node identity) that idiomatic conceptual-graph syntax cannot
     // express, so reconstructing the byte-exact IR from a graph would be lossy. The lossless
     // carrier is the RDF/predication channel below (the Exact `canonical-rdf12` leg), from
@@ -93,21 +93,28 @@ pub fn project_cgif(program: &LogicProgram) -> gmeow_errors::Result<ProjectionRe
 /// Encode a [`LogicAxiom`] (a Horn triple) as a CGIF relation `("<pred>" <subj> <obj>)`.
 fn axiom_relation(axiom: &LogicAxiom) -> String {
     let pred = name_term(&axiom.predicate);
-    let subj = horn_term(&axiom.subject, false);
-    let obj = horn_term(&axiom.obj, axiom.obj_is_literal);
+    let subj = horn_term(&axiom.subject);
+    let obj = atomic_term(&axiom.obj);
     format!("({pred} {subj} {obj})")
 }
 
 /// A Horn subject/object arc: a `?var` bound label, a bracketed literal concept, or a
 /// double-quoted CGIF name (an IRI).
-fn horn_term(value: &str, is_literal: bool) -> String {
+fn atomic_term(term: &crate::ir::AtomicTerm) -> String {
+    use crate::ir::AtomicTerm;
+    match term {
+        AtomicTerm::Var(value) => {
+            term_to_cgif(&Term::Var(value.trim_start_matches('?').to_owned()))
+        }
+        AtomicTerm::Iri(value) => term_to_cgif(&Term::Iri(value.clone())),
+        AtomicTerm::Blank(value) => term_to_cgif(&Term::Iri(format!("_:{value}"))),
+        AtomicTerm::Literal(value) => term_to_cgif(&Term::Literal(value.clone())),
+    }
+}
+
+fn horn_term(value: &str) -> String {
     if let Some(var) = value.strip_prefix('?') {
         format!("?{var}")
-    } else if is_literal {
-        // A plain literal in the Horn fragment (the canonical IR carries no datatype on
-        // `LogicAxiom.obj`; that detail lives in the RDF channel). Render as a concept whose
-        // referent is the string value: `[: "lex"]`.
-        format!("[: {}]", quote_string(value))
     } else {
         name_term(value)
     }
@@ -213,12 +220,26 @@ fn term_to_cgif(term: &Term) -> String {
     match term {
         Term::Var(n) => format!("?{n}"),
         Term::Iri(i) => name_term(i),
-        Term::Literal { lexical, datatype } => match datatype {
-            // Untyped literal → a concept whose referent is the string.
-            None => format!("[: {}]", quote_string(lexical)),
-            // Typed literal → a concept typed by the datatype IRI.
-            Some(dt) => format!("[{}: {}]", name_term(dt), quote_string(lexical)),
-        },
+        Term::Literal(literal) => {
+            if let Some(language) = &literal.language {
+                let suffix = literal
+                    .direction
+                    .map_or_else(String::new, |direction| format!("--{}", direction.as_str()));
+                format!(
+                    "(lit {} @{language}{suffix})",
+                    quote_string(&literal.lexical_form)
+                )
+            } else {
+                match &literal.datatype {
+                    None => format!("[: {}]", quote_string(&literal.lexical_form)),
+                    Some(dt) => format!(
+                        "[{}: {}]",
+                        name_term(dt),
+                        quote_string(&literal.lexical_form)
+                    ),
+                }
+            }
+        }
         // A sequence marker → a `[Sequence: "name"]` concept.
         Term::SequenceMarker(n) => format!("[Sequence: {}]", quote_string(n)),
         // A function-term application → the CGIF functional relation `(f t₀ … tₙ)`, the same
@@ -251,7 +272,7 @@ fn term_to_cgif(term: &Term) -> String {
 /// `extract_leg_programs` reads (the faithful inverse of `parse_leg_path`). The Exact claim
 /// therefore carries every construct losslessly.
 ///
-/// Returns `Err` if the canonical-RDF-1.2 leg (or its re-parse) fails — the lossless carrier
+/// Returns `Err` if the native canonical-RDF-1.2 leg fails — the lossless carrier
 /// cannot be assembled, which is an invariant break surfaced to the caller, not a panic.
 fn meta_predications(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>> {
     let mut preds: Vec<String> = Vec::new();
@@ -297,34 +318,32 @@ fn meta_predications(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>
         .filter(|a| !corr_ownership.owns(&a.subject) && !path_subjects.contains(a.subject.as_str()))
         .cloned()
         .collect();
-    let canon_meta = LogicProgram::new(
+    let mut canon_meta = LogicProgram::new(
         axioms,
         program.rules.clone(),
         program.contracts.clone(),
         program.source_iri.clone(),
     )
     .with_formulas(program.formulas.clone());
-    let ttl = rdf::project_canonical_rdf12(&canon_meta)
+    canon_meta.presentations = program.presentations.clone();
+    let native = rdf::project_canonical_rdf12_dataset(&canon_meta)
         .map_err(|e| {
             Diag::of_kind(crate::error::Cgif {
                 detail: format!("CGIF meta channel: canonical-rdf12 projection failed: {e}"),
             })
         })?
-        .content;
-    preds.extend(quads_as_predications(ttl.as_bytes(), "text/turtle")?);
+        .dataset;
+    preds.extend(dataset_predications(&native));
 
-    // (2) Correspondences → the faithful correspondence N-Triples projection.
-    if !program.correspondences.is_empty() {
+    // (2) Correspondences → the shared native correspondence projection.
+    if !program.correspondences.is_empty() || !program.correspondence_compositions.is_empty() {
         let cp = crate::projections::correspondence::CorrespondenceProgram::new(
             program.correspondences.clone(),
-            Vec::new(),
             crate::ir::PreservationKind::Exact,
-        );
-        let nt = crate::projections::correspondence::project_correspondence(&cp);
-        preds.extend(quads_as_predications(
-            nt.as_bytes(),
-            "application/n-triples",
-        )?);
+        )
+        .with_compositions(program.correspondence_compositions.clone());
+        let native = crate::projections::correspondence::project_correspondence_dataset(&cp)?;
+        preds.extend(dataset_predications(&native));
     }
 
     preds.sort();
@@ -504,27 +523,19 @@ fn path_shape_predications(shape: &crate::ir::PathShapeIr) -> Vec<String> {
     out
 }
 
-/// Parse RDF `bytes` of `media_type` and emit each quad as a sorted-later CGIF predication.
-/// Returns `Err` if the projection's own serialized output cannot be re-parsed (an invariant
-/// break in the canonical leg, surfaced to the caller rather than panicking).
-fn quads_as_predications(bytes: &[u8], media_type: &str) -> gmeow_errors::Result<Vec<String>> {
-    let ds = parse_dataset(bytes, media_type, None).map_err(|e| {
-        Diag::of_kind(crate::error::Cgif {
-            detail: format!("CGIF meta channel: re-parse of {media_type} failed: {e}"),
-        })
-    })?;
-    Ok(ds
-        .quad_refs()
+/// Render the native metadata view directly; no intermediate Turtle or parser.
+fn dataset_predications(ds: &RdfDataset) -> Vec<String> {
+    ds.quad_refs()
         .map(|q| {
-            let s = term_ref_to_cgif(ds.as_ref(), q.s);
-            let p = term_ref_to_cgif(ds.as_ref(), q.p);
-            let o = term_ref_to_cgif(ds.as_ref(), q.o);
+            let s = term_ref_to_cgif(ds, q.s);
+            let p = term_ref_to_cgif(ds, q.p);
+            let o = term_ref_to_cgif(ds, q.o);
             format!("({p} {s} {o})")
         })
-        .collect())
+        .collect()
 }
 
-/// Encode a resolved RDF [`TermRef`] as a CGIF term, faithfully preserving datatype / lang.
+/// Encode an RDF term, preserving datatype, language and RDF 1.2 base direction.
 fn term_ref_to_cgif(ds: &RdfDataset, term: TermRef<'_>) -> String {
     match term {
         TermRef::Iri(iri) => name_term(iri),
@@ -533,10 +544,17 @@ fn term_ref_to_cgif(ds: &RdfDataset, term: TermRef<'_>) -> String {
             lexical,
             datatype,
             language,
-            ..
+            direction,
         } => {
             if let Some(lang) = language {
-                format!("(lit {} @{lang})", quote_string(lexical))
+                match direction {
+                    Some(direction) => format!(
+                        "(lit {} @{lang}--{})",
+                        quote_string(lexical),
+                        direction.as_str()
+                    ),
+                    None => format!("(lit {} @{lang})", quote_string(lexical)),
+                }
             } else {
                 let dt = match ds.resolve(datatype) {
                     TermRef::Iri(s) => s,

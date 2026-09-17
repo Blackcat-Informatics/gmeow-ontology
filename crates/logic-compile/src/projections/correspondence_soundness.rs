@@ -679,7 +679,7 @@ fn owl_kind_edoal(onto: &DslView<'_>, iri: &str) -> Option<&'static str> {
 fn cell_is_equivalence(view: &DslView<'_>, cell: &DslTerm) -> bool {
     view.objects_of_term(cell, ALIGN_RELATION)
         .iter()
-        .any(|t| t.as_literal() == Some("="))
+        .any(|t| crate::ingest::literal_lexical(t) == Some("="))
 }
 
 /// Run only the five alignment-direction checks (the historical

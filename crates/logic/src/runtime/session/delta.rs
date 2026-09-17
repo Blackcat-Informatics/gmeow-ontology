@@ -29,19 +29,19 @@ const NQUADS_MEDIA_TYPE: &str = "application/n-quads";
 /// suppression moves set membership while the arena row and its provenance survive
 /// (aligned with the suppression-never-erasure discipline of the transaction executor).
 ///
-/// Not `Clone`: it owns an [`RdfDataset`], which is intentionally move-only.
+/// The immutable RDF rows can share their native source with other consumers.
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct Suppression {
     /// The rows to retire (weight `-1` at the closure boundary).
-    pub row: RdfDataset,
+    pub row: Arc<RdfDataset>,
 }
 
 impl Suppression {
     /// Construct a suppression over the given rows.
     #[must_use]
-    pub fn new(row: RdfDataset) -> Self {
-        Self { row }
+    pub fn new(row: impl Into<Arc<RdfDataset>>) -> Self {
+        Self { row: row.into() }
     }
 }
 
@@ -63,7 +63,7 @@ impl Suppression {
 ///
 /// [`delta_identity`]: Self::delta_identity
 ///
-/// Not `Clone`: it owns [`RdfDataset`] inputs, which are intentionally move-only.
+/// Native input handles are shared; applying a delta does not copy its datasets.
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct SessionDelta {
@@ -74,7 +74,7 @@ pub struct SessionDelta {
     /// (distinct from `base_commit`; the double-apply guard).
     pub expected_head: String,
     /// Facts to insert (weight `+1`).
-    pub additions: RdfDataset,
+    pub additions: Arc<RdfDataset>,
     /// Active state to retire (weight `-1`).
     pub retirements: Vec<Suppression>,
     /// Optional committed-derivation budget for the insertion.
@@ -99,11 +99,12 @@ impl SessionDelta {
     pub fn new(
         base_commit: WorldSourceIdentity,
         expected_head: impl Into<String>,
-        additions: RdfDataset,
+        additions: impl Into<Arc<RdfDataset>>,
         retirements: Vec<Suppression>,
         max_steps: Option<u64>,
     ) -> gmeow_errors::Result<Self> {
         let expected_head = expected_head.into();
+        let additions = additions.into();
 
         let additions_digest =
             dataset_content_digest(b"gmeow-logic-session-delta-additions-v1", &additions)?;
@@ -250,13 +251,8 @@ fn dataset_to_canonical_nquads(dataset: &RdfDataset) -> gmeow_errors::Result<Str
     Ok(lines.join("\n"))
 }
 
-/// Parse canonical N-Quads back into an owned dataset (the inverse of
-/// [`dataset_to_canonical_nquads`]). A freshly-parsed dataset is a single-owner `Arc`, so
-/// it unwraps into an owned value without cloning.
-fn dataset_from_nquads(nquads: &str) -> gmeow_errors::Result<RdfDataset> {
-    let dataset = parse_dataset(nquads.as_bytes(), NQUADS_MEDIA_TYPE, None)
-        .map_err(|error| payload_error(format!("parse session delta from N-Quads: {error}")))?;
-    Arc::try_unwrap(dataset).map_err(|_| {
-        payload_error("a freshly-parsed session delta dataset was unexpectedly shared".to_owned())
-    })
+/// Parse the durable projection into a shared native dataset.
+fn dataset_from_nquads(nquads: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    parse_dataset(nquads.as_bytes(), NQUADS_MEDIA_TYPE, None)
+        .map_err(|error| payload_error(format!("parse session delta from N-Quads: {error}")))
 }

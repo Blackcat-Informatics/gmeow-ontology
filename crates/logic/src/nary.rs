@@ -337,6 +337,7 @@ fn lower_one_rule(rule: &NaryRule, scheme: ArgScheme) -> gmeow_errors::Result<Ex
     }
 
     Ok(ExistentialRule {
+        numeric: Vec::new(),
         rule_iri: rule.name.clone(),
         body,
         head,

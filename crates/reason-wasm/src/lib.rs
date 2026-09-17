@@ -20,6 +20,9 @@
 //!   crate only marshals strings/bytes across the JS boundary, exactly as
 //!   `gmeow-validate-wasm` wraps the validator.
 
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, prepare_reasoning_input,
+};
 use wasm_bindgen::prelude::*;
 
 /// The reasoner version (the crate's SemVer), exposed to JS as `version()` — a
@@ -44,8 +47,27 @@ pub fn version() -> String {
 pub fn reason(data: &str, format: &str) -> Result<String, JsError> {
     let edb = purrdf::parse_dataset(data.as_bytes(), format, None)
         .map_err(|e| JsError::new(&e.to_string()))?;
-    let closure =
-        gmeow_logic::reason::reason_closure_dataset(&edb).map_err(|e| JsError::new(e.message()))?;
+    let input = prepare_reasoning_input(&edb).map_err(|e| JsError::new(e.message()))?;
+    // This API explicitly treats every context in the submitted document as a
+    // logical theory, retaining default, IRI and scoped blank graph identities.
+    let domains = SelectedDomains::new(
+        input
+            .source_contexts()
+            .values()
+            .map(|graph| {
+                SelectedLogicalWorld::new(
+                    LogicalGraph::from_graph(graph.clone()),
+                    DomainProfile::NonemptyObjectDomainV1,
+                    "gmeow.reason-wasm.document-theories.v1".to_owned(),
+                    *input.ingress_contract(),
+                )
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()
+            .map_err(|e| JsError::new(e.message()))?,
+    )
+    .map_err(|e| JsError::new(e.message()))?;
+    let closure = gmeow_logic::reason::reason_closure_dataset(input, &domains)
+        .map_err(|e| JsError::new(e.message()))?;
     let bytes = purrdf::serialize_dataset(
         &*closure,
         "application/n-quads",

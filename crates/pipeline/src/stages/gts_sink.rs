@@ -22,6 +22,9 @@ use crate::stages::carrier::{PASS_ONE_RECEIPT_PATH, SNAPSHOT_PATH};
 /// Committed logical path of the serialized GTS bundle.
 pub const GTS_PATH: &str = SNAPSHOT_PATH;
 
+/// Complete native ingestion/loss receipt, bound to the terminal output bytes.
+pub const INGESTION_RECEIPT_PATH: &str = "generated/dist/gmeow.gts.ingestion.cbor";
+
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `gts_sink` pipeline stage — the single serialization exit.
@@ -86,6 +89,7 @@ impl GtsSinkStage {
                 // The normalized verify receipt is an opaque generated-fanout member;
                 // graph/verify itself already rides in the snapshot carrier.
                 "stage-verify-attestation".to_string(),
+                "stage-conformance".to_string(),
                 // The opaque fanout members ride in from their producing export leaves
                 // (each rendered once, in the leaf); `collect_fanout_opaque_members` reads them
                 // off these products instead of re-rendering from disk (§3.2/§4).
@@ -191,7 +195,7 @@ impl Stage for GtsSinkStage {
         // v14: report the production sink's allocation phases, structural counts, and
         // RSS observations while retaining the keyed pass-one receipt. Telemetry is
         // report-only and does not enter artifact identity.
-        "gts_sink.v14-observed-pass-one-receipt"
+        "gts_sink.v16-native-ingestion-receipt"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
@@ -202,55 +206,36 @@ impl Stage for GtsSinkStage {
         // by-reference TAR archives are READ off the `stage-archive-blobs` product and
         // stapled alongside it, never re-folded here.
         let carrier = crate::stages::carrier::snapshot_dataset(input.upstream)?;
-        let serialized = crate::stages::carrier::serialize_carrier_snapshot_with_receipt(
+        let serialized = crate::stages::carrier::serialize_carrier_snapshot(
             input.root,
             input.upstream,
             carrier.as_ref(),
             &crate::medium::registry::MediumSelection::Authored,
         )?;
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(GTS_PATH.to_string(), serialized.bytes);
-        artifacts.insert(
-            PASS_ONE_RECEIPT_PATH.to_string(),
-            serialized.pass_one_receipt,
-        );
-        let mut output = StageOutput::new(StageProduct::from_artifacts(self.id(), artifacts));
-        output.timings = serialized.timings;
-        Ok(output)
+        snapshot_output(self.id(), serialized)
     }
 }
 
+/// Publish bytes and their full receipt into the same committed stage product.
+fn snapshot_output(
+    stage_id: &str,
+    serialized: crate::stages::carrier::SerializedCarrierSnapshot,
+) -> Result<StageOutput, gmeow_errors::Diag> {
+    let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    artifacts.insert(
+        INGESTION_RECEIPT_PATH.to_string(),
+        serialized.emission.ingestion_receipt()?,
+    );
+    artifacts.insert(GTS_PATH.to_string(), serialized.emission.bytes);
+    artifacts.insert(
+        PASS_ONE_RECEIPT_PATH.to_string(),
+        serialized.pass_one_receipt,
+    );
+    let mut output = StageOutput::new(StageProduct::from_artifacts(stage_id, artifacts));
+    output.timings = serialized.timings;
+    Ok(output)
+}
+
+#[path = "gts_sink.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn sink_declares_only_the_lanes_it_reads_as_carrier_inputs() {
-        let sink = GtsSinkStage::new();
-        assert_eq!(
-            sink.carrier_consumes(),
-            [
-                "stage-archive-blobs",
-                "stage-medium-dictionaries",
-                "stage-snapshot",
-            ]
-        );
-        for artifact_only in [
-            "stage-source-load",
-            "stage-compile-logic",
-            "stage-mappings",
-            "stage-reason",
-            "stage-validate",
-            "stage-verify-attestation",
-        ] {
-            assert!(
-                sink.consumes().iter().any(|id| id == artifact_only),
-                "{artifact_only} remains a declared DAG dependency"
-            );
-            assert!(
-                !sink.carrier_consumes().iter().any(|id| id == artifact_only),
-                "{artifact_only} supplies committed bytes, not a live carrier"
-            );
-        }
-    }
-}
+mod tests;

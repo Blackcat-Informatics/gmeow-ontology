@@ -22,6 +22,157 @@ fn parse(ttl: &str) -> (LogicProgram, Vec<Diagnostic>) {
     parse_logic_str(&full, Some("https://example.org/prog".to_owned())).expect("parse ok")
 }
 
+#[test]
+fn native_structural_typing_extracts_rules_contracts_and_constraints_without_aliasing_domain_types()
+{
+    for typing in ["a", "logic:instanceOf"] {
+        let source = format!(
+            "ex:r {typing} logic:Rule ; \
+             logic:head [ rdf:subject \"?x\" ; rdf:predicate ex:q ; rdf:object ex:b ] ; \
+             logic:body [ rdf:subject \"?x\" ; rdf:predicate ex:p ; rdf:object ex:a ] .\n\
+             ex:contract {typing} logic:ReasoningContract ; \
+             logic:modelSemantics logic:StableModelSemantics ; \
+             logic:negationOperator logic:DefaultNegation .\n\
+             logic:StableModelSemantics {typing} logic:ModelSemantics .\n\
+             logic:DefaultNegation {typing} logic:NegationOperator .\n\
+             ex:range {typing} logic:ValueRangeConstraint ; logic:onClass ex:Probability ; \
+             logic:valuePath ex:magnitude ; logic:minInclusiveBound 0 ; \
+             logic:maxInclusiveBound 1 ; logic:formalizes ex:Probability .\n\
+             ex:subject logic:instanceOf ex:DomainType ."
+        );
+        let (program, diagnostics) = parse(&source);
+        assert!(diagnostics.is_empty(), "{typing}: {diagnostics:?}");
+        assert_eq!(program.rules.len(), 1, "{typing}");
+        assert_eq!(program.contracts.len(), 1, "{typing}");
+        assert_eq!(program.constraints.len(), 1, "{typing}");
+        assert!(program.axioms.iter().all(
+            |axiom| !axiom.subject.ends_with("/contract") && !axiom.subject.ends_with("/range")
+        ));
+        let domain: Vec<_> = program
+            .axioms
+            .iter()
+            .filter(|axiom| axiom.subject.ends_with("/subject"))
+            .collect();
+        assert_eq!(domain.len(), 1);
+        assert_eq!(domain[0].predicate, logic_iri("instanceOf"));
+    }
+}
+
+#[test]
+fn dual_typed_orphan_recovery_is_rejected_once_and_never_becomes_a_domain_axiom() {
+    for typing in [
+        "a logic:RecoveryCase",
+        "logic:instanceOf logic:RecoveryCase",
+        "a logic:RecoveryCase ; logic:instanceOf logic:RecoveryCase",
+    ] {
+        let (program, diagnostics) = parse(&format!("ex:orphan {typing} ."));
+        assert_eq!(
+            diagnostics
+                .iter()
+                .filter(|diagnostic| diagnostic.code == "ORPHAN_RECOVERY_CASE"
+                    && diagnostic.severity == Severity::Error)
+                .count(),
+            1,
+            "{typing}: {diagnostics:?}"
+        );
+        assert!(
+            program
+                .axioms
+                .iter()
+                .all(|axiom| !axiom.subject.ends_with("/orphan"))
+        );
+    }
+}
+
+#[test]
+fn native_member_condition_stays_owned_and_exposes_its_evaluation_boundary() {
+    let (program, diagnostics) = parse(
+        "ex:set <https://blackcatinformatics.ca/math/memberCondition> ex:condition .
+         ex:condition logic:instanceOf logic:Formula ;
+             logic:relation ex:inRing ; logic:argument
+             [ logic:termIndex 0 ; logic:termVariable \"x\" ],
+             [ logic:termIndex 1 ; logic:termIri ex:ring ] .",
+    );
+    assert!(program.formulas.is_empty());
+    assert!(
+        program
+            .axioms
+            .iter()
+            .all(|axiom| !axiom.subject.starts_with('?') && !axiom.subject.ends_with("/condition"))
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.severity != Severity::Error)
+    );
+    let boundary = diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "OWNER_SCOPED_MEMBER_CONDITION")
+        .expect("owned definition cannot disappear from coverage");
+    assert_eq!(
+        boundary.subject.as_deref(),
+        Some("https://example.org/test/condition")
+    );
+    assert!(boundary.message.contains("https://example.org/test/set"));
+}
+
+#[test]
+fn dual_typing_does_not_duplicate_rules_or_promote_rdf_reification() {
+    let (program, diagnostics) = parse(
+        "ex:r a logic:Rule ; logic:instanceOf logic:Rule ;
+             logic:head [ rdf:subject \"?x\" ; rdf:predicate ex:q ; rdf:object ex:b ] ;
+             logic:body [ rdf:subject \"?x\" ; rdf:predicate ex:p ; rdf:object ex:a ] .
+         ex:statement logic:instanceOf rdf:Statement ;
+             rdf:subject ex:s ; rdf:predicate logic:subClassOf ; rdf:object ex:C .",
+    );
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(program.rules.len(), 1);
+    assert!(program.axioms.iter().all(
+        |axiom| !(axiom.subject.ends_with("/s") && axiom.predicate == logic_iri("subClassOf"))
+    ));
+}
+
+#[test]
+fn every_constraint_sugar_reports_malformed_native_typed_records() {
+    for class in [
+        "ChoiceGroupConstraint",
+        "GuardedImplicationConstraint",
+        "DisjunctiveRequirednessConstraint",
+        "PathValueTypeConstraint",
+        "CrossNodeConstraint",
+        "ForbiddenPatternConstraint",
+        "ValueRangeConstraint",
+        "AggregateConstraint",
+        "JoinAggregateConstraint",
+        "AggregateBalanceConstraint",
+        "ComparisonConstraint",
+        "PathNodeKindConstraint",
+        "SelfJoinUniquenessConstraint",
+        "InverseExistenceConstraint",
+        "TransitiveReachabilityConstraint",
+        "AcyclicConstraint",
+        "ValueSetMembershipConstraint",
+        "StringPatternConstraint",
+    ] {
+        let (_, expected) = parse(&format!("ex:c a logic:{class} ."));
+        let (native, actual) = parse(&format!("ex:c logic:instanceOf logic:{class} ."));
+        assert!(
+            !expected.is_empty(),
+            "{class} must reject its absent required fields"
+        );
+        assert_eq!(
+            actual, expected,
+            "{class} must retain every admission diagnostic"
+        );
+        assert!(
+            native
+                .axioms
+                .iter()
+                .all(|axiom| !axiom.subject.ends_with("/c"))
+        );
+    }
+}
+
 fn has_axiom(
     prog: &LogicProgram,
     subj_suffix: &str,
@@ -76,14 +227,18 @@ fn reified_trivially_horn_formula_routes_to_axioms_not_panics() {
     );
     assert!(
         prog.axioms.iter().any(|a| {
-            a.subject.ends_with("/a") && a.predicate.ends_with("#type") && a.obj.ends_with("/B")
+            a.subject.ends_with("/a")
+                && a.predicate.ends_with("#type")
+                && a.obj.as_iri().is_some_and(|iri| iri.ends_with("/B"))
         }),
         "the reified ground atom must be routed to LogicProgram.axioms, got {:?}",
         prog.axioms
     );
     assert!(
         !prog.axioms.iter().any(|a| {
-            a.subject.ends_with("/phi") && a.predicate == RDF_TYPE && a.obj == logic_iri("Formula")
+            a.subject.ends_with("/phi")
+                && a.predicate == RDF_TYPE
+                && a.obj.as_iri() == Some(logic_iri("Formula").as_str())
         }),
         "logic:Formula typing is owned by the formula extractor and must not be duplicated as a generic axiom: {:?}",
         prog.axioms
@@ -125,8 +280,8 @@ fn recovery_case_owns_its_formula_and_typed_term_carriers() {
     );
     assert!(
         program.axioms.iter().all(|axiom| {
-            axiom.obj != logic_iri("TermCarrier")
-                && axiom.obj != logic_iri("RecoveryCase")
+            axiom.obj.as_iri() != Some(logic_iri("TermCarrier").as_str())
+                && axiom.obj.as_iri() != Some(logic_iri("RecoveryCase").as_str())
                 && !axiom.predicate.ends_with("recoveryCase")
                 && !axiom.predicate.ends_with("recoveryTransform")
         }),
@@ -148,7 +303,8 @@ fn recovery_case_requires_named_identity() {
     assert!(
         diagnostics.iter().any(|diagnostic| {
             diagnostic.code == "MALFORMED_CORRESPONDENCE"
-                && diagnostic.message.contains("non-IRI logic:recoveryCase")
+                && diagnostic.message.contains("non-IRI")
+                && diagnostic.message.contains(&logic_iri("recoveryCase"))
         }),
         "unnamed recovery evidence must not disappear silently: {diagnostics:#?}"
     );
@@ -418,8 +574,8 @@ fn parse_logic_relation_axiom() {
         .find(|a| a.predicate.ends_with("subClassOf"))
         .unwrap();
     assert!(ax.subject.ends_with("/Bird"));
-    assert!(ax.obj.ends_with("/Animal"));
-    assert!(!ax.obj_is_literal);
+    assert!(ax.obj.as_iri().is_some_and(|iri| iri.ends_with("/Animal")));
+    assert!(!ax.obj.is_literal());
 }
 
 #[test]
@@ -430,8 +586,8 @@ fn parse_literal_object_sets_flag() {
         .iter()
         .find(|a| a.predicate.ends_with("confidence"))
         .unwrap();
-    assert!(ax.obj_is_literal);
-    assert_eq!(ax.obj, "0.9");
+    assert!(ax.obj.is_literal());
+    assert_eq!(ax.obj.as_literal().unwrap().lexical_form, "0.9");
 }
 
 // ── Classic reification with scope ───────────────────────────────────────────
@@ -455,7 +611,7 @@ fn parse_classic_reification_with_scope() {
         .find(|a| {
             a.subject.ends_with("/Animal")
                 && a.predicate.ends_with("subClassOf")
-                && a.obj.ends_with("/Organism")
+                && a.obj.as_iri().is_some_and(|iri| iri.ends_with("/Organism"))
         })
         .unwrap();
     assert_eq!(scoped.scope.modality, LogicModality::Epistemic);
@@ -489,13 +645,23 @@ fn malformed_reification_missing_predicate_emits_diagnostic() {
 
 #[test]
 fn invalid_confidence_emits_diagnostic() {
-    let (_, diags) = parse(
+    let (program, diags) = parse(
         "ex:stmt a rdf:Statement ;
             rdf:subject ex:a ; rdf:predicate logic:subClassOf ; rdf:object ex:b ;
             logic:confidence \"2.5\"^^xsd:decimal ;
             logic:modality logic:epistemic .",
     );
-    assert!(diags.iter().any(|d| d.code == "INVALID_CONFIDENCE"));
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "INVALID_CONFIDENCE" && d.severity == Severity::Error)
+    );
+    assert!(
+        !program
+            .axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/a") && a.predicate == logic_iri("subClassOf"))
+    );
 }
 
 // ── Contract complexity guards ───────────────────────────────────────────────
@@ -559,7 +725,12 @@ fn negated_body_atom_yields_negated_axiom() {
     let positive: Vec<_> = rule.body.iter().filter(|b| !b.negated).collect();
     assert_eq!(negated.len(), 1);
     assert_eq!(positive.len(), 1);
-    assert!(negated[0].obj.ends_with("/Dead"));
+    assert!(
+        negated[0]
+            .obj
+            .as_iri()
+            .is_some_and(|iri| iri.ends_with("/Dead"))
+    );
 }
 
 #[test]
@@ -585,8 +756,12 @@ fn distinct_body_constant_term_rejected() {
             logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
             logic:distinctBody [ rdf:subject \"?x\" ; rdf:object ex:constant ] .",
     );
-    assert!(prog.rules[0].distinct_pairs.is_empty());
-    assert!(diags.iter().any(|d| d.code == "MALFORMED_RULE_BODY"));
+    assert!(prog.rules.is_empty());
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_RULE_BODY" && d.severity == Severity::Error)
+    );
 }
 
 // ── Order independence ───────────────────────────────────────────────────────
@@ -610,7 +785,7 @@ fn parse_is_order_independent() {
 
 #[test]
 fn confidence_scoped_axiom_case_produces_expected_ir() {
-    // Mirrors conformance/logic/cases/projections/confidence-scoped-axiom.
+    // A synthetic mix of ordinary typing, subsumption and a scoped assertion.
     let (prog, diags) = parse_logic_str(
         "@prefix logic: <https://blackcatinformatics.ca/logic/> .
          @prefix ex:    <https://example.org/confidence-scoped-axiom/> .
@@ -630,8 +805,8 @@ fn confidence_scoped_axiom_case_produces_expected_ir() {
     )
     .unwrap();
     assert!(diags.is_empty(), "unexpected diags: {diags:?}");
-    // Exactly the 7 axioms the datalog golden emits.
-    assert_eq!(prog.axioms.len(), 7, "axioms: {:#?}", prog.axioms);
+    // Three type facts, one global subsumption and one scoped subsumption.
+    assert_eq!(prog.axioms.len(), 5, "axioms: {:#?}", prog.axioms);
     // The scoped reified axiom carries epistemic modality.
     assert!(has_axiom(
         &prog,
@@ -639,14 +814,18 @@ fn confidence_scoped_axiom_case_produces_expected_ir() {
         "subClassOf",
         LogicModality::Epistemic
     ));
-    // The plain stmt1 confidence/modality triples are default-context axioms.
-    assert!(has_axiom(
-        &prog,
-        "/stmt1",
-        "confidence",
-        LogicModality::None
-    ));
-    assert!(has_axiom(&prog, "/stmt1", "modality", LogicModality::None));
+    // Scope coordinates belong to the reification envelope, never the domain theory.
+    assert!(
+        prog.axioms
+            .iter()
+            .all(|axiom| !axiom.subject.ends_with("/stmt1"))
+    );
+    let scoped = prog
+        .axioms
+        .iter()
+        .find(|axiom| axiom.scope.modality == LogicModality::Epistemic)
+        .unwrap();
+    assert_eq!(scoped.scope.confidence, Some(0.9));
     // The three rdf:type and one plain subClassOf are default context.
     assert!(has_axiom(&prog, "/Bird", "subClassOf", LogicModality::None));
 }
@@ -2569,7 +2748,7 @@ fn derive_has_value_typed_literal_preserves_datatype() {
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let has_typed = all_components(&shapes).iter().any(|c| matches!(
         c,
-        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal { lexical, datatype, lang })
+        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal(purrdf::RdfLiteral { lexical_form: lexical, datatype, language: lang, direction: None, }))
             if lexical == "1"
                 && datatype.as_deref() == Some("http://www.w3.org/2001/XMLSchema#integer")
                 && lang.is_none()
@@ -2600,7 +2779,7 @@ fn derive_has_value_plain_literal_stays_untyped() {
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let untyped = all_components(&shapes).iter().any(|c| matches!(
         c,
-        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal { lexical, datatype, lang })
+        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal(purrdf::RdfLiteral { lexical_form: lexical, datatype, language: lang, direction: None, }))
             if lexical == "foo" && datatype.is_none() && lang.is_none()
     ));
     assert!(
@@ -3465,7 +3644,7 @@ fn derive_pinned_forbidden_pattern_record_lowers_to_not_has_value_on_the_class_s
         denom.components.iter().any(|c| matches!(c,
             ConstraintComponent::Not(inner)
                 if matches!(inner.as_ref(),
-                    ConstraintComponent::HasValue(ShapeValue::Literal { lexical, .. })
+                    ConstraintComponent::HasValue(ShapeValue::Literal(purrdf::RdfLiteral { lexical_form: lexical, .. }))
                         if lexical == "0"))),
         "expected sh:not [ sh:hasValue 0 ] on the g:denom path: {cell_shape:?}"
     );
@@ -3858,10 +4037,7 @@ fn compound_function_term_parses_into_nested_term_app() {
     let expected_inner = Term::App {
         symbol: cons.clone(),
         args: vec![
-            Term::Literal {
-                lexical: "1".to_owned(),
-                datatype: None,
-            },
+            Term::literal("1".to_owned(), None).unwrap(),
             Term::Iri(format!("{ex}nil")),
         ],
     };
@@ -4051,7 +4227,7 @@ fn reasoning_program_with_compound_clause_and_negation_parses() {
     // Nor must the program's structural predicates/type leak into generic axioms.
     assert!(
         prog.axioms.iter().all(|a| {
-            a.obj != logic_iri("ReasoningProgram")
+            a.obj.as_iri() != Some(logic_iri("ReasoningProgram").as_str())
                 && !a.predicate.ends_with("/clause")
                 && !a.predicate.ends_with("/programQuery")
                 && !a.predicate.ends_with("/verdictProbe")
@@ -4717,4 +4893,71 @@ fn modal_over_accessibleFrom_is_hard_error() {
         }),
         "expected an error-grade MALFORMED_FORMULA rejecting logic:accessibleFrom: {diags:?}"
     );
+}
+
+/// A broken conjunct or guard must not license the head by disappearing from its
+/// antecedent. Every case keeps an independent valid rule to check local attribution.
+#[test]
+fn malformed_rule_parts_exclude_the_entire_rule() {
+    let cases = [
+        r#"logic:body [ rdf:subject "?x"; rdf:object "?y" ]"#,
+        r#"logic:body [ rdf:subject "?x"; rdf:predicate ex:p ]"#,
+        r#"logic:body [ rdf:predicate ex:p; rdf:object "?y" ]"#,
+        r#"logic:body [ rdf:subject "?x"; rdf:predicate ex:p, ex:q; rdf:object "?y" ]"#,
+        r#"logic:body [ rdf:subject "?x"; rdf:predicate "ex:p"; rdf:object "?y" ]"#,
+        r#"logic:negatedBody "broken""#,
+        r#"logic:body [ rdf:subject "?x"; rdf:predicate ex:p; rdf:object <<( ex:s ex:p ex:o )>> ]"#,
+        r#"logic:distinctBody [ rdf:subject <<( ex:s ex:p ex:o )>>; rdf:object "?y" ]"#,
+        r#"logic:aggregateFunction <<( ex:s ex:p ex:o )>>; logic:aggregateVariable "?y"; logic:aggregateResult "?total""#,
+        r#"logic:distinctBody "broken""#,
+        r#"logic:distinctBody [ rdf:subject "?x", "?z"; rdf:object "?y" ]"#,
+        r#"logic:aggregateFunction "SUM""#,
+        r#"logic:groupKey "?x""#,
+        r#"logic:aggregateFunction "SUM", "COUNT"; logic:aggregateVariable "?y"; logic:aggregateResult "?total""#,
+        r#"logic:head [ rdf:subject "?x"; rdf:predicate ex:other; rdf:object "?y" ]"#,
+    ];
+    for broken in cases {
+        let (program, diagnostics) = parse(&format!(
+            r#"ex:broken logic:instanceOf logic:Rule;
+                logic:head [ rdf:subject "?x"; rdf:predicate ex:forbidden; rdf:object "?y" ];
+                {broken} .
+               ex:valid logic:instanceOf logic:Rule;
+                logic:head [ rdf:subject "?x"; rdf:predicate ex:allowed; rdf:object "?y" ];
+                logic:body [ rdf:subject "?x"; rdf:predicate ex:given; rdf:object "?y" ] ."#
+        ));
+        assert_eq!(program.rules.len(), 1, "{broken}: {diagnostics:?}");
+        assert!(program.rules[0].head.predicate.ends_with("/allowed"));
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.severity == Severity::Error
+                    && diagnostic
+                        .subject
+                        .as_deref()
+                        .is_some_and(|subject| subject.ends_with("/broken"))),
+            "missing attributed error for {broken}: {diagnostics:?}"
+        );
+    }
+}
+
+#[test]
+fn rule_source_declaration_has_one_semantic_home_on_round_trip() {
+    let (program, diagnostics) = parse(
+        r#"
+        ex:r a logic:Rule; logic:provenance ex:r;
+            logic:head [ rdf:subject "?x"; rdf:predicate ex:derived; rdf:object "?y" ];
+            logic:body [ rdf:subject "?x"; rdf:predicate ex:given; rdf:object "?y" ] .
+    "#,
+    );
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert!(
+        program.axioms.is_empty(),
+        "rule structure is not a domain assertion"
+    );
+    let clif = crate::clif::writer::project_clif(&program).expect("CLIF projection");
+    let (restored, diagnostics) =
+        crate::clif::parse_clif_str(&clif.content, None).expect("CLIF parse");
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(restored.rules, program.rules);
+    assert!(restored.axioms.is_empty());
 }

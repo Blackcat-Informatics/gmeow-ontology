@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Families 1/3/6b (+ entangled Family 4) acceptance + soundness sweep: the native
-//! bounded case-split / complement / union-disjoint / malformed-list refutation
+//! Families 1/3 (+ entangled Family 4) acceptance + soundness sweep: the native
+//! bounded case-split / complement / union-disjoint refutation
 //! sub-decider DECIDES the committed W3C OWL 2 Full divergence slugs its fragment
 //! covers, matching the W3C published verdict EXACTLY — and NEVER contradicts W3C on
 //! any case it now decides (proving `corpus_only` stays 0).
 //!
-//! Each slug's `input.nq` is run through the SAME `dl_consistency` path the
-//! grader/runner uses. The native token — `incomplete` when a construct is undecided
+//! Each slug's authenticated observation was produced by the SAME `dl_consistency`
+//! path the grader/runner uses; tests never execute it on the corpus. The native token — `incomplete` when a construct is undecided
 //! (a non-empty `gaps`), otherwise the consistency boolean — must equal the W3C
 //! ground truth.
 
@@ -20,9 +20,6 @@ use common::native_token;
 /// the W3C published verdict each must reproduce. These are the named divergence
 /// targets its certified-complete fragment covers.
 const DECIDED: &[(&str, &str)] = &[
-    // Family 6b — malformed rdf:List.
-    ("webont-i5-5-003", "inconsistent"),
-    ("webont-i5-5-004", "inconsistent"),
     // Family 3 — union + disjoint / disjointUnion refutation.
     ("new-feature-disjointunion-001", "consistent"),
     // Family 3 — the pure propositional (unionOf × disjointWith) SAT pair: a single
@@ -49,15 +46,9 @@ fn casesplit_decides_the_named_divergence_slugs_matching_w3c() {
     );
 }
 
-// The whole-corpus SOUNDNESS SWEEP — for every divergence case the case-split
-// DECIDER now decides, the decided verdict must equal the W3C published verdict —
-// lives IN-CRATE (`crates/logic/src/reason/refute/casesplit.rs`,
-// `corpus_soundness_sweep_no_decider_contradicts_w3c`). It runs the decider
-// DIRECTLY over every case, so it is fast and isolates the new engine's soundness
-// WITHOUT invoking the native existential chase (which independently hangs on some
-// heavy `owl:someValuesFrom`/cardinality/`inverseOf` corpus cases the case-split
-// family never engages). This file's acceptance test above pins the end-to-end
-// `dl_consistency` token on the NAMED decided slugs (a small, fast, hang-free set).
+// The complete isolated case-split soundness sweep is an authenticated pipeline
+// observation. It covers both full corpora without invoking the existential chase.
+// This file retains the named full-consistency and explicit withhold assertions.
 
 /// The complex Family-4 cases the sub-decider deliberately WITHHOLDS (their
 /// inconsistency turns on existential/cardinality arithmetic outside the

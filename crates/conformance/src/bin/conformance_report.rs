@@ -4,12 +4,9 @@
 //! Materialize the logic-conformance suite verdicts as a single canonical-JSON
 //! artifact, for folding into the signed release bundle (§18).
 //!
-//! `make conformance` runs the corpus under `cargo-nextest` and *discards* the
-//! per-case verdicts once the goldens match. The release-as-evidence lane needs
-//! those verdicts to *ride into* the bundle as the attested "conformance
-//! verdicts" frame, so this binary re-runs every discovered case through the
-//! SAME native cores (`discover_cases` + `run_case`) and writes an aggregated,
-//! deterministic report to `--out`.
+//! This maintenance producer explicitly re-executes discovered cases and writes
+//! an aggregated report to `--out`. The normal gate instead grades the optimized
+//! pipeline's authenticated observations; it never invokes this producer.
 //!
 //! Determinism (§18): cases are keyed in a `BTreeMap` by `case_id` and the
 //! report is serialized with `serde_json` (no `preserve_order` → sorted keys),
@@ -45,6 +42,7 @@ fn note(message: impl Into<String>) {
 fn main() -> gmeow_errors::Result<()> {
     let mut out: Option<PathBuf> = None;
     let mut cases_root: Option<PathBuf> = None;
+    let mut rule_library: Option<PathBuf> = None;
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -60,6 +58,13 @@ fn main() -> gmeow_errors::Result<()> {
                 cases_root = Some(PathBuf::from(args.next().ok_or_else(|| {
                     Diag::of_kind(Cli {
                         detail: "--cases-root requires a path value".to_string(),
+                    })
+                })?));
+            }
+            "--rule-library" => {
+                rule_library = Some(PathBuf::from(args.next().ok_or_else(|| {
+                    Diag::of_kind(Cli {
+                        detail: "--rule-library requires a path value".to_owned(),
                     })
                 })?));
             }
@@ -88,6 +93,47 @@ fn main() -> gmeow_errors::Result<()> {
         }));
     }
 
+    let mut needs_library = false;
+    for case in &cases {
+        if !matches!(
+            gmeow_conformance::vendored::lane_for_case(&case.case_dir)?,
+            Some(gmeow_conformance::vendored::Lane::B)
+        ) {
+            needs_library |=
+                !gmeow_conformance::profile::parse_profile(&case.case_id, &case.profile)?
+                    .shipped_rules
+                    .is_empty();
+        }
+    }
+    // Explicit maintenance selection. A library-free corpus has no dependency on
+    // the grounding module; selected shipped rules require a clean compiled source.
+    let program = if needs_library {
+        let path = rule_library
+            .unwrap_or_else(|| paths::repo_root().join("slices/grounding/logic/module.ttl"));
+        let source = std::fs::read_to_string(&path).map_err(|e| {
+            Diag::of_kind(Io {
+                detail: format!("read {}: {e}", path.display()),
+            })
+        })?;
+        let (program, diagnostics) = gmeow_logic_compile::frontend::parse_logic_str(&source, None)
+            .map_err(|e| Diag::of_kind(Cli { detail: e.0 }))?;
+        if let Some(error) = diagnostics
+            .iter()
+            .find(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+        {
+            return Err(Diag::of_kind(Cli {
+                detail: format!("rule library {}: {}", error.code, error.message),
+            }));
+        }
+        Some(program)
+    } else {
+        None
+    };
+    let library = match &program {
+        Some(program) => run::RuleLibrary::new(program)?,
+        None => run::RuleLibrary::default(),
+    };
+
     // BTreeMap keys → sorted, deterministic ordering independent of discovery.
     let mut by_case: BTreeMap<String, serde_json::Value> = BTreeMap::new();
     for case in &cases {
@@ -101,7 +147,11 @@ fn main() -> gmeow_errors::Result<()> {
         ) {
             continue;
         }
-        let outputs = run::run_case(&case.case_dir)?;
+        let outputs = run::run_case(
+            &case.case_dir,
+            &library,
+            &gmeow_conformance::native_observation::read,
+        )?;
         by_case.insert(
             outputs.case_id.clone(),
             serde_json::json!({

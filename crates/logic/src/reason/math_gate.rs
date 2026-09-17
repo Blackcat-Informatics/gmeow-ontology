@@ -39,7 +39,7 @@
 //! slice-spec producer. No test calls this function to construct a corpus.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 
@@ -56,9 +56,10 @@ fn math_gate_err(detail: String) -> gmeow_errors::Diag {
 /// The `math:` slice module, embedded at compile time (the same convention
 /// `crates/logic/build.rs` uses for the verify query set): production `verify()` never
 /// reads `slices/` off disk at runtime.
-const MATH_MODULE_TTL: &str = include_str!("../../../../slices/grounding/math/module.ttl");
+pub(crate) const MATH_MODULE_TTL: &str =
+    include_str!("../../../../slices/grounding/math/module.ttl");
 /// The `math:` slice module's canonical source IRI (provenance only).
-const MATH_MODULE_SOURCE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/math";
+pub(crate) const MATH_MODULE_SOURCE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/math";
 /// `rdf:type` — the marker triple's predicate.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// `rdfs:seeAlso` — the HiLog-reflection → object-level-property bridge predicate.
@@ -96,51 +97,20 @@ const DIMENSION_TYPE_OBJECTS: [&str; 2] = [
     "https://blackcatinformatics.ca/math/Dimensionless",
 ];
 
-/// The compiled violation `EvalRule`s, built once per process from the embedded
-/// `math/module.ttl` and cached for every subsequent `verify()` call.
-///
-/// The embedded module is a fixed, always-valid compile-time asset (verified in-crate by
-/// [`dimension_gate.rs`](../../../tests/dimension_gate.rs)), so a build failure here is a
-/// genuine authoring/build bug, not a runtime condition a caller could recover from —
-/// hence the loud panic, exactly as `crates/logic/build.rs` fails loud on a malformed
-/// embedded asset.
+/// Repository-free callers share one immutable embedded law identity. Producer
+/// verification passes its own prepared rules explicitly, while unit tests hydrate
+/// the exact producer-selected native law record without compiling module sources.
 fn compiled_rules() -> &'static [EvalRule] {
-    static RULES: OnceLock<Vec<EvalRule>> = OnceLock::new();
-    RULES.get_or_init(|| {
-        build_rules().unwrap_or_else(|e| {
-            panic!(
-                "math dimension-gate: failed to compile the embedded math/module.ttl \
-                 logic:Constraint laws into violation rules: {e}"
-            )
-        })
-    })
+    &crate::verify::prepared_gates::shared().math_rules
 }
 
-/// Parse the embedded `math/module.ttl`, compile it into a [`LogicProgram`], and lower
-/// its two builtin-bound-consequent `logic:Constraint`s into violation `EvalRule`s.
-///
-/// # Errors
-///
-/// Returns `Err` if the embedded Turtle fails to parse, if the `logic:` frontend cannot
-/// compile it into a [`LogicProgram`], or if the constraint lowering itself hard-fails
-/// (an arity mismatch or a non-variable/IRI consequent operand — an authoring bug in the
-/// shipped module, never silently swallowed).
-///
-/// [`LogicProgram`]: gmeow_logic_compile::ir::LogicProgram
-fn build_rules() -> gmeow_errors::Result<Vec<EvalRule>> {
-    let source = purrdf::parse_dataset(MATH_MODULE_TTL.as_bytes(), "text/turtle", None)
-        .map_err(|e| math_gate_err(format!("parse the embedded math/module.ttl: {e}")))?;
-    let (program, _diagnostics) = gmeow_logic_compile::frontend::parse_logic_dataset(
-        source.as_ref(),
-        Some(MATH_MODULE_SOURCE_IRI.to_owned()),
-    )
-    .map_err(|e| {
-        math_gate_err(format!(
-            "compile the embedded math/module.ttl into a LogicProgram: {e}"
-        ))
-    })?;
-    let see_also = reflection_see_also_map(source.as_ref());
-    crate::relational_core::lower_constraint_violation_rules(&program, &see_also)
+/// Lower the already-compiled native math module, sharing the caller's source and IR.
+pub(crate) fn prepare_rules(
+    source: &RdfDataset,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> gmeow_errors::Result<Vec<EvalRule>> {
+    let see_also = reflection_see_also_map(source);
+    crate::relational_core::lower_constraint_violation_rules(program, &see_also)
 }
 
 /// Read every `rdfs:seeAlso` triple of the source graph into a substitution map:
@@ -187,7 +157,8 @@ fn gate_read_predicates(rules: &[EvalRule]) -> BTreeSet<String> {
 }
 
 /// Promote the dimension-relevant quads of the reasoned closure — every default-graph or
-/// named-graph quad of `edb` PLUS the DL-`derived` non-EDB edges the reasoner layered onto
+/// named-graph assertion of `edb`, including native statement-layer assertions,
+/// PLUS the DL-`derived` non-EDB edges the reasoner layered onto
 /// the reasoned graph — into the single canonical [`MATH_GATE_WORLD`], preserving every
 /// term (literals included).
 ///
@@ -224,7 +195,7 @@ fn promote_to_single_world(
                 && matches!(object, RdfTerm::Iri(o) if DIMENSION_TYPE_OBJECTS.contains(&o.as_str())))
     };
     let mut builder = RdfDatasetBuilder::new();
-    for quad in edb.owned_quads() {
+    for quad in purrdf::native_quads::flat_rdf_quads(edb) {
         if !keep(&quad.predicate, &quad.object) {
             continue;
         }
@@ -252,6 +223,10 @@ fn promote_to_single_world(
         ))
     })
 }
+
+#[cfg(test)]
+#[path = "math_gate_routing_tests.rs"]
+mod routing_tests;
 
 /// Decode a materialized row's subject to a bare IRI — every dimension-gate violation
 /// marker's subject is a `math:DimensionalExpression` or `math:Integral` node (always an
@@ -290,7 +265,14 @@ pub fn dimension_gate_markers(
     edb: &RdfDataset,
     derived: &[RdfQuad],
 ) -> gmeow_errors::Result<Vec<(String, String)>> {
-    let rules = compiled_rules();
+    dimension_gate_markers_with_rules(edb, derived, compiled_rules())
+}
+
+pub(crate) fn dimension_gate_markers_with_rules(
+    edb: &RdfDataset,
+    derived: &[RdfQuad],
+    rules: &[EvalRule],
+) -> gmeow_errors::Result<Vec<(String, String)>> {
     if rules.is_empty() {
         return Ok(Vec::new());
     }
@@ -340,77 +322,6 @@ pub fn dimension_gate_markers(
     Ok(markers)
 }
 
+#[path = "math_gate.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// The embedded `math/module.ttl` compiles cleanly (no error-severity diagnostic) and
-    /// carries the two builtin-bound-consequent dimension-gate constraints PLUS the three
-    /// `math:UndimensionedQuantity` coverage obligations (R4: every `math:homogeneousOperand`
-    /// / integral `math:integrand` / `math:withRespectTo` target itself carries a
-    /// `math:hasDimension`, closing the gap the `math:Quantity`-scoped `hasDimension min 1`
-    /// restriction alone does not reach). This does NOT exercise the `verify()` production
-    /// surface (that is `dimension_gate.rs`'s job) — it pins the compile-source contract the
-    /// `make-validate` SHACL surface then derives from, so a future authoring mistake in
-    /// `module.ttl` is caught here rather than only downstream.
-    #[test]
-    fn embedded_module_ttl_compiles_and_carries_the_dimension_gate_constraints() {
-        let source = purrdf::parse_dataset(MATH_MODULE_TTL.as_bytes(), "text/turtle", None)
-            .expect("module.ttl parses");
-        let (program, diagnostics) = gmeow_logic_compile::frontend::parse_logic_dataset(
-            source.as_ref(),
-            Some(MATH_MODULE_SOURCE_IRI.to_owned()),
-        )
-        .expect("module.ttl compiles into a LogicProgram");
-        let errors: Vec<_> = diagnostics
-            .iter()
-            .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
-            .collect();
-        assert!(
-            errors.is_empty(),
-            "the embedded math/module.ttl must compile with no error diagnostics: {errors:?}"
-        );
-
-        let expect_constraint = |name: &str, expected_target: &str, expected_class: &str| {
-            let constraint = program
-                .constraints
-                .iter()
-                .find(|c| c.iri.ends_with(name))
-                .unwrap_or_else(|| panic!("expected constraint {name} to be present"));
-            assert_eq!(
-                format!("{:?}", constraint.target),
-                expected_target,
-                "{name} must target {expected_target}"
-            );
-            assert_eq!(
-                constraint.failure_class.as_deref(),
-                Some(expected_class),
-                "{name} must enforce {expected_class}"
-            );
-            // The SHACL/SPARQL derivation the make-validate surface consumes must render
-            // non-empty — proves the Exists-consequent constraint shape is projectable, not
-            // just parseable.
-            let sparql =
-                gmeow_logic_compile::projections::shapes::project_procedural_constraint(constraint);
-            assert!(
-                !sparql.trim().is_empty(),
-                "{name} must project a non-empty sh:SPARQLConstraint"
-            );
-        };
-        expect_constraint(
-            "HomogeneousOperandDimensionedConstraint",
-            "ObjectsOf(\"https://blackcatinformatics.ca/math/homogeneousOperand\")",
-            "https://blackcatinformatics.ca/math/UndimensionedQuantity",
-        );
-        expect_constraint(
-            "IntegrandDimensionedConstraint",
-            "ObjectsOf(\"https://blackcatinformatics.ca/math/integrand\")",
-            "https://blackcatinformatics.ca/math/UndimensionedQuantity",
-        );
-        expect_constraint(
-            "WithRespectToDimensionedConstraint",
-            "ObjectsOf(\"https://blackcatinformatics.ca/math/withRespectTo\")",
-            "https://blackcatinformatics.ca/math/UndimensionedQuantity",
-        );
-    }
-}
+mod tests;

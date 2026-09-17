@@ -43,6 +43,7 @@ pub mod adapter;
 pub mod error;
 // The CGIF (Conceptual Graph Interchange Format) text dialect: a bidirectional,
 // PreservationKind::Exact conceptual-graph FOL surface (writer + reader).
+pub mod action_policy;
 pub mod cgif;
 // The CLIF (Common Logic Interchange Format) text dialect: a bidirectional,
 // PreservationKind::Exact s-expression FOL surface (writer + reader).
@@ -58,6 +59,8 @@ pub mod graphutil;
 // the correspondence lowerings consume; file I/O + parsing live in the caller).
 pub mod ingest;
 pub mod ir;
+pub mod term_serde;
+pub mod tptp;
 // The single loss store: one substrate DiagLedger every loss serialization
 // (transcode / coherence certificate / F2 projection report) projects from.
 pub mod loss_ledger;

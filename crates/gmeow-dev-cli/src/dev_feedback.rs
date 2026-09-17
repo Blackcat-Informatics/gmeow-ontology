@@ -211,9 +211,9 @@ pub(crate) fn write_artifacts(report: &Report, config: &DiagnosticsConfig) -> Re
 /// `gmeow-dev feedback` — fold every offline dev-gate surface into one report,
 /// project it to the console, and write the `{json,sarif,html,gts}` artifacts.
 ///
-/// The process exit code is driven SOLELY by the folded gate report: a per-surface
-/// failure is isolated as a `feedback.<label>-skipped` warning (never an abort),
-/// so `feedback` stays an artifact-builder whose verdict is the whole-gate report.
+/// Every selected surface is mandatory. The native producer verdict and aggregate
+/// verdict are retained explicitly in the report metadata shipped in JSON/GTS;
+/// collected diagnostics remain intact and are never regraded by severity.
 pub fn feedback(
     console: Option<ConsoleMode>,
     artifacts: Option<&str>,
@@ -236,21 +236,14 @@ pub fn feedback(
         Err(e) => return fail(e.to_string()),
     };
 
-    let mut report = Report::new("feedback");
-    for (label, thunk) in surfaces() {
-        match thunk(&root) {
-            Ok(surface) => {
-                for finding in surface.findings {
-                    report.add_finding(finding);
-                }
-            }
-            Err(e) => report.add_finding(Finding::new(
-                Severity::Warning,
-                format!("feedback.{label}-skipped"),
-                format!("{label} findings not folded: {e}"),
-            )),
-        }
-    }
+    // Keep the native producer verdict alongside its diagnostic projection:
+    // re-grading advisory/coherent Error rows by severity would change its policy.
+    let (mut report, accepted) = collect_feedback(
+        generated_feedback(&root),
+        surfaces()
+            .into_iter()
+            .map(|(label, thunk)| (label, thunk(&root))),
+    );
     report
         .metadata
         .insert("category".into(), serde_json::json!(config.category));
@@ -264,11 +257,55 @@ pub fn feedback(
         return code;
     }
 
-    if report.ok() {
+    if accepted {
         println!("diagnostics feedback written");
         0
     } else {
-        fail(format!("{} error(s)", report.error_count()))
+        fail("one or more required feedback surfaces failed")
+    }
+}
+
+/// Retain every selected diagnostic even when the native producer returns an error.
+/// Surface results are consumed once; their failures never suppress later surfaces.
+fn collect_feedback(
+    generated: gmeow_errors::Result<(Report, bool)>,
+    surfaces: impl IntoIterator<Item = (&'static str, gmeow_errors::Result<Report>)>,
+) -> (Report, bool) {
+    let (mut report, mut accepted) = match generated {
+        Ok(result) => result,
+        Err(error) => {
+            let mut report = Report::new("feedback");
+            record_gate_verdict(&mut report, "pipeline_gate_verdict", false);
+            append_surface_failure(&mut report, "generated", error);
+            (report, false)
+        }
+    };
+    for (label, result) in surfaces {
+        match result {
+            Ok(surface) => {
+                accepted &= surface.ok();
+                for finding in surface.findings {
+                    report.add_finding(finding);
+                }
+            }
+            Err(error) => {
+                accepted = false;
+                append_surface_failure(&mut report, label, error);
+            }
+        }
+    }
+    record_gate_verdict(&mut report, "gate_verdict", accepted);
+    (report, accepted)
+}
+
+fn append_surface_failure(report: &mut Report, label: &str, error: gmeow_errors::Diag) {
+    let mut ledger = gmeow_errors::DiagLedger::new();
+    ledger.attach(
+        error.with_context(format!("feedback surface {label} failed")),
+        gmeow_errors::StageId::new(label),
+    );
+    for finding in ledger.findings(label) {
+        report.add_finding(finding);
     }
 }
 
@@ -276,7 +313,7 @@ pub fn feedback(
 /// projections as content-addressed blobs in a GTS package whose snapshot graph
 /// IS the findings RDF and whose metadata stamps the snapshot content id.
 fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<(), i32> {
-    let bytes = crate::feedback_bundle::build_feedback_bundle(report)
+    let emission = crate::feedback_bundle::build_feedback_bundle(report)
         .map_err(|e| fail(format!("build feedback bundle: {e}")))?;
 
     if let Err(e) = std::fs::create_dir_all(&config.directory) {
@@ -286,14 +323,52 @@ fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<
         )));
     }
     let path = config.directory.join(format!("{}.gts", config.stem));
-    if let Err(e) = std::fs::write(&path, bytes) {
-        return Err(fail(format!("cannot write {}: {e}", path.display())));
-    }
-    println!("wrote {}", path.display());
+    let receipt = emission
+        .write_to(&path)
+        .map_err(|e| fail(format!("cannot publish {}: {e}", path.display())))?;
+    println!("wrote {} and {}", path.display(), receipt.display());
     Ok(())
 }
 
 /// The `(label, thunk)` table of offline dev-gate surfaces folded into feedback.
+/// Persist a decided gate verdict beside its diagnostic projection.
+fn record_gate_verdict(report: &mut Report, key: &str, accepted: bool) {
+    let verdict = if accepted {
+        gmeow_errors::GateVerdict::Collected
+    } else {
+        gmeow_errors::GateVerdict::Fatal
+    };
+    report
+        .metadata
+        .insert(key.to_owned(), serde_json::json!(verdict));
+}
+
+/// Produce the build-drift observation once and retain its native gate decision.
+fn generated_feedback(root: &Path) -> gmeow_errors::Result<(Report, bool)> {
+    let jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+    let run = gmeow_pipeline::run::run_full(root, jobs, gmeow_pipeline::run::RunMode::Check)?;
+    Ok(pipeline_feedback(run))
+}
+
+/// The lossy report carries every finding; acceptance stays with the native ledger.
+fn pipeline_feedback(run: gmeow_pipeline::run::RunReport) -> (Report, bool) {
+    let accepted = run.is_clean();
+    let mut report = Report::new("feedback");
+    record_gate_verdict(&mut report, "pipeline_gate_verdict", accepted);
+    for path in run.drifted {
+        let mut finding = Finding::new(Severity::Error, "generator.drift", path.clone())
+            .with_tool("pipeline")
+            .with_category(gmeow_errors::FindingCategory::ModelingDisciplineViolation)
+            .with_standpoint(gmeow_errors::Standpoint::Binding);
+        finding.add_location(gmeow_errors::Location::new(Some(path), None, None, None));
+        report.add_finding(finding);
+    }
+    for finding in run.findings {
+        report.add_finding(finding);
+    }
+    (report, accepted)
+}
+
 /// Each thunk re-runs one native gate surface and returns its `Report`.
 type SurfaceThunk = fn(&Path) -> gmeow_errors::Result<Report>;
 
@@ -377,59 +452,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 &report,
             ))
         }),
-        ("generated", |root| {
-            // The build-drift surface: run the pipeline in CHECK mode (the build
-            // authority) and project its drift into `generator.drift` error findings
-            // plus the run's own error findings.
-            let jobs = std::thread::available_parallelism()
-                .map(|n| n.get())
-                .unwrap_or(1);
-            let run =
-                gmeow_pipeline::run::run_full(root, jobs, gmeow_pipeline::run::RunMode::Check)
-                    .map_err(error::feedback)?;
-            let mut r = Report::new("generated");
-            let mut drifted = run.drifted.clone();
-            drifted.sort();
-            for rel in drifted {
-                let mut finding = Finding::new(Severity::Error, "generator.drift", rel.clone())
-                    .with_tool("pipeline");
-                finding.add_location(gmeow_errors::Location::new(Some(rel), None, None, None));
-                r.add_finding(finding);
-            }
-            for finding in run.findings {
-                if finding.severity == Severity::Error {
-                    r.add_finding(finding);
-                }
-            }
-            Ok(r)
-        }),
-        ("logic-compile", |root| {
-            // The `logic:` compile diagnostics surface: parse diagnostics projected
-            // into the canonical report; a hard parse/compile failure is surfaced as
-            // one `logic-compile.failed` error rather than aborting the whole fold.
-            let source = root.join("slices/grounding/logic/module.ttl");
-            let source_ttl = std::fs::read_to_string(&source).map_err(|e| {
-                error::source(format!(
-                    "logic: source not found: {} ({e})",
-                    source.display()
-                ))
-            })?;
-            match compile_logic_report(&source_ttl) {
-                Ok(r) => Ok(r),
-                Err(msg) => {
-                    let mut r = Report::new("logic-compile");
-                    r.add_finding(
-                        Finding::new(
-                            Severity::Error,
-                            "logic-compile.failed",
-                            format!("logic: compile failed: {msg}"),
-                        )
-                        .with_tool("logic-compile"),
-                    );
-                    Ok(r)
-                }
-            }
-        }),
+        ("logic-compile", logic_compile_surface),
         ("statement-compile", |root| {
             // The native statement compiler's invariant + losslessness diagnostics,
             // over the merged ontology (no imports) — the `include_imports=False`
@@ -467,6 +490,35 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
     ]
 }
 
+// A registry entry stores this function; inspecting surface names executes no source work.
+fn logic_compile_surface(root: &Path) -> gmeow_errors::Result<Report> {
+    // The `logic:` compile diagnostics surface: parse diagnostics projected
+    // into the canonical report; a hard parse/compile failure is surfaced as
+    // one `logic-compile.failed` error rather than aborting the whole fold.
+    let source = root.join("slices/grounding/logic/module.ttl");
+    let source_ttl = std::fs::read_to_string(&source).map_err(|e| {
+        error::source(format!(
+            "logic: source not found: {} ({e})",
+            source.display()
+        ))
+    })?;
+    match compile_logic_report(&source_ttl) {
+        Ok(r) => Ok(r),
+        Err(msg) => {
+            let mut r = Report::new("logic-compile");
+            r.add_finding(
+                Finding::new(
+                    Severity::Error,
+                    "logic-compile.failed",
+                    format!("logic: compile failed: {msg}"),
+                )
+                .with_tool("logic-compile"),
+            );
+            Ok(r)
+        }
+    }
+}
+
 /// Compile the `logic:` source and project its parse diagnostics into the
 /// canonical report — the native twin of `compile_logic`'s `diagnostics_report`.
 /// A parse or compile hard error is returned as `Err` for the caller to surface
@@ -478,10 +530,11 @@ fn compile_logic_report(source_ttl: &str) -> gmeow_errors::Result<Report> {
     // correspondence gates inside `compile_program` read a real per-correspondence verdict
     // instead of hitting their missing-verdict hard-fail on a correspondence-bearing source.
     // A correspondence-free source yields an empty map (the gates never run).
-    let verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
-        .map_err(error::feedback)?;
-    gmeow_logic_compile::projections::compile_program(&program, &verdicts)
-        .map_err(error::feedback)?;
+    gmeow_logic_compile::projections::compile_program(
+        &program,
+        gmeow_logic::correspondence_exec::program_verdicts,
+    )
+    .map_err(error::feedback)?;
     Ok(gmeow_logic::logic_diagnostics::diagnostics_report(
         &diagnostics,
     ))
@@ -605,77 +658,10 @@ fn unified_diff(original: &str, patched: &str, path: &str) -> String {
     out
 }
 
+#[path = "dev_feedback.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::{compile_logic_report, surfaces};
+mod tests;
 
-    /// The canonical offline dev-gate surface set `feedback` folds into one report
-    /// — the Rust twin of the retired Python `_EXPECTED_SURFACES`. Pinned here so a
-    /// future edit that adds or drops a fold surface without updating this set fails
-    /// the gate (the drift guard the deleted `test_feedback_surfaces.py` provided).
-    const EXPECTED_SURFACES: &[&str] = &[
-        "alignment",
-        "coverage",
-        "acceptance",
-        "wikidata",
-        "constitution",
-        "crate-layering",
-        "repo-static",
-        "box-roles",
-        "audit",
-        "generated",
-        "logic-compile",
-        "statement-compile",
-        "mapping-compile",
-        "slice-ownership",
-    ];
-
-    /// `surfaces()` folds EXACTLY the canonical dev-gate surface set — no surface
-    /// silently dropped (the coverage regression) and none silently added. On-gate:
-    /// this inspects only the `(label, _)` table, never running any thunk.
-    #[test]
-    fn surfaces_cover_exactly_the_canonical_set() {
-        let mut got: Vec<&str> = surfaces().iter().map(|(label, _)| *label).collect();
-        got.sort_unstable();
-        let mut expected: Vec<&str> = EXPECTED_SURFACES.to_vec();
-        expected.sort_unstable();
-        assert_eq!(
-            got, expected,
-            "feedback surface set drifted from the canonical dev-gate surfaces"
-        );
-    }
-
-    /// A `logic:` source that DECLARES a `logic:Correspondence` (an isomorphism with a
-    /// realized get leg) must compile cleanly through the public `compile_logic_report`
-    /// surface — its correspondence gates run against EXECUTED lens-law verdicts computed
-    /// by the caller. This pins the fix for the missing-verdict hard-fail: before the
-    /// caller discharged the verdicts, `compile_program` fed the gates an empty verdict map
-    /// and the round-trip gate PANICKED on this exact input (a `PanicException` on the PyO3
-    /// twin) instead of returning a result. The assertion is `is_ok`; a regression re-arms
-    /// the panic and aborts the test process rather than returning `Err`.
-    #[test]
-    fn correspondence_bearing_source_compiles_without_missing_verdict_panic() {
-        // An Isomorphism cell with a single-step get leg. Its lawful put is the structural
-        // inverse, which the round-trip gate composes + discharges — reaching `verdict_for`.
-        let source = "\
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix ex: <https://gmeow.example/corr/> .
-@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
-
-ex:iso a logic:Correspondence ;
-    logic:correspondenceRelation logic:Equiv ;
-    logic:morphismClass logic:Isomorphism ;
-    logic:morphismKind logic:InstitutionMorphism ;
-    logic:mnemomorphic \"true\"^^xsd:boolean ;
-    logic:getLeg ex:isoGet .
-
-ex:isoGet gm:path ex:isoStep .
-";
-        let report = compile_logic_report(source);
-        assert!(
-            report.is_ok(),
-            "correspondence-bearing source must compile (verdicts discharged), got {report:?}"
-        );
-    }
-}
+#[cfg(test)]
+#[path = "dev_feedback/acceptance_tests.rs"]
+mod acceptance_tests;

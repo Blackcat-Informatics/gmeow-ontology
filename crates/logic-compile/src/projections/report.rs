@@ -89,11 +89,82 @@ fn int_literal(n: usize) -> RdfLiteral {
     RdfLiteral::typed(n.to_string(), format!("{XSD_NS}integer"))
 }
 
+/// The report judgment for one projection, independent of its emitted body.
+/// The complete output remains owned by the selected projection artifact.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct ProjectionReportRow {
+    /// The exact target key used to join this row to the shared loss ledger.
+    pub target: String,
+    /// Whether the separately emitted body is an RDF serialization.
+    pub is_rdf: bool,
+    /// The declared preservation judgment, checked against the joined residue.
+    pub preservation: crate::ir::PreservationKind,
+    /// The declared complexity class, retained verbatim in the report.
+    pub complexity: String,
+}
+
+/// A borrowed report judgment from either a projection or a compact native row.
+#[derive(Clone, Copy)]
+pub struct ProjectionReportRowRef<'a> {
+    /// The exact target key used by the loss ledger.
+    pub target: &'a str,
+    /// The declared preservation judgment.
+    pub preservation: crate::ir::PreservationKind,
+    /// The declared complexity class.
+    pub complexity: &'a str,
+}
+
+impl From<&ProjectionResult> for ProjectionReportRow {
+    /// Copy only report metadata while the caller retains its emitted body.
+    fn from(projection: &ProjectionResult) -> Self {
+        Self {
+            target: projection.target.clone(),
+            is_rdf: projection.is_rdf,
+            preservation: projection.preservation,
+            complexity: projection.complexity.clone(),
+        }
+    }
+}
+
+impl From<ProjectionResult> for ProjectionReportRow {
+    /// Move report metadata and release a body whose artifact has already been emitted.
+    fn from(projection: ProjectionResult) -> Self {
+        Self {
+            target: projection.target,
+            is_rdf: projection.is_rdf,
+            preservation: projection.preservation,
+            complexity: projection.complexity,
+        }
+    }
+}
+
+impl<'a> From<&'a ProjectionResult> for ProjectionReportRowRef<'a> {
+    /// Borrow the judgment without copying the projection's output or metadata.
+    fn from(projection: &'a ProjectionResult) -> Self {
+        Self {
+            target: &projection.target,
+            preservation: projection.preservation,
+            complexity: &projection.complexity,
+        }
+    }
+}
+
+impl<'a> From<&'a ProjectionReportRow> for ProjectionReportRowRef<'a> {
+    /// Borrow a compact native row for the shared report renderer.
+    fn from(row: &'a ProjectionReportRow) -> Self {
+        Self {
+            target: &row.target,
+            preservation: row.preservation,
+            complexity: &row.complexity,
+        }
+    }
+}
+
 /// The three header counts of the projection report.  Carried as a small value so the
 /// report can be assembled by a caller that has the counts but no [`LogicProgram`] —
 /// e.g. the pipeline, which reconstructs the correspondence ledger separately from the
 /// logic program and unions the two before serializing ONCE.
-#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ReportHeader {
     /// `logic:axiomCount` — the number of axioms in the logic program.
     pub axiom_count: usize,
@@ -171,12 +242,9 @@ pub fn build_projection_report(
     build_projection_report_from(ReportHeader::of_program(program), projections, ledger)
 }
 
-/// The SINGLE projection-report serialization routine: header counts + the sorted
-/// projection rows, run through one [`TripleSink`] with the same alphabetical target
-/// sort.  Both [`build_projection_report`] and the pipeline (which unions the logic
-/// projections with the correspondence ledger) funnel through here, so the seven
-/// whole-program logic rows serialize byte-identically regardless of caller — only the
-/// added correspondence rows differ.
+/// Borrow report judgments from full projection results and delegate to the same
+/// [`build_projection_report_rows`] renderer used by native pipeline publications.
+/// Emitted projection bodies are never copied to assemble the report.
 ///
 /// # Errors
 ///
@@ -186,6 +254,25 @@ pub fn build_projection_report_from(
     projections: &[ProjectionResult],
     ledger: &LossLedger,
 ) -> Result<String, OverclaimError> {
+    build_projection_report_rows(
+        header,
+        projections.iter().map(ProjectionReportRowRef::from),
+        &[ledger],
+    )
+}
+
+/// Render borrowed report rows over the union of complete native loss stores.
+/// Only the sortable row references and projected notes are allocated; projection
+/// bodies and diagnostic nodes are neither copied nor reconstructed for the join.
+///
+/// # Errors
+/// Refuses exact overclaims and unsupported rows with no disclosed residue.
+pub fn build_projection_report_rows<'a>(
+    header: ReportHeader,
+    projections: impl IntoIterator<Item = ProjectionReportRowRef<'a>>,
+    ledgers: &[&LossLedger],
+) -> Result<String, OverclaimError> {
+    let ledger = crate::loss_ledger::ProjectionLossView::new(ledgers);
     let mut g = TripleSink::default();
 
     let report_iri = logic("projection-report");
@@ -239,22 +326,22 @@ pub fn build_projection_report_from(
     }
 
     // Targets in sorted order (the Python `sorted(projections, key=target)`).
-    let mut sorted: Vec<&ProjectionResult> = projections.iter().collect();
-    sorted.sort_by(|a, b| a.target.cmp(&b.target));
+    let mut sorted: Vec<ProjectionReportRowRef<'_>> = projections.into_iter().collect();
+    sorted.sort_by(|a, b| a.target.cmp(b.target));
 
     for proj in sorted {
         // The per-target drop set read back from the ONE loss store the producers interned
         // into — the single source of truth for both the legalization gate's residue and
         // the `gmeow:lossyDrop` records serialized below (structural notes sorted, then the
         // `actual: `-prefixed per-run notes sorted).
-        let drops = ledger.projection_drops_for(&proj.target);
+        let drops = ledger.projection_drops_for(proj.target);
 
         // Legalization gate: a lowering is a total function into ⟨legal ⊕ flagged
         // residue⟩. The residue is the full flagged set — exactly what is serialized below
         // as gmeow:lossyDrop. The gate fires on an Exact overclaim OR an Unsupported silent
         // under-disclosure.
         let residue: Vec<&str> = drops.iter().map(String::as_str).collect();
-        assert_no_overclaim(&proj.target, proj.preservation, &residue)?;
+        assert_no_overclaim(proj.target, proj.preservation, &residue)?;
 
         // The target name is the IRI's local segment AND the human label. Whole-program
         // logic target names use only IRI-safe characters, so the encoder below is the
@@ -262,23 +349,11 @@ pub fn build_projection_report_from(
         // embed full IRIs + separators (`|`, `::`, spaces) that are illegal in an IRI, so
         // those are percent-encoded into a legal, deterministic segment. The unencoded
         // name remains the readable `rdfs:label`.
-        // The human-readable correspondence key, when this target's residue carries one:
-        // every `correspondence_result` caller (fno/edoal/sssom/sparql/sparql_put) pushes
-        // `correspondence: {key}` as its FIRST actual drop, so `proj.target` (a
-        // `<dialect>:<sha256-prefix>` opaque IRI segment, minted to keep the target name
-        // IRI-legal) never has to double as the label. Whole-program logic targets
-        // (owl-dl, owl-el, gufo, canonical-rdf12, …) push no such note, so `proj.target`
-        // itself — already human-readable for those — is the honest fallback.
-        let target_key = drops
-            .iter()
-            .find_map(|note| {
-                note.strip_prefix("actual: ")
-                    .unwrap_or(note.as_str())
-                    .strip_prefix("correspondence: ")
-            })
-            .unwrap_or(proj.target.as_str());
+        // Identity is mandatory target metadata. Loss notes never supply a label
+        // or authorize a preservation claim, including notes with old label text.
+        let target_key = proj.target;
 
-        let target_iri = format!("{LOGIC_NS}target/{}", iri_safe_segment(&proj.target));
+        let target_iri = format!("{LOGIC_NS}target/{}", iri_safe_segment(proj.target));
         g.add_iri(&report_iri, &logic("hasProjection"), &target_iri);
         g.add_iri(&target_iri, RDF_TYPE, &logic("ProjectionTarget"));
         let target_definition = format!(
@@ -301,7 +376,7 @@ pub fn build_projection_report_from(
         g.add_lit(
             &target_iri,
             &logic("complexityClass"),
-            RdfLiteral::simple(&proj.complexity),
+            RdfLiteral::simple(proj.complexity),
         );
 
         let lossy_drop = format!("{GMEOW_NS}lossyDrop");
@@ -320,7 +395,7 @@ pub fn build_projection_report_from(
         // so the emission is deterministic.
         let mut by_source: std::collections::BTreeMap<String, Vec<String>> =
             std::collections::BTreeMap::new();
-        for (note, source_term) in ledger.term_source_drops(&proj.target) {
+        for (note, source_term) in ledger.term_source_drops(proj.target) {
             by_source.entry(source_term).or_default().push(note);
         }
         let lossy_source_term = format!("{GMEOW_NS}lossySourceTerm");
@@ -358,7 +433,7 @@ pub fn build_projection_report_from(
             g.add_lit(
                 &term_loss_iri,
                 &logic("complexityClass"),
-                RdfLiteral::simple(&proj.complexity),
+                RdfLiteral::simple(proj.complexity),
             );
             for note in notes {
                 g.add_lit(&term_loss_iri, &lossy_drop, RdfLiteral::simple(note));
@@ -371,223 +446,6 @@ pub fn build_projection_report_from(
     Ok(g.serialize(banner))
 }
 
+#[path = "report.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn header(correspondence_count: usize, lawful_uplift_count: usize) -> ReportHeader {
-        ReportHeader {
-            axiom_count: 0,
-            rule_count: 0,
-            profile_count: 0,
-            formula_count: 0,
-            correspondence_count,
-            lawful_uplift_count,
-            claimed_uplift_count: 0,
-        }
-    }
-
-    #[test]
-    fn liftability_statistic_emitted_only_when_correspondences_present() {
-        // The derived liftability statistic (3 of 4 lawful) appears in the ledger.
-        let ttl =
-            build_projection_report_from(header(4, 3), &[], &LossLedger::new()).expect("report");
-        assert!(
-            ttl.contains("correspondenceCount"),
-            "expected correspondenceCount in:\n{ttl}"
-        );
-        assert!(
-            ttl.contains("lawfulUpliftCount"),
-            "expected lawfulUpliftCount in:\n{ttl}"
-        );
-
-        // A correspondence-free report is byte-unchanged (no statistic emitted).
-        let empty =
-            build_projection_report_from(header(0, 0), &[], &LossLedger::new()).expect("report");
-        assert!(
-            !empty.contains("correspondenceCount"),
-            "a correspondence-free report must not emit the statistic:\n{empty}"
-        );
-        assert!(!empty.contains("lawfulUpliftCount"), "{empty}");
-    }
-
-    /// Shift-left for the A-Box annotation contract (`gmeow-errors::abox`): every
-    /// `logic:ProjectionTarget` and `logic:TermProjectionLoss` individual this report
-    /// mints carries all four mandatory annotations (`rdfs:label`, `skos:definition`,
-    /// `rdfs:isDefinedBy`, `gmeow:graphBoxRole`); the label/definition literals carry
-    /// the `x-gmeow-english` carrier tag (never bare `en`); and the label is the
-    /// human-readable correspondence key — never the opaque `<dialect>:<sha-prefix>`
-    /// target name `correspondence_result` mints for IRI legality.
-    ///
-    /// `gmeow-logic-compile` has zero dependency on `gmeow-validate` (the reverse
-    /// dependency would cycle: `gmeow-validate` depends on this crate), so this parses
-    /// the emitted dataset directly and asserts on it, rather than driving
-    /// `gmeow_validate::lint::structural_lint_dataset` as the pipeline-level provenance/
-    /// evals tests do.
-    #[test]
-    fn projection_targets_and_term_losses_carry_the_full_abox_annotation_contract() {
-        use crate::graphutil::{Node, Subject, nn, objects};
-        use crate::ir::PreservationKind;
-        use gmeow_errors::abox::{
-            BOX_ABOX, GRAPH_BOX_ROLE, RDFS_IS_DEFINED_BY, RDFS_LABEL, SKOS_DEFINITION,
-            X_GMEOW_ENGLISH,
-        };
-
-        // A correspondence-dialect target: `proj.target` is the opaque
-        // `<dialect>:<sha-prefix>` segment `correspondence_result` mints for IRI
-        // legality; its residue's FIRST actual drop carries the human-readable key.
-        let target_name = "fno:deadbeef01234567".to_owned();
-        let key = "fno:KnowsAboutMapping|get";
-        let source_term = "https://blackcatinformatics.ca/gmeow/knowsAbout".to_owned();
-        let mut ledger = LossLedger::new();
-        ledger.record_projection_drops_attributed(
-            &target_name,
-            PreservationKind::SoundUnder,
-            &[],
-            &[
-                (format!("correspondence: {key}"), None),
-                (
-                    "fno:hasParameter arity dropped".to_owned(),
-                    Some(source_term.clone()),
-                ),
-            ],
-        );
-        let proj = ProjectionResult {
-            target: target_name.clone(),
-            content: String::new(),
-            is_rdf: false,
-            preservation: PreservationKind::SoundUnder,
-            complexity: "P".to_owned(),
-        };
-
-        let ttl = build_projection_report_from(header(0, 0), &[proj], &ledger).expect("report");
-        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-            .expect("emitted report Turtle must parse");
-        let ds = dataset.as_ref();
-
-        let target_iri = format!("{LOGIC_NS}target/{}", iri_safe_segment(&target_name));
-        let target_subject = Subject::Iri(target_iri.clone());
-
-        // The label is the human-readable correspondence key, never the opaque hash,
-        // and carries the x-gmeow-english carrier tag.
-        let labels = objects(ds, &target_subject, &nn(RDFS_LABEL));
-        assert_eq!(labels.len(), 1, "exactly one rdfs:label: {labels:?}");
-        match &labels[0] {
-            Node::Lit { lexical, lang, .. } => {
-                assert_eq!(lexical, key, "label must be the correspondence key");
-                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
-            }
-            other => panic!("rdfs:label must be a literal: {other:?}"),
-        }
-        assert_ne!(
-            labels[0],
-            Node::iri(target_name.clone()),
-            "label must never be the opaque hash target name"
-        );
-
-        // skos:definition is present, carrier-tagged, and derived from the key +
-        // preservation + complexity (never fabricated).
-        let definitions = objects(ds, &target_subject, &nn(SKOS_DEFINITION));
-        assert_eq!(
-            definitions.len(),
-            1,
-            "exactly one skos:definition: {definitions:?}"
-        );
-        match &definitions[0] {
-            Node::Lit { lexical, lang, .. } => {
-                assert_eq!(
-                    lexical,
-                    "Projection to fno:KnowsAboutMapping|get: preservation \
-                     SoundUnderApproximation, complexity P."
-                );
-                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
-            }
-            other => panic!("skos:definition must be a literal: {other:?}"),
-        }
-
-        // rdfs:isDefinedBy points at the projection-ledger named graph this report is
-        // folded into downstream.
-        assert_eq!(
-            objects(ds, &target_subject, &nn(RDFS_IS_DEFINED_BY)),
-            vec![Node::iri(GRAPH_PROJECTION_LEDGER)],
-            "rdfs:isDefinedBy must point at the projection-ledger graph"
-        );
-
-        // gmeow:graphBoxRole is the assertional-tier role every generated individual
-        // carries.
-        assert_eq!(
-            objects(ds, &target_subject, &nn(GRAPH_BOX_ROLE)),
-            vec![Node::iri(BOX_ABOX)],
-            "graphBoxRole must be gmeow:boxABox"
-        );
-
-        // The reified TermProjectionLoss node carries the same four-annotation
-        // contract, with a label/definition derived from the key + the DOCUMENTED
-        // source term (never the opaque hash).
-        let term_loss_iri = format!("{target_iri}/termloss/{}", iri_safe_segment(&source_term));
-        let term_loss_subject = Subject::Iri(term_loss_iri);
-        let term_labels = objects(ds, &term_loss_subject, &nn(RDFS_LABEL));
-        assert_eq!(
-            term_labels.len(),
-            1,
-            "exactly one term-loss rdfs:label: {term_labels:?}"
-        );
-        match &term_labels[0] {
-            Node::Lit { lexical, lang, .. } => {
-                assert_eq!(lexical, &format!("{key}: loss of {source_term}"));
-                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
-            }
-            other => panic!("term-loss rdfs:label must be a literal: {other:?}"),
-        }
-        let term_definitions = objects(ds, &term_loss_subject, &nn(SKOS_DEFINITION));
-        assert_eq!(term_definitions.len(), 1, "{term_definitions:?}");
-        match &term_definitions[0] {
-            Node::Lit { lexical, lang, .. } => {
-                assert_eq!(
-                    lexical,
-                    &format!("Term {source_term} is not preserved by the projection to {key}.")
-                );
-                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
-            }
-            other => panic!("term-loss skos:definition must be a literal: {other:?}"),
-        }
-        assert_eq!(
-            objects(ds, &term_loss_subject, &nn(RDFS_IS_DEFINED_BY)),
-            vec![Node::iri(GRAPH_PROJECTION_LEDGER)]
-        );
-        assert_eq!(
-            objects(ds, &term_loss_subject, &nn(GRAPH_BOX_ROLE)),
-            vec![Node::iri(BOX_ABOX)]
-        );
-
-        // A whole-program logic target (no `correspondence: ` note in its residue)
-        // falls back to its own already-human-readable `proj.target` as the label —
-        // still carrier-tagged, still carrying all four annotations.
-        let owl_dl_proj = ProjectionResult {
-            target: "owl-dl".to_owned(),
-            content: String::new(),
-            is_rdf: false,
-            preservation: PreservationKind::SoundUnder,
-            complexity: "EL".to_owned(),
-        };
-        let ttl2 = build_projection_report_from(header(0, 0), &[owl_dl_proj], &LossLedger::new())
-            .expect("report");
-        let dataset2 = purrdf::parse_dataset(ttl2.as_bytes(), "text/turtle", None)
-            .expect("emitted report Turtle must parse");
-        let ds2 = dataset2.as_ref();
-        let owl_dl_subject = Subject::Iri(format!("{LOGIC_NS}target/owl-dl"));
-        let owl_dl_labels = objects(ds2, &owl_dl_subject, &nn(RDFS_LABEL));
-        assert_eq!(owl_dl_labels.len(), 1, "{owl_dl_labels:?}");
-        match &owl_dl_labels[0] {
-            Node::Lit { lexical, lang, .. } => {
-                assert_eq!(lexical, "owl-dl");
-                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
-            }
-            other => panic!("fallback rdfs:label must be a literal: {other:?}"),
-        }
-        assert_eq!(
-            objects(ds2, &owl_dl_subject, &nn(GRAPH_BOX_ROLE)),
-            vec![Node::iri(BOX_ABOX)]
-        );
-    }
-}
+mod tests;

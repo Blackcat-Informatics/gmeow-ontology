@@ -47,10 +47,9 @@
 //!   preserved). The sidecar is a runtime accumulator and only its public projection
 //!   feeds the digest.
 //! * **handles** — each `(graph_iri, HandleEntry)` persists its graph IRI, arm tag,
-//!   and semantic digest. Graph-lossless arms are re-derived from the restored named
-//!   graph. The Logic arm additionally persists its complete typed IR because its RDF
-//!   surface is intentionally lossy. Every handle is re-attached via `pin_handle`, so
-//!   both semantic identity and the graph digest-pin invariant are re-checked.
+//!   full typed payload and semantic digest. Governed projection contracts are checked
+//!   before publication. Hydration restores typed values without reparsing RDF and
+//!   rechecks their payload, graph pin and complete product commitments.
 //!
 //! # GREENFIELD cache version
 //!
@@ -79,20 +78,21 @@ use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
     ContentDigest, ContentStore, PackBuilder, QuadHandle, RdfBlobOrigin, RdfBlobRecord,
     RdfLocation, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataValue,
-    SerializeGraph, canonicalize, restore_pack, serialize_dataset,
+    canonicalize, restore_pack,
 };
 use serde::{Deserialize, Serialize};
 
 pub use gmeow_action_cache::content_digest;
 
 use crate::bundle::PipelineHandle;
+use crate::handle_identity::{handle_arm_tag, handle_payload_digest};
 use crate::node::StageProduct;
 
 /// The GREENFIELD on-disk cache-shape revision. Folded into BOTH the cache
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 10;
+pub const CACHE_VERSION: u32 = 16;
 
 /// Schema revision for the canonical action-key rows and immutable stage receipt.
 pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
@@ -100,7 +100,7 @@ pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
 /// The structural codec identity. This is explicit in every action key rather than
 /// relying only on [`CACHE_VERSION`], because a receipt must name the representation
 /// it authenticates without knowing its storage path.
-pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+logic-ir1+receipt-json-2";
+pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor1+receipt-json-2";
 
 /// No independently reusable contribution may serialize above 256 MiB. The measured
 /// useful persistent units are at most ~138 MiB; whole-document leaves at 1.5--2.5 GiB
@@ -123,10 +123,6 @@ const MAX_RECEIPT_BYTES: u64 = 4 * 1024 * 1024;
 // authoritative storage bound; receipts themselves are compact.
 const MAX_CACHE_ENTRIES: usize = 4_096;
 const MAX_CACHE_BYTES: u64 = 8 * 1024 * 1024 * 1024;
-
-/// The text projection used only by the Reasoning handle's legacy reverse parser.
-/// Dataset persistence itself uses `PURRPCK1` and never passes through this codec.
-const DATASET_MEDIA_TYPE: &str = "application/n-quads";
 
 /// The build fingerprint folded into every [`stage_key`]: workspace Rust sources and
 /// Cargo manifests, lock/config/toolchain files, full compiler identity, target,
@@ -233,7 +229,7 @@ impl StageKeyContext {
         self
     }
 
-    fn action_context(&self) -> ActionContext {
+    pub(crate) fn action_context(&self) -> ActionContext {
         let mut implementation = ProducerIdentity::new(self.build.fingerprint.clone());
         implementation.toolchain = Some(self.build.toolchain.clone());
         implementation.target = Some(self.build.target.clone());
@@ -290,30 +286,32 @@ pub fn stage_key(context: &StageKeyContext) -> String {
 /// The serde-able mirror of a [`PipelineBundle<PipelineHandle>`] sufficient to
 /// reconstruct a digest- and structure-equal bundle. The kernel bundle has no serde
 /// (ring-fence), so this pipeline-side manifest captures every lane the bundle uses.
+/// The same schema owns bytes when publishing and borrows them when reading.
+/// Bincode encodes both byte representations identically; no second wire model
+/// or cached carrier is introduced.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct CachedBundle {
+struct CachedBundle<Bytes = Vec<u8>> {
     /// The on-disk cache-shape revision; a mismatch is a clean miss (greenfield).
     version: u32,
     /// The producing stage id.
     stage_id: String,
-    /// The cached cache-key digest (the `StageProduct::digest`, which for a real
-    /// product equals `bundle.digest().to_hex()` but may be decoupled for abstract
-    /// products — so it is persisted explicitly).
+    /// The published product commitment, including complete typed bindings. Only
+    /// abstract products with a completely empty carrier may use an external digest.
     digest: String,
     /// The complete deterministic `PURRPCK1` dataset image.
-    dataset_pack: Vec<u8>,
+    dataset_pack: Bytes,
     /// The lookaside mirror: resources + blob records (the byte-artifact lane and
     /// later typed sidecar lanes ride here).
     lookaside: CachedLookaside,
     /// The content store: blob digest hex → payload bytes (rebuilt via
     /// `insert_checked`, so a corrupt blob hard-fails on load).
-    blobs: BTreeMap<String, Vec<u8>>,
+    blobs: BTreeMap<String, Bytes>,
     /// The S0.5 PUBLIC provenance projection rows `(unit, kind, artifact, location)`.
     /// NEVER the runtime numeric ids.
     provenance: Vec<CachedProvRow>,
     /// The typed-handle lane: each backing graph IRI + its arm tag. The backing
     /// graph itself already lives in `dataset_pack` and is never duplicated here.
-    handles: Vec<CachedHandle>,
+    handles: Vec<CachedHandle<Bytes>>,
 }
 
 /// A serde mirror of [`RdfLookaside`]. Only the lanes the pipeline bundle populates
@@ -366,21 +364,19 @@ struct CachedProvRow {
 }
 
 /// A persisted typed handle: the backing graph IRI, [`PipelineHandle`] arm tag,
-/// semantic payload digest, and (only where the projection is deliberately lossy) a
-/// complete typed payload. Reasoning/relational/correspondence handles remain derived
-/// from their backing graphs; Logic carries its full typed IR because graph/logic is a
-/// governed projection that intentionally omits source-verbatim collections.
+/// complete typed payload and its framed semantic commitment. The governed backing
+/// graph remains a separately authenticated projection; hydration never tries to
+/// recover omitted native fields from that projection.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct CachedHandle {
+struct CachedHandle<Bytes = Vec<u8>> {
     /// The named-graph IRI the handle backs (the [`HandleKey`](purrdf::HandleKey)).
     graph: String,
     /// The [`PipelineHandle`] arm tag (see [`handle_arm_tag`]).
     arm: String,
-    /// Digest of the typed payload's canonical semantic key. A backing graph whose
-    /// reverse projection drops a typed field is not cache-admissible.
+    /// Digest of every typed field, with explicit structural framing.
     payload_digest: String,
-    /// Full typed payload only for an arm whose governed graph is not a lossless codec.
-    typed_payload: Option<Vec<u8>>,
+    /// Full typed payload. Every admitted arm requires it; absence is corruption.
+    typed_payload: Option<Bytes>,
 }
 
 /// The output delta selected by the canonical stage declaration. Receipts describe
@@ -528,19 +524,15 @@ impl StageReceipt {
         let selected_handles: BTreeSet<&str> =
             selection.handles.iter().map(String::as_str).collect();
         let mut typed_handles = Vec::new();
-        for (graph, entry) in bundle.handles() {
+        for (graph, binding) in product.handle_commitments() {
             if !selected_handles.contains(graph.as_str()) {
                 continue;
             }
-            let payload_digest = handle_payload_digest(&entry.payload);
             typed_handles.push(ReceiptEntity {
-                identity: format!("{}#{graph}", handle_arm_tag(&entry.payload)),
-                digest: content_digest(&[
-                    entry.content_digest.to_hex().as_bytes(),
-                    payload_digest.as_bytes(),
-                ]),
+                identity: binding.identity.clone(),
+                digest: binding.digest.clone(),
                 structural_count: 1,
-                decoded_bytes: u64::try_from(payload_digest.len()).unwrap_or(u64::MAX),
+                decoded_bytes: u64::try_from(binding.digest.len()).unwrap_or(u64::MAX),
             });
         }
         typed_handles.sort_by(|left, right| left.identity.cmp(&right.identity));
@@ -865,152 +857,175 @@ pub struct ArtifactCacheHit {
     pub transferred_bytes: u64,
 }
 
-/// The stable arm tag for a [`PipelineHandle`] variant (persisted with each handle).
-fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
-    match handle {
-        PipelineHandle::Logic(_) => "logic",
-        PipelineHandle::Reasoning(_) => "reasoning",
-        PipelineHandle::RelationalCore(_) => "relational-core",
-        PipelineHandle::Correspondence(_) => "correspondence",
-    }
-}
-
-/// Canonical semantic identity of a typed handle payload, independent of its backing
-/// graph pin. The two identities are deliberately separate: a graph projection may be
-/// digest-valid while omitting typed fields that a downstream consumer reads.
-fn handle_payload_digest(handle: &PipelineHandle) -> String {
-    let key = match handle {
-        PipelineHandle::Logic(program) => program.canonical_key(),
-        PipelineHandle::Reasoning(result) => {
-            gmeow_logic::result_rdf::project_reasoning_result(result)
-        }
-        PipelineHandle::RelationalCore(program) => program.content_key(),
-        PipelineHandle::Correspondence(program) => program.content_key(),
+/// Validate the existing governed projection contract once before publication.
+/// Cache hydration then restores complete typed fields without another RDF parse.
+fn validate_handle_projection(
+    handle: &PipelineHandle,
+    graph: &purrdf::RdfDataset,
+) -> Result<(), gmeow_errors::Diag> {
+    let error = |detail: String| {
+        gmeow_errors::Diag::of_kind(crate::error::Decode {
+            message: format!("cache: typed handle projection binding: {detail}"),
+        })
     };
-    content_digest(&[handle_arm_tag(handle).as_bytes(), key.as_bytes()])
+    let agrees = match handle {
+        PipelineHandle::SourceCatalog(_) => {
+            return Err(error(
+                "ephemeral source catalogs cannot enter the persistent cache".into(),
+            ));
+        }
+        // The Logic projection deliberately omits source-verbatim collections and
+        // report inputs; each complete typed codec is the authority for those fields.
+        // Payload and whole-product commitments independently authenticate them.
+        PipelineHandle::Logic(_) | PipelineHandle::CompiledLogic(_) => true,
+        // This is a selected rich report publication over the shared finding
+        // graph, which also carries gate/meta conclusions and omits report-only
+        // fields. Its producer pairing, graph pin and complete native commitment
+        // govern it; reconstruction from that projection cannot recover a Report.
+        PipelineHandle::Diagnostics(publication) => {
+            publication.validate()?;
+            true
+        }
+        PipelineHandle::Reasoning(result) => {
+            let expected = gmeow_logic::result_rdf::project_reasoning_dataset(result)
+                .map_err(|e| error(e.to_string()))?;
+            purrdf::datasets_isomorphic(graph, &expected)
+        }
+        PipelineHandle::RelationalCore(program) => {
+            let projected = gmeow_logic_compile::relational_core::parse_relational_core(graph)
+                .map_err(|e| error(e.to_string()))?;
+            program.projection_key().map_err(|e| error(e.to_string()))?
+                == projected
+                    .projection_key()
+                    .map_err(|e| error(e.to_string()))?
+        }
+        PipelineHandle::Correspondence(program) => {
+            let projected =
+                gmeow_logic_compile::projections::correspondence::parse_correspondence(graph)
+                    .map_err(|e| error(e.to_string()))?;
+            crate::handle_identity::typed_digest(program.as_ref())
+                == crate::handle_identity::typed_digest(&projected)
+        }
+    };
+    if !agrees {
+        return Err(error(format!(
+            "{} payload does not agree with its governed backing graph",
+            handle_arm_tag(handle)
+        )));
+    }
+    Ok(())
 }
 
-/// Rebuild a [`PipelineHandle`] from its complete admitted representation.
-///
-/// Reasoning, relational-core, and correspondence are losslessly re-derived from their
-/// backing sub-datasets. Logic's governed RDF surface is intentionally lossy, so that arm
-/// instead requires its full typed IR bytes. Every arm is checked against its canonical
-/// semantic payload digest before it is re-pinned to the restored backing graph.
+/// Encode a complete typed publication only at the persistent action boundary.
+/// Report-bearing arms use CBOR for diagnostic nodes, optional map fields and
+/// arbitrary metadata; program-only arms retain their established binary codecs.
+fn encode_handle(handle: &PipelineHandle) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let encoded = match handle {
+        PipelineHandle::SourceCatalog(_) => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: "ephemeral source catalogs have no persistent codec".into(),
+            }));
+        }
+        PipelineHandle::CompiledLogic(publication) => {
+            let mut bytes = Vec::new();
+            ciborium::ser::into_writer(publication.as_ref(), &mut bytes).map_err(|error| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("cache: encode complete compiled-logic publication: {error}"),
+                })
+            })?;
+            return Ok(bytes);
+        }
+        PipelineHandle::Diagnostics(publication) => {
+            publication.validate()?;
+            let mut bytes = Vec::new();
+            ciborium::ser::into_writer(publication.as_ref(), &mut bytes).map_err(|error| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("cache: encode complete diagnostics publication: {error}"),
+                })
+            })?;
+            return Ok(bytes);
+        }
+        PipelineHandle::Logic(program) => bincode::serialize(program.as_ref()),
+        PipelineHandle::Reasoning(result) => bincode::serialize(result.as_ref()),
+        PipelineHandle::RelationalCore(program) => bincode::serialize(program.as_ref()),
+        PipelineHandle::Correspondence(program) => bincode::serialize(program.as_ref()),
+    };
+    encoded.map_err(|error| {
+        gmeow_errors::Diag::of_kind(crate::error::Decode {
+            message: format!(
+                "cache: encode complete {} handle IR: {error}",
+                handle_arm_tag(handle)
+            ),
+        })
+    })
+}
+
+/// Restore a complete native payload without reparsing a governed RDF projection.
 fn rebuild_handle(
     arm: &str,
-    graph: Arc<purrdf::RdfDataset>,
     typed_payload: Option<&[u8]>,
 ) -> Result<PipelineHandle, gmeow_errors::Diag> {
+    let bytes = typed_payload.ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Decode {
+            message: format!("cache: {arm} handle is missing its complete typed IR payload"),
+        })
+    })?;
+    let decode_error = |error| {
+        gmeow_errors::Diag::of_kind(crate::error::Decode {
+            message: format!("cache: decode complete {arm} handle IR: {error}"),
+        })
+    };
     Ok(match arm {
         "logic" => {
-            let bytes = typed_payload.ok_or_else(|| {
+            PipelineHandle::Logic(Arc::new(bincode::deserialize(bytes).map_err(decode_error)?))
+        }
+        "compiled-logic" => {
+            // Diagnostic nodes use map-shaped Serde fields, including omitted empty
+            // fields. CBOR preserves that complete schema; bincode cannot decode it.
+            let mut reader = std::io::Cursor::new(bytes);
+            let publication = ciborium::de::from_reader(&mut reader).map_err(|error| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: "cache: Logic handle is missing its complete typed IR payload"
-                        .to_string(),
+                    message: format!("cache: decode complete compiled-logic publication: {error}"),
                 })
             })?;
-            let program = bincode::deserialize(bytes).map_err(|error| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("cache: decode complete Logic handle IR: {error}"),
-                })
-            })?;
-            PipelineHandle::Logic(Arc::new(program))
+            if reader.position() != bytes.len() as u64 {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: "cache: trailing bytes after compiled-logic publication".into(),
+                }));
+            }
+            PipelineHandle::CompiledLogic(Arc::new(publication))
         }
         "reasoning" => {
-            reject_unexpected_typed_payload(arm, typed_payload)?;
-            // The REAL typed Reasoning handle (C7): its backing graph is the
-            // deterministic `graph/reasoning` projection of a `ReasoningResult`, so on
-            // a cache hit the verdict-and-provenance result is RE-DERIVED from that
-            // graph via the reverse parser (the binding rows / closure quads are not
-            // carried in this graph — they live in the bundle's default-graph dataset,
-            // per the projection's documented round-trip contract). The consumer never
-            // re-parses the reasoning graph; the cache boundary does it ONCE here. A
-            // parse failure HARD-fails (no-optionality): a `reasoning` handle whose
-            // backing graph no longer parses is a corrupt cache, never a dropped handle.
-            // The backing sub-dataset is default-graph only (the cache's
-            // `project_named_graph` strips the graph name), so its canonical N-Quads
-            // lines are `s p o .` — exactly the N-Triples shape the projection's reverse
-            // parser reads.
-            let nt = serialize_dataset(graph.as_ref(), DATASET_MEDIA_TYPE, SerializeGraph::Dataset)
-                .map_err(|e| {
+            PipelineHandle::Reasoning(Arc::new(bincode::deserialize(bytes).map_err(decode_error)?))
+        }
+        "diagnostics" => {
+            let mut reader = std::io::Cursor::new(bytes);
+            let publication: crate::bundle::DiagnosticsPublication =
+                ciborium::de::from_reader(&mut reader).map_err(|error| {
                     gmeow_errors::Diag::of_kind(crate::error::Decode {
-                        message: format!("cache: serialize Reasoning handle backing graph: {e}"),
+                        message: format!("cache: decode complete diagnostics publication: {error}"),
                     })
                 })?;
-            let nt = String::from_utf8(nt).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("cache: Reasoning backing graph not UTF-8: {e}"),
-                })
-            })?;
-            let result = gmeow_logic::result_rdf::parse_reasoning_graph(&nt).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!(
-                        "cache: re-derive Reasoning handle result from backing graph/reasoning: {e}"
-                    ),
-                })
-            })?;
-            PipelineHandle::Reasoning(Arc::new(result))
+            if reader.position() != bytes.len() as u64 {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: "cache: trailing bytes after diagnostics publication".into(),
+                }));
+            }
+            publication.validate()?;
+            PipelineHandle::Diagnostics(Arc::new(publication))
         }
-        "relational-core" => {
-            reject_unexpected_typed_payload(arm, typed_payload)?;
-            // The REAL typed RelationalCore handle (C8): its backing graph is the
-            // deterministic projection of a `RelationalCoreProgram`, so on a cache hit the
-            // typed dialect is RE-DERIVED from that graph via the reverse parser. The
-            // consumer never re-lowers; the cache boundary re-derives it ONCE here. A parse
-            // failure HARD-fails (no-optionality): a `relational-core` handle whose backing
-            // graph no longer parses is a corrupt cache, never a silently-dropped handle.
-            let program =
-                gmeow_logic_compile::relational_core::parse_relational_core(graph.as_ref())
-                    .map_err(|e| {
-                        gmeow_errors::Diag::of_kind(crate::error::Decode {
-                            message: format!(
-                                "cache: re-derive RelationalCore handle from backing \
-                             graph/relational-core: {e}"
-                            ),
-                        })
-                    })?;
-            PipelineHandle::RelationalCore(Arc::new(program))
-        }
-        "correspondence" => {
-            reject_unexpected_typed_payload(arm, typed_payload)?;
-            // The REAL typed Correspondence handle (C10): its backing graph is the
-            // deterministic `graph/correspondence` projection of a `CorrespondenceProgram`,
-            // so on a cache hit the typed program is RE-DERIVED from that graph via the
-            // reverse parser. The consumer never re-projects; the cache boundary re-derives
-            // it ONCE here. A parse failure HARD-fails (no-optionality): a `correspondence`
-            // handle whose backing graph no longer parses is a corrupt cache, never a
-            // silently-dropped handle.
-            let program = gmeow_logic_compile::projections::correspondence::parse_correspondence(
-                graph.as_ref(),
-            )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!(
-                        "cache: re-derive Correspondence handle from backing \
-                         graph/correspondence: {e}"
-                    ),
-                })
-            })?;
-            PipelineHandle::Correspondence(Arc::new(program))
-        }
+        "relational-core" => PipelineHandle::RelationalCore(Arc::new(
+            bincode::deserialize(bytes).map_err(decode_error)?,
+        )),
+        "correspondence" => PipelineHandle::Correspondence(Arc::new(
+            bincode::deserialize(bytes).map_err(decode_error)?,
+        )),
         other => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("cached handle has unknown PipelineHandle arm tag {other:?}"),
             }));
         }
     })
-}
-
-fn reject_unexpected_typed_payload(
-    arm: &str,
-    typed_payload: Option<&[u8]>,
-) -> Result<(), gmeow_errors::Diag> {
-    if typed_payload.is_some() {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-            message: format!("cache: {arm} handle carries an undeclared typed payload"),
-        }));
-    }
-    Ok(())
 }
 
 /// Map an [`OriginKind`] public string back to the kind. Greenfield: an unknown
@@ -1349,30 +1364,28 @@ impl CachedBundle {
         // packed dataset and must not be duplicated in the manifest.
         let mut handles = Vec::with_capacity(bundle.handles().len());
         for (graph, entry) in bundle.handles() {
+            if let PipelineHandle::Diagnostics(publication) = &entry.payload {
+                publication.validate_binding(&product.stage_id, graph)?;
+                if !crate::handle_identity::contains_graph(bundle, graph) {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                        message: "cache: native diagnostics require their declared graph".into(),
+                    }));
+                }
+            }
+            let backing = bundle.dataset().project_named_graph(graph);
+            validate_handle_projection(&entry.payload, &backing)?;
             let arm = handle_arm_tag(&entry.payload);
             let payload_digest = handle_payload_digest(&entry.payload);
-            let typed_payload = match &entry.payload {
-                PipelineHandle::Logic(program) => {
-                    Some(bincode::serialize(program.as_ref()).map_err(|error| {
-                        gmeow_errors::Diag::of_kind(crate::error::Decode {
-                            message: format!("cache: encode complete Logic handle IR: {error}"),
-                        })
-                    })?)
-                }
-                PipelineHandle::Reasoning(_)
-                | PipelineHandle::RelationalCore(_)
-                | PipelineHandle::Correspondence(_) => None,
-            };
-            let backing = Arc::new(bundle.dataset().project_named_graph(graph));
-            let rebuilt = rebuild_handle(arm, backing, typed_payload.as_deref())?;
+            let encoded = encode_handle(&entry.payload)?;
+            let typed_payload = Some(encoded);
+            let rebuilt = rebuild_handle(arm, typed_payload.as_deref())?;
             let rebuilt_digest = handle_payload_digest(&rebuilt);
             if rebuilt_digest != payload_digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
                     message: format!(
                         "cache: stage {} typed handle <{graph}> ({arm}) is not losslessly \
-                         reconstructible from its backing graph: live payload {payload_digest}, \
-                         rebuilt payload {rebuilt_digest}; mark the stage recompute-only or add \
-                         a lossless typed-handle codec before persistence",
+                         reconstructible from its native codec: live payload {payload_digest}, \
+                         rebuilt payload {rebuilt_digest}; typed codec reconstruction changed the value",
                         product.stage_id
                     ),
                 }));
@@ -1396,7 +1409,9 @@ impl CachedBundle {
             handles,
         })
     }
+}
 
+impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
     /// Reconstitute a digest- and structure-equal [`StageProduct`] from the manifest.
     fn into_product(self) -> Result<StageProduct, gmeow_errors::Diag> {
         if self.version != CACHE_VERSION {
@@ -1413,7 +1428,7 @@ impl CachedBundle {
         // dataset: reconstruct directly from the packed dictionary, indexes, and
         // RDF 1.2 side tables. The cache blob digest was verified by `get` before
         // this point, so the hot path does not repeat canonicalization.
-        let dataset = restore_pack(&self.dataset_pack).map_err(|e| {
+        let dataset = restore_pack(self.dataset_pack.as_ref()).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("cache: restore packed bundle dataset: {e}"),
             })
@@ -1429,7 +1444,7 @@ impl CachedBundle {
                     message: format!("cache: malformed blob digest hex {hex:?}"),
                 })
             })?;
-            store.insert_checked(digest, bytes).map_err(|e| {
+            store.insert_checked(digest, bytes.into()).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                     expected: hex.clone(),
                     actual: format!("{e}"),
@@ -1481,7 +1496,15 @@ impl CachedBundle {
             // `pin_handle` independently checks that pin against the restored carrier,
             // preserving the hard-fail invariant without a duplicate persisted graph.
             let pinned = ContentDigest::of(canonicalize(&subgraph).nquads.as_bytes());
-            let payload = rebuild_handle(&h.arm, subgraph, h.typed_payload.as_deref())?;
+            let payload = rebuild_handle(&h.arm, h.typed_payload.as_ref().map(AsRef::as_ref))?;
+            if let PipelineHandle::Diagnostics(publication) = &payload {
+                publication.validate_binding(&self.stage_id, &h.graph)?;
+                if !crate::handle_identity::contains_graph(&bundle, &h.graph) {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                        message: "cache: restored diagnostics have no declared graph".into(),
+                    }));
+                }
+            }
             let payload_digest = handle_payload_digest(&payload);
             if payload_digest != h.payload_digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
@@ -1499,18 +1522,32 @@ impl CachedBundle {
         }
 
         let mut product = StageProduct::from_bundle(self.stage_id, Arc::new(bundle));
-        // Restore the explicit cached digest (abstract/test products carry a digest
-        // decoupled from the carrier; a real product's bundle.digest() equals it).
-        product.digest = self.digest;
+        if product.digest != self.digest {
+            // Abstract stages intentionally carry an external digest over an empty
+            // carrier. This exception cannot admit any graph, payload or sidecar.
+            let empty =
+                crate::bundle::bundle_from_artifacts(BTreeMap::new(), DatasetProvenance::new());
+            if !product.bundle().handles().is_empty() || product.bundle().digest() != empty.digest()
+            {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    expected: self.digest,
+                    actual: product.digest,
+                }));
+            }
+            product.digest = self.digest;
+        }
         Ok(product)
     }
+}
 
-    /// Extract and authenticate the committed artifact lane without restoring the
-    /// packed dataset or rebuilding any typed handle.
+impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
+    /// Authenticate every committed artifact without restoring the packed dataset
+    /// or rebuilding typed handles. Returned payloads borrow the authenticated
+    /// input; consumers materialize only the requested output bytes.
     fn verified_artifacts(
         &self,
         receipt: &StageReceipt,
-    ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    ) -> Result<BTreeMap<String, &[u8]>, gmeow_errors::Diag> {
         let mut references: BTreeMap<&str, &str> = BTreeMap::new();
         for resource in &self.lookaside.resources {
             let (Some(name), Some(digest)) =
@@ -1578,6 +1615,7 @@ impl CachedBundle {
                     actual: format!("<missing artifact blob for {}>", entity.identity),
                 })
             })?;
+            let bytes = bytes.as_ref();
             let actual_digest = ContentDigest::of(bytes).to_hex();
             let actual_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
             if actual_digest != entity.digest || actual_bytes != entity.decoded_bytes {
@@ -1586,7 +1624,7 @@ impl CachedBundle {
                     actual: format!("{actual_digest}:{actual_bytes}"),
                 }));
             }
-            artifacts.insert(entity.identity.clone(), bytes.clone());
+            artifacts.insert(entity.identity.clone(), bytes);
         }
         Ok(artifacts)
     }
@@ -1605,8 +1643,6 @@ type PipelineBundleAlias = purrdf::PipelineBundle<PipelineHandle>;
 /// no mutable global index: writers of different keys cannot erase one another and
 /// writers of the same key must agree byte-for-byte.
 pub struct PipelineCache {
-    #[cfg(test)]
-    dir: PathBuf,
     store: ActionStore,
     max_bytes: u64,
 }
@@ -1619,8 +1655,6 @@ impl PipelineCache {
     /// path is never read.
     pub fn inert() -> Self {
         Self {
-            #[cfg(test)]
-            dir: PathBuf::new(),
             store: ActionStore::inert(),
             max_bytes: 0,
         }
@@ -1663,11 +1697,7 @@ impl PipelineCache {
         };
         let store =
             ActionStore::open(dir, STORE_FORMAT_VERSION, limits).map_err(action_cache_diag)?;
-        #[cfg(test)]
-        let dir = store.root().to_path_buf();
         Ok(Self {
-            #[cfg(test)]
-            dir,
             store,
             max_bytes: MAX_CACHE_BYTES,
         })
@@ -1683,26 +1713,10 @@ impl PipelineCache {
         };
         let store = ActionStore::open_existing_read_only(dir, STORE_FORMAT_VERSION, limits)
             .map_err(action_cache_diag)?;
-        #[cfg(test)]
-        let dir = store.root().to_path_buf();
         Ok(Self {
-            #[cfg(test)]
-            dir,
             store,
             max_bytes: MAX_CACHE_BYTES,
         })
-    }
-
-    #[cfg(test)]
-    fn with_limits(mut self, max_entries: usize, max_bytes: u64) -> Self {
-        self.max_bytes = max_bytes;
-        self.store = self.store.with_limits(StoreLimits {
-            max_entry_bytes: MAX_ENTRY_BYTES,
-            max_receipt_bytes: MAX_RECEIPT_BYTES,
-            max_entries,
-            max_total_bytes: max_bytes,
-        });
-        self
     }
 
     /// Look up a stage product by cache key. Returns `None` on a miss. HARD-fails
@@ -1727,7 +1741,7 @@ impl PipelineCache {
         )?;
         let hydrated_bytes = common.product_blob.bytes;
         let receipt = common.payload;
-        let cached: CachedBundle = bincode::deserialize(&bytes).map_err(|e| {
+        let cached: CachedBundle<&[u8]> = bincode::deserialize(&bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("corrupt cached bundle: {e}"),
             })
@@ -1782,13 +1796,44 @@ impl PipelineCache {
 
     /// Load only the committed logical-artifact lane from a verified product blob.
     ///
-    /// The complete bincode manifest is authenticated and decoded, but its packed RDF
-    /// image is never passed to `restore_pack`; no dataset indexes or typed handles are
-    /// constructed. Every selected path, digest, byte count, and structural count is
-    /// checked against the immutable production receipt before bytes are returned.
+    /// Packed RDF, blob and typed-handle payloads borrow the authenticated input
+    /// buffer while the entire artifact lane is verified. No dataset indexes or
+    /// typed handles are constructed. Every artifact's path, digest, byte count
+    /// and structural count is checked before output bytes are copied.
     pub fn get_artifacts(
         &self,
         context: &StageKeyContext,
+    ) -> Result<Option<ArtifactCacheHit>, gmeow_errors::Diag> {
+        self.read_artifact_lane(context, None)
+    }
+
+    /// Return exactly one named artifact in the hit's artifact map. All receipt
+    /// and artifact commitments are still verified; unselected payloads remain
+    /// borrowed. An absent action is a miss, but an absent requested artifact in
+    /// a present action is a hard failure.
+    pub fn get_artifact(
+        &self,
+        context: &StageKeyContext,
+        artifact_path: &str,
+    ) -> Result<Option<ArtifactCacheHit>, gmeow_errors::Diag> {
+        self.get_selected_artifacts(context, &[artifact_path])
+    }
+
+    /// Return only the named artifacts after authenticating the complete product
+    /// and every artifact commitment once. Missing requested artifacts hard-fail;
+    /// duplicate selections identify the same output and do not copy it twice.
+    pub fn get_selected_artifacts(
+        &self,
+        context: &StageKeyContext,
+        artifact_paths: &[&str],
+    ) -> Result<Option<ArtifactCacheHit>, gmeow_errors::Diag> {
+        self.read_artifact_lane(context, Some(artifact_paths))
+    }
+
+    fn read_artifact_lane(
+        &self,
+        context: &StageKeyContext,
+        selected_paths: Option<&[&str]>,
     ) -> Result<Option<ArtifactCacheHit>, gmeow_errors::Diag> {
         let Some(entry) = self
             .store
@@ -1808,7 +1853,7 @@ impl PipelineCache {
         let transferred_bytes = common.product_blob.bytes;
         let receipt = common.payload;
         let bytes = entry.bytes;
-        let cached: CachedBundle = bincode::deserialize(&bytes).map_err(|error| {
+        let cached: CachedBundle<&[u8]> = bincode::deserialize(&bytes).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("corrupt cached bundle: {error}"),
             })
@@ -1827,7 +1872,33 @@ impl PipelineCache {
                 actual: format!("{}:{}", cached.stage_id, cached.digest),
             }));
         }
-        let artifacts = cached.verified_artifacts(&receipt)?;
+        let verified = cached.verified_artifacts(&receipt)?;
+        let artifacts = if let Some(paths) = selected_paths {
+            paths
+                .iter()
+                .copied()
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .map(|path| {
+                    verified
+                        .get(path)
+                        .map(|bytes| (path.to_owned(), bytes.to_vec()))
+                        .ok_or_else(|| {
+                            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                                stage: context.stage_id.clone(),
+                                message: format!(
+                                    "authenticated stage product carries no artifact {path}"
+                                ),
+                            })
+                        })
+                })
+                .collect::<Result<BTreeMap<_, _>, _>>()?
+        } else {
+            verified
+                .into_iter()
+                .map(|(path, bytes)| (path, bytes.to_vec()))
+                .collect()
+        };
         Ok(Some(ArtifactCacheHit {
             artifacts,
             receipt,
@@ -1947,12 +2018,6 @@ impl PipelineCache {
     /// Whether the cache is empty.
     pub fn is_empty(&self) -> bool {
         self.len() == 0
-    }
-
-    #[cfg(test)]
-    fn receipt_path(&self, key: &str) -> PathBuf {
-        let key = ActionKey::from_hex(key).expect("pipeline stage keys are SHA-256 hex");
-        self.store.receipt_path(&key)
     }
 }
 
@@ -2127,1319 +2192,17 @@ impl FixtureCoordinator {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    use std::fs::OpenOptions;
-    use std::io::Write as _;
-
-    use gmeow_action_cache::ActionReceipt;
-    use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
-    use purrdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId, parse_dataset};
-
-    fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
-        b.intern_iri(&format!("http://example.org/{n}"))
-    }
-
-    const GRAPH_IRI: &str = "http://example.org/graph";
-
-    fn test_context(stage_id: &str, salt: &str) -> StageKeyContext {
-        StageKeyContext::new(stage_id, "test-v1", Vec::new(), Vec::new())
-            .with_dimension("test-salt", salt)
-    }
-
-    #[test]
-    fn selected_dimension_is_a_first_class_action_key_input() {
-        let base = StageKeyContext::new("stage", "test-v1", Vec::new(), Vec::new());
-        assert_eq!(
-            base.action_context().dimensions["pipeline-cache-version"],
-            CACHE_VERSION.to_string(),
-            "the product shape revision must move every pipeline action key",
-        );
-        let english = base.clone().with_dimension("language", "en");
-        let french = base.clone().with_dimension("language", "fr");
-        let docs = base.with_dimension("output", "docs");
-        assert_ne!(stage_key(&english), stage_key(&french));
-        assert_ne!(stage_key(&english), stage_key(&docs));
-        assert_eq!(
-            stage_key(&english),
-            stage_key(
-                &StageKeyContext::new("stage", "test-v1", vec![], vec![])
-                    .with_dimension("language", "en")
-            ),
-            "identical explicit feature selections must be cache-stable",
-        );
-    }
-
-    #[test]
-    fn default_graph_commitment_covers_rdf12_reifiers_and_annotations() {
-        fn product(with_annotation: bool) -> StageProduct {
-            let mut builder = RdfDatasetBuilder::new();
-            let reifier_term = RdfTerm::iri("http://example.org/reifier");
-            let reifier = purrdf::RdfReifier::new(
-                reifier_term.clone(),
-                purrdf::RdfTriple::new(
-                    RdfTerm::iri("http://example.org/s"),
-                    "http://example.org/p",
-                    RdfTerm::iri("http://example.org/o"),
-                ),
-            );
-            builder.push_owned_reifier(&reifier);
-            if with_annotation {
-                builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
-                    reifier_term,
-                    "http://example.org/confidence",
-                    RdfTerm::iri("http://example.org/high"),
-                ));
-            }
-            let dataset = builder
-                .freeze()
-                .expect("valid RDF 1.2 overlay-only dataset");
-            StageProduct::from_bundle(
-                "default-overlay",
-                Arc::new(PipelineBundle::new(
-                    dataset,
-                    RdfLookaside::default(),
-                    Arc::new(ContentStore::new()),
-                    DatasetProvenance::new(),
-                )),
-            )
-        }
-
-        let complete = default_graph_commitment(&product(true))
-            .unwrap()
-            .expect("overlay-only default graph is a committed lane");
-        let reifier_only = default_graph_commitment(&product(false))
-            .unwrap()
-            .expect("default-graph reifier is a committed lane");
-        assert_eq!(complete.structural_count, 2);
-        assert_eq!(reifier_only.structural_count, 1);
-        assert_ne!(complete.digest, reifier_only.digest);
-    }
-
-    fn full_selection(product: &StageProduct) -> ReceiptOutputSelection {
-        ReceiptOutputSelection {
-            graphs: product_graph_names(product),
-            blob_representations: product
-                .bundle()
-                .lookaside()
-                .blobs
-                .iter()
-                .filter_map(|record| record.representation.clone())
-                .collect(),
-            logical_artifacts: product
-                .bundle()
-                .lookaside()
-                .resources
-                .iter()
-                .filter_map(|resource| resource.name.clone())
-                .collect(),
-            handles: product.bundle().handles().keys().cloned().collect(),
-            default_graph: default_graph_commitment(product).unwrap(),
-            provenance: provenance_commitment(product).unwrap(),
-            content_store: content_store_commitment(product).unwrap(),
-        }
-    }
-
-    fn product_graph_names(product: &StageProduct) -> Vec<String> {
-        product
-            .dataset()
-            .owned_named_graphs()
-            .filter_map(|term| match term {
-                RdfTerm::Iri(iri) => Some(iri),
-                _ => None,
-            })
-            .collect()
-    }
-
-    fn persist_test_product(
-        cache: &PipelineCache,
-        context: &StageKeyContext,
-        product: &StageProduct,
-    ) -> StageReceipt {
-        cache
-            .put(
-                context,
-                "stable",
-                "persistent",
-                &full_selection(product),
-                product,
-            )
-            .unwrap()
-    }
-
-    fn rewrite_test_receipt(
-        cache: &PipelineCache,
-        action_key: &str,
-        mutate: impl FnOnce(&mut ActionReceipt<StageReceipt>),
-    ) {
-        let path = cache.receipt_path(action_key);
-        let envelope: serde_json::Value =
-            serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        let mut receipt: ActionReceipt<StageReceipt> =
-            serde_json::from_value(envelope["receipt"].clone()).unwrap();
-        mutate(&mut receipt);
-        let envelope = serde_json::json!({
-            "receipt_digest": receipt.digest(),
-            "receipt": receipt,
-        });
-        std::fs::write(path, serde_json::to_vec_pretty(&envelope).unwrap()).unwrap();
-    }
-
-    fn write_test_receipt(cache: &PipelineCache, receipt: StageReceipt) {
-        let action_key = receipt.action_key.clone();
-        rewrite_test_receipt(cache, &action_key, |common| {
-            if let Some(digest) = &receipt.product_blob_digest {
-                common.product_blob = BlobRef {
-                    digest: digest.clone(),
-                    bytes: receipt.product_blob_bytes,
-                };
-            }
-            common.payload = receipt;
-        });
-    }
-
-    /// A tiny but real [`LogicProgram`] whose canonical RDF-1.2 projection backs the
-    /// cache's `Logic` handle. The cache persists this complete typed value separately
-    /// because the governed graph projection is deliberately lossy.
-    fn sample_logic_program() -> LogicProgram {
-        let ax = |s: &str, o: &str| {
-            LogicAxiom::new(
-                s,
-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-                o,
-                false,
-                false,
-                ContextualScope::default(),
-            )
-            .expect("valid axiom")
-        };
-        LogicProgram::new(
-            vec![
-                ax(
-                    "https://blackcatinformatics.ca/gmeow/Animal",
-                    "https://blackcatinformatics.ca/logic/Kind",
-                ),
-                ax(
-                    "https://blackcatinformatics.ca/gmeow/Cat",
-                    "https://blackcatinformatics.ca/logic/Subkind",
-                ),
-            ],
-            vec![],
-            vec![],
-            None,
-        )
-    }
-
-    /// A non-trivial dataset: one default-graph quad plus the canonical RDF-1.2
-    /// projection of [`sample_logic_program`] folded into named graph [`GRAPH_IRI`]
-    /// (so the attached `Logic` handle has a real, re-derivable backing graph).
-    fn dataset_with_named_graph() -> Arc<purrdf::RdfDataset> {
-        let arts = gmeow_logic_compile::projections::compile_program(
-            &sample_logic_program(),
-            &Default::default(),
-        )
-        .expect("compile sample program");
-        let logic_ds = parse_dataset(arts.canonical_rdf12.as_bytes(), "text/turtle", None)
-            .expect("parse canonical rdf12");
-
-        let mut b = RdfDatasetBuilder::new();
-        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
-        b.push_quad(s, p, o, None); // a default-graph quad
-        // Fold every triple of the logic projection into the named graph GRAPH_IRI.
-        let graph = RdfTerm::Iri(GRAPH_IRI.to_owned());
-        for quad in logic_ds.owned_quads() {
-            let mut routed = quad.clone();
-            routed.graph_name = Some(graph.clone());
-            b.push_owned_quad(&routed);
-        }
-        b.freeze().expect("valid")
-    }
-
-    /// Build a richly populated bundle: dataset (≥1 named graph), a lookaside Blob
-    /// resource + matching blob, a populated provenance, and one attached handle.
-    fn rich_bundle() -> PipelineBundle<PipelineHandle> {
-        let dataset = dataset_with_named_graph();
-
-        // A byte-artifact-lane Blob resource + matching content-store blob.
-        let mut blobs = ContentStore::new();
-        let blob_digest = blobs.insert(b"artifact-bytes".to_vec());
-        let mut lookaside = RdfLookaside::default();
-        lookaside.resources.push(
-            RdfLookasideResource::new(RdfLookasideKind::Blob)
-                .with_name("generated/x.ttl")
-                .with_digest(blob_digest.to_hex()),
-        );
-
-        // A populated provenance with a registered unit + an occurrence.
-        let mut prov = DatasetProvenance::new();
-        let unit = prov.register_unit("slices/core/epistemics", OriginKind::Source);
-        let artifact = prov.register_artifact("slices/core/epistemics/epistemics.ttl");
-        prov.record_occurrence(
-            QuadHandle::from_index(0),
-            unit,
-            artifact,
-            Some("epistemics.ttl:1".to_owned()),
-        );
-
-        let mut bundle = PipelineBundle::new(dataset, lookaside, Arc::new(blobs), prov);
-
-        // Attach the REAL typed Logic handle (C6) over the named graph: the
-        // payload is the compiled program, pinned to the canonical digest of its
-        // backing `graph/logic` projection.
-        let program = Arc::new(sample_logic_program());
-        let pinned = bundle.graph_digest(GRAPH_IRI);
-        bundle
-            .pin_handle(GRAPH_IRI, PipelineHandle::Logic(program), pinned)
-            .expect("pin handle over the named graph");
-        bundle
-    }
-
-    fn canon_hex(ds: &purrdf::RdfDataset) -> String {
-        ContentDigest::of(canonicalize(ds).nquads.as_bytes()).to_hex()
-    }
-
-    #[test]
-    fn cached_bundle_structural_round_trip() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-
-        let original = rich_bundle();
-        let product = StageProduct::from_bundle("stage-rich", Arc::new(original.clone()));
-        let context = test_context("stage-rich", "structural-round-trip");
-        persist_test_product(&cache, &context, &product);
-
-        let got = cache.get(&context).unwrap().expect("cache hit");
-        let recon = got.product.bundle();
-
-        // dataset: canonical hash equal.
-        assert_eq!(
-            canon_hex(recon.dataset()),
-            canon_hex(original.dataset()),
-            "dataset canonical hash preserved"
-        );
-
-        // lookaside: every resource + blob record equal.
-        assert_eq!(
-            recon.lookaside(),
-            original.lookaside(),
-            "lookaside reconstructed field-for-field"
-        );
-
-        // blobs: every digest → bytes equal.
-        assert_eq!(recon.blobs(), original.blobs(), "blob store preserved");
-
-        // handles: re-derived, present, and still pin-valid.
-        assert_eq!(
-            recon.handles().len(),
-            original.handles().len(),
-            "handle count"
-        );
-        let entry = recon.handle(GRAPH_IRI).expect("handle re-attached");
-        let PipelineHandle::Logic(reconstituted) = &entry.payload else {
-            panic!("handle arm preserved (Logic)");
-        };
-        // The complete typed Logic handle (C6) survives serialization while remaining
-        // pinned to its governed `graph/logic` projection.
-        assert_eq!(
-            reconstituted.canonical_key(),
-            sample_logic_program().canonical_key(),
-            "the cache preserved the Logic handle's program canonical-key-equal"
-        );
-        // The pinned digest matches the LIVE backing graph (pin_handle re-checked it).
-        assert_eq!(
-            entry.content_digest,
-            recon.graph_digest(GRAPH_IRI),
-            "handle pin matches the reconstituted graph"
-        );
-
-        // provenance: public projection equal.
-        assert_eq!(
-            recon.provenance().public_projection(),
-            original.provenance().public_projection(),
-            "public provenance projection preserved"
-        );
-
-        // digest: bundle content fold equal.
-        assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
-
-        // byte-artifact lane: reproduced byte-for-byte.
-        assert_eq!(
-            got.product.artifacts(),
-            product.artifacts(),
-            "byte-artifact lane reproduced exactly"
-        );
-        // The product's cache-key digest is preserved too.
-        assert_eq!(
-            got.product.digest, product.digest,
-            "stage-product digest preserved"
-        );
-    }
-
-    #[test]
-    fn selective_artifact_hit_matches_full_hydration_and_receipt() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
-        let context = test_context("stage-rich", "artifact-only-hit");
-        let receipt = persist_test_product(&cache, &context, &product);
-
-        assert_eq!(
-            cache
-                .inspect_receipt(&context)
-                .expect("receipt inspection")
-                .expect("receipt exists"),
-            receipt
-        );
-        let selective = cache
-            .get_artifacts(&context)
-            .expect("selective lookup")
-            .expect("selective hit");
-        let full = cache.get(&context).expect("full lookup").expect("full hit");
-        assert_eq!(selective.receipt, full.receipt);
-        assert_eq!(selective.artifacts, full.product.artifacts());
-        assert_eq!(
-            selective.transferred_bytes, full.hydrated_bytes,
-            "both paths authenticate the same complete product blob"
-        );
-    }
-
-    #[test]
-    fn selective_artifact_hit_rejects_inner_digest_corruption() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
-        let context = test_context("stage-rich", "artifact-inner-corruption");
-        let mut receipt = persist_test_product(&cache, &context, &product);
-        let original_blob = cache
-            .dir
-            .join("blobs")
-            .join(receipt.product_blob_digest.as_ref().unwrap());
-        let mut manifest: CachedBundle =
-            bincode::deserialize(&std::fs::read(original_blob).unwrap()).unwrap();
-        let artifact_digest = manifest.lookaside.resources[0]
-            .content_digest
-            .clone()
-            .expect("artifact digest");
-        manifest.blobs.get_mut(&artifact_digest).unwrap()[0] ^= 0xff;
-
-        // Keep the enclosing product blob self-consistent so the selective reader must
-        // reach and enforce the receipt's artifact-level digest, not merely the outer hash.
-        let corrupted = bincode::serialize(&manifest).unwrap();
-        let corrupted_digest = ContentDigest::of(&corrupted).to_hex();
-        std::fs::write(cache.dir.join("blobs").join(&corrupted_digest), &corrupted).unwrap();
-        receipt.product_blob_digest = Some(corrupted_digest);
-        receipt.product_blob_bytes = u64::try_from(corrupted.len()).unwrap();
-        write_test_receipt(&cache, receipt);
-
-        let error = cache
-            .get_artifacts(&context)
-            .expect_err("artifact digest mismatch must hard-fail");
-        assert!(error.is::<crate::error::CacheMismatch>(), "{error}");
-    }
-
-    #[test]
-    fn cached_bundle_binary_encoding_avoids_json_byte_array_expansion() {
-        let payload = vec![0xff; 4096];
-        let mut blobs = BTreeMap::new();
-        blobs.insert("blob-digest".to_owned(), payload.clone());
-        let manifest = CachedBundle {
-            version: CACHE_VERSION,
-            stage_id: "compact-cache-regression".to_owned(),
-            digest: "product-digest".to_owned(),
-            dataset_pack: payload.clone(),
-            lookaside: CachedLookaside::default(),
-            blobs,
-            provenance: Vec::new(),
-            handles: vec![CachedHandle {
-                graph: "http://example.org/graph".to_owned(),
-                arm: "logic".to_owned(),
-                payload_digest: "payload-digest".to_owned(),
-                typed_payload: Some(payload.clone()),
-            }],
-        };
-
-        let binary = bincode::serialize(&manifest).expect("serialize compact cache manifest");
-        let json = serde_json::to_vec(&manifest).expect("serialize comparison manifest");
-        assert!(
-            binary.len() * 3 < json.len(),
-            "byte lanes must stay compact: binary={} JSON={}",
-            binary.len(),
-            json.len()
-        );
-
-        let decoded: CachedBundle =
-            bincode::deserialize(&binary).expect("deserialize compact cache manifest");
-        assert_eq!(decoded.dataset_pack, manifest.dataset_pack);
-        assert_eq!(decoded.blobs, manifest.blobs);
-        assert_eq!(decoded.handles[0].graph, manifest.handles[0].graph);
-        assert_eq!(decoded.handles[0].arm, manifest.handles[0].arm);
-    }
-
-    #[test]
-    fn persistent_unit_rejects_unselected_cumulative_lanes() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
-        let context = test_context("stage-rich", "bounded-delta");
-
-        let mut missing_graph = full_selection(&product);
-        missing_graph.graphs.clear();
-        let err = cache
-            .put(&context, "stable", "persistent", &missing_graph, &product)
-            .expect_err("an unselected graph is cumulative carrier residue");
-        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
-
-        let mut missing_artifact = full_selection(&product);
-        missing_artifact.logical_artifacts.clear();
-        let err = cache
-            .put(
-                &context,
-                "stable",
-                "persistent",
-                &missing_artifact,
-                &product,
-            )
-            .expect_err("an unselected artifact is cumulative carrier residue");
-        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
-
-        let mut missing_default_graph = full_selection(&product);
-        missing_default_graph.default_graph = None;
-        let err = cache
-            .put(
-                &context,
-                "stable",
-                "persistent",
-                &missing_default_graph,
-                &product,
-            )
-            .expect_err("an uncommitted default graph is cumulative carrier residue");
-        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
-
-        let mut missing_provenance = full_selection(&product);
-        missing_provenance.provenance = None;
-        let err = cache
-            .put(
-                &context,
-                "stable",
-                "persistent",
-                &missing_provenance,
-                &product,
-            )
-            .expect_err("uncommitted provenance is cumulative carrier residue");
-        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
-
-        let mut missing_content_store = full_selection(&product);
-        missing_content_store.content_store = None;
-        let err = cache
-            .put(
-                &context,
-                "stable",
-                "persistent",
-                &missing_content_store,
-                &product,
-            )
-            .expect_err("an uncommitted content store is cumulative carrier residue");
-        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
-
-        assert_eq!(cache.len(), 0, "a rejected unit publishes no receipt");
-    }
-
-    #[test]
-    fn content_store_commitment_rejects_orphans_missing_bytes_and_length_drift() {
-        fn product(lookaside: RdfLookaside, blobs: ContentStore, salt: &str) -> StageProduct {
-            let dataset = parse_dataset(b"", "application/n-quads", None).unwrap();
-            StageProduct::from_bundle(
-                format!("content-store-{salt}"),
-                Arc::new(PipelineBundle::new(
-                    dataset,
-                    lookaside,
-                    Arc::new(blobs),
-                    DatasetProvenance::new(),
-                )),
-            )
-        }
-
-        let mut orphan_store = ContentStore::new();
-        orphan_store.insert(b"orphan".to_vec());
-        assert!(
-            content_store_commitment(&product(RdfLookaside::default(), orphan_store, "orphan",))
-                .is_err()
-        );
-
-        let missing_digest = ContentDigest::of(b"missing").to_hex();
-        let mut missing_lookaside = RdfLookaside::default();
-        missing_lookaside.resources.push(
-            RdfLookasideResource::new(RdfLookasideKind::Blob)
-                .with_name("generated/missing.bin")
-                .with_digest(missing_digest),
-        );
-        assert!(
-            content_store_commitment(&product(missing_lookaside, ContentStore::new(), "missing",))
-                .is_err()
-        );
-
-        let mut length_store = ContentStore::new();
-        let length_digest = length_store.insert(b"bytes".to_vec());
-        let mut length_lookaside = RdfLookaside::default();
-        length_lookaside.blobs.push(RdfBlobRecord {
-            digest: length_digest.to_hex(),
-            media_type: Some("application/octet-stream".to_string()),
-            representation: Some("test:length-drift".to_string()),
-            decoded_len: Some(99),
-            metadata: BTreeMap::new(),
-            origin: None,
-        });
-        assert!(
-            content_store_commitment(&product(length_lookaside, length_store, "length",)).is_err()
-        );
-    }
-
-    #[test]
-    fn tampered_handle_manifest_hard_fails_on_reload() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-
-        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
-        let context = test_context("stage-rich", "tampered-handle");
-        let mut receipt = persist_test_product(&cache, &context, &product);
-
-        // Tamper the persisted handle arm while keeping the packed dataset intact.
-        // An unknown arm must HARD-FAIL rather than silently dropping the handle.
-        let blobs_dir = cache.dir.join("blobs");
-        let blob_path = std::fs::read_dir(&blobs_dir)
-            .unwrap()
-            .next()
-            .unwrap()
-            .unwrap()
-            .path();
-        let bytes = std::fs::read(&blob_path).unwrap();
-        let mut manifest: CachedBundle = bincode::deserialize(&bytes).unwrap();
-        manifest.handles[0].arm = "not-a-pipeline-handle".to_owned();
-        // Re-serialize + re-file under the NEW content digest (and re-point the receipt),
-        // so the blob still self-verifies and we exercise the handle re-pin path.
-        let new_bytes = bincode::serialize(&manifest).unwrap();
-        let new_hex = ContentDigest::of(&new_bytes).to_hex();
-        std::fs::write(blobs_dir.join(&new_hex), &new_bytes).unwrap();
-        let new_bytes_len = u64::try_from(new_bytes.len()).unwrap();
-        receipt.product_blob_digest = Some(new_hex.clone());
-        receipt.product_blob_bytes = new_bytes_len;
-        rewrite_test_receipt(&cache, &stage_key(&context), |common| {
-            common.product_blob = BlobRef {
-                digest: new_hex,
-                bytes: new_bytes_len,
-            };
-            common.payload = receipt;
-        });
-        let reopened = PipelineCache::open(dir.path()).unwrap();
-
-        let err = reopened
-            .get(&context)
-            .expect_err("a stale/dropped handle must hard-fail");
-        assert!(
-            err.is::<crate::error::Decode>(),
-            "tampered handle manifest hard-fails, got {err:?}"
-        );
-    }
-
-    #[test]
-    fn tampered_provenance_quad_key_hard_fails_on_reload() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
-        let context = test_context("stage-rich", "tampered-provenance");
-        let mut receipt = persist_test_product(&cache, &context, &product);
-
-        let original_blob = cache
-            .dir
-            .join("blobs")
-            .join(receipt.product_blob_digest.as_ref().unwrap());
-        let mut manifest: CachedBundle =
-            bincode::deserialize(&std::fs::read(original_blob).unwrap()).unwrap();
-        manifest.provenance[0].quad_key = "absent-asserted-quad".to_string();
-        let forged = bincode::serialize(&manifest).unwrap();
-        let forged_digest = ContentDigest::of(&forged).to_hex();
-        std::fs::write(cache.dir.join("blobs").join(&forged_digest), &forged).unwrap();
-        let forged_bytes = u64::try_from(forged.len()).unwrap();
-        receipt.product_blob_digest = Some(forged_digest.clone());
-        receipt.product_blob_bytes = forged_bytes;
-        rewrite_test_receipt(&cache, &stage_key(&context), |common| {
-            common.product_blob = BlobRef {
-                digest: forged_digest,
-                bytes: forged_bytes,
-            };
-            common.payload = receipt;
-        });
-
-        let error = cache
-            .get(&context)
-            .expect_err("an unresolvable stable provenance key must hard-fail");
-        assert!(error.is::<crate::error::CacheMismatch>(), "{error:?}");
-    }
-
-    #[test]
-    fn receipt_is_cold_warm_identical_and_structurally_complete() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
-        let context = test_context("stage-rich", "receipt-parity");
-        let selection = full_selection(&product);
-        let cold = persist_test_product(&cache, &context, &product);
-        let warm = cache.get(&context).unwrap().expect("cache hit");
-        assert_eq!(cold, warm.receipt);
-        assert_eq!(cold.digest(), warm.receipt.digest());
-        assert_eq!(cold.graphs.len(), 1);
-        assert_eq!(cold.typed_handles.len(), 1);
-        assert_eq!(cold.logical_artifacts.len(), 1);
-        PipelineCache::validate_hit_receipt(&context, "stable", "persistent", &selection, &warm)
-            .unwrap();
-
-        // A self-consistent envelope that silently drops an output row is still
-        // structurally invalid against the live stage declaration/product.
-        let mut incomplete = cold;
-        incomplete.graphs.clear();
-        write_test_receipt(&cache, incomplete);
-        let hit = cache.get(&context).unwrap().expect("blob remains readable");
-        assert!(
-            PipelineCache::validate_hit_receipt(
-                &context,
-                "stable",
-                "persistent",
-                &selection,
-                &hit,
-            )
-            .unwrap_err()
-            .is::<crate::error::CacheMismatch>()
-        );
-    }
-
-    #[test]
-    fn receipt_and_blob_corruption_matrix_hard_fails() {
-        // Truncated receipt.
-        let truncated = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(truncated.path()).unwrap();
-        let product = StageProduct::new("stage", "digest");
-        let context = test_context("stage", "truncated");
-        persist_test_product(&cache, &context, &product);
-        std::fs::write(cache.receipt_path(&stage_key(&context)), b"{").unwrap();
-        assert!(
-            cache
-                .get(&context)
-                .unwrap_err()
-                .is::<crate::error::CacheMismatch>()
-        );
-
-        // Referenced missing blob.
-        let missing = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(missing.path()).unwrap();
-        let context = test_context("stage", "missing-blob");
-        let receipt = persist_test_product(&cache, &context, &product);
-        std::fs::remove_file(
-            cache
-                .dir
-                .join("blobs")
-                .join(receipt.product_blob_digest.unwrap()),
-        )
-        .unwrap();
-        assert!(
-            cache
-                .get(&context)
-                .unwrap_err()
-                .is::<crate::error::CacheMismatch>()
-        );
-
-        // Receipt copied under a different action key.
-        let wrong = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(wrong.path()).unwrap();
-        let first = test_context("stage", "first-key");
-        persist_test_product(&cache, &first, &product);
-        let second = test_context("stage", "second-key");
-        std::fs::copy(
-            cache.receipt_path(&stage_key(&first)),
-            cache.receipt_path(&stage_key(&second)),
-        )
-        .unwrap();
-        assert!(
-            cache
-                .get(&second)
-                .unwrap_err()
-                .is::<crate::error::CacheMismatch>()
-        );
-
-        // Oversized receipt root: sparse growth proves the bound without allocating
-        // the forged size. The reader rejects it before JSON allocation/parsing.
-        let oversized_receipt = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(oversized_receipt.path()).unwrap();
-        let context = test_context("stage", "oversized-receipt");
-        persist_test_product(&cache, &context, &product);
-        OpenOptions::new()
-            .write(true)
-            .open(cache.receipt_path(&stage_key(&context)))
-            .unwrap()
-            .set_len(MAX_RECEIPT_BYTES + 1)
-            .unwrap();
-        assert!(
-            cache
-                .get(&context)
-                .unwrap_err()
-                .is::<crate::error::CacheMismatch>()
-        );
-
-        // Oversized referenced blob: the same sparse-file attack is rejected before
-        // hydration, even though the immutable receipt still names a small product.
-        let oversized_blob = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(oversized_blob.path()).unwrap();
-        let context = test_context("stage", "oversized-blob");
-        let receipt = persist_test_product(&cache, &context, &product);
-        let blob = cache
-            .dir
-            .join("blobs")
-            .join(receipt.product_blob_digest.unwrap());
-        OpenOptions::new()
-            .write(true)
-            .open(blob)
-            .unwrap()
-            .set_len(MAX_ENTRY_BYTES + 1)
-            .unwrap();
-        assert!(
-            cache
-                .get(&context)
-                .unwrap_err()
-                .is::<crate::error::CacheMismatch>()
-        );
-    }
-
-    #[test]
-    fn concurrent_publication_is_atomic_and_nondeterminism_fails() {
-        use std::sync::Barrier;
-
-        fn race(
-            root: PathBuf,
-            context: StageKeyContext,
-            product: StageProduct,
-            barrier: Arc<Barrier>,
-        ) -> Result<StageReceipt, gmeow_errors::Diag> {
-            let cache = PipelineCache::open(root).unwrap();
-            barrier.wait();
-            cache.put(
-                &context,
-                "stable",
-                "persistent",
-                &ReceiptOutputSelection::default(),
-                &product,
-            )
-        }
-
-        let dir = tempfile::tempdir().unwrap();
-        let context = test_context("stage", "same-key");
-        let barrier = Arc::new(Barrier::new(2));
-        let left = {
-            let root = dir.path().to_path_buf();
-            let context = context.clone();
-            let barrier = Arc::clone(&barrier);
-            std::thread::spawn(move || {
-                race(root, context, StageProduct::new("stage", "left"), barrier)
-            })
-        };
-        let right = {
-            let root = dir.path().to_path_buf();
-            let context = context.clone();
-            let barrier = Arc::clone(&barrier);
-            std::thread::spawn(move || {
-                race(root, context, StageProduct::new("stage", "right"), barrier)
-            })
-        };
-        let outcomes = [left.join().unwrap(), right.join().unwrap()];
-        assert_eq!(outcomes.iter().filter(|result| result.is_ok()).count(), 1);
-        assert_eq!(
-            outcomes
-                .iter()
-                .filter(|result| {
-                    result
-                        .as_ref()
-                        .is_err_and(|error| error.is::<crate::error::CacheMismatch>())
-                })
-                .count(),
-            1,
-            "same action key with different output is nondeterminism"
-        );
-        assert_eq!(PipelineCache::open(dir.path()).unwrap().len(), 1);
-
-        // Different keys publish independently and neither receipt is lost.
-        let dir = tempfile::tempdir().unwrap();
-        let barrier = Arc::new(Barrier::new(2));
-        let handles: Vec<_> = ["left", "right"]
-            .into_iter()
-            .map(|salt| {
-                let root = dir.path().to_path_buf();
-                let context = test_context("stage", salt);
-                let barrier = Arc::clone(&barrier);
-                std::thread::spawn(move || {
-                    race(root, context, StageProduct::new("stage", salt), barrier)
-                })
-            })
-            .collect();
-        for handle in handles {
-            handle.join().unwrap().unwrap();
-        }
-        assert_eq!(PipelineCache::open(dir.path()).unwrap().len(), 2);
-    }
-
-    #[test]
-    fn fixture_coordinator_elects_exactly_one_thread_builder() {
-        use std::sync::Barrier;
-        use std::sync::atomic::{AtomicUsize, Ordering};
-
-        let root = tempfile::tempdir().unwrap();
-        let context = test_context("fixture-stage", "one-builder");
-        let starts = Arc::new(Barrier::new(2));
-        let builds = Arc::new(AtomicUsize::new(0));
-        let mut workers = Vec::new();
-        for _ in 0..2 {
-            let root = root.path().to_path_buf();
-            let context = context.clone();
-            let starts = Arc::clone(&starts);
-            let builds = Arc::clone(&builds);
-            workers.push(std::thread::spawn(move || {
-                let coordinator = FixtureCoordinator::open(&root).unwrap();
-                starts.wait();
-                coordinator
-                    .get_or_build(
-                        &context,
-                        "stable",
-                        "persistent",
-                        |_| Ok(ReceiptOutputSelection::default()),
-                        || {
-                            builds.fetch_add(1, Ordering::SeqCst);
-                            std::thread::sleep(std::time::Duration::from_millis(25));
-                            Ok(StageProduct::new("fixture-stage", "fixture-digest"))
-                        },
-                    )
-                    .unwrap()
-            }));
-        }
-        let outcomes: Vec<FixtureOutcome> = workers
-            .into_iter()
-            .map(|worker| worker.join().unwrap())
-            .collect();
-        assert_eq!(builds.load(Ordering::SeqCst), 1);
-        assert_eq!(outcomes.iter().filter(|outcome| outcome.built).count(), 1);
-        assert_eq!(outcomes[0].receipt, outcomes[1].receipt);
-        assert_eq!(outcomes[0].product.digest, outcomes[1].product.digest);
-    }
-
-    #[test]
-    fn fixture_coordinator_preserves_the_producer_diagnostic_kind() {
-        let root = tempfile::tempdir().unwrap();
-        let context = test_context("fixture-failure", "typed-error");
-        let coordinator = FixtureCoordinator::open(root.path()).unwrap();
-        let error = coordinator
-            .get_or_build(
-                &context,
-                "stable",
-                "persistent",
-                |_| Ok(ReceiptOutputSelection::default()),
-                || {
-                    Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                        stage: "fixture-failure".to_string(),
-                        message: "intentional producer refusal".to_string(),
-                    }))
-                },
-            )
-            .expect_err("a producer refusal must escape the cache coordinator");
-        assert!(error.is::<crate::error::StageFailed>(), "{error}");
-        assert!(!error.is::<crate::error::CacheMismatch>(), "{error}");
-    }
-
-    const FIXTURE_PROCESS_ROOT: &str = "GMEOW_FIXTURE_PROCESS_TEST_ROOT";
-
-    #[test]
-    fn fixture_coordinator_process_worker() {
-        let Ok(root) = std::env::var(FIXTURE_PROCESS_ROOT) else {
-            return;
-        };
-        let root = PathBuf::from(root);
-        let context = test_context("fixture-process-stage", "one-process-builder");
-        let coordinator = FixtureCoordinator::open(&root).unwrap();
-        let outcome = coordinator
-            .get_or_build(
-                &context,
-                "stable",
-                "persistent",
-                |_| Ok(ReceiptOutputSelection::default()),
-                || {
-                    let mut marker = OpenOptions::new()
-                        .create_new(true)
-                        .write(true)
-                        .open(root.join("builder.marker"))?;
-                    writeln!(marker, "{}", std::process::id())?;
-                    marker.sync_all()?;
-                    std::thread::sleep(std::time::Duration::from_millis(150));
-                    Ok(StageProduct::new(
-                        "fixture-process-stage",
-                        "fixture-process-digest",
-                    ))
-                },
-            )
-            .unwrap();
-        println!("fixture-process-built={}", outcome.built);
-    }
-
-    #[test]
-    fn fixture_coordinator_elects_exactly_one_builder_across_processes() {
-        use std::process::{Command, Stdio};
-
-        let root = tempfile::tempdir().unwrap();
-        let executable = std::env::current_exe().unwrap();
-        let spawn = || {
-            Command::new(&executable)
-                .arg("--exact")
-                .arg("cache::tests::fixture_coordinator_process_worker")
-                .arg("--nocapture")
-                .arg("--test-threads=1")
-                .env(FIXTURE_PROCESS_ROOT, root.path())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn()
-                .unwrap()
-        };
-        let left = spawn();
-        let right = spawn();
-        let outputs = [
-            left.wait_with_output().unwrap(),
-            right.wait_with_output().unwrap(),
-        ];
-        for output in &outputs {
-            assert!(
-                output.status.success(),
-                "fixture worker failed: stdout={} stderr={}",
-                String::from_utf8_lossy(&output.stdout),
-                String::from_utf8_lossy(&output.stderr),
-            );
-        }
-        let stdout = outputs
-            .iter()
-            .map(|output| String::from_utf8_lossy(&output.stdout))
-            .collect::<Vec<_>>();
-        assert_eq!(
-            stdout
-                .iter()
-                .filter(|text| text.contains("fixture-process-built=true"))
-                .count(),
-            1,
-            "exactly one OS process must execute the fixture producer: {stdout:?}",
-        );
-        assert_eq!(
-            stdout
-                .iter()
-                .filter(|text| text.contains("fixture-process-built=false"))
-                .count(),
-            1,
-            "the losing OS process must hydrate the elected product: {stdout:?}",
-        );
-        assert!(root.path().join("builder.marker").is_file());
-    }
-
-    #[test]
-    fn bounded_store_evicts_only_unreachable_entries_and_ignores_crash_temps() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path())
-            .unwrap()
-            .with_limits(1, 1024 * 1024);
-        let first = test_context("stage", "first");
-        let second = test_context("stage", "second");
-        persist_test_product(&cache, &first, &StageProduct::new("stage", "first"));
-        std::fs::write(
-            cache.dir.join("receipts").join(".pipeline-cache-crash.tmp"),
-            b"partial",
-        )
-        .unwrap();
-        persist_test_product(&cache, &second, &StageProduct::new("stage", "second"));
-        assert_eq!(cache.len(), 1);
-        assert!(cache.get(&first).unwrap().is_none());
-        assert!(cache.get(&second).unwrap().is_some());
-        assert!(
-            !cache
-                .dir
-                .join("receipts")
-                .join(".pipeline-cache-crash.tmp")
-                .exists()
-        );
-        assert_eq!(
-            std::fs::read_dir(cache.dir.join("blobs")).unwrap().count(),
-            1
-        );
-
-        let tiny = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(tiny.path()).unwrap().with_limits(1, 1);
-        assert!(
-            cache
-                .put(
-                    &test_context("stage", "too-large"),
-                    "stable",
-                    "persistent",
-                    &ReceiptOutputSelection::default(),
-                    &StageProduct::new("stage", "digest"),
-                )
-                .unwrap_err()
-                .is::<crate::error::StageFailed>()
-        );
-        assert!(cache.is_empty());
-    }
-
-    /// A `ReasoningResult` whose `graph/reasoning` projection backs a cache handle, so
-    /// the cache's re-derivation (`parse_reasoning_graph`) reconstructs a faithful
-    /// verdict-and-provenance result (C7).
-    fn sample_reasoning_result() -> gmeow_logic::result::ReasoningResult {
-        use gmeow_logic::result::{
-            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-            ReasoningResult, ResultPayload, ResultProvenance,
-        };
-        // projection_class mirrors the result's `preservation` axis in every real
-        // construction; the parser reconstructs it from that axis, so the fixture sets
-        // them equal (an inconsistent fixture would test a state no real result holds).
-        let mut prov =
-            ResultProvenance::native("contract:cache-test", "http://example.org/world/w");
-        prov.projection_class = PreservationClaim::exact();
-        ReasoningResult::new(
-            InputStatus::Valid,
-            EvaluationStatus::Completed,
-            CompletenessStatus::CompleteForFragment,
-            PreservationClaim::exact(),
-            InformationState::Supported,
-            prov,
-            ResultPayload::Empty,
-        )
-    }
-
-    /// A bundle whose dataset carries a `graph/reasoning` named graph (the projection
-    /// of [`sample_reasoning_result`]) with a typed Reasoning handle pinned to it.
-    fn reasoning_bundle() -> PipelineBundle<PipelineHandle> {
-        use std::sync::Arc;
-        let result = sample_reasoning_result();
-        let projection = gmeow_logic::result_rdf::project_reasoning_result(&result);
-        let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
-            .expect("parse projection");
-        let graph_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
-        let mut b = RdfDatasetBuilder::new();
-        let term = RdfTerm::Iri(graph_iri.to_owned());
-        for quad in parsed.owned_quads() {
-            let mut routed = quad.clone();
-            routed.graph_name = Some(term.clone());
-            b.push_owned_quad(&routed);
-        }
-        let dataset = b.freeze().expect("freeze");
-        let mut bundle = PipelineBundle::new(
-            dataset,
-            RdfLookaside::default(),
-            Arc::new(ContentStore::new()),
-            DatasetProvenance::new(),
-        );
-        let pinned = bundle.graph_digest(graph_iri);
-        bundle
-            .pin_handle(
-                graph_iri,
-                PipelineHandle::Reasoning(Arc::new(result)),
-                pinned,
-            )
-            .expect("pin Reasoning handle");
-        bundle
-    }
-
-    #[test]
-    fn cached_reasoning_handle_re_derives_the_result() {
-        use std::sync::Arc;
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-
-        let original = reasoning_bundle();
-        let product = StageProduct::from_bundle("stage-reason", Arc::new(original.clone()));
-        let context = test_context("stage-reason", "reasoning-round-trip");
-        persist_test_product(&cache, &context, &product);
-
-        let got = cache.get(&context).unwrap().expect("cache hit");
-        let recon = got.product.bundle();
-
-        let graph_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
-        let entry = recon
-            .handle(graph_iri)
-            .expect("Reasoning handle re-attached");
-        let PipelineHandle::Reasoning(result) = &entry.payload else {
-            panic!("the re-derived handle arm is Reasoning");
-        };
-        // The verdict-and-provenance result round-trips faithfully (axes + provenance).
-        assert_eq!(
-            result.as_ref(),
-            &sample_reasoning_result(),
-            "the cache re-derived the Reasoning handle's result faithfully"
-        );
-        // The pin matches the reconstituted backing graph.
-        assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
-        // The bundle content fold round-trips.
-        assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
-    }
-
-    /// A bundle whose dataset carries a `graph/relational-core` named graph (the
-    /// projection of a lowered Horn program) with a typed RelationalCore handle pinned
-    /// to it (C8).
-    fn relational_core_bundle() -> (
-        PipelineBundle<PipelineHandle>,
-        gmeow_logic_compile::relational_core::RelationalCoreProgram,
-    ) {
-        use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
-        use gmeow_logic_compile::relational_core::{lower_program, project_relational_core};
-        use std::sync::Arc;
-        let sc = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        let ax = |s: &str, o: &str| {
-            LogicAxiom::new(s, sc, o, false, false, ContextualScope::default()).expect("axiom")
-        };
-        let rule = LogicRule::new(
-            ax("?x", "?z"),
-            vec![ax("?x", "?y"), ax("?y", "?z")],
-            vec![],
-            ContextualScope::default(),
-        );
-        let program = LogicProgram::new(
-            vec![ax(
-                "https://blackcatinformatics.ca/gmeow/Cat",
-                "https://blackcatinformatics.ca/gmeow/Animal",
-            )],
-            vec![rule],
-            vec![],
-            None,
-        );
-        let lowered = lower_program(&program);
-        let projection = project_relational_core(&lowered);
-        let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
-            .expect("parse projection");
-        let graph_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
-        let mut b = RdfDatasetBuilder::new();
-        let term = RdfTerm::Iri(graph_iri.to_owned());
-        for quad in parsed.owned_quads() {
-            let mut routed = quad.clone();
-            routed.graph_name = Some(term.clone());
-            b.push_owned_quad(&routed);
-        }
-        let dataset = b.freeze().expect("freeze");
-        let mut bundle = PipelineBundle::new(
-            dataset,
-            RdfLookaside::default(),
-            Arc::new(ContentStore::new()),
-            DatasetProvenance::new(),
-        );
-        let pinned = bundle.graph_digest(graph_iri);
-        bundle
-            .pin_handle(
-                graph_iri,
-                PipelineHandle::RelationalCore(Arc::new(lowered.clone())),
-                pinned,
-            )
-            .expect("pin RelationalCore handle");
-        (bundle, lowered)
-    }
-
-    #[test]
-    fn cached_relational_core_handle_re_derives_the_dialect() {
-        use std::sync::Arc;
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-
-        let (original, lowered) = relational_core_bundle();
-        let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()));
-        let context = test_context("stage-compile-logic", "relational-round-trip");
-        persist_test_product(&cache, &context, &product);
-
-        let got = cache.get(&context).unwrap().expect("cache hit");
-        let recon = got.product.bundle();
-
-        let graph_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
-        let entry = recon
-            .handle(graph_iri)
-            .expect("RelationalCore handle re-attached");
-        let PipelineHandle::RelationalCore(program) = &entry.payload else {
-            panic!("the re-derived handle arm is RelationalCore");
-        };
-        // The typed dialect round-trips faithfully (content-key-equal).
-        assert_eq!(
-            program.content_key(),
-            lowered.content_key(),
-            "the cache re-derived the RelationalCore handle's dialect faithfully"
-        );
-        // The pin matches the reconstituted backing graph.
-        assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
-        // The bundle content fold round-trips.
-        assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
-    }
-
-    /// A bundle whose dataset carries a `graph/correspondence` named graph (the §14
-    /// affine-triangle worked example) with a typed Correspondence handle pinned to it
-    /// (C10).
-    fn correspondence_bundle() -> (
-        PipelineBundle<PipelineHandle>,
-        gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
-    ) {
-        use gmeow_logic_compile::projections::correspondence::project_correspondence;
-        use std::sync::Arc;
-        let program = crate::stages::compile_logic::affine_worked_example_program();
-        let projection = project_correspondence(&program);
-        let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
-            .expect("parse projection");
-        let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
-        let mut b = RdfDatasetBuilder::new();
-        let term = RdfTerm::Iri(graph_iri.to_owned());
-        for quad in parsed.owned_quads() {
-            let mut routed = quad.clone();
-            routed.graph_name = Some(term.clone());
-            b.push_owned_quad(&routed);
-        }
-        let dataset = b.freeze().expect("freeze");
-        let mut bundle = PipelineBundle::new(
-            dataset,
-            RdfLookaside::default(),
-            Arc::new(ContentStore::new()),
-            DatasetProvenance::new(),
-        );
-        let pinned = bundle.graph_digest(graph_iri);
-        bundle
-            .pin_handle(
-                graph_iri,
-                PipelineHandle::Correspondence(Arc::new(program.clone())),
-                pinned,
-            )
-            .expect("pin Correspondence handle");
-        (bundle, program)
-    }
-
-    /// The C4 structural round-trip stays green for the Correspondence arm: the cache
-    /// re-derives the typed [`CorrespondenceProgram`] from the backing graph on a hit, to
-    /// a content-key-equal program, and the bundle digest is preserved.
-    #[test]
-    fn cached_correspondence_handle_re_derives_the_program() {
-        use std::sync::Arc;
-        let dir = tempfile::tempdir().unwrap();
-        let cache = PipelineCache::open(dir.path()).unwrap();
-
-        let (original, program) = correspondence_bundle();
-        let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()));
-        let context = test_context("stage-compile-logic", "correspondence-round-trip");
-        persist_test_product(&cache, &context, &product);
-
-        let got = cache.get(&context).unwrap().expect("cache hit");
-        let recon = got.product.bundle();
-
-        let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
-        let entry = recon
-            .handle(graph_iri)
-            .expect("Correspondence handle re-attached");
-        let PipelineHandle::Correspondence(re_derived) = &entry.payload else {
-            panic!("the re-derived handle arm is Correspondence");
-        };
-        assert_eq!(
-            re_derived.content_key(),
-            program.content_key(),
-            "the cache re-derived the Correspondence handle's program faithfully"
-        );
-        assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
-        assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
-    }
-}
+#[path = "cache_test_support.rs"]
+mod test_support;
+
+#[cfg(test)]
+#[path = "cache_loss_codec_tests.rs"]
+mod loss_codec_tests;
+
+#[cfg(test)]
+#[path = "cache_diagnostics_tests.rs"]
+mod diagnostics_tests;
+
+#[path = "cache.tests.rs"]
+#[cfg(test)]
+mod tests;

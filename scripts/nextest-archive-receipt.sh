@@ -31,9 +31,9 @@ command -v jq >/dev/null || {
 
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
-junit_inventory=$repo_root/dist/nextest/junit_inventory
-perf_sample=$repo_root/dist/nextest/perf_sample
-perf_accept=$repo_root/dist/nextest/perf_accept
+junit_inventory=$repo_root/dist/nextest/junit-inventory
+perf_sample=$repo_root/dist/nextest/perf-sample
+perf_accept=$repo_root/dist/nextest/perf-accept
 test_fixture_manifest=$repo_root/.cache/gmeow-sync/test-fixture-manifest-v2.json
 producer_executable_receipt=$repo_root/dist/bin/gmeow-dev.receipt.json
 for evidence_tool in "$junit_inventory" "$perf_sample" "$perf_accept"; do

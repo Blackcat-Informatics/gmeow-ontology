@@ -3,16 +3,15 @@
 
 //! Integration tests for the `gmeow-validate` lints.
 //!
-//! These exercise the PyO3-free engine API directly: [`store::parse_file_dataset`]
-//! (syntax checking) and [`store::sameas_violations`] (the Principle 5 ban).
-//! Inline Turtle fixtures keep each case self-contained.
+//! These exercise [`store::sameas_violations`] (the Principle 5 ban) directly.
+//! Inline Turtle inputs keep each policy case self-contained. Parser conformance
+//! belongs to PurRDF's own suite.
 
 use std::path::PathBuf;
 
 use gmeow_validate::store;
 
-/// The GMEOW vocabulary namespace (mirrors `config.NAMESPACE`); supplied to the
-/// lint here exactly as Python passes `str(NAMESPACE)`.
+/// The GMEOW vocabulary namespace supplied to the selected lint policy.
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// Write `contents` to `name` inside a fresh RAII temp directory.
@@ -26,28 +25,6 @@ fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
     let path = dir.path().join(name);
     std::fs::write(&path, contents).unwrap();
     (dir, path)
-}
-
-/// Syntax-error case: a malformed Turtle file must parse-error.
-#[test]
-fn syntax_error_is_detected() {
-    let (_tmp, path) = write_tmp(
-        "gmeow_validate_it_syntax_bad.ttl",
-        "@prefix ex: <https://example.org/> .\nex:a ex:p   .  # missing object\n<<< garbage",
-    );
-    let result = store::parse_file_dataset(&path);
-    assert!(result.is_err(), "malformed Turtle must be a syntax error");
-}
-
-/// A well-formed file parses with no error (the no-violation baseline).
-#[test]
-fn good_turtle_parses_clean() {
-    let (_tmp, path) = write_tmp(
-        "gmeow_validate_it_syntax_good.ttl",
-        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
-    );
-    let result = store::parse_file_dataset(&path);
-    assert!(result.is_ok(), "well-formed Turtle must parse");
 }
 
 /// Banned-sameAs case: `owl:sameAs` to an external entity is a violation.

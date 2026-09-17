@@ -1,73 +1,73 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The unified fragment-certified refutation kernel.
+//! Native refutation evidence and source-admission contracts.
 //!
-//! The native forward chase ([`crate::reason::dl`]) decides OWL 2 consistency by
-//! materializing `type(?i, owl:Nothing)` and honestly WITHHOLDS ("incomplete")
-//! on the beyond-Horn constructs it cannot forward-derive — disjunction
-//! case-splits, complement refutation, cardinality/nominal counting, and datatype
-//! value-space counting. This kernel decides a precisely-characterized COMPLETE
-//! fragment of exactly those withheld constructs and honestly withholds outside
-//! it. It never loops and never guesses: a family sub-decider returns
-//! [`RefutationCertificate::InFragment`] **only** when a completeness bound is
-//! proven, and [`RefutationCertificate::OutOfFragment`] with a structured
-//! [`FragmentBoundary`] otherwise (the least-cost-sufficient membership idiom of
-//! [`crate::physical::ChaseAdmission::certify`]).
+//! Counting, datatype and class producers execute against the joint native store,
+//! governor and proof registry. Their retained per-world outcomes distinguish
+//! supported conflicts from completion, source refusals and capability boundaries.
+//! A success from one family cannot replace another family's evidence. The result
+//! facade validates that complete execution record before deriving a verdict.
 //!
-//! The kernel is a registration seam: [`refute`] tries the registered per-family
-//! sub-deciders in order, and the first `InFragment` wins. The datatype
-//! value-space, counting, and case-split/complement deciders slot into
-//! [`SUB_DECIDERS`] as they are built; until then the kernel is inert (it decides
-//! nothing and materializes nothing) yet is still CALLED on every production
-//! closure, so its wiring is exercised rather than dark.
+//! [`class_diagnostic`] selects the explicit class operation on the same native
+//! driver. [`PreparedClassAnalysis`] exposes source-owner admission without making
+//! a consistency claim. Invalid selected grammar fails admission before inference;
+//! well-formed unsupported constructs retain separate capability evidence.
 //!
-//! Every structured type here orders its collections with `BTreeSet`/`BTreeMap`/
-//! sorted `Vec` so a certificate is a byte-stable canonical value: the native
-//! contract hash and the reasoning goldens depend on that determinism.
-//!
-//! The membership-certificate helper ([`certify_membership`]) and the
-//! ledger-boundary derivation ([`boundary_diag_ledger`]) are the forward-facing
-//! kernel API the per-family sub-deciders register against. The kernel is ALSO the
-//! single source of truth for its own decidability surface: [`decided_fragments`]
-//! and [`retained_boundaries`] enumerate, respectively, the certified-complete
-//! construct families (each keyed to a [`RefutationPattern`] and a technical
-//! completeness bound) and the constructs the kernel deliberately RETAINS as honest
-//! withholds. `slices/grounding/logic/module.ttl` ships that surface as
-//! `logic:DecidedFragment` / `logic:RefutationPattern` / `logic:expressivenessBoundary`
-//! individuals, and the agreement test [`tests::module_ttl_projects_the_kernel_registry`]
-//! proves the manifest is EXACTLY a projection of this registry (drift in either
-//! direction fails). The production reason path consumes a family-scoped withhold
-//! through [`production_boundary_findings`], routing its boundary through the
-//! diagnostics substrate under [`REFUTATION_KERNEL_CATEGORY`] into
-//! [`crate::reason::dl::DlVerdict::boundary_findings`], so the kernel's honest
-//! "outside the certified fragment" is tied to a real verdict rather than dark.
+//! [`decided_fragments`], [`source_admission_contracts`] and [`retained_boundaries`]
+//! describe the native contract independently of any particular run. Authenticated
+//! producer observations compare the authored registry to
+//! [`native_fragment_registry`] in both directions. [`boundary_diag_ledger`]
+//! preserves every retained cause and grades malformed input separately from a
+//! valid unsupported capability. Ordered evidence provides deterministic transport;
+//! neither a registry entry nor a digest independently proves a theorem.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::{
     Diag, DiagLedger, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
 };
 use gmeow_math::Rational;
-use purrdf::{RdfDataset, RdfTerm};
+use purrdf::RdfTerm;
+use serde::{Deserialize, Serialize};
 
 use crate::facts::skolem_iri;
 
-/// Family 5 — the datatype value-space sub-decider.
+/// Datatype value-space producer on the shared native store.
 pub(crate) mod datatype;
 
-/// Families 2/6a/7 — the counting / arithmetic-feasibility sub-decider.
+/// Counting, identity and arithmetic-feasibility producers on the shared store.
 pub(crate) mod counting;
 
-/// Families 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
-/// union-disjoint / malformed-list sub-decider.
+/// Prepared class source admission and bounded contextual case analysis.
 pub(crate) mod casesplit;
+/// Shared proof identities and complete per-world native family observations.
+pub(crate) mod native;
+pub use native::{
+    NativeAnalysisUsage, NativeBoundEvidence, NativeClosureStatus, NativeFamilyCompletion,
+    NativeFamilyLedger, NativeFamilyObstruction, NativeFamilyOutcome, NativeObligationScope,
+    NativeObstructionKind, NativeProofId, NativeProofNode, NativeProofOrigin, NativeRead,
+    NativeReadKind, NativeRefutationFamily, NativeSourceTerms, NativeSupportedClash,
+};
+mod diagnostic;
+pub use diagnostic::{ClassDiagnosticObservation, ClassDiagnosticOutcome, class_diagnostic};
+
+pub(crate) use casesplit::execution::{
+    completion_reads as class_completion_reads, positive_reads as class_positive_reads,
+    preparation_reads as class_preparation_reads,
+};
+pub use casesplit::{
+    ClassAdmissionObservation, ClassAdmissionSourceWorld, ClassAdmissionWorld,
+    ClassExecutionOutcome, ClassSourceRefusal, PreparedClassAnalysis,
+};
+
+mod proof;
+pub use proof::{
+    ContextualConflict, RefutationAssumption, RefutationBranch, RefutationClash,
+    RefutationExpression, RefutationPremise, RefutationProof, RefutationSourceIssue,
+};
 
 // ── Shared term / world / value helpers (used by every family sub-decider) ──────
-
-/// The XSD namespace prefix, shared by the datatype value-space and counting
-/// deciders' rational-tower classification.
-const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
 
 /// Canonicalize an RDF term into its resource key: the IRI itself, or a stable
 /// skolem IRI for a blank node. `None` for a literal or RDF-star triple term
@@ -102,38 +102,10 @@ pub(crate) fn parse_rational(text: &str) -> Option<Rational> {
     }
 }
 
-/// Whether `dt` is a member of the `xsd:decimal`/`xsd:integer` tower the exact-ℚ
-/// value space models.
-pub(crate) fn is_rational_tower(dt: &str) -> bool {
-    matches!(
-        dt.strip_prefix(XSD),
-        Some(
-            "decimal"
-                | "integer"
-                | "long"
-                | "int"
-                | "short"
-                | "byte"
-                | "nonNegativeInteger"
-                | "positiveInteger"
-                | "nonPositiveInteger"
-                | "negativeInteger"
-                | "unsignedLong"
-                | "unsignedInt"
-                | "unsignedShort"
-                | "unsignedByte"
-        )
-    )
-}
-
-/// The certified-complete construct families the kernel decides. Each name is the
-/// stable identity a family sub-decider registers under and that
-/// [`crate::reason::dl::classify_coverage`] promotes on an `InFragment{Consistent}`
-/// decision. The order is the canonical decider order (datatype → counting →
-/// case-split); it is never derived from declaration position by accident because
-/// the variants are declared in that same intended order.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum FragmentFamily {
+/// Stable family identities for retained fragment-boundary evidence. These names
+/// classify a boundary; they do not select execution order or certify a whole run.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum FragmentFamily {
     /// Datatype value-space counting: a facet-restricted datatype whose value
     /// space is provably too small for the distinct values forced onto it.
     DatatypeValueSpace,
@@ -165,105 +137,31 @@ impl FragmentFamily {
     }
 }
 
-/// The decided (in)consistency of an in-fragment case. Distinguishing the two
-/// keeps a `consistent` decision (which promotes a family through coverage) from
-/// an `inconsistent` decision (which materializes an `owl:Nothing` clash witness).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum Decision {
-    /// The fragment argument proves the case CONSISTENT — no clash is materialized;
-    /// the deciding family is promoted from a withheld gap to `decided`.
-    Consistent,
-    /// The fragment argument proves the case INCONSISTENT — each
-    /// [`Witness::clashes`] entry is materialized as a `type(?i, owl:Nothing)`
-    /// witness the verdict reads off.
-    Inconsistent,
-}
-
 /// The kind of a counted cardinality bound the fragment argument turned on.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum BoundKind {
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum BoundKind {
     /// A `min` / `minQualifiedCardinality` lower bound.
     Min,
     /// A `max` / `maxQualifiedCardinality` upper bound.
-    // The `max`-bound evidence variant of the shippable [`CountBound`] value. The
-    // datatype value-space decider currently emits only `Min`/`Exact` bounds and the
-    // counting decider reads maxima structurally rather than minting a `CountBound`,
-    // so `Max` is exercised through the kernel's own unit tests only; it stays a
-    // first-class variant because a `CountBound` is a shippable evidence value a
-    // downstream consumer reasons over, and a max-cardinality violation is a real one.
-    #[allow(dead_code)]
     Max,
     /// An exact `cardinality` / `qualifiedCardinality` bound.
     Exact,
 }
 
-/// A structured counted-cardinality bound: the shippable evidence that a counting
-/// or datatype value-space argument violated a specific numeric bound on a
-/// specific property. Kept as a value (never a rendered string) so a downstream
-/// consumer can reason over the bound.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct CountBound {
-    /// Whether the bound was a lower, upper, or exact constraint.
-    pub(crate) kind: BoundKind,
-    /// The numeric bound value.
-    pub(crate) value: usize,
-    /// The property (or datatype) the bound was carried on, as a bare IRI.
-    pub(crate) on_property: String,
-}
-
-/// One `type(?i, owl:Nothing, ?w)` clash an `InFragment{Inconsistent}` decision
-/// materializes. It carries the individual forced empty, its world, the deciding
-/// rule name, and the clash premises — exactly the shape
-/// [`crate::reason::dl`]'s `add_inferred_fact` needs to record the witness with
-/// full provenance. Ordered structurally so a set of clashes is byte-stable.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct NothingClash {
-    /// The individual forced into `owl:Nothing`.
-    pub(crate) individual: String,
-    /// The named-graph world the clash holds in.
-    pub(crate) world: String,
-    /// The deciding rule name recorded on the materialized witness axiom.
-    pub(crate) rule_name: String,
-    /// The clash premises `(subject, predicate, object)`, cited on the witness.
-    pub(crate) premises: Vec<(String, String, String)>,
-}
-
-/// The structured completeness evidence backing an in-fragment decision — the
-/// counted individuals, the violated bound, and/or the case-split branch that
-/// closed. A shippable value, NOT a display string; empty fields simply do not
-/// apply to the deciding family.
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct WitnessEvidence {
-    /// The distinct individuals the counting / case-split argument enumerated.
-    pub(crate) counted_individuals: BTreeSet<String>,
-    /// The numeric bound proven violated, for a counting / datatype family.
-    pub(crate) violated_bound: Option<CountBound>,
-    /// The disjunction branch that closed under refutation, for a case-split
-    /// family (a bare class IRI or the canonical branch key).
-    pub(crate) closed_branch: Option<String>,
-}
-
-/// The structured, shippable witness of an in-fragment decision: which family
-/// closed it, the `owl:Nothing` clashes it materializes (empty for a consistent
-/// decision), and the completeness evidence. Deterministically ordered throughout.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Witness {
-    /// The certified-complete family whose sub-decider closed the case.
-    pub(crate) family: FragmentFamily,
-    /// The clashes materialized on an `Inconsistent` decision (empty otherwise).
-    pub(crate) clashes: BTreeSet<NothingClash>,
-    /// The structured completeness evidence.
-    pub(crate) evidence: WitnessEvidence,
-}
-
 /// The structured reason a case lies OUTSIDE the certified-complete fragment. Free
 /// of any process references — it names the construct/shape that put the case out
 /// of the fragment, deterministically ordered.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum FragmentBoundary {
-    /// No registered sub-decider recognized the case's shape — the kernel did not
-    /// engage. This is the honest edge for any construct no decider claims.
-    NoDeciderEngaged,
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum FragmentBoundary {
+    /// Exact source grammar could not be admitted. This is not a model contradiction.
+    SourceAdmission {
+        /// The selected context owning the failed source definition.
+        world: String,
+        /// The actual source rows; missing fields are described rather than invented.
+        premises: Vec<RefutationPremise>,
+        /// Input or supported-fragment requirement that failed.
+        issue: RefutationSourceIssue,
+    },
     /// A family's shape is present but the completeness bound could not be
     /// certified, so the case lies outside the certified-complete fragment. The
     /// `obstructions` are the deterministically-sorted structural reasons the bound
@@ -283,7 +181,7 @@ impl FragmentBoundary {
     /// The stable kebab-case code suffix naming the boundary shape.
     fn code_suffix(&self) -> &'static str {
         match self {
-            Self::NoDeciderEngaged => "no-decider-engaged",
+            Self::SourceAdmission { .. } => "source-admission",
             Self::Uncertified { .. } => "uncertified",
             Self::Combined(_) => "combined",
         }
@@ -294,7 +192,20 @@ impl FragmentBoundary {
     /// hash-cons-merge and no withhold is dropped.
     fn focus_key(&self) -> String {
         match self {
-            Self::NoDeciderEngaged => "no-decider-engaged".to_owned(),
+            Self::SourceAdmission {
+                world,
+                premises,
+                issue,
+            } => format!(
+                "source-admission\u{1f}{}",
+                crate::physical::metadata_identity(
+                    "gmeow-refutation-source-boundary-v1",
+                    &(world, issue, premises)
+                )
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect::<String>()
+            ),
             Self::Uncertified {
                 family,
                 obstructions,
@@ -320,9 +231,9 @@ impl FragmentBoundary {
     /// Deterministic English detail, free of any process references.
     fn detail(&self) -> String {
         match self {
-            Self::NoDeciderEngaged => "no fragment sub-decider recognized the case; it lies \
-                 outside the certified-complete refutation fragment"
-                .to_owned(),
+            Self::SourceAdmission { world, issue, .. } => {
+                format!("source admission in context <{world}>: {}", issue.detail())
+            }
             Self::Uncertified {
                 family,
                 obstructions,
@@ -346,110 +257,6 @@ impl FragmentBoundary {
     }
 }
 
-/// The certificate a refutation-kernel run produces for a whole EDB.
-///
-/// Exactly one of two shapes: an in-fragment DECISION with its structured witness,
-/// or an out-of-fragment WITHHOLD with its structured boundary. There is no third
-/// "maybe" — the kernel refuses (withholds) rather than guess.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) enum RefutationCertificate {
-    /// The case lies inside the certified-complete fragment; `decision` is the
-    /// proven (in)consistency and `witness` is its structured evidence.
-    InFragment {
-        /// The proven (in)consistency.
-        decision: Decision,
-        /// The structured, shippable witness.
-        witness: Witness,
-    },
-    /// The case lies outside the certified-complete fragment; `reason` is the
-    /// structured boundary (which shape put it out).
-    OutOfFragment {
-        /// The structured withhold reason.
-        reason: FragmentBoundary,
-    },
-}
-
-/// The least-cost-sufficient fragment-membership certificate, modeled on
-/// [`crate::physical::ChaseAdmission::certify`]: a family sub-decider proposes a
-/// completeness obligation as the (deterministically-sorted) `obstructions` that
-/// would block a complete decision. When NONE remain, the case is admitted
-/// `InFragment` and `decide` yields the decision + structured witness; otherwise
-/// the obstructions refuse it into a family-scoped `OutOfFragment`. This is the
-/// single "refuse rather than loop-or-guess" gate every sub-decider passes
-/// through.
-pub(crate) fn certify_membership(
-    family: FragmentFamily,
-    obstructions: BTreeSet<String>,
-    decide: impl FnOnce() -> (Decision, Witness),
-) -> RefutationCertificate {
-    if obstructions.is_empty() {
-        let (decision, witness) = decide();
-        debug_assert_eq!(
-            witness.family, family,
-            "a sub-decider's witness family must match the certified family"
-        );
-        RefutationCertificate::InFragment { decision, witness }
-    } else {
-        RefutationCertificate::OutOfFragment {
-            reason: FragmentBoundary::Uncertified {
-                family,
-                obstructions,
-            },
-        }
-    }
-}
-
-/// A registered per-family sub-decider: given the whole EDB it returns `None` when
-/// the family's shape is absent (it does not engage), `Some(InFragment)` when it
-/// proves a decision, or `Some(OutOfFragment)` when the shape is present but it
-/// cannot certify completeness (an honest family-scoped withhold).
-type SubDecider = fn(&RdfDataset) -> Option<RefutationCertificate>;
-
-/// The registered sub-deciders, tried in order; the first `InFragment` wins.
-///
-/// The registry contains the datatype value-space decider ([`datatype::decide`], Family
-/// 5), the counting / arithmetic-feasibility decider ([`counting::decide`], Families
-/// 2/6a/7), and the case-split/complement
-/// decider. Each decider returns `None` when its family shape is absent, so a
-/// closure carrying no datatype value-space or counting obligation still withholds
-/// with `NoDeciderEngaged` — the kernel decides only the fragment a registered
-/// family proves complete.
-const SUB_DECIDERS: &[SubDecider] = &[datatype::decide, counting::decide, casesplit::decide];
-
-/// Decide the certified-complete refutation fragment for `edb`.
-///
-/// Tries the registered [`SUB_DECIDERS`] in order and returns the first
-/// `InFragment` decision. When none decides, the withholds are combined into one
-/// `OutOfFragment` boundary (a single family's `Uncertified`, or `NoDeciderEngaged`
-/// when nothing engaged, or `Combined` when several families each withheld).
-pub(crate) fn refute(edb: &RdfDataset) -> RefutationCertificate {
-    refute_with(edb, SUB_DECIDERS)
-}
-
-/// The registry-parameterized core of [`refute`], so a test can drive it with a
-/// toy decider slice without registering one into production.
-fn refute_with(edb: &RdfDataset, deciders: &[SubDecider]) -> RefutationCertificate {
-    let mut boundaries: BTreeSet<FragmentBoundary> = BTreeSet::new();
-    for decider in deciders {
-        match decider(edb) {
-            Some(certificate @ RefutationCertificate::InFragment { .. }) => return certificate,
-            Some(RefutationCertificate::OutOfFragment { reason }) => {
-                boundaries.insert(reason);
-            }
-            None => {}
-        }
-    }
-    let reason = match boundaries.len() {
-        0 => FragmentBoundary::NoDeciderEngaged,
-        1 => boundaries
-            .into_iter()
-            .next()
-            .expect("a length-1 set yields one element"),
-        _ => FragmentBoundary::Combined(boundaries),
-    };
-    RefutationCertificate::OutOfFragment { reason }
-}
-
 /// The ledger category stamped on a refutation-kernel boundary finding.
 ///
 /// A sibling of [`crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY`], DISJOINT
@@ -468,31 +275,40 @@ const REFUTATION_KERNEL_STAGE: &str = "reason.refutation-kernel";
 /// or an obstruction label, so the joined key is unambiguous.
 const FOCUS_SEP: &str = "\u{1f}";
 
-/// Derive a ledger-identified boundary finding from an `OutOfFragment` reason.
-///
-/// Mirrors [`crate::reason::ledger::divergence_diag_ledger`]: it interns the
-/// structured boundary into a fresh [`DiagLedger`] through the single diagnostics
-/// substrate, stamped with [`REFUTATION_KERNEL_CATEGORY`] so the withhold stays
-/// OUT of the `gapCount == 0` DL/EL crosscheck. A fragment boundary is an honest
-/// "outside the certified fragment" — a [`FindingCategory::UnsupportedSemanticFeature`],
-/// which is Coherent and can NEVER gate — so surfacing a kernel withhold can never
-/// fail a lane (it is scoped out by BOTH its Coherent category and its disjoint
-/// [`REFUTATION_KERNEL_CATEGORY`]).
+/// Project every retained source or capability cause through the diagnostics ledger.
+/// Malformed selected input is a structural error. Valid unsupported constructs
+/// remain explicit capability findings; combining them cannot erase either grade.
+/// This fold consumes existing evidence and never re-runs source admission.
 pub(crate) fn boundary_diag_ledger(reason: &FragmentBoundary) -> DiagLedger {
+    fn attach(reason: &FragmentBoundary, ledger: &mut DiagLedger) {
+        if let FragmentBoundary::Combined(boundaries) = reason {
+            for boundary in boundaries {
+                attach(boundary, ledger);
+            }
+            return;
+        }
+        let (severity, category) = match reason {
+            FragmentBoundary::SourceAdmission { issue, .. }
+                if issue.refusal_class() == ClassSourceRefusal::Invalid =>
+            {
+                (
+                    Severity::Error,
+                    FindingCategory::ModelingDisciplineViolation,
+                )
+            }
+            _ => (Severity::Info, FindingCategory::UnsupportedSemanticFeature),
+        };
+        let code = register_code(&format!(
+            "reason.{REFUTATION_KERNEL_CATEGORY}.{}",
+            reason.code_suffix()
+        ));
+        let grade = Grade::new(severity, category, Standpoint::Binding);
+        let focus = [REFUTATION_KERNEL_CATEGORY, reason.focus_key().as_str()].join(FOCUS_SEP);
+        let diag = Diag::new(code, grade, reason.detail()).with_focus(focus);
+        ledger.attach(diag, StageId::new(REFUTATION_KERNEL_STAGE));
+    }
     let mut ledger = DiagLedger::new();
-    let stage = StageId::new(REFUTATION_KERNEL_STAGE);
-    let code = register_code(&format!(
-        "reason.{REFUTATION_KERNEL_CATEGORY}.{}",
-        reason.code_suffix()
-    ));
-    let grade = Grade::new(
-        Severity::Info,
-        FindingCategory::UnsupportedSemanticFeature,
-        Standpoint::Binding,
-    );
-    let focus = [REFUTATION_KERNEL_CATEGORY, reason.focus_key().as_str()].join(FOCUS_SEP);
-    let diag = Diag::new(code, grade, reason.detail()).with_focus(focus);
-    ledger.attach(diag, stage);
+    attach(reason, &mut ledger);
     ledger
 }
 
@@ -503,23 +319,19 @@ pub(crate) fn boundary_diag_ledger(reason: &FragmentBoundary) -> DiagLedger {
 // kernel decides (and under which refutation pattern), and which constructs it
 // deliberately RETAINS as honest withholds. `slices/grounding/logic/module.ttl`
 // ships it as `logic:DecidedFragment` / `logic:RefutationPattern` /
-// `logic:expressivenessBoundary` individuals; the agreement test
-// [`tests::module_ttl_projects_the_kernel_registry`] proves the manifest is exactly
-// this registry's projection. Every string here is a TECHNICAL fragment /
-// completeness / boundary characterization — never a process or issue reference.
+// `logic:expressivenessBoundary` individuals. The authenticated pipeline consumer
+// proves the producer's source observation equals `native_fragment_registry()`.
+// Every string here is a technical fragment, completeness or boundary characterization.
 //
 // The registry values are the executable counterpart of the authored manifest.
-// The agreement test (`module_ttl_projects_the_kernel_registry`) proves exact
-// identity; the public CLI reads the manifest from the shipped bundle, while the
-// runtime kernel invokes the registered deciders directly. Item-scoped
-// `#[allow(dead_code)]` attributes therefore cover metadata used by the agreement
-// proof without weakening dead-code checks for the rest of the module.
+// The public CLI reads the manifest from the shipped bundle, while the runtime
+// joint runtime retains the outcomes of every selected native producer. The read-only native registry
+// needs no source checkout or corpus construction.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// A refutation pattern: the decision-procedure schema a decided construct family
 /// closes under. Several families may share one pattern (a cardinality count and a
 /// `hasSelf` self-edge are both [`RefutationPattern::CountingPigeonhole`]).
-#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum RefutationPattern {
     /// A finite pigeonhole count of distinct fillers / edges against a numeric bound.
@@ -533,13 +345,10 @@ pub(crate) enum RefutationPattern {
     /// An equality / inequality arithmetic collapse over a finite set of named
     /// individuals (an (inverse-)functional identity forced against a distinctness).
     ArithmeticEqualityCollapse,
-    /// A decidable metamodel malformation of the finite triple set (a broken list).
-    MalformedMetamodel,
     /// A finite closed-set (nominal enumeration) intersection emptiness.
     NominalClash,
 }
 
-#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 impl RefutationPattern {
     /// Every pattern variant, in canonical [`RefutationPattern::slug`] order — the
     /// closed set the shipped `logic:RefutationPattern` individuals must match.
@@ -549,7 +358,6 @@ impl RefutationPattern {
         RefutationPattern::CaseSplitExhaustion,
         RefutationPattern::ComplementClash,
         RefutationPattern::ArithmeticEqualityCollapse,
-        RefutationPattern::MalformedMetamodel,
         RefutationPattern::NominalClash,
     ];
 
@@ -562,7 +370,6 @@ impl RefutationPattern {
             Self::CaseSplitExhaustion => "case-split-exhaustion",
             Self::ComplementClash => "complement-clash",
             Self::ArithmeticEqualityCollapse => "arithmetic-equality-collapse",
-            Self::MalformedMetamodel => "malformed-metamodel",
             Self::NominalClash => "nominal-clash",
         }
     }
@@ -571,7 +378,6 @@ impl RefutationPattern {
 /// One decided construct family: a stable `id` (the local name of its shipped
 /// `logic:DecidedFragment` individual), the [`RefutationPattern`] it closes under,
 /// and a short TECHNICAL completeness-bound characterization.
-#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct DecidedFragment {
     /// The stable kebab-case fragment id / shipped individual local name.
@@ -585,7 +391,6 @@ pub(crate) struct DecidedFragment {
 /// One deliberately-RETAINED withhold: a construct the kernel does NOT decide, with
 /// a stable `id` (its shipped `logic:expressivenessBoundary`-record local name) and
 /// a TECHNICAL fragment-boundary `reason`.
-#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct FragmentBoundaryRecord {
     /// The stable kebab-case boundary id / shipped record local name.
@@ -596,10 +401,8 @@ pub(crate) struct FragmentBoundaryRecord {
 
 /// The certified-complete construct families — ONE entry per decided family,
 /// returned sorted by `id` (deterministic). This is the authoritative source the
-/// shipped `logic:DecidedFragment` manifest projects. Families 6a (arithmetic
-/// identity collapse) and 6b (malformed list) are distinct patterns, so each is its
-/// own entry (the "seven construct families" fold Family 6's two sub-families).
-#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
+/// shipped `logic:DecidedFragment` manifest projects. Source grammar admission
+/// remains a separate operation and cannot establish a semantic decision.
 pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
     let mut fragments = vec![
         DecidedFragment {
@@ -636,10 +439,10 @@ pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
         DecidedFragment {
             id: "datatype-value-space",
             pattern: RefutationPattern::ValueSpaceCardinality,
-            bound: "A facet-restricted datatype whose finite value-space cardinality is provably \
-                    smaller than the distinct literals a cardinality bound forces onto it; complete \
-                    because the value-space count is derived from the math-grounded \
-                    finite-cardinality table, bounding the pigeonhole exactly.",
+            bound: "A datatype whose value-space capacity is provably smaller than the distinct \
+                    values required by a cardinality bound; complete because native datatype \
+                    definitions and primitive capacity evidence give a sufficient finite upper \
+                    bound for the pigeonhole contradiction.",
         },
         DecidedFragment {
             id: "inverse-functional-identity-collapse",
@@ -648,13 +451,6 @@ pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
                     distinct-nominal) individuals to be identified; complete because the identity \
                     collapse is a decidable equality / inequality arithmetic over a finite set of \
                     named individuals.",
-        },
-        DecidedFragment {
-            id: "malformed-rdf-list",
-            pattern: RefutationPattern::MalformedMetamodel,
-            bound: "An rdf:nil node bearing rdf:first or rdf:rest (a structurally broken RDF list); \
-                    complete because list well-formedness is a decidable metamodel property of the \
-                    finite triple set, independent of object-level entailment.",
         },
         DecidedFragment {
             id: "has-self-membership",
@@ -669,13 +465,35 @@ pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
     fragments
 }
 
+pub const CLASS_EXPRESSION_SOURCE_ADMISSION_ID: &str = "nativeClassExpressionListAdmission";
+
+/// One selected source grammar contract. Admission records describe which
+/// source structures an operation accepts; they are not semantic decision families.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct SourceAdmissionContractRecord {
+    pub(crate) id: &'static str,
+    pub(crate) requirement: &'static str,
+}
+
+/// Exact source-owned class/list admission exported alongside the semantic registry.
+/// A descriptive entry does not itself admit an input or establish a contradiction.
+pub(crate) fn source_admission_contracts() -> Vec<SourceAdmissionContractRecord> {
+    vec![SourceAdmissionContractRecord {
+        id: CLASS_EXPRESSION_SOURCE_ADMISSION_ID,
+        requirement: "Selected class-expression operators and typed distinct-member declarations own their operands and reachable finite lists in one native world. Owned lists require an unambiguous first/rest path to rdf:nil, with no fields on that terminator; unrelated list-shaped data selects no admission contract. Malformed selected grammar fails admission; well-formed constructs outside the selected operand or definition fragment remain explicit capability refusals. Every refusal retains its exact owner and reachable source path; none is an object-level contradiction or a claim of semantic completeness.",
+    }]
+}
+
 /// The constructs the kernel deliberately RETAINS as honest withholds — ONE entry
 /// per retained-withhold construct, returned sorted by `id` (deterministic). Each
 /// carries a technical fragment-boundary reason; the shipped
 /// `logic:expressivenessBoundary` records project these.
-#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
     let mut boundaries = vec![
+        FragmentBoundaryRecord {
+            id: "finite-journal-infinite-trace",
+            reason: "Finite journal evaluation quantifies only over authenticated observed positions. An open prefix does not determine its unobserved continuation, and finalizing one observation does not prove a claim over an infinite trace. Infinite-trace temporal validity is outside this certified finite fragment.",
+        },
         FragmentBoundaryRecord {
             id: "xsd-pattern-facet",
             reason: "An xsd:pattern facet requires the XML Schema regular-expression dialect, with \
@@ -693,10 +511,7 @@ pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
         },
         FragmentBoundaryRecord {
             id: "entangled-existential-cardinality",
-            reason: "A configuration entangling an existential OWL someValuesFrom filler with a \
-                     number or qualified-cardinality bound on the same property couples witness \
-                     generation with counting; the family sub-deciders certify each in isolation \
-                     only, so the entangled full-DL case lies outside the certified fragment.",
+            reason: "A configuration coupling an existential filler with a number or qualified-cardinality bound lies outside the admitted joint fragment when its combined source obligations or termination requirements are unsupported. Co-occurrence alone is not a boundary: admitted witness generation and counting share one world-scoped fixed point. This does not certify arbitrary full-DL combinations.",
         },
         FragmentBoundaryRecord {
             id: "rdf12-nested-triple-term",
@@ -717,566 +532,245 @@ pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
     boundaries
 }
 
-/// Route a family-scoped kernel withhold into the reasoner finding output.
-///
-/// Runs the kernel over `edb`; when it lands OUTSIDE its certified-complete fragment
-/// with a FAMILY-SCOPED boundary (an `Uncertified` / `Combined` reason — a family
-/// shape was present but its completeness bound did not close), derives the
-/// ledger-identified finding through [`boundary_diag_ledger`] so the withhold is
-/// carried on [`crate::reason::dl::DlVerdict::boundary_findings`] under
-/// [`REFUTATION_KERNEL_CATEGORY`], tied to the same input that produces the verdict.
-///
-/// The `NoDeciderEngaged` steady state (no family shape engaged — the committed
-/// bundle and every gated corpus input) yields NO finding, so this is a strict
-/// no-op there and changes no verdict; a decision (`InFragment`) likewise yields
-/// none. The finding is a Coherent `UnsupportedSemanticFeature` at Info severity and
-/// can NEVER gate (see [`boundary_diag_ledger`]).
-pub(crate) fn production_boundary_findings(edb: &RdfDataset) -> Vec<gmeow_errors::Finding> {
-    match refute(edb) {
-        RefutationCertificate::OutOfFragment { reason }
-            if !matches!(reason, FragmentBoundary::NoDeciderEngaged) =>
-        {
-            boundary_diag_ledger(&reason).findings("reason")
-        }
-        _ => Vec::new(),
-    }
+/// Native fragment inventory or its observed authored projection. Exact equality
+/// checks both directions, including undeclared patterns and stray characterizations.
+/// This descriptive surface does not authorize execution or optimization rewrites.
+#[derive(Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NativeFragmentRegistry {
+    /// Stable local names of every refutation pattern.
+    pub pattern_ids: BTreeSet<String>,
+    /// Stable local names of every decided fragment.
+    pub decided_ids: BTreeSet<String>,
+    /// Stable local names of every selected source admission contract.
+    pub source_admission_ids: BTreeSet<String>,
+    /// Exact source selection and admission requirements, keyed by contract local name.
+    pub source_admission_requirements: BTreeMap<String, String>,
+    /// Stable local names of every retained expressiveness boundary.
+    pub boundary_ids: BTreeSet<String>,
+    /// Deciding pattern, keyed by fragment local name.
+    pub deciding_patterns: BTreeMap<String, String>,
+    /// Technical completeness bound, keyed by fragment local name.
+    pub completeness_bounds: BTreeMap<String, String>,
+    /// Technical reason for withholding, keyed by boundary local name.
+    pub boundary_reasons: BTreeMap<String, String>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use gmeow_errors::GateVerdict;
-    use purrdf::RdfDatasetBuilder;
-
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-    fn empty_edb() -> std::sync::Arc<RdfDataset> {
-        RdfDatasetBuilder::new()
-            .freeze()
-            .expect("an empty dataset is valid")
-    }
-
-    /// A toy always-decidable sub-decider: it proves a fixed INCONSISTENT case,
-    /// exercising the `InFragment{Inconsistent}` path with a structured witness.
-    fn toy_inconsistent(_edb: &RdfDataset) -> Option<RefutationCertificate> {
-        let clash = NothingClash {
-            individual: "http://ex/i".to_owned(),
-            world: "http://ex/w".to_owned(),
-            rule_name: "refute:toy-counting".to_owned(),
-            premises: vec![(
-                "http://ex/i".to_owned(),
-                RDF_TYPE.to_owned(),
-                "http://ex/A".to_owned(),
-            )],
-        };
-        Some(certify_membership(
-            FragmentFamily::Counting,
-            BTreeSet::new(),
-            || {
-                (
-                    Decision::Inconsistent,
-                    Witness {
-                        family: FragmentFamily::Counting,
-                        clashes: [clash].into_iter().collect(),
-                        evidence: WitnessEvidence {
-                            counted_individuals: [
-                                "http://ex/a".to_owned(),
-                                "http://ex/b".to_owned(),
-                            ]
-                            .into_iter()
-                            .collect(),
-                            violated_bound: Some(CountBound {
-                                kind: BoundKind::Max,
-                                value: 1,
-                                on_property: "http://ex/p".to_owned(),
-                            }),
-                            closed_branch: None,
-                        },
-                    },
-                )
-            },
-        ))
-    }
-
-    /// A toy sub-decider whose family shape is present but which cannot certify
-    /// completeness — it withholds with a structured, sorted boundary.
-    fn toy_withholds(_edb: &RdfDataset) -> Option<RefutationCertificate> {
-        let obstructions: BTreeSet<String> = [
-            "unbounded max cardinality on <http://ex/p>".to_owned(),
-            "min 2 > max 1 on <http://ex/q>".to_owned(),
-        ]
-        .into_iter()
-        .collect();
-        Some(certify_membership(
-            FragmentFamily::Counting,
-            obstructions,
-            || unreachable!("a withhold never decides"),
-        ))
-    }
-
-    // (4a) A hand-built in-fragment case yields `InFragment` with the correct
-    // decision and a deterministic structured witness.
-    #[test]
-    fn in_fragment_case_yields_decision_and_structured_witness() {
-        let edb = empty_edb();
-        let certificate = refute_with(edb.as_ref(), &[toy_inconsistent]);
-        let RefutationCertificate::InFragment { decision, witness } = certificate else {
-            panic!("the toy decider must land in-fragment: {certificate:?}");
-        };
-        assert_eq!(decision, Decision::Inconsistent);
-        assert_eq!(witness.family, FragmentFamily::Counting);
-        // The structured witness carries the counted individuals, the violated
-        // bound, and the clash — never a rendered string.
-        assert_eq!(witness.clashes.len(), 1);
-        let clash = witness.clashes.iter().next().expect("one clash");
-        assert_eq!(clash.individual, "http://ex/i");
-        assert_eq!(clash.world, "http://ex/w");
-        assert_eq!(
-            witness.evidence.counted_individuals,
-            ["http://ex/a".to_owned(), "http://ex/b".to_owned()]
-                .into_iter()
-                .collect()
-        );
-        assert_eq!(
-            witness.evidence.violated_bound,
-            Some(CountBound {
-                kind: BoundKind::Max,
-                value: 1,
-                on_property: "http://ex/p".to_owned(),
-            })
-        );
-    }
-
-    // (4b) An out-of-fragment case yields `OutOfFragment` (never a decision) with a
-    // ledger-identified boundary that can never gate.
-    #[test]
-    fn out_of_fragment_case_yields_ledger_identified_boundary() {
-        let edb = empty_edb();
-        let certificate = refute_with(edb.as_ref(), &[toy_withholds]);
-        let RefutationCertificate::OutOfFragment { reason } = &certificate else {
-            panic!("a withhold must never be a decision: {certificate:?}");
-        };
-        assert!(matches!(
-            reason,
-            FragmentBoundary::Uncertified {
-                family: FragmentFamily::Counting,
-                ..
-            }
-        ));
-
-        // The boundary derives a ledger-identified finding stamped with the
-        // disjoint kernel category, at the Coherent UnsupportedSemanticFeature
-        // grade, so it can NEVER gate the DL/EL crosscheck.
-        let ledger = boundary_diag_ledger(reason);
-        let findings = ledger.findings("reason");
-        assert_eq!(findings.len(), 1, "one boundary finding: {findings:?}");
-        let finding = &findings[0];
-        assert_eq!(
-            finding.category,
-            Some(FindingCategory::UnsupportedSemanticFeature)
-        );
-        assert!(
-            finding.code.contains(REFUTATION_KERNEL_CATEGORY),
-            "code carries the disjoint kernel category: {}",
-            finding.code
-        );
-        assert_eq!(
-            ledger.verdict(),
-            GateVerdict::Collected,
-            "a kernel boundary is Coherent and can never gate"
-        );
-
-        // The kernel category is disjoint from every DL/EL crosscheck category.
-        assert_ne!(REFUTATION_KERNEL_CATEGORY, "consistency");
-        assert_ne!(REFUTATION_KERNEL_CATEGORY, "subsumption");
-        assert_ne!(REFUTATION_KERNEL_CATEGORY, "external-corpus");
-        assert_ne!(
-            REFUTATION_KERNEL_CATEGORY,
-            crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY
-        );
-    }
-
-    // An empty decider slice withholds with `NoDeciderEngaged`. The production
-    // `refute` now registers the datatype value-space decider, which
-    // returns `None` on an EDB carrying no datatype value-space obligation, so an
-    // empty EDB still withholds `NoDeciderEngaged` — the family engages only on its
-    // shape, never on a closure that does not carry it.
-    #[test]
-    fn empty_registry_withholds_no_decider_engaged() {
-        let edb = empty_edb();
-        assert_eq!(
-            refute_with(edb.as_ref(), &[]),
-            RefutationCertificate::OutOfFragment {
-                reason: FragmentBoundary::NoDeciderEngaged,
-            }
-        );
-        assert_eq!(
-            refute(edb.as_ref()),
-            RefutationCertificate::OutOfFragment {
-                reason: FragmentBoundary::NoDeciderEngaged,
-            },
-            "the datatype value-space decider does not engage on an empty EDB"
-        );
-    }
-
-    // Two withholding families combine into a sorted `Combined` boundary.
-    #[test]
-    fn multiple_withholds_combine_deterministically() {
-        fn toy_case_split(_edb: &RdfDataset) -> Option<RefutationCertificate> {
-            Some(certify_membership(
-                FragmentFamily::CaseSplit,
-                ["unbounded disjunction".to_owned()].into_iter().collect(),
-                || unreachable!(),
-            ))
-        }
-        let edb = empty_edb();
-        let certificate = refute_with(edb.as_ref(), &[toy_withholds, toy_case_split]);
-        let RefutationCertificate::OutOfFragment {
-            reason: FragmentBoundary::Combined(inner),
-        } = &certificate
-        else {
-            panic!("two withholds must combine: {certificate:?}");
-        };
-        assert_eq!(inner.len(), 2, "one boundary per withholding family");
-    }
-
-    // (4c) Determinism: the same input yields byte-identical certificate output
-    // across two runs (canonical `BTreeSet`/sorted ordering makes the Debug
-    // rendering byte-stable).
-    #[test]
-    fn certificate_output_is_byte_identical_across_runs() {
-        let edb = empty_edb();
-        let first = format!("{:?}", refute_with(edb.as_ref(), &[toy_inconsistent]));
-        let second = format!("{:?}", refute_with(edb.as_ref(), &[toy_inconsistent]));
-        assert_eq!(first, second, "in-fragment certificate must be byte-stable");
-
-        let first_boundary = format!("{:?}", refute_with(edb.as_ref(), &[toy_withholds]));
-        let second_boundary = format!("{:?}", refute_with(edb.as_ref(), &[toy_withholds]));
-        assert_eq!(
-            first_boundary, second_boundary,
-            "out-of-fragment boundary must be byte-stable"
-        );
-    }
-
-    /// SINGLE SOURCE OF TRUTH: the shipped `logic:DecidedFragment` /
-    /// `logic:RefutationPattern` / `logic:expressivenessBoundary` manifest in
-    /// `slices/grounding/logic/module.ttl` is EXACTLY the projection of this kernel's
-    /// [`decided_fragments`] / [`retained_boundaries`] registry (mirrors the datatype
-    /// family's `rust_finite_cardinality_table_projects_the_math_grounding`). Drift in
-    /// either direction — the Rust registry gaining/losing an entry, or the slice
-    /// editing an id, pattern, bound, or reason — fails here, so the ontology manifest
-    /// can never silently diverge from the kernel that decides.
-    #[test]
-    fn module_ttl_projects_the_kernel_registry() {
-        use purrdf::{NativeRdfFormat, RdfTerm, dataset_from_bytes};
-        use std::collections::BTreeMap;
-
-        const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+impl NativeFragmentRegistry {
+    /// Read the authored registry once from its parsed native source. Source admission
+    /// records are structurally checked separately from semantic capability claims.
+    pub fn observe(dataset: &purrdf::RdfDataset) -> Result<Self, gmeow_errors::Diag> {
+        use gmeow_ns::LOGIC_NS;
+        use purrdf::TermRef;
         let decided_class = format!("{LOGIC_NS}DecidedFragment");
         let pattern_class = format!("{LOGIC_NS}RefutationPattern");
+        let admission_class = format!("{LOGIC_NS}SourceAdmissionContract");
+        let admission_requirement = format!("{LOGIC_NS}sourceAdmissionRequirement");
         let decides_under = format!("{LOGIC_NS}decidesUnderPattern");
-        let completeness_bound = format!("{LOGIC_NS}fragmentCompletenessBound");
         let boundary_pred = format!("{LOGIC_NS}expressivenessBoundary");
+        let completeness_bound = format!("{LOGIC_NS}fragmentCompletenessBound");
         let boundary_reason = format!("{LOGIC_NS}fragmentBoundaryReason");
-
-        let path = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../slices/grounding/logic/module.ttl"
-        );
-        let bytes = std::fs::read(path).expect("read the logic grounding slice");
-        let dataset =
-            dataset_from_bytes(&bytes, NativeRdfFormat::Turtle).expect("parse logic module.ttl");
-
-        let local = |iri: &str| iri.strip_prefix(LOGIC_NS).map(str::to_owned);
-
-        let mut ttl_pattern_individuals: BTreeSet<String> = BTreeSet::new();
-        let mut ttl_decided_subjects: BTreeSet<String> = BTreeSet::new();
-        let mut decides: BTreeMap<String, String> = BTreeMap::new();
-        let mut bound: BTreeMap<String, String> = BTreeMap::new();
-        let mut boundary_subjects: BTreeSet<String> = BTreeSet::new();
-        let mut reason: BTreeMap<String, String> = BTreeMap::new();
-
-        for quad in dataset.owned_quads() {
-            let RdfTerm::Iri(subject) = &quad.subject else {
+        let mut surface = Self::default();
+        for quad in dataset
+            .quads()
+            .chain(dataset.reifier_quads())
+            .chain(dataset.annotation_quads())
+        {
+            let predicate_value = dataset.resolve(quad.p);
+            let object = dataset.resolve(quad.o);
+            let selects_admission = matches!(predicate_value, TermRef::Iri(p) if p == admission_requirement)
+                || (matches!(
+                    predicate_value,
+                    TermRef::Iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+                ) && matches!(object, TermRef::Iri(o) if o == admission_class));
+            if selects_admission
+                && !matches!(dataset.resolve(quad.s), TermRef::Iri(s) if s.starts_with(LOGIC_NS))
+            {
+                return Err(registry_error(
+                    "a shipped source admission record must name its logic individual",
+                ));
+            }
+            let TermRef::Iri(subject) = dataset.resolve(quad.s) else {
                 continue;
             };
-            let Some(subj) = local(subject) else {
+            let Some(local) = subject.strip_prefix(LOGIC_NS) else {
                 continue;
             };
-            match quad.predicate.as_str() {
-                RDF_TYPE => {
-                    if let RdfTerm::Iri(o) = &quad.object {
-                        if *o == decided_class {
-                            ttl_decided_subjects.insert(subj);
-                        } else if *o == pattern_class {
-                            ttl_pattern_individuals.insert(subj);
-                        }
+            let TermRef::Iri(predicate) = predicate_value else {
+                continue;
+            };
+            match predicate {
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" => {
+                    if matches!(object, TermRef::Iri(iri) if iri == decided_class) {
+                        surface.decided_ids.insert(local.to_owned());
+                    } else if matches!(object, TermRef::Iri(iri) if iri == pattern_class) {
+                        surface.pattern_ids.insert(local.to_owned());
+                    } else if matches!(object, TermRef::Iri(iri) if iri == admission_class) {
+                        surface.source_admission_ids.insert(local.to_owned());
                     }
                 }
-                p if p == decides_under => {
-                    if let RdfTerm::Iri(o) = &quad.object
-                        && let Some(pl) = local(o)
-                    {
-                        decides.insert(subj, pl);
-                    }
+                predicate if predicate == decides_under => {
+                    let TermRef::Iri(pattern) = object else {
+                        return Err(registry_error(&format!(
+                            "{subject} {predicate} must name a logic pattern"
+                        )));
+                    };
+                    let Some(pattern) = pattern.strip_prefix(LOGIC_NS) else {
+                        return Err(registry_error(&format!(
+                            "{subject} {predicate} must name a logic pattern"
+                        )));
+                    };
+                    insert_registry_value(
+                        &mut surface.deciding_patterns,
+                        local,
+                        predicate,
+                        pattern,
+                    )?;
                 }
-                p if p == completeness_bound => {
-                    if let RdfTerm::Literal(l) = &quad.object {
-                        bound.insert(subj, l.lexical_form.clone());
-                    }
+                predicate if predicate == boundary_pred => {
+                    surface.boundary_ids.insert(local.to_owned());
                 }
-                p if p == boundary_pred => {
-                    boundary_subjects.insert(subj);
-                }
-                p if p == boundary_reason => {
-                    if let RdfTerm::Literal(l) = &quad.object {
-                        reason.insert(subj, l.lexical_form.clone());
+                predicate if predicate == admission_requirement => {
+                    let TermRef::Literal {
+                        lexical,
+                        datatype,
+                        language: None,
+                        direction: None,
+                    } = object
+                    else {
+                        return Err(registry_error(&format!(
+                            "{subject} {predicate} must be an untagged xsd:string literal"
+                        )));
+                    };
+                    if !matches!(
+                        dataset.resolve(datatype),
+                        TermRef::Iri("http://www.w3.org/2001/XMLSchema#string")
+                    ) {
+                        return Err(registry_error(&format!(
+                            "{subject} {predicate} must be an untagged xsd:string literal"
+                        )));
                     }
+                    if lexical.trim().is_empty() {
+                        return Err(registry_error(&format!(
+                            "{subject} {predicate} must be nonempty"
+                        )));
+                    }
+                    insert_registry_value(
+                        &mut surface.source_admission_requirements,
+                        local,
+                        predicate,
+                        lexical,
+                    )?;
+                }
+                predicate if predicate == completeness_bound || predicate == boundary_reason => {
+                    let TermRef::Literal { lexical, .. } = object else {
+                        return Err(registry_error(&format!(
+                            "{subject} {predicate} must be a literal"
+                        )));
+                    };
+                    let values = if predicate == completeness_bound {
+                        &mut surface.completeness_bounds
+                    } else {
+                        &mut surface.boundary_reasons
+                    };
+                    insert_registry_value(values, local, predicate, lexical)?;
                 }
                 _ => {}
             }
         }
-
-        // (1) `logic:RefutationPattern` individuals ≡ every `RefutationPattern` slug.
-        let rust_patterns: BTreeSet<String> = RefutationPattern::ALL
-            .iter()
-            .map(|p| p.slug().to_owned())
-            .collect();
-        assert_eq!(
-            ttl_pattern_individuals, rust_patterns,
-            "logic:RefutationPattern individuals must match RefutationPattern::ALL slugs"
-        );
-
-        // (2) `logic:DecidedFragment` individuals ≡ `decided_fragments()`: id set,
-        // deciding pattern per id, and completeness bound per id — bidirectionally.
-        let rust_fragments = decided_fragments();
-        let rust_ids: BTreeSet<String> = rust_fragments.iter().map(|f| f.id.to_owned()).collect();
-        assert_eq!(
-            ttl_decided_subjects, rust_ids,
-            "logic:DecidedFragment individuals must match decided_fragments() ids"
-        );
-        for f in &rust_fragments {
-            assert_eq!(
-                decides.get(f.id).map(String::as_str),
-                Some(f.pattern.slug()),
-                "fragment {} logic:decidesUnderPattern must match the kernel pattern",
-                f.id
-            );
-            assert_eq!(
-                bound.get(f.id).map(String::as_str),
-                Some(f.bound),
-                "fragment {} logic:fragmentCompletenessBound must match the kernel bound",
-                f.id
-            );
+        if surface
+            .source_admission_requirements
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>()
+            != surface.source_admission_ids
+        {
+            return Err(registry_error(
+                "every source admission contract requires exactly one characterization, with no untyped characterizations",
+            ));
         }
-        assert_eq!(
-            decides.keys().cloned().collect::<BTreeSet<_>>(),
-            rust_ids,
-            "no logic:decidesUnderPattern outside the decided-fragment set"
-        );
-        assert_eq!(
-            bound.keys().cloned().collect::<BTreeSet<_>>(),
-            rust_ids,
-            "no logic:fragmentCompletenessBound outside the decided-fragment set"
-        );
-
-        // (3) `logic:expressivenessBoundary` records ≡ `retained_boundaries()`: id set
-        // plus technical reason per id — bidirectionally.
-        let rust_boundaries = retained_boundaries();
-        let rust_boundary_ids: BTreeSet<String> =
-            rust_boundaries.iter().map(|b| b.id.to_owned()).collect();
-        assert_eq!(
-            boundary_subjects, rust_boundary_ids,
-            "logic:expressivenessBoundary records must match retained_boundaries() ids"
-        );
-        for b in &rust_boundaries {
-            assert_eq!(
-                reason.get(b.id).map(String::as_str),
-                Some(b.reason),
-                "boundary {} logic:fragmentBoundaryReason must match the kernel reason",
-                b.id
-            );
+        if !surface
+            .source_admission_ids
+            .is_disjoint(&surface.decided_ids)
+            || !surface
+                .source_admission_ids
+                .is_disjoint(&surface.pattern_ids)
+            || !surface
+                .source_admission_ids
+                .is_disjoint(&surface.boundary_ids)
+        {
+            return Err(registry_error(
+                "source admission contracts cannot also claim a semantic fragment, pattern or boundary",
+            ));
         }
-        assert_eq!(
-            reason.keys().cloned().collect::<BTreeSet<_>>(),
-            rust_boundary_ids,
-            "no logic:fragmentBoundaryReason outside the retained-boundary set"
-        );
-    }
-
-    // ── (R2) Determinism: the kernel is byte-stable on real decided inputs ────────
-
-    /// Read one committed conformance `input.nq` (relative to this crate's manifest
-    /// dir) into a frozen dataset.
-    fn read_case_edb(rel: &str) -> std::sync::Arc<RdfDataset> {
-        use purrdf::{NativeRdfFormat, dataset_from_bytes};
-        let path = format!("{}/{rel}", env!("CARGO_MANIFEST_DIR"));
-        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {path}: {e}"));
-        dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
-            .unwrap_or_else(|e| panic!("parse {path}: {e}"))
-    }
-
-    /// (R2) DETERMINISM — running the kernel on a fixed input TWICE yields
-    /// byte-identical certificate / witness output. This exercises the DATATYPE
-    /// value-space decider (the length-facet fixture) and the COUNTING decider (the
-    /// `owl:hasSelf` fixture) on real committed production inputs, complementing the
-    /// per-decider `determinism_byte_stable` unit tests in `datatype`/`counting`/
-    /// `casesplit`. Both fixtures land IN-FRAGMENT, so this pins the witness output
-    /// (clashes + structured evidence), not merely an empty boundary. The structured
-    /// types order their collections with `BTreeSet`/`BTreeMap`, so the byte-stable
-    /// `Debug` rendering is the observable pin on that determinism.
-    #[test]
-    fn kernel_output_is_byte_stable_on_datatype_and_counting_inputs() {
-        for rel in [
-            // Family 5 — datatype value-space (length-facet emptiness) decider.
-            "../../conformance/logic/cases/datatype-value-space/length-facet-empty/input.nq",
-            // Family 7 — the counting decider's owl:hasSelf refutation witness.
-            "../../conformance/logic/cases/external/w3c-owl2-full-decided/\
-             footnote-not-about-self/input.nq",
-        ] {
-            let edb = read_case_edb(rel);
-            let first = format!("{:?}", refute(edb.as_ref()));
-            let second = format!("{:?}", refute(edb.as_ref()));
-            assert_eq!(
-                first, second,
-                "kernel certificate must be byte-stable for {rel}"
-            );
-            assert!(
-                first.contains("InFragment"),
-                "{rel} must be DECIDED in-fragment so the pin covers real witness output: {first}"
-            );
-        }
-    }
-
-    // ── (R3) Refusal: the kernel withholds at its certified-fragment edge ─────────
-
-    /// (R3) REFUSAL — an adversarial input that EXCEEDS the kernel's certified
-    /// fragment bound must be REFUSED (`OutOfFragment`), never decided. Here a
-    /// (populated) cardinality restriction is ENTANGLED with an `owl:someValuesFrom`
-    /// existential on the same property: the counting decider certifies cardinality
-    /// counting only in ISOLATION, so the entangled full-DL configuration lies
-    /// outside its certified-complete fragment (the shipped
-    /// `entangled-existential-cardinality` retained boundary). The kernel must
-    /// WITHHOLD with a structured, family-scoped boundary rather than hang, loop, or
-    /// truncate to a wrong decided verdict — the soundness-by-construction edge. The
-    /// withhold must ALSO route to a real production finding via
-    /// `production_boundary_findings`, so the honest "outside the fragment" is tied
-    /// to the reasoner output rather than dark.
-    #[test]
-    fn entangled_cardinality_exceeds_fragment_bound_and_is_refused() {
-        use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
-
-        const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
-        const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
-        const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
-        const OWL_MIN_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#minCardinality";
-        const OWL_SOME_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#someValuesFrom";
-        const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
-        const W: &str = "http://ex/w";
-
-        let iri_q = |s: &str, p: &str, o: &str| {
-            RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
-        };
-
-        let mut b = RdfDatasetBuilder::new();
-        for q in [
-            // A populated class C with a min-1 cardinality restriction on p …
-            iri_q("http://ex/C", RDF_TYPE, OWL_CLASS),
-            iri_q("http://ex/i", RDF_TYPE, "http://ex/C"),
-            iri_q("http://ex/C", RDFS_SUBCLASSOF, "http://ex/r1"),
-            iri_q("http://ex/r1", RDF_TYPE, OWL_RESTRICTION),
-            iri_q("http://ex/r1", OWL_ON_PROPERTY, "http://ex/p"),
-            // … ENTANGLED with a someValuesFrom existential on the SAME property.
-            iri_q("http://ex/C", RDFS_SUBCLASSOF, "http://ex/r2"),
-            iri_q("http://ex/r2", RDF_TYPE, OWL_RESTRICTION),
-            iri_q("http://ex/r2", OWL_ON_PROPERTY, "http://ex/p"),
-            iri_q("http://ex/r2", OWL_SOME_VALUES_FROM, "http://ex/D"),
-        ] {
-            b.push_owned_quad(&q);
-        }
-        b.push_owned_quad(
-            &RdfQuad::new(
-                RdfTerm::iri("http://ex/r1"),
-                OWL_MIN_CARDINALITY,
-                RdfTerm::Literal(RdfLiteral::typed("1", XSD_NNI)),
-            )
-            .in_graph(RdfTerm::iri(W)),
-        );
-        let edb = b.freeze().expect("freeze the entangled edb");
-
-        let certificate = refute(edb.as_ref());
-        assert!(
-            matches!(certificate, RefutationCertificate::OutOfFragment { .. }),
-            "the kernel MUST refuse (withhold) at its certified-fragment edge, never decide: \
-             {certificate:?}"
-        );
-
-        // The refusal is a FAMILY-SCOPED boundary (a shape engaged but its
-        // completeness bound did not close), so it routes to a real production
-        // finding rather than the dark `NoDeciderEngaged` steady state.
-        let findings = production_boundary_findings(edb.as_ref());
-        assert!(
-            !findings.is_empty(),
-            "an entangled-cardinality withhold must surface a family-scoped boundary finding"
-        );
-    }
-
-    // ── No process references in the kernel registry itself (R: acceptance) ───────
-
-    /// The kernel registry's OWN technical strings — every `decided_fragments()`
-    /// completeness bound and every `retained_boundaries()` reason — are free of any
-    /// PROCESS REFERENCE (`#<digit>`, `issue`, a bare `PR` token, or `per #`,
-    /// case-insensitive). The conformance gate proves the same over the shipped
-    /// `module.ttl` projection; this pins the source registry directly, so a process
-    /// reference can enter neither the kernel nor its manifest.
-    #[test]
-    fn kernel_registry_strings_carry_no_process_reference() {
-        fn process_reference(text: &str) -> Option<&'static str> {
-            let lower = text.to_ascii_lowercase();
-            let bytes = lower.as_bytes();
-            for i in 0..bytes.len() {
-                if bytes[i] == b'#' && bytes.get(i + 1).is_some_and(u8::is_ascii_digit) {
-                    return Some("#<digit>");
-                }
-            }
-            if lower.contains("issue") {
-                return Some("issue");
-            }
-            if lower.contains("per #") {
-                return Some("per #");
-            }
-            let is_word = |c: u8| c.is_ascii_alphanumeric();
-            for i in 0..bytes.len().saturating_sub(1) {
-                if bytes[i] == b'p'
-                    && bytes[i + 1] == b'r'
-                    && (i == 0 || !is_word(bytes[i - 1]))
-                    && (i + 2 >= bytes.len() || !is_word(bytes[i + 2]))
-                {
-                    return Some("PR");
-                }
-            }
-            None
-        }
-
-        let mut failures: Vec<String> = Vec::new();
-        for f in decided_fragments() {
-            if let Some(pat) = process_reference(f.bound) {
-                failures.push(format!("decided fragment {:?} bound carries {pat:?}", f.id));
-            }
-        }
-        for boundary in retained_boundaries() {
-            if let Some(pat) = process_reference(boundary.reason) {
-                failures.push(format!(
-                    "retained boundary {:?} reason carries {pat:?}",
-                    boundary.id
-                ));
-            }
-        }
-        assert!(
-            failures.is_empty(),
-            "kernel registry technical strings must be free of process references:\n  • {}",
-            failures.join("\n  • ")
-        );
+        Ok(surface)
     }
 }
+
+fn insert_registry_value(
+    values: &mut BTreeMap<String, String>,
+    local: &str,
+    predicate: &str,
+    value: &str,
+) -> Result<(), gmeow_errors::Diag> {
+    use gmeow_ns::LOGIC_NS;
+    if let Some(previous) = values.insert(local.to_owned(), value.to_owned())
+        && previous != value
+    {
+        return Err(registry_error(&format!(
+            "{LOGIC_NS}{local} has conflicting values for {predicate}"
+        )));
+    }
+    Ok(())
+}
+
+fn registry_error(detail: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical {
+        detail: detail.to_owned(),
+    })
+}
+
+/// Read the native kernel's registry without loading or producing a corpus.
+#[must_use]
+pub fn native_fragment_registry() -> NativeFragmentRegistry {
+    let mut registry = NativeFragmentRegistry {
+        pattern_ids: RefutationPattern::ALL
+            .iter()
+            .map(|pattern| pattern.slug().to_owned())
+            .collect(),
+        ..NativeFragmentRegistry::default()
+    };
+    for fragment in decided_fragments() {
+        registry.decided_ids.insert(fragment.id.to_owned());
+        registry
+            .deciding_patterns
+            .insert(fragment.id.to_owned(), fragment.pattern.slug().to_owned());
+        registry
+            .completeness_bounds
+            .insert(fragment.id.to_owned(), fragment.bound.to_owned());
+    }
+    for contract in source_admission_contracts() {
+        registry.source_admission_ids.insert(contract.id.to_owned());
+        registry
+            .source_admission_requirements
+            .insert(contract.id.to_owned(), contract.requirement.to_owned());
+    }
+    for boundary in retained_boundaries() {
+        registry.boundary_ids.insert(boundary.id.to_owned());
+        registry
+            .boundary_reasons
+            .insert(boundary.id.to_owned(), boundary.reason.to_owned());
+    }
+    registry
+}
+#[cfg(test)]
+mod tests;
+
+#[cfg(test)]
+#[path = "refute_test_support.rs"]
+mod test_support;
+#[cfg(test)]
+pub(crate) use test_support::certify_membership;
+#[cfg(test)]
+pub use test_support::{
+    CountBound, Decision, NothingClash, RefutationCertificate, Witness, WitnessEvidence,
+};

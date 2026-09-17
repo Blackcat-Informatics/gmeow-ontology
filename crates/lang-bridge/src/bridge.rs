@@ -57,7 +57,7 @@ pub struct Lifted {
 /// The typed "lift fully or hard-fail" carrier: a bridge that cannot account for a
 /// construct raises this rather than dropping it. `construct` names the offending input
 /// fragment so the failure is diagnosable.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct IngestDiagnostic {
     /// The `lang:` failure class this diagnostic instantiates.
     pub failure_class: LangFailure,
@@ -66,7 +66,7 @@ pub struct IngestDiagnostic {
 }
 
 /// A `lang:` ingestion failure class — the typed reasons a lift may hard-fail.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum LangFailure {
     /// `lang:SilentIngestDrop` — a construct would be dropped without being accounted for;
     /// the floor a bridge must never cross silently.

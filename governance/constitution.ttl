@@ -362,14 +362,14 @@ meta:gate-cost-ledger a meta:Gate ;
     meta:symbol "CostLedgerStage" ;
     meta:makeTarget "check-sync" .
 
-# The instruction-count corroboration lane (off-gate). iai-callgrind measures
+# The instruction-count corroboration lane (off-gate). Gungraun measures
 # RETIRED INSTRUCTIONS under Valgrind Callgrind — a machine-independent, run-to-run
 # stable metric that corroborates the on-gate deterministic cost gate. Off-gate
 # because it needs Valgrind and the out-of-tree runner; per the measurement
 # doctrine, instruction-count is CORROBORATION, not the gate.
 meta:gate-bench-instructions a meta:Gate ;
-    rdfs:label "iai-callgrind retired-instruction corroboration — machine-independent engine instruction counts (off-gate maint lane)"@x-gmeow-english ;
-    meta:artifact "crates/logic/benches/engines_iai.rs" ;
+    rdfs:label "Gungraun retired-instruction corroboration — machine-independent engine instruction counts (off-gate maint lane)"@x-gmeow-english ;
+    meta:artifact "crates/logic/benches/engines_instructions.rs" ;
     meta:makeTarget "maint-bench-instructions" .
 
 # --------------------------------------------------------------------------- #

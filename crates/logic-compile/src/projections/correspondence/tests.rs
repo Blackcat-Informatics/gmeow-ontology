@@ -52,59 +52,36 @@ fn affine_triangle_projects_related_match_never_equivalence() {
     assert!(nt.contains("not equivalent"), "the caveat text");
 }
 
-/// `xsd:decimal` lexical space does not allow scientific notation. Values whose
-/// shortest Rust `f64` display would use an exponent are expanded before projection.
+/// Axis coordinates survive the correspondence graph and cache without losing
+/// datatype, significant decimal digits or lexical identity.
 #[test]
-fn decimal_projection_expands_scientific_notation() {
-    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
-
-    let correspondence = Correspondence::new(
-        "https://blackcatinformatics.ca/gmeow/example/decimalProjection",
-        CorrespondenceRelation::RelatedMatch,
-        MorphismClass::BridgeView,
-        MorphismKind::CommitmentShiftingBridge,
-        false,
-        None,
-        None,
-        None,
-        vec![],
-        Some(1e-5),
-        None,
-        Some(1e20),
-        None,
-        None,
-        None,
-    )
-    .expect("valid finite decimal correspondence");
-    let program =
-        CorrespondenceProgram::new(vec![correspondence], vec![], PreservationKind::SoundUnder);
-    let nt = project_correspondence(&program);
-
-    assert!(
-        nt.contains(&format!("\"0.00001\"^^<{XSD_DECIMAL}>")),
-        "small decimal must be fixed-form xsd:decimal:\n{nt}"
-    );
-    assert!(
-        nt.contains(&format!("\"100000000000000000000\"^^<{XSD_DECIMAL}>")),
-        "large decimal must be fixed-form xsd:decimal:\n{nt}"
-    );
-    let decimal_lexicals: Vec<&str> = nt
-        .lines()
-        .filter(|line| line.contains(XSD_DECIMAL))
-        .filter_map(|line| line.split('"').nth(1))
-        .collect();
-    assert!(
-        decimal_lexicals
-            .iter()
-            .all(|lexical| !lexical.contains('e') && !lexical.contains('E')),
-        "xsd:decimal lexicals must not use exponent notation: {decimal_lexicals:?}"
-    );
-
-    let dataset = parse_nt(&nt);
-    let re_derived = parse_correspondence(&dataset).expect("re-derive fixed decimals");
-    let got = &re_derived.correspondences[0];
-    assert_eq!(got.confidence, Some(1e-5));
-    assert_eq!(got.weight, Some(1e20));
+fn quantitative_coordinates_retain_native_identity_through_projection_and_cache() {
+    let mut program = affine_triangle_worked_example();
+    let confidence = crate::ir::UnitInterval::new(purrdf::RdfLiteral::typed(
+        "0.123456789012345678".to_owned(),
+        XSD_DECIMAL.to_owned(),
+    ))
+    .unwrap();
+    let weight = crate::ir::FiniteNumericLiteral::new(purrdf::RdfLiteral::typed(
+        "+1.000E100".to_owned(),
+        "http://www.w3.org/2001/XMLSchema#double".to_owned(),
+    ))
+    .unwrap();
+    program.correspondences[0].confidence = Some(confidence);
+    program.correspondences[0].weight = Some(weight);
+    let projected = parse_correspondence(&parse_nt(&project_correspondence(&program))).unwrap();
+    assert_eq!(projected.correspondences, program.correspondences);
+    let cached: CorrespondenceProgram =
+        serde_json::from_slice(&serde_json::to_vec(&program).unwrap()).unwrap();
+    assert_eq!(cached.correspondences, program.correspondences);
+    assert_eq!(cached.content_key(), program.content_key());
+    let changed = crate::ir::UnitInterval::new(purrdf::RdfLiteral::typed(
+        "0.123456789012345679".to_owned(),
+        XSD_DECIMAL.to_owned(),
+    ))
+    .unwrap();
+    program.correspondences[0].confidence = Some(changed);
+    assert_ne!(cached.content_key(), program.content_key());
 }
 
 /// The overclaim gate REJECTS an attempt to emit a class equivalence for the §14
@@ -191,6 +168,10 @@ fn projection_round_trips_to_equal_content_key() {
     let dataset = parse_nt(&nt);
     let re_derived = parse_correspondence(&dataset).expect("re-derive correspondence program");
     assert_eq!(
+        program, re_derived,
+        "every synthetic program field survives the codec"
+    );
+    assert_eq!(
         program.content_key(),
         re_derived.content_key(),
         "the cache re-derivation yields a content-key-equal correspondence program"
@@ -201,6 +182,73 @@ fn projection_round_trips_to_equal_content_key() {
         nt,
         "re-projecting the re-derived program is byte-identical"
     );
+}
+
+#[test]
+fn correspondence_identity_binds_leg_selection_standpoint_and_law_evidence() {
+    use crate::ir::{CorrespondenceLaw, Determinacy, DischargeCondition, DischargeVerdict};
+
+    type Edit = fn(&mut Correspondence);
+    let edits: [(&str, Edit); 8] = [
+        ("recovery claim", |c| c.mnemomorphic = true),
+        ("determinacy", |c| c.determinacy = Some(Determinacy::Crisp)),
+        ("get selection", |c| {
+            c.get_leg = Some("https://example.org/other-get".into())
+        }),
+        ("put selection", |c| {
+            c.put_leg = Some("https://example.org/other-put".into())
+        }),
+        ("standpoint", |c| {
+            c.according_to = Some("https://example.org/observer".into())
+        }),
+        ("law domain", |c| {
+            c.law_claims[0].law = CorrespondenceLaw::PutGet
+        }),
+        ("law verdict", |c| {
+            c.law_claims[0].verdict = DischargeVerdict::ObligationViolated
+        }),
+        ("evidence class", |c| {
+            c.law_claims[0].condition = Some(DischargeCondition::DischargeBoundedCorpus);
+        }),
+    ];
+    let baseline = affine_triangle_worked_example();
+    for (label, edit) in edits {
+        let mut changed = baseline.clone();
+        edit(&mut changed.correspondences[0]);
+        assert_ne!(changed.content_key(), baseline.content_key(), "{label}");
+        let parsed = parse_correspondence(&parse_nt(&project_correspondence(&changed)))
+            .expect("read the complete projected correspondence");
+        assert_eq!(parsed.content_key(), changed.content_key(), "{label}");
+    }
+}
+
+#[test]
+fn correspondence_identity_frames_arbitrary_caveat_text_and_collection_boundaries() {
+    let mut split = affine_triangle_worked_example();
+    let owner = split.correspondences[0].iri.clone();
+    let second = CorrespondenceCaveat {
+        iri: format!("{owner}/second-caveat"),
+        comments: vec![purrdf::RdfLiteral::simple(
+            "a second standpoint-qualified limitation",
+        )],
+    };
+    let mut joined = split.clone();
+    // The former comma/arrow/equality concatenation gave these different caveat
+    // inventories the same handle identity. Authored caveat prose may contain all
+    // of those characters; it cannot be used as unframed structural syntax.
+    joined.correspondences[0].caveats[0].comments[0]
+        .lexical_form
+        .push_str(&format!(
+            ",{owner}=>{}={}",
+            second.iri, second.comments[0].lexical_form
+        ));
+    split.correspondences[0].caveats.push(second);
+    assert_ne!(joined.content_key(), split.content_key());
+    for program in [joined, split] {
+        let parsed = parse_correspondence(&parse_nt(&project_correspondence(&program)))
+            .expect("read all caveat text without treating it as identity framing");
+        assert_eq!(parsed.content_key(), program.content_key());
+    }
 }
 
 /// Recovery evidence has one canonical RDF home under its correspondence.  Its complete
@@ -255,7 +303,7 @@ fn recovery_case_formula_round_trips_byte_identically() {
     .expect("valid correspondence")
     .with_recovery_cases(vec![case])
     .expect("unique recovery case");
-    let program = CorrespondenceProgram::new(vec![correspondence], vec![], PreservationKind::Exact);
+    let program = CorrespondenceProgram::new(vec![correspondence], PreservationKind::Exact);
 
     let nt = project_correspondence(&program);
     assert!(
@@ -410,8 +458,7 @@ fn writer_meta_channel_retains_axiom_sharing_case_iri_as_slash_prefix() {
     let sibling_axiom = LogicAxiom::new(
         sibling_subject.clone(),
         "https://example.org/marker".to_owned(),
-        "true".to_owned(),
-        true,
+        crate::ir::AtomicTerm::Literal(purrdf::RdfLiteral::simple("true".to_owned())),
         false,
         ContextualScope::default(),
     )
@@ -449,52 +496,6 @@ fn writer_meta_channel_retains_axiom_sharing_case_iri_as_slash_prefix() {
     );
 }
 
-/// Fidelity oracle for the dogfooded affine cell: the hand-authored
-/// `slices/grounding/logic/examples/affine-correspondence.ttl` re-derives (via
-/// `parse_correspondence`, the cache-hit inverse the production lane now uses) to the
-/// EXACT same [`CorrespondenceProgram`] as the `affine_triangle_worked_example` Rust
-/// literal — so its `project_correspondence` is byte-identical and `graph/correspondence`
-/// keeps byte-parity now that the stage reads the authored TTL instead of the literal.
-#[test]
-fn authored_affine_cell_matches_worked_example_oracle() {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/logic/examples/affine-correspondence.ttl");
-    let source = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read authored affine cell {path:?}: {e}"));
-    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
-        .expect("parse authored affine correspondence cell");
-    let authored = parse_correspondence(&dataset).expect("re-derive authored affine program");
-
-    let oracle = affine_triangle_worked_example();
-
-    // (a) Field-for-field program identity (both types derive PartialEq).
-    assert_eq!(
-        authored, oracle,
-        "the authored affine cell must re-derive to the worked-example program"
-    );
-
-    // (b) Byte-parity of the backing projection: the authored program projects to the
-    // SAME `graph/correspondence` N-Triples as the former hardcoded literal.
-    assert_eq!(
-        project_correspondence(&authored),
-        project_correspondence(&oracle),
-        "the authored affine cell must project byte-identically to graph/correspondence"
-    );
-
-    // (c) Round-trip: projecting the worked example and re-parsing its N-Triples yields
-    // the same program (the cache-hit inverse), which the authored cell also equals.
-    let reparsed = parse_correspondence(&parse_nt(&project_correspondence(&oracle)))
-        .expect("re-derive the projected worked example");
-    assert_eq!(
-        reparsed, oracle,
-        "project → parse must round-trip the worked-example program"
-    );
-    assert_eq!(
-        authored, reparsed,
-        "the authored cell and the projected round-trip must be the same program"
-    );
-}
-
 /// Standpoint indexing has one canonical RDF spelling across the ontology and the
 /// correspondence carrier: the declared `gmeow:accordingTo` annotation property.
 #[test]
@@ -520,7 +521,7 @@ fn standpoint_index_round_trips_through_canonical_gmeow_property() {
         None,
     )
     .expect("standpoint-indexed correspondence");
-    let program = CorrespondenceProgram::new(vec![correspondence], vec![], PreservationKind::Exact);
+    let program = CorrespondenceProgram::new(vec![correspondence], PreservationKind::Exact);
     let nt = project_correspondence(&program);
 
     assert!(

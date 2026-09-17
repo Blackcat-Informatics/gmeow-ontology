@@ -409,24 +409,30 @@ gmeow:stageExecutorCapability
 # Gathered on the plan through logic:planFlowEdge.                             #
 # =========================================================================== #
 
-# stage-compile-logic reads ONLY the narrowed graph/logic-compile-inputs named graph of
-# stage-source-load's product — a SOUND (denylist) narrowing of the whole authored corpus
-# stripping every predicate family the compiler's five augmentation readers provably never
-# read (documentation, alignment/mapping, foreign-domain example, and bibliographic metadata),
-# so an edit that touches only those inert families leaves the narrowed graph's digest
-# unchanged and skips the (expensive) compiler. The narrowing is the compiler's typed dataflow
-# entity, and its soundness is guarded by a reader-output-identity test.
-gmeow:pipeline-dataflow-compile-logic-source-load
+# The compiler reads the native source catalog before carrier graph projection.
+
+gmeow:pipeline-dataflow-compile-logic-parse-sources
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "dataflow: source-load → compile-logic"@x-gmeow-english ;
+    rdfs:label "dataflow: parse-sources → compile-logic"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The typed dataflow edge from gmeow:stage-source-load to gmeow:stage-compile-logic: the logic compiler's five augmentation readers read only the graph/logic-compile-inputs named graph of the source-load product — the SOUND denylist narrowing of the whole authored corpus (root ontology + slices + imports) with every provably-never-read predicate family removed (documentation, alignment/mapping, foreign-domain example, and bibliographic-metadata vocabularies), leaving only the OWL/RDFS/XSD restriction and logic:/gmeow: structural surface the readers consume. Records the artifact-level dependency so the compiler's cache key folds that one graph's digest rather than the whole authored file closure, so an edit that touches only the inert families leaves the narrowed graph unchanged and skips re-running the compiler."@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from the native source catalog to the logic compiler. The receipt graph and complete native handle commitment authenticate the exact original documents, source roles, document bases and shared aggregate. Compilation reads original native selections before carrier graph projection and runs independently of source publication; no transport graph supplies a logical context."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:buildFlowFrom gmeow:stage-source-load ;
+    gmeow:buildFlowFrom gmeow:stage-parse-sources ;
     gmeow:buildFlowTo gmeow:stage-compile-logic ;
     gmeow:flowEntity
-        <https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs> .
+        <https://blackcatinformatics.ca/gmeow/graph/source-catalog> .
+
+gmeow:pipeline-dataflow-validate-parse-sources
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: parse-sources → validate"@x-gmeow-english ;
+    skos:definition "The validator consumes the exact native source catalog and its shared compiled theory. The receipt binds every root, module and import document, including its source role and base. Validation adds only the declared substrate role to its data selection; diagnostic folds reuse the source compilation without parsing a transport projection."@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-parse-sources ;
+    gmeow:buildFlowTo gmeow:stage-validate ;
+    gmeow:flowEntity <https://blackcatinformatics.ca/gmeow/graph/source-catalog> .
 
 # stage-reason reads ONLY the logic / relational-core named graphs of
 # stage-compile-logic's product (the object-level EDB), never its meta-level
@@ -567,7 +573,8 @@ gmeow:pipeline-build
     logic:planSuccessMode logic:StrongPlanSuccess ;
     logic:executedUnderContract logic:DagWorkflowContract ;
     logic:planFlowEdge
-        gmeow:pipeline-dataflow-compile-logic-source-load ,
+        gmeow:pipeline-dataflow-compile-logic-parse-sources ,
+        gmeow:pipeline-dataflow-validate-parse-sources ,
         gmeow:pipeline-dataflow-reason-compile-logic ,
         gmeow:pipeline-dataflow-verify-compile-logic ,
         gmeow:pipeline-dataflow-verify-reason ,
@@ -575,6 +582,7 @@ gmeow:pipeline-build
         gmeow:pipeline-dataflow-validate-reason ,
         gmeow:pipeline-dataflow-goal-directed-reason ;
     gmeow:hasStage
+        gmeow:stage-parse-sources ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
         gmeow:stage-compile-logic ,
@@ -625,6 +633,7 @@ gmeow:pipeline-build
 # The production DAG's cache algebra. Every build stage is deterministic for the
 # same declared inputs. Independently bounded contributions are persistable; the
 # four cumulative carrier aggregates are reconstructed from the live frontier.
+gmeow:stage-parse-sources gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
 gmeow:stage-source-load gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-statements gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-compile-logic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
@@ -674,16 +683,28 @@ gmeow:stage-gts-sink gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:st
 
 # ── Spine ──
 
+gmeow:stage-parse-sources
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "parse native source catalog"@x-gmeow-english ;
+    skos:definition "Admit original ontology, module and import documents once, retaining exact source receipts, source roles, document bases, positions and native scopes alongside one bounded composite view and aggregate materialization. Its ephemeral typed catalog serves source publication and compilation, then is released after the last consumer. Only a small generated receipt graph enters the stage carrier; original datasets are never serialized as a persistent aggregate or produced by tests."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "parse_sources" ;
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/source-catalog> .
+
 gmeow:stage-source-load
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "source load"@x-gmeow-english ;
-    skos:definition "Parse the statement-DSL, slice modules, transitive imports, and every slice's examples/*.ttl positive-demonstrator ABox into the initial in-memory dataset — the root of the build DAG. The demonstrator corpus is authored source like the modules and imports, so it is loaded here for every slice at once and attached as graph/examples, which stage-snapshot folds into gmeow.gts and stage-reason admits to the object-level reasoning EDB; that is what gives every reasoned-graph gate a real witness to decide over the shipped bundle instead of running vacuously."@x-gmeow-english ;
+    skos:definition "Publish the original ontology, module and import selections from the shared native parse catalog as the initial carrier, with their source provenance, authored/import partitions and self-description. This stage alone owns source-origin publication. Every slice's examples/*.ttl positive-demonstrator ABox is selected separately and attached as graph/examples, which stage-snapshot folds into gmeow.gts and stage-reason admits to the object-level reasoning EDB. Compilation consumes the same original catalog independently, before carrier graph projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "source_load" ;
-    gmeow:hasCapability gmeow:sourceOrigin .
+    gmeow:hasCapability gmeow:sourceOrigin ;
+    gmeow:dataflowConsumes gmeow:stage-parse-sources .
 
 gmeow:stage-statements
     a gmeow:PipelineStage ;
@@ -704,7 +725,7 @@ gmeow:stage-compile-logic
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "compile_logic" ;
-    gmeow:dataflowConsumes gmeow:stage-source-load .
+    gmeow:dataflowConsumes gmeow:stage-parse-sources .
 
 gmeow:stage-mappings
     a gmeow:PipelineStage ;
@@ -716,7 +737,8 @@ gmeow:stage-mappings
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "mappings" ;
     gmeow:dataflowConsumes gmeow:stage-compile-logic ,
-        gmeow:stage-export-constraint-shapes .
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-parse-sources .
 
 gmeow:stage-math-producers
     a gmeow:PipelineStage ;
@@ -738,7 +760,8 @@ gmeow:stage-gmn-training-corpus
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "gmn-training-corpus" ;
     gmeow:dataflowConsumes gmeow:stage-compile-logic ,
-        gmeow:stage-mappings .
+        gmeow:stage-mappings ,
+        gmeow:stage-parse-sources .
 
 gmeow:stage-slice-brief
     a gmeow:PipelineStage ;
@@ -787,6 +810,7 @@ gmeow:stage-verify-attestation
     gmeow:stageImpl "verify_attestation" ;
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
+        gmeow:stage-parse-sources ,
         gmeow:stage-reason ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ;
@@ -834,6 +858,7 @@ gmeow:stage-validate
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-result-shapes ,
+        gmeow:stage-parse-sources ,
         gmeow:stage-reason ,
         gmeow:stage-source-load .
 
@@ -841,11 +866,12 @@ gmeow:stage-conformance
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "conformance"@x-gmeow-english ;
-    skos:definition "Grade the committed external conformance corpus (the W3C OWL 2 / ORE cases under conformance/logic/cases/external) — each case's frozen native verdict against its published external verdict — and emit the divergences as a gmeow:Finding N-Quads graph. A source-reading stage with no upstream product; the snapshot stage folds its output into the graph/conformance named graph so a repo-free consumer reads every reasoner-vs-corpus divergence from the bundle."@x-gmeow-english ;
+    skos:definition "Grade the committed external conformance corpus (the W3C OWL 2 / ORE cases under conformance/logic/cases/external) — each case's frozen native verdict against its published external verdict — and emit the divergences as a gmeow:Finding N-Quads graph. The native source catalog supplies the shared shipped rule library for producer-owned case execution; independently cached case observations feed authenticated golden consumers. The snapshot stage folds the external comparison output into graph/conformance for repo-free consumers."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "conformance" .
+    gmeow:stageImpl "conformance" ;
+    gmeow:dataflowConsumes gmeow:stage-parse-sources .
 
 gmeow:stage-docs-render
     a gmeow:PipelineStage ;
@@ -1321,7 +1347,8 @@ gmeow:stage-gts-sink
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-validate ,
-        gmeow:stage-verify-attestation .
+        gmeow:stage-verify-attestation ,
+        gmeow:stage-conformance .
 
 # =========================================================================== #
 # Stage attach declarations (gmeow:attachesGraph / gmeow:attachesBlobRep) —    #
@@ -1339,7 +1366,6 @@ gmeow:stage-source-load
         <https://blackcatinformatics.ca/gmeow/graph/examples> ,
         <https://blackcatinformatics.ca/gmeow/graph/grounding-seams> ,
         <https://blackcatinformatics.ca/gmeow/graph/imports> ,
-        <https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs> ,
         <https://blackcatinformatics.ca/gmeow/graph/metadata> ,
         <https://blackcatinformatics.ca/gmeow/graph/provenance> ,
         <https://blackcatinformatics.ca/gmeow/graph/quality-assessment> ,
@@ -2057,6 +2083,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/projections/lang/ebnf/gmn.ebnf",
     "generated/projections/lang/ebnf/gts.ebnf",
     "generated/projections/lang/ebnf/turtle.ebnf",
+    "generated/projections/lang/gmn-codebook.cbor",
     "generated/projections/lang/gmn1/v1/authority-links.gmn",
     "generated/projections/lang/gmn1/v1/conformance-pack.ttl",
     "generated/projections/lang/gmn1/v1/expression-rendering.gmn",

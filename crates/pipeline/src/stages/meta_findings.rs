@@ -24,26 +24,30 @@
 //!
 //! The rules and the `gmeow:categoryPolarity` wiring the cross-node-glut rule joins
 //! against are READ from the authored source graph, never re-typed here — exactly
-//! the production surface `crates/conformance/tests/diagnostics_meta_findings.rs`
+//! the production surface `conformance::corpus_tests::diagnostics_meta_findings`
 //! proves over the actual authored ontology.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use gmeow_errors::Report;
-use gmeow_logic::reason::reason_program;
-use gmeow_logic_compile::frontend::parse_logic_dataset;
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, prepare_reasoning_input,
+    reason_program,
+};
+use gmeow_logic_compile::frontend::{
+    CompiledTheory, Diagnostic, OwnerDisposition, OwnerFamily, OwnerLowering, PreparedLogicSource,
+    SourceNode, default_source_statements,
+};
 use gmeow_logic_compile::ir::{LogicProgram, LogicRule};
-use purrdf::sparql::NativeSparqlEngine;
+use purrdf::sparql::{NativeSparqlEngine, PreparedQuery, QueryOptions};
 use purrdf::{
-    NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlEngine, SparqlRequest,
-    SparqlResult, TermValue, dataset_from_bytes,
+    NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlResult, TermRef,
+    TermValue, dataset_from_bytes,
 };
 
 use gmeow_ns::GMEOW_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 
 /// The class every diagnostic meta-rule is typed with — the class-based selection.
 const DIAGNOSTIC_META_RULE: &str = "https://blackcatinformatics.ca/gmeow/DiagnosticMetaRule";
@@ -78,8 +82,6 @@ const FINDING_STANDPOINT: &str = "https://blackcatinformatics.ca/gmeow/findingSt
 const STANDPOINT_ADVISORY: &str = "https://blackcatinformatics.ca/gmeow/standpointAdvisory";
 const FINDING_PERMITTED_CONFLICT: &str =
     "https://blackcatinformatics.ca/logic/FindingPermittedEpistemicConflict";
-const GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
-const BOX_ABOX: &str = "https://blackcatinformatics.ca/gmeow/boxABox";
 /// The stable finding code the minted cross-node glut witness carries.
 const GLUT_WITNESS_CODE: &str = "diagnostics.cross-node-glut";
 
@@ -91,13 +93,17 @@ const GLUT_WITNESS_CODE: &str = "diagnostics.cross-node-glut";
 pub struct MetaProgram {
     program: LogicProgram,
     category_polarity: Vec<(String, String)>,
+    engine: NativeSparqlEngine,
+    fact_query: Arc<PreparedQuery>,
 }
 
 /// The reasoner-derived meta-findings, collected from one chase over a projected
 /// finding graph. Every collection is a sorted set, so the re-projection and the
 /// report enrichment are deterministic regardless of the chase's emission order.
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct MetaDerivation {
+    /// Internal antecedent reachability evidence; retained for observation, not projected.
+    pub traces: BTreeSet<(String, String)>,
     /// `(finding, root)` — each finding's traced childless-root antecedent.
     pub root_cause: BTreeSet<(String, String)>,
     /// `(finding, root)` — each finding's membership in the root-keyed cluster.
@@ -106,6 +112,8 @@ pub struct MetaDerivation {
     /// self-edge subject; the rule head is `?root clusterRoot ?root`, so only the
     /// single root IRI is retained).
     pub cluster_root: BTreeSet<String>,
+    /// Exact cluster-root edges retained before the projection selects their subjects.
+    pub cluster_root_edges: BTreeSet<(String, String)>,
     /// Roots typed `gmeow:FindingCluster` (the grouping node).
     pub cluster_typed: BTreeSet<String>,
     /// Roots typed `gmeow:RootFinding` (the extensibility demonstrator).
@@ -116,7 +124,8 @@ pub struct MetaDerivation {
 }
 
 impl MetaDerivation {
-    /// Whether the fold derived nothing (a byte-unchanged projection).
+    /// Whether the fold has no public meta-findings to project or attach to a report.
+    /// Internal trace evidence does not change that public projection.
     pub fn is_empty(&self) -> bool {
         self.root_cause.is_empty()
             && self.cluster.is_empty()
@@ -126,55 +135,58 @@ impl MetaDerivation {
             && self.glut.is_empty()
     }
 
-    /// The derived meta N-Quads for the findings' `graph_iri` — the root-cause,
-    /// cluster, and MATERIALIZED cross-node glut witness triples, sorted+deduped so
-    /// the projection is byte-stable. Empty string when the fold derived nothing.
-    pub fn to_nquads(&self, graph_iri: &str) -> String {
-        let g = format!("<{graph_iri}>");
-        let mut lines: Vec<String> = Vec::new();
-        for (finding, root) in &self.root_cause {
-            lines.push(format!("<{finding}> <{FINDING_ROOT_CAUSE}> <{root}> {g} ."));
-        }
-        for (finding, root) in &self.cluster {
-            lines.push(format!("<{finding}> <{FINDING_CLUSTER}> <{root}> {g} ."));
+    /// Project the derived public meta-findings directly into their native graph.
+    /// Trace evidence remains on this derivation; only the governed public fields
+    /// and materialized glut witnesses enter the diagnostics dataset.
+    pub fn append_to(&self, builder: &mut RdfDatasetBuilder, graph_iri: &str) {
+        let graph = builder.intern_iri(graph_iri);
+        for (predicate, edges) in [
+            (FINDING_ROOT_CAUSE, &self.root_cause),
+            (FINDING_CLUSTER, &self.cluster),
+        ] {
+            for (finding, root) in edges {
+                push_native_iri(builder, graph, finding, predicate, root);
+            }
         }
         for root in &self.cluster_root {
-            lines.push(format!("<{root}> <{CLUSTER_ROOT}> <{root}> {g} ."));
+            push_native_iri(builder, graph, root, CLUSTER_ROOT, root);
         }
-        for root in &self.cluster_typed {
-            lines.push(format!(
-                "<{root}> <{RDF_TYPE}> <{FINDING_CLUSTER_CLASS}> {g} ."
-            ));
-        }
-        for root in &self.root_finding_typed {
-            lines.push(format!(
-                "<{root}> <{RDF_TYPE}> <{ROOT_FINDING_CLASS}> {g} ."
-            ));
+        for (class, roots) in [
+            (FINDING_CLUSTER_CLASS, &self.cluster_typed),
+            (ROOT_FINDING_CLASS, &self.root_finding_typed),
+        ] {
+            for root in roots {
+                push_native_iri(builder, graph, root, RDF_TYPE, class);
+            }
         }
         for (a, b) in &self.glut {
-            self.push_witness_lines(a, b, &g, &mut lines);
-        }
-        lines.sort();
-        lines.dedup();
-        if lines.is_empty() {
-            String::new()
-        } else {
-            let mut out = lines.join("\n");
-            out.push('\n');
-            out
+            self.push_witness(builder, graph, graph_iri, a, b);
         }
     }
 
-    /// Materialize one `gmeow:CrossNodeGlutWitness` from a derived directed glut
-    /// edge: a content-addressed witness node carrying its own assertional grade
-    /// (so it is a well-formed `gmeow:Finding`) and exactly two `gmeow:glutWitnessOf`
-    /// links (one per conflicting finding). The witness IRI is `blake3` over the
-    /// SORTED pair of finding IRIs + the head predicate, so the two directions of
-    /// the symmetric conflict mint ONE stable witness.
-    fn push_witness_lines(&self, a: &str, b: &str, g: &str, lines: &mut Vec<String>) {
+    /// The symmetric conflict has one content-addressed witness, with two links
+    /// and its own assertional grade. The dataset applies RDF set semantics.
+    fn push_witness(
+        &self,
+        builder: &mut RdfDatasetBuilder,
+        graph: purrdf::TermId,
+        graph_iri: &str,
+        a: &str,
+        b: &str,
+    ) {
         let (lo, hi) = if a <= b { (a, b) } else { (b, a) };
         let witness = glut_witness_iri(lo, hi);
-        let w = format!("<{witness}>");
+        for (predicate, object) in [
+            (RDF_TYPE, CROSS_NODE_GLUT_WITNESS_CLASS),
+            (RDF_TYPE, FINDING_CLASS),
+            (FINDING_SEVERITY, SEVERITY_NOTE),
+            (FINDING_CATEGORY, FINDING_PERMITTED_CONFLICT),
+            (FINDING_STANDPOINT, STANDPOINT_ADVISORY),
+            (GLUT_WITNESS_OF, lo),
+            (GLUT_WITNESS_OF, hi),
+        ] {
+            push_native_iri(builder, graph, &witness, predicate, object);
+        }
         let label = format!(
             "cross-node glut between {} and {} at a shared anchor",
             short_finding(lo),
@@ -183,34 +195,30 @@ impl MetaDerivation {
         let message = format!(
             "cross-node glut: {lo} and {hi} carry opposing coherence polarity at one anchor"
         );
-        lines.push(format!(
-            "{w} <{RDF_TYPE}> <{CROSS_NODE_GLUT_WITNESS_CLASS}> {g} ."
-        ));
-        lines.push(format!("{w} <{RDF_TYPE}> <{FINDING_CLASS}> {g} ."));
-        lines.push(format!(
-            "{w} <{RDFS_LABEL}> \"{}\" {g} .",
-            nq_escape(&label)
-        ));
-        lines.push(format!("{w} <{RDFS_IS_DEFINED_BY}> {g} {g} ."));
-        lines.push(format!("{w} <{GRAPH_BOX_ROLE}> <{BOX_ABOX}> {g} ."));
-        lines.push(format!("{w} <{FINDING_SEVERITY}> <{SEVERITY_NOTE}> {g} ."));
-        lines.push(format!(
-            "{w} <{FINDING_CODE}> \"{}\" {g} .",
-            nq_escape(GLUT_WITNESS_CODE)
-        ));
-        lines.push(format!(
-            "{w} <{FINDING_MESSAGE}> \"{}\" {g} .",
-            nq_escape(&message)
-        ));
-        lines.push(format!(
-            "{w} <{FINDING_CATEGORY}> <{FINDING_PERMITTED_CONFLICT}> {g} ."
-        ));
-        lines.push(format!(
-            "{w} <{FINDING_STANDPOINT}> <{STANDPOINT_ADVISORY}> {g} ."
-        ));
-        lines.push(format!("{w} <{GLUT_WITNESS_OF}> <{lo}> {g} ."));
-        lines.push(format!("{w} <{GLUT_WITNESS_OF}> <{hi}> {g} ."));
+        gmeow_errors::abox::annotate_builder(builder, &witness, &label, &message, graph_iri);
+        let subject = builder.intern_iri(&witness);
+        for (predicate, value) in [
+            (FINDING_CODE, GLUT_WITNESS_CODE),
+            (FINDING_MESSAGE, message.as_str()),
+        ] {
+            let predicate = builder.intern_iri(predicate);
+            let object = builder.intern_literal(purrdf::RdfLiteral::simple(value));
+            builder.push_quad(subject, predicate, object, Some(graph));
+        }
     }
+}
+
+fn push_native_iri(
+    builder: &mut RdfDatasetBuilder,
+    graph: purrdf::TermId,
+    s: &str,
+    p: &str,
+    o: &str,
+) {
+    let subject = builder.intern_iri(s);
+    let predicate = builder.intern_iri(p);
+    let object = builder.intern_iri(o);
+    builder.push_quad(subject, predicate, object, Some(graph));
 }
 
 impl MetaProgram {
@@ -220,8 +228,8 @@ impl MetaProgram {
     ///
     /// Returns `Ok(None)` when the source graph carries no meta-rules — a source
     /// without them derives nothing, so the projection stays byte-unchanged. A
-    /// malformed source graph, or one that types `gmeow:DiagnosticMetaRule` subjects
-    /// none of which parse into a logic rule, is a HARD FAIL (`Err`): a real defect
+    /// malformed source graph, or any selected `gmeow:DiagnosticMetaRule` subject
+    /// that does not parse into a logic rule, is a HARD FAIL (`Err`): a real defect
     /// in a REQUIRED input must stop the pipeline, never silently collapse to the
     /// no-rules path and ship a byte-unchanged projection.
     pub fn from_source(source_nquads: &[u8]) -> gmeow_errors::Result<Option<MetaProgram>> {
@@ -235,25 +243,82 @@ impl MetaProgram {
 
     /// The dataset-native entry [`from_source`](MetaProgram::from_source) wraps —
     /// the seam the unit test drives with a Turtle-parsed source graph.
-    pub fn from_source_dataset(
-        dataset: &Arc<RdfDataset>,
+    pub fn from_source_dataset(dataset: &RdfDataset) -> gmeow_errors::Result<Option<MetaProgram>> {
+        if meta_rule_nodes(dataset).is_empty() {
+            return Ok(None);
+        }
+        let source = PreparedLogicSource::new(dataset).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!("prepare authored diagnostic meta-rules: {error}"),
+            })
+        })?;
+        Self::from_prepared_source(&source)
+    }
+
+    /// Select diagnostic meta-rules from an already canonicalized native source.
+    /// The compiler shares this boundary with its other augmentation readers.
+    ///
+    /// # Errors
+    /// Refuses malformed rules or any frontend error in the selected source.
+    pub fn from_prepared_source(
+        source: &PreparedLogicSource,
     ) -> gmeow_errors::Result<Option<MetaProgram>> {
-        let meta_iris = select_iris(
-            dataset,
-            &format!("SELECT ?r WHERE {{ ?r <{RDF_TYPE}> <{DIAGNOSTIC_META_RULE}> . }}"),
-            "r",
-        );
-        if meta_iris.is_empty() {
+        let meta_nodes = meta_rule_nodes(source.dataset());
+        if meta_nodes.is_empty() {
             // The genuine "no meta-rules authored" case — nothing to derive.
             return Ok(None);
         }
         // The source graph DOES carry `gmeow:DiagnosticMetaRule` subjects, so a parse
         // failure past this point is a real defect, not an absence — surface it.
-        let (program, diags) = parse_logic_dataset(dataset, None).map_err(|e| {
+        let compiled = source.compile_with_sources(None).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::MetaFold {
                 message: format!("parse authored diagnostic meta-rules: {e}"),
             })
         })?;
+        Self::from_compiled_parts(
+            source.dataset(),
+            compiled.program(),
+            compiled.diagnostics(),
+            compiled.owner_lowerings(),
+            meta_nodes,
+        )
+    }
+
+    /// Select the meta-rule program from the producer's exact shared compilation.
+    /// Source kinds, original diagnostics and rule values are borrowed together;
+    /// this path never reparses or lowers the source a second time.
+    pub fn from_compiled_theory(theory: &CompiledTheory) -> gmeow_errors::Result<Option<Self>> {
+        Self::from_compiled_theory_with_wiring(theory, theory.source().dataset())
+    }
+
+    /// Select the shared compiled rules and borrow separately admitted category wiring.
+    /// This avoids combining and recompiling independent source documents.
+    ///
+    /// # Errors
+    /// Refuses rejected source owners, invalid rules and query preparation failures.
+    pub fn from_compiled_theory_with_wiring(
+        theory: &CompiledTheory,
+        wiring: &RdfDataset,
+    ) -> gmeow_errors::Result<Option<Self>> {
+        Self::from_compiled_parts(
+            wiring,
+            theory.program(),
+            theory.diagnostics(),
+            theory.owner_lowerings(),
+            meta_rule_nodes(theory.source().dataset()),
+        )
+    }
+
+    fn from_compiled_parts(
+        wiring: &RdfDataset,
+        program: &LogicProgram,
+        diags: &[Diagnostic],
+        owners: &[OwnerLowering],
+        meta_nodes: BTreeSet<SourceNode>,
+    ) -> gmeow_errors::Result<Option<Self>> {
+        if meta_nodes.is_empty() {
+            return Ok(None);
+        }
         let error_diags = diags
             .iter()
             .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
@@ -265,36 +330,49 @@ impl MetaProgram {
                 ),
             }));
         }
-        // Select ALL and ONLY the meta rules, matched to their parsed LogicRule via
-        // logic:provenance (each rule carries its own IRI there) — the class-based
-        // fold, isolated from the rest of the logic slice.
-        let rules: Vec<LogicRule> = program
-            .rules
-            .into_iter()
-            .filter(|r| {
-                r.scope
-                    .provenance
-                    .as_deref()
-                    .is_some_and(|p| meta_iris.contains(p))
+        // Bind the class-based selection to actual owner emissions. Provenance is
+        // authored evidence, never an index into this program's rule collection.
+        let emitted: BTreeMap<_, _> = owners
+            .iter()
+            .filter(|owner| owner.family == OwnerFamily::Rule)
+            .filter_map(|owner| match owner.disposition {
+                OwnerDisposition::Emitted { index } => Some((owner.source, index)),
+                OwnerDisposition::Rejected | OwnerDisposition::OutsideDefaultGraph => None,
             })
             .collect();
-        if rules.is_empty() {
+        let missing = meta_nodes
+            .iter()
+            .filter(|node| !emitted.contains_key(node))
+            .count();
+        if missing > 0 {
             return Err(gmeow_errors::Diag::of_kind(crate::error::MetaFold {
                 message: format!(
-                    "source graph types {} gmeow:DiagnosticMetaRule subject(s) but none parsed into a logic rule",
-                    meta_iris.len()
+                    "{missing} of {} selected gmeow:DiagnosticMetaRule subject(s) did not emit a logic rule",
+                    meta_nodes.len()
                 ),
             }));
         }
-        let category_polarity = select_pairs(
-            dataset,
-            &format!("SELECT ?c ?p WHERE {{ ?c <{CATEGORY_POLARITY}> ?p . }}"),
-            "c",
-            "p",
-        );
+        let rules: Vec<LogicRule> = meta_nodes
+            .iter()
+            .map(|node| program.rules[emitted[node]].clone())
+            .collect();
+        let category_polarity = native_iri_pairs(wiring, CATEGORY_POLARITY);
+        let engine = NativeSparqlEngine::new();
+        let fact_query = engine
+            .prepare_query(
+                "SELECT ?s ?p ?o WHERE { { ?s ?p ?o } UNION { GRAPH ?g { ?s ?p ?o } } }",
+                None,
+            )
+            .map_err(|error| {
+                gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                    message: format!("prepare diagnostic fact query: {error}"),
+                })
+            })?;
         Ok(Some(MetaProgram {
             program: LogicProgram::new(Vec::new(), rules, Vec::new(), None),
             category_polarity,
+            engine,
+            fact_query,
         }))
     }
 
@@ -307,13 +385,56 @@ impl MetaProgram {
     /// Hard-fails (`Err`) on a malformed `finding_nq` or a chase failure (e.g. an
     /// unstratifiable program) — never a silent fallback.
     pub fn derive(&self, finding_nq: &str) -> gmeow_errors::Result<MetaDerivation> {
-        let facts = iri_triples(finding_nq)?;
-        if facts.is_empty() {
-            return Ok(MetaDerivation::default());
-        }
+        let dataset = dataset_from_bytes(finding_nq.as_bytes(), NativeRdfFormat::NQuads).map_err(
+            |error| {
+                gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                    message: format!("parse diagnostic findings: {error}"),
+                })
+            },
+        )?;
+        self.derive_dataset(&dataset)
+    }
+
+    /// Derive over an existing native finding dataset using the retained query and program.
+    ///
+    /// # Errors
+    /// Invalid query results, native dataset construction and reasoning fail closed.
+    pub fn derive_dataset(
+        &self,
+        findings: &Arc<RdfDataset>,
+    ) -> gmeow_errors::Result<MetaDerivation> {
+        let mf = |message: String| gmeow_errors::Diag::of_kind(crate::error::MetaFold { message });
+        let result = self
+            .engine
+            .query_prepared(findings, &self.fact_query, &[], QueryOptions::EMPTY)
+            .map_err(|error| mf(format!("diagnostic fact query: {error}")))?;
+        let SparqlResult::Solutions {
+            variables, rows, ..
+        } = result
+        else {
+            return Err(mf("diagnostic fact query must return solutions".to_owned()));
+        };
+        let column = |name: &str| {
+            variables
+                .iter()
+                .position(|variable| variable == name)
+                .ok_or_else(|| mf(format!("diagnostic fact query missing {name}")))
+        };
+        let (si, pi, oi) = (column("s")?, column("p")?, column("o")?);
         let mut builder = RdfDatasetBuilder::new();
-        for (s, p, o) in &facts {
-            push_world(&mut builder, s, p, o);
+        let mut fact_count = 0;
+        for row in &rows {
+            if let (Some(s), Some(p), Some(o)) = (
+                row[si].as_ref().and_then(iri_of),
+                row[pi].as_ref().and_then(iri_of),
+                row[oi].as_ref().and_then(iri_of),
+            ) {
+                push_world(&mut builder, &s, &p, &o);
+                fact_count += 1;
+            }
+        }
+        if fact_count == 0 {
+            return Ok(MetaDerivation::default());
         }
         for (c, p) in &self.category_polarity {
             push_world(&mut builder, c, CATEGORY_POLARITY, p);
@@ -323,7 +444,14 @@ impl MetaProgram {
                 message: format!("freeze meta-derivation EDB: {e}"),
             })
         })?;
-        let result = reason_program(&self.program, edb.as_ref()).map_err(|e| {
+        let reasoning_input = prepare_reasoning_input(&edb)?;
+        let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+            LogicalGraph::Named(purrdf::TermValue::iri(WORLD)),
+            DomainProfile::NonemptyObjectDomainV1,
+            "gmeow.pipeline.diagnostics-meta.v1".to_owned(),
+            *reasoning_input.ingress_contract(),
+        )?])?;
+        let result = reason_program(&self.program, reasoning_input, &domains).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::MetaFold {
                 message: format!("reason diagnostic meta-rules: {e}"),
             })
@@ -334,8 +462,22 @@ impl MetaProgram {
             if atom.is_edb {
                 continue;
             }
-            let object = strip_angle(&atom.object);
+            let object = atom
+                .object
+                .as_iri()
+                .ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                        message: format!(
+                            "diagnostic meta-rule emitted a non-resource object {:?}",
+                            atom.object
+                        ),
+                    })
+                })?
+                .to_owned();
             match atom.predicate.as_str() {
+                "https://blackcatinformatics.ca/gmeow/findingTraces" => {
+                    derivation.traces.insert((atom.subject.clone(), object));
+                }
                 FINDING_ROOT_CAUSE => {
                     derivation.root_cause.insert((atom.subject.clone(), object));
                 }
@@ -345,6 +487,9 @@ impl MetaProgram {
                 CLUSTER_ROOT => {
                     // The rule head is `?root gmeow:clusterRoot ?root` (a self-edge),
                     // so subject == object — retain the single root IRI.
+                    derivation
+                        .cluster_root_edges
+                        .insert((atom.subject.clone(), object));
                     derivation.cluster_root.insert(atom.subject.clone());
                 }
                 CROSS_NODE_GLUT_WITH => {
@@ -450,14 +595,6 @@ fn push_world(builder: &mut RdfDatasetBuilder, s: &str, p: &str, o: &str) {
     builder.push_owned_quad(&quad);
 }
 
-/// Strip the angle brackets an N-Triples IRI object renders with.
-fn strip_angle(s: &str) -> String {
-    s.strip_prefix('<')
-        .and_then(|inner| inner.strip_suffix('>'))
-        .unwrap_or(s)
-        .to_owned()
-}
-
 /// The IRI string of a bound SPARQL term, or `None` if it is not an IRI.
 fn iri_of(term: &TermValue) -> Option<String> {
     match term {
@@ -466,349 +603,44 @@ fn iri_of(term: &TermValue) -> Option<String> {
     }
 }
 
-/// Escape a string literal for N-Quads (mirrors the diagnostics RDF projection).
-fn nq_escape(value: &str) -> String {
-    let mut out = String::with_capacity(value.len() + 2);
-    for ch in value.chars() {
-        match ch {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
-/// Run a one-variable `SELECT` and collect its bound IRIs into a set.
-fn select_iris(dataset: &Arc<RdfDataset>, query: &str, var: &str) -> BTreeSet<String> {
-    let (variables, rows) = match run_select(dataset, query) {
-        Some(v) => v,
-        None => return BTreeSet::new(),
-    };
-    let Some(idx) = variables.iter().position(|v| v == var) else {
+/// Indexed default-graph selection matching the authored meta-rule context.
+fn meta_rule_nodes(dataset: &RdfDataset) -> BTreeSet<SourceNode> {
+    let (Some(predicate), Some(class)) = (
+        dataset.term_id_by_iri(RDF_TYPE),
+        dataset.term_id_by_iri(DIAGNOSTIC_META_RULE),
+    ) else {
         return BTreeSet::new();
     };
-    rows.iter()
-        .filter_map(|sol| iri_of(sol.get(idx).and_then(|t| t.as_ref())?))
+    default_source_statements(dataset, None, Some(predicate), Some(class))
+        .map(|quad| SourceNode {
+            term: quad.s,
+            graph: quad.g,
+        })
         .collect()
 }
 
-/// Run a two-variable `SELECT` and collect its `(a, b)` IRI pairs, sorted+deduped.
-fn select_pairs(dataset: &Arc<RdfDataset>, query: &str, a: &str, b: &str) -> Vec<(String, String)> {
-    let (variables, rows) = match run_select(dataset, query) {
-        Some(v) => v,
-        None => return Vec::new(),
-    };
-    let (Some(ai), Some(bi)) = (
-        variables.iter().position(|v| v == a),
-        variables.iter().position(|v| v == b),
-    ) else {
+/// Keep all authored default-graph IRI pairs, sorted and deduplicated.
+fn native_iri_pairs(dataset: &RdfDataset, predicate: &str) -> Vec<(String, String)> {
+    let Some(predicate) = dataset.term_id_by_iri(predicate) else {
         return Vec::new();
     };
-    let mut pairs: BTreeSet<(String, String)> = BTreeSet::new();
-    for sol in &rows {
-        if let (Some(av), Some(bv)) = (
-            sol.get(ai).and_then(|t| t.as_ref()).and_then(iri_of),
-            sol.get(bi).and_then(|t| t.as_ref()).and_then(iri_of),
-        ) {
-            pairs.insert((av, bv));
-        }
-    }
-    pairs.into_iter().collect()
-}
-
-/// Evaluate a `SELECT`, returning its `(variables, rows)` — `None` on error or a
-/// non-`SELECT` result.
-#[allow(clippy::type_complexity)]
-fn run_select(
-    dataset: &Arc<RdfDataset>,
-    query: &str,
-) -> Option<(Vec<String>, Vec<Vec<Option<TermValue>>>)> {
-    let engine = NativeSparqlEngine::new();
-    let result = engine
-        .query(
-            dataset,
-            SparqlRequest {
-                query,
-                base_iri: None,
-                substitutions: &[],
+    default_source_statements(dataset, None, Some(predicate), None)
+        .filter_map(
+            |quad| match (dataset.resolve(quad.s), dataset.resolve(quad.o)) {
+                (TermRef::Iri(subject), TermRef::Iri(object)) => {
+                    Some((subject.to_owned(), object.to_owned()))
+                }
+                _ => None,
             },
         )
-        .ok()?;
-    match result {
-        SparqlResult::Solutions {
-            variables, rows, ..
-        } => Some((variables, rows)),
-        _ => None,
-    }
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
 }
 
-/// Extract every all-IRI triple from the projected diagnostics N-Quads (the finding
-/// facts the meta-rules join on — `gmeow:findingAntecedent`, `gmeow:findingAnchor`,
-/// the `gmeow:NonTrivialAnchor` type, `gmeow:findingCategory`). Literal-object
-/// triples (message/code/label) are not part of any meta-rule body and are dropped.
-fn iri_triples(nq: &str) -> gmeow_errors::Result<Vec<(String, String, String)>> {
-    let mf = |message: String| gmeow_errors::Diag::of_kind(crate::error::MetaFold { message });
-    let dataset = dataset_from_bytes(nq.as_bytes(), NativeRdfFormat::NQuads)
-        .map_err(|e| mf(format!("parse diagnostics N-Quads: {e}")))?;
-    let (variables, rows) = run_select(
-        &dataset,
-        "SELECT ?s ?p ?o WHERE { { ?s ?p ?o } UNION { GRAPH ?g { ?s ?p ?o } } }",
-    )
-    .ok_or_else(|| mf("meta EDB extraction query must be a SELECT".to_owned()))?;
-    let (Some(si), Some(pi), Some(oi)) = (
-        variables.iter().position(|v| v == "s"),
-        variables.iter().position(|v| v == "p"),
-        variables.iter().position(|v| v == "o"),
-    ) else {
-        return Err(mf("meta EDB query missing a column".to_owned()));
-    };
-    let mut out = Vec::new();
-    for sol in &rows {
-        if let (Some(s), Some(p), Some(o)) = (
-            sol.get(si).and_then(|t| t.as_ref()).and_then(iri_of),
-            sol.get(pi).and_then(|t| t.as_ref()).and_then(iri_of),
-            sol.get(oi).and_then(|t| t.as_ref()).and_then(iri_of),
-        ) {
-            out.push((s, p, o));
-        }
-    }
-    Ok(out)
-}
+#[path = "meta_findings.tests.rs"]
+#[cfg(test)]
+mod tests;
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use gmeow_errors::model::{Finding, FindingCategory, Report, Severity};
-    use gmeow_errors::render::to_gmeow_rdf;
-    use std::path::PathBuf;
-
-    /// The repo root, relative to this crate's manifest dir.
-    fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
-    }
-
-    /// Build the meta program from the ACTUAL authored slices — the logic module
-    /// (the rules) unioned with the diagnostics module (the polarity wiring) — so
-    /// the test discovers exactly the rules the shipped ontology carries, by TYPE.
-    fn authored_meta_program() -> MetaProgram {
-        let root = repo_root();
-        let logic = std::fs::read(root.join("slices/grounding/logic/module.ttl"))
-            .expect("read logic module");
-        let diagnostics = std::fs::read(root.join("slices/core/diagnostics/module.ttl"))
-            .expect("read diagnostics module");
-        let mut combined = logic;
-        combined.push(b'\n');
-        combined.extend_from_slice(&diagnostics);
-        let dataset = dataset_from_bytes(&combined, NativeRdfFormat::Turtle)
-            .expect("the combined slices parse as Turtle");
-        MetaProgram::from_source_dataset(&dataset)
-            .expect("the combined slices parse for the diagnostic meta-fold")
-            .expect("the authored slices carry gmeow:DiagnosticMetaRule rules + polarity wiring")
-    }
-
-    /// A finding that already carries the ledger-witness identity fields the meta
-    /// rules join on (`finding_iri`, and optionally an antecedent edge / anchor).
-    fn witness_finding(
-        iri: &str,
-        code: &str,
-        category: FindingCategory,
-        antecedents: Vec<String>,
-    ) -> Finding {
-        let mut finding = Finding::new(Severity::Error, code, "boom")
-            .with_tool("shacl")
-            .with_category(category);
-        finding.finding_iri = Some(iri.to_owned());
-        finding.antecedents = antecedents;
-        finding
-    }
-
-    fn finding_iri(local: &str) -> String {
-        format!("{GMEOW_NS}diagnostics/finding/{local}")
-    }
-
-    #[test]
-    fn shared_antecedent_report_gains_root_cause_in_nq_and_on_findings() {
-        let meta = authored_meta_program();
-        let (root, effect_a, effect_b) = (
-            finding_iri("rootF1"),
-            finding_iri("effectF2"),
-            finding_iri("effectF3"),
-        );
-        let mut report = Report::new("shacl");
-        // Two effects that each derive from the ONE childless root.
-        report.add_finding(witness_finding(
-            &root,
-            "discipline/relator-mediation",
-            FindingCategory::ModelingDisciplineViolation,
-            Vec::new(),
-        ));
-        report.add_finding(witness_finding(
-            &effect_a,
-            "shacl.MinCountConstraintComponent",
-            FindingCategory::DataShapeViolation,
-            vec![root.clone()],
-        ));
-        report.add_finding(witness_finding(
-            &effect_b,
-            "shacl.NodeKindConstraintComponent",
-            FindingCategory::DataShapeViolation,
-            vec![root.clone()],
-        ));
-
-        let projected = to_gmeow_rdf(&report);
-        let derivation = meta.derive(&projected).expect("meta derivation succeeds");
-
-        // Both effects derive the shared childless root; the root itself derives none.
-        assert!(
-            derivation
-                .root_cause
-                .contains(&(effect_a.clone(), root.clone())),
-            "effect A must derive gmeow:findingRootCause → root; got {:?}",
-            derivation.root_cause
-        );
-        assert!(
-            derivation
-                .root_cause
-                .contains(&(effect_b.clone(), root.clone())),
-            "effect B must derive gmeow:findingRootCause → root"
-        );
-
-        // The derived nq carries the root-cause edge and the cluster grouping.
-        let nq = derivation.to_nquads(GMEOW_NS);
-        assert!(
-            nq.contains(&format!("<{effect_a}> <{FINDING_ROOT_CAUSE}> <{root}>")),
-            "derived nq must carry the findingRootCause edge:\n{nq}"
-        );
-        assert!(
-            nq.contains(&format!("<{root}> <{RDF_TYPE}> <{FINDING_CLUSTER_CLASS}>")),
-            "derived nq must type the shared root as a FindingCluster:\n{nq}"
-        );
-
-        // Enrichment lands the root cause + cluster on the effect findings.
-        enrich_report(&mut report, &derivation);
-        let ea = report
-            .findings
-            .iter()
-            .find(|f| f.finding_iri.as_deref() == Some(effect_a.as_str()))
-            .expect("effect A present");
-        assert_eq!(ea.root_cause.as_deref(), Some(root.as_str()));
-        assert_eq!(ea.cluster.as_deref(), Some(root.as_str()));
-        // The childless root has no root cause of its own.
-        let r = report
-            .findings
-            .iter()
-            .find(|f| f.finding_iri.as_deref() == Some(root.as_str()))
-            .expect("root present");
-        assert_eq!(r.root_cause, None);
-    }
-
-    #[test]
-    fn opposing_polarity_pair_mints_a_content_addressed_glut_witness() {
-        let meta = authored_meta_program();
-        let (supported, opposed) = (finding_iri("glutSupported"), finding_iri("glutOpposed"));
-        let anchor = format!("{GMEOW_NS}diagnostics/anchor/shared0");
-
-        // Two DIFFERENT-code findings at ONE non-trivial anchor whose category
-        // polarities oppose (DataShapeViolation = Supported, PermittedEpistemicConflict
-        // = Opposed).
-        let mut supported_finding = Finding::new(
-            Severity::Error,
-            "shacl.MinCountConstraintComponent",
-            "supported",
-        )
-        .with_tool("shacl")
-        .with_category(FindingCategory::DataShapeViolation);
-        supported_finding.finding_iri = Some(supported.clone());
-        supported_finding.anchor_iri = Some(anchor.clone());
-        supported_finding.anchor_non_trivial = true;
-
-        let mut opposed_finding = Finding::new(
-            Severity::Warning,
-            "validate.deep.permitted-conflict",
-            "opposed",
-        )
-        .with_tool("shacl")
-        .with_category(FindingCategory::PermittedEpistemicConflict);
-        opposed_finding.finding_iri = Some(opposed.clone());
-        opposed_finding.anchor_iri = Some(anchor.clone());
-        opposed_finding.anchor_non_trivial = true;
-
-        let mut report = Report::new("shacl");
-        report.add_finding(supported_finding);
-        report.add_finding(opposed_finding);
-
-        let projected = to_gmeow_rdf(&report);
-        let derivation = meta.derive(&projected).expect("meta derivation succeeds");
-        assert!(
-            derivation
-                .glut
-                .contains(&(supported.clone(), opposed.clone())),
-            "the opposing-polarity pair must derive gmeow:crossNodeGlutWith; got {:?}",
-            derivation.glut
-        );
-
-        // The witness is materialized with a content-addressed IRI over the SORTED
-        // pair + head predicate, and carries exactly two glutWitnessOf edges.
-        let (lo, hi) = if supported <= opposed {
-            (&supported, &opposed)
-        } else {
-            (&opposed, &supported)
-        };
-        let witness = glut_witness_iri(lo, hi);
-        let nq = derivation.to_nquads(GMEOW_NS);
-        assert!(
-            nq.contains(&format!(
-                "<{witness}> <{RDF_TYPE}> <{CROSS_NODE_GLUT_WITNESS_CLASS}>"
-            )),
-            "derived nq must mint the CrossNodeGlutWitness node:\n{nq}"
-        );
-        assert!(
-            nq.contains(&format!("<{witness}> <{GLUT_WITNESS_OF}> <{supported}>"))
-                && nq.contains(&format!("<{witness}> <{GLUT_WITNESS_OF}> <{opposed}>")),
-            "the witness must link BOTH conflicting findings via glutWitnessOf:\n{nq}"
-        );
-        // The witness IRI is stable/deterministic and swap-invariant (content address).
-        assert_eq!(witness, glut_witness_iri(hi, lo));
-        // The witness carries its own well-formed grade (FindingShape).
-        assert!(nq.contains(&format!(
-            "<{witness}> <{FINDING_SEVERITY}> <{SEVERITY_NOTE}>"
-        )));
-
-        // Enrichment surfaces the symmetric glut edge on BOTH findings.
-        enrich_report(&mut report, &derivation);
-        let s = report
-            .findings
-            .iter()
-            .find(|f| f.finding_iri.as_deref() == Some(supported.as_str()))
-            .unwrap();
-        assert_eq!(s.cross_node_glut_with, vec![opposed.clone()]);
-        let o = report
-            .findings
-            .iter()
-            .find(|f| f.finding_iri.as_deref() == Some(opposed.as_str()))
-            .unwrap();
-        assert_eq!(o.cross_node_glut_with, vec![supported.clone()]);
-    }
-
-    #[test]
-    fn absent_meta_rules_yield_none() {
-        // A source graph with polarity wiring but NO gmeow:DiagnosticMetaRule → None.
-        let ttl = format!(
-            "@prefix gmeow: <{GMEOW_NS}> .\n@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-             logic:FindingDataShapeViolation gmeow:categoryPolarity logic:InfoSupported .\n"
-        );
-        let dataset =
-            dataset_from_bytes(ttl.as_bytes(), NativeRdfFormat::Turtle).expect("parse minimal");
-        assert!(
-            MetaProgram::from_source_dataset(&dataset)
-                .expect("a well-formed source parses")
-                .is_none(),
-            "a source without any gmeow:DiagnosticMetaRule must yield None"
-        );
-    }
-}
+mod test_support;

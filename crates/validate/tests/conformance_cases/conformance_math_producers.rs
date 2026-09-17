@@ -32,8 +32,8 @@ const PROOF_LIFT: &str = "https://blackcatinformatics.ca/gmeow/graph/math-produc
 /// Validate one already-produced named graph merged with the authenticated authored
 /// ontology, returning every violation on a producer-minted focus node.
 fn bundled_producer_violations(graph_iri: &str) -> Vec<String> {
-    let graph_nt = authenticated_named_graph_nt(graph_iri);
-    let report = validate_with_ontology(&graph_nt);
+    let graph = authenticated_named_graph_dataset(graph_iri);
+    let report = validate_native_with_ontology(&graph);
     report
         .results
         .iter()

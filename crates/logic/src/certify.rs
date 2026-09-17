@@ -538,6 +538,9 @@ fn is_stratified(graph: &DepGraph) -> bool {
 // Phase B; this helper is landed now so the routing change is additive.
 #[allow(dead_code)]
 pub(crate) fn is_stratifiable(rules: &[crate::rule_ir::EvalRule]) -> bool {
+    if rules.iter().any(|rule| rule.reduction.is_some()) {
+        return crate::physical::stratify(rules).is_some();
+    }
     let views = eval_rule_views(rules);
     let graph = DepGraph::from_views(&views);
     is_stratified(&graph)
@@ -989,9 +992,33 @@ pub fn certify_program(
     profile: &str,
 ) -> gmeow_errors::Result<CertificationVerdict> {
     let rules = crate::lower::lower_eval_rules(program)?;
-    let views = eval_rule_views(&rules);
     let evolution = program_evolution(program)?;
-    certify_views(&views, profile, evolution.as_deref())
+    if !rules.iter().any(|rule| rule.reduction.is_some()) {
+        return certify_views(&eval_rule_views(&rules), profile, evolution.as_deref());
+    }
+    // Validated reductions consume complete finite predecessors and yield finite
+    // seeds. Certify ordinary rules with their existing fragment checks, then
+    // require the full producer graph's strict completion proof. Never pretend
+    // a generated aggregate result was a positively body-bound Horn variable.
+    let ordinary: Vec<_> = rules
+        .iter()
+        .filter(|rule| rule.reduction.is_none())
+        .cloned()
+        .collect();
+    let mut verdict = certify_views(&eval_rule_views(&ordinary), profile, evolution.as_deref())?;
+    if profile != "StratifiedNAFProfile" {
+        verdict.violations.push(format!(
+            "{profile} does not admit complete-group aggregation; select StratifiedNAFProfile",
+        ));
+    }
+    if crate::physical::stratify(&rules).is_none() {
+        verdict.violations.push(
+            "aggregate dependency cycle requires its own completed input; not stratifiable".into(),
+        );
+    }
+    verdict.violations.sort();
+    verdict.certified = verdict.violations.is_empty();
+    Ok(verdict)
 }
 
 /// The single governing `logic:EvolutionMode` of a program's reasoning contracts,

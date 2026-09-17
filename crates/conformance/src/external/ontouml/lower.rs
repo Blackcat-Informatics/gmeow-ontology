@@ -23,6 +23,9 @@
 //!   plus `<role> rdf:type <owl:FunctionalProperty>` when the mediated end is
 //!   functional (a single functional role is the RelComp anti-pattern shape).
 
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+use std::sync::Arc;
+
 use super::model::{OntoumlError, OntoumlModel, logic_local_for_stereotype};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -36,11 +39,29 @@ use gmeow_ns::LOGIC_NS;
 /// on any class is an [`OntoumlError::Unsupported`] gap raised here (the
 /// stereotype→`logic:` map is applied at lower time, never at parse time).
 pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usize), OntoumlError> {
+    let dataset = lower_model_dataset(model, world_iri)?;
+    let count = dataset.quads().count();
+    let text = purrdf::canonical_flat_nquads(&dataset)
+        .map_err(|error| OntoumlError::Syntax(format!("render lowered model: {error}")))?;
+    Ok((text, count))
+}
+
+/// Lower directly into a validated native world-scoped dataset. RDF text is only
+/// emitted by the selected external corpus-writing boundary.
+///
+/// # Errors
+/// Unsupported stereotypes are capability gaps; invalid native terms are hard failures.
+pub fn lower_model_dataset(
+    model: &OntoumlModel,
+    world_iri: &str,
+) -> Result<Arc<RdfDataset>, OntoumlError> {
     use std::collections::BTreeSet;
 
-    let mut lines: BTreeSet<String> = BTreeSet::new();
+    let mut builder = RdfDatasetBuilder::new();
     let mut push = |s: &str, p: &str, o: &str| {
-        lines.insert(format!("<{s}> <{p}> <{o}> <{world_iri}> ."));
+        builder.push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(world_iri)),
+        );
     };
 
     let logic = |local: &str| format!("{LOGIC_NS}{local}");
@@ -91,100 +112,11 @@ pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usi
         }
     }
 
-    let count = lines.len();
-    let mut out = String::new();
-    for line in &lines {
-        out.push_str(line);
-        out.push('\n');
-    }
-    Ok((out, count))
+    builder
+        .freeze()
+        .map_err(|error| OntoumlError::Syntax(format!("invalid lowered model: {error}")))
 }
 
+#[path = "lower.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::super::model::parse_ontouml_model;
-    use super::*;
-
-    const WORLD: &str = "https://example.org/onto/schema";
-
-    #[test]
-    fn lowers_free_role_facts() {
-        let src = "\
-@prefix ontouml: <https://w3id.org/ontouml#> .\n\
-@prefix ex: <https://example.org/onto/> .\n\
-ex:Person a ontouml:Class ; ontouml:stereotype ontouml:kind .\n\
-ex:Customer a ontouml:Class ; ontouml:stereotype ontouml:role .\n\
-ex:g1 a ontouml:Generalization ; ontouml:general ex:Person ; ontouml:specific ex:Customer .\n";
-        let model = parse_ontouml_model(src, None).unwrap();
-        let (nq, count) = lower_model(&model, WORLD).unwrap();
-        assert!(count >= 3, "{nq}");
-        assert!(nq.contains(
-            "<https://example.org/onto/Person> \
-             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-             <https://blackcatinformatics.ca/logic/Kind> \
-             <https://example.org/onto/schema> ."
-        ));
-        assert!(nq.contains(
-            "<https://example.org/onto/Customer> \
-             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-             <https://blackcatinformatics.ca/logic/Role> \
-             <https://example.org/onto/schema> ."
-        ));
-        assert!(nq.contains(
-            "<https://example.org/onto/Customer> \
-             <https://blackcatinformatics.ca/logic/subClassOf> \
-             <https://example.org/onto/Person> \
-             <https://example.org/onto/schema> ."
-        ));
-        // Output is sorted (deterministic).
-        let mut sorted: Vec<&str> = nq.lines().collect();
-        let original = sorted.clone();
-        sorted.sort_unstable();
-        assert_eq!(sorted, original, "N-Quads output must be sorted");
-    }
-
-    #[test]
-    fn lowers_functional_mediation_role_and_type_pun() {
-        let src = "\
-@prefix ontouml: <https://w3id.org/ontouml#> .\n\
-@prefix ex: <https://example.org/onto/> .\n\
-ex:Marriage a ontouml:Class ; ontouml:stereotype ontouml:relator .\n\
-ex:Spouse a ontouml:Class ; ontouml:stereotype ontouml:role .\n\
-ex:med a ontouml:Relation ; ontouml:stereotype ontouml:mediation ;\n\
-    ontouml:relatorEnd ex:Marriage ; ontouml:mediatedEnd ex:Spouse ;\n\
-    ontouml:functionalMediation true .\n";
-        let model = parse_ontouml_model(src, None).unwrap();
-        let (nq, _count) = lower_model(&model, WORLD).unwrap();
-        // The relator is recognized via its rdf:type logic:Relator pun.
-        assert!(nq.contains(
-            "<https://example.org/onto/Marriage> \
-             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-             <https://blackcatinformatics.ca/logic/Relator> \
-             <https://example.org/onto/schema> ."
-        ));
-        // One mediates role, marked functional.
-        assert!(nq.contains(
-            "<https://example.org/onto/Marriage> \
-             <https://blackcatinformatics.ca/logic/mediates> \
-             <https://example.org/onto/med#end0> \
-             <https://example.org/onto/schema> ."
-        ));
-        assert!(nq.contains(
-            "<https://example.org/onto/med#end0> \
-             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-             <http://www.w3.org/2002/07/owl#FunctionalProperty> \
-             <https://example.org/onto/schema> ."
-        ));
-    }
-
-    #[test]
-    fn unsupported_stereotype_is_a_lower_time_gap() {
-        let src = "\
-@prefix ontouml: <https://w3id.org/ontouml#> .\n\
-@prefix ex: <https://example.org/onto/> .\n\
-ex:Water a ontouml:Class ; ontouml:stereotype ontouml:quantity .\n";
-        let model = parse_ontouml_model(src, None).unwrap();
-        let err = lower_model(&model, WORLD).unwrap_err();
-        assert!(matches!(err, OntoumlError::Unsupported(_)), "{err}");
-    }
-}
+mod tests;

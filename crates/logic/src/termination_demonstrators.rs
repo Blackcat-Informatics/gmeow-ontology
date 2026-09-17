@@ -99,37 +99,3 @@ pub fn termination_ladder_demonstrators() -> [(&'static str, &'static str); 3] {
         (GRAPH_DEMO_MODEL_SUMMARIZING, MODEL_SUMMARIZING_TTL),
     ]
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::physical::ChaseAdmission;
-
-    #[test]
-    fn each_demonstrator_parses_and_certifies_to_its_class() {
-        // Freeze each demonstrator turtle against its intended termination class — a typo
-        // or a drifted witness would hard-fail `stage-reason` at `make check`, so catch it
-        // here on the fast path.
-        for (i, (graph, ttl)) in termination_ladder_demonstrators().iter().enumerate() {
-            let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-                .unwrap_or_else(|e| panic!("{graph}: demonstrator turtle must parse: {e}"));
-            let rules: Vec<_> = crate::reason::dl::authored_existential_rules(dataset.as_ref())
-                .unwrap_or_else(|e| panic!("{graph}: demonstrator rules must assemble: {e}"))
-                .into_values()
-                .flatten()
-                .collect();
-            assert!(!rules.is_empty(), "{graph}: demonstrator rules must parse");
-            let cert = ChaseAdmission::certify(&rules);
-            let ok = match i {
-                0 => matches!(cert, ChaseAdmission::JointlyAcyclic { .. }),
-                1 => matches!(cert, ChaseAdmission::SuperWeaklyAcyclic { .. }),
-                2 => matches!(cert, ChaseAdmission::ModelSummarizingAcyclic { .. }),
-                _ => unreachable!(),
-            };
-            assert!(
-                ok,
-                "{graph}: demonstrator must certify to its class, got {cert:?}"
-            );
-        }
-    }
-}

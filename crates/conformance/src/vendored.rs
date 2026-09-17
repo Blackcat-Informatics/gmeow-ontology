@@ -55,18 +55,11 @@ pub enum Lane {
     /// divergence gate pins each case exactly instead. Fast + sub-second like
     /// Lane A (consistency checks), but deliberately divergent by construction.
     Divergence,
-    /// The named "was-divergent, now-DECIDED" corpus: cases the native DL path
-    /// once could not decide (they were vendored into the sibling `-divergence`
-    /// lane as honest `DlGap`s) but that the refutation kernel now DECIDES
-    /// soundly — the native verdict is a clean `consistent`/`inconsistent` that
-    /// AGREES with the W3C published verdict. The committed golden therefore
-    /// records the decided native token (== the W3C published verdict), so the
-    /// `committed == declared` soundness check DOES hold here (unlike
-    /// `Divergence`). A dedicated decided gate (`full_decided_gate`) re-runs each
-    /// case live and pins the decided/withheld partition; the generic per-case
-    /// consistency harness skips this lane so the dedicated gate is the single
-    /// live-re-run authority (mirroring how `Divergence` is owned by its gate).
-    Decided,
+    /// One complete external native inventory with an explicit operation per case.
+    /// Semantic cases agree with the external verdict; source-admission cases
+    /// preserve that verdict as provenance without making a consistency claim.
+    /// The dedicated authenticated consumer accounts for the exact partition.
+    NativeProfiled,
 }
 
 impl Lane {
@@ -75,10 +68,10 @@ impl Lane {
             "a" | "A" => Ok(Lane::A),
             "b" | "B" => Ok(Lane::B),
             "divergence" => Ok(Lane::Divergence),
-            "decided" => Ok(Lane::Decided),
+            "native-profiled" => Ok(Lane::NativeProfiled),
             other => Err(Diag::of_kind(CorpusInvalid {
                 detail: format!(
-                    "corpus.json lane must be \"a\", \"b\", \"divergence\", or \"decided\", got \
+                    "corpus.json lane must be \"a\", \"b\", \"divergence\", or \"native-profiled\", got \
                      {other:?}"
                 ),
             })),
@@ -86,14 +79,14 @@ impl Lane {
     }
 
     /// The lowercase wire token for this lane (`"a"`, `"b"`, `"divergence"`,
-    /// `"decided"`) — the inverse of [`Lane::parse`], for carrying the lane in a
+    /// `"native-profiled"`) — the inverse of [`Lane::parse`], for carrying the lane in a
     /// projection.
     pub fn as_str(&self) -> &'static str {
         match self {
             Lane::A => "a",
             Lane::B => "b",
             Lane::Divergence => "divergence",
-            Lane::Decided => "decided",
+            Lane::NativeProfiled => "native-profiled",
         }
     }
 }
@@ -231,130 +224,6 @@ fn required_string(obj: &Map<String, Value>, key: &str) -> gmeow_errors::Result<
         })
 }
 
+#[path = "vendored.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json::json;
-
-    fn meta_value(license: &str, lane: &str) -> Value {
-        json!({
-            "name": "tiny",
-            "spdx_license": license,
-            "source_url": "https://example.org/tiny",
-            "version_or_commit": "v1",
-            "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- ...",
-            "lane": lane,
-        })
-    }
-
-    #[test]
-    fn parses_a_well_formed_corpus_json() {
-        let m = parse_corpus_meta(&meta_value("CC-BY-4.0", "a")).unwrap();
-        assert_eq!(m.name, "tiny");
-        assert_eq!(m.spdx_license, "CC-BY-4.0");
-        assert_eq!(m.lane, Lane::A);
-    }
-
-    #[test]
-    fn import_ok_corpus_passes_the_audit() {
-        let m = parse_corpus_meta(&meta_value("CC-BY-4.0", "a")).unwrap();
-        assert!(audit_vendorable(&m).is_ok());
-    }
-
-    #[test]
-    fn reference_only_corpus_fails_the_audit() {
-        let m = parse_corpus_meta(&meta_value("CC-BY-NC-SA-4.0", "b")).unwrap();
-        let err = audit_vendorable(&m).unwrap_err();
-        assert!(err.message().contains("REFERENCE_ONLY"), "{err}");
-    }
-
-    #[test]
-    fn unknown_license_fails_the_audit() {
-        let m = parse_corpus_meta(&meta_value("WTFPL", "a")).unwrap();
-        assert!(audit_vendorable(&m).is_err());
-    }
-
-    #[test]
-    fn unknown_lane_hard_fails() {
-        let err = parse_corpus_meta(&meta_value("CC-BY-4.0", "c")).unwrap_err();
-        assert!(err.message().contains("lane must be"), "{err}");
-    }
-
-    #[test]
-    fn divergence_lane_parses() {
-        let m = parse_corpus_meta(&meta_value("W3C", "divergence")).unwrap();
-        assert_eq!(m.lane, Lane::Divergence);
-    }
-
-    #[test]
-    fn decided_lane_round_trips() {
-        let m = parse_corpus_meta(&meta_value("W3C", "decided")).unwrap();
-        assert_eq!(m.lane, Lane::Decided);
-        // The wire token is the inverse of `parse`.
-        assert_eq!(m.lane.as_str(), "decided");
-    }
-
-    #[test]
-    fn missing_field_hard_fails() {
-        let err = parse_corpus_meta(&json!({ "name": "tiny" })).unwrap_err();
-        assert!(
-            err.message().contains("missing the required string field"),
-            "{err}"
-        );
-    }
-
-    #[test]
-    fn unknown_key_hard_fails() {
-        let mut v = meta_value("CC-BY-4.0", "a");
-        v.as_object_mut().unwrap().insert("nope".into(), json!(1));
-        let err = parse_corpus_meta(&v).unwrap_err();
-        assert!(err.message().contains("unknown key"), "{err}");
-    }
-
-    /// `lane_for_case` is the consumer that makes the `lane` field load-bearing: the
-    /// Lane-A native runners skip a case iff this returns `Some(Lane::B)`. Exercise all
-    /// three branches over a synthetic corpus tree (no new dev-dependency: plain
-    /// `std::fs` under a pid-unique temp dir).
-    #[test]
-    fn lane_for_case_routes_external_corpora_and_ignores_endogenous() {
-        use std::fs;
-
-        fn corpus_json(name: &str, lane: &str) -> String {
-            format!(
-                "{{ \"name\": \"{name}\", \"spdx_license\": \"CC-BY-4.0\", \
-                 \"source_url\": \"https://example.org/{name}\", \
-                 \"version_or_commit\": \"v1\", \"refresh_command\": \"noop\", \
-                 \"lane\": \"{lane}\" }}\n"
-            )
-        }
-
-        let tmp = tempfile::tempdir().expect("create temp dir");
-        let base = tmp.path();
-
-        // External Lane-B corpus: a case here must be skipped by the native gate.
-        let case_b = base.join("external/heavy-corpus/some-case");
-        fs::create_dir_all(&case_b).unwrap();
-        fs::write(
-            base.join("external/heavy-corpus/corpus.json"),
-            corpus_json("heavy-corpus", "b"),
-        )
-        .unwrap();
-
-        // External Lane-A corpus: a case here runs in the native gate.
-        let case_a = base.join("external/light-corpus/case-a");
-        fs::create_dir_all(&case_a).unwrap();
-        fs::write(
-            base.join("external/light-corpus/corpus.json"),
-            corpus_json("light-corpus", "a"),
-        )
-        .unwrap();
-
-        // Endogenous case: no parent corpus.json → always native, never skipped.
-        let endo = base.join("profiles/plain-case");
-        fs::create_dir_all(&endo).unwrap();
-
-        assert_eq!(lane_for_case(&case_b).unwrap(), Some(Lane::B));
-        assert_eq!(lane_for_case(&case_a).unwrap(), Some(Lane::A));
-        assert_eq!(lane_for_case(&endo).unwrap(), None);
-    }
-}
+mod tests;

@@ -1,55 +1,25 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The GMN-1 round-trip gate: the executed byte witness behind
-//! `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` declaration, mirroring
-//! [`crate::stages::superset`]'s byte-reconstruction discipline over the SAME
-//! authority — [`purrdf::canonicalize`] — rather than a bespoke comparator.
+//! GMN report types and audits of shipped projections, codebook digests and packs.
 //!
-//! # Scope
-//!
-//! `gmeow:gmnCorrNormalToGmn`'s carrier declaration makes the codec and this gate
-//! total over the **grounding slices' GMN-0**
-//! (`slices/grounding/{logic,lang,math}`, authored `module.ttl` PLUS `examples/*.ttl` —
-//! the SAME domain the `axisGmn1Coverage` slice-quality axis's own definition scopes
-//! coverage to). Coverage of every other slice is a separate, floor-gated quality axis
-//! outside this gate's source domain: it never reads a non-grounding slice and
-//! therefore cannot grade one.
-//!
-//! # What the gate proves
-//!
-//! For every grounding source file: parse it to a [`purrdf::RdfDataset`], build a
-//! [`gmeow_lang_bridge::Gmn0Model`], run `gmn1_read(gmn1_write(model))`, and assert
-//! canonical equality via [`gmeow_lang_bridge::gmn0_canonically_equal`] (which itself
-//! calls `purrdf::canonicalize` — the same canonical-comparison primitive the
-//! GTS/N-Quads byte-teeth gates use). A write-side uncovered construct, a read-side
-//! parse defect, or a canonical mismatch is a hard failure — no skips, no optional
-//! coverage, a single non-round-tripping fixture reds the gate.
-//!
-//! # The construct-coverage-completeness audit
-//!
-//! [`check_gmn1_roundtrip`] proves every quad IN the grounding corpus round-trips
-//! byte-exact. It does NOT prove the corpus actually EXERCISES every branch of the
-//! codec's own write-side dispatch (a category with zero real occurrences could carry a
-//! latent bug that no amount of round-tripping the SAME corpus would ever surface).
-//! [`check_gmn1_construct_coverage`] closes that gap: it classifies every quad via
-//! [`gmeow_lang_bridge::classify_model`] (the SAME dispatch [`gmn1_write`] calls, so the
-//! classification can never drift from what the codec actually does) and hard-fails if
-//! any [`gmeow_lang_bridge::Gmn1ConstructCategory`] has zero occurrences across the real
-//! grounding sources. Both audits run in `run.rs`'s reconcile phase; both are total,
-//! hard-fail gates over the same source domain.
+//! Grounding-source round trips and construct coverage are produced together by
+//! the conformance stage. Reconciliation reads those observations without loading
+//! the sources again. They describe the selected corpus, never an unrestricted
+//! correspondence rewrite certificate.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_lang_bridge::registry::NamedSource;
 use gmeow_lang_bridge::{
-    ConstructCoverageTally, CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1ConstructCategory,
-    Gmn1Error, GmnDictionary, codebook_digest, gmn0_canonically_equal, gmn1_read, gmn1_write,
-    pack_root, per_claim_round_trip_check, resolve_current_codebook, round_trip_check,
+    CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1ConstructCategory, Gmn1Error, GmnDictionary,
+    codebook_digest, gmn0_canonically_equal, gmn1_read, gmn1_write, pack_root,
+    resolve_current_codebook,
 };
 use purrdf::slice::SliceCatalog;
 use purrdf::{RdfDataset, RdfTerm, parse_dataset};
+use serde::{Deserialize, Serialize};
 
 /// The grounding slice directories this gate is total over (mirrors the
 /// `axisGmn1Coverage` axis's own `slices/grounding/` scope, minus `kernel`: the kernel
@@ -102,8 +72,7 @@ impl Gmn1RoundTripReport {
 /// Load `gmeow:gmnDictV3` from the lang slice's authored `module.ttl` — the SAME
 /// dictionary every grounding source is decoded/encoded against (one shipped
 /// `gmeow:gmnDictV3` version, per the carrier's own version-pinning discipline). Shared
-/// by [`check_gmn1_roundtrip`] and [`check_gmn1_construct_coverage`] so both audits load
-/// the identical dictionary, never two independently-loaded copies.
+/// by the shipped-projection and codebook gates.
 fn load_lang_dictionary(root: &Path) -> Result<GmnDictionary, gmeow_errors::Diag> {
     let lang_module_path = root.join("slices/grounding/lang/module.ttl");
     let lang_bytes = std::fs::read(&lang_module_path)
@@ -134,9 +103,8 @@ fn load_current_codebook(root: &Path) -> Result<CurrentCodebook, gmeow_errors::D
 
 /// Every grounding source path (`slices/grounding/<slice>/module.ttl` plus every
 /// `examples/*.ttl` under it, repo-root-relative), sorted. Shared by
-/// [`check_gmn1_roundtrip`] and [`check_gmn1_construct_coverage`] so the two audits can
-/// never disagree about WHICH files are in the "total over grounding" domain.
-fn collect_grounding_sources(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
+/// the producer's round-trip and coverage observations, which share one domain.
+pub(crate) fn collect_grounding_sources(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
     let mut sources: Vec<String> = Vec::new();
     for slice in GROUNDING_SLICES {
         let slice_dir = root.join("slices/grounding").join(slice);
@@ -173,110 +141,14 @@ fn collect_grounding_sources(root: &Path) -> Result<Vec<String>, gmeow_errors::D
     Ok(sources)
 }
 
-/// Run the GMN-1 round-trip gate over every grounding slice's `module.ttl` and
-/// `examples/*.ttl` under `<root>/slices/grounding/`.
-pub fn check_gmn1_roundtrip(root: &Path) -> Result<Gmn1RoundTripReport, gmeow_errors::Diag> {
-    let dict = load_lang_dictionary(root)?;
-    let sources = collect_grounding_sources(root)?;
-
-    let mut failures = Vec::new();
-    for source in &sources {
-        let bytes = std::fs::read(root.join(source))
-            .map_err(|e| stage_err(&format!("read {source}: {e}")))?;
-        let ds = match parse_dataset(&bytes, "text/turtle", None) {
-            Ok(ds) => ds,
-            Err(e) => {
-                // A grounding source that will not parse as Turtle cannot be lifted at all —
-                // the residual `lang:GmnNonDecodableGrammar`.
-                failures.push(Gmn1RoundTripFailure {
-                    path: source.clone(),
-                    error: Gmn1Error::NonDecodableGrammar {
-                        detail: format!("failed to parse as Turtle: {e}"),
-                    },
-                });
-                continue;
-            }
-        };
-        let model = Gmn0Model::from_dataset(&ds);
-        // The codec's OWN round-trip primitive is the single classifier: write, read,
-        // canonically compare, and surface the ONE typed `Gmn1Error` (uncovered construct,
-        // parse defect, or canonical mismatch) — the gate never re-derives a class of its own.
-        // The whole-model round-trip is proven FIRST; then the per-claim inversion witness
-        // ([`per_claim_round_trip_check`]) re-runs the round-trip, compares per canonical-subject
-        // claim (naturality), and runs the idempotence leg — so the on-gate witness is
-        // per-claim, not merely whole-model. Both legs are HARD: either failing reds the gate.
-        match round_trip_check(&model, &dict) {
-            Err(e) => failures.push(Gmn1RoundTripFailure {
-                path: source.clone(),
-                error: e,
-            }),
-            Ok(()) => {
-                if let Err(e) = per_claim_round_trip_check(&model, &dict) {
-                    failures.push(Gmn1RoundTripFailure {
-                        path: source.clone(),
-                        error: e,
-                    });
-                }
-            }
-        }
-    }
-
-    failures.sort_by(|a, b| a.path.cmp(&b.path));
-    Ok(Gmn1RoundTripReport { failures })
-}
-
-/// A codec construct category the real grounding corpus never exercised — the
-/// completeness gap [`check_gmn1_construct_coverage`] exists to catch.
-///
-/// [`check_gmn1_roundtrip`] proves every quad IN the grounding corpus round-trips
-/// byte-exact through [`gmn1_write`]/[`gmn1_read`] — but that says nothing about whether
-/// the corpus actually EXERCISES every branch of the codec's own write-side dispatch
-/// ([`Gmn1ConstructCategory`]). A branch with zero real occurrences could carry a latent
-/// encode/decode bug indefinitely: the round-trip gate would keep passing (nothing in
-/// the corpus takes that branch, so nothing can expose a mismatch in it), while the
-/// carrier's `logic:mnemomorphic true` claim implicitly asserts totality over
-/// EVERYTHING the grounding slices actually emit — the very fragment this gate is
-/// scoped to. This gate closes that gap mechanically, over the SAME source files and
-/// the SAME dictionary [`check_gmn1_roundtrip`] uses.
-pub fn check_gmn1_construct_coverage(
-    root: &Path,
-) -> Result<Gmn1ConstructCoverageReport, gmeow_errors::Diag> {
-    let dict = load_lang_dictionary(root)?;
-    let sources = collect_grounding_sources(root)?;
-
-    let mut tally = ConstructCoverageTally::default();
-    for source in &sources {
-        let bytes = std::fs::read(root.join(source))
-            .map_err(|e| stage_err(&format!("read {source}: {e}")))?;
-        let ds = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-            stage_err(&format!(
-                "parse {source} for the GMN-1 construct-coverage audit: {e}"
-            ))
-        })?;
-        let model = Gmn0Model::from_dataset(&ds);
-        tally.absorb(&model, &dict);
-    }
-
-    Ok(Gmn1ConstructCoverageReport {
-        unexercised: tally.unexercised_categories(),
-        // A quad this tally found uncovered here is the SAME construct
-        // `check_gmn1_roundtrip` would hard-fail on for the same source (both audits
-        // call `gmn1_codec`'s own dispatch) — carried through so a caller can assert the
-        // two audits agree, never as this gate's own primary failure surface.
-        uncovered_quad_count: tally.uncovered.len(),
-    })
-}
-
-/// [`check_gmn1_construct_coverage`]'s outcome: every codec construct category the real
-/// grounding corpus never exercised. Empty ⇒ every category the codec's write-side
-/// dispatch can produce ([`Gmn1ConstructCategory::ALL`]) is genuinely proven against
-/// production content, not merely a corpus that happens to round-trip.
+/// Every codec construct category the selected grounding corpus never exercised.
+/// This is an observed coverage judgment, not a certificate for general rewrites.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Gmn1ConstructCoverageReport {
     /// Every unexercised category, in [`Gmn1ConstructCategory::ALL`] order.
     pub unexercised: Vec<Gmn1ConstructCategory>,
     /// How many quads the SAME classification pass found uncovered — cross-checked
-    /// against [`check_gmn1_roundtrip`]'s own failures by
+    /// against the producer's round-trip failures by
     /// `construct_coverage_agrees_with_the_roundtrip_gate_on_uncovered_count`.
     pub uncovered_quad_count: usize,
 }
@@ -482,7 +354,7 @@ fn conformance_pack_rel(major: &str) -> String {
 
 /// One `gmeow:GmnEnvelope` whose declared `gmeow:gmnCodebookDigest` does not equal the
 /// codebook's recomputed Merkle root — a [`CLASS_GMN_CODEBOOK_DIGEST_MISMATCH`] discharge.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Gmn1CodebookDigestMismatch {
     /// The source file the envelope was read from.
     pub source: String,
@@ -505,7 +377,7 @@ impl Gmn1CodebookDigestMismatch {
 /// [`check_gmn1_codebook_digest`]'s outcome: every envelope whose declared codebook digest
 /// disagreed with the recomputed Merkle root. Empty ⇒ every checked envelope names the real
 /// codebook frame.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Gmn1CodebookDigestReport {
     /// Every mismatching envelope, in a stable (source, envelope) order.
     pub mismatches: Vec<Gmn1CodebookDigestMismatch>,
@@ -546,6 +418,31 @@ fn envelope_declared_digests(ds: &RdfDataset) -> Vec<(String, String)> {
         .collect()
 }
 
+/// Compare one native document against an already resolved codebook identity.
+/// The producer and the materialized-output audit share this exact classifier.
+pub(crate) fn check_gmn1_codebook_dataset(
+    recomputed: &str,
+    source: &str,
+    dataset: &RdfDataset,
+) -> Gmn1CodebookDigestReport {
+    let mut report = Gmn1CodebookDigestReport::default();
+    for (envelope, declared) in envelope_declared_digests(dataset) {
+        report.checked += 1;
+        if declared != recomputed {
+            report.mismatches.push(Gmn1CodebookDigestMismatch {
+                source: source.to_owned(),
+                envelope,
+                declared,
+                recomputed: recomputed.to_owned(),
+            });
+        }
+    }
+    report
+        .mismatches
+        .sort_by(|left, right| left.envelope.cmp(&right.envelope));
+    report
+}
+
 /// The native codebook-digest gate ENGINE: recompute `codebook_digest` from the shipped lang
 /// codebook, then, for every `gmeow:GmnEnvelope` in `envelope_sources` that declares a
 /// `gmeow:gmnCodebookDigest`, discharge [`CLASS_GMN_CODEBOOK_DIGEST_MISMATCH`] when the declared
@@ -569,17 +466,9 @@ pub fn check_gmn1_codebook_digest(
             .map_err(|e| stage_err(&format!("read {}: {e}", source.display())))?;
         let ds = parse_dataset(&bytes, "text/turtle", None)
             .map_err(|e| stage_err(&format!("parse {}: {e}", source.display())))?;
-        for (envelope, declared) in envelope_declared_digests(&ds) {
-            checked += 1;
-            if declared != recomputed {
-                mismatches.push(Gmn1CodebookDigestMismatch {
-                    source: source.to_string_lossy().into_owned(),
-                    envelope,
-                    declared,
-                    recomputed: recomputed.clone(),
-                });
-            }
-        }
+        let report = check_gmn1_codebook_dataset(&recomputed, &source.to_string_lossy(), &ds);
+        checked += report.checked;
+        mismatches.extend(report.mismatches);
     }
     mismatches.sort_by(|a, b| (&a.source, &a.envelope).cmp(&(&b.source, &b.envelope)));
     Ok(Gmn1CodebookDigestReport {
@@ -625,7 +514,7 @@ pub fn check_gmn1_codebook_digest_on_gate(
 /// [`check_gmn1_pack_root`]'s outcome: the recomputed conformance-pack Merkle root and, when a
 /// pack is shipped, the root it declares. Clean ⇒ no pack (a no-op the fanout activates) OR a
 /// shipped pack whose declared `gmeow:gmnPackRoot` byte-equals the recomputation.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Gmn1PackRootReport {
     /// The independently recomputed pack Merkle root (`pack_root` over the codebook digest, the
     /// authored grammar, the sigil table, and the four materialized ecosystem-view leaves).
@@ -646,6 +535,29 @@ impl Gmn1PackRootReport {
     #[must_use]
     pub fn is_clean(&self) -> bool {
         !self.pack_present || self.declared_root.as_deref() == Some(self.recomputed_root.as_str())
+    }
+}
+
+/// Compare an actual native pack against the root already reduced from its inputs.
+pub(crate) fn compare_gmn1_pack_root(
+    recomputed_root: String,
+    major: &str,
+    pack: Option<&RdfDataset>,
+) -> Gmn1PackRootReport {
+    let declared_root = pack.and_then(|dataset| {
+        dataset
+            .owned_quads()
+            .filter(|quad| quad.predicate == GMN_PACK_ROOT_IRI)
+            .find_map(|quad| match quad.object {
+                RdfTerm::Literal(literal) => Some(literal.lexical_form),
+                _ => None,
+            })
+    });
+    Gmn1PackRootReport {
+        recomputed_root,
+        pack_present: pack.is_some(),
+        declared_root,
+        pack_rel: conformance_pack_rel(major),
     }
 }
 
@@ -692,30 +604,13 @@ pub fn check_gmn1_pack_root(root: &Path) -> Result<Gmn1PackRootReport, gmeow_err
     let pack_rel = conformance_pack_rel(&major);
     let pack_path = root.join(&pack_rel);
     if !pack_path.is_file() {
-        return Ok(Gmn1PackRootReport {
-            recomputed_root,
-            pack_present: false,
-            declared_root: None,
-            pack_rel,
-        });
+        return Ok(compare_gmn1_pack_root(recomputed_root, &major, None));
     }
     let bytes = std::fs::read(&pack_path)
         .map_err(|e| stage_err(&format!("read {}: {e}", pack_path.display())))?;
     let ds = parse_dataset(&bytes, "text/turtle", None)
         .map_err(|e| stage_err(&format!("parse {}: {e}", pack_path.display())))?;
-    let declared_root = ds
-        .owned_quads()
-        .filter(|q| q.predicate == GMN_PACK_ROOT_IRI)
-        .find_map(|q| match &q.object {
-            RdfTerm::Literal(l) => Some(l.lexical_form.clone()),
-            _ => None,
-        });
-    Ok(Gmn1PackRootReport {
-        recomputed_root,
-        pack_present: true,
-        declared_root,
-        pack_rel,
-    })
+    Ok(compare_gmn1_pack_root(recomputed_root, &major, Some(&ds)))
 }
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
@@ -725,324 +620,6 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
     })
 }
 
+#[path = "gmn1_gate.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn gate_is_clean_over_the_real_grounding_slices() {
-        let root = repo_root();
-        let report = check_gmn1_roundtrip(&root).expect("gate runs without a hard I/O error");
-        assert!(
-            report.is_clean(),
-            "GMN-1 round-trip gate is not clean over the grounding slices: {:#?}",
-            report.failures
-        );
-    }
-
-    /// The gate's own negative teeth, proven through the SAME `check_gmn1_roundtrip`
-    /// entry point `run.rs` wires into `make check` — not merely the codec's own unit
-    /// tests. Builds a throwaway `<tmp>/slices/grounding/{logic,lang,math}` tree with a
-    /// deliberately uncovered construct (a blank node whose label carries the reserved
-    /// `__` separator, which `is_safe_token_body` rejects) in the `math` module and
-    /// asserts the gate reds on it, naming the offending path — proof the gate has teeth
-    /// at the file-I/O entry point a permanent fixture can safely exercise (unlike
-    /// temporarily corrupting a real committed slice file).
-    ///
-    /// The prior witness (an IRI under no registered namespace) is NO LONGER uncovered:
-    /// G11 makes such external IRIs ride LOSSLESSLY by reference. The
-    /// still-uncovered witness is therefore an unsafe blank-node label — the blank arm
-    /// still raises `UncoveredTerm` → `CLASS_UNCOVERED_TERM`, so the gate keeps its teeth.
-    #[test]
-    fn gate_reds_on_a_deliberately_uncovered_construct() {
-        // RAII: the fixture tree is removed when `tmp` drops, including on a failed
-        // assertion below (which unwinds) or an early `expect`.
-        let tmp = tempfile::tempdir().expect("create temp fixture root");
-        let dir = tmp.path();
-        let lang_dir = dir.join("slices/grounding/lang");
-        let logic_dir = dir.join("slices/grounding/logic");
-        let math_dir = dir.join("slices/grounding/math");
-        std::fs::create_dir_all(&lang_dir).unwrap();
-        std::fs::create_dir_all(&logic_dir).unwrap();
-        std::fs::create_dir_all(&math_dir).unwrap();
-
-        // A minimal but real current codebook. Its dictionary is deliberately empty (legal for
-        // this fixture), but the graph still pins the same typed dictionary/script references and
-        // dialect versions that production loading requires. That keeps this test focused on the
-        // deliberately uncovered math construct rather than failing at registry bootstrap.
-        std::fs::write(
-            lang_dir.join("module.ttl"),
-            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-              @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
-              gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;\n\
-                gmeow:references gmeow:fixtureDictionary, lang:fixtureScript ;\n\
-                gmeow:gmnDictionaryVersion \"3\" ;\n\
-                gmeow:gmnGlyphTableVersion \"2\" .\n\
-              gmeow:fixtureDictionary a gmeow:GmnDictionary ;\n\
-                gmeow:gmnDictionaryVersion \"3\" .\n\
-              lang:fixtureScript a lang:Script ;\n\
-                lang:hasGrapheme lang:fixtureGrapheme .\n",
-        )
-        .unwrap();
-        std::fs::write(
-            logic_dir.join("module.ttl"),
-            b"@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n",
-        )
-        .unwrap();
-        // The deliberately uncovered construct: a blank-node subject whose label carries
-        // the reserved `__` separator, which `is_safe_token_body` rejects — so the blank
-        // arm raises UncoveredTerm. (An external-namespace IRI is NO LONGER uncovered; it
-        // now rides by reference, so the witness must be an unsafe blank label.)
-        std::fs::write(
-            math_dir.join("module.ttl"),
-            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-              _:a__b gmeow:predicate gmeow:object .\n",
-        )
-        .unwrap();
-
-        let report = check_gmn1_roundtrip(dir).expect("gate runs without a hard I/O error");
-
-        assert!(
-            !report.is_clean(),
-            "the gate must red on a deliberately uncovered construct, not pass vacuously"
-        );
-        assert!(
-            report
-                .failures
-                .iter()
-                .any(|f| f.path == "slices/grounding/math/module.ttl"
-                    && f.failure_class() == Gmn1Error::CLASS_UNCOVERED_TERM),
-            "the failure must name the offending source path AND classify as \
-             lang:GmnUncoveredTerm (so run.rs routes it through the dedicated DiagLedger \
-             identity, not the generic round-trip-mismatch code): {:#?}",
-            report.failures
-        );
-    }
-
-    #[test]
-    fn construct_coverage_is_complete_over_the_real_grounding_slices() {
-        let root = repo_root();
-        let report =
-            check_gmn1_construct_coverage(&root).expect("audit runs without a hard I/O error");
-        assert!(
-            report.is_complete(),
-            "GMN-1 construct-coverage audit found {} the real grounding corpus \
-             never exercises — the 'total over grounding' claim is unproven for: {:#?}",
-            if report.unexercised.len() == 1 {
-                "a category"
-            } else {
-                "categories"
-            },
-            report.unexercised
-        );
-        assert_eq!(
-            report.uncovered_quad_count, 0,
-            "the construct-coverage audit's own classification pass must find zero \
-             uncovered quads over the real grounding corpus"
-        );
-    }
-
-    /// Cross-checks the two independently-computed GMN-1 audits agree: the round-trip
-    /// gate's own `Uncovered`-kind failure count and the construct-coverage audit's
-    /// `uncovered_quad_count` must both be zero over the real grounding corpus (both
-    /// call the SAME `gmn1_codec` dispatch, so a disagreement would itself be a bug).
-    #[test]
-    fn construct_coverage_agrees_with_the_roundtrip_gate_on_uncovered_count() {
-        let root = repo_root();
-        let roundtrip = check_gmn1_roundtrip(&root).expect("round-trip gate runs");
-        let coverage = check_gmn1_construct_coverage(&root).expect("coverage audit runs");
-        let roundtrip_uncovered = roundtrip
-            .failures
-            .iter()
-            .filter(|f| f.failure_class() == Gmn1Error::CLASS_UNCOVERED_TERM)
-            .count();
-        assert_eq!(
-            roundtrip_uncovered, 0,
-            "sanity: the real grounding corpus has zero Uncovered round-trip failures"
-        );
-        assert_eq!(
-            coverage.uncovered_quad_count, 0,
-            "the construct-coverage audit must agree with the round-trip gate: zero \
-             uncovered quads over the real grounding corpus"
-        );
-    }
-
-    /// The construct-coverage audit's own negative teeth (proving this assertion is
-    /// falsifiable, not vacuously true). Starting from REAL grounding content — not
-    /// a fabricated fixture — this filters
-    /// OUT every quad that hits [`Gmn1ConstructCategory::LiteralDecimal`] (the real
-    /// corpus's rarest category: exactly one occurrence across all three grounding
-    /// slices' module.ttl + examples, per the audit's own tally) and proves the SAME
-    /// tally machinery [`check_gmn1_construct_coverage`] runs in production then flags
-    /// that category unexercised. This demonstrates the completeness assertion has real
-    /// teeth: removing a real grounding construct's only occurrence genuinely fails the
-    /// audit, exactly the failure mode this gate exists to catch (a construct present in
-    /// production content but never proven against by any test).
-    #[test]
-    fn construct_coverage_audit_is_falsifiable_when_a_real_category_is_removed() {
-        let root = repo_root();
-        let dict = load_lang_dictionary(&root).expect("dictionary loads");
-        let sources = collect_grounding_sources(&root).expect("collect sources");
-
-        let mut full_tally = ConstructCoverageTally::default();
-        let mut filtered_quads = Vec::new();
-        for source in &sources {
-            let bytes = std::fs::read(root.join(source)).expect("read source");
-            let ds = parse_dataset(&bytes, "text/turtle", None).expect("parse source");
-            let model = Gmn0Model::from_dataset(&ds);
-            full_tally.absorb(&model, &dict);
-            let classifications = gmeow_lang_bridge::classify_model(&model, &dict);
-            for (q, coverage) in model.quads.iter().zip(classifications) {
-                let hits_decimal = matches!(
-                    coverage,
-                    gmeow_lang_bridge::QuadCoverage::Covered {
-                        subject,
-                        predicate,
-                        object,
-                    } if subject == Gmn1ConstructCategory::LiteralDecimal
-                        || predicate == Gmn1ConstructCategory::LiteralDecimal
-                        || object == Gmn1ConstructCategory::LiteralDecimal
-                );
-                if !hits_decimal {
-                    filtered_quads.push(q.clone());
-                }
-            }
-        }
-
-        // Sanity: the real corpus DOES exercise LiteralDecimal — the negative control is
-        // only meaningful if the category it removes was genuinely present beforehand.
-        assert!(
-            full_tally.count(Gmn1ConstructCategory::LiteralDecimal) > 0,
-            "sanity: the real grounding corpus must exercise LiteralDecimal for this \
-             negative control to prove anything; the corpus changed — pick a different \
-             sparse category to filter"
-        );
-        assert!(
-            !filtered_quads.is_empty(),
-            "sanity: filtering must not remove the whole corpus"
-        );
-
-        let filtered_model = Gmn0Model {
-            quads: filtered_quads,
-        };
-        let mut filtered_tally = ConstructCoverageTally::default();
-        filtered_tally.absorb(&filtered_model, &dict);
-
-        assert_eq!(
-            filtered_tally.count(Gmn1ConstructCategory::LiteralDecimal),
-            0,
-            "filtering out every quad that hits LiteralDecimal must leave zero \
-             occurrences in the filtered corpus"
-        );
-        assert!(
-            filtered_tally
-                .unexercised_categories()
-                .contains(&Gmn1ConstructCategory::LiteralDecimal),
-            "the completeness audit must flag LiteralDecimal as unexercised once its \
-             only real occurrence is removed — proof the assertion is falsifiable, not a \
-             vacuous pass: {:#?}",
-            filtered_tally.unexercised_categories()
-        );
-    }
-
-    /// The on-gate codebook-digest gate is clean over the real source tree: the grounding
-    /// envelopes declare no `gmeow:gmnCodebookDigest`, so there is nothing to mismatch (an
-    /// absent digest is the SHACL missing-field contract's concern, never this gate's).
-    #[test]
-    fn codebook_digest_gate_is_clean_over_the_real_tree() {
-        let root = repo_root();
-        let report = check_gmn1_codebook_digest_on_gate(&root).expect("digest gate runs");
-        assert!(
-            report.is_clean(),
-            "the on-gate codebook-digest gate must be clean over the real tree: {:#?}",
-            report.mismatches
-        );
-    }
-
-    /// The codebook-digest gate has NEGATIVE teeth: driven over the committed digest-mismatch
-    /// fixture (an envelope declaring a codebook digest the real codebook does not have) it
-    /// discharges EXACTLY `lang:GmnCodebookDigestMismatch`, naming the offending envelope.
-    #[test]
-    fn codebook_digest_gate_reds_on_the_mismatch_fixture() {
-        let root = repo_root();
-        let fixture = root
-            .join("slices/grounding/lang/tests/gmn1-vectors/negative-graph")
-            .join("envelope-digest-mismatch.ttl");
-        let report = check_gmn1_codebook_digest(&root, std::slice::from_ref(&fixture))
-            .expect("digest gate runs over the fixture");
-        assert!(
-            !report.is_clean(),
-            "the digest-mismatch fixture must red the gate, not pass vacuously"
-        );
-        assert_eq!(report.checked, 1, "exactly one envelope digest is checked");
-        assert!(
-            report
-                .mismatches
-                .iter()
-                .all(|m| m.failure_class() == CLASS_GMN_CODEBOOK_DIGEST_MISMATCH),
-            "every mismatch classifies as lang:GmnCodebookDigestMismatch: {:#?}",
-            report.mismatches
-        );
-    }
-
-    /// The pack-root check is clean over the real tree: either no pack is shipped yet (a no-op
-    /// the fanout activates) or a shipped pack whose declared root byte-equals the recomputation.
-    #[test]
-    fn pack_root_check_is_clean_over_the_real_tree() {
-        let root = repo_root();
-        let report = check_gmn1_pack_root(&root).expect("pack-root check runs");
-        assert!(
-            report.is_clean(),
-            "the pack-root check must be clean over the real tree (pack absent = no-op, or \
-             present-and-matching): declared={:?} recomputed={} present={}",
-            report.declared_root,
-            report.recomputed_root,
-            report.pack_present
-        );
-    }
-
-    #[test]
-    fn report_is_clean_iff_no_failures() {
-        let clean = Gmn1RoundTripReport::default();
-        assert!(clean.is_clean());
-        let dirty = Gmn1RoundTripReport {
-            failures: vec![Gmn1RoundTripFailure {
-                path: "x".to_owned(),
-                error: Gmn1Error::NonDecodableGrammar {
-                    detail: "y".to_owned(),
-                },
-            }],
-        };
-        assert!(!dirty.is_clean());
-    }
-
-    /// The production shipped-projection lint reads every committed
-    /// `generated/projections/lang/gmn1/v<major>/*.gmn` back through the production codec and asserts
-    /// `failure_class()` is clean — a genuine production caller of the canonical classifier
-    /// over shipped artifacts (not merely a test-only round-trip).
-    #[test]
-    fn shipped_gmn1_projections_all_read_clean() {
-        let root = repo_root();
-        let report = check_gmn1_shipped_projections(&root)
-            .expect("shipped-projection lint runs without a hard I/O error");
-        assert!(
-            report.is_clean(),
-            "every shipped GMN-1 projection must read back clean through the production codec, \
-             but these failed: {:#?}",
-            report.failures
-        );
-        assert!(
-            report.verified > 0,
-            "the lint must actually have exercised shipped projections (the repo ships \
-             generated/projections/lang/gmn1/*.gmn), not vacuously pass on an empty set"
-        );
-    }
-}
+mod tests;

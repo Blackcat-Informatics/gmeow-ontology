@@ -8,13 +8,16 @@ use warnings;
 my $producer_pattern = shift @ARGV;
 my $repository_bound_pattern = shift @ARGV;
 my $refresh_pattern = shift @ARGV;
-die "usage: $0 PRODUCER_REGEX REPOSITORY_BOUND_REGEX REFRESH_REGEX FILE...\n"
+my $cli_pattern = shift @ARGV;
+die "usage: $0 PRODUCER_REGEX REPOSITORY_BOUND_REGEX REFRESH_REGEX CLI_REGEX FILE...\n"
     unless defined $producer_pattern
         && defined $repository_bound_pattern
-        && defined $refresh_pattern;
+        && defined $refresh_pattern
+        && defined $cli_pattern;
 my $producer_re = qr/$producer_pattern/;
 my $repository_bound_re = qr/$repository_bound_pattern/;
 my $refresh_re = qr/$refresh_pattern/;
+my $cli_re = qr/$cli_pattern/;
 
 sub cfg_test_view {
     my ($source) = @_;
@@ -41,7 +44,7 @@ sub cfg_test_view {
     my $masked = $source;
     $masked =~ s/[^\n]/ /g;
     pos($code) = 0;
-    while ($code =~ /\#\s*\[\s*cfg\s*\([^\]]*\btest\b[^\]]*\)\s*\]/g) {
+    while ($code =~ /\#\s*\[\s*(?:cfg\s*\([^\]]*\btest\b[^\]]*\)|(?:[A-Za-z_]\w*\s*::\s*)*test)\s*\]/g) {
         my $start = $-[0];
         my $cursor = $+[0];
         my $search_resume = $cursor;
@@ -95,13 +98,15 @@ for my $path (@ARGV) {
     my @lines = split /\n/, $view, -1;
     for my $index (0 .. $#lines) {
         my $refresh = $lines[$index] =~ $refresh_re;
-        next unless $refresh || $lines[$index] =~ $producer_re;
+        my $cli = $lines[$index] =~ $cli_re;
+        next unless $refresh || $cli || $lines[$index] =~ $producer_re;
         my $trimmed = $lines[$index];
         $trimmed =~ s/^\s*//;
         next if substr($trimmed, 0, 2) eq '//';
         my $first = $index > 3 ? $index - 3 : 0;
         my $last = $index + 3 < $#lines ? $index + 3 : $#lines;
         my $synthetic = !$refresh
+            && !$cli
             && $lines[$index] !~ $repository_bound_re
             && grep /gmeow-test-input: synthetic-only/, @lines[$first .. $last];
         next if $synthetic;

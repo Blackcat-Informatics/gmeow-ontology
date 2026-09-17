@@ -23,32 +23,97 @@
 
 use std::collections::BTreeMap;
 
-use crate::ir::{Correspondence, DischargeVerdict, MorphismClass, PreservationKind};
+use crate::ir::{
+    Correspondence, CorrespondenceLaw, DischargeCondition, DischargeVerdict, MorphismClass,
+    PreservationKind,
+};
 
 use super::OverclaimError;
 use super::correspondence::CorrespondenceProgram;
 use super::correspondence_gate::assert_relation_no_overclaim;
 
-/// The per-correspondence **executed lens-law verdict** map the gates read, keyed by
-/// correspondence IRI. Each verdict is the behavioural section-law outcome (`put ∘ get =
-/// id_S`) an engine-adjacent producer computed by RUNNING both legs (never a syntactic path
-/// compare); the gates below consume this map instead of re-deriving an inversion. See
-/// `gmeow_logic::correspondence_exec` for the single executor.
-pub type CorrespondenceVerdicts = BTreeMap<String, DischargeVerdict>;
+/// The verdict and discharge condition of one independently executed law.
+/// This summary carries no authority beyond its actual condition: bounded input
+/// agreement is not a certified-fragment derivation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExecutedLaw {
+    /// The result of this law's own execution.
+    pub verdict: DischargeVerdict,
+    /// Exact evidence class; absent when the obligation remains unverified.
+    pub condition: Option<DischargeCondition>,
+}
+
+impl ExecutedLaw {
+    /// An explicit unverified obligation, not an invented successful execution.
+    pub const UNKNOWN: Self = Self {
+        verdict: DischargeVerdict::ObligationUnknown,
+        condition: None,
+    };
+
+    /// Record exactly the evidence class produced by a bounded input domain.
+    pub fn bounded(verdict: DischargeVerdict) -> Self {
+        Self {
+            verdict,
+            condition: (verdict != DischargeVerdict::ObligationUnknown)
+                .then_some(DischargeCondition::DischargeBoundedCorpus),
+        }
+    }
+}
+
+/// Separate law domains for one correspondence. Source recovery cannot stand in
+/// for edited-view or stateful-update evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExecutedCorrespondenceLaws {
+    /// Acquisition stability with the actual prior source.
+    pub get_put: ExecutedLaw,
+    /// Faithfulness on independently admitted edited views and prior sources.
+    pub put_get: ExecutedLaw,
+    /// Stability under independently selected successive edits.
+    pub put_put: ExecutedLaw,
+    /// Recovery from an augmented view under the declared initial-state policy.
+    pub section: ExecutedLaw,
+}
+
+impl ExecutedCorrespondenceLaws {
+    /// Record a section check while explicitly retaining every other obligation.
+    pub fn section_only(section: DischargeVerdict) -> Self {
+        Self {
+            get_put: ExecutedLaw::UNKNOWN,
+            put_get: ExecutedLaw::UNKNOWN,
+            put_put: ExecutedLaw::UNKNOWN,
+            section: ExecutedLaw::bounded(section),
+        }
+    }
+
+    /// Select only the evidence for the named law.
+    pub fn law(self, law: CorrespondenceLaw) -> ExecutedLaw {
+        match law {
+            CorrespondenceLaw::GetPut => self.get_put,
+            CorrespondenceLaw::PutGet => self.put_get,
+            CorrespondenceLaw::PutPut => self.put_put,
+            CorrespondenceLaw::SectionLaw => self.section,
+        }
+    }
+}
+
+/// Executed law summaries keyed by correspondence IRI. The native executor
+/// supplies all four obligations independently; the compiler consumes their
+/// verdicts and conditions without re-deriving inversion from path syntax.
+pub type CorrespondenceVerdicts = BTreeMap<String, ExecutedCorrespondenceLaws>;
 
 /// Read the supplied executed verdict for a correspondence.
 ///
 /// This is an **internal invariant**, not a public entry point: it panics when a correspondence
 /// the gates evaluate carries no supplied verdict. The invariant holds by construction — every
 /// caller reaches [`evaluate_gates`] through [`crate::projections::compile_program`], which
-/// derives its correspondence program with the SAME assembly the executed-verdict producer
-/// uses (`gmeow_logic::correspondence_exec::logic_program_verdicts`), and that producer emits
+/// passes its derived correspondence program directly to the native executed-verdict
+/// producer (`gmeow_logic::correspondence_exec::program_verdicts`). That producer emits
 /// one entry per correspondence keyed by the identical IRI. So the map is total over the
 /// correspondences [`evaluate_gates`] iterates, and this lookup can never miss on any valid
 /// correspondence-bearing source. The panic remains as a HARD FAIL guarding an internal wiring
 /// regression (a future caller that hand-builds a partial map) — never reachable from public
 /// input, and never a silent default/pass.
-fn verdict_for(verdicts: &CorrespondenceVerdicts, iri: &str) -> DischargeVerdict {
+fn verdict_for(verdicts: &CorrespondenceVerdicts, iri: &str) -> ExecutedCorrespondenceLaws {
     *verdicts.get(iri).unwrap_or_else(|| {
         panic!(
             "correspondence gate invariant: <{iri}> has no supplied executed lens-law verdict; \
@@ -129,14 +194,21 @@ pub struct GateReport {
 /// optional declared composite cell whose claimed rung is checked against the join).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct CompositionGateReport {
+    /// Authored composition identity, absent for a supplemental premise inspection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub declaration: Option<String>,
+    /// Result identity of an authored declaration, preserved even on refusal.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<String>,
     /// The left correspondence IRI.
     pub left: String,
     /// The right correspondence IRI.
     pub right: String,
-    /// The computed lattice-join rung (the weakest rung the composite may claim).
+    /// Minimum weakening imposed by member declarations. This necessary bound
+    /// is not a resulting optic type or a certificate of executable composition.
     pub composed_class: String,
-    /// The composed law status by weakest-dominates: the weaker of the two parts' aggregate
-    /// discharge verdicts (the strongest law the composite may claim).
+    /// Aggregate of the separately checked premise-law bounds. A violated premise
+    /// blocks certification; it is not a countermodel of the final composite.
     pub composed_law_status: String,
     /// The Composition gate verdict.
     pub composition: GateVerdict,
@@ -160,20 +232,39 @@ fn is_injective_rung(class: MorphismClass) -> bool {
 
 /// The **Law gate**: a discharged law must have a passing witness; a violated law may not
 /// ship. An authored-but-unverified (`ObligationUnknown`) law is honest and passes. The
-/// witness is the EXECUTED section-law verdict threaded in `verdicts` — a claim of
+/// witness is the matching EXECUTED law verdict threaded in `verdicts` — a claim of
 /// `ObligationDischarged` whose executed verdict does not hold is refused.
 fn law_gate(verdicts: &CorrespondenceVerdicts, c: &Correspondence) -> GateVerdict {
     for claim in &c.law_claims {
         match claim.verdict {
             DischargeVerdict::ObligationDischarged => {
-                let executed = verdict_for(verdicts, &c.iri);
-                if executed != DischargeVerdict::ObligationDischarged {
-                    return GateVerdict::Red {
-                        reason: format!(
+                let executed = verdict_for(verdicts, &c.iri).law(claim.law);
+                if executed.verdict != DischargeVerdict::ObligationDischarged {
+                    let reason = if claim.law == CorrespondenceLaw::SectionLaw {
+                        format!(
                             "claims logic:{} as ObligationDischarged but {}; the claim must \
                              degrade to ObligationUnknown",
                             claim.law.as_str(),
-                            refutation_clause(executed)
+                            refutation_clause(executed.verdict)
+                        )
+                    } else {
+                        format!(
+                            "claims logic:{} as ObligationDischarged but its own executed \
+                             verdict is logic:{}; another law's recovery evidence cannot discharge it",
+                            claim.law.as_str(),
+                            executed.verdict.as_str()
+                        )
+                    };
+                    return GateVerdict::Red { reason };
+                }
+                if claim.condition.is_none() || claim.condition != executed.condition {
+                    return GateVerdict::Red {
+                        reason: format!(
+                            "claims logic:{} under {:?} but its executed evidence is {:?}; \
+                             discharge conditions require their own evidence",
+                            claim.law.as_str(),
+                            claim.condition,
+                            executed.condition
                         ),
                     };
                 }
@@ -236,7 +327,7 @@ fn overclaim_gate(c: &Correspondence) -> GateVerdict {
 fn round_trip_gate(verdicts: &CorrespondenceVerdicts, c: &Correspondence) -> GateVerdict {
     match c.morphism_class {
         MorphismClass::Isomorphism | MorphismClass::SectionRetraction => {
-            let executed = verdict_for(verdicts, &c.iri);
+            let executed = verdict_for(verdicts, &c.iri).section.verdict;
             if executed == DischargeVerdict::ObligationDischarged {
                 GateVerdict::Pass
             } else {
@@ -276,7 +367,7 @@ fn mnemomorphism_gate(verdicts: &CorrespondenceVerdicts, c: &Correspondence) -> 
     // The witness recovers the source iff the executed put ∘ get discharge holds. A
     // `WellBehavedLens` makes no full round-trip claim but, when declared mnemomorphic, must
     // still carry a recovering inverse leg — so the recovery evidence is the same verdict.
-    let executed = verdict_for(verdicts, &c.iri);
+    let executed = verdict_for(verdicts, &c.iri).section.verdict;
     if executed == DischargeVerdict::ObligationDischarged {
         GateVerdict::Pass
     } else {
@@ -325,39 +416,57 @@ fn preservation_gate(c: &Correspondence) -> GateVerdict {
 }
 
 /// The **Composition gate** (take1 §8.1): a sequential composite may only *weaken* the
-/// rung. The lattice-join is the weaker of the two parts' rungs (the `Ord` is
-/// strongest-first, so the join is the MAX). A declared composite stronger than the join
-/// is a build failure.
+/// rung. The weaker declaration is a necessary lower bound, not a proof that
+/// the two optics compose at that type. Each claimed law has its own premises.
 fn composition_gate(
-    by_iri: &BTreeMap<&str, &Correspondence>,
+    by_iri: &BTreeMap<&str, Option<&Correspondence>>,
+    verdicts: &CorrespondenceVerdicts,
     left: &str,
     right: &str,
     composite: Option<&str>,
 ) -> CompositionGateReport {
-    let lookup = |iri: &str| by_iri.get(iri).copied();
+    let lookup = |iri: &str| by_iri.get(iri).copied().flatten();
     let (Some(l), Some(r)) = (lookup(left), lookup(right)) else {
         return CompositionGateReport {
+            declaration: None,
+            result: None,
             left: left.to_owned(),
             right: right.to_owned(),
             composed_class: String::new(),
             composed_law_status: String::new(),
             composition: GateVerdict::Red {
-                reason: "composition references a correspondence not present in the program"
-                    .to_owned(),
+                reason: if [left, right]
+                    .iter()
+                    .any(|iri| by_iri.get(iri).is_some_and(Option::is_none))
+                {
+                    "composition references an ambiguous correspondence identity"
+                } else {
+                    "composition references a correspondence not present in the program"
+                }
+                .to_owned(),
             },
         };
     };
-    // Join = the WEAKER rung (max under the strongest-first Ord): composition weakens.
-    // NOTE: this is a LEGITIMATE lattice-join use of the spine `Ord` — the rung order IS
-    // the weakening lattice. It is NOT a rung-membership test; those use the explicit
-    // `is_injective_rung` predicate. Do not "fix" this `max`/`<` into a `matches!`.
+    // This declaration bound cannot certify optic compatibility, preservation,
+    // quantitative axes, effects or complement composition. Those need the
+    // canonical composition rules and executable typed admission.
     let join = l.morphism_class.max(r.morphism_class);
-    // Law-status by weakest-dominates: the composite may claim no stronger discharge verdict
-    // than the WEAKER of its parts'. The rung-class join already carries the loss ordering
-    // (a weaker rung is the more-lossy one — the spine IS the unsupported-construct lattice),
-    // so the loss dimension is enforced by the class check above; this adds the orthogonal
-    // law-status dimension (LOGIC-CONFORMANCE.md § Composition gate).
-    let join_status = weaker_law_status(aggregate_law_status(l), aggregate_law_status(r));
+    let join_status = [
+        CorrespondenceLaw::GetPut,
+        CorrespondenceLaw::PutGet,
+        CorrespondenceLaw::PutPut,
+        CorrespondenceLaw::SectionLaw,
+    ]
+    .into_iter()
+    .filter(|law| {
+        l.law_claims
+            .iter()
+            .chain(r.law_claims.iter())
+            .any(|claim| claim.law == *law)
+    })
+    .map(|law| weaker_law_status(law_premise(verdicts, l, law), law_premise(verdicts, r, law)))
+    .reduce(weaker_law_status)
+    .unwrap_or(DischargeVerdict::ObligationUnknown);
     let verdict = match composite {
         Some(comp_iri) => match lookup(comp_iri) {
             Some(comp) => {
@@ -373,36 +482,100 @@ fn composition_gate(
                             r.morphism_class.as_str(),
                         ),
                     }
-                } else if law_status_strength(aggregate_law_status(comp))
-                    > law_status_strength(join_status)
-                {
-                    GateVerdict::Red {
-                        reason: format!(
-                            "composite law status logic:{} is STRONGER than the weakest-dominates \
-                             join logic:{} of its parts; a composite may not discharge a law its \
-                             parts leave unverified or violated",
-                            aggregate_law_status(comp).as_str(),
-                            join_status.as_str(),
-                        ),
-                    }
                 } else {
-                    GateVerdict::Pass
+                    composition_law_gate(verdicts, l, r, comp)
                 }
             }
             None => GateVerdict::Red {
-                reason: "declared composite is not present in the program".to_owned(),
+                reason: if by_iri.get(comp_iri).is_some_and(Option::is_none) {
+                    "declared composite has an ambiguous correspondence identity"
+                } else {
+                    "declared composite is not present in the program"
+                }
+                .to_owned(),
             },
         },
         // No composite declared: the gate reports the computed join (informational pass).
         None => GateVerdict::Pass,
     };
     CompositionGateReport {
+        declaration: None,
+        result: None,
         left: left.to_owned(),
         right: right.to_owned(),
         composed_class: join.as_str().to_owned(),
         composed_law_status: join_status.as_str().to_owned(),
         composition: verdict,
     }
+}
+
+/// Validate an authored declaration against the complete selected program. This
+/// checks explicit endpoint references, not theory equivalence or a rewrite theorem.
+fn authored_composition_gate(
+    by_iri: &BTreeMap<&str, Option<&Correspondence>>,
+    verdicts: &CorrespondenceVerdicts,
+    declaration: &crate::ir::CorrespondenceComposition,
+    identities: &mut std::collections::BTreeSet<String>,
+) -> CompositionGateReport {
+    let mut report = composition_gate(
+        by_iri,
+        verdicts,
+        &declaration.first,
+        &declaration.second,
+        Some(&declaration.composite),
+    );
+    report.declaration = Some(declaration.iri.clone());
+    report.result = Some(declaration.composite.clone());
+    let mut refuse = |reason: &str| {
+        report.composition = GateVerdict::Red {
+            reason: reason.into(),
+        }
+    };
+    if !identities.insert(declaration.iri.clone()) {
+        refuse(
+            "duplicate authored composition identity; every declaration must have one definition",
+        );
+    } else if let (Some(first), Some(second), Some(result)) = (
+        by_iri.get(declaration.first.as_str()).copied().flatten(),
+        by_iri.get(declaration.second.as_str()).copied().flatten(),
+        by_iri
+            .get(declaration.composite.as_str())
+            .copied()
+            .flatten(),
+    ) {
+        if let (
+            Some(source),
+            Some(middle),
+            Some(next_source),
+            Some(target),
+            Some(result_source),
+            Some(result_target),
+        ) = (
+            &first.source_endpoint,
+            &first.target_endpoint,
+            &second.source_endpoint,
+            &second.target_endpoint,
+            &result.source_endpoint,
+            &result.target_endpoint,
+        ) {
+            if middle != next_source || source != result_source || target != result_target {
+                refuse(
+                    "authored composition endpoint references do not commute in acquisition order",
+                );
+            } else if first.according_to != second.according_to
+                || first.according_to != result.according_to
+            {
+                refuse(
+                    "authored composition standpoint references differ; an unspecified standpoint is not universal and no context transport is declared",
+                );
+            }
+        } else {
+            refuse(
+                "authored composition requires explicit source and target endpoints on both members and its result",
+            );
+        }
+    }
+    report
 }
 
 /// The composition strength of a discharge verdict (EXPLICIT, never the derived `Ord` on
@@ -426,19 +599,53 @@ fn weaker_law_status(a: DischargeVerdict, b: DischargeVerdict) -> DischargeVerdi
     }
 }
 
-/// A correspondence's aggregate law status: the WEAKEST discharge verdict among its law
-/// claims (the weakest claim caps the cell). A cell with no law claims asserts no discharged
-/// law, so its status is `ObligationUnknown` — it cannot license a composite's discharged law.
-fn aggregate_law_status(c: &Correspondence) -> DischargeVerdict {
-    c.law_claims
+/// A premise is bounded by this law's declarations AND its own executed evidence.
+/// Another law's result cannot fill a missing domain or hide a refutation.
+fn law_premise(
+    verdicts: &CorrespondenceVerdicts,
+    c: &Correspondence,
+    law: CorrespondenceLaw,
+) -> DischargeVerdict {
+    let declared = c
+        .law_claims
         .iter()
+        .filter(|claim| claim.law == law)
         .map(|cl| cl.verdict)
-        .min_by_key(|v| law_status_strength(*v))
-        .unwrap_or(DischargeVerdict::ObligationUnknown)
+        .reduce(weaker_law_status)
+        .unwrap_or(DischargeVerdict::ObligationUnknown);
+    weaker_law_status(declared, verdict_for(verdicts, &c.iri).law(law).verdict)
+}
+
+fn composition_law_gate(
+    verdicts: &CorrespondenceVerdicts,
+    left: &Correspondence,
+    right: &Correspondence,
+    composite: &Correspondence,
+) -> GateVerdict {
+    for claim in &composite.law_claims {
+        let bound = weaker_law_status(
+            law_premise(verdicts, left, claim.law),
+            law_premise(verdicts, right, claim.law),
+        );
+        if law_status_strength(claim.verdict) > law_status_strength(bound) {
+            return GateVerdict::Red {
+                reason: format!(
+                    "composite logic:{} status logic:{} is STRONGER than its own premise bound logic:{}; \
+                     another law's evidence cannot discharge this composition and a premise refutation is not a composite countermodel",
+                    claim.law.as_str(),
+                    claim.verdict.as_str(),
+                    bound.as_str(),
+                ),
+            };
+        }
+    }
+    GateVerdict::Pass
 }
 
 /// Run the five gates over a (derived) correspondence program plus any declared
-/// compositions (`(left, right, optional composite)`), producing the structured report.
+/// supplemental premise inspections (`(left, right, optional composite)`). Every
+/// canonical `program.compositions` declaration is always included; an empty supplemental
+/// selection cannot erase authored obligations. Produces the structured report.
 /// Total — never throws; a RED is recorded, not raised (so a deliberately-RED conformance
 /// case can be blessed). The program's correspondences are expected to already carry their
 /// derived put legs (see [`CorrespondenceProgram::with_derived_puts`]).
@@ -461,18 +668,31 @@ pub fn evaluate_gates(
         .collect();
     per_correspondence.sort_by(|a, b| a.correspondence.cmp(&b.correspondence));
 
-    let by_iri: BTreeMap<&str, &Correspondence> = program
-        .correspondences
-        .iter()
-        .map(|c| (c.iri.as_str(), c))
-        .collect();
+    let mut by_iri: BTreeMap<&str, Option<&Correspondence>> = BTreeMap::new();
+    for correspondence in &program.correspondences {
+        by_iri
+            .entry(correspondence.iri.as_str())
+            .and_modify(|entry| *entry = None)
+            .or_insert(Some(correspondence));
+    }
     let mut per_composition: Vec<CompositionGateReport> = compositions
         .iter()
         .map(|(left, right, composite)| {
-            composition_gate(&by_iri, left, right, composite.as_deref())
+            composition_gate(&by_iri, verdicts, left, right, composite.as_deref())
         })
         .collect();
-    per_composition.sort_by(|a, b| (a.left.as_str(), a.right.as_str()).cmp(&(&b.left, &b.right)));
+    let mut identities = std::collections::BTreeSet::new();
+    per_composition.extend(program.compositions.iter().map(|declaration| {
+        authored_composition_gate(&by_iri, verdicts, declaration, &mut identities)
+    }));
+    per_composition.sort_by(|a, b| {
+        (&a.left, &a.right, &a.declaration, &a.result).cmp(&(
+            &b.left,
+            &b.right,
+            &b.declaration,
+            &b.result,
+        ))
+    });
 
     CorrespondenceGateReport {
         per_correspondence,
@@ -501,6 +721,12 @@ pub fn assert_gates(report: &CorrespondenceGateReport) -> Result<(), OverclaimEr
     }
     for c in &report.per_composition {
         if let GateVerdict::Red { reason } = &c.composition {
+            if let Some(declaration) = &c.declaration {
+                return Err(OverclaimError(format!(
+                    "Correspondence Composition gate RED on declaration <{declaration}> (<{}> then <{}>): {reason}",
+                    c.left, c.right
+                )));
+            }
             return Err(OverclaimError(format!(
                 "Correspondence Composition gate RED on <{}> ∘ <{}>: {reason}",
                 c.left, c.right

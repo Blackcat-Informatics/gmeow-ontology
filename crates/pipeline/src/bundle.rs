@@ -10,17 +10,15 @@
 //! C1 landed the generic [`PipelineBundle<H>`] in `purrdf`: a frozen RDF
 //! dataset + lookaside + content-addressed blob store + provenance sidecar + a
 //! typed-handle lane. This module plugs the pipeline's concrete handle payload
-//! into that lane (`H = PipelineHandle`) and provides the byte-artifact bridge the
-//! existing stages still speak.
+//! into that lane (`H = PipelineHandle`) and preserves the selected terminal
+//! artifact bytes alongside native stage publications.
 //!
-//! # The byte-artifact lane (this task is a CARRIER swap, not a serializer rewrite)
+//! # The terminal artifact lane
 //!
-//! Today every stage emits *named byte artifacts by logical path* and downstream
-//! stages read them back by path. C4 swaps the CARRIER (a `BTreeMap<String,Vec<u8>>`
-//! in `StageProduct`) for the structured bundle WITHOUT changing the bytes any
-//! stage produces or reads — byte-identity of every committed artifact must hold
-//! (`make check-sync SYNC_MODE=check`). To do that with zero behavioural change, the named
-//! byte artifacts are stored INSIDE the bundle:
+//! Required named artifacts retain their exact logical-path identity inside the
+//! bundle. Native consumers borrow complete typed values, including programs and
+//! final diagnostic reports, rather than reparsing these terminal projections.
+//! The fixed-point check still compares every selected artifact's exact bytes:
 //!
 //! * each artifact's bytes live in the bundle's [`ContentStore`] (the one owner of
 //!   payload bytes, by-reference doctrine), and
@@ -28,10 +26,9 @@
 //!   `name = logical_path`, `content_digest = blob hex` — so `bundle_artifact(path)`
 //!   reconstructs the exact bytes (`name → digest → blobs.get(digest)`).
 //!
-//! This makes C4 a pure carrier swap: the `(logical_path → bytes)` surface
-//! `run_full` writes/compares is preserved bit-for-bit. C2/C3/C5 then progressively
-//! replace these byte reads with dataset/lane reads and retire the blob lane per
-//! stage. The lane is marked clearly so those tasks can find it.
+//! The `(logical_path → bytes)` surface `run_full` writes and compares remains
+//! distinct from native payload identity. A missing typed publication cannot be
+//! replaced by a surviving artifact with the same apparent contents.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -46,66 +43,89 @@ use purrdf::{
     RdfLookaside, RdfLookasideKind, RdfLookasideResource,
 };
 
-/// The pipeline-side typed-handle payload carried in the bundle's handle lane.
+mod diagnostics;
+#[cfg(test)]
+pub(crate) use diagnostics::tests as diagnostic_test_support;
+pub use diagnostics::{DiagnosticReportOwner, DiagnosticsPublication};
+pub(crate) use diagnostics::{diagnostics_from_product, pin_diagnostics, snapshot_diagnostics};
+
+/// Native stage products bound to their governed named-graph projections.
 ///
-/// Each arm is a typed projection over a named graph the bundle carries; later
-/// tasks (C7–C10) fill the remaining arms with their real payloads. For C4
-/// the lane only had to EXIST; C6 lands the FIRST real typed handle:
-/// [`Logic`](Self::Logic) now carries the compiled [`LogicProgram`] itself (the
-/// content-addressed IR), pinned to its backing `graph/logic` canonical RDF-1.2
-/// projection — a consumer takes the handle and NEVER re-parses the logic graph.
-/// The remaining arms still wrap their backing graph as an [`Arc<RdfDataset>`]
-/// placeholder so the variant is real and content-addressable.
-///
-/// `#[non_exhaustive]` so later tasks grow the payloads additively.
+/// Every arm carries its complete typed payload. Action identity commits to all
+/// fields, including fields omitted by a lossy RDF projection. Persistent cache
+/// hydration restores the native codec and authenticates that complete identity;
+/// consumers reuse these values without parsing or lowering the graph again.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum PipelineHandle {
-    /// The logic layer: the compiled [`LogicProgram`] (the typed, content-addressed
-    /// IR) over its backing `graph/logic` named graph — the REAL handle (C6),
-    /// not the C4 placeholder. Its backing graph is the canonical RDF-1.2 projection
-    /// of this program; the program's [`canonical_key`](LogicProgram::canonical_key)
-    /// is its content identity.
+    /// Ephemeral original source parses and their portable source commitments.
+    /// Released after its last declared native consumer; never a persistent fixture.
+    SourceCatalog(Arc<crate::stages::parse_sources::SourceCatalog>),
+    /// Canonical compiled logic IR and its retained source information, pinned
+    /// to the `graph/logic` projection.
     Logic(Arc<LogicProgram>),
-    /// The reasoning layer: the typed [`ReasoningResult`] (the five-axis verdict +
-    /// provenance bundle) over its backing `graph/reasoning` named graph — the REAL
-    /// handle (C7), not the C4 placeholder. Its backing graph is the
-    /// deterministic RDF projection of this result
-    /// ([`project_reasoning_result`](gmeow_logic::result_rdf::project_reasoning_result));
-    /// a consumer takes the typed handle and reads the verdict/provenance without
-    /// re-running the reasoner. On a cache hit the cache re-derives the
-    /// verdict-and-provenance result from the backing graph via
-    /// [`parse_reasoning_graph`](gmeow_logic::result_rdf::parse_reasoning_graph)
-    /// (the binding rows / closure quads live in the bundle's dataset, not re-copied
-    /// here — see the projection's round-trip contract).
+    /// The compiler's program and mandatory report inputs, sharing one native
+    /// publication until the compile product's last declared consumer.
+    CompiledLogic(Arc<CompiledLogicPublication>),
+    /// Complete final diagnostic reports, including fields omitted by the RDF
+    /// finding graph. The snapshot shares the two original producer reports.
+    Diagnostics(Arc<DiagnosticsPublication>),
+    /// Reasoning axes, provenance, complete answer payload and declared row
+    /// schema, pinned to the governed `graph/reasoning` summary. Publication
+    /// verifies the represented summary against native emission; hydration
+    /// preserves fields that the summary deliberately omits.
     Reasoning(Arc<ReasoningResult>),
-    /// The relational-core layer: the typed [`RelationalCoreProgram`] (the engine-agnostic
-    /// Datalog±-with-stratified-negation dialect lowered from the compiled program's Horn
-    /// rules) over its backing `graph/relational-core` named graph — the REAL handle
-    /// (C8), not the C4 placeholder. Its backing graph is the deterministic RDF
-    /// projection of this dialect
-    /// ([`project_relational_core`](gmeow_logic_compile::relational_core::project_relational_core));
-    /// a consumer takes the typed handle and reads the lowered rules/facts/residue
-    /// WITHOUT re-lowering. On a cache hit the cache re-derives the dialect from the
-    /// backing graph via
-    /// [`parse_relational_core`](gmeow_logic_compile::relational_core::parse_relational_core).
-    /// When the full-FOL formula lowering lands, its richer non-Horn lowering plugs into
-    /// THIS arm (it produces the same dialect with carried residue) — the carrier never
-    /// changes shape.
+    /// Lowered relational facts, rules and residue, pinned to their
+    /// `graph/relational-core` projection.
     RelationalCore(Arc<RelationalCoreProgram>),
-    /// The correspondence/alignment layer: the typed [`CorrespondenceProgram`] (the set
-    /// of `logic:Correspondence` IR nodes + caveats + declared preservation polarity)
-    /// over its backing `graph/correspondence` named graph — the REAL handle (C10),
-    /// not the C4 placeholder. Its backing graph is the deterministic RDF projection of
-    /// this program
-    /// ([`project_correspondence`](gmeow_logic_compile::projections::correspondence::project_correspondence));
-    /// a consumer takes the typed handle and reads the alignment surface (which keeps a
-    /// caveated overlap at `skos:relatedMatch`, never `skos:exactMatch` /
-    /// `owl:equivalentClass` — the overclaim gate forbids over-alignment) WITHOUT
-    /// re-projecting. On a cache hit the cache re-derives the program from the backing
-    /// graph via
-    /// [`parse_correspondence`](gmeow_logic_compile::projections::correspondence::parse_correspondence).
+    /// Typed correspondences and their evidence, pinned to the
+    /// `graph/correspondence` projection.
     Correspondence(Arc<CorrespondenceProgram>),
+}
+
+/// The compiler-owned input to mappings' final projection report.
+/// Counts, judgment rows and every native diagnostic field are authenticated as
+/// one typed payload. Projection bodies remain in their selected artifact lanes.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct LogicReportInputs {
+    /// Compiler-owned axiom/rule/profile/formula counts. Final correspondence,
+    /// lawful-uplift and claimed-uplift counts stay zero until mappings owns them.
+    pub header: gmeow_logic_compile::projections::report::ReportHeader,
+    /// Source-and-example correspondence total before mappings adds its audit.
+    pub base_correspondence_count: usize,
+    /// Source-and-example proved uplift total before mappings adds its audit.
+    pub base_lawful_uplift_count: usize,
+    /// Report judgments without any serialized projection bodies.
+    pub projections: Vec<gmeow_logic_compile::projections::report::ProjectionReportRow>,
+    /// Complete compiler loss witnesses, including source and causal attribution.
+    pub loss: gmeow_logic_compile::loss_ledger::LossLedger,
+}
+
+/// The exact program and report inputs published by the compile-logic stage.
+/// A program-only snapshot is a different publication: it cannot satisfy a
+/// mappings consumer that requires the compiler's complete report inputs.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct CompiledLogicPublication {
+    /// The same compiled program borrowed by native downstream consumers.
+    pub program: Arc<LogicProgram>,
+    /// Mandatory compiler report inputs; absence cannot select a weaker path.
+    pub report: LogicReportInputs,
+}
+
+impl PipelineHandle {
+    /// Borrow a complete program from either explicitly supported publication.
+    /// Consumers that need report inputs must require `CompiledLogic` themselves.
+    pub fn logic_program(&self) -> Option<&Arc<LogicProgram>> {
+        match self {
+            Self::Logic(program) => Some(program),
+            Self::CompiledLogic(publication) => Some(&publication.program),
+            Self::SourceCatalog(_)
+            | Self::Diagnostics(_)
+            | Self::Reasoning(_)
+            | Self::RelationalCore(_)
+            | Self::Correspondence(_) => None,
+        }
+    }
 }
 
 /// The lookaside-resource name prefix marking a byte-artifact lane entry. A bundle
@@ -119,7 +139,7 @@ const ARTIFACT_KIND: RdfLookasideKind = RdfLookasideKind::Blob;
 
 /// The logical-path prefix marking an INTERNAL dataflow artifact: bytes that exist
 /// only to travel from one stage to its declared consumers (`pipeline/base-graph.nq`,
-/// `pipeline/documentation.nq`, `pipeline/logic-projections.json`, …). They are NOT
+/// `pipeline/documentation.nq`, …). They are NOT
 /// committed outputs — [`crate::run::run_full`]'s reconcile skips them — and they are
 /// the LARGEST entries on the byte-artifact lane (whole-dataset N-Quads serializations),
 /// so [`release_carrier`] drops exactly these once the producing stage's last declared
@@ -524,59 +544,6 @@ fn empty_dataset() -> Arc<RdfDataset> {
         .expect("an empty dataset is always valid")
 }
 
+#[path = "bundle.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn arts(pairs: &[(&str, &[u8])]) -> BTreeMap<String, Vec<u8>> {
-        pairs
-            .iter()
-            .map(|(p, b)| (p.to_string(), b.to_vec()))
-            .collect()
-    }
-
-    #[test]
-    fn artifact_lane_round_trips_exact_bytes() {
-        let artifacts = arts(&[
-            ("generated/a.ttl", b"alpha"),
-            ("generated/b.nq", b"bravo"),
-            ("pipeline/base.nq", b""), // empty bytes are representable
-        ]);
-        let bundle = bundle_from_artifacts(artifacts.clone(), DatasetProvenance::new());
-        assert_eq!(
-            bundle_artifact(&bundle, "generated/a.ttl"),
-            Some(&b"alpha"[..])
-        );
-        assert_eq!(bundle_artifact(&bundle, "pipeline/base.nq"), Some(&b""[..]));
-        assert_eq!(bundle_artifact(&bundle, "missing"), None);
-        assert_eq!(bundle_artifacts(&bundle), artifacts);
-    }
-
-    #[test]
-    fn shared_bytes_dedup_but_both_paths_reconstruct() {
-        // Two artifacts with identical bytes share one content-store blob, yet both
-        // logical paths must reconstruct the bytes (the resource index is per-path).
-        let artifacts = arts(&[("x", b"same"), ("y", b"same")]);
-        let bundle = bundle_from_artifacts(artifacts.clone(), DatasetProvenance::new());
-        assert_eq!(bundle.blobs().len(), 1, "equal bytes stored once");
-        assert_eq!(bundle_artifacts(&bundle), artifacts);
-    }
-
-    #[test]
-    fn bundle_digest_changes_with_artifacts_and_is_stable() {
-        let a = bundle_from_artifacts(arts(&[("p", b"one")]), DatasetProvenance::new());
-        let b = bundle_from_artifacts(arts(&[("p", b"two")]), DatasetProvenance::new());
-        let a2 = bundle_from_artifacts(arts(&[("p", b"one")]), DatasetProvenance::new());
-        assert_ne!(a.digest(), b.digest(), "different bytes → different digest");
-        assert_eq!(a.digest(), a2.digest(), "same artifacts → same digest");
-    }
-
-    #[test]
-    fn pipeline_handle_logic_carries_the_compiled_program() {
-        // The Logic arm now carries the REAL typed IR (C6), not a backing-graph
-        // placeholder: an empty program is a valid, cloneable payload.
-        let program = Arc::new(LogicProgram::new(vec![], vec![], vec![], None));
-        let h = PipelineHandle::Logic(program);
-        assert!(matches!(h, PipelineHandle::Logic(_)));
-    }
-}
+mod tests;

@@ -21,7 +21,7 @@ docs controller loads.
 | `gmeow_query_wasm_bg.wasm` | The compiled engine — the pinned `purrdf` RDF 1.2 parser, serializer and SPARQL evaluator. |
 | `gmeow_query_wasm.d.ts` / `gmeow_query_wasm_bg.wasm.d.ts` | TypeScript type surface. |
 | `WITNESS.query.txt` | The engine-parity attestation: native `Dataset::query` results over the committed corpus (`crates/query-wasm/js/tests/corpus.trig` + `queries.json`), which the shipped wasm engine must reproduce byte-for-byte. Digest-pinned (see `DIGESTS.blake3` below). |
-| `WITNESS.describe.nt` | The bundle-explorer `describe` attestation (native, bundle-scoped) — see `crates/validate/tests/witness_explore.rs`. |
+| `WITNESS.describe.nt` | Historical native describe snapshot from the retired explorer route. The current MCP explorer attestation is `crates/mcp/tests/witness/describe.nt`. |
 
 Each carries a `.license` REUSE sidecar (AGPL-3.0-only).
 
@@ -73,6 +73,8 @@ Three gates guard against a stale or broken blob:
   attestation, plus the malformed-input/refusal contract and a `Dataset.fromGts` smoke
   check. This is the mandatory "what ships is what was proven" lane.
 
-The bundle-explorer `describe` witness (`WITNESS.describe.nt`) is proven separately by
-`crates/validate/tests/witness_explore.rs`, which calls the same `Dataset::query`
-function (compiled natively, not to wasm) that the browser explorer's DESCRIBE runs.
+The bundle explorer now uses the MCP `query_local` tool with a bound-subject
+CONSTRUCT over the default graph. `crates/mcp/src/tests/witness_explore.rs` compares
+that route with an independent dataset renderer and the current attestation at
+`crates/mcp/tests/witness/describe.nt`; the historical snapshot in this directory
+does not attest the current explorer route.

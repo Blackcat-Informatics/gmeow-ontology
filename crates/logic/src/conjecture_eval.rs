@@ -11,7 +11,7 @@
 //! [`Formula`] ([`parse_candidate_formula`]), re-homes the caller's KB Turtle into the
 //! isolated [`CONJECTURE_SCENARIO_WORLD`] ([`rehome_kb_into_scenario`]), runs the native
 //! symmetric [`conjecture_test`], and projects the verdict to deterministic, sorted
-//! N-Triples via [`project_conjecture_verdict`] + [`conjecture_node_iri`]. The result is
+//! N-Triples and its node IRI through one validated [`ResultProjection`]. The result is
 //! byte-for-byte identical whether it is produced on the native gate or in the browser —
 //! the native≡wasm witness pins that identity.
 //!
@@ -25,21 +25,20 @@
 //! [`CONJECTURE_SCENARIO_WORLD`]: crate::conjecture_eval::CONJECTURE_SCENARIO_WORLD
 //! [`rehome_kb_into_scenario`]: crate::conjecture_eval::rehome_kb_into_scenario
 //! [`conjecture_test`]: crate::conjecture::conjecture_test
-//! [`project_conjecture_verdict`]: crate::result_rdf::project_conjecture_verdict
-//! [`conjecture_node_iri`]: crate::result_rdf::conjecture_node_iri
+//! [`ResultProjection`]: crate::result_rdf::ResultProjection
 //!
 //! Nothing here TR-gates, persists, or mutates the caller's KB (isolation is inherent):
 //! it is the pure evaluation core each surface wraps with its own tail.
 
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
-use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{CompositeDatasetView, CompositeSource, GraphPlacement, TermValue, ViewLimits};
 use sha2::{Digest, Sha256};
 
 use crate::conjecture::{ConjectureLifecycleState, conjecture_test};
 use crate::query_ir::Budget;
 use crate::result::InformationState;
-use crate::result_rdf::{ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict};
+use crate::result_rdf::{ConjectureVerdictInput, ResultProjection};
 
 /// The `rdf:type` predicate IRI.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -47,7 +46,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The single, fixed ISOLATED scenario world every conjecture test reasons in. The KB the
 /// caller supplies is re-homed into this world (so the world-scoped DL calculus joins the
 /// KB facts with the asserted / evaluated candidate), and the run is inherently isolated —
-/// [`conjecture_test`] copies the KB into a fresh dataset and never mutates the input.
+/// [`conjecture_test`] borrows the scenario view and never mutates the input.
 pub const CONJECTURE_SCENARIO_WORLD: &str =
     "https://blackcatinformatics.ca/gmeow/agentic/conjecture/scenario";
 
@@ -71,8 +70,8 @@ pub struct ConjectureEvalInput<'a> {
     pub kb_ttl: &'a str,
     /// The KB media type / short id purrdf understands (`text/turtle`, `application/n-quads`,
     /// …). The native surface passes Turtle; the browser playground passes N-Quads (the core
-    /// bundle serialization). The re-homed triple set — and thus the verdict — is identical
-    /// across serializations of the same KB.
+    /// bundle serialization). Placement retains every logical assertion layer of the KB;
+    /// each selected serialization must faithfully represent those layers.
     pub kb_format: &'a str,
     /// The reified standpoint IRI the verdict is scoped to (REQUIRED — Principle 9).
     pub standpoint: &'a str,
@@ -107,7 +106,7 @@ pub struct ConjectureVerdictProjection {
     pub witness: Option<ConjectureVerdictWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body from the validated [`ResultProjection`].
     pub verdict_nt: String,
     /// The candidate's content-addressing key (formula identity across standpoints).
     pub content_key: String,
@@ -160,17 +159,23 @@ pub fn parse_candidate_formula(formula_src: &str) -> gmeow_errors::Result<Formul
     let mut candidate_axioms: Vec<_> = program
         .axioms
         .into_iter()
-        .filter(|ax| !(ax.predicate == RDF_TYPE && ax.obj == logic_formula_iri))
+        .filter(|ax| {
+            !(ax.predicate == RDF_TYPE && ax.obj.as_iri() == Some(logic_formula_iri.as_str()))
+        })
         .collect();
     if formula_count == 0 && candidate_axioms.len() == 1 {
         let ax = candidate_axioms.pop().expect("len == 1");
-        let object = if ax.obj_is_literal {
-            IrTerm::Literal {
-                lexical: ax.obj,
-                datatype: None,
+        let object = match ax.obj {
+            gmeow_logic_compile::ir::AtomicTerm::Var(value) => {
+                IrTerm::Var(value.trim_start_matches('?').to_owned())
             }
-        } else {
-            IrTerm::Iri(ax.obj)
+            gmeow_logic_compile::ir::AtomicTerm::Iri(value) => IrTerm::Iri(value),
+            gmeow_logic_compile::ir::AtomicTerm::Literal(value) => IrTerm::Literal(value),
+            gmeow_logic_compile::ir::AtomicTerm::Blank(_) => {
+                return Err(bad(
+                    "a blank candidate object needs explicit existential binding".to_owned(),
+                ));
+            }
         };
         return Formula::atom(
             IrTerm::Iri(ax.predicate),
@@ -185,35 +190,36 @@ pub fn parse_candidate_formula(formula_src: &str) -> gmeow_errors::Result<Formul
     )))
 }
 
-/// Re-home every triple of the caller's KB Turtle into [`CONJECTURE_SCENARIO_WORLD`] as a
-/// fresh, frozen [`purrdf::RdfDataset`]. World-homing is required because the DL consistency
-/// calculus is world-scoped: KB facts must sit in the SAME world the candidate is asserted /
-/// evaluated in for a disjointness clash to fire.
+/// Place the caller's complete KB in [`CONJECTURE_SCENARIO_WORLD`] through a shared
+/// native view. The world-scoped calculus evaluates the KB and the candidate in
+/// that same world. Ordinary assertions, reifier bindings, annotations and empty
+/// declarations all acquire the scenario graph; former graph IRIs remain intact
+/// when they occur as provenance or other RDF values.
 ///
+/// This is an explicit collapse of the input's graph roles. The view retains the
+/// original parsed source and its blank identities without copying or freezing
+/// its rows. It passes directly to the native conjecture evaluator.
 /// `kb_format` is a purrdf media type / short id (`text/turtle`, `application/n-quads`, …).
 ///
 /// # Errors
 ///
-/// Returns an error if the KB fails to parse or the re-homed dataset fails to freeze.
+/// Returns an error if the KB fails to parse or native placement exceeds its
+/// retention limits. No partial scenario is returned.
 pub fn rehome_kb_into_scenario(
     kb_src: &str,
     kb_format: &str,
-) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
+) -> gmeow_errors::Result<CompositeDatasetView> {
     let parsed = purrdf::parse_dataset(kb_src.as_bytes(), kb_format, None).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Reason {
             detail: format!("KB ({kb_format}) failed to parse: {e}"),
         })
     })?;
-    let world = RdfTerm::iri(CONJECTURE_SCENARIO_WORLD);
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let rehomed =
-            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone());
-        builder.push_owned_quad(&rehomed);
-    }
-    builder.freeze().map_err(|e| {
+    let source = CompositeSource::new(parsed).with_graph_placement(GraphPlacement::Named(
+        TermValue::iri(CONJECTURE_SCENARIO_WORLD),
+    ));
+    CompositeDatasetView::from_shared_sources(vec![source], ViewLimits::default()).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Reason {
-            detail: format!("re-homed KB dataset failed to freeze: {e}"),
+            detail: format!("place KB in the conjecture scenario: {e}"),
         })
     })
 }
@@ -228,14 +234,15 @@ pub fn rehome_kb_into_scenario(
 ///
 /// Returns an error if the candidate document does not name exactly one candidate formula, if
 /// the KB does not parse, if the native engine fails (see [`conjecture_test`]), or if a
-/// refutation names a compound candidate with no soundly-derivable forbidden predicate.
+/// refutation names a compound candidate with no soundly-derivable forbidden predicate,
+/// or if the result fails terminal projection admission.
 pub fn evaluate_conjecture_eval(
     input: &ConjectureEvalInput<'_>,
 ) -> gmeow_errors::Result<ConjectureVerdictProjection> {
     // (1) Parse the candidate document and extract exactly one candidate formula.
     let candidate = parse_candidate_formula(input.formula_ttl)?;
 
-    // (2) Parse the KB and re-home every triple into the isolated scenario world, so the
+    // (2) Parse the KB and place every RDF layer into the isolated scenario world, so the
     //     world-scoped DL calculus joins the KB with the asserted / evaluated candidate.
     let kb = rehome_kb_into_scenario(input.kb_ttl, input.kb_format)?;
 
@@ -249,7 +256,7 @@ pub fn evaluate_conjecture_eval(
         max_steps: input.max_steps,
     };
     let answer = conjecture_test(
-        kb.as_ref(),
+        &kb,
         CONJECTURE_SCENARIO_WORLD,
         &candidate,
         input.standpoint,
@@ -289,8 +296,9 @@ pub fn evaluate_conjecture_eval(
         math_conjecture: input.math_conjecture,
         forbidden_predicate: forbidden_predicate.as_deref(),
     };
-    let verdict_nt = project_conjecture_verdict(&verdict_input);
-    let node_iri = conjecture_node_iri(&verdict_input);
+    let projection = ResultProjection::conjecture(&verdict_input)?;
+    let verdict_nt = projection.to_ntriples();
+    let node_iri = projection.node_iri().to_owned();
 
     let verdict = &answer.verdict;
     let witness = answer.witness.as_ref().map(|w| ConjectureVerdictWitness {
@@ -375,3 +383,7 @@ pub fn evaluate_conjecture_kb(
         max_answers: None,
     })
 }
+
+#[path = "conjecture_eval.scenario_tests.rs"]
+#[cfg(test)]
+mod scenario_tests;

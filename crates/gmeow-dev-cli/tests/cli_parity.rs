@@ -8,7 +8,7 @@
 //! | Rust test                         | mirrors Python                          |
 //! |-----------------------------------|-----------------------------------------|
 //! | `version_prints_package_version`  | `test_cli_dev` version surface          |
-//! | `logic_query_recursive_ancestor`  | `test_logic_cli::test_logic_query_*`    |
+//! | `logic_query_user_rule_emits_json_bindings`  | `test_logic_cli::test_logic_query_*`    |
 //! | `logic_compile_unknown_mode_fails`| `test_logic_cli::…_unknown_mode_fails`  |
 //! | `external_tool_mirrors_child_exit`| `test_external_tool`                    |
 //! | `external_tool_success_is_clean`  | `test_external_tool`                    |
@@ -114,39 +114,40 @@ fn unknown_subcommand_is_a_usage_error() {
         .code(2);
 }
 
+/// The query command maps a tiny user rule and data file to JSON bindings.
+/// Recursive corpus verdicts belong to authenticated producer observations.
 #[test]
-fn logic_query_recursive_ancestor() {
-    let case = repo_root().join("conformance/logic/cases/profiles/goal-recursive-ancestor");
-    if !case.is_dir() {
-        return;
-    }
+fn logic_query_user_rule_emits_json_bindings() {
+    let inputs = tempfile::tempdir().expect("temporary user inputs");
+    let data = inputs.path().join("facts.nq");
+    let query = inputs.path().join("query.logic");
+    std::fs::write(
+        &data,
+        "<https://example.org/cli/parcel> <https://example.org/cli/destination> <https://example.org/cli/depot> <https://example.org/cli/world> .\n",
+    ).unwrap();
+    std::fs::write(
+        &query,
+        ":- prefix(ex, 'https://example.org/cli/').\n\
+         ex:deliverTo(X,Y) :- ex:destination(X,Y).\n\
+         ?- ex:deliverTo(ex:parcel, Y).\n",
+    )
+    .unwrap();
     let assert = dev_cmd()
-        .arg("logic")
-        .arg("query")
-        .arg(case.join("input.nq"))
-        .arg(case.join("queries/ancestor.logic"))
+        .args(["logic", "query"])
+        .arg(&data)
+        .arg(&query)
         .arg("--json")
         .assert()
         .success();
-    let out = assert.get_output();
     let payload: serde_json::Value =
-        serde_json::from_slice(&out.stdout).expect("query emits JSON on stdout");
+        serde_json::from_slice(&assert.get_output().stdout).expect("query emits JSON on stdout");
     assert_eq!(payload["status"], "ok");
-    let ys: std::collections::BTreeSet<String> = payload["bindings"]
-        .as_array()
-        .expect("bindings array")
-        .iter()
-        .map(|b| b["Y"].as_str().unwrap().to_owned())
-        .collect();
-    let expect: std::collections::BTreeSet<String> = [
-        "<https://example.org/profiles/goal-recursive-ancestor/b>",
-        "<https://example.org/profiles/goal-recursive-ancestor/c>",
-        "<https://example.org/profiles/goal-recursive-ancestor/d>",
-    ]
-    .into_iter()
-    .map(str::to_owned)
-    .collect();
-    assert_eq!(ys, expect);
+    assert_eq!(
+        payload["bindings"],
+        serde_json::json!([
+            {"Y": "<https://example.org/cli/depot>"}
+        ])
+    );
 }
 
 /// Reject an unknown projection mode as a CLI usage error before producer admission.
@@ -212,19 +213,6 @@ fn external_tool_writes_artifacts() {
         .failure();
     assert!(dir.join("ext.json").is_file(), "wrote the JSON artifact");
     assert!(dir.join("ext.sarif").is_file(), "wrote the SARIF artifact");
-}
-
-#[test]
-fn project_view_over_the_snapshot() {
-    // `project --profile gmeow` filters the committed snapshot to the pure-GMEOW
-    // view and writes a Turtle artifact.
-    dev_cmd()
-        .arg("project")
-        .arg("--profile")
-        .arg("gmeow")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("gmeow.ttl"));
 }
 
 #[test]

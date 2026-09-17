@@ -15,7 +15,7 @@ use crate::projections::{ProjectionResult, rdf, target_meta};
 
 use super::{RDF_META_SENTINEL, escape_name, escape_string};
 
-use purrdf::{RdfDataset, TermRef, parse_dataset};
+use purrdf::{RdfDataset, TermRef};
 
 /// `xsd:string` — the datatype the dataset assigns a plain literal; emitted CLIF
 /// distinguishes a plain `(lit "x")` from a typed `(lit "x" 'dt')` by suppressing this
@@ -45,7 +45,7 @@ pub fn project_clif(program: &LogicProgram) -> gmeow_errors::Result<ProjectionRe
     // ── Idiomatic FOL channel (human-readable rendering) ────────────────────────
     // Rules and formulas are rendered as readable Common Logic sentences for human
     // consumption. This channel is WRITE-ONLY: the canonical IR carries an
-    // `obj_is_literal` bit on a rule term (and a rule's minted reifier-node identity)
+    // contextual source and minted reifier-node identities
     // that idiomatic CL syntax cannot express, so reconstructing the byte-exact IR from a
     // `(forall …)` sentence would be lossy. The lossless carrier is the RDF/predication
     // channel below (the Exact `canonical-rdf12` leg), from which the reader reconstructs
@@ -97,19 +97,27 @@ pub fn project_clif(program: &LogicProgram) -> gmeow_errors::Result<ProjectionRe
 /// Encode a [`LogicAxiom`] (a Horn triple) as a CL atom `(<pred> <subj> <obj>)`.
 fn axiom_atom(axiom: &LogicAxiom) -> String {
     let pred = name_term(&axiom.predicate);
-    let subj = horn_term(&axiom.subject, false);
-    let obj = horn_term(&axiom.obj, axiom.obj_is_literal);
+    let subj = horn_term(&axiom.subject);
+    let obj = atomic_term(&axiom.obj);
     format!("({pred} {subj} {obj})")
 }
 
 /// A Horn subject/object token: a `?var`, a typed/plain literal, or a quoted CL name.
-fn horn_term(value: &str, is_literal: bool) -> String {
+fn atomic_term(term: &crate::ir::AtomicTerm) -> String {
+    use crate::ir::AtomicTerm;
+    match term {
+        AtomicTerm::Var(value) => {
+            term_to_clif(&Term::Var(value.trim_start_matches('?').to_owned()))
+        }
+        AtomicTerm::Iri(value) => term_to_clif(&Term::Iri(value.clone())),
+        AtomicTerm::Blank(value) => term_to_clif(&Term::Iri(format!("_:{value}"))),
+        AtomicTerm::Literal(value) => term_to_clif(&Term::Literal(value.clone())),
+    }
+}
+
+fn horn_term(value: &str) -> String {
     if let Some(var) = value.strip_prefix('?') {
         format!("?{var}")
-    } else if is_literal {
-        // A plain literal in the Horn fragment (the canonical IR carries no datatype on
-        // `LogicAxiom.obj`; that detail lives in the RDF channel). Encode as a plain lit.
-        format!("(lit {})", quote_string(value))
     } else {
         name_term(value)
     }
@@ -174,10 +182,14 @@ fn collect_rule_vars(rule: &crate::ir::LogicRule) -> Vec<String> {
             }
         };
     consider(&rule.head.subject, &mut out, &mut seen);
-    consider(&rule.head.obj, &mut out, &mut seen);
+    if let Some(var) = rule.head.obj.as_variable() {
+        consider(var, &mut out, &mut seen);
+    }
     for ba in &rule.body {
         consider(&ba.subject, &mut out, &mut seen);
-        consider(&ba.obj, &mut out, &mut seen);
+        if let Some(var) = ba.obj.as_variable() {
+            consider(var, &mut out, &mut seen);
+        }
     }
     for (a, b) in &rule.distinct_pairs {
         consider(a, &mut out, &mut seen);
@@ -240,10 +252,26 @@ fn term_to_clif(term: &Term) -> String {
     match term {
         Term::Var(n) => format!("?{n}"),
         Term::Iri(i) => name_term(i),
-        Term::Literal { lexical, datatype } => match datatype {
-            None => format!("(lit {})", quote_string(lexical)),
-            Some(dt) => format!("(lit {} {})", quote_string(lexical), name_term(dt)),
-        },
+        Term::Literal(literal) => {
+            if let Some(language) = &literal.language {
+                let suffix = literal
+                    .direction
+                    .map_or_else(String::new, |direction| format!("--{}", direction.as_str()));
+                format!(
+                    "(lit {} @{language}{suffix})",
+                    quote_string(&literal.lexical_form)
+                )
+            } else {
+                match &literal.datatype {
+                    None => format!("(lit {})", quote_string(&literal.lexical_form)),
+                    Some(dt) => format!(
+                        "(lit {} {})",
+                        quote_string(&literal.lexical_form),
+                        name_term(dt)
+                    ),
+                }
+            }
+        }
         // A sequence marker → `(seq n)` reserved form.
         Term::SequenceMarker(n) => format!("(seq {})", quote_string(n)),
         // A function-term application → the native CL functional term `(f t₀ … tₙ)`.
@@ -278,7 +306,7 @@ fn term_to_clif(term: &Term) -> String {
 /// `logic:getLeg` / `logic:putLeg` IRIs that name the leg, so the reconstructed leg registry
 /// is exactly the original. The Exact claim therefore carries every construct losslessly.
 ///
-/// Returns `Err` if the canonical-RDF-1.2 leg (or its re-parse) fails — the lossless carrier
+/// Returns `Err` if the native canonical-RDF-1.2 leg fails — the lossless carrier
 /// cannot be assembled, which is an invariant break surfaced to the caller, not a panic.
 fn meta_predications(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>> {
     let mut preds: Vec<String> = Vec::new();
@@ -333,34 +361,32 @@ fn meta_predications(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>
         .filter(|a| !corr_ownership.owns(&a.subject) && !path_subjects.contains(a.subject.as_str()))
         .cloned()
         .collect();
-    let canon_meta = LogicProgram::new(
+    let mut canon_meta = LogicProgram::new(
         axioms,
         program.rules.clone(),
         program.contracts.clone(),
         program.source_iri.clone(),
     )
     .with_formulas(program.formulas.clone());
-    let ttl = rdf::project_canonical_rdf12(&canon_meta)
+    canon_meta.presentations = program.presentations.clone();
+    let native = rdf::project_canonical_rdf12_dataset(&canon_meta)
         .map_err(|e| {
             Diag::of_kind(crate::error::Clif {
                 detail: format!("CLIF meta channel: canonical-rdf12 projection failed: {e}"),
             })
         })?
-        .content;
-    preds.extend(quads_as_predications(ttl.as_bytes(), "text/turtle")?);
+        .dataset;
+    preds.extend(dataset_predications(&native));
 
-    // (2) Correspondences → the faithful correspondence N-Triples projection.
-    if !program.correspondences.is_empty() {
+    // (2) Correspondences → the shared native correspondence projection.
+    if !program.correspondences.is_empty() || !program.correspondence_compositions.is_empty() {
         let cp = crate::projections::correspondence::CorrespondenceProgram::new(
             program.correspondences.clone(),
-            Vec::new(),
             crate::ir::PreservationKind::Exact,
-        );
-        let nt = crate::projections::correspondence::project_correspondence(&cp);
-        preds.extend(quads_as_predications(
-            nt.as_bytes(),
-            "application/n-triples",
-        )?);
+        )
+        .with_compositions(program.correspondence_compositions.clone());
+        let native = crate::projections::correspondence::project_correspondence_dataset(&cp)?;
+        preds.extend(dataset_predications(&native));
     }
 
     preds.sort();
@@ -552,27 +578,19 @@ fn path_shape_predications(shape: &crate::ir::PathShapeIr) -> Vec<String> {
     out
 }
 
-/// Parse RDF `bytes` of `media_type` and emit each quad as a sorted-later CL predication.
-/// Returns `Err` if the projection's own serialized output cannot be re-parsed (an invariant
-/// break in the canonical leg, surfaced to the caller rather than panicking).
-fn quads_as_predications(bytes: &[u8], media_type: &str) -> gmeow_errors::Result<Vec<String>> {
-    let ds = parse_dataset(bytes, media_type, None).map_err(|e| {
-        Diag::of_kind(crate::error::Clif {
-            detail: format!("CLIF meta channel: re-parse of {media_type} failed: {e}"),
-        })
-    })?;
-    Ok(ds
-        .quad_refs()
+/// Render the native metadata view directly; no intermediate Turtle or parser.
+fn dataset_predications(ds: &RdfDataset) -> Vec<String> {
+    ds.quad_refs()
         .map(|q| {
-            let s = term_ref_to_clif(ds.as_ref(), q.s);
-            let p = term_ref_to_clif(ds.as_ref(), q.p);
-            let o = term_ref_to_clif(ds.as_ref(), q.o);
+            let s = term_ref_to_clif(ds, q.s);
+            let p = term_ref_to_clif(ds, q.p);
+            let o = term_ref_to_clif(ds, q.o);
             format!("({p} {s} {o})")
         })
-        .collect())
+        .collect()
 }
 
-/// Encode a resolved RDF [`TermRef`] as a CL term, faithfully preserving datatype / lang.
+/// Encode an RDF term, preserving datatype, language and RDF 1.2 base direction.
 fn term_ref_to_clif(ds: &RdfDataset, term: TermRef<'_>) -> String {
     match term {
         TermRef::Iri(iri) => name_term(iri),
@@ -581,10 +599,17 @@ fn term_ref_to_clif(ds: &RdfDataset, term: TermRef<'_>) -> String {
             lexical,
             datatype,
             language,
-            ..
+            direction,
         } => {
             if let Some(lang) = language {
-                format!("(lit {} @{lang})", quote_string(lexical))
+                match direction {
+                    Some(direction) => format!(
+                        "(lit {} @{lang}--{})",
+                        quote_string(lexical),
+                        direction.as_str()
+                    ),
+                    None => format!("(lit {} @{lang})", quote_string(lexical)),
+                }
             } else {
                 let dt = match ds.resolve(datatype) {
                     TermRef::Iri(s) => s,

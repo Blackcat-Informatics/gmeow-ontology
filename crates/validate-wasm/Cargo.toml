@@ -8,7 +8,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-readme = "README.md"
 keywords = ["rdf", "validation", "shacl", "wasm", "knowledge-graph"]
 
 [lib]
@@ -34,13 +33,8 @@ gmeow-validate = { path = "../validate" }
 # (tiktoken-rs) has no business in the validator image. That opt-out — not a target gate
 # — is what the `make wasm` purity gate's "no tiktoken-rs in the wasm tree" check proves.
 gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
-# The ONE canonical RDF parser: the embedded codebook `module.ttl` is parsed via
-# `purrdf::parse_dataset` (Turtle) to build the `GmnDictionary` — never a second parser.
-purrdf.workspace = true
-# Content-addresses the embedded codebook carrier: `gmn_codebook_digest()` folds the
-# frozen `module.ttl` bytes to the SAME blake3 digest the codec's codebook-digest layer
-# and the CLI report over, so a JS caller can pin the exact codebook it validated against.
-blake3.workspace = true
+# Native codebook hydration and its original-source digest are owned by lang-bridge;
+# this shim has no authored RDF parser or duplicate source-digest implementation.
 # The `gmn_validate` verdict is marshalled as a canonical JSON object
 # (`{conformant, failureClass?, detail?}`) at the JS boundary — the same serde surface
 # the Tier-1 `validate` Report crosses on. wasm-pure.
@@ -52,3 +46,7 @@ wasm-bindgen.workspace = true
 # Host-target unit tests parse the `gmn_validate` JSON verdict back to assert the exact
 # `conformant` flag + `failureClass` IRI (the load-bearing unknown-glyph rejection); they
 # reuse the `serde_json` dependency above (a normal dep is already in scope for tests).
+
+[dev-dependencies]
+# Corpus-backed host contracts only read compact, producer-selected source verdicts.
+gmeow-action-cache = { path = "../action-cache" }

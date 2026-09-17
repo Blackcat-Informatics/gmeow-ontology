@@ -26,7 +26,7 @@ use std::sync::Arc;
 use gmeow_logic::annotation::AnnotationContract;
 use gmeow_logic::cost::DerivedProvenance;
 use gmeow_logic::provenance::term_display;
-use gmeow_logic::reason::reason_program;
+use gmeow_logic::reason::{SelectedDomains, prepare_reasoning_input, reason_program};
 use gmeow_logic::runtime::ReasoningSession;
 use gmeow_logic_compile::ir::{
     ContextualScope, LogicAxiom, LogicProgram, LogicRule, ReasoningContract,
@@ -102,8 +102,7 @@ fn atom(subject: &str, predicate: &str, object: &str, negated: bool) -> LogicAxi
     LogicAxiom::new(
         subject.to_owned(),
         predicate.to_owned(),
-        object.to_owned(),
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource(object.to_owned()),
         negated,
         ContextualScope::default(),
     )
@@ -239,10 +238,14 @@ pub fn session_derived(session: &ReasoningSession, idb: &[String]) -> BTreeSet<T
 #[must_use]
 pub fn oracle_derived(
     program: &LogicProgram,
-    edb: &RdfDataset,
+    edb: &std::sync::Arc<RdfDataset>,
     idb: &[String],
 ) -> BTreeSet<Triple> {
-    let result = reason_program(program, edb).expect("oracle full recompute");
+    let input = prepare_reasoning_input(edb.as_ref()).expect("synthetic session input");
+    // The fixed rule-maintenance session declares no intrinsic nonempty-domain
+    // law. Its scratch oracle must select the same operation contract.
+    let domains = SelectedDomains::new([]).expect("explicit rule-only domain selection");
+    let result = reason_program(program, input, &domains).expect("oracle full recompute");
     result
         .inferred()
         .iter()
@@ -251,7 +254,7 @@ pub fn oracle_derived(
             (
                 canon(&axiom.subject),
                 axiom.predicate.clone(),
-                canon(&axiom.object),
+                canon(&term_display(&axiom.object)),
             )
         })
         .collect()
@@ -271,10 +274,14 @@ pub struct CanonWitness {
 #[must_use]
 pub fn oracle_witnesses(
     program: &LogicProgram,
-    edb: &RdfDataset,
+    edb: &std::sync::Arc<RdfDataset>,
     idb: &[String],
 ) -> BTreeMap<Triple, (Option<String>, BTreeSet<Triple>)> {
-    let result = reason_program(program, edb).expect("oracle full recompute");
+    let input = prepare_reasoning_input(edb.as_ref()).expect("synthetic session input");
+    // Keep the oracle's domain authority identical to the fixed rule-maintenance
+    // session, which declares no intrinsic nonempty-domain law.
+    let domains = SelectedDomains::new([]).expect("explicit rule-only domain selection");
+    let result = reason_program(program, input, &domains).expect("oracle full recompute");
     result
         .inferred()
         .iter()
@@ -283,7 +290,7 @@ pub fn oracle_witnesses(
             let key = (
                 canon(&axiom.subject),
                 axiom.predicate.clone(),
-                canon(&axiom.object),
+                canon(&term_display(&axiom.object)),
             );
             let premises = axiom
                 .premises
@@ -338,7 +345,7 @@ pub fn session_witnesses(session: &ReasoningSession) -> BTreeMap<Triple, CanonWi
 #[must_use]
 pub fn oracle_proof_heights(
     program: &LogicProgram,
-    edb: &RdfDataset,
+    edb: &std::sync::Arc<RdfDataset>,
     idb: &[String],
 ) -> BTreeMap<Triple, u32> {
     let witnesses = oracle_witnesses(program, edb, idb);

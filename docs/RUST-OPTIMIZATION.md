@@ -37,7 +37,8 @@ behavior with the narrowest useful command, then rerun the same command after th
 change.
 
 The dependency lock is part of that measurement identity. The current baseline is
-the exact lockstep `purrdf` revision pinned in `Cargo.toml`, including its fallible
+the exact `purrdf` release selected in `Cargo.lock` within the manifest compatibility
+requirement, including its fallible
 paged-query view and succinct-pack `DatasetView` contracts; do not present a
 measurement from an older lock as current evidence. Those contracts already supply
 borrowed/dense RDF access, page-pattern translation, typed provider/budget/cancellation
@@ -170,6 +171,43 @@ are consumed through its public Rust API:
   binding-aware SIPS order, a guaranteed index shape, and a preselected
   variable/constant kernel shape, while scan mode dispatch enters a const-generic
   kernel once per operator rather than branching per tuple.
+- Shared source ingestion: the source stage parses each authored document once
+  through the native adapter and retains its original dataset, role and spans.
+  The base catalog, authored default, import graph, provenance projection and
+  source-span table consume that same collection. Import transport no longer
+  serializes and reparses N-Quads. Public import-span suppression remains a
+  projection policy; the original source records stay separate. The collection
+  lives only for the producer stage and does not cache cumulative carriers.
+- Typed action identity: product and selected-graph keys bind complete native
+  handle fields alongside the governed RDF graph. Typed CBOR streams into the
+  digest without retaining a serialization buffer; published commitments are
+  reused by scheduling and receipts. Cached handles restore their complete typed
+  values without reparsing RDF. Publication retains the projection-binding checks,
+  and hydration verifies the recomputed whole-product commitment. Releasing a
+  transient span table preserves published identity, so warm fixture admission
+  needs no separate hydration or transition-witness action.
+- Native compiler canonicalization: `graphutil::canonicalize_blank_nodes` applies
+  PurRDF's `canonical_relabel` directly to the typed dataset. Label issuance and
+  RDF 1.2 statement preservation stay upstream-owned; the compiler no longer
+  allocates canonical N-Quads and immediately reparses them. Compiler projection
+  goldens verify the GMEOW output contract without duplicating RDF conformance.
+- Shared program preparation: `crates/logic/src/program_analysis.rs` lowers the
+  canonical rules and full formulas once for program-driven reasoning and
+  materialization. Predicate selection and selected-view execution borrow the same
+  immutable rules and loss evidence. A process-local LRU retains at most 64 small
+  preparations, with independent rule-count, atom-count and rendered
+  payload bounds. Its digest streams the full typed program, including contextual
+  scope and provenance, directly into the hasher. No dataset, result or serialized
+  carrier is retained; eviction recomputes the same lowering and cannot weaken it.
+- Selected reasoned projections: `crates/logic/src/verify.rs` builds asserted plus
+  native-derived closure, checks DL completeness and the observed-not-derived
+  boundary, and attaches expression identity through one shared materializer.
+  Full verification extends that base with the authored math-dimension and
+  enactment-integrity programs. The expression-substrate producer selects its
+  exact operator-cardinality law from the canonical math module and consumes the
+  checked base directly, so its small acceptance scenes do not execute unrelated
+  repository-wide gate programs. The independent verify-gates producer remains
+  the authority that runs those programs and their required checks.
 - Bounded provenance algebra: `crates/logic/src/provenance.rs` defines the checked
   semiring seam used by the native Record lane's minimal-proof-height carrier and
   the incremental core's signed Z-weight counting carrier. Record stores one typed

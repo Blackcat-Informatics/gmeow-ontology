@@ -1277,6 +1277,18 @@ logic:disjointWith skos:exactMatch owl:disjointWith {|
     logic:preservationKind logic:SoundUnderApproximation
 |} .
 
+logic:complementOf skos:exactMatch owl:complementOf {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    logic:sourceEndpoint logic:complementOf ;
+    logic:targetEndpoint owl:complementOf ;
+    logic:morphismClass logic:WellBehavedLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation
+|} .
+
 logic:subPropertyOf skos:exactMatch rdfs:subPropertyOf {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-owl.sssom.tsv" ;

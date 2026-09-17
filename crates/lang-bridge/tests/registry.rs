@@ -8,7 +8,7 @@
 //! carried correspondence, and "Exact" is FALSIFIABLE — a perturbed object fails exactness.
 
 use gmeow_lang_bridge::registry::{
-    EMISSION_WORTHY_CLASSES, LangProjectionInput, LangProjectionTarget, NamedSource,
+    EMISSION_WORTHY_CLASSES, GrammarSource, LangProjectionInput, LangProjectionTarget, NamedSource,
     assert_registry_covers, registry,
 };
 use gmeow_lang_bridge::{
@@ -17,7 +17,6 @@ use gmeow_lang_bridge::{
 };
 use gmeow_logic_compile::ir::PreservationKind;
 
-const TURTLE_EBNF: &str = include_str!("../../../slices/grounding/lang/grammars/turtle.ebnf");
 const CONLLU_FIXTURE: &[u8] = include_bytes!("fixtures/sample.conllu");
 
 /// A minimal `lang:` lexical A-box — the forward OntoLex target's input.
@@ -88,51 +87,12 @@ fn every_emission_worthy_class_maps_to_a_registered_target() {
     }
 }
 
-// ── EBNF: exact round-trip, DERIVED preservation ───────────────────────────────────
-
-#[test]
-fn ebnf_target_emits_exact_round_tripping_grammar() {
-    let input = LangProjectionInput {
-        grammars: vec![NamedSource {
-            name: "turtle".to_owned(),
-            bytes: TURTLE_EBNF.as_bytes().to_vec(),
-        }],
-        ..Default::default()
-    };
-    let emissions = target("ebnf").emit(&input).expect("emit");
-    assert_eq!(emissions.len(), 1);
-    let e = &emissions[0];
-
-    // Preservation is DERIVED, not declared: the carried correspondence is exact.
-    assert!(
-        is_exact_correspondence(&e.correspondence),
-        "the grammar round-trip is an isomorphism with a discharged section law"
-    );
-    // Round-trip is MEASURED true, and the carried leg pair is the structural inverse.
-    assert!(e.round_trip_holds, "the EBNF re-parse must be isomorphic");
-    let (get, put) = e.leg_pair.as_ref().expect("grammar carries a leg pair");
-    assert!(exact_round_trip_holds(get, put), "put ∘ get = id");
-
-    // One EBNF artifact, and it re-parses to the same canonical grammar.
-    let artifact = e
-        .artifacts
-        .iter()
-        .find(|a| a.path_suffix.starts_with("ebnf/"))
-        .expect("an EBNF artifact");
-    let reparsed = parse_grammar(&artifact.bytes, Formalism::Ebnf).expect("re-parse");
-    let source = EbnfBridge.to_grammar(TURTLE_EBNF.as_bytes()).unwrap();
-    assert_eq!(reparsed.canonicalize(), source.canonicalize());
-}
-
 // ── ABNF: exact for the CF fragment, honest-lossy for EBNF-only constructs ──────────
 
 #[test]
 fn abnf_target_is_exact_for_the_cf_fragment() {
     let input = LangProjectionInput {
-        grammars: vec![NamedSource {
-            name: "num".to_owned(),
-            bytes: CF_EBNF.as_bytes().to_vec(),
-        }],
+        grammars: vec![GrammarSource::parse("num", CF_EBNF.as_bytes()).expect("source grammar")],
         ..Default::default()
     };
     let emissions = target("abnf").emit(&input).expect("emit");
@@ -150,33 +110,6 @@ fn abnf_target_is_exact_for_the_cf_fragment() {
     // The emitted ABNF uses the ABNF repetition prefix (`1*digit`), not the EBNF postfix.
     let text = std::str::from_utf8(&artifact.bytes).unwrap();
     assert!(text.contains("1*digit"), "ABNF prefix repetition: {text:?}");
-}
-
-#[test]
-fn abnf_target_is_honest_lossy_for_char_class_grammars() {
-    // The real Turtle grammar carries verbatim/negated character classes ABNF cannot hold.
-    let input = LangProjectionInput {
-        grammars: vec![NamedSource {
-            name: "turtle".to_owned(),
-            bytes: TURTLE_EBNF.as_bytes().to_vec(),
-        }],
-        ..Default::default()
-    };
-    let e = &target("abnf").emit(&input).expect("emit")[0];
-    // NOT exact — the carried correspondence is lossy, and the driver derives SoundUnder.
-    assert!(!is_exact_correspondence(&e.correspondence));
-    assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
-    // No fabricated artifact — a partial ABNF that cannot round-trip is never emitted.
-    assert!(
-        e.artifacts.is_empty(),
-        "a non-expressible grammar emits no ABNF artifact"
-    );
-    // The blocking constructs are enumerated (carried and flagged, never a silent skip).
-    assert!(
-        e.unsupported.iter().any(|u| u.contains("character class")),
-        "the EBNF character classes must be enumerated unsupported"
-    );
-    assert!(!e.round_trip_holds);
 }
 
 // ── GBNF / Lark: version-keyed GMN glyph-grammar surfaces ───────────────────────────
@@ -202,10 +135,10 @@ const GMN_DIFF_EBNF: &str =
 fn gbnf_and_lark_emit_versioned_exact_glyph_grammar_for_the_representable_fragment() {
     for surface in ["gbnf", "lark"] {
         let input = LangProjectionInput {
-            grammars: vec![NamedSource {
-                name: "gmn".to_owned(),
-                bytes: GMN_REPRESENTABLE_EBNF.as_bytes().to_vec(),
-            }],
+            grammars: vec![
+                GrammarSource::parse("gmn", GMN_REPRESENTABLE_EBNF.as_bytes())
+                    .expect("source grammar"),
+            ],
             gmn_dialect_major: Some("1".to_owned()),
             ..Default::default()
         };
@@ -269,10 +202,9 @@ fn gbnf_and_lark_emit_versioned_exact_glyph_grammar_for_the_representable_fragme
 fn gbnf_and_lark_emit_versioned_exact_artifact_for_the_hex_bearing_real_gmn_shape() {
     for surface in ["gbnf", "lark"] {
         let input = LangProjectionInput {
-            grammars: vec![NamedSource {
-                name: "gmn".to_owned(),
-                bytes: GMN_HEX_EBNF.as_bytes().to_vec(),
-            }],
+            grammars: vec![
+                GrammarSource::parse("gmn", GMN_HEX_EBNF.as_bytes()).expect("source grammar"),
+            ],
             gmn_dialect_major: Some("1".to_owned()),
             ..Default::default()
         };
@@ -324,10 +256,9 @@ fn gbnf_and_lark_emit_versioned_exact_artifact_for_the_hex_bearing_real_gmn_shap
 fn gbnf_and_lark_are_honest_soundunder_for_a_difference_bearing_gmn_grammar() {
     for surface in ["gbnf", "lark"] {
         let input = LangProjectionInput {
-            grammars: vec![NamedSource {
-                name: "gmn".to_owned(),
-                bytes: GMN_DIFF_EBNF.as_bytes().to_vec(),
-            }],
+            grammars: vec![
+                GrammarSource::parse("gmn", GMN_DIFF_EBNF.as_bytes()).expect("source grammar"),
+            ],
             gmn_dialect_major: Some("1".to_owned()),
             ..Default::default()
         };
@@ -359,10 +290,10 @@ fn gbnf_and_lark_hard_fail_when_the_version_major_is_absent() {
         // A gmn glyph grammar is present but the graph-resolved dialect major is not — the
         // version-keyed path is a mandatory capability, so this is a HARD FAIL, never a default.
         let input = LangProjectionInput {
-            grammars: vec![NamedSource {
-                name: "gmn".to_owned(),
-                bytes: GMN_REPRESENTABLE_EBNF.as_bytes().to_vec(),
-            }],
+            grammars: vec![
+                GrammarSource::parse("gmn", GMN_REPRESENTABLE_EBNF.as_bytes())
+                    .expect("source grammar"),
+            ],
             ..Default::default()
         };
         let error = target(surface)
@@ -382,10 +313,9 @@ fn gbnf_and_lark_fold_a_no_source_row_when_no_gmn_grammar_is_present() {
         // No `gmn` grammar in the composed model ⇒ honest empty emission (the driver folds one
         // no-source row); crucially NOT a hard fail on the absent major.
         let input = LangProjectionInput {
-            grammars: vec![NamedSource {
-                name: "turtle".to_owned(),
-                bytes: TURTLE_EBNF.as_bytes().to_vec(),
-            }],
+            grammars: vec![
+                GrammarSource::parse("turtle", CF_EBNF.as_bytes()).expect("source grammar"),
+            ],
             ..Default::default()
         };
         let emissions = target(surface).emit(&input).expect("emit");
@@ -528,4 +458,21 @@ fn conllu_exactness_is_falsifiable_under_token_perturbation() {
     );
     // A malformed input HARD FAILS rather than silently returning a repaired-exact result.
     assert!(gmeow_lang_bridge::parse_conllu(b"not\tenough\tcols\n\n").is_err());
+}
+
+#[test]
+fn prepared_grammar_clones_share_the_native_analysis() {
+    let source = GrammarSource::parse("synthetic", CF_EBNF.as_bytes()).expect("native grammar");
+    let clone = source.clone();
+    assert!(std::ptr::eq(source.parsed(), clone.parsed()));
+    assert!(std::ptr::eq(source.canonical(), clone.canonical()));
+    assert_eq!(source.source_iri(), clone.source_iri());
+    let input = LangProjectionInput {
+        grammars: vec![source],
+        ..Default::default()
+    };
+    let ebnf = target("ebnf").emit(&input).expect("EBNF target");
+    let abnf = target("abnf").emit(&input).expect("ABNF target");
+    assert_eq!(ebnf[0].source_iri, abnf[0].source_iri);
+    assert!(ebnf[0].round_trip_holds && abnf[0].round_trip_holds);
 }

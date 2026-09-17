@@ -23,16 +23,11 @@
 #    the set was fixed upstream to exactly those three (NOT a dynamic
 #    universal weakened to a blacklist).
 #
-# TWO fns are native twins in crates/validate/tests/conformance_cases/conformance_gts_slice.rs
-# rather than DSL cells, because neither shape fits a boolean ASK:
-#  * test_value_vocabulary_cardinality_floors — the numeric cardinality (>=7
-#    GTSProfile, >=7 TransformCodec, ==3 CodecClass): a boolean ASK cannot assert
-#    a count. The NAMED individuals + the OpacityReason exact set ARE migrated
-#    below; only the count floors remain.
-#  * test_competency_queries_parse_and_run — a parse+execute SMOKE over
-#    queries/*.rq with NO pinned expected result; a gmeow:CompetencyQuestion cell
-#    REQUIRES an expected outcome, so authoring one would fabricate an assertion
-#    the smoke test never made.
+# Numeric inventory checks (>=7 GTSProfile, >=7 TransformCodec, ==3 CodecClass)
+# live in crates/validate/tests/conformance_cases/conformance_gts_slice.rs.
+# Named individuals and the OpacityReason exact set are checked below.
+# Authored competency cases in competency.ttl assert their expected results;
+# generic query-engine compliance is owned by PurRDF.
 #
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

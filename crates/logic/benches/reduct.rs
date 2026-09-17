@@ -51,8 +51,7 @@ fn ancestor_program() -> LogicProgram {
         LogicAxiom::new(
             subject,
             predicate,
-            object,
-            false,
+            gmeow_logic_compile::ir::AtomicTerm::resource(object),
             false,
             ContextualScope::default(),
         )

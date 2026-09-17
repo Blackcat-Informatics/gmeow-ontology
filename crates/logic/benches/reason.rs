@@ -20,7 +20,10 @@
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::cost::run_native_forward;
-use gmeow_logic::reason::{el_closure, reason_all};
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, el_closure,
+    prepare_reasoning_input, reason_all,
+};
 use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 use std::sync::Arc;
@@ -63,8 +66,7 @@ fn transitivity_program() -> LogicProgram {
         LogicAxiom::new(
             subject,
             "https://blackcatinformatics.ca/logic/subClassOf",
-            object,
-            false,
+            gmeow_logic_compile::ir::AtomicTerm::resource(object),
             false,
             ContextualScope::default(),
         )
@@ -110,8 +112,22 @@ fn bench_reason_all(c: &mut Criterion) {
     group.sample_size(20);
     for &(n, inst) in &[(8usize, 4usize), (30usize, 15usize)] {
         let store = hierarchy_store(n, inst);
+        let selection = blake3::hash(format!("{W}:{n}:{inst}").as_bytes());
+        let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+            LogicalGraph::Named(purrdf::TermValue::iri(W)),
+            DomainProfile::NonemptyObjectDomainV1,
+            "gmeow.bench.native-hierarchy.v1".to_owned(),
+            *selection.as_bytes(),
+        )
+        .expect("benchmark hierarchy domain")])
+        .expect("one benchmark hierarchy world");
         group.bench_function(format!("hierarchy_{n}classes_{inst}inst"), |b| {
-            b.iter(|| std::hint::black_box(reason_all(store.as_ref()).expect("reason_all")));
+            b.iter(|| {
+                // Preserve the measured ingress boundary: each sample includes
+                // native source preparation as well as the selected closure.
+                let input = prepare_reasoning_input(store.as_ref()).expect("benchmark input");
+                std::hint::black_box(reason_all(input, &domains).expect("reason_all"))
+            });
         });
     }
     group.finish();

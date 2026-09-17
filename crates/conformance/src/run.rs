@@ -26,10 +26,12 @@ use gmeow_logic::result::PreservationClaim;
 use gmeow_logic::seam::{BudgetStatus, WorldFactSnapshot};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic::teleology::materialize_teleology as teleology_evaluate;
-use gmeow_logic_compile::frontend::{Diagnostic, Severity, parse_logic_str};
+use gmeow_logic_compile::frontend::{Diagnostic, Severity, parse_logic_dataset};
 use gmeow_logic_compile::projections::compile_program;
+use serde::{Deserialize, Serialize};
 
 use crate::error::RunFailed;
+use crate::native_observation::{NativeCaseObservation, NativeCaseOperation};
 use crate::profile::{BudgetParams, Profile, VerdictMode};
 use crate::serialize::VerdictStatus;
 use crate::{profile, serialize};
@@ -39,6 +41,8 @@ use crate::{profile, serialize};
 /// BARE IRI; the object is in N3 form (`<iri>` or a literal).
 #[derive(Debug, Clone)]
 pub struct RunnerQuad {
+    /// Contextual modal evidence survives the foundation-to-explanation bridge.
+    pub modal_evaluation: Option<gmeow_logic::modal::ModalEvaluation>,
     pub graph: String,
     pub subject: String,
     pub predicate: String,
@@ -56,7 +60,7 @@ pub struct RunnerQuad {
 
 /// One explanation skeleton, keyed by its target quad reifier (the match key the
 /// `expected/explanation/*.md` goldens use).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExplanationOut {
     pub target_quad_reifier: String,
     pub cited_iris: BTreeSet<String>,
@@ -66,7 +70,7 @@ pub struct ExplanationOut {
 }
 
 /// One path-shape projection entry in the conformance output.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathProjectionOut {
     /// IRI of the projected `logic:PathShape`.
     pub shape_iri: String,
@@ -77,7 +81,7 @@ pub struct PathProjectionOut {
 }
 
 /// The projection artifacts for one case.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectionOutputs {
     /// The four RDF targets (`owl-dl`, `owl-el`, `gufo`, `canonical-rdf12`) as
     /// Turtle, compared by graph-isomorphism.
@@ -105,7 +109,7 @@ pub struct ProjectionOutputs {
 }
 
 /// Everything one case run produces, ready for `diff_case` / bless.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CaseOutputs {
     pub case_id: String,
     pub materialized_nquads: String,
@@ -155,17 +159,23 @@ const ASSERT_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/assert";
 /// evaluator's stamped profile and the committed goldens).
 const POSITIVE_HORN_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
 
-/// Run one conformance case end to end, producing its [`CaseOutputs`].
-///
-/// # Errors
-/// Returns a human-readable error string (prefixed with the case id) on any
-/// malformed input, profile, or engine failure — hard-fail, no silent skip.
 /// Build a run-failure diagnostic from a preserved message.
 fn run_fail(detail: String) -> Diag {
     Diag::of_kind(RunFailed { detail })
 }
 
-pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
+/// Execute one case with the selected compiled library and consistency provider.
+/// The producer supplies a shared native action; synthetic tests may supply a
+/// direct evaluator over their own constructed inputs.
+///
+/// # Errors
+/// Refuses malformed inputs, missing capabilities and engine failures. Execution
+/// errors remain errors and cannot stand in for a semantic capability gap.
+pub fn run_case(
+    case_dir: &Path,
+    library: &RuleLibrary<'_>,
+    native: &impl Fn(&Path, NativeCaseOperation) -> gmeow_errors::Result<NativeCaseObservation>,
+) -> gmeow_errors::Result<CaseOutputs> {
     let case_id = crate::paths::case_id(case_dir);
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
 
@@ -181,7 +191,54 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
     // DL consistency path, NOT the logic-compile/materialize chase. Branch BEFORE
     // reading/compiling `input.logic.ttl` (which a consistency case does not use).
     if profile.verdict_mode == VerdictMode::Consistency {
-        return run_consistency_case(&case_id, case_dir);
+        return run_consistency_case(&case_id, case_dir, &|path| match native(
+            path,
+            NativeCaseOperation::Consistency,
+        )? {
+            NativeCaseObservation::Consistency(observation) => Ok(observation),
+            other => Err(prefix(format!(
+                "consistency provider returned {:?}",
+                other.operation()
+            ))),
+        });
+    }
+
+    if profile.verdict_mode == VerdictMode::ClassSourceAdmission {
+        let path = case_dir.join("input.nq");
+        if !path.is_file() {
+            return Err(prefix(
+                "class-source-admission requires input.nq".to_owned(),
+            ));
+        }
+        let NativeCaseObservation::ClassSourceAdmission(observation) =
+            native(&path, NativeCaseOperation::ClassSourceAdmission)?
+        else {
+            return Err(prefix(
+                "source-admission provider returned a different operation".to_owned(),
+            ));
+        };
+        let input_bytes = std::fs::read(&path).map_err(|error| prefix(error.to_string()))?;
+        if observation.input_blake3 != *blake3::hash(&input_bytes).as_bytes() {
+            return Err(prefix(
+                "source-admission provider returned another input identity".to_owned(),
+            ));
+        }
+        observation.admission.validate()?;
+        if let Some(expected) = profile_value
+            .get("source_admission_status")
+            .and_then(serde_json::Value::as_str)
+        {
+            if expected != observation.admission.observation_status() {
+                return Err(prefix(
+                    "source-admission observation does not satisfy the selected expected status"
+                        .to_owned(),
+                ));
+            }
+        }
+        let mut out = empty_outputs(case_id.clone());
+        out.verdicts = serde_json::to_value(observation.admission)
+            .map_err(|error| prefix(error.to_string()))?;
+        return Ok(out);
     }
 
     // ── Common Logic round-trip mode ──────────────────────────────────────────
@@ -189,22 +246,23 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
     // isomorphism + cross-dialect equivalence) and pins their canonical rendering. It
     // does NOT materialize — branch before the compile/certify/chase, like consistency.
     if profile.verdict_mode == VerdictMode::CommonLogic {
-        return run_cl_roundtrip_case(&case_id, case_dir, &profile.shipped_rules);
+        return run_cl_roundtrip_case(&case_id, case_dir, &profile.shipped_rules, library);
     }
 
     // ── Compile (frontend → canonical IR → projections + ledger) ─────────────
     // The unsupported-contract firewall lives in `compile_case_program`,
     // shared with the CL round-trip path so neither can evaluate an unsound program.
-    let program = match compile_case_program(
+    let (program, dataset) = match compile_case_program(
         &case_id,
         case_dir,
         profile.expect_unsupported,
         &profile.shipped_rules,
+        library,
     )? {
         // An `expect_unsupported` case: the program must not proceed — return empty
         // outputs so the diff phase sees no goldens to compare (no `expected/` tree).
         CompileOutcome::Unsupported => return Ok(empty_outputs(case_id)),
-        CompileOutcome::Program(program, _diagnostics) => *program,
+        CompileOutcome::Program(program, dataset) => (*program, dataset),
     };
 
     // ── Validation shapes (closed-world SHACL Core / ShEx projection) ─────────
@@ -213,7 +271,7 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
     // authored ontology. A case authoring no GMEOW-namespace OWL restriction derives no shape, so
     // the historical corpus stays byte-identical; the `validation/` category authors restrictions
     // that project to shacl-core / shex documents + a preservation-ledger residue.
-    let program = attach_validation_shapes(&case_id, case_dir, program)
+    let program = attach_validation_shapes(&case_id, &dataset, program)
         .map_err(|e| prefix(format!("attach validation shapes: {e}")))?;
 
     // ── Universal CL round-trip invariant ─────────────────────────────────────
@@ -231,10 +289,7 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
     // correspondence-free case yields an empty map (the gates never run). A deliberately-RED
     // fixture (an authored put that is not the derived inverse) discharges as
     // ObligationViolated, matching its blessed-RED gate report.
-    let correspondence_verdicts =
-        gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
-            .map_err(|e| prefix(format!("discharge correspondence lens laws: {e}")))?;
-    let arts = compile_program(&program, &correspondence_verdicts)
+    let arts = compile_program(&program, gmeow_logic::correspondence_exec::program_verdicts)
         .map_err(|e| prefix(format!("compile failed: {e}")))?;
     // ── Static certification against the declared profile ────────────────────
     // Thread the program's contract `logic:EvolutionMode` so a facet-direct case
@@ -284,10 +339,19 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
 
     // ── Projections repackaged for the diff ──────────────────────────────────
     let mut rdf = BTreeMap::new();
-    rdf.insert("owl-dl".to_string(), arts.owl_dl.clone());
-    rdf.insert("owl-el".to_string(), arts.owl_el.clone());
-    rdf.insert("gufo".to_string(), arts.gufo.clone());
-    rdf.insert("canonical-rdf12".to_string(), arts.canonical_rdf12.clone());
+    rdf.insert(
+        "owl-dl".to_string(),
+        arts.owl_dl.clone().into_text().content,
+    );
+    rdf.insert(
+        "owl-el".to_string(),
+        arts.owl_el.clone().into_text().content,
+    );
+    rdf.insert("gufo".to_string(), arts.gufo.clone().into_text().content);
+    rdf.insert(
+        "canonical-rdf12".to_string(),
+        arts.canonical_rdf12.clone().into_text().content,
+    );
     debug_assert!(RDF_TARGETS.iter().all(|t| rdf.contains_key(*t)));
     let mut text = BTreeMap::new();
     text.insert("datalog".to_string(), arts.datalog.clone());
@@ -331,7 +395,7 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
             let report = gmeow_logic_compile::projections::correspondence_gates::evaluate_gates(
                 derived,
                 &profile.compositions,
-                &correspondence_verdicts,
+                &arts.correspondence_verdicts,
             );
             Some(
                 serde_json::to_value(&report)
@@ -369,15 +433,11 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
 /// malformed restriction — the same fail-closed contract the derive itself enforces.
 fn attach_validation_shapes(
     case_id: &str,
-    case_dir: &Path,
+    dataset: &purrdf::RdfDataset,
     program: gmeow_logic_compile::ir::LogicProgram,
 ) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicProgram> {
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
-    let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
-        .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
-    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
-        .map_err(|e| prefix(format!("input.logic.ttl RDF parse failed: {e}")))?;
-    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(dataset.as_ref())
+    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(dataset)
         .map_err(|e| prefix(format!("derive validation shapes: {e}")))?;
     if shapes.is_empty() {
         return Ok(program);
@@ -454,9 +514,12 @@ enum CompileOutcome {
     /// (`UNSUPPORTED_CONTRACT` `Severity::Error`). The caller must short-circuit WITHOUT
     /// evaluating — the program is unsound by design and must not proceed.
     Unsupported,
-    /// A clean program plus its (non-error) diagnostics. The `LogicProgram` is boxed to
+    /// A clean program plus the original native dataset used for shape derivation. The `LogicProgram` is boxed to
     /// keep the enum small (it dwarfs the unit `Unsupported` variant otherwise).
-    Program(Box<gmeow_logic_compile::ir::LogicProgram>, Vec<Diagnostic>),
+    Program(
+        Box<gmeow_logic_compile::ir::LogicProgram>,
+        std::sync::Arc<purrdf::RdfDataset>,
+    ),
 }
 
 /// Parse a case's `input.logic.ttl` and apply the unsupported-contract firewall,
@@ -470,17 +533,20 @@ enum CompileOutcome {
 /// contract), and any other `Severity::Error` on a non-`expect_unsupported` case is a
 /// hard failure (never evaluate as if the contract were sound).
 /// `shipped_rules` names the `logic:Rule` IRIs the case loads from the shipped `logic:`
-/// module, resolved by [`load_shipped_rules`] and merged into the compiled program.
+/// module, resolved by the explicitly supplied [`RuleLibrary`] and merged into the compiled program.
 fn compile_case_program(
     case_id: &str,
     case_dir: &Path,
     expect_unsupported: bool,
     shipped_rules: &[String],
+    library: &RuleLibrary<'_>,
 ) -> gmeow_errors::Result<CompileOutcome> {
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
     let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
         .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
-    let (program, diagnostics) = parse_logic_str(&source, None)
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+        .map_err(|e| prefix(format!("input.logic.ttl RDF parse failed: {e}")))?;
+    let (program, diagnostics) = parse_logic_dataset(&dataset, None)
         .map_err(|e| prefix(format!("compile parse failed: {}", e.0)))?;
 
     if expect_unsupported {
@@ -503,65 +569,34 @@ fn compile_case_program(
         )));
     }
 
-    let program = merge_shipped_rules(case_id, program, shipped_rules)?;
-    Ok(CompileOutcome::Program(Box::new(program), diagnostics))
+    let program = merge_shipped_rules(case_id, program, shipped_rules, library)?;
+    Ok(CompileOutcome::Program(Box::new(program), dataset))
 }
 
-/// The shipped `logic:` module source — the SAME file `gmeow logic frontier` embeds via
-/// `include_str!`, so a case reasons with the rule set the CLI and the pipeline reason with
-/// rather than a restatement of it.
-///
-/// Read from the repository (anchored at `CARGO_MANIFEST_DIR`, never the process working
-/// directory) instead of embedded, because the harness is a build-time consumer of a file
-/// that lives beside it: embedding would make a rule edit invisible until the crate is
-/// rebuilt, and a corpus whose rules are a stale snapshot is exactly the failure this
-/// mechanism exists to prevent.
-fn shipped_logic_module_path() -> std::path::PathBuf {
-    crate::paths::repo_root()
-        .join("slices")
-        .join("grounding")
-        .join("logic")
-        .join("module.ttl")
+/// Borrowed index of the explicitly selected rule library. The producer owns its
+/// compiled source; every case shares this index without reading another checkout
+/// or compiling the grounding module inside a test process.
+#[derive(Default)]
+pub struct RuleLibrary<'source> {
+    rules: BTreeMap<&'source str, &'source gmeow_logic_compile::ir::LogicRule>,
 }
 
-/// The shipped `logic:Rule` set, indexed by rule IRI (`logic:provenance`), compiled ONCE
-/// per process from [`shipped_logic_module_path`].
-///
-/// The module is ~18k lines and every opted-in case needs it, so the compile is memoized;
-/// the cached value carries the graded [`Diag`] on failure so a broken module reports the
-/// same diagnostic for every case rather than only the first (`Diag` is the sole
-/// first-party error type — a bare `String` error would be a second one).
-fn shipped_rule_index()
--> &'static Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, Diag> {
-    static INDEX: std::sync::OnceLock<
-        Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, Diag>,
-    > = std::sync::OnceLock::new();
-    INDEX.get_or_init(|| {
-        let path = shipped_logic_module_path();
-        let source = std::fs::read_to_string(&path)
-            .map_err(|e| run_fail(format!("cannot read {}: {e}", path.display())))?;
-        let (program, diagnostics) = parse_logic_str(&source, None)
-            .map_err(|e| run_fail(format!("cannot compile {}: {}", path.display(), e.0)))?;
-        if let Some(first) = first_error(&diagnostics) {
-            return Err(run_fail(format!(
-                "the shipped logic module {} does not compile cleanly — first error [{}]: {}",
-                path.display(),
-                first.code,
-                first.message
-            )));
-        }
-        let mut index = BTreeMap::new();
-        for rule in program.rules {
-            // A rule's identity is its `logic:provenance` IRI (the frontend's carrier for
-            // the rule node's own name, and the same IRI the chase stamps derivations
-            // with). A rule without one cannot be named by a profile, so it is skipped
-            // rather than given a synthesised key that no author could reference.
-            if let Some(iri) = rule.scope.provenance.clone() {
-                index.insert(iri, rule);
+impl<'source> RuleLibrary<'source> {
+    /// Index named rules from a previously compiled source. Unnamed rules cannot
+    /// be selected by a profile. Conflicting named declarations fail closed.
+    pub fn new(
+        program: &'source gmeow_logic_compile::ir::LogicProgram,
+    ) -> gmeow_errors::Result<Self> {
+        let mut rules = BTreeMap::new();
+        for rule in &program.rules {
+            if let Some(iri) = rule.scope.provenance.as_deref()
+                && rules.insert(iri, rule).is_some()
+            {
+                return Err(run_fail(format!("rule library repeats named rule {iri}")));
             }
         }
-        Ok(index)
-    })
+        Ok(Self { rules })
+    }
 }
 
 /// Merge the profile-declared shipped rules into `program`.
@@ -576,22 +611,20 @@ fn merge_shipped_rules(
     case_id: &str,
     program: gmeow_logic_compile::ir::LogicProgram,
     shipped_rules: &[String],
+    library: &RuleLibrary<'_>,
 ) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicProgram> {
     if shipped_rules.is_empty() {
         return Ok(program);
     }
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
-    let index = shipped_rule_index()
-        .as_ref()
-        .map_err(|e| prefix(e.to_string()))?;
+    let index = &library.rules;
 
     let mut program = program;
     for iri in shipped_rules {
-        let rule = index.get(iri).ok_or_else(|| {
+        let rule = index.get(iri.as_str()).ok_or_else(|| {
             prefix(format!(
                 "profile.json shipped_rules names {iri}, which is not a logic:Rule in the \
-                 shipped module {} (it declares {} named rules)",
-                shipped_logic_module_path().display(),
+                 shipped module (the selected library declares {} named rules)",
                 index.len()
             ))
         })?;
@@ -605,7 +638,7 @@ fn merge_shipped_rules(
                  already loads — author it in exactly one place, the shipped module"
             )));
         }
-        program.rules.push(rule.clone());
+        program.rules.push((*rule).clone());
     }
     // Restore the canonical rule order `LogicProgram::new` maintains, so the compiled
     // artifacts (and every golden projected from them) do not depend on the order the
@@ -630,13 +663,14 @@ fn run_cl_roundtrip_case(
     case_id: &str,
     case_dir: &Path,
     shipped_rules: &[String],
+    library: &RuleLibrary<'_>,
 ) -> gmeow_errors::Result<CaseOutputs> {
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
 
     // A cl-roundtrip case never declares `expect_unsupported` (an unsound program cannot
     // round-trip); `compile_case_program(.., false)` therefore never yields `Unsupported`.
-    let program = match compile_case_program(case_id, case_dir, false, shipped_rules)? {
-        CompileOutcome::Program(program, _diagnostics) => *program,
+    let program = match compile_case_program(case_id, case_dir, false, shipped_rules, library)? {
+        CompileOutcome::Program(program, _dataset) => *program,
         CompileOutcome::Unsupported => {
             unreachable!("expect_unsupported=false never yields CompileOutcome::Unsupported")
         }
@@ -758,7 +792,11 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
 /// populated `owl:Nothing` clash (an [`InconsistencyWitness`]), else `consistent`.
 /// No compile / certify / materialize / projection / answer artifacts are produced
 /// (a consistency case carries only its `expected/verdicts.json` golden).
-fn run_consistency_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
+fn run_consistency_case(
+    case_id: &str,
+    case_dir: &Path,
+    consistency: &impl Fn(&Path) -> gmeow_errors::Result<crate::consistency::Observation>,
+) -> gmeow_errors::Result<CaseOutputs> {
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
 
     // The EDB is the world-scoped N-Quads `input.nq` (hard-fail if absent — a
@@ -769,13 +807,8 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<
             "verdict_mode=consistency requires input.nq (the world-scoped RDF EDB)".to_string(),
         ));
     }
-    let bytes =
-        std::fs::read(&input_nq_path).map_err(|e| prefix(format!("cannot read input.nq: {e}")))?;
-    let dataset = purrdf::dataset_from_bytes(&bytes, purrdf::NativeRdfFormat::NQuads)
-        .map_err(|e| prefix(format!("input.nq parse failed: {e}")))?;
-
-    let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
-        .map_err(|e| prefix(format!("native DL consistency run failed: {e}")))?;
+    let observation = consistency(&input_nq_path)?;
+    let verdict = &observation.verdict;
 
     // Zero-defer: a consistency case MUST be genuinely decided by the native
     // path. A non-empty `gaps` means a construct is present that the native DL path
@@ -789,18 +822,8 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<
         )));
     }
 
-    // Per-world quad counts come from the EDB; per-world status from the witnesses.
-    let store = WorldStore::new();
-    store
-        .load_dataset(dataset.as_ref())
-        .map_err(|e| prefix(format!("EDB world load failed: {e}")))?;
-    let mut world_counts: BTreeMap<String, u64> = BTreeMap::new();
-    for world in store.worlds() {
-        let n = store
-            .quads_for_pattern_in_world(&world, None, None, None)
-            .len() as u64;
-        world_counts.insert(world, n);
-    }
+    // Counts and complete native verdict belong to the same producer observation.
+    let world_counts = &observation.world_counts;
     let inconsistent_worlds: BTreeSet<String> = verdict
         .inconsistencies
         .iter()
@@ -825,7 +848,7 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<
         )));
     }
 
-    let verdicts = serialize::build_verdicts(&world_counts, |world| {
+    let verdicts = serialize::build_verdicts(world_counts, |world| {
         if inconsistent_worlds.contains(world) {
             VerdictStatus::Inconsistent
         } else {
@@ -913,6 +936,7 @@ fn materialize_default(
         .quads
         .into_iter()
         .map(|dq| RunnerQuad {
+            modal_evaluation: None,
             graph: dq.graph.clone(),
             subject: bare_iri(&gmeow_logic::provenance::term_display(&dq.subject)),
             predicate: dq.predicate.clone(),
@@ -971,6 +995,7 @@ fn materialize_foundation(
             .map_err(|e| run_fail(format!("case {case_id}: foundation evaluation failed: {e}")))?;
         fq.into_iter()
             .map(|q| RunnerQuad {
+                modal_evaluation: q.modal_evaluation,
                 graph: q.graph,
                 // Foundation subjects/objects are already bare / N3 respectively.
                 subject: q.subject,
@@ -1038,6 +1063,7 @@ fn materialize_teleology(
         let quads: Vec<RunnerQuad> = tq
             .into_iter()
             .map(|q| RunnerQuad {
+                modal_evaluation: None,
                 graph: q.graph,
                 // Teleology subjects/objects are already bare / N3 respectively
                 // (shape-identical to FoundationQuad).
@@ -1078,6 +1104,7 @@ fn run_explanations(
     let rows: Vec<Row> = quads
         .iter()
         .map(|q| Row {
+            modal_evaluation: q.modal_evaluation.clone(),
             graph: q.graph.clone(),
             subject: bare_iri(&q.subject),
             predicate: q.predicate.clone(),
@@ -1117,8 +1144,10 @@ fn resolve_answers(
     }
     let mut query_files: Vec<std::path::PathBuf> = std::fs::read_dir(&queries_dir)
         .map_err(|e| run_fail(format!("case {case_id}: cannot read queries/: {e}")))?
-        .filter_map(Result::ok)
-        .map(|e| e.path())
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<std::io::Result<Vec<_>>>()
+        .map_err(|e| run_fail(format!("case {case_id}: cannot inspect queries/: {e}")))?
+        .into_iter()
         .filter(|p| p.extension().is_some_and(|x| x == "logic"))
         .collect();
     query_files.sort();
@@ -1126,6 +1155,24 @@ fn resolve_answers(
         return Ok(BTreeMap::new());
     }
 
+    let store = WorldStore::new();
+    store
+        .load_nquads(world_nquads)
+        .map_err(|e| run_fail(format!("case {case_id}: query failed: {e}")))?;
+    let worlds = store.worlds();
+    if worlds.len() != 1 {
+        return Err(run_fail(format!(
+            "case {case_id}: world not given and the store has {} named graphs (need exactly 1)",
+            worlds.len()
+        )));
+    }
+    let world = worlds.into_iter().next().expect("len == 1");
+    let query_world = QueryWorld {
+        store: &store,
+        world: &world,
+        profile: profile_str,
+        foreign: std::cell::OnceCell::new(),
+    };
     let max_answers = budget.as_ref().and_then(|b| b.max_answers);
     let max_steps = budget.as_ref().and_then(|b| b.max_steps);
     let mut answers = BTreeMap::new();
@@ -1142,17 +1189,20 @@ fn resolve_answers(
             .to_string();
         let qtext = std::fs::read_to_string(&qfile)
             .map_err(|e| run_fail(format!("case {case_id}: cannot read query {stem}: {e}")))?;
-        let answer = resolve_query(
-            case_id,
-            world_nquads,
-            &qtext,
-            profile_str,
-            max_answers,
-            max_steps,
-        )?;
+        let answer = resolve_query(case_id, &query_world, &qtext, max_answers, max_steps)?;
         answers.insert(stem, answer);
     }
     Ok(answers)
+}
+
+/// Invocation-local immutable world and its lazily shared native fact snapshot.
+/// Counterfactual/probabilistic queries keep their own semantic path; selecting
+/// them never forces the ordinary backward-query snapshot.
+struct QueryWorld<'store> {
+    store: &'store WorldStore,
+    world: &'store str,
+    profile: &'store str,
+    foreign: std::cell::OnceCell<WorldFactSnapshot>,
 }
 
 /// Resolve a single `.logic` backward goal (mirrors the `gmeow_logic.query` PyO3
@@ -1160,28 +1210,16 @@ fn resolve_answers(
 /// `{"bindings": [...], "status": "..."}`.
 fn resolve_query(
     case_id: &str,
-    world_nquads: &str,
+    query_world: &QueryWorld<'_>,
     query_text: &str,
-    profile_str: &str,
     max_answers: Option<u64>,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<serde_json::Value> {
     let err = |msg: String| run_fail(format!("case {case_id}: query failed: {msg}"));
 
-    let store = WorldStore::new();
-    store
-        .load_nquads(world_nquads)
-        .map_err(|e| err(e.message().to_owned()))?;
-
-    // Auto-detect the single world (the conformance queries target one world).
-    let worlds = store.worlds();
-    if worlds.len() != 1 {
-        return Err(err(format!(
-            "world not given and the store has {} named graphs (need exactly 1)",
-            worlds.len()
-        )));
-    }
-    let world = worlds.into_iter().next().expect("len == 1");
+    let store = query_world.store;
+    let world = query_world.world;
+    let profile_str = query_world.profile;
 
     let program = parse_query_program(query_text).map_err(|e| err(e.message().to_owned()))?;
     let max_answers_usize = max_answers.map(|n| n as usize);
@@ -1190,7 +1228,7 @@ fn resolve_query(
     // `probability`. This is the only path that emits that key.
     if gmeow_logic::profile_gate::is_probabilistic_profile(profile_str) {
         let answer =
-            gmeow_logic::probabilistic::evaluate(&store, &world, &program, profile_str, None)
+            gmeow_logic::probabilistic::evaluate(store, world, &program, profile_str, None)
                 .map_err(|e| err(e.message().to_owned()))?;
         let bindings: Vec<serde_json::Value> = answer
             .bindings
@@ -1231,7 +1269,7 @@ fn resolve_query(
             .and_then(|c| c.depth_budget)
             .unwrap_or(gmeow_logic::counterfactual::DEFAULT_DEPTH_BUDGET);
         let mut cf = gmeow_logic::counterfactual::construct_and_resolve(
-            &store,
+            store,
             &program,
             profile_str,
             &budget,
@@ -1250,10 +1288,20 @@ fn resolve_query(
             gmeow_logic::query_ir::CompletionFrontier::empty(),
         )
     } else {
-        let foreign = WorldFactSnapshot::from_world(&store, &world, profile_str)
-            .map_err(|e| err(e.message().to_owned()))?;
+        if query_world.foreign.get().is_none() {
+            let snapshot = WorldFactSnapshot::from_world(store, world, profile_str)
+                .map_err(|e| err(e.message().to_owned()))?;
+            assert!(
+                query_world.foreign.set(snapshot).is_ok(),
+                "single-threaded case query initialization"
+            );
+        }
+        let foreign = query_world
+            .foreign
+            .get()
+            .expect("initialized native world snapshot");
         let answer =
-            gmeow_logic::dispatch::dispatch_query(&foreign, &world, &program, profile_str, &budget)
+            gmeow_logic::dispatch::dispatch_query(foreign, world, &program, profile_str, &budget)
                 .map_err(|e| err(e.message().to_owned()))?;
         let preservation = answer.preservation.clone();
         (
@@ -1311,10 +1359,9 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
     quad.rule_iri == ASSERT_RULE_IRI
 }
 
-// NOTE: `run_case` end-to-end execution over the whole corpus is verified by the
-// `datatest-stable` harness (`tests/conformance.rs`), which runs AND diffs every
-// case in parallel (~3s). A separate serial smoke test here would only duplicate
-// that coverage at ~11s of gate time, so it is intentionally omitted (gate-perf).
+// Authored cases execute only in the explicit optimized producer. Its complete
+// observations are graded against the committed goldens by the pipeline's
+// authenticated conformance consumer. Local tests below construct synthetic inputs.
 //
 // The diagnostic-gating firewall IS unit-tested below because its
 // negative branches (a supported contract under `expect_unsupported`, an
@@ -1322,246 +1369,6 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
 // every committed `expected/`-bearing case is a supported preset, so a smoke test
 // over a tiny synthetic case dir is the only way to pin those refusals.
 
+#[path = "run.gating_tests.rs"]
 #[cfg(test)]
-mod gating_tests {
-    use super::*;
-
-    /// A throwaway case directory whose whole tree is removed when the `TmpCase`
-    /// is dropped — on success, on panic, and on early return — because it owns
-    /// the `tempfile::TempDir` its scratch root lives in.
-    struct TmpCase {
-        /// The case directory itself: `<scratch root>/category/<tag>`. The
-        /// `category/` segment is load-bearing — `run_case` derives the case id
-        /// from the `<category>/<case>` path tail.
-        dir: std::path::PathBuf,
-        /// Owns the scratch root; dropping it removes `dir` with it.
-        _root: tempfile::TempDir,
-    }
-    impl TmpCase {
-        fn new(tag: &str) -> Self {
-            let root = tempfile::tempdir().expect("create temp dir");
-            let dir = root.path().join("category").join(tag);
-            std::fs::create_dir_all(&dir).expect("mkdir case dir");
-            Self { dir, _root: root }
-        }
-        fn write(&self, name: &str, body: &str) {
-            std::fs::write(self.dir.join(name), body).expect("write case file");
-        }
-    }
-
-    /// A `logic:ReasoningContract` authoring the forbidden probabilistic +
-    /// stable-model combination (RuleNoProbabilisticStableModel).
-    const UNSUPPORTED_TTL: &str = "\
-        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-        @prefix ex: <https://example.org/g/> .\n\
-        ex:C a logic:ReasoningContract ;\n\
-            logic:modelSemantics logic:StableModelSemantics ;\n\
-            logic:uncertaintyMeasure logic:ProbabilisticMeasure .\n\
-        ex:m a logic:ProbabilityModel .\n";
-
-    /// A clean, supported positive-Horn domain axiom (no contract, no error).
-    const SUPPORTED_TTL: &str = "\
-        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-        @prefix ex: <https://example.org/g/> .\n\
-        ex:Bird logic:subClassOf ex:Animal .\n";
-
-    #[test]
-    fn expect_unsupported_with_forbidden_combo_short_circuits_to_empty() {
-        let case = TmpCase::new("ok");
-        case.write("input.logic.ttl", UNSUPPORTED_TTL);
-        case.write(
-            "profile.json",
-            r#"{"reasoning_contract":{"preset":"StableModelProfile"},"expect_unsupported":true,"mode":"native"}"#,
-        );
-        let out = run_case(&case.dir).expect("expect_unsupported case must pass");
-        // The program was never evaluated: no quads, no answers, empty verdicts.
-        assert!(out.materialized_nquads.is_empty());
-        assert!(out.answers.is_empty());
-        assert_eq!(out.verdicts, serde_json::json!({}));
-        // The refusal is disclosed as `{unsupported}` (the legalization floor), never a
-        // false `{exact}` that would hide it from a consumer reading `preservation`.
-        assert_eq!(
-            out.preservation,
-            serialize::preservation_to_json(&PreservationClaim::unsupported()),
-            "a refused expect_unsupported case must disclose {{unsupported}}, not {{exact}}"
-        );
-    }
-
-    #[test]
-    fn expect_unsupported_but_supported_contract_hard_fails() {
-        // The case CLAIMS unsupported but the engine accepts the contract: refuse.
-        let case = TmpCase::new("claim");
-        case.write("input.logic.ttl", SUPPORTED_TTL);
-        case.write(
-            "profile.json",
-            r#"{"expect_unsupported":true,"mode":"native"}"#,
-        );
-        let err = run_case(&case.dir).unwrap_err();
-        assert!(err.message().contains("expect_unsupported"), "{err}");
-        assert!(err.message().contains("no UNSUPPORTED_CONTRACT"), "{err}");
-    }
-
-    #[test]
-    fn undeclared_compile_error_hard_fails() {
-        // A forbidden combo WITHOUT expect_unsupported must surface as a hard
-        // failure (the silent-run hole this firewall closes), never a silent evaluate.
-        let case = TmpCase::new("silent");
-        case.write("input.logic.ttl", UNSUPPORTED_TTL);
-        case.write(
-            "profile.json",
-            r#"{"reasoning_contract":{"preset":"StableModelProfile"},"mode":"native"}"#,
-        );
-        let err = run_case(&case.dir).unwrap_err();
-        assert!(err.message().contains("Severity::Error"), "{err}");
-        assert!(err.message().contains("UNSUPPORTED_CONTRACT"), "{err}");
-    }
-
-    // ── profile.json `shipped_rules` ──────────────────────────────────────────
-    //
-    // These are the TEETH of the corpus's derivation claim. A case that re-typed a
-    // shipped rule inside its own `input.logic.ttl` stays green after the shipped rule
-    // is deleted, so it pins its own copy rather than what ships. Resolution through
-    // the module makes deletion red; the two refusals below are what make that true,
-    // and neither is reachable through the committed corpus (every committed case
-    // names rules that exist and declares none of them locally).
-
-    /// One shipped frontier rule, named as the corpus names it.
-    const SHIPPED_RULE: &str = "https://blackcatinformatics.ca/logic/ruleFrontierReadyAuthorized";
-
-    #[test]
-    fn shipped_rules_resolve_out_of_the_shipped_module() {
-        // The positive: a case whose own program declares no rule at all derives with
-        // the rule the shipped module declares.
-        let case = TmpCase::new("shipped-ok");
-        case.write("input.logic.ttl", SUPPORTED_TTL);
-        case.write(
-            "profile.json",
-            &format!(r#"{{"mode":"native","shipped_rules":["{SHIPPED_RULE}"]}}"#),
-        );
-        case.write("input.nq", "");
-        let out = run_case(&case.dir).expect("shipped_rules case must run");
-        // The rule reached the compiled program, so its Datalog projection carries it.
-        let datalog = out
-            .projections
-            .text
-            .get("datalog")
-            .expect("datalog projection");
-        assert!(
-            datalog.contains("entryLabel"),
-            "the shipped rule must reach the compiled program: {datalog}"
-        );
-    }
-
-    #[test]
-    fn shipped_rule_the_module_does_not_declare_hard_fails() {
-        // Deleting or renaming a shipped rule must red every case that reasons with it.
-        let case = TmpCase::new("shipped-missing");
-        case.write("input.logic.ttl", SUPPORTED_TTL);
-        case.write(
-            "profile.json",
-            r#"{"mode":"native","shipped_rules":["https://blackcatinformatics.ca/logic/ruleThatWasDeleted"]}"#,
-        );
-        let err = run_case(&case.dir).unwrap_err();
-        assert!(err.message().contains("ruleThatWasDeleted"), "{err}");
-        assert!(
-            err.message()
-                .contains("not a logic:Rule in the shipped module"),
-            "{err}"
-        );
-    }
-
-    #[test]
-    fn locally_redeclaring_a_loaded_shipped_rule_hard_fails() {
-        // Two sources of truth for one rule is the condition the resolution removes.
-        let case = TmpCase::new("shipped-dup");
-        case.write(
-            "input.logic.ttl",
-            "\
-             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
-             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-             logic:ruleFrontierReadyAuthorized a logic:Rule ;\n\
-                 logic:provenance logic:ruleFrontierReadyAuthorized ;\n\
-                 logic:head [ rdf:subject \"?e\" ; rdf:predicate logic:entryLabel ; \
-                 rdf:object logic:FrontierReadyAuthorized ] ;\n\
-                 logic:body [ rdf:subject \"?e\" ; rdf:predicate logic:entryAxisWitness ; \
-                 rdf:object logic:StepReady ] .\n",
-        );
-        case.write(
-            "profile.json",
-            &format!(r#"{{"mode":"native","shipped_rules":["{SHIPPED_RULE}"]}}"#),
-        );
-        let err = run_case(&case.dir).unwrap_err();
-        assert!(
-            err.message().contains("redeclares the shipped rule"),
-            "{err}"
-        );
-    }
-
-    // ── verdict_mode = consistency ────────────────────────────────────────────
-
-    const CONSISTENCY_PROFILE: &str = r#"{"verdict_mode":"consistency","mode":"native"}"#;
-    const W: &str = "https://gmeow.example/dl/world";
-
-    /// A world-scoped N-Quad EDB line in the gmeow ternary RDF shape.
-    fn q(s: &str, p: &str, o: &str) -> String {
-        format!("<{s}> <{p}> <{o}> <{W}> .\n")
-    }
-
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-    const DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
-    const A: &str = "https://gmeow.example/dl/A";
-    const B: &str = "https://gmeow.example/dl/B";
-    const C: &str = "https://gmeow.example/dl/C";
-    const X: &str = "https://gmeow.example/dl/x";
-
-    #[test]
-    fn consistency_mode_populated_clash_is_inconsistent() {
-        // x:A, A⊑B, A⊑C, B disjointWith C — x is forced into owl:Nothing, so the
-        // world is INCONSISTENT (the external Theorem/Unsatisfiable branch). This
-        // exercises the genuine native DL chase (no fake golden).
-        let case = TmpCase::new("incon");
-        case.write("profile.json", CONSISTENCY_PROFILE);
-        let mut nq = String::new();
-        nq.push_str(&q(X, RDF_TYPE, A));
-        nq.push_str(&q(A, SUBCLASS, B));
-        nq.push_str(&q(A, SUBCLASS, C));
-        nq.push_str(&q(B, DISJOINT, C));
-        case.write("input.nq", &nq);
-
-        let out = run_case(&case.dir).expect("consistency case runs");
-        assert_eq!(
-            out.verdicts[W]["status"], "inconsistent",
-            "populated clash must be inconsistent: {}",
-            out.verdicts
-        );
-    }
-
-    #[test]
-    fn consistency_mode_clash_free_is_consistent() {
-        // x:A, A⊑B with no disjointness — no clash, so the world is CONSISTENT
-        // (the external Satisfiable/CounterSatisfiable branch).
-        let case = TmpCase::new("con");
-        case.write("profile.json", CONSISTENCY_PROFILE);
-        let mut nq = String::new();
-        nq.push_str(&q(X, RDF_TYPE, A));
-        nq.push_str(&q(A, SUBCLASS, B));
-        case.write("input.nq", &nq);
-
-        let out = run_case(&case.dir).expect("consistency case runs");
-        assert_eq!(
-            out.verdicts[W]["status"], "consistent",
-            "clash-free world must be consistent: {}",
-            out.verdicts
-        );
-    }
-
-    #[test]
-    fn consistency_mode_requires_input_nq() {
-        // No input.nq ⇒ hard fail (no silent skip / empty verdict).
-        let case = TmpCase::new("noedb");
-        case.write("profile.json", CONSISTENCY_PROFILE);
-        let err = run_case(&case.dir).unwrap_err();
-        assert!(err.message().contains("requires input.nq"), "{err}");
-    }
-}
+mod gating_tests;

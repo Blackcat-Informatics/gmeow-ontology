@@ -11,7 +11,7 @@
 //! Modeled on `crates/gmeow-dev-cli/tests/make_gate_contract.rs`: structural
 //! assertions read committed source/config files via `std::fs` under `repo_root()`;
 //! the one runtime group (F1, the consumer verb) drives the real production API
-//! end-to-end over a temp directory.
+//! end-to-end over a temp directory and an authenticated producer manifest.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -818,23 +818,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
         .unwrap_or_else(|e| panic!("shipped bundle failed the declared-media audit: {e}"));
 }
 
-// ── F1 — the consumer verb is exercised end-to-end (RUNTIME, no bundle needed) ────
-
-/// Load and wire-audit the already-produced bundle. This test is a strict consumer:
-/// it never compiles mappings or constructs a replacement corpus.
-fn authenticated_gts_with_dcat_query() -> Vec<u8> {
-    let root = repo_root();
-    let bytes = gmeow_bundle_import::load_authenticated_source_bytes(&root)
-        .expect("authenticated shipped bundle; tests never produce it");
-    gmeow_pipeline::validate_mandated_frames(&bytes)
-        .expect("authenticated bundle obeys the mandated frame profile");
-    gmeow_pipeline::validate_dist_bundle_media(&bytes)
-        .expect("authenticated bundle obeys the declared media contract");
-    let queries = gmeow_pipeline::bundle_blobs::bundled_queries(&bytes)
-        .expect("read authenticated queries archive");
-    assert!(queries.contains_key("dcat.rq"), "bundle must carry dcat.rq");
-    bytes
-}
+// ── F1 — the consumer verb is exercised end-to-end over producer evidence ────────
 
 #[test]
 fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
@@ -842,29 +826,19 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
     let docs_dir = tmp.path();
     let site_dir = docs_dir.join("site");
     std::fs::create_dir_all(&site_dir).expect("mkdir site");
-    std::fs::write(site_dir.join("index.html"), b"<html>hello</html>").expect("write index.html");
-    std::fs::write(site_dir.join("about.html"), b"<html>about</html>").expect("write about.html");
+    for (path, bytes) in
+        gmeow_pipeline::docs_distribution::consumer_verification_fixture::site_tree()
+    {
+        std::fs::write(site_dir.join(path), bytes).expect("materialize synthetic site member");
+    }
 
-    // Content-address the fake rendered tree through the SAME producer
-    // `verify_docs_distribution` recomputes against (`package_docs_dir`), then build
-    // the manifest through the SAME production entry point `sync_docs` uses
-    // (`build_docs_distribution_manifest`) — never a hand-rolled manifest that could
-    // drift from the real parser.
-    let (_, digest) =
-        gmeow_pipeline::docs_distribution::package_docs_dir(&site_dir).expect("package site tree");
-    let entries = vec![gmeow_pipeline::docs_distribution::DistributionEntry {
-        slug: "site".to_string(),
-        rel_path: "dist/gmeow-docs/site".to_string(),
-        blake3: digest,
-        media_type: "text/html".to_string(),
-    }];
-    let gts_bytes = authenticated_gts_with_dcat_query();
-    let manifest = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
-        &entries,
-        &[],
-        &gts_bytes,
+    // The optimized producer projects this manifest through the real bundled
+    // `dcat.rq`. The test only materializes and grades the authenticated product.
+    let manifest = gmeow_bundle_import::load_authenticated_corpus_artifact(
+        &repo_root(),
+        gmeow_pipeline::docs_distribution::consumer_verification_fixture::ARTIFACT,
     )
-    .expect("build the real docs distribution manifest");
+    .expect("producer-authenticated docs verification manifest");
     let manifest_dir = docs_dir.join("manifest");
     std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
     std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");

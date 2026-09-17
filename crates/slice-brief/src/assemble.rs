@@ -190,7 +190,12 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
                         obj: c.obj.clone(),
                         predicate: c.predicate.clone(),
                         object_label: c.object_label.clone(),
-                        confidence: c.confidence,
+                        // The brief carries a presentation measure, not the canonical
+                        // typed correspondence coordinate.
+                        confidence: c
+                            .confidence
+                            .as_ref()
+                            .map(gmeow_logic_compile::ir::UnitInterval::projection_f64),
                     });
                 by_ext_target
                     .entry(c.obj.clone())
@@ -844,129 +849,10 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
     Ok(())
 }
 
+#[path = "assemble.collect_ttl_tests.rs"]
 #[cfg(test)]
-mod collect_ttl_tests {
-    use super::collect_ttl;
+mod collect_ttl_tests;
 
-    /// A fresh scratch directory owned by the returned [`tempfile::TempDir`]: it is
-    /// unique per test by construction (so parallel tests never collide), and dropping
-    /// the guard removes it and everything under it — on success, on early return, and
-    /// on panic alike.
-    fn scratch_dir() -> tempfile::TempDir {
-        tempfile::Builder::new()
-            .prefix("gmeow-slice-brief-collect_ttl-")
-            .tempdir()
-            .expect("create scratch dir")
-    }
-
-    /// A missing directory is a legitimate "absent" input: `Ok(())`, nothing
-    /// collected — never an error, and never silently treated as anything but
-    /// empty.
-    #[test]
-    fn absent_directory_is_ok_and_empty() {
-        let tmp = scratch_dir();
-        // A path INSIDE the fresh scratch directory that is deliberately never created.
-        let dir = tmp.path().join("absent");
-        assert!(!dir.exists(), "precondition: {dir:?} must not exist");
-
-        let mut out = Vec::new();
-        let result = collect_ttl(&dir, &mut out);
-
-        assert!(
-            result.is_ok(),
-            "a NotFound read_dir must be treated as absent (Ok), got {result:?}"
-        );
-        assert!(
-            out.is_empty(),
-            "an absent directory must collect zero paths, got {out:?}"
-        );
-    }
-
-    /// A `read_dir` failure that is NOT `NotFound` (here: the parent path
-    /// component is a plain file, so the OS refuses with `NotADirectory`/`ENOTDIR`)
-    /// MUST propagate as an `Err`, never be laundered into "no .ttl files here".
-    /// This is deterministic and does not depend on running as non-root (unlike a
-    /// permission-bits test, which root would bypass).
-    #[test]
-    fn unreadable_non_directory_parent_errors() {
-        let tmp = scratch_dir();
-        let marker_file = tmp.path().join("marker");
-        std::fs::write(&marker_file, b"not a directory").expect("write marker file");
-
-        // `marker_file` is a plain file, so `marker_file/mappings` cannot be a
-        // directory: `read_dir` must fail with something other than `NotFound`.
-        let bogus_dir = marker_file.join("mappings");
-        let mut out = Vec::new();
-        let result = collect_ttl(&bogus_dir, &mut out);
-
-        assert!(
-            result.is_err(),
-            "a non-NotFound read_dir error must propagate as Err, got {result:?}"
-        );
-        assert!(
-            out.is_empty(),
-            "no paths must be collected on the error path, got {out:?}"
-        );
-    }
-}
-
+#[path = "assemble.partition_tests.rs"]
 #[cfg(test)]
-mod partition_tests {
-    use super::{CHUNK, batch_count, batch_range};
-
-    /// An empty (zero-term) slice partitions into zero batches, and every batch
-    /// index is out of range.
-    #[test]
-    fn empty_slice_has_zero_batches() {
-        assert_eq!(batch_count(0), 0, "an empty slice must have zero batches");
-        assert_eq!(
-            batch_range(0, 0),
-            None,
-            "batch 0 of an empty slice must be out of range"
-        );
-    }
-
-    /// A term count that is an EXACT multiple of `CHUNK` partitions into exactly
-    /// `len / CHUNK` full batches — no trailing empty batch.
-    #[test]
-    fn exact_multiple_has_no_remainder_batch() {
-        let len = CHUNK * 3;
-        assert_eq!(
-            batch_count(len),
-            3,
-            "an exact multiple of CHUNK must partition into len / CHUNK batches"
-        );
-        assert_eq!(batch_range(0, len), Some(0..CHUNK));
-        assert_eq!(batch_range(1, len), Some(CHUNK..(2 * CHUNK)));
-        assert_eq!(batch_range(2, len), Some((2 * CHUNK)..len));
-        assert_eq!(
-            batch_range(3, len),
-            None,
-            "the batch just past an exact multiple must be out of range"
-        );
-    }
-
-    /// A term count with a nonzero remainder over `CHUNK` gets one extra, short
-    /// final batch covering only the remainder.
-    #[test]
-    fn remainder_gets_a_short_final_batch() {
-        let len = CHUNK * 2 + 7;
-        assert_eq!(
-            batch_count(len),
-            3,
-            "a remainder must round the batch count up (ceil)"
-        );
-        assert_eq!(batch_range(0, len), Some(0..CHUNK));
-        assert_eq!(batch_range(1, len), Some(CHUNK..(2 * CHUNK)));
-        assert_eq!(
-            batch_range(2, len),
-            Some((2 * CHUNK)..len),
-            "the final batch must be short, covering only the remainder"
-        );
-        assert_eq!(
-            batch_range(3, len),
-            None,
-            "past the last (short) batch must be out of range"
-        );
-    }
-}
+mod partition_tests;

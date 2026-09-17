@@ -21,11 +21,8 @@
 //! `Formalism::Lark`), appending them here is the only change needed to hold those legs to the
 //! same canonical tree.
 
-use std::path::Path;
-
 use gmeow_lang_bridge::{
-    Formalism, GmnGlyphRegistry, Grammar, GrammarRule, RuleExpr, expr_precedence, parse_grammar,
-    serialize_grammar,
+    Formalism, Grammar, GrammarRule, RuleExpr, expr_precedence, parse_grammar, serialize_grammar,
 };
 
 /// The grammar formalisms whose surface legs must all parse back to ONE canonical tree — the
@@ -46,14 +43,6 @@ const FORMALISMS: &[Formalism] = &[
     Formalism::Lark,
 ];
 
-/// Read a file relative to the lang slice root.
-fn lang_slice_file(rel: &str) -> Vec<u8> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/lang")
-        .join(rel);
-    std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
-}
-
 /// Re-render one grammar's canonical rules under `formalism`, reparse, and return the canonical
 /// rules — the leg of the naturality square for that surface. Compares RULES, not the whole
 /// `Grammar`, so the comparison is formalism-independent (identity is the tree, never the
@@ -69,44 +58,9 @@ fn canonical_rules_via(base_rules: &[GrammarRule], formalism: Formalism) -> Vec<
     reparsed.canonicalize().rules
 }
 
-/// Every tree-producing view of the ONE glyph signature agrees on ONE canonical `RuleExpr`,
-/// and the codec's operator-precedence table agrees with the grammar's precedence.
+/// Synthetic precedence stress keeps every surface leg and the shared ladder falsifiable.
 #[test]
-fn all_notation_views_agree_on_one_canonical_tree() {
-    // 1. The graph-derived glyph grammar: rendered SOLELY from the carrier's executable glyph
-    //    registry (the same `render_glyph_token_production` the projection stage renders into
-    //    `gmeow:gmnGrammar`), never a hand-listed inventory.
-    let module = lang_slice_file("module.ttl");
-    let dataset =
-        purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module.ttl");
-    let registry = GmnGlyphRegistry::from_dataset(&dataset)
-        .unwrap_or_else(|e| panic!("build the graph-derived glyph registry: {}", e.0));
-    let production = registry.render_glyph_token_production();
-    assert!(
-        production.starts_with("glyphToken ::= '"),
-        "the graph-derived glyph grammar must be a non-empty closed production, got: {production}"
-    );
-
-    // 2. The ONE canonical tree of the graph-derived glyph grammar (parsed via the authoring
-    //    formalism, EBNF).
-    let base = parse_grammar(production.as_bytes(), Formalism::Ebnf)
-        .expect("parse the graph-derived glyph grammar as EBNF")
-        .canonicalize();
-    assert!(
-        !base.rules.is_empty(),
-        "the graph-derived glyph grammar must carry at least one production"
-    );
-
-    // 3. Naturality: every formalism leg parses back to that ONE canonical tree.
-    for &formalism in FORMALISMS {
-        let via = canonical_rules_via(&base.rules, formalism);
-        assert_eq!(
-            via, base.rules,
-            "the {formalism:?} view of the graph-derived glyph grammar diverged from the \
-             canonical RuleExpr tree — the cross-surface coherence law is broken"
-        );
-    }
-
+fn every_notation_view_preserves_the_shared_precedence_ladder() {
     // 4. A precedence-stressing, cross-formalism-expressible grammar makes the shared
     //    precedence ladder genuinely load-bearing: `(a | b) c` and `(a | b)*` and `(a b)?`
     //    only round-trip through EVERY formalism when the serializer inserts a grouping around

@@ -33,10 +33,6 @@ pub mod score;
 
 use std::path::{Path, PathBuf};
 
-#[cfg(test)]
-#[allow(dead_code)]
-#[path = "../../../build-support/path_dependency_inputs.rs"]
-mod build_inputs;
 use std::sync::Arc;
 
 use gmeow_lang_bridge::GmnDictionary;
@@ -663,7 +659,7 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
 /// * the **scored data** — [`scored_source_files`], the SAME single authority the
 ///   pipeline's source-load cache key consults; there is deliberately no second
 ///   enumeration of the data half that could drift from it; and
-/// * the **scoring code** — [`scorer_impl_files`], this crate's transitive
+/// * the **scoring code** — the authenticated producer-selected inventory, this crate's transitive
 ///   path-dependency closure. A path dependency carries no `Cargo.lock` checksum, so
 ///   editing the scorer (or `gmeow-docs`, which owns the whole `DocMaturity` coverage
 ///   computation) changes every grade while leaving every scored `.ttl` byte-identical.
@@ -671,7 +667,7 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
 ///   the NEW one — the record stands alone, so it must attest both.
 ///
 /// The pipeline's stage cache does not need the code half here: `crates/pipeline`'s
-/// `cache::BUILD_FINGERPRINT` already folds the whole workspace source + `Cargo.lock` +
+/// `cache::BUILD_FINGERPRINT` already folds the selected production inventory +
 /// the `rustc` version into EVERY stage key, so a code change re-runs the sweep there.
 /// This witness has no such salt — nothing else guards a consumer that reads the record
 /// without going through the DAG — so it carries the code half itself. That asymmetry is
@@ -682,10 +678,34 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
 /// If any scored source file cannot be read. A file that vanished between enumeration
 /// and hashing makes the digest meaningless, so it is a hard failure rather than a
 /// silently shorter fold.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String> {
+    let implementation = gmeow_action_cache::executable::current_source_inventory(
+        repo_root,
+        "crates/slice-quality/Cargo.toml",
+    )
+    .and_then(|inventory| {
+        inventory
+            .digest()
+            .map_err(|error| gmeow_action_cache::ActionCacheError::message(error.to_string()))
+    })
+    .map_err(|error| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("scorer implementation admission: {error}"),
+        })
+    })?;
+    scored_input_fingerprint_with_implementation(repo_root, &implementation)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn scored_input_fingerprint_with_implementation(
+    repo_root: &Path,
+    implementation: &str,
+) -> gmeow_errors::Result<String> {
     let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-scored-input-v2\0");
+    hasher.update(implementation.as_bytes());
     let mut inputs = scored_source_files(repo_root);
-    inputs.extend(scorer_impl_files(repo_root));
     inputs.sort();
     inputs.dedup();
     for path in inputs {
@@ -706,68 +726,6 @@ pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String
         hasher.update(b"\x1e");
     }
     Ok(format!("blake3:{}", hasher.finalize().to_hex()))
-}
-
-/// Every workspace crate whose Rust sources can execute inside the quality sweep — the
-/// TRANSITIVE `path = "../…"` dependency closure of `gmeow-slice-quality`, itself
-/// included.
-///
-/// Sorted; each entry's `src/` tree and `Cargo.toml` are folded into
-/// [`scored_input_fingerprint`]. `scorer_dep_closure_is_fully_hashed` re-derives the
-/// closure from the workspace manifests, so a NEW path dependency reds a test instead of
-/// silently opening the hole again. The same defect (a path dependency carries no
-/// `Cargo.lock` checksum) is handled on the documentation-fixture side by
-/// `gmeow_docs_model::fixture`'s `fixture_crate_dirs`, which DERIVES its closure from the
-/// manifests rather than restating it; hand-picking "the crates that really matter" is
-/// exactly the argument that makes such a list wrong, which is why the test below is what
-/// owns this list's contents.
-const SCORER_CRATE_ROOTS: &[&str] = &[
-    "action-cache",
-    "docs-model",
-    "errors",
-    "gts-profile",
-    "lang-bridge",
-    "lang-form",
-    "license",
-    "logic",
-    "logic-compile",
-    "math",
-    "math-lift",
-    "ns",
-    "slice-quality",
-    "term-arena",
-    "validate",
-];
-
-/// The Rust sources + manifests of [`SCORER_CRATE_ROOTS`] under `repo_root` — the CODE
-/// half of [`scored_input_fingerprint`]. Sorted, and silent about crates absent from the
-/// tree (a consumer scoring a partial checkout folds what is there; the closure test
-/// pins the set against the real workspace).
-fn scorer_impl_files(repo_root: &Path) -> Vec<PathBuf> {
-    fn walk_rs(dir: &Path, out: &mut Vec<PathBuf>) {
-        let Ok(rd) = std::fs::read_dir(dir) else {
-            return;
-        };
-        for entry in rd.flatten() {
-            let p = entry.path();
-            if p.is_dir() {
-                walk_rs(&p, out);
-            } else if p.extension().is_some_and(|x| x == "rs") {
-                out.push(p);
-            }
-        }
-    }
-    let crates_dir = repo_root.join("crates");
-    let mut files = Vec::new();
-    for krate in SCORER_CRATE_ROOTS {
-        walk_rs(&crates_dir.join(krate).join("src"), &mut files);
-        let manifest = crates_dir.join(krate).join("Cargo.toml");
-        if manifest.is_file() {
-            files.push(manifest);
-        }
-    }
-    files.sort();
-    files
 }
 
 /// A slice's `i18n/*.po` translation catalogs (sorted; empty when the slice ships no
@@ -794,6 +752,7 @@ fn doc_maturity_i18n_paths(slice_dir: &Path) -> Vec<PathBuf> {
 ///
 /// # Errors
 /// Hard-fails if the rubric or ANY discovered slice cannot be scored.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<AssessmentArtifacts> {
     assessment_artifacts_inner(repo_root, None)
 }
@@ -811,6 +770,7 @@ pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<Assessment
 ///
 /// # Errors
 /// Hard-fails if the rubric or ANY discovered slice cannot be scored.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn assessment_artifacts_with_catalog(
     repo_root: &Path,
     catalog_bytes: &[u8],
@@ -818,6 +778,7 @@ pub fn assessment_artifacts_with_catalog(
     assessment_artifacts_inner(repo_root, Some(catalog_bytes))
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn assessment_artifacts_inner(
     repo_root: &Path,
     catalog_bytes: Option<&[u8]>,
@@ -951,6 +912,7 @@ fn score_slices_with_rubric_timed(
 /// # Errors
 /// Hard-fails (never a silent skip — no-optionality) if the rubric or ANY discovered
 /// slice cannot be scored.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
     Ok(assessment_artifacts(repo_root)?.nquads)
 }
@@ -1376,231 +1338,17 @@ pub fn score_external_slice_bytes(
     score_external_slice(&standards, slice_dir)
 }
 
+#[path = "lib.fingerprint_tests.rs"]
 #[cfg(test)]
-mod fingerprint_tests {
-    use super::*;
+mod fingerprint_tests;
 
-    /// [`SCORER_CRATE_ROOTS`] must be EXACTLY `gmeow-slice-quality`'s transitive
-    /// `path = "../…"` dependency closure, re-derived here from the workspace manifests.
-    ///
-    /// A path dependency carries no `Cargo.lock` checksum, so a crate outside the folded
-    /// set can change what the sweep scores while every folded input stays byte-identical
-    /// — and the recorded corpus then verifies as fresh against a scorer that no longer
-    /// produces it. A NEW path dependency reds here rather than silently reopening that.
-    #[test]
-    fn scorer_dep_closure_is_fully_hashed() {
-        let closure =
-            build_inputs::transitive_path_dependency_dirs(Path::new(env!("CARGO_MANIFEST_DIR")))
-                .into_iter()
-                .map(|path| {
-                    path.file_name()
-                        .expect("crate directory has a name")
-                        .to_string_lossy()
-                        .into_owned()
-                })
-                .collect::<std::collections::BTreeSet<_>>();
-
-        let hashed: std::collections::BTreeSet<String> = SCORER_CRATE_ROOTS
-            .iter()
-            .map(|s| (*s).to_string())
-            .collect();
-        assert_eq!(
-            hashed, closure,
-            "SCORER_CRATE_ROOTS must be exactly gmeow-slice-quality's transitive \
-             path-dependency closure — a path dependency carries no Cargo.lock checksum, so \
-             an unhashed one lets the scorer change while the recorded corpus still verifies \
-             as fresh"
-        );
-    }
-
-    /// The CODE half of the freshness witness is load-bearing: editing a scorer source
-    /// file must move the fingerprint even though no scored `.ttl` changed.
-    #[test]
-    fn a_scorer_source_edit_moves_the_fingerprint() {
-        let tmp = tempfile::tempdir().expect("temp dir");
-        let root = tmp.path();
-        // A minimal tree: one scored source (the rubric module) and one scorer source.
-        let rubric = root.join(RUBRIC_MODULE);
-        std::fs::create_dir_all(rubric.parent().expect("rubric parent")).expect("mkdir rubric");
-        std::fs::write(&rubric, b"# rubric\n").expect("write rubric");
-        let scorer_src = root.join("crates").join("slice-quality").join("src");
-        std::fs::create_dir_all(&scorer_src).expect("mkdir scorer src");
-        let unit = scorer_src.join("lib.rs");
-        std::fs::write(&unit, b"// v1\n").expect("write scorer");
-
-        let before = scored_input_fingerprint(root).expect("fingerprint v1");
-        std::fs::write(&unit, b"// v2: the axis now scores differently\n").expect("rewrite scorer");
-        let after = scored_input_fingerprint(root).expect("fingerprint v2");
-        assert_ne!(
-            before, after,
-            "a scorer source edit must move the freshness fingerprint: a corpus produced by \
-             the old scorer does not describe what the new one would record"
-        );
-    }
-}
-
+#[path = "lib.parallel_tests.rs"]
 #[cfg(test)]
-mod parallel_tests {
-    use rayon::prelude::*;
+mod parallel_tests;
 
-    #[test]
-    fn indexed_parallel_collection_preserves_input_and_error_order() {
-        let pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(4)
-            .build()
-            .expect("four-worker pool");
-        let input: Vec<usize> = (0..128).collect();
-        for _ in 0..8 {
-            let output: Vec<Result<usize, usize>> = pool.install(|| {
-                input
-                    .par_iter()
-                    .map(|value| {
-                        if value % 17 == 0 {
-                            Err(*value)
-                        } else {
-                            Ok(value * value)
-                        }
-                    })
-                    .collect()
-            });
-            let serial: Vec<Result<usize, usize>> = input
-                .iter()
-                .map(|value| {
-                    if value % 17 == 0 {
-                        Err(*value)
-                    } else {
-                        Ok(value * value)
-                    }
-                })
-                .collect();
-            assert_eq!(output, serial);
-        }
-    }
-}
-
+#[path = "lib.residue_text_carrier_tests.rs"]
 /// The text-carrier residue API: the ONE counter's `.len()` projection, the
 /// SURFACE-NORMALIZED base measurement (the same bytes measured as if they sat at a
 /// different destination surface), and the relocation reason codes derived from it.
 #[cfg(test)]
-mod residue_text_carrier_tests {
-    use super::{
-        ProjectionVocabulary, RelocationReason, relocation_reasons_over_texts,
-        residue_constructs_over_texts, residue_over_texts,
-    };
-    use crate::model::CountKind;
-
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-    const KERNEL: &str = "https://blackcatinformatics.ca/gmeow/slices/kernel";
-
-    fn prefixes() -> &'static str {
-        "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
-         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
-         @prefix gufo: <https://w3id.org/gufo#> .\n"
-    }
-
-    fn text(body: &str) -> Vec<String> {
-        vec![format!("{}{body}", prefixes())]
-    }
-
-    fn gufo_vocab() -> ProjectionVocabulary {
-        ProjectionVocabulary {
-            prefix: "gufo".to_owned(),
-            namespaces: vec!["https://w3id.org/gufo#".to_owned()],
-            subsumed_by: LOGIC_NS.to_owned(),
-            owner: LOGIC_NS.to_owned(),
-            count_kind: CountKind::TypedAxiom,
-            default_ceiling: 0,
-            preservation: "SoundUnderApproximation".to_owned(),
-            alignment_predicates: Vec::new(),
-            counted_predicates: Vec::new(),
-        }
-    }
-
-    /// A validated grounding correspondence: exempt on the vocabulary's OWNER surface,
-    /// plain residue anywhere else.
-    fn grounding_cell() -> Vec<String> {
-        text(
-            r#"
-            gmeow:MyKind skos:exactMatch gufo:Kind {|
-                a logic:GroundingCorrespondence ;
-                gmeow:sssomFile "grounding.sssom.tsv" ;
-                gmeow:justification gmeow:ManualMappingCuration ;
-                logic:sourceEndpoint gmeow:MyKind ;
-                logic:targetEndpoint gufo:Kind ;
-                logic:morphismClass logic:WellBehavedLens ;
-                logic:morphismKind logic:InstitutionMorphism ;
-                logic:preservationKind logic:SoundUnderApproximation
-            |} .
-            "#,
-        )
-    }
-
-    #[test]
-    fn count_over_texts_is_the_construct_sets_length() {
-        let texts = text("gmeow:A a sh:NodeShape . gmeow:B a sh:NodeShape .");
-        let vocab = crate::counting::shacl_vocab();
-        let constructs = residue_constructs_over_texts(&texts, &vocab, &vocab.owner).unwrap();
-        assert_eq!(constructs.len(), 2);
-        assert_eq!(
-            residue_over_texts(&texts, &vocab, &vocab.owner).unwrap(),
-            constructs.len() as u64
-        );
-    }
-
-    #[test]
-    fn base_bytes_can_be_measured_at_a_destination_surface() {
-        // The SAME base bytes measured at the OWNER surface and at a destination slice
-        // surface differ — residue is not conserved across the owner boundary, and the
-        // existing `surface_iri` parameter is all it takes to see that.
-        let base = grounding_cell();
-        let vocab = gufo_vocab();
-        assert_eq!(residue_over_texts(&base, &vocab, &vocab.owner).unwrap(), 0);
-        assert_eq!(residue_over_texts(&base, &vocab, KERNEL).unwrap(), 1);
-    }
-
-    #[test]
-    fn relocation_reasons_over_texts_names_the_owner_boundary_shift() {
-        let base = grounding_cell();
-        let working = grounding_cell();
-        let vocab = gufo_vocab();
-        let reasons =
-            relocation_reasons_over_texts(&base, &vocab.owner, &working, KERNEL, &vocab).unwrap();
-        let codes: Vec<&str> = reasons
-            .values()
-            .flat_map(|set| set.iter().map(|r| r.code()))
-            .collect();
-        assert_eq!(codes, vec!["exemption-shift-owner-boundary"], "{reasons:?}");
-        assert!(reasons.contains_key("https://blackcatinformatics.ca/gmeow/MyKind"));
-    }
-
-    #[test]
-    fn relocation_reasons_over_texts_names_an_orphaned_grounding() {
-        let base = text(
-            "gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .\n\
-             logic:sAxiom a logic:Formula .",
-        );
-        let working = text("gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .");
-        let vocab = crate::counting::shacl_vocab();
-        let reasons =
-            relocation_reasons_over_texts(&base, &vocab.owner, &working, KERNEL, &vocab).unwrap();
-        assert_eq!(
-            reasons
-                .get("https://blackcatinformatics.ca/gmeow/S")
-                .map(|set| set.iter().copied().collect::<Vec<_>>()),
-            Some(vec![RelocationReason::GroundingOrphaned]),
-            "{reasons:?}"
-        );
-    }
-
-    #[test]
-    fn a_broken_base_surface_hard_fails_rather_than_measuring_zero() {
-        let broken = vec!["this is not turtle {{{".to_owned()];
-        let vocab = crate::counting::shacl_vocab();
-        assert!(
-            residue_constructs_over_texts(&broken, &vocab, &vocab.owner).is_err(),
-            "an unparsable surface must HARD FAIL, never silently score as clean"
-        );
-    }
-}
+mod residue_text_carrier_tests;

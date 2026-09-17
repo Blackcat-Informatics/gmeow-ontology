@@ -1137,6 +1137,102 @@ struct EntityConsumer {
     runs: Arc<AtomicUsize>,
 }
 
+/// An RDF projection is intentionally weaker than its typed Logic payload. Both
+/// entity-selected and whole-product consumers must invalidate on payload changes,
+/// and receipt-only admission must make the same decision without hydration.
+#[test]
+fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
+    use std::collections::BTreeMap;
+
+    use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
+    use gmeow_logic_compile::ir::LogicProgram;
+    use purrdf::provenance::DatasetProvenance;
+
+    const GRAPH: &str = "https://example.org/graph#logic";
+    let dir = tempfile::tempdir().unwrap();
+    let dataset = purrdf::parse_dataset(
+        b"<https://example.org/s> <https://example.org/p> <https://example.org/o> <https://example.org/graph#logic> .",
+        "application/n-quads", None,
+    ).unwrap();
+    let selected = EntityConsumer {
+        id: "selected".to_string(),
+        entities: vec![("source".to_string(), vec![GRAPH.to_string()])],
+        runs: Arc::new(AtomicUsize::new(0)),
+    };
+    let whole = fake("whole", &["source"]);
+    let selection = ReceiptOutputSelection {
+        graphs: vec![GRAPH.to_string()],
+        handles: vec![GRAPH.to_string()],
+        ..Default::default()
+    };
+    let mut selected_keys = Vec::new();
+    let mut whole_keys = Vec::new();
+    let mut graph_digests = Vec::new();
+    let mut previous = None;
+    for source in [None, Some(""), Some("https://example.org/source")] {
+        let mut bundle =
+            bundle_from_artifacts_over(dataset.clone(), BTreeMap::new(), DatasetProvenance::new());
+        let pin = bundle.graph_digest(GRAPH);
+        graph_digests.push(pin);
+        bundle
+            .pin_handle(
+                GRAPH,
+                PipelineHandle::Logic(Arc::new(LogicProgram::new(
+                    Vec::new(),
+                    Vec::new(),
+                    Vec::new(),
+                    source.map(str::to_string),
+                ))),
+                pin,
+            )
+            .unwrap();
+        let product = StageProduct::from_bundle("source", Arc::new(bundle));
+        if let Some(prior) = previous {
+            let upstream = BTreeMap::from([("source".to_string(), prior)]);
+            let mut output = product.clone();
+            output.stage_id = selected.id.clone();
+            let delta = crate::scheduler::verify_attach_drift(&selected, &upstream, &output)
+                .expect("changed typed payload on an inherited graph is an output contribution");
+            assert_eq!(delta.handles, vec![GRAPH.to_string()]);
+            assert!(
+                delta.graphs.is_empty(),
+                "the backing RDF graph is unchanged"
+            );
+        }
+        previous = Some(product.clone());
+        let receipt = PipelineCache::receipt_only(
+            &StageKeyContext::new("source", "test-v1", Vec::new(), Vec::new()),
+            StageStability::StablePrefix.iri(),
+            CachePolicy::Persistent.iri(),
+            &selection,
+            &product,
+        )
+        .unwrap();
+        let live = BTreeMap::from([("source".to_string(), product)]);
+        let receipts = BTreeMap::from([("source".to_string(), receipt)]);
+        for (consumer, keys) in [
+            (&selected as &dyn Stage, &mut selected_keys),
+            (whole.as_ref(), &mut whole_keys),
+        ] {
+            let live_context =
+                crate::scheduler::action_key_context(consumer, dir.path(), &live).unwrap();
+            let receipt_context =
+                crate::scheduler::action_key_context_from_receipts(consumer, dir.path(), &receipts)
+                    .unwrap();
+            assert_eq!(live_context, receipt_context);
+            keys.push(stage_key(&live_context));
+        }
+    }
+    assert!(graph_digests.windows(2).all(|pair| pair[0] == pair[1]));
+    assert!(selected_keys.windows(2).all(|pair| pair[0] != pair[1]));
+    assert!(whole_keys.windows(2).all(|pair| pair[0] != pair[1]));
+    assert_eq!(
+        selected.runs.load(Ordering::SeqCst),
+        0,
+        "admission never runs a stage"
+    );
+}
+
 impl Stage for EntityConsumer {
     fn id(&self) -> &str {
         &self.id
@@ -1989,7 +2085,7 @@ fn unknown_retained_carrier_hard_fails_before_execution() {
     let diag = run(&graph, &bound, &mut ctx).expect_err("unknown keep-set id must fail");
     assert!(
         diag.to_string()
-            .contains("retained carrier `stage-typo` does not name an executed production stage"),
+            .contains("retained product `stage-typo` does not name an executed production stage"),
         "{diag}"
     );
     assert!(watch.published.lock().unwrap().is_empty());
@@ -2016,10 +2112,89 @@ fn skipped_retained_carrier_hard_fails_before_partial_dag_execution() {
     .expect_err("a keep-set stage outside the selected closure must fail");
     assert!(
         diag.to_string()
-            .contains("retained carrier `late` does not name an executed production stage"),
+            .contains("retained product `late` does not name an executed production stage"),
         "{diag}"
     );
     assert!(watch.published.lock().unwrap().is_empty());
+}
+
+#[test]
+fn selected_post_run_artifact_survives_without_its_carrier() {
+    let (reference, _) = run_retention_chain(crate::scheduler::CarrierRetention::RetainAll);
+    let dir = tempfile::tempdir().unwrap();
+    let spec = retention_chain();
+    let graph = spec.validate().unwrap();
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).unwrap();
+    let mut ctx = RunContext::open_uncached(dir.path(), 4);
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    let selected = ("source".to_owned(), "pipeline/source.nq".to_owned());
+    ctx.retained_artifacts.insert(selected.clone());
+    let result = run(&graph, &bound, &mut ctx).unwrap();
+    assert_eq!(result.combined_digest, reference.combined_digest);
+    assert_eq!(result.retained_artifacts.len(), 1);
+    assert_eq!(
+        result.retained_artifacts[&selected],
+        reference.products["source"]
+            .artifact("pipeline/source.nq")
+            .unwrap()
+    );
+    assert!(result.products["source"].carrier_released);
+    assert!(
+        result.products["source"]
+            .artifact("pipeline/source.nq")
+            .is_none()
+    );
+    assert_eq!(
+        watch.observed.lock().unwrap()["b"],
+        std::collections::BTreeSet::from(["a".to_owned()])
+    );
+}
+
+#[test]
+fn selected_post_run_artifact_missing_from_product_hard_fails() {
+    let dir = tempfile::tempdir().unwrap();
+    let spec = retention_chain();
+    let graph = spec.validate().unwrap();
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).unwrap();
+    let mut ctx = RunContext::open_uncached(dir.path(), 4);
+    ctx.retained_artifacts
+        .insert(("source".to_owned(), "pipeline/missing.json".to_owned()));
+    let error = run(&graph, &bound, &mut ctx).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("required post-run artifact `pipeline/missing.json` is missing")
+    );
+}
+
+#[test]
+fn selected_post_run_artifact_requires_an_executed_stage() {
+    let dir = tempfile::tempdir().unwrap();
+    let spec = retention_chain();
+    let graph = spec.validate().unwrap();
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).unwrap();
+    for stage in ["unknown", "late"] {
+        let mut ctx = RunContext::open_uncached(dir.path(), 4);
+        ctx.retained_artifacts
+            .insert((stage.to_owned(), "pipeline/report.json".to_owned()));
+        let error = crate::scheduler::run_targets(
+            // gmeow-test-input: synthetic-only
+            &graph,
+            &bound,
+            &mut ctx,
+            &std::collections::BTreeSet::from(["source".to_owned()]),
+        )
+        .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("does not name an executed production stage")
+        );
+        assert!(watch.published.lock().unwrap().is_empty());
+    }
 }
 
 #[test]

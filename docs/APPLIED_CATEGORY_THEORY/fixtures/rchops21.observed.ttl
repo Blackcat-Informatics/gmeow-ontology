@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# One deliberately partial descriptive record for the RCHOPS21 process case.
+# It witnesses the plan and reusable schema of each reported occurrence. It does
+# not claim that unreported branches or cycles did not occur.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+<urn:gmeow:execution:rchops21/cycle-1/premedicate>
+    a gmeow:Event ;
+    logic:instantiatesPlan <urn:gmeow:plan:rchops21> ;
+    logic:instantiatesSchema <urn:gmeow:action:premedicate> .
+
+<urn:gmeow:execution:rchops21/cycle-1/administer>
+    a gmeow:Event ;
+    logic:instantiatesPlan <urn:gmeow:plan:rchops21> ;
+    logic:instantiatesSchema <urn:gmeow:action:administer-regime> .
+
+<urn:gmeow:execution:rchops21/cycle-1/observe>
+    a gmeow:Event ;
+    logic:instantiatesPlan <urn:gmeow:plan:rchops21> ;
+    logic:instantiatesSchema <urn:gmeow:action:observe-response> .

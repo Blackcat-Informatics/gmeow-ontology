@@ -9,7 +9,7 @@
 # That is wrong for the instruction-count benches for two reasons:
 #   1. retired-instruction counts are meant to be MACHINE-INDEPENDENT — a host-tuned
 #      build makes them vary by CPU, defeating the whole point of the metric; and
-#   2. a host AVX-512 build makes Valgrind (which iai-callgrind drives) SIGILL on newer
+#   2. a host AVX-512 build makes Valgrind (which Gungraun drives) SIGILL on newer
 #      CPUs, so the bench cannot even run.
 # This fragment pins the portable x86-64-v3 floor (the same floor the CI/release
 # workflows use) for those bench invocations only, without touching the committed

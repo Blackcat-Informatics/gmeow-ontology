@@ -23,7 +23,8 @@
 
 use purrdf::turtle::{emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
 use purrdf::{
-    RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, TermValue,
+    BlankScope, RdfAnnotation, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfReifier,
+    RdfTerm, RdfTriple, TermValue,
 };
 
 use crate::explain::{canonical_rule_iri, encode_receipt_rule_identity, receipt_for_axiom};
@@ -31,7 +32,6 @@ use crate::math_expression::{MATH_ALPHA_EQUIVALENCE_CLASS, MATH_ALPHA_EQUIVALENC
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
 use crate::result::ReasoningResult;
-use crate::term_codec::decode_term;
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -129,19 +129,16 @@ fn derived_rule_iri(axiom: &InferredAxiom) -> gmeow_errors::Result<String> {
         _ => Err(reason_err(format!(
             "derived axiom has no rule_name; the native engine must label every \
              inferred (non-EDB) axiom with the rule that produced it: \
-             <{}> <{}> <{}>",
-            axiom.subject, axiom.predicate, axiom.object
+             <{}> <{}> {}",
+            axiom.subject,
+            axiom.predicate,
+            crate::provenance::term_display(&axiom.object)
         ))),
     }
 }
 
-/// Normalize a native-engine term into a bare IRI string.
-///
-/// The native engine emits subjects/predicates/worlds as bare IRI strings, but
-/// objects already wrapped in `<...>` (the N3 display form of
-/// the typed term decoder). This collapses both to the bare inner IRI so a single
-/// `RdfTerm::iri` never double-wraps the angle brackets. Mirrors the retired
-/// Python `_iri_term`.
+/// Project a resource identifier carried by the subject or context surface.
+/// Inferred objects use their native value and never pass through this helper.
 fn iri_term(value: &str) -> RdfTerm {
     let inner = value
         .strip_prefix('<')
@@ -158,13 +155,13 @@ fn bare_iri(value: &str) -> &str {
         .unwrap_or(value)
 }
 
-/// Build the `<s> <p> <o>` triple of an inferred axiom (all IRIs).
-fn axiom_triple(axiom: &InferredAxiom) -> RdfTriple {
-    RdfTriple::new(
+/// Project an inferred axiom's complete native object into its output triple.
+fn axiom_triple(axiom: &InferredAxiom) -> gmeow_errors::Result<RdfTriple> {
+    Ok(RdfTriple::new(
         iri_term(&axiom.subject),
         axiom.predicate.clone(),
-        iri_term(&axiom.object),
-    )
+        super::term_value_to_rdf_term(&axiom.object)?,
+    ))
 }
 
 /// The derived (non-EDB) axioms of a result in a deterministic content order.
@@ -223,6 +220,7 @@ pub fn build_inferred_closure_ttl(
     merge_asserted: Option<&RdfDataset>,
     alpha_edges: &[(String, String)],
 ) -> gmeow_errors::Result<String> {
+    result.validate()?;
     let mut out = String::from(CLOSURE_HEADER);
 
     if let Some(store) = merge_asserted {
@@ -233,17 +231,155 @@ pub fn build_inferred_closure_ttl(
         }
     }
 
-    out.push_str("\n# --- derived (inferred) closure ---\n");
+    project_closure(result, alpha_edges, &mut out)?;
+    Ok(out)
+}
+
+/// Project the closure once into both its required Turtle artifact and the
+/// caller's native carrier. The caller adds its other typed graphs and freezes
+/// once; there is no parsed or intermediate frozen closure dataset.
+///
+/// # Errors
+/// Returns the same projection errors as [`build_inferred_closure_ttl`], or an
+/// explicit refusal if no blank scope remains for anonymous proof reifiers.
+pub fn build_inferred_closure_into(
+    result: &ReasoningResult,
+    alpha_edges: &[(String, String)],
+    builder: &mut RdfDatasetBuilder,
+) -> gmeow_errors::Result<String> {
+    result.validate()?;
+    let scope = closure_reifier_scope(result, builder)?;
+    let mut sink = NativeClosureSink {
+        text: String::from(CLOSURE_HEADER),
+        builder,
+        scope,
+        ordinal: 0,
+    };
+    project_closure(result, alpha_edges, &mut sink)?;
+    Ok(sink.text)
+}
+
+/// Only compact scope IDs are retained. Nested quoted terms and composite
+/// literal blanks participate, so an anonymous proof node cannot alias data.
+fn closure_reifier_scope(
+    result: &ReasoningResult,
+    builder: &RdfDatasetBuilder,
+) -> gmeow_errors::Result<BlankScope> {
+    fn collect(term: &TermValue, scopes: &mut std::collections::BTreeSet<BlankScope>) {
+        match term {
+            TermValue::Blank { scope, .. } => {
+                scopes.insert(*scope);
+            }
+            TermValue::Triple { s, p, o } => {
+                collect(s, scopes);
+                collect(p, scopes);
+                collect(o, scopes);
+            }
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                ..
+            } => {
+                scopes.extend(
+                    purrdf_core::cdt_blank::cdt_embedded_blanks(lexical_form, datatype)
+                        .into_iter()
+                        .map(|(_, scope)| scope),
+                );
+            }
+            TermValue::Iri(_) => {}
+        }
+    }
+    let mut scopes = builder.blank_identities().map(|(_, scope)| scope).collect();
+    for axiom in result.inferred().iter().filter(|axiom| !axiom.is_edb) {
+        collect(&axiom.object, &mut scopes);
+    }
+    let mut candidate = 1u32;
+    for scope in scopes {
+        if scope.0 < candidate {
+            continue;
+        }
+        if scope.0 > candidate {
+            break;
+        }
+        candidate = candidate.checked_add(1).ok_or_else(|| {
+            reason_err("no blank scope remains for closure proof reifiers".to_owned())
+        })?;
+    }
+    Ok(BlankScope(candidate))
+}
+
+trait ClosureSink {
+    fn section(&mut self, text: &str);
+    fn quad(&mut self, quad: &RdfQuad);
+    fn reifier(&mut self, reifier: &RdfReifier, annotations: &[(String, RdfTerm)]);
+}
+
+impl ClosureSink for String {
+    fn section(&mut self, text: &str) {
+        self.push_str(text);
+    }
+    fn quad(&mut self, quad: &RdfQuad) {
+        self.push_str(&emit_quad(quad));
+    }
+    fn reifier(&mut self, reifier: &RdfReifier, annotations: &[(String, RdfTerm)]) {
+        self.push_str(&emit_reifier(reifier, annotations));
+    }
+}
+
+struct NativeClosureSink<'a> {
+    text: String,
+    builder: &'a mut RdfDatasetBuilder,
+    scope: BlankScope,
+    ordinal: usize,
+}
+
+impl ClosureSink for NativeClosureSink<'_> {
+    fn section(&mut self, text: &str) {
+        self.text.section(text);
+    }
+    fn quad(&mut self, quad: &RdfQuad) {
+        self.text.quad(quad);
+        self.builder.push_owned_quad(quad);
+    }
+    fn reifier(&mut self, reifier: &RdfReifier, annotations: &[(String, RdfTerm)]) {
+        self.text.reifier(reifier, annotations);
+        let s = self.builder.intern_owned_term(&reifier.statement.subject);
+        let p = self.builder.intern_iri(&reifier.statement.predicate);
+        let o = self.builder.intern_owned_term(&reifier.statement.object);
+        let triple = self.builder.intern_triple(s, p, o);
+        let id = self
+            .builder
+            .intern_blank(&format!("proof{}", self.ordinal), self.scope);
+        self.ordinal += 1;
+        self.builder.push_reifier(id, triple);
+        for (predicate, object) in annotations {
+            let p = self.builder.intern_iri(predicate);
+            let o = self.builder.intern_owned_term(object);
+            self.builder.push_annotation(id, p, o);
+        }
+    }
+}
+
+fn project_closure(
+    result: &ReasoningResult,
+    alpha_edges: &[(String, String)],
+    out: &mut impl ClosureSink,
+) -> gmeow_errors::Result<()> {
+    out.section("\n# --- derived (inferred) closure ---\n");
     for axiom in derived_sorted(result) {
-        let triple = axiom_triple(axiom);
+        let triple = axiom_triple(axiom)?;
         let receipt = receipt_for_axiom(axiom);
         let rule = RdfTerm::iri(derived_rule_iri(axiom)?);
         let world = RdfTerm::iri(bare_iri(&axiom.world).to_owned());
-        out.push_str(&emit_quad(&RdfQuad::new(
-            triple.subject.clone(),
-            triple.predicate.clone(),
-            triple.object.clone(),
-        )));
+        // Turtle cannot assert named-graph claims. A modal conclusion remains a
+        // reified claim with C and its exact evaluation evidence, never a default axiom.
+        if axiom.modal_evaluation.is_none() {
+            out.quad(&RdfQuad::new(
+                triple.subject.clone(),
+                triple.predicate.clone(),
+                triple.object.clone(),
+            ));
+        }
         let reifier = RdfReifier::new(RdfTerm::blank_node("r"), triple);
         let mut annotations = vec![
             (PROV_WAS_DERIVED_BY.to_owned(), rule.clone()),
@@ -261,6 +397,12 @@ pub fn build_inferred_closure_ttl(
             (gmeow("inferenceKind"), RdfTerm::iri(gmeow("Deduction"))),
             (gmeow("inWorld"), world),
         ];
+        if let Some(evidence) = &axiom.modal_evaluation {
+            annotations.push((
+                PROV_VALUE.to_owned(),
+                RdfTerm::literal(RdfLiteral::simple(evidence.to_wire())),
+            ));
+        }
         annotations.extend(
             receipt
                 .row
@@ -268,10 +410,10 @@ pub fn build_inferred_closure_ttl(
                 .into_iter()
                 .map(|source| (PROV_WAS_DERIVED_FROM.to_owned(), RdfTerm::iri(source))),
         );
-        out.push_str(&emit_reifier(&reifier, &annotations));
+        out.reifier(&reifier, &annotations);
     }
-    out.push_str(&alpha_equivalence_section(alpha_edges));
-    Ok(out)
+    alpha_equivalence_section(alpha_edges, out);
+    Ok(())
 }
 
 /// Serialize the `math:alphaEquivalenceClass` edges as the closure's final section.
@@ -279,12 +421,12 @@ pub fn build_inferred_closure_ttl(
 /// Empty — not even a banner — when there are no edges: an EDB carrying no `math:`
 /// expression decides no identities, and a bare section header would read as a claim that
 /// it did.
-fn alpha_equivalence_section(alpha_edges: &[(String, String)]) -> String {
+fn alpha_equivalence_section(alpha_edges: &[(String, String)], out: &mut impl ClosureSink) {
     if alpha_edges.is_empty() {
-        return String::new();
+        return;
     }
     let rule = RdfTerm::iri(rule_iri(RULE_IRI_BASE, MATH_EXPRESSION_IDENTITY_RULE));
-    let mut out = String::from("\n# --- derived math: expression alpha-equivalence identity ---\n");
+    out.section("\n# --- derived math: expression alpha-equivalence identity ---\n");
     let mut typed: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
     for (expression, alpha_class) in alpha_edges {
         let triple = RdfTriple::new(
@@ -292,30 +434,29 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)]) -> String {
             MATH_ALPHA_EQUIVALENCE_CLASS.to_owned(),
             RdfTerm::iri(alpha_class.clone()),
         );
-        out.push_str(&emit_quad(&RdfQuad::new(
+        out.quad(&RdfQuad::new(
             triple.subject.clone(),
             triple.predicate.clone(),
             triple.object.clone(),
-        )));
+        ));
         let reifier = RdfReifier::new(RdfTerm::blank_node("r"), triple);
-        out.push_str(&emit_reifier(
+        out.reifier(
             &reifier,
             &[
                 (PROV_WAS_DERIVED_BY.to_owned(), rule.clone()),
                 (gmeow("viaRule"), rule.clone()),
                 (gmeow("inferenceKind"), RdfTerm::iri(gmeow("Deduction"))),
             ],
-        ));
+        );
         typed.insert(alpha_class.as_str());
     }
     for alpha_class in typed {
-        out.push_str(&emit_quad(&RdfQuad::new(
+        out.quad(&RdfQuad::new(
             RdfTerm::iri(alpha_class.to_owned()),
             RDF_TYPE.to_owned(),
             RdfTerm::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE.to_owned()),
-        )));
+        ));
     }
-    out
 }
 
 // ── reasoning-explanations ──────────────────────────────────────────────────────
@@ -332,6 +473,7 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)]) -> String {
 ///
 /// Returns `Err` if any derived axiom is missing its `rule_name`.
 pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<String> {
+    result.validate()?;
     let mut out = String::from(EXPLANATIONS_HEADER);
     out.push_str("\n# --- derivation proof skeletons ---\n");
     for axiom in derived_sorted(result) {
@@ -339,15 +481,23 @@ pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<
         let rule = derived_rule_iri(axiom)?;
         let mut properties: Vec<(String, RdfTerm)> = vec![
             (RDF_TYPE.to_owned(), RdfTerm::iri(gmeow("Derivation"))),
-            (gmeow("concludes"), RdfTerm::triple(axiom_triple(axiom))),
+            (gmeow("concludes"), RdfTerm::triple(axiom_triple(axiom)?)),
             (
                 LOGIC_DERIVATION_IDENTIFIER.to_owned(),
                 RdfTerm::literal(RdfLiteral::simple(receipt.row.derivation_id.clone())),
             ),
         ];
-        for (ps, pp, po) in &axiom.premises {
-            let premise = RdfTriple::new(RdfTerm::iri(ps.clone()), pp.clone(), premise_object(po));
-            properties.push((gmeow("hasPremise"), RdfTerm::triple(premise)));
+        if let Some(evidence) = &axiom.modal_evaluation {
+            properties.push((
+                PROV_VALUE.to_owned(),
+                RdfTerm::literal(RdfLiteral::simple(evidence.to_wire())),
+            ));
+        } else {
+            for (ps, pp, po) in &axiom.premises {
+                let premise =
+                    RdfTriple::new(RdfTerm::iri(ps.clone()), pp.clone(), premise_object(po)?);
+                properties.push((gmeow("hasPremise"), RdfTerm::triple(premise)));
+            }
         }
         properties.extend(
             receipt
@@ -382,47 +532,45 @@ pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<
     Ok(out)
 }
 
-/// Build the object term of a premise triple.
-///
-/// Premise objects arrive as the engine's N-Triples display string. Re-decode it
-/// to the typed term so each kind round-trips correctly in the proof skeleton: an
-/// IRI (`<iri>`) becomes a bare IRI term, and a literal (`"lex"`, `"lex"@lang`,
-/// `"lex"^^<dt>`) stays a literal — emitting it as an IRI would produce invalid
-/// Turtle. A form the decoder cannot read (it never occurs as a subsumption
-/// premise object) falls back to the bare-IRI unwrap.
-fn premise_object(display: &str) -> RdfTerm {
-    match decode_term(display) {
-        Ok(TermValue::Iri(iri)) => RdfTerm::iri(iri),
-        Ok(TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            ..
-        }) => RdfTerm::literal(rdf_literal_from_value(
-            &lexical_form,
-            &datatype,
-            language.as_deref(),
-        )),
-        _ => iri_term(display),
+/// Decode a conclusion or premise object through the native RDF 1.2 parser.
+/// The common IRI case avoids a dataset allocation; literals, blank nodes and
+/// recursive triple terms retain their actual RDF kinds. Invalid term syntax
+/// fails rather than being reinterpreted as an IRI.
+pub(crate) fn premise_object(display: &str) -> gmeow_errors::Result<RdfTerm> {
+    if !display.starts_with(['"', '_']) && !display.starts_with("<<") {
+        let value = bare_iri(display);
+        let iri = purrdf::iri::parse(value)
+            .map_err(|error| reason_err(format!("reasoning artifact IRI: {error}")))?;
+        if !iri.has_scheme() {
+            return Err(reason_err("reasoning artifact IRI must be absolute".into()));
+        }
+        return Ok(RdfTerm::iri(value));
     }
-}
-
-/// Convert a native literal's value-space components to the model [`RdfLiteral`],
-/// preserving a language tag or a non-`xsd:string` datatype so [`emit_term`]
-/// re-serializes it to the same Turtle literal form.
-fn rdf_literal_from_value(
-    lexical_form: &str,
-    datatype: &str,
-    language: Option<&str>,
-) -> RdfLiteral {
-    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-    if let Some(language) = language {
-        RdfLiteral::language_tagged(lexical_form, language)
-    } else if datatype == XSD_STRING {
-        RdfLiteral::simple(lexical_form)
-    } else {
-        RdfLiteral::typed(lexical_form, datatype)
+    const SUBJECT: &str = "urn:gmeow:artifact-term:subject";
+    const PREDICATE: &str = "urn:gmeow:artifact-term:object";
+    let input = format!("<{SUBJECT}> <{PREDICATE}> {display} .");
+    let dataset = purrdf::parse_dataset(input.as_bytes(), "text/turtle", None)
+        .map_err(|error| reason_err(format!("reasoning artifact object: {error}")))?;
+    if dataset
+        .quads()
+        .chain(dataset.reifier_quads())
+        .chain(dataset.annotation_quads())
+        .count()
+        != 1
+    {
+        return Err(reason_err(
+            "reasoning artifact object must be exactly one RDF term".into(),
+        ));
     }
+    let quad = dataset.owned_quads().next().ok_or_else(|| {
+        reason_err("reasoning artifact object has no ordinary carrier triple".into())
+    })?;
+    if quad.subject != RdfTerm::iri(SUBJECT) || quad.predicate != PREDICATE {
+        return Err(reason_err(
+            "reasoning artifact object changed its carrier".into(),
+        ));
+    }
+    Ok(quad.object)
 }
 
 // ── dl-el-crosscheck-report ─────────────────────────────────────────────────────
@@ -434,7 +582,10 @@ fn rdf_literal_from_value(
 /// derived `rdfs:subClassOf` entailment, one `gmeow:DlGap` per native coverage
 /// defect, and the entailment/gap counts. The committed bundle is expected to
 /// have zero `DlGap` rows.
-pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
+///
+/// # Errors
+/// Rejects inferred terms that cannot form valid RDF output.
+pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> gmeow_errors::Result<String> {
     const CROSSCHECK_NOTE: &str = "a native-only DL⊇EL subsumption entailment; a native DL coverage gap (DlGap) fails the gate";
     let mut out = String::from(LEDGER_HEADER);
 
@@ -478,7 +629,7 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
         let subsumes = RdfTerm::triple(RdfTriple::new(
             iri_term(&axiom.subject),
             RDFS_SUBCLASS_OF,
-            iri_term(&axiom.object),
+            super::term_value_to_rdf_term(&axiom.object)?,
         ));
         out.push_str(&emit_resource(
             &gmeow(&format!("ledger-entry-{index}")),
@@ -536,7 +687,7 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
         ],
     ));
 
-    out
+    Ok(out)
 }
 
 // ── reasoning-result + proof-certificate ────────────────────────────────────────
@@ -713,390 +864,6 @@ fn emit_annotation_triple(annotation: &RdfAnnotation) -> String {
     )
 }
 
+#[path = "artifacts.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::reason::dl::{DlCoverage, DlVerdict, InconsistencyWitness};
-    use crate::reason::el::InferredAxiom;
-    use crate::result::ResultProvenance;
-
-    /// A native provenance bundle for the test results.
-    fn prov() -> ResultProvenance {
-        ResultProvenance::native("test-contract", "")
-    }
-
-    fn axiom(s: &str, p: &str, o: &str, rule: Option<&str>) -> InferredAxiom {
-        InferredAxiom {
-            subject: s.to_owned(),
-            predicate: p.to_owned(),
-            object: o.to_owned(),
-            world: "https://blackcatinformatics.ca/gmeow/graph/imports".to_owned(),
-            is_edb: false,
-            rule_name: rule.map(str::to_owned),
-            premises: vec![(
-                "http://example.org/A".to_owned(),
-                RDFS_SUBCLASS_OF.to_owned(),
-                "<http://example.org/B>".to_owned(),
-            )],
-        }
-    }
-
-    #[test]
-    fn premise_object_preserves_iris_and_literals() {
-        // An IRI premise object round-trips to a bare IRI term.
-        assert_eq!(
-            premise_object("<http://example.org/B>"),
-            RdfTerm::iri("http://example.org/B")
-        );
-        // A typed literal stays a literal — emitting it as an IRI would produce
-        // invalid Turtle in the proof skeleton.
-        assert_eq!(
-            emit_term(&premise_object(
-                "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"
-            )),
-            "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"
-        );
-        // Language-tagged and simple (xsd:string) literals likewise round-trip.
-        assert_eq!(emit_term(&premise_object("\"hi\"@en")), "\"hi\"@en");
-        assert_eq!(emit_term(&premise_object("\"plain\"")), "\"plain\"");
-    }
-
-    fn result_with(inferred: Vec<InferredAxiom>, consistent: bool) -> ReasoningResult {
-        let verdict = DlVerdict {
-            consistent,
-            unsatisfiable_classes: vec![],
-            // An inconsistent verdict folds to information=both, which requires a
-            // justifying witness; supply one so the (debug-asserted) invariant holds.
-            inconsistencies: if consistent {
-                vec![]
-            } else {
-                vec![InconsistencyWitness {
-                    individual: "http://example.org/x".to_owned(),
-                    world: "https://blackcatinformatics.ca/gmeow/graph/imports".to_owned(),
-                    premises: vec![],
-                }]
-            },
-            coverage: DlCoverage {
-                present: vec![],
-                decided: vec![],
-                unsupported: vec![],
-            },
-            gaps: vec![],
-            boundary_findings: vec![],
-        };
-        ReasoningResult::from_dl_verdict(inferred, &verdict, prov())
-    }
-
-    #[test]
-    fn closure_emits_triple_and_reifier_with_provenance() {
-        let derived = axiom(
-            "http://example.org/A",
-            RDFS_SUBCLASS_OF,
-            "http://example.org/C",
-            Some("el:subClassOf-transitive"),
-        );
-        let receipt = receipt_for_axiom(&derived);
-        let canonical_rule = canonical_rule_iri("el:subClassOf-transitive");
-        assert_eq!(receipt.row.rule_iri, canonical_rule);
-        assert_eq!(receipt.raw_rule_identity, "el:subClassOf-transitive");
-        assert_eq!(
-            receipt.row.derivation_id,
-            crate::provenance::mint_derivation_id(
-                "el:subClassOf-transitive",
-                &[receipt.row.source_quad_ids[0].as_str()]
-            ),
-            "the receipt hash preserves the native firing identity bytes"
-        );
-        let result = result_with(vec![derived], true);
-        let ttl = build_inferred_closure_ttl(&result, None, &[]).unwrap();
-        assert!(ttl.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
-        assert!(ttl.contains("rdf-syntax-ns#reifies> <<( "));
-        assert!(ttl.contains(&format!("<{}> <{canonical_rule}>", gmeow("viaRule"))));
-        assert!(
-            !ttl.contains("<el:subClassOf-transitive>"),
-            "the raw firing label is receipt data, never a public rule resource"
-        );
-        assert!(ttl.contains("receipt-rule-identity"));
-        assert!(ttl.contains("el:subClassOf-transitive"));
-        assert!(ttl.contains(&receipt.row.derivation_id));
-        assert!(ttl.contains(&receipt.row.source_quad_ids[0]));
-        assert!(
-            ttl.contains("gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction>")
-        );
-        assert!(
-            ttl.contains("gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports>")
-        );
-    }
-
-    /// The α-equivalence section is the SHIPPED half of the expression-identity derivation:
-    /// two α-equivalent expressions must land on ONE class individual, that individual must be
-    /// typed exactly once however many expressions reach it, and every edge must carry the
-    /// derivation's own rule provenance rather than borrowing an EL/DL rule's.
-    #[test]
-    fn closure_emits_one_joinable_class_for_alpha_equivalent_expressions() {
-        const CLASS: &str = "https://blackcatinformatics.ca/math/alphaClass/deadbeef";
-        let result = result_with(
-            vec![axiom(
-                "http://example.org/A",
-                RDFS_SUBCLASS_OF,
-                "http://example.org/C",
-                Some("el:subClassOf-transitive"),
-            )],
-            true,
-        );
-        let edges = vec![
-            ("http://example.org/first".to_owned(), CLASS.to_owned()),
-            ("http://example.org/second".to_owned(), CLASS.to_owned()),
-        ];
-        let ttl = build_inferred_closure_ttl(&result, None, &edges).unwrap();
-        for expression in ["first", "second"] {
-            assert!(
-                ttl.contains(&format!(
-                    "<http://example.org/{expression}> <{MATH_ALPHA_EQUIVALENCE_CLASS}> <{CLASS}> ."
-                )),
-                "the α-class edge of {expression} must be an ordinary joinable triple"
-            );
-        }
-        let typing = format!("<{CLASS}> <{RDF_TYPE}> <{MATH_ALPHA_EQUIVALENCE_CLASS_TYPE}> .");
-        assert_eq!(
-            ttl.matches(typing.as_str()).count(),
-            1,
-            "the shared class individual is typed exactly ONCE, not once per expression"
-        );
-        assert!(
-            ttl.contains("rule/math-expression-identity"),
-            "the α edges carry the expression-identity derivation's own rule provenance"
-        );
-    }
-
-    /// No `math:` expression in the EDB means no identity was decided, so the section — banner
-    /// included — is absent. A bare header would read as a decision that never happened.
-    #[test]
-    fn closure_omits_the_alpha_section_entirely_when_no_expression_is_decided() {
-        let result = result_with(
-            vec![axiom(
-                "http://example.org/A",
-                RDFS_SUBCLASS_OF,
-                "http://example.org/C",
-                Some("el:subClassOf-transitive"),
-            )],
-            true,
-        );
-        let ttl = build_inferred_closure_ttl(&result, None, &[]).unwrap();
-        assert!(!ttl.contains("alpha-equivalence"));
-        assert!(!ttl.contains(MATH_ALPHA_EQUIVALENCE_CLASS));
-    }
-
-    #[test]
-    fn closure_skips_edb_axioms() {
-        let mut edb = axiom(
-            "http://example.org/A",
-            RDFS_SUBCLASS_OF,
-            "http://example.org/B",
-            None,
-        );
-        edb.is_edb = true;
-        let result = result_with(vec![edb], true);
-        let ttl = build_inferred_closure_ttl(&result, None, &[]).unwrap();
-        assert!(!ttl.contains("reifies"));
-    }
-
-    #[test]
-    fn closure_missing_rule_name_fails_loud() {
-        let result = result_with(
-            vec![axiom(
-                "http://example.org/A",
-                RDFS_SUBCLASS_OF,
-                "http://example.org/C",
-                None,
-            )],
-            true,
-        );
-        let err = build_inferred_closure_ttl(&result, None, &[]).unwrap_err();
-        assert!(err.message().contains("no rule_name"), "got: {err}");
-    }
-
-    #[test]
-    fn explanations_emit_derivation_with_premise() {
-        let derived = axiom(
-            "http://example.org/A",
-            RDFS_SUBCLASS_OF,
-            "http://example.org/C",
-            Some("el:subClassOf-transitive"),
-        );
-        let receipt = receipt_for_axiom(&derived);
-        let canonical_rule = canonical_rule_iri("el:subClassOf-transitive");
-        let result = result_with(vec![derived], true);
-        let ttl = build_explanations_ttl(&result).unwrap();
-        assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/Derivation>"));
-        assert!(ttl.contains("gmeow/concludes> <<( "));
-        assert!(ttl.contains("gmeow/hasPremise> <<( <http://example.org/A>"));
-        assert!(ttl.contains(&format!("<{}> <{canonical_rule}>", gmeow("viaRule"))));
-        assert!(
-            !ttl.contains("<el:subClassOf-transitive>"),
-            "the raw firing label is receipt data, never a public rule resource"
-        );
-        assert!(ttl.contains("receipt-rule-identity"));
-        assert!(ttl.contains("el:subClassOf-transitive"));
-        assert!(ttl.contains(&receipt.row.derivation_id));
-        assert!(ttl.contains("\"derivation of an inferred axiom\"@en"));
-    }
-
-    #[test]
-    fn modal_artifacts_retain_the_exact_rule_sources_and_derivation_identity() {
-        let modal = InferredAxiom {
-            subject: "https://example.org/modal/F".to_owned(),
-            predicate: crate::modal::MODAL_NECESSITY_FAILS.to_owned(),
-            object: "<https://example.org/modal/B>".to_owned(),
-            world: "https://example.org/modal/w0".to_owned(),
-            is_edb: false,
-            rule_name: Some(crate::modal::MODAL_RULE_IRI.to_owned()),
-            premises: vec![(
-                "https://example.org/modal/a".to_owned(),
-                "https://example.org/modal/knows".to_owned(),
-                "<https://example.org/modal/b>".to_owned(),
-            )],
-        };
-        let receipt = receipt_for_axiom(&modal);
-        let result = result_with(vec![modal], true);
-
-        let closure = build_inferred_closure_ttl(&result, None, &[]).unwrap();
-        let explanations = build_explanations_ttl(&result).unwrap();
-        for artifact in [&closure, &explanations] {
-            assert!(artifact.contains(&format!(
-                "<{}> <{}>",
-                gmeow("viaRule"),
-                crate::modal::MODAL_RULE_IRI
-            )));
-            assert!(artifact.contains("receipt-rule-identity"));
-            assert!(artifact.contains(&receipt.row.derivation_id));
-            for source in &receipt.row.source_quad_ids {
-                assert!(artifact.contains(source));
-            }
-        }
-        assert!(
-            explanations.contains(&format!("<{}>", receipt.row.derivation_id)),
-            "the derivation is a named content-addressed resource"
-        );
-    }
-
-    #[test]
-    fn ledger_header_entries_gaps_and_counts() {
-        let verdict = DlVerdict {
-            consistent: false,
-            unsatisfiable_classes: vec![],
-            // information=both needs a justifying witness (invariant).
-            inconsistencies: vec![InconsistencyWitness {
-                individual: "http://example.org/x".to_owned(),
-                world: "https://blackcatinformatics.ca/gmeow/graph/imports".to_owned(),
-                premises: vec![],
-            }],
-            coverage: DlCoverage {
-                present: vec!["complementOf".to_owned()],
-                decided: vec![],
-                unsupported: vec!["complementOf".to_owned()],
-            },
-            // gaps are reconstructed from coverage.unsupported by the builder, so
-            // the input gaps here are immaterial to the ledger output.
-            gaps: vec![],
-            boundary_findings: vec![],
-        };
-        let result = ReasoningResult::from_dl_verdict(
-            vec![axiom(
-                "http://example.org/A",
-                RDFS_SUBCLASS_OF,
-                "http://example.org/C",
-                Some("el:subClassOf-transitive"),
-            )],
-            &verdict,
-            prov(),
-        );
-        let ttl = build_dl_el_ledger_ttl(&result);
-        assert!(ttl.contains(&format!("gmeow/consistent> \"false\"^^<{XSD_BOOLEAN}>")));
-        assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/CrosscheckLedger>"));
-        assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry>"));
-        assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/DlGap>"));
-        assert!(ttl.contains("reason.dl-gap.complementOf"));
-        assert!(ttl.contains(&format!("gmeow/entailmentCount> \"1\"^^<{XSD_INTEGER}>")));
-        assert!(ttl.contains(&format!("gmeow/gapCount> \"1\"^^<{XSD_INTEGER}>")));
-    }
-
-    #[test]
-    fn reasoning_result_ttl_emits_status_fields_and_certificate() {
-        // A consistent run: supported, completed, complete-for-fragment.
-        let result = result_with(vec![], true);
-        let ttl = build_reasoning_result_ttl(&result);
-        assert!(ttl.contains("#type> <https://blackcatinformatics.ca/logic/ReasoningResult>"));
-        assert!(
-            ttl.contains("logic/resultInput> <https://blackcatinformatics.ca/logic/InputValid>")
-        );
-        assert!(ttl.contains(
-            "logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted>"
-        ));
-        assert!(ttl.contains(
-            "logic/resultCompleteness> <https://blackcatinformatics.ca/logic/CompleteForFragment>"
-        ));
-        assert!(ttl.contains(
-            "logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoSupported>"
-        ));
-        assert!(ttl.contains("logic/contractHash>"));
-        assert!(ttl.contains("logic/engine>"));
-    }
-
-    #[test]
-    fn reasoning_result_ttl_inconsistent_is_both_with_witness() {
-        // An inconsistent run: information=both, carrying a contradiction witness.
-        let result = result_with(vec![], false);
-        let ttl = build_reasoning_result_ttl(&result);
-        assert!(
-            ttl.contains(
-                "logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoBoth>"
-            )
-        );
-        assert!(
-            ttl.contains("logic/contradictionWitness> <http://example.org/x>"),
-            "the glut must carry its witness: {ttl}"
-        );
-    }
-
-    #[test]
-    fn proof_and_counterproof_derivation_ids_are_sanitized_by_bare_iri() {
-        // bare_iri strips a surrounding `<>` pair from a derivation_id.
-        // A derivation_id stored as "<urn:x>" must emit as `<urn:x>`, NOT `<<urn:x>>`.
-        use crate::result::{DerivationRef, InformationState};
-        use std::collections::BTreeSet;
-
-        let mut result = result_with(vec![], true);
-        // Inject a proof and counterproof whose derivation_id is pre-wrapped in `<>`.
-        // This simulates a derivation_id that accidentally carries angle-bracket delimiters.
-        result.provenance.proof = Some(DerivationRef {
-            derivation_id: "<urn:proof-x>".to_owned(),
-            cited_iris: BTreeSet::new(),
-        });
-        result.provenance.counterproof = Some(DerivationRef {
-            derivation_id: "<urn:counterproof-x>".to_owned(),
-            cited_iris: BTreeSet::new(),
-        });
-        // Force information=both so validate() does not fire the glut-needs-witness
-        // invariant. We override the information state directly; the unit test is
-        // checking IRI sanitization, not state-machine rules.
-        result.information = InformationState::Both;
-
-        let ttl = build_reasoning_result_ttl(&result);
-
-        // The emitted lines must use exactly one pair of angle brackets, not doubled.
-        assert!(
-            ttl.contains("logic/resultProof> <urn:proof-x>"),
-            "bare_iri must strip the surrounding <> from the proof derivation_id; got:\n{ttl}"
-        );
-        assert!(
-            ttl.contains("logic/resultCounterproof> <urn:counterproof-x>"),
-            "bare_iri must strip the surrounding <> from the counterproof derivation_id; got:\n{ttl}"
-        );
-        // Regression guard: <<urn:…>> must NOT appear (double angle brackets = invalid Turtle).
-        assert!(
-            !ttl.contains("<<urn:"),
-            "double angle-bracket leaked into Turtle output; got:\n{ttl}"
-        );
-    }
-}
+mod tests;

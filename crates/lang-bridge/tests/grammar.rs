@@ -9,73 +9,10 @@
 //! spine ([`LegPath::normalize`]).
 
 use gmeow_lang_bridge::{
-    AbnfBridge, Bridge, EbnfBridge, Formalism, Grammar, GrammarRule, LangFailure, RuleExpr,
+    AbnfBridge, Bridge, EbnfBridge, Formalism, GrammarRule, LangFailure, RuleExpr,
     exact_round_trip_holds, grammar_leg_pair, grammar_to_ntriples, is_exact_correspondence,
     parse_grammar,
 };
-
-/// The two shipped grammar sources, held under `slices/grounding/lang/grammars/`.
-const TURTLE_EBNF: &str = include_str!("../../../slices/grounding/lang/grammars/turtle.ebnf");
-const GTS_EBNF: &str = include_str!("../../../slices/grounding/lang/grammars/gts.ebnf");
-
-/// The Gate-3 isomorphism demonstrator over one EBNF source: lift → emit → re-lift, and show
-/// the canonical forms are equal. Returns the parsed grammar for further inspection.
-fn assert_gate3_isomorphism(source: &str, label: &str) -> Grammar {
-    let bridge = EbnfBridge;
-    // Lift.
-    let grammar = bridge.to_grammar(source.as_bytes()).expect("source lifts");
-    let canon = grammar.canonicalize();
-
-    // Emit the canonical form, then re-lift.
-    let emitted = bridge.serialize(&canon);
-    let relifted = bridge.parse(&emitted).expect("emitted grammar re-lifts");
-
-    // DEMONSTRATED isomorphism: the canonical trees are equal.
-    assert_eq!(
-        relifted.canonicalize(),
-        canon,
-        "{label}: lift→emit→re-lift is not isomorphic"
-    );
-
-    // The ExactPreservation demonstrator: serialize(parse(text)) re-lifts isomorphically to
-    // parse(text) — the round-trip on the raw source, not just the canonical form.
-    let once = bridge.serialize(&grammar);
-    let twice = bridge.parse(&once).expect("re-parse of a serialization");
-    assert_eq!(
-        twice.canonicalize(),
-        grammar.canonicalize(),
-        "{label}: serialize(parse(text)) is not isomorphic to parse(text)"
-    );
-
-    grammar
-}
-
-#[test]
-fn gate3_turtle_grammar_round_trips_isomorphically() {
-    let g = assert_gate3_isomorphism(TURTLE_EBNF, "turtle.ebnf");
-    // The Turtle grammar is substantial: the round-trip is over the real thing.
-    assert!(
-        g.rules.len() >= 40,
-        "turtle.ebnf should carry the full production set, got {}",
-        g.rules.len()
-    );
-    assert_eq!(g.formalism, Formalism::Ebnf);
-}
-
-#[test]
-fn gate3_gts_grammar_round_trips_isomorphically() {
-    let g = assert_gate3_isomorphism(GTS_EBNF, "gts.ebnf");
-    assert!(
-        g.rules.len() >= 10,
-        "gts.ebnf should carry the GTS surface productions, got {}",
-        g.rules.len()
-    );
-    // The GTS triple-term production is present — the RDF-1.2 surface the codec interprets.
-    assert!(
-        g.rules.iter().any(|r| r.name == "tripleTerm"),
-        "gts.ebnf must carry the triple-term production"
-    );
-}
 
 #[test]
 fn alternation_associativity_canonicalizes_equal() {

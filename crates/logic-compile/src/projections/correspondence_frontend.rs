@@ -11,8 +11,8 @@
 //!
 //! * a native alignment cell (the SSSOM 1:1 band): its relation + morphism class
 //!   come from `sssom::sssom_band` (so the typed node and the rendered SSSOM TSV agree
-//!   by construction), its confidence from `gmeow:confidence`, and its evidence strength
-//!   from the justification band ([`evidence_strength_of_justification`]);
+//!   by construction), its confidence from `gmeow:confidence`, and its evidence
+//!   retained independently from the full qualitative evidence identity;
 //! * a `gmeow:ProjectionMapping` per-profile binding (the EDOAL/SPARQL get leg): its
 //!   `(relation, morphism class, morphism kind)` come from [`ProfileBinding::lattice`],
 //!   its get leg references the cell's pattern, and its confidence from the binding.
@@ -23,15 +23,12 @@
 //!
 //! # Scope
 //!
-//! First the typed set is materialized; then the dialect gate/ledger paths are re-seated
-//! onto it: alongside the [`CorrespondenceProgram`], the transpiler builds a
-//! [`CorrespondenceLookup`] keyed by each cell's natural identity, and the SSSOM, EDOAL,
-//! and SPARQL lowerings now CONSUME that materialized typed `(relation, morphism class,
-//! morphism kind)` for their overclaim gate / ledger path instead of re-deriving the
-//! relation inline — the materialized set is the single source of truth. (FnO never
-//! derived a typed relation: it is `ValidationOnly` and has no overclaim gate, so it has
-//! nothing to re-seat.) The four rendered artifacts stay byte-identical — the renderers
-//! emit the authored predicate/relation token verbatim; only the GATE input moved.
+//! One source admission builds the canonical program and its immutable
+//! [`CorrespondenceAnalysis`]. SSSOM, EDOAL, SPARQL and FnO borrow the same parsed
+//! cells and mapping patterns. Alignment and profile-binding indices preserve
+//! each declaration's semantic identity; target gates consume its admitted
+//! relation and morphism qualifiers. FnO projects signatures from the same
+//! patterns and owns no second mapping parser.
 
 use std::collections::BTreeMap;
 
@@ -45,26 +42,8 @@ use crate::ir::{
     PreservationKind,
 };
 use crate::projections::correspondence::CorrespondenceProgram;
-use crate::projections::get_leg::{ProfileBinding, projections};
+use crate::projections::get_leg::{ProfileBinding, ProjectionCell, binding_key, projections};
 use crate::projections::sssom::{equivalence_cells, sssom_band};
-
-/// The semapv justification under which a curator established a mapping — the
-/// provenance-derived warrant the SSSOM cell carries. We map it to an
-/// `evidenceStrength` band: a manually-curated mapping is a modest, non-zero warrant; a
-/// lexical/structural heuristic would be weaker. An unknown/absent justification yields
-/// `None` (never a fabricated number — the axis stays unset).
-fn evidence_strength_of_justification(justification: Option<&str>) -> Option<f64> {
-    let local = justification?.rsplit(['#', '/', ':']).next().unwrap_or("");
-    Some(match local {
-        // A human curator's deliberate assertion — a modest, non-zero warrant.
-        "ManualMappingCuration" => 0.5,
-        // Lexical/structural heuristics are weaker warrants than manual curation.
-        "LexicalMatching" | "LexicalSimilarityThresholdMatching" => 0.3,
-        "StructuralMatching" => 0.3,
-        // An unrecognized justification: leave the axis unset rather than invent a value.
-        _ => return None,
-    })
-}
 
 /// A content-addressed correspondence IRI under `LOGIC_NAMESPACE` for the cell keyed by
 /// `key`. The `sha256(key)[:16]` digest mirrors the established content-IRI minting
@@ -130,42 +109,73 @@ pub struct TypedRelation {
 
 /// The natural identity of an authored alignment cell — the key under which a dialect
 /// lowering looks up its materialized typed correspondence. The two cell kinds have
-/// disjoint key shapes (an equivalence triple vs a `(cell IRI, profile)` pair), so a
+/// disjoint key shapes (an alignment declaration vs a complete source binding key), so a
 /// term-equivalence and a projection binding can never collide on a key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum NaturalKey {
-    /// A native alignment cell, keyed by its `(subject, predicate, object)` triple
-    /// (one subject may align to several objects, so the whole triple is the identity).
+    /// A native alignment assertion with its exact authored morphism qualifiers.
+    /// Separate declarations about the same RDF assertion cannot overwrite each other.
     Equivalence {
         subject: String,
         predicate: String,
         obj: String,
+        morphism_class: Option<String>,
+        morphism_kind: Option<String>,
+        preservation: Option<String>,
+        grounding: bool,
     },
-    /// A `gmeow:ProjectionMapping` per-profile binding, keyed by `(cell IRI, profile)`.
-    Binding { cell_iri: String, profile: String },
+    /// A `gmeow:ProjectionMapping` per-profile binding, keyed by its complete source/pattern/profile/binding semantics.
+    Binding { semantic_key: String },
 }
 
-/// A lookup from each authored cell's natural identity to its materialized typed
+impl NaturalKey {
+    fn alignment(cell: &super::sssom::EquivalenceCell) -> Self {
+        Self::Equivalence {
+            subject: cell.subject.clone(),
+            predicate: cell.predicate.clone(),
+            obj: cell.obj.clone(),
+            morphism_class: cell.morphism_class.clone(),
+            morphism_kind: cell.morphism_kind.clone(),
+            preservation: cell.preservation.clone(),
+            grounding: cell.grounding,
+        }
+    }
+}
+
+/// One immutable mapping analysis: admitted source cells and their materialized typed
 /// `(relation, morphism class, morphism kind)` — built once by the transpiler so the four
 /// dialect lowerings CONSUME the materialized authority for their overclaim gate / ledger
 /// path rather than re-deriving the relation inline. Keyed off the SAME
 /// extraction the transpiler folds into the [`CorrespondenceProgram`], so the consumed
-/// relation and the materialized typed node are identical by construction.
-#[derive(Debug, Clone, Default)]
-pub struct CorrespondenceLookup {
+/// relation and the materialized typed node are identical by construction. Target
+/// emitters borrow these cells; they never re-extract mapping patterns from RDF.
+#[derive(Debug)]
+pub struct CorrespondenceAnalysis {
+    alignment_cells: Vec<super::sssom::EquivalenceCell>,
+    projection_cells: Vec<ProjectionCell>,
     by_key: BTreeMap<NaturalKey, TypedRelation>,
-    /// Correspondence IRI → the profile of the `gmeow:ProjectionMapping` binding it was
+    /// Correspondence IRI → the complete semantic key of the `gmeow:ProjectionMapping` binding it was
     /// minted from. Only per-profile binding correspondences carry a profile (a
     /// native alignment cell is not profile-scoped and is absent here). Consumed by
     /// the mappings stage to pair a correspondence with its OWN per-binding get/put CONSTRUCT
-    /// fragments for executed lens-law discharge — the per-profile UNION query is the wrong
+    /// programs for executed lens-law discharge — the per-profile UNION query is the wrong
     /// unit (a single UNION branch's law must be checked in isolation).
-    binding_profiles: BTreeMap<String, String>,
+    binding_keys: BTreeMap<String, String>,
 }
 
-impl CorrespondenceLookup {
-    /// The materialized typed relation of a native alignment cell, keyed by its
-    /// `(subject, predicate, object)` triple.
+impl CorrespondenceAnalysis {
+    /// The exact native alignment cells from which the typed program was admitted.
+    pub fn alignment_cells(&self) -> &[super::sssom::EquivalenceCell] {
+        &self.alignment_cells
+    }
+
+    /// The exact mapping patterns and bindings shared by every target lowering.
+    pub fn projection_cells(&self) -> &[ProjectionCell] {
+        &self.projection_cells
+    }
+
+    /// The materialized typed relation of this exact alignment declaration,
+    /// including its authored morphism qualifiers. File membership is independent.
     ///
     /// # Errors
     ///
@@ -174,114 +184,71 @@ impl CorrespondenceLookup {
     /// (no-optionality).
     pub fn equivalence(
         &self,
-        subject: &str,
-        predicate: &str,
-        obj: &str,
+        cell: &super::sssom::EquivalenceCell,
     ) -> gmeow_errors::Result<TypedRelation> {
-        let key = NaturalKey::Equivalence {
-            subject: subject.to_owned(),
-            predicate: predicate.to_owned(),
-            obj: obj.to_owned(),
-        };
+        let key = NaturalKey::alignment(cell);
         self.by_key.get(&key).copied().ok_or_else(|| {
             Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
                     "no materialized correspondence for alignment cell \
-                     ({subject}, {predicate}, {obj}) — every authored cell must be transpiled"
+                     ({}, {}, {}) — every authored cell must be transpiled",
+                    cell.subject, cell.predicate, cell.obj,
                 ),
             })
         })
     }
 
     /// The materialized typed relation of a `gmeow:ProjectionMapping` per-profile binding,
-    /// keyed by `(cell IRI, profile)`.
+    /// keyed by its complete source/pattern/profile/binding semantics.
     ///
     /// # Errors
     ///
     /// HARD-fails if the binding has no materialized correspondence (no-optionality).
-    pub fn binding(&self, cell_iri: &str, profile: &str) -> gmeow_errors::Result<TypedRelation> {
+    pub fn binding(
+        &self,
+        cell: &ProjectionCell,
+        binding: &ProfileBinding,
+    ) -> gmeow_errors::Result<TypedRelation> {
+        let semantic_key = binding_key(cell, binding);
         let key = NaturalKey::Binding {
-            cell_iri: cell_iri.to_owned(),
-            profile: profile.to_owned(),
+            semantic_key: semantic_key.clone(),
         };
         self.by_key.get(&key).copied().ok_or_else(|| {
             Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
                     "no materialized correspondence for ProjectionMapping binding \
-                     ({cell_iri}, {profile}) — every authored binding must be transpiled"
+                     ({semantic_key}) — every authored binding must be transpiled"
                 ),
             })
         })
     }
 
-    /// Correspondence IRI → profile for every `gmeow:ProjectionMapping` binding
+    /// Correspondence IRI → complete semantic key for every `gmeow:ProjectionMapping` binding
     /// correspondence (the map the mappings stage joins against the per-binding SPARQL
-    /// fragments to discharge each correspondence's own lens law in isolation).
-    pub fn binding_profiles(&self) -> &BTreeMap<String, String> {
-        &self.binding_profiles
+    /// programs to discharge each correspondence's own lens law in isolation).
+    pub fn binding_keys(&self) -> &BTreeMap<String, String> {
+        &self.binding_keys
     }
-
-    /// Build a lookup carrying a single `(cell IRI, profile)` binding entry — for the
-    /// dialect lowerings' unit tests that construct a `ProfileBinding` directly (without a
-    /// DSL store to transpile from). Production builds the lookup only via
-    /// [`transpile_correspondences_indexed`].
-    #[cfg(test)]
-    pub(crate) fn for_binding_test(cell_iri: &str, profile: &str, typed: TypedRelation) -> Self {
-        let mut by_key = BTreeMap::new();
-        by_key.insert(
-            NaturalKey::Binding {
-                cell_iri: cell_iri.to_owned(),
-                profile: profile.to_owned(),
-            },
-            typed,
-        );
-        Self {
-            by_key,
-            binding_profiles: BTreeMap::new(),
-        }
-    }
-}
-
-/// Transpile the authored `dsl/mappings/` cells into a typed [`CorrespondenceProgram`]:
-/// one [`Correspondence`] per native alignment cell and one per
-/// `gmeow:ProjectionMapping` per-profile binding. Thin wrapper over
-/// [`transpile_correspondences_indexed`] for callers that need only the program.
-///
-/// # Errors
-///
-/// Propagates a malformed `gmeow:ProjectionMapping` (the get-leg parser's hard error) or a
-/// rejected [`Correspondence::new`] invariant (a bad confidence/leg). Construction is
-/// fail-hard: a malformed cell is a build failure, never a silently-dropped node.
-pub fn transpile_correspondences(
-    dsl_view: &DslView,
-    onto_view: &DslView,
-) -> gmeow_errors::Result<CorrespondenceProgram> {
-    Ok(transpile_correspondences_indexed(dsl_view, onto_view)?.0)
 }
 
 /// Transpile the authored cells into BOTH the typed [`CorrespondenceProgram`] and the
-/// [`CorrespondenceLookup`] keyed by each cell's natural identity. The lookup is the
+/// [`CorrespondenceAnalysis`] keyed by each cell's natural identity. The lookup is the
 /// single source of truth the four dialect lowerings consume for their overclaim gate /
 /// ledger path — both products fold the SAME extraction + SAME shared
 /// derivation, so the consumed relation and the materialized typed node agree by
 /// construction.
 ///
-/// `dsl_view` carries the alignment + mapping DSL; `onto_view` is accepted for symmetry
-/// with the dialect lowerings (the EDOAL/SPARQL get-leg model reads it for ranges), so a
-/// future enrichment of the materialized nodes from the ontology has the handle without a
-/// signature change. The four dialect outputs' RENDERED bytes are unaffected (they still
-/// emit the authored predicate/relation token verbatim).
+/// The source view supplies the complete authored alignment and mapping inputs.
 ///
 /// # Errors
-///
-/// As [`transpile_correspondences`].
+/// Refuses malformed source patterns, unresolved correspondence fields, conflicting
+/// declarations and invalid typed coordinates before publishing either product.
 pub fn transpile_correspondences_indexed(
     dsl_view: &DslView,
-    _onto_view: &DslView,
-) -> gmeow_errors::Result<(CorrespondenceProgram, CorrespondenceLookup)> {
+) -> gmeow_errors::Result<(CorrespondenceProgram, CorrespondenceAnalysis)> {
     let mut correspondences: Vec<Correspondence> = Vec::new();
     let mut by_key: BTreeMap<NaturalKey, TypedRelation> = BTreeMap::new();
-    let mut binding_profiles: BTreeMap<String, String> = BTreeMap::new();
+    let mut binding_keys: BTreeMap<String, String> = BTreeMap::new();
     // Two authored cells that mint the SAME content-addressed correspondence IRI must agree on
     // the SEMANTIC identity of the fact: confidence, justification, and endpoints. The IRI
     // folds in (subject, predicate, object) + morphism metadata, so a cell that additionally
@@ -293,8 +260,11 @@ pub fn transpile_correspondences_indexed(
     // Map each minted IRI to (semantic signature, first sssom file) and fail closed on a clash.
     let mut seen_correspondences: BTreeMap<String, (String, String)> = BTreeMap::new();
 
+    let alignment_cells = equivalence_cells(dsl_view)?;
+    let projection_cells = projections(dsl_view)?;
+
     // ── Native alignment cells (the SSSOM 1:1 band) ────────────────────────────────
-    for cell in equivalence_cells(dsl_view)? {
+    for cell in &alignment_cells {
         // Relation + morphism class from the SAME band the SSSOM ledger gate uses.
         let (relation, derived_class) = sssom_band(&cell.predicate);
         let authored_class = parse_logic_enum(
@@ -395,6 +365,16 @@ pub fn transpile_correspondences_indexed(
             "conf={:?}|just={:?}|src={:?}|tgt={:?}",
             cell.confidence, cell.justification, cell.source_endpoint, cell.target_endpoint,
         );
+        // Every admitted source spelling needs its typed relation, including
+        // restatements whose program node is already present in another set.
+        by_key.insert(
+            NaturalKey::alignment(cell),
+            TypedRelation {
+                relation,
+                morphism_class,
+                morphism_kind,
+            },
+        );
         match seen_correspondences.get(&iri) {
             Some((prev_signature, prev_file)) if *prev_signature != signature => {
                 return Err(Diag::of_kind(crate::error::Correspondence {
@@ -416,7 +396,6 @@ pub fn transpile_correspondences_indexed(
                 seen_correspondences.insert(iri.clone(), (signature, cell.sssom_file.clone()));
             }
         }
-        let evidence_strength = evidence_strength_of_justification(cell.justification.as_deref());
         let mut corr = Correspondence::new(
             iri,
             relation,
@@ -430,8 +409,8 @@ pub fn transpile_correspondences_indexed(
             None,
             None,
             Vec::new(),
-            cell.confidence,
-            evidence_strength,
+            cell.confidence.clone(),
+            None,
             None,
             None,
             // Unindexed cells are scoped to the unspecified standpoint (unspecified, not
@@ -449,26 +428,19 @@ pub fn transpile_correspondences_indexed(
                 .clone()
                 .unwrap_or_else(|| cell.obj.clone()),
         )?;
+        corr = corr.with_axis_evidence(crate::ir::AxisEvidence::new(
+            cell.justification.iter().cloned().collect(),
+            None,
+            None,
+        )?);
         if cell.grounding {
             corr = corr.as_grounding();
         }
         correspondences.push(corr);
-        by_key.insert(
-            NaturalKey::Equivalence {
-                subject: cell.subject.clone(),
-                predicate: cell.predicate.clone(),
-                obj: cell.obj.clone(),
-            },
-            TypedRelation {
-                relation,
-                morphism_class,
-                morphism_kind,
-            },
-        );
     }
 
     // ── gmeow:ProjectionMapping per-profile bindings (the EDOAL/SPARQL get leg) ─────
-    for cell in projections(dsl_view)? {
+    for cell in &projection_cells {
         if cell.grounding.is_some() && cell.bindings.len() != 1 {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
@@ -480,13 +452,12 @@ pub fn transpile_correspondences_indexed(
             }));
         }
         for binding in &cell.bindings {
-            let (corr, typed) = correspondence_for_binding(&cell, binding)?;
-            binding_profiles.insert(corr.iri.clone(), binding.profile.clone());
+            let (corr, typed) = correspondence_for_binding(cell, binding)?;
+            binding_keys.insert(corr.iri.clone(), binding_key(cell, binding));
             correspondences.push(corr);
             by_key.insert(
                 NaturalKey::Binding {
-                    cell_iri: cell.iri.clone(),
-                    profile: binding.profile.clone(),
+                    semantic_key: binding_key(cell, binding),
                 },
                 typed,
             );
@@ -495,13 +466,14 @@ pub fn transpile_correspondences_indexed(
 
     // The frontend's preservation polarity for the lane: the alignment lowerings are a
     // sound under-approximation (they refuse the forced-equality reading), never exact.
-    let program =
-        CorrespondenceProgram::new(correspondences, Vec::new(), PreservationKind::SoundUnder);
+    let program = CorrespondenceProgram::new(correspondences, PreservationKind::SoundUnder);
     Ok((
         program,
-        CorrespondenceLookup {
+        CorrespondenceAnalysis {
+            alignment_cells,
+            projection_cells,
             by_key,
-            binding_profiles,
+            binding_keys,
         },
     ))
 }
@@ -610,10 +582,14 @@ fn correspondence_for_binding(
             ),
         }));
     }
-    // The per-correspondence key folds (cell IRI, profile, target): one mapping cell has
-    // one binding per profile, each its own correspondence.
-    let key = format!("{}|{}|{target}", cell.iri, binding.profile);
-    let iri = correspondence_iri("projection-mapping", &key);
+    // One cell may have multiple semantically distinct bindings in the same profile.
+    // Use the exact shared identity used by relation lookup, report and native legs.
+    let key = binding_key(cell, binding);
+    let digest = key
+        .rsplit("binding=")
+        .next()
+        .expect("binding key has a digest");
+    let iri = format!("{LOGIC_NAMESPACE}correspondence/projection-mapping/{digest}");
     // The get leg references the pattern-bearing mapping cell (an IRI node, the acquired
     // source pattern); the put leg is the per-profile target IRI it projects onto, when
     // the binding names one. Both are absolute IRIs (the pattern's SPARQL-variable anchor
@@ -625,7 +601,7 @@ fn correspondence_for_binding(
         relation,
         morphism_class,
         morphism_kind,
-        false,
+        binding.mnemomorphic,
         None,
         get_leg,
         put_leg,
@@ -633,8 +609,8 @@ fn correspondence_for_binding(
         // `law_claims` entry the existing `p_has_law_claim` path round-trips; absent in the
         // committed corpus, so this is empty there.
         binding.ingest_claim.iter().cloned().collect(),
-        binding.confidence,
-        evidence_strength_of_justification(grounding.and_then(|g| g.justification.as_deref())),
+        binding.confidence.clone(),
+        None,
         None,
         None,
         None,
@@ -642,6 +618,15 @@ fn correspondence_for_binding(
         // executable mappings inherit the lane-level SoundUnder polarity.
         preservation,
     )?;
+    corr = corr.with_axis_evidence(crate::ir::AxisEvidence::new(
+        grounding
+            .and_then(|g| g.justification.as_ref())
+            .into_iter()
+            .cloned()
+            .collect(),
+        None,
+        None,
+    )?);
     if let Some(grounding) = grounding {
         corr = corr
             .with_endpoints(
@@ -662,3 +647,6 @@ fn correspondence_for_binding(
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod test_support;

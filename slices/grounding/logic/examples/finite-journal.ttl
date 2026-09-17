@@ -1,0 +1,137 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/finite-journal/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# The examples producer places these observations in graph/examples. The same
+# attributed readiness claim is observed at both positions; only the explicit
+# future boundary differs between the two enactments. No operation is requested.
+<https://blackcatinformatics.ca/gmeow/graph/examples> a logic:World .
+ex:observer a logic:Thing .
+ex:readyEvidence rdf:reifies <<( ex:procedure ex:readyFor ex:execution )>> ;
+    gmeow:accordingTo ex:observer ;
+    gmeow:standpointSupportStatus gmeow:supportSupported .
+
+ex:ready a logic:Formula ; logic:relation ex:readyFor ;
+    logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:procedure ],
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:execution ] .
+ex:notReady a logic:Formula ; logic:not ex:ready .
+ex:nextReady a logic:Formula ; logic:next ex:ready .
+ex:eventuallyNotReady a logic:Formula ; logic:eventually ex:notReady .
+ex:alwaysReady a logic:Formula ; logic:globally ex:ready .
+ex:readyUntilNotReady a logic:Formula ; logic:untilLeft ex:ready ; logic:until ex:notReady .
+ex:alreadyReady a logic:Formula ; logic:untilLeft ex:notReady ; logic:until ex:ready .
+
+ex:closedRun a logic:Enactment ; logic:enactmentJournal ex:closedJournal .
+ex:closedJournal a logic:TransitionJournal ;
+    logic:journalInitialHead "blake3:70959dbd606510b67d2121f9ebf503fdb2896e3b2b4653c33832af23e78be6ff" ;
+    logic:journalBoundary logic:FinalizedJournalBoundary ;
+    logic:journalEntry ex:closedEntry0, ex:closedEntry1 ;
+    logic:journalHead ex:closedEntry1 .
+
+ex:closedEntry0 a logic:JournalEntry ;
+    logic:journalPrevHead "blake3:70959dbd606510b67d2121f9ebf503fdb2896e3b2b4653c33832af23e78be6ff" ;
+    logic:journalDeltaIdentity "blake3:83c8c65944f8b97797b4b3311883d01a56c21cac811e6b6006c7c2533a6b91f1" ;
+    logic:journalOutcomeTag logic:OutcomeApplied ;
+    logic:journalNewHead "blake3:d5afca6e49ebb48a2608803656bf6393811418b8dd60f4e398c5cd628c62af53" .
+ex:closedAt0 a logic:AttributedContext ;
+    logic:contextWorld <https://blackcatinformatics.ca/gmeow/graph/examples> ;
+    logic:contextStandpoint ex:observer ;
+    logic:contextEnactment ex:closedRun ;
+    logic:contextJournal ex:closedJournal ;
+    logic:contextPosition "0"^^xsd:nonNegativeInteger ;
+    logic:evidenceClosure logic:ClosedWorldClosure .
+
+ex:closedEntry1 a logic:JournalEntry ;
+    logic:journalPrevHead "blake3:d5afca6e49ebb48a2608803656bf6393811418b8dd60f4e398c5cd628c62af53" ;
+    logic:journalDeltaIdentity "blake3:5a7bd8bb2e8027a5245f539585c51009cda58115f1c48a29a818933fa9d92e5f" ;
+    logic:journalOutcomeTag logic:OutcomeApplied ;
+    logic:journalNewHead "blake3:4abbd5423f859a2b38b4acc246831a064aacba664acf9a49ad971404afc561a8" .
+ex:closedAt1 a logic:AttributedContext ;
+    logic:contextWorld <https://blackcatinformatics.ca/gmeow/graph/examples> ;
+    logic:contextStandpoint ex:observer ;
+    logic:contextEnactment ex:closedRun ;
+    logic:contextJournal ex:closedJournal ;
+    logic:contextPosition "1"^^xsd:nonNegativeInteger ;
+    logic:evidenceClosure logic:ClosedWorldClosure .
+
+ex:closedEntry1 logic:journalPredecessor ex:closedEntry0 .
+ex:closedAdjacency a logic:ContextSuccessorSet ;
+    logic:successorContext ex:closedAt0 ;
+    logic:successorAxis logic:temporallySucceeds ;
+    logic:successorMember ex:closedAt1 ;
+    logic:successorClosure logic:ClosedWorldClosure .
+
+ex:openRun a logic:Enactment ; logic:enactmentJournal ex:openJournal .
+ex:openJournal a logic:TransitionJournal ;
+    logic:journalInitialHead "blake3:70959dbd606510b67d2121f9ebf503fdb2896e3b2b4653c33832af23e78be6ff" ;
+    logic:journalBoundary logic:OpenJournalBoundary ;
+    logic:journalEntry ex:openEntry0, ex:openEntry1 ;
+    logic:journalHead ex:openEntry1 .
+
+ex:openEntry0 a logic:JournalEntry ;
+    logic:journalPrevHead "blake3:70959dbd606510b67d2121f9ebf503fdb2896e3b2b4653c33832af23e78be6ff" ;
+    logic:journalDeltaIdentity "blake3:83c8c65944f8b97797b4b3311883d01a56c21cac811e6b6006c7c2533a6b91f1" ;
+    logic:journalOutcomeTag logic:OutcomeApplied ;
+    logic:journalNewHead "blake3:d5afca6e49ebb48a2608803656bf6393811418b8dd60f4e398c5cd628c62af53" .
+ex:openAt0 a logic:AttributedContext ;
+    logic:contextWorld <https://blackcatinformatics.ca/gmeow/graph/examples> ;
+    logic:contextStandpoint ex:observer ;
+    logic:contextEnactment ex:openRun ;
+    logic:contextJournal ex:openJournal ;
+    logic:contextPosition "0"^^xsd:nonNegativeInteger ;
+    logic:evidenceClosure logic:ClosedWorldClosure .
+
+ex:openEntry1 a logic:JournalEntry ;
+    logic:journalPrevHead "blake3:d5afca6e49ebb48a2608803656bf6393811418b8dd60f4e398c5cd628c62af53" ;
+    logic:journalDeltaIdentity "blake3:5a7bd8bb2e8027a5245f539585c51009cda58115f1c48a29a818933fa9d92e5f" ;
+    logic:journalOutcomeTag logic:OutcomeApplied ;
+    logic:journalNewHead "blake3:4abbd5423f859a2b38b4acc246831a064aacba664acf9a49ad971404afc561a8" .
+ex:openAt1 a logic:AttributedContext ;
+    logic:contextWorld <https://blackcatinformatics.ca/gmeow/graph/examples> ;
+    logic:contextStandpoint ex:observer ;
+    logic:contextEnactment ex:openRun ;
+    logic:contextJournal ex:openJournal ;
+    logic:contextPosition "1"^^xsd:nonNegativeInteger ;
+    logic:evidenceClosure logic:ClosedWorldClosure .
+
+ex:openEntry1 logic:journalPredecessor ex:openEntry0 .
+ex:openAdjacency a logic:ContextSuccessorSet ;
+    logic:successorContext ex:openAt0 ;
+    logic:successorAxis logic:temporallySucceeds ;
+    logic:successorMember ex:openAt1 ;
+    logic:successorClosure logic:ClosedWorldClosure .
+
+ex:observedNext a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:nextReady ; logic:queryContext ex:closedAt0 .
+
+ex:finalNext a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:nextReady ; logic:queryContext ex:closedAt1 .
+
+ex:pendingNext a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:nextReady ; logic:queryContext ex:openAt1 .
+
+ex:closedEventuality a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:eventuallyNotReady ; logic:queryContext ex:closedAt0 .
+
+ex:pendingEventuality a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:eventuallyNotReady ; logic:queryContext ex:openAt0 .
+
+ex:closedMaintenance a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:alwaysReady ; logic:queryContext ex:closedAt0 .
+
+ex:pendingMaintenance a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:alwaysReady ; logic:queryContext ex:openAt0 .
+
+ex:closedUntil a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:readyUntilNotReady ; logic:queryContext ex:closedAt0 .
+
+ex:pendingUntil a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:readyUntilNotReady ; logic:queryContext ex:openAt0 .
+
+ex:immediateUntilWitness a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:alreadyReady ; logic:queryContext ex:closedAt0 .

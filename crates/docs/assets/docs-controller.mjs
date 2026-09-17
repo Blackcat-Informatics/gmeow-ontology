@@ -56,7 +56,7 @@ const FORMATS = [
 // the DEFAULT graph alone — the object-level ontology. That is the scope the explorer has
 // always answered over and the scope `WITNESS.describe.nt` attests, so pinning it in the
 // query keeps the surface's meaning independent of SPARQL's implementation-defined
-// DESCRIBE. `crates/mcp/tests/witness_explore.rs` proves this exact query reproduces the
+// DESCRIBE. `crates/mcp/src/tests/witness_explore.rs` proves this exact query reproduces the
 // committed attestation.
 export function describeQuery(subject) {
   return `CONSTRUCT { ${subject} ?p ?o } WHERE { ${subject} ?p ?o }`;

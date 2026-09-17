@@ -1,49 +1,50 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The GMN-1 codec's fixture corpus — the executed byte witness behind
-//! `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` claim.
-//!
-//! Every fixture here is a real [`round_trip_check`] over a [`Gmn0Model`]: write, read,
-//! canonically compare via `purrdf::canonicalize`. The corpus is deliberately NOT a
-//! trivially small fragment — it exercises every record form and factored slot the
-//! charter names, PLUS a real fragment of each grounding slice's authored `module.ttl`,
-//! so the "total over grounding" claim is proven against real content, not only
-//! hand-built toy triples.
+//! GMN record and slot behavior over explicit models and a tiny synthetic dictionary.
+//! Authored grounding-module and example judgments are produced by the pipeline
+//! and consumed by its authenticated conformance tests. Corpus witnesses describe
+//! those selected sources; they do not certify unrestricted calculus rewrites.
 
-use std::sync::Arc;
+use std::sync::OnceLock;
 
 use gmeow_lang_bridge::{
     Gmn0Model, Gmn1Document, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read,
     gmn1_write, gmn1_write_tabular, per_claim_round_trip_check, round_trip_check,
 };
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, parse_dataset};
+use purrdf::{RdfDatasetBuilder, RdfLiteral, parse_dataset};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
-fn lang_module_dataset() -> Arc<RdfDataset> {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../slices/grounding/lang/module.ttl"
-    );
-    let bytes = std::fs::read(path).expect("lang module.ttl is readable");
-    parse_dataset(&bytes, "text/turtle", None).expect("lang module.ttl parses")
-}
-
 fn dict() -> GmnDictionary {
-    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict-v3 loads from the carrier")
-}
-
-/// Load and parse one grounding slice's authored `module.ttl`.
-fn grounding_module_dataset(slice: &str) -> Arc<RdfDataset> {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding")
-        .join(slice)
-        .join("module.ttl");
-    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
-    parse_dataset(&bytes, "text/turtle", None).unwrap_or_else(|e| panic!("parse {path:?}: {e}"))
+    static DICTIONARY: OnceLock<GmnDictionary> = OnceLock::new();
+    DICTIONARY.get_or_init(|| {
+        // Only the three aliases needed by slot-policy examples. The selected
+        // authored bindings have their own producer-observation assertions.
+        let source = br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://example.test/> .
+gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;
+    gmeow:references ex:dictionary, ex:script ;
+    gmeow:gmnDictionaryVersion "3" ; gmeow:gmnGlyphTableVersion "2" .
+ex:dictionary a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnDictionaryEntry ex:open, ex:poss, ex:inst .
+ex:script a lang:Script ; lang:hasGrapheme ex:placeholder .
+ex:open gmeow:gmnDictionaryEntryTerm logic:Open ; gmeow:gmnDictionaryEntryAlias "open" .
+ex:poss gmeow:gmnDictionaryEntryTerm gmeow:modalForcePossible ; gmeow:gmnDictionaryEntryAlias "poss" .
+ex:inst gmeow:gmnDictionaryEntryTerm gmeow:methodInstrumentalReading ; gmeow:gmnDictionaryEntryAlias "inst" .
+gmeow:gmnDialectVersions a gmeow:VersionSet ; gmeow:gmnAcceptWindow 1 .
+ex:latest logic:versionInfo "1" .
+ex:membership a gmeow:VersionMembership ; gmeow:versionMember ex:latest ;
+    gmeow:versionSet gmeow:gmnDialectVersions ; gmeow:versionRole gmeow:roleLatest .
+"#;
+        let dataset = parse_dataset(source, "text/turtle", None).expect("tiny alias fixture");
+        GmnDictionary::from_dataset(&dataset).expect("explicit alias dictionary")
+    }).clone()
 }
 
 // ── 1. A single claim record ─────────────────────────────────────────────────────────
@@ -532,94 +533,6 @@ fn every_task5_qualifier_slot_round_trips() {
     );
 
     // bd/it are exercised by `process_record_with_boundary_and_iteration_round_trips`.
-}
-
-// ── 11. Real content from the grounding slices: logic, lang, math ──────────────────
-
-#[test]
-fn real_lang_module_round_trips() {
-    let ds = lang_module_dataset();
-    let model = Gmn0Model::from_dataset(&ds);
-    assert!(
-        model.quads.len() > 1000,
-        "sanity: real content, not a trivial fragment"
-    );
-    match round_trip_check(&model, &dict()) {
-        Ok(()) => {}
-        Err(e) => panic!("real lang: module.ttl must round-trip losslessly: {e}"),
-    }
-}
-
-#[test]
-fn real_logic_module_round_trips() {
-    let ds = grounding_module_dataset("logic");
-    let model = Gmn0Model::from_dataset(&ds);
-    assert!(
-        model.quads.len() > 1000,
-        "sanity: real content, not a trivial fragment"
-    );
-    match round_trip_check(&model, &dict()) {
-        Ok(()) => {}
-        Err(e) => panic!("real logic: module.ttl must round-trip losslessly: {e}"),
-    }
-}
-
-/// Round-trip EVERY authored `examples/*.ttl` fixture of a grounding slice — the
-/// `axisGmn1Coverage` axis's own definition ("every construct the slice's module/
-/// examples emit") scopes coverage to module.ttl PLUS examples, not module.ttl alone.
-fn round_trip_every_example(slice: &str) {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding")
-        .join(slice)
-        .join("examples");
-    let mut checked = 0usize;
-    for entry in std::fs::read_dir(&dir).unwrap_or_else(|e| panic!("read {dir:?}: {e}")) {
-        let path = entry.expect("dir entry").path();
-        if path.extension().and_then(|e| e.to_str()) != Some("ttl") {
-            continue;
-        }
-        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
-        let ds = parse_dataset(&bytes, "text/turtle", None)
-            .unwrap_or_else(|e| panic!("parse {path:?}: {e}"));
-        let model = Gmn0Model::from_dataset(&ds);
-        if let Err(e) = round_trip_check(&model, &dict()) {
-            panic!("{slice} example {path:?} must round-trip losslessly: {e}");
-        }
-        checked += 1;
-    }
-    assert!(
-        checked > 0,
-        "expected at least one examples/*.ttl fixture for {slice}"
-    );
-}
-
-#[test]
-fn real_logic_examples_round_trip() {
-    round_trip_every_example("logic");
-}
-
-#[test]
-fn real_lang_examples_round_trip() {
-    round_trip_every_example("lang");
-}
-
-#[test]
-fn real_math_examples_round_trip() {
-    round_trip_every_example("math");
-}
-
-#[test]
-fn real_math_module_round_trips() {
-    let ds = grounding_module_dataset("math");
-    let model = Gmn0Model::from_dataset(&ds);
-    assert!(
-        model.quads.len() > 500,
-        "sanity: real content, not a trivial fragment"
-    );
-    match round_trip_check(&model, &dict()) {
-        Ok(()) => {}
-        Err(e) => panic!("real math: module.ttl must round-trip losslessly: {e}"),
-    }
 }
 
 // ── RDF 1.2 triple terms + reifiers round-trip losslessly (RDF-star native) ─────────

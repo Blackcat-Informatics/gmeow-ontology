@@ -13,8 +13,8 @@
 //! subcommand HARD-FAILS (non-zero exit + a typed diagnostic) on any mismatch —
 //! never a soft warning (no-optionality).
 //!
-//! The GMN codebook + dictionary + grammar leaf + pack identity are resolved from the
-//! EMBEDDED `gmeow.gts` bundle ([`crate::BUNDLE_GTS`]) — the same authored
+//! The GMN codebook and dictionary are hydrated from producer-prepared native tables.
+//! Grammar leaves and pack identity are resolved from the EMBEDDED `gmeow.gts` bundle ([`crate::BUNDLE_GTS`]) — the same authored
 //! `gmeow:gmnCodebookCurrent` / `gmeow:gmnDictV3` the production gate loads, folded
 //! into the shipped snapshot — so `digest` / `encode` / `decode` run from the installed
 //! binary with NO repository checkout (`crates/gmeow-cli` coding guideline). The
@@ -32,10 +32,8 @@ use gmeow_cli_core::Reporter;
 use gmeow_lang_bridge::{
     CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1Document, GmnDictionary, GmnMigration,
     RingLattice, codebook_digest, consume_project, content_digest, derive_target_inventory,
-    extract_operators, gmn0_canonically_equal, gmn1_read, gmn1_write, grammar_leaf,
-    header_schema_major, idempotence_check, pack_root_from_grammar_leaf,
-    per_claim_round_trip_check, reemit_migrated_document, resolve_current_codebook,
-    source_operator_table,
+    extract_operators, gmn1_read, gmn1_write, grammar_leaf, header_schema_major,
+    pack_root_from_grammar_leaf, reemit_migrated_document, source_operator_table,
 };
 use purrdf::{RdfDataset, RdfTerm};
 
@@ -125,31 +123,30 @@ fn file_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfDataset>,
 }
 
 /// Resolve the current codebook + the `gmeow:gmnDictV3` dictionary — the exact pair the GMN-1 gate
-/// loads — from the EMBEDDED bundle by default, or from an explicit `--lang-module` override file.
+/// loads — from producer-prepared native tables by default, or an explicit `--lang-module` override.
 /// A resolution failure is a HARD fail (exit 1), never a degraded default.
 fn load_codebook_and_dict(
     reporter: &dyn Reporter,
     lang_module: Option<&Path>,
 ) -> Result<(CurrentCodebook, GmnDictionary), i32> {
-    let ds = match lang_module {
-        Some(path) => file_dataset(reporter, path)?,
-        None => bundle_dataset(reporter)?,
-    };
-    let codebook = resolve_current_codebook(&ds).map_err(|e| {
-        fail(
-            reporter,
-            "gmeow-cli.gmn.codebook",
-            format!("cannot resolve gmeow:gmnCodebookCurrent: {}", e.0),
-        )
-    })?;
-    let dict = GmnDictionary::from_dataset(&ds).map_err(|e| {
-        fail(
-            reporter,
-            "gmeow-cli.gmn.dictionary",
-            format!("cannot load gmeow:gmnDictV3: {}", e.0),
-        )
-    })?;
-    Ok((codebook, dict))
+    match lang_module {
+        Some(path) => {
+            let dataset = file_dataset(reporter, path)?;
+            gmeow_lang_bridge::gmn1_codec::compile_gmn_codebook(&dataset)
+                .map(|(dictionary, codebook)| (codebook, dictionary))
+                .map_err(|error| fail(reporter, "gmeow-cli.gmn.codebook", error.to_string()))
+        }
+        None => {
+            use gmeow_lang_bridge::gmn1_codec::native;
+            const PREPARED: &[u8] = include_bytes!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../generated/projections/lang/gmn-codebook.cbor"
+            ));
+            native::decode(PREPARED, native::SOURCE_BLAKE3)
+                .map(native::NativeCodebook::into_parts)
+                .map_err(|error| fail(reporter, "gmeow-cli.gmn.codebook", error.to_string()))
+        }
+    }
 }
 
 /// Parse a user-supplied RDF file as Turtle into the codec's GMN-0 quad model
@@ -356,10 +353,6 @@ pub fn project(
     budget: Option<u64>,
     lang_module: Option<&Path>,
 ) -> i32 {
-    let (_codebook, dict) = match load_codebook_and_dict(reporter, lang_module) {
-        Ok(pair) => pair,
-        Err(code) => return code,
-    };
     // The ring lattice coordinates are resolved from the SAME source as the codebook/dictionary:
     // the embedded bundle by default, or the `--lang-module` override.
     let lattice_ds = match lang_module {
@@ -369,6 +362,16 @@ pub fn project(
         },
         None => match bundle_dataset(reporter) {
             Ok(ds) => ds,
+            Err(code) => return code,
+        },
+    };
+    let dict = match lang_module {
+        Some(_) => match gmeow_lang_bridge::gmn1_codec::compile_gmn_codebook(&lattice_ds) {
+            Ok((dictionary, _)) => dictionary,
+            Err(error) => return fail(reporter, "gmeow-cli.gmn.codebook", error.to_string()),
+        },
+        None => match load_codebook_and_dict(reporter, None) {
+            Ok((_, dictionary)) => dictionary,
             Err(code) => return code,
         },
     };
@@ -505,10 +508,10 @@ pub fn verify(
             Ok(m) => m,
             Err(code) => return code,
         };
-        let doc = match gmn1_write(&model, &dict) {
-            Ok(d) => d,
-            Err(e) => {
-                failures.push(format!("positive {stem}: gmn1_write failed: {e}"));
+        let observed = match gmeow_lang_bridge::gmn_conformance::observe_positive(&model, &dict) {
+            Ok(observed) => observed,
+            Err(error) => {
+                failures.push(format!("positive {stem}: writer failed: {error}"));
                 continue;
             }
         };
@@ -523,35 +526,13 @@ pub fn verify(
                 continue;
             }
         };
-        if doc.text.as_bytes() != frozen.as_slice() {
-            failures.push(format!(
-                "positive {stem}: gmn1_write output differs from frozen {stem}.gmn (byte mismatch)"
-            ));
-            continue;
-        }
-        let back = match gmn1_read(&doc, &dict) {
-            Ok(b) => b,
-            Err(e) => {
-                failures.push(format!(
-                    "positive {stem}: gmn1_read of its own output failed: {e}"
-                ));
-                continue;
-            }
-        };
-        if !gmn0_canonically_equal(&model, &back) {
-            failures.push(format!(
-                "positive {stem}: reconstructed model is not canonically equal to the source"
-            ));
-            continue;
-        }
-        if let Err(e) = per_claim_round_trip_check(&model, &dict) {
-            failures.push(format!(
-                "positive {stem}: per-claim inversion witness failed: {e}"
-            ));
-            continue;
-        }
-        if let Err(e) = idempotence_check(&doc, &dict) {
-            failures.push(format!("positive {stem}: idempotence witness failed: {e}"));
+        let problems = observed.failures(&frozen);
+        if !problems.is_empty() {
+            failures.extend(
+                problems
+                    .into_iter()
+                    .map(|problem| format!("positive {stem}: {problem}")),
+            );
             continue;
         }
         positives += 1;
@@ -758,15 +739,23 @@ pub fn migrate(
             Err(code) => return code,
         },
     };
-    let dict = match GmnDictionary::from_dataset(&base_ds) {
-        Ok(dict) => dict,
-        Err(e) => {
-            return fail(
-                reporter,
-                "gmeow-cli.gmn.dictionary",
-                format!("cannot load gmeow:gmnDictV3: {}", e.0),
-            );
-        }
+    // The shipped dictionary is already prepared. Only an explicit user language
+    // source needs compilation; the graph above supplies operator precedences.
+    let dict = match lang_module {
+        Some(_) => match GmnDictionary::from_dataset(&base_ds) {
+            Ok(dict) => dict,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.gmn.dictionary",
+                    format!("cannot load gmeow:gmnDictV3: {}", e.0),
+                );
+            }
+        },
+        None => match load_codebook_and_dict(reporter, None) {
+            Ok((_codebook, dictionary)) => dictionary,
+            Err(code) => return code,
+        },
     };
 
     // 2. The authored migration leg: correspondence + rewrites + target inventory.

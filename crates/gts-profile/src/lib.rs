@@ -12,13 +12,12 @@
 //! This crate is the SINGLE production gateway to purrdf's GTS-authorship
 //! surface. Four doors exist and no fifth:
 //!
-//! * [`emit_gmeow_gts`] / [`emit_gmeow_gts_with_medium`] — snapshot bundles
+//! * [`emit_gmeow_gts`] — snapshot bundles
 //!   composed from a [`purrdf::gts_compose::SnapshotBuilder`]
 //!   (the shipped `gmeow.gts`, release bundles, on-demand consumer bundles),
 //!   unprimed or under an explicit [`MediumPlan`];
-//! * [`dataset_to_gmeow_gts`] — a frozen carrier
-//!   [`RdfDataset`](purrdf::RdfDataset) serialized straight to GTS bytes (the
-//!   `gmeow convert --to gts` exit);
+//! * [`view_to_gmeow_gts`] — a native dataset view serialized through the same
+//!   snapshot emitter (the `gmeow convert --to gts` exit);
 //! * [`GmeowGtsWriter`] (via [`store_writer`]) — incremental, append-only segment
 //!   authorship (the MCP agent-memory, conjecture and candidate stores);
 //! * [`compact_gmeow_gts`] — the streamable repack of an append-only store under a
@@ -39,13 +38,21 @@
 //! relocate the very dependency cycle the extraction breaks, or leave a code whose
 //! name misreports which crate owns it.
 
+pub mod archive;
 pub mod error;
+mod ingestion_receipt;
+pub use ingestion_receipt::{
+    GmeowGtsReceipt, GmeowGtsSourceReceipt, ingestion_receipt, ingestion_receipt_path,
+    read_ingestion_receipt, write_ingestion_receipt,
+};
 
 use ciborium::value::Value;
 use purrdf::gts::model::{Quad, Term};
 use purrdf::gts::wire::{SELF_DESCRIBE_TAG, iter_items, map_get, unwrap_header};
 use purrdf::gts::writer::{FrameOptions, Writer, term_to_wire};
-use purrdf::gts_compose::{BlobRow, DictSelection, FrameSlot, MediumPlan, SnapshotBuilder};
+use purrdf::gts_compose::{
+    BlobRow, DictSelection, FrameSlot, GtsIngestError, IngestReport, MediumPlan, SnapshotBuilder,
+};
 
 /// Required transform on every payload-bearing GMEOW GTS frame.
 pub const GMEOW_GTS_FRAME_TRANSFORM: &str = "zstd-rsyncable";
@@ -221,8 +228,8 @@ pub fn validate_mandated_frames(bytes: &[u8]) -> gmeow_errors::Result<()> {
         })?;
         let frame = map(item, &format!("GTS frame at byte offset {offset}"))?;
         if map_get(frame, "d").is_none() {
-            // A signed release may carry a metadata-only transport-key frame.
-            // It has no payload bytes to transform and is not a codec exception.
+            // Only an absent `d` makes a frame payload-free. A transport-key
+            // `meta` frame carrying structured data still requires compression.
             if map_get(frame, "x").is_some() {
                 return Err(profile_error(format!(
                     "payload-free GTS frame at byte offset {offset} carries a transform chain"
@@ -262,35 +269,6 @@ pub fn validate_mandated_frames(bytes: &[u8]) -> gmeow_errors::Result<()> {
     Ok(())
 }
 
-/// Emit a GMEOW snapshot using the one permitted production frame profile.
-///
-/// The single production call to [`purrdf::gts_compose::emit_gts`] in the whole
-/// workspace; `gmeow_validate::repo_static`'s Seal A censuses that and hard-fails
-/// a second one.
-///
-/// # Errors
-/// A composition or codec failure inside `emit_gts` (including its
-/// all-three-or-none signing precondition).
-#[allow(clippy::too_many_arguments)]
-pub fn emit_gmeow_gts(
-    builder: &SnapshotBuilder,
-    archive_blobs: Vec<BlobRow>,
-    report_blobs: Vec<BlobRow>,
-    signer_secret: Option<[u8; 32]>,
-    signer_kid: Option<String>,
-    public_key_armor: Option<String>,
-) -> gmeow_errors::Result<Vec<u8>> {
-    emit_gmeow_gts_with_medium(
-        builder,
-        archive_blobs,
-        report_blobs,
-        signer_secret,
-        signer_kid,
-        public_key_armor,
-        &baseline_medium_plan(),
-    )
-}
-
 /// The mandated no-dictionary medium: the one permitted transform chain with
 /// [`GMEOW_GTS_ZSTD_LEVEL`] declared explicitly in the catalog.
 ///
@@ -306,67 +284,83 @@ pub fn baseline_medium_plan() -> purrdf::gts_compose::MediumPlan {
     purrdf::gts_compose::MediumPlan::undicted(Some(GMEOW_GTS_ZSTD_LEVEL))
 }
 
-/// Emit a GMEOW snapshot under the mandated frame profile with an explicit
-/// medium plan — the dictionary-carrying door.
+/// The complete signing input for a selected signed snapshot.
 ///
-/// [`emit_gmeow_gts`] is this function at [`baseline_medium_plan`]; the pipeline's
-/// medium registry supplies a dict-bearing plan instead.
-///
-/// # Errors
-/// A composition or codec failure inside `emit_gts` (including its
-/// all-three-or-none signing precondition), or a frame slot missing from a
-/// non-empty plan's total assignment.
-#[allow(clippy::too_many_arguments)]
-pub fn emit_gmeow_gts_with_medium(
-    builder: &SnapshotBuilder,
-    archive_blobs: Vec<BlobRow>,
-    report_blobs: Vec<BlobRow>,
-    signer_secret: Option<[u8; 32]>,
-    signer_kid: Option<String>,
-    public_key_armor: Option<String>,
-    medium: &purrdf::gts_compose::MediumPlan,
-) -> gmeow_errors::Result<Vec<u8>> {
-    purrdf::gts_compose::emit_gts(
-        builder,
-        "dist",
-        Some(vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()]),
-        archive_blobs,
-        report_blobs,
-        signer_secret,
-        signer_kid,
-        public_key_armor,
-        purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-        medium,
-    )
-    .map_err(|message| gmeow_errors::Diag::of_kind(error::Profile { message }))
+/// A signing request carries all three fields together; a partial request cannot
+/// silently become an unsigned emission. Secret bytes are never debug-rendered.
+pub struct GmeowGtsSigning {
+    /// Ed25519 secret key bytes.
+    pub secret: [u8; 32],
+    /// Transport key identifier used by every signed frame.
+    pub key_id: String,
+    /// Public key armor carried by the signed transport-key metadata frame.
+    pub public_key_armor: String,
 }
 
-/// Consume a completed snapshot builder and emit it under the mandated frame
-/// profile and explicit medium plan.
+/// A snapshot's bytes and the exact receipt of the native input ingestions.
 ///
-/// This is the ownership-aware form of [`emit_gmeow_gts_with_medium`].  The borrowed
-/// form must keep the builder's full canonical tables resident while purrdf builds a
-/// second wire-value tree and two canonical byte buffers (one for transform selection,
-/// one in the writer).  GMEOW always selects `zstd-rsyncable` explicitly, so payload
-/// length cannot affect the transform.  This form constructs the wire value once,
-/// releases the builder, and hands the value directly to the writer.  Frame ordering,
-/// metadata, dictionary selection, codec, level, and resulting bytes are identical;
-/// `tests::owned_snapshot_emission_is_byte_identical` pins that contract.
+/// The caller retains `ingestion.declarations_omitted` in its selected result or
+/// loss evidence: the frozen GTS snapshot cannot represent declaration-only
+/// graphs. Operational counts and scratch observations stay out of the GTS
+/// payload and its content identity. No byte-only conversion hides this receipt.
+#[must_use = "retain the native ingestion receipt, including every omitted graph name"]
+#[derive(Debug)]
+pub struct GmeowGtsEmission {
+    /// Complete GMEOW GTS bytes under the selected medium and signing contract.
+    pub bytes: Vec<u8>,
+    /// Exact totals returned by the consumed native snapshot builder.
+    pub ingestion: IngestReport,
+    /// Verified source-output receipts retained through selected re-emission.
+    pub source_receipts: Vec<GmeowGtsSourceReceipt>,
+}
+
+fn ingestion_error(cause: GtsIngestError) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(error::SnapshotAdmission { cause })
+}
+
+/// Consume an admitted snapshot and publish it through the sole GMEOW emitter.
+///
+/// Native view ingestion checks completion before and after draining rows. Its
+/// sticky poison is checked here before extracting a payload: an earlier fully
+/// accepted prefix is never published after a selected input failed. The exact
+/// ingestion receipt is returned beside the bytes.
+///
+/// The builder's canonical tables are released before the writer encodes and
+/// compresses the owned payload. The explicit transform makes a second payload
+/// serialization for size-dependent codec selection unnecessary.
 ///
 /// # Errors
-/// A medium plan with an incomplete frame assignment, or a codec/writer failure.
-pub fn emit_owned_gmeow_gts_with_medium(
+/// Refuses a poisoned builder, a medium outside the mandatory level-12 profile,
+/// an incomplete dictionary assignment, or a codec/writer failure. Signing is
+/// selected by one complete [`GmeowGtsSigning`] value.
+pub fn emit_gmeow_gts(
     builder: SnapshotBuilder,
     archive_blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
+    signing: Option<GmeowGtsSigning>,
     medium: &MediumPlan,
-) -> gmeow_errors::Result<Vec<u8>> {
+) -> gmeow_errors::Result<GmeowGtsEmission> {
+    if let Some(cause) = builder.poison() {
+        return Err(ingestion_error(cause.clone()));
+    }
+    if medium.zstd_level != Some(GMEOW_GTS_ZSTD_LEVEL) {
+        return Err(profile_error(format!(
+            "the selected snapshot medium must declare zstd level {GMEOW_GTS_ZSTD_LEVEL}; found {:?}",
+            medium.zstd_level
+        )));
+    }
+    let ingestion = builder.ingest_totals();
     let payload = builder.snapshot_payload();
-    // The payload owns all of its wire terms/rows.  Releasing the interning tables
-    // before canonical encoding is the peak-memory boundary this API exists to make
-    // expressible; a borrowed-builder API cannot do it on the caller's behalf.
+    // The payload owns all of its wire terms/rows. Releasing the interning tables
+    // before encoding keeps them out of the writer's canonical/compression peak.
     drop(builder);
-    emit_snapshot_payload_with_medium(payload, archive_blobs, report_blobs, medium)
+    let bytes =
+        emit_snapshot_payload_with_medium(payload, archive_blobs, report_blobs, signing, medium)?;
+    Ok(GmeowGtsEmission {
+        bytes,
+        ingestion,
+        source_receipts: Vec::new(),
+    })
 }
 
 fn selected_dictionary<'a>(
@@ -391,6 +385,7 @@ fn emit_snapshot_payload_with_medium(
     payload: Value,
     archive_blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
+    signing: Option<GmeowGtsSigning>,
     medium: &MediumPlan,
 ) -> gmeow_errors::Result<Vec<u8>> {
     let options = purrdf::gts::writer::WriterOptions {
@@ -400,6 +395,33 @@ fn emit_snapshot_payload_with_medium(
     };
     let mut writer = Writer::with_options("dist", options)
         .map_err(|err| profile_error(format!("snapshot header: {err}")))?;
+    if let Some(signing) = signing {
+        writer.sign_with(
+            ed25519_dalek::SigningKey::from_bytes(&signing.secret),
+            &signing.key_id,
+        );
+        // Transport-key metadata is a real `d` payload, so it uses the same
+        // mandatory compression as every snapshot/blob payload. It has no
+        // dictionary-bearing MediumPlan slot and uses the explicit baseline.
+        writer
+            .add_frame_with_options(
+                "meta",
+                FrameOptions {
+                    payload: Some(Value::Map(vec![(
+                        "gts:transportKey".into(),
+                        Value::Map(vec![
+                            ("kid".into(), Value::Text(signing.key_id)),
+                            ("gpg".into(), Value::Text(signing.public_key_armor)),
+                        ]),
+                    )])),
+                    transform: vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()],
+                    zstd_level: Some(GMEOW_GTS_ZSTD_LEVEL),
+                    dict: None,
+                    ..Default::default()
+                },
+            )
+            .map_err(|err| profile_error(format!("transport-key frame: {err}")))?;
+    }
 
     // Match purrdf's snapshot composer exactly: blob frames precede the snapshot and
     // are sorted by representation, then decoded bytes.
@@ -447,27 +469,29 @@ fn emit_snapshot_payload_with_medium(
     Ok(writer.into_bytes())
 }
 
-/// Serialize a frozen carrier [`RdfDataset`](purrdf::RdfDataset) to GMEOW GTS
-/// bytes under the mandated frame profile.
+/// Ingest a complete native dataset view and publish it with its exact receipt.
 ///
-/// This is the transformed-consumer-output door (`gmeow convert --to gts`). It
-/// deliberately does NOT route through [`purrdf::gts_write::to_gts`]: that path
-/// authors its `terms`/`quads`/`reifies`/`annot`/`blob` frames through
-/// `Writer::deterministic`, which passes no transform chain at all, so its bytes
-/// ship identity-framed. Composing the same dataset through a
-/// [`SnapshotBuilder`] and [`emit_gmeow_gts`] yields the identical snapshot
-/// shape the shipped `gmeow.gts` carries — one canonical GMEOW authorship form,
-/// not two.
+/// This is the transformed-consumer output door (`gmeow convert --to gts`). The
+/// same native input admission and sole snapshot emitter handle frozen datasets,
+/// composites and delta snapshots; no transport dataset is materialized first.
 ///
 /// # Errors
-/// A carrier term that is not directly representable in the snapshot frame (a
-/// quoted-triple term outside the reifier/annotation tables), or a codec failure.
-pub fn dataset_to_gmeow_gts(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<Vec<u8>> {
+/// Refuses incomplete or unrepresentable native input, or any failure of the
+/// mandatory snapshot profile. The typed ingestion cause remains on the diagnostic.
+pub fn view_to_gmeow_gts<D: purrdf::FallibleDatasetView>(
+    view: &D,
+) -> gmeow_errors::Result<GmeowGtsEmission> {
     let mut builder = SnapshotBuilder::new();
-    builder
-        .add_dataset(dataset)
-        .map_err(|message| gmeow_errors::Diag::of_kind(error::Profile { message }))?;
-    emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+    let _ingestion = builder.add_view(view).map_err(ingestion_error)?;
+    // The sole emitter returns the same native receipt, including omitted graph
+    // identities; it does not render rows or perform another admission pass.
+    emit_gmeow_gts(
+        builder,
+        Vec::new(),
+        Vec::new(),
+        None,
+        &baseline_medium_plan(),
+    )
 }
 
 /// An append-only GTS segment writer that stamps the mandated transform profile
@@ -813,246 +837,9 @@ pub fn compact_gmeow_gts(
     .map_err(|err| profile_error(format!("compact a GMEOW store under {dictionary:?}: {err}")))
 }
 
+#[path = "lib.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod tests;
 
-    fn fixture_builder() -> SnapshotBuilder {
-        let dataset = purrdf::parse_dataset(
-            b"<https://e/s> <https://e/p> <https://e/o> .\n",
-            purrdf::NativeRdfFormat::NTriples.media_type(),
-            None,
-        )
-        .expect("parse fixture");
-        let mut builder = SnapshotBuilder::new();
-        builder.add_dataset(&dataset).expect("add fixture");
-        builder
-    }
-
-    #[test]
-    fn production_profile_pins_transform_and_level() {
-        assert_eq!(GMEOW_GTS_FRAME_TRANSFORM, "zstd-rsyncable");
-        assert_eq!(GMEOW_GTS_ZSTD_LEVEL, 12);
-        assert_eq!(purrdf::gts_compose::DIST_ZSTD_LEVEL, 12);
-
-        let builder = fixture_builder();
-        // gmeow-test-input: synthetic-only
-        let bytes = emit_gmeow_gts(
-            &builder,
-            vec![BlobRow {
-                data: b"small payload must not fall back to plain zstd".to_vec(),
-                media_type: "text/plain".to_string(),
-                rep: "profile-test".to_string(),
-            }],
-            Vec::new(),
-            None,
-            None,
-            None,
-        )
-        .expect("emit fixture");
-        validate_mandated_frames(&bytes).expect("fixture uses mandated frame profile");
-    }
-
-    #[test]
-    fn owned_snapshot_emission_is_byte_identical() {
-        let blob_rows = || {
-            vec![BlobRow {
-                data: b"the same blob bytes".to_vec(),
-                media_type: "text/plain".to_string(),
-                rep: "profile-test".to_string(),
-            }]
-        };
-        // gmeow-test-input: synthetic-only
-        let expected = emit_gmeow_gts_with_medium(
-            &fixture_builder(),
-            blob_rows(),
-            Vec::new(),
-            None,
-            None,
-            None,
-            &baseline_medium_plan(),
-        )
-        .expect("borrowed snapshot emission");
-        let actual = emit_owned_gmeow_gts_with_medium(
-            fixture_builder(),
-            blob_rows(),
-            Vec::new(),
-            &baseline_medium_plan(),
-        )
-        .expect("owned snapshot emission");
-
-        assert_eq!(
-            actual, expected,
-            "releasing the builder and skipping the redundant length probe cannot alter wire bytes"
-        );
-        validate_mandated_frames(&actual).expect("owned emission uses the mandated profile");
-    }
-
-    /// The leaf raises its OWN code namespace. A profile violation reported under
-    /// `pipeline.transform` would name a crate that does not own this check — and
-    /// depending on `gmeow-pipeline` to borrow that kind would reinstate the very
-    /// cycle this crate was extracted to break.
-    #[test]
-    fn profile_kind_keeps_its_registered_code() {
-        assert_eq!(error::Profile::CODE, "gts-profile.frame");
-    }
-
-    #[test]
-    fn profile_validator_rejects_a_payload_without_a_transform_chain() {
-        let builder = fixture_builder();
-        // gmeow-test-input: synthetic-only
-        let bytes = emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
-            .expect("emit fixture");
-        let (mut items, torn) = iter_items(&bytes);
-        assert!(torn.is_none());
-        let payload = items
-            .iter_mut()
-            .skip(1)
-            .find_map(|(_, item)| match item {
-                Value::Map(entries) if map_get(entries, "d").is_some() => Some(entries),
-                _ => None,
-            })
-            .expect("fixture has a payload frame");
-        payload.retain(|(key, _)| !matches!(key, Value::Text(value) if value == "x"));
-
-        let mut malformed = Vec::new();
-        for (_, item) in items {
-            ciborium::ser::into_writer(&item, &mut malformed).expect("serialize fixture item");
-        }
-        let error = validate_mandated_frames(&malformed).expect_err("missing transform must fail");
-        assert!(
-            error.to_string().contains("has no transform chain"),
-            "{error}"
-        );
-    }
-
-    #[test]
-    fn dataset_exit_carries_the_mandated_profile_and_reads_back() {
-        let dataset = purrdf::parse_dataset(
-            concat!(
-                "<https://e/s> <https://e/p> <https://e/o> .\n",
-                "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
-                "<<( <https://e/s> <https://e/p> <https://e/o> )>> .\n",
-            )
-            .as_bytes(),
-            purrdf::NativeRdfFormat::NTriples.media_type(),
-            None,
-        )
-        .expect("parse fixture");
-        // gmeow-test-input: synthetic-only
-        let bytes = dataset_to_gmeow_gts(&dataset).expect("serialize the carrier exit");
-        validate_mandated_frames(&bytes).expect("carrier exit uses the mandated frame profile");
-        let graph = purrdf::gts::reader::read(&bytes, false, None);
-        assert!(!graph.quads.is_empty(), "the exit bytes read back as quads");
-    }
-
-    /// A bare `purrdf` `Writer` — the shape every non-`emit_gts` authorship path
-    /// used to take — emits payload frames with NO transform chain. Pin the
-    /// counter-example so the wrapper below is demonstrably load-bearing.
-    #[test]
-    fn a_bare_purrdf_writer_fails_the_mandated_profile() {
-        // A bare writer violates the profile twice: its catalog declares no level,
-        // and its frames carry no transform chain. Pin BOTH independently, so
-        // neither rejection can mask a regression in the other.
-        let mut writer = Writer::new("ai-package");
-        writer.add_terms(&[iri_term("https://e/s")]);
-        let error = validate_mandated_frames(&writer.into_bytes())
-            .expect_err("a bare writer must fail the profile");
-        assert!(error.to_string().contains("no level"), "{error}");
-
-        // Now grant it the declared level and nothing else: the frame-level
-        // violation must still stand on its own.
-        let options = purrdf::gts::writer::WriterOptions {
-            zstd_level: Some(GMEOW_GTS_ZSTD_LEVEL),
-            ..Default::default()
-        };
-        let mut levelled =
-            Writer::with_options("ai-package", options).expect("declared level is valid");
-        levelled.add_terms(&[iri_term("https://e/s")]);
-        let error = validate_mandated_frames(&levelled.into_bytes())
-            .expect_err("a level-declaring bare writer still authors untransformed frames");
-        assert!(
-            error.to_string().contains("has no transform chain"),
-            "{error}"
-        );
-    }
-
-    /// An append-only file concatenates whole segments, each with its own header.
-    /// The audit must walk every segment (not stop at the first) and must not
-    /// mistake a later header for a malformed frame.
-    #[test]
-    fn multi_segment_append_is_audited_segment_by_segment() {
-        let mut appended = mandated_segment("https://e/a");
-        appended.extend_from_slice(&mandated_segment("https://e/b"));
-        validate_mandated_frames(&appended).expect("every appended segment is audited");
-
-        // A second segment authored WITHOUT the profile is caught, proving the walk
-        // does not stop after the first header. A bare `Writer` violates the profile
-        // twice over — its catalog declares no level and its frames carry no
-        // transform chain — and either rejection is correct, so the assertion binds
-        // to the invariant the test actually exists for: the failure is attributed
-        // to the SECOND segment, i.e. the walk did not stop at the first header.
-        let first = mandated_segment("https://e/a");
-        let boundary = first.len();
-        let mut mixed = first;
-        let mut bare = Writer::new("ai-package");
-        bare.add_terms(&[iri_term("https://e/b")]);
-        mixed.extend_from_slice(&bare.into_bytes());
-        let error =
-            validate_mandated_frames(&mixed).expect_err("an unprofiled appended segment must fail");
-        let offset: usize = error
-            .to_string()
-            .split("byte offset ")
-            .nth(1)
-            .and_then(|rest| {
-                rest.split(|c: char| !c.is_ascii_digit())
-                    .next()
-                    .and_then(|digits| digits.parse().ok())
-            })
-            .unwrap_or_else(|| panic!("the failure must name a byte offset: {error}"));
-        assert!(
-            offset >= boundary,
-            "the failure must be attributed to the appended segment at or past byte {boundary}, \
-             not the conforming first one: {error}"
-        );
-    }
-
-    fn iri_term(iri: &str) -> Term {
-        Term {
-            kind: purrdf::gts::model::TermKind::Iri,
-            value: Some(iri.to_string()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-            triple: None,
-        }
-    }
-
-    fn mandated_segment(iri: &str) -> Vec<u8> {
-        // gmeow-test-input: synthetic-only
-        let mut writer = GmeowGtsWriter::new("ai-package");
-        writer.add_terms(&[iri_term(iri)]).expect("terms frame");
-        writer.into_bytes()
-    }
-
-    #[test]
-    fn segment_writer_stamps_the_mandated_profile_on_every_frame() {
-        let terms = vec![
-            iri_term("https://e/s"),
-            iri_term("https://e/p"),
-            iri_term("https://e/o"),
-        ];
-        // gmeow-test-input: synthetic-only
-        let mut writer = GmeowGtsWriter::new("ai-package");
-        writer.add_terms(&terms).expect("terms frame");
-        writer.add_quads(&[(0, 1, 2, None)]).expect("quads frame");
-        let bytes = writer.into_bytes();
-        validate_mandated_frames(&bytes).expect("segment writer uses the mandated frame profile");
-
-        // The segment still reads back as the quad it encodes — the transform is
-        // decoded transparently, not a write-only stamp.
-        let graph = purrdf::gts::reader::read(&bytes, false, None);
-        assert_eq!(graph.quads.len(), 1, "one quad round-trips");
-    }
-}
+#[cfg(test)]
+mod snapshot_tests;

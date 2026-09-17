@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+[package]
+name = "gmeow-build-inputs"
+description = "Typed production source selection and fail-closed compiler input admission"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+cargo-config2.workspace = true
+glob = "0.3"
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+syn = { version = "2", features = ["full", "visit", "extra-traits"] }
+proc-macro2 = { version = "1", features = ["span-locations"] }
+toml = "0.8"
+
+[dev-dependencies]
+tempfile.workspace = true

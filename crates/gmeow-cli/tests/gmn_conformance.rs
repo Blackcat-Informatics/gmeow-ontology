@@ -1,22 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Production-surface proof that the SHIPPED `gmeow` binary exposes the GMN-1
-//! conformance surface — the real `Cli`/`Commands::Gmn` clap dispatch in
-//! `src/lib.rs`, driven through `assert_cmd` exactly like the other CLI tests.
-//!
-//! Before this surface landed, the codec's digest / codec / witness / pack layer was
-//! reachable only from `crates/pipeline`'s production gates;
-//! `gmeow gmn verify` returned `unrecognized subcommand`. This drives the built
-//! binary over the committed frozen vector corpus and asserts:
-//!
-//! * `gmn verify` exits 0 over the real corpus (byte-frozen + per-claim + pack-root),
-//! * `gmn digest`/`encode`/`decode` produce stable output on a small fixture, and
-//! * `gmn verify` exits NON-ZERO when pointed at a deliberately corrupted vectors dir
-//!   AND when pointed at a tampered pack root — the no-optionality hard-fail contract.
+//! Public GMN command dispatch over independent tiny user inputs. The complete
+//! authored corpus and ring demonstrator are graded from authenticated producer
+//! observations in the pipeline suite. These tests never parse or copy them.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use assert_cmd::Command;
 use predicates::prelude::*;
@@ -26,78 +16,101 @@ fn gmeow() -> Command {
     Command::cargo_bin("gmeow").expect("gmeow binary builds")
 }
 
-/// The repo root (this crate lives at `crates/gmeow-cli`). Absolute so the test is
-/// insensitive to the process CWD `cargo`/`nextest` chooses.
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .expect("repo root canonicalizes")
-}
+const CODEBOOK: &str = "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce";
+const INPUT: &str = "<https://blackcatinformatics.ca/gmeow/cliSubject> <https://blackcatinformatics.ca/gmeow/cliPredicate> <https://blackcatinformatics.ca/gmeow/cliObject> .\n";
+const FROZEN: &str = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__cliSubject, p: gmeow__cliPredicate, o: gmeow__cliObject}\n";
 
-fn lang_module() -> PathBuf {
-    repo_root().join("slices/grounding/lang/module.ttl")
-}
-
-fn vectors_dir() -> PathBuf {
-    repo_root().join("slices/grounding/lang/tests/gmn1-vectors")
-}
-
-fn grammar() -> PathBuf {
-    repo_root().join("slices/grounding/lang/grammars/gmn.ebnf")
-}
-
-/// The ring-tagged consume-path demonstrator (four claims at four security rings).
-fn ring_consume_ttl() -> PathBuf {
-    repo_root().join("slices/grounding/lang/examples/gmn-ring-consume.ttl")
-}
-
-/// A committed positive vector whose `.gmn` decodes standalone (all-IRI claim, no
-/// out-of-band `r_<hash>` by-reference tokens).
-fn claim_basic_ttl() -> PathBuf {
-    vectors_dir().join("claim-basic.in.ttl")
-}
-
-fn claim_basic_gmn() -> PathBuf {
-    vectors_dir().join("claim-basic.gmn")
-}
-
-/// Recursively copy `src` into `dst` (creating `dst`).
-fn copy_tree(src: &Path, dst: &Path) {
-    fs::create_dir_all(dst).expect("create dest dir");
-    for entry in fs::read_dir(src).expect("read source dir") {
-        let entry = entry.expect("dir entry");
-        let from = entry.path();
-        let to = dst.join(entry.file_name());
-        if entry.file_type().expect("file type").is_dir() {
-            copy_tree(&from, &to);
-        } else {
-            fs::copy(&from, &to).expect("copy file");
-        }
+/// One independent positive and negative user vector, plus small ring controls.
+struct Inputs(tempfile::TempDir);
+impl Inputs {
+    fn new() -> Self {
+        let inputs = Self(tempfile::tempdir().unwrap());
+        fs::write(inputs.path("claim-basic.in.ttl"), INPUT).unwrap();
+        fs::write(inputs.path("claim-basic.gmn"), FROZEN).unwrap();
+        fs::write(
+            inputs.path("vector-manifest.ttl"),
+            format!(
+                r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+[] rdfs:label "claim-basic.in.ttl -> claim-basic.gmn" ; gmeow:gmnCodebookDigest "{CODEBOOK}" .
+"#
+            ),
+        )
+        .unwrap();
+        fs::create_dir(inputs.path("negative-codec")).unwrap();
+        fs::write(inputs.path("negative-codec/unknown.gmn"), "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: not_a_known_prefix__s, p: gmeow__cliPredicate, o: gmeow__cliObject}\n").unwrap();
+        fs::write(
+            inputs.path("negative-codec/expected.ttl"),
+            r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+[] rdfs:label "unknown.gmn" ; gmeow:enforcesFailureClass lang:GmnUncoveredTerm .
+"#,
+        )
+        .unwrap();
+        fs::write(
+            inputs.path("language.ttl"),
+            r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;
+  gmeow:references gmeow:cliDictionary, lang:cliScript ;
+  gmeow:gmnDictionaryVersion "3" ; gmeow:gmnGlyphTableVersion "2" .
+gmeow:cliDictionary a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
+lang:cliScript a lang:Script ; lang:hasGrapheme lang:cliGrapheme .
+gmeow:gmnDialectVersions a gmeow:VersionSet ; gmeow:gmnAcceptWindow 1 .
+gmeow:cliLatest logic:versionInfo "1" .
+gmeow:cliMembership a gmeow:VersionMembership ;
+  gmeow:versionMember gmeow:cliLatest ; gmeow:versionSet gmeow:gmnDialectVersions ;
+  gmeow:versionRole gmeow:roleLatest .
+gmeow:gmnRingCore gmeow:gmnRingLevel gmeow:cliCore .
+gmeow:gmnRingTrusted gmeow:gmnRingLevel gmeow:cliTrusted .
+gmeow:gmnRingNato gmeow:gmnRingLevel gmeow:cliTrusted ; gmeow:gmnRingCompartment gmeow:cliNato .
+gmeow:gmnRingRestricted gmeow:gmnRingLevel gmeow:cliRestricted .
+gmeow:cliCore gmeow:gmnRingLevelDominates gmeow:cliCore, gmeow:cliTrusted, gmeow:cliRestricted .
+gmeow:cliTrusted gmeow:gmnRingLevelDominates gmeow:cliTrusted, gmeow:cliRestricted .
+gmeow:cliRestricted gmeow:gmnRingLevelDominates gmeow:cliRestricted .
+"#,
+        )
+        .unwrap();
+        fs::write(
+            inputs.path("rings.ttl"),
+            r#"
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+g:cliCoreClaim g:gmnContentRing g:gmnRingCore ; g:cliField g:cliCoreDatum .
+g:cliTrustedClaim g:gmnContentRing g:gmnRingTrusted ; g:cliField g:cliTrustedDatum .
+g:cliNatoClaim g:gmnContentRing g:gmnRingNato ; g:cliField g:cliNatoDatum .
+g:cliRestrictedClaim g:gmnContentRing g:gmnRingRestricted ; g:cliField g:cliRestrictedDatum .
+"#,
+        )
+        .unwrap();
+        inputs
+    }
+    fn path(&self, name: &str) -> PathBuf {
+        self.0.path().join(name)
     }
 }
 
-// ── verify: PASS over the real corpus ───────────────────────────────────────────
+// ── verify: PASS over independent inputs ───────────────────────────────────────────
 
-/// `gmeow gmn verify` exits 0 over the committed frozen corpus and prints the
+/// `gmeow gmn verify` exits 0 over an independent tiny user corpus and prints the
 /// pass summary (positives byte-frozen + round-tripped, negatives classified).
 #[test]
-fn gmn_verify_passes_over_the_committed_corpus() {
+fn gmn_verify_accepts_an_independent_user_corpus() {
+    let inputs = Inputs::new();
     gmeow()
         .args([
             "gmn",
             "verify",
             "--vectors",
-            vectors_dir().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
-            "--grammar",
-            grammar().to_str().unwrap(),
+            inputs.path("").to_str().unwrap(),
         ])
         .assert()
         .success()
-        .stdout(predicate::str::contains("positives 19/19"))
+        .stdout(predicate::str::contains("positives 1/1"))
         .stdout(predicate::str::contains("gmn conformance PASS"));
 }
 
@@ -107,14 +120,13 @@ fn gmn_verify_passes_over_the_committed_corpus() {
 /// content digest, both `blake3:…` and stable run-to-run.
 #[test]
 fn gmn_digest_is_stable() {
-    // The codebook digest is the value the frozen `manifest.ttl` is pinned against.
+    let inputs = Inputs::new();
+    // The installed native codebook retains the product digest pinned by its producer.
     gmeow()
         .args([
             "gmn",
             "digest",
-            claim_basic_ttl().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
+            inputs.path("claim-basic.in.ttl").to_str().unwrap(),
         ])
         .assert()
         .success()
@@ -126,15 +138,14 @@ fn gmn_digest_is_stable() {
 
 /// `gmeow gmn encode` reproduces the frozen `claim-basic.gmn` byte-for-byte.
 #[test]
-fn gmn_encode_matches_the_frozen_vector() {
-    let frozen = fs::read_to_string(claim_basic_gmn()).expect("read frozen .gmn");
+fn gmn_encode_matches_the_independent_user_vector() {
+    let inputs = Inputs::new();
+    let frozen = fs::read_to_string(inputs.path("claim-basic.gmn")).expect("read frozen .gmn");
     gmeow()
         .args([
             "gmn",
             "encode",
-            claim_basic_ttl().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
+            inputs.path("claim-basic.in.ttl").to_str().unwrap(),
         ])
         .assert()
         .success()
@@ -144,20 +155,19 @@ fn gmn_encode_matches_the_frozen_vector() {
 /// `gmeow gmn decode` reconstructs the source triple as canonical N-Quads.
 #[test]
 fn gmn_decode_reconstructs_the_source() {
+    let inputs = Inputs::new();
     gmeow()
         .args([
             "gmn",
             "decode",
-            claim_basic_gmn().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
+            inputs.path("claim-basic.gmn").to_str().unwrap(),
         ])
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "<https://blackcatinformatics.ca/gmeow/gate1> \
-             <https://blackcatinformatics.ca/gmeow/hasState> \
-             <https://blackcatinformatics.ca/gmeow/doorGate1> .",
+            "<https://blackcatinformatics.ca/gmeow/cliSubject> \
+             <https://blackcatinformatics.ca/gmeow/cliPredicate> \
+             <https://blackcatinformatics.ca/gmeow/cliObject> .",
         ));
 }
 
@@ -168,24 +178,25 @@ fn gmn_decode_reconstructs_the_source() {
 /// the shipped binary, not just the library. stdout carries the ring-filtered GMN-1 payload.
 #[test]
 fn gmn_project_excludes_out_of_ring_content_on_the_cli() {
+    let inputs = Inputs::new();
     gmeow()
         .args([
             "gmn",
             "project",
-            ring_consume_ttl().to_str().unwrap(),
+            inputs.path("rings.ttl").to_str().unwrap(),
             "--ring",
             "gmnRingTrusted",
             "--lang-module",
-            lang_module().to_str().unwrap(),
+            inputs.path("language.ttl").to_str().unwrap(),
         ])
         .assert()
         .success()
         // admitted content is present in the projected GMN-1 …
-        .stdout(predicate::str::contains("ringDemoCoreDatum"))
-        .stdout(predicate::str::contains("ringDemoTrustedDatum"))
-        .stdout(predicate::str::contains("ringDemoNatoDatum"))
+        .stdout(predicate::str::contains("cliCoreDatum"))
+        .stdout(predicate::str::contains("cliTrustedDatum"))
+        .stdout(predicate::str::contains("cliNatoDatum"))
         // … and the out-of-ring restricted claim is EXCLUDED (absent from stdout).
-        .stdout(predicate::str::contains("ringDemoRestrictedDatum").not())
+        .stdout(predicate::str::contains("cliRestrictedDatum").not())
         .stderr(predicate::str::contains("admitted 3/4 claims, excluded 1"));
 }
 
@@ -193,38 +204,40 @@ fn gmn_project_excludes_out_of_ring_content_on_the_cli() {
 /// content is admitted; plain same-level trusted content is EXCLUDED.
 #[test]
 fn gmn_project_compartment_axis_excludes_plain_content_on_the_cli() {
+    let inputs = Inputs::new();
     gmeow()
         .args([
             "gmn",
             "project",
-            ring_consume_ttl().to_str().unwrap(),
+            inputs.path("rings.ttl").to_str().unwrap(),
             "--ring",
             "gmnRingNato",
             "--lang-module",
-            lang_module().to_str().unwrap(),
+            inputs.path("language.ttl").to_str().unwrap(),
         ])
         .assert()
         .success()
-        .stdout(predicate::str::contains("ringDemoNatoDatum"))
-        .stdout(predicate::str::contains("ringDemoTrustedDatum").not())
-        .stdout(predicate::str::contains("ringDemoCoreDatum").not())
+        .stdout(predicate::str::contains("cliNatoDatum"))
+        .stdout(predicate::str::contains("cliTrustedDatum").not())
+        .stdout(predicate::str::contains("cliCoreDatum").not())
         .stderr(predicate::str::contains("admitted 1/4 claims, excluded 3"));
 }
 
 /// A tiny `--budget` forces whole-claim elision, disclosed on stderr — never a silent cut.
 #[test]
 fn gmn_project_budget_discloses_elision_on_the_cli() {
+    let inputs = Inputs::new();
     gmeow()
         .args([
             "gmn",
             "project",
-            ring_consume_ttl().to_str().unwrap(),
+            inputs.path("rings.ttl").to_str().unwrap(),
             "--ring",
             "gmnRingTrusted",
             "--budget",
             "20",
             "--lang-module",
-            lang_module().to_str().unwrap(),
+            inputs.path("language.ttl").to_str().unwrap(),
         ])
         .assert()
         .success()
@@ -235,15 +248,16 @@ fn gmn_project_budget_discloses_elision_on_the_cli() {
 /// An unresolvable `--ring` hard-fails (`lang:GmnRingLatticeMalformed`) — no degraded default.
 #[test]
 fn gmn_project_unknown_ring_hard_fails_on_the_cli() {
+    let inputs = Inputs::new();
     gmeow()
         .args([
             "gmn",
             "project",
-            ring_consume_ttl().to_str().unwrap(),
+            inputs.path("rings.ttl").to_str().unwrap(),
             "--ring",
             "gmnRingNotAThing",
             "--lang-module",
-            lang_module().to_str().unwrap(),
+            inputs.path("language.ttl").to_str().unwrap(),
         ])
         .assert()
         .failure()
@@ -254,14 +268,13 @@ fn gmn_project_unknown_ring_hard_fails_on_the_cli() {
 
 // ── verify: HARD-FAIL on a corrupted corpus and a tampered pack ──────────────────
 
-/// A deliberately corrupted vectors dir (one frozen `.gmn` byte tampered) makes
+/// A deliberately corrupted one-vector input directory (one frozen `.gmn` byte tampered) makes
 /// `gmn verify` exit NON-ZERO with the byte-mismatch diagnostic — the byte-exact
 /// tooth, proven falsifiable.
 #[test]
 fn gmn_verify_fails_on_a_corrupted_vectors_dir() {
-    let tmp = tempfile::TempDir::new().expect("temp dir");
-    let corrupt = tmp.path().join("gmn1-vectors");
-    copy_tree(&vectors_dir(), &corrupt);
+    let inputs = Inputs::new();
+    let corrupt = inputs.path("");
     // Append junk to a frozen positive output so its recomputed encoding no longer
     // matches byte-for-byte.
     let target = corrupt.join("claim-basic.gmn");
@@ -270,19 +283,10 @@ fn gmn_verify_fails_on_a_corrupted_vectors_dir() {
     fs::write(&target, bytes).expect("write tampered .gmn");
 
     gmeow()
-        .args([
-            "gmn",
-            "verify",
-            "--vectors",
-            corrupt.to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
-            "--grammar",
-            grammar().to_str().unwrap(),
-        ])
+        .args(["gmn", "verify", "--vectors", corrupt.to_str().unwrap()])
         .assert()
         .failure()
-        .stdout(predicate::str::contains("positives 18/19"))
+        .stdout(predicate::str::contains("positives 0/1"))
         .stderr(predicate::str::contains("byte mismatch"));
 }
 
@@ -290,6 +294,7 @@ fn gmn_verify_fails_on_a_corrupted_vectors_dir() {
 /// NON-ZERO — the pack-root tooth.
 #[test]
 fn gmn_verify_fails_on_a_tampered_pack_root() {
+    let inputs = Inputs::new();
     let tmp = tempfile::TempDir::new().expect("temp dir");
     let pack = tmp.path().join("pack.ttl");
     fs::write(
@@ -304,11 +309,7 @@ fn gmn_verify_fails_on_a_tampered_pack_root() {
             "gmn",
             "verify",
             "--vectors",
-            vectors_dir().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
-            "--grammar",
-            grammar().to_str().unwrap(),
+            inputs.path("").to_str().unwrap(),
             "--pack",
             pack.to_str().unwrap(),
         ])

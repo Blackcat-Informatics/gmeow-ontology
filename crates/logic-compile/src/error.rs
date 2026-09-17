@@ -165,6 +165,15 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// Formula source expansion exceeded its resource envelope before IR construction.
+    pub struct FormulaAdmission { detail: String }
+    code = "logic-compile.formula-admission";
+    grade = Grade::new(Severity::Error, FindingCategory::IncompleteCheck, Standpoint::Binding);
+    message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/logic/FormulaAdmissionExhaustion";
+}
+
+define_diag_kind! {
     /// A Common-Logic dialect round-trip did not close: a projection or re-parse
     /// failed, or two dialects disagreed on the recovered program.
     pub struct Roundtrip { detail: String }
@@ -238,6 +247,7 @@ pub const LOGIC_COMPILE_DIAG_CODES: &[&str] = &[
     GetLeg::CODE,
     Text::CODE,
     Frontend::CODE,
+    FormulaAdmission::CODE,
     Roundtrip::CODE,
     Graph::CODE,
     OptLift::CODE,
@@ -263,6 +273,7 @@ pub fn register_all() -> Vec<Code> {
         GetLeg::register(),
         Text::register(),
         Frontend::register(),
+        FormulaAdmission::register(),
         Roundtrip::register(),
         Graph::register(),
         OptLift::register(),
@@ -272,33 +283,6 @@ pub fn register_all() -> Vec<Code> {
     ]
 }
 
+#[path = "error.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use gmeow_errors::intern_code;
-    use std::collections::HashSet;
-
-    #[test]
-    fn every_logic_compile_code_interns_with_no_collision() {
-        let handles = register_all();
-        assert_eq!(
-            handles.len(),
-            LOGIC_COMPILE_DIAG_CODES.len(),
-            "register_all() and LOGIC_COMPILE_DIAG_CODES must enumerate the same kinds"
-        );
-        for code in LOGIC_COMPILE_DIAG_CODES {
-            assert!(
-                intern_code(code).is_ok(),
-                "logic-compile code `{code}` did not intern after register_all()"
-            );
-        }
-        let distinct_strings: HashSet<&&str> = LOGIC_COMPILE_DIAG_CODES.iter().collect();
-        assert_eq!(
-            distinct_strings.len(),
-            LOGIC_COMPILE_DIAG_CODES.len(),
-            "duplicate logic-compile diagnostic code string detected"
-        );
-        let distinct_handles: HashSet<Code> = handles.iter().copied().collect();
-        assert_eq!(distinct_handles.len(), handles.len());
-    }
-}
+mod tests;

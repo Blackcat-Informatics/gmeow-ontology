@@ -34,6 +34,8 @@ fn rich_result() -> ReasoningResult {
     assumptions.insert(Assumption::SkolemWitness);
 
     let prov = ResultProvenance {
+        claim: crate::result::ResultClaim::Conclusion,
+        native_execution: None,
         contract_hash: "contract:abc123".to_owned(),
         query: "ASK { ?x a ex:Cat }".to_owned(),
         conclusion: "ex:Felix a ex:Cat".to_owned(),
@@ -42,6 +44,7 @@ fn rich_result() -> ReasoningResult {
         context: ResultContext {
             world: "http://ex/world/actual".to_owned(),
             standpoint: Some("http://ex/standpoint/s1".to_owned()),
+            attributed: None,
             time: Some("2026-06-28".to_owned()),
             path: Some("http://ex/path/p1".to_owned()),
         },
@@ -87,18 +90,20 @@ fn rich_result() -> ReasoningResult {
 
     let payload = ResultPayload::Inferred(vec![
         InferredAxiom {
+            modal_evaluation: None,
             subject: "http://ex/Felix".to_owned(),
             predicate: "http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned(),
-            object: "<http://ex/Animal>".to_owned(),
+            object: purrdf::TermValue::iri("http://ex/Animal"),
             world: "http://ex/world/actual".to_owned(),
             is_edb: false,
             rule_name: Some("rule:subclass-transitive".to_owned()),
             premises: vec![],
         },
         InferredAxiom {
+            modal_evaluation: None,
             subject: "http://ex/told".to_owned(),
             predicate: "http://ex/p".to_owned(),
-            object: "http://ex/o".to_owned(),
+            object: purrdf::TermValue::iri("http://ex/o"),
             world: "http://ex/world/actual".to_owned(),
             is_edb: true, // an EDB axiom is NOT projected as a derived row.
             rule_name: None,
@@ -120,18 +125,164 @@ fn rich_result() -> ReasoningResult {
 #[test]
 fn projection_is_byte_deterministic() {
     let result = rich_result();
-    let a = project_reasoning_result(&result);
-    let b = project_reasoning_result(&result);
+    let a = project_reasoning_result(&result).unwrap();
+    let b = project_reasoning_result(&result).unwrap();
     assert_eq!(a, b, "the graph/reasoning projection must be byte-stable");
     // And re-projecting a freshly-constructed equal result is identical.
-    let c = project_reasoning_result(&rich_result());
+    let c = project_reasoning_result(&rich_result()).unwrap();
     assert_eq!(a, c, "structurally-equal results project identically");
+}
+
+fn native_conflict_result() -> ReasoningResult {
+    use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
+    let mut source = purrdf::RdfDatasetBuilder::new();
+    source.push_owned_quad(&purrdf::RdfQuad::new(
+        purrdf::RdfTerm::iri("urn:gmeow:test:conflicting-individual"),
+        "https://blackcatinformatics.ca/logic/instanceOf",
+        purrdf::RdfTerm::iri("https://blackcatinformatics.ca/logic/Nothing"),
+    ));
+    let source = source.freeze().unwrap();
+    let input = crate::reason::prepare_reasoning_input(&source).unwrap();
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Default,
+        DomainProfile::NonemptyObjectDomainV1,
+        "urn:gmeow:test:result-provenance-domain".into(),
+        *input.ingress_contract(),
+    )
+    .unwrap()])
+    .unwrap();
+    // gmeow-test-input: synthetic-only
+    let result = crate::reason::reason_all(input, &domains).unwrap();
+    result.validate_native_closure().unwrap();
+    assert_eq!(result.information, InformationState::Both);
+    result
+}
+
+#[test]
+fn terminal_result_retains_native_execution_and_requires_the_separate_closure() {
+    let result = native_conflict_result();
+    let projection = ResultProjection::reasoning(&result).unwrap();
+    let wire = projection.to_ntriples();
+    assert!(wire.contains(projection.node_iri()));
+    let restored = parse_reasoning_graph(&wire).unwrap();
+    assert_eq!(restored.provenance.claim, ResultClaim::WorldConsistency);
+    assert_eq!(
+        restored.native_execution().unwrap(),
+        result.native_execution().unwrap()
+    );
+    assert_eq!(restored.information, result.information);
+    assert!(
+        restored.validate_native_closure().is_err(),
+        "a verdict projection omits asserted closure rows and cannot stand in for its complete native product"
+    );
+    let dataset = projection.into_dataset().unwrap();
+    let direct = parse_reasoning_dataset(&dataset, GraphMatch::Default).unwrap();
+    assert_eq!(direct.provenance, restored.provenance);
+}
+
+#[test]
+fn native_world_conflict_does_not_supply_an_unrelated_conclusion_proof() {
+    let mut result = native_conflict_result();
+    result.provenance.contradiction_witnesses.clear();
+    result.provenance.proof = None;
+    result.provenance.counterproof = None;
+    let error = result.validate().unwrap_err();
+    assert!(
+        error
+            .message()
+            .contains("requires either a proof+counterproof pair or a contradiction witness"),
+        "{error}"
+    );
+    result.provenance.claim = ResultClaim::Conclusion;
+    result.provenance.query = "unrelated conclusion".into();
+    assert!(result.validate().is_err());
+    assert!(ResultProjection::reasoning(&result).is_err());
+}
+
+#[test]
+fn native_result_admission_refuses_missing_duplicate_and_corrupt_execution() {
+    let result = native_conflict_result();
+    let projection = ResultProjection::reasoning(&result).unwrap();
+    let wire = projection.to_ntriples();
+    let predicate = format!("<{}>", logic("resultNativeExecution"));
+    let missing = wire
+        .lines()
+        .filter(|line| !line.contains(&predicate))
+        .map(|line| format!("{line}\n"))
+        .collect::<String>();
+    assert!(
+        parse_reasoning_graph(&missing)
+            .unwrap_err()
+            .message()
+            .contains("missing its native execution evidence")
+    );
+    let corrupt = format!(
+        "<{}> {predicate} \"00\"^^<http://www.w3.org/2001/XMLSchema#hexBinary> .\n",
+        projection.node_iri()
+    );
+    assert!(
+        parse_reasoning_graph(&(wire + &corrupt))
+            .unwrap_err()
+            .message()
+            .contains("duplicate resultNativeExecution")
+    );
+    assert!(parse_reasoning_graph(&(missing + &corrupt)).is_err());
+}
+
+#[test]
+fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
+    let result = native_conflict_result();
+    let wire = native::encode(result.native_execution().unwrap()).unwrap();
+    assert!(native::decode(&(wire.clone() + "00")).is_err());
+    let bytes = wire
+        .as_bytes()
+        .chunks_exact(2)
+        .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+        .collect::<Vec<_>>();
+    let mut envelope: ciborium::Value = ciborium::de::from_reader(bytes.as_slice()).unwrap();
+    let ciborium::Value::Array(fields) = &mut envelope else {
+        panic!("native receipt envelope")
+    };
+    let ciborium::Value::Map(execution) = &mut fields[1] else {
+        panic!("native execution record")
+    };
+    execution.push((
+        ciborium::Value::Text("discarded-proof".into()),
+        ciborium::Value::Bool(true),
+    ));
+    let mut changed = Vec::new();
+    ciborium::ser::into_writer(&envelope, &mut changed).unwrap();
+    let changed = changed
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    assert!(
+        native::decode(&changed).is_err(),
+        "unknown execution evidence must never disappear during admission"
+    );
+}
+
+#[test]
+fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
+    let result = native_conflict_result();
+    let mut execution = result.native_execution().unwrap().clone();
+    let mut object = purrdf::TermValue::iri("urn:gmeow:test:deep-receipt-value");
+    for _ in 0..80 {
+        object = purrdf::TermValue::Triple {
+            s: Box::new(purrdf::TermValue::iri("urn:gmeow:test:receipt-subject")),
+            p: Box::new(purrdf::TermValue::iri("urn:gmeow:test:receipt-predicate")),
+            o: Box::new(object),
+        };
+    }
+    execution.families[0].proofs[0].statement.object = object;
+    let error = native::encode(&execution).unwrap_err();
+    assert!(error.message().contains("structural bound"));
 }
 
 #[test]
 fn five_axes_appear_with_their_iris() {
     let result = rich_result();
-    let body = project_reasoning_result(&result);
+    let body = project_reasoning_result(&result).unwrap();
     for iri in [
         result.input.iri(),
         result.evaluation.iri(),
@@ -152,8 +303,8 @@ fn five_axes_appear_with_their_iris() {
 
 #[test]
 fn content_address_is_stable_and_differs_with_content() {
-    let a = result_node_iri(&rich_result());
-    let b = result_node_iri(&rich_result());
+    let a = result_node_iri(&rich_result()).unwrap();
+    let b = result_node_iri(&rich_result()).unwrap();
     assert_eq!(a, b, "the content-addressed node IRI is reproducible");
 
     // A different verdict mints a different node.
@@ -161,8 +312,111 @@ fn content_address_is_stable_and_differs_with_content() {
     other.information = InformationState::Supported;
     other.provenance.counterproof = None;
     other.provenance.contradiction_witnesses.clear();
-    let c = result_node_iri(&other);
+    let c = result_node_iri(&other).unwrap();
     assert_ne!(a, c, "a different result mints a different node IRI");
+}
+
+#[test]
+fn native_reasoning_summary_matches_the_wire_projection() {
+    let mut result = rich_result();
+    result.provenance.query =
+        "source \"quoted\" \\ escaped\n\t<urn:gmeow:reasoning-result:self>".into();
+    let ResultPayload::Inferred(rows) = &mut result.payload else {
+        panic!("inferred fixture")
+    };
+    rows[0].subject = RESULT_PLACEHOLDER.into();
+    rows[0].premises.push((
+        RESULT_PLACEHOLDER.into(),
+        "https://example.org/p".into(),
+        format!("\"<{RESULT_PLACEHOLDER}>\""),
+    ));
+    let derived = rows[0].clone();
+    let native = project_reasoning_dataset(&result).unwrap();
+    let wire = parse_nt(&project_reasoning_result(&result).unwrap()).unwrap();
+    assert!(purrdf::datasets_isomorphic(&native, &wire));
+    let restored = parse_reasoning_dataset(&native, GraphMatch::Default)
+        .expect("authored placeholder text must not invalidate a derivation receipt");
+    assert_eq!(restored.provenance.query, result.provenance.query);
+    assert_eq!(restored.payload, ResultPayload::Inferred(vec![derived]));
+}
+
+#[test]
+fn typed_inferred_objects_survive_closure_and_receipt_projections() {
+    use purrdf::{BlankScope, RdfTextDirection, TermValue};
+
+    let directional = TermValue::Literal {
+        lexical_form: "quoted \"claim\"\n<urn:not-an-iri>".to_owned(),
+        datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".to_owned(),
+        language: Some("ar".to_owned()),
+        direction: Some(RdfTextDirection::Rtl),
+    };
+    let quoted = TermValue::Triple {
+        s: Box::new(TermValue::Blank {
+            label: "source".into(),
+            scope: BlankScope(17),
+        }),
+        p: Box::new(TermValue::iri("urn:states")),
+        o: Box::new(TermValue::Triple {
+            s: Box::new(TermValue::Blank {
+                label: "source".into(),
+                scope: BlankScope(19),
+            }),
+            p: Box::new(TermValue::iri("urn:quotes")),
+            o: Box::new(directional.clone()),
+        }),
+    };
+    let mut result = rich_result();
+    let template = result.inferred()[0].clone();
+    let rows: Vec<_> = [
+        TermValue::simple_literal("<urn:literal>"),
+        directional,
+        quoted,
+    ]
+    .into_iter()
+    .enumerate()
+    .map(|(index, object)| {
+        let mut row = template.clone();
+        row.predicate = format!("urn:inferred:{index}");
+        row.object = object;
+        row
+    })
+    .collect();
+    result.payload = ResultPayload::Inferred(rows.clone());
+
+    let retained: ReasoningResult =
+        serde_json::from_slice(&serde_json::to_vec(&result).unwrap()).unwrap();
+    assert_eq!(
+        retained, result,
+        "typed result transport retains complete native objects"
+    );
+    let closure = crate::reason::inferred_axioms_to_dataset(&rows).unwrap();
+    for row in &rows {
+        assert!(closure.quads().any(|quad| {
+            matches!(closure.resolve(quad.p), purrdf::TermRef::Iri(iri) if iri == row.predicate)
+                && closure.term_value(quad.o) == row.object
+                && quad.g.is_some_and(|world| matches!(closure.resolve(world), purrdf::TermRef::Iri(iri) if iri == row.world))
+        }), "the closure must retain the value in its original world");
+    }
+    let native = project_reasoning_dataset(&result).unwrap();
+    let restored = parse_reasoning_dataset(&native, GraphMatch::Default).unwrap();
+    assert_eq!(
+        restored.payload, result.payload,
+        "native result admission retains every receipt and typed object"
+    );
+    let restored = parse_reasoning_graph(&project_reasoning_result(&result).unwrap()).unwrap();
+    assert_eq!(
+        restored.payload, result.payload,
+        "RDF result transport retains every receipt and typed object"
+    );
+    let artifact =
+        crate::reason::artifacts::build_inferred_closure_ttl(&result, None, &[]).unwrap();
+    let artifact = purrdf::parse_dataset(artifact.as_bytes(), "text/turtle", None).unwrap();
+    for row in &rows {
+        assert!(artifact.quads().any(|quad| {
+            matches!(artifact.resolve(quad.p), purrdf::TermRef::Iri(iri) if iri == row.predicate)
+                && artifact.term_value(quad.o) == row.object
+        }), "the closure artifact must not reinterpret an inferred object as an IRI");
+    }
 }
 
 #[test]
@@ -172,7 +426,7 @@ fn round_trip_recovers_axes_and_provenance() {
         panic!("fixture payload must be inferred");
     };
     let original_derived = original_rows[0].clone();
-    let body = project_reasoning_result(&original);
+    let body = project_reasoning_result(&original).unwrap();
     let parsed = parse_reasoning_graph(&body).expect("parse graph/reasoning");
 
     // The five axes round-trip exactly.
@@ -201,6 +455,26 @@ fn round_trip_recovers_axes_and_provenance() {
 }
 
 #[test]
+fn attributed_context_round_trips_and_changes_result_identity() {
+    let mut result = rich_result();
+    let unscoped = result_node_iri(&result).unwrap();
+    result.provenance.context.attributed = Some("urn:context:enactment-step".into());
+    let body = project_reasoning_result(&result).unwrap();
+    assert_ne!(unscoped, result_node_iri(&result).unwrap());
+    assert_eq!(
+        parse_reasoning_graph(&body).unwrap().provenance.context,
+        result.provenance.context
+    );
+    let node = result_node_iri(&result).unwrap();
+    let duplicated = format!(
+        "{body}\n<{node}> <https://blackcatinformatics.ca/logic/resultAttributedContext> <urn:context:other> .\n"
+    );
+    assert!(parse_reasoning_graph(&duplicated).is_err());
+    let malformed = body.replace("<urn:context:enactment-step>", "\"not a context IRI\"");
+    assert!(parse_reasoning_graph(&malformed).is_err());
+}
+
+#[test]
 fn native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity() {
     let result = rich_result();
     let ResultPayload::Inferred(axioms) = &result.payload else {
@@ -218,7 +492,7 @@ fn native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity() {
         "canonical public rendering must not rewrite the receipt hash input"
     );
 
-    let body = project_reasoning_result(&result);
+    let body = project_reasoning_result(&result).unwrap();
     assert!(body.contains(&format!("<{}> <{canonical}>", gmeow("viaRule"))));
     assert!(
         !body.contains("<rule:subclass-transitive>"),
@@ -244,18 +518,38 @@ fn modal_derived_row_round_trips_its_complete_receipt() {
     let modal = &mut axioms[0];
     modal.subject = "https://example.org/modal/F".to_owned();
     modal.predicate = crate::modal::MODAL_NECESSITY_FAILS.to_owned();
-    modal.object = "<https://example.org/modal/B>".to_owned();
-    modal.world = "https://example.org/modal/w0".to_owned();
+    modal.object = purrdf::TermValue::iri("https://example.org/modal/B");
+    modal.world = "https://example.org/modal/frame".to_owned();
     modal.rule_name = Some(crate::modal::MODAL_RULE_IRI.to_owned());
-    modal.premises = vec![(
-        "https://example.org/modal/a".to_owned(),
-        "https://example.org/modal/knows".to_owned(),
-        "<https://example.org/modal/b>".to_owned(),
-    )];
+    let evidence = crate::modal::ModalEvaluation {
+        context: modal.world.clone(),
+        formula: modal.subject.clone(),
+        operator: crate::modal::ModalOp::Box,
+        body: "https://example.org/modal/B".to_owned(),
+        evaluation_world: "https://example.org/modal/w0".to_owned(),
+        accessibility_relation: crate::modal::TYPED_ACCESSIBILITY[0].to_owned(),
+        atom_subject: "https://example.org/modal/a".to_owned(),
+        atom_predicate: "https://example.org/modal/knows".to_owned(),
+        atom_object: "https://example.org/modal/b".to_owned(),
+        frontier: crate::modal::ModalFrontier::CompletedFinitePredecessor {
+            worlds: vec![crate::modal::ModalWorldEvidence {
+                world: "https://example.org/modal/w1".to_owned(),
+                atom_present: false,
+            }],
+        },
+        conclusion_predicate: modal.predicate.clone(),
+        conclusion_object: "https://example.org/modal/B".to_owned(),
+    };
+    modal.premises = evidence
+        .positive_premises()
+        .into_iter()
+        .map(|p| (p.subject, p.predicate, p.object))
+        .collect();
+    modal.modal_evaluation = Some(Box::new(evidence));
     let expected = modal.clone();
     let receipt = receipt_for_axiom(&expected);
 
-    let body = project_reasoning_result(&result);
+    let body = project_reasoning_result(&result).unwrap();
     assert!(body.contains(crate::modal::MODAL_RULE_IRI));
     assert!(body.contains(&receipt.row.derivation_id));
     for source in &receipt.row.source_quad_ids {
@@ -285,7 +579,7 @@ fn derived_row_parser_rejects_a_tampered_source_receipt() {
         "https://example.org/p".to_owned(),
         "<https://example.org/o>".to_owned(),
     )];
-    let body = project_reasoning_result(&result);
+    let body = project_reasoning_result(&result).unwrap();
     let tampered: String = body
         .lines()
         .filter(|line| !line.contains(PROV_VALUE) || line.contains("receipt-rule-identity"))
@@ -297,7 +591,7 @@ fn derived_row_parser_rejects_a_tampered_source_receipt() {
 
 #[test]
 fn derived_row_parser_rejects_public_rule_that_disagrees_with_raw_identity() {
-    let body = project_reasoning_result(&rich_result());
+    let body = project_reasoning_result(&rich_result()).unwrap();
     let canonical = canonical_rule_iri("rule:subclass-transitive");
     let tampered = body.replacen(
         &format!("<{}> <{canonical}>", gmeow("viaRule")),
@@ -317,7 +611,7 @@ fn derived_row_parser_rejects_public_rule_that_disagrees_with_raw_identity() {
 
 #[test]
 fn derived_row_parser_rejects_a_missing_raw_receipt_identity() {
-    let body = project_reasoning_result(&rich_result());
+    let body = project_reasoning_result(&rich_result()).unwrap();
     let tampered: String = body
         .lines()
         .filter(|line| !line.contains("receipt-rule-identity"))
@@ -347,11 +641,11 @@ fn derived_row_round_trip_preserves_duplicate_source_multiplicity() {
         "<https://example.org/o>".to_owned(),
     );
     axioms[0].premises = vec![premise.clone(), premise];
-    axioms[0].object = "<http://ex/Animal>".to_owned();
+    axioms[0].object = purrdf::TermValue::iri("http://ex/Animal");
     let expected = axioms[0].clone();
     let receipt = receipt_for_axiom(&expected);
 
-    let body = project_reasoning_result(&result);
+    let body = project_reasoning_result(&result).unwrap();
     assert!(body.contains(&receipt.row.derivation_id));
     let parsed = parse_reasoning_graph(&body).expect("duplicate-source receipt parses");
     let ResultPayload::Inferred(rows) = parsed.payload else {
@@ -366,7 +660,7 @@ fn round_trip_for_an_invalid_request() {
         "ill-formed request",
         ResultProvenance::native("contract:x", "http://ex/world/w"),
     );
-    let body = project_reasoning_result(&original);
+    let body = project_reasoning_result(&original).unwrap();
     let parsed = parse_reasoning_graph(&body).expect("parse");
     assert_eq!(parsed.input, InputStatus::Invalid);
     assert_eq!(parsed.evaluation, EvaluationStatus::Unsupported);
@@ -383,6 +677,20 @@ fn parse_rejects_a_body_without_the_result_subject() {
         err.message().contains("no logic:ReasoningResult subject"),
         "{err}"
     );
+}
+
+#[test]
+fn parse_rejects_multiple_unrelated_results_instead_of_selecting_row_order() {
+    let first = rich_result();
+    let mut second = first.clone();
+    second.provenance.query = "a different query".into();
+    let body = format!(
+        "{}{}",
+        project_reasoning_result(&first).unwrap(),
+        project_reasoning_result(&second).unwrap(),
+    );
+    let error = parse_reasoning_graph(&body).expect_err("two unowned roots are ambiguous");
+    assert!(error.message().contains("found 2"), "{error}");
 }
 
 // ── Witness-order determinism ────────────────────────────────────────────────
@@ -438,14 +746,14 @@ fn witness_order_does_not_affect_projection() {
         ResultPayload::Empty,
     );
 
-    let body1 = project_reasoning_result(&r1);
-    let body2 = project_reasoning_result(&r2);
+    let body1 = project_reasoning_result(&r1).unwrap();
+    let body2 = project_reasoning_result(&r2).unwrap();
     assert_eq!(
         body1, body2,
         "witness permutations must produce the same RDF projection"
     );
     // The content-addressed node IRI is also identical.
-    assert_eq!(result_node_iri(&r1), result_node_iri(&r2));
+    assert_eq!(result_node_iri(&r1).unwrap(), result_node_iri(&r2).unwrap());
 }
 
 // ── Fail-closed provenance round-trip ────────────────────────────────────────
@@ -455,7 +763,7 @@ fn witness_order_does_not_affect_projection() {
 #[test]
 fn parse_fails_closed_on_missing_result_query() {
     // Build a valid projection then strip out the resultQuery triple.
-    let body = project_reasoning_result(&rich_result());
+    let body = project_reasoning_result(&rich_result()).unwrap();
     let stripped: String = body
         .lines()
         .filter(|l| !l.contains("resultQuery"))
@@ -471,7 +779,7 @@ fn parse_fails_closed_on_missing_result_query() {
 /// Same for resultConclusion.
 #[test]
 fn parse_fails_closed_on_missing_result_conclusion() {
-    let body = project_reasoning_result(&rich_result());
+    let body = project_reasoning_result(&rich_result()).unwrap();
     let stripped: String = body
         .lines()
         .filter(|l| !l.contains("resultConclusion"))
@@ -488,7 +796,7 @@ fn parse_fails_closed_on_missing_result_conclusion() {
 /// Same for resultBudgetConsumed.
 #[test]
 fn parse_fails_closed_on_missing_result_budget_consumed() {
-    let body = project_reasoning_result(&rich_result());
+    let body = project_reasoning_result(&rich_result()).unwrap();
     let stripped: String = body
         .lines()
         .filter(|l| !l.contains("resultBudgetConsumed"))
@@ -513,9 +821,10 @@ fn derived_axiom_blank_and_literal_terms_round_trip() {
 
     // An axiom whose object is a blank node (as the native chase would emit).
     let blank_axiom = InferredAxiom {
+        modal_evaluation: None,
         subject: "http://ex/S".to_owned(),
         predicate: "http://ex/p".to_owned(),
-        object: "_:anon0".to_owned(), // blank-node term
+        object: purrdf::TermValue::blank("anon0"),
         world: "http://ex/world/w".to_owned(),
         is_edb: false,
         rule_name: None,
@@ -523,9 +832,10 @@ fn derived_axiom_blank_and_literal_terms_round_trip() {
     };
     // An axiom whose object is a literal-summary string.
     let lit_axiom = InferredAxiom {
+        modal_evaluation: None,
         subject: "http://ex/S".to_owned(),
         predicate: "http://ex/q".to_owned(),
-        object: "\"hello world\"".to_owned(), // literal-summary term
+        object: purrdf::TermValue::simple_literal("hello world"),
         world: "http://ex/world/w".to_owned(),
         is_edb: false,
         rule_name: None,
@@ -546,7 +856,7 @@ fn derived_axiom_blank_and_literal_terms_round_trip() {
         ResultPayload::Inferred(vec![blank_axiom, lit_axiom]),
     );
 
-    let body = project_reasoning_result(&result);
+    let body = project_reasoning_result(&result).unwrap();
     let parsed = parse_reasoning_graph(&body).expect("parse must succeed");
     let ResultPayload::Inferred(rows) = &parsed.payload else {
         panic!("payload must be Inferred");
@@ -559,7 +869,8 @@ fn derived_axiom_blank_and_literal_terms_round_trip() {
         .find(|r| r.predicate == "http://ex/p")
         .expect("blank-node axiom must survive");
     assert_eq!(
-        blank_row.object, "_:anon0",
+        blank_row.object,
+        purrdf::TermValue::blank("anon0"),
         "blank-node object must round-trip as _:label"
     );
 
@@ -569,7 +880,8 @@ fn derived_axiom_blank_and_literal_terms_round_trip() {
         .find(|r| r.predicate == "http://ex/q")
         .expect("literal-summary axiom must survive");
     assert_eq!(
-        lit_row.object, "\"hello world\"",
+        lit_row.object,
+        purrdf::TermValue::simple_literal("hello world"),
         "literal-summary object must round-trip verbatim"
     );
 }
@@ -687,7 +999,7 @@ fn conjecture_verdict_round_trips() {
         math_conjecture: None,
         forbidden_predicate: Some(REFUTED_PREDICATE),
     };
-    let body = project_conjecture_verdict(&input);
+    let body = project_conjecture_verdict(&input).unwrap();
     let record = parse_conjecture_verdict(&body).expect("parse conjecture verdict");
 
     assert_eq!(record.content_key, "formula:phi-alpha-normalized");
@@ -742,7 +1054,8 @@ fn conjecture_verdict_escapes_control_bearing_formula_identity() {
         answer: &answer,
         math_conjecture: None,
         forbidden_predicate: None,
-    });
+    })
+    .unwrap();
 
     assert!(body.contains("ATOM\\u0000I\\u0000http://ex/relation\\u001F\\u007F\\u0085"));
     assert!(
@@ -770,7 +1083,7 @@ fn promotion_leg_emitted_exactly_on_corroboration() {
         math_conjecture: None,
         forbidden_predicate: None,
     };
-    let body = project_conjecture_verdict(&input);
+    let body = project_conjecture_verdict(&input).unwrap();
     let record = parse_conjecture_verdict(&body).expect("parse corroborated verdict");
     assert_eq!(record.lifecycle, ConjectureLifecycleState::Corroborated);
 
@@ -836,7 +1149,7 @@ fn obligation_leg_emitted_exactly_on_refutation() {
         math_conjecture: None,
         forbidden_predicate: Some(REFUTED_PREDICATE),
     };
-    let body = project_conjecture_verdict(&input);
+    let body = project_conjecture_verdict(&input).unwrap();
     let record = parse_conjecture_verdict(&body).expect("parse refuted verdict");
     assert!(
         record.promotion_candidate.is_none()
@@ -884,7 +1197,7 @@ fn open_verdict_emits_neither_leg() {
         math_conjecture: None,
         forbidden_predicate: None,
     };
-    let body = project_conjecture_verdict(&input);
+    let body = project_conjecture_verdict(&input).unwrap();
     let record = parse_conjecture_verdict(&body).expect("parse open verdict");
     assert_eq!(record.lifecycle, ConjectureLifecycleState::Open);
     assert!(
@@ -920,7 +1233,8 @@ fn two_standpoints_mint_two_distinct_nodes() {
         answer: &answer_a,
         math_conjecture: None,
         forbidden_predicate: Some(REFUTED_PREDICATE),
-    });
+    })
+    .unwrap();
     let body_b = project_conjecture_verdict(&ConjectureVerdictInput {
         content_key: "formula:same-phi",
         standpoint: "http://ex/standpointB",
@@ -928,7 +1242,8 @@ fn two_standpoints_mint_two_distinct_nodes() {
         answer: &answer_b,
         math_conjecture: None,
         forbidden_predicate: Some(REFUTED_PREDICATE),
-    });
+    })
+    .unwrap();
     let subj_a = conjecture_subject(&body_a);
     let subj_b = conjecture_subject(&body_b);
     assert_ne!(
@@ -950,8 +1265,8 @@ fn conjecture_projection_is_byte_deterministic() {
         math_conjecture: None,
         forbidden_predicate: Some(REFUTED_PREDICATE),
     };
-    let one = project_conjecture_verdict(&input);
-    let two = project_conjecture_verdict(&input);
+    let one = project_conjecture_verdict(&input).unwrap();
+    let two = project_conjecture_verdict(&input).unwrap();
     assert_eq!(
         one, two,
         "same (content_key, standpoint, kb_world) must be byte-identical"
@@ -976,7 +1291,8 @@ fn different_kb_world_mints_distinct_node() {
         answer: &answer,
         math_conjecture: None,
         forbidden_predicate: Some(REFUTED_PREDICATE),
-    });
+    })
+    .unwrap();
     let body_2 = project_conjecture_verdict(&ConjectureVerdictInput {
         content_key: "formula:same-phi",
         standpoint: "http://ex/standpointA",
@@ -984,11 +1300,35 @@ fn different_kb_world_mints_distinct_node() {
         answer: &answer,
         math_conjecture: None,
         forbidden_predicate: Some(REFUTED_PREDICATE),
-    });
+    })
+    .unwrap();
     assert_ne!(
         conjecture_subject(&body_1),
         conjecture_subject(&body_2),
         "the same formula in two KB worlds must mint two distinct nodes"
+    );
+}
+
+#[test]
+fn conjecture_reader_rejects_a_blank_math_statement_identity() {
+    let answer = refuted_answer("http://ex/standpointA");
+    let math_iri = "https://blackcatinformatics.ca/math/conjecture/goldbach";
+    let body = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: Some(math_iri),
+        forbidden_predicate: Some(REFUTED_PREDICATE),
+    })
+    .unwrap();
+    let malformed = body.replace(&format!("<{math_iri}>"), "_:math-statement");
+    let error = parse_conjecture_verdict(&malformed).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("math:conjectureUnderTest subject must be an IRI"),
+        "{error}",
     );
 }
 
@@ -1003,8 +1343,11 @@ fn math_twin_edge_names_the_witness() {
         answer: &answer,
         math_conjecture: Some(math_iri),
         forbidden_predicate: Some(REFUTED_PREDICATE),
-    });
-    // Find the witness blank node (object of conjectureRefutationWitness).
+    })
+    .unwrap();
+    // Find the scoped witness component (object of conjectureRefutationWitness).
+    // Projection scopes local blank identities under the content-addressed owner
+    // so independently composed records cannot alias the same blank label.
     let refutation_pred = format!("<{}>", logic("conjectureRefutationWitness"));
     let witness_node = body
         .lines()
@@ -1012,10 +1355,8 @@ fn math_twin_edge_names_the_witness() {
         .and_then(|l| l.split_whitespace().nth(2))
         .expect("a refutation-witness link must be present")
         .to_owned();
-    assert!(
-        witness_node.starts_with("_:"),
-        "witness object must be a blank node, got {witness_node}"
-    );
+    let subject = conjecture_subject(&body);
+    assert_eq!(witness_node, format!("<{subject}/component/witness0>"));
     let expected = format!(
         "<{math_iri}> <{}> {witness_node} .",
         math("hasCounterexample")
@@ -1029,7 +1370,6 @@ fn math_twin_edge_names_the_witness() {
     // statement (domain math:Conjecture) to THIS content-addressed logic:Conjecture node
     // (range logic:Conjecture) — emitted even on this refuted verdict, alongside the
     // refutation-only counterexample edge.
-    let subject = conjecture_subject(&body);
     let under_test = format!(
         "<{math_iri}> <{}> <{subject}> .",
         math("conjectureUnderTest")
@@ -1060,7 +1400,8 @@ fn conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math
         answer: &answer,
         math_conjecture: Some(math_iri),
         forbidden_predicate: None,
-    });
+    })
+    .unwrap();
     let subject = conjecture_subject(&body);
     let under_test = format!(
         "<{math_iri}> <{}> <{subject}> .",
@@ -1088,7 +1429,8 @@ fn conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math
         answer: &answer,
         math_conjecture: None,
         forbidden_predicate: None,
-    });
+    })
+    .unwrap();
     assert!(
         !bare.contains(&math("conjectureUnderTest")) && !bare.contains(&math("hasCounterexample")),
         "no math edges may be emitted when no math_conjecture is supplied; body:\n{bare}"
@@ -1109,4 +1451,44 @@ fn parse_rejects_body_without_conjecture_subject() {
         err.message().contains("no logic:Conjecture subject"),
         "err was: {err}"
     );
+}
+
+#[test]
+fn native_reader_preserves_the_selected_verdict_and_ignores_other_worlds() {
+    let body = project_reasoning_result(&rich_result()).unwrap();
+    // The second graph deliberately shares the result subject and blank labels,
+    // but omits required provenance. The selected graph retains quoted evidence.
+    let other = body
+        .replace("contract:abc123", "contract:other")
+        .replace(&logic("resultQuery"), &logic("unknownField"));
+    let trig = format!(
+        "<urn:verdict:other> {{ {other} }}\n<urn:verdict:selected> {{ {body}\n\
+         <urn:evidence> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
+         <<( <urn:s> <urn:p> <urn:o> )>> . }}"
+    );
+    let dataset = purrdf::parse_dataset(trig.as_bytes(), "application/trig", None).unwrap();
+    let selected = dataset.term_id_by_iri("urn:verdict:selected").unwrap();
+    let parsed = parse_reasoning_dataset(&dataset, GraphMatch::Named(selected)).unwrap();
+    assert_eq!(parsed.provenance, rich_result().provenance);
+    assert_eq!(
+        parsed.inferred(),
+        parse_reasoning_graph(&body).unwrap().inferred()
+    );
+    assert!(parse_reasoning_dataset(&dataset, GraphMatch::Default).is_err());
+    let other = dataset.term_id_by_iri("urn:verdict:other").unwrap();
+    assert!(parse_reasoning_dataset(&dataset, GraphMatch::Named(other)).is_err());
+}
+
+#[test]
+fn two_unrelated_reasoning_verdicts_cannot_select_a_handle_by_row_order() {
+    let first = rich_result();
+    let mut second = rich_result();
+    second.provenance.contract_hash = "contract:other".into();
+    let body = format!(
+        "{}{}",
+        project_reasoning_result(&first).unwrap(),
+        project_reasoning_result(&second).unwrap()
+    );
+    let error = parse_reasoning_graph(&body).unwrap_err();
+    assert!(error.to_string().contains("expected one aggregate"));
 }

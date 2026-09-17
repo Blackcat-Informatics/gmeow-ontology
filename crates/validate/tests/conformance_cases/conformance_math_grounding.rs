@@ -7,7 +7,7 @@
 //! cannot become a second authoring surface for `math:Quantity` or
 //! `math:quantityValue` (Principles 4, 17, and 19).
 
-use crate::conformance_support::*;
+use crate::grounding_observations;
 
 use std::collections::BTreeSet;
 
@@ -18,26 +18,16 @@ fn quantity_bridge_catalog_transpiles_clean() {
     // Alignment-cell well-formedness moved from the mapping SHACL (the deleted
     // `TermEquivalenceShape`) into the fail-closed Rust correspondence transpiler; the math
     // quantity bridge catalog must transpile clean (every cell carries its complete envelope).
-    let ttl = std::fs::read_to_string(
-        repo_root().join("slices/grounding/math/mappings/quantity-bridges.ttl"),
-    )
-    .expect("quantity bridge catalog must read");
-    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-        .expect("quantity bridge catalog must parse");
-    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
-    gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
-        &view, &view,
-    )
-    .expect("the math quantity bridge catalog must transpile clean");
+    grounding_observations::transpilation("slices/grounding/math/mappings/quantity-bridges.ttl")
+        .as_ref()
+        .expect("the math quantity bridge catalog must transpile clean");
 }
 
 #[gmeow_test_batch_macros::batch_test]
 fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
     // Native grounding cells (the align* cell node was deleted): read the reifier-preserving
     // parse through the canonical `equivalence_cells` reader.
-    let cells = native_grounding_cells(
-        &repo_root().join("slices/grounding/math/mappings/quantity-bridges.ttl"),
-    );
+    let cells = native_grounding_cells("slices/grounding/math/mappings/quantity-bridges.ttl");
     assert!(!cells.is_empty(), "the quantity catalog must not be empty");
 
     let mut actual = BTreeSet::new();
@@ -110,9 +100,7 @@ fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
         expected.difference(&actual).collect::<Vec<_>>()
     );
 
-    for c in native_alignment_cells_from_file(
-        &repo_root().join("slices/core/observations/mappings/equivalences.ttl"),
-    ) {
+    for c in grounding_observations::cells("slices/core/observations/mappings/equivalences.ttl") {
         assert!(
             c.subject != format!("{MATH}Quantity") && c.subject != format!("{MATH}quantityValue"),
             "observation catalog re-authors math-owned source {} in a native alignment cell",
@@ -122,11 +110,9 @@ fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
 }
 
 /// Native grounding alignment cells (those carrying the `logic:GroundingCorrespondence` envelope).
-fn native_grounding_cells(
-    path: &std::path::Path,
-) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
-    native_alignment_cells_from_file(path)
-        .into_iter()
+fn native_grounding_cells(path: &str) -> Vec<&grounding_observations::Cell> {
+    grounding_observations::cells(path)
+        .iter()
         .filter(|c| c.grounding)
         .collect()
 }

@@ -149,6 +149,16 @@ impl SpanIndex {
             self.by_subject.entry(subject).or_insert(span);
         }
     }
+
+    /// Merge retained source positions without cloning a temporary index.
+    /// Existing positions keep first-writer precedence and paths remain shared.
+    pub fn extend_from_index(&mut self, other: &SpanIndex) {
+        for (subject, span) in &other.by_subject {
+            if !self.by_subject.contains_key(subject) {
+                self.by_subject.insert(subject.clone(), span.clone());
+            }
+        }
+    }
 }
 
 // ── minimal-allocation wire form ────────────────────────────────────────────────
@@ -232,6 +242,9 @@ pub struct Ingested {
     pub dataset: Arc<RdfDataset>,
     /// This input's subject→source-position spans.
     pub spans: SpanContribution,
+    /// Base IRI at the end of the source document, with its parser-recorded
+    /// origin. Preserve this alongside the dataset for exact source receipts.
+    pub document_base: Option<purrdf::iri::ScopedBase>,
 }
 
 /// One source input's span contribution — a [`SpanIndex`] over exactly that file's
@@ -283,13 +296,12 @@ impl SourceAdapter for PurrdfAdapter {
         media_type: &str,
         bytes: &[u8],
     ) -> gmeow_errors::Result<Ingested> {
-        // `parse_dataset_with` returns a `ParseOutcome` record rather than a
-        // `(dataset, spans)` pair; the document's end-of-parse base IRI is carried
-        // alongside and is not part of this adapter's contract.
+        // Keep all native parse results together. Source receipts must not
+        // recover a document's declared base through a separate text pass.
         let ParseOutcome {
             dataset,
             spans: table,
-            ..
+            document_base,
         } = parse_dataset_with(
             bytes,
             media_type,
@@ -310,6 +322,7 @@ impl SourceAdapter for PurrdfAdapter {
         Ok(Ingested {
             dataset,
             spans: SpanContribution { index },
+            document_base,
         })
     }
 }
@@ -342,110 +355,6 @@ pub fn enrich_findings_with_spans(report: &mut gmeow_errors::Report, spans: &Spa
     }
 }
 
+#[path = "ingest.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// The adapter recovers the correct 1-based source line for a subject's bare IRI.
-    #[test]
-    fn adapter_yields_spans_for_turtle_subject() {
-        let turtle = concat!(
-            "@prefix ex: <https://example.test/> .\n",
-            "ex:alice a ex:Person .\n",
-            "ex:bob a ex:Person .\n",
-        );
-        let ingested = PurrdfAdapter
-            .ingest("slices/x/module.ttl", "text/turtle", turtle.as_bytes())
-            .expect("ingest");
-        let index = ingested.spans.into_index();
-        let alice = index
-            .lookup("https://example.test/alice")
-            .expect("alice tracked");
-        assert_eq!(alice.line, 2, "ex:alice is on line 2");
-        let bob = index
-            .lookup("https://example.test/bob")
-            .expect("bob tracked");
-        assert_eq!(bob.line, 3, "ex:bob is on line 3");
-        assert_eq!(alice.path.as_ref(), "slices/x/module.ttl");
-    }
-
-    /// Minimal-allocation shape: many subjects from ONE file share ONE path `Arc`
-    /// (interned once), both in the live index and after a serde round-trip.
-    #[test]
-    fn span_index_interns_path_once_per_file() {
-        let turtle = concat!(
-            "@prefix ex: <https://example.test/> .\n",
-            "ex:a a ex:T .\n",
-            "ex:b a ex:T .\n",
-            "ex:c a ex:T .\n",
-        );
-        let index = PurrdfAdapter
-            .ingest("slices/x/module.ttl", "text/turtle", turtle.as_bytes())
-            .expect("ingest")
-            .spans
-            .into_index();
-        let a = index.lookup("https://example.test/a").expect("a");
-        let b = index.lookup("https://example.test/b").expect("b");
-        let c = index.lookup("https://example.test/c").expect("c");
-        assert!(
-            Arc::ptr_eq(&a.path, &b.path) && Arc::ptr_eq(&b.path, &c.path),
-            "all subjects of one file must share one interned path Arc"
-        );
-
-        // The interning survives a serde round-trip (one Arc per distinct path).
-        let json = serde_json::to_vec(&index).expect("serialize");
-        let round: SpanIndex = serde_json::from_slice(&json).expect("deserialize");
-        let ra = round.lookup("https://example.test/a").expect("a");
-        let rb = round.lookup("https://example.test/b").expect("b");
-        let rc = round.lookup("https://example.test/c").expect("c");
-        assert!(
-            Arc::ptr_eq(&ra.path, &rb.path) && Arc::ptr_eq(&rb.path, &rc.path),
-            "deserialize must re-intern one Arc per distinct path"
-        );
-        assert_eq!(round, index, "round-trip is value-preserving");
-    }
-
-    /// A span maps cleanly onto a diagnostics `Location` (path + 1-based line/column).
-    #[test]
-    fn source_span_maps_onto_location() {
-        let span = SourceSpan::new(Arc::from("slices/x/module.ttl"), 9, 4, 128);
-        let location = span.to_location();
-        assert_eq!(location.path.as_deref(), Some("slices/x/module.ttl"));
-        assert_eq!(location.line, Some(9));
-        assert_eq!(location.column, Some(4));
-    }
-
-    /// Enrichment fills a logical-only SHACL focus location's physical coordinates
-    /// while preserving the bare-IRI `logical` join key.
-    #[test]
-    fn enrich_fills_focus_location_from_span() {
-        let mut index = SpanIndex::new();
-        index.insert(
-            "https://example.test/thing",
-            SourceSpan::new(Arc::from("slices/x/module.ttl"), 7, 3, 42),
-        );
-        let mut report = gmeow_errors::Report::new("shacl");
-        let mut finding = gmeow_errors::Finding::new(
-            gmeow_errors::Severity::Warning,
-            "shacl.MinCount",
-            "missing value",
-        );
-        finding.add_location(gmeow_errors::model::Location {
-            logical: Some("https://example.test/thing".to_owned()),
-            ..gmeow_errors::model::Location::default()
-        });
-        report.add_finding(finding);
-
-        enrich_findings_with_spans(&mut report, &index);
-
-        let loc = report.findings[0].primary_location().expect("a location");
-        assert_eq!(loc.path.as_deref(), Some("slices/x/module.ttl"));
-        assert_eq!(loc.line, Some(7));
-        assert_eq!(loc.column, Some(3));
-        assert_eq!(
-            loc.logical.as_deref(),
-            Some("https://example.test/thing"),
-            "the bare-IRI join key is preserved"
-        );
-    }
-}
+mod tests;

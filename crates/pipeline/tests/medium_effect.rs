@@ -5,7 +5,7 @@
 //! evidence.
 //!
 //! `crates/pipeline/tests/medium_bundle.rs` proves the measurement on the shipped
-//! artifact but costs a whole DAG run. These clauses are the ones that must be able to
+//! artifact by reading the already-produced authenticated bundle. These clauses are the ones that must be able to
 //! RED — a gate nobody has watched fail is a gate nobody knows works — plus the cheap
 //! agreements between the committed winner table (`bench/medium-baseline.json`), the
 //! authored medium axis (`slices/core/gts/module.ttl`), and the code that consumes
@@ -29,16 +29,11 @@ fn repo_root() -> PathBuf {
         .expect("workspace root")
 }
 
-/// The medium axis as `slices/core/gts/module.ttl` authors it.
-///
-/// Parsed from the slice because a unit-scale test has no carrier; PRODUCTION always
-/// reads the in-memory dataset, and the whole-bundle gate proves the two agree.
+/// The exact source-local medium axis admitted by the optimized producer.
 fn live_registry() -> MediumRegistry {
-    let module = repo_root().join("slices/core/gts/module.ttl");
-    let text = std::fs::read_to_string(&module).expect("the gts slice is readable");
-    let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", Some(GMEOW))
-        .expect("the gts slice parses as Turtle");
-    MediumRegistry::from_dataset(&dataset).expect("the live medium axis reads")
+    gmeow_pipeline::medium::source_observation::authenticated(&repo_root())
+        .expect("authenticated source medium registry")
+        .registry
 }
 
 fn committed_baseline() -> sweep::MediumBaseline {

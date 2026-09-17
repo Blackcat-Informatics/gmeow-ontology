@@ -28,7 +28,8 @@ use gmeow_pipeline::stages::compile_logic::{
     OWL_EL_PATH, PROJECTION_REPORT_PATH, XCL_PATH,
 };
 
-use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, note, project_root};
+use crate::dev_common::{fail, note, project_root, reporter_for, resolve_console, resolve_jobs};
+use crate::dev_sync::accept_pipeline_report;
 use crate::error;
 
 /// One resolved answer binding, `var → canonical-value`, plus an optional weight.
@@ -249,76 +250,32 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
     }
     let root = project_root();
 
-    // --check with no --mode: whole-pipeline drift gate, filtered to logic prefixes.
-    if check && mode.is_none() {
-        let jobs = std::thread::available_parallelism()
-            .map(|n| n.get())
-            .unwrap_or(1);
-        let report = match run_full(&root, jobs, RunMode::Check) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("pipeline check failed: {e}")),
-        };
-        let drift: Vec<&String> = report
-            .drifted
-            .iter()
-            .filter(|d| LOGIC_DRIFT_PREFIXES.iter().any(|p| d.contains(p)))
-            .collect();
-        if !drift.is_empty() {
-            let mut sorted = drift.clone();
-            sorted.sort();
-            for rel in sorted {
-                note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
-            }
-            return fail(format!(
-                "{} logic artifact(s) out of date — run `gmeow-dev logic compile`",
-                drift.len()
-            ));
-        }
-        println!("logic: committed artifacts match source (no drift)");
-        return 0;
+    let jobs = match resolve_jobs(None) {
+        Ok(jobs) => jobs,
+        Err(code) => return code,
+    };
+    let run_mode = if check {
+        RunMode::Check
+    } else {
+        RunMode::Update
+    };
+    // A mode selects the reported projection, while the single producer's whole
+    // diagnostic and drift contract remains mandatory before accepting its output.
+    let report = match run_full(&root, jobs, run_mode) {
+        Ok(report) => report,
+        Err(error) => return fail(format!("logic compile failed: {error}")),
+    };
+    let reporter = reporter_for(resolve_console(None));
+    if let Err(code) = accept_pipeline_report(reporter.as_ref(), &report, false) {
+        return code;
     }
-
-    // --mode M (with or without --check): run the REAL pipeline once and narrow
-    // to the single committed artifact for the requested back-end. There is no
-    // second, in-process compile — the whole-pipeline render is the single
-    // producer of every committed logic artifact, `report` included.
-    if let Some(mode) = mode {
-        let rel = mode_path(mode);
-        let jobs = std::thread::available_parallelism()
-            .map(|n| n.get())
-            .unwrap_or(1);
-        if check {
-            let report = match run_full(&root, jobs, RunMode::Check) {
-                Ok(r) => r,
-                Err(e) => return fail(format!("pipeline check failed: {e}")),
-            };
-            if report.drifted.iter().any(|d| d == rel) {
-                note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
-                return fail(format!("--mode {mode}: committed artifact drifted"));
-            }
-            println!("--mode {mode}: no drift");
-            return 0;
-        }
-        return match run_full(&root, jobs, RunMode::Update) {
-            Ok(_) => {
-                println!("{rel}");
-                0
-            }
-            Err(e) => fail(format!("logic compile failed: {e}")),
-        };
+    match (check, mode) {
+        (true, Some(mode)) => println!("--mode {mode}: no drift"),
+        (true, None) => println!("logic: committed artifacts match source (no drift)"),
+        (false, Some(mode)) => println!("{}", mode_path(mode)),
+        (false, None) => println!("logic: artifacts compiled"),
     }
-
-    // Default full render: the whole pipeline reproduces every committed artifact.
-    let jobs = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(1);
-    match run_full(&root, jobs, RunMode::Update) {
-        Ok(_) => {
-            println!("logic: artifacts compiled");
-            0
-        }
-        Err(e) => fail(format!("logic compile failed: {e}")),
-    }
+    0
 }
 
 /// The single committed path (relative to root) that `--mode M` narrows the
@@ -340,65 +297,10 @@ fn mode_path(mode: &str) -> &'static str {
     }
 }
 
+#[path = "dev_logic.query_tests.rs"]
 #[cfg(test)]
-mod query_tests {
-    use super::resolve_query;
+mod query_tests;
 
-    const HORN_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
-
-    #[test]
-    fn counterfactual_depth_refusal_does_not_build_an_unused_base_snapshot() {
-        // The quoted-triple object is deliberately outside the snapshot reifier
-        // contract. A depth-zero counterfactual returns before it needs any base
-        // snapshot; the plain-query preparation path must not run speculatively.
-        let nquads = "<https://ex/s> <https://ex/meta> \
-                      <<( <https://ex/qs> <https://ex/qp> <https://ex/qo> )>> \
-                      <http://world/base> .\n";
-        let program = ":- prefix(ex, 'https://ex/').\n\
-                       :- counterfactual('http://world/cf', 'http://world/base').\n\
-                       :- depth_budget(0).\n\
-                       :- assume(ex:p2(ex:s, ex:o2)).\n\
-                       ?- ex:p(ex:s, Z).\n";
-
-        let (answers, status) =
-            resolve_query(nquads, program, HORN_PROFILE, None, None, None).unwrap();
-        assert!(answers.is_empty());
-        assert_eq!(status, "incomplete");
-    }
-}
-
+#[path = "dev_logic.compile_tests.rs"]
 #[cfg(test)]
-mod compile_tests {
-    /// On-gate wiring proof (instant, no pipeline run): every `--mode` name
-    /// maps to the committed pipeline artifact path — in particular `report`
-    /// maps to the committed UNION report `PROJECTION_REPORT_PATH`
-    /// (`stage-mappings`' output), never a compiler-private path. Together
-    /// with the deletion of the in-process `compile_one_mode`, this pins that
-    /// `--mode M` can only ever narrow the real pipeline output. No test calls
-    /// `compile()`, because that entry point runs the corpus producer.
-    #[test]
-    fn every_mode_maps_to_its_committed_pipeline_path() {
-        use super::{LOGIC_MODES, mode_path};
-        use gmeow_pipeline::stages::compile_logic::{
-            CANONICAL_RDF12_PATH, CGIF_PATH, CLIF_PATH, DATALOG_PATH, GUFO_PATH, N3_PATH,
-            OWL_DL_PATH, OWL_EL_PATH, PROJECTION_REPORT_PATH, XCL_PATH,
-        };
-
-        assert_eq!(mode_path("owl-dl"), OWL_DL_PATH);
-        assert_eq!(mode_path("owl-el"), OWL_EL_PATH);
-        assert_eq!(mode_path("datalog"), DATALOG_PATH);
-        assert_eq!(mode_path("n3"), N3_PATH);
-        assert_eq!(mode_path("gufo"), GUFO_PATH);
-        assert_eq!(mode_path("canonical-rdf12"), CANONICAL_RDF12_PATH);
-        assert_eq!(mode_path("clif"), CLIF_PATH);
-        assert_eq!(mode_path("cgif"), CGIF_PATH);
-        assert_eq!(mode_path("xcl"), XCL_PATH);
-        // The discriminator: `report` narrows to the committed UNION report.
-        assert_eq!(mode_path("report"), PROJECTION_REPORT_PATH);
-        // Every validated mode has a mapping (no mode falls through unhandled
-        // to the wrong artifact).
-        for m in LOGIC_MODES {
-            assert!(!mode_path(m).is_empty(), "mode {m} has no committed path");
-        }
-    }
-}
+mod compile_tests;

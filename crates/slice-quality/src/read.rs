@@ -94,6 +94,7 @@ impl RecordedCorpus {
     /// # Errors
     /// If the recorded fingerprint differs from the digest of the current sources, or
     /// if any scored source file cannot be read.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn verify_fresh(&self, repo_root: &Path) -> gmeow_errors::Result<()> {
         let live = crate::scored_input_fingerprint(repo_root)?;
         if live == self.fingerprint {

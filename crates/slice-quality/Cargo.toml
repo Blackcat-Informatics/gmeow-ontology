@@ -68,6 +68,7 @@ gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 # consumes this crate (through the MCP tool surface) must build for wasm32, so
 # the parallel scoring fan-out is compiled out there and the dependency with it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+gmeow-action-cache = { path = "../action-cache" }
 rayon = "1"
 # tempfile: native-only, and used by exactly one axis arm. The scorer reads a slice
 # from an in-memory file map, but the documentation model it consumes is built by
@@ -80,6 +81,7 @@ rayon = "1"
 tempfile.workspace = true
 
 [dev-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
 pretty_assertions.workspace = true
 insta = { workspace = true, features = ["json"] }
 # The token-cost anti-rot gate measures the REAL `cl100k_base` cost of every token the

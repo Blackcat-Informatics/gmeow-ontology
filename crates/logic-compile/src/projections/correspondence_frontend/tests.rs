@@ -5,11 +5,48 @@ use super::*;
 use crate::ir::CorrespondenceRelation;
 use crate::projections::correspondence::{extract_correspondences, project_correspondence};
 
+fn transpile_correspondences(view: &DslView) -> gmeow_errors::Result<CorrespondenceProgram> {
+    transpile_correspondences_indexed(view).map(|(program, _)| program)
+}
+
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
+
+#[test]
+fn same_assertion_keeps_each_declared_morphism_and_overclaim_gate() {
+    for reverse in [false, true] {
+        let mut declarations = [
+            "gm:Person skos:exactMatch gm:Agent {| gm:sssomFile \"bridge.sssom.tsv\" ; logic:morphismClass logic:BridgeView |} .",
+            "gm:Person skos:exactMatch gm:Agent {| gm:sssomFile \"lens.sssom.tsv\" ; logic:morphismClass logic:WellBehavedLens |} .",
+        ];
+        if reverse {
+            declarations.reverse();
+        }
+        let source = format!(
+            "@prefix gm: <{GMEOW}> . @prefix logic: <{LOGIC}> . @prefix skos: <http://www.w3.org/2004/02/skos/core#> . {}",
+            declarations.join("\n"),
+        );
+        let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+        let view = DslView::new(&dataset);
+        let (program, analysis) = transpile_correspondences_indexed(&view).unwrap();
+        assert_eq!(program.correspondences.len(), 2);
+        for cell in analysis.alignment_cells() {
+            let expected = if cell.sssom_file == "bridge.sssom.tsv" {
+                MorphismClass::BridgeView
+            } else {
+                MorphismClass::WellBehavedLens
+            };
+            assert_eq!(analysis.equivalence(cell).unwrap().morphism_class, expected);
+        }
+        let error = super::super::sssom::lower_sssom(&view, "test", "2026-01-01", &analysis)
+            .err()
+            .expect("a sibling lens must never hide a bridge overclaim");
+        assert!(error.message().contains("bridge"), "{error}");
+    }
+}
 
 /// Build a representative `dsl/mappings/` fixture: two native alignment cells (an
 /// `exactMatch` and a grounding `closeMatch`, so two distinct relation bands) plus one
@@ -264,13 +301,9 @@ fn projection_grounding_dsl_with_binding(
 #[test]
 fn transpile_round_trips_with_no_extract_errors() {
     let dsl = fixture_dsl();
-    // The frontend accepts an ontology view for symmetry; an empty one suffices here.
-    let empty = parse_nt("");
     let dsl_view = DslView::new(&dsl);
-    let onto_view = DslView::new(&empty);
 
-    let program =
-        transpile_correspondences(&dsl_view, &onto_view).expect("transpile the fixture cells");
+    let program = transpile_correspondences(&dsl_view).expect("transpile the fixture cells");
 
     // Two native alignment cells + one ProjectionMapping binding = three typed nodes.
     assert_eq!(
@@ -350,11 +383,9 @@ fn transpile_round_trips_with_no_extract_errors() {
 #[test]
 fn correspondence_iris_are_content_stable() {
     let dsl = fixture_dsl();
-    let empty = parse_nt("");
-    let onto_view = DslView::new(&empty);
 
-    let a = transpile_correspondences(&DslView::new(&dsl), &onto_view).expect("transpile a");
-    let b = transpile_correspondences(&DslView::new(&dsl), &onto_view).expect("transpile b");
+    let a = transpile_correspondences(&DslView::new(&dsl)).expect("transpile a");
+    let b = transpile_correspondences(&DslView::new(&dsl)).expect("transpile b");
 
     let iris_a: Vec<&str> = a.correspondences.iter().map(|c| c.iri.as_str()).collect();
     let iris_b: Vec<&str> = b.correspondences.iter().map(|c| c.iri.as_str()).collect();
@@ -366,9 +397,8 @@ fn correspondence_iris_are_content_stable() {
 #[test]
 fn grounding_term_bridge_keeps_typed_commitment_and_endpoints() {
     let dsl = term_grounding_dsl(SKOS_CLOSE_MATCH, true);
-    let empty = parse_nt("");
-    let program = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
-        .expect("transpile the grounding bridge");
+    let program =
+        transpile_correspondences(&DslView::new(&dsl)).expect("transpile the grounding bridge");
     let [bridge] = program.correspondences.as_slice() else {
         panic!("one authored grounding cell must produce one correspondence")
     };
@@ -389,8 +419,7 @@ fn grounding_term_bridge_keeps_typed_commitment_and_endpoints() {
 #[test]
 fn grounding_term_bridge_requires_explicit_judgments() {
     let dsl = term_grounding_dsl(SKOS_CLOSE_MATCH, false);
-    let empty = parse_nt("");
-    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+    let err = transpile_correspondences(&DslView::new(&dsl))
         .expect_err("a grounding bridge with implicit defaults must fail closed");
     assert!(err.message().contains("must explicitly author"), "{err}");
 }
@@ -419,8 +448,7 @@ gmeow:Foo skos:closeMatch schema:Thing {|
 |} .
 "#;
     let dsl = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse divergent fixture");
-    let empty = parse_nt("");
-    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+    let err = transpile_correspondences(&DslView::new(&dsl))
         .expect_err("a divergent duplicate alignment cell must fail closed");
     assert!(
         err.message().contains("divergent duplicate alignment cell"),
@@ -453,8 +481,7 @@ gmeow:Foo skos:closeMatch schema:Thing {|
 |} .
 "#;
     let dsl = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse multi-set fixture");
-    let empty = parse_nt("");
-    transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+    transpile_correspondences(&DslView::new(&dsl))
         .expect("the same fact in two SSSOM sets must transpile cleanly, not conflict");
 }
 
@@ -463,9 +490,8 @@ fn grounding_term_bridge_cannot_surface_exact_match() {
     use crate::projections::sssom::lower_sssom;
 
     let dsl = term_grounding_dsl(SKOS_EXACT_MATCH, true);
-    let empty = parse_nt("");
     let view = DslView::new(&dsl);
-    let (_program, lookup) = transpile_correspondences_indexed(&view, &DslView::new(&empty))
+    let (_program, lookup) = transpile_correspondences_indexed(&view)
         .expect("the typed bridge materializes before the dialect gate");
     let err = match lower_sssom(&view, "test", "2026-01-01", &lookup) {
         Err(err) => err,
@@ -478,8 +504,7 @@ fn grounding_term_bridge_cannot_surface_exact_match() {
 #[test]
 fn grounding_projection_lowers_to_the_same_typed_ir() {
     let dsl = projection_grounding_dsl(1, true, true, false);
-    let empty = parse_nt("");
-    let program = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+    let program = transpile_correspondences(&DslView::new(&dsl))
         .expect("transpile executable grounding correspondence");
     let [grounding] = program.correspondences.as_slice() else {
         panic!("one grounding ProjectionMapping binding must produce one correspondence")
@@ -496,28 +521,30 @@ fn grounding_projection_lowers_to_the_same_typed_ir() {
         grounding.target_endpoint.as_deref(),
         Some("https://schema.org/name")
     );
-    assert_eq!(grounding.evidence_strength, Some(0.5));
+    assert!(grounding.evidence_strength.is_none());
+    assert_eq!(
+        grounding.axis_evidence.sources,
+        vec!["https://w3id.org/semapv/vocab/ManualMappingCuration"]
+    );
 }
 
 #[test]
 fn grounding_projection_rejects_multiple_bindings() {
     let dsl = projection_grounding_dsl(2, true, true, false);
-    let empty = parse_nt("");
-    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+    let err = transpile_correspondences(&DslView::new(&dsl))
         .expect_err("a grounding ProjectionMapping cannot have an ambiguous target");
     assert!(err.message().contains("exactly one"), "{err}");
 }
 
 #[test]
 fn grounding_projection_rejects_missing_metadata_and_target_drift() {
-    let empty = parse_nt("");
     let missing = projection_grounding_dsl(1, false, true, false);
-    let err = transpile_correspondences(&DslView::new(&missing), &DslView::new(&empty))
+    let err = transpile_correspondences(&DslView::new(&missing))
         .expect_err("an implicit executable grounding mapping must fail closed");
     assert!(err.message().contains("must explicitly author"), "{err}");
 
     let drifted = projection_grounding_dsl(1, true, false, false);
-    let err = transpile_correspondences(&DslView::new(&drifted), &DslView::new(&empty))
+    let err = transpile_correspondences(&DslView::new(&drifted))
         .expect_err("the explicit target endpoint must match the binding target");
     assert!(err.message().contains("targetEndpoint must equal"), "{err}");
 }
@@ -525,8 +552,7 @@ fn grounding_projection_rejects_missing_metadata_and_target_drift() {
 #[test]
 fn grounding_projection_accepts_an_honest_commitment_shift() {
     let dsl = projection_grounding_dsl(1, true, true, true);
-    let empty = parse_nt("");
-    let program = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+    let program = transpile_correspondences(&DslView::new(&dsl))
         .expect("a non-equivalence bridge pair is an honest grounding correspondence");
     let [bridge] = program.correspondences.as_slice() else {
         panic!("one binding must produce one correspondence")
@@ -539,8 +565,7 @@ fn grounding_projection_accepts_an_honest_commitment_shift() {
 #[test]
 fn grounding_projection_rejects_a_commitment_shift_with_equivalence_relation() {
     let dsl = projection_grounding_dsl_with_binding(1, true, true, true, Some("="), 1);
-    let empty = parse_nt("");
-    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+    let err = transpile_correspondences(&DslView::new(&dsl))
         .expect_err("a commitment-shifting bridge may not materialize as equivalence");
     assert!(
         err.message().contains("must not declare an equivalence"),
@@ -550,10 +575,9 @@ fn grounding_projection_rejects_a_commitment_shift_with_equivalence_relation() {
 
 #[test]
 fn grounding_projection_requires_exactly_one_binding_target_form() {
-    let empty = parse_nt("");
     for target_count in [0, 2] {
         let dsl = projection_grounding_dsl_with_binding(1, true, true, false, None, target_count);
-        let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        let err = transpile_correspondences(&DslView::new(&dsl))
             .expect_err("a grounding binding target must be unambiguous and present");
         assert!(err.message().contains("exactly one of"), "{err}");
         assert!(
@@ -677,18 +701,18 @@ fn bridge_cell_surfacing_equivalence_fails_end_to_end() {
     // ── The RED case: the authored bridge cell flows through transpile + both lowerings. ─
     let dsl = projection_bridge_dsl(true);
     let dsl_view = DslView::new(&dsl);
-    let (_program, lookup) = transpile_correspondences_indexed(&dsl_view, &onto_view)
+    let (_program, lookup) = transpile_correspondences_indexed(&dsl_view)
         .expect("the bridge cell transpiles to a typed correspondence (BridgeView)");
 
     // `*Lowering` Ok types are not `Debug`, so match the `Result` rather than `expect_err`.
-    let edoal_err = match lower_edoal(&dsl_view, &onto_view, &lookup) {
+    let edoal_err = match lower_edoal(&onto_view, &lookup) {
         Err(e) => e,
         Ok(_) => panic!("a BridgeView surfacing `=` must hard-fail the EDOAL lowering"),
     };
     assert!(edoal_err.message().contains("bridge"), "{edoal_err}");
     assert!(edoal_err.message().contains("Principle 5"), "{edoal_err}");
 
-    let sparql_err = match lower_sparql(&dsl_view, &onto_view, &lookup) {
+    let sparql_err = match lower_sparql(&onto_view, &lookup) {
         Err(e) => e,
         Ok(_) => panic!("a BridgeView surfacing `=` must hard-fail the SPARQL lowering"),
     };
@@ -705,26 +729,92 @@ fn bridge_cell_surfacing_equivalence_fails_end_to_end() {
     // RED case fails SOLELY because the gate consumes the authored BridgeView class.
     let ctrl_dsl = projection_bridge_dsl(false);
     let ctrl_view = DslView::new(&ctrl_dsl);
-    let (_ctrl_program, ctrl_lookup) = transpile_correspondences_indexed(&ctrl_view, &onto_view)
+    let (_ctrl_program, ctrl_lookup) = transpile_correspondences_indexed(&ctrl_view)
         .expect("the control equivalence cell transpiles");
-    lower_edoal(&ctrl_view, &onto_view, &ctrl_lookup)
+    lower_edoal(&onto_view, &ctrl_lookup)
         .expect("a genuine equivalence binding passes the EDOAL gate");
 }
 
-/// The justification → evidence-strength band is honest: a manually-curated cell carries
-/// a modest non-zero warrant, an un-justified cell leaves the axis unset (never a
-/// fabricated number).
+/// Qualitative evidence survives without inventing a rank from any local name.
 #[test]
-fn evidence_strength_tracks_the_justification_band() {
-    assert_eq!(
-        evidence_strength_of_justification(Some(
-            "https://w3id.org/semapv/vocab/ManualMappingCuration"
-        )),
-        Some(0.5)
-    );
-    assert_eq!(evidence_strength_of_justification(None), None);
-    assert_eq!(
-        evidence_strength_of_justification(Some("https://example.org/UnknownJustification")),
-        None
-    );
+fn evidence_retains_full_identity_without_implicit_warrant_scores() {
+    for justification in [
+        "https://w3id.org/semapv/vocab/ManualMappingCuration",
+        "https://example.org/ManualMappingCuration",
+    ] {
+        let dsl = projection_grounding_dsl(1, true, true, false);
+        let mut program = transpile_correspondences(&DslView::new(&dsl)).unwrap();
+        let cell = &mut program.correspondences[0];
+        assert!(cell.evidence_strength.is_none());
+        cell.axis_evidence =
+            crate::ir::AxisEvidence::new(vec![justification.into()], None, None).unwrap();
+        let restored = crate::projections::correspondence::parse_correspondence(
+            &crate::projections::correspondence::project_correspondence_dataset(&program).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(restored, program);
+        assert!(restored.correspondences[0].evidence_strength.is_none());
+    }
+}
+
+/// The authored RDF value must reach both correspondence routes intact, before
+/// either external projection requests its deliberately lossy measure.
+#[test]
+fn mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input() {
+    for value in [
+        "0.123456789012345678",
+        "\"+0.5E0\"^^<http://www.w3.org/2001/XMLSchema#double>",
+    ] {
+        let ttl = format!(
+            r#"
+            @prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+            @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+            gm:source skos:closeMatch gm:target {{| gm:sssomFile "axis.tsv" ; gm:confidence {value} |}} .
+            gm:mapping a gm:ProjectionMapping ; gm:hasMappingPattern [ gm:anchor "?s" ] ;
+                gm:hasBinding [ gm:profile "schema-org" ; gm:relation "=" ; gm:toPredicate gm:target ; gm:confidence {value} ] .
+        "#
+        );
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        let view = DslView::new(&dataset);
+        let alignment = equivalence_cells(&view)
+            .unwrap()
+            .remove(0)
+            .confidence
+            .unwrap();
+        let projection = projections(&view)
+            .unwrap()
+            .remove(0)
+            .bindings
+            .remove(0)
+            .confidence
+            .unwrap();
+        assert_eq!(alignment, projection);
+        let (program, _) = transpile_correspondences_indexed(&view).unwrap();
+        assert_eq!(program.correspondences.len(), 2);
+        assert!(
+            program
+                .correspondences
+                .iter()
+                .all(|corr| corr.confidence.as_ref() == Some(&alignment))
+        );
+        let (restored, errors) =
+            extract_correspondences(&parse_nt(&project_correspondence(&program)));
+        assert!(errors.is_empty());
+        assert_eq!(restored, program.correspondences);
+    }
+    for value in ["\"0.5\"", "\"0.5\"@en", "0.2, 0.3", "1.000000000000000001"] {
+        let ttl = format!(
+            r#"
+            @prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+            @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+            gm:source skos:closeMatch gm:target {{| gm:sssomFile "axis.tsv" ; gm:confidence {value} |}} .
+            gm:mapping a gm:ProjectionMapping ; gm:hasMappingPattern [ gm:anchor "?s" ] ;
+                gm:hasBinding [ gm:profile "schema-org" ; gm:relation "=" ; gm:toPredicate gm:target ; gm:confidence {value} ] .
+        "#
+        );
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        let view = DslView::new(&dataset);
+        assert!(equivalence_cells(&view).is_err(), "alignment {value}");
+        assert!(projections(&view).is_err(), "projection {value}");
+    }
 }

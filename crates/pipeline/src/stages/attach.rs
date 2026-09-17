@@ -82,6 +82,13 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
     // `gmeow:attachesGraph` declarations and the empirical run dump).
     let mut t = BTreeMap::new();
 
+    entry(
+        &mut t,
+        "stage-parse-sources",
+        &[crate::stages::parse_sources::GRAPH_SOURCE_CATALOG],
+        &[],
+    );
+
     // stage-source-load — the authored self-description graphs, every slice's authored
     // examples/*.ttl ABox corpus, + the source-span blob.
     entry(
@@ -92,7 +99,6 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/examples",
             "https://blackcatinformatics.ca/gmeow/graph/grounding-seams",
             "https://blackcatinformatics.ca/gmeow/graph/imports",
-            "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs",
             "https://blackcatinformatics.ca/gmeow/graph/metadata",
             "https://blackcatinformatics.ca/gmeow/graph/provenance",
             "https://blackcatinformatics.ca/gmeow/graph/quality-assessment",

@@ -127,6 +127,7 @@ pub mod shape_union_fresh;
 pub mod skos_surface;
 // The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo
 // slice batch and folds the union into the carrier as graph/authoring-briefs.
+pub mod parse_sources;
 pub mod slice_brief;
 pub mod source_load;
 pub mod statements;
@@ -142,6 +143,7 @@ pub mod yaml_ld;
 /// key. The single inventory the loader and `run_pipeline` (P6) share. Stages
 /// land here as P3–P5 implement them.
 pub fn register_default(registry: &mut StageRegistry) {
+    registry.register("parse_sources", Arc::new(parse_sources::ParseSourcesStage));
     registry.register("source_load", Arc::new(source_load::SourceLoadStage::new()));
     registry.register("statements", Arc::new(statements::StatementsStage));
     registry.register(

@@ -37,17 +37,16 @@
 //! different output bytes differ in the tiebreak key and the same winner is chosen
 //! regardless of enumeration order.  For a single-stratum POSITIVE program the derived
 //! rows therefore equal `least_model_of_reduct(edb, rules, &empty)` exactly; this is
-//! asserted by the [`physical_native_matches_reference_byte_identical`] oracle test.
+//! checked by the permanent native parallel/budget parity fixture in [`crate::cost`].
 //!
 //! # Stratification (dynamic) + negation
 //!
-//! The predicate dependency graph carries an edge head_pred → body_pred per rule,
-//! marked NEGATIVE when the body atom is negated.  Strata are assigned so a NEGATIVE
-//! edge head→neg forces stratum(head) > stratum(neg) and a POSITIVE edge forces
-//! stratum(head) >= stratum(body).  A negative edge inside a cycle is non-stratifiable
-//! → [`NativeOutcome::Unsupported`]`(`[`UnsupportedKind::NonStratifiable`]`)`.  Strata
-//! run in increasing order; within a stratum the predicates being derived never
-//! appear negated, so NAF against the accumulated (frozen-below) store is correct.
+//! The signed dependency graph connects producers whose statement patterns can
+//! intersect. NAF and structural lookups require completed predecessors; positive
+//! reads may share a fixed point. A strict edge inside a cycle is non-stratifiable
+//! → [`NativeOutcome::Unsupported`]`(`[`UnsupportedKind::NonStratifiable`]`)`.
+//! Strata run in increasing order. A predicate is marked settled only after its
+//! last possible writer completes, including writers of disjoint class markers.
 //!
 //! # Internal helper coverage
 //!
@@ -56,14 +55,19 @@
 //! verification helpers together rather than scattering per-item attributes.
 #![allow(dead_code)]
 
-use std::borrow::Cow;
-use std::collections::{BTreeSet, HashMap};
+#[cfg(test)]
+mod builtin_tests;
+pub(crate) mod joint;
+pub(crate) mod property;
+mod reduce;
+
+use std::collections::BTreeSet;
 
 use hashbrown::HashTable;
 use rayon::prelude::*;
 
 use crate::physical::builtin_eval::{
-    BuiltinGap, BuiltinOutcome, CellResolver, MathTriples, emit_surface, eval as eval_builtin,
+    BuiltinGap, BuiltinOutcome, CellResolver, MathTriples, emit_term, eval_native,
     load_dimension_cells, load_gram_cells, load_vector_dense,
 };
 use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
@@ -72,12 +76,12 @@ use crate::physical::plan::{
     AtomKernel, AtomOperator, CyclicPlan, Executable, IndexChoice, JoinGroup, RulePlan,
 };
 use crate::physical::store::{Bound, RelationStore};
-use crate::provenance::{MinProofHeightSemiring, ProofHeight, mint_derivation_id};
+use crate::provenance::{MinProofHeightSemiring, ProofHeight, mint_derivation_id, term_display};
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
-    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
-    Solution, distinct_pairs_satisfied, echo_asserted, fact_key_hash, ground, ground_head,
-    ground_relational_head, match_atom, sort_rows, world_edb_facts,
+    DerivedRow, EvalAtom, EvalRule, EvalTerm, Fact, FactKey, FactStore, Provenance,
+    RuleRoundCandidate, Solution, distinct_pairs_satisfied, echo_asserted, fact_key_hash,
+    ground_head, ground_relational_head, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
 
@@ -211,7 +215,7 @@ impl<T> Budgeted<T> {
     }
 }
 
-/// Whether a stratum's semi-naive fixpoint reached its natural end or was budget-cut.
+/// Whether a stratum completed, exhausted its budget, or met an undefined builtin.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FixpointStatus {
     /// The fixpoint reached `round.is_empty()` within budget.
@@ -219,6 +223,8 @@ enum FixpointStatus {
     /// The `max_steps` budget was exhausted mid-fixpoint; the committed prefix is a
     /// sound (FactKey-ordered) partial least model.
     Exhausted,
+    /// An ordinary builtin failed; no candidate in its round may be committed.
+    BuiltinGap,
 }
 
 /// Whether the stratified fixpoint records per-derivation provenance.
@@ -292,6 +298,39 @@ impl StepGovernor {
         }
     }
 
+    /// Continue a measured native prefix under the original total allowance.
+    pub(crate) fn from_consumed(max_steps: Option<u64>, consumed: u64) -> Self {
+        assert!(
+            max_steps.is_none_or(|limit| consumed <= limit),
+            "prefix exceeds its governor"
+        );
+        Self {
+            limit: max_steps,
+            consumed,
+        }
+    }
+
+    /// Temporarily tighten this same governor for one bounded native operation.
+    /// A returned error/refusal restores the caller's ceiling too; committed work
+    /// always remains charged exactly once.
+    pub(crate) fn with_backstop<T>(
+        &mut self,
+        backstop: u64,
+        operation: impl FnOnce(&mut Self) -> T,
+    ) -> T {
+        let original = self.limit;
+        let ceiling = self.consumed.saturating_add(backstop);
+        self.limit = Some(original.map_or(ceiling, |limit| limit.min(ceiling)));
+        let result = operation(self);
+        self.limit = original;
+        result
+    }
+
+    /// Remaining commit allowance; absence means the caller selected no limit.
+    pub(crate) fn remaining(&self) -> Option<u64> {
+        self.limit.map(|limit| limit.saturating_sub(self.consumed))
+    }
+
     /// Whether the budget is spent — the next derivation may NOT be committed.
     ///
     /// Checked *before* committing each winner, so `limit == Some(0)` stops before the
@@ -323,33 +362,16 @@ impl StepGovernor {
 
 // ── Index-selected semi-naive join ────────────────────────────────────────────────
 
-/// Compute the [`Bound`] for `atom`'s `(subject, object)` columns under `sol`.
-///
-/// A position contributes iff it grounds (a bound var or a constant); an unbound
-/// var contributes nothing.  Ground surfaces come from [`ground`] and are
-/// translated to interned ids via [`RelationStore::term_id`] — the store's
-/// dictionary is keyed on the same display surfaces, so the translation is exact.
-/// `None` means a bound position's term has never entered `rel`: no row can match,
-/// and the caller treats the selection as empty (exactly where a surface-keyed
-/// index would have produced zero matches).
-fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Option<Bound> {
-    Some(match (subj, obj) {
-        (Some(s), Some(o)) => Bound::Both(rel.term_id(s)?, rel.term_id(o)?),
-        (Some(s), None) => Bound::Subject(rel.term_id(s)?),
-        (None, Some(o)) => Bound::Object(rel.term_id(o)?),
-        (None, None) => Bound::Any,
-    })
-}
-
 /// Flat physical binding frame for the acyclic binary join.
 ///
 /// Slots are assigned once by [`RulePlan`]. A row probe is therefore two direct indexed
-/// reads instead of repeated linear searches over `(variable_name, value)` pairs. The
-/// legacy named [`Solution`] is reconstructed once after the positive join because the
+/// reads over interned term IDs instead of copying display strings or repeatedly
+/// searching `(variable_name, value)` pairs. The
+/// native named [`Solution`] is reconstructed once after the positive join because the
 /// post-join builtin/NAF/head helpers remain the shared semantic authority.
 #[derive(Clone)]
 struct SlotSolution {
-    bindings: Vec<Option<String>>,
+    bindings: Vec<Option<TermId>>,
     source_facts: Vec<Fact>,
 }
 
@@ -361,16 +383,18 @@ impl SlotSolution {
         }
     }
 
-    fn get(&self, slot: usize) -> Option<&str> {
-        self.bindings[slot].as_deref()
+    fn get(&self, slot: usize) -> Option<TermId> {
+        self.bindings[slot]
     }
 
-    fn into_named(self, variables: &[String]) -> Solution {
+    fn into_named(self, variables: &[String], rel: &RelationStore) -> Solution {
         debug_assert_eq!(self.bindings.len(), variables.len());
         let bindings = variables
             .iter()
             .zip(self.bindings)
-            .filter_map(|(name, value)| value.map(|value| (name.clone(), value)))
+            .filter_map(|(name, value)| {
+                value.map(|value| (name.clone(), rel.interner().resolve(value).clone()))
+            })
             .collect();
         Solution {
             bindings,
@@ -413,6 +437,9 @@ fn extend_slot_operator<const SCAN: u8>(
     delta: Delta,
     solutions: &[SlotSolution],
 ) -> Vec<SlotSolution> {
+    if rel.semantics.alternate_predicate(&atom.predicate).is_some() {
+        return extend_slot_semantic::<SCAN>(operator, atom, rel, delta, solutions);
+    }
     match (operator.kernel(), operator.index()) {
         (
             AtomKernel::Vars {
@@ -533,6 +560,73 @@ fn extend_slot_operator<const SCAN: u8>(
     }
 }
 
+/// The same indexed join under the selected grounded operator contract. Only
+/// constant marker probes expand; variables bind the actual selected term.
+fn extend_slot_semantic<const SCAN: u8>(
+    operator: &AtomOperator,
+    atom: &EvalAtom,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let (subject_slot, subject_constant, object_slot, object_constant) = match operator.kernel() {
+        AtomKernel::Vars {
+            subject_slot,
+            object_slot,
+        } => (Some(*subject_slot), None, Some(*object_slot), None),
+        AtomKernel::VarConst {
+            subject_slot,
+            object,
+        } => (Some(*subject_slot), None, None, Some(object)),
+        AtomKernel::ConstVar {
+            subject,
+            object_slot,
+        } => (None, Some(subject), Some(*object_slot), None),
+        AtomKernel::Consts { subject, object } => (None, Some(subject), None, Some(object)),
+    };
+    let mut next = Vec::new();
+    for solution in solutions {
+        let subject = subject_constant.or_else(|| {
+            subject_slot
+                .and_then(|slot| solution.get(slot))
+                .map(|id| rel.interner().resolve(id))
+        });
+        let object = object_constant.or_else(|| {
+            object_slot
+                .and_then(|slot| solution.get(slot))
+                .map(|id| rel.interner().resolve(id))
+        });
+        let mut rows = rel.select_pattern(
+            &atom.predicate,
+            subject,
+            object,
+            matches!(atom.object, EvalTerm::ConstNamed(_)),
+            true,
+        );
+        while let Some((subject, object, row, predicate)) = rows.next() {
+            if !keep_row::<SCAN>(delta, row)
+                || (subject_slot.is_some() && subject_slot == object_slot && subject != object)
+            {
+                continue;
+            }
+            let mut merged = solution.clone();
+            if let Some(slot) = subject_slot {
+                merged.bindings[slot] = Some(subject);
+            }
+            if let Some(slot) = object_slot {
+                merged.bindings[slot] = Some(object);
+            }
+            merged.source_facts.push(Fact {
+                subject: rel.interner().resolve(subject).clone(),
+                predicate: predicate.to_owned(),
+                object: rel.interner().resolve(object).clone(),
+            });
+            next.push(merged);
+        }
+    }
+    next
+}
+
 const INDEX_ANY: u8 = 0;
 const INDEX_SUBJECT: u8 = 1;
 const INDEX_OBJECT: u8 = 2;
@@ -551,32 +645,21 @@ fn extend_slot_vars<const SCAN: u8, const INDEX: u8>(
         let bound = match INDEX {
             INDEX_ANY => Bound::Any,
             INDEX_SUBJECT => {
-                let Some(subject) = solution
-                    .get(subject_slot)
-                    .and_then(|value| rel.term_id(value))
-                else {
+                let Some(subject) = solution.get(subject_slot) else {
                     continue;
                 };
                 Bound::Subject(subject)
             }
             INDEX_OBJECT => {
-                let Some(object) = solution
-                    .get(object_slot)
-                    .and_then(|value| rel.term_id(value))
-                else {
+                let Some(object) = solution.get(object_slot) else {
                     continue;
                 };
                 Bound::Object(object)
             }
             INDEX_BOTH => {
-                let (Some(subject), Some(object)) = (
-                    solution
-                        .get(subject_slot)
-                        .and_then(|value| rel.term_id(value)),
-                    solution
-                        .get(object_slot)
-                        .and_then(|value| rel.term_id(value)),
-                ) else {
+                let (Some(subject), Some(object)) =
+                    (solution.get(subject_slot), solution.get(object_slot))
+                else {
                     continue;
                 };
                 Bound::Both(subject, object)
@@ -592,12 +675,10 @@ fn extend_slot_vars<const SCAN: u8, const INDEX: u8>(
             }
             let mut merged = solution.clone();
             if INDEX == INDEX_ANY || INDEX == INDEX_OBJECT {
-                merged.bindings[subject_slot] =
-                    Some(rel.interner().display_of(subject_id).to_owned());
+                merged.bindings[subject_slot] = Some(subject_id);
             }
             if (INDEX == INDEX_ANY || INDEX == INDEX_SUBJECT) && object_slot != subject_slot {
-                merged.bindings[object_slot] =
-                    Some(rel.interner().display_of(object_id).to_owned());
+                merged.bindings[object_slot] = Some(object_id);
             }
             merged
                 .source_facts
@@ -611,7 +692,7 @@ fn extend_slot_vars<const SCAN: u8, const INDEX: u8>(
 fn extend_slot_var_const<const SCAN: u8, const INDEX: u8>(
     atom: &EvalAtom,
     subject_slot: usize,
-    object: &str,
+    object: &purrdf::TermValue,
     rel: &RelationStore,
     delta: Delta,
     solutions: &[SlotSolution],
@@ -624,10 +705,7 @@ fn extend_slot_var_const<const SCAN: u8, const INDEX: u8>(
         let bound = match INDEX {
             INDEX_OBJECT => Bound::Object(object_id),
             INDEX_BOTH => {
-                let Some(subject_id) = solution
-                    .get(subject_slot)
-                    .and_then(|value| rel.term_id(value))
-                else {
+                let Some(subject_id) = solution.get(subject_slot) else {
                     continue;
                 };
                 Bound::Both(subject_id, object_id)
@@ -641,8 +719,7 @@ fn extend_slot_var_const<const SCAN: u8, const INDEX: u8>(
             }
             let mut merged = solution.clone();
             if INDEX == INDEX_OBJECT {
-                merged.bindings[subject_slot] =
-                    Some(rel.interner().display_of(subject_id).to_owned());
+                merged.bindings[subject_slot] = Some(subject_id);
             }
             merged
                 .source_facts
@@ -655,7 +732,7 @@ fn extend_slot_var_const<const SCAN: u8, const INDEX: u8>(
 
 fn extend_slot_const_var<const SCAN: u8, const INDEX: u8>(
     atom: &EvalAtom,
-    subject: &str,
+    subject: &purrdf::TermValue,
     object_slot: usize,
     rel: &RelationStore,
     delta: Delta,
@@ -669,10 +746,7 @@ fn extend_slot_const_var<const SCAN: u8, const INDEX: u8>(
         let bound = match INDEX {
             INDEX_SUBJECT => Bound::Subject(subject_id),
             INDEX_BOTH => {
-                let Some(object_id) = solution
-                    .get(object_slot)
-                    .and_then(|value| rel.term_id(value))
-                else {
+                let Some(object_id) = solution.get(object_slot) else {
                     continue;
                 };
                 Bound::Both(subject_id, object_id)
@@ -686,8 +760,7 @@ fn extend_slot_const_var<const SCAN: u8, const INDEX: u8>(
             }
             let mut merged = solution.clone();
             if INDEX == INDEX_SUBJECT {
-                merged.bindings[object_slot] =
-                    Some(rel.interner().display_of(object_id).to_owned());
+                merged.bindings[object_slot] = Some(object_id);
             }
             merged
                 .source_facts
@@ -700,8 +773,8 @@ fn extend_slot_const_var<const SCAN: u8, const INDEX: u8>(
 
 fn extend_slot_consts<const SCAN: u8>(
     atom: &EvalAtom,
-    subject: &str,
-    object: &str,
+    subject: &purrdf::TermValue,
+    object: &purrdf::TermValue,
     rel: &RelationStore,
     delta: Delta,
     solutions: &[SlotSolution],
@@ -754,7 +827,7 @@ fn extend_solutions_indexed(
 /// whole predicate bucket and post-filtering on the bound positions, it computes a
 /// [`Bound`] from each partial solution and calls [`RelationStore::select`], which
 /// returns ONLY the matching rows in insertion order.  Each returned `(subject, object)`
-/// tuple is wrapped as a [`Fact`] and handed to [`match_atom`] exactly as
+/// tuple is wrapped as a [`Fact`] and handed to [`crate::rule_ir::match_atom`] exactly as
 /// `extend_solutions` does, so the produced solution sequence (and `source_facts` order)
 /// is identical to the full-scan engine.
 ///
@@ -768,24 +841,11 @@ fn extend_solutions_kernel<const SCAN: u8>(
     delta: Delta,
     solutions: &[Solution],
 ) -> Vec<Solution> {
-    let pred = atom.predicate.as_str();
     let interner = rel.interner();
     let mut next: Vec<Solution> = Vec::new();
     for sol in solutions {
-        // Compute the selection bound from the current partial solution, translating
-        // ground surfaces to interned ids.  A bound term the store has never seen
-        // matches nothing — skip to the next solution (the empty selection).
-        let subj_surface = ground(&atom.subject, sol);
-        let obj_surface = ground(&atom.object, sol);
-        let Some(bound) = atom_bound(rel, subj_surface.as_deref(), obj_surface.as_deref()) else {
-            continue;
-        };
-        // Drive the arrangement's galloping lending cursor directly — NO per-stage
-        // `Vec<(TermId, TermId, RowId)>` is materialized for this atom's selection.
-        // Each `next()` yields one borrowed id row in row-id
-        // (insertion) order, byte-identical to the former eager `select` vector.
-        let mut cursor = rel.select(pred, bound);
-        while let Some((s_id, o_id, row_id)) = cursor.next() {
+        let mut cursor = rel.select_atom(atom, sol);
+        while let Some((s_id, o_id, row_id, predicate)) = cursor.next() {
             // Semi-naive position decomposition on the selected row's dense RowId — the
             // same delta×full split `extend_solutions` applies, but membership is one
             // `u64`-word test on the delta bitset.  `SCAN` is a
@@ -798,10 +858,10 @@ fn extend_solutions_kernel<const SCAN: u8>(
             // point the `Fact` (and its downstream reifier / provenance) needs them.
             let f = Fact {
                 subject: interner.resolve(s_id).clone(),
-                predicate: atom.predicate.clone(),
+                predicate: predicate.to_owned(),
                 object: interner.resolve(o_id).clone(),
             };
-            if let Some(mut merged) = match_atom(atom, &f, sol) {
+            if let Some(mut merged) = rel.match_selected(atom, &f, sol) {
                 merged.source_facts.push(f);
                 next.push(merged);
             }
@@ -1084,20 +1144,14 @@ fn cycle_atom_cursor<'a>(
         return None;
     };
     if *subject_slot == variable_slot {
-        let other = match solution.get(*object_slot) {
-            Some(surface) => Some(rel.term_id(surface)?),
-            None => None,
-        };
+        let other = solution.get(*object_slot);
         Some(LeapfrogValueCursor::subject(
             rel.values_subject(atom.predicate.as_str(), other),
             scan,
             delta,
         ))
     } else if *object_slot == variable_slot {
-        let other = match solution.get(*subject_slot) {
-            Some(surface) => Some(rel.term_id(surface)?),
-            None => None,
-        };
+        let other = solution.get(*subject_slot);
         Some(LeapfrogValueCursor::object(
             rel.values_object(atom.predicate.as_str(), other),
             scan,
@@ -1136,11 +1190,7 @@ fn append_cycle_sources(
             solution.source_facts.truncate(original_len);
             return false;
         };
-        let (Some(subject_id), Some(object_id)) = (rel.term_id(subject), rel.term_id(object))
-        else {
-            solution.source_facts.truncate(original_len);
-            return false;
-        };
+        let (subject_id, object_id) = (subject, object);
         let scan = scan_for(planned.positive_position(), delta_position);
         let mut rows = rel.select(atom.predicate.as_str(), Bound::Both(subject_id, object_id));
         let mut matched = None;
@@ -1200,13 +1250,7 @@ impl LeapfrogRun<'_> {
         }
 
         let variable_slot = self.cycle.variable_slots()[variable_position];
-        let externally_bound = match solution.get(variable_slot) {
-            Some(surface) => match self.rel.term_id(surface) {
-                Some(value) => Some(value),
-                None => return,
-            },
-            None => None,
-        };
+        let externally_bound = solution.get(variable_slot);
         let mut cursors = Vec::new();
         for &planned in self.cycle.atoms() {
             let atom = &self.rule.body[planned.body_index()];
@@ -1250,8 +1294,7 @@ impl LeapfrogRun<'_> {
 
         while let Some(value) = intersection.next() {
             debug_assert!(solution.bindings[variable_slot].is_none());
-            solution.bindings[variable_slot] =
-                Some(self.rel.interner().display_of(value).to_owned());
+            solution.bindings[variable_slot] = Some(value);
             self.recurse(variable_position + 1, solution, out);
             solution.bindings[variable_slot] = None;
         }
@@ -1293,7 +1336,7 @@ fn join_body_leapfrog(
     accumulated: &RelationStore,
     delta: Delta,
     gap: &mut Vec<BuiltinGap>,
-) -> Vec<Solution> {
+) -> gmeow_errors::Result<Vec<Solution>> {
     let mut slot_solutions = Vec::new();
     for delta_position in 0..plan.positive().len() {
         let mut partial = vec![SlotSolution::empty(plan.variables().len())];
@@ -1331,9 +1374,10 @@ fn join_body_leapfrog(
 
     let mut solutions: Vec<Solution> = slot_solutions
         .into_iter()
-        .map(|solution| solution.into_named(plan.variables()))
+        .map(|solution| solution.into_named(plan.variables(), rel))
         .collect();
 
+    let numeric = plan.numeric(&rule.rule_iri)?;
     if !rule.builtins.is_empty() {
         let resolver = RelationCellResolver { store: accumulated };
         solutions = apply_builtins(
@@ -1344,6 +1388,7 @@ fn join_body_leapfrog(
             rule.constraint_tag.is_some(),
         );
     }
+    solutions = numeric.apply_all(&rule.rule_iri, solutions)?;
     if !plan.negated().is_empty() {
         solutions.retain(|solution| {
             !plan
@@ -1352,7 +1397,7 @@ fn join_body_leapfrog(
                 .any(|&index| negated_atom_satisfied(&rule.body[index], solution, accumulated))
         });
     }
-    solutions
+    Ok(solutions)
 }
 
 /// Join all body atoms against `rel`, evaluating NAF against the accumulated store.
@@ -1371,8 +1416,14 @@ pub(super) fn join_body_indexed(
     accumulated: &RelationStore,
     delta: Delta,
     gap: &mut Vec<BuiltinGap>,
-) -> Vec<Solution> {
-    if plan.has_cyclic_subplan() {
+) -> gmeow_errors::Result<Vec<Solution>> {
+    plan.numeric(&rule.rule_iri)?;
+    if plan.has_cyclic_subplan()
+        && !rule
+            .body
+            .iter()
+            .any(|atom| rel.semantics.alternate_predicate(&atom.predicate).is_some())
+    {
         return join_body_leapfrog(rule, plan, rel, accumulated, delta, gap);
     }
     join_body_binary(rule, plan, rel, accumulated, delta, gap)
@@ -1387,7 +1438,7 @@ fn join_body_binary(
     accumulated: &RelationStore,
     delta: Delta,
     gap: &mut Vec<BuiltinGap>,
-) -> Vec<Solution> {
+) -> gmeow_errors::Result<Vec<Solution>> {
     // The positive (join) / negated (NAF) body-atom partition was precomputed ONCE at
     // plan time ([`RulePlan`]); the per-round `filter(..).collect()` allocation is gone.
     // Both slices are body-order indices into `rule.body`, so the produced solution
@@ -1431,7 +1482,7 @@ fn join_body_binary(
             }
         }
         all.into_iter()
-            .map(|solution| solution.into_named(plan.variables()))
+            .map(|solution| solution.into_named(plan.variables(), rel))
             .collect()
     };
 
@@ -1440,6 +1491,7 @@ fn join_body_binary(
     // target — available to `ground_head` and to the negated check below; a filter
     // prunes the solution.  This runs BEFORE the NAF retain so a negated atom over
     // a generator-bound variable sees the binding.
+    let numeric = plan.numeric(&rule.rule_iri)?;
     if !rule.builtins.is_empty() {
         let resolver = RelationCellResolver { store: accumulated };
         solutions = apply_builtins(
@@ -1451,6 +1503,7 @@ fn join_body_binary(
         );
     }
 
+    solutions = numeric.apply_all(&rule.rule_iri, solutions)?;
     if !negated.is_empty() {
         solutions.retain(|sol| {
             !negated
@@ -1459,13 +1512,13 @@ fn join_body_binary(
         });
     }
 
-    solutions
+    Ok(solutions)
 }
 
 /// A [`CellResolver`] reading the exact-rational `math:` Gram/vector cells out of the
 /// accumulated columnar [`RelationStore`] the semi-naive fixpoint has built (the same
 /// store the forward and demand/magic legs both accumulate into). IRIs are addressed in
-/// the store's display surface (`<iri>`); the cell walk mirrors `gmeow_math`'s graph
+/// the store's borrowed native IRI probe; the cell walk mirrors `gmeow_math`'s graph
 /// loaders over the store's `(subject, predicate) → objects` index, so the shared
 /// loaders build the form identically regardless of substrate.
 struct RelationCellResolver<'a> {
@@ -1474,13 +1527,12 @@ struct RelationCellResolver<'a> {
 
 impl MathTriples for RelationCellResolver<'_> {
     fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
-        let display = format!("<{subject}>");
-        let Some(sid) = self.store.term_id(&display) else {
+        let Some(sid) = self.store.iri_id(subject) else {
             return Vec::new();
         };
         let mut out = Vec::new();
-        let mut cursor = self.store.select(predicate, Bound::Subject(sid));
-        while let Some((_s, object, _row)) = cursor.next() {
+        let mut cursor = self.store.select_semantic(predicate, Bound::Subject(sid));
+        while let Some((_s, object, _row, _predicate)) = cursor.next() {
             if let purrdf::TermValue::Iri(iri) = self.store.interner().resolve(object) {
                 out.push(iri.clone());
             }
@@ -1489,10 +1541,9 @@ impl MathTriples for RelationCellResolver<'_> {
     }
 
     fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
-        let display = format!("<{subject}>");
-        let sid = self.store.term_id(&display)?;
-        let mut cursor = self.store.select(predicate, Bound::Subject(sid));
-        while let Some((_s, object, _row)) = cursor.next() {
+        let sid = self.store.iri_id(subject)?;
+        let mut cursor = self.store.select_semantic(predicate, Bound::Subject(sid));
+        while let Some((_s, object, _row, _predicate)) = cursor.next() {
             if let purrdf::TermValue::Literal { lexical_form, .. } =
                 self.store.interner().resolve(object)
                 && let Ok(n) = lexical_form.trim().parse::<i128>()
@@ -1526,7 +1577,7 @@ impl CellResolver for RelationCellResolver<'_> {
 /// solution, in body order, via the shared moded evaluator.
 ///
 /// A generator extends the solution's bindings with the computed value in the
-/// canonical typed-integer surface. For an ORDINARY (untagged) rule a filter keeps
+/// native computed literal. For an ORDINARY (untagged) rule a filter keeps
 /// or prunes the solution as usual, and an operand that is still unbound, or a
 /// domain/precision error (÷0, overflow), sets `gap` and drops the solution — the
 /// caller then surfaces a typed refusal for the WHOLE program rather than present
@@ -1547,35 +1598,34 @@ impl CellResolver for RelationCellResolver<'_> {
 /// identically for safety.
 fn apply_builtins(
     builtins: &[QBuiltin],
-    sols: Vec<Solution>,
+    mut sols: Vec<Solution>,
     gap: &mut Vec<BuiltinGap>,
     resolver: &dyn CellResolver,
     constraint_tagged: bool,
 ) -> Vec<Solution> {
-    let mut out: Vec<Solution> = Vec::with_capacity(sols.len());
-    'next_sol: for mut sol in sols {
+    let mut failed = false;
+    sols.retain_mut(|sol| {
+        if failed {
+            return false;
+        }
         for b in builtins {
-            // Scope the immutable borrow of `sol` to the evaluation so the binding
-            // can be extended after the outcome is known. The lookup borrows the
-            // bound surface directly (no per-lookup allocation).
-            let outcome = {
-                let lookup = |name: &str| sol.get(name).map(Cow::Borrowed);
-                eval_builtin(b, &lookup, resolver)
-            };
+            // Borrow native values until evaluation finishes, then extend the
+            // same solution for a generator. Text exists only in failure evidence.
+            let outcome = eval_native(b, &|name| sol.get(name), resolver);
             match outcome {
                 BuiltinOutcome::Filter(holds) => {
                     if holds == constraint_tagged {
                         // Ordinary rule, filter false → prune; OR constraint-tagged
                         // rule, the law's consequent HOLDS → the law is satisfied,
                         // no violation → prune.
-                        continue 'next_sol;
+                        return false;
                     }
                     // Ordinary rule, filter true → keep (fall through); OR
                     // constraint-tagged rule, the consequent does NOT hold → keep,
                     // so the head materializes the violation marker.
                 }
                 BuiltinOutcome::Generate { var, value } => {
-                    sol.bindings.push((var, emit_surface(&value)));
+                    sol.bindings.push((var, emit_term(&value)));
                 }
                 BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
                     if constraint_tagged {
@@ -1583,126 +1633,60 @@ fn apply_builtins(
                         // solution, never poison the rest of the batch, and never
                         // record a ledgered gap (the missing/malformed dimension is
                         // handled elsewhere).
-                        continue 'next_sol;
+                        return false;
                     }
                     // A single unbound operand / domain error refuses the WHOLE program,
                     // so the remaining solutions cannot change the outcome — capture the
                     // typed gap (KIND + operation + antecedent operands) and stop
                     // evaluating. `from_outcome` is total for these declining arms, so the
                     // gap is never anonymous.
-                    if let Some(captured) =
-                        BuiltinGap::from_outcome(b, &outcome, sol.bindings.clone())
-                    {
+                    if let Some(captured) = BuiltinGap::from_outcome(
+                        b,
+                        &outcome,
+                        sol.bindings
+                            .iter()
+                            .map(|(name, value)| (name.clone(), term_display(value)))
+                            .collect(),
+                    ) {
                         gap.push(captured);
                     }
-                    return Vec::new();
+                    failed = true;
+                    return false;
                 }
             }
         }
-        out.push(sol);
+        true
+    });
+    if failed {
+        sols.clear();
     }
-    out
+    sols
 }
 
-/// Whether a negated atom is satisfied (blocks the rule) — some grounded form is
-/// PRESENT in the accumulated (frozen-below) store.
-///
-/// Probes the columnar [`RelationStore`] rather than the ternary `FactStore`.  Within
-/// a stratum the negated predicate is fully materialized in a strictly lower stratum,
-/// so this membership is the stratified-negation truth value.
-///
-/// Two binding modes, mirroring `foundation.rs::negated_atom_satisfied` +
-/// `match_partial` exactly:
-///
-/// * **Fully ground** (both subject and object bound/constant): an O(1)
-///   [`RelationStore::contains`] membership test.
-/// * **Partially bound (existential NAF)**: at least one position is an unbound
-///   variable — e.g. `NOT genericQuality(?Q, ?G)` with `?G` free, meaning "`?Q` has
-///   NO `genericQuality`".  The atom is satisfied iff SOME fact matches the *ground*
-///   positions; an unbound position is unconstrained (even if a variable repeats —
-///   repeated unbound vars are NOT required to agree, matching foundation's
-///   `match_partial` byte for byte).  A ground term that never entered the store
-///   constrains to zero rows → not satisfied.
+/// Whether a negated atom has a matching row in the completed lower-stratum store.
+/// Constant marker interpretation and exact variable bindings use the same indexed
+/// probes as positive joins. Partial bindings retain existential NAF semantics.
 fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, accumulated: &RelationStore) -> bool {
-    let s = ground(&atom.subject, sol);
-    let o = ground(&atom.object, sol);
-    match (s, o) {
-        (Some(s), Some(o)) => accumulated.contains(atom.predicate.as_str(), &s, &o),
-        (s, o) => {
-            // At least one position is unbound.  Build the selection bound from the
-            // ground positions only; a ground term the store never interned yields
-            // `None` (no row can match → not satisfied).
-            let Some(bound) = atom_bound(accumulated, s.as_deref(), o.as_deref()) else {
-                return false;
-            };
-            // Existential NAF asks only "does SOME row match?" — probe the cursor for a
-            // single row (`any_remaining`) instead of materializing a whole `Vec` just
-            // to call `is_empty()` on it.
-            accumulated
-                .select(atom.predicate.as_str(), bound)
-                .any_remaining()
-        }
-    }
+    accumulated.select_atom(atom, sol).any_remaining()
 }
 
 // ── Stratification ───────────────────────────────────────────────────────────────
 
-/// Assign each predicate a stratum, or report the program non-stratifiable.
-///
-/// Iterative longest-path relaxation over the predicate dependency graph: a POSITIVE
-/// edge head→body requires stratum(head) ≥ stratum(body); a NEGATIVE edge requires
-/// stratum(head) > stratum(body).  Repeatedly relaxing (raising a head's stratum to
-/// satisfy a violated edge) converges iff the program is stratifiable.  If after
-/// `n` full passes (n = predicate count) an edge is still violated, a negative edge
-/// lies inside a cycle and no finite stratification exists → `None`.
-///
-/// Predicates appearing only as constants in EDB but never as a head still get a
-/// stratum (0) so a negated reference to a base predicate is decided in stratum 0.
-pub(super) fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
-    // Collect every predicate (heads and body atoms).
-    let mut preds: BTreeSet<String> = BTreeSet::new();
-    for rule in rules {
-        preds.insert(rule.head.predicate.as_str().to_owned());
-        for atom in &rule.body {
-            preds.insert(atom.predicate.as_str().to_owned());
-        }
-    }
-
-    // Edges: (head_pred, body_pred, negative?).
-    let mut edges: Vec<(String, String, bool)> = Vec::new();
-    for rule in rules {
-        let head = rule.head.predicate.as_str().to_owned();
-        for atom in &rule.body {
-            edges.push((
-                head.clone(),
-                atom.predicate.as_str().to_owned(),
-                atom.negated,
-            ));
-        }
-    }
-
-    let mut stratum: HashMap<String, usize> = preds.iter().map(|p| (p.clone(), 0usize)).collect();
-
-    // Bellman-Ford-style relaxation; `n` passes suffice for a stratifiable program,
-    // one more pass detects a still-violated (cyclic-negative) edge.
-    let n = preds.len();
-    for _pass in 0..=n {
-        let mut changed = false;
-        for (head, body, negative) in &edges {
-            let body_s = stratum[body];
-            let need = if *negative { body_s + 1 } else { body_s };
-            let head_s = stratum[head];
-            if head_s < need {
-                stratum.insert(head.clone(), need);
-                changed = true;
-            }
-        }
-        if !changed {
-            return Some(stratum);
-        }
-    }
-    // Still relaxing after n+1 passes ⇒ a negative edge sits in a cycle.
-    None
+/// Assign each producer a stratum using its typed read/write effects. Positive
+/// recursion shares an SCC; a strict read within that SCC refuses the program.
+/// The input boundary precedes NAF and structural builtin decisions.
+pub(crate) fn stratify(rules: &[EvalRule]) -> Option<Vec<usize>> {
+    let effects: Vec<_> = rules
+        .iter()
+        .map(super::effects::ProducerEffect::rule)
+        .collect();
+    super::effects::schedule(
+        &effects,
+        crate::native_semantics::SemanticVocabulary::Exact,
+        &BTreeSet::new(),
+    )
+    .ok()
+    .map(|schedule| schedule.strata)
 }
 
 // ── Forward entry ────────────────────────────────────────────────────────────────
@@ -1720,7 +1704,8 @@ pub(super) fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
 /// # Errors
 ///
 /// Returns `Err` for an invalid input IRI, an unbound head/guard variable, or a
-/// provenance-recipe failure (propagated from the shared `rule_ir` helpers).
+/// provenance-recipe failure, or an ordinary builtin mode/domain failure. A failing
+/// builtin round is never published, even when earlier candidates succeeded.
 pub(crate) fn materialize_native(
     store: &crate::store::WorldStore,
     exe: &Executable,
@@ -1973,12 +1958,8 @@ fn eval_world_stratified_with_trace(
     let total = exe.stratum_count();
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
-    // An ORDINARY forward materialization rule carries no arithmetic builtins (the
-    // ontology corpus has none); only a `logic:Constraint`-derived, `constraint_tag`-
-    // licensed violation rule may — this stays empty for every untagged rule, and a
-    // tagged rule's `apply_builtins` never appends to it either (undefinedness is
-    // silently skipped, per-solution, never a ledgered gap), so it stays empty
-    // regardless; asserted below.
+    // The round stops before commit on an ordinary builtin gap. A tagged
+    // violation rule's undefined candidates are pruned under its distinct contract.
     let mut builtin_gap: Vec<BuiltinGap> = Vec::new();
     for k in 0..total {
         if exe.stratum_is_empty(k) {
@@ -2008,6 +1989,11 @@ fn eval_world_stratified_with_trace(
                 }
                 completed += 1;
             }
+            FixpointStatus::BuiltinGap => {
+                return Err(seminaive_err(
+                    crate::reason::builtin_gap::builtin_gap_refusal_detail(&builtin_gap),
+                ));
+            }
             FixpointStatus::Exhausted => {
                 // The budget cut this stratum mid-fixpoint: it is NOT saturated, and no
                 // later stratum runs.  The committed prefix stays (sound partial model).
@@ -2016,24 +2002,6 @@ fn eval_world_stratified_with_trace(
             }
         }
     }
-
-    // A genuinely GAPPING builtin (an unbound operand / domain error on an ORDINARY,
-    // untagged rule — e.g. an authored `.logic` program rule carrying `is`/
-    // `bilinearSqDist`) still refuses the whole program via `apply_builtins`'s
-    // untagged branch (unchanged), so this stays a real bug-catcher. A
-    // `constraint_tag`-licensed violation rule NEVER reaches this vector: its
-    // Unbound/Error path is a silently-skipped per-solution undefinedness, not a
-    // ledgered gap (`apply_builtins`'s tagged branch) — the invariant is therefore
-    // keyed on the OUTCOME (a real gap fired), never on "is this rule tagged" or "is
-    // this a Dim builtin" (an ordinary rule legitimately carrying a builtin, e.g. a
-    // `bilinearSqDist` query program lowered straight into forward materialization,
-    // is not itself a bug).
-    debug_assert!(
-        builtin_gap.is_empty(),
-        "a forward materialization rule's builtin produced an unresolved operand / domain \
-         error outside a constraint-tagged violation rule's silently-skipped undefinedness \
-         path"
-    );
 
     Ok(Budgeted {
         rows: derivations,
@@ -2161,6 +2129,55 @@ impl RoundCandidateBuffer {
     }
 }
 
+/// Build the common provenance winner from actual source rows in the shared store.
+fn record_candidate(
+    rule_iri: &str,
+    head: Fact,
+    source_facts: &[Fact],
+    snapshot: RoundSnapshot<'_>,
+) -> gmeow_errors::Result<RuleRoundCandidate> {
+    // Provenance: reifiers of matched POSITIVE body facts in body order.
+    let mut sources: Vec<String> = Vec::with_capacity(source_facts.len());
+    let mut max_sd = ProofHeight::ASSERTED;
+    let mut sum_sd: u64 = 0;
+    for sf in source_facts {
+        sources.push(sf.reifier()?);
+        let source_key = sf.key();
+        let row = snapshot.store.row_index(&source_key).ok_or_else(|| {
+            seminaive_err(format!(
+                "provenance source {source_key:?} is absent from the physical fact store"
+            ))
+        })?;
+        drop(source_key);
+        let d = snapshot.depth.get(row).copied().ok_or_else(|| {
+            seminaive_err(format!(
+                "provenance source row {row} has no proof-height annotation"
+            ))
+        })?;
+        max_sd = max_sd.max(d);
+        sum_sd = sum_sd.saturating_add(u64::from(d.get()));
+    }
+    let proof_height = MinProofHeightSemiring.derive([max_sd])?;
+    let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+    let deriv = mint_derivation_id(rule_iri, &source_refs);
+    let mut sorted_sources = sources.clone();
+    sorted_sources.sort();
+
+    Ok(RuleRoundCandidate {
+        head,
+        prov: Some(Provenance {
+            cross_world: None,
+            sources,
+            sorted_sources,
+            source_facts: source_facts.to_vec(),
+            deriv,
+            rule_iri: rule_iri.to_owned(),
+            proof_height,
+            sum_src_depth: sum_sd,
+        }),
+    })
+}
+
 /// Evaluate one rule against the frozen round snapshot into `round`.
 ///
 /// The sequential policy calls this directly on one shared round buffer (preserving the
@@ -2172,17 +2189,19 @@ fn evaluate_rule_into_round(
     snapshot: RoundSnapshot<'_>,
     round: &mut RoundCandidateBuffer,
 ) -> gmeow_errors::Result<()> {
-    for sol in join_body_indexed(
+    // Every reduce read has completed before this stratum. Later deltas cannot
+    // change its group membership, so only the initial all-input round runs it.
+    if rule.reduction.is_some() && snapshot.delta.lo != 0 {
+        return Ok(());
+    }
+    for sol in rule_solutions(
         rule,
         plan,
         snapshot.rel,
         snapshot.rel,
         snapshot.delta,
         &mut round.builtin_gap,
-    ) {
-        if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
-            continue;
-        }
+    )? {
         let head = match snapshot.mode {
             ProvenanceMode::Record => ground_head(&rule.head, &sol)?,
             ProvenanceMode::Skip => ground_relational_head(&rule.head, &sol)?,
@@ -2194,45 +2213,7 @@ fn evaluate_rule_into_round(
 
         let candidate = match snapshot.mode {
             ProvenanceMode::Record => {
-                // Provenance: reifiers of matched POSITIVE body facts in body order.
-                let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
-                let mut max_sd = ProofHeight::ASSERTED;
-                let mut sum_sd: u64 = 0;
-                for sf in &sol.source_facts {
-                    sources.push(sf.reifier()?);
-                    let source_key = sf.key();
-                    let row = snapshot.store.row_index(&source_key).ok_or_else(|| {
-                        seminaive_err(format!(
-                            "provenance source {source_key:?} is absent from the physical fact store"
-                        ))
-                    })?;
-                    drop(source_key);
-                    let d = snapshot.depth.get(row).copied().ok_or_else(|| {
-                        seminaive_err(format!(
-                            "provenance source row {row} has no proof-height annotation"
-                        ))
-                    })?;
-                    max_sd = max_sd.max(d);
-                    sum_sd = sum_sd.saturating_add(u64::from(d.get()));
-                }
-                let proof_height = MinProofHeightSemiring.derive([max_sd])?;
-                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-                let deriv = mint_derivation_id(&rule.rule_iri, &source_refs);
-                let mut sorted_sources = sources.clone();
-                sorted_sources.sort();
-
-                RuleRoundCandidate {
-                    head,
-                    prov: Some(Provenance {
-                        sources,
-                        sorted_sources,
-                        source_facts: sol.source_facts.clone(),
-                        deriv,
-                        rule_iri: rule.rule_iri.clone(),
-                        proof_height,
-                        sum_src_depth: sum_sd,
-                    }),
-                }
+                record_candidate(&rule.rule_iri, head, &sol.source_facts, snapshot)?
             }
             ProvenanceMode::Skip => {
                 // Facts-only: every candidate under `key` has the same content-derived head,
@@ -2243,6 +2224,43 @@ fn evaluate_rule_into_round(
         round.insert(key, candidate, snapshot.mode)?;
     }
     Ok(())
+}
+
+/// Evaluate the complete rule body, its guards and its optional typed reduction.
+/// Annotation and membership execution share this operator boundary.
+pub(super) fn rule_solutions(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    rel: &RelationStore,
+    accumulated: &RelationStore,
+    delta: Delta,
+    gaps: &mut Vec<BuiltinGap>,
+) -> gmeow_errors::Result<Vec<Solution>> {
+    let delta = if rule.reduction.is_some() {
+        Delta::all(rel.row_count())
+    } else {
+        delta
+    };
+    let mut admitted = join_body_indexed(rule, plan, rel, accumulated, delta, gaps)?;
+    if !rule.distinct_pairs.is_empty() {
+        let mut failure = None;
+        admitted.retain(|solution| {
+            match distinct_pairs_satisfied(&rule.distinct_pairs, solution) {
+                Ok(keep) => keep,
+                Err(error) => {
+                    failure = Some(error);
+                    false
+                }
+            }
+        });
+        if let Some(error) = failure {
+            return Err(error);
+        }
+    }
+    match &rule.reduction {
+        Some(reduction) => reduce::evaluate(&rule.rule_iri, reduction, admitted),
+        None => Ok(admitted),
+    }
 }
 
 /// Evaluate all rules in a stratum, optionally in parallel, and erase scheduling order.
@@ -2330,139 +2348,155 @@ fn eval_stratum_fixpoint(
     round_execution: RoundExecution,
     mut parallel_trace: Option<&mut RuleParallelTrace>,
 ) -> gmeow_errors::Result<FixpointStatus> {
-    // Reborrow each accumulator into a single `&mut` local so the loop body below is a verbatim
-    // copy of `least_model_of_reduct`'s — the `FixpointState` bundle exists only to keep the
-    // signature under clippy's argument-count bar without an `#[allow]`, not to change the engine.
-    let store = &mut *state.store;
-    let rel = &mut *state.rel;
-    let depth = &mut *state.depth;
-    let derivations = &mut *state.derivations;
-    let builtin_gap = &mut *state.builtin_gap;
-    // Seed delta with EVERY accumulated row so this stratum's rules fire against the
-    // seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).  The
-    // `RelationStore` mints RowIds densely as `0..row_count` in commit order, so the
-    // whole accumulated store is exactly the contiguous span `[0, row_count)` — a range,
-    // no per-key materialization, no bitset, no hashing.
-    let mut delta = Delta::all(rel.row_count());
-
+    let mut delta = Delta::all(state.rel.row_count());
     loop {
-        // Every rule reads this immutable snapshot. Parallel tasks produce independent
-        // borrowed-key winner buffers; their program-order merge erases scheduling before
-        // the single lexical commit mutates either store or charges the governor.
         let mut round = evaluate_round_candidates(
             exe,
             stratum,
             RoundSnapshot {
-                store,
-                rel,
-                depth,
+                store: state.store,
+                rel: state.rel,
+                depth: state.depth,
                 delta,
                 mode,
             },
             round_execution,
             parallel_trace.as_deref_mut(),
         )?;
-        builtin_gap.append(&mut round.builtin_gap);
-        let round_entries = round.entries;
-
-        if round_entries.is_empty() {
-            break; // stratum fixpoint
+        state.builtin_gap.append(&mut round.builtin_gap);
+        if !state.builtin_gap.is_empty() {
+            return Ok(FixpointStatus::BuiltinGap);
         }
-
-        // The next round's delta is exactly the rows committed THIS round.  RowIds are
-        // minted densely in the FactKey-sorted commit loop below, so those rows form the
-        // contiguous span `[round_lo, rel.row_count())` — captured as a range with NO
-        // arena staging and NO per-round bitset (the round batch IS the delta).
-        let round_lo = rel.row_count();
-        // Commit winners in RESOLVED LEXICAL FactKey order — NOT any id/mint order — so
-        // store/index insertion order AND the per-winner `governor.charge()` sequence
-        // stay byte-deterministic.  RowId assignment is a purely ADDITIVE side effect of
-        // the lockstep `rel.insert` inside this sorted loop; it never orders the commit
-        // or the budget charge (mint order ≠ lexical order).  This is the columnar-store
-        // determinism doctrine, matching `least_model_of_reduct`'s commit discipline.
-        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round_entries;
-        winners.sort_by(|(a, _), (b, _)| a.cmp(b));
-        for (_key, winner) in winners {
-            // The step/derivation budget is charged HERE — one step per committed
-            // derivation, at the deterministic FactKey-sorted boundary.  When the budget
-            // is spent we stop BEFORE committing this winner, leaving a sound
-            // (FactKey-ordered) partial prefix: `max_steps = n` admits exactly `n`
-            // derivations, `max_steps = 0` admits none.  Every committed fact is
-            // genuinely in the least model — the outcome is incomplete, never wrong.
-            if governor.spent() {
-                return Ok(FixpointStatus::Exhausted);
-            }
-            // Insert into both stores in lockstep so the columnar index order tracks the
-            // ternary store's insertion order exactly, capturing the store row index (for
-            // the Record-mode depth push) and the store-global dense RowId the
-            // `RelationStore` stamps on the new row.  This — and the FactKey-sorted commit
-            // order, the delta, and the per-winner budget charge — are provenance-
-            // independent, so the committed fact set is byte-identical across modes.  A
-            // winner is always a genuinely-new fact (heads already present are skipped
-            // above via `store.contains_key`), so the lockstep insert returns `Some(...)`.
-            let store_idx = store.insert(winner.head.clone());
-            if store_idx.is_some() {
-                let inserted = rel.insert(
-                    &winner.head.predicate,
-                    &winner.head.subject,
-                    &winner.head.object,
-                );
-                // A winner is new in the FactStore (gated by `store.contains_key` above),
-                // and the columnar store dedups on the SAME predicate + interned surfaces,
-                // so it is new there too — the insert stamps the next dense RowId, keeping
-                // the committed span `[round_lo, rel.row_count())` contiguous.
-                assert!(
-                    inserted.is_some(),
-                    "a fresh winner must insert a new columnar row (dense RowId span)"
-                );
-            }
-            // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane
-            // carries `prov: None`, so it is not maintained there (keeping the `depth` Vec
-            // empty under Skip — the `assert!` in `evaluate` locks that invariant in
-            // release builds too).  Pushed in lockstep with the store row just added, so
-            // `depth[i]` stays the depth of the store's row `i`.
-            if let (Some(idx), Some(prov)) = (store_idx, winner.prov.as_ref()) {
-                let winner_depth = prov.proof_height;
-                assert_eq!(
-                    idx,
-                    depth.len(),
-                    "depth/store index desync: `depth` and the `FactStore` rows must stay \
-                     in lockstep under Record (each committed row pushes one depth slot)"
-                );
-                depth.push(winner_depth);
-            }
-            // A winner is always a NEW key: heads already present (including every
-            // EDB fact, seeded into `store` before the fixpoint) are skipped above via
-            // `store.contains_key`. So every winner is a genuine derivation.  Under Skip the
-            // row is not built at all (no reifier strings, no derivation-id hash, no vec growth
-            // — the native analogue of the trace memory the facts-only lane must not pay).
-            if let Some(prov) = winner.prov {
-                derivations.push(DerivedRow {
-                    graph: String::new(),
-                    subject: winner.head.subject,
-                    predicate: winner.head.predicate,
-                    object: winner.head.object,
-                    rule_iri: prov.rule_iri,
-                    source_quad_ids: prov.sources, // body-order, NEVER the sorted copy
-                    derivation_id: prov.deriv,
-                    proof_height: prov.proof_height,
-                    antecedents: prov.source_facts,
-                });
-            }
-            governor.charge();
+        if round.entries.is_empty() {
+            return Ok(FixpointStatus::Complete);
         }
-
-        // The next round's delta is the contiguous RowId span committed this round —
-        // `[round_lo, rel.row_count())`.  No arena read-back, no per-round bitset: the
-        // dense FactKey-sorted commit order makes this range exactly the set of rows the
-        // former bitset held, so the next round's `Delta`/`OldOnly` scans are byte-identical.
+        let round_lo = state.rel.row_count();
+        if commit_round(round.entries, state, governor, &BTreeSet::new())?
+            == FixpointStatus::Exhausted
+        {
+            return Ok(FixpointStatus::Exhausted);
+        }
         delta = Delta {
             lo: round_lo,
-            hi: rel.row_count(),
+            hi: state.rel.row_count(),
         };
     }
+}
 
-    Ok(FixpointStatus::Complete)
+/// The sole sorted commit for ordinary and joint fixed points. New facts enter
+/// both indexed stores, proof heights and provenance under the same governor.
+fn commit_round(
+    entries: Vec<(FactKey, RuleRoundCandidate)>,
+    state: &mut FixpointState<'_>,
+    governor: &mut StepGovernor,
+    retained_heads: &BTreeSet<FactKey>,
+) -> gmeow_errors::Result<FixpointStatus> {
+    let store = &mut *state.store;
+    let rel = &mut *state.rel;
+    let depth = &mut *state.depth;
+    let derivations = &mut *state.derivations;
+    // Commit winners in RESOLVED LEXICAL FactKey order — NOT any id/mint order — so
+    // store/index insertion order AND the per-winner `governor.charge()` sequence
+    // stay byte-deterministic.  RowId assignment is a purely ADDITIVE side effect of
+    // the lockstep `rel.insert` inside this sorted loop; it never orders the commit
+    // or the budget charge (mint order ≠ lexical order).  This is the columnar-store
+    // determinism doctrine, matching `least_model_of_reduct`'s commit discipline.
+    let mut winners = entries;
+    winners.sort_by(|(a, _), (b, _)| a.cmp(b));
+    let mut exhausted = false;
+    for (key, winner) in winners {
+        // Another producer's atomic metadata publication may have supplied this
+        // frozen-round candidate. It is neither a new row nor another charge.
+        if store.contains_key(&key) {
+            continue;
+        }
+        // A retained head is free only when its source-bound cached proof was
+        // independently eligible in this exact frozen round. Its proof still
+        // competes normally with every fresh firing before this common writer.
+        let charged = !retained_heads.contains(&key)
+            && !matches!(
+                winner
+                    .prov
+                    .as_ref()
+                    .and_then(|provenance| provenance.cross_world.as_ref())
+                    .map(crate::modal::native::NativeCrossWorldEvidence::publication_cost),
+                Some(crate::modal::native::NativePublicationCost::ContextualMetadata { .. })
+            );
+        // Fresh inference rows consume one step at this deterministic boundary.
+        // Once spent, omit further inference rows but retain complete contextual
+        // metadata whose assessment was already charged by its evaluator.
+        // Duplicate facts and assessment publication never charge a second time.
+        if charged && governor.spent() {
+            exhausted = true;
+            continue;
+        }
+        // Insert into both stores in lockstep so the columnar index order tracks the
+        // ternary store's insertion order exactly, capturing the store row index (for
+        // the Record-mode depth push) and the store-global dense RowId the
+        // `RelationStore` stamps on the new row.  This — and the FactKey-sorted commit
+        // order, the delta, and the per-winner budget charge — are provenance-
+        // independent, so the committed fact set is byte-identical across modes.  A
+        // winner is always a genuinely-new fact (heads already present are skipped
+        // above via `store.contains_key`), so the lockstep insert returns `Some(...)`.
+        let store_idx = store.insert(winner.head.clone());
+        if store_idx.is_some() {
+            let inserted = rel.insert(
+                &winner.head.predicate,
+                &winner.head.subject,
+                &winner.head.object,
+            );
+            // A winner is new in the FactStore (gated by `store.contains_key` above),
+            // and the columnar store dedups on the SAME predicate + interned surfaces,
+            // so it is new there too — the insert stamps the next dense RowId, keeping
+            // the committed span `[round_lo, rel.row_count())` contiguous.
+            assert!(
+                inserted.is_some(),
+                "a fresh winner must insert a new columnar row (dense RowId span)"
+            );
+        }
+        // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane
+        // carries `prov: None`, so it is not maintained there (keeping the `depth` Vec
+        // empty under Skip — the `assert!` in `evaluate` locks that invariant in
+        // release builds too).  Pushed in lockstep with the store row just added, so
+        // `depth[i]` stays the depth of the store's row `i`.
+        if let (Some(idx), Some(prov)) = (store_idx, winner.prov.as_ref()) {
+            let winner_depth = prov.proof_height;
+            assert_eq!(
+                idx,
+                depth.len(),
+                "depth/store index desync: `depth` and the `FactStore` rows must stay \
+                 in lockstep under Record (each committed row pushes one depth slot)"
+            );
+            depth.push(winner_depth);
+        }
+        // A winner is always a NEW key: heads already present (including every
+        // EDB fact, seeded into `store` before the fixpoint) are skipped above via
+        // `store.contains_key`. So every winner is a genuine derivation.  Under Skip the
+        // row is not built at all (no reifier strings, no derivation-id hash, no vec growth
+        // — the native analogue of the trace memory the facts-only lane must not pay).
+        if let Some(prov) = winner.prov {
+            derivations.push(DerivedRow {
+                cross_world: prov.cross_world,
+                graph: String::new(),
+                subject: winner.head.subject,
+                predicate: winner.head.predicate,
+                object: winner.head.object,
+                rule_iri: prov.rule_iri,
+                source_quad_ids: prov.sources, // body-order, NEVER the sorted copy
+                derivation_id: prov.deriv,
+                proof_height: prov.proof_height,
+                antecedents: prov.source_facts,
+            });
+        }
+        if charged {
+            governor.charge();
+        }
+    }
+    Ok(if exhausted {
+        FixpointStatus::Exhausted
+    } else {
+        FixpointStatus::Complete
+    })
 }
 
 // ── RelationStore-seeded bottom-up entry (the backward leg's evaluator) ───────────
@@ -2564,6 +2598,7 @@ pub(crate) fn evaluate(
                 }
                 completed += 1;
             }
+            FixpointStatus::BuiltinGap => break,
             FixpointStatus::Exhausted => {
                 status = BudgetStatus::Exhausted;
                 break;
@@ -2651,19 +2686,20 @@ fn same_budgeted_rows(left: &Budgeted<Vec<DerivedRow>>, right: &Budgeted<Vec<Der
 }
 
 fn derived_rows_hash(rows: &[DerivedRow]) -> [u8; 32] {
-    fn feed(hasher: &mut blake3::Hasher, value: &str) {
+    fn feed(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+        let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
-        hasher.update(value.as_bytes());
+        hasher.update(value);
     }
 
     let mut hasher = blake3::Hasher::new();
-    hasher.update(b"gmeow-rule-parallel-derived-rows-v1\0");
+    hasher.update(b"gmeow-rule-parallel-derived-rows-v2\0");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for row in rows {
         feed(&mut hasher, &row.graph);
-        feed(&mut hasher, &crate::provenance::term_display(&row.subject));
+        feed(&mut hasher, row.subject.to_canonical_bytes());
         feed(&mut hasher, &row.predicate);
-        feed(&mut hasher, &crate::provenance::term_display(&row.object));
+        feed(&mut hasher, row.object.to_canonical_bytes());
         feed(&mut hasher, &row.rule_iri);
         hasher.update(&(row.source_quad_ids.len() as u64).to_le_bytes());
         for source in &row.source_quad_ids {
@@ -2673,10 +2709,9 @@ fn derived_rows_hash(rows: &[DerivedRow]) -> [u8; 32] {
         hasher.update(&row.proof_height.get().to_le_bytes());
         hasher.update(&(row.antecedents.len() as u64).to_le_bytes());
         for antecedent in &row.antecedents {
-            let key = antecedent.key();
-            feed(&mut hasher, &key.0);
-            feed(&mut hasher, &key.1);
-            feed(&mut hasher, &key.2);
+            feed(&mut hasher, antecedent.subject.to_canonical_bytes());
+            feed(&mut hasher, &antecedent.predicate);
+            feed(&mut hasher, antecedent.object.to_canonical_bytes());
         }
     }
     *hasher.finalize().as_bytes()

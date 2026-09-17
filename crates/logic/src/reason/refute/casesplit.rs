@@ -1,56 +1,42 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Families 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
-//! union-disjoint / malformed-list refutation sub-decider.
+//! Retained class-expression source admission and native contextual case analysis.
 //!
-//! This is the THIRD real sub-decider registered in [`super::SUB_DECIDERS`] (after
-//! [`super::datatype`] and [`super::counting`]). It decides — soundly, and
-//! completely for a precisely-characterized propositional-plus-nominal fragment —
-//! four families the native forward chase ([`crate::reason::dl`]) withholds:
+//! Complement, finite union/disjoint union and nominal membership use exhaustive
+//! branch proofs. Every proof retains the original world, source leaves and actual
+//! native committed support. Only subjects contradicted in every branch receive a
+//! local empty-class head from the shared governor.
 //!
-//! * **Family 1 — complement refutation.** An `owl:complementOf` class expression
-//!   (possibly nested through `owl:intersectionOf`/`owl:unionOf`) forced onto an
-//!   individual that also (directly or by case-split) inhabits the complemented
-//!   class is a clash. Refutation-by-contradiction on a bounded completion.
-//! * **Family 3 — union + disjoint refutation.** `owl:unionOf` membership is a
-//!   DISJUNCTION driving a bounded case-split; a branch closes on a clash
-//!   (complement, `owl:disjointWith`, `owl:disjointUnionOf` disjointness,
-//!   `owl:Nothing`). The case is INCONSISTENT iff every branch closes, CONSISTENT
-//!   iff a branch saturates clash-free AND the whole case lies in the
-//!   certified-complete fragment.
-//! * **Family 6b — malformed `rdf:List`.** `rdf:nil` bearing an `rdf:first` /
-//!   `rdf:rest` edge is a structurally-broken list; the enclosing world is
-//!   inconsistent.
-//! * **Family 4 pickup (entangled).** `owl:oneOf` nominal enumerations drive a
-//!   nominal-equality case-split (an individual typed to `{a₁ … aₖ}` is equal to
-//!   one of them); merged individuals asserted `owl:differentFrom` (or co-listed in
-//!   an `owl:AllDifferent`) clash. Composed with the disjunction case-split this
-//!   decides the pure nominal-SAT divergence cases.
-//!
-//! # Soundness discipline (why `corpus_only` stays 0)
-//!
-//! An **`Inconsistent`** decision is sound whenever the case-split closes EVERY
-//! branch with a sound clash under a bounded, exhaustive exploration: dropping the
-//! constructs the tableau does not model only WEAKENS the theory (a superset of
-//! models), so an unsatisfiable subset proves the whole case unsatisfiable. A
-//! **`Consistent`** decision additionally requires that the whole case lies inside
-//! the certified-complete fragment — no construct that could add a clash the
-//! saturated open branch did not see. Any beyond-fragment construct (an
-//! existential/cardinality/property-characteristic/`rdfs:domain`-`range`/…) blocks a
-//! `Consistent` verdict; a bounded-exceeded search blocks any verdict — the decider
-//! WITHHOLDS ([`super::RefutationCertificate::OutOfFragment`]) rather than guess.
-//!
-//! Every collection is `BTreeSet`/`BTreeMap`/sorted-`Vec` ordered so a certificate
-//! is byte-stable (the native contract hash and reasoning goldens depend on it).
+//! Source grammar refusal precedes all writers. Runtime model obstructions and
+//! resource bounds remain visible alongside positive conflicts. Class diagnostics
+//! make no whole-program consistency claim. Typed production execution consumes
+//! one retained source Scan and the shared native store/proof DAG; source-only
+//! assertion helpers below exist exclusively for tiny synthetic tests.
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use purrdf::{RdfDataset, RdfTerm};
+use purrdf::{DatasetView, RdfTerm, TermValue};
 
+mod proof;
+use proof::Support;
+pub(crate) mod execution;
+pub use execution::ClassExecutionOutcome;
+mod admission;
+pub use admission::{
+    ClassAdmissionObservation, ClassAdmissionSourceWorld, ClassAdmissionWorld, ClassSourceRefusal,
+    PreparedClassAnalysis,
+};
+
+#[cfg(test)]
 use super::{
-    Decision, FragmentFamily, NothingClash, RefutationCertificate, Witness, WitnessEvidence,
-    certify_membership, resource_key, world_key,
+    ContextualConflict, Decision, FragmentFamily, NothingClash, RefutationCertificate, Witness,
+    WitnessEvidence, certify_membership,
+};
+use super::{
+    FragmentBoundary, RefutationAssumption, RefutationBranch, RefutationClash,
+    RefutationExpression as Concept, RefutationPremise, RefutationProof, RefutationSourceIssue,
+    resource_key, world_key,
 };
 
 // ── IRI constants ────────────────────────────────────────────────────────────────
@@ -91,14 +77,19 @@ const OWL_DISTINCT_MEMBERS: &str = "http://www.w3.org/2002/07/owl#distinctMember
 const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 
 const RULE_CASESPLIT: &str = "refute:casesplit";
-const RULE_MALFORMED_LIST: &str = "refute:casesplit-malformed-list";
 
-/// The predicates whose PRESENCE (in a world) takes the world OUT of the certified
-/// propositional-plus-nominal fragment for a `Consistent` verdict: existential /
-/// cardinality / property-characteristic / datatype-facet / domain-range constructs
-/// the case-split tableau does not fold into its completion. Their presence never
-/// blocks an `Inconsistent` verdict (a subset refutation stays sound); it only
-/// forbids certifying `Consistent`.
+/// Each selected definition requires a resource-valued class or finite-list head.
+const EXPRESSION_DEFINITION_PREDICATES: &[&str] = &[
+    OWL_COMPLEMENT_OF,
+    OWL_INTERSECTION_OF,
+    OWL_UNION_OF,
+    OWL_ONE_OF,
+    OWL_DISJOINT_UNION_OF,
+];
+
+/// Operators requiring another model family when connected to a selected class
+/// obligation. Independent components keep their own family ownership. These
+/// obstructions remain visible alongside every positive closing argument.
 const CONSISTENT_BLOCKING_PREDICATES: &[&str] = &[
     "http://www.w3.org/2002/07/owl#onProperty",
     "http://www.w3.org/2002/07/owl#onClass",
@@ -126,10 +117,8 @@ const CONSISTENT_BLOCKING_PREDICATES: &[&str] = &[
     RDFS_RANGE,
 ];
 
-/// The `rdf:type` OBJECTS whose presence blocks a `Consistent` verdict — property
-/// characteristics / restriction nodes / list-clash carriers the tableau does not
-/// model. (`owl:AllDifferent` is deliberately NOT here — it IS handled, expanded
-/// into pairwise distinctness.)
+/// Declaration markers requiring another model family for a connected class
+/// obligation. AllDifferent is handled through its admitted member-list expansion.
 const CONSISTENT_BLOCKING_TYPE_OBJECTS: &[&str] = &[
     OWL_RESTRICTION,
     "http://www.w3.org/2002/07/owl#FunctionalProperty",
@@ -149,7 +138,6 @@ const CONSISTENT_BLOCKING_TYPE_OBJECTS: &[&str] = &[
 const DECLARATION_TYPE_OBJECTS: &[&str] = &[
     OWL_CLASS,
     OWL_RESTRICTION,
-    OWL_THING,
     OWL_ONTOLOGY,
     OWL_NAMED_INDIVIDUAL,
     OWL_OBJECT_PROPERTY,
@@ -168,21 +156,12 @@ const DECLARATION_TYPE_OBJECTS: &[&str] = &[
     "http://www.w3.org/2002/07/owl#NegativePropertyAssertion",
 ];
 
-/// The search budget (deterministic node-expansions + branches). A search that
-/// exceeds it WITHHOLDS (`OutOfFragment`) rather than truncating to a wrong answer.
-/// Kept modest: the decider runs on every production reasoning closure (both in the
-/// refutation kernel and the coverage gate), so a pathological blow-up must bail to
-/// an honest boundary quickly rather than stall the chase. The certified-complete
-/// propositional/disjoint-union cases (e.g. the 9-variable `503`/`504` SAT pair)
-/// close far inside this bound.
-const SEARCH_BUDGET: u64 = 400_000;
-
-/// The maximum datatype-node resolution recursion depth (a cyclic class expression
-/// bottoms out into an opaque atom rather than looping).
+/// Maximum nested class-expression resolution; exceeding it is an explicit
+/// unsupported model construct, never an ordinary named-class replacement.
 const RESOLVE_DEPTH: u32 = 64;
 
 /// The maximum case-split search RECURSION depth (nested nondeterministic branch
-/// points along one DFS path). The step [`SEARCH_BUDGET`] alone is NOT a recursion
+/// points along one DFS path). The selected step allowance alone is NOT a recursion
 /// guard: a cyclic class expression (e.g. `_:B = B ⊓ (_:B ⊔ C)`) makes `pick_branch`
 /// re-offer a non-progressing disjunct branch, so the DFS recurses one native stack
 /// frame per step and SIGABRTs on stack exhaustion (~6500 frames) long before the
@@ -192,116 +171,9 @@ const RESOLVE_DEPTH: u32 = 64;
 /// (measured tens) and an order of magnitude below the native stack limit.
 const SEARCH_DEPTH: u32 = 1024;
 
-// ── The registered sub-decider entrypoint ───────────────────────────────────────
-
-/// The [`super::SubDecider`] for the case-split / complement / union-disjoint /
-/// malformed-list family.
-///
-/// Returns `None` when no case-split shape is present (the family does not engage);
-/// otherwise the bounded case-split over each world's completion. A proven clash in
-/// ANY world is decisive (`Inconsistent`, materializing `owl:Nothing`); a
-/// `Consistent` verdict is licensed only when EVERY world saturated clash-free
-/// inside the certified-complete fragment. A bound-exceeded / out-of-fragment world
-/// (with no decisive clash) refuses the case into an `OutOfFragment` withhold.
-pub(crate) fn decide(edb: &RdfDataset) -> Option<RefutationCertificate> {
-    let scan = Scan::of(edb);
-    if !scan.engages() {
-        return None;
-    }
-
-    let mut clashes: BTreeSet<NothingClash> = BTreeSet::new();
-    let mut counted: BTreeSet<String> = BTreeSet::new();
-    let mut obstructions: BTreeSet<String> = BTreeSet::new();
-
-    for world in scan.worlds.keys() {
-        match scan.run_world(world) {
-            WorldOutcome::Inconsistent(cs) => {
-                for c in cs {
-                    counted.insert(c.individual.clone());
-                    clashes.insert(c);
-                }
-            }
-            WorldOutcome::Consistent => {}
-            WorldOutcome::OutOfFragment(reason) => {
-                obstructions.insert(reason);
-            }
-        }
-    }
-
-    // A proven clash is decisive: the ontology IS inconsistent regardless of any
-    // obstruction a sibling world raised, so it is sound to decide `Inconsistent`.
-    if !clashes.is_empty() {
-        return Some(certify_membership(
-            FragmentFamily::CaseSplit,
-            BTreeSet::new(),
-            move || {
-                (
-                    Decision::Inconsistent,
-                    Witness {
-                        family: FragmentFamily::CaseSplit,
-                        clashes,
-                        evidence: WitnessEvidence {
-                            counted_individuals: counted,
-                            violated_bound: None,
-                            closed_branch: Some("all-branches-closed".to_owned()),
-                        },
-                    },
-                )
-            },
-        ));
-    }
-
-    // No clash anywhere — a `Consistent` verdict requires EVERY world to have
-    // saturated clash-free inside the certified-complete fragment.
-    Some(certify_membership(
-        FragmentFamily::CaseSplit,
-        obstructions,
-        || {
-            (
-                Decision::Consistent,
-                Witness {
-                    family: FragmentFamily::CaseSplit,
-                    clashes: BTreeSet::new(),
-                    evidence: WitnessEvidence::default(),
-                },
-            )
-        },
-    ))
-}
-
-/// True iff the case-split sub-decider DECIDES `edb` (an in-fragment `Consistent`
-/// or `Inconsistent`). The coverage coordinator ([`crate::reason::dl`]) consults
-/// this to keep the case-split families (complement / union / oneOf / malformed
-/// list) `decided` — narrowing their refutation-shape withholds — exactly when the
-/// decider has completely decided them.
-pub(crate) fn decides(edb: &RdfDataset) -> bool {
-    matches!(decide(edb), Some(RefutationCertificate::InFragment { .. }))
-}
+// ── Synthetic source-level assertions ──────────────────────────────────────────
 
 // ── Concepts ─────────────────────────────────────────────────────────────────────
-
-/// A class expression in negation-normal form. `Neg` wraps only an atom (a named
-/// class or an opaque expression node); every other negation is pushed inward.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-enum Concept {
-    Top,
-    Bottom,
-    /// Membership in a named class / opaque node.
-    Pos(String),
-    /// Non-membership in a named class / opaque node.
-    Neg(String),
-    /// Conjunction (`owl:intersectionOf`).
-    And(Vec<Concept>),
-    /// Disjunction (`owl:unionOf`, `owl:disjointUnionOf` cover).
-    Or(Vec<Concept>),
-    /// Nominal enumeration (`owl:oneOf` over individuals): the individual is EQUAL
-    /// to one of these.
-    Nominals(Vec<String>),
-    /// A construct the fragment cannot model soundly (e.g. the negation of a
-    /// nominal set). It is a no-op label (dropping it only WEAKENS the theory, sound
-    /// for refutation) but its presence blocks a `Consistent` verdict.
-    Blocked,
-}
 
 /// The negation of a concept, pushed to NNF.
 fn negate(c: Concept) -> Concept {
@@ -351,188 +223,719 @@ struct WorldData {
     same_as: Vec<(String, String)>,
     different_from: Vec<(String, String)>,
     /// `owl:AllDifferent` distinct-member list heads.
-    all_different_heads: Vec<String>,
+    all_different_heads: Vec<(String, String)>,
     /// every predicate present (for the consistent-fragment gate).
     predicates: BTreeSet<String>,
     /// every `rdf:type` object present (for the consistent-fragment gate).
     type_objects: BTreeSet<String>,
-    /// `rdf:nil` bears an `rdf:first`/`rdf:rest` edge — a malformed list.
-    malformed_list: bool,
-    /// the offending `rdf:nil` edges, cited on the malformed-list clash.
-    malformed_edges: BTreeSet<(String, String, String)>,
+    /// Reachable list nodes are owned by selected definitions, never bare list fields.
+    list_nodes: BTreeMap<String, BTreeSet<String>>,
+    /// Admission is prepared once, after every selected source operand is known.
+    source_boundary: Option<FragmentBoundary>,
+    admission_issues: BTreeMap<FragmentBoundary, Support>,
+    source_premises: BTreeMap<(String, String, TermValue), Support>,
+    list_premises: BTreeMap<String, Support>,
+    incomplete_lists: BTreeSet<String>,
+    cyclic_lists: BTreeSet<String>,
+    nonresource_list_members: BTreeSet<String>,
+    field_values: BTreeMap<(String, String), TermValue>,
+    list_fields: BTreeMap<String, Support>,
+    ambiguous_fields: BTreeSet<(String, String)>,
+    /// Unsupported selected operands remain visible before resource-only lowering.
+    unsupported_expression_operands: BTreeSet<(String, String, TermValue)>,
+    unsupported_expression_owners: BTreeMap<(String, String), TermValue>,
+}
+
+fn semantic_predicate(predicate: &str) -> String {
+    let semantics = crate::native_semantics::SemanticVocabulary::GroundedLogicV1;
+    let native = semantics.predicate(predicate);
+    semantics
+        .alternate_predicate(native)
+        .unwrap_or(native)
+        .to_owned()
+}
+
+/// Only class-owner positions admit the two built-in class markers as subjects.
+/// A property, nominal member or ordinary data resource with the same IRI stays exact.
+fn semantic_class_owner(predicate: &str, subject: String) -> String {
+    if EXPRESSION_DEFINITION_PREDICATES.contains(&predicate)
+        || matches!(
+            predicate,
+            RDFS_SUBCLASSOF | OWL_EQUIVALENT_CLASS | OWL_DISJOINT_WITH
+        )
+    {
+        let canonical = match subject.as_str() {
+            "https://blackcatinformatics.ca/logic/Thing" => Some(OWL_THING),
+            "https://blackcatinformatics.ca/logic/Nothing" => Some(OWL_NOTHING),
+            _ => None,
+        };
+        if let Some(marker) = canonical {
+            return marker.to_owned();
+        }
+    }
+    subject
+}
+
+fn semantic_value(predicate: &str, term: TermValue) -> TermValue {
+    let term = crate::facts::skolemize(&term).into_owned();
+    if let TermValue::Iri(iri) = &term {
+        let semantics = crate::native_semantics::SemanticVocabulary::GroundedLogicV1;
+        if semantics.alternate_marker(predicate, iri).is_some()
+            && let Some(projected) = gmeow_ns::owl_view_of_type_marker(iri)
+        {
+            return TermValue::iri(projected);
+        }
+    }
+    term
+}
+
+impl WorldData {
+    /// Reachability through actual logical roles bounds the selected class model.
+    /// Unrelated property axioms remain owned by their native family. Shared
+    /// individuals, class axioms and property restrictions retain their interactions.
+    fn model_scope(&self) -> BTreeSet<String> {
+        let mut scope: BTreeSet<_> = self
+            .source_premises
+            .keys()
+            .filter(|(owner, predicate, _)| self.selects_definition(owner, predicate))
+            .map(|(owner, _, _)| owner.clone())
+            .collect();
+        let owned_list_nodes: BTreeSet<_> = self
+            .list_nodes
+            .values()
+            .flat_map(|nodes| nodes.iter().map(String::as_str))
+            .collect();
+        let mut edges = BTreeMap::<&str, BTreeSet<&str>>::new();
+        for (subject, predicate, object) in self.source_premises.keys() {
+            let Some(object) = object.as_iri() else {
+                continue;
+            };
+            if object == RDF_NIL || subject == RDF_NIL {
+                continue;
+            }
+            let membership = predicate == RDF_TYPE
+                && !DECLARATION_TYPE_OBJECTS.contains(&object)
+                && !CONSISTENT_BLOCKING_TYPE_OBJECTS.contains(&object);
+            let list_field = matches!(predicate.as_str(), RDF_FIRST | RDF_REST)
+                && owned_list_nodes.contains(subject.as_str());
+            let edge = membership
+                || list_field
+                || EXPRESSION_DEFINITION_PREDICATES.contains(&predicate.as_str())
+                || CONSISTENT_BLOCKING_PREDICATES.contains(&predicate.as_str())
+                || matches!(
+                    predicate.as_str(),
+                    RDFS_SUBCLASSOF
+                        | OWL_EQUIVALENT_CLASS
+                        | OWL_DISJOINT_WITH
+                        | OWL_SAME_AS
+                        | OWL_DIFFERENT_FROM
+                )
+                || (matches!(predicate.as_str(), OWL_MEMBERS | OWL_DISTINCT_MEMBERS)
+                    && self.selects_definition(subject, predicate));
+            if edge {
+                edges.entry(subject).or_default().insert(object);
+                edges.entry(object).or_default().insert(subject);
+            }
+        }
+        let mut pending: Vec<_> = scope.iter().cloned().collect();
+        while let Some(owner) = pending.pop() {
+            if let Some(neighbors) = edges.get(owner.as_str()) {
+                for next in neighbors {
+                    if scope.insert((*next).to_owned()) {
+                        pending.push((*next).to_owned());
+                    }
+                }
+            }
+        }
+        scope
+    }
+
+    /// Defining class operators select their operands directly; a member-list
+    /// property selects a list only with its actual AllDifferent declaration.
+    fn selects_definition(&self, owner: &str, predicate: &str) -> bool {
+        EXPRESSION_DEFINITION_PREDICATES.contains(&predicate)
+            || (matches!(predicate, OWL_MEMBERS | OWL_DISTINCT_MEMBERS)
+                && !self.support(owner, RDF_TYPE, OWL_ALL_DIFFERENT).is_empty())
+    }
+
+    /// Each selected list retains its defining owner and source declaration.
+    /// Shared heads are walked once; their independent owners remain visible.
+    fn selected_lists(&self) -> Vec<(&str, &str, Support)> {
+        let mut selected = Vec::new();
+        for ((owner, predicate, operand), source) in &self.source_premises {
+            if !matches!(
+                predicate.as_str(),
+                OWL_UNION_OF
+                    | OWL_INTERSECTION_OF
+                    | OWL_ONE_OF
+                    | OWL_DISJOINT_UNION_OF
+                    | OWL_MEMBERS
+                    | OWL_DISTINCT_MEMBERS
+            ) || !self.selects_definition(owner, predicate)
+            {
+                continue;
+            }
+            let Some(head) = operand.as_iri() else {
+                continue;
+            };
+            let mut definition = source.clone();
+            if matches!(predicate.as_str(), OWL_MEMBERS | OWL_DISTINCT_MEMBERS) {
+                definition.extend(&self.support(owner, RDF_TYPE, OWL_ALL_DIFFERENT));
+            }
+            selected.push((owner.as_str(), head, definition));
+        }
+        selected.sort_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+        selected
+    }
+
+    /// Refuse only the selected source grammar, with its owner and reached path.
+    fn admission_boundaries(&self, world: &str) -> BTreeMap<FragmentBoundary, Support> {
+        let boundary = |support: Support, issue| {
+            (
+                FragmentBoundary::SourceAdmission {
+                    world: world.to_owned(),
+                    premises: support.rows(),
+                    issue,
+                },
+                support,
+            )
+        };
+        let mut boundaries = Vec::new();
+        for ((owner_key, predicate), owner) in &self.unsupported_expression_owners {
+            if !self.selects_definition(owner_key, predicate) {
+                continue;
+            }
+            let mut support = Support::default();
+            for ((subject, field, _), source) in &self.source_premises {
+                if subject == owner_key && field == predicate {
+                    support.extend(source);
+                }
+            }
+            if matches!(predicate.as_str(), OWL_MEMBERS | OWL_DISTINCT_MEMBERS) {
+                support.extend(&self.support(owner_key, RDF_TYPE, OWL_ALL_DIFFERENT));
+            }
+            for (_, head, definition) in self
+                .selected_lists()
+                .into_iter()
+                .filter(|(owner, _, _)| *owner == owner_key)
+            {
+                support.extend(&definition);
+                if let Some(path) = self.list_premises.get(head) {
+                    support.extend(path);
+                }
+            }
+            boundaries.push(boundary(
+                support,
+                RefutationSourceIssue::UnsupportedExpressionOwner {
+                    owner: owner.clone(),
+                    predicate: predicate.clone(),
+                },
+            ));
+        }
+        for (owner, predicate, operand) in &self.unsupported_expression_operands {
+            if !self.selects_definition(owner, predicate) {
+                continue;
+            }
+            let mut support = self
+                .source_premises
+                .get(&(owner.clone(), predicate.clone(), operand.clone()))
+                .expect("an unsupported selected operand retains its original source row")
+                .clone();
+            if matches!(predicate.as_str(), OWL_MEMBERS | OWL_DISTINCT_MEMBERS) {
+                support.extend(&self.support(owner, RDF_TYPE, OWL_ALL_DIFFERENT));
+            }
+            boundaries.push(boundary(
+                support,
+                RefutationSourceIssue::UnsupportedExpressionOperand {
+                    owner: owner.clone(),
+                    predicate: predicate.clone(),
+                    operand: operand.clone(),
+                },
+            ));
+        }
+        for (subject, predicate) in &self.ambiguous_fields {
+            if !self.selects_definition(subject, predicate) {
+                continue;
+            }
+            let mut support = Support::default();
+            for ((s, p, _), source) in &self.source_premises {
+                if s == subject && p == predicate {
+                    support.extend(source);
+                }
+            }
+            boundaries.push(boundary(
+                support,
+                RefutationSourceIssue::ExpressionMultiplicity {
+                    subject: subject.clone(),
+                    predicate: predicate.clone(),
+                },
+            ));
+        }
+        for (owner, head, definition) in self.selected_lists() {
+            let nodes = self
+                .list_nodes
+                .get(head)
+                .expect("selected list paths are prepared");
+            let support = definition.merge(
+                self.list_premises
+                    .get(head)
+                    .expect("selected list source evidence is retained"),
+            );
+            if nodes.contains(RDF_NIL) && self.list_fields.contains_key(RDF_NIL) {
+                boundaries.push(boundary(
+                    support.clone(),
+                    RefutationSourceIssue::MalformedNil,
+                ));
+            }
+            for (node, predicate) in self.ambiguous_fields.iter().filter(|(node, predicate)| {
+                node.as_str() != RDF_NIL
+                    && matches!(predicate.as_str(), RDF_FIRST | RDF_REST)
+                    && nodes.contains(node)
+            }) {
+                boundaries.push(boundary(
+                    support.clone(),
+                    RefutationSourceIssue::ConflictingListField {
+                        subject: node.clone(),
+                        predicate: predicate.clone(),
+                    },
+                ));
+            }
+            if self.incomplete_lists.contains(head) {
+                boundaries.push(boundary(
+                    support.clone(),
+                    RefutationSourceIssue::IncompleteList {
+                        owner: owner.to_owned(),
+                        head: head.to_owned(),
+                    },
+                ));
+            }
+            if self.cyclic_lists.contains(head) {
+                boundaries.push(boundary(
+                    support.clone(),
+                    RefutationSourceIssue::CyclicList {
+                        owner: owner.to_owned(),
+                        head: head.to_owned(),
+                    },
+                ));
+            }
+            if nodes.iter().any(|node| {
+                node.as_str() != RDF_NIL && self.nonresource_list_members.contains(node)
+            }) {
+                boundaries.push(boundary(
+                    support,
+                    RefutationSourceIssue::UnsupportedListMember {
+                        owner: owner.to_owned(),
+                        head: head.to_owned(),
+                    },
+                ));
+            }
+        }
+        boundaries.into_iter().collect()
+    }
+
+    fn support_term(&self, subject: &str, predicate: &str, object: TermValue) -> Support {
+        self.source_premises
+            .get(&(
+                subject.to_owned(),
+                predicate.to_owned(),
+                semantic_value(predicate, object),
+            ))
+            .cloned()
+            .unwrap_or_default()
+    }
+    fn support(&self, subject: &str, predicate: &str, object: &str) -> Support {
+        self.support_term(subject, predicate, TermValue::iri(object))
+    }
+    fn note(&mut self, subject: &str, predicate: &str, quad: &purrdf::RdfQuad, support: &Support) {
+        let value = semantic_value(predicate, crate::reason::dataset::value(&quad.object));
+        if (EXPRESSION_DEFINITION_PREDICATES.contains(&predicate)
+            || matches!(predicate, OWL_MEMBERS | OWL_DISTINCT_MEMBERS))
+            && !matches!(&value, TermValue::Iri(_))
+        {
+            self.unsupported_expression_operands.insert((
+                subject.to_owned(),
+                predicate.to_owned(),
+                value.clone(),
+            ));
+        }
+        if matches!(
+            predicate,
+            RDF_FIRST
+                | RDF_REST
+                | OWL_COMPLEMENT_OF
+                | OWL_INTERSECTION_OF
+                | OWL_UNION_OF
+                | OWL_ONE_OF
+        ) {
+            let field = (subject.to_owned(), predicate.to_owned());
+            if let Some(prior) = self.field_values.insert(field.clone(), value.clone())
+                && prior != value
+            {
+                self.ambiguous_fields.insert(field);
+            }
+        }
+        if predicate == RDF_FIRST && !matches!(&value, TermValue::Iri(_)) {
+            self.nonresource_list_members.insert(subject.to_owned());
+        }
+        if matches!(predicate, RDF_FIRST | RDF_REST) {
+            self.list_fields
+                .entry(subject.to_owned())
+                .or_default()
+                .extend(support);
+        }
+        let key = (subject.to_owned(), predicate.to_owned(), value);
+        self.source_premises.entry(key).or_default().extend(support);
+    }
+}
+
+/// Adapt one native statement to the tableau's owned term surface, never RDF text.
+fn supported_quad(
+    subject: &TermValue,
+    predicate: &str,
+    object: &TermValue,
+    graph: Option<&TermValue>,
+) -> gmeow_errors::Result<purrdf::RdfQuad> {
+    let mut quad = purrdf::RdfQuad::new(
+        crate::reason::term_value_to_rdf_term(subject)?,
+        predicate,
+        crate::reason::term_value_to_rdf_term(object)?,
+    );
+    quad.graph_name = graph
+        .map(crate::reason::term_value_to_rdf_term)
+        .transpose()?;
+    Ok(quad)
 }
 
 struct Scan {
+    source_worlds: BTreeMap<String, ClassAdmissionSourceWorld>,
+    source_alias: bool,
+    firsts: BTreeMap<String, BTreeMap<String, RdfTerm>>,
+    rests: BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
     worlds: BTreeMap<String, WorldData>,
 }
 
 impl Scan {
-    fn of(edb: &RdfDataset) -> Self {
-        let mut worlds: BTreeMap<String, WorldData> = BTreeMap::new();
+    fn of(edb: &impl DatasetView) -> Self {
+        let graphs = edb
+            .named_graphs()
+            .map(|id| crate::reason::dataset::native(edb, id));
+        let rows = crate::reason::dataset::owned_quads(edb).map(|quad| {
+            let support = Support::one(RefutationPremise {
+                subject: crate::reason::dataset::value(&quad.subject),
+                predicate: quad.predicate.clone(),
+                object: crate::reason::dataset::value(&quad.object),
+                graph: quad.graph_name.as_ref().map(crate::reason::dataset::value),
+            });
+            Ok((quad, support))
+        });
+        Self::from_parts(graphs, rows)
+            .expect("admitted native RDF rows do not require a fallible conversion")
+    }
+
+    /// One typed ingress over retained native occurrences, without any dataset rebuild.
+    fn from_parts(
+        graphs: impl IntoIterator<Item = TermValue>,
+        rows: impl IntoIterator<Item = gmeow_errors::Result<(purrdf::RdfQuad, Support)>>,
+    ) -> gmeow_errors::Result<Self> {
+        let worlds: BTreeMap<String, WorldData> = BTreeMap::new();
+        let mut source_worlds: BTreeMap<String, ClassAdmissionSourceWorld> = BTreeMap::new();
+        let mut source_alias = false;
+        for graph in graphs {
+            if let Ok(world) = admission::graph_world(Some(&graph)) {
+                if let Some(prior) = source_worlds.insert(
+                    world,
+                    ClassAdmissionSourceWorld {
+                        graph: Some(graph.clone()),
+                        assertions: 0,
+                    },
+                ) {
+                    source_alias |= prior.graph.as_ref() != Some(&graph);
+                }
+            } else {
+                source_alias = true;
+            }
+        }
         // raw first/rest edges per world for the list walk.
-        let mut firsts: BTreeMap<String, BTreeMap<String, RdfTerm>> = BTreeMap::new();
-        let mut rests: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+        let firsts: BTreeMap<String, BTreeMap<String, RdfTerm>> = BTreeMap::new();
+        let rests: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
 
-        for quad in edb.owned_quads() {
-            let world = world_key(&quad.graph_name);
-            // The one lowering point of this scan: a canonical `logic:` class-expression
-            // term becomes the `owl:` spelling every arm below matches
-            // ([`crate::reason::calculus_term`], the shared table). It
-            // must happen BEFORE `w.predicates` / `w.type_objects` are recorded, because
-            // those two sets are the whole-case completeness gate: an unlowered
-            // `logic:onProperty` would read as an unknown construct and refuse the case.
-            let predicate = crate::reason::calculus_term(&quad.predicate).to_owned();
-            let Some(subject) = resource_key(&quad.subject) else {
-                continue;
-            };
-            let w = worlds.entry(world.clone()).or_default();
-            w.predicates.insert(predicate.clone());
+        let mut scan = Scan {
+            worlds,
+            source_worlds,
+            source_alias,
+            firsts,
+            rests,
+        };
+        for row in rows {
+            let (quad, support) = row?;
+            scan.ingest(quad, support);
+        }
+        scan.prepare_schema();
+        Ok(scan)
+    }
 
-            match predicate.as_str() {
-                RDF_TYPE => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        let object = crate::reason::calculus_term(&object).to_owned();
-                        w.type_objects.insert(object.clone());
-                        if !DECLARATION_TYPE_OBJECTS.contains(&object.as_str()) {
-                            w.types.entry(subject).or_default().insert(object);
-                        }
+    /// Append one committed statement with its real native origin and source leaves.
+    fn ingest(&mut self, quad: purrdf::RdfQuad, support: Support) {
+        let world = world_key(&quad.graph_name);
+        let graph = quad.graph_name.as_ref().map(crate::reason::dataset::value);
+        let source =
+            self.source_worlds
+                .entry(world.clone())
+                .or_insert_with(|| ClassAdmissionSourceWorld {
+                    graph: graph.clone(),
+                    assertions: 0,
+                });
+        self.source_alias |= source.graph != graph;
+        source.assertions += 1;
+        // The shared native resolver admits predicate roles before the selected
+        // case-split operators inspect them. Marker interpretation is separately
+        // role-checked; nominal members and other data IRIs remain exact. The
+        // evidence table retains each original statement before interpretation.
+        let predicate = semantic_predicate(&quad.predicate);
+        let Some(subject) = resource_key(&quad.subject) else {
+            // A quoted owner does not become its embedded subject. Retain only
+            // actual source grammar fields so selected operators cannot vanish.
+            if EXPRESSION_DEFINITION_PREDICATES.contains(&predicate.as_str())
+                || matches!(
+                    predicate.as_str(),
+                    OWL_MEMBERS | OWL_DISTINCT_MEMBERS | RDF_TYPE
+                )
+            {
+                let owner = crate::reason::dataset::value(&quad.subject);
+                let owner_key = gmeow_term_arena::engine::native_term_key(&owner);
+                let w = self.worlds.entry(world).or_default();
+                w.note(&owner_key, &predicate, &quad, &support);
+                if predicate != RDF_TYPE {
+                    w.unsupported_expression_owners
+                        .insert((owner_key, predicate.clone()), owner);
+                }
+            }
+            return;
+        };
+        let subject = semantic_class_owner(&predicate, subject);
+        let w = self.worlds.entry(world.clone()).or_default();
+        w.predicates.insert(predicate.clone());
+        if CONSISTENT_BLOCKING_PREDICATES.contains(&predicate.as_str())
+            || matches!(
+                predicate.as_str(),
+                RDF_TYPE
+                    | RDFS_SUBCLASSOF
+                    | OWL_EQUIVALENT_CLASS
+                    | OWL_DISJOINT_WITH
+                    | OWL_DISJOINT_UNION_OF
+                    | OWL_COMPLEMENT_OF
+                    | OWL_INTERSECTION_OF
+                    | OWL_UNION_OF
+                    | OWL_ONE_OF
+                    | OWL_SAME_AS
+                    | OWL_DIFFERENT_FROM
+                    | OWL_MEMBERS
+                    | OWL_DISTINCT_MEMBERS
+                    | RDF_FIRST
+                    | RDF_REST
+            )
+        {
+            w.note(&subject, &predicate, &quad, &support);
+        }
+
+        match predicate.as_str() {
+            RDF_TYPE => {
+                if let Some(object) = resource_key(&quad.object) {
+                    let object = semantic_value(&predicate, TermValue::iri(object))
+                        .as_iri()
+                        .expect("resource marker")
+                        .to_owned();
+                    w.type_objects.insert(object.clone());
+                    if !DECLARATION_TYPE_OBJECTS.contains(&object.as_str()) {
+                        w.types.entry(subject).or_default().insert(object);
                     }
                 }
-                RDFS_SUBCLASSOF => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.subclass_of.entry(subject).or_default().insert(object);
-                    }
+            }
+            RDFS_SUBCLASSOF => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.subclass_of.entry(subject).or_default().insert(object);
                 }
-                OWL_EQUIVALENT_CLASS => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.subclass_of
-                            .entry(subject.clone())
-                            .or_default()
-                            .insert(object.clone());
-                        w.equivalent_named.push((subject, object));
-                    }
+            }
+            OWL_EQUIVALENT_CLASS => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.subclass_of
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(object.clone());
+                    w.equivalent_named.push((subject, object));
                 }
-                OWL_DISJOINT_WITH => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.disjoint_with.push((subject, object));
-                    }
+            }
+            OWL_DISJOINT_WITH => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.disjoint_with.push((subject, object));
                 }
-                OWL_DISJOINT_UNION_OF => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.disjoint_union_of.push((subject, object));
-                    }
+            }
+            OWL_DISJOINT_UNION_OF => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.disjoint_union_of.push((subject, object));
                 }
-                OWL_COMPLEMENT_OF => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.complement_of.insert(subject, object);
-                    }
+            }
+            OWL_COMPLEMENT_OF => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.complement_of.insert(subject, object);
                 }
-                OWL_INTERSECTION_OF => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.intersection_of.insert(subject, object);
-                    }
+            }
+            OWL_INTERSECTION_OF => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.intersection_of.insert(subject, object);
                 }
-                OWL_UNION_OF => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.union_of.insert(subject, object);
-                    }
+            }
+            OWL_UNION_OF => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.union_of.insert(subject, object);
                 }
-                OWL_ONE_OF => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.one_of.insert(subject, object);
-                    }
+            }
+            OWL_ONE_OF => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.one_of.insert(subject, object);
                 }
-                OWL_SAME_AS => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.same_as.push((subject, object));
-                    }
+            }
+            OWL_SAME_AS => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.same_as.push((subject, object));
                 }
-                OWL_DIFFERENT_FROM => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.different_from.push((subject, object));
-                    }
+            }
+            OWL_DIFFERENT_FROM => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.different_from.push((subject, object));
                 }
-                OWL_DISTINCT_MEMBERS | OWL_MEMBERS => {
-                    if let Some(object) = resource_key(&quad.object) {
-                        w.all_different_heads.push(object);
-                    }
+            }
+            OWL_DISTINCT_MEMBERS | OWL_MEMBERS => {
+                if let Some(object) = resource_key(&quad.object) {
+                    w.all_different_heads.push((subject, object));
                 }
-                RDF_FIRST => {
-                    if subject == RDF_NIL {
-                        w.malformed_list = true;
-                        if let Some(object) = resource_key(&quad.object) {
-                            w.malformed_edges.insert((
-                                RDF_NIL.to_owned(),
-                                RDF_FIRST.to_owned(),
-                                object,
-                            ));
-                        } else {
-                            w.malformed_edges.insert((
-                                RDF_NIL.to_owned(),
-                                RDF_FIRST.to_owned(),
-                                "(literal)".to_owned(),
-                            ));
-                        }
-                    }
-                    firsts
+            }
+            RDF_FIRST => {
+                self.firsts
+                    .entry(world.clone())
+                    .or_default()
+                    .insert(subject.clone(), quad.object.clone());
+            }
+            RDF_REST => {
+                if let Some(object) = resource_key(&quad.object) {
+                    self.rests
                         .entry(world.clone())
                         .or_default()
-                        .insert(subject.clone(), quad.object.clone());
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(object);
                 }
-                RDF_REST => {
-                    if subject == RDF_NIL {
-                        w.malformed_list = true;
-                        if let Some(object) = resource_key(&quad.object) {
-                            w.malformed_edges.insert((
-                                RDF_NIL.to_owned(),
-                                RDF_REST.to_owned(),
-                                object,
-                            ));
-                        }
-                    }
-                    if let Some(object) = resource_key(&quad.object) {
-                        rests
-                            .entry(world.clone())
-                            .or_default()
-                            .insert(subject.clone(), object);
-                    }
-                }
-                RDFS_LABEL | RDFS_COMMENT | RDFS_SEE_ALSO | RDFS_IS_DEFINED_BY => {}
-                _ => {}
             }
+            RDFS_LABEL | RDFS_COMMENT | RDFS_SEE_ALSO | RDFS_IS_DEFINED_BY => {}
+            _ => {}
         }
+    }
 
-        // Walk resource-and-literal member lists to nil per world.
-        for (world, w) in &mut worlds {
-            let first = firsts.remove(world).unwrap_or_default();
-            let rest = rests.remove(world).unwrap_or_default();
-            let heads: BTreeSet<String> = first.keys().cloned().collect();
-            for head in heads {
-                let mut node = head.clone();
-                let mut seen: BTreeSet<String> = BTreeSet::new();
-                let mut members: Vec<RdfTerm> = Vec::new();
-                while seen.insert(node.clone()) {
-                    let Some(f) = first.get(&node) else { break };
-                    members.push(f.clone());
-                    match rest.get(&node) {
-                        Some(next) if next != RDF_NIL => node = next.clone(),
-                        _ => break,
+    /// Resolve selected definitions and reachable list paths once for this schema.
+    fn prepare_schema(&mut self) {
+        // Only complete source-owned lists can justify exhaustive alternatives.
+        for (world, w) in &mut self.worlds {
+            w.lists.clear();
+            w.list_nodes.clear();
+            w.list_premises.clear();
+            w.incomplete_lists.clear();
+            w.cyclic_lists.clear();
+            w.same_as.sort();
+            w.same_as.dedup();
+            w.different_from.sort();
+            w.different_from.dedup();
+            w.equivalent_named.sort();
+            w.equivalent_named.dedup();
+            w.disjoint_with.sort();
+            w.disjoint_with.dedup();
+            w.disjoint_union_of.sort();
+            w.disjoint_union_of.dedup();
+            w.all_different_heads.sort();
+            w.all_different_heads.dedup();
+            let first = self.firsts.get(world);
+            let rest = self.rests.get(world);
+            let selected_heads: BTreeSet<String> = w
+                .selected_lists()
+                .into_iter()
+                .map(|(_, head, _)| head.to_owned())
+                .collect();
+            for head in selected_heads {
+                // Enter/leave frames retain the active path without recursion;
+                // each reachable source node is read once even after ambiguous tails.
+                let mut pending = vec![(head.clone(), false)];
+                let mut active = BTreeSet::new();
+                let mut seen = BTreeSet::new();
+                let mut members = Vec::new();
+                let mut support = Support::default();
+                let mut complete = true;
+                while let Some((node, leaving)) = pending.pop() {
+                    if leaving {
+                        active.remove(&node);
+                        continue;
+                    }
+                    if active.contains(&node) {
+                        complete = false;
+                        w.cyclic_lists.insert(head.clone());
+                        continue;
+                    }
+                    if !seen.insert(node.clone()) {
+                        continue;
+                    }
+                    active.insert(node.clone());
+                    pending.push((node.clone(), true));
+                    if let Some(fields) = w.list_fields.get(&node) {
+                        support.extend(fields);
+                    }
+                    if node == RDF_NIL {
+                        complete &= !w.list_fields.contains_key(RDF_NIL);
+                        continue;
+                    }
+                    if w.ambiguous_fields
+                        .contains(&(node.clone(), RDF_FIRST.to_owned()))
+                        || w.ambiguous_fields
+                            .contains(&(node.clone(), RDF_REST.to_owned()))
+                        || w.nonresource_list_members.contains(&node)
+                    {
+                        complete = false;
+                    }
+                    if let Some(value) = first.and_then(|fields| fields.get(&node)) {
+                        members.push(value.clone());
+                    } else {
+                        complete = false;
+                        w.incomplete_lists.insert(head.clone());
+                    }
+                    if let Some(next) = rest.and_then(|fields| fields.get(&node)) {
+                        pending.extend(next.iter().rev().map(|tail| (tail.clone(), false)));
+                    } else {
+                        complete = false;
+                        w.incomplete_lists.insert(head.clone());
                     }
                 }
-                w.lists.insert(head, members);
+                if complete {
+                    w.lists.insert(head.clone(), members);
+                }
+                w.list_premises.insert(head.clone(), support);
+                w.list_nodes.insert(head, seen);
             }
+            w.admission_issues = w.admission_boundaries(world);
+            w.source_boundary = match w.admission_issues.len() {
+                0 => None,
+                1 => w.admission_issues.keys().next().cloned(),
+                _ => Some(FragmentBoundary::Combined(
+                    w.admission_issues.keys().cloned().collect(),
+                )),
+            };
         }
-
-        Scan { worlds }
     }
 
     /// True iff any case-split shape is present in any world (the engage set):
     /// `owl:complementOf` / `owl:unionOf` / `owl:oneOf` / `owl:disjointUnionOf`, or
-    /// a malformed `rdf:List`. Pure `owl:intersectionOf` / `owl:disjointWith` (no
+    /// an unadmitted selected expression/list/declaration operand. Unowned list
+    /// fields never select this procedure. Pure admitted `owl:intersectionOf` / `owl:disjointWith` (no
     /// disjunction) is left to the native EL/DL chase.
     fn engages(&self) -> bool {
         self.worlds.values().any(|w| {
-            w.malformed_list
+            w.source_boundary.is_some()
                 || !w.complement_of.is_empty()
                 || !w.union_of.is_empty()
                 || !w.one_of.is_empty()
@@ -540,293 +943,347 @@ impl Scan {
         })
     }
 
-    fn run_world(&self, world: &str) -> WorldOutcome {
+    fn run_world_budget(
+        &self,
+        world: &str,
+        budget: &mut u64,
+    ) -> (WorldOutcome, BTreeMap<String, Support>) {
         let w = &self.worlds[world];
 
-        // Family 6b — a malformed `rdf:List` makes the world inconsistent outright.
-        if w.malformed_list {
-            let mut premises: Vec<(String, String, String)> =
-                w.malformed_edges.iter().cloned().collect();
-            premises.sort();
-            premises.dedup();
-            let clash = NothingClash {
-                individual: RDF_NIL.to_owned(),
-                world: world.to_owned(),
-                rule_name: RULE_MALFORMED_LIST.to_owned(),
-                premises,
-            };
-            return WorldOutcome::Inconsistent([clash].into_iter().collect());
+        if let Some(boundary) = &w.source_boundary {
+            return (
+                WorldOutcome::SourceBoundary(boundary.clone()),
+                BTreeMap::new(),
+            );
         }
 
         let ctx = Ctx::build(w);
         let resolver = Resolver { w };
+        let outcome = (|| {
+            // Initial tableau: assert every individual's membership concepts, then the
+            // sameAs merges and differentFrom constraints.
+            let mut state = State::default();
+            let mut all_individuals: BTreeSet<String> = BTreeSet::new();
+            for (ind, classes) in &w.types {
+                all_individuals.insert(ind.clone());
+                let _ = classes;
+            }
+            for (a, b) in &w.same_as {
+                all_individuals.insert(a.clone());
+                all_individuals.insert(b.clone());
+            }
+            for (a, b, _) in &ctx.different {
+                all_individuals.insert(a.clone());
+                all_individuals.insert(b.clone());
+            }
+            for ind in &all_individuals {
+                state.make(ind);
+            }
+            for (a, b) in &w.same_as {
+                state.union(a, b, w.support(a, OWL_SAME_AS, b));
+            }
 
-        // Initial tableau: assert every individual's membership concepts, then the
-        // sameAs merges and differentFrom constraints.
-        let mut state = State::default();
-        let mut all_individuals: BTreeSet<String> = BTreeSet::new();
-        for (ind, classes) in &w.types {
-            all_individuals.insert(ind.clone());
-            let _ = classes;
-        }
-        for (a, b) in &w.same_as {
-            all_individuals.insert(a.clone());
-            all_individuals.insert(b.clone());
-        }
-        for (a, b) in &ctx.different {
-            all_individuals.insert(a.clone());
-            all_individuals.insert(b.clone());
-        }
-        for ind in &all_individuals {
-            state.make(ind);
-        }
-        for (a, b) in &w.same_as {
-            state.union(a, b);
-        }
-
-        let mut budget: u64 = SEARCH_BUDGET;
-        // Seed the individual membership concepts.
-        for (ind, classes) in &w.types {
-            for class in classes {
-                let concept = resolver.resolve(class, 0);
-                if state.add(ind, concept, &mut budget).is_err() {
-                    // An immediate clash on seeding: the world is inconsistent.
-                    return WorldOutcome::Inconsistent(ctx.clashes(w, world));
+            for individual in &all_individuals {
+                let mut existence = Support::default();
+                if let Some(classes) = w.types.get(individual) {
+                    for class in classes {
+                        existence.extend(&w.support(individual, RDF_TYPE, class));
+                    }
+                }
+                for (left, right) in &w.same_as {
+                    if left == individual || right == individual {
+                        existence.extend(&w.support(left, OWL_SAME_AS, right));
+                    }
+                }
+                for (left, right, support) in &ctx.different {
+                    if left == individual || right == individual {
+                        existence.extend(support);
+                    }
+                }
+                for (obligation, definition) in &ctx.universal {
+                    if let Err(proof) = state.add(
+                        individual,
+                        obligation.clone(),
+                        existence.merge(definition),
+                        budget,
+                    ) {
+                        return WorldOutcome::Inconsistent(proof);
+                    }
                 }
             }
-        }
 
-        match search(&mut state, &ctx, &mut budget, 0) {
-            SearchResult::Unsat => WorldOutcome::Inconsistent(ctx.clashes(w, world)),
-            SearchResult::Bound => WorldOutcome::OutOfFragment(format!(
-                "case-split search budget exceeded in world <{world}>"
-            )),
-            SearchResult::Sat => {
-                if let Some(reason) = ctx.consistent_block_reason(w) {
-                    WorldOutcome::OutOfFragment(reason)
-                } else {
-                    WorldOutcome::Consistent
+            // Seed the individual membership concepts.
+            for (ind, classes) in &w.types {
+                for class in classes {
+                    let (concept, definition) = resolver.resolve_supported(class, 0);
+                    let support = w.support(ind, RDF_TYPE, class).merge(&definition);
+                    if let Err(proof) = state.add(ind, concept, support, budget) {
+                        return WorldOutcome::Inconsistent(proof);
+                    }
                 }
             }
-        }
+
+            match search(&mut state, &ctx, budget, 0) {
+                SearchResult::Unsat(proof) => WorldOutcome::Inconsistent(proof),
+                SearchResult::Bound(bound) => WorldOutcome::SearchBoundary(bound),
+                SearchResult::Sat => {
+                    if !ctx.obstructions.is_empty() {
+                        WorldOutcome::OutOfFragment(
+                            ctx.obstructions
+                                .keys()
+                                .cloned()
+                                .collect::<Vec<_>>()
+                                .join("; "),
+                        )
+                    } else {
+                        WorldOutcome::Consistent
+                    }
+                }
+            }
+        })();
+        (outcome, ctx.obstructions)
     }
 }
 
 enum WorldOutcome {
-    Inconsistent(BTreeSet<NothingClash>),
+    SourceBoundary(FragmentBoundary),
+    Inconsistent(RefutationProof),
     Consistent,
     OutOfFragment(String),
+    SearchBoundary(SearchBound),
 }
 
 // ── The reasoning context (immutable per world) ─────────────────────────────────
 
 struct Ctx {
+    /// Obligations on every actual inhabitant, with source-owned class axioms.
+    universal: Vec<(Concept, Support)>,
     /// named class → told-subsumer concepts (added when `Pos(C)` is present).
-    subsumers: BTreeMap<String, Vec<Concept>>,
+    subsumers: BTreeMap<String, Vec<(Concept, Support)>>,
     /// distinctness pairs (original individuals).
-    different: Vec<(String, String)>,
-    /// whether the fragment saw a construct that blocks a `Consistent` verdict.
-    consistent_blocked: bool,
-    /// the concrete reason the world blocks a `Consistent` verdict, if any.
-    block_reason: Option<String>,
+    different: Vec<(String, String, Support)>,
+    /// Every selected model obstruction with exact source/native support, retained
+    /// even when a different obligation already closes the current branches.
+    obstructions: BTreeMap<String, Support>,
 }
 
 impl Ctx {
     fn build(w: &WorldData) -> Self {
-        let mut subsumers: BTreeMap<String, Vec<Concept>> = BTreeMap::new();
+        let mut subsumers: BTreeMap<String, Vec<(Concept, Support)>> = BTreeMap::new();
         let resolver = Resolver { w };
-        let mut consistent_blocked = false;
-        let mut block_reason: Option<String> = None;
-
-        let note_block = |reason: String, blocked: &mut bool, slot: &mut Option<String>| {
-            *blocked = true;
-            if slot.is_none() {
-                *slot = Some(reason);
+        let scope = w.model_scope();
+        let mut obstructions = BTreeMap::<String, Support>::new();
+        let owners: BTreeSet<_> = w
+            .source_premises
+            .keys()
+            .filter(|(_, predicate, _)| {
+                EXPRESSION_DEFINITION_PREDICATES.contains(&predicate.as_str())
+            })
+            .map(|(owner, _, _)| owner.as_str())
+            .collect();
+        for owner in owners {
+            let (concept, support) = resolver.resolve_node(owner, 0, false);
+            if concept_contains_blocked(&concept) {
+                obstructions
+                    .entry(format!("unsupported selected definition on <{owner}>"))
+                    .or_default()
+                    .extend(&support);
             }
-        };
-
-        // rdfs:subClassOf / owl:equivalentClass (forward) told-subsumers.
+        }
         for (class, supers) in &w.subclass_of {
             for target in supers {
-                let concept = resolver.resolve(target, 0);
-                if concept_contains_blocked(&concept) {
-                    note_block(
-                        format!("negated nominal expression in <{target}>"),
-                        &mut consistent_blocked,
-                        &mut block_reason,
-                    );
+                let (concept, definitions) = resolver.resolve_supported(target, 0);
+                let support = definitions
+                    .merge(&w.support(class, RDFS_SUBCLASSOF, target))
+                    .merge(&w.support(class, OWL_EQUIVALENT_CLASS, target));
+                if concept_contains_blocked(&concept) && scope.contains(class) {
+                    obstructions
+                        .entry(format!("unsupported subsumer <{target}> of <{class}>"))
+                        .or_default()
+                        .extend(&support);
                 }
-                subsumers.entry(class.clone()).or_default().push(concept);
+                subsumers
+                    .entry(class.clone())
+                    .or_default()
+                    .push((concept, support));
             }
         }
-        // owl:equivalentClass reverse edge for named-named pairs.
         for (a, b) in &w.equivalent_named {
-            let a_is_expr = resolver.is_expression(a);
-            let b_is_expr = resolver.is_expression(b);
-            if a_is_expr || b_is_expr {
-                note_block(
-                    "owl:equivalentClass to a class expression".to_owned(),
-                    &mut consistent_blocked,
-                    &mut block_reason,
-                );
+            if resolver.is_expression(a) || resolver.is_expression(b) {
+                if scope.contains(a) || scope.contains(b) {
+                    obstructions
+                        .entry(format!("class expression equivalence <{a}> to <{b}>"))
+                        .or_default()
+                        .extend(&w.support(a, OWL_EQUIVALENT_CLASS, b));
+                }
             } else {
-                subsumers
-                    .entry(b.clone())
-                    .or_default()
-                    .push(Concept::Pos(a.clone()));
+                subsumers.entry(b.clone()).or_default().push((
+                    Concept::Pos(a.clone()),
+                    w.support(a, OWL_EQUIVALENT_CLASS, b),
+                ));
             }
         }
-        // owl:disjointWith: C ⊑ ¬D and D ⊑ ¬C.
         for (a, b) in &w.disjoint_with {
-            subsumers
-                .entry(a.clone())
-                .or_default()
-                .push(negate(resolver.resolve(b, 0)));
-            subsumers
-                .entry(b.clone())
-                .or_default()
-                .push(negate(resolver.resolve(a, 0)));
-        }
-        // owl:disjointUnionOf(C; D₁ … Dₙ): C ⊑ (D₁ ⊔ … ⊔ Dₙ); Dᵢ ⊑ C;
-        // Dᵢ ⊑ ¬Dⱼ (i ≠ j).
-        for (class, head) in &w.disjoint_union_of {
-            let members = resolver.list_resources(head);
-            let disjuncts: Vec<Concept> = members.iter().map(|m| Concept::Pos(m.clone())).collect();
-            subsumers
-                .entry(class.clone())
-                .or_default()
-                .push(Concept::Or(disjuncts));
-            for (i, di) in members.iter().enumerate() {
+            for (subject, target) in [(a, b), (b, a)] {
+                let (concept, definitions) = resolver.resolve_supported(target, 0);
+                let concept = negate(concept);
+                let support = definitions.merge(&w.support(a, OWL_DISJOINT_WITH, b));
+                if scope.contains(subject) && concept_contains_blocked(&concept) {
+                    obstructions
+                        .entry(format!(
+                            "unsupported disjoint expression <{target}> against <{subject}>"
+                        ))
+                        .or_default()
+                        .extend(&support);
+                }
                 subsumers
-                    .entry(di.clone())
+                    .entry(subject.clone())
                     .or_default()
-                    .push(Concept::Pos(class.clone()));
-                for (j, dj) in members.iter().enumerate() {
-                    if i != j {
+                    .push((concept, support));
+            }
+        }
+        for (class, head) in &w.disjoint_union_of {
+            let Some(list_support) = w.list_premises.get(head) else {
+                obstructions
+                    .entry(format!(
+                        "incomplete disjoint union list <{head}> for <{class}>"
+                    ))
+                    .or_default()
+                    .extend(&w.support(class, OWL_DISJOINT_UNION_OF, head));
+                continue;
+            };
+            let members = resolver.list_resources(head);
+            let support = w
+                .support(class, OWL_DISJOINT_UNION_OF, head)
+                .merge(list_support);
+            subsumers.entry(class.clone()).or_default().push((
+                Concept::Or(members.iter().cloned().map(Concept::Pos).collect()),
+                support.clone(),
+            ));
+            for (index, member) in members.iter().enumerate() {
+                subsumers
+                    .entry(member.clone())
+                    .or_default()
+                    .push((Concept::Pos(class.clone()), support.clone()));
+                for (other_index, other) in members.iter().enumerate() {
+                    if index != other_index {
                         subsumers
-                            .entry(di.clone())
+                            .entry(member.clone())
                             .or_default()
-                            .push(Concept::Neg(dj.clone()));
+                            .push((Concept::Neg(other.clone()), support.clone()));
                     }
                 }
             }
         }
-
-        // Distinctness: explicit owl:differentFrom + owl:AllDifferent expansions.
-        let mut different: Vec<(String, String)> = w.different_from.clone();
-        for head in &w.all_different_heads {
+        let mut different: Vec<_> = w
+            .different_from
+            .iter()
+            .map(|(a, b)| (a.clone(), b.clone(), w.support(a, OWL_DIFFERENT_FROM, b)))
+            .collect();
+        for (node, head) in &w.all_different_heads {
+            let declaration = w.support(node, RDF_TYPE, OWL_ALL_DIFFERENT);
+            if declaration.is_empty() {
+                continue;
+            }
+            let Some(list_support) = w.list_premises.get(head) else {
+                obstructions
+                    .entry(format!(
+                        "incomplete AllDifferent list <{head}> for <{node}>"
+                    ))
+                    .or_default()
+                    .extend(
+                        &declaration
+                            .merge(&w.support(node, OWL_MEMBERS, head))
+                            .merge(&w.support(node, OWL_DISTINCT_MEMBERS, head)),
+                    );
+                continue;
+            };
+            let support = declaration
+                .merge(list_support)
+                .merge(&w.support(node, OWL_MEMBERS, head))
+                .merge(&w.support(node, OWL_DISTINCT_MEMBERS, head));
             let members = resolver.list_resources(head);
-            for i in 0..members.len() {
-                for j in (i + 1)..members.len() {
-                    different.push((members[i].clone(), members[j].clone()));
+            for (index, a) in members.iter().enumerate() {
+                for b in &members[index + 1..] {
+                    different.push((a.clone(), b.clone(), support.clone()));
                 }
             }
         }
-
-        let mut ctx = Ctx {
-            subsumers,
-            different,
-            consistent_blocked,
-            block_reason,
-        };
-
-        // Fold the standalone consistent-fragment gate (denylisted predicates /
-        // type objects / literal-nominal enumerations).
-        if let Some(reason) = fragment_block_reason(w) {
-            ctx.consistent_blocked = true;
-            if ctx.block_reason.is_none() {
-                ctx.block_reason = Some(reason);
+        for ((subject, predicate, object), support) in &w.source_premises {
+            if !scope.contains(subject) {
+                continue;
+            }
+            if CONSISTENT_BLOCKING_PREDICATES.contains(&predicate.as_str()) {
+                obstructions.entry(format!("selected class model does not complete <{subject}> <{predicate}> {object:?}"))
+                    .or_default().extend(support);
+            }
+            if predicate == RDF_TYPE
+                && object
+                    .as_iri()
+                    .is_some_and(|marker| CONSISTENT_BLOCKING_TYPE_OBJECTS.contains(&marker))
+            {
+                obstructions
+                    .entry(format!(
+                        "selected class model does not complete declaration <{subject}> {object:?}"
+                    ))
+                    .or_default()
+                    .extend(support);
             }
         }
-        ctx
-    }
-
-    /// The reason (if any) this world cannot be certified `Consistent`.
-    fn consistent_block_reason(&self, w: &WorldData) -> Option<String> {
-        let _ = w;
-        if self.consistent_blocked {
-            Some(
-                self.block_reason
-                    .clone()
-                    .unwrap_or_else(|| "case outside the certified-complete fragment".to_owned()),
-            )
-        } else {
-            None
+        for (owner, head) in &w.one_of {
+            let source = w.support(owner, OWL_ONE_OF, head);
+            let support = w
+                .list_premises
+                .get(head)
+                .map_or(source.clone(), |path| source.merge(path));
+            obstructions
+                .entry(format!(
+                    "nominal class <{owner}> requires complete set-equality model admission"
+                ))
+                .or_default()
+                .extend(&support);
+        }
+        for (individual, classes) in &w.types {
+            for class in classes {
+                if !scope.contains(individual) && !scope.contains(class) {
+                    continue;
+                }
+                let (concept, definition) = resolver.resolve_supported(class, 0);
+                if concept_contains_blocked(&concept) {
+                    obstructions
+                        .entry(format!(
+                            "unsupported membership expression <{class}> on <{individual}>"
+                        ))
+                        .or_default()
+                        .extend(&w.support(individual, RDF_TYPE, class).merge(&definition));
+                }
+            }
+        }
+        let mut universal = subsumers.remove(OWL_THING).unwrap_or_default();
+        for (owner, is_empty) in [(OWL_THING, false), (OWL_NOTHING, true)] {
+            if resolver.is_expression(owner) {
+                let (definition, support) = resolver.resolve_node(owner, 0, false);
+                let concept = if is_empty {
+                    negate(definition)
+                } else {
+                    definition
+                };
+                if concept_contains_blocked(&concept) {
+                    obstructions
+                        .entry(format!("unsupported universal definition on <{owner}>"))
+                        .or_default()
+                        .extend(&support);
+                }
+                universal.push((concept, support));
+            }
+        }
+        Self {
+            universal,
+            subsumers,
+            different,
+            obstructions,
         }
     }
-
-    /// The `owl:Nothing` clashes materialized for an inconsistent world: every
-    /// individual with an asserted membership is forced empty (ex falso — a sound
-    /// consequence of a genuinely inconsistent world).
-    fn clashes(&self, w: &WorldData, world: &str) -> BTreeSet<NothingClash> {
-        let mut clashes: BTreeSet<NothingClash> = BTreeSet::new();
-        for (ind, classes) in &w.types {
-            let mut premises: Vec<(String, String, String)> = classes
-                .iter()
-                .map(|c| (ind.clone(), RDF_TYPE.to_owned(), c.clone()))
-                .collect();
-            premises.sort();
-            premises.dedup();
-            clashes.insert(NothingClash {
-                individual: ind.clone(),
-                world: world.to_owned(),
-                rule_name: RULE_CASESPLIT.to_owned(),
-                premises,
-            });
-        }
-        // A world can be inconsistent with no typed individual only via a malformed
-        // list (handled earlier). Defensive: if empty, cite rdf:nil so the verdict
-        // still reads an inconsistency witness.
-        if clashes.is_empty() {
-            clashes.insert(NothingClash {
-                individual: RDF_NIL.to_owned(),
-                world: world.to_owned(),
-                rule_name: RULE_CASESPLIT.to_owned(),
-                premises: Vec::new(),
-            });
-        }
-        clashes
-    }
-}
-
-/// The standalone consistent-fragment gate: the denylisted predicates / type
-/// objects / literal-nominal enumerations whose presence forbids a `Consistent`
-/// verdict.
-fn fragment_block_reason(w: &WorldData) -> Option<String> {
-    for predicate in &w.predicates {
-        if CONSISTENT_BLOCKING_PREDICATES.contains(&predicate.as_str()) {
-            return Some(format!(
-                "beyond-fragment construct <{predicate}> present — cannot certify consistent"
-            ));
-        }
-    }
-    for object in &w.type_objects {
-        if CONSISTENT_BLOCKING_TYPE_OBJECTS.contains(&object.as_str()) {
-            return Some(format!(
-                "beyond-fragment characteristic <{object}> present — cannot certify consistent"
-            ));
-        }
-    }
-    // Any `owl:oneOf` enumeration blocks a `Consistent` verdict. The nominal
-    // case-split soundly branches an individual's `oneOf` MEMBERSHIP into equality
-    // alternatives (which suffices to CLOSE branches for an `Inconsistent` proof —
-    // sound subset reasoning), but it does NOT model the full nominal-enumeration
-    // TBox semantics a `Consistent` model requires: an enumeration's closed-world
-    // upper bound, and — decisively — SET-EQUALITY across the multiple `owl:oneOf`
-    // definitions of one class (`C oneOf E₁`, `C oneOf E₂` ⇒ E₁ = E₂ as sets),
-    // which drives the nominal-SAT divergence cases. Rather than risk certifying a
-    // false `Consistent` on that unmodeled structure, any `owl:oneOf` presence is an
-    // honest boundary for the consistent side; a genuine nominal clash is still
-    // decided `Inconsistent`.
-    if !w.one_of.is_empty() {
-        return Some(
-            "owl:oneOf nominal enumeration present — the full nominal-enumeration TBox \
-             (closed-world upper bound + cross-enumeration set-equality) is outside the \
-             case-split consistent fragment"
-                .to_owned(),
-        );
-    }
-    None
 }
 
 /// A class-expression resolver over one world's definition maps.
@@ -852,47 +1309,65 @@ impl Resolver<'_> {
             .unwrap_or_default()
     }
 
-    fn resolve(&self, node: &str, depth: u32) -> Concept {
+    fn resolve_supported(&self, node: &str, depth: u32) -> (Concept, Support) {
+        self.resolve_node(node, depth, true)
+    }
+
+    fn resolve_node(&self, node: &str, depth: u32, intrinsic: bool) -> (Concept, Support) {
         if depth >= RESOLVE_DEPTH {
-            return Concept::Pos(node.to_owned());
+            return (Concept::Blocked, Support::default());
         }
-        if node == OWL_THING {
-            return Concept::Top;
+        let marker = semantic_value(RDF_TYPE, TermValue::iri(node));
+        if intrinsic && marker.as_iri() == Some(OWL_THING) {
+            return (Concept::Top, Support::default());
         }
-        if node == OWL_NOTHING {
-            return Concept::Bottom;
+        if intrinsic && marker.as_iri() == Some(OWL_NOTHING) {
+            return (Concept::Bottom, Support::default());
         }
         if let Some(inner) = self.w.complement_of.get(node) {
-            return negate(self.resolve(inner, depth + 1));
+            let (concept, support) = self.resolve_supported(inner, depth + 1);
+            return (
+                negate(concept),
+                support.merge(&self.w.support(node, OWL_COMPLEMENT_OF, inner)),
+            );
         }
-        if let Some(head) = self.w.intersection_of.get(node) {
-            let members: Vec<Concept> = self
-                .list_resources(head)
-                .iter()
-                .map(|m| self.resolve(m, depth + 1))
-                .collect();
-            return Concept::And(members);
-        }
-        if let Some(head) = self.w.union_of.get(node) {
-            let members: Vec<Concept> = self
-                .list_resources(head)
-                .iter()
-                .map(|m| self.resolve(m, depth + 1))
-                .collect();
-            return Concept::Or(members);
-        }
-        if let Some(head) = self.w.one_of.get(node) {
-            // A literal-bearing enumeration is a datatype enumeration outside the
-            // nominal fragment: an opaque atom (blocks `Consistent` via the
-            // standalone gate; sound to treat opaquely for refutation).
-            let raw = self.w.lists.get(head).cloned().unwrap_or_default();
-            if raw.iter().any(|m| matches!(m, RdfTerm::Literal(_))) {
-                return Concept::Pos(node.to_owned());
+        for (predicate, head) in [
+            (OWL_INTERSECTION_OF, self.w.intersection_of.get(node)),
+            (OWL_UNION_OF, self.w.union_of.get(node)),
+            (OWL_ONE_OF, self.w.one_of.get(node)),
+        ] {
+            let Some(head) = head else { continue };
+            let source = self.w.support(node, predicate, head);
+            let (Some(raw), Some(list)) = (self.w.lists.get(head), self.w.list_premises.get(head))
+            else {
+                return (Concept::Blocked, source);
+            };
+            if raw.iter().any(|term| resource_key(term).is_none()) {
+                return (Concept::Blocked, source.merge(list));
             }
-            let nominals: Vec<String> = raw.iter().filter_map(resource_key).collect();
-            return Concept::Nominals(nominals);
+            let members = self.list_resources(head);
+            let mut support = source.merge(list);
+            if predicate == OWL_ONE_OF {
+                return (Concept::Nominals(members), support);
+            }
+            let concepts = members
+                .iter()
+                .map(|member| {
+                    let (concept, proof) = self.resolve_supported(member, depth + 1);
+                    support.extend(&proof);
+                    concept
+                })
+                .collect();
+            return (
+                if predicate == OWL_UNION_OF {
+                    Concept::Or(concepts)
+                } else {
+                    Concept::And(concepts)
+                },
+                support,
+            );
         }
-        Concept::Pos(node.to_owned())
+        (Concept::Pos(node.to_owned()), Support::default())
     }
 }
 
@@ -901,253 +1376,377 @@ impl Resolver<'_> {
 #[derive(Clone, Default)]
 struct State {
     parent: BTreeMap<String, String>,
-    labels: BTreeMap<String, BTreeSet<Concept>>,
+    parent_support: BTreeMap<String, Support>,
+    labels: BTreeMap<String, BTreeMap<Concept, Support>>,
 }
 
-/// A branch action tried against a fresh clone of the state.
 #[derive(Clone)]
 enum Action {
-    /// Add a disjunct concept to a root (`owl:unionOf` branch).
-    Add(String, Concept),
-    /// Merge a root with a nominal individual (`owl:oneOf` branch).
-    Merge(String, String),
+    Add(String, Concept, Support),
+    Merge(String, String, Support),
 }
 
-/// The result of saturating a state to a deterministic fixpoint.
+impl Action {
+    fn assumption(&self) -> RefutationAssumption {
+        match self {
+            Self::Add(subject, expression, _) => RefutationAssumption::Membership {
+                subject: subject.clone(),
+                expression: expression.clone(),
+            },
+            Self::Merge(subject, member, _) => RefutationAssumption::Equality {
+                subject: subject.clone(),
+                member: member.clone(),
+            },
+        }
+    }
+}
+
+struct Choice {
+    support: Support,
+    alternatives: Vec<Action>,
+}
+
 enum Saturation {
-    /// The branch closed on a clash.
-    Closed,
-    /// The branch saturated clash-free with no pending nondeterministic choice.
+    Closed(RefutationProof),
     Open,
-    /// The branch reached a fixpoint with a pending nondeterministic choice.
-    Branch(Vec<Action>),
+    Branch(Choice),
+    Bound,
 }
 
 enum SearchResult {
     Sat,
-    Unsat,
-    Bound,
+    Unsat(RefutationProof),
+    Bound(SearchBound),
+}
+
+#[derive(Clone, Copy)]
+enum SearchBound {
+    Steps,
+    Depth,
+    NonProgress,
+}
+impl SearchBound {
+    fn detail(self) -> String {
+        match self {
+            Self::Steps => "class search exhausted its shared analysis allowance".to_owned(),
+            Self::Depth => format!("class search reached its recursion ceiling of {SEARCH_DEPTH}"),
+            Self::NonProgress => {
+                "class source choice requires an unsupported recursive model completion".to_owned()
+            }
+        }
+    }
 }
 
 impl State {
-    fn make(&mut self, x: &str) {
+    fn make(&mut self, individual: &str) {
         self.parent
-            .entry(x.to_owned())
-            .or_insert_with(|| x.to_owned());
-        self.labels.entry(x.to_owned()).or_default();
+            .entry(individual.to_owned())
+            .or_insert_with(|| individual.to_owned());
+        self.labels.entry(individual.to_owned()).or_default();
     }
 
-    fn find(&mut self, x: &str) -> String {
-        self.make(x);
-        let mut root = x.to_owned();
-        while let Some(p) = self.parent.get(&root) {
-            if p == &root {
+    // Keep the union forest's supporting edges. Path compression without carrying
+    // their proof would destroy the source of a nominal/equality contradiction.
+    fn find(&mut self, individual: &str) -> String {
+        self.make(individual);
+        let mut root = individual.to_owned();
+        while let Some(parent) = self.parent.get(&root) {
+            if parent == &root {
                 break;
             }
-            root = p.clone();
-        }
-        let mut node = x.to_owned();
-        while node != root {
-            let next = self
-                .parent
-                .get(&node)
-                .cloned()
-                .unwrap_or_else(|| node.clone());
-            self.parent.insert(node.clone(), root.clone());
-            node = next;
+            root = parent.clone();
         }
         root
     }
 
-    /// Merge `a` and `b`, folding the loser's labels into the winner. Returns
-    /// whether the two were previously distinct.
-    fn union(&mut self, a: &str, b: &str) -> bool {
-        let ra = self.find(a);
-        let rb = self.find(b);
-        if ra == rb {
+    fn equality_support(&self, individual: &str) -> Support {
+        let mut support = Support::default();
+        let mut node = individual;
+        while let Some(parent) = self.parent.get(node) {
+            if parent == node {
+                break;
+            }
+            support.extend(
+                self.parent_support
+                    .get(node)
+                    .expect("every merge retains its support"),
+            );
+            node = parent;
+        }
+        support
+    }
+
+    fn union(&mut self, left: &str, right: &str, support: Support) -> bool {
+        let a = self.find(left);
+        let b = self.find(right);
+        if a == b {
             return false;
         }
-        let (root, child) = if ra <= rb { (ra, rb) } else { (rb, ra) };
+        let support = support
+            .merge(&self.equality_support(left))
+            .merge(&self.equality_support(right));
+        let (root, child) = if a <= b { (a, b) } else { (b, a) };
         let moved = self.labels.remove(&child).unwrap_or_default();
-        self.parent.insert(child, root.clone());
-        let entry = self.labels.entry(root).or_default();
-        for c in moved {
-            entry.insert(c);
+        self.parent.insert(child.clone(), root.clone());
+        self.parent_support.insert(child, support.clone());
+        let labels = self.labels.entry(root).or_default();
+        for (concept, prior) in moved {
+            let proof = prior.merge(&support);
+            labels
+                .entry(concept)
+                .and_modify(|current| {
+                    if proof < *current {
+                        *current = proof.clone();
+                    }
+                })
+                .or_insert(proof);
         }
         true
     }
 
-    /// Add `concept` to `individual`'s root label set, decomposing conjunctions and
-    /// detecting an immediate `Bottom`/`Pos∧Neg` clash. Returns `Err(())` on a
-    /// clash. `changed` is set through the budget-charged path.
-    fn add(&mut self, individual: &str, concept: Concept, budget: &mut u64) -> Result<bool, ()> {
+    fn conflict(
+        &mut self,
+        individual: &str,
+        kind: RefutationClash,
+        mut support: Support,
+    ) -> RefutationProof {
+        let root = self.find(individual);
+        let names: Vec<_> = self.parent.keys().cloned().collect();
+        let subjects = names
+            .into_iter()
+            .filter(|name| self.find(name) == root)
+            .collect::<BTreeSet<_>>();
+        for subject in &subjects {
+            support.extend(&self.equality_support(subject));
+        }
+        RefutationProof::Conflict {
+            kind,
+            subjects,
+            premises: support.rows(),
+            support: support.native(),
+        }
+    }
+
+    fn current_conflict(&mut self, individual: &str) -> Option<RefutationProof> {
+        let labels = self.labels_of(individual);
+        for (concept, support) in &labels {
+            if let Concept::Pos(class) = concept
+                && let Some(opposed) = labels.get(&Concept::Neg(class.clone()))
+            {
+                return Some(self.conflict(
+                    individual,
+                    RefutationClash::OpposedClass(class.clone()),
+                    support.merge(opposed),
+                ));
+            }
+        }
+        None
+    }
+
+    fn add(
+        &mut self,
+        individual: &str,
+        concept: Concept,
+        support: Support,
+        budget: &mut u64,
+    ) -> Result<bool, RefutationProof> {
         *budget = budget.saturating_sub(1);
         if *budget == 0 {
-            // Out of budget mid-add — treat as no change; the search will surface
-            // the bound. (A false "no change" cannot cause an unsound decision: the
-            // caller re-checks the budget.)
             return Ok(false);
         }
         let root = self.find(individual);
+        let support = support.merge(&self.equality_support(individual));
         match concept {
-            Concept::Top => Ok(false),
-            Concept::Bottom => Err(()),
-            Concept::And(cs) => {
+            Concept::Top | Concept::Blocked => Ok(false),
+            Concept::Bottom => Err(self.conflict(&root, RefutationClash::Bottom, support)),
+            Concept::And(concepts) => {
                 let mut changed = false;
-                for c in cs {
-                    changed |= self.add(&root, c, budget)?;
+                for concept in concepts {
+                    changed |= self.add(&root, concept, support.clone(), budget)?;
                 }
                 Ok(changed)
             }
-            Concept::Blocked => {
-                // A no-op label: dropping it only weakens the theory (sound for
-                // refutation). It never contributes a clash.
-                Ok(false)
-            }
             other => {
-                // Clash check for atoms.
-                if let Concept::Pos(ref a) = other
-                    && self.labels_of(&root).contains(&Concept::Neg(a.clone()))
+                let opposite = match &other {
+                    Concept::Pos(class) => Some((class, Concept::Neg(class.clone()))),
+                    Concept::Neg(class) => Some((class, Concept::Pos(class.clone()))),
+                    _ => None,
+                };
+                if let Some((class, opposite)) = opposite
+                    && let Some(prior) = self.labels_of(&root).get(&opposite)
                 {
-                    return Err(());
+                    return Err(self.conflict(
+                        &root,
+                        RefutationClash::OpposedClass(class.clone()),
+                        support.merge(prior),
+                    ));
                 }
-                if let Concept::Neg(ref a) = other
-                    && self.labels_of(&root).contains(&Concept::Pos(a.clone()))
-                {
-                    return Err(());
+                let labels = self.labels.entry(root).or_default();
+                match labels.entry(other) {
+                    std::collections::btree_map::Entry::Vacant(entry) => {
+                        entry.insert(support);
+                        Ok(true)
+                    }
+                    std::collections::btree_map::Entry::Occupied(mut entry) => {
+                        if support < *entry.get() {
+                            entry.insert(support);
+                        }
+                        Ok(false)
+                    }
                 }
-                let entry = self.labels.entry(root).or_default();
-                Ok(entry.insert(other))
             }
         }
     }
 
-    fn labels_of(&mut self, individual: &str) -> BTreeSet<Concept> {
+    fn labels_of(&mut self, individual: &str) -> BTreeMap<Concept, Support> {
         let root = self.find(individual);
         self.labels.get(&root).cloned().unwrap_or_default()
     }
 }
 
-/// Whether a disjunct concept is already SATISFIED by a root's labels.
-fn disjunct_satisfied(labels: &BTreeSet<Concept>, disjunct: &Concept) -> bool {
+fn disjunct_satisfied(labels: &BTreeMap<Concept, Support>, disjunct: &Concept) -> bool {
+    matches!(disjunct, Concept::Top) || labels.contains_key(disjunct)
+}
+
+fn disjunct_refutation(labels: &BTreeMap<Concept, Support>, disjunct: &Concept) -> Option<Support> {
     match disjunct {
-        Concept::Top => true,
-        _ => labels.contains(disjunct),
+        Concept::Bottom => Some(Support::default()),
+        Concept::Pos(class) => labels.get(&Concept::Neg(class.clone())).cloned(),
+        Concept::Neg(class) => labels.get(&Concept::Pos(class.clone())).cloned(),
+        _ => None,
     }
 }
 
-/// Whether a disjunct concept is REFUTED by a root's labels (its negation present),
-/// so it can be soundly pruned from a disjunction.
-fn disjunct_refuted(labels: &BTreeSet<Concept>, disjunct: &Concept) -> bool {
-    match disjunct {
-        Concept::Bottom => true,
-        Concept::Pos(a) => labels.contains(&Concept::Neg(a.clone())),
-        Concept::Neg(a) => labels.contains(&Concept::Pos(a.clone())),
-        _ => false,
-    }
+fn live_disjuncts(
+    labels: &BTreeMap<Concept, Support>,
+    disjuncts: &[Concept],
+    source: &Support,
+) -> (Vec<Concept>, Support) {
+    let mut support = source.clone();
+    let live = disjuncts
+        .iter()
+        .filter_map(|disjunct| {
+            if let Some(proof) = disjunct_refutation(labels, disjunct) {
+                support.extend(&proof);
+                None
+            } else {
+                Some(disjunct.clone())
+            }
+        })
+        .collect();
+    (live, support)
 }
 
-/// The distinct current union-find roots of a state.
 fn distinct_roots(state: &mut State) -> Vec<String> {
-    let keys: Vec<String> = state.parent.keys().cloned().collect();
-    let mut rs: BTreeSet<String> = BTreeSet::new();
-    for k in keys {
-        rs.insert(state.find(&k));
-    }
-    rs.into_iter().collect()
+    let keys = state.parent.keys().cloned().collect::<Vec<_>>();
+    keys.iter()
+        .map(|key| state.find(key))
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
 }
 
-/// Saturate `state` under the deterministic rules to a fixpoint; return whether it
-/// closed, saturated open, or reached a nondeterministic branch point.
-///
-/// A DIRTY worklist keeps saturation near-linear on the propositional fragment: a
-/// root is (re)processed only when a concept is added to it. A merge (a nominal /
-/// `owl:sameAs` equality — absent from the certified-consistent fragment) is rare
-/// and re-seeds the whole worklist, keeping completeness for the `Inconsistent`
-/// refutation while never quadratically re-scanning the common no-merge case.
-fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
-    let mut dirty: BTreeSet<String> = distinct_roots(state).into_iter().collect();
+fn identity_conflict(state: &mut State, ctx: &Ctx) -> Option<RefutationProof> {
+    for (a, b, support) in &ctx.different {
+        if state.find(a) == state.find(b) {
+            let support = support
+                .merge(&state.equality_support(a))
+                .merge(&state.equality_support(b));
+            return Some(state.conflict(a, RefutationClash::EqualityDistinctness, support));
+        }
+    }
+    None
+}
 
-    while let Some(first) = dirty.iter().next().cloned() {
-        dirty.remove(&first);
+fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
+    let mut dirty: BTreeSet<_> = distinct_roots(state).into_iter().collect();
+    while let Some(first) = dirty.pop_first() {
         if *budget == 0 {
-            return Saturation::Branch(Vec::new());
+            return Saturation::Bound;
         }
         let mut root = state.find(&first);
-        // Process this root to a LOCAL fixpoint.
         loop {
             if *budget == 0 {
-                return Saturation::Branch(Vec::new());
+                return Saturation::Bound;
+            }
+            if let Some(proof) = state.current_conflict(&root) {
+                return Saturation::Closed(proof);
             }
             let mut local_changed = false;
             let mut merged = false;
             let current = state.labels_of(&root);
-            for concept in &current {
+            for (concept, support) in &current {
                 match concept {
                     Concept::Pos(name) => {
-                        if let Some(subs) = ctx.subsumers.get(name) {
-                            for sub in subs {
-                                match state.add(&root, sub.clone(), budget) {
-                                    Ok(c) => local_changed |= c,
-                                    Err(()) => return Saturation::Closed,
+                        if let Some(subsumers) = ctx.subsumers.get(name) {
+                            for (sub, definition) in subsumers {
+                                match state.add(
+                                    &root,
+                                    sub.clone(),
+                                    support.merge(definition),
+                                    budget,
+                                ) {
+                                    Ok(changed) => local_changed |= changed,
+                                    Err(proof) => return Saturation::Closed(proof),
                                 }
                             }
                         }
                     }
-                    Concept::And(cs) => {
-                        for c in cs {
-                            match state.add(&root, c.clone(), budget) {
-                                Ok(c) => local_changed |= c,
-                                Err(()) => return Saturation::Closed,
+                    Concept::And(concepts) => {
+                        for concept in concepts {
+                            match state.add(&root, concept.clone(), support.clone(), budget) {
+                                Ok(changed) => local_changed |= changed,
+                                Err(proof) => return Saturation::Closed(proof),
                             }
                         }
                     }
                     Concept::Nominals(members) => {
                         let root_of = state.find(&root);
-                        if members.iter().any(|m| state.find(m) == root_of) {
+                        if members.iter().any(|member| state.find(member) == root_of) {
                             continue;
                         }
                         if members.is_empty() {
-                            return Saturation::Closed;
+                            return Saturation::Closed(state.conflict(
+                                &root,
+                                RefutationClash::EmptyEnumeration,
+                                support.clone(),
+                            ));
                         }
-                        if members.len() == 1 && state.union(&root_of, &members[0]) {
+                        if members.len() == 1 && state.union(&root_of, &members[0], support.clone())
+                        {
                             merged = true;
                             break;
                         }
-                        // else: a pending nominal branch (handled by `pick_branch`).
                     }
                     Concept::Or(disjuncts) => {
                         let labels = state.labels_of(&root);
-                        if disjuncts.iter().any(|d| disjunct_satisfied(&labels, d)) {
+                        if disjuncts
+                            .iter()
+                            .any(|disjunct| disjunct_satisfied(&labels, disjunct))
+                        {
                             continue;
                         }
-                        let live: Vec<Concept> = disjuncts
-                            .iter()
-                            .filter(|d| !disjunct_refuted(&labels, d))
-                            .cloned()
-                            .collect();
+                        let (live, proof) = live_disjuncts(&labels, disjuncts, support);
                         if live.is_empty() {
-                            return Saturation::Closed;
+                            return Saturation::Closed(state.conflict(
+                                &root,
+                                RefutationClash::ExhaustedDisjunction,
+                                proof,
+                            ));
                         }
                         if live.len() == 1 {
-                            match state.add(&root, live[0].clone(), budget) {
-                                Ok(c) => local_changed |= c,
-                                Err(()) => return Saturation::Closed,
+                            match state.add(&root, live[0].clone(), proof, budget) {
+                                Ok(changed) => local_changed |= changed,
+                                Err(proof) => return Saturation::Closed(proof),
                             }
                         }
-                        // else: a pending disjunction branch (handled by `pick_branch`).
                     }
                     Concept::Top | Concept::Bottom | Concept::Neg(_) | Concept::Blocked => {}
                 }
             }
-
             if merged {
-                // A merge may have satisfied / clashed constraints on OTHER roots —
-                // re-seed the whole worklist to keep completeness.
-                for (a, b) in &ctx.different {
-                    if state.find(a) == state.find(b) {
-                        return Saturation::Closed;
-                    }
+                if let Some(proof) = identity_conflict(state, ctx) {
+                    return Saturation::Closed(proof);
                 }
                 dirty = distinct_roots(state).into_iter().collect();
                 root = state.find(&first);
@@ -1159,61 +1758,55 @@ fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
             }
         }
     }
-
-    // Global fixpoint — one last distinctness clash check, then a branch point.
-    for (a, b) in &ctx.different {
-        if state.find(a) == state.find(b) {
-            return Saturation::Closed;
-        }
+    if let Some(proof) = identity_conflict(state, ctx) {
+        return Saturation::Closed(proof);
     }
     let roots = distinct_roots(state);
-    if let Some(actions) = pick_branch(state, &roots) {
-        return Saturation::Branch(actions);
-    }
-    Saturation::Open
+    pick_branch(state, &roots).map_or(Saturation::Open, Saturation::Branch)
 }
 
-/// Choose a deterministic nondeterministic branch point from the saturated state.
-fn pick_branch(state: &mut State, roots: &[String]) -> Option<Vec<Action>> {
-    // First pass: an unsatisfied disjunction with ≥2 live disjuncts.
+fn pick_branch(state: &mut State, roots: &[String]) -> Option<Choice> {
     for root in roots {
         let labels = state.labels_of(root);
-        for concept in &labels {
+        for (concept, support) in &labels {
             if let Concept::Or(disjuncts) = concept {
-                if disjuncts.iter().any(|d| disjunct_satisfied(&labels, d)) {
+                if disjuncts
+                    .iter()
+                    .any(|disjunct| disjunct_satisfied(&labels, disjunct))
+                {
                     continue;
                 }
-                let live: Vec<Concept> = disjuncts
-                    .iter()
-                    .filter(|d| !disjunct_refuted(&labels, d))
-                    .cloned()
-                    .collect();
+                let (live, proof) = live_disjuncts(&labels, disjuncts, support);
                 if live.len() >= 2 {
-                    return Some(
-                        live.into_iter()
-                            .map(|d| Action::Add(root.clone(), d))
+                    return Some(Choice {
+                        support: proof.clone(),
+                        alternatives: live
+                            .into_iter()
+                            .map(|disjunct| Action::Add(root.clone(), disjunct, proof.clone()))
                             .collect(),
-                    );
+                    });
                 }
             }
         }
     }
-    // Second pass: an unsatisfied nominal enumeration with ≥2 candidates.
     for root in roots {
         let labels = state.labels_of(root);
         let root_of = state.find(root);
-        for concept in &labels {
+        for (concept, support) in &labels {
             if let Concept::Nominals(members) = concept {
-                if members.iter().any(|m| state.find(m) == root_of) {
+                if members.iter().any(|member| state.find(member) == root_of) {
                     continue;
                 }
                 if members.len() >= 2 {
-                    return Some(
-                        members
+                    return Some(Choice {
+                        support: support.clone(),
+                        alternatives: members
                             .iter()
-                            .map(|m| Action::Merge(root.clone(), m.clone()))
+                            .map(|member| {
+                                Action::Merge(root.clone(), member.clone(), support.clone())
+                            })
                             .collect(),
-                    );
+                    });
                 }
             }
         }
@@ -1221,431 +1814,79 @@ fn pick_branch(state: &mut State, roots: &[String]) -> Option<Vec<Action>> {
     None
 }
 
-/// The bounded depth-first case-split search: `Sat` if any branch saturates open,
-/// `Unsat` if every branch closes, `Bound` if the budget or recursion-depth bound is
-/// exhausted first.
 fn search(state: &mut State, ctx: &Ctx, budget: &mut u64, depth: u32) -> SearchResult {
-    if *budget == 0 || depth >= SEARCH_DEPTH {
-        return SearchResult::Bound;
+    if *budget == 0 {
+        return SearchResult::Bound(SearchBound::Steps);
+    }
+    if depth >= SEARCH_DEPTH {
+        return SearchResult::Bound(SearchBound::Depth);
     }
     match saturate(state, ctx, budget) {
-        Saturation::Closed => SearchResult::Unsat,
+        Saturation::Closed(proof) => SearchResult::Unsat(proof),
         Saturation::Open => SearchResult::Sat,
-        Saturation::Branch(actions) => {
-            if actions.is_empty() {
-                // The budget was hit inside saturation.
-                return SearchResult::Bound;
-            }
-            for action in actions {
+        Saturation::Bound => SearchResult::Bound(SearchBound::Steps),
+        Saturation::Branch(choice) => {
+            let alternatives = choice.alternatives.iter().map(Action::assumption).collect();
+            let mut branches = Vec::with_capacity(choice.alternatives.len());
+            for action in choice.alternatives {
                 *budget = budget.saturating_sub(1);
                 if *budget == 0 {
-                    return SearchResult::Bound;
+                    return SearchResult::Bound(SearchBound::Steps);
                 }
                 let mut child = state.clone();
+                let assumption = action.assumption();
                 match action {
-                    Action::Add(root, concept) => match child.add(&root, concept, budget) {
-                        // The disjunct clashed — this branch is CLOSED; try the next.
-                        Err(()) => continue,
-                        // The disjunct was already (structurally) present, so `child`
-                        // is identical to its parent. `saturate` returned this very
-                        // branch point from that same completion, so recursing would
-                        // re-derive it forever: the cyclic-TBox non-progress loop that
-                        // otherwise recurses toward `SEARCH_DEPTH`, deep-cloning the
-                        // full `State` at every frame (the heap-explosion sink). Such a
-                        // branch is neither a clash (it cannot close) nor a completion
-                        // we may certify open (the resolver truncated the cycle at
-                        // `RESOLVE_DEPTH`), so the sound outcome is to WITHHOLD — bound
-                        // the search here instead of exploding. Returning `Bound`
-                        // (rather than skipping the branch) preserves the pre-existing
-                        // verdicts exactly: today this same non-progress branch is
-                        // entered and bounds the whole search by exhausting the depth
-                        // limit; this reaches that identical withhold in O(1) without
-                        // the deep clone chain. A genuinely decided case never reaches
-                        // a non-progress branch (it would already withhold today).
-                        Ok(false) => return SearchResult::Bound,
-                        // A genuine successor: the completion grew, so recurse.
-                        Ok(true) => {}
-                    },
-                    // `pick_branch` only offers a nominal merge whose member is not
-                    // already the root, so a merge always makes progress.
-                    Action::Merge(root, member) => {
-                        child.union(&root, &member);
+                    Action::Add(root, concept, support) => {
+                        match child.add(&root, concept, support, budget) {
+                            Err(proof) => {
+                                branches.push(RefutationBranch { assumption, proof });
+                                continue;
+                            }
+                            // A non-progressing recursive source choice cannot certify either result.
+                            Ok(false) => {
+                                return SearchResult::Bound(if *budget == 0 {
+                                    SearchBound::Steps
+                                } else {
+                                    SearchBound::NonProgress
+                                });
+                            }
+                            Ok(true) => {}
+                        }
+                    }
+                    Action::Merge(root, member, support) => {
+                        child.union(&root, &member, support);
                     }
                 }
                 match search(&mut child, ctx, budget, depth + 1) {
                     SearchResult::Sat => return SearchResult::Sat,
-                    SearchResult::Bound => return SearchResult::Bound,
-                    SearchResult::Unsat => {}
+                    SearchResult::Bound(bound) => return SearchResult::Bound(bound),
+                    SearchResult::Unsat(proof) => {
+                        branches.push(RefutationBranch { assumption, proof })
+                    }
                 }
             }
-            SearchResult::Unsat
+            SearchResult::Unsat(RefutationProof::Cases {
+                choice: choice.support.rows(),
+                support: choice.support.native(),
+                alternatives,
+                branches,
+            })
         }
     }
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad};
+use purrdf::RdfDataset;
 
-    const W: &str = "http://ex/w";
+#[cfg(test)]
+mod scope_tests;
 
-    fn quad(s: &str, p: &str, o: &str) -> RdfQuad {
-        RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
-    }
-    fn bnode_quad(s: &str, p: &str, o: RdfTerm) -> RdfQuad {
-        RdfQuad::new(RdfTerm::iri(s), p, o).in_graph(RdfTerm::iri(W))
-    }
+#[path = "casesplit.tests.rs"]
+#[cfg(test)]
+mod tests;
 
-    fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
-        let mut b = RdfDatasetBuilder::new();
-        for q in quads {
-            b.push_owned_quad(&q);
-        }
-        b.freeze().expect("freeze")
-    }
-
-    fn is_inconsistent(edb: &RdfDataset) -> bool {
-        matches!(
-            decide(edb),
-            Some(RefutationCertificate::InFragment {
-                decision: Decision::Inconsistent,
-                ..
-            })
-        )
-    }
-    fn is_consistent(edb: &RdfDataset) -> bool {
-        matches!(
-            decide(edb),
-            Some(RefutationCertificate::InFragment {
-                decision: Decision::Consistent,
-                ..
-            })
-        )
-    }
-    fn withholds(edb: &RdfDataset) -> bool {
-        matches!(
-            decide(edb),
-            Some(RefutationCertificate::OutOfFragment { .. })
-        )
-    }
-
-    /// A WIDE + DEEP cyclic class expression mirroring webont-i5-26-007
-    /// (`_:B = B ⊓ (_:B ⊔ C)`) but with MANY individuals typed to the cyclic node.
-    /// The `owl:unionOf` re-offers a non-progressing `And`-disjunct branch at every
-    /// level; before the non-progress bound in [`search`] this recursed toward
-    /// [`SEARCH_DEPTH`], deep-cloning the full `State` per frame and exploding the
-    /// heap. The decider must WITHHOLD (`OutOfFragment`) in bounded memory rather
-    /// than OOM. Regression guard for the cyclic-TBox memory sink.
-    #[test]
-    fn cyclic_class_expression_withholds_without_memory_explosion() {
-        let b = "http://ex/B";
-        let u = "http://ex/U";
-        let mut quads = vec![
-            quad(b, RDF_TYPE, OWL_CLASS),
-            quad(b, OWL_INTERSECTION_OF, "http://ex/il0"),
-            // intersection list: [ B_named, U ]
-            quad("http://ex/il0", RDF_FIRST, "http://ex/Bn"),
-            quad("http://ex/il0", RDF_REST, "http://ex/il1"),
-            quad("http://ex/il1", RDF_FIRST, u),
-            quad("http://ex/il1", RDF_REST, RDF_NIL),
-            quad(u, OWL_UNION_OF, "http://ex/ul0"),
-        ];
-        // union list: [ _:B, C ] — the cyclic self-reference `_:B` re-offered forever.
-        quads.push(quad("http://ex/ul0", RDF_FIRST, b));
-        quads.push(quad("http://ex/ul0", RDF_REST, "http://ex/ul1"));
-        quads.push(quad("http://ex/ul1", RDF_FIRST, "http://ex/C"));
-        quads.push(quad("http://ex/ul1", RDF_REST, RDF_NIL));
-        for n in 0..300 {
-            quads.push(quad(&format!("http://ex/ind{n}"), RDF_TYPE, b));
-        }
-        let edb = dataset(quads);
-        // Bounded, sound withhold — never a decided verdict off a truncated cycle.
-        assert!(withholds(edb.as_ref()));
-    }
-
-    #[test]
-    fn empty_edb_does_not_engage() {
-        let edb = RdfDatasetBuilder::new().freeze().unwrap();
-        assert!(decide(edb.as_ref()).is_none());
-    }
-
-    #[test]
-    fn malformed_list_nil_first_is_inconsistent() {
-        let edb = dataset(vec![bnode_quad(
-            RDF_NIL,
-            RDF_FIRST,
-            RdfTerm::blank_node("x"),
-        )]);
-        assert!(is_inconsistent(edb.as_ref()));
-    }
-
-    #[test]
-    fn malformed_list_nil_rest_is_inconsistent() {
-        let edb = dataset(vec![bnode_quad(
-            RDF_NIL,
-            RDF_REST,
-            RdfTerm::blank_node("x"),
-        )]);
-        assert!(is_inconsistent(edb.as_ref()));
-    }
-
-    #[test]
-    fn complement_membership_clash_is_inconsistent() {
-        // x : C, x : ¬C  (via a complement node) ⇒ inconsistent.
-        let edb = dataset(vec![
-            quad("http://ex/x", RDF_TYPE, "http://ex/C"),
-            quad("http://ex/x", RDF_TYPE, "http://ex/notC"),
-            quad("http://ex/notC", OWL_COMPLEMENT_OF, "http://ex/C"),
-        ]);
-        assert!(is_inconsistent(edb.as_ref()));
-    }
-
-    /// A three-node `rdf:List` `head → [a, b] → nil` over plain IRIs, so a node's
-    /// subject key and its object references always coincide.
-    fn list2(head: &str, a: &str, b: &str, tail: &str) -> Vec<RdfQuad> {
-        vec![
-            quad(head, RDF_FIRST, a),
-            quad(head, RDF_REST, tail),
-            quad(tail, RDF_FIRST, b),
-            quad(tail, RDF_REST, RDF_NIL),
-        ]
-    }
-
-    #[test]
-    fn disjoint_union_with_complement_is_consistent() {
-        // Child = Boy ⊎ Girl; Stewie : Child, Stewie : ¬Girl ⇒ Stewie ∈ Boy,
-        // consistent (mirrors new-feature-disjointunion-001).
-        let mut quads = vec![
-            quad("http://ex/Child", RDF_TYPE, OWL_CLASS),
-            quad("http://ex/Child", OWL_DISJOINT_UNION_OF, "http://ex/l0"),
-            quad("http://ex/Stewie", RDF_TYPE, "http://ex/Child"),
-            quad("http://ex/Stewie", RDF_TYPE, "http://ex/notgirl"),
-            quad("http://ex/notgirl", OWL_COMPLEMENT_OF, "http://ex/Girl"),
-        ];
-        quads.extend(list2(
-            "http://ex/l0",
-            "http://ex/Boy",
-            "http://ex/Girl",
-            "http://ex/l1",
-        ));
-        let edb = dataset(quads);
-        assert!(is_consistent(edb.as_ref()));
-    }
-
-    #[test]
-    fn union_disjoint_unsat_is_inconsistent() {
-        // x : Test; Test ⊑ (A ⊔ B); Test ⊑ ¬A (via disjoint); Test ⊑ ¬B ⇒ every
-        // branch closes ⇒ inconsistent.
-        let mut quads = vec![
-            quad("http://ex/x", RDF_TYPE, "http://ex/Test"),
-            quad("http://ex/Test", RDFS_SUBCLASSOF, "http://ex/union"),
-            quad("http://ex/union", OWL_UNION_OF, "http://ex/u0"),
-            // Test disjoint with both A and B ⇒ x can be in neither.
-            quad("http://ex/Test", OWL_DISJOINT_WITH, "http://ex/A"),
-            quad("http://ex/Test", OWL_DISJOINT_WITH, "http://ex/B"),
-        ];
-        quads.extend(list2(
-            "http://ex/u0",
-            "http://ex/A",
-            "http://ex/B",
-            "http://ex/u1",
-        ));
-        let edb = dataset(quads);
-        assert!(is_inconsistent(edb.as_ref()));
-    }
-
-    #[test]
-    fn union_disjoint_sat_is_consistent() {
-        // x : Test; Test ⊑ (A ⊔ B); A disjoint B (no forced clash) ⇒ consistent.
-        let mut quads = vec![
-            quad("http://ex/x", RDF_TYPE, "http://ex/Test"),
-            quad("http://ex/Test", RDFS_SUBCLASSOF, "http://ex/union"),
-            quad("http://ex/union", OWL_UNION_OF, "http://ex/u0"),
-            quad("http://ex/A", OWL_DISJOINT_WITH, "http://ex/B"),
-        ];
-        quads.extend(list2(
-            "http://ex/u0",
-            "http://ex/A",
-            "http://ex/B",
-            "http://ex/u1",
-        ));
-        let edb = dataset(quads);
-        assert!(is_consistent(edb.as_ref()));
-    }
-
-    #[test]
-    fn nominal_equality_differentfrom_clash_is_inconsistent() {
-        // x : {a}; y : {a}; x differentFrom y ⇒ x = a = y contradicts distinctness.
-        let edb = dataset(vec![
-            quad("http://ex/x", RDF_TYPE, "http://ex/oneA"),
-            quad("http://ex/oneA", OWL_ONE_OF, "http://ex/la"),
-            quad("http://ex/la", RDF_FIRST, "http://ex/a"),
-            quad("http://ex/la", RDF_REST, RDF_NIL),
-            quad("http://ex/y", RDF_TYPE, "http://ex/oneA2"),
-            quad("http://ex/oneA2", OWL_ONE_OF, "http://ex/lb"),
-            quad("http://ex/lb", RDF_FIRST, "http://ex/a"),
-            quad("http://ex/lb", RDF_REST, RDF_NIL),
-            quad("http://ex/x", OWL_DIFFERENT_FROM, "http://ex/y"),
-        ]);
-        assert!(is_inconsistent(edb.as_ref()));
-    }
-
-    #[test]
-    fn existential_present_blocks_consistent_withholds() {
-        // A benign complement plus a someValuesFrom restriction: the complement
-        // engages the decider, but the existential blocks a `Consistent` verdict
-        // (no clash) ⇒ honest withhold.
-        let edb = dataset(vec![
-            quad("http://ex/x", RDF_TYPE, "http://ex/C"),
-            quad("http://ex/notD", OWL_COMPLEMENT_OF, "http://ex/D"),
-            quad("http://ex/C", RDFS_SUBCLASSOF, "http://ex/r"),
-            quad("http://ex/r", RDF_TYPE, OWL_RESTRICTION),
-            quad(
-                "http://ex/r",
-                "http://www.w3.org/2002/07/owl#onProperty",
-                "http://ex/p",
-            ),
-            quad(
-                "http://ex/r",
-                "http://www.w3.org/2002/07/owl#someValuesFrom",
-                "http://ex/D",
-            ),
-        ]);
-        assert!(withholds(edb.as_ref()));
-    }
-
-    #[test]
-    fn determinism_byte_stable() {
-        let edb = dataset(vec![
-            quad("http://ex/x", RDF_TYPE, "http://ex/C"),
-            quad("http://ex/x", RDF_TYPE, "http://ex/notC"),
-            quad("http://ex/notC", OWL_COMPLEMENT_OF, "http://ex/C"),
-        ]);
-        let a = format!("{:?}", decide(edb.as_ref()));
-        let b = format!("{:?}", decide(edb.as_ref()));
-        assert_eq!(a, b);
-    }
-
-    #[test]
-    fn literal_oneof_is_not_engaged_as_nominal() {
-        // A pure datatype (literal) oneOf is owned by the datatype sub-decider; the
-        // case-split decider must not certify it consistent as a nominal.
-        let edb = dataset(vec![
-            quad("http://ex/x", RDF_TYPE, "http://ex/enum"),
-            quad("http://ex/enum", OWL_ONE_OF, "http://ex/ll"),
-            bnode_quad(
-                "http://ex/ll",
-                RDF_FIRST,
-                RdfTerm::Literal(RdfLiteral::typed(
-                    "1",
-                    "http://www.w3.org/2001/XMLSchema#integer",
-                )),
-            ),
-            quad("http://ex/ll", RDF_REST, RDF_NIL),
-        ]);
-        // No clash; the literal enumeration blocks `Consistent` ⇒ withhold.
-        assert!(withholds(edb.as_ref()));
-    }
-
-    // ── Corpus soundness sweep (decider-isolated) ────────────────────────────────
-
-    /// The two sibling W3C-full corpora the soundness sweep ranges over: the
-    /// still-withheld `-divergence` cases AND the relocated now-decided
-    /// `-decided` cases (the case-split decider's decided cases moved into the
-    /// latter, so the sweep must cover both to keep exercising the decider).
-    fn full_corpus_dirs() -> [std::path::PathBuf; 2] {
-        let external = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../conformance/logic/cases/external");
-        [
-            external.join("w3c-owl2-full-divergence"),
-            external.join("w3c-owl2-full-decided"),
-        ]
-    }
-
-    /// The `w3c_published_verdict` recorded in a slug's flat `profile.json`.
-    fn w3c_verdict(dir: &std::path::Path, slug: &str) -> Option<String> {
-        let text = std::fs::read_to_string(dir.join(slug).join("profile.json")).ok()?;
-        let needle = "\"w3c_published_verdict\"";
-        let (_, after_key) = text.split_once(needle)?;
-        let (_, after_colon) = after_key.split_once(':')?;
-        let (_, after_open_quote) = after_colon.split_once('"')?;
-        let (value, _) = after_open_quote.split_once('"')?;
-        Some(value.to_owned())
-    }
-
-    fn decision_token(edb: &RdfDataset) -> Option<&'static str> {
-        match decide(edb) {
-            Some(RefutationCertificate::InFragment {
-                decision: Decision::Inconsistent,
-                ..
-            }) => Some("inconsistent"),
-            Some(RefutationCertificate::InFragment {
-                decision: Decision::Consistent,
-                ..
-            }) => Some("consistent"),
-            _ => None,
-        }
-    }
-
-    /// SOUNDNESS SWEEP (decider-isolated) — over EVERY committed W3C-full case in
-    /// BOTH sibling corpora (the still-withheld `-divergence` set AND the
-    /// relocated now-decided `-decided` set), for every case the case-split
-    /// decider now DECIDES (`InFragment`), the
-    /// decided verdict MUST equal the W3C published verdict. A single contradiction
-    /// is a hard fail: it would mean a wrong decided token could ship, breaking the
-    /// `corpus_only == 0` invariant. This runs the decider DIRECTLY (never the native
-    /// existential chase), so it is fast on the whole corpus and isolates the new
-    /// engine's soundness.
-    #[test]
-    fn corpus_soundness_sweep_no_decider_contradicts_w3c() {
-        use purrdf::{NativeRdfFormat, dataset_from_bytes};
-
-        let mut decided = 0usize;
-        let mut contradictions = Vec::new();
-        for dir in full_corpus_dirs() {
-            let mut slugs: Vec<String> = std::fs::read_dir(&dir)
-                .unwrap_or_else(|e| panic!("read {}: {e}", dir.display()))
-                .filter_map(|e| {
-                    let e = e.ok()?;
-                    e.file_type()
-                        .ok()?
-                        .is_dir()
-                        .then(|| e.file_name().to_string_lossy().into_owned())
-                })
-                .filter(|slug| dir.join(slug).join("input.nq").exists())
-                .collect();
-            slugs.sort();
-
-            for slug in &slugs {
-                let bytes = std::fs::read(dir.join(slug).join("input.nq")).expect("read input.nq");
-                let dataset =
-                    dataset_from_bytes(&bytes, NativeRdfFormat::NQuads).expect("parse input.nq");
-                let Some(token) = decision_token(dataset.as_ref()) else {
-                    continue;
-                };
-                decided += 1;
-                match w3c_verdict(&dir, slug) {
-                    Some(w3c) if w3c == token => {}
-                    Some(w3c) => contradictions.push(format!(
-                        "{slug}: decider says {token:?}, W3C published {w3c:?}"
-                    )),
-                    None => contradictions.push(format!(
-                        "{slug}: decider says {token:?} but no W3C verdict recorded"
-                    )),
-                }
-            }
-        }
-
-        assert!(
-            contradictions.is_empty(),
-            "SOUNDNESS SWEEP FAILURE — {} decider decision(s) contradict W3C:\n  • {}",
-            contradictions.len(),
-            contradictions.join("\n  • ")
-        );
-        assert!(
-            decided >= 5,
-            "expected the decider to decide several divergence cases, saw {decided}"
-        );
-    }
-}
+#[cfg(test)]
+#[path = "casesplit_test_support.rs"]
+mod test_support;
+#[cfg(test)]
+pub(crate) use test_support::{decide, decides};

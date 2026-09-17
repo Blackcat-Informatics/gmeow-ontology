@@ -8,7 +8,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-readme = "README.md"
 keywords = ["rdf", "rdf-star", "reasoning", "knowledge-graph"]
 
 [lib]
@@ -21,6 +20,8 @@ path = "src/lib.rs"
 # world-indexed logic stores. The world-store now holds the native
 # `MutableDataset`/`RdfDataset` IR directly — oxigraph-free.
 purrdf.workspace = true
+# Native composite-literal blank identities share the upstream core's authority.
+purrdf-core.workspace = true
 # The native SPARQL engine over `Arc<RdfDataset>`: the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (purrdf's rdf-core/sparql-algebra/xsd
@@ -46,6 +47,10 @@ gmeow-math = { path = "../math" }
 # project surface (frontend / ir / projections) and bridges its IR into the runtime
 # EvalRule via crate::lower; certify + the compile_logic entrypoint call into it.
 gmeow-logic-compile = { path = "../logic-compile" }
+# The shipped, reasoner-free TPTP/TSTP syntax AST. External evidence checking
+# reuses its one FOF/CNF parser; it does not link the repository conformance
+# harness or a second reasoning authority.
+gmeow-math-lift = { path = "../math-lift" }
 # THE one structured-term representation: the persistent hash-consed, binder-aware,
 # content-addressed term arena, relocated OUT of this runtime so a front-end can intern
 # terms without linking the native DL engine. This crate is its engine-tier consumer —
@@ -66,6 +71,7 @@ gmeow-lang-form = { path = "../lang-form" }
 # `content_address`, so `Checkpoint::verify` can still detect tampering.
 serde.workspace = true
 serde_json.workspace = true
+ciborium.workspace = true
 blake3.workspace = true
 # Delimited-data reader for the n-ary EDB loader (nary_rls): proper quoting/escaping
 # and STRICT uniform-arity parsing of ChaseBench-family CSV/TSV corpora. Already in the
@@ -117,6 +123,8 @@ sha2.workspace = true
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
+gmeow-action-cache = { path = "../action-cache" }
 # The whole-bundle coherence integration test imports the shipped snapshot through
 # the native cross-process transport cache. It is deliberately test-only: the
 # reasoning core and its browser consumers must not inherit filesystem/locking code.
@@ -141,18 +149,17 @@ gmeow-cost-measure = { path = "../cost-measure" }
 # Test bundles still pass through the mandatory GMEOW authorship profile; the import
 # cache itself is a reader and keeps no production writer edge.
 gmeow-gts-profile = { path = "../gts-profile" }
-# iai-callgrind: the DETERMINISTIC instruction-count backend for the engine bench
-# (benches/engines_iai.rs). It counts retired instructions under Valgrind Callgrind
-# — a machine-independent, run-to-run stable metric — as external corroboration for
+# Gungraun: the DETERMINISTIC instruction-count backend for the engine bench
+# (benches/engines_instructions.rs). It counts retired instructions under Valgrind
+# Callgrind — a machine-independent, run-to-run stable metric — as corroboration for
 # the on-gate steps+alloc+peak-live cost gate. MAINT-ONLY: it needs the `valgrind`
-# binary and the out-of-tree `iai-callgrind-runner` (installed via
-# `cargo install iai-callgrind-runner --version 0.16.1`, which MUST match this pin),
+# binary and the out-of-tree `gungraun-runner` (installed via
+# `cargo install gungraun-runner --version 0.19.4`, which MUST match this pin),
 # so it is wired only into `make maint-bench-instructions`, never `make check`.
-# Default features only (the `#[library_benchmark]` / `main!` surface, which the
-# crate gates behind its `default` feature): the heavier `client_requests` /
-# `cachegrind` sets stay off, so the dev-dep surface (and its build RAM) is minimal
-# — same build-RAM rationale as the criterion pin above.
-iai-callgrind = "0.16.1"
+# The default `benchmark` feature supplies `#[library_benchmark]` / `main!`.
+# The extra `client_requests` and `cachegrind` features stay off, retaining the
+# instruction-only harness dependency surface.
+gungraun = "=0.19.4"
 # memmap2 + tempfile: the PURREMB relation-provider matrix asserts heap-backed
 # (Vec<u8>) vs memory-mapped artifact bytes yield byte-identical dispatch answers.
 # The immutable-mmap path is the module's documented borrow-stability case; the
@@ -181,7 +188,7 @@ name = "reason"
 harness = false
 
 [[bench]]
-name = "engines_iai"
+name = "engines_instructions"
 harness = false
 
 # Advisory-only wall-clock baseline for the verified PURREMB retrieval scan. The on-gate
@@ -190,3 +197,6 @@ harness = false
 [[bench]]
 name = "purremb_retrieval"
 harness = false
+
+[build-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }

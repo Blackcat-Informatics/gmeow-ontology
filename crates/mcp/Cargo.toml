@@ -45,7 +45,7 @@ default = ["core", "reasoning"]
 # dependencies NOTHING else in this crate reaches — `convert` and `distribution_matrix` are
 # their sole readers — so selecting the segment out removes them from the reasoning image's
 # dependency tree outright rather than merely leaving them unreferenced.
-core = ["dep:gmeow-bundle-view", "dep:gmeow-transcode", "dep:gmeow-docs-catalog"]
+core = ["dep:gmeow-transcode", "dep:gmeow-docs-catalog"]
 # The reasoning SEGMENT: the native DL reasoner (`gmeow-logic`) and the rubric kernel
 # built on it (`gmeow-slice-quality`), plus the 15 tools that cannot answer without them
 # or that share the claim package with the writes that cannot (the grounded-memory triad
@@ -82,12 +82,10 @@ gmeow-ns = { path = "../ns" }
 # `native_query` (the SPARQL substrate) and `graph_iris` (the named graphs the tools
 # address). This is the crate that lets the MCP surface read a bundle without the
 # writer.
-# OPTIONAL, selected by the `core` feature (default ON). The reasoning image imports the
-# snapshot with `purrdf::import_gts_events` and reasons over the carrier dataset directly;
-# the fold view, the term surface, the export renderers, the diagnostics reader and the
-# SPARQL substrate are all reached ONLY by core tools and core resources, so the delta
-# links none of them.
-gmeow-bundle-view = { path = "../bundle-view", optional = true }
+# Both segments read their producer-prepared native policy from the same captured
+# snapshot. Core renderers remain reached only by core tools; reasoning reads compact
+# policy/law members through the retained bundle without source compilation.
+gmeow-bundle-view = { path = "../bundle-view" }
 # The distribution-catalog READ side: `distribution_matrix` serves the per-format
 # consumer-need matrix and the formal-concept lattice straight out of the bundle's
 # meta-level catalog graph. A wasm-clean leaf over gmeow-bundle-view — never
@@ -142,6 +140,8 @@ gmeow-slice-quality = { path = "../slice-quality", optional = true }
 # JSON is the MCP wire format: every tool envelope, every JSON-RPC frame, and the
 # `format=json` card projection are `serde_json::Value`s.
 serde_json.workspace = true
+# Typed, authenticated producer observations consumed without corpus execution.
+serde.workspace = true
 # SHA-256 content addressing for the append-only conjecture/candidate library
 # segments and the claim fingerprints the grounded-memory triad keys on.
 sha2.workspace = true
@@ -161,6 +161,9 @@ tempfile.workspace = true
 gmeow-bundle-import = { path = "../bundle-import" }
 
 [dev-dependencies]
+# Source-derived observations are read through the leaf cache authority; this
+# consumer must never depend back on the producer pipeline.
+gmeow-action-cache = { path = "../action-cache" }
 # Register the native tool contracts behind one required and one maint-heavy libtest
 # runner. Nextest otherwise restores the same authenticated 140 MiB pack once per test.
 gmeow-test-batch-macros = { path = "../test-batch-macros" }

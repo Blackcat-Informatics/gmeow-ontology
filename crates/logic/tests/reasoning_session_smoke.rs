@@ -29,8 +29,7 @@ fn atom(subject: &str, predicate: &str, object: &str, negated: bool) -> LogicAxi
     LogicAxiom::new(
         subject.to_owned(),
         predicate.to_owned(),
-        object.to_owned(),
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource(object.to_owned()),
         negated,
         ContextualScope::default(),
     )
@@ -145,7 +144,7 @@ fn certified_program_is_incremental_and_surfaces_provenance() {
     let program = transitive_program();
     let contract = ReasoningContract::new();
     let annotation = AnnotationContract::exact();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_page(&[("a", "b"), ("b", "c")]);
 
     let mut session =
         ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open certified");
@@ -247,7 +246,7 @@ fn stratified_naf_routes_to_full_rebuild() {
     let program = stratified_naf_program();
     let contract = ReasoningContract::new();
     let annotation = AnnotationContract::exact();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_page(&[("a", "b"), ("b", "c")]);
 
     let mut session =
         ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open naf");
@@ -281,7 +280,7 @@ fn stratified_naf_routes_to_full_rebuild() {
 fn program_carrying_formulas_is_never_certified_incremental() {
     let contract = ReasoningContract::new();
     let annotation = AnnotationContract::exact();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_page(&[("a", "b"), ("b", "c")]);
 
     // Control: the pure-rules transitive program is STILL Incremental (no false positive).
     let pure =
@@ -343,7 +342,7 @@ fn approximating_annotation_contract_is_never_certified_incremental() {
     // compute, so the SAME within-fragment rules must NOT be certified Incremental — they
     // route to a full rebuild rather than silently substituting the exact annotation.
     let contract = ReasoningContract::new();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_page(&[("a", "b"), ("b", "c")]);
 
     // Control: the exact contract certifies the pure transitive program Incremental.
     let exact = ReasoningSession::open(
@@ -400,7 +399,7 @@ fn paged_composition_matches_resident_closure() {
     let annotation = AnnotationContract::exact();
 
     // Resident session over the same EDB.
-    let resident_edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let resident_edb = edge_page(&[("a", "b"), ("b", "c")]);
     let resident = ReasoningSession::open(&resident_edb, &program, &contract, &annotation)
         .expect("resident open");
 

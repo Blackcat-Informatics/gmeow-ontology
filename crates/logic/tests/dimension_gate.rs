@@ -4,7 +4,8 @@
 //! Production-surface acceptance harness for the reasoner-derived `math:`
 //! dimensional-homogeneity gate.
 //!
-//! These tests drive the **production `verify()` entrypoint** — the same one
+//! Authored source contracts are recorded by the explicit pipeline producer.
+//! These remaining synthetic scenes drive the **production verification entrypoint** — the same one
 //! `make reason-verify` invokes — with a real input dataset, never a
 //! hand-assembled EDB or a private engine call. They encode the *correct
 //! decomposition* of the gate's failure classes, NOT byte-identity with the
@@ -31,29 +32,14 @@
 //! execute.
 
 use gmeow_errors::Severity;
-use gmeow_logic::verify::{embedded_verify_queries, verify};
+#[path = "common/prepared_verify.rs"]
+mod prepared_verify;
 use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
 // ── Fixtures (shipped slice artifacts — driven in isolation, exactly as the
 //    reason-verify pass would see them) ───────────────────────────────────────
-
-/// The force = ∫ a dm scene with one perturbed exponent: the integral's declared
-/// result dimension (M L T⁻³) ≠ integrand ⊕ measure (M L T⁻²). Must raise
-/// dimensional inhomogeneity through the integral-composition law.
-const INTEGRAL_MISMATCH: &str = include_str!(
-    "../../../slices/grounding/math/tests/counter-examples/force-dimension-inhomogeneous.ttl"
-);
-
-/// The clean, dimensionally-consistent round-trip scene — zero markers.
-const CLEAN_SCENE: &str =
-    include_str!("../../../slices/grounding/math/examples/gmn-dimension-roundtrip.ttl");
-
-/// A dimension whose exponent denominator is zero — malformed, NOT inhomogeneous.
-const ZERO_DENOMINATOR: &str = include_str!(
-    "../../../slices/grounding/math/tests/counter-examples/dimension-zero-denominator.ttl"
-);
 
 /// The reasoner-derived inhomogeneity gate's finding code: the verify query loop
 /// renders a returned row of `dimensional-inhomogeneity.rq` as `verify.<stem>`.
@@ -80,7 +66,21 @@ fn parse(ttl: &str) -> Arc<RdfDataset> {
 /// embedded verify query set.
 fn run_verify(ttl: &str) -> gmeow_errors::model::Report {
     let ds = parse(ttl);
-    verify(ds.as_ref(), &embedded_verify_queries()).expect("verify() must not error on the fixture")
+    let input =
+        gmeow_logic::reason::prepare_reasoning_input(ds.as_ref()).expect("synthetic gate input");
+    let domains = gmeow_logic::reason::SelectedDomains::new([
+        gmeow_logic::reason::SelectedLogicalWorld::new(
+            gmeow_logic::reason::LogicalGraph::Default,
+            gmeow_logic::reason::DomainProfile::NonemptyObjectDomainV1,
+            "urn:test:dimension_gate:default-theory".to_owned(),
+            *input.ingress_contract(),
+        )
+        .expect("explicit default theory"),
+    ])
+    .expect("one selected theory");
+    prepared_verify::verification(&gmeow_logic::verify::embedded_verify_queries())
+        .verify(ds.as_ref(), &domains)
+        .expect("verify() must not error on the fixture")
 }
 
 fn inhomogeneity_findings(
@@ -94,23 +94,6 @@ fn inhomogeneity_findings(
 }
 
 // ── AC-1 / AC-2: the inhomogeneity gate fires on the production surface ───────
-
-#[test]
-fn integral_composition_mismatch_fires_on_verify() {
-    // AC-2: dim(result) ≠ dim(integrand) ⊕ dim(measure) → reasoner-materialized
-    // marker, surfaced as verify.dimensional-inhomogeneity.
-    let report = run_verify(INTEGRAL_MISMATCH);
-    assert!(
-        !inhomogeneity_findings(&report).is_empty(),
-        "integral-composition mismatch must raise a {INHOMOGENEITY_CODE} finding via verify(); \
-         got: {:?}",
-        report
-            .findings
-            .iter()
-            .map(|f| (f.code.as_str(), f.message.as_str()))
-            .collect::<Vec<_>>()
-    );
-}
 
 #[test]
 fn differing_operand_dimensions_fire_on_verify() {
@@ -130,76 +113,10 @@ fn differing_operand_dimensions_fire_on_verify() {
 
 // ── AC-7: the derived finding carries the offending witnesses (message parity) ─
 
-#[test]
-fn inhomogeneity_finding_names_the_offending_witnesses() {
-    let report = run_verify(INTEGRAL_MISMATCH);
-    let findings = inhomogeneity_findings(&report);
-    assert!(!findings.is_empty(), "expected an inhomogeneity finding");
-    // The detail must name the offending subject, matching the diagnostic specificity
-    // of the retired sweep — never a bare, witness-less marker. `netForce` is the
-    // integral whose declared result dimension diverges. We assert on the concrete
-    // `netForce` token ONLY: a substring like "Dim" would be tautological, since the
-    // failure-class local name `DimensionalInhomogeneity` itself contains it, so it
-    // would pass whenever any finding exists and prove nothing about message parity.
-    let has_witness = findings
-        .iter()
-        .any(|f| f.detail.as_deref().is_some_and(|d| d.contains("netForce")));
-    assert!(
-        has_witness,
-        "the derived finding must name the offending integral / dimensions; details were: {:?}",
-        findings
-            .iter()
-            .map(|f| f.detail.as_deref())
-            .collect::<Vec<_>>()
-    );
-}
-
 // ── AC-4: a clean scene materializes ZERO inhomogeneity markers ───────────────
-
-#[test]
-fn clean_scene_materializes_no_marker() {
-    let report = run_verify(CLEAN_SCENE);
-    assert!(
-        inhomogeneity_findings(&report).is_empty(),
-        "the dimensionally-consistent round-trip scene must raise NO {INHOMOGENEITY_CODE}; got: {:?}",
-        inhomogeneity_findings(&report)
-            .iter()
-            .map(|f| f.message.as_str())
-            .collect::<Vec<_>>()
-    );
-}
 
 // ── AC-5: cross-class non-contamination — a malformed dimension is malformed,
 //    never a spurious inhomogeneity ─────────────────────────────────────────────
-
-#[test]
-fn zero_denominator_is_malformed_not_inhomogeneous() {
-    let report = run_verify(ZERO_DENOMINATOR);
-    assert!(
-        inhomogeneity_findings(&report).is_empty(),
-        "a zero-denominator (malformed) dimension must NOT be reported as {INHOMOGENEITY_CODE} \
-         (it is math:MalformedDimension); got: {:?}",
-        inhomogeneity_findings(&report)
-            .iter()
-            .map(|f| f.message.as_str())
-            .collect::<Vec<_>>()
-    );
-    // And it MUST still be caught as malformed on the reason-verify surface (the
-    // retained native check), so the malformed case is never a silent pass.
-    let malformed = report
-        .findings
-        .iter()
-        .any(|f| f.severity == Severity::Error && f.code.contains("malformed-dimension"));
-    assert!(
-        malformed,
-        "a zero-denominator dimension must still raise a malformed-dimension finding; got: {:?}",
-        report
-            .findings
-            .iter()
-            .map(|f| f.code.as_str())
-            .collect::<Vec<_>>()
-    );
-}
 
 // ── AC-3: the law is satisfied → no marker (the positive mirror of AC-1/AC-2) ─
 

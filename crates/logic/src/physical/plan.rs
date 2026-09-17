@@ -10,9 +10,9 @@
 //! as a doc contract ("call `stratify` first") is fragile: a caller can forget, or
 //! re-stratify per call.  This module makes an unstratified/unplanned program
 //! **unrepresentable at the executor boundary** — the executor's only input is an
-//! [`Executable`], whose sole constructor chain is `Parsed::uncached(..).stratify()?.plan()
-//! .into_executable()`.  There is no other way to obtain one, so the compiler — not a
-//! comment — enforces "stratify then plan then execute".
+//! [`Executable`], constructed from either the ordinary stratification chain or an
+//! opaque joint-producer certificate. The joint path shares immutable rule layouts
+//! across source-dependent strata; a layout alone never authorizes execution.
 //!
 //! # Consuming transitions (not marker generics)
 //!
@@ -50,9 +50,9 @@ use petgraph::graph::{EdgeIndex, UnGraph};
 use petgraph::unionfind::UnionFind;
 use petgraph::visit::EdgeRef;
 
-use crate::provenance::term_display;
 use crate::query_ir::{QBuiltin, QTerm};
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
+use purrdf::TermValue;
 
 use super::seminaive::stratify;
 
@@ -61,7 +61,7 @@ use super::seminaive::stratify;
 /// This is deliberately independent of the rule and reasoning-contract digests: a
 /// planner/kernel change invalidates every cached plan even when its logical input is
 /// unchanged.
-pub(crate) const PLAN_SOLVER_VERSION: &str = "gmeow-native-plan-v1";
+pub(crate) const PLAN_SOLVER_VERSION: &str = "gmeow-native-plan-v20-canonical-numeric";
 
 /// Maximum number of compiled programs retained by the process-wide plan cache.
 ///
@@ -204,6 +204,42 @@ pub(crate) fn compile_cached(contract_hash: impl Into<String>, rules: Vec<EvalRu
     })
 }
 
+/// Plan the ordinary part of an already-admitted joint stratum. The complete
+/// producer schedule, including its input-value contract, owns stratification.
+/// Re-stratifying this subset without that evidence would invent false cycles.
+pub(super) fn compile_certified_stratum(
+    stratum: super::effects::CertifiedStratum,
+) -> Option<Arc<Executable>> {
+    let (layouts, indices) = stratum.into_parts();
+    if indices.is_empty() {
+        return None;
+    }
+    let mut digest = blake3::Hasher::new();
+    digest.update(b"gmeow-joint-selected-rule-keys-v1\0");
+    digest.update(&(indices.len() as u64).to_le_bytes());
+    for &index in &indices {
+        digest.update(&layouts.keys[index]);
+    }
+    let identity = PlanIdentity {
+        contract_hash: "gmeow-joint-certified-producer-stratum-v2".to_owned(),
+        rule_hash: *digest.finalize().as_bytes(),
+        solver_version: PLAN_SOLVER_VERSION,
+    };
+    // The bounded source-template and source-plan caches own reuse. A second
+    // process-cache entry would retain whole-template arrays after their owner is
+    // evicted, including templates explicitly too large to retain. Regrouping only
+    // builds index/completion metadata; it performs no rule/atom/builtin planning.
+    Some(Arc::new(
+        Planned {
+            rules: layouts.rules,
+            identity,
+            strata: vec![indices],
+            plans: layouts.plans,
+        }
+        .into_executable(),
+    ))
+}
+
 fn compile_executable(identity: PlanIdentity, rules: Vec<EvalRule>) -> Option<Arc<Executable>> {
     Parsed::from_owned(identity, rules)
         .stratify()
@@ -258,6 +294,12 @@ fn static_planning_units(rules: &[EvalRule]) -> u64 {
             .saturating_add(rule.body.len() as u64)
             .saturating_add(rule.distinct_pairs.len() as u64)
             .saturating_add(rule.builtins.len() as u64)
+            .saturating_add(rule.numeric.len() as u64)
+            .saturating_add(
+                rule.reduction
+                    .as_ref()
+                    .map_or(0, |r| 3 + r.groups.len() as u64),
+            )
     })
 }
 
@@ -282,7 +324,7 @@ fn hash_eval_term(hasher: &mut blake3::Hasher, term: &EvalTerm) {
         }
         EvalTerm::ConstLit(value) => {
             hasher.update(&[2]);
-            frame_str(hasher, &term_display(value));
+            frame(hasher, &value.to_canonical_bytes());
         }
     }
 }
@@ -389,9 +431,25 @@ fn hash_builtin(hasher: &mut blake3::Hasher, builtin: &QBuiltin) {
 /// retained because all four are observable by deterministic execution/provenance.
 pub(crate) fn canonical_rule_hash(rules: &[EvalRule]) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new();
-    frame_str(&mut hasher, "gmeow-eval-rule-ir-v1");
+    frame_str(&mut hasher, "gmeow-eval-rule-ir-v3");
     hasher.update(&(rules.len() as u64).to_le_bytes());
     for rule in rules {
+        if let Some(reduction) = &rule.reduction {
+            hasher.update(&[1]);
+            frame_str(&mut hasher, reduction.name());
+            frame_str(&mut hasher, &reduction.input);
+            frame_str(&mut hasher, &reduction.result);
+            hasher.update(&(reduction.groups.len() as u64).to_le_bytes());
+            for group in &reduction.groups {
+                frame_str(&mut hasher, group);
+            }
+        } else {
+            hasher.update(&[0]);
+        }
+        hasher.update(&(rule.numeric.len() as u64).to_le_bytes());
+        for call in &rule.numeric {
+            frame_str(&mut hasher, &call.key());
+        }
         hash_eval_atom(&mut hasher, &rule.head);
         hasher.update(&(rule.body.len() as u64).to_le_bytes());
         for atom in &rule.body {
@@ -433,6 +491,8 @@ pub(crate) fn canonical_rule_hash(rules: &[EvalRule]) -> [u8; 32] {
 /// values, but which columns are bound and which concrete kernel consumes them are
 /// decided here once.
 pub(crate) struct RulePlan {
+    /// Decoded numeric constants and typed operator dispatch, shared across rounds.
+    numeric: Result<super::numeric::Plan, String>,
     /// Body indices of the POSITIVE atoms, in body order (the join drivers).
     positive: Box<[usize]>,
     /// Body indices of the NEGATED atoms, in body order (the NAF filters).
@@ -500,15 +560,15 @@ pub(crate) enum AtomKernel {
     },
     VarConst {
         subject_slot: usize,
-        object: String,
+        object: TermValue,
     },
     ConstVar {
-        subject: String,
+        subject: TermValue,
         object_slot: usize,
     },
     Consts {
-        subject: String,
-        object: String,
+        subject: TermValue,
+        object: TermValue,
     },
 }
 
@@ -619,6 +679,7 @@ impl RulePlan {
             let operators = lower_operators(rule, &positive, &execution_order, &slots);
             let operator_source_order_swaps = restore_body_order_swaps(&execution_order);
             return Self {
+                numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body),
                 positive: positive.into_boxed_slice(),
                 negated: negated.into_boxed_slice(),
                 variables: variables.into_boxed_slice(),
@@ -667,6 +728,7 @@ impl RulePlan {
         let operators = lower_operators(rule, &positive, &execution_source_order, &slots);
         let operator_source_order_swaps = restore_body_order_swaps(&execution_source_order);
         Self {
+            numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body),
             positive: positive.into_boxed_slice(),
             negated: negated.into_boxed_slice(),
             variables: variables.into_boxed_slice(),
@@ -677,6 +739,12 @@ impl RulePlan {
                 source_order_swaps: source_order_swaps.into_boxed_slice(),
             })),
         }
+    }
+
+    pub(super) fn numeric(&self, rule: &str) -> gmeow_errors::Result<&super::numeric::Plan> {
+        self.numeric
+            .as_ref()
+            .map_err(|detail| super::numeric::error(rule, detail))
     }
 
     /// The positive body-atom indices, in body order.
@@ -820,11 +888,11 @@ fn lower_operators(
     operators
 }
 
-fn constant_surface(term: &EvalTerm) -> String {
+fn constant_value(term: &EvalTerm) -> TermValue {
     match term {
-        EvalTerm::ConstNamed(iri) => format!("<{iri}>"),
-        EvalTerm::ConstLit(value) => term_display(value),
-        EvalTerm::Var(_) => unreachable!("constant_surface called only for a constant term"),
+        EvalTerm::ConstNamed(iri) => TermValue::iri(iri),
+        EvalTerm::ConstLit(value) => value.clone(),
+        EvalTerm::Var(_) => unreachable!("constant_value called only for a constant term"),
     }
 }
 
@@ -836,15 +904,15 @@ fn atom_kernel(atom: &EvalAtom, slots: &BTreeMap<String, usize>) -> AtomKernel {
         },
         (EvalTerm::Var(subject), object) => AtomKernel::VarConst {
             subject_slot: slots[subject],
-            object: constant_surface(object),
+            object: constant_value(object),
         },
         (subject, EvalTerm::Var(object)) => AtomKernel::ConstVar {
-            subject: constant_surface(subject),
+            subject: constant_value(subject),
             object_slot: slots[object],
         },
         (subject, object) => AtomKernel::Consts {
-            subject: constant_surface(subject),
-            object: constant_surface(object),
+            subject: constant_value(subject),
+            object: constant_value(object),
         },
     }
 }
@@ -1003,6 +1071,37 @@ fn restore_body_order_swaps(execution_order: &[usize]) -> Vec<(usize, usize)> {
     swaps
 }
 
+/// Immutable rule IR, exact rule identities and join layouts. This is preparation
+/// only: execution still requires a certificate from the complete producer graph.
+/// Shared arrays retain no source facts, store-local IDs, worlds or bindings.
+#[derive(Clone)]
+pub(super) struct RuleLayouts {
+    rules: Arc<[EvalRule]>,
+    plans: Arc<[RulePlan]>,
+    keys: Arc<[[u8; 32]]>,
+}
+
+impl RuleLayouts {
+    pub(super) fn new(rules: &[EvalRule]) -> gmeow_errors::Result<Self> {
+        let plans: Vec<_> = rules.iter().map(RulePlan::for_rule).collect();
+        for (rule, plan) in rules.iter().zip(&plans) {
+            plan.numeric(&rule.rule_iri)?;
+        }
+        Ok(Self {
+            rules: Arc::from(rules),
+            plans: plans.into(),
+            keys: rules
+                .iter()
+                .map(|rule| canonical_rule_hash(std::slice::from_ref(rule)))
+                .collect(),
+        })
+    }
+
+    pub(super) fn keys(&self) -> &[[u8; 32]] {
+        &self.keys
+    }
+}
+
 /// Stage 1: a parsed rule program, not yet stratified.
 ///
 /// Owns the rules behind an [`Arc`], so the terminal executable can be cached and shared
@@ -1039,21 +1138,12 @@ impl Parsed {
     pub(crate) fn stratify(self) -> Option<Stratified> {
         let stratum_of = stratify(&self.rules)?;
 
-        // Order the rules into strata.  A rule belongs to the stratum of its HEAD
-        // predicate; within a stratum the original program order is preserved (rules
-        // fire in parse order, matching the reference engine).  This is byte-identical
-        // to the `rules_by_stratum` the evaluators previously rebuilt per call — the
-        // grouping is by program-order rule index.
-        let max_stratum = self
-            .rules
-            .iter()
-            .map(|r| stratum_of[r.head.predicate.as_str()])
-            .max()
-            .unwrap_or(0);
+        // Producers of disjoint parts of a predicate may occupy different strata.
+        // Retain program order within each fixed point for deterministic commits.
+        let max_stratum = stratum_of.iter().copied().max().unwrap_or(0);
         let mut strata: Vec<Vec<usize>> = vec![Vec::new(); max_stratum + 1];
-        for (i, rule) in self.rules.iter().enumerate() {
-            let s = stratum_of[rule.head.predicate.as_str()];
-            strata[s].push(i);
+        for (i, stratum) in stratum_of.into_iter().enumerate() {
+            strata[stratum].push(i);
         }
 
         Some(Stratified {
@@ -1076,7 +1166,7 @@ impl Stratified {
     /// Precompute one complete store-independent [`RulePlan`] per rule, yielding the
     /// [`Planned`] stage.
     pub(crate) fn plan(self) -> Planned {
-        let plans: Vec<RulePlan> = self.rules.iter().map(RulePlan::for_rule).collect();
+        let plans = self.rules.iter().map(RulePlan::for_rule).collect();
         Planned {
             rules: self.rules,
             identity: self.identity,
@@ -1092,7 +1182,7 @@ pub(crate) struct Planned {
     identity: PlanIdentity,
     strata: Vec<Vec<usize>>,
     /// One entry per rule, parallel to `rules` by index.
-    plans: Vec<RulePlan>,
+    plans: Arc<[RulePlan]>,
 }
 
 impl Planned {
@@ -1100,16 +1190,28 @@ impl Planned {
     /// executor accepts.  Memoizes the head-predicate set the completion frontier reads.
     pub(crate) fn into_executable(self) -> Executable {
         let head_predicates: BTreeSet<String> = self
-            .rules
+            .strata
             .iter()
-            .map(|r| r.head.predicate.as_str().to_owned())
+            .flatten()
+            .map(|&index| self.rules[index].head.predicate.clone())
             .collect();
+        let mut last_writer = std::collections::BTreeMap::new();
+        for (rank, stratum) in self.strata.iter().enumerate() {
+            for &index in stratum {
+                last_writer.insert(self.rules[index].head.predicate.clone(), rank);
+            }
+        }
+        let mut completed_predicates = vec![Vec::new(); self.strata.len()];
+        for (predicate, rank) in last_writer {
+            completed_predicates[rank].push(predicate);
+        }
         Executable {
             rules: self.rules,
             identity: self.identity,
             strata: self.strata,
             plans: self.plans,
             head_predicates,
+            completed_predicates,
         }
     }
 }
@@ -1124,8 +1226,9 @@ pub(crate) struct Executable {
     rules: Arc<[EvalRule]>,
     identity: PlanIdentity,
     strata: Vec<Vec<usize>>,
-    plans: Vec<RulePlan>,
+    plans: Arc<[RulePlan]>,
     head_predicates: BTreeSet<String>,
+    completed_predicates: Vec<Vec<String>>,
 }
 
 impl Executable {
@@ -1165,95 +1268,13 @@ impl Executable {
         (&self.rules[index], &self.plans[index])
     }
 
-    /// The head predicates of stratum `k`'s rules — recorded into the settled frontier
-    /// when the stratum reaches its natural fixpoint.
+    /// Predicates whose LAST possible writer completes in stratum `k`. Earlier
+    /// writers may have completed only a disjoint portion of the same relation.
     pub(crate) fn stratum_head_predicates(&self, k: usize) -> impl Iterator<Item = &str> {
-        self.strata[k]
-            .iter()
-            .map(move |&i| self.rules[i].head.predicate.as_str())
+        self.completed_predicates[k].iter().map(String::as_str)
     }
 }
 
+#[path = "plan.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::query_ir::StructNode;
-    use gmeow_term_arena::engine::StructNodeParts;
-    use gmeow_term_arena::engine::TermDag;
-
-    /// A minimal single-fact `EvalRule` (`rule_iri` "r") carrying one `QBuiltin::Compare`
-    /// whose `lhs` operand is `term` — the shape `canonical_rule_hash`'s `hash_qterm`
-    /// dispatches on.
-    fn rule_with_builtin_operand(term: QTerm) -> EvalRule {
-        let mut rule = EvalRule::positive(
-            "https://example.org/r",
-            EvalAtom::positive(
-                EvalTerm::var("?X"),
-                "https://example.org/p",
-                EvalTerm::var("?X"),
-            ),
-            Vec::new(),
-        );
-        rule.builtins.push(QBuiltin::Compare {
-            lhs: term,
-            op: crate::query_ir::CmpOp::Eq,
-            rhs: QTerm::Num(0),
-        });
-        rule
-    }
-
-    /// G13 lock: `canonical_rule_hash`'s flat rule-IR pipeline never threads a `TermDag` (it
-    /// is a distinct, arena-free pipeline from the structured-term `gmeow_term_arena` term DAG
-    /// world), so a `QTerm::Struct` reaching `hash_qterm` cannot be content-hashed by
-    /// `TermDag::key` here — hashing its arena-local `NodeId::index()` instead would risk a
-    /// false collision between two DIFFERENT structured terms from unrelated arenas that
-    /// happen to share a raw index. `hash_qterm`'s `QTerm::Struct` arm is therefore a hard
-    /// `unreachable!` (never a silent index hash), justified by `QBuiltin`'s own contract
-    /// (`query_ir::QBuiltin` operands are documented `Var`/`Num` only — arithmetic never
-    /// carries a compound term) rather than papered over.
-    ///
-    /// This test proves the arm's chosen failure mode DIRECTLY: two independently-built
-    /// `TermDag`s each intern one leaf node first, so their first `NodeId`s share
-    /// `index() == 0` by construction — exactly the collision a naive `NodeId::index()`
-    /// hash would silently forge into an equal digest for two DIFFERENT structured terms.
-    /// Wrapping each into a `QBuiltin` operand and hashing the enclosing rule must instead
-    /// PANIC (the documented `unreachable!` firing), never silently succeed with a
-    /// forged-equal (or any) hash.
-    #[test]
-    fn canonical_rule_hash_hard_fails_on_a_struct_builtin_operand_rather_than_hashing_arena_index()
-    {
-        let mut dag_a = TermDag::new();
-        let leaf_a = dag_a.intern_leaf(purrdf::TermValue::iri("https://example.org/a"));
-        let mut dag_b = TermDag::new();
-        let leaf_b = dag_b.intern_leaf(purrdf::TermValue::iri("https://example.org/b"));
-        assert_eq!(
-            leaf_a.index(),
-            leaf_b.index(),
-            "two independently-built arenas' first interned node share the same raw index \
-             — exactly the collision NodeId::index() hashing would silently forge"
-        );
-
-        let struct_a = QTerm::Struct(StructNode::wrap(leaf_a, dag_a.arena()));
-        let struct_b = QTerm::Struct(StructNode::wrap(leaf_b, dag_b.arena()));
-
-        let rule_a = rule_with_builtin_operand(struct_a);
-        let rule_b = rule_with_builtin_operand(struct_b);
-
-        let result_a = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            canonical_rule_hash(std::slice::from_ref(&rule_a))
-        }));
-        assert!(
-            result_a.is_err(),
-            "a Struct QBuiltin operand must hard-panic canonical_rule_hash, never silently \
-             hash a raw NodeId::index()"
-        );
-        let result_b = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            canonical_rule_hash(std::slice::from_ref(&rule_b))
-        }));
-        assert!(
-            result_b.is_err(),
-            "the SAME guard must fire for the second (index-colliding, different-arena) \
-             Struct rule — never silently forging an equal hash for two distinct terms"
-        );
-    }
-}
+mod tests;

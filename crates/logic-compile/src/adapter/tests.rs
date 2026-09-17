@@ -57,7 +57,7 @@ fn annotation_lift_produces_six_first_class_annotation_axioms() {
             "load_bearing bit for predicate {}",
             a.predicate
         );
-        assert!(a.obj_is_literal, "annotation object is a literal");
+        assert!(a.obj.is_literal(), "annotation object is a literal");
     }
 }
 

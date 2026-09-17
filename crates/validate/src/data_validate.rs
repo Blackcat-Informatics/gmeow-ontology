@@ -41,6 +41,10 @@ use crate::gufo::{self, GufoConfig};
 use crate::report_bridge::{build_report, shacl_findings_from_report};
 use crate::store;
 
+/// Producer-prepared native laws used by a selected deep validation pass.
+#[cfg(not(target_arch = "wasm32"))]
+pub use gmeow_logic::verify::PreparedReasonedGates;
+
 // `Finding`/`Severity` are only constructed by the native-only Tier-2 deep pass
 // (and its tests). The wasm Tier-1 surface folds findings through `report_bridge`
 // and never names these types directly.
@@ -67,6 +71,9 @@ enum DeepPassError {
     /// The declared contradiction-policy contract is garbled; this is INVALID
     /// INPUT and must cause a hard-fail `Severity::Error` finding.
     ContractResolution(String),
+    /// Required producer-prepared laws are absent, corrupt, or from another source
+    /// identity. A selected semantic capability must fail closed.
+    NativeGates(String),
     /// A reasoning verdict named a clash quad whose explain-skeleton derivation
     /// could not be built (the index build failed after a real verdict) or located
     /// (the witness references a quad absent from the result). This is an INTERNAL
@@ -118,27 +125,19 @@ pub fn run_tier1(
 /// The parsed data-graph SHACL shape union a Tier-1 run validates against,
 /// decoded ONCE from a bundle's `shapes-archive` blob.
 ///
-/// Decoding the multi-megabyte bundle and parsing the shape union dominates a
-/// Tier-1 run (the per-graph validation itself takes milliseconds), so a
-/// resident consumer — the MCP `validate_local` tool, a loop validating many
-/// fixtures — builds this once per bundle and validates every payload against
-/// it via [`Tier1Shapes::validate`]. [`run_tier1`] is the one-shot composition
+/// A resident consumer builds this once per bundle and validates every payload
+/// against the same prepared shapes via [`Tier1Shapes::validate`], avoiding
+/// repeated bundle decoding and shape parsing. [`run_tier1`] is the one-shot composition
 /// over raw bundle bytes. Wasm-clean, like the [`run_tier1`] core it carries.
 pub struct Tier1Shapes {
     shapes: purrdf::shapes::shapes::Shapes,
-    /// The same data-graph shape union parsed as an [`RdfDataset`], read for each
-    /// advisory shape's `logic:formalizes` provenance term during the advisory
-    /// split ([`crate::advisory::split_advisory_results`]) and — cross-platform —
-    /// for the `gmeow:enforcesFailureClass` scan that builds
-    /// [`failure_classes`](Tier1Shapes::failure_classes).
-    shapes_dataset: Arc<RdfDataset>,
-    /// The shapes graph's `sh:NodeShape → gmeow:enforcesFailureClass` index, built
+    /// The shapes graph's `shape resource → gmeow:enforcesFailureClass` index, built
     /// ONCE per bundle. Every Tier-1 finding is resolved through it so it NAMES the
     /// typed conformance failure its violated law declares, instead of shipping only
     /// the generic constraint-component code (which every gate of that shape shares).
     failure_classes: crate::findings::FailureClassIndex,
     /// The bundle's imported RDF (the ontology): the source of the formalized terms'
-    /// `gmeow:howToUse` / `gmeow:useWhen` prose the native-only advisory split reads, AND
+    /// `gmeow:howToUse` / `gmeow:useWhen` prose the advisory split reads, AND
     /// (cross-platform) the class-hierarchy authority [`inject_subclass_shortcuts`] walks
     /// via [`gufo::proper_ancestors`].
     ///
@@ -154,14 +153,20 @@ pub struct Tier1Shapes {
     /// actually uses, so the bundle's class hierarchy governs focus selection without the
     /// user needing to restate it.
     ///
-    /// Unlike `shapes_dataset` above (native-only: it exists solely for the advisory-split
-    /// feature), this field is NOT gated to native — every Tier-1 consumer, wasm included,
-    /// needs the bundle's class hierarchy to select `sh:targetClass` focus nodes correctly
-    /// over subclass-typed data.
+    /// Every Tier-1 consumer, wasm included, needs this hierarchy to select
+    /// `sh:targetClass` focus nodes correctly over subclass-typed data.
     ontology: Arc<RdfDataset>,
 }
 
 impl Tier1Shapes {
+    /// Borrow the exact parsed shape set used by this resident validator.
+    ///
+    /// Shape identities in findings refer to this set. Introspection shares its
+    /// native values and blank-node identities without parsing the archive again.
+    pub fn parsed_shapes(&self) -> &purrdf::shapes::shapes::Shapes {
+        &self.shapes
+    }
+
     /// Extract and parse the data-graph shape union from raw `gmeow.gts` bytes.
     ///
     /// # Errors
@@ -169,9 +174,14 @@ impl Tier1Shapes {
     /// Returns `Err` if the bundle carries no `shapes-archive` blob, the
     /// archive is malformed, or the shapes fail to parse.
     pub fn from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<Self> {
-        let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
-        let ontology = crate::store::dataset_from_gts(gts_bytes)?;
-        Self::from_shapes_and_ontology(&shapes_ttl, ontology)
+        let imported = import_validation_bundle(gts_bytes, false)?;
+        Self::from_imported(&imported)
+    }
+
+    fn from_imported(imported: &purrdf::GtsImportWithBlobs) -> gmeow_errors::Result<Self> {
+        let archive = gmeow_gts_profile::archive::required_imported_blob(imported, REP_SHAPES)?;
+        let shapes_ttl = data_graph_shapes_from_archive(&archive.bytes)?;
+        Self::from_shapes_and_ontology(&shapes_ttl, Arc::clone(&imported.bundle.dataset))
     }
 
     /// Build the resident Tier-1 view from an already-authenticated shape union and
@@ -189,22 +199,12 @@ impl Tier1Shapes {
                 detail: format!("bundled SHACL shapes failed to parse: {e}"),
             })
         })?;
-        // The shape union as an RdfDataset, parsed here once per bundle so a resident
-        // consumer never re-parses per payload. Two readers: the native-only advisory
-        // split (each advisory shape's `logic:formalizes` provenance) and — on every
-        // platform — the `gmeow:enforcesFailureClass` scan below, without which no
-        // Tier-1 finding can name the typed failure its law declares.
-        let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    detail: format!("bundled SHACL shapes failed to parse as a dataset: {e}"),
-                })
-            })?;
+        // Read the exact immutable graph retained by the SHACL parser. Its
+        // blank identities and document-prefix handling govern these same shapes.
         let failure_classes =
-            crate::findings::FailureClassIndex::from_shapes_dataset(&shapes_dataset);
+            crate::findings::FailureClassIndex::from_shapes_dataset(shapes.dataset());
         Ok(Self {
             shapes,
-            shapes_dataset,
             failure_classes,
             ontology,
         })
@@ -225,6 +225,16 @@ impl Tier1Shapes {
         origin: &str,
     ) -> gmeow_errors::Result<Report> {
         let dataset = data_dataset_flat(data_bytes, data_format)?;
+        self.validate_dataset(dataset, namespace, origin)
+    }
+
+    /// Validate the request's already parsed flat view with the resident shapes.
+    fn validate_dataset(
+        &self,
+        dataset: Arc<RdfDataset>,
+        namespace: &str,
+        origin: &str,
+    ) -> gmeow_errors::Result<Report> {
         // Inject the bundle's class-hierarchy shortcuts for exactly the classes this data
         // graph uses, so `sh:targetClass` (and any SPARQL-embedded `a/<rdfs:subClassOf>*`
         // path) selects a subclass-typed focus node without the user needing to restate the
@@ -246,7 +256,7 @@ impl Tier1Shapes {
         // the raw `shacl.* Info` findings survive.
         let (shacl_report, advisories) = crate::advisory::split_advisory_results(
             shacl_report,
-            &self.shapes_dataset,
+            self.shapes.dataset(),
             &self.ontology,
         );
 
@@ -434,8 +444,11 @@ pub fn validate_json(
 ///
 /// # Errors
 ///
-/// Returns `Err` for the same Tier-1 reasons as [`run_tier1`]. A Tier-2 (`deep`)
-/// failure is NOT an error — it is folded as an advisory note.
+/// Returns `Err` when the bundle dataset, shapes or Tier-1 inputs cannot be admitted.
+/// Missing or invalid deep laws produce a hard report error alongside Tier-1 findings.
+/// A failed deep archive admission permits one independent Tier-1 admission solely
+/// to report those findings; the original deep failure remains mandatory and cannot
+/// become a successful shallow result. Valid deep inputs are imported only once.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn run(
     data_bytes: &[u8],
@@ -445,13 +458,31 @@ pub fn run(
     origin: &str,
     deep: bool,
 ) -> gmeow_errors::Result<Report> {
-    let tier1 = Tier1Shapes::from_gts(gts_bytes)?;
-    let imported = purrdf::import_gts_events(gts_bytes)?;
+    let (imported, deep_admission_error) = match import_validation_bundle(gts_bytes, deep) {
+        Ok(imported) => (imported, None),
+        Err(error) if deep => {
+            // Error reporting only: preserve Tier-1 diagnostics while retaining the
+            // original failure as a hard deep contract finding. This does not retry
+            // or weaken the requested semantic operation.
+            (import_validation_bundle(gts_bytes, false)?, Some(error))
+        }
+        Err(error) => return Err(error),
+    };
+    let tier1 = Tier1Shapes::from_imported(&imported)?;
+    let gates = deep
+        .then(|| match deep_admission_error {
+            Some(error) => Err(error),
+            None => crate::validate_all::prepared_imported_gates(&imported),
+        })
+        .transpose();
     run_with(
         BundleParts {
-            gts_bytes,
+            native_gates: match gates {
+                Ok(ref selected) => selected.as_ref().map(Ok),
+                Err(error) => Some(Err(error)),
+            },
             shapes: &tier1,
-            dataset: imported.dataset.as_ref(),
+            dataset: imported.bundle.dataset.as_ref(),
         },
         data_bytes,
         data_format,
@@ -461,7 +492,7 @@ pub fn run(
     )
 }
 
-/// Borrowed views of ONE decoded `gmeow.gts` bundle — the raw bytes, the parsed
+/// Borrowed views of ONE decoded `gmeow.gts` bundle — prepared native laws, the
 /// Tier-1 shape union, and the imported carrier dataset. All three MUST come
 /// from the same bundle: the parity contract (`validate_local` ≡ `gmeow
 /// validate`) holds only when the shapes, the enrichment join, and the Tier-2
@@ -470,14 +501,14 @@ pub fn run(
 /// A resident consumer (the MCP server) decodes these once per bundle and calls
 /// [`run_with`] per payload; the one-shot [`run`] decodes them per invocation.
 pub struct BundleParts<'a> {
-    /// The raw `gmeow.gts` bytes (the Tier-2 deep pass reads the bundle's blobs
-    /// and axioms directly from them).
-    pub gts_bytes: &'a [u8],
-    /// The parsed data-graph shape union extracted from `gts_bytes`
-    /// ([`Tier1Shapes::from_gts`]).
+    /// Exact prepared native laws for a selected deep pass. Shallow callers leave
+    /// this absent; deep callers must supply the admitted laws or their load error.
+    /// No archive reader or corpus producer is reachable from this composition.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub native_gates: Option<gmeow_errors::Result<&'a PreparedReasonedGates>>,
+    /// The parsed data-graph shape union from the same admitted bundle.
     pub shapes: &'a Tier1Shapes,
-    /// The carrier dataset imported from `gts_bytes`
-    /// (`purrdf::import_gts_events`), the enrichment join's bundle side.
+    /// The native graph-preserving carrier, shared by enrichment and deep reasoning.
     pub dataset: &'a RdfDataset,
 }
 
@@ -490,8 +521,8 @@ pub struct BundleParts<'a> {
 ///
 /// # Errors
 ///
-/// Returns `Err` if the data graph fails to parse. A Tier-2 (`deep`) failure is
-/// NOT an error — it is folded as an advisory note (see [`run`]).
+/// Returns `Err` if the data graph fails to parse. Deep execution failures retain
+/// the classification described by [`run`], including hard findings for missing laws.
 ///
 /// # The `deep` leg on a target with no reasoner
 ///
@@ -510,17 +541,17 @@ pub fn run_with(
     origin: &str,
     deep: bool,
 ) -> gmeow_errors::Result<Report> {
-    let mut report = bundle
-        .shapes
-        .validate(data_bytes, data_format, namespace, origin)?;
+    let subject = data_dataset(data_bytes, data_format)?;
+    let flat = flatten_to_default_graph(&subject)?;
+    let mut report = bundle.shapes.validate_dataset(flat, namespace, origin)?;
 
     // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
     if deep {
         #[cfg(not(target_arch = "wasm32"))]
         run_deep_pass(
-            bundle.gts_bytes,
-            data_bytes,
-            data_format,
+            bundle.native_gates,
+            bundle.dataset,
+            &subject,
             origin,
             &mut report,
         );
@@ -538,10 +569,8 @@ pub fn run_with(
     // CLI consumer report carries the same enrichment as the pipeline validate
     // stage. The bundle carries the constraint-catalog `gmeow:ValidationRule`
     // nodes (the rule-governing-term key); the user's own data graph is the
-    // `documented_terms` subject. A genuinely-corrupt data graph at this point is
-    // a hard input error (Tier-1 already parsed it once above), so it propagates
-    // via `?` rather than being swallowed.
-    let subject = data_dataset(data_bytes, data_format)?;
+    // `documented_terms` subject. The same graph-preserving user dataset fed
+    // Tier 1's flat projection and, when selected, native reasoning.
     crate::enrich::enrich_findings(&mut report, bundle.dataset, subject.as_ref());
 
     Ok(report)
@@ -569,16 +598,34 @@ pub fn run_with(
 ///   INTERNAL INVARIANT VIOLATION (no-optionality discipline): folded as a
 ///   `validate.deep.derivation-unresolved` `Severity::Error` finding that FAILS the
 ///   gate. It must NOT be downgraded to an advisory note.
+///
+/// - [`DeepPassError::NativeGates`]: required bundle-carried native verification
+///   laws are missing, corrupt, or bound to a different source identity. Folded as
+///   a `validate.deep.contract-invalid` `Severity::Error`; these mandatory laws
+///   cannot be silently omitted from a selected deep pass.
 #[cfg(not(target_arch = "wasm32"))]
 fn run_deep_pass(
-    gts_bytes: &[u8],
-    data_bytes: &[u8],
-    data_format: &str,
+    native_gates: Option<gmeow_errors::Result<&PreparedReasonedGates>>,
+    bundle: &RdfDataset,
+    user: &RdfDataset,
     origin: &str,
     report: &mut Report,
 ) {
     let start = report.findings.len();
-    match deep_consistency_findings(gts_bytes, data_bytes, data_format, report) {
+    let outcome = deep_consistency_findings(native_gates, bundle, user, report);
+    fold_deep_outcome(outcome, start, origin, report);
+}
+
+/// Apply the selected deep pass's diagnostic classification without changing
+/// findings already emitted by Tier 1.
+#[cfg(not(target_arch = "wasm32"))]
+fn fold_deep_outcome(
+    outcome: Result<(), DeepPassError>,
+    start: usize,
+    origin: &str,
+    report: &mut Report,
+) {
+    match outcome {
         Ok(()) => {
             for finding in &mut report.findings[start..] {
                 if finding.locations.is_empty() {
@@ -628,6 +675,19 @@ fn run_deep_pass(
             });
             report.add_finding(finding);
         }
+        Err(DeepPassError::NativeGates(msg)) => {
+            let mut finding = Finding::new(
+                Severity::Error,
+                crate::codes::VALIDATE_DEEP_CONTRACT_INVALID,
+                format!("deep semantic pass: required native verification laws are invalid: {msg}"),
+            )
+            .with_tool("validate");
+            finding.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+            report.add_finding(finding);
+        }
         Err(DeepPassError::Unavailable(msg)) => {
             // Graceful degradation: infrastructure/availability failure; preserve
             // the complete Tier-1 result and fold one advisory note.
@@ -653,61 +713,29 @@ fn run_deep_pass(
 ///
 /// Unlike Tier-1 (which flattens to the default graph for SHACL), the reasoning
 /// dataset is parsed graph-preserving so the world-scoped native reasoner sees the
-/// user's worlds. This is a second parse of the data bytes, paid only on `--deep`.
+/// user's worlds. Both datasets are borrowed from the caller's already parsed
+/// request; the deep pass performs no bundle import or user-data parse.
 ///
 /// # Errors
 ///
-/// Returns [`DeepPassError::Unavailable`] if the bundle cannot be read, the user
-/// data cannot be parsed into a reasoning dataset, or the native reasoning run
-/// fails — all infrastructure failures that degrade gracefully.
+/// Returns [`DeepPassError::Unavailable`] if native projection, reasoning or
+/// materialization fails. Input parsing belongs to the caller's request boundary.
 ///
 /// Returns [`DeepPassError::ContractResolution`] if the bundle's declared
 /// `logic:ReasoningContract` carries a garbled `logic:admissibleValuation` that
-/// cannot be resolved to a [`ContradictionPolicy`]. This is INVALID INPUT and
+/// cannot be resolved to a [`gmeow_logic::certificate::ContradictionPolicy`]. This is INVALID INPUT and
 /// must HARD-FAIL the gate; the caller emits a `Severity::Error` finding.
+///
+/// Returns [`DeepPassError::NativeGates`] if the required compact native law
+/// member cannot be decoded or its source identity is invalid. This also
+/// hard-fails the gate rather than omitting mathematical verification.
 #[cfg(not(target_arch = "wasm32"))]
 fn deep_consistency_findings(
-    gts_bytes: &[u8],
-    data_bytes: &[u8],
-    data_format: &str,
+    native_gates: Option<gmeow_errors::Result<&PreparedReasonedGates>>,
+    bundle: &RdfDataset,
+    user: &RdfDataset,
     report: &mut Report,
 ) -> Result<(), DeepPassError> {
-    let bundle = purrdf::import_gts_events(gts_bytes)
-        .map_err(|e| DeepPassError::Unavailable(format!("GTS read error: {e}")))?;
-    let user = data_dataset(data_bytes, data_format)
-        .map_err(|d| DeepPassError::Unavailable(d.message().to_string()))?;
-    // Narrow the bundle side to the object-level reasoning EDB — the SAME
-    // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
-    // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`)
-    // — BEFORE merging in the caller's own data, so `gmeow validate <data> --deep`
-    // reasons the consumer's data against byte-identical bundle worlds to the
-    // pipeline's own `make reason-verify` gate rather than also reasoning over
-    // meta/report graphs (documentation, diagnostics, correspondence, …) that assert
-    // no object-level axioms.
-    let bundle_edb = gmeow_logic::reasoning_graphs::project_object_level_edb(
-        bundle.dataset.as_ref(),
-    )
-    .map_err(|e| DeepPassError::Unavailable(format!("object-level EDB projection failed: {e}")))?;
-    let edb = {
-        let mut builder = purrdf::RdfDatasetBuilder::new();
-        builder.push_dataset(bundle_edb.as_ref());
-        builder.push_dataset(user.as_ref());
-        builder
-            .freeze()
-            .map_err(|e| DeepPassError::Unavailable(format!("freeze merged EDB: {e}")))?
-    };
-    let result = gmeow_logic::reason::reason_all(edb.as_ref())
-        .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
-    // Build the faithful cited-quad-reifier derivation skeletons for the SAME result.
-    // A build failure AFTER the reasoner produced a real verdict is an internal
-    // invariant violation (a cycle or unresolved antecedent in the proof trace), NOT
-    // an infrastructure availability failure: it maps to the hard-fail `Derivation`
-    // variant, never the graceful `Unavailable` note.
-    let explanations = gmeow_logic::explain::explanations_for_result(&result).map_err(|e| {
-        DeepPassError::Derivation(format!(
-            "explanation-skeleton build failed after a real verdict (internal invariant): {e}"
-        ))
-    })?;
     // The governing contradiction policy is READ from the bundle's declared
     // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
     // no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing); multiple
@@ -718,10 +746,77 @@ fn deep_consistency_findings(
     // NOTE: this is the ONLY error that maps to ContractResolution (not Unavailable)
     // — a garbled contract is invalid INPUT, not an infrastructure failure, and must
     // produce a Severity::Error finding rather than being silently downgraded.
-    let policy = gmeow_logic::certificate::ContradictionPolicy::resolve_from_dataset(
-        bundle.dataset.as_ref(),
-    )
-    .map_err(|e| DeepPassError::ContractResolution(format!("contract resolution failed: {e}")))?;
+    let policy = gmeow_logic::certificate::ContradictionPolicy::resolve_from_dataset(bundle)
+        .map_err(|e| {
+            DeepPassError::ContractResolution(format!("contract resolution failed: {e}"))
+        })?;
+
+    // Admit selected laws before execution so a known contract error cannot be
+    // masked by an earlier infrastructure or resource failure.
+    let gates = native_gates
+        .ok_or_else(|| {
+            DeepPassError::NativeGates("native verification laws were not selected".to_owned())
+        })?
+        .map_err(|error| DeepPassError::NativeGates(error.to_string()))?;
+    let verification = gmeow_logic::verify::PreparedVerification::new(&[], gates)
+        .map_err(|error| DeepPassError::NativeGates(error.to_string()))?;
+
+    // Narrow the bundle side to the object-level reasoning EDB — the SAME
+    // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
+    // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`)
+    // — BEFORE merging in the caller's own data, so `gmeow validate <data> --deep`
+    // reasons the consumer's data against byte-identical bundle worlds to the
+    // pipeline's own `make reason-verify` gate rather than also reasoning over
+    // meta/report graphs (documentation, diagnostics, correspondence, …) that assert
+    // no object-level axioms.
+    let bundle_edb =
+        gmeow_logic::reasoning_graphs::project_object_level_edb(bundle).map_err(|e| {
+            DeepPassError::Unavailable(format!("object-level EDB projection failed: {e}"))
+        })?;
+    let edb = {
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        builder.push_dataset(bundle_edb.as_ref());
+        builder.push_dataset(user);
+        builder
+            .freeze()
+            .map_err(|e| DeepPassError::Unavailable(format!("freeze merged EDB: {e}")))?
+    };
+    let result = (|| {
+        use gmeow_logic::reason::{
+            DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld,
+        };
+        let input = gmeow_logic::reason::prepare_reasoning_input(&edb)?;
+        let mut roles = gmeow_logic::reasoning_graphs::object_level_domains()?
+            .worlds()
+            .to_vec();
+        // This operation admits every submitted user context as a theory. The
+        // bundle side retains only its separately declared object-level roles.
+        for graph in user
+            .named_graphs()
+            .map(|id| LogicalGraph::Named(user.term_value(id)))
+        {
+            if !roles.iter().any(|role| role.graph() == &graph) {
+                roles.push(SelectedLogicalWorld::new(
+                    graph,
+                    DomainProfile::NonemptyObjectDomainV1,
+                    "gmeow.validate.user-theories.v1".to_owned(),
+                    *input.ingress_contract(),
+                )?);
+            }
+        }
+        gmeow_logic::reason::reason_all(input, &SelectedDomains::new(roles)?)
+    })()
+    .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
+    // Build the faithful cited-quad-reifier derivation skeletons for the SAME result.
+    // A build failure AFTER the reasoner produced a real verdict is an internal
+    // invariant violation (a cycle or unresolved antecedent in the proof trace), NOT
+    // an infrastructure availability failure: it maps to the hard-fail `Derivation`
+    // variant, never the graceful `Unavailable` note.
+    let explanations = gmeow_logic::explain::explanations_for_result(&result).map_err(|e| {
+        DeepPassError::Derivation(format!(
+            "explanation-skeleton build failed after a real verdict (internal invariant): {e}"
+        ))
+    })?;
     crate::validate_all::fold_reasoning_result(&result, policy, &explanations, report)
         .map_err(|e| DeepPassError::Derivation(e.message))?;
 
@@ -733,9 +828,10 @@ fn deep_consistency_findings(
     // just used. Unlike the dev bundle-only pass, a failure here can be caused by
     // the CALLER's own merged data, not just the bundle, so it degrades
     // gracefully to the `Unavailable` advisory rather than hard-failing.
-    crate::validate_all::run_math_reasoned_gates(edb.as_ref(), &result, report).map_err(|e| {
-        DeepPassError::Unavailable(format!("reasoned-graph materialization failed: {e}"))
-    })?;
+    crate::validate_all::run_math_reasoned_gates(edb.as_ref(), &result, &verification, report)
+        .map_err(|e| {
+            DeepPassError::Unavailable(format!("reasoned-graph materialization failed: {e}"))
+        })?;
     Ok(())
 }
 
@@ -786,38 +882,32 @@ fn data_dataset_flat(
     data_bytes: &[u8],
     data_format: &str,
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    if is_json_ld(data_format) {
-        // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
-        // native JSON-LD-star codec, then re-home every named graph to the default graph
-        // (the Tier-1 SHACL path needs the whole graph flat). This matches the prior
-        // gmeow-gts → `dataset_from_gts` flattening behavior.
-        let dataset =
-            purrdf::native_codecs::jsonld::parse_jsonld(data_bytes, None).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    detail: format!("JSON-LD parse error: {e}"),
-                })
-            })?;
-        return flatten_to_default_graph(&dataset);
-    }
-
-    // Parse to the native IR, then re-home every named graph to the default graph so
-    // the flattened graph matches the old `FlattenToDefaultGraph` store.
-    let dataset = purrdf::parse_dataset(data_bytes, data_format, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: located_parse_error("data graph parse error", &e),
-        })
-    })?;
-    flatten_to_default_graph(&dataset)
+    flatten_to_default_graph(&data_dataset(data_bytes, data_format)?)
 }
 
-/// Re-home every quad of `dataset` to the default graph (the native twin of
-/// `GraphPolicy::FlattenToDefaultGraph`), returning a fresh frozen dataset.
-fn flatten_to_default_graph(dataset: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
+/// Derive the flat validation view, retaining base quads, reifiers and annotations.
+/// World-scoped rows deliberately join in this SHACL view; the original dataset
+/// remains authoritative for deep reasoning and provenance. An already flat input
+/// is shared directly, and an invalid native projection fails at freeze.
+pub(crate) fn flatten_to_default_graph(
+    dataset: &Arc<RdfDataset>,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    if dataset.named_graphs().next().is_none() {
+        return Ok(Arc::clone(dataset));
+    }
     use purrdf::RdfDatasetBuilder;
     let mut builder = RdfDatasetBuilder::new();
     for mut quad in dataset.owned_quads() {
         quad.graph_name = None;
         builder.push_owned_quad(&quad);
+    }
+    for mut reifier in dataset.owned_reifiers() {
+        reifier.graph = None;
+        builder.push_owned_reifier(&reifier);
+    }
+    for mut annotation in dataset.owned_annotations() {
+        annotation.graph = None;
+        builder.push_owned_annotation(&annotation);
     }
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Dataset {
@@ -846,9 +936,8 @@ fn flatten_to_default_graph(dataset: &RdfDataset) -> gmeow_errors::Result<Arc<Rd
 ///
 /// # Errors
 ///
-/// Returns `Err` if the synthesized shortcut Turtle fails to parse (an internal invariant
-/// violation — every synthesized IRI is a term the ontology dataset already accepted) or
-/// the merge fails to freeze.
+/// Returns `Err` if the native merge fails to freeze. Shortcut terms come directly
+/// from the accepted ontology; no intermediate Turtle serialization is produced.
 fn inject_subclass_shortcuts(
     dataset: Arc<RdfDataset>,
     ontology: &RdfDataset,
@@ -866,37 +955,29 @@ fn inject_subclass_shortcuts(
         return Ok(dataset);
     }
 
-    let mut shortcuts = String::new();
+    let mut shortcuts = Vec::new();
     for class_iri in &used_types {
         let mut ancestors: Vec<String> = gufo::proper_ancestors(ontology, class_iri)
             .into_iter()
             .collect();
         ancestors.sort();
         for ancestor in ancestors {
-            shortcuts.push('<');
-            shortcuts.push_str(class_iri);
-            shortcuts.push_str("> <");
-            shortcuts.push_str(gmeow_ns::RDFS_SUB_CLASS_OF);
-            shortcuts.push_str("> <");
-            shortcuts.push_str(&ancestor);
-            shortcuts.push_str("> .\n");
+            shortcuts.push(purrdf::RdfQuad::new(
+                purrdf::RdfTerm::iri(class_iri),
+                gmeow_ns::RDFS_SUB_CLASS_OF,
+                purrdf::RdfTerm::iri(ancestor),
+            ));
         }
     }
     if shortcuts.is_empty() {
         return Ok(dataset);
     }
 
-    let shortcut_dataset = purrdf::parse_dataset(shortcuts.as_bytes(), "text/turtle", None)
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("internal subclass-shortcut synthesis failed to parse: {e}"),
-            })
-        })?;
-
-    use purrdf::RdfDatasetBuilder;
-    let mut builder = RdfDatasetBuilder::new();
+    let mut builder = purrdf::RdfDatasetBuilder::new();
     builder.push_dataset(&dataset);
-    builder.push_dataset(&shortcut_dataset);
+    for shortcut in shortcuts {
+        builder.push_owned_quad(&shortcut);
+    }
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Dataset {
             detail: format!("subclass-shortcut merge failed: {e}"),
@@ -935,6 +1016,37 @@ fn is_json_ld(format: &str) -> bool {
     )
 }
 
+/// Import the dataset and exactly the archives required by this validation profile.
+fn import_validation_bundle(
+    bytes: &[u8],
+    deep: bool,
+) -> gmeow_errors::Result<purrdf::GtsImportWithBlobs> {
+    use purrdf::GtsBlobSelector::Representation;
+    let mut selected = vec![Representation(REP_SHAPES)];
+    if deep {
+        selected.push(Representation(gmeow_gts_profile::archive::REASONING_REP));
+    }
+    let limit = gmeow_gts_profile::archive::MAX_SELECTED_ARCHIVE_BYTES;
+    purrdf::import_gts_events_with_blobs(bytes, &selected, purrdf::GtsBlobLimits::new(limit, limit))
+        .map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Dataset {
+                detail: format!("import selected validation bundle: {error}"),
+            })
+        })
+}
+
+/// Assemble the data-graph shape union from an already authenticated archive.
+/// The native archive iterator owns format decoding; only selected Turtle text
+/// is copied into the parser's one document, in deterministic member order.
+///
+/// # Errors
+/// Rejects upstream archive errors, invalid shape text and an empty selection.
+pub fn data_graph_shapes_from_archive(bytes: &[u8]) -> gmeow_errors::Result<String> {
+    let mut rows = archive_shape_rows(bytes)?;
+    rows.sort_by(|left, right| left.0.cmp(right.0));
+    assemble_shape_rows(rows, &[])
+}
+
 /// Extract and assemble the data-graph SHACL shape union (one Turtle document)
 /// from the bundle's `shapes-archive` blob.
 pub fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<String> {
@@ -959,11 +1071,50 @@ pub struct ShapeCorpusVariants {
 pub fn shape_corpus_variants_from_gts(
     gts_bytes: &[u8],
 ) -> gmeow_errors::Result<ShapeCorpusVariants> {
-    let members = shape_archive_members(gts_bytes)?;
+    let imported = import_validation_bundle(gts_bytes, false)?;
+    let blob = gmeow_gts_profile::archive::required_imported_blob(&imported, REP_SHAPES)?;
+    shape_corpus_variants_from_archive(&blob.bytes)
+}
+
+/// Derive every producer-selected shape surface from borrowed archive members.
+/// No member body is copied before the three required output documents are built.
+///
+/// # Errors
+/// Propagates archive decoding, UTF-8 and empty-selection failures.
+pub fn shape_corpus_variants_from_archive(
+    bytes: &[u8],
+) -> gmeow_errors::Result<ShapeCorpusVariants> {
+    shape_corpus_variants_from_rows(archive_shape_rows(bytes)?)
+}
+
+fn archive_shape_rows(bytes: &[u8]) -> gmeow_errors::Result<Vec<(&str, &[u8])>> {
+    purrdf::ustar::archive_members(bytes)
+        .map(|member| member.map(|member| (member.name, member.data)))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|detail| gmeow_errors::Diag::of_kind(crate::error::Dataset { detail }))
+}
+
+/// Derive the selected shape surfaces from an already decoded archive, sharing
+/// the caller's bundle view and archive work across all fixture artifacts.
+pub fn shape_corpus_variants_from_members(
+    members: &[(String, Vec<u8>)],
+) -> gmeow_errors::Result<ShapeCorpusVariants> {
+    shape_corpus_variants_from_rows(
+        members
+            .iter()
+            .map(|(name, bytes)| (name.as_str(), bytes.as_slice()))
+            .collect(),
+    )
+}
+
+fn shape_corpus_variants_from_rows(
+    mut members: Vec<(&str, &[u8])>,
+) -> gmeow_errors::Result<ShapeCorpusVariants> {
+    members.sort_by(|left, right| left.0.cmp(right.0));
     Ok(ShapeCorpusVariants {
-        production: assemble_shape_members(&members, &[])?,
-        conformance: assemble_shape_members(&members, &["validation-shapes.ttl"])?,
-        domain_conformance: assemble_shape_members(&members, &["result-shapes.ttl"])?,
+        production: assemble_shape_rows(members.iter().copied(), &[])?,
+        conformance: assemble_shape_rows(members.iter().copied(), &["validation-shapes.ttl"])?,
+        domain_conformance: assemble_shape_rows(members.iter().copied(), &["result-shapes.ttl"])?,
     })
 }
 
@@ -977,60 +1128,15 @@ pub fn shapes_from_gts_excluding(
     gts_bytes: &[u8],
     additional_excluded: &[&str],
 ) -> gmeow_errors::Result<String> {
-    let members = shape_archive_members(gts_bytes)?;
-    assemble_shape_members(&members, additional_excluded)
+    let imported = import_validation_bundle(gts_bytes, false)?;
+    let blob = gmeow_gts_profile::archive::required_imported_blob(&imported, REP_SHAPES)?;
+    let mut rows = archive_shape_rows(&blob.bytes)?;
+    rows.sort_by(|left, right| left.0.cmp(right.0));
+    assemble_shape_rows(rows, additional_excluded)
 }
 
-/// Decode and deterministically order the bundle's `shapes-archive` members.
-fn shape_archive_members(gts_bytes: &[u8]) -> gmeow_errors::Result<Vec<(String, Vec<u8>)>> {
-    let mut graph = store::read_gts_graph(gts_bytes)?;
-
-    // Resolve the digest of the blob declared with rep == "shapes-archive".
-    // `blob_meta` values are CBOR maps (`ciborium::value::Value::Map`); read the
-    // `rep` text field rather than indexing a JSON object.
-    let digest = graph
-        .blob_meta
-        .iter()
-        .find(|(_, meta)| cbor_text_field(meta, "rep") == Some(REP_SHAPES))
-        .map(|(d, _)| d.clone())
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Dataset {
-                detail: format!(
-                    "bundle carries no `{REP_SHAPES}` blob — cannot validate repo-free"
-                ),
-            })
-        })?;
-
-    // Decode the blob bytes (forcing a lazy entry if the fold deferred it).
-    let entry = graph
-        .blobs
-        .iter_mut()
-        .find(|(d, _)| *d == digest)
-        .map(|(_, e)| e)
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Dataset {
-                detail: format!("`{REP_SHAPES}` blob metadata present but bytes missing"),
-            })
-        })?;
-    let tar = entry
-        .decode()
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Dataset {
-                detail: format!("`{REP_SHAPES}` blob decode error: {e}"),
-            })
-        })?
-        .to_vec();
-
-    let mut members = purrdf::ustar::read_archive(&tar)
-        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Dataset { detail: e }))?;
-    // Deterministic concatenation order regardless of archive member order.
-    members.sort_by(|a, b| a.0.cmp(&b.0));
-    Ok(members)
-}
-
-/// Assemble one UTF-8 Turtle selection from already-decoded shape members.
-fn assemble_shape_members(
-    members: &[(String, Vec<u8>)],
+fn assemble_shape_rows<'a>(
+    members: impl IntoIterator<Item = (&'a str, &'a [u8])>,
     additional_excluded: &[&str],
 ) -> gmeow_errors::Result<String> {
     let mut ttl = String::new();
@@ -1063,480 +1169,8 @@ fn assemble_shape_members(
     Ok(ttl)
 }
 
-/// Read a text-valued field out of a CBOR map (`ciborium::value::Value::Map`),
-/// matching the string key `key`. Returns `None` for a non-map value or a
-/// missing/non-text field.
-fn cbor_text_field<'a>(meta: &'a ciborium::value::Value, key: &str) -> Option<&'a str> {
-    let ciborium::value::Value::Map(entries) = meta else {
-        return None;
-    };
-    for (k, v) in entries {
-        if let ciborium::value::Value::Text(name) = k
-            && name == key
-        {
-            if let ciborium::value::Value::Text(text) = v {
-                return Some(text.as_str());
-            }
-            return None;
-        }
-    }
-    None
-}
-
 // The deep-pass tests exercise `run_deep_pass`, which is native-only; the whole
 // module is gated to the native target so a wasm `--all-targets` pass stays clean.
+#[path = "data_validate.tests.rs"]
 #[cfg(all(test, not(target_arch = "wasm32")))]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn is_json_ld_matches_ids_and_media_type() {
-        assert!(is_json_ld("json-ld"));
-        assert!(is_json_ld("jsonld"));
-        assert!(is_json_ld("application/ld+json"));
-        assert!(is_json_ld("  JSON-LD  "));
-        assert!(!is_json_ld("turtle"));
-        assert!(!is_json_ld("application/json"));
-    }
-
-    #[test]
-    fn deep_pass_failure_folds_advisory_note_and_preserves_tier1() {
-        // Graceful degradation (AC2): when the Tier-2 pass cannot run — here the
-        // bundle bytes are unreadable, so import_gts_events fails — the pre-existing
-        // Tier-1 findings survive unchanged and exactly one validate.deep.unavailable
-        // advisory Note is folded. No panic, no error propagation.
-        let mut report = Report::new("validate");
-        report.add_finding(
-            Finding::new(
-                Severity::Error,
-                "tier1.fixture",
-                "a pre-existing Tier-1 finding",
-            )
-            .with_tool("validate"),
-        );
-
-        run_deep_pass(
-            b"not a gts bundle",
-            b"ex:a ex:b ex:c .",
-            "turtle",
-            "fixture.ttl",
-            &mut report,
-        );
-
-        let unavailable: Vec<_> = report
-            .findings
-            .iter()
-            .filter(|f| f.code == "validate.deep.unavailable")
-            .collect();
-        assert_eq!(
-            unavailable.len(),
-            1,
-            "exactly one advisory note on a failed deep pass: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-        assert_eq!(unavailable[0].severity, Severity::Note);
-        assert_eq!(
-            unavailable[0]
-                .locations
-                .first()
-                .and_then(|l| l.path.as_deref()),
-            Some("fixture.ttl"),
-            "validate.deep.unavailable must carry the origin path as its location"
-        );
-        assert!(
-            report.findings.iter().any(|f| f.code == "tier1.fixture"),
-            "the pre-existing Tier-1 finding must be preserved"
-        );
-        // No inconsistency error was fabricated from the failed pass.
-        assert!(
-            !report
-                .findings
-                .iter()
-                .any(|f| f.code == "validate.deep.inconsistent")
-        );
-    }
-
-    /// Build canonical GTS bytes from an arbitrary Turtle string for use in
-    /// deep-pass tests. Mirrors the same helper in `validate_all` tests.
-    fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
-        let dataset =
-            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse test turtle");
-        // gmeow-test-input: synthetic-only
-        purrdf::gts_write::to_gts(
-            &dataset,
-            &purrdf::RdfLookaside::default(),
-            "gmeow-validate-data-deep-test",
-        )
-        .expect("encode GTS bytes")
-    }
-
-    /// Regression guard for the hard-fail discipline: a bundle whose declared
-    /// `logic:ReasoningContract` carries a GARBLED `logic:admissibleValuation`
-    /// (here `logic:Nonsense`, an unrecognised local name) must produce a
-    /// `Severity::Error` finding with code `validate.deep.contract-invalid`, NOT
-    /// a `validate.deep.unavailable` advisory Note. The gate must FAIL.
-    ///
-    /// This test catches the defect where `run_deep_pass` was collapsing both
-    /// failure modes (invalid input and infrastructure unavailability) into a
-    /// single non-failing advisory, silently passing a bundle with invalid data.
-    #[test]
-    fn deep_pass_garbled_contract_produces_error_not_advisory() {
-        let garbled_bundle = gts_bytes_from_turtle(
-            "\
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-logic:c rdf:type logic:ReasoningContract ;
-    logic:admissibleValuation logic:Nonsense .
-",
-        );
-
-        let mut report = Report::new("validate");
-        run_deep_pass(
-            &garbled_bundle,
-            b"<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/T> .\n",
-            "n-triples",
-            "fixture.nt",
-            &mut report,
-        );
-
-        // Must NOT fold an advisory note — that is the defect this test guards against.
-        assert!(
-            !report
-                .findings
-                .iter()
-                .any(|f| f.code == "validate.deep.unavailable"),
-            "a garbled contract must NOT produce an advisory note (validate.deep.unavailable); \
-             it is invalid INPUT, not an availability failure: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-
-        // Must fold a hard-fail Error finding.
-        let contract_error: Vec<_> = report
-            .findings
-            .iter()
-            .filter(|f| f.code == "validate.deep.contract-invalid")
-            .collect();
-        assert_eq!(
-            contract_error.len(),
-            1,
-            "exactly one validate.deep.contract-invalid error must be emitted: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-        assert_eq!(
-            contract_error[0].severity,
-            Severity::Error,
-            "a garbled contract policy must be a hard-fail Error finding"
-        );
-        assert_eq!(
-            contract_error[0]
-                .locations
-                .first()
-                .and_then(|l| l.path.as_deref()),
-            Some("fixture.nt"),
-            "the contract-invalid finding must carry the origin path"
-        );
-        assert!(
-            !report.ok(),
-            "a garbled contract policy must fail the gate (report.ok() must be false)"
-        );
-    }
-
-    #[test]
-    fn report_json_round_trips() {
-        // The wasm/CLI boundary (`validate_json`) serializes a Report to JSON; this
-        // guards that the canonical Report model round-trips through serde_json so a
-        // client can parse the findings back losslessly.
-        let mut report = Report::new("validate");
-        report.add_finding(
-            Finding::new(Severity::Error, "tier1.fixture", "a fixture finding")
-                .with_tool("validate"),
-        );
-        let json = serde_json::to_string(&report).expect("Report must serialize to JSON");
-        let back: Report = serde_json::from_str(&json).expect("Report JSON must deserialize back");
-        assert_eq!(
-            report, back,
-            "Report must round-trip through JSON unchanged"
-        );
-    }
-
-    #[test]
-    fn validate_json_surfaces_missing_shapes_as_err_string() {
-        // A plain GTS bundle carries no `shapes-archive` blob, so the wasm/CLI entry
-        // must return an Err STRING (not panic) that names the missing surface — the
-        // no-optionality hard-fail surfaced as a boundary-friendly error.
-        let bundle =
-            gts_bytes_from_turtle("@prefix ex: <http://example.org/> .\nex:a ex:b ex:c .\n");
-        let err = validate_json(
-            b"<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/T> .\n",
-            "n-triples",
-            &bundle,
-            "https://blackcatinformatics.ca/gmeow/",
-            "fixture.nt",
-        )
-        .expect_err("a bundle without a shapes-archive must be an Err");
-        assert!(err.is::<crate::error::Dataset>());
-        assert!(
-            err.message().contains("shapes-archive"),
-            "the error must name the missing bundle surface: {}",
-            err.message()
-        );
-    }
-
-    /// Build a `Tier1Shapes` directly from hand-authored shape + ontology Turtle,
-    /// bypassing the bundle decode — a self-contained fixture proving
-    /// [`Tier1Shapes::validate`] WIRES the advisory split without needing a real
-    /// `gmeow.gts`. `shapes_ttl` feeds BOTH the SHACL engine (`shapes`) and the
-    /// `logic:formalizes` provenance reader (`shapes_dataset`); `ontology_ttl` carries
-    /// the formalized term's howToUse/useWhen prose.
-    fn tier1_from_ttl(shapes_ttl: &str, ontology_ttl: &str) -> Tier1Shapes {
-        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl, None).expect("shapes parse");
-        let shapes_dataset =
-            purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).expect("shapes ds");
-        let ontology = purrdf::parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)
-            .expect("ontology ds");
-        let failure_classes =
-            crate::findings::FailureClassIndex::from_shapes_dataset(&shapes_dataset);
-        Tier1Shapes {
-            shapes,
-            shapes_dataset,
-            failure_classes,
-            ontology,
-        }
-    }
-
-    /// The consumer-path wiring proof (F1): `Tier1Shapes::validate` — the shared core
-    /// `gmeow validate <file>` and the MCP `validate_local` tool both reach — applies the
-    /// advisory split. A bare `gmeow:Entity` individual (the anti-pattern the Info-severity
-    /// advisory guard matches) must surface as a `Severity::Note`, `advice.*` finding
-    /// carrying the formalized term's howToUse suggestion and a "Use when:" useWhen entry —
-    /// NOT a raw `shacl.* Info` finding for that shape.
-    #[test]
-    fn validate_wires_the_advisory_split_for_a_bare_entity() {
-        const SHAPES: &str = r#"
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-<https://ex.test/EntityAdviceShape> a sh:NodeShape ;
-    logic:formalizes gmeow:Entity ;
-    sh:targetClass gmeow:Entity ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Info ;
-        sh:message "prefer a more specific sortal than bare gmeow:Entity" ;
-        sh:select "SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Entity> }" ;
-    ] .
-"#;
-        const ONTOLOGY: &str = "\
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-gmeow:Entity gmeow:howToUse \"Type each instance with its most specific sortal.\"@x-gmeow-english ;
-    gmeow:useWhen \"Use for a genuinely category-neutral resource.\"@x-gmeow-english .
-";
-        let tier1 = tier1_from_ttl(SHAPES, ONTOLOGY);
-        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-                    <https://blackcatinformatics.ca/gmeow/Entity> .\n";
-        let report = tier1
-            .validate(
-                data.as_bytes(),
-                "n-triples",
-                "https://blackcatinformatics.ca/gmeow/",
-                "user-data.ttl",
-            )
-            .expect("Tier-1 validate must succeed");
-
-        // The advisory is a Note, code in the advice.* family.
-        let advice: Vec<_> = report
-            .findings
-            .iter()
-            .filter(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY))
-            .collect();
-        assert_eq!(
-            advice.len(),
-            1,
-            "exactly one advice.* Note finding must be wired in by validate: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-        let advice = advice[0];
-        assert_eq!(advice.severity, Severity::Note);
-
-        // The raw shacl.* Info finding for the advisory shape must have been SUPPRESSED.
-        assert!(
-            !report
-                .findings
-                .iter()
-                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)
-                    && f.severity == Severity::Info),
-            "the raw shacl.* Info finding must be suppressed once split into advice: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-
-        // howToUse populates the suggestions verbatim; useWhen surfaces as guidance.
-        assert!(
-            advice
-                .suggestions
-                .iter()
-                .any(|s| s == "Type each instance with its most specific sortal."),
-            "the advice must carry the term's gmeow:howToUse as a suggestion: {:?}",
-            advice.suggestions
-        );
-        assert!(
-            advice
-                .suggestions
-                .iter()
-                .any(|s| s == "Use when: Use for a genuinely category-neutral resource."),
-            "the advice must carry the term's gmeow:useWhen as a \"Use when:\" entry: {:?}",
-            advice.suggestions
-        );
-    }
-
-    #[test]
-    fn cbor_text_field_reads_rep_label() {
-        use ciborium::value::Value;
-        let meta = Value::Map(vec![
-            (
-                Value::Text("mt".into()),
-                Value::Text("application/x-tar".into()),
-            ),
-            (
-                Value::Text("rep".into()),
-                Value::Text("shapes-archive".into()),
-            ),
-        ]);
-        assert_eq!(cbor_text_field(&meta, "rep"), Some("shapes-archive"));
-        assert_eq!(cbor_text_field(&meta, "absent"), None);
-        assert_eq!(cbor_text_field(&Value::Null, "rep"), None);
-    }
-
-    /// The shared subclass-hierarchy fixture for the [`inject_subclass_shortcuts`] proofs
-    /// below: `ex:A ⊑ ex:B ⊑ ex:C` (a two-hop chain, so a one-hop-only fix would fail the
-    /// transitivity proof), plus an unrelated `ex:D` with no subsumption edge to `ex:A`.
-    const SUBCLASS_ONTOLOGY: &str = "\
-@prefix ex: <https://ex.test/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-ex:A rdfs:subClassOf ex:B .
-ex:B rdfs:subClassOf ex:C .
-";
-
-    /// A `sh:targetClass` shape requiring `ex:name` on instances of `class_local`
-    /// (e.g. `C`, `D`) — the pattern that is dead when every real instance is
-    /// typed with a proper subclass rather than the targeted class itself.
-    fn subclass_probe_shapes(class_local: &str) -> String {
-        format!(
-            "\
-@prefix ex: <https://ex.test/> .
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-<https://ex.test/{class_local}Shape> a sh:NodeShape ;
-    sh:targetClass ex:{class_local} ;
-    sh:property [ sh:path ex:name ; sh:minCount 1 ] .
-"
-        )
-    }
-
-    /// Bundle-hierarchy regression: a focus node typed ONLY as a proper subclass (`ex:x a
-    /// ex:A`, never `ex:x a ex:C` directly) IS selected by a shape whose `sh:targetClass`
-    /// names an ANCESTOR (`ex:C`) the isolated data graph never restates — the exact defect
-    /// the shipped `gmeow validate <file>` CLI hit on `math:ArgumentSlotContiguityConstraint`
-    /// (`sh:targetClass math:MathematicalExpression` never selecting an
-    /// `math:ApplicationExpression`-typed root). Without [`inject_subclass_shortcuts`], this
-    /// finding is silently absent because the isolated data graph carries no
-    /// `rdfs:subClassOf` triple at all.
-    #[test]
-    fn subclass_typed_focus_node_is_selected_across_the_bundle_hierarchy() {
-        let tier1 = tier1_from_ttl(&subclass_probe_shapes("C"), SUBCLASS_ONTOLOGY);
-        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-                    <https://ex.test/A> .\n";
-        let report = tier1
-            .validate(
-                data.as_bytes(),
-                "n-triples",
-                "https://ex.test/",
-                "user-data.ttl",
-            )
-            .expect("Tier-1 validate must succeed");
-
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
-            "a node typed only as a proper subclass of the shape's sh:targetClass must still \
-             be selected as a focus node (missing ex:name must be flagged): {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-    }
-
-    /// Bundle-hierarchy regression, the negative twin: a shape targeting an UNRELATED class
-    /// (`ex:D`, no subsumption edge to/from `ex:A` in [`SUBCLASS_ONTOLOGY`]) must NOT select
-    /// an `ex:A`-typed focus node — the shortcut injection must not over-approximate and
-    /// select every instance for every shape regardless of its real class.
-    #[test]
-    fn unrelated_class_shape_is_not_selected() {
-        let tier1 = tier1_from_ttl(&subclass_probe_shapes("D"), SUBCLASS_ONTOLOGY);
-        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-                    <https://ex.test/A> .\n";
-        let report = tier1
-            .validate(
-                data.as_bytes(),
-                "n-triples",
-                "https://ex.test/",
-                "user-data.ttl",
-            )
-            .expect("Tier-1 validate must succeed");
-
-        assert!(
-            !report
-                .findings
-                .iter()
-                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
-            "a shape targeting an unrelated, unconnected class must select NO focus node: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-    }
-
-    /// Bundle-hierarchy regression, the transitivity proof: the shape targets `ex:C`, the data
-    /// is typed only `ex:A`, and [`SUBCLASS_ONTOLOGY`] connects them ONLY via the two-hop
-    /// chain `ex:A ⊑ ex:B ⊑ ex:C` — `ex:A` carries no DIRECT `rdfs:subClassOf ex:C` edge, so
-    /// this fails if the shortcut injection only walked one hop instead of the full
-    /// transitive ancestor set ([`gufo::proper_ancestors`], the same BFS the OntoUML
-    /// disciplines already trust).
-    #[test]
-    fn subclass_shortcut_injection_is_transitive_across_two_hops() {
-        // Sanity: the fixture really is two hops, not a direct edge (guards against a
-        // fixture typo silently turning this into the single-hop test above).
-        let ontology = purrdf::parse_dataset(SUBCLASS_ONTOLOGY.as_bytes(), "text/turtle", None)
-            .expect("ontology parses");
-        assert!(
-            !gufo::proper_ancestors(&ontology, "https://ex.test/A").is_empty(),
-            "fixture sanity: ex:A must have at least one ancestor"
-        );
-        assert!(
-            SUBCLASS_ONTOLOGY
-                .lines()
-                .filter(|l| l.contains("ex:A") && l.contains("ex:C"))
-                .count()
-                == 0,
-            "fixture sanity: ex:A must NOT carry a direct edge to ex:C"
-        );
-
-        let tier1 = tier1_from_ttl(&subclass_probe_shapes("C"), SUBCLASS_ONTOLOGY);
-        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-                    <https://ex.test/A> .\n";
-        let report = tier1
-            .validate(
-                data.as_bytes(),
-                "n-triples",
-                "https://ex.test/",
-                "user-data.ttl",
-            )
-            .expect("Tier-1 validate must succeed");
-
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
-            "a two-hop transitive ancestor (ex:A ⊑ ex:B ⊑ ex:C) must still be reached by the \
-             shortcut injection: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-    }
-}
+mod tests;

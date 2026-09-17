@@ -174,35 +174,6 @@ pub fn write_timings_json(path: &Path, value: &serde_json::Value) -> i32 {
     0
 }
 
-/// The `logic:` relative-path prefixes the `logic compile --check` drift gate
-/// filters the whole-pipeline drift set to (mirrors the Python `_logic_prefixes`).
-pub const LOGIC_DRIFT_PREFIXES: &[&str] = &[
-    "generated/logic/",
-    "generated/owl/",
-    "generated/datalog/",
-    "generated/n3/",
-    "generated/foundation/",
-    "generated/shacl-af/",
-    "generated/cl/",
-];
-
+#[path = "dev_common.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// Resolve nested invocations locally and never replace an unrelated selected directory.
-    #[test]
-    fn checkout_discovery_preserves_the_selected_tree_without_a_compiled_fallback() {
-        let directory = tempfile::tempdir().expect("isolated selection");
-        let selected = directory.path().join("checkout");
-        let nested = selected.join("crates/example/src");
-        std::fs::create_dir_all(&nested).expect("nested invocation directory");
-        std::fs::create_dir(selected.join("slices")).expect("source tree");
-        std::fs::write(selected.join("Cargo.toml"), b"[workspace]\n").expect("marker");
-        assert_eq!(enclosing_checkout(&nested), selected);
-        assert_eq!(enclosing_checkout(&selected), selected);
-        let unrelated = directory.path().join("unrelated");
-        std::fs::create_dir(&unrelated).expect("unrelated invocation directory");
-        assert_eq!(enclosing_checkout(&unrelated), unrelated);
-    }
-}
+mod tests;

@@ -36,25 +36,30 @@ fn py_bool(b: bool) -> &'static str {
 }
 
 /// Stable diff key for an axiom (mirrors Python `_axiom_key`: subject, predicate,
-/// obj, obj_is_literal — scope and negation are intentionally excluded).
+/// complete typed object — scope and negation are intentionally excluded).
 fn axiom_key(a: &LogicAxiom) -> String {
     format!(
         "{}{SEP}{}{SEP}{}{SEP}{}",
         a.subject,
         a.predicate,
-        a.obj,
-        py_bool(a.obj_is_literal)
+        a.obj.key(),
+        py_bool(a.obj.is_literal())
     )
 }
 
 /// Stable diff key for a rule (mirrors Python `_rule_key`).
 fn rule_key(r: &LogicRule) -> String {
     let head = &r.head;
-    let head_key = format!("{}{SEP}{}{SEP}{}", head.subject, head.predicate, head.obj);
+    let head_key = format!(
+        "{}{SEP}{}{SEP}{}",
+        head.subject,
+        head.predicate,
+        head.obj.key()
+    );
     let mut body: Vec<String> = r
         .body
         .iter()
-        .map(|b| format!("{}{SEP}{}{SEP}{}", b.subject, b.predicate, b.obj))
+        .map(|b| format!("{}{SEP}{}{SEP}{}", b.subject, b.predicate, b.obj.key()))
         .collect();
     body.sort();
     let mut base = format!("{head_key}{SEP}{}", body.join("|"));
@@ -83,7 +88,11 @@ pub fn assert_ir_isomorphic(
     prog_a: &LogicProgram,
     prog_b: &LogicProgram,
 ) -> Result<(), IRIsomorphismError> {
-    if prog_a == prog_b {
+    // Structural equality is stricter than IR isomorphism: commutative formula
+    // children and alpha-renamed binders may have different in-memory ordering
+    // while sharing the canonical semantic identity. The program key already
+    // frames every IR family with its normalized content key.
+    if prog_a == prog_b || prog_a.canonical_key() == prog_b.canonical_key() {
         return Ok(());
     }
 

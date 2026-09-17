@@ -158,6 +158,10 @@ pub struct RunContext {
     /// (or the terminal's exact carrier inputs) without retaining dozens of unrelated
     /// cumulative products.
     pub retained_carriers: BTreeSet<String>,
+    /// Exact (stage, artifact) observations required by post-run reconciliation.
+    /// The scheduler copies only these bytes before releasing their carriers. A
+    /// missing stage or artifact is an error; selection never changes execution.
+    pub retained_artifacts: BTreeSet<(String, String)>,
     /// RAII owner of an ephemeral cache directory, when this context was built by
     /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
     /// leaking a pid-salted path under the system temp dir — is what makes the cache
@@ -186,6 +190,7 @@ impl RunContext {
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
+            retained_artifacts: BTreeSet::new(),
             // Persistent boundary: the cache lives under the repo's `.cache/`, not a
             // temporary directory, so there is nothing to tear down.
             _ephemeral_cache_dir: None,
@@ -224,6 +229,7 @@ impl RunContext {
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
+            retained_artifacts: BTreeSet::new(),
             _ephemeral_cache_dir: Some(dir),
         })
     }
@@ -244,6 +250,7 @@ impl RunContext {
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
+            retained_artifacts: BTreeSet::new(),
             // Inert boundary: no cache I/O at all, so no temporary directory.
             _ephemeral_cache_dir: None,
         }
@@ -277,6 +284,8 @@ impl RunContext {
 pub struct RunResult {
     /// Each stage's product, keyed by stage id (sorted).
     pub products: BTreeMap<String, StageProduct>,
+    /// Selected observations surviving carrier release, keyed by (stage, path).
+    pub retained_artifacts: BTreeMap<(String, String), Vec<u8>>,
     /// The hex SHA-256 over the sorted `(id, product-digest)` pairs.
     pub combined_digest: String,
     /// Per-stage wall-clock timings in topological execution order.
@@ -463,12 +472,16 @@ pub fn run_without(
     skip: &BTreeSet<String>,
 ) -> Result<RunResult, gmeow_errors::Diag> {
     let by_id: BTreeMap<&str, &Arc<dyn Stage>> = bound.iter().map(|s| (s.id(), s)).collect();
-    for retained in &ctx.retained_carriers {
+    for retained in ctx
+        .retained_carriers
+        .iter()
+        .chain(ctx.retained_artifacts.iter().map(|(stage, _)| stage))
+    {
         if !by_id.contains_key(retained.as_str()) || skip.contains(retained) {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: "<scheduler>".to_string(),
                 message: format!(
-                    "retained carrier `{retained}` does not name an executed production stage"
+                    "retained product `{retained}` does not name an executed production stage"
                 ),
             }));
         }
@@ -504,6 +517,7 @@ pub fn run_without(
         })?;
 
     let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
+    let mut retained_artifacts = BTreeMap::new();
     // Opt-in per-stage profiling (GMEOW_PIPELINE_TIMING=1): accumulate
     // (stage_id, elapsed_ms, cached) and dump the slowest stages at the end so the
     // critical path is visible without changing default behaviour.
@@ -665,6 +679,18 @@ pub fn run_without(
                 elapsed_ms: timing.elapsed_ms,
                 metadata: timing.metadata,
             }));
+            for (stage, path) in &ctx.retained_artifacts {
+                if stage != &r.id {
+                    continue;
+                }
+                let bytes = r.product.artifact(path).ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: stage.clone(),
+                        message: format!("required post-run artifact `{path}` is missing"),
+                    })
+                })?;
+                retained_artifacts.insert((stage.clone(), path.clone()), bytes.to_vec());
+            }
             products.insert(r.id, r.product);
         }
         level_timings.push(LevelTiming {
@@ -677,8 +703,8 @@ pub fn run_without(
         // blob from the stage-source-load product: every later stage that calls
         // `span_index()` now HARD-fails, and the shippable bundle the sink assembles from
         // this product never carries the span table. Deterministic and idempotent — the
-        // stripped digest is a pure function of the source-load product, so a warm-cache
-        // run reproduces it. (source-load is at level 0, so it is committed well before any
+        // published product identity survives payload release, so later live action
+        // keys still agree with their immutable upstream receipts. (source-load is at level 0, so it is committed well before any
         // consumer level; the guard is defensive.)
         if Some(level_idx) == span_drop_level
             && let Some(product) = products.get("stage-source-load")
@@ -688,10 +714,7 @@ pub fn run_without(
                 crate::stages::carrier::REP_SPAN_TABLE,
             )?;
             let stage_id = product.stage_id.clone();
-            products.insert(
-                stage_id.clone(),
-                StageProduct::from_bundle(stage_id, Arc::new(stripped)),
-            );
+            products.insert(stage_id.clone(), product.with_released_bundle(stripped));
         }
 
         // ── Drop-after-last-carrier-consumer, generalized to the WHOLE carrier ──
@@ -753,6 +776,7 @@ pub fn run_without(
     let receipt_root = combined_receipts(&stage_receipts);
     Ok(RunResult {
         products,
+        retained_artifacts,
         combined_digest,
         stage_timings,
         stage_phase_timings,
@@ -1026,10 +1050,9 @@ fn product_artifact_records(product: &StageProduct) -> BTreeMap<String, BTreeSet
 
 fn product_handle_records(product: &StageProduct) -> BTreeMap<String, String> {
     product
-        .bundle()
-        .handles()
+        .handle_commitments()
         .iter()
-        .map(|(graph, entry)| (graph.clone(), entry.content_digest.to_hex()))
+        .map(|(graph, binding)| (graph.clone(), binding.digest.clone()))
         .collect()
 }
 
@@ -1244,9 +1267,14 @@ impl ActionIdentity for StageProduct {
     }
 
     fn entity_digest(&self, entity: &str) -> Option<String> {
-        product_graphs(self)
-            .contains(entity)
-            .then(|| self.bundle().graph_digest(entity).to_hex())
+        crate::handle_identity::contains_graph(self.bundle(), entity).then(|| {
+            crate::handle_identity::entity_digest(
+                &self.bundle().graph_digest(entity).to_hex(),
+                self.handle_commitments()
+                    .get(entity)
+                    .map(|binding| (binding.identity.as_str(), binding.digest.as_str())),
+            )
+        })
     }
 }
 
@@ -1263,7 +1291,16 @@ impl ActionIdentity for StageReceipt {
         self.graphs
             .iter()
             .find(|row| row.identity == entity)
-            .map(|row| row.digest.clone())
+            .map(|row| {
+                crate::handle_identity::entity_digest(
+                    &row.digest,
+                    self.typed_handles.iter().filter_map(|binding| {
+                        let (_, graph) = binding.identity.split_once('#')?;
+                        (graph == entity)
+                            .then_some((binding.identity.as_str(), binding.digest.as_str()))
+                    }),
+                )
+            })
     }
 }
 
@@ -1444,19 +1481,6 @@ fn combined_receipts(receipts: &[StageReceipt]) -> String {
     content_digest(&fields)
 }
 
+#[path = "scheduler.digest_tests.rs"]
 #[cfg(test)]
-mod digest_tests {
-    use std::io::Write as _;
-
-    #[test]
-    fn streamed_input_digest_matches_the_action_key_framing_across_chunks() {
-        let mut file = tempfile::NamedTempFile::new().expect("temporary input");
-        let bytes = vec![0xa5_u8; 2 * 1024 * 1024 + 17];
-        file.write_all(&bytes).expect("write multi-chunk input");
-        file.flush().expect("flush input");
-        assert_eq!(
-            super::digest_input_file(file.path()).expect("stream digest"),
-            crate::cache::content_digest(&[&bytes]),
-        );
-    }
-}
+mod digest_tests;

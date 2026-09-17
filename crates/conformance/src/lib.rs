@@ -51,3 +51,12 @@ pub mod serialize;
 /// both the `cases/external/` correctness family and the `cases/bench/` performance
 /// family — see [`vendored`] for the single-root, single-gate statement.
 pub mod vendored;
+
+/// Native consistency observations shared by explicit producers and read-only consumers.
+pub mod consistency;
+
+/// Typed native producer observations for independent oracle and proof consumers.
+pub mod observations;
+
+/// Explicit native case operation and authenticated producer-result transport.
+pub mod native_observation;

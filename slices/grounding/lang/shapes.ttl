@@ -33,6 +33,7 @@ lang:ReadingClaimGroundedShape
     sh:targetSubjectsOf lang:aboutReading ;
     sh:property [
         sh:path <https://blackcatinformatics.ca/gmeow/vantage> ;
+        gmeow:enforcesFailureClass lang:UngroundedReadingClaim ;
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A reading-correctness claim must name its gmeow:vantage." ;
@@ -85,6 +86,7 @@ lang:GmnCodepointCanonicalShape
     sh:targetSubjectsOf gmeow:gmnCodepoints ;
     sh:property [
         sh:path gmeow:gmnCodepoints ;
+        gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;
         sh:minCount 1 ;
         sh:pattern "^U\\+[0-9A-F]{4,6}( U\\+[0-9A-F]{4,6})*$" ;
         sh:severity sh:Violation ;

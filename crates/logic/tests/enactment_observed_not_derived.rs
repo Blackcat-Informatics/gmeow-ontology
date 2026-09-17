@@ -16,7 +16,7 @@
 //! stayed green. Unit tests prove the function works in isolation; only a test that drives
 //! the real entry point proves the function is WIRED. So:
 //!
-//! * every case here calls the production [`verify`] entrypoint — the same one
+//! * every case here calls the production [`gmeow_logic::verify::PreparedVerification::verify`] entrypoint — the same one
 //!   `make reason-verify` invokes — never `reject_banned_heads` directly;
 //! * the banned head is not injected into some private row-set, it is DERIVED by the
 //!   shipped EL closure from ordinary asserted RDFS, which is exactly the shape a real
@@ -24,7 +24,8 @@
 //! * a control case pins the guard's narrowness: the same scene with the offending
 //!   subsumption removed must pass, so the test cannot go green by refusing everything.
 
-use gmeow_logic::verify::verify;
+#[path = "common/prepared_verify.rs"]
+mod prepared_verify;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 use std::sync::Arc;
 
@@ -64,7 +65,16 @@ fn scene(triples: &[(&str, &str, &str)]) -> Arc<RdfDataset> {
 /// The guard runs before any verify query is evaluated, so the query list is irrelevant to
 /// what is under test and an empty one keeps the failure attributable to the guard alone.
 fn run_verify(dataset: &RdfDataset) -> gmeow_errors::Result<gmeow_errors::Report> {
-    verify(dataset, &[])
+    let input = gmeow_logic::reason::prepare_reasoning_input(dataset)?;
+    let domains = gmeow_logic::reason::SelectedDomains::new([
+        gmeow_logic::reason::SelectedLogicalWorld::new(
+            gmeow_logic::reason::LogicalGraph::Named(purrdf::TermValue::iri(WORLD)),
+            gmeow_logic::reason::DomainProfile::NonemptyObjectDomainV1,
+            "urn:test:enactment:observed-not-derived-theory".to_owned(),
+            *input.ingress_contract(),
+        )?,
+    ])?;
+    prepared_verify::verification(&[]).verify(dataset, &domains)
 }
 
 /// A DERIVED `logic:EffectAttempt` hard-fails the production `verify()` path.

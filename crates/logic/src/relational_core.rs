@@ -8,24 +8,21 @@
 //! [`Formula`](gmeow_logic_compile::ir::Formula) becomes Horn. This module is the thin
 //! physical-engine adapter: it asks the lane to lower a program's formulas to relational-core
 //! [`RcRule`]s + flagged residue, then maps each `RcRule` onward to the evaluable
-//! [`EvalRule`] the chase runs (the native [`TermValue`] bridge that cannot live in the
+//! [`EvalRule`] the chase runs (the native [`purrdf::TermValue`] bridge that cannot live in the
 //! wasm-clean lane).
 //!
 //! The honest [`PreservationClaim`] is `{exact}` only when the whole formula set lowered, else
 //! `{sound-under}` naming the residue — sourced directly from the lane's residue so the engine
 //! and the carrier/projections agree (one decomposition, no parallel clausifier).
 //!
-//! Floor of the supported fragment (the lane's, verbatim): a formula whose negation-normal
-//! form is a conjunction of Horn clauses whose atoms are binary, or **fixed-arity n-ary**
-//! atoms reified into binary atoms over a reifier node (`∀x̄. A ← B₁ ∧ … ∧ Bₙ`, optionally
-//! with a leading existential prefix Skolemized to constants; an n-ary head derives a tuple
-//! over an existential reifier). Beyond it — a disjunctive head, a quantifier alternation
-//! (`∃` under `∀`), a genuinely unbounded sequence-marker atom, or an n-ary head argument the
-//! body does not bind — is carried as flagged residue, never mis-lowered.
+//! The supported fragment includes positive tuple-generating dependencies
+//! `∀x. B(x) → ∃z. H(x,z)` with conjunctive binary or fixed-arity reified heads.
+//! Witnesses belong to the whole dependency, including a single binary head. The
+//! native chase admits termination separately from syntactic lowering. Disjunctive
+//! or negative heads, further quantifier alternation, unbound universal head variables,
+//! compound function terms and unbounded sequence markers remain explicit residue.
 
 use std::collections::{BTreeMap, BTreeSet};
-
-use purrdf::TermValue;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};
 use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm, RcViolationResidue};
@@ -34,6 +31,9 @@ use crate::facts::sha1_hex;
 use crate::query_ir::{QBuiltin, QTerm};
 use crate::result::PreservationClaim;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
+
+mod inspection;
+pub use inspection::{FormulaLoweringInspection, RuleInspection, inspect_formula_lowering};
 
 /// Wrap a relational-core lowering condition message as a typed diagnostic on the
 /// shared substrate, preserving the authored text verbatim.
@@ -47,11 +47,9 @@ pub(crate) struct RelationalCoreLowering {
     /// The [`EvalRule`]s the Horn-expressible (ordinary, single-head) formula fragment
     /// produced, mapped from the lane's [`RcRule`]s for the native forward chase.
     pub(crate) rules: Vec<EvalRule>,
-    /// The typed conjunctive-head existential rules for the program's n-ary
-    /// HEAD-derivations. They remain separate from [`Self::rules`] because they
-    /// invent reifier nulls and are evaluated by the native restricted chase. Empty when the
-    /// program derives no n-ary tuples.
-    pub(crate) nary_head_rules: Vec<crate::physical::ExistentialRule>,
+    /// Positive existential dependencies and conjunctive heads, including n-ary
+    /// tuple derivations. The restricted chase owns their shared witness scope.
+    pub(crate) existential_rules: Vec<crate::physical::ExistentialRule>,
     /// An honest preservation claim: `{exact}` when every formula lowered, else
     /// `{sound-under}` carrying a description of each unsupported formula.
     pub(crate) preservation: PreservationClaim,
@@ -68,13 +66,12 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
 
     let mut rules: Vec<EvalRule> = Vec::new();
     let mut residue: BTreeSet<String> = lane_residue.into_iter().collect();
-    // Partition the lane's rules: an n-ary HEAD-derivation rule (non-empty `head_conjuncts`)
-    // maps to a conjunctive-head existential rule; every ordinary (single-head)
-    // rule maps onward to an evaluable [`EvalRule`] for the native chase.
-    let mut nary: Vec<&RcRule> = Vec::new();
+    // A single binary head can invent a witness. Conjunctive heads also stay
+    // together so the native chase preserves their common firing and witness scope.
+    let mut producers: Vec<&RcRule> = Vec::new();
     for rc in &rc_rules {
-        if !rc.head_conjuncts.is_empty() {
-            nary.push(rc);
+        if !rc.head_conjuncts.is_empty() || rc.has_existential_head() {
+            producers.push(rc);
             continue;
         }
         match rc_rule_to_eval(rc) {
@@ -84,10 +81,10 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
             }
         }
     }
-    let mut nary_head_rules = Vec::new();
-    for rule in nary {
+    let mut existential_rules = Vec::new();
+    for rule in producers {
         match rc_rule_to_existential(rule) {
-            Ok(rule) => nary_head_rules.push(rule),
+            Ok(rule) => existential_rules.push(rule),
             Err(reason) => {
                 residue.insert(reason.message().to_owned());
             }
@@ -97,7 +94,7 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
     RelationalCoreLowering {
         preservation: PreservationClaim::for_unsupported(residue),
         rules,
-        nary_head_rules,
+        existential_rules,
     }
 }
 
@@ -117,12 +114,14 @@ fn rc_rule_to_eval(rc: &RcRule) -> gmeow_errors::Result<EvalRule> {
     let body: gmeow_errors::Result<Vec<EvalAtom>> = rc.body.iter().map(rc_atom_to_eval).collect();
     let rule_iri = format!("{LOGIC_NAMESPACE}formula-rule/{}", sha1_hex(&rc.key()));
     Ok(EvalRule {
+        numeric: rc.numeric.clone(),
         head,
         body: body?,
         rule_iri,
         distinct_pairs: rc.distinct_pairs.clone(),
-        // The relational-core lowering carries no arithmetic builtins.
+        // Exact-tower query builtins have their own explicit semantic domain.
         builtins: Vec::new(),
+        reduction: None,
         constraint_tag: None,
     })
 }
@@ -130,7 +129,7 @@ fn rc_rule_to_eval(rc: &RcRule) -> gmeow_errors::Result<EvalRule> {
 fn rc_rule_to_existential(rc: &RcRule) -> gmeow_errors::Result<crate::physical::ExistentialRule> {
     if rc.body.iter().any(|atom| atom.negated) {
         return Err(rc_err(
-            "n-ary existential rule carries a negated body atom the restricted chase cannot honor"
+            "existential rule carries a negated body atom the restricted chase cannot honor"
                 .to_owned(),
         ));
     }
@@ -147,7 +146,11 @@ fn rc_rule_to_existential(rc: &RcRule) -> gmeow_errors::Result<crate::physical::
         .map(rc_atom_to_eval)
         .collect::<gmeow_errors::Result<Vec<_>>>()?;
     Ok(crate::physical::ExistentialRule {
-        rule_iri: format!("{LOGIC_NAMESPACE}formula-nary-head/{}", sha1_hex(&rc.key())),
+        numeric: rc.numeric.clone(),
+        rule_iri: format!(
+            "{LOGIC_NAMESPACE}formula-existential/{}",
+            sha1_hex(&rc.key())
+        ),
         body,
         head,
         distinct: rc.distinct_pairs.clone(),
@@ -183,7 +186,7 @@ fn rc_term_to_eval(term: &RcTerm, is_object: bool) -> gmeow_errors::Result<EvalT
                      literal)"
                 )));
             }
-            Ok(EvalTerm::ConstLit(TermValue::simple_literal(lex)))
+            Ok(EvalTerm::ConstLit(crate::rule_ir::literal_value(lex)))
         }
         RcTerm::Blank(label) => Err(rc_err(format!(
             "relational-core blank node {label:?} in a formula-derived rule — the clausifier \
@@ -294,11 +297,13 @@ pub(crate) fn lower_constraint_violation_rules(
             sha1_hex(&rc.constraint_iri)
         );
         rules.push(EvalRule {
+            numeric: Vec::new(),
             head,
             body,
             rule_iri,
             distinct_pairs: Vec::new(),
             builtins: vec![builtin],
+            reduction: None,
             constraint_tag: Some(rc.constraint_iri.clone()),
         });
     }
@@ -312,7 +317,7 @@ pub(crate) fn lower_constraint_violation_rules(
 /// The residue travels WITH the rules deliberately. A gate that reports "N laws compiled"
 /// while discarding the residue is reporting a number nobody can audit; carrying both lets
 /// the caller state the compiled fraction and name the shortfall.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub(crate) struct ViolationLowering {
     /// The violation-emitting rules — one per consequent conjunct of every constraint
     /// that lowered — in canonical (constraint-IRI, conjunct-index) order.
@@ -416,11 +421,13 @@ pub(crate) fn lower_violation_rules(
             sha1_hex(&format!("{}#{}", rc.constraint_iri, rc.conjunct_index))
         );
         rules.push(EvalRule {
+            numeric: Vec::new(),
             head,
             body,
             rule_iri,
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            reduction: None,
             constraint_tag: Some(rc.constraint_iri.clone()),
         });
     }

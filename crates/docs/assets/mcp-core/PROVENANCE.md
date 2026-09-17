@@ -25,7 +25,7 @@ rather than inertia: the playground and the explorer were said to need a STANDAL
 over a caller-supplied graph. They do not — both query the SHIPPED ontology, which this
 segment is booted over, and `query_local` with `scope: "bundle"` answers every result form
 they ask for. The describe property its `WITNESS.describe.nt` attested is still proven,
-against this engine, by `crates/mcp/tests/witness_explore.rs`.
+against this engine, by `crates/mcp/src/tests/witness_explore.rs`.
 
 The purrdf **package** is still vendored, under `../purrdf/`, and that is not a second
 dispatch target: no widget imports it, and no capability is attested against it. It is

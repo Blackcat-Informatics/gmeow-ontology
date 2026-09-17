@@ -13,10 +13,12 @@
 > is bent to fit.
 >
 > **Scope of `take1`.** Fix the canonical object, the law-spine, the keystone construct, the
-> compiler shape, and the conformance contract. Two axes are deliberately left **open** for
-> the breakout (the merge/colimit direction, §8.2; and empirical OpenEHR complement
-> transparency, §13.4). Concrete real-data use cases that ground the spec follow this
-> document.
+> compiler shape, and the conformance contract. The normative
+> [logic correspondence design](../../slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md)
+> governs disagreements and specifies the executable finite merge category and
+> independent law domains. Empirical OpenEHR complement transparency (§13.4)
+> remains an implementation acceptance requirement. Concrete real-data use cases
+> that ground the spec follow this document.
 
 ---
 
@@ -219,8 +221,15 @@ with the categorical notion of subobject):
 | **Section / retraction** | split mono (`put∘get = id_S`; `get∘put` idempotent on `V⊕complement`) | source embeds losslessly; augmentation = `S ∖ im(get)`, carried in the complement | **"perfect subsumption" — the OpenEHR target** |
 | **Well-behaved lens** | asymmetric lens | GetPut + PutGet (PutPut optional) | structured→flat downcasts with sound update |
 | **Lossy lens** | lens with non-injective `get` | one direction faithful; inverse needs witness/claim/defaults | most schema.org/FOAF downcasts |
-| **Prism / affine** | partial map `S → V + S` | match/build on the in-focus case only | "similar but not quite"; co-projection onto a shared component |
+| **Prism** | partial map `S → V + S` on a sum/optional | match/build on the in-focus variant only | applies on one variant, passes through otherwise |
+| **Affine correspondence** | co-projection onto a shared component | laws on the shared component only | "similar but not quite"; vague-determinacy targets |
 | **Bridge view** | comorphism that shifts commitments | *no* satisfaction-preservation claim | BFO / DOLCE / SUMO |
+
+Prism and affine correspondence are separate rungs. A lossy relationship alone
+does not supply either a prism's match/build operations or an affine focus and
+its laws. Law claims also retain the independent source, edited-view and
+prior-state domains specified in the normative logic design; a successful
+forward-image recovery case cannot discharge all four lens laws.
 
 Two cross-cutting qualifiers:
 
@@ -320,9 +329,11 @@ Each axis composes in its own algebra — which is *why* they must be kept apart
 
 - **Class** — optic-lattice join, monotone-downward (prism ∘ lens = affine; iso ∘ X = X's
   class). Composition only weakens the rung.
-- **Laws** — well-behavedness is preserved by lens composition, **but** `unknown` is absorbing:
-  `proved` ∘ `declared` = `declared`. Weakest status dominates.
-- **`confidence`** — a t-norm, default product (independence made *explicit and declared*,
+- **Laws** — weakest warrant dominates per law: `violated` before `unknown`
+  before `discharged`. An unknown premise cannot certify a discharged composite;
+  a violated premise retains its refutation even when another premise is unknown.
+  Premise countermodels are not automatically countermodels of the composite.
+- **`confidence`** — an explicitly selected t-norm (product requires independence *explicit and declared*,
   never assumed); correlated chains declare min or Łukasiewicz as data.
 - **`evidenceStrength`** — weakest-link / min.
 - **`weight`** — solver-additive (log-weights).
@@ -334,16 +345,55 @@ Each axis composes in its own algebra — which is *why* they must be kept apart
 All computed *by `logic:` rules over correspondence nodes* — dogfooded and conformance-checked,
 not buried in compiler arithmetic.
 
-### 8.2 Merge (the colimit/pushout direction — **open axis, carried forward**)
+### 8.2 Merge (the colimit/pushout direction)
 
 Composition is sequential. *Merging* is different: combining incoming data from FOAF **and**
 schema (and OpenEHR…) into GMEOW simultaneously is a **colimit/pushout in the category of
 theories** — gluing multiple sources along the shared GMEOW apex without collapsing their
-distinct, possibly contested, contexts. None of the six commentaries developed this beyond a
-mention; `take1` names it as a first-class axis and leaves its formalization to the breakout.
+distinct, possibly contested, contexts. The normative design makes the executable
+category precise: finite standpoint-indexed theory presentations, with an
+explicit shared apex, two typed embeddings, transported signed assertions, and
+checked injections and factorization. It identifies only shared-apex images at
+their declared indices; it does not infer arbitrary first-order theory equivalence.
 The constraint it must respect: a pushout that would force `owl:sameAs`-style collapse of
 standpoint-indexed claims is *ill-formed* (Principle 5/9). The merge is a colimit in a category
 whose objects carry standpoint indices, so the glue preserves contested coexistence.
+
+The native `CheckedPushout` realizes this finite presentation construction and
+checks candidate squares independently. Maps retain the exact native evidence
+publications and all context coordinates, including empty declared indices.
+Sentence transport reuses analyzed formula bodies with explicit symbol bindings.
+The exact grammar, map admission and factorization guarantee are governed by
+[the normative composition and merge contract](../../slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md#composition-and-merge).
+A commuting square alone is insufficient: extra identifications, unsupported
+axioms or lost evidence invalidate it. This witness does not authorize an
+unrestricted theory rewrite or establish production admission by itself.
+
+Authored `logic:PresentationMerge` selections now reach that native operation
+through the source-aware production compiler. The
+[authored presentation grammar](../../slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md#authored-finite-presentation-merges)
+requires explicit signatures, bindings, signed sentences, contexts, evidence
+and a shared-apex span. The compiler retains the original Formula roots and
+native source publication; execution shares them. Its terminal merge report
+describes the result and injections without serving as a reusable optimizer
+certificate or silently turning owned caveats into global assertions.
+The typed compiler IR carries the complete declaration catalog through caches
+and the exact RDF 1.2 and Common Logic exports. These exports retain signatures,
+named references, signed sentences, context coordinates and loss evidence;
+standalone declarations remain available without selecting a merge. Historical
+blank identities use explicit scoped metadata references. Their anonymous
+transport nodes carry no generator identity or proof authority. The Common Logic
+writers consume native datasets, and production shares the native correspondence
+projection between its terminal artifact and carrier construction, without a
+serialization-and-parse intermediate. The relational-core lane follows the same native
+path: one dataset feeds both the terminal artifact and carrier routing, and the
+strict reader uses native indexes. Its transport identity preserves signed atoms,
+typed terms, blank sharing, recorded body order, multiplicity and loss evidence.
+Routing and carrier union still materialize native datasets; removing the text
+boundary does not by itself eliminate those allocations.
+The source boundary rejects unlowered scope, sorted-variable and modal-world
+semantics rather than treating their raw RDF retention as a preservation proof.
+Evidence metadata retains its complete original source publication.
 
 ---
 
@@ -740,7 +790,7 @@ occurrence.
     logic:relation            logic:overlaps ;
     logic:determinacy         logic:Vague ;
     logic:confidence          "0.72"^^xsd:decimal ;
-    logic:evidenceStrength    :manualSemanticReview ;
+    logic:evidenceSource      :manualSemanticReview ;
     logic:caveat [ a logic:CorrespondenceCaveat ;
         skos:definition "foaf:Person denotes an agent/person; schema:ContactPoint denotes a
         contact channel/role. Both project through the contact-bearing facet of gmeow:contact;
@@ -792,16 +842,15 @@ construction): the existing `dsl/mappings/` becomes a **frontend syntax** into
 the new pipeline must regenerate the
 committed SSSOM/EDOAL/FnO/CONSTRUCT **byte- or graph-isomorphically** (the existing
 the strict `sync` mappings golden set is the oracle); only then are the old DSL, emitters, and
-`projection_lint`/`alignment_lint` deleted. Real files touched: `slices/grounding/logic/module.ttl`
-(or a new `slices/core/correspondence/` slice — see open question below);
+`projection_lint`/`alignment_lint` deleted. Real files touched: `slices/grounding/logic/module.ttl`;
 `crates/logic-compile/src/{ir.rs, projections/mod.rs, report.rs}`;
 `crates/pipeline/src/{put_executor.rs, stages/mappings.rs}`; `crates/slice/src/{edoal_emit,
 fno_emit, sparql_emit, mapping_emit}.rs` (rendering logic *moves* under the new back-ends).
 
-**Open placement question:** a dedicated `slices/core/correspondence/` slice (its own
-vocabulary, conformance, examples) versus a chapter under `slices/grounding/logic/`. Lean: a
-dedicated slice, because alignment is important enough to own its surface while still compiling
-into `logic:` IR.
+**Canonical placement:** correspondence semantics, vocabulary and laws belong to
+`slices/grounding/logic/`, governed by the normative logic design and shipped in
+`graph/correspondence-laws`. Target views and examples do not create a separate
+semantic owner.
 
 ---
 
@@ -812,8 +861,12 @@ law-spine (§5); mnemomorphism as keystone and backwards-execution as a candidat
 only (§6); the five axes + standpoint (§7); reuse of the preservation machinery (§9); the
 compiler shape (§10).
 
-**Left open (carried forward):** the **merge/colimit** direction (§8.2); the **empirical
-OpenEHR complement-transparency** boundary (§13.4); and the **slice placement** (§16).
+**Defined by the normative logic design:** the finite indexed presentation merge
+category and its checked pushout/factorization (§8.2), and grounding/logic ownership
+(§16). These are settled semantic choices. Complete contextual source lowering,
+production consumption and certified optimizer use require their own execution
+evidence. The empirical OpenEHR complement-transparency boundary (§13.4) remains
+an interoperability claim whose scope is limited by the actual validator evidence.
 
 Breakout tracks:
 

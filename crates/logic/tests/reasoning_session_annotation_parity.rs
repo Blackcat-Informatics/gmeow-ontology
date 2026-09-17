@@ -39,7 +39,7 @@ fn assert_provenance_parity(
     program: &LogicProgram,
     idb: &[String],
     session: &ReasoningSession,
-    edb: &purrdf::RdfDataset,
+    edb: &std::sync::Arc<purrdf::RdfDataset>,
 ) {
     let oracle = oracle_witnesses(program, edb, idb);
     let oracle_heights = oracle_proof_heights(program, edb, idb);
@@ -83,7 +83,7 @@ fn drive_provenance(
     new_edge: (&str, &str),
 ) {
     let (contract, annotation) = baseline_contracts();
-    let edb0 = edge_dataset(base);
+    let edb0 = edge_arc(base);
     let mut session = ReasoningSession::open(&edb0, program, &contract, &annotation).expect("open");
 
     // Provenance parity at the initial settle (base closure, before any delta).
@@ -101,7 +101,7 @@ fn drive_provenance(
 
     let mut grown: Vec<(&str, &str)> = base.to_vec();
     grown.push(new_edge);
-    let edb1 = edge_dataset(&grown);
+    let edb1 = edge_arc(&grown);
     assert_provenance_parity(program, idb, &session, &edb1);
 }
 
@@ -147,7 +147,7 @@ fn ac2_retracting_a_short_proof_raises_height_to_the_oracle_value() {
     let idb = idb_reach();
     let (contract, annotation) = baseline_contracts();
 
-    let edb0 = edge_dataset(&[("a", "b"), ("b", "c"), ("a", "c")]);
+    let edb0 = edge_arc(&[("a", "b"), ("b", "c"), ("a", "c")]);
     let mut session =
         ReasoningSession::open(&edb0, &program, &contract, &annotation).expect("open");
     assert_provenance_parity(&program, &idb, &session, &edb0);
@@ -175,7 +175,7 @@ fn ac2_retracting_a_short_proof_raises_height_to_the_oracle_value() {
         other => panic!("expected Applied, got {other:?}"),
     }
 
-    let edb1 = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb1 = edge_arc(&[("a", "b"), ("b", "c")]);
     assert_provenance_parity(&program, &idb, &session, &edb1);
     assert_eq!(
         session_height(&session, &reach_ac),

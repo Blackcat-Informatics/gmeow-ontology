@@ -114,6 +114,40 @@ pub struct DocsMeasurements {
     /// (`crate::stages::carrier::serialize_carrier_snapshot`) plus
     /// Σ per-format `l12_bytes`.
     pub design_c_bytes: u64,
+    /// Output-bound native receipts for each measured framing, including the terminal.
+    pub ingestion_receipts: Vec<Vec<u8>>,
+}
+
+/// Run two independent documentation producers and grade their deterministic
+/// sizes and accounting. This explicit maintainer operation runs before any test
+/// process; tests must never call it or construct a documentation corpus.
+pub fn verify_docs_measurement_determinism(root: &Path) -> Result<(), Diag> {
+    let first = measure_docs_designs(root)?;
+    let second = measure_docs_designs(root)?;
+    if first != second {
+        return Err(err("independent documentation measurements differ"));
+    }
+    if first.formats.is_empty() {
+        return Err(err("documentation measurement has no formats"));
+    }
+    if first
+        .formats
+        .windows(2)
+        .any(|pair| pair[0].format_name >= pair[1].format_name)
+    {
+        return Err(err("documentation format names must be sorted and unique"));
+    }
+    let raw_bytes: u64 = first
+        .formats
+        .iter()
+        .map(|format| format.uncompressed_bytes)
+        .sum();
+    if first.design_a_bytes.checked_sub(raw_bytes) != Some(DESIGN_A_MANIFEST_ALLOWANCE_BYTES) {
+        return Err(err(
+            "documentation manifest allowance does not match the raw-byte totals",
+        ));
+    }
+    Ok(())
 }
 
 /// Render every shipped documentation / serialization format through the real
@@ -130,31 +164,41 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
 
     let rendered = render_every_format(root, &products, carrier.as_ref())?;
 
-    let empty_builder = SnapshotBuilder::new();
-    let baseline_len =
-        gmeow_gts_profile::emit_gmeow_gts(&empty_builder, Vec::new(), Vec::new(), None, None, None)
-            .map_err(|e| err(format!("frame the baseline (empty) GTS snapshot: {e}")))?
-            .len() as u64;
+    let mut ingestion_receipts = Vec::new();
+    let mut measured_size = |emission: gmeow_gts_profile::GmeowGtsEmission| -> Result<u64, Diag> {
+        ingestion_receipts.push(emission.ingestion_receipt()?);
+        Ok(emission.bytes.len() as u64)
+    };
+    let baseline_len = measured_size(
+        gmeow_gts_profile::emit_gmeow_gts(
+            SnapshotBuilder::new(),
+            Vec::new(),
+            Vec::new(),
+            None,
+            &gmeow_gts_profile::baseline_medium_plan(),
+        )
+        .map_err(|e| err(format!("frame the baseline (empty) GTS snapshot: {e}")))?,
+    )?;
 
     let mut formats = Vec::with_capacity(rendered.len());
     let mut doc_blob_rows = Vec::with_capacity(rendered.len());
     let mut design_a_total = 0u64;
     for rendered_format in &rendered {
-        let framed_len = gmeow_gts_profile::emit_gmeow_gts(
-            &empty_builder,
-            vec![rendered_format.blob_row()],
-            Vec::new(),
-            None,
-            None,
-            None,
-        )
-        .map_err(|e| {
-            err(format!(
-                "frame the {} format's GTS blob: {e}",
-                rendered_format.format_name
-            ))
-        })?
-        .len() as u64;
+        let framed_len = measured_size(
+            gmeow_gts_profile::emit_gmeow_gts(
+                SnapshotBuilder::new(),
+                vec![rendered_format.blob_row()],
+                Vec::new(),
+                None,
+                &gmeow_gts_profile::baseline_medium_plan(),
+            )
+            .map_err(|e| {
+                err(format!(
+                    "frame the {} format's GTS blob: {e}",
+                    rendered_format.format_name
+                ))
+            })?,
+        )?;
         let l12_bytes = framed_len.saturating_sub(baseline_len);
         design_a_total += rendered_format.uncompressed_bytes;
         formats.push(FormatMeasurement {
@@ -169,29 +213,29 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
 
     let design_a_bytes = design_a_total + DESIGN_A_MANIFEST_ALLOWANCE_BYTES;
 
-    let design_b_bytes = gmeow_gts_profile::emit_gmeow_gts(
-        &empty_builder,
-        doc_blob_rows,
-        Vec::new(),
-        None,
-        None,
-        None,
-    )
-    .map_err(|e| {
-        err(format!(
-            "frame the Design B docs-only sidecar snapshot: {e}"
-        ))
-    })?
-    .len() as u64;
+    let design_b_bytes = measured_size(
+        gmeow_gts_profile::emit_gmeow_gts(
+            SnapshotBuilder::new(),
+            doc_blob_rows,
+            Vec::new(),
+            None,
+            &gmeow_gts_profile::baseline_medium_plan(),
+        )
+        .map_err(|e| {
+            err(format!(
+                "frame the Design B docs-only sidecar snapshot: {e}"
+            ))
+        })?,
+    )?;
 
-    let without_docs_bytes = crate::stages::carrier::serialize_carrier_snapshot(
+    let without_docs = crate::stages::carrier::serialize_carrier_snapshot(
         root,
         &products,
         carrier.as_ref(),
         &crate::medium::registry::MediumSelection::Authored,
     )
-    .map_err(|e| err(format!("serialize the without-docs carrier snapshot: {e}")))?
-    .len() as u64;
+    .map_err(|e| err(format!("serialize the without-docs carrier snapshot: {e}")))?;
+    let without_docs_bytes = measured_size(without_docs.emission)?;
     let l12_doc_sum: u64 = formats.iter().map(|f| f.l12_bytes).sum();
     let design_c_bytes = without_docs_bytes + l12_doc_sum;
 
@@ -200,6 +244,7 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
         design_a_bytes,
         design_b_bytes,
         design_c_bytes,
+        ingestion_receipts,
     })
 }
 
@@ -301,16 +346,25 @@ fn build_docs_model(
     )
     .map_err(|e| err(format!("discover the documentation model: {e}")))?;
 
-    let verdict = crate::stages::docs_render::reasoning_verdict_from_reason(products)?;
+    // The post-DAG snapshot is this consumer's retained native owner; stage-reason
+    // has passed its last consumer. Its exact typed result is already in the
+    // snapshot, so no extra carrier retention or closure-byte transport is needed.
+    let snapshot = products.get("stage-snapshot").ok_or_else(|| {
+        err("missing retained stage-snapshot for the documentation reasoning verdict")
+    })?;
+    let verdict =
+        crate::stages::docs_render::reasoning_verdict_from_product(snapshot, "stage-snapshot")?;
     model.attach_reasoning(verdict);
 
     let known_term_iris: std::collections::BTreeSet<String> =
         model.terms.iter().map(|t| t.iri.clone()).collect();
-    let diagnostics = crate::stages::docs_render::diagnostics_digest_from_upstream(
-        products,
+    let reports = crate::bundle::diagnostics_from_product(snapshot, "stage-snapshot")?;
+    let diagnostics = crate::stages::docs_render::diagnostics_digest_from_reports(
+        reports.report(crate::bundle::DiagnosticReportOwner::Validate)?,
+        reports.report(crate::bundle::DiagnosticReportOwner::CompileLogic)?,
         &known_term_iris,
         &model.constraint_rules,
-    )?;
+    );
     model.attach_diagnostics(diagnostics);
 
     let term_loss = crate::stages::docs_render::term_loss_digest_from_upstream(
@@ -500,89 +554,6 @@ fn run_pipeline_products(root: &Path, jobs: usize) -> Result<BTreeMap<String, St
     Ok(result.products)
 }
 
+#[path = "docs_measure.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .expect("workspace root")
-    }
-
-    /// The measurement is a pure function of the sources: two independent runs
-    /// over the same tree must agree on every byte count, and every design
-    /// total must be internally consistent with the per-format breakdown.
-    #[test]
-    #[ignore = "runs the full pipeline DAG twice; expensive, exercised on demand"]
-    fn measurement_is_deterministic_across_two_runs() {
-        let root = repo_root();
-        let first = measure_docs_designs(&root).expect("first measurement");
-        let second = measure_docs_designs(&root).expect("second measurement");
-        assert_eq!(first, second);
-        assert!(!first.formats.is_empty());
-        let mut sorted_names: Vec<&str> = first
-            .formats
-            .iter()
-            .map(|f| f.format_name.as_str())
-            .collect();
-        let mut expected = sorted_names.clone();
-        expected.sort_unstable();
-        assert_eq!(sorted_names, expected, "formats must be sorted by name");
-        sorted_names.dedup();
-        assert_eq!(
-            sorted_names.len(),
-            first.formats.len(),
-            "format names must be unique"
-        );
-        let manifest_only = first.design_a_bytes
-            - first
-                .formats
-                .iter()
-                .map(|f| f.uncompressed_bytes)
-                .sum::<u64>();
-        assert_eq!(manifest_only, DESIGN_A_MANIFEST_ALLOWANCE_BYTES);
-    }
-
-    /// Cheap, DAG-free coverage of the tar-packing helper: the uncompressed
-    /// total is the sum of the raw file bytes (no archive overhead folded in),
-    /// and the archive itself carries real, non-empty bytes.
-    #[test]
-    fn rendered_format_sums_raw_bytes_and_packs_a_real_archive() {
-        let mut tree = BTreeMap::new();
-        tree.insert("a.md".to_string(), b"hello".to_vec());
-        tree.insert("b/c.md".to_string(), b"world!!".to_vec());
-        let format = rendered_format("demo", "docs", &tree).expect("pack a real tree");
-        assert_eq!(format.format_name, "demo");
-        assert_eq!(format.family, "docs");
-        assert_eq!(format.uncompressed_bytes, 5 + 7);
-        assert!(!format.archive.is_empty());
-        assert_eq!(format.rep, "docs-measure/demo");
-    }
-
-    /// A format that renders no files is a hard failure, never a silently
-    /// zero-sized measurement (no-optionality).
-    #[test]
-    fn rendered_format_fails_closed_on_an_empty_tree() {
-        let tree: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        let result = rendered_format("empty", "docs", &tree);
-        assert!(result.is_err());
-    }
-
-    /// The blob-row constructor is used twice per format (its own delta, then
-    /// again inside the combined Design B snapshot); both calls must yield the
-    /// exact same bytes so the two GTS framings are directly comparable.
-    #[test]
-    fn blob_row_is_stable_across_repeated_calls() {
-        let mut tree = BTreeMap::new();
-        tree.insert("x.md".to_string(), b"stable".to_vec());
-        let format = rendered_format("stable", "serialization", &tree).expect("pack a real tree");
-        let first = format.blob_row();
-        let second = format.blob_row();
-        assert_eq!(first.data, second.data);
-        assert_eq!(first.media_type, second.media_type);
-        assert_eq!(first.rep, second.rep);
-    }
-}
+mod tests;

@@ -1,119 +1,73 @@
-//! Whole-ontology coherence-gate teeth tests.
-//!
-//! `make check` already runs a whole-ontology native DL consistency pass: the
-//! `reason-verify` target imports the committed `gmeow.gts` bundle and reasons over
-//! it via the same [`gmeow_logic::reason::reason_closure`] the verdict-only
-//! [`dl_consistency`] entry point wraps. A gate that RUNS but is never shown to CATCH
-//! anything is untrustworthy, so these tests prove it has teeth: an individual forced
-//! into two `owl:disjointWith` classes is derived into `owl:Nothing` and reported as an
-//! [`gmeow_logic::reason::InconsistencyWitness`].
-//!
-//! - `dl_consistency_gate_catches_injected_disjoint_clash` — the primary, deterministic
-//!   proof over a minimal dataset. It exercises the SAME engine the whole-ontology gate
-//!   uses and always runs on the `make check` lane.
-//! - `whole_bundle_coherence_gate_catches_injected_clash` — injects ONLY the two type
-//!   assertions (an individual typed both `gmeow:Agent` and `gmeow:SocialObject`, with NO
-//!   `owl:disjointWith` of its own) on top of the WHOLE committed `gmeow.gts`, so the
-//!   clash is forced SOLELY by the foundational-partition disjointness the bundle itself
-//!   ships — binding the PRODUCTION edge to the gate's teeth (drop the kernel assertion
-//!   and this test goes green→red). The clean-bundle regression guard is the explicit
-//!   production reason gate, so the poisoned test does not repeat that clean chase. This is the literal
-//!   whole-ontology teeth proof and it RUNS ON-GATE. It recovers the SAME object-level
-//!   reasoning EDB as production before injecting the clash: documentation, mappings,
-//!   correspondence, reports, and SHACL/ShEx validation-shape sidecars remain shipped
-//!   but reasoner-invisible. The poisoned chase is still a whole-ontology operation, so
-//!   it now remains in the single default nextest inventory, avoiding a separately compiled
-//!   selector invocation. The minimal test above remains a fast, deterministic companion.
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
 
-use gmeow_logic::foundation::{
-    AntiRigidityPolicy, FoundationQuad, evaluate as foundation_evaluate,
+//! Read-only grading of producer-owned whole-bundle coherence observations.
+//! Tiny synthetic controls independently exercise the native admission boundary.
+
+use gmeow_logic::coherence_observations::{
+    CHARACTERISTIC_ARTIFACT, CharacteristicObservation, DISJOINT_ARTIFACT, DisjointObservation,
+    IriQuad, RELCOMP_ARTIFACT, RelcompObservation, evaluate_characteristic_facts,
+    project_characteristic_facts,
 };
+use gmeow_logic::foundation::FoundationQuad;
 use gmeow_logic::reason::dl_consistency;
-use gmeow_logic::reasoning_graphs::is_object_level_named_graph;
-use gmeow_logic::store::WorldStore;
-use purrdf::{NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, dataset_from_bytes};
-use std::collections::{BTreeMap, BTreeSet};
+use purrdf::{NativeRdfFormat, dataset_from_bytes};
 use std::path::{Path, PathBuf};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
-/// The canonical `logic:` spelling a slice authors after the `owl:`→`logic:` surface flip;
-/// `owl:disjointWith` is its generated projection. The shipped bundle's object-level graph
-/// carries the `logic:` spelling, so the whole-bundle teeth test reads BOTH (mirroring the
-/// `rdfs:subClassOf` / `logic:subClassOf` dual-spelling read in `project_relator_facts`).
-const LOGIC_DISJOINT_WITH: &str = "https://blackcatinformatics.ca/logic/disjointWith";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
-const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-/// Characteristic-assertion CARRIERS are authored in the slice that owns the property they
-/// characterize, so they are minted in that slice's namespace — `gmeow:` for every domain
-/// slice. Only the characteristic SORT they name (`logic:transitiveProperty`, …) stays
-/// `logic:`-namespaced, because the sort vocabulary is the reasoning core's own.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-const LOGIC_SUBCLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
-const LOGIC_MEDIATES: &str = "https://blackcatinformatics.ca/logic/mediates";
-const LOGIC_VIOLATION: &str = "https://blackcatinformatics.ca/logic/violation";
-const LOGIC_RELCOMP: &str = "https://blackcatinformatics.ca/logic/RelComp";
-const LOGIC_KIND: &str = "https://blackcatinformatics.ca/logic/Kind";
-const LOGIC_RELATOR: &str = "https://blackcatinformatics.ca/logic/Relator";
-// One synthetic world holding the whole bundle's relator schema — RelComp is a
-// class-level (TBox) discipline, so a single world is the correct scope.
-const BUNDLE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/test/relcomp/world";
 
-// ── Property-characteristic gate (H4) ────────────────────────────────────────────
-const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
-const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
-const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
-const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
-// The CANONICAL `logic:` characteristic markers the bundle now carries for transitivity and
-// symmetry: the authoring vocabulary was retired to `logic:`, so `?P a logic:transitiveProperty`
-// (not the `owl:` spelling) is the marker present in the shipped bundle; `owl:` is a
-// generated-view-only projection.
+const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+const LOGIC_VIOLATION: &str = "https://blackcatinformatics.ca/logic/violation";
+
 const LOGIC_TRANSITIVE_PROPERTY: &str = "https://blackcatinformatics.ca/logic/transitiveProperty";
+
 const LOGIC_SYMMETRIC_PROPERTY: &str = "https://blackcatinformatics.ca/logic/symmetricProperty";
+
 const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+
 const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
-const LOGIC_NECESSARILY: &str = "https://blackcatinformatics.ca/logic/necessarily";
-const LOGIC_POSSIBLY: &str = "https://blackcatinformatics.ca/logic/possibly";
+
 const LOGIC_OVER_ACCESSIBILITY: &str = "https://blackcatinformatics.ca/logic/overAccessibility";
-const LOGIC_MODAL_EVAL_WORLD: &str = "https://blackcatinformatics.ca/logic/modalEvalWorld";
-const LOGIC_ATOM_SUBJECT: &str = "https://blackcatinformatics.ca/logic/atomSubject";
-const LOGIC_ATOM_PREDICATE: &str = "https://blackcatinformatics.ca/logic/atomPredicate";
-const LOGIC_ATOM_OBJECT: &str = "https://blackcatinformatics.ca/logic/atomObject";
+
 const LOGIC_IRREFLEXIVITY_VIOLATION: &str =
     "https://blackcatinformatics.ca/logic/IrreflexivityViolation";
+
 const LOGIC_ASYMMETRY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AsymmetryViolation";
-// A synthetic world holding the whole bundle's characteristic schema + injected edges.
+
 const CHAR_WORLD: &str = "https://blackcatinformatics.ca/gmeow/test/characteristic/world";
-// Shipped properties whose characteristics the gate binds to (drop a declaration → red).
+
 const GMEOW_SUB_EVENT_OF: &str = "https://blackcatinformatics.ca/gmeow/subEventOf";
+
 const GMEOW_COUNTER_GOAL: &str = "https://blackcatinformatics.ca/gmeow/counterGoal";
+
 const GMEOW_COUNTERPART_OF: &str = "https://blackcatinformatics.ca/gmeow/counterpartOf";
+
 const GMEOW_COARSER_THAN: &str = "https://blackcatinformatics.ca/gmeow/coarserThan";
+
 const GMEOW_SHARPENS: &str = "https://blackcatinformatics.ca/gmeow/sharpens";
+
 const GMEOW_PART_OF: &str = "https://blackcatinformatics.ca/gmeow/partOf";
+
 const GMEOW_VERSION_OF: &str = "https://blackcatinformatics.ca/gmeow/versionOf";
+
 const GMEOW_EDITION_OF: &str = "https://blackcatinformatics.ca/gmeow/editionOf";
-// Drift discipline: a DL-projectable logic: characteristic record whose OWL projection
-// is missing (the two carriers of one characteristic have diverged).
+
 const LOGIC_CARRIER_DISAGREEMENT: &str =
     "https://blackcatinformatics.ca/logic/CharacteristicCarrierDisagreement";
 
-// A self-contained clash in a fresh world so it can never interact with the shipped
-// ontology's own worlds: individual X is typed into A and B, which are disjoint.
 const X: &str = "https://blackcatinformatics.ca/gmeow/test/coherence/x";
+
 const A: &str = "https://blackcatinformatics.ca/gmeow/test/coherence/A";
+
 const B: &str = "https://blackcatinformatics.ca/gmeow/test/coherence/B";
+
 const W: &str = "https://blackcatinformatics.ca/gmeow/test/coherence/world";
 
-// The NET-NEW foundational-partition edge on this branch: gmeow:Agent is disjoint
-// with gmeow:SocialObject (it did NOT exist before). Using the real production IRIs
-// proves the newly-asserted disjointness — not a synthetic one — has teeth: an
-// individual typed as both is forced to owl:Nothing by the coherence gate.
-const AGENT: &str = "https://blackcatinformatics.ca/gmeow/Agent";
-const SOCIAL_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/SocialObject";
-
-/// The injected disjoint-class clash, as world-scoped N-Quads.
 fn clash_nquads() -> String {
     format!(
         "<{X}> <{RDF_TYPE}> <{A}> <{W}> .\n\
@@ -122,31 +76,35 @@ fn clash_nquads() -> String {
     )
 }
 
-/// The same world with only the type assertion — no disjointness, hence coherent.
 fn benign_nquads() -> String {
     format!("<{X}> <{RDF_TYPE}> <{A}> <{W}> .\n")
 }
 
-/// Repo root: `crates/logic` → `../..`.
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-/// Decode/freeze/index the committed graph-preserving bundle once across the separate
-/// nextest processes that execute the whole-bundle coherence teeth. The cache key binds
-/// the exact GTS bytes and importer/dependency/toolchain unit; corruption hard-fails.
-fn shipped_dataset() -> std::sync::Arc<purrdf::RdfDataset> {
-    gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
-        .expect("load the selected authenticated gmeow.gts product without rebuilding it")
-        .dataset
+fn observation<T: serde::de::DeserializeOwned>(name: &str) -> T {
+    let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(&repo_root(), name).expect(
+        "load the exact authenticated producer coherence observation; tests never produce it",
+    );
+    let result: Result<T, gmeow_errors::RecordedDiag> =
+        serde_json::from_slice(&bytes).expect("decode the selected typed coherence observation");
+    result.expect("the explicit coherence producer must complete the selected observation")
 }
 
-fn admitted_reasoning_graph(graph: &Option<RdfTerm>) -> bool {
-    match graph {
-        None => true,
-        Some(RdfTerm::Iri(iri)) => is_object_level_named_graph(iri),
-        Some(_) => false,
-    }
+fn synthetic_verdict(
+    dataset: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<gmeow_logic::reason::DlVerdict> {
+    use gmeow_logic::reason::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
+    let input = gmeow_logic::reason::prepare_reasoning_input(dataset)?;
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Named(purrdf::TermValue::iri(W)),
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow.coherence.synthetic.v1".to_owned(),
+        *input.ingress_contract(),
+    )?])?;
+    dl_consistency(input, &domains)
 }
 
 #[test]
@@ -154,7 +112,7 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
     // Baseline: the same world without the disjointness is coherent.
     let benign = dataset_from_bytes(benign_nquads().as_bytes(), NativeRdfFormat::NQuads)
         .expect("parse benign N-Quads");
-    let v0 = dl_consistency(benign.as_ref()).expect("consistency run over benign world");
+    let v0 = synthetic_verdict(&benign).expect("consistency run over benign world");
     assert!(
         v0.consistent && v0.inconsistencies.is_empty(),
         "a single typed individual is coherent: {:?}",
@@ -164,7 +122,7 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
     // Inject the disjoint-class clash → the gate MUST catch it.
     let poisoned = dataset_from_bytes(clash_nquads().as_bytes(), NativeRdfFormat::NQuads)
         .expect("parse clash N-Quads");
-    let v1 = dl_consistency(poisoned.as_ref()).expect("consistency run over clash world");
+    let v1 = synthetic_verdict(&poisoned).expect("consistency run over clash world");
     assert!(
         !v1.consistent,
         "an individual forced into two disjoint classes must be inconsistent"
@@ -180,66 +138,8 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
 
 #[test]
 fn whole_bundle_coherence_gate_catches_injected_clash() {
-    // Load the committed bundle exactly as production `reason-verify` does, then recover
-    // its object-level EDB. Running DL closure over every shipped meta/report graph is
-    // both semantically wrong and asymptotically tied to documentation growth.
-    let snapshot = shipped_dataset();
-
-    // Locate the SHIPPED gmeow:Agent ⊥ gmeow:SocialObject edge in the bundle and read the
-    // world (named graph) it lives in. Finding it AT ALL proves the net-new production
-    // edge is actually shipped — drop the kernel assertion and this lookup fails. We inject
-    // NO owl:disjointWith of our own (a self-injected one would mask exactly that
-    // regression). The DL disjointness rule is world-scoped, so the clashing individual
-    // must be typed in the SAME world as the shipped edge.
-    let disjoint_world = snapshot
-        .owned_quads()
-        .find_map(|q| {
-            let is_edge = admitted_reasoning_graph(&q.graph_name)
-                && (q.predicate == LOGIC_DISJOINT_WITH || q.predicate == OWL_DISJOINT_WITH)
-                && matches!(
-                    (&q.subject, &q.object),
-                    (RdfTerm::Iri(s), RdfTerm::Iri(o))
-                        if (s == AGENT && o == SOCIAL_OBJECT) || (s == SOCIAL_OBJECT && o == AGENT)
-                );
-            is_edge.then(|| q.graph_name.clone())
-        })
-        .expect(
-            "the committed gmeow.gts must ship gmeow:Agent logic:disjointWith gmeow:SocialObject \
-             (the canonical authored spelling; owl:disjointWith is only its generated projection)",
-        );
-
-    // Type an individual into BOTH classes in that SAME world → the world-scoped DL
-    // disjointness rule fires solely from the shipped edge, forcing X to owl:Nothing.
-    let individual = RdfTerm::Iri(X.to_owned());
-    let mut type_agent = RdfQuad::new(individual.clone(), RDF_TYPE, RdfTerm::Iri(AGENT.to_owned()));
-    let mut type_social =
-        RdfQuad::new(individual, RDF_TYPE, RdfTerm::Iri(SOCIAL_OBJECT.to_owned()));
-    if let Some(world) = &disjoint_world {
-        type_agent = type_agent.in_graph(world.clone());
-        type_social = type_social.in_graph(world.clone());
-    }
-
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in snapshot.owned_quads() {
-        if admitted_reasoning_graph(&quad.graph_name) {
-            builder.push_owned_quad(&quad);
-        }
-    }
-    for reifier in snapshot.owned_reifiers() {
-        if admitted_reasoning_graph(&reifier.graph) {
-            builder.push_owned_reifier(&reifier);
-        }
-    }
-    for annotation in snapshot.owned_annotations() {
-        if admitted_reasoning_graph(&annotation.graph) {
-            builder.push_owned_annotation(&annotation);
-        }
-    }
-    builder.push_owned_quad(&type_agent);
-    builder.push_owned_quad(&type_social);
-    let poisoned = builder.freeze().expect("freeze the poisoned bundle");
-
-    let v1 = dl_consistency(poisoned.as_ref()).expect("consistency run over poisoned bundle");
+    let observed: DisjointObservation = observation(DISJOINT_ARTIFACT);
+    let v1 = observed.verdict;
     assert!(
         !v1.consistent,
         "typing an individual both gmeow:Agent and gmeow:SocialObject in the shipped edge's \
@@ -255,71 +155,12 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
     );
 }
 
-/// Project the committed bundle to the IRI-only fact set the foundation reasoner needs
-/// for the relator-mediation discipline, as world-scoped N-Quads in [`BUNDLE_WORLD`]:
-///
-/// - `rdf:type` triples whose object is a `logic:` stereotype or `owl:FunctionalProperty`
-///   (the stereotype puns + the functional-role markers),
-/// - every `rdfs:subClassOf` / `logic:subClassOf` edge (mapped to `logic:subClassOf`, so
-///   `subClassOfT` reaches `logic:Relator` and `hasLogicSubclass` distinguishes leaves),
-/// - every `logic:mediates` edge (the mediation roles).
-///
-/// The foundation chase is all-IRI, so literal- and blank-object triples are dropped; none
-/// bear on relator mediation.
-fn project_relator_facts(onto: &purrdf::RdfDataset) -> BTreeSet<String> {
-    let mut lines: BTreeSet<String> = BTreeSet::new();
-    for q in onto.owned_quads() {
-        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
-            continue;
-        };
-        let mapped_predicate = match q.predicate.as_str() {
-            RDF_TYPE if o.starts_with(LOGIC_NS) || o == OWL_FUNCTIONAL_PROPERTY => RDF_TYPE,
-            RDFS_SUBCLASS_OF | LOGIC_SUBCLASS_OF => LOGIC_SUBCLASS_OF,
-            LOGIC_MEDIATES => LOGIC_MEDIATES,
-            _ => continue,
-        };
-        lines.insert(format!(
-            "<{s}> <{mapped_predicate}> <{o}> <{BUNDLE_WORLD}> .\n"
-        ));
-    }
-    lines
-}
-
-/// Run the native foundation discipline over projected N-Quads and return the subject IRIs
-/// that fire `logic:violation logic:RelComp`.
-fn relcomp_offenders(nquads: &str) -> Vec<String> {
-    let store = WorldStore::new();
-    store
-        .load_nquads(nquads)
-        .expect("load the projected relator facts");
-    let quads = foundation_evaluate(&store, AntiRigidityPolicy::WitnessObligation)
-        .expect("foundation evaluate over the projected relator facts");
-    let relcomp_obj = format!("<{LOGIC_RELCOMP}>");
-    quads
-        .into_iter()
-        .filter(|q| q.predicate == LOGIC_VIOLATION && q.object == relcomp_obj)
-        .map(|q| q.subject)
-        .collect()
-}
-
-/// Whole-ontology relator-mediation gate. Projects the committed `gmeow.gts` to its
-/// relator schema and runs the native foundation discipline over the whole bundle — the
-/// canonical `logic:` enforcement mechanism, no longer confined to conformance fixtures.
-/// Every concrete production relator must reach at least two entities (two distinct roles,
-/// or one non-functional role), so the shipped ontology must produce ZERO RelComp
-/// violations. A degenerate relator injected on top (a single functional role) must fire,
-/// proving the gate has teeth.
-///
-/// The whole-bundle chase is an exhaustive architectural proof in the single default
-/// nextest inventory.
 #[test]
 fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
-    let dataset = shipped_dataset();
-    let facts = project_relator_facts(dataset.as_ref());
-    let projection: String = facts.iter().cloned().collect();
+    let observed: RelcompObservation = observation(RELCOMP_ARTIFACT);
 
     // The shipped ontology satisfies relator mediation: zero RelComp violations.
-    let offenders = relcomp_offenders(&projection);
+    let offenders = observed.clean_offenders;
     assert!(
         offenders.is_empty(),
         "the committed gmeow.gts must satisfy relator mediation, but these concrete relators \
@@ -330,15 +171,7 @@ fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
     // Teeth: a concrete subclass relator mediating a single FUNCTIONAL role reaches one
     // entity → RelComp. Inject it on top of the real bundle and require the gate to fire.
     let bad = "https://blackcatinformatics.ca/gmeow/test/relcomp/DegenerateRelator";
-    let role = "https://blackcatinformatics.ca/gmeow/test/relcomp/soleRole";
-    let poisoned = format!(
-        "{projection}\
-         <{bad}> <{RDF_TYPE}> <{LOGIC_KIND}> <{BUNDLE_WORLD}> .\n\
-         <{bad}> <{LOGIC_SUBCLASS_OF}> <{LOGIC_RELATOR}> <{BUNDLE_WORLD}> .\n\
-         <{bad}> <{LOGIC_MEDIATES}> <{role}> <{BUNDLE_WORLD}> .\n\
-         <{role}> <{RDF_TYPE}> <{OWL_FUNCTIONAL_PROPERTY}> <{BUNDLE_WORLD}> .\n"
-    );
-    let offenders = relcomp_offenders(&poisoned);
+    let offenders = observed.poisoned_offenders;
     assert!(
         offenders.iter().any(|s| s == bad),
         "an injected concrete relator with a single functional role must fire RelComp: \
@@ -346,187 +179,33 @@ fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
     );
 }
 
-/// Whether an IRI is a property-characteristic marker — the OWL characteristic classes
-/// or their `logic:` analogues.
-fn is_characteristic_marker(iri: &str) -> bool {
-    matches!(
-        iri,
-        OWL_TRANSITIVE_PROPERTY
-            | OWL_SYMMETRIC_PROPERTY
-            | OWL_IRREFLEXIVE_PROPERTY
-            | OWL_ASYMMETRIC_PROPERTY
-            | OWL_FUNCTIONAL_PROPERTY
-    ) || matches!(
-        iri.strip_prefix(LOGIC_NS),
-        Some("transitiveProperty")
-            | Some("symmetricProperty")
-            | Some("irreflexiveProperty")
-            | Some("asymmetricProperty")
-            | Some("functionalProperty")
-    )
+#[test]
+fn characteristic_projection_retains_contextual_ownership_and_refuses_orphan_modal_nodes() {
+    let source = r#"@prefix l: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <urn:projection:> .
+        l:overAccessibility a l:functionalProperty .
+        ex:request a l:ContextualEvaluationRequest ; l:queryFormula ex:outer .
+        ex:outer l:not ex:inner .
+        ex:inner l:necessarily ex:body ; l:overAccessibility l:epistemicallyPossible ."#;
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let projected = project_characteristic_facts(&dataset);
+    assert!(projected.contains(&IriQuad::new(
+        "urn:projection:inner",
+        LOGIC_OVER_ACCESSIBILITY,
+        "https://blackcatinformatics.ca/logic/epistemicallyPossible",
+        CHAR_WORLD
+    )));
+    assert!(
+        characteristic_violations(&evaluate_characteristic_facts(&projected).unwrap()).is_empty()
+    );
+
+    let orphan = source.replace("a l:ContextualEvaluationRequest ; ", "");
+    let dataset = purrdf::parse_dataset(orphan.as_bytes(), "text/turtle", None).unwrap();
+    let projected = project_characteristic_facts(&dataset);
+    let error = evaluate_characteristic_facts(&projected).unwrap_err();
+    assert!(error.message().contains("modalEvalWorld"), "{error}");
 }
 
-fn is_modal_frame_predicate(predicate: &str) -> bool {
-    matches!(
-        predicate,
-        LOGIC_NECESSARILY | LOGIC_POSSIBLY | LOGIC_OVER_ACCESSIBILITY | LOGIC_MODAL_EVAL_WORLD
-    )
-}
-
-fn projected_iri_quad(subject: &str, predicate: &str, object: &str, graph: &str) -> String {
-    format!("<{subject}> <{predicate}> <{object}> <{graph}> .\n")
-}
-
-/// Project the committed bundle to the IRI-only fact set the characteristic pass needs,
-/// world-scoped in [`CHAR_WORLD`]:
-///
-/// - each `?P rdf:type <characteristic marker>` type triple (owl: or logic:),
-/// - each central record `?rec logic:characterizes ?P` / `?rec logic:characteristicSort ?sort`,
-/// - every edge `?s ?P ?o` whose predicate ?P carries a characteristic, so the pass can
-///   close/mirror it and detect a self- or mutual-pair clash,
-/// - the complete modal frame, atom binding, typed-accessibility, and world-scoped atom
-///   closure for any such edge that is modal grammar. Foundation evaluation is atomic over
-///   malformed modal frames, so projecting only a characterized `logic:overAccessibility`
-///   edge would manufacture malformed input that the shipped bundle does not contain.
-///
-/// The foundation chase is all-IRI, so literal- and blank-object triples are dropped.
-fn project_characteristic_facts(onto: &purrdf::RdfDataset) -> BTreeSet<String> {
-    // Pass 1: which predicates carry a characteristic (a marker on the property itself, or
-    // a property named by a central record)?
-    let mut characterized: BTreeSet<String> = BTreeSet::new();
-    for q in onto.owned_quads() {
-        if let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) {
-            if q.predicate == RDF_TYPE && is_characteristic_marker(o) {
-                characterized.insert(s.clone());
-            } else if q.predicate == LOGIC_CHARACTERIZES {
-                characterized.insert(o.clone());
-            }
-        }
-    }
-    // Pass 2: emit the markers, the record links, and the edges of characterized predicates.
-    // Remember any modal formula pulled into that projection so pass 3 can retain its whole
-    // bounded-Kripke frame rather than manufacturing a partial one.
-    let mut lines: BTreeSet<String> = BTreeSet::new();
-    let mut modal_formulas: BTreeSet<String> = BTreeSet::new();
-    for q in onto.owned_quads() {
-        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
-            continue;
-        };
-        let emit = match q.predicate.as_str() {
-            RDF_TYPE => is_characteristic_marker(o),
-            LOGIC_CHARACTERIZES | LOGIC_CHARACTERISTIC_SORT => true,
-            pred => characterized.contains(pred),
-        };
-        if emit {
-            lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
-            if is_modal_frame_predicate(&q.predicate) {
-                modal_formulas.insert(s.clone());
-            }
-        }
-    }
-
-    if modal_formulas.is_empty() {
-        return lines;
-    }
-
-    // Pass 3a: retain every operator/frame binding for each selected modal formula and
-    // collect the bodies, evaluation worlds, and typed relations whose closure is needed.
-    let mut modal_bodies: BTreeSet<String> = BTreeSet::new();
-    let mut modal_worlds: BTreeSet<String> = BTreeSet::new();
-    let mut modal_relations: BTreeSet<String> = BTreeSet::new();
-    for q in onto.owned_quads() {
-        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
-            continue;
-        };
-        if !modal_formulas.contains(s) || !is_modal_frame_predicate(&q.predicate) {
-            continue;
-        }
-        lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
-        match q.predicate.as_str() {
-            LOGIC_NECESSARILY | LOGIC_POSSIBLY => {
-                modal_bodies.insert(o.clone());
-            }
-            LOGIC_OVER_ACCESSIBILITY => {
-                modal_relations.insert(o.clone());
-            }
-            LOGIC_MODAL_EVAL_WORLD => {
-                modal_worlds.insert(o.clone());
-            }
-            _ => unreachable!("modal-frame predicate was matched above"),
-        }
-    }
-
-    // Pass 3b: retain each body's ground-atom bindings as ONE complete (subject, predicate,
-    // object) triple per body, so pass 3c admits a ground-atom presence quad only when its
-    // FULL triple matches a single body — never a cross-body mix of an atomSubject from one
-    // body with an atomPredicate/atomObject from another. The modal kernel will still reject
-    // missing, repeated, non-IRI, or otherwise malformed bindings atomically.
-    let mut body_atom_s: BTreeMap<String, String> = BTreeMap::new();
-    let mut body_atom_p: BTreeMap<String, String> = BTreeMap::new();
-    let mut body_atom_o: BTreeMap<String, String> = BTreeMap::new();
-    for q in onto.owned_quads() {
-        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
-            continue;
-        };
-        if !modal_bodies.contains(s) {
-            continue;
-        }
-        match q.predicate.as_str() {
-            LOGIC_ATOM_SUBJECT => {
-                body_atom_s.insert(s.clone(), o.clone());
-            }
-            LOGIC_ATOM_PREDICATE => {
-                body_atom_p.insert(s.clone(), o.clone());
-            }
-            LOGIC_ATOM_OBJECT => {
-                body_atom_o.insert(s.clone(), o.clone());
-            }
-            _ => continue,
-        }
-        lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
-    }
-    // The exact (subject, predicate, object) ground atom of each body that carries all three.
-    let atom_bindings: BTreeSet<(String, String, String)> = modal_bodies
-        .iter()
-        .filter_map(|body| {
-            Some((
-                body_atom_s.get(body)?.clone(),
-                body_atom_p.get(body)?.clone(),
-                body_atom_o.get(body)?.clone(),
-            ))
-        })
-        .collect();
-
-    // Pass 3c: retain accessibility edges and ground-atom truth in their ORIGINAL named
-    // worlds. Collapsing atom presence into CHAR_WORLD would silently change a modal
-    // verdict; preserving the source graph keeps evaluation-world identity exact.
-    for q in onto.owned_quads() {
-        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
-            continue;
-        };
-        if modal_worlds.contains(s) && modal_relations.contains(&q.predicate) {
-            lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
-        }
-        if atom_bindings.contains(&(s.clone(), q.predicate.clone(), o.clone()))
-            && let Some(RdfTerm::Iri(graph)) = &q.graph_name
-        {
-            lines.insert(projected_iri_quad(s, &q.predicate, o, graph));
-        }
-    }
-    lines
-}
-
-/// Run the native foundation discipline over projected characteristic N-Quads.
-fn run_characteristic_gate(nquads: &str) -> Vec<FoundationQuad> {
-    let store = WorldStore::new();
-    store
-        .load_nquads(nquads)
-        .expect("load the projected characteristic facts");
-    foundation_evaluate(&store, AntiRigidityPolicy::WitnessObligation)
-        .expect("foundation evaluate over the projected characteristic facts")
-}
-
-/// The subjects that fire a characteristic (irreflexivity/asymmetry) violation.
 fn characteristic_violations(quads: &[FoundationQuad]) -> Vec<(String, String)> {
     let irr = format!("<{LOGIC_IRREFLEXIVITY_VIOLATION}>");
     let asym = format!("<{LOGIC_ASYMMETRY_VIOLATION}>");
@@ -537,35 +216,24 @@ fn characteristic_violations(quads: &[FoundationQuad]) -> Vec<(String, String)> 
         .collect()
 }
 
-/// Whole-ontology property-characteristic gate. Projects the committed `gmeow.gts` to its
-/// characteristic schema (the marker/record declarations + the edges of characterised
-/// properties) and runs the native foundation discipline over it — the canonical `logic:`
-/// enforcement of transitivity closure, symmetric mirroring, and irreflexivity/asymmetry
-/// clashes, no longer confined to conformance fixtures.
-///
-/// HOLDS: the shipped ontology has ZERO characteristic violations. TEETH: over the shipped
-/// declarations (gmeow:subEventOf transitive, gmeow:counterGoal symmetric) the gate closes
-/// and mirrors injected edges; a fresh irreflexive self-loop and an asymmetric mutual pair
-/// injected on top must each fire; and gmeow:counterpartOf — symmetric but deliberately not
-/// transitive — is mirrored but never closed.
-///
-/// The whole-bundle chase remains part of the single default nextest inventory.
 #[test]
 fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
-    let dataset = shipped_dataset();
-    let facts = project_characteristic_facts(dataset.as_ref());
-    let projection: String = facts.iter().cloned().collect();
+    let observed: CharacteristicObservation = observation(CHARACTERISTIC_ARTIFACT);
+    let facts = &observed.carrier_facts;
 
     // Bind to production: every DL-projectable H4 target carries BOTH its canonical logic:
     // marker and its canonical logic: record in the shipped bundle. Drop either carrier of
     // any of them and this test goes red — closing the dual-carrier silent-drift hole.
-    let marker_fact =
-        |prop: &str, marker: &str| format!("<{prop}> <{RDF_TYPE}> <{marker}> <{CHAR_WORLD}> .\n");
-    let characterizes_fact = |rec: &str, prop: &str| {
-        format!("<{rec}> <{LOGIC_CHARACTERIZES}> <{prop}> <{CHAR_WORLD}> .\n")
-    };
+    let marker_fact = |prop: &str, marker: &str| IriQuad::new(prop, RDF_TYPE, marker, CHAR_WORLD);
+    let characterizes_fact =
+        |rec: &str, prop: &str| IriQuad::new(rec, LOGIC_CHARACTERIZES, prop, CHAR_WORLD);
     let sort_fact = |rec: &str, sort_local: &str| {
-        format!("<{rec}> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}{sort_local}> <{CHAR_WORLD}> .\n")
+        IriQuad::new(
+            rec,
+            LOGIC_CHARACTERISTIC_SORT,
+            &format!("{LOGIC_NS}{sort_local}"),
+            CHAR_WORLD,
+        )
     };
     // (property, canonical logic: marker, logic: record local name, characteristic-sort local
     // name). These characteristics are DUAL-carried in the bundle — the property's canonical
@@ -664,8 +332,7 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
     }
 
     // HOLDS: the shipped ontology satisfies its property characteristics.
-    let clean = run_characteristic_gate(&projection);
-    let clean_violations = characteristic_violations(&clean);
+    let clean_violations = observed.clean_violations;
     assert!(
         clean_violations.is_empty(),
         "the committed gmeow.gts must satisfy its property characteristics, but the gate \
@@ -673,12 +340,7 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
     );
     // HOLDS: no dual-carrier drift — every DL-projectable logic: characteristic record in
     // the shipped bundle has its OWL projection, so the agreement gate fires nothing.
-    let disagreement_obj = format!("<{LOGIC_CARRIER_DISAGREEMENT}>");
-    let clean_disagreements: Vec<String> = clean
-        .iter()
-        .filter(|q| q.predicate == LOGIC_VIOLATION && q.object == disagreement_obj)
-        .map(|q| q.subject.clone())
-        .collect();
+    let clean_disagreements = observed.clean_disagreements;
     assert!(
         clean_disagreements.is_empty(),
         "the committed gmeow.gts must have zero characteristic-carrier disagreements, but \
@@ -688,24 +350,7 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
 
     // TEETH: inject over the shipped declarations + two fresh violating properties.
     let t = "https://blackcatinformatics.ca/gmeow/test/characteristic";
-    let irr_prop = format!("{t}/strictlyContains");
-    let asym_prop = format!("{t}/strictlyBefore");
-    let poisoned = format!(
-        "{projection}\
-         <{t}/A> <{GMEOW_SUB_EVENT_OF}> <{t}/B> <{CHAR_WORLD}> .\n\
-         <{t}/B> <{GMEOW_SUB_EVENT_OF}> <{t}/C> <{CHAR_WORLD}> .\n\
-         <{t}/M> <{GMEOW_COUNTER_GOAL}> <{t}/N> <{CHAR_WORLD}> .\n\
-         <{t}/X> <{GMEOW_COUNTERPART_OF}> <{t}/Y> <{CHAR_WORLD}> .\n\
-         <{t}/Y> <{GMEOW_COUNTERPART_OF}> <{t}/Z> <{CHAR_WORLD}> .\n\
-         <{irr_prop}> <{RDF_TYPE}> <{OWL_IRREFLEXIVE_PROPERTY}> <{CHAR_WORLD}> .\n\
-         <{t}/self> <{irr_prop}> <{t}/self> <{CHAR_WORLD}> .\n\
-         <{asym_prop}> <{RDF_TYPE}> <{OWL_ASYMMETRIC_PROPERTY}> <{CHAR_WORLD}> .\n\
-         <{t}/P> <{asym_prop}> <{t}/Q> <{CHAR_WORLD}> .\n\
-         <{t}/Q> <{asym_prop}> <{t}/P> <{CHAR_WORLD}> .\n\
-         <{t}/driftRec> <{LOGIC_CHARACTERIZES}> <{t}/driftProp> <{CHAR_WORLD}> .\n\
-         <{t}/driftRec> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}transitiveProperty> <{CHAR_WORLD}> .\n"
-    );
-    let out = run_characteristic_gate(&poisoned);
+    let out = observed.poisoned;
     let has_edge = |s: &str, p: &str, o: &str| {
         let obj = format!("<{o}>");
         out.iter()

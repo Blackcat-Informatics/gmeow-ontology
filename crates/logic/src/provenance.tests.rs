@@ -1,0 +1,569 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+use gmeow_term_arena::engine::RDF_LANG_STRING;
+use purrdf::RdfTextDirection;
+
+use super::*;
+
+#[test]
+fn min_proof_height_uses_max_for_premises_and_min_for_alternatives() {
+    let algebra = MinProofHeightSemiring;
+    let direct = algebra
+        .derive([ProofHeight::new(0).unwrap(), ProofHeight::new(2).unwrap()])
+        .expect("finite proof heights must combine");
+    let indirect = algebra
+        .derive([ProofHeight::new(3).unwrap()])
+        .expect("finite proof height must lift");
+
+    assert_eq!(direct.get(), 3, "rule height is 1 + max(body heights)");
+    assert_eq!(indirect.get(), 4);
+    assert_eq!(
+        algebra
+            .choose(indirect, direct)
+            .expect("finite alternatives must combine"),
+        direct,
+        "alternative derivations select the minimal proof height"
+    );
+    assert_eq!(
+        algebra
+            .derive([])
+            .expect("a bodyless derived rule has one rule level")
+            .get(),
+        1
+    );
+}
+
+#[test]
+fn bounded_provenance_overflow_hard_fails() {
+    assert!(
+        ProofHeight::new(u32::MAX).is_err(),
+        "the niche constructor must refuse an unencodable finite value"
+    );
+    let height_err = MinProofHeightSemiring
+        .derive([ProofHeight::new(u32::MAX - 1).unwrap()])
+        .expect_err("proof height must not saturate or wrap");
+    assert!(height_err.to_string().contains("proof-height"));
+
+    let add_err = ZWeightSemiring
+        .add(i64::MAX, 1)
+        .expect_err("Z-weight addition must be checked");
+    assert!(add_err.to_string().contains("addition overflow"));
+
+    let mul_err = ZWeightSemiring
+        .multiply(i64::MAX, 2)
+        .expect_err("Z-weight multiplication must be checked");
+    assert!(mul_err.to_string().contains("multiplication overflow"));
+
+    let neg_err = ZWeightSemiring
+        .negate(i64::MIN)
+        .expect_err("Z-weight negation must be checked");
+    assert!(neg_err.to_string().contains("negation overflow"));
+}
+
+#[test]
+fn provenance_algebras_obey_identity_and_absorption_contracts() {
+    let min_height = MinProofHeightSemiring;
+    let two = MinProofHeight::Finite(ProofHeight::new(2).unwrap());
+    assert_eq!(min_height.add(two, min_height.zero()).unwrap(), two);
+    assert_eq!(min_height.multiply(two, min_height.one()).unwrap(), two);
+    assert_eq!(
+        min_height.multiply(two, min_height.zero()).unwrap(),
+        MinProofHeight::Infinity
+    );
+
+    let z = ZWeightSemiring;
+    assert_eq!(z.add(7, z.zero()).unwrap(), 7);
+    assert_eq!(z.multiply(7, z.one()).unwrap(), 7);
+    assert_eq!(z.multiply(7, z.zero()).unwrap(), 0);
+    assert_eq!(z.add(7, z.negate(7).unwrap()).unwrap(), 0);
+}
+
+#[test]
+fn optional_proof_height_uses_the_nonzero_niche() {
+    assert_eq!(
+        std::mem::size_of::<Option<ProofHeight>>(),
+        std::mem::size_of::<u32>(),
+        "an absent annotation must not widen neutral provenance rows"
+    );
+}
+
+/// Test-only helper naming the N3 literal render over a constructed `TermValue`.
+fn literal_n3(term: &TermValue) -> String {
+    term_n3(term).expect("literal term must serialize")
+}
+
+// ── literal_n3 ────────────────────────────────────────────────────────────
+
+#[test]
+fn literal_n3_plain_string_elides_datatype() {
+    // xsd:string datatype must be elided — matches rdflib .n3()
+    let lit = TermValue::simple_literal("plain string");
+    assert_eq!(literal_n3(&lit), "\"plain string\"");
+}
+
+#[test]
+fn literal_n3_language_tagged_lowercased() {
+    // rdflib lowercases lang tags; we must mirror that
+    let lit = TermValue::lang_literal("hello", "en");
+    assert_eq!(literal_n3(&lit), "\"hello\"@en");
+}
+
+#[test]
+fn literal_n3_uppercase_lang_lowercased() {
+    // Upper-case lang tag must be lowercased
+    let lit = TermValue::lang_literal("Bonjour", "FR");
+    assert_eq!(literal_n3(&lit), "\"Bonjour\"@fr");
+}
+
+#[test]
+fn literal_n3_decimal_not_elided() {
+    // xsd:decimal must NOT be elided — only xsd:string and rdf:langString are
+    let lit = TermValue::typed_literal("1.0", "http://www.w3.org/2001/XMLSchema#decimal");
+    assert_eq!(
+        literal_n3(&lit),
+        "\"1.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>"
+    );
+}
+
+#[test]
+fn literal_n3_escape_backslash() {
+    let lit = TermValue::simple_literal("a\\b");
+    assert_eq!(literal_n3(&lit), "\"a\\\\b\"");
+}
+
+#[test]
+fn literal_n3_escape_quote() {
+    let lit = TermValue::simple_literal("say \"hi\"");
+    assert_eq!(literal_n3(&lit), "\"say \\\"hi\\\"\"");
+}
+
+#[test]
+fn literal_n3_escape_newline() {
+    let lit = TermValue::simple_literal("line1\nline2");
+    assert_eq!(literal_n3(&lit), "\"line1\\nline2\"");
+}
+
+#[test]
+fn literal_n3_escape_tab() {
+    let lit = TermValue::simple_literal("col1\tcol2");
+    assert_eq!(literal_n3(&lit), "\"col1\\tcol2\"");
+}
+
+// ── term_n3 ───────────────────────────────────────────────────────────────
+
+#[test]
+fn term_n3_iri() {
+    let term = TermValue::iri("http://example.org/a");
+    assert_eq!(term_n3(&term).unwrap(), "<http://example.org/a>");
+}
+
+#[test]
+fn term_n3_literal_string() {
+    let term = TermValue::simple_literal("hello");
+    assert_eq!(term_n3(&term).unwrap(), "\"hello\"");
+}
+
+#[test]
+fn term_n3_and_reifier_preserve_recursive_rdf12_triple_terms() {
+    let triple = TermValue::Triple {
+        s: Box::new(TermValue::iri("http://example.org/s")),
+        p: Box::new(TermValue::iri("http://example.org/p")),
+        o: Box::new(TermValue::iri("http://example.org/o")),
+    };
+    assert_eq!(
+        term_n3(&triple).unwrap(),
+        "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>>"
+    );
+    let nested = mint_reifier(
+        &TermValue::iri("http://example.org/holder"),
+        "http://example.org/mentions",
+        &triple,
+    )
+    .expect("RDF 1.2 triple-term reifier");
+    let flat = mint_reifier(
+        &TermValue::iri("http://example.org/holder"),
+        "http://example.org/mentions",
+        &TermValue::iri("http://example.org/o"),
+    )
+    .expect("flat reifier");
+    assert_ne!(nested, flat);
+}
+
+#[test]
+fn deeply_nested_rdf12_triple_terms_render_without_call_stack_recursion() {
+    const DEPTH: usize = 4_096;
+    let mut nested = TermValue::iri("http://example.org/leaf");
+    for _ in 0..DEPTH {
+        nested = TermValue::Triple {
+            s: Box::new(TermValue::iri("http://example.org/s")),
+            p: Box::new(TermValue::iri("http://example.org/p")),
+            o: Box::new(nested),
+        };
+    }
+
+    let n3 = term_n3(&nested).expect("iterative N3 renderer");
+    let display = term_display(&nested);
+    assert_eq!(n3, display);
+    assert_eq!(n3.matches("<<( ").count(), DEPTH);
+    assert!(n3.contains("<http://example.org/leaf>"));
+
+    // Box's recursive destructor is outside the renderer contract under test.
+    std::mem::forget(nested);
+}
+
+#[test]
+fn term_n3_rejects_non_iri_predicates_at_every_nesting_depth() {
+    let invalid = TermValue::Triple {
+        s: Box::new(TermValue::iri("http://example.org/s")),
+        p: Box::new(TermValue::simple_literal("not-an-iri")),
+        o: Box::new(TermValue::iri("http://example.org/o")),
+    };
+    assert!(
+        term_n3(&invalid).is_err(),
+        "direct non-IRI predicate must fail closed"
+    );
+    let nested = TermValue::Triple {
+        s: Box::new(TermValue::iri("http://example.org/outer-s")),
+        p: Box::new(TermValue::iri("http://example.org/outer-p")),
+        o: Box::new(invalid),
+    };
+
+    let error = term_n3(&nested).expect_err("nested non-IRI predicate must fail closed");
+    assert!(
+        error
+            .to_string()
+            .contains("RDF 1.2 triple-term predicate must be an IRI")
+    );
+    assert!(
+        mint_reifier(
+            &TermValue::iri("http://example.org/holder"),
+            "http://example.org/mentions",
+            &nested,
+        )
+        .is_err(),
+        "invalid triple terms must not mint provenance identities"
+    );
+}
+
+#[test]
+fn directional_language_is_part_of_the_provenance_surface() {
+    let literal = TermValue::Literal {
+        lexical_form: "مرحبا".to_owned(),
+        datatype: RDF_LANG_STRING.to_owned(),
+        language: Some("AR".to_owned()),
+        direction: Some(RdfTextDirection::Rtl),
+    };
+    assert_eq!(term_n3(&literal).unwrap(), "\"مرحبا\"@ar--rtl");
+    assert_eq!(term_display(&literal), "\"مرحبا\"@AR--rtl");
+}
+
+// ── mint_reifier goldens ─────────────────────────────────────────────────
+
+/// Golden 1: three plain IRI terms.
+/// Python oracle: sha1("<http://example.org/a> <http://example.org/related> <http://example.org/b>")
+///             = 10d9bdab72fe25cf3b81fe842b3a105077d98a6a
+#[test]
+fn mint_reifier_golden_1_iri_triple() {
+    let s = TermValue::iri("http://example.org/a");
+    let p = "http://example.org/related";
+    let o = TermValue::iri("http://example.org/b");
+    let got = mint_reifier(&s, p, &o).expect("IRI terms must not fail");
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
+        "mint_reifier golden-1 mismatch"
+    );
+}
+
+/// Golden 2: language-tagged literal object (lang tag lowercased).
+/// Python oracle: sha1("<http://example.org/x> <http://www.w3.org/2000/01/rdf-schema#label> \"hello\"@en")
+///             = 61194b8ccffff3db1bbb81df91c55b7776ee4064
+#[test]
+fn mint_reifier_golden_2_lang_literal() {
+    let s = TermValue::iri("http://example.org/x");
+    let p = "http://www.w3.org/2000/01/rdf-schema#label";
+    let o = TermValue::lang_literal("hello", "en");
+    let got = mint_reifier(&s, p, &o).expect("lang literal terms must not fail");
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064",
+        "mint_reifier golden-2 mismatch"
+    );
+}
+
+/// Golden 3: xsd:decimal literal — datatype NOT elided.
+/// Python oracle: sha1("<http://example.org/m> <http://example.org/value> \"1.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>")
+///             = efbda8fbbb765e64c7f8ca2d690489a1ba70e569
+#[test]
+fn mint_reifier_golden_3_xsd_decimal() {
+    let s = TermValue::iri("http://example.org/m");
+    let p = "http://example.org/value";
+    let o = TermValue::typed_literal("1.0", "http://www.w3.org/2001/XMLSchema#decimal");
+    let got = mint_reifier(&s, p, &o).expect("typed literal terms must not fail");
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/reifier/efbda8fbbb765e64c7f8ca2d690489a1ba70e569",
+        "mint_reifier golden-3 mismatch"
+    );
+}
+
+/// Golden 4: plain string literal — xsd:string datatype ELIDED.
+/// Python oracle: sha1("<http://example.org/n> <http://example.org/name> \"plain string\"")
+///             = 784c486d79b869539405a3f90f21126477b07f26
+#[test]
+fn mint_reifier_golden_4_plain_string() {
+    let s = TermValue::iri("http://example.org/n");
+    let p = "http://example.org/name";
+    let o = TermValue::simple_literal("plain string");
+    let got = mint_reifier(&s, p, &o).expect("plain literal terms must not fail");
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/reifier/784c486d79b869539405a3f90f21126477b07f26",
+        "mint_reifier golden-4 mismatch"
+    );
+}
+
+// ── mint_nary_reifier goldens ─────────────────────────────────────────────
+
+/// Nary golden A: ternary all-IRI tuple mul(a, b, c).
+/// payload = "nary\n" + "24:<http://example.org/mul>," + "22:<http://example.org/a>,"
+///                    + "22:<http://example.org/b>," + "22:<http://example.org/c>,"
+#[test]
+fn mint_nary_reifier_golden_a_ternary_iri() {
+    let got = mint_nary_reifier(
+        "http://example.org/mul",
+        &[
+            TermValue::iri("http://example.org/a"),
+            TermValue::iri("http://example.org/b"),
+            TermValue::iri("http://example.org/c"),
+        ],
+    )
+    .expect("IRI args must not fail");
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/reifier/nary/5fae1c051af0f9e8d679a7b7b0b97fdc5261cec2",
+        "mint_nary_reifier golden-A mismatch"
+    );
+}
+
+/// Nary golden B: unary tuple T(x) — the arity-1 reifier recipe.
+#[test]
+fn mint_nary_reifier_golden_b_unary() {
+    let got = mint_nary_reifier(
+        "http://example.org/T",
+        &[TermValue::iri("http://example.org/x")],
+    )
+    .expect("unary IRI arg must not fail");
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/reifier/nary/18606f3f26d824d2930b42f058b999d930a6d081",
+        "mint_nary_reifier golden-B mismatch"
+    );
+}
+
+/// Nary golden C: ternary tuple with a typed-literal argument (xsd:integer).
+#[test]
+fn mint_nary_reifier_golden_c_typed_literal() {
+    let got = mint_nary_reifier(
+        "http://example.org/mul",
+        &[
+            TermValue::iri("http://example.org/a"),
+            TermValue::iri("http://example.org/b"),
+            TermValue::typed_literal("6", "http://www.w3.org/2001/XMLSchema#integer"),
+        ],
+    )
+    .expect("typed-literal arg must not fail");
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/reifier/nary/f504fca5fb1c626e2719dbbb3d79bcb851718d9f",
+        "mint_nary_reifier golden-C mismatch"
+    );
+}
+
+/// Argument order is significant: swapping two args yields a different reifier.
+#[test]
+fn mint_nary_reifier_is_order_sensitive() {
+    let abc = mint_nary_reifier(
+        "http://example.org/mul",
+        &[
+            TermValue::iri("http://example.org/a"),
+            TermValue::iri("http://example.org/b"),
+            TermValue::iri("http://example.org/c"),
+        ],
+    )
+    .unwrap();
+    let acb = mint_nary_reifier(
+        "http://example.org/mul",
+        &[
+            TermValue::iri("http://example.org/a"),
+            TermValue::iri("http://example.org/c"),
+            TermValue::iri("http://example.org/b"),
+        ],
+    )
+    .unwrap();
+    assert_ne!(
+        abc, acb,
+        "distinct argument orders must mint distinct reifiers"
+    );
+}
+
+/// The n-ary recipe is domain-separated from the binary [`mint_reifier`]: a
+/// binary payload starts with `<`, the n-ary payload with `nary\n`, so their
+/// digests live in different prefixes and can never collide.
+#[test]
+fn mint_nary_reifier_never_collides_with_binary() {
+    let binary = mint_reifier(
+        &TermValue::iri("http://example.org/a"),
+        "http://example.org/mul",
+        &TermValue::iri("http://example.org/b"),
+    )
+    .unwrap();
+    let nary = mint_nary_reifier(
+        "http://example.org/mul",
+        &[
+            TermValue::iri("http://example.org/a"),
+            TermValue::iri("http://example.org/b"),
+        ],
+    )
+    .unwrap();
+    assert!(binary.starts_with(REIFIER_PREFIX) && !binary.starts_with(NARY_REIFIER_PREFIX));
+    assert!(nary.starts_with(NARY_REIFIER_PREFIX));
+    assert_ne!(binary, nary);
+}
+
+// ── mint_derivation_id goldens ────────────────────────────────────────────
+
+/// Golden 5: two-source rule firing (sources are sorted before hashing).
+/// payload = "https://blackcatinformatics.ca/logic/rules/transitivity\n
+///            https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a\n
+///            https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064"
+/// sha1 = e1379d93fd46357cc6a3be9e057528bb0d589f68
+#[test]
+fn mint_derivation_id_golden_5_two_sources() {
+    let rule_iri = "https://blackcatinformatics.ca/logic/rules/transitivity";
+    let sources = [
+        "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
+        "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064",
+    ];
+    let got = mint_derivation_id(rule_iri, &sources);
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/derivation/e1379d93fd46357cc6a3be9e057528bb0d589f68",
+        "mint_derivation_id golden-5 mismatch"
+    );
+}
+
+/// Golden 5b: same sources in reversed order → same result (sorted).
+#[test]
+fn mint_derivation_id_golden_5_order_independent() {
+    let rule_iri = "https://blackcatinformatics.ca/logic/rules/transitivity";
+    let sources_fwd = [
+        "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
+        "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064",
+    ];
+    let sources_rev = [
+        "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064",
+        "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
+    ];
+    assert_eq!(
+        mint_derivation_id(rule_iri, &sources_fwd),
+        mint_derivation_id(rule_iri, &sources_rev),
+        "mint_derivation_id must be order-independent"
+    );
+}
+
+/// Golden 6: assert-sentinel derivation (self-reifier as only source).
+/// payload = "https://blackcatinformatics.ca/logic/assert\n
+///            https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"
+/// sha1 = 5dd2eeebb9812618b81b5053f662c0756c57b2e6
+#[test]
+fn mint_derivation_id_golden_6_assert_sentinel() {
+    let rule_iri = "https://blackcatinformatics.ca/logic/assert";
+    let sources =
+        ["https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"];
+    let got = mint_derivation_id(rule_iri, &sources);
+    assert_eq!(
+        got,
+        "https://blackcatinformatics.ca/gmeow/derivation/5dd2eeebb9812618b81b5053f662c0756c57b2e6",
+        "mint_derivation_id golden-6 mismatch"
+    );
+}
+
+// ── Goldens parity: load from JSON fixture ────────────────────────────────
+
+/// Load the authoritative goldens JSON and verify all entries match.
+///
+/// This test is the normative gate: it reads the same file the Python oracle
+/// writes and asserts that every IRI the Rust engine would produce is
+/// byte-identical.
+#[test]
+fn goldens_parity_from_json_fixture() {
+    // Path relative to the crate root (where Cargo.toml lives).
+    // `include_str!` is relative to the source file, so use a path that
+    // goes up from src/ to the repo root then down to the fixture.
+    let json_text = include_str!("../../../tests/fixtures/logic/determinism-goldens.json");
+
+    let root: serde_json::Value =
+        serde_json::from_str(json_text).expect("determinism-goldens.json must be valid JSON");
+
+    // ── Quad-reifier goldens ──────────────────────────────────────────────
+    let reifier_goldens = root["quad_reifier_goldens"]
+        .as_array()
+        .expect("quad_reifier_goldens must be an array");
+
+    for entry in reifier_goldens {
+        let id = entry["_id"].as_str().unwrap_or("?");
+        let subj_iri = entry["subject"].as_str().expect("subject");
+        let pred_iri = entry["predicate"].as_str().expect("predicate");
+        let expected_reifier = entry["reifier_iri"].as_str().expect("reifier_iri");
+        let is_literal = entry["object_is_literal"].as_bool().unwrap_or(false);
+
+        let s = TermValue::iri(subj_iri);
+
+        let o: TermValue = if is_literal {
+            let lex = entry["object"].as_str().expect("object lexical");
+            if let Some(lang) = entry["object_lang"].as_str() {
+                TermValue::lang_literal(lex, lang)
+            } else if let Some(dt_iri) = entry["object_datatype"].as_str() {
+                TermValue::typed_literal(lex, dt_iri)
+            } else {
+                // Plain xsd:string
+                TermValue::simple_literal(lex)
+            }
+        } else {
+            let obj_iri = entry["object"].as_str().expect("object IRI");
+            TermValue::iri(obj_iri)
+        };
+
+        let got = mint_reifier(&s, pred_iri, &o)
+            .unwrap_or_else(|e| panic!("{id}: mint_reifier failed: {e}"));
+        assert_eq!(
+            got, expected_reifier,
+            "goldens parity FAIL for {id}: got {got:?}, expected {expected_reifier:?}"
+        );
+    }
+
+    // ── Derivation-ID goldens ─────────────────────────────────────────────
+    let derivation_goldens = root["derivation_id_goldens"]
+        .as_array()
+        .expect("derivation_id_goldens must be an array");
+
+    for entry in derivation_goldens {
+        let id = entry["_id"].as_str().unwrap_or("?");
+        let rule_iri = entry["rule_iri"].as_str().expect("rule_iri");
+        let expected_derivation = entry["derivation_iri"].as_str().expect("derivation_iri");
+        let sources: Vec<&str> = entry["source_reifier_iris"]
+            .as_array()
+            .expect("source_reifier_iris")
+            .iter()
+            .map(|v| v.as_str().expect("source IRI"))
+            .collect();
+
+        let got = mint_derivation_id(rule_iri, &sources);
+        assert_eq!(
+            got, expected_derivation,
+            "goldens parity FAIL for {id}: got {got:?}, expected {expected_derivation:?}"
+        );
+    }
+}

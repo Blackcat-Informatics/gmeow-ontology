@@ -54,7 +54,7 @@ configure({
 });
 
 // The GMEOW term the explorer describes in these assertions. Deterministic and present in
-// the object-level ontology; `crates/mcp/tests/witness_explore.rs` pins its exact
+// the object-level ontology; `crates/mcp/src/tests/witness_explore.rs` pins its exact
 // description against the committed attestation, so this lane asserts SHAPE (a non-empty
 // graph came back over the wire) and leaves CONTENT to that witness.
 const TERM = "https://blackcatinformatics.ca/gmeow/AboutnessMode";

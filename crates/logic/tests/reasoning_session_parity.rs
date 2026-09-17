@@ -34,7 +34,7 @@ fn assert_provenance_parity(
     program: &LogicProgram,
     idb: &[String],
     session: &ReasoningSession,
-    edb: &purrdf::RdfDataset,
+    edb: &std::sync::Arc<purrdf::RdfDataset>,
 ) {
     let oracle = oracle_witnesses(program, edb, idb);
     let oracle_heights = oracle_proof_heights(program, edb, idb);
@@ -68,10 +68,10 @@ fn drive_post_insert_checkpoint_restore(
     new_edge: (&str, &str),
 ) {
     let (contract, annotation) = baseline_contracts();
-    let edb0 = edge_dataset(base);
+    let edb0 = edge_arc(base);
     let mut grown: Vec<(&str, &str)> = base.to_vec();
     grown.push(new_edge);
-    let edb1 = edge_dataset(&grown);
+    let edb1 = edge_arc(&grown);
 
     let mut session = ReasoningSession::open(&edb0, program, &contract, &annotation).expect("open");
     apply_expecting_applied(&mut session, edge_dataset(&[new_edge]), vec![]);
@@ -159,14 +159,14 @@ fn drive_post_retract_checkpoint_restore(
     retract_edge: (&str, &str),
 ) {
     let (contract, annotation) = baseline_contracts();
-    let edb_full = edge_dataset(base);
+    let edb_full = edge_arc(base);
     // The EDB the post-retract closure is defined over: the base minus the retired edge.
     let remaining: Vec<(&str, &str)> = base
         .iter()
         .copied()
         .filter(|edge| *edge != retract_edge)
         .collect();
-    let edb_retracted = edge_dataset(&remaining);
+    let edb_retracted = edge_arc(&remaining);
 
     let mut session =
         ReasoningSession::open(&edb_full, program, &contract, &annotation).expect("open");
@@ -273,7 +273,7 @@ fn apply_expecting_applied(
 /// The AC1 op-sequence driver over one certified program.
 fn drive(program: &LogicProgram, idb: &[String], base: &[(&str, &str)], new_edge: (&str, &str)) {
     let (contract, annotation) = baseline_contracts();
-    let edb0 = edge_dataset(base);
+    let edb0 = edge_arc(base);
 
     // 1. open — must be a genuine incremental maintainer, parity at the initial settle.
     let mut session =
@@ -292,7 +292,7 @@ fn drive(program: &LogicProgram, idb: &[String], base: &[(&str, &str)], new_edge
     // 2. insert — Applied, and parity against the oracle over the grown EDB.
     let mut grown: Vec<(&str, &str)> = base.to_vec();
     grown.push(new_edge);
-    let edb1 = edge_dataset(&grown);
+    let edb1 = edge_arc(&grown);
     apply_expecting_applied(&mut session, edge_dataset(&[new_edge]), vec![]);
     let closure_after_insert = session_derived(&session, idb);
     assert_eq!(
@@ -390,7 +390,7 @@ fn ac1_budget_bounded_apply_is_incomplete_and_leaves_state_unchanged() {
     // it is reported Incomplete with the closure UNCHANGED (insert commits only on Ok).
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c"), ("c", "d")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c"), ("c", "d")]);
     let mut session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
     let before = session_derived(&session, &idb_reach());
 
@@ -438,7 +438,7 @@ fn ac1_illegal_retraction_underflow_is_engine_failure() {
     // EngineFailure (NOT a silent no-op, NOT an approximate Applied).
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b")]);
+    let edb = edge_arc(&[("a", "b")]);
     let mut session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
     let before = session_derived(&session, &idb_reach());
 
@@ -506,7 +506,7 @@ proptest! {
         let base_edges = vec![("n0", "n1")];
         let mut current: std::collections::BTreeSet<(&'static str, &'static str)> =
             base_edges.iter().copied().collect();
-        let edb0 = edge_dataset(&base_edges);
+        let edb0 = edge_arc(&base_edges);
         let mut session =
             ReasoningSession::open(&edb0, &program, &contract, &annotation).expect("open");
 
@@ -541,7 +541,7 @@ proptest! {
             }
 
             let edges: Vec<(&str, &str)> = current.iter().copied().collect();
-            let edb = edge_dataset(&edges);
+            let edb = edge_arc(&edges);
             prop_assert_eq!(
                 session_derived(&session, &idb),
                 oracle_derived(&program, &edb, &idb)

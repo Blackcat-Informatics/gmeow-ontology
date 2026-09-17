@@ -1182,92 +1182,10 @@ fn check_citation_business_rules(xml: &str, problems: &mut Vec<String>) {
     }
 }
 
+#[path = "crossref.date_tests.rs"]
 #[cfg(test)]
-mod date_tests {
-    use super::validate_iso_date;
+mod date_tests;
 
-    #[test]
-    fn accepts_well_formed_iso_date() {
-        assert!(validate_iso_date("2026-06-21").is_ok());
-    }
-
-    #[test]
-    fn rejects_malformed_dates() {
-        // A malformed release_date must surface as an Err, never an out-of-range panic.
-        for bad in ["2026", "2026-06", "not-a-date", "2026/06/21", "26-6-1", ""] {
-            let err = validate_iso_date(bad).expect_err("malformed date must be rejected");
-            let message = err.message();
-            assert!(message.contains("YYYY-MM-DD"), "{message}");
-        }
-    }
-}
-
+#[path = "crossref.lint_tests.rs"]
 #[cfg(test)]
-mod lint_tests {
-    use super::check_duplicate_keys;
-
-    #[test]
-    fn detects_duplicate_citation_keys_in_dataset() {
-        let xml = r#"
-<dataset dataset_type="record">
-  <doi_data>
-    <doi>10.67342/26w4o</doi>
-    <resource>https://example.invalid/</resource>
-  </doi_data>
-  <citation_list>
-    <citation key="ref-dup" type="web_resource">
-      <unstructured_citation>First duplicate.</unstructured_citation>
-    </citation>
-    <citation key="ref-dup" type="web_resource">
-      <unstructured_citation>Second duplicate.</unstructured_citation>
-    </citation>
-  </citation_list>
-</dataset>
-"#;
-        let mut problems: Vec<String> = vec![];
-        check_duplicate_keys(xml, &mut problems);
-        assert_eq!(
-            problems.len(),
-            1,
-            "expected exactly one problem, got: {:?}",
-            problems
-        );
-        assert!(
-            problems[0].contains("duplicate citation keys"),
-            "unexpected message: {}",
-            problems[0]
-        );
-        assert!(
-            problems[0].contains("10.67342/26w4o"),
-            "message should name the dataset DOI: {}",
-            problems[0]
-        );
-    }
-
-    #[test]
-    fn no_false_positive_for_unique_citation_keys() {
-        let xml = r#"
-<dataset dataset_type="record">
-  <doi_data>
-    <doi>10.67342/26w4o</doi>
-    <resource>https://example.invalid/</resource>
-  </doi_data>
-  <citation_list>
-    <citation key="ref-a" type="web_resource">
-      <unstructured_citation>First.</unstructured_citation>
-    </citation>
-    <citation key="ref-b" type="web_resource">
-      <unstructured_citation>Second.</unstructured_citation>
-    </citation>
-  </citation_list>
-</dataset>
-"#;
-        let mut problems: Vec<String> = vec![];
-        check_duplicate_keys(xml, &mut problems);
-        assert!(
-            problems.is_empty(),
-            "expected no problems for unique keys, got: {:?}",
-            problems
-        );
-    }
-}
+mod lint_tests;

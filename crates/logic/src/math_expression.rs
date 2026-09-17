@@ -30,6 +30,9 @@
 //! population — never silently collapsed to whichever value an iteration order happens
 //! to visit first.
 
+/// Native source-only expression identities and typed lowering diagnostics.
+pub mod analysis;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::{Finding, Severity};

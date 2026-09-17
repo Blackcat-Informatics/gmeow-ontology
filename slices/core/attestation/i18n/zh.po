@@ -452,3 +452,19 @@ msgstr "gmeow:ClaimSite rdfs:subClassOf logic:QualityValue 这条分类学边所
 msgctxt "https://blackcatinformatics.ca/logic/attestationClaimDimensionSubsumption|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The subsumption axiom the gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimDimension(x) → QualityValue(x) — every claim dimension is an enumerated quality value, a member of the value vocabulary naming which versioned fact a claim asserts."
 msgstr "gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue 这条分类学边所投影自的包摄公理：∀x. ClaimDimension(x) → QualityValue(x)——每个声明维度都是一个枚举的质量值，是命名声明断言哪个版本化事实的值词汇表的成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSiteWorkspaceManifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The root Cargo.toml [workspace.dependencies] compatibility requirement for the substrate. Cargo.lock records the exact selected release."
+msgstr "根目录 Cargo.toml 的 [workspace.dependencies] 中对基础组件的兼容性要求。Cargo.lock 记录实际选定的精确版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSiteFuzzManifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fuzz/Cargo.toml compatibility requirement for the substrate. Its committed lockfile must select the same PurRDF package identities as the root lockfile."
+msgstr "fuzz/Cargo.toml 中对基础组件的兼容性要求。其纳入版本控制的锁文件必须选择与根目录锁文件相同的 PurRDF 包身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionVersionRequirement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version requirement dimension"
+msgstr "版本要求维度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionVersionRequirement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The manifest's normalized semantic-version compatibility requirement. It constrains the exact release selected by a lockfile but does not itself name that release."
+msgstr "清单中规范化的语义版本兼容性要求。它约束锁文件选定的精确版本，但本身并不指定该版本。"

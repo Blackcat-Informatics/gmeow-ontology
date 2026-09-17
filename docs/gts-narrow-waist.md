@@ -96,7 +96,7 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    without its dictionary, it is not readable **at all**.
 
    The `gmeow-gts-profile` LEAF crate centralizes production authorship behind
-   three doors — `emit_gmeow_gts` (snapshot bundles), `dataset_to_gmeow_gts`
+   three doors — `emit_gmeow_gts` (snapshot bundles), `view_to_gmeow_gts`
    (the `convert --to gts` exit), and `GmeowGtsWriter` (append-only
    `ai-package` segments) — and compile-time asserts the upstream dist level
    remains 12. `validate_mandated_frames` audits every payload frame of a bundle
@@ -215,3 +215,27 @@ refused — no maintained writer to pin.)
 
 See [`GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)
 (in the `gmeow-gts` repo) for the format itself.
+
+### Native snapshot ingestion evidence
+
+`emit_gmeow_gts` consumes the admitted native builder and returns both bytes and
+its complete `IngestReport`. The native-view ingress delegates to that same exit.
+A poisoned or incomplete input cannot publish an accepted prefix. Named graph
+declarations omitted by the frozen wire model retain their exact native names in
+the receipt; no dummy graph rows or compatibility codec is introduced.
+
+The terminal publishes `generated/dist/gmeow.gts.ingestion.cbor` alongside its GTS
+artifact in the same stage product. File producers publish the same companion;
+signing and release require the selected input companion and preserve its whole
+chain in the new output companion. The fixed receipt binds the output digest,
+current native counts and omission inventory, and inherited source receipts
+admitted against the actual input bytes. Operational counters stay outside GTS.
+The decoder limits total recursive work to the existing selected-archive byte
+budget and permits at most 64 receipt levels; missing or malformed evidence fails.
+
+Producer action/output commitments and release provenance attestations authenticate
+the companion fields. A digest binding to signed GTS alone does not prove the
+companion's authorship: the GTS frame signatures do not sign this external file.
+Standalone distributors must retain the companion and its provenance commitment;
+this cutover does not invent a second signing format or claim signed proof of
+unattested runtime observations.

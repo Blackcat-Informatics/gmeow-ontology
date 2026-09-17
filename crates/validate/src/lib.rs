@@ -149,6 +149,8 @@ pub mod shape_oracle;
 pub mod signature;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod slice_ownership;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod substrate;
 // The peerage-aware projection of `slice_ownership`'s undeclared-dependency
 // diagnostics: joins an undeclared semantic edge to the grounding-peerage
 // relation + seam registry so a registered `lang:`/`math:`/`logic:` crossing is

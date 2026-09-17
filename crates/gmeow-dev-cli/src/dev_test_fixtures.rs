@@ -16,6 +16,11 @@ use purrdf::ContentDigest;
 
 use crate::{TestFixtureMode, TestFixtureScope};
 
+mod bundle_artifacts;
+
+#[cfg(test)]
+mod selection_tests;
+
 type FixtureResult<T> = gmeow_errors::Result<T>;
 
 fn fail(detail: impl std::fmt::Display) -> Diag {
@@ -45,6 +50,8 @@ impl TestFixtureScope {
             Self::ProducerIndependent => "producer-independent",
             Self::ProducerBound => "producer-bound",
             Self::Bundle => "bundle",
+            Self::ConformanceHeavy => "conformance-heavy",
+            Self::WasmCodebook => "wasm-codebook",
         }
     }
 }
@@ -57,6 +64,18 @@ pub(crate) fn run(
     expected_source_digest: Option<&str>,
 ) -> i32 {
     let root = crate::dev_common::project_root();
+    if scope == TestFixtureScope::WasmCodebook {
+        let result = match mode {
+            TestFixtureMode::Verify => verify_wasm_codebook(&root),
+            TestFixtureMode::Produce => Err(fail(
+                "wasm-codebook is a read-only selector; the explicit pipeline producer emits its artifact",
+            )),
+        };
+        return result.map_or_else(
+            |error| crate::dev_common::fail(format!("wasm codebook: {error}")),
+            |()| 0,
+        );
+    }
     let result = match mode {
         TestFixtureMode::Produce => produce(
             &root,
@@ -127,6 +146,31 @@ fn require_bundle_args<'a>(
     Ok((cache_root, digest))
 }
 
+fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
+    use std::io::Read as _;
+    let path = gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH;
+    gmeow_pipeline::fixture::verify_stage_fixtures(root, &["stage-mappings"])?;
+    let expected =
+        gmeow_action_cache::selection::source_artifacts::load(root, "stage-mappings", path)
+            .map_err(fail)?;
+    let mut actual = Vec::new();
+    std::fs::File::open(root.join(path))
+        .map_err(fail)?
+        .take(expected.len() as u64 + 1)
+        .read_to_end(&mut actual)
+        .map_err(fail)?;
+    if actual != expected {
+        return Err(fail(
+            "generated native codebook differs from the authenticated producer selection",
+        ));
+    }
+    println!(
+        "native wasm codebook verified: artifact={path} bytes={}",
+        actual.len()
+    );
+    Ok(())
+}
+
 fn selected_bundle(root: &Path, expected: &str) -> FixtureResult<Vec<u8>> {
     let path = root.join("generated/dist/gmeow.gts");
     let bytes = std::fs::read(&path)
@@ -148,11 +192,44 @@ fn produce(
     expected_source_digest: Option<&str>,
 ) -> FixtureResult<()> {
     let started = Instant::now();
+    if scope == TestFixtureScope::ConformanceHeavy {
+        let selected = gmeow_pipeline::stages::conformance::heavy::produce(root)?;
+        let prepared = prepare_fixture_selector_fields(
+            root,
+            None,
+            BTreeMap::from([(
+                "conformance_heavy",
+                serde_json::to_value(&selected).map_err(fail)?,
+            )]),
+        )?;
+        if let Some(path) = timings_path {
+            write_json_atomic(
+                path,
+                &serde_json::json!({
+                    "schema_version": 1,
+                    "scope": scope.name(),
+                    "elapsed_ms": started.elapsed().as_millis(),
+                    "selected_action": selected,
+                    "manifest_sha256": prepared.sha256,
+                }),
+            )
+            .map_err(fail)?;
+        }
+        let finalized = prepared.publish()?;
+        println!(
+            "exhaustive conformance selector: path={} sha256={} action={}",
+            finalized.path.display(),
+            finalized.sha256,
+            selected.context.key()
+        );
+        return Ok(());
+    }
     let jobs = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(1);
     let mut stage_observations = Vec::new();
-    let mut stage_manifest_observation = None;
+    let mut stage_selection = None;
+    let mut docs_selector = None;
 
     // Run the repository verdict in a fresh process footprint, before docs and hydrated
     // stage products have populated allocator arenas. The verdict's own scheduler is
@@ -204,6 +281,7 @@ fn produce(
             prime.action_count, prime.built, prime.receipt_hits, prime.parallelism
         );
         println!("test fixture producer: phase=docs state=complete");
+        docs_selector = Some(prime.selector);
         Some(serde_json::json!({
             "fixture": "docs",
             "elapsed_ms": docs_started.elapsed().as_millis(),
@@ -222,13 +300,13 @@ fn produce(
             "test fixture producer: phase=pipeline-stages state=started targets={} jobs={jobs}",
             gmeow_pipeline::fixture::AUTHENTICATED_TEST_STAGE_IDS.len()
         );
-        let warm = gmeow_pipeline::fixture::reuse_stage_fixture_manifest(root)
+        let warm = gmeow_pipeline::fixture::reuse_stage_fixture_candidate(root)
             .map_err(|error| fail(format!("admit warm authenticated stage DAG: {error}")))?;
-        let (manifest, receipts, timings) = if let Some(warm) = warm {
+        let (receipts, timings) = if let Some(warm) = warm {
             println!(
                 "test fixture producer: phase=pipeline-stages mode=receipt-hit state=admitted"
             );
-            (warm.manifest, warm.receipts, None)
+            (warm.receipts, None)
         } else {
             let run = gmeow_pipeline::fixture::prime_stage_fixtures(
                 root,
@@ -236,24 +314,12 @@ fn produce(
                 gmeow_pipeline::fixture::AUTHENTICATED_TEST_STAGE_IDS,
             )
             .map_err(|error| fail(format!("produce authenticated stage DAG: {error}")))?;
-            let manifest =
-                gmeow_pipeline::fixture::publish_stage_fixture_manifest(root, &run.stage_receipts)
-                    .map_err(|error| {
-                        fail(format!("publish authenticated stage selector: {error}"))
-                    })?;
-            (manifest, run.stage_receipts, Some(run.stage_timings))
+            (run.stage_receipts, Some(run.stage_timings))
         };
-        println!(
-            "pipeline fixture selector interim: path={} sha256={} stages={}",
-            manifest.path.display(),
-            manifest.sha256,
-            manifest.stage_count
+        stage_selection = Some(
+            gmeow_pipeline::fixture::prepare_stage_fixture_candidate(root, &receipts)
+                .map_err(|error| fail(format!("prepare authenticated stage selection: {error}")))?,
         );
-        stage_manifest_observation = Some(serde_json::json!({
-            "path": manifest.path.strip_prefix(root).unwrap_or(&manifest.path),
-            "sha256": manifest.sha256,
-            "stage_count": manifest.stage_count,
-        }));
         for &stage_id in gmeow_pipeline::fixture::AUTHENTICATED_TEST_STAGE_IDS {
             let receipt = receipts
                 .iter()
@@ -287,11 +353,22 @@ fn produce(
                 "receipt": receipt,
             }));
         }
+        let source_exports = gmeow_pipeline::fixture::export_source_artifacts(root, &receipts)
+            .map_err(|error| fail(format!("export source-stage observations: {error}")))?;
+        stage_selection
+            .as_mut()
+            .and_then(serde_json::Value::as_object_mut)
+            .ok_or_else(|| fail("prepared stage selection is not an object"))?
+            .insert(
+                "source_artifacts".to_owned(),
+                serde_json::to_value(&source_exports.source_artifacts).map_err(fail)?,
+            );
         println!("test fixture producer: phase=pipeline-stages state=complete");
         Some(serde_json::json!({
             "fixture": "pipeline-stage-phase",
             "elapsed_ms": stage_phase_started.elapsed().as_millis(),
             "stage_count": stage_observations.len(),
+            "source_artifact_count": source_exports.source_artifacts.values().map(BTreeMap::len).sum::<usize>(),
             "built": stage_observations.iter().filter(|entry| entry["built"] == true).count(),
         }))
     } else {
@@ -304,89 +381,49 @@ fn produce(
         let (cache_root, expected) =
             require_bundle_args(scope, bundle_cache_root, expected_source_digest)?;
         let bundle = selected_bundle(root, expected)?;
-        let variants = gmeow_validate::data_validate::shape_corpus_variants_from_gts(&bundle)
-            .map_err(|error| fail(format!("extract selected-bundle shape variants: {error}")))?;
-        let view = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bundle)
-            .map_err(|error| fail(format!("open selected bundle blob view: {error}")))?;
-        let required_blob = |rep: &str| -> FixtureResult<Vec<u8>> {
-            view.blob_by_rep(rep)
-                .map_err(|error| fail(format!("decode selected-bundle {rep}: {error}")))?
-                .ok_or_else(|| fail(format!("selected bundle omitted required {rep} blob")))
-        };
-        let required_member = |rep: &str, member: &str| -> FixtureResult<Vec<u8>> {
-            view.archive(rep)
-                .map_err(|error| fail(format!("decode selected-bundle {rep}: {error}")))?
-                .remove(member)
-                .ok_or_else(|| {
-                    fail(format!(
-                        "selected-bundle {rep} omitted required member {member}"
-                    ))
-                })
-        };
-        let artifacts = vec![
-            (
-                "validate-conformance-shapes.ttl",
-                variants.conformance.into_bytes(),
-            ),
-            (
-                "validate-domain-conformance-shapes.ttl",
-                variants.domain_conformance.into_bytes(),
-            ),
-            (
-                "validate-production-shapes.ttl",
-                variants.production.into_bytes(),
-            ),
-            (
-                "validate-queries.ustar",
-                required_blob(gmeow_pipeline::bundle_blobs::REP_QUERIES)?,
-            ),
-            (
-                "validate-mappings.ustar",
-                required_blob(gmeow_pipeline::bundle_blobs::REP_MAPPINGS)?,
-            ),
-            (
-                "validate-constraint-shapes.ttl",
-                required_member(
-                    gmeow_pipeline::bundle_blobs::REP_SHAPES,
-                    "generated/shapes/constraint-shapes.ttl",
-                )?,
-            ),
-            (
-                "validate-linkml.yaml",
-                required_member(
-                    "generated-opaque-archive",
-                    "generated/schemas/gmeow.linkml.yaml",
-                )?,
-            ),
-            (
-                "validate-statements-owl.ttl",
-                required_member(
-                    "statements-archive",
-                    "generated/statements/gmeow-statements.owl.ttl",
-                )?,
-            ),
-        ];
-        let mut artifact_observations = Vec::with_capacity(artifacts.len());
-        let mut artifact_publications = BTreeMap::new();
-        for (name, bytes) in artifacts {
-            let publication = gmeow_bundle_import::publish_authenticated_corpus_artifact(
-                root, &bundle, name, &bytes,
+        let (mut import, cold_import) =
+            gmeow_bundle_import::admit_graph_preserving_cached_with_blobs(
+                cache_root,
+                &bundle,
+                bundle_artifacts::BLOB_SELECTORS,
+                bundle_artifacts::blob_limits(),
             )
-            .map_err(|error| fail(format!("publish authenticated {name}: {error}")))?;
+            .map_err(|error| fail(format!("admit exact bundle import: {error}")))?;
+        let sources = bundle_artifacts::Sources::new(&bundle, cold_import);
+        // Sources owns the same cold dataset allocation alongside its selected
+        // blobs; the admission's extra Arc is no longer needed for reporting.
+        drop(import.produced_dataset.take());
+        let mut artifact_observations = Vec::with_capacity(bundle_artifacts::NAMES.len());
+        let mut artifact_publications = BTreeMap::new();
+        for &name in bundle_artifacts::NAMES {
+            let started = Instant::now();
+            let admission = gmeow_bundle_import::admit_authenticated_corpus_artifact(
+                root,
+                &import.receipt,
+                gmeow_pipeline::cache::PRODUCER_BUILD_CONTRACT,
+                name,
+                || sources.produce(name),
+            )
+            .map_err(|error| fail(format!("admit authenticated {name}: {error}")))?;
+            let publication = admission.publication;
             println!(
-                "corpus artifact fixture: name={name} action={} receipt={} bytes={}",
+                "corpus artifact fixture: name={name} mode={} action={} receipt={} bytes={}",
+                if admission.built {
+                    "built"
+                } else {
+                    "authenticated"
+                },
                 publication.action_key,
                 publication.receipt_digest,
-                bytes.len(),
+                publication.product_bytes,
             );
             artifact_observations.push(serde_json::json!({
-                "name": name,
-                "receipt": publication.receipt_digest,
-                "action": publication.action_key,
-                "bytes": bytes.len(),
+                "name": name, "built": admission.built, "elapsed_ms": started.elapsed().as_millis(),
+                "receipt": publication.receipt_digest, "action": publication.action_key,
+                "bytes": publication.product_bytes,
             }));
             if artifact_publications
-                .insert(name.to_string(), publication)
+                .insert(name.to_owned(), publication)
                 .is_some()
             {
                 return Err(fail(format!(
@@ -394,11 +431,14 @@ fn produce(
                 )));
             }
         }
-        let import = gmeow_bundle_import::admit_graph_preserving_cached(cache_root, &bundle)
-            .map_err(|error| fail(format!("admit exact bundle import: {error}")))?;
+        drop(sources);
         println!(
             "bundle import fixture: mode={} action={} source={} receipt={} bytes={}",
-            if import.built { "built" } else { "hydrated" },
+            if import.built {
+                "built"
+            } else {
+                "authenticated"
+            },
             import.receipt.action_key,
             import.receipt.source_digest,
             import.receipt.receipt_digest(),
@@ -423,18 +463,16 @@ fn produce(
     } else {
         None
     };
-    let (bundle_observation, finalized_selector) =
-        if let Some((observation, selector)) = bundle_phase {
-            let finalized = publish_bundle_fixture_selector(root, &selector)?;
-            println!(
-                "test fixture selector finalized: path={} sha256={}",
-                finalized.path.display(),
-                finalized.sha256,
-            );
-            (Some(observation), Some(finalized))
-        } else {
-            (None, None)
-        };
+    let (bundle_observation, bundle_selector) = match bundle_phase {
+        Some((observation, selector)) => (Some(observation), Some(selector)),
+        None => (None, None),
+    };
+    let prepared_selector = prepare_fixture_selector(
+        root,
+        stage_selection,
+        bundle_selector.as_ref(),
+        docs_selector.as_ref(),
+    )?;
 
     if let Some(path) = timings_path {
         let value = serde_json::json!({
@@ -447,13 +485,10 @@ fn produce(
                     + usize::from(slice_spec_observation.is_some())
                     + usize::from(bundle_observation.is_some()),
                 "stage_receipts": stage_observations.iter().map(|entry| &entry["receipt"]).collect::<Vec<_>>(),
-                "stage_fixture_manifest": finalized_selector
-                    .as_ref()
-                    .map(|identity| serde_json::json!({
-                        "path": identity.path.strip_prefix(root).unwrap_or(&identity.path),
-                        "sha256": identity.sha256,
-                    }))
-                    .or(stage_manifest_observation),
+                "stage_fixture_manifest": {
+                    "path": prepared_selector.path.strip_prefix(root).unwrap_or(&prepared_selector.path),
+                    "sha256": prepared_selector.sha256,
+                },
                 "slice_spec_receipt": slice_spec_observation.as_ref().map(|entry| &entry["receipt_digest"]),
                 "bundle_import_receipt": bundle_observation.as_ref().map(|entry| &entry["receipt"]),
             },
@@ -473,6 +508,12 @@ fn produce(
             ))
         })?;
     }
+    let finalized_selector = prepared_selector.publish()?;
+    println!(
+        "test fixture selector finalized: path={} sha256={}",
+        finalized_selector.path.display(),
+        finalized_selector.sha256,
+    );
     Ok(())
 }
 
@@ -482,6 +523,15 @@ fn verify(
     bundle_cache_root: Option<&Path>,
     expected_source_digest: Option<&str>,
 ) -> FixtureResult<()> {
+    if scope == TestFixtureScope::ConformanceHeavy {
+        let observations = gmeow_pipeline::stages::conformance::heavy::load(root)?;
+        println!(
+            "exhaustive conformance observations verified: consistency_cases={} class_diagnostic_cases={}",
+            observations.consistency.len(),
+            observations.class_diagnostics.len(),
+        );
+        return Ok(());
+    }
     if scope.includes_docs() {
         println!("test fixture verifier: phase=docs state=started");
         let (model, identity) = gmeow_docs_model::fixture::load_with_identity(root);
@@ -526,6 +576,9 @@ fn verify(
                 receipt.digest(),
             );
         }
+        for (artifact, bytes) in gmeow_pipeline::fixture::verify_source_artifacts(root)? {
+            println!("source artifact verified: artifact={artifact} bytes={bytes}");
+        }
         println!("test fixture verifier: phase=pipeline-stages state=complete");
     }
 
@@ -566,16 +619,7 @@ fn verify(
             ));
         }
         let mut shape_bytes = Vec::new();
-        for name in [
-            "validate-conformance-shapes.ttl",
-            "validate-domain-conformance-shapes.ttl",
-            "validate-production-shapes.ttl",
-            "validate-queries.ustar",
-            "validate-mappings.ustar",
-            "validate-constraint-shapes.ttl",
-            "validate-linkml.yaml",
-            "validate-statements-owl.ttl",
-        ] {
+        for &name in bundle_artifacts::NAMES {
             let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(root, name)
                 .map_err(|error| fail(format!("load authenticated {name}: {error}")))?;
             if bytes.is_empty() {
@@ -602,55 +646,111 @@ struct FinalizedFixtureSelector {
     sha256: String,
 }
 
-fn publish_bundle_fixture_selector(
+fn prepare_fixture_selector(
     root: &Path,
-    bundle: &gmeow_bundle_import::BundleFixtureSelector,
-) -> FixtureResult<FinalizedFixtureSelector> {
+    stage_selection: Option<serde_json::Value>,
+    bundle: Option<&gmeow_bundle_import::BundleFixtureSelector>,
+    docs: Option<&gmeow_docs_model::fixture::DocsFixtureSelector>,
+) -> FixtureResult<PreparedFixtureSelector> {
+    let mut fields = BTreeMap::new();
+    if let Some(bundle) = bundle {
+        fields.insert(
+            "bundle_import",
+            serde_json::to_value(bundle)
+                .map_err(|error| fail(format!("encode bundle fixture selector: {error}")))?,
+        );
+    }
+    if let Some(docs) = docs {
+        fields.insert(
+            "docs",
+            serde_json::to_value(docs)
+                .map_err(|error| fail(format!("encode docs fixture selector: {error}")))?,
+        );
+    }
+    prepare_fixture_selector_fields(root, stage_selection, fields)
+}
+
+/// Prepare selected extensions without changing the runner's current credentials.
+/// Source exports are already part of a fresh stage selection; later selected
+/// operations preserve those bindings until their own final publication succeeds.
+fn prepare_fixture_selector_fields(
+    root: &Path,
+    stage_selection: Option<serde_json::Value>,
+    fields: BTreeMap<&str, serde_json::Value>,
+) -> FixtureResult<PreparedFixtureSelector> {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
-    let bytes = std::fs::read(&path).map_err(|error| {
-        fail(format!(
-            "read pipeline fixture selector {} before bundle binding: {error}",
-            path.display()
-        ))
-    })?;
-    let mut value: serde_json::Value = serde_json::from_slice(&bytes)
-        .map_err(|error| fail(format!("decode pipeline fixture selector: {error}")))?;
+    let mut value = match stage_selection {
+        Some(value) => value,
+        None => {
+            let bytes = std::fs::read(&path).map_err(|error| {
+                fail(format!(
+                    "read published fixture prefix {}: {error}",
+                    path.display()
+                ))
+            })?;
+            serde_json::from_slice(&bytes)
+                .map_err(|error| fail(format!("decode published fixture prefix: {error}")))?
+        }
+    };
     if value
         .get("schema_version")
         .and_then(serde_json::Value::as_u64)
         != Some(2)
     {
         return Err(fail(
-            "pipeline fixture selector is not schema 2 before bundle binding",
+            "pipeline fixture selection is not schema 2 before publication",
         ));
     }
     let object = value
         .as_object_mut()
         .ok_or_else(|| fail("pipeline fixture selector root is not an object"))?;
-    object.insert(
-        "bundle_import".to_string(),
-        serde_json::to_value(bundle)
-            .map_err(|error| fail(format!("encode bundle fixture selector: {error}")))?,
-    );
-    write_json_atomic(&path, &value).map_err(|error| {
-        fail(format!(
-            "publish bundle-bound fixture selector {}: {error}",
-            path.display()
-        ))
-    })?;
-    let finalized = std::fs::read(&path).map_err(|error| {
-        fail(format!(
-            "read finalized fixture selector {}: {error}",
-            path.display()
-        ))
-    })?;
-    Ok(FinalizedFixtureSelector {
+    for (name, value) in fields {
+        object.insert(name.to_owned(), value);
+    }
+    let bytes = encode_json(&value)
+        .map_err(|error| fail(format!("encode complete fixture selector: {error}")))?;
+    let sha256 = ContentDigest::of(&bytes).to_hex();
+    Ok(PreparedFixtureSelector {
         path,
-        sha256: ContentDigest::of(&finalized).to_hex(),
+        bytes,
+        sha256,
     })
 }
 
+/// A selected operation publishes only after every fallible preparation,
+/// including requested telemetry, has completed. The bytes are encoded once.
+struct PreparedFixtureSelector {
+    path: std::path::PathBuf,
+    bytes: Vec<u8>,
+    sha256: String,
+}
+
+impl PreparedFixtureSelector {
+    fn publish(self) -> FixtureResult<FinalizedFixtureSelector> {
+        write_bytes_atomic(&self.path, &self.bytes).map_err(|error| {
+            fail(format!(
+                "publish complete fixture selector {}: {error}",
+                self.path.display()
+            ))
+        })?;
+        Ok(FinalizedFixtureSelector {
+            path: self.path,
+            sha256: self.sha256,
+        })
+    }
+}
+
+fn encode_json(value: &serde_json::Value) -> std::io::Result<Vec<u8>> {
+    let mut bytes = serde_json::to_vec_pretty(value).map_err(std::io::Error::other)?;
+    bytes.push(b'\n');
+    Ok(bytes)
+}
+
 fn write_json_atomic(path: &Path, value: &serde_json::Value) -> std::io::Result<()> {
+    write_bytes_atomic(path, &encode_json(value)?)
+}
+
+fn write_bytes_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     use std::io::Write as _;
 
     let parent = path
@@ -659,8 +759,7 @@ fn write_json_atomic(path: &Path, value: &serde_json::Value) -> std::io::Result<
         .unwrap_or_else(|| Path::new("."));
     std::fs::create_dir_all(parent)?;
     let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
-    serde_json::to_writer_pretty(&mut temporary, value).map_err(std::io::Error::other)?;
-    temporary.write_all(b"\n")?;
+    temporary.write_all(bytes)?;
     temporary.as_file().sync_all()?;
     temporary
         .persist(path)

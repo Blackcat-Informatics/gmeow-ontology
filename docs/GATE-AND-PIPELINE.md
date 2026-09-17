@@ -41,6 +41,22 @@
 separate regeneration step to perform first; performing one runs the whole
 pipeline twice and queues the machine behind you.
 
+The PurRDF manifests declare the compatible major release (`purrdf = "2"`).
+`Cargo.lock` selects the concrete version, registry source, and package checksum.
+The standalone fuzz workspace commits its own lockfile and must resolve every
+PurRDF package to the same identity; `make fuzz-substrate-check` verifies that
+agreement read-only before `make fuzz-smoke` starts. Browser engines retain
+mandatory stamps and parity witnesses for the exact root-lockfile substrate.
+`make maint-bump-purrdf VERSION=...` updates both lockfiles within the authored
+requirements, then runs `make maint-refresh-wasm-assets`: prepare all six browser
+engines and their stamps, run one full `make check` to produce and gate the current
+bundle, and run all six Node parity lanes against it. This order avoids asking a
+new validator to accept a stale bundle before its corrected producer can run.
+`maint-prepare-wasm-assets` is only that workflow's explicit preparation boundary;
+its digest records identify candidate bytes and do not claim parity acceptance.
+Every verification step remains mandatory. Substrate provenance records manifest
+requirements and resolved versions as separate claim dimensions.
+
 ## 2. The principles
 
 ### P1 — One producer, one run
@@ -211,6 +227,17 @@ from that crate to `gmeow-docs` would close a first-party cycle, because
 `gmeow-docs` dev-depends on `gmeow-mcp` and `gmeow-mcp` depends on
 `gmeow-slice-quality`, and the layering scan counts dev-dependencies.
 
+The explicit fixture producer now binds the model, every selected language render,
+and the book action into the same SHA-256-selected manifest as pipeline and bundle
+fixtures. Documentation consumers authenticate those exact contexts, receipts and
+payloads through the shared bounded selector reader. They never hash the current
+checkout to discover a replacement action. The producer still derives its key from
+all current inputs and implementation dependencies, so a full gate admits current
+corpus data; a separately built test or debugger consumes the producer-selected
+identity. A missing selector field, changed receipt, wrong language or corrupt blob
+fails without reconstruction. Render contexts carry the model producer identity,
+so parallel rendering and later consumers do not repeatedly walk the input closure.
+
 **Prerequisite 3 — the record could not prove it was current.** The naive claim
 that the second merged-SHACL pass was a bit-for-bit repeat was wrong twice over.
 `make validate` has no `sync` prerequisite, so its record can be arbitrarily
@@ -234,6 +261,133 @@ stale or unstamped record. The same module hard-fails on a grade set that does
 not match the rubric, a tier off the ladder, or a missing roll-up — completeness
 as well as freshness, because a truncated record must never be mistaken for a
 passing one.
+
+The grounding module's CLIF, CGIF and XCL round-trip observations also belong
+to the compile producer. It borrows the catalog's native document, shares one
+standalone compilation and canonical reference, and records each dialect's
+parse and complete-IR comparison. The corpus test authenticates that exact
+compile action and grades all three observations; it never embeds or recompiles
+the source module. Synthetic codec tests continue to exercise local behavior.
+
+The producer also records the grounding vocabulary's native type inventories and
+preset facets from that retained document. One authenticated consumer grades all
+thirteen named Rust/vocabulary alignment contracts, retaining every enum,
+ordering and procedural-permission assertion. It reads one observation instead
+of repeatedly opening the module or extracting Turtle declarations as text.
+Malformed members and facet values are recorded as failures, never discarded.
+
+The same boundary applies to standalone shape-migration checks. The compile
+producer prepares each selected native module once, retains its diagnostics,
+typed derived shapes and emitted SHACL, and records the selected counterexample
+findings with their source-shape identities. Corpus tests authenticate those
+outputs; synthetic input validation consumes the emitted shapes without
+rederiving them. The affine example likewise has a complete typed producer
+output, so fidelity checks consume its program and projection while cache and
+carrier unit tests use fixed synthetic expectations.
+
+Authored formula and projection examples follow the same rule. The producer
+records each selected formula's diagnostics, selection count, actual native
+rule shape and syntactic preservation. Those observations are diagnostic
+products; they cannot admit execution or certify optimization rewrites. The
+projection-case goldens consume seven already-produced terminal outputs per
+case. RDF outputs retain their native datasets until terminal serialization,
+without a Turtle serialization and reparse between compiler and observer.
+
+The native conformance cases are explicit producer actions. Each action binds the
+case's execution inputs, exact implementation/profile, and the selected shipped
+rule library when used. Goldens are authenticated by the enclosing stage but do
+not invalidate case execution: expectation edits reuse the existing observation.
+Each completed result is published immediately into the bounded action store;
+the stage also carries every selected result so child eviction cannot strand a
+consumer. One authenticated test grades all selected results against the curated
+goldens and reports every mismatch. Benchmark, oracle, divergence, and decided
+lane ownership stays explicit. Tests cannot compile these authored cases or
+load a rule library from an ambient checkout.
+
+Operational failures propagate the live `Diag`, preserving its source chain and
+context. At an observation's serialization boundary, a rejected operation becomes
+a `RecordedDiag`: the lowered root and its complete causal closure, including grade,
+standpoint, source coordinates, provenance and advice. It is diagnostic data, never
+an executable proof or a reconstructed live error. Independent observation actions
+cache completed observations, including explicit semantic refusals inside them;
+initialization failures publish no action and are never retried automatically.
+Source analyses likewise share successful immutable values without cloning or
+flattening a live failure to cross a cache boundary.
+
+Generic consistency cases and dedicated native-fragment verifiers share one
+per-input native action. Its observation retains world counts, inconsistency
+witnesses, unsatisfiable classes, construct coverage, gaps and identified boundary
+findings. An execution failure has no semantic verdict; a timeout or panic must
+never be converted into `incomplete`. The required producer includes the full
+decided corpus and the named divergence witnesses. The registry observation reads
+the same parsed grounding document as other source consumers.
+
+Diagnostic rule evaluation follows the same producer boundary. Meta-rule fixtures,
+the complete grade matrix and projected report cases reuse one admitted grounding
+compilation with the separately admitted category wiring. Independent action keys
+bind both source identities and the selected fixture; cache hits do not recompile
+rules or prepare queries. Consumers preserve the exact root, cluster, trace, glut,
+gate and report-enrichment assertions. These observations are diagnostic evidence,
+never certificates authorizing a correspondence rewrite.
+
+The exhaustive full-divergence and 152-case class-diagnostic sweeps use an explicit `conformance-heavy` fixture
+scope. Run `make produce-conformance-heavy-test-fixtures` after producing the
+required fixture selector, then `make conformance-heavy` (or the wider
+`make maint-rust-heavy`). The producer extends that
+selector with the exact exhaustive action receipt; the runner authenticates it
+read-only and never launches production. Each native result is independently
+cached, and the aggregate embeds every result. Divergence consistency runs serially
+to avoid multiplying the native engine's live memory footprint; independent class
+diagnostics use the producer's bounded worker pool. Missing, stale or corrupt
+evidence fails closed. Ordinary required fixture production does not select this
+breadth work.
+
+Independent DL and numeric oracle checks, TPTP decisions, native proofs and their
+terminal TSTP round trips are also producer observations. Input/setup failures
+remain separate from semantic refusals. The DL oracle retains its exact
+`reason_all` operation; the numeric oracle retains public procedural dispatch,
+including its budget, preservation and completion-frontier evidence. TPTP parses
+each selected source once for its independent DL and Horn operations. DL lowering
+streams assertions into a validated world-scoped native dataset, which the
+consistency engine borrows directly. RDF text is emitted only at an external
+corpus-writing boundary. Serialized proof observations retain the exported steps
+and their identities but cannot construct a checked proof or certify a rewrite.
+
+The source catalog shares bounded standalone document compilations across the
+compile-logic round trip, prepared operator rules, diagnostic programs, Common
+Logic checks, and conformance rule-library consumer. Every consumer selects the
+grounding module by its one canonical source IRI; an alias would create a second
+lowering and is forbidden. Conformance starts that shared lowering concurrently
+with the independent native-observation set, then all later consumers borrow the
+same immutable result. A case's compiler and shape derivation use one native parse,
+and its backward queries share one loaded world and one lazy native fact snapshot.
+These are execution reuse boundaries; no cumulative carrier snapshot is serialized
+for them.
+
+Source assertions follow the same boundary. The optimized producer records native
+verification laws, original vocabulary inventories, example results and lint
+diagnostics. Tests authenticate compact selected artifacts against the exact
+parent stage receipt, including its product, producer and artifact digests. They
+never reconstruct an original document from those observations or use a miss to
+invoke a source compiler. Original document roles remain separate from the
+asserted base; comparing an imported vocabulary or worked example does not admit
+its statements into that base.
+
+Browser GMN consumers embed the producer-built native codebook. The build verifies
+the selected mappings receipt and exact codebook bytes before compiling either
+wrapper. Static and browser CI download the required prefix producer artifact and
+authenticate its exact selector before that admission. Only producers restore
+cache candidates; a missing consumer artifact cannot trigger production. The two independent cold
+generations and their byte-agreement check remain required.
+
+The reasoning archive carries prepared verification laws together with the
+matching reasoning report. Bundle readers authenticate the archive and select a
+bounded member through the shared GTS profile reader. This removes implicit
+source compilation from verification. Callers that already hold a retained GTS
+graph reuse it; the graph-preserving event import currently requires a separate
+archive read because its envelope exposes blob identities without their bodies.
+That extra read must not be replaced by an importer that loses segment-local
+blank-node scope.
 
 ### P5 — A dependency edge must name the read that forces it
 
@@ -281,10 +435,92 @@ when a persistent leaf depends on a deliberately nonpersistent carrier stage:
 trying to rediscover the leaf key from currently persistent dependency receipts
 would either miss or pressure the runner to execute the DAG again. The recorded
 context removes that work while preserving fail-closed receipt and blob checks.
+
+Compiler corpus checks follow the same boundary. The optimized compile stage
+records standalone module shapes, counterexample findings, Common Logic fidelity,
+and selected projection bytes; the conformance stage records abductive ownership.
+Retained native source documents preserve each standalone scope. Source catalog
+commitments and explicit counterexample inputs authenticate the action. Tests
+compare the authenticated records and existing goldens; they never compile a
+repository module or regenerate its projection. Synthetic compiler inputs remain
+ordinary unit tests.
+
+The source-purity seal scans ignored worktree paths too and treats scanner failures
+as failures. Alongside named producer calls, it follows authored source paths through
+supported local bindings and helpers into construction calls. Its lexical analysis
+is bounded: macro expansion, cross-file dispatch, and dynamic calls still need review.
+Its inert regression fixtures exercise ignored sources, indirect flows, and missing
+scanner tools without executing any represented producer.
+
+Successful synchronization in update mode records its complete fixture dependency
+closure in `.cache/gmeow-sync/stage-fixture-candidate-v2.json`. This reusable
+receipt candidate is separate from the finalized selector: ordinary pipeline runs
+cannot overwrite the selected bundle-import, docs or source-artifact actions, or invalidate a
+selector digest already handed to a runner. The explicit pre-test producer
+revalidates the candidate against the current DAG, inputs, and cached products,
+then retains the selection in memory until every selected phase and any requested
+telemetry have succeeded. It encodes the complete stage, source-artifact, bundle
+and documentation selection once and publishes it through one final atomic replacement. A failed
+phase leaves the previous runner selector intact; there is no interim stage-only
+publication during the all-fixtures operation. The independent producer publishes
+its intentional prefix at its own successful boundary, and the bound producer
+extends that prefix only after its selected work succeeds. A missing
+candidate causes explicit production; the finalized selector is never a candidate
+fallback. Tests cannot build anything. Read-only synchronization records neither
+file, and the two independent cold CI generations retain separate producer runs
+and identities.
+
+For development over synthetic inputs, `make nextest-synthetic
+NEXTEST_FILTER='package(gmeow-logic) & test(obligations::)'` uses the same
+producer-independent Cargo graph as `rust-prebuild`. The filter is mandatory
+and an empty selection fails. This operation supplies no corpus credentials
+and removes inherited selector credentials: selecting a corpus consumer fails
+in its authenticated loader, without discovering or producing a replacement.
+It does not produce a gate receipt or replace `make nextest` or any part of
+`make check`; the required gate still runs its complete inventory against the
+authenticated producer-selected corpus.
+
+Artifact consumers borrow packed RDF, blob and typed-handle payloads from that
+authenticated product buffer. The manifest has one binary schema for owned writes
+and borrowed reads. A single-artifact request validates the complete artifact
+inventory and copies only the requested bytes; corruption in an unselected artifact
+still fails the read. The full product blob is read and authenticated, so this removes
+payload copies and native reconstruction without claiming to remove that I/O.
+
+The producer also exports selected compact source observations as bounded actions.
+Each export binds its original stage action, receipt, product, implementation,
+artifact digest and byte count. The runner verifies those origins against the
+selected parent receipts before starting tests. Consumers open the exported action
+read-only using the exact selector identity; they do not hydrate a carrier or
+extract a missing observation. These source selections join the same final atomic
+selector publication, and a failed phase cannot replace earlier bindings.
+
 The selector also records the producer-profile bundle-import receipt and every
 bundle-derived corpus-artifact action. Consumers compiled under the test profile
 load those selected producer actions; they do not derive a false miss from their
 own profile identity, and they never repair a miss by importing the corpus.
+Documentation uses the same selector for the model, every language render, and
+the book. Its consumers use the selected producer identity and exact receipts;
+they never recalculate action keys from the consumer checkout. A shared bounded
+reader authenticates the supplied selector digest before any domain reads its
+fields. Missing credentials fail even when the requested product is cached.
+
+Each bundle-derived artifact additionally binds the authenticated producer recipe,
+covering its extraction code independently of the narrower dataset-import identity.
+The producer authenticates each artifact before invoking its extraction callback;
+a valid hit requires neither a bundle view nor dataset hydration. On misses, the
+producer shares its native dataset, decoded archive bodies and shape selections.
+The dataset from a cold import is retained for that work instead of being discarded
+and restored immediately. Corrupt receipts or referenced bytes remain terminal.
+
+Native MCP bundle contracts share one required process and one maintainer process.
+The conversion, distribution, glyph-legend, segment-routing and explorer-witness
+modules register their named contracts with the same runner as the tool suite.
+Each contract constructs its own server configuration while the selected immutable
+snapshot, imported dataset and view indexes are shared. Feature gates remain part
+of registration, every panic is reported by contract name, and explicit ignored
+or expected-panic tests retain libtest semantics. The explorer witness compares
+an independent direct renderer with the public query route over that one dataset.
 
 Corpus production uses the dedicated `pipeline` Cargo profile: O3, full LTO,
 one codegen unit, no incremental compilation or debug information, and workspace
@@ -303,6 +539,41 @@ transfers the same executable and receipt to its producer jobs. Each production
 entry checks its embedded identity, executable bytes, and source freshness.
 `cli-build` retains this producer when building the consumer. Test/debug binaries
 stay separate, and fixture verification never invokes the builder.
+
+Grounding GMN judgments also belong to the producer. Each selected module or
+example has an independent action keyed by its source and the selected language
+dictionary. Modules reuse the native source catalog; examples remain separate
+documents outside its assertion scope. One codec round trip supplies whole-model
+equality, canonical claim partitions and re-encoding evidence. Reconciliation
+and corpus tests read those observations. The scheduler retains only explicitly
+selected report bytes for post-run readers and releases the source carriers;
+missing selected stages or reports fail closed. Execution telemetry belongs to
+the observation stage, while reconciliation timings identify report grading.
+These source-specific observations never authorize unrestricted rewrites.
+
+The source catalog owns one native language context shared by GMN observations,
+projection and training-corpus production. Dictionary membership is resolved once
+and reused by the glyph compiler; the resulting dictionary, codebook identity,
+operator label index and ring lattice stay in memory until their declared
+consumers finish. The mapping and training stages declare this catalog dependency
+in both the Rust and RDF DAGs. Selected dictionary tests consume recorded alias,
+version-window, claim-inversion, sigil and scope judgments, without recompiling the
+dictionary. The independent confusable-glyph audit computes skeletons from raw
+producer-selected source coordinates, separately from registry validation. Record
+and slot policy tests use a tiny synthetic dictionary; their expected authored
+aliases remain checked against the producer's selected dictionary.
+
+Native refutation corpus execution also belongs to the producer. The complete
+isolated case-split sweep covers both W3C full corpora; only explicitly selected
+cases also request full consistency reasoning. Two fixed witness cases retain
+independent repeated kernel certificates for determinism. Each operation has its
+own action identity and reuses completed observations independently. Sibling
+misses share one lazy native parse of their exact source, which is released when
+that source task finishes; warm hits need no dataset hydration. Compact exports
+bind every observation to its parent receipt. Tests compare the complete source
+inventory, published verdicts, witness bytes and named capability boundaries
+without parsing or executing the corpus. None of these bounded observations
+authorizes an unrestricted optimization rewrite.
 
 ### P6 — Local gate versus CI-only `heavy`
 
@@ -328,12 +599,17 @@ of criterion 2 *within one axis*. The former `medium_identity_gate` emitted the
 whole carrier under a second medium from inside a test; it was removed because a
 test may never rebuild the corpus. Its useful contract is now split between the
 read-only `medium_bundle` audit of the ONE producer-authenticated deliverable and
-`medium_codec_composition`, which proves `decode(encode(x)) = x` over every
-declared chain without executing the DAG. The two breadth-heavy consumer suites
-— `medium_cli` and `medium_gate` — remain in the CI-only
-`medium-consumer-surface` lane. The membership decision is therefore per
-contract: artifact inspection stays cheap and read-only, codec laws use bounded
-inputs, and no test launches another producer.
+the GMEOW registry, strategy-dispatch, and authored medium-plan checks. Generic
+codec round trips, block boundaries, dictionary mismatch and training determinism
+belong to PurRDF's own suite; GMEOW does not repeat that corpus. The two
+breadth-heavy consumer suites — `medium_cli` and `medium_gate` — remain in the
+CI-only `medium-consumer-surface` lane. No test launches another producer, and
+bounded codec examples never authorize unrestricted correspondence rewrites.
+
+The ownership boundary also applies to OntoUML: a format or output check already
+owned by PurRDF must not be duplicated here. GMEOW retains checks for its own
+importer and lowering, selected worlds, correspondence semantics, provenance,
+loss evidence and native discipline judgments.
 
 `console-smoke` joined them after the 41-case browser/package sweep repeatedly
 dominated the local critical path: it boots the assembled deployment, executes the
@@ -342,6 +618,13 @@ packs and installs the real npm artifact. That is breadth by construction (crite
 2), not a focused verdict about the current edit. The focused DOM-free `console-test`
 still runs on `make check` against the shipped wasm and synchronized bundle; the full
 browser sweep runs on every PR as its own parallel heavy-matrix branch.
+
+`conformance-heavy` owns the complete OWL-Full divergence and class-diagnostic
+inventories. The ordinary producer retains the complete positive five-case class
+proof frontier plus the two source-admission cases; the 147 negative breadth
+controls run on every PR in their own heavy matrix branch. A pipeline edit therefore
+cannot turn the local synchronization critical path into a 152-case reasoner sweep,
+while the exhaustive soundness contract remains required and read-only at test time.
 
 **The refusal.** `make heavy` requires `CI=true` **and** a CI-vendor marker
 (`GITHUB_ACTIONS`, `GITLAB_CI`, or `BUILDKITE_BUILD_ID`), so a developer who

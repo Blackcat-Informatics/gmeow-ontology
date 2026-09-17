@@ -773,7 +773,9 @@ pub fn piece_to_turtle(piece: &Piece) -> String {
     out
 }
 
-pub fn piece_to_gts_bytes(piece: &Piece) -> gmeow_errors::Result<Vec<u8>> {
+pub fn piece_to_gts_bytes(
+    piece: &Piece,
+) -> gmeow_errors::Result<gmeow_gts_profile::GmeowGtsEmission> {
     let turtle = piece_to_turtle(piece);
     let dataset = parse_dataset(
         turtle.as_bytes(),
@@ -786,18 +788,25 @@ pub fn piece_to_gts_bytes(piece: &Piece) -> gmeow_errors::Result<Vec<u8>> {
         })
     })?;
     let mut builder = SnapshotBuilder::default();
-    builder
-        .add_dataset(&dataset)
-        .map_err(|e| Diag::of_kind(error::RdfPipelineFailed { detail: e }))?;
+    let _ingestion = builder.add_view(&dataset).map_err(|e| {
+        Diag::of_kind(error::RdfPipelineFailed {
+            detail: e.to_string(),
+        })
+    })?;
     // Music packages are shipped GTS bytes, so they take the one mandated
     // authorship door — never a raw `emit_gts` with the plain-`zstd` default.
-    gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None).map_err(
-        |e| {
-            Diag::of_kind(error::RdfPipelineFailed {
-                detail: e.to_string(),
-            })
-        },
+    gmeow_gts_profile::emit_gmeow_gts(
+        builder,
+        Vec::new(),
+        Vec::new(),
+        None,
+        &gmeow_gts_profile::baseline_medium_plan(),
     )
+    .map_err(|e| {
+        Diag::of_kind(error::RdfPipelineFailed {
+            detail: e.to_string(),
+        })
+    })
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -1930,7 +1939,7 @@ pub fn import_file(source: &Path, out: &Path) -> gmeow_errors::Result<Vec<PathBu
         std::fs::create_dir_all(parent)
             .with_ctx(|| format!("failed to create {}", parent.display()))?;
     }
-    std::fs::write(out, data).with_ctx(|| format!("failed to write {}", out.display()))?;
+    let receipt_path = data.write_to(out)?;
     let manifest_path = manifest_path_for(out);
     let provenance = format!(
         "gmeow music import {} -o {}",
@@ -1947,7 +1956,7 @@ pub fn import_file(source: &Path, out: &Path) -> gmeow_errors::Result<Vec<PathBu
         import_manifest_turtle(source, &piece.iri, Some(&provenance))?,
     )
     .with_ctx(|| format!("failed to write {}", manifest_path.display()))?;
-    Ok(vec![out.to_path_buf(), manifest_path])
+    Ok(vec![out.to_path_buf(), manifest_path, receipt_path])
 }
 
 #[cfg(test)]
@@ -2015,7 +2024,15 @@ mod tests {
     /// materializes a file the Makefile's bundle gate could inspect.
     #[test]
     fn piece_gts_bytes_use_the_mandated_frame_profile() {
-        let bytes = piece_to_gts_bytes(&fixture_piece()).expect("emit the music package");
+        let bytes = {
+            let emission = piece_to_gts_bytes(&fixture_piece()).expect("emit the music package");
+            assert!(
+                emission.ingestion.declarations_omitted.is_empty(),
+                "unexpected GMEOW fixture graph omissions: {:?}",
+                emission.ingestion.declarations_omitted
+            );
+            emission.bytes
+        };
         gmeow_gts_profile::validate_mandated_frames(&bytes)
             .expect("music package uses the mandated zstd-rsyncable-L12 frame profile");
     }
@@ -2084,7 +2101,15 @@ mod tests {
     #[test]
     fn piece_graph_gts_round_trip_preserves_events() {
         let piece = fixture_piece();
-        let bytes = piece_to_gts_bytes(&piece).expect("gts");
+        let bytes = {
+            let emission = piece_to_gts_bytes(&piece).expect("gts");
+            assert!(
+                emission.ingestion.declarations_omitted.is_empty(),
+                "unexpected GMEOW fixture graph omissions: {:?}",
+                emission.ingestion.declarations_omitted
+            );
+            emission.bytes
+        };
         let round = piece_from_gts_bytes(&bytes).expect("read");
         assert_eq!(round.title.as_deref(), Some("Rust Music Package Fixture"));
         assert_eq!(round.voices.len(), 1);
@@ -2106,7 +2131,15 @@ mod tests {
             spelled_name: Some("B sharp".to_string()),
         });
 
-        let bytes = piece_to_gts_bytes(&piece).expect("gts");
+        let bytes = {
+            let emission = piece_to_gts_bytes(&piece).expect("gts");
+            assert!(
+                emission.ingestion.declarations_omitted.is_empty(),
+                "unexpected GMEOW fixture graph omissions: {:?}",
+                emission.ingestion.declarations_omitted
+            );
+            emission.bytes
+        };
         let round = piece_from_gts_bytes(&bytes).expect("read");
         let labels = round.voices[0]
             .events

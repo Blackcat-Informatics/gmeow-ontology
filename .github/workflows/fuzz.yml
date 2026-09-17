@@ -4,8 +4,8 @@
 # Nightly deep fuzz of the format frontends. The always-on
 # "reject malformed, never panic" contract runs in the normal CI nextest lane via
 # the logic proptest never-panic gate; this scheduled job runs cargo-fuzz across
-# purrdf data formats, native logic/query parsing, and all Common Logic dialects.
-# Any
+# native logic/query parsing and all Common Logic dialects. PurRDF owns generic
+# RDF, GTS, SHACL, SSSOM and statement-codec coverage in its own repository. Any
 # crash artifact fails the run and is uploaded for triage (must become a checked-in
 # regression seed + a parser fix).
 name: fuzz

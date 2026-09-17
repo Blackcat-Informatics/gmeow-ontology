@@ -16,7 +16,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::catalog_families::{check_target_catalogs, load_catalog_families};
+use gmeow_pipeline::catalog_families::{authenticated_registry, check_target_catalogs};
 
 #[path = "support/authenticated_bundle.rs"]
 mod authenticated_bundle;
@@ -125,12 +125,15 @@ fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
     let kind_predicate = format!("{LOGIC}morphismKind");
     let preservation_predicate = format!("{LOGIC}preservationKind");
     // The registered target catalogs are ONTOLOGY DATA (`gmeow:CatalogFamily` rows in
-    // dsl/mappings/catalog-families.ttl), read here through the SAME loader the mappings
-    // stage gates with. Rust carries no family list, no namespace stem, and no ratchet
+    // dsl/mappings/catalog-families.ttl), read here from the exact native registry
+    // authenticated by the mappings producer. Rust carries no family list, no namespace stem, and no ratchet
     // number: admitting a new external surface is an ontology edit, reviewable beside the
     // bridge cells it licenses, exactly as `gmeow:ProjectionVocabulary` does for the
     // guarded-residue ratchet.
-    let families = load_catalog_families(&repo_root()).expect("catalog-family registry loads");
+    let families = authenticated_registry(&repo_root())
+        .expect("authenticated catalog-family registry")
+        .registry
+        .families;
     let mut source_namespaces = std::collections::BTreeMap::<&str, usize>::new();
     let mut endpoint_pairs = BTreeSet::new();
     let mut shipped_targets: Vec<(String, String)> = Vec::new();
@@ -300,39 +303,105 @@ fn ac3_mapsioctopic_carries_no_discharged_section_law_and_no_put_atom() {
         .expect("authenticated sioc.put.rq; tests never produce it"),
     )
     .expect("authenticated sioc.put.rq is UTF-8");
-    assert!(
-        !put.contains("topic"),
-        "sioc.put.rq must not re-assert any sioc:topic atom (mapSiocTopic is Unsupported)"
+    use purrdf::sparql::{
+        GraphPattern, NamedNodePattern, Query, SparqlParser, TermPattern, TriplePattern,
+    };
+    let Query::Construct {
+        template, pattern, ..
+    } = SparqlParser::new()
+        .parse_query(&put)
+        .expect("authenticated SIOC output is a valid query")
+    else {
+        panic!("SIOC put must return a carrier")
+    };
+    fn body_atoms<'a>(pattern: &'a GraphPattern, output: &mut Vec<&'a TriplePattern>) {
+        match pattern {
+            GraphPattern::Bgp { patterns } => output.extend(patterns),
+            GraphPattern::Union { left, right } | GraphPattern::Join { left, right } => {
+                body_atoms(left, output);
+                body_atoms(right, output);
+            }
+            _ => {}
+        }
+    }
+    let mut body = Vec::new();
+    body_atoms(&pattern, &mut body);
+    assert_eq!(
+        template.len(),
+        3,
+        "only the three recoverable source atoms belong in put"
     );
-    // The three recoverable branches are present (Thread/Container, has_container/container_of,
-    // reply_of/has_reply) and nothing else.
-    let required_atoms = [
-        "?sthread a gmeow:Thread",
-        "?scmsg gmeow:partOfThread ?scthread",
-        "?srmsg gmeow:inReplyTo ?sparent",
-        "sioc:has_container",
-        "sioc:reply_of",
-    ];
-    for atom in required_atoms {
+    let mut recovered_predicates = std::collections::BTreeSet::new();
+    for quad in &template {
+        assert!(quad.graph.is_none());
+        let atom = &quad.triple;
+        assert!(matches!(&atom.subject, TermPattern::Variable(_)));
+        let NamedNodePattern::NamedNode(predicate) = &atom.predicate else {
+            panic!("recoverable atom has a constant predicate")
+        };
+        recovered_predicates.insert(predicate.as_str().to_owned());
+        match predicate.as_str() {
+            RDF_TYPE => {
+                assert!(
+                    matches!(&atom.object, TermPattern::NamedNode(class) if class.as_str() == format!("{GMEOW}Thread"))
+                );
+                for class in [
+                    "http://rdfs.org/sioc/ns#Thread",
+                    "http://rdfs.org/sioc/ns#Container",
+                ] {
+                    assert!(body.iter().any(|input| input.subject == atom.subject &&
+                        matches!(&input.predicate, NamedNodePattern::NamedNode(p) if p.as_str() == RDF_TYPE) &&
+                        matches!(&input.object, TermPattern::NamedNode(value) if value.as_str() == class)),
+                        "Thread recovery requires the same subject's complete external class image");
+                }
+            }
+            output
+                if output == format!("{GMEOW}partOfThread")
+                    || output == format!("{GMEOW}inReplyTo") =>
+            {
+                let input_predicate = if output == format!("{GMEOW}partOfThread") {
+                    "http://rdfs.org/sioc/ns#has_container"
+                } else {
+                    "http://rdfs.org/sioc/ns#reply_of"
+                };
+                assert!(matches!(&atom.object, TermPattern::Variable(_)));
+                assert!(body.iter().any(|input| input.subject == atom.subject && input.object == atom.object &&
+                    matches!(&input.predicate, NamedNodePattern::NamedNode(p) if p.as_str() == input_predicate)),
+                    "recovery must preserve its own input variable roles");
+            }
+            other => panic!("unexpected recovered source predicate: {other}"),
+        }
+    }
+    assert_eq!(
+        recovered_predicates,
+        std::collections::BTreeSet::from([
+            RDF_TYPE.to_owned(),
+            format!("{GMEOW}partOfThread"),
+            format!("{GMEOW}inReplyTo"),
+        ]),
+        "the exact three recoverable source atom families must all be present"
+    );
+
+    fn has_predicate(pattern: &GraphPattern, predicate: &str) -> bool {
+        match pattern {
+            GraphPattern::Bgp { patterns } => patterns.iter().any(|pattern|
+                matches!(&pattern.predicate, NamedNodePattern::NamedNode(iri) if iri.as_str() == predicate)),
+            GraphPattern::Union { left, right } | GraphPattern::Join { left, right } =>
+                has_predicate(left, predicate) || has_predicate(right, predicate),
+            _ => false,
+        }
+    }
+    assert!(
+        !has_predicate(&pattern, "http://rdfs.org/sioc/ns#topic"),
+        "the Unsupported topic binding must not contribute to put"
+    );
+    for predicate in [
+        "http://rdfs.org/sioc/ns#has_container",
+        "http://rdfs.org/sioc/ns#reply_of",
+    ] {
         assert!(
-            put.contains(atom),
-            "sioc.put.rq must carry the recoverable branch atom `{atom}`"
+            has_predicate(&pattern, predicate),
+            "missing required SIOC input predicate: {predicate}"
         );
     }
-    // Exactly three CONSTRUCT-template atoms (the three recoverable branches).
-    let construct_body = put
-        .split_once("CONSTRUCT {")
-        .and_then(|(_, rest)| rest.split_once('}'))
-        .map(|(body, _)| body)
-        .expect("CONSTRUCT block");
-    let template_atoms = construct_body
-        .lines()
-        .map(str::trim)
-        .filter(|l| l.ends_with('.'))
-        .count();
-    assert_eq!(
-        template_atoms, 3,
-        "the put query must CONSTRUCT exactly the three recoverable atoms, got {template_atoms}\n\
-         body:{construct_body}"
-    );
 }

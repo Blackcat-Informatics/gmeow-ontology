@@ -19,18 +19,24 @@
 //!
 //! The rule and the `gmeow:categoryBlocking` map are READ from the authored source
 //! graph (the validate stage's base-graph bytes), never re-typed here — exactly the
-//! production surface `crates/conformance/tests/diagnostics_gate_morphism.rs` proves
+//! production surface `conformance::corpus_tests::diagnostics_gate_morphism` proves
 //! equal to the single Rust `gate()` policy.
 
-use std::collections::BTreeMap;
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, prepare_reasoning_input,
+};
+use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
 use gmeow_logic::reason::reason_program;
-use gmeow_logic_compile::frontend::parse_logic_dataset;
-use gmeow_logic_compile::ir::{LogicProgram, LogicRule};
-use purrdf::sparql::NativeSparqlEngine;
+use gmeow_logic_compile::frontend::{
+    CompiledTheory, OwnerDisposition, OwnerFamily, PreparedLogicSource, default_source_statements,
+};
+use gmeow_logic_compile::ir::LogicProgram;
+use purrdf::sparql::{NativeSparqlEngine, PreparedQuery, QueryOptions};
 use purrdf::{
-    NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlEngine, SparqlRequest,
-    SparqlResult, TermValue, dataset_from_bytes,
+    NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlResult, TermRef,
+    TermValue, dataset_from_bytes,
 };
 
 use gmeow_ns::GMEOW_NS;
@@ -38,10 +44,9 @@ use gmeow_ns::GMEOW_NS;
 const FINDING_GATE_VERDICT: &str = "https://blackcatinformatics.ca/gmeow/findingGateVerdict";
 const GATE_FATAL: &str = "https://blackcatinformatics.ca/gmeow/gateFatal";
 const CATEGORY_BLOCKING: &str = "https://blackcatinformatics.ca/gmeow/categoryBlocking";
-/// The single named-graph world the encoded grades + wiring live in for the chase. The
-/// chase reads facts out of named-graph worlds; a plain default-graph fact is invisible
-/// to it by design, so the whole EDB (categoryBlocking AND the finding grades) must be
-/// world-scoped into the SAME world.
+/// The selected diagnostic theory containing both encoded grades and wiring.
+/// Keeping categoryBlocking and finding grades in this one declared world isolates
+/// the gate derivation from unrelated object-level theories.
 const WORLD: &str =
     "https://blackcatinformatics.ca/gmeow/graph/diagnostics-gate-verdict-derivation";
 
@@ -51,8 +56,10 @@ const WORLD: &str =
 /// finding graph against this reproduces the ontology's derived verdict for the shipped
 /// bundle.
 pub struct GateProgram {
-    rule: LogicRule,
+    program: LogicProgram,
     category_blocking: BTreeMap<String, String>,
+    engine: NativeSparqlEngine,
+    grade_query: Arc<PreparedQuery>,
 }
 
 impl GateProgram {
@@ -62,51 +69,129 @@ impl GateProgram {
     /// slices in the default graph).
     ///
     /// Returns `None` when the source graph does not carry the authored rule — a source
-    /// without it derives nothing, so the projection stays byte-unchanged. A malformed
-    /// source graph (which the pipeline's own base-graph never is) also yields `None`;
-    /// the caller then ships the projection unchanged rather than fabricate a verdict.
-    pub fn from_source(source_nquads: &[u8]) -> Option<GateProgram> {
-        let dataset = dataset_from_bytes(source_nquads, NativeRdfFormat::NQuads).ok()?;
-        let (program, _diags) = parse_logic_dataset(dataset.as_ref(), None).ok()?;
-        let rule = program
-            .rules
-            .into_iter()
-            .find(|r| r.head.predicate == FINDING_GATE_VERDICT)?;
+    /// without it derives nothing, so the projection stays byte-unchanged.
+    ///
+    /// # Errors
+    /// Malformed source, ambiguous rules or missing wiring for a declared rule fail closed.
+    pub fn from_source(source_nquads: &[u8]) -> gmeow_errors::Result<Option<Self>> {
+        let dataset = dataset_from_bytes(source_nquads, NativeRdfFormat::NQuads)
+            .map_err(|error| gate_error(format!("parse gate rule source: {error}")))?;
+        Self::from_dataset(&dataset)
+    }
 
-        let engine = NativeSparqlEngine::new();
-        let result = engine
-            .query(
-                &dataset,
-                SparqlRequest {
-                    query: &format!("SELECT ?cat ?b WHERE {{ ?cat <{CATEGORY_BLOCKING}> ?b . }}"),
-                    base_iri: None,
-                    substitutions: &[],
-                },
-            )
-            .ok()?;
-        let (variables, rows) = match result {
-            SparqlResult::Solutions {
-                variables, rows, ..
-            } => (variables, rows),
-            _ => return None,
+    /// Read the authored rule and category wiring from the existing native source carrier.
+    ///
+    /// # Errors
+    /// Invalid source or incomplete declared gate semantics fail closed.
+    pub fn from_dataset(dataset: &Arc<RdfDataset>) -> gmeow_errors::Result<Option<Self>> {
+        let theory = PreparedLogicSource::new(dataset)?.into_compiled(None)?;
+        Self::from_compiled_theory(&theory)
+    }
+
+    /// Reuse the exact source program and native category wiring retained by the
+    /// producer without reparsing, canonicalizing or lowering the source.
+    ///
+    /// # Errors
+    /// Invalid or ambiguous selected gate semantics fail closed.
+    pub fn from_compiled_theory(theory: &CompiledTheory) -> gmeow_errors::Result<Option<Self>> {
+        Self::from_compiled_theory_with_wiring(theory, theory.source().dataset())
+    }
+
+    /// Reuse the admitted rule compilation with separately admitted category wiring.
+    ///
+    /// # Errors
+    /// Rejected source owners and missing, ambiguous or malformed wiring fail closed.
+    pub fn from_compiled_theory_with_wiring(
+        theory: &CompiledTheory,
+        wiring: &RdfDataset,
+    ) -> gmeow_errors::Result<Option<Self>> {
+        for owner in theory.owner_lowerings() {
+            if owner.family == OwnerFamily::Rule
+                && owner.source.graph.is_none()
+                && matches!(
+                    theory.source().dataset().resolve(owner.source.term),
+                    TermRef::Iri("https://blackcatinformatics.ca/logic/ruleGateFatalVerdict")
+                )
+            {
+                let valid = match owner.disposition {
+                    OwnerDisposition::Emitted { index } => {
+                        theory.program().rules[index].head.predicate == FINDING_GATE_VERDICT
+                    }
+                    OwnerDisposition::Rejected | OwnerDisposition::OutsideDefaultGraph => false,
+                };
+                if !valid {
+                    return Err(gate_error(
+                        "declared ruleGateFatalVerdict did not emit its required gate rule",
+                    ));
+                }
+            }
+        }
+        Self::from_program(theory.program(), wiring)
+    }
+
+    /// Reuse the compiler's admitted program instead of lowering the source again.
+    /// The category wiring still comes from the exact authored source carrier.
+    ///
+    /// # Errors
+    /// Ambiguous or incomplete gate semantics and query preparation failures are errors.
+    pub fn from_program(
+        program: &LogicProgram,
+        dataset: &RdfDataset,
+    ) -> gmeow_errors::Result<Option<Self>> {
+        let mut rules = program
+            .rules
+            .iter()
+            .filter(|r| r.head.predicate == FINDING_GATE_VERDICT);
+        let Some(rule) = rules.next() else {
+            return Ok(None);
         };
-        let cat_idx = variables.iter().position(|v| v == "cat")?;
-        let b_idx = variables.iter().position(|v| v == "b")?;
+        if rules.next().is_some() {
+            return Err(gate_error("multiple authored findingGateVerdict rules"));
+        }
+
         let mut category_blocking = BTreeMap::new();
-        for sol in &rows {
-            let cat = iri_of(sol.get(cat_idx).and_then(|t| t.as_ref())?)?;
-            let b = iri_of(sol.get(b_idx).and_then(|t| t.as_ref())?)?;
-            category_blocking.insert(cat, b);
+        if let Some(predicate) = dataset.term_id_by_iri(CATEGORY_BLOCKING) {
+            for quad in default_source_statements(dataset, None, Some(predicate), None) {
+                let (TermRef::Iri(cat), TermRef::Iri(blocking)) =
+                    (dataset.resolve(quad.s), dataset.resolve(quad.o))
+                else {
+                    return Err(gate_error("gate category wiring must use bound IRIs"));
+                };
+                if category_blocking
+                    .insert(cat.to_owned(), blocking.to_owned())
+                    .is_some_and(|old| old != blocking)
+                {
+                    return Err(gate_error(
+                        "gate category has conflicting blocking dispositions",
+                    ));
+                }
+            }
         }
         // A rule with no wiring to join against can never derive a verdict — that is a
-        // hollow source, not the shipped one. Treat it as absent so nothing is faked.
+        // hollow declared operation, so it must fail instead of skipping the verdicts.
         if category_blocking.is_empty() {
-            return None;
+            return Err(gate_error(
+                "authored gate rule has no categoryBlocking wiring",
+            ));
         }
-        Some(GateProgram {
-            rule,
+        let engine = NativeSparqlEngine::new();
+        let grade_query = engine
+            .prepare_query(
+                &format!(
+                    "SELECT ?f ?sev ?cat ?sp WHERE {{ GRAPH ?g {{ \
+               ?f <{GMEOW_NS}findingSeverity> ?sev ; \
+                  <{GMEOW_NS}findingCategory> ?cat ; \
+                  <{GMEOW_NS}findingStandpoint> ?sp . }} }}"
+                ),
+                None,
+            )
+            .map_err(|error| gate_error(format!("prepare finding grade query: {error}")))?;
+        Ok(Some(GateProgram {
+            program: LogicProgram::new(Vec::new(), vec![rule.clone()], Vec::new(), None),
             category_blocking,
-        })
+            engine,
+            grade_query,
+        }))
     }
 
     /// Run the authored gate rule over the grade tuples the projected diagnostics
@@ -122,13 +207,52 @@ impl GateProgram {
         finding_nq: &str,
         graph_iri: &str,
     ) -> gmeow_errors::Result<String> {
-        let tuples = grade_tuples(finding_nq)?;
-        if tuples.is_empty() {
-            return Ok(String::new());
+        let dataset = dataset_from_bytes(finding_nq.as_bytes(), NativeRdfFormat::NQuads)
+            .map_err(|error| gate_error(format!("parse diagnostics N-Quads: {error}")))?;
+        let verdicts = self.derived_verdict_dataset(&dataset, graph_iri)?;
+        purrdf::canonical_flat_nquads(&verdicts)
+            .map_err(|error| gate_error(format!("render derived gate verdicts: {error}")))
+    }
+
+    /// Derive verdicts over the existing carrier without rendering or reparsing it.
+    ///
+    /// # Errors
+    /// Invalid finding coordinates, chase failures and invalid output terms fail closed.
+    pub fn derived_verdict_dataset(
+        &self,
+        findings: &Arc<RdfDataset>,
+        graph_iri: &str,
+    ) -> gmeow_errors::Result<Arc<RdfDataset>> {
+        let mut output = RdfDatasetBuilder::new();
+        for subject in self.derived_fatal(findings)? {
+            output.push_owned_quad(
+                &RdfQuad::new(
+                    RdfTerm::iri(subject),
+                    FINDING_GATE_VERDICT,
+                    RdfTerm::iri(GATE_FATAL),
+                )
+                .in_graph(RdfTerm::iri(graph_iri)),
+            );
         }
+        output
+            .freeze()
+            .map_err(|error| gate_error(format!("freeze gate verdicts: {error}")))
+    }
 
-        let program = LogicProgram::new(Vec::new(), vec![self.rule.clone()], Vec::new(), None);
+    /// The exact authored category mapping used by the retained gate program.
+    pub(crate) fn category_blocking(&self) -> &BTreeMap<String, String> {
+        &self.category_blocking
+    }
 
+    /// Derive the fatal finding identities without materializing a projection dataset.
+    pub(crate) fn derived_fatal(
+        &self,
+        findings: &Arc<RdfDataset>,
+    ) -> gmeow_errors::Result<BTreeSet<String>> {
+        let tuples = grade_tuples(self, findings)?;
+        if tuples.is_empty() {
+            return Ok(BTreeSet::new());
+        }
         let mut builder = RdfDatasetBuilder::new();
         for (cat, b) in &self.category_blocking {
             push_triple(&mut builder, cat, CATEGORY_BLOCKING, b);
@@ -143,37 +267,37 @@ impl GateProgram {
                 message: format!("freeze gate-verdict EDB: {e}"),
             })
         })?;
-        let result = reason_program(&program, edb.as_ref()).map_err(|e| {
+        let reasoning_input = prepare_reasoning_input(&edb)?;
+        let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+            LogicalGraph::Named(purrdf::TermValue::iri(WORLD)),
+            DomainProfile::NonemptyObjectDomainV1,
+            "gmeow.pipeline.gate-verdict.v1".to_owned(),
+            *reasoning_input.ingress_contract(),
+        )?])?;
+        let result = reason_program(&self.program, reasoning_input, &domains).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
                 message: format!("reason gate-verdict rule: {e}"),
             })
         })?;
 
-        // A derived row's IRI object renders in N-Triples display form (`<IRI>`); the
-        // subject is the bare IRI. Emit one canonical N-Quad line per derived verdict,
-        // sorted for determinism.
-        let gate_fatal_display = format!("<{GATE_FATAL}>");
-        let mut lines: Vec<String> = result
+        // Match the typed verdict resource without rendering the inferred object.
+        Ok(result
             .inferred()
             .iter()
-            .filter(|a| a.predicate == FINDING_GATE_VERDICT && a.object == gate_fatal_display)
-            .map(|a| {
-                format!(
-                    "<{}> <{FINDING_GATE_VERDICT}> <{GATE_FATAL}> <{graph_iri}> .",
-                    a.subject
-                )
+            .filter(|a| {
+                !a.is_edb
+                    && a.predicate == FINDING_GATE_VERDICT
+                    && a.object.as_iri() == Some(GATE_FATAL)
             })
-            .collect();
-        lines.sort();
-        lines.dedup();
-        if lines.is_empty() {
-            Ok(String::new())
-        } else {
-            let mut out = lines.join("\n");
-            out.push('\n');
-            Ok(out)
-        }
+            .map(|a| a.subject.clone())
+            .collect())
     }
+}
+
+fn gate_error(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+        message: message.into(),
+    })
 }
 
 /// The IRI string of a bound SPARQL term, or `None` if it is not an IRI.
@@ -193,26 +317,14 @@ fn push_triple(builder: &mut RdfDatasetBuilder, s: &str, p: &str, o: &str) {
 /// Extract every `(finding, severity, category, standpoint)` grade tuple SPARQL sees in
 /// the projected diagnostics graph — the exact three coordinates the up-set rule reads.
 /// Findings ride a named graph (`graph/diagnostics`), so the pattern is world-scoped.
-fn grade_tuples(nq: &str) -> gmeow_errors::Result<Vec<(String, String, String, String)>> {
+fn grade_tuples(
+    gate: &GateProgram,
+    dataset: &Arc<RdfDataset>,
+) -> gmeow_errors::Result<Vec<(String, String, String, String)>> {
     let sb = |message: String| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message });
-    let dataset = dataset_from_bytes(nq.as_bytes(), NativeRdfFormat::NQuads)
-        .map_err(|e| sb(format!("parse diagnostics N-Quads: {e}")))?;
-    let engine = NativeSparqlEngine::new();
-    let q = format!(
-        "SELECT ?f ?sev ?cat ?sp WHERE {{ GRAPH ?g {{ \
-           ?f <{GMEOW_NS}findingSeverity> ?sev ; \
-              <{GMEOW_NS}findingCategory> ?cat ; \
-              <{GMEOW_NS}findingStandpoint> ?sp . }} }}"
-    );
-    let result = engine
-        .query(
-            &dataset,
-            SparqlRequest {
-                query: &q,
-                base_iri: None,
-                substitutions: &[],
-            },
-        )
+    let result = gate
+        .engine
+        .query_prepared(dataset, &gate.grade_query, &[], QueryOptions::EMPTY)
         .map_err(|e| sb(format!("grade-tuple query: {e}")))?;
     let (variables, rows) = match result {
         SparqlResult::Solutions {
@@ -246,135 +358,6 @@ fn grade_tuples(nq: &str) -> gmeow_errors::Result<Vec<(String, String, String, S
     Ok(out)
 }
 
+#[path = "gate_verdict.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// A minimal authored source graph carrying the gate rule + the categoryBlocking
-    /// wiring, in the DEFAULT graph exactly like the pipeline base-graph bytes. The rule
-    /// mirrors the authored `logic:head`/`logic:body` reified-triple shape of
-    /// `slices/grounding/logic/module.ttl`'s `logic:ruleGateFatalVerdict` (never a
-    /// string body).
-    const SOURCE_GRAPH: &str = concat!(
-        // categoryBlocking wiring: one blocking category (DataShapeViolation) and one
-        // coherent (PolicyWarning), enough to drive both a gating and a non-gating case.
-        "<https://blackcatinformatics.ca/logic/FindingDataShapeViolation> ",
-        "<https://blackcatinformatics.ca/gmeow/categoryBlocking> ",
-        "<https://blackcatinformatics.ca/gmeow/blockingBlocking> .\n",
-        "<https://blackcatinformatics.ca/logic/FindingPolicyWarning> ",
-        "<https://blackcatinformatics.ca/gmeow/categoryBlocking> ",
-        "<https://blackcatinformatics.ca/gmeow/blockingCoherent> .\n",
-        // The authored up-set derivation rule: logic:Rule with a reified head and four
-        // reified body atoms (severity, category, categoryBlocking join, standpoint).
-        "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-        "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
-        "<https://blackcatinformatics.ca/logic/Rule> .\n",
-        // head: findingGateVerdict(?finding, gateFatal)
-        "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-        "<https://blackcatinformatics.ca/logic/head> _:h .\n",
-        "_:h <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-        "_:h <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-        "<https://blackcatinformatics.ca/gmeow/findingGateVerdict> .\n",
-        "_:h <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-        "<https://blackcatinformatics.ca/gmeow/gateFatal> .\n",
-        // body atom 1: findingSeverity(?finding, severityError)
-        "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-        "<https://blackcatinformatics.ca/logic/body> _:b1 .\n",
-        "_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-        "_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-        "<https://blackcatinformatics.ca/gmeow/findingSeverity> .\n",
-        "_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-        "<https://blackcatinformatics.ca/gmeow/severityError> .\n",
-        // body atom 2: findingCategory(?finding, ?category)
-        "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-        "<https://blackcatinformatics.ca/logic/body> _:b2 .\n",
-        "_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-        "_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-        "<https://blackcatinformatics.ca/gmeow/findingCategory> .\n",
-        "_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> \"?category\" .\n",
-        // body atom 3: categoryBlocking(?category, blockingBlocking)
-        "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-        "<https://blackcatinformatics.ca/logic/body> _:b3 .\n",
-        "_:b3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?category\" .\n",
-        "_:b3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-        "<https://blackcatinformatics.ca/gmeow/categoryBlocking> .\n",
-        "_:b3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-        "<https://blackcatinformatics.ca/gmeow/blockingBlocking> .\n",
-        // body atom 4: findingStandpoint(?finding, standpointBinding)
-        "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-        "<https://blackcatinformatics.ca/logic/body> _:b4 .\n",
-        "_:b4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-        "_:b4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-        "<https://blackcatinformatics.ca/gmeow/findingStandpoint> .\n",
-        "_:b4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-        "<https://blackcatinformatics.ca/gmeow/standpointBinding> .\n",
-    );
-
-    /// Two findings in the graph/diagnostics named graph: one up-set (Error /
-    /// DataShapeViolation / Binding) that MUST derive gateFatal, and one non-up-set
-    /// (Error / PolicyWarning / Binding — coherent category) that must derive nothing.
-    fn finding_nq() -> String {
-        let g = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
-        let gm = GMEOW_NS;
-        let logic = "https://blackcatinformatics.ca/logic/";
-        let upset = "https://blackcatinformatics.ca/gmeow/examples/diagnostics/upset";
-        let coherent = "https://blackcatinformatics.ca/gmeow/examples/diagnostics/coherent";
-        format!(
-            "<{upset}> <{gm}findingSeverity> <{gm}severityError> <{g}> .\n\
-             <{upset}> <{gm}findingCategory> <{logic}FindingDataShapeViolation> <{g}> .\n\
-             <{upset}> <{gm}findingStandpoint> <{gm}standpointBinding> <{g}> .\n\
-             <{coherent}> <{gm}findingSeverity> <{gm}severityError> <{g}> .\n\
-             <{coherent}> <{gm}findingCategory> <{logic}FindingPolicyWarning> <{g}> .\n\
-             <{coherent}> <{gm}findingStandpoint> <{gm}standpointBinding> <{g}> .\n"
-        )
-    }
-
-    #[test]
-    fn derives_gatefatal_only_for_the_upset_finding() {
-        let gate = GateProgram::from_source(SOURCE_GRAPH.as_bytes())
-            .expect("the source graph carries the authored logic:ruleGateFatalVerdict + wiring");
-        let graph = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
-        let derived = gate
-            .derived_verdict_nquads(&finding_nq(), graph)
-            .expect("derivation must succeed over well-formed finding N-Quads");
-
-        let lines: Vec<&str> = derived.lines().filter(|l| !l.is_empty()).collect();
-        assert_eq!(
-            lines.len(),
-            1,
-            "exactly one gateFatal must be derived (the up-set finding only): {derived:?}"
-        );
-        let line = lines[0];
-        assert!(
-            line.starts_with("<https://blackcatinformatics.ca/gmeow/examples/diagnostics/upset>"),
-            "the derived verdict must be for the up-set finding: {line}"
-        );
-        assert!(
-            line.contains("<https://blackcatinformatics.ca/gmeow/findingGateVerdict>")
-                && line.contains("<https://blackcatinformatics.ca/gmeow/gateFatal>"),
-            "the derived line must carry findingGateVerdict gateFatal: {line}"
-        );
-        assert!(
-            line.ends_with("<https://blackcatinformatics.ca/gmeow/graph/diagnostics> ."),
-            "the derived verdict must land in the findings' graph: {line}"
-        );
-        assert!(
-            !line.contains("/coherent>"),
-            "the coherent (non-up-set) finding must NOT be derived gateFatal: {derived}"
-        );
-    }
-
-    #[test]
-    fn absent_rule_yields_none() {
-        // categoryBlocking wiring but NO gate rule → nothing to derive, byte-unchanged.
-        let no_rule = concat!(
-            "<https://blackcatinformatics.ca/logic/FindingDataShapeViolation> ",
-            "<https://blackcatinformatics.ca/gmeow/categoryBlocking> ",
-            "<https://blackcatinformatics.ca/gmeow/blockingBlocking> .\n",
-        );
-        assert!(
-            GateProgram::from_source(no_rule.as_bytes()).is_none(),
-            "a source without the authored gate rule must yield None"
-        );
-    }
-}
+mod tests;

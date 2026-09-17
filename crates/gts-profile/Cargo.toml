@@ -8,7 +8,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-readme = "README.md"
 keywords = ["gmeow", "gts", "bundle", "zstd", "profile"]
 
 [lib]
@@ -16,9 +15,9 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The GTS writer/wire surface this crate narrows: `gts_compose::emit_gts` is called
-# from exactly one place in the workspace (this crate), and `gts::wire` supplies the
-# cheap frame introspection the audit reads.
+# The native snapshot builder and writer/wire surface this crate narrows. Its sole
+# consuming snapshot emitter owns publication; `gts::wire` supplies the cheap frame
+# introspection the audit reads.
 purrdf.workspace = true
 # The diagnostic substrate: every profile violation is a typed `Diag` under the
 # `gts-profile.*` code namespace, not a bare string.

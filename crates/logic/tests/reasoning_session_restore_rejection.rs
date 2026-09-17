@@ -41,10 +41,10 @@ use session_common::*;
 /// Open a transitive session over the base edge chain, apply the `c→d` edge, and return a
 /// checkpoint minted AFTER the apply (so it durably carries the committed delta). The
 /// returned base EDB is what a faithful restore re-materializes and replays over.
-fn post_apply_checkpoint() -> (Checkpoint, purrdf::RdfDataset, LogicProgram) {
+fn post_apply_checkpoint() -> (Checkpoint, std::sync::Arc<purrdf::RdfDataset>, LogicProgram) {
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let mut session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
     let base = session.identity().data_generation.clone();
     let head = session.head().to_owned();
@@ -84,7 +84,7 @@ fn contract_with_policy() -> ReasoningContract {
 /// Assert `restore` refuses with an identity mismatch (never `Ok`, never a coerced state).
 fn assert_identity_mismatch(
     cp: &Checkpoint,
-    edb: &purrdf::RdfDataset,
+    edb: &std::sync::Arc<purrdf::RdfDataset>,
     program: &LogicProgram,
     contract: &ReasoningContract,
     annotation: &gmeow_logic::annotation::AnnotationContract,
@@ -103,12 +103,12 @@ fn assert_identity_mismatch(
 fn ac3_data_generation_axis_rejects() {
     let program = projection_program();
     let (contract, annotation) = baseline_contracts();
-    let edb_a = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb_a = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb_a, &program, &contract, &annotation).expect("open A");
     let cp = session.checkpoint();
 
     // A different authorized EDB → a different data-generation address.
-    let edb_b = edge_dataset(&[("a", "b"), ("b", "z")]);
+    let edb_b = edge_arc(&[("a", "b"), ("b", "z")]);
     assert_identity_mismatch(
         &cp,
         &edb_b,
@@ -126,7 +126,7 @@ fn ac3_program_axis_rejects_independent_of_slice() {
     let program_a = with_source(projection_program(), SLICE_X);
     let program_b = with_source(transitive_program(), SLICE_X);
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb, &program_a, &contract, &annotation).expect("open A");
     let cp = session.checkpoint();
 
@@ -140,7 +140,7 @@ fn ac3_slice_axis_rejects_jointly_with_program() {
     let program_a = with_source(projection_program(), SLICE_X);
     let program_b = with_source(projection_program(), SLICE_Y);
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb, &program_a, &contract, &annotation).expect("open A");
     let cp = session.checkpoint();
 
@@ -153,7 +153,7 @@ fn ac3_contract_axis_rejects() {
     let annotation = gmeow_logic::annotation::AnnotationContract::exact();
     let contract_a = ReasoningContract::new();
     let contract_b = contract_with_policy();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb, &program, &contract_a, &annotation).expect("open A");
     let cp = session.checkpoint();
 
@@ -167,7 +167,7 @@ fn ac3_annotation_algebra_axis_rejects() {
     let annotation_a = gmeow_logic::annotation::AnnotationContract::exact();
     let annotation_b =
         gmeow_logic::annotation::AnnotationContract::exact().with_max_fixpoint_rounds(7);
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb, &program, &contract, &annotation_a).expect("open A");
     let cp = session.checkpoint();
 
@@ -189,7 +189,7 @@ fn ac3_incremental_fragment_axis_rejects() {
     // genuinely folded.
     let program = projection_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
 
     let real = session.identity().clone();
@@ -227,7 +227,7 @@ fn ac3_byte_tampered_checkpoint_is_corrupt() {
     // the recomputed content address no longer matches → CorruptCheckpoint.
     let program = projection_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
     let cp = session.checkpoint();
 
@@ -325,7 +325,7 @@ fn ac3_replay_head_divergence_is_rejected() {
 fn ac3_positive_control_untampered_checkpoint_restores_to_base() {
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
     let base_closure = session_derived(&session, &idb_reach());
     let cp = session.checkpoint();

@@ -10,9 +10,9 @@
 //!
 //! # Parse contract
 //!
-//! * **Fail-soft** on recoverable issues — a malformed axiom, a rule with no
-//!   head, an unrecognised profile IRI — emits a `WARNING` [`Diagnostic`] and is
-//!   skipped.
+//! * **Preserve diagnostics** — malformed rules, formulas and contracts are
+//!   excluded with error diagnostics. A malformed rule body never becomes a weaker
+//!   rule. Recoverable projection/annotation issues retain their named warnings.
 //! * **Raise** ([`LogicParseError`]) on unparsable input: an empty graph or a
 //!   file that cannot be read/parsed.
 //! * **Never silently skip** — every skipped element produces a named diagnostic.
@@ -34,14 +34,51 @@ use std::fmt;
 use std::path::Path;
 
 use gmeow_errors::Diag;
-use purrdf::{RdfDataset, parse_dataset};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermValue, parse_dataset};
+
+mod formula_reader;
+pub(crate) use formula_reader::FormulaReader;
+
+mod admission;
+mod temporal;
+pub use admission::{
+    FORMULA_SOURCE_ADMISSION_FRAGMENT, MAX_FORMULA_SOURCE_DEPTH, MAX_FORMULA_SOURCE_EXPANSION,
+};
+pub use temporal::{FINITE_AT_OR_AFTER, FINITE_NEXT, FINITE_STRICTLY_BEFORE};
+
+mod presentation;
+mod source_graph;
+pub use source_graph::{
+    SourceBase, SourceBaseOrigin, SourceCarrier, SourceDocument, SourceDocumentOccurrences,
+    SourceEdge, SourceEdgeRole, SourceNode, SourceNodeBinding, SourceOccurrencePosition,
+    SourcePredicate, SourceStatementBinding, SourceUnit, SourceUnitKind, StructuralSourceGraph,
+};
+
+mod emission;
+use emission::{AxiomEmission, EmissionTrace, OwnerEmission, capture_owner, finish_owners};
+pub use emission::{
+    AxiomSource, CompiledTheory, FormulaDisposition, FormulaLowering, OwnerDisposition,
+    OwnerFamily, OwnerLowering, SourceCompilation,
+};
+
+mod prepared;
+pub use crate::graphutil::default_graph_pattern as default_source_statements;
+pub use crate::graphutil::source_graph_pattern as selected_source_statements;
+pub use prepared::PreparedLogicSource;
+
+mod source_admission;
+pub use source_admission::{
+    AdmittedSemanticUnit, DocumentSelection, FofSemanticProfile, PropertyCharacteristic,
+    RootSelection, SemanticUnitAdmission, SemanticUnitDisposition, SemanticUnitKind,
+    SourceAdmission, SourceAdmissionStatus, SourceAssertion, SourceGraphSelection, SourceSelection,
+};
 
 use super::compat;
 use super::graphutil::{
     Iri, Node, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
-    Subject, canonicalize_blank_nodes, contains, default_graph_quads, has_predicate,
-    has_predicate_object, is_empty, nn, objects, subject_is_blank, subject_str, subjects_with,
-    term_as_subject, term_is_literal, term_str, value,
+    Subject, canonicalize_blank_nodes, default_graph_quads, has_predicate, has_structural_class,
+    is_empty, nn, objects, structural_classes, subject_id, subject_is_blank, subject_str,
+    subjects_of_structural_class, subjects_with, term_as_subject, term_str, value,
 };
 use super::ir::{
     ANNOTATION_LIFT_PREDS, AggregateBalance, AggregateComparator, AggregateComparison,
@@ -70,12 +107,19 @@ fn logic_iri(local: &str) -> String {
     format!("{LOGIC_NAMESPACE}{local}")
 }
 
+fn owner_source(store: &RdfDataset, node: &Subject) -> SourceNode {
+    SourceNode {
+        term: subject_id(store, node).expect("owner was discovered in this source"),
+        graph: None,
+    }
+}
+
 // --------------------------------------------------------------------------- //
 // Diagnostics
 // --------------------------------------------------------------------------- //
 
 /// Severity of a [`Diagnostic`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Severity {
     /// A hard error: accepting the offending structure would change program meaning.
     Error,
@@ -98,7 +142,7 @@ impl Severity {
 
 /// A structured diagnostic emitted during parsing (mirrors the Python
 /// `Diagnostic` dataclass).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Diagnostic {
     /// Severity token.
     pub severity: Severity,
@@ -120,7 +164,7 @@ impl Diagnostic {
         }
     }
 
-    fn error(code: &str, message: impl Into<String>, subject: Option<String>) -> Self {
+    pub(crate) fn error(code: &str, message: impl Into<String>, subject: Option<String>) -> Self {
         Self {
             severity: Severity::Error,
             code: code.to_owned(),
@@ -147,7 +191,10 @@ impl std::error::Error for LogicParseError {}
 // --------------------------------------------------------------------------- //
 
 fn confidence_from_term(term: &Node) -> Option<f64> {
-    if let Node::Lit { lexical, .. } = term
+    if let Node::Lit(purrdf::RdfLiteral {
+        lexical_form: lexical,
+        ..
+    }) = term
         && let Ok(val) = lexical.parse::<f64>()
         && (0.0..=1.0).contains(&val)
     {
@@ -156,50 +203,100 @@ fn confidence_from_term(term: &Node) -> Option<f64> {
     None
 }
 
-fn modality_from_term(term: Option<&Node>) -> LogicModality {
+fn modality_from_term(term: Option<&Node>) -> Option<LogicModality> {
     let Some(term) = term else {
-        return LogicModality::None;
+        return Some(LogicModality::None);
     };
     let mut raw = term_str(term);
     if let Some(stripped) = raw.strip_prefix(LOGIC_NAMESPACE) {
         raw = stripped.to_owned();
     }
-    LogicModality::from_str_value(&raw.to_lowercase()).unwrap_or(LogicModality::None)
+    LogicModality::from_str_value(&raw.to_lowercase())
 }
 
-/// Extract a [`ContextualScope`] from `logic:` annotations on `node`.
+/// Read a single scope coordinate. Multiple distinct values need explicit scope
+/// lowering; choosing whichever physical table is read first is not admission.
+fn scope_value(
+    store: &RdfDataset,
+    node: &Subject,
+    field: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Option<Node> {
+    let subject = subject_id(store, node)?;
+    let predicate = store.term_id_by_iri(&logic_iri(field))?;
+    let mut rows =
+        crate::graphutil::default_graph_pattern(store, Some(subject), Some(predicate), None);
+    let first = rows.next()?;
+    if rows.next().is_some() {
+        diagnostics.push(Diagnostic::error(
+            "UNSUPPORTED_SCOPE_MULTIPLICITY",
+            format!("logic:{field} has multiple scope coordinates; this scope requires explicit lowering"),
+            Some(subject_str(node)),
+        ));
+        return None;
+    }
+    let value = crate::graphutil::node_of(store, first.o);
+    if matches!(value, Node::Triple(_)) {
+        diagnostics.push(Diagnostic::error(
+            "UNSUPPORTED_SCOPE_TERM",
+            format!("logic:{field} is a proposition term; this scope requires typed term lowering"),
+            Some(subject_str(node)),
+        ));
+        return None;
+    }
+    Some(value)
+}
+
+/// Extract every scope dimension together. An invalid coordinate withholds the
+/// whole claim or rule; it cannot turn into a weaker or unconditional assertion.
 fn scope_from_node(
     store: &RdfDataset,
     node: &Subject,
     diagnostics: &mut Vec<Diagnostic>,
-) -> ContextualScope {
-    let standpoint = value(store, node, &nn(&logic_iri("standpoint"))).map(|t| term_str(&t));
-    let time = value(store, node, &nn(&logic_iri("time"))).map(|t| term_str(&t));
-
-    let conf_node = value(store, node, &nn(&logic_iri("confidence")));
+) -> Option<ContextualScope> {
+    let start = diagnostics.len();
+    let standpoint = scope_value(store, node, "standpoint", diagnostics)
+        .as_ref()
+        .map(term_str);
+    let time = scope_value(store, node, "time", diagnostics)
+        .as_ref()
+        .map(term_str);
+    let conf_node = scope_value(store, node, "confidence", diagnostics);
     let confidence = conf_node.as_ref().and_then(confidence_from_term);
     if let Some(cn) = &conf_node
         && confidence.is_none()
     {
-        diagnostics.push(Diagnostic::warning(
+        diagnostics.push(Diagnostic::error(
             "INVALID_CONFIDENCE",
             format!(
-                "confidence value {:?} is not a float in [0, 1]; ignored",
+                "confidence value {:?} is not a float in [0, 1]; scope excluded",
                 term_str(cn)
             ),
             Some(subject_str(node)),
         ));
     }
-
-    let modality = modality_from_term(value(store, node, &nn(&logic_iri("modality"))).as_ref());
-    let provenance = value(store, node, &nn(&logic_iri("provenance"))).map(|t| term_str(&t));
-    // `logic:inModule` — the Common Logic module (theory context) this statement is in.
-    let module = value(store, node, &nn(&logic_iri("inModule"))).map(|t| term_str(&t));
-
-    // `ContextualScope::new` only fails on out-of-range confidence, which we have
-    // already filtered to `None` above, so this never errors.
-    ContextualScope::new(standpoint, time, confidence, modality, provenance, module)
-        .unwrap_or_default()
+    let modality_node = scope_value(store, node, "modality", diagnostics);
+    let modality = modality_from_term(modality_node.as_ref());
+    if modality.is_none() {
+        diagnostics.push(Diagnostic::error(
+            "UNKNOWN_MODALITY",
+            "unrecognized logic:modality; scope excluded",
+            Some(subject_str(node)),
+        ));
+    }
+    let provenance = scope_value(store, node, "provenance", diagnostics)
+        .as_ref()
+        .map(term_str);
+    let module = scope_value(store, node, "inModule", diagnostics)
+        .as_ref()
+        .map(term_str);
+    if diagnostics.len() != start {
+        return None;
+    }
+    Some(
+        ContextualScope::new(standpoint, time, confidence, modality?, provenance, module)
+            .expect("every confidence coordinate has been validated"),
+    )
 }
 
 // --------------------------------------------------------------------------- //
@@ -241,7 +338,15 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
             | "exists"
             | "necessarily"
             | "possibly"
+            | "next"
+            | "eventually"
+            | "globally"
+            | "until"
+            | "untilLeft"
             | "overAccessibility"
+            | "inContext"
+            | "queryFormula"
+            | "queryContext"
             | "quantifiedVariable"
             | "termIndex"
             | "termIri"
@@ -382,6 +487,109 @@ fn is_rule_aggregation_predicate(prop_local: &str) -> bool {
     )
 }
 
+/// Every reserved source predicate consumed as typed frontend syntax rather than
+/// as an assertion in the logical theory.
+///
+/// This inventory is deliberately predicate-based. A resource may be both a
+/// structural owner and the subject of ordinary domain assertions; declaring the
+/// resource as (for example) a `logic:Formula` must never make those unrelated
+/// assertions disappear. Keeping the grammar here also gives source admission and
+/// extraction one definition of the reserved syntax surface.
+fn is_reserved_source_syntax_predicate(prop_local: &str) -> bool {
+    is_facet_config_predicate(prop_local)
+        || is_formula_structural_predicate(prop_local)
+        || is_recovery_case_structural_predicate(prop_local)
+        || is_constraint_structural_predicate(prop_local)
+        || is_abductive_schema_structural_predicate(prop_local)
+        || is_reasoning_program_structural_predicate(prop_local)
+        || is_rule_aggregation_predicate(prop_local)
+        || matches!(
+            prop_local,
+            // Class-expression records consumed by the restriction/enumeration
+            // readers. The semantic anchor predicates (`subClassOf`, `domain`,
+            // `range`, ...) are intentionally absent.
+            "onProperty"
+                | "someValuesFrom"
+                | "allValuesFrom"
+                | "hasValue"
+                | "onDataRange"
+                | "minCardinality"
+                | "maxCardinality"
+                | "cardinality"
+                | "minQualifiedCardinality"
+                | "maxQualifiedCardinality"
+                | "qualifiedCardinality"
+                | "onDatatype"
+                | "withRestrictions"
+                | "unionOf"
+                | "intersectionOf"
+                | "disjointUnionOf"
+                | "complementOf"
+                | "oneOf"
+                | "members"
+                // Native characteristic/key declarations.
+                | "characteristicSort"
+                | "keyClass"
+                | "keyProperty"
+                // Path-shape records.
+                | "pathStepPredicate"
+                | "pathWildcard"
+                | "pathMinDepth"
+                | "pathMaxDepth"
+                | "pathNamespaceScope"
+                | "pathDepthParam"
+                // Finite-presentation records. Resource-valued edges are also
+                // classified more specifically by `source_graph::edge_spec`.
+                | "presentationWorld"
+                | "presentationStandpoint"
+                | "presentationTime"
+                | "presentationPath"
+                | "presentationModule"
+                | "presentationModality"
+                | "symbolName"
+                | "individualSymbolRole"
+                | "variadicRelationSymbolRole"
+                | "variadicFunctionSymbolRole"
+                | "relationSymbolArity"
+                | "functionSymbolArity"
+                | "evidenceOrigin"
+                | "preservationKind"
+                | "unsupportedConstruct"
+                | "sourceBlankLabel"
+                | "sourceBlankScope"
+                | "sentenceSign"
+                | "sentenceKind"
+                | "bindingName"
+                // Correspondence calculus, law evidence, and certified
+                // composition records.
+                | "hasCorrespondence"
+                | "hasPreservation"
+                | "correspondenceRelation"
+                | "morphismClass"
+                | "morphismKind"
+                | "mnemomorphic"
+                | "hasDeterminacy"
+                | "sourceEndpoint"
+                | "targetEndpoint"
+                | "evidenceStrength"
+                | "weight"
+                | "probability"
+                | "lawClaimed"
+                | "lawDischargeVerdict"
+                | "lawDischargeCondition"
+                | "hasCaveat"
+                | "lossyDrop"
+                | "evidenceSource"
+                | "evidenceScale"
+                | "crossChainProbabilityModel"
+                | "compositionAxisRule"
+                | "confidenceIndependenceEvidence"
+                | "probabilityIndependenceEvidence"
+                // Contract-wide probability capability declaration.
+                | "probabilityModel"
+        )
+}
+
 /// Read a rule node's aggregation (reduce) spec, when present. Requires the function, the
 /// aggregated variable, and the result variable; the group keys are optional (a reduce with no
 /// group key aggregates the whole relation). A node carrying a partial spec is a hard skip with
@@ -391,29 +599,55 @@ fn aggregation_from_node(
     node: &Subject,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Option<AggregateSpec> {
-    let function = value(store, node, &nn(&logic_iri("aggregateFunction"))).map(|t| term_str(&t));
-    let aggregate_var =
-        value(store, node, &nn(&logic_iri("aggregateVariable"))).map(|t| term_str(&t));
-    let result_var = value(store, node, &nn(&logic_iri("aggregateResult"))).map(|t| term_str(&t));
-    // No aggregation surface at all → an ordinary Horn rule.
-    if function.is_none() && aggregate_var.is_none() && result_var.is_none() {
+    let fields = ["aggregateFunction", "aggregateVariable", "aggregateResult"]
+        .map(|local| objects(store, node, &nn(&logic_iri(local))));
+    let group_terms = objects(store, node, &nn(&logic_iri("groupKey")));
+    if fields.iter().all(Vec::is_empty) && group_terms.is_empty() {
         return None;
     }
-    let (Some(function), Some(aggregate_var), Some(result_var)) =
-        (function, aggregate_var, result_var)
-    else {
-        diagnostics.push(Diagnostic::warning(
+    if fields.iter().any(|values| values.len() != 1) {
+        diagnostics.push(Diagnostic::error(
             "MALFORMED_RULE_AGGREGATION",
-            "logic:Rule aggregation needs logic:aggregateFunction, logic:aggregateVariable, \
-             and logic:aggregateResult; partial spec skipped",
+            "logic:Rule aggregation requires exactly one function, input variable and result variable; entire rule excluded",
+            Some(subject_str(node)),
+        ));
+        return None;
+    }
+    let [Ok(function), Ok(aggregate_var), Ok(result_var)] =
+        fields.map(|values| rule_field_text(&values[0]))
+    else {
+        diagnostics.push(Diagnostic::error(
+            "MALFORMED_RULE_AGGREGATION",
+            "aggregation fields must be textual; entire rule excluded",
             Some(subject_str(node)),
         ));
         return None;
     };
-    let group_keys: Vec<String> = objects(store, node, &nn(&logic_iri("groupKey")))
+    let Ok(group_keys) = group_terms
         .iter()
-        .map(term_str)
-        .collect();
+        .map(rule_field_text)
+        .collect::<gmeow_errors::Result<Vec<String>>>()
+    else {
+        diagnostics.push(Diagnostic::error(
+            "MALFORMED_RULE_AGGREGATION",
+            "aggregation group keys must be textual; entire rule excluded",
+            Some(subject_str(node)),
+        ));
+        return None;
+    };
+    if !matches!(function.as_str(), "SUM" | "COUNT" | "MIN" | "MAX" | "AVG")
+        || !aggregate_var.starts_with('?')
+        || !result_var.starts_with('?')
+        || group_keys.iter().any(|key| !key.starts_with('?'))
+    {
+        diagnostics.push(Diagnostic::error(
+            "MALFORMED_RULE_AGGREGATION",
+            "logic:Rule aggregation requires a supported function and variable input, result and group keys; entire rule excluded",
+            Some(subject_str(node)),
+        ));
+        return None;
+    }
+
     Some(AggregateSpec::new(
         function,
         aggregate_var,
@@ -430,24 +664,11 @@ fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     let mut subjects: HashSet<String> = HashSet::new();
     for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
         let class_term = Node::iri(logic_iri(class_local));
-        for subj in subjects_with(store, &nn(RDF_TYPE), &class_term) {
+        for subj in subjects_of_structural_class(store, &class_term) {
             subjects.insert(subject_str(&subj));
         }
     }
     subjects
-}
-
-/// Collect the IRIs / blank-node ids of every `logic:RecoveryCase` node reached as the
-/// object of some `logic:recoveryCase` edge — i.e. every recovery case OWNED by a
-/// correspondence. A `logic:RecoveryCase` node typed but never reached this way is
-/// authored recovery evidence with no owner, so it must not be silently dropped.
-fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
-    let recovery_case_pred = logic_iri("recoveryCase");
-    default_graph_quads(store)
-        .into_iter()
-        .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
-        .map(|quad| term_str(&quad.object))
-        .collect()
 }
 
 /// Lift the RDFS/SKOS annotation surface (`ANNOTATION_LIFT_PREDS`) into first-class
@@ -466,9 +687,9 @@ fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
 fn extract_annotation_axioms(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
-) -> Vec<LogicAxiom> {
-    let mut axioms: Vec<LogicAxiom> = Vec::new();
-    for quad in default_graph_quads(store) {
+) -> Vec<AxiomEmission> {
+    let mut axioms: Vec<AxiomEmission> = Vec::new();
+    for (source_quad, quad) in crate::graphutil::default_graph_quads_with_ids(store) {
         let p_str = quad.predicate.as_str();
         if !ANNOTATION_LIFT_PREDS.contains(&p_str) {
             continue;
@@ -485,7 +706,7 @@ fn extract_annotation_axioms(
         if !subject_is_gmeow_authored(&subject_str(&quad.subject)) {
             continue;
         }
-        let Node::Lit { lexical, lang, .. } = &quad.object else {
+        let Node::Lit(literal) = &quad.object else {
             // A non-literal object on an annotation predicate is malformed authoring
             // (e.g. rdfs:seeAlso-style IRI object); it is not a lift target.
             continue;
@@ -498,21 +719,21 @@ fn extract_annotation_axioms(
         // core-term graphs and flags a genuine core violation (R2/AC2); the compile-logic
         // corpus also carries example/test subjects the lint deliberately does not police, so
         // rejecting their @en annotations here would be stricter than the guard itself.
-        if lang.as_deref() != Some(X_GMEOW_ENGLISH_TAG) {
+        if literal.language.as_deref() != Some(X_GMEOW_ENGLISH_TAG) {
             continue;
         }
         match LogicAxiom::new(
             subject_str(&quad.subject),
             p_str,
-            lexical.clone(),
-            true,
+            crate::ir::AtomicTerm::Literal(literal.clone()),
             false,
             ContextualScope::default(),
         ) {
-            Ok(ax) => axioms.push(
+            Ok(ax) => axioms.push(AxiomEmission::new(
                 ax.with_node_kind(NodeKind::Annotation)
                     .with_load_bearing(annotation_pred_is_load_bearing(p_str)),
-            ),
+                AxiomSource::statement(source_quad),
+            )),
             Err(exc) => diagnostics.push(Diagnostic::warning(
                 "MALFORMED_ANNOTATION",
                 exc.message().to_owned(),
@@ -557,16 +778,50 @@ fn anonymous_boolean_class_expr_labels(store: &RdfDataset) -> BTreeSet<String> {
     labels
 }
 
-fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
-    let mut axioms: Vec<LogicAxiom> = Vec::new();
+fn extract_axioms(
+    store: &RdfDataset,
+    source_graph: &StructuralSourceGraph,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<AxiomEmission> {
+    let mut axioms: Vec<AxiomEmission> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
     // triples on these are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
+    // Presentation syntax belongs to the typed declaration catalog. It must not
+    // additionally assert its signed sentences or configuration as global facts.
+    let presentation_subjects: HashSet<_> = source_graph
+        .units()
+        .filter(|unit| {
+            unit.node.graph.is_none()
+                && unit
+                    .declared_kinds
+                    .iter()
+                    .chain(&unit.required_kinds)
+                    .any(presentation::owns_kind)
+        })
+        .map(|unit| unit.node.term)
+        .collect();
 
-    // Recovery cases owned by some correspondence (via `logic:recoveryCase`); a
-    // `logic:RecoveryCase` typing not in this set is orphaned evidence (see step 2 below).
-    let owned_recovery_cases = collect_owned_recovery_cases(store);
+    // The declaration and scope satellites of a Rule belong to its typed IR.
+    // Re-emitting the source declaration as a domain axiom creates a second,
+    // headless Rule when a projection mints the executable rule's canonical IRI.
+    let rule_subjects: HashSet<String> =
+        subjects_of_structural_class(store, &Node::iri(logic_iri("Rule")))
+            .iter()
+            .map(subject_str)
+            .collect();
+    let mut reifier_subjects: HashSet<_> =
+        subjects_with(store, &nn(RDF_TYPE), &Node::iri(RDF_STATEMENT))
+            .iter()
+            .map(subject_str)
+            .collect();
+    if let Some(predicate) = store.term_id_by_iri(RDF_REIFIES) {
+        reifier_subjects.extend(
+            crate::graphutil::default_graph_pattern(store, None, Some(predicate), None)
+                .map(|quad| subject_str(&crate::graphutil::subject_of(store, quad.s))),
+        );
+    }
 
     // Class-expression restrictions authored in logic: (`C logic:subClassOf
     // [ a logic:Restriction ; logic:onProperty P ; logic:someValuesFrom D ]`) lift
@@ -597,22 +852,38 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
             lifted.subject,
             lifted.predicate,
             lifted.obj,
-            lifted.obj_is_literal,
             false,
             ContextualScope::default(),
         ) {
-            axioms.push(ax);
+            axioms.push(AxiomEmission::new(
+                ax,
+                AxiomSource::ClassExpression(lifted.source),
+            ));
         }
     }
 
-    // 1. Triples with a logic: predicate (excluding rdf:type).
-    for quad in default_graph_quads(store) {
+    // 1. Domain triples with a logic: predicate. Canonical structural typing is
+    // handled with RDF typing in pass 2 so both surfaces share one ownership check.
+    for (source_quad, quad) in crate::graphutil::default_graph_quads_with_ids(store) {
+        if presentation_subjects.contains(&source_quad.s) {
+            continue;
+        }
         let p_str = quad.predicate.as_str();
         if !p_str.starts_with(LOGIC_NAMESPACE) {
             continue;
         }
-        if p_str == RDF_TYPE {
-            continue; // unreachable (rdf:type is not logic:) but mirrors Python.
+        if matches!(quad.object, Node::Triple(_)) {
+            diagnostics.push(Diagnostic::error(
+                "UNSUPPORTED_AXIOM_TERM",
+                "a proposition object requires typed axiom lowering; it cannot be stringified",
+                Some(subject_str(&quad.subject)),
+            ));
+            continue;
+        }
+        if p_str == "https://blackcatinformatics.ca/logic/instanceOf"
+            && matches!(&quad.object, Node::Iri(class) if class.starts_with(LOGIC_NAMESPACE))
+        {
+            continue;
         }
         // Restriction internals + anchor edges are owned by the skolemizer above.
         // Skip a triple whose subject is a restriction node, and a subClassOf /
@@ -622,6 +893,31 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
             continue;
         }
         let p_local = &p_str[LOGIC_NAMESPACE.len()..];
+        if reifier_subjects.contains(&subject_str(&quad.subject))
+            && matches!(
+                p_local,
+                "standpoint" | "time" | "confidence" | "modality" | "provenance" | "inModule"
+            )
+        {
+            continue;
+        }
+        if rule_subjects.contains(&subject_str(&quad.subject))
+            && matches!(
+                p_local,
+                "head"
+                    | "body"
+                    | "negatedBody"
+                    | "distinctBody"
+                    | "standpoint"
+                    | "time"
+                    | "confidence"
+                    | "modality"
+                    | "provenance"
+                    | "inModule"
+            )
+        {
+            continue;
+        }
         if matches!(p_local, "subClassOf" | "equivalentClass")
             && rnodes.contains(&term_str(&quad.object))
         {
@@ -664,15 +960,14 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_abductive_schema_structural_predicate(p_local) {
             continue;
         }
-        match LogicAxiom::new(
+        match native_axiom(
             subject_str(&quad.subject),
             p_str,
-            term_str(&quad.object),
-            term_is_literal(&quad.object),
+            &quad.object,
             false,
             ContextualScope::default(),
         ) {
-            Ok(ax) => axioms.push(ax),
+            Ok(ax) => axioms.push(AxiomEmission::new(ax, AxiomSource::statement(source_quad))),
             Err(exc) => diagnostics.push(Diagnostic::warning(
                 "MALFORMED_AXIOM",
                 exc.message().to_owned(),
@@ -681,9 +976,18 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         }
     }
 
-    // 2. rdf:type triples whose object is a logic: class.
-    for quad in default_graph_quads(store) {
-        if quad.predicate.as_str() != RDF_TYPE {
+    // 2. Both admitted typing surfaces for a canonical logic class. Preserve the
+    // authored predicate on domain axioms; record discovery never equates the relations.
+    let mut reported_orphan_cases = HashSet::new();
+    for (source_quad, quad) in crate::graphutil::default_graph_quads_with_ids(store) {
+        if presentation_subjects.contains(&source_quad.s) {
+            continue;
+        }
+        let type_predicate = quad.predicate.as_str();
+        if type_predicate != RDF_TYPE
+            && !(type_predicate == "https://blackcatinformatics.ca/logic/instanceOf"
+                && matches!(&quad.object, Node::Iri(class) if class.starts_with(LOGIC_NAMESPACE)))
+        {
             continue;
         }
         // The `<r> rdf:type logic:Restriction` typing is owned by the skolemizer.
@@ -712,7 +1016,12 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // `extract_formulas`. Keeping it as a generic class-membership axiom as well would give
         // the same authored node two IR homes; the CL writer would then emit a constructorless
         // duplicate under the source IRI alongside the content-addressed formula tree.
-        if matches!(o_local, "Formula" | "TermCarrier") {
+        // A contextual request likewise belongs to its source-owned evaluation;
+        // its declaration is not a domain membership asserted by that evaluation.
+        if matches!(
+            o_local,
+            "Formula" | "TermCarrier" | "Rule" | "ContextualEvaluationRequest"
+        ) {
             continue;
         }
         // A `logic:ReasoningProgram` type triple declares a typed reasoning-program node and
@@ -726,7 +1035,11 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // something to swallow — so it is hard-failed here instead of silently vanishing.
         if o_local == "RecoveryCase" {
             let case_iri = subject_str(&quad.subject);
-            if !owned_recovery_cases.contains(&case_iri) {
+            if !source_graph.recovery_is_owned(SourceNode {
+                term: subject_id(store, &quad.subject).expect("source subject is present"),
+                graph: None,
+            }) && reported_orphan_cases.insert(case_iri.clone())
+            {
                 diagnostics.push(Diagnostic::error(
                     "ORPHAN_RECOVERY_CASE",
                     format!(
@@ -744,18 +1057,17 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_constraint_sugar_class(o_local) {
             continue;
         }
-        if subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE) {
+        if type_predicate == RDF_TYPE && subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE) {
             continue;
         }
         match LogicAxiom::new(
             subject_str(&quad.subject),
-            RDF_TYPE,
-            o_str,
-            false,
+            type_predicate,
+            crate::ir::AtomicTerm::resource(o_str),
             false,
             ContextualScope::default(),
         ) {
-            Ok(ax) => axioms.push(ax),
+            Ok(ax) => axioms.push(AxiomEmission::new(ax, AxiomSource::statement(source_quad))),
             Err(exc) => diagnostics.push(Diagnostic::warning(
                 "MALFORMED_AXIOM",
                 exc.message().to_owned(),
@@ -771,30 +1083,50 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
 // RDF 1.2 + classic reified-statement scope extraction
 // --------------------------------------------------------------------------- //
 
-fn extract_scoped_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
-    let mut axioms: Vec<LogicAxiom> = Vec::new();
+fn extract_scoped_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<AxiomEmission> {
+    let mut axioms: Vec<AxiomEmission> = Vec::new();
 
     // RDF 1.2 style: reifier node with rdf:reifies → triple term.
-    for quad in default_graph_quads(store) {
-        if quad.predicate.as_str() != RDF_REIFIES {
-            continue;
-        }
-        let reifier = quad.subject.clone();
-        let scope = scope_from_node(store, &reifier, diagnostics);
-        if let Node::Triple(triple) = &quad.object {
-            let t_p = triple.predicate.as_str();
-            if !t_p.starts_with(LOGIC_NAMESPACE) && t_p != RDF_TYPE {
+    if let Some(predicate) = store.term_id_by_iri(RDF_REIFIES) {
+        for quad in crate::graphutil::default_graph_pattern(store, None, Some(predicate), None) {
+            let reifier = crate::graphutil::subject_of(store, quad.s);
+            let Some(scope) = scope_from_node(store, &reifier, diagnostics) else {
+                continue;
+            };
+            // Quotation alone never asserts its proposition. The same explicit
+            // scope admission applies to both native and classic reification.
+            if scope == ContextualScope::default() {
                 continue;
             }
-            let t_s = subject_str(&triple.subject);
-            let t_o = term_str(&triple.object);
-            match LogicAxiom::new(t_s, t_p, t_o, term_is_literal(&triple.object), false, scope) {
-                Ok(ax) => axioms.push(ax),
-                Err(exc) => diagnostics.push(Diagnostic::warning(
-                    "MALFORMED_SCOPED_AXIOM",
-                    exc.message().to_owned(),
-                    Some(subject_str(&reifier)),
-                )),
+            if let Node::Triple(triple) = crate::graphutil::node_of(store, quad.o) {
+                let t_p = triple.predicate.as_str();
+                if matches!(triple.object, Node::Triple(_)) {
+                    diagnostics.push(Diagnostic::error(
+                        "UNSUPPORTED_SCOPED_TERM",
+                        "a nested proposition requires typed term lowering; \
+                         it cannot be stringified into a scoped axiom",
+                        Some(subject_str(&reifier)),
+                    ));
+                    continue;
+                }
+                let t_s = subject_str(&triple.subject);
+                match native_axiom(t_s, t_p, &triple.object, false, scope) {
+                    Ok(ax) => axioms.push(AxiomEmission::new(
+                        ax,
+                        AxiomSource::Reification(SourceNode {
+                            term: quad.s,
+                            graph: quad.g,
+                        }),
+                    )),
+                    Err(exc) => diagnostics.push(Diagnostic::error(
+                        "MALFORMED_SCOPED_AXIOM",
+                        exc.message().to_owned(),
+                        Some(subject_str(&reifier)),
+                    )),
+                }
             }
         }
     }
@@ -802,31 +1134,57 @@ fn extract_scoped_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) 
     // Classic reification: rdf:Statement nodes with logic: scope annotations.
     let rdf_type_term = Node::iri(RDF_STATEMENT);
     for stmt in subjects_with(store, &nn(RDF_TYPE), &rdf_type_term) {
-        let scope = scope_from_node(store, &stmt, diagnostics);
+        let Some(scope) = scope_from_node(store, &stmt, diagnostics) else {
+            continue;
+        };
         if scope == ContextualScope::default() {
             continue;
         }
         let t_p = value(store, &stmt, &nn(RDF_PREDICATE));
         let Some(t_p) = t_p else {
-            diagnostics.push(Diagnostic::warning(
+            diagnostics.push(Diagnostic::error(
                 "MISSING_PREDICATE",
                 "rdf:Statement node has no rdf:predicate; skipped",
                 Some(subject_str(&stmt)),
             ));
             continue;
         };
-        let p_str = term_str(&t_p);
-        if !p_str.starts_with(LOGIC_NAMESPACE) && p_str != RDF_TYPE {
+        let Node::Iri(p_str) = t_p else {
+            diagnostics.push(Diagnostic::error(
+                "MALFORMED_SCOPED_AXIOM",
+                "scoped axiom rdf:predicate must be an IRI",
+                Some(subject_str(&stmt)),
+            ));
             continue;
-        }
+        };
         let t_s = value(store, &stmt, &nn(RDF_SUBJECT));
+        let Some(subject @ (Node::Iri(_) | Node::Blank { .. })) = t_s.as_ref() else {
+            diagnostics.push(Diagnostic::error(
+                "MALFORMED_SCOPED_AXIOM",
+                "scoped axiom rdf:subject must be an IRI or blank node",
+                Some(subject_str(&stmt)),
+            ));
+            continue;
+        };
+        let subj = term_str(subject);
         let t_o = value(store, &stmt, &nn(RDF_OBJECT));
-        let subj = t_s.as_ref().map(term_str).unwrap_or_default();
-        let obj = t_o.as_ref().map(term_str).unwrap_or_default();
-        let obj_is_literal = t_o.as_ref().is_some_and(term_is_literal);
-        match LogicAxiom::new(subj, p_str, obj, obj_is_literal, false, scope) {
-            Ok(ax) => axioms.push(ax),
-            Err(exc) => diagnostics.push(Diagnostic::warning(
+        let Some(object) = t_o.as_ref() else {
+            diagnostics.push(Diagnostic::error(
+                "MALFORMED_SCOPED_AXIOM",
+                "scoped axiom requires rdf:object",
+                Some(subject_str(&stmt)),
+            ));
+            continue;
+        };
+        match native_axiom(subj, p_str, object, false, scope) {
+            Ok(ax) => axioms.push(AxiomEmission::new(
+                ax,
+                AxiomSource::Reification(SourceNode {
+                    term: subject_id(store, &stmt).expect("selected reification root"),
+                    graph: None,
+                }),
+            )),
+            Err(exc) => diagnostics.push(Diagnostic::error(
                 "MALFORMED_SCOPED_AXIOM",
                 exc.message().to_owned(),
                 Some(subject_str(&stmt)),
@@ -868,7 +1226,7 @@ const FACET_PROPERTIES: [&str; 16] = [
 /// recognised facet class, or `None` if the value carries no recognised facet type.
 fn facet_class_of(store: &RdfDataset, value_iri: &str) -> Option<String> {
     let subject = Subject::Iri(value_iri.to_owned());
-    for ty in objects(store, &subject, &nn(RDF_TYPE)) {
+    for ty in structural_classes(store, &subject) {
         let ty_str = term_str(&ty);
         if let Some(local) = ty_str.strip_prefix(LOGIC_NAMESPACE)
             && is_facet_class(local)
@@ -975,14 +1333,15 @@ fn graph_declares_probability_model(store: &RdfDataset) -> bool {
     }
     // Any individual typed logic:ProbabilityModel.
     let prob_model_class = Node::iri(logic_iri("ProbabilityModel"));
-    has_predicate_object(store, &nn(RDF_TYPE), &prob_model_class)
+    !subjects_of_structural_class(store, &prob_model_class).is_empty()
 }
 
 fn extract_contracts(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
-) -> Vec<ReasoningContract> {
-    let mut contracts: Vec<ReasoningContract> = Vec::new();
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<ReasoningContract>> {
+    let mut contracts: Vec<OwnerEmission<ReasoningContract>> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
 
     // Computed once: whether the graph declares any logic:ProbabilityModel; used
@@ -993,7 +1352,7 @@ fn extract_contracts(
     let mut subjects: Vec<Subject> = Vec::new();
     for class_local in ["ReasoningContract", "ReasoningPreset"] {
         let class_term = Node::iri(logic_iri(class_local));
-        subjects.extend(subjects_with(store, &nn(RDF_TYPE), &class_term));
+        subjects.extend(subjects_of_structural_class(store, &class_term));
     }
 
     for individual in subjects {
@@ -1002,54 +1361,59 @@ fn extract_contracts(
             continue;
         }
 
-        let mut contract = ReasoningContract::new();
+        if let Some(emitted) = capture_owner(
+            owner_source(store, &individual),
+            OwnerFamily::Contract,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                let mut contract = ReasoningContract::new();
 
-        // If it is a recognised preset, record its preset id; an unrecognised
-        // preset is a hard-skip with a diagnostic (behaviour-preserving).
-        let is_preset = contains(
-            store,
-            &individual,
-            &nn(RDF_TYPE),
-            &Node::iri(logic_iri("ReasoningPreset")),
-        );
-        if is_preset {
-            let preset = iri_str
-                .strip_prefix(LOGIC_NAMESPACE)
-                .and_then(SemanticProfileId::from_local);
-            match preset {
-                Some(p) => contract.preset = Some(p),
-                None => {
-                    // Greenfield: an unrecognised preset reference is
-                    // a hard error, not a silent approximation to a nearby preset.
-                    diagnostics.push(Diagnostic::error(
-                        "UNKNOWN_PROFILE",
-                        format!(
-                            "{iri_str:?} is declared as logic:ReasoningPreset but is not a \
+                // If it is a recognised preset, record its preset id; an unrecognised
+                // preset is a hard-skip with a diagnostic (behaviour-preserving).
+                let is_preset = has_structural_class(
+                    store,
+                    &individual,
+                    &Node::iri(logic_iri("ReasoningPreset")),
+                );
+                if is_preset {
+                    let preset = iri_str
+                        .strip_prefix(LOGIC_NAMESPACE)
+                        .and_then(SemanticProfileId::from_local);
+                    match preset {
+                        Some(p) => contract.preset = Some(p),
+                        None => {
+                            // Greenfield: an unrecognised preset reference is
+                            // a hard error, not a silent approximation to a nearby preset.
+                            diagnostics.push(Diagnostic::error(
+                                "UNKNOWN_PROFILE",
+                                format!(
+                                    "{iri_str:?} is declared as logic:ReasoningPreset but is not a \
                              recognised named individual; skipped"
-                        ),
-                        Some(iri_str.clone()),
-                    ));
-                    continue;
+                                ),
+                                Some(iri_str.clone()),
+                            ));
+                            return Err(Vec::new());
+                        }
+                    }
                 }
-            }
-        }
 
-        // Direct facet properties + the expandsToFacet bundle. A DIRECT facet
-        // property (everything but expandsToFacet) routes by the PROPERTY name —
-        // so the rdf:type-less canonical RDF12 projection round-trips; the
-        // value's own facet-class rdf:type, when present, is used as a fallback /
-        // for expandsToFacet (which carries mixed facet kinds).
-        for prop_local in FACET_PROPERTIES {
-            for value_term in objects(store, &individual, &nn(&logic_iri(prop_local))) {
-                let value_iri = term_str(&value_term);
-                let value_local = value_iri
-                    .strip_prefix(LOGIC_NAMESPACE)
-                    .unwrap_or(&value_iri)
-                    .to_owned();
-                let facet_class = facet_class_for_property(prop_local)
-                    .map(str::to_owned)
-                    .or_else(|| facet_class_of(store, &value_iri));
-                match facet_class {
+                // Direct facet properties + the expandsToFacet bundle. A DIRECT facet
+                // property (everything but expandsToFacet) routes by the PROPERTY name —
+                // so the rdf:type-less canonical RDF12 projection round-trips; the
+                // value's own facet-class rdf:type, when present, is used as a fallback /
+                // for expandsToFacet (which carries mixed facet kinds).
+                for prop_local in FACET_PROPERTIES {
+                    for value_term in objects(store, &individual, &nn(&logic_iri(prop_local))) {
+                        let value_iri = term_str(&value_term);
+                        let value_local = value_iri
+                            .strip_prefix(LOGIC_NAMESPACE)
+                            .unwrap_or(&value_iri)
+                            .to_owned();
+                        let facet_class = facet_class_for_property(prop_local)
+                            .map(str::to_owned)
+                            .or_else(|| facet_class_of(store, &value_iri));
+                        match facet_class {
                     Some(facet_class) => {
                         route_facet_value(&mut contract, &facet_class, value_local)
                     }
@@ -1062,18 +1426,18 @@ fn extract_contracts(
                         Some(iri_str.clone()),
                     )),
                 }
-            }
-        }
+                    }
+                }
 
-        // Closure entries: logic:closureEntry → ClosureEntry node with
-        // logic:closureKey (string) + logic:closureValue (ClosureValue individual).
-        for entry_term in objects(store, &individual, &nn(&logic_iri("closureEntry"))) {
-            // HARD verdict: a malformed closure entry — a non-node
-            // object, or a node missing logic:closureKey / logic:closureValue — is a
-            // Severity::Error (consistent with UNSUPPORTED_CONTRACT above), never a
-            // silent skip, so the compile Report is not ok.
-            let Some(entry_node) = term_as_subject(&entry_term) else {
-                diagnostics.push(Diagnostic::error(
+                // Closure entries: logic:closureEntry → ClosureEntry node with
+                // logic:closureKey (string) + logic:closureValue (ClosureValue individual).
+                for entry_term in objects(store, &individual, &nn(&logic_iri("closureEntry"))) {
+                    // HARD verdict: a malformed closure entry — a non-node
+                    // object, or a node missing logic:closureKey / logic:closureValue — is a
+                    // Severity::Error (consistent with UNSUPPORTED_CONTRACT above), never a
+                    // silent skip, so the compile Report is not ok.
+                    let Some(entry_node) = term_as_subject(&entry_term) else {
+                        diagnostics.push(Diagnostic::error(
                     "MALFORMED_CLOSURE_ENTRY",
                     format!(
                         "reasoning contract {iri_str:?} has a logic:closureEntry whose object \
@@ -1083,80 +1447,80 @@ fn extract_contracts(
                     ),
                     Some(iri_str.clone()),
                 ));
-                continue;
-            };
-            let key =
-                value(store, &entry_node, &nn(&logic_iri("closureKey"))).map(|t| term_str(&t));
-            let val = value(store, &entry_node, &nn(&logic_iri("closureValue"))).map(|t| {
-                let v = term_str(&t);
-                v.strip_prefix(LOGIC_NAMESPACE).unwrap_or(&v).to_owned()
-            });
-            match (key, val) {
-                (Some(key), Some(val)) => {
-                    contract.closure_entries.insert(key, val);
-                }
-                (key, val) => {
-                    let mut missing: Vec<&str> = Vec::new();
-                    if key.is_none() {
-                        missing.push("logic:closureKey");
-                    }
-                    if val.is_none() {
-                        missing.push("logic:closureValue");
-                    }
-                    diagnostics.push(Diagnostic::error(
-                        "MALFORMED_CLOSURE_ENTRY",
-                        format!(
-                            "reasoning contract {iri_str:?} has a logic:closureEntry node \
+                        continue;
+                    };
+                    let key = value(store, &entry_node, &nn(&logic_iri("closureKey")))
+                        .map(|t| term_str(&t));
+                    let val = value(store, &entry_node, &nn(&logic_iri("closureValue"))).map(|t| {
+                        let v = term_str(&t);
+                        v.strip_prefix(LOGIC_NAMESPACE).unwrap_or(&v).to_owned()
+                    });
+                    match (key, val) {
+                        (Some(key), Some(val)) => {
+                            contract.closure_entries.insert(key, val);
+                        }
+                        (key, val) => {
+                            let mut missing: Vec<&str> = Vec::new();
+                            if key.is_none() {
+                                missing.push("logic:closureKey");
+                            }
+                            if val.is_none() {
+                                missing.push("logic:closureValue");
+                            }
+                            diagnostics.push(Diagnostic::error(
+                                "MALFORMED_CLOSURE_ENTRY",
+                                format!(
+                                    "reasoning contract {iri_str:?} has a logic:closureEntry node \
                              {:?} missing {}",
-                            subject_str(&entry_node),
-                            missing.join(" + ")
+                                    subject_str(&entry_node),
+                                    missing.join(" + ")
+                                ),
+                                Some(iri_str.clone()),
+                            ));
+                        }
+                    }
+                }
+
+                // Carried decidability data: logic:complexityClass.
+                if let Some(cn) = value(store, &individual, &nn(&logic_iri("complexityClass"))) {
+                    let label = term_str(&cn).trim().to_owned();
+                    match ComplexityClass::new(label.clone()) {
+                        Ok(cc) => contract.complexity = Some(cc),
+                        Err(_) => diagnostics.push(Diagnostic::warning(
+                            "INVALID_COMPLEXITY_CLASS",
+                            format!(
+                                "complexityClass {label:?} is not a recognised ComplexityClass \
+                         value; ignored"
+                            ),
+                            Some(iri_str.clone()),
+                        )),
+                    }
+                }
+
+                // ── Compatibility feature model ─────────────────────────────────────
+                // HARD verdict: an unsupported contract is a Severity::Error
+                // finding, so the compile Report is not ok and the program is never
+                // silently approximated to a nearby semantics.
+                if let compat::ContractVerdict::Unsupported(reasons) = compat::check(&contract) {
+                    diagnostics.push(Diagnostic::error(
+                        "UNSUPPORTED_CONTRACT",
+                        format!(
+                            "reasoning contract {iri_str:?} is not soundly evaluable: {}",
+                            reasons.join("; ")
                         ),
                         Some(iri_str.clone()),
                     ));
                 }
-            }
-        }
 
-        // Carried decidability data: logic:complexityClass.
-        if let Some(cn) = value(store, &individual, &nn(&logic_iri("complexityClass"))) {
-            let label = term_str(&cn).trim().to_owned();
-            match ComplexityClass::new(label.clone()) {
-                Ok(cc) => contract.complexity = Some(cc),
-                Err(_) => diagnostics.push(Diagnostic::warning(
-                    "INVALID_COMPLEXITY_CLASS",
-                    format!(
-                        "complexityClass {label:?} is not a recognised ComplexityClass \
-                         value; ignored"
-                    ),
-                    Some(iri_str.clone()),
-                )),
-            }
-        }
-
-        // ── Compatibility feature model ─────────────────────────────────────
-        // HARD verdict: an unsupported contract is a Severity::Error
-        // finding, so the compile Report is not ok and the program is never
-        // silently approximated to a nearby semantics.
-        if let compat::ContractVerdict::Unsupported(reasons) = compat::check(&contract) {
-            diagnostics.push(Diagnostic::error(
-                "UNSUPPORTED_CONTRACT",
-                format!(
-                    "reasoning contract {iri_str:?} is not soundly evaluable: {}",
-                    reasons.join("; ")
-                ),
-                Some(iri_str.clone()),
-            ));
-        }
-
-        // Graph-dependent RuleProbabilisticRequiresModel: a
-        // probabilistic measure demands a declared logic:ProbabilityModel; absent
-        // one, refuse rather than silently assume independence.
-        if contract
-            .uncertainty_measures
-            .contains("ProbabilisticMeasure")
-            && !has_probability_model
-        {
-            diagnostics.push(Diagnostic::error(
+                // Graph-dependent RuleProbabilisticRequiresModel: a
+                // probabilistic measure demands a declared logic:ProbabilityModel; absent
+                // one, refuse rather than silently assume independence.
+                if contract
+                    .uncertainty_measures
+                    .contains("ProbabilisticMeasure")
+                    && !has_probability_model
+                {
+                    diagnostics.push(Diagnostic::error(
                 "UNSUPPORTED_CONTRACT",
                 format!(
                     "reasoning contract {iri_str:?} carries logic:ProbabilisticMeasure but the \
@@ -1166,9 +1530,13 @@ fn extract_contracts(
                 ),
                 Some(iri_str.clone()),
             ));
-        }
+                }
 
-        contracts.push(contract);
+                Ok(contract)
+            },
+        ) {
+            contracts.push(emitted);
+        }
     }
 
     contracts
@@ -1178,37 +1546,100 @@ fn extract_contracts(
 // Rule extraction (forward-compatible: absent logic:Rule → empty list)
 // --------------------------------------------------------------------------- //
 
-/// Read a reified atom node (`rdf:subject` / `rdf:predicate` / `rdf:object`) into
-/// a [`LogicAxiom`], returning `Err` with a message on a missing predicate or a
-/// validation failure.
+/// Read a textual rule field without panicking or erasing a triple-valued term.
+/// Rich typed terms require an admitted typed atom representation; the string-based
+/// Horn record cannot silently reinterpret them as an IRI or plain literal.
+fn rule_field_text(term: &Node) -> gmeow_errors::Result<String> {
+    if matches!(term, Node::Triple(_)) {
+        return Err(Diag::of_kind(crate::error::Frontend {
+            detail:
+                "triple-valued rule field is not representable by the selected Horn atom record"
+                    .to_owned(),
+        }));
+    }
+    Ok(term_str(term))
+}
+
+/// Read one required structural field without choosing among conflicting values.
+fn required_atom_field(
+    store: &RdfDataset,
+    node: &Subject,
+    predicate: &str,
+) -> gmeow_errors::Result<Node> {
+    let mut fields = objects(store, node, &nn(predicate));
+    if fields.len() != 1 {
+        return Err(Diag::of_kind(crate::error::Frontend {
+            detail: format!(
+                "reified atom requires exactly one {predicate}; found {}",
+                fields.len()
+            ),
+        }));
+    }
+    Ok(fields.remove(0))
+}
+
+fn native_axiom(
+    subject: impl Into<String>,
+    predicate: impl Into<String>,
+    object: &Node,
+    negated: bool,
+    scope: ContextualScope,
+) -> gmeow_errors::Result<LogicAxiom> {
+    LogicAxiom::new(
+        subject,
+        predicate,
+        crate::graphutil::atomic_object(object)?,
+        negated,
+        scope,
+    )
+}
+
+/// Read an entire reified atom. Missing or ambiguous fields and a non-IRI predicate
+/// are errors; accepting a shorter atom would alter the authored rule.
 fn read_reified_axiom(
     store: &RdfDataset,
     node: &Subject,
     negated: bool,
 ) -> gmeow_errors::Result<LogicAxiom> {
-    let p = value(store, node, &nn(RDF_PREDICATE));
-    let Some(p) = p else {
+    let s = required_atom_field(store, node, RDF_SUBJECT)?;
+    let p = required_atom_field(store, node, RDF_PREDICATE)?;
+    let o = required_atom_field(store, node, RDF_OBJECT)?;
+    let Node::Iri(predicate) = p else {
         return Err(Diag::of_kind(crate::error::Frontend {
-            detail: "__missing_predicate__".to_owned(),
+            detail: "reified atom rdf:predicate must be an IRI".to_owned(),
         }));
     };
-    let s = value(store, node, &nn(RDF_SUBJECT));
-    let o = value(store, node, &nn(RDF_OBJECT));
-    let subj = s.as_ref().map(term_str).unwrap_or_default();
-    let obj = o.as_ref().map(term_str).unwrap_or_default();
-    let obj_is_literal = o.as_ref().is_some_and(term_is_literal);
+    let object = match &o {
+        Node::Lit(literal)
+            if literal.language.is_none()
+                && literal.direction.is_none()
+                && literal.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string"
+                && literal.lexical_form.starts_with('?') =>
+        {
+            crate::ir::AtomicTerm::Var(literal.lexical_form.clone())
+        }
+        Node::Iri(_) | Node::Blank { .. } => {
+            let carrier = term_as_subject(&o).expect("resource term");
+            formula_reader::read_atomic_carrier(store, node, &carrier)?
+                .unwrap_or(crate::graphutil::atomic_object(&o)?)
+        }
+        _ => crate::graphutil::atomic_object(&o)?,
+    };
     LogicAxiom::new(
-        subj,
-        term_str(&p),
-        obj,
-        obj_is_literal,
+        rule_field_text(&s)?,
+        predicate,
+        object,
         negated,
         ContextualScope::default(),
     )
 }
 
-fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicRule> {
-    let mut rules: Vec<LogicRule> = Vec::new();
+fn extract_rules(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<LogicRule>> {
+    let mut rules: Vec<OwnerEmission<LogicRule>> = Vec::new();
 
     let logic_rule = Node::iri(logic_iri("Rule"));
     let logic_head = nn(&logic_iri("head"));
@@ -1216,113 +1647,154 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
     let logic_negated_body = nn(&logic_iri("negatedBody"));
     let logic_distinct_body = nn(&logic_iri("distinctBody"));
 
-    for rule_node in subjects_with(store, &nn(RDF_TYPE), &logic_rule) {
-        let scope = scope_from_node(store, &rule_node, diagnostics);
-
-        // Head.
-        let Some(head_term) = value(store, &rule_node, &logic_head) else {
-            diagnostics.push(Diagnostic::warning(
-                "MISSING_RULE_HEAD",
-                "logic:Rule node has no logic:head; skipped",
-                Some(subject_str(&rule_node)),
-            ));
-            continue;
-        };
-        let Some(head_node) = term_as_subject(&head_term) else {
-            diagnostics.push(Diagnostic::warning(
-                "MALFORMED_RULE_HEAD",
-                "logic:head node has no rdf:predicate; skipped",
-                Some(subject_str(&rule_node)),
-            ));
-            continue;
-        };
-        let head_axiom = match read_reified_axiom(store, &head_node, false) {
-            Ok(ax) => ax,
-            Err(msg) => {
-                let message = if msg.message() == "__missing_predicate__" {
-                    "logic:head node has no rdf:predicate; skipped".to_owned()
-                } else {
-                    msg.message().to_owned()
+    for rule_node in subjects_of_structural_class(store, &logic_rule) {
+        if let Some(emitted) = capture_owner(
+            owner_source(store, &rule_node),
+            OwnerFamily::Rule,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                let diagnostic_start = diagnostics.len();
+                let Some(scope) = scope_from_node(store, &rule_node, diagnostics) else {
+                    return Err(Vec::new());
                 };
-                diagnostics.push(Diagnostic::warning(
-                    "MALFORMED_RULE_HEAD",
-                    message,
-                    Some(subject_str(&rule_node)),
-                ));
-                continue;
-            }
-        };
 
-        // Body (positive then negated).
-        let mut body_axioms: Vec<LogicAxiom> = Vec::new();
-        for (body_predicate, negated) in [(&logic_body, false), (&logic_negated_body, true)] {
-            for body_term in objects(store, &rule_node, body_predicate) {
-                let Some(body_node) = term_as_subject(&body_term) else {
-                    diagnostics.push(Diagnostic::warning(
-                        "MALFORMED_RULE_BODY",
-                        "logic:body node has no rdf:predicate; body atom skipped",
+                // Head.
+                let heads = objects(store, &rule_node, &logic_head);
+                let Some(head_term) = heads.first() else {
+                    diagnostics.push(Diagnostic::error(
+                        "MISSING_RULE_HEAD",
+                        "logic:Rule node has no logic:head; skipped",
                         Some(subject_str(&rule_node)),
                     ));
-                    continue;
+                    return Err(Vec::new());
                 };
-                match read_reified_axiom(store, &body_node, negated) {
-                    Ok(ax) => body_axioms.push(ax),
+                if heads.len() != 1 {
+                    diagnostics.push(Diagnostic::error(
+                        "MALFORMED_RULE_HEAD",
+                        "logic:Rule requires exactly one logic:head; ambiguous rule excluded",
+                        Some(subject_str(&rule_node)),
+                    ));
+                    return Err(Vec::new());
+                }
+                let Some(head_node) = term_as_subject(head_term) else {
+                    diagnostics.push(Diagnostic::error(
+                        "MALFORMED_RULE_HEAD",
+                        "logic:head node has no rdf:predicate; skipped",
+                        Some(subject_str(&rule_node)),
+                    ));
+                    return Err(Vec::new());
+                };
+                let head_axiom = match read_reified_axiom(store, &head_node, false) {
+                    Ok(ax) => ax,
                     Err(msg) => {
-                        let message = if msg.message() == "__missing_predicate__" {
-                            "logic:body node has no rdf:predicate; body atom skipped".to_owned()
-                        } else {
-                            msg.message().to_owned()
-                        };
-                        diagnostics.push(Diagnostic::warning(
-                            "MALFORMED_RULE_BODY",
+                        let message = msg.message().to_owned();
+                        diagnostics.push(Diagnostic::error(
+                            "MALFORMED_RULE_HEAD",
                             message,
                             Some(subject_str(&rule_node)),
                         ));
+                        return Err(Vec::new());
+                    }
+                };
+
+                // Body (positive then negated).
+                let mut body_axioms: Vec<LogicAxiom> = Vec::new();
+                for (body_predicate, negated) in [(&logic_body, false), (&logic_negated_body, true)]
+                {
+                    for body_term in objects(store, &rule_node, body_predicate) {
+                        let Some(body_node) = term_as_subject(&body_term) else {
+                            diagnostics.push(Diagnostic::error(
+                                "MALFORMED_RULE_BODY",
+                                "logic:body node has no rdf:predicate; entire rule excluded",
+                                Some(subject_str(&rule_node)),
+                            ));
+                            continue;
+                        };
+                        match read_reified_axiom(store, &body_node, negated) {
+                            Ok(ax) => body_axioms.push(ax),
+                            Err(msg) => {
+                                let message = msg.message().to_owned();
+                                diagnostics.push(Diagnostic::error(
+                                    "MALFORMED_RULE_BODY",
+                                    message,
+                                    Some(subject_str(&rule_node)),
+                                ));
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        // Inequality guards: logic:distinctBody nodes carry rdf:subject /
-        // rdf:object variable Literals and NO rdf:predicate.
-        let mut distinct_pairs: Vec<(String, String)> = Vec::new();
-        for distinct_term in objects(store, &rule_node, &logic_distinct_body) {
-            let Some(distinct_node) = term_as_subject(&distinct_term) else {
-                continue;
-            };
-            let d_s = value(store, &distinct_node, &nn(RDF_SUBJECT));
-            let d_o = value(store, &distinct_node, &nn(RDF_OBJECT));
-            let (Some(d_s), Some(d_o)) = (d_s, d_o) else {
-                diagnostics.push(Diagnostic::warning(
-                    "MALFORMED_RULE_BODY",
-                    "logic:distinctBody node lacks rdf:subject or rdf:object; \
-                     inequality guard skipped",
-                    Some(subject_str(&rule_node)),
-                ));
-                continue;
-            };
-            let d_s_str = term_str(&d_s);
-            let d_o_str = term_str(&d_o);
-            if !d_s_str.starts_with('?') || !d_o_str.starts_with('?') {
-                diagnostics.push(Diagnostic::warning(
+                // Inequality guards: logic:distinctBody nodes carry rdf:subject /
+                // rdf:object variable Literals and NO rdf:predicate.
+                let mut distinct_pairs: Vec<(String, String)> = Vec::new();
+                for distinct_term in objects(store, &rule_node, &logic_distinct_body) {
+                    let Some(distinct_node) = term_as_subject(&distinct_term) else {
+                        diagnostics.push(Diagnostic::error(
+                            "MALFORMED_RULE_BODY",
+                            "logic:distinctBody must name a reified guard; entire rule excluded",
+                            Some(subject_str(&rule_node)),
+                        ));
+                        continue;
+                    };
+                    let d_s = required_atom_field(store, &distinct_node, RDF_SUBJECT);
+                    let d_o = required_atom_field(store, &distinct_node, RDF_OBJECT);
+                    let (Ok(d_s), Ok(d_o)) = (d_s, d_o) else {
+                        diagnostics.push(Diagnostic::error(
+                            "MALFORMED_RULE_BODY",
+                            "logic:distinctBody requires exactly one rdf:subject and rdf:object; \
+                     entire rule excluded",
+                            Some(subject_str(&rule_node)),
+                        ));
+                        continue;
+                    };
+                    let (Ok(d_s_str), Ok(d_o_str)) = (rule_field_text(&d_s), rule_field_text(&d_o))
+                    else {
+                        diagnostics.push(Diagnostic::error(
+                            "MALFORMED_RULE_BODY",
+                            "distinct guard fields must be variables; entire rule excluded",
+                            Some(subject_str(&rule_node)),
+                        ));
+                        continue;
+                    };
+                    if !d_s_str.starts_with('?') || !d_o_str.starts_with('?') {
+                        diagnostics.push(Diagnostic::error(
                     "MALFORMED_RULE_BODY",
                     format!(
                         "logic:distinctBody guard terms must both be variables (?-prefixed); \
-                         got {:?}; inequality guard skipped",
+                         got {:?}; entire rule excluded",
                         (d_s_str.clone(), d_o_str.clone())
                     ),
                     Some(subject_str(&rule_node)),
                 ));
-                continue;
-            }
-            distinct_pairs.push((d_s_str, d_o_str));
-        }
+                        continue;
+                    }
+                    distinct_pairs.push((d_s_str, d_o_str));
+                }
 
-        let mut rule = LogicRule::new(head_axiom, body_axioms, distinct_pairs, scope);
-        if let Some(agg) = aggregation_from_node(store, &rule_node, diagnostics) {
-            rule = rule.with_aggregation(agg);
+                let mut rule = LogicRule::new(head_axiom, body_axioms, distinct_pairs, scope);
+                if let Some(agg) = aggregation_from_node(store, &rule_node, diagnostics) {
+                    rule = rule.with_aggregation(agg);
+                }
+                // A malformed conjunct, guard, aggregation or scope cannot turn this into
+                // a weaker rule. Preserve all diagnostics, and withhold the whole rule.
+                let rule_diagnostics = &mut diagnostics[diagnostic_start..];
+                if rule_diagnostics
+                    .iter()
+                    .any(|diagnostic| diagnostic.severity != Severity::Info)
+                {
+                    for diagnostic in rule_diagnostics {
+                        if diagnostic.severity == Severity::Warning {
+                            diagnostic.severity = Severity::Error;
+                        }
+                    }
+                    return Err(Vec::new());
+                }
+                Ok(rule)
+            },
+        ) {
+            rules.push(emitted);
         }
-        rules.push(rule);
     }
 
     rules
@@ -1534,8 +2006,10 @@ fn read_list_member_subjects(store: &RdfDataset, head: &Node) -> Vec<Subject> {
 /// target. FAMILY 1 emits one [`PropertyConstraintIr`] per restriction axiom, so a class that
 /// authors a cardinality restriction AND an `owl:allValuesFrom` class restriction on ONE property
 /// yields two same-path property shapes. SHACL reads several property shapes on one path
-/// CONJUNCTIVELY — identical in enforcement to one `sh:property` block carrying every conjunct —
-/// so a hand-authored legacy shape states them as a single merged block. Emitting them unmerged
+/// CONJUNCTIVELY. The IR can retain all those conjuncts in one record; the SHACL projector
+/// splits independently qualified counts into sibling property shapes because that surface
+/// permits only one `sh:qualifiedValueShape` per property shape. The merged record otherwise
+/// matches a legacy shape's single merged block. Emitting them unmerged
 /// keys distinctly from that block ([`PropertyConstraintIr::enforcement_key`] is per-path), which
 /// would defeat the equivalence-before-deletion oracle for a shape whose covered fragment is
 /// genuinely equivalent. Merging is sound: the lower bound is the tightest present (max of mins),
@@ -1766,7 +2240,7 @@ pub fn derive_validation_shapes(
         .map(Node::iri)
         .collect();
     let is_datatype_property = |p: &str| -> bool {
-        let types = objects(store, &Subject::Iri(p.to_owned()), &nn(RDF_TYPE));
+        let types = structural_classes(store, &Subject::Iri(p.to_owned()));
         datatype_property_markers.iter().any(|m| types.contains(m))
             && !object_property_markers.iter().any(|m| types.contains(m))
     };
@@ -1827,39 +2301,55 @@ pub fn derive_validation_shapes(
         let (mut lo, mut hi): (Option<f64>, Option<f64>) = (None, None);
         let (mut lo_incl, mut hi_incl) = (true, true);
         for facet in read_list_member_subjects(store, &list_head) {
-            if let Some(Node::Lit { lexical: regex, .. }) = value(store, &facet, &xsd_pattern) {
+            if let Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: regex,
+                ..
+            })) = value(store, &facet, &xsd_pattern)
+            {
                 comps.push(ConstraintComponent::Pattern { regex, flags: None });
             }
-            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_minlength)
+            if let Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: n, ..
+            })) = value(store, &facet, &xsd_minlength)
                 && let Ok(n) = n.trim().parse::<u32>()
             {
                 comps.push(ConstraintComponent::MinLength(n));
             }
-            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_maxlength)
+            if let Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: n, ..
+            })) = value(store, &facet, &xsd_maxlength)
                 && let Ok(n) = n.trim().parse::<u32>()
             {
                 comps.push(ConstraintComponent::MaxLength(n));
             }
-            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_mininclusive)
+            if let Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: n, ..
+            })) = value(store, &facet, &xsd_mininclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
             {
                 lo = Some(n);
                 lo_incl = true;
             }
-            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_minexclusive)
+            if let Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: n, ..
+            })) = value(store, &facet, &xsd_minexclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
                 && lo.is_none()
             {
                 lo = Some(n);
                 lo_incl = false;
             }
-            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_maxinclusive)
+            if let Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: n, ..
+            })) = value(store, &facet, &xsd_maxinclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
             {
                 hi = Some(n);
                 hi_incl = true;
             }
-            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_maxexclusive)
+            if let Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: n, ..
+            })) = value(store, &facet, &xsd_maxexclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
                 && hi.is_none()
             {
@@ -1926,15 +2416,7 @@ pub fn derive_validation_shapes(
                 let bs = term_as_subject(&inner)?;
                 let sv = match restriction_value(&bs, &p_hasvalue, &p_logic_hasvalue)? {
                     Node::Iri(i) => ShapeValue::Iri(i),
-                    Node::Lit {
-                        lexical,
-                        datatype,
-                        lang,
-                    } => ShapeValue::Literal {
-                        lexical,
-                        datatype,
-                        lang,
-                    },
+                    Node::Lit(literal) => ShapeValue::Literal(literal),
                     _ => return None,
                 };
                 Some(ConstraintComponent::Not(Box::new(
@@ -1949,14 +2431,18 @@ pub fn derive_validation_shapes(
     // hard error here) for an absent or non-integer object — a broken count contributes nothing.
     let card_of = |restr: &Subject, p: &Iri| -> Option<u32> {
         match value(store, restr, p) {
-            Some(Node::Lit { lexical: lex, .. }) => lex.trim().parse::<u32>().ok(),
+            Some(Node::Lit(purrdf::RdfLiteral {
+                lexical_form: lex, ..
+            })) => lex.trim().parse::<u32>().ok(),
             _ => None,
         }
     };
     let restriction_card_of =
         |restr: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| -> Option<u32> {
             match restriction_value(restr, owl_predicate, logic_predicate) {
-                Some(Node::Lit { lexical: lex, .. }) => lex.trim().parse::<u32>().ok(),
+                Some(Node::Lit(purrdf::RdfLiteral {
+                    lexical_form: lex, ..
+                })) => lex.trim().parse::<u32>().ok(),
                 _ => None,
             }
         };
@@ -2005,7 +2491,7 @@ pub fn derive_validation_shapes(
     // at most once per language tag. Unlike the procedural sugars, uniqueLang is a faithful SHACL
     // Core facet, so it rides the class node shape as a covered property component.
     let unique_lang_ty = Node::iri(logic_iri("UniqueLangConstraint"));
-    for rec in subjects_with(store, &nn(RDF_TYPE), &unique_lang_ty) {
+    for rec in subjects_of_structural_class(store, &unique_lang_ty) {
         let (Some(Node::Iri(class_iri)), Some(Node::Iri(path))) = (
             value(store, &rec, &nn(&logic_iri("onClass"))),
             value(store, &rec, &nn(&logic_iri("valuePath"))),
@@ -2039,7 +2525,7 @@ pub fn derive_validation_shapes(
     // its target is `sh:targetSubjectsOf`, not a class), so it has no class node shape to ride
     // and keeps its procedural projection alone.
     let node_kind_ty = Node::iri(logic_iri("PathNodeKindConstraint"));
-    for rec in subjects_with(store, &nn(RDF_TYPE), &node_kind_ty) {
+    for rec in subjects_of_structural_class(store, &node_kind_ty) {
         let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(kind)) = (
             value(store, &rec, &nn(&logic_iri("onClass"))),
             value(store, &rec, &nn(&logic_iri("valuePath"))),
@@ -2082,12 +2568,15 @@ pub fn derive_validation_shapes(
     // Core cannot state as a property component (`sh:not` of a pattern needs a nested shape), so
     // it keeps its procedural projection alone rather than lowering to a wrong positive facet.
     let string_pattern_ty = Node::iri(logic_iri("StringPatternConstraint"));
-    for rec in subjects_with(store, &nn(RDF_TYPE), &string_pattern_ty) {
+    for rec in subjects_of_structural_class(store, &string_pattern_ty) {
         let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(regex)) = (
             value(store, &rec, &nn(&logic_iri("onClass"))),
             value(store, &rec, &nn(&logic_iri("valuePath"))),
             match value(store, &rec, &nn(&logic_iri("stringPattern"))) {
-                Some(Node::Lit { lexical, .. }) => Some(lexical),
+                Some(Node::Lit(purrdf::RdfLiteral {
+                    lexical_form: lexical,
+                    ..
+                })) => Some(lexical),
                 _ => None,
             },
         ) else {
@@ -2121,7 +2610,7 @@ pub fn derive_validation_shapes(
         let mut seen: HashSet<String> = HashSet::new();
         let mut out: Vec<Subject> = Vec::new();
         for marker in crate::typing_vocab::both_spellings("Class") {
-            for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(marker)) {
+            for s in subjects_of_structural_class(store, &Node::iri(marker)) {
                 if seen.insert(subject_str(&s)) {
                     out.push(s);
                 }
@@ -2298,11 +2787,7 @@ pub fn derive_validation_shapes(
                         .2
                         .push(pc);
                 }
-                Some(Node::Lit {
-                    lexical,
-                    datatype,
-                    lang,
-                }) => {
+                Some(Node::Lit(literal)) => {
                     // Preserve the fixed value's datatype / language tag: a typed
                     // `owl:hasValue "1"^^xsd:integer` derives a TYPED `sh:hasValue`, never a
                     // bare untyped `"1"` that would match the wrong literal.
@@ -2311,11 +2796,7 @@ pub fn derive_validation_shapes(
                         None,
                         None,
                         None,
-                        vec![ConstraintComponent::HasValue(ShapeValue::Literal {
-                            lexical,
-                            datatype,
-                            lang,
-                        })],
+                        vec![ConstraintComponent::HasValue(ShapeValue::Literal(literal))],
                     )?;
                     entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                         .2
@@ -2380,7 +2861,7 @@ pub fn derive_validation_shapes(
                             // (blank / literal / quoted-triple) data range is carried in the canon,
                             // never a bare blank shape — skip (do not emit).
                             Some(Node::Blank { .. })
-                            | Some(Node::Lit { .. })
+                            | Some(Node::Lit(purrdf::RdfLiteral { .. }))
                             | Some(Node::Triple(_)) => {}
                             None => {
                                 return Err(Diag::of_kind(crate::error::Frontend {
@@ -2393,7 +2874,9 @@ pub fn derive_validation_shapes(
                     }
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
-                    Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
+                    Some(Node::Blank { .. })
+                    | Some(Node::Lit(purrdf::RdfLiteral { .. }))
+                    | Some(Node::Triple(_)) => {}
                     Some(Node::Iri(q)) if is_top_thing(&q) => {
                         // `logic:onClass logic:Thing` (canonical; `owl:onClass owl:Thing` is its
                         // generated projection) qualifies over "any individual" — the qualified
@@ -2522,7 +3005,7 @@ pub fn derive_validation_shapes(
         let mut seen: HashSet<String> = HashSet::new();
         let mut out: Vec<Subject> = Vec::new();
         for marker in [&owl_alldisjoint, &logic_alldisjoint] {
-            for s in subjects_with(store, &nn(RDF_TYPE), marker) {
+            for s in subjects_of_structural_class(store, marker) {
                 if seen.insert(subject_str(&s)) {
                     out.push(s);
                 }
@@ -2561,7 +3044,7 @@ pub fn derive_validation_shapes(
         // Seed under EITHER spelling — the canonical `logic:ObjectProperty`/`logic:DatatypeProperty`
         // (Principle 17) or its legacy `owl:` view — so the property set is identical across the flip.
         for marker in crate::typing_vocab::both_spellings(ty) {
-            for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(marker)) {
+            for s in subjects_of_structural_class(store, &Node::iri(marker)) {
                 if let Subject::Iri(iri) = &s
                     && is_authoring_ns(iri)
                 {
@@ -2686,7 +3169,7 @@ pub fn derive_validation_shapes(
     let inverse_functional_sort = Node::iri(logic_iri("inverseFunctionalProperty"));
     let p_characterizes = nn(&logic_iri("characterizes"));
     let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
-    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+    for rec in subjects_of_structural_class(store, &char_assertion_ty) {
         let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes) else {
             continue;
         };
@@ -2768,7 +3251,7 @@ pub fn derive_validation_shapes(
     let key_assertion_ty = Node::iri(logic_iri("KeyAssertion"));
     let p_key_class = nn(&logic_iri("keyClass"));
     let p_key_property = nn(&logic_iri("keyProperty"));
-    for rec in subjects_with(store, &nn(RDF_TYPE), &key_assertion_ty) {
+    for rec in subjects_of_structural_class(store, &key_assertion_ty) {
         // The keyed class must be GMEOW-owned (the dogfooding guard every family applies).
         let Some(Node::Iri(class_iri)) = value(store, &rec, &p_key_class) else {
             continue;
@@ -2939,7 +3422,7 @@ pub fn derive_validation_shapes(
     let p_sugar_onclass = nn(&logic_iri("onClass"));
     let p_forbidden_pred = nn(&logic_iri("forbiddenPredicate"));
     let p_forbidden_value = nn(&logic_iri("forbiddenValue"));
-    for record in subjects_with(store, &nn(RDF_TYPE), &forbidden_ty) {
+    for record in subjects_of_structural_class(store, &forbidden_ty) {
         let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
             continue;
         };
@@ -2952,15 +3435,7 @@ pub fn derive_validation_shapes(
             continue;
         };
         let sv = match value(store, &record, &p_forbidden_value) {
-            Some(Node::Lit {
-                lexical,
-                datatype,
-                lang,
-            }) => ShapeValue::Literal {
-                lexical,
-                datatype,
-                lang,
-            },
+            Some(Node::Lit(literal)) => ShapeValue::Literal(literal),
             // IRI-pinned, unpinned, or malformed — no per-value SHACL-Core form here; the
             // record's canonical logic:Constraint expansion carries it procedurally.
             _ => continue,
@@ -3001,7 +3476,7 @@ pub fn derive_validation_shapes(
     // inclusive bound wins over an exclusive one on the same endpoint (the tighter closed reading).
     let p_min_excl = nn(&logic_iri("minExclusiveBound"));
     let p_max_excl = nn(&logic_iri("maxExclusiveBound"));
-    for record in subjects_with(store, &nn(RDF_TYPE), &range_ty) {
+    for record in subjects_of_structural_class(store, &range_ty) {
         let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
             continue;
         };
@@ -3013,7 +3488,10 @@ pub fn derive_validation_shapes(
         };
         let bound_of = |p: &Iri| -> Option<f64> {
             match value(store, &record, p) {
-                Some(Node::Lit { lexical, .. }) => lexical.trim().parse::<f64>().ok(),
+                Some(Node::Lit(purrdf::RdfLiteral {
+                    lexical_form: lexical,
+                    ..
+                })) => lexical.trim().parse::<f64>().ok(),
                 _ => None,
             }
         };
@@ -3137,7 +3615,7 @@ pub fn functional_properties_missing_logic_carrier(
     let p_characterizes = nn(&logic_iri("characterizes"));
     let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
     let mut carried: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+    for rec in subjects_of_structural_class(store, &char_assertion_ty) {
         if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
             && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
         {
@@ -3224,7 +3702,7 @@ fn functional_carrier_multiset(store: &RdfDataset) -> std::collections::BTreeMap
     let p_characterizes = nn(&logic_iri("characterizes"));
     let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
     let mut counts: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
-    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+    for rec in subjects_of_structural_class(store, &char_assertion_ty) {
         if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
             && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
         {
@@ -3245,7 +3723,7 @@ pub fn functional_carrier_property_iris(store: &RdfDataset) -> std::collections:
 fn declared_property_iris(store: &RdfDataset) -> std::collections::BTreeSet<String> {
     let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     for ty in PROPERTY_DECLARATION_TYPES {
-        for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(ty)) {
+        for s in subjects_of_structural_class(store, &Node::iri(ty)) {
             if let Subject::Iri(iri) = s {
                 props.insert(iri);
             }
@@ -3378,8 +3856,12 @@ pub fn functional_carrier_integrity(store: &RdfDataset) -> Vec<FunctionalCarrier
 /// both named and wildcard, neither named nor wildcard, a non-positive-integer
 /// depth, or `min > max`) emits a `MALFORMED_PATH_SHAPE` warning and is skipped —
 /// never silently dropped.
-fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathShapeIr> {
-    let mut shapes: Vec<PathShapeIr> = Vec::new();
+fn extract_path_shapes(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<PathShapeIr>> {
+    let mut shapes: Vec<OwnerEmission<PathShapeIr>> = Vec::new();
 
     let path_shape_ty = Node::iri(logic_iri("PathShape"));
     let p_step = nn(&logic_iri("pathStepPredicate"));
@@ -3389,82 +3871,88 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
     let p_ns = nn(&logic_iri("pathNamespaceScope"));
     let p_param = nn(&logic_iri("pathDepthParam"));
 
-    for node in subjects_with(store, &nn(RDF_TYPE), &path_shape_ty) {
-        let subj = subject_str(&node);
+    for node in subjects_of_structural_class(store, &path_shape_ty) {
+        if let Some(emitted) = capture_owner(
+            owner_source(store, &node),
+            OwnerFamily::PathShape,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                let subj = subject_str(&node);
 
-        // Base step: named-predicate XOR wildcard.
-        let step_pred = value(store, &node, &p_step);
-        // xsd:boolean lexical space: "true"/"1" = true, "false"/"0" = false.
-        // Any other literal is a hard-fail (no silent coercion to false).
-        let wildcard_result: Result<bool, ()> = match value(store, &node, &p_wildcard) {
-            None => Ok(false),
-            Some(t) => match term_str(&t).as_str() {
-                "true" | "1" => Ok(true),
-                "false" | "0" => Ok(false),
-                other => {
-                    diagnostics.push(Diagnostic::warning(
-                        "MALFORMED_PATH_SHAPE",
-                        format!(
-                            "logic:pathWildcard has unrecognized boolean literal {:?}; \
+                // Base step: named-predicate XOR wildcard.
+                let step_pred = value(store, &node, &p_step);
+                // xsd:boolean lexical space: "true"/"1" = true, "false"/"0" = false.
+                // Any other literal is a hard-fail (no silent coercion to false).
+                let wildcard_result: Result<bool, ()> = match value(store, &node, &p_wildcard) {
+                    None => Ok(false),
+                    Some(t) => match term_str(&t).as_str() {
+                        "true" | "1" => Ok(true),
+                        "false" | "0" => Ok(false),
+                        other => {
+                            diagnostics.push(Diagnostic::warning(
+                                "MALFORMED_PATH_SHAPE",
+                                format!(
+                                    "logic:pathWildcard has unrecognized boolean literal {:?}; \
                              expected \"true\", \"false\", \"1\", or \"0\"; shape skipped",
-                            other
-                        ),
-                        Some(subj.clone()),
-                    ));
-                    Err(())
-                }
-            },
-        };
-        let wildcard = match wildcard_result {
-            Ok(b) => b,
-            Err(()) => continue,
-        };
+                                    other
+                                ),
+                                Some(subj.clone()),
+                            ));
+                            Err(())
+                        }
+                    },
+                };
+                let wildcard = match wildcard_result {
+                    Ok(b) => b,
+                    Err(()) => return Err(Vec::new()),
+                };
 
-        let base = match (step_pred.as_ref(), wildcard) {
-            (Some(_), true) => {
-                diagnostics.push(Diagnostic::warning(
-                    "MALFORMED_PATH_SHAPE",
-                    "logic:PathShape declares BOTH logic:pathStepPredicate and \
+                let base = match (step_pred.as_ref(), wildcard) {
+                    (Some(_), true) => {
+                        diagnostics.push(Diagnostic::warning(
+                            "MALFORMED_PATH_SHAPE",
+                            "logic:PathShape declares BOTH logic:pathStepPredicate and \
                      logic:pathWildcard true (a step is a named predicate XOR a \
                      wildcard); shape skipped",
-                    Some(subj.clone()),
-                ));
-                continue;
-            }
-            (Some(p), false) => match p {
-                // A step predicate MUST be an IRI: a literal or blank-node object
-                // would produce a malformed predicate IRI downstream (no silent
-                // coercion). Skip the shape with a diagnostic, like every other
-                // malformed-shape branch.
-                Node::Iri(_) => PathBase::NamedPredicate(term_str(p)),
-                _ => {
-                    diagnostics.push(Diagnostic::warning(
-                        "MALFORMED_PATH_SHAPE",
-                        "logic:pathStepPredicate must be an IRI named node; shape skipped",
-                        Some(subj.clone()),
-                    ));
-                    continue;
-                }
-            },
-            (None, true) => PathBase::Wildcard,
-            (None, false) => {
-                diagnostics.push(Diagnostic::warning(
-                    "MALFORMED_PATH_SHAPE",
-                    "logic:PathShape declares neither logic:pathStepPredicate nor \
+                            Some(subj.clone()),
+                        ));
+                        return Err(Vec::new());
+                    }
+                    (Some(p), false) => match p {
+                        // A step predicate MUST be an IRI: a literal or blank-node object
+                        // would produce a malformed predicate IRI downstream (no silent
+                        // coercion). Skip the shape with a diagnostic, like every other
+                        // malformed-shape branch.
+                        Node::Iri(_) => PathBase::NamedPredicate(term_str(p)),
+                        _ => {
+                            diagnostics.push(Diagnostic::warning(
+                                "MALFORMED_PATH_SHAPE",
+                                "logic:pathStepPredicate must be an IRI named node; shape skipped",
+                                Some(subj.clone()),
+                            ));
+                            return Err(Vec::new());
+                        }
+                    },
+                    (None, true) => PathBase::Wildcard,
+                    (None, false) => {
+                        diagnostics.push(Diagnostic::warning(
+                            "MALFORMED_PATH_SHAPE",
+                            "logic:PathShape declares neither logic:pathStepPredicate nor \
                      logic:pathWildcard true (a step needs a named predicate or a \
                      wildcard); shape skipped",
-                    Some(subj.clone()),
-                ));
-                continue;
-            }
-        };
+                            Some(subj.clone()),
+                        ));
+                        return Err(Vec::new());
+                    }
+                };
 
-        // Depth bounds (min defaults to 1; absent max ⇒ unbounded).
-        let min_depth = match value(store, &node, &p_min) {
-            Some(t) => match parse_positive_int(&term_str(&t)) {
-                Some(n) => n,
-                None => {
-                    diagnostics.push(Diagnostic::warning(
+                // Depth bounds (min defaults to 1; absent max ⇒ unbounded).
+                let min_depth = match value(store, &node, &p_min) {
+                    Some(t) => match parse_positive_int(&term_str(&t)) {
+                        Some(n) => n,
+                        None => {
+                            diagnostics.push(Diagnostic::warning(
                         "MALFORMED_PATH_SHAPE",
                         format!(
                             "logic:pathMinDepth is not a positive integer ({:?}); shape skipped",
@@ -3472,16 +3960,16 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
                         ),
                         Some(subj.clone()),
                     ));
-                    continue;
-                }
-            },
-            None => 1,
-        };
-        let max_depth = match value(store, &node, &p_max) {
-            Some(t) => match parse_positive_int(&term_str(&t)) {
-                Some(n) => Some(n),
-                None => {
-                    diagnostics.push(Diagnostic::warning(
+                            return Err(Vec::new());
+                        }
+                    },
+                    None => 1,
+                };
+                let max_depth = match value(store, &node, &p_max) {
+                    Some(t) => match parse_positive_int(&term_str(&t)) {
+                        Some(n) => Some(n),
+                        None => {
+                            diagnostics.push(Diagnostic::warning(
                         "MALFORMED_PATH_SHAPE",
                         format!(
                             "logic:pathMaxDepth is not a positive integer ({:?}); shape skipped",
@@ -3489,29 +3977,36 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
                         ),
                         Some(subj.clone()),
                     ));
-                    continue;
+                            return Err(Vec::new());
+                        }
+                    },
+                    None => None,
+                };
+
+                let namespace_scope = value(store, &node, &p_ns).map(|t| term_str(&t));
+                let depth_param = value(store, &node, &p_param).map(|t| term_str(&t));
+
+                match PathShapeIr::new(
+                    subj.clone(),
+                    base,
+                    min_depth,
+                    max_depth,
+                    namespace_scope,
+                    depth_param,
+                ) {
+                    Ok(shape) => Ok(shape),
+                    Err(msg) => {
+                        diagnostics.push(Diagnostic::warning(
+                            "MALFORMED_PATH_SHAPE",
+                            msg.message().to_owned(),
+                            Some(subj),
+                        ));
+                        Err(Vec::new())
+                    }
                 }
             },
-            None => None,
-        };
-
-        let namespace_scope = value(store, &node, &p_ns).map(|t| term_str(&t));
-        let depth_param = value(store, &node, &p_param).map(|t| term_str(&t));
-
-        match PathShapeIr::new(
-            subj.clone(),
-            base,
-            min_depth,
-            max_depth,
-            namespace_scope,
-            depth_param,
         ) {
-            Ok(shape) => shapes.push(shape),
-            Err(msg) => diagnostics.push(Diagnostic::warning(
-                "MALFORMED_PATH_SHAPE",
-                msg.message().to_owned(),
-                Some(subj),
-            )),
+            shapes.push(emitted);
         }
     }
 
@@ -3531,7 +4026,7 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
 /// `necessarily`/`possibly` are the modal-operator body links: a modal node's body is a
 /// component reached by the standard-translation expansion, never a free-standing top-level
 /// formula.
-const FORMULA_SUBLINKS: [&str; 10] = [
+pub const FORMULA_SUBLINKS: [&str; 15] = [
     "not",
     "and",
     "or",
@@ -3542,6 +4037,11 @@ const FORMULA_SUBLINKS: [&str; 10] = [
     "exists",
     "necessarily",
     "possibly",
+    "next",
+    "eventually",
+    "globally",
+    "until",
+    "untilLeft",
 ];
 
 /// The base world at which a top-level modal `logic:Formula` is evaluated: the standard
@@ -3569,88 +4069,93 @@ const MODAL_ACCESSIBILITY_RELATIONS: [&str; 6] = [
 /// ordinary triple) — the caller ([`parse_logic_dataset`]) partitions those out to
 /// [`LogicProgram::axioms`] via [`Formula::as_horn_axiom`] so the `with_formulas` invariant
 /// is enforced by routing, not by assuming the projection never authors one.
-struct FormulaExtraction {
-    formulas: Vec<Formula>,
-    malformed: BTreeSet<String>,
+struct SourceFormula {
+    source: SourceNode,
+    formula: Formula,
 }
 
-fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> FormulaExtraction {
-    let formula_ty = Node::iri(logic_iri("Formula"));
-    let subjects = subjects_with(store, &nn(RDF_TYPE), &formula_ty);
+struct FormulaExtraction {
+    presentation_formulas: BTreeMap<SourceNode, std::sync::Arc<Formula>>,
+    formulas: Vec<SourceFormula>,
+    malformed: BTreeMap<String, usize>,
+    lowerings: Vec<FormulaLowering>,
+}
 
-    // A formula reached by a sub-formula link is a component, not a top-level node.
-    let mut referenced: HashSet<String> = HashSet::new();
-    for subj in &subjects {
-        for link in FORMULA_SUBLINKS {
-            for obj in objects(store, subj, &nn(&logic_iri(link))) {
-                referenced.insert(term_str(&obj));
-            }
-        }
-    }
-    // A formula reached as a `logic:Constraint`'s `logic:integrity` is that constraint's
-    // integrity condition, NOT a free-standing top-level assertion: it is owned by
-    // `LogicProgram::constraints`, so it must not ALSO enter `LogicProgram::formulas` (that
-    // would give one authored formula two content-addressed homes). Exclude every integrity
-    // root here.
-    let integrity_pred = nn(&logic_iri("integrity"));
-    for constraint in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("Constraint"))) {
-        for obj in objects(store, &constraint, &integrity_pred) {
-            referenced.insert(term_str(&obj));
-        }
-    }
-    // A formula reached as a correspondence recovery transform is owned by that
-    // first-class `logic:RecoveryCase`, not a free-standing assertion.  Keep one semantic
-    // home while still validating every node in the shared formula parser below.
-    let recovery_transform_pred = nn(&logic_iri("recoveryTransform"));
-    for case in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("RecoveryCase"))) {
-        for obj in objects(store, &case, &recovery_transform_pred) {
-            referenced.insert(term_str(&obj));
-        }
-    }
-    // A formula reached as a `logic:ReasoningProgram`'s `logic:clause` / `logic:programQuery`
-    // / `logic:verdictProbe` is owned by that program, not a free-standing assertion — exactly
-    // like a constraint's `logic:integrity` and a recovery case's `logic:recoveryTransform`
-    // above. Excluding every clause/query/probe root here is what lets
-    // `extract_reasoning_programs` reuse `parse_formula` without giving one authored formula
-    // two content-addressed IR homes.
-    let reasoning_programs = subjects_with(
-        store,
-        &nn(RDF_TYPE),
-        &Node::iri(logic_iri("ReasoningProgram")),
-    );
-    for link in ["clause", "programQuery", "verdictProbe"] {
-        let pred = nn(&logic_iri(link));
-        for program in &reasoning_programs {
-            for obj in objects(store, program, &pred) {
-                referenced.insert(term_str(&obj));
-            }
-        }
-    }
-    // A formula reached as a `logic:AbductiveSchema`'s `logic:completenessFormula` is the
-    // discipline-satisfied condition the abductive producer instantiates at a gap subject —
-    // NOT a free-standing top-level assertion. Excluding every completeness root here is what
-    // keeps authoring a completeness condition from asserting it as an always-true axiom (which
-    // would both corrupt the reasoned core and auto-assert the very structure the advice only
-    // RECOMMENDS adding).
-    let completeness_pred = nn(&logic_iri("completenessFormula"));
-    for schema in subjects_with(
-        store,
-        &nn(RDF_TYPE),
-        &Node::iri(logic_iri("AbductiveSchema")),
-    ) {
-        for obj in objects(store, &schema, &completeness_pred) {
-            referenced.insert(term_str(&obj));
+fn extract_formulas(
+    reader: &mut FormulaReader<'_>,
+    source_graph: &StructuralSourceGraph,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> FormulaExtraction {
+    let store = reader.dataset();
+    let formula_ty = Node::iri(logic_iri("Formula"));
+    let subjects = subjects_of_structural_class(store, &formula_ty);
+
+    // Ownership claims remain distinct from mathematical backing references.
+    let mut member_uses = HashSet::new();
+    for edge in source_graph
+        .edges()
+        .iter()
+        .filter(|edge| edge.source.graph.is_none())
+    {
+        if edge.predicate.iri(store) == "https://blackcatinformatics.ca/math/memberCondition"
+            && member_uses.insert((edge.source, edge.target))
+        {
+            let formula = source_graph::focus(store, edge.target);
+            diagnostics.push(Diagnostic::warning(
+                "OWNER_SCOPED_MEMBER_CONDITION",
+                format!("membership condition {formula} belongs to set expression {}; its denotation requires owner-aware evaluation and is not an independent assertion", source_graph::focus(store, edge.source.term)),
+                Some(formula),
+            ));
         }
     }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
-    let mut parsed: HashMap<String, Formula> = HashMap::new();
-    let mut malformed: BTreeMap<String, String> = BTreeMap::new();
+    // Only returned roots need an owned tree here. The reader bounds intermediate reuse.
+    let presentation_roots: BTreeSet<_> = source_graph
+        .edges()
+        .iter()
+        .filter(|edge| {
+            edge.source.graph.is_none()
+                && edge.predicate.iri(store) == logic_iri("presentationFormula")
+        })
+        .map(|edge| SourceNode {
+            term: edge.target,
+            graph: None,
+        })
+        .collect();
+    let mut presentation_formulas = BTreeMap::new();
+    let mut formulas = Vec::new();
+    let mut lowerings: Vec<_> = source_graph
+        .units()
+        .filter(|unit| {
+            unit.node.graph.is_some() && unit.declared_kinds.contains(&SourceUnitKind::Formula)
+        })
+        .map(|unit| FormulaLowering {
+            source: unit.node,
+            disposition: FormulaDisposition::OutsideDefaultGraph,
+        })
+        .collect();
+    let mut malformed: BTreeMap<String, (&str, String, Vec<SourceNode>)> = BTreeMap::new();
     for subj in &subjects {
-        match parse_formula(store, subj) {
+        let source = SourceNode {
+            term: subject_id(store, subj)
+                .expect("declared formula belongs to the selected dataset"),
+            graph: None,
+        };
+        match reader.read(subj) {
             Ok(f) => {
-                parsed.insert(subject_str(subj), f);
+                if !source_graph.formula_is_owned(source) {
+                    formulas.push(SourceFormula { source, formula: f });
+                } else {
+                    if presentation_roots.contains(&source) {
+                        presentation_formulas.insert(source, std::sync::Arc::new(f));
+                    }
+                    lowerings.push(FormulaLowering {
+                        source,
+                        disposition: FormulaDisposition::ReadForOwner,
+                    });
+                }
             }
             Err(error) => {
                 let focus = error
@@ -3662,36 +4167,86 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
                     .unwrap_or_else(|| subject_str(subj));
                 malformed
                     .entry(focus)
-                    .or_insert_with(|| error.message().to_owned());
+                    .or_insert_with(|| {
+                        (
+                            if error.code() == crate::error::FormulaAdmission::register() {
+                                "FORMULA_ADMISSION_EXHAUSTED"
+                            } else {
+                                "MALFORMED_FORMULA"
+                            },
+                            error.message().to_owned(),
+                            Vec::new(),
+                        )
+                    })
+                    .2
+                    .push(source);
             }
         }
     }
 
-    for (focus, message) in &malformed {
-        diagnostics.push(Diagnostic::error(
-            "MALFORMED_FORMULA",
-            message,
-            Some(focus.clone()),
-        ));
+    let mut malformed_indices = BTreeMap::new();
+    for (focus, (code, message, sources)) in &malformed {
+        let diagnostic = diagnostics.len();
+        malformed_indices.insert(focus.clone(), diagnostic);
+        diagnostics.push(Diagnostic::error(code, message, Some(focus.clone())));
+        lowerings.extend(sources.iter().map(|&source| FormulaLowering {
+            source,
+            disposition: FormulaDisposition::Malformed { diagnostic },
+        }));
     }
 
-    let formulas = subjects
-        .iter()
-        .filter(|subj| !referenced.contains(&subject_str(subj)))
-        .filter_map(|subj| parsed.remove(&subject_str(subj)))
-        .collect();
     FormulaExtraction {
+        presentation_formulas,
         formulas,
-        malformed: malformed.into_keys().collect(),
+        malformed: malformed_indices,
+        lowerings,
     }
 }
 
-/// Every object of a `logic:<link>` property.
-fn formula_objects(store: &RdfDataset, node: &Subject, link: &str) -> Vec<Node> {
-    objects(store, node, &nn(&logic_iri(link)))
+/// Borrowed source coordinate shared by formula admission and reconstruction.
+trait FormulaSource {
+    type Dataset: purrdf::DatasetView + ?Sized;
+    fn dataset(&self) -> &Self::Dataset;
+    fn source_graph(&self) -> GraphMatch<<Self::Dataset as DatasetView>::Id>;
 }
 
-/// The exactly-one child formula reached by `link` from `node`.
+impl<D: purrdf::DatasetView + ?Sized> FormulaSource for D {
+    type Dataset = D;
+    fn dataset(&self) -> &D {
+        self
+    }
+    fn source_graph(&self) -> GraphMatch<D::Id> {
+        GraphMatch::Default
+    }
+}
+
+#[derive(Clone, Copy)]
+struct SelectedFormulaGraph<'a, D: purrdf::DatasetView + ?Sized = RdfDataset> {
+    dataset: &'a D,
+    graph: GraphMatch<D::Id>,
+}
+
+impl<D: purrdf::DatasetView + ?Sized> FormulaSource for SelectedFormulaGraph<'_, D> {
+    type Dataset = D;
+    fn dataset(&self) -> &D {
+        self.dataset
+    }
+    fn source_graph(&self) -> GraphMatch<D::Id> {
+        self.graph
+    }
+}
+
+/// Every admitted object of a `logic:<link>` property in the selected source.
+fn formula_objects(store: &impl FormulaSource, node: &Subject, link: &str) -> Vec<Node> {
+    crate::graphutil::objects_in_graph(
+        store.dataset(),
+        node,
+        &nn(&logic_iri(link)),
+        store.source_graph(),
+    )
+}
+
+/// Attach a typed frontend failure to its exact source focus.
 fn formula_err_for(focus: impl Into<String>, detail: impl Into<String>) -> Diag {
     Diag::of_kind(crate::error::Frontend {
         detail: detail.into(),
@@ -3703,40 +4258,13 @@ fn formula_err(node: &Subject, detail: impl Into<String>) -> Diag {
     formula_err_for(subject_str(node), detail)
 }
 
-fn one_child_subject(
-    store: &RdfDataset,
-    node: &Subject,
-    link: &str,
-) -> gmeow_errors::Result<Subject> {
-    let children = formula_objects(store, node, link);
-    if children.len() != 1 {
-        return Err(formula_err(
-            node,
-            format!(
-                "logic:Formula {} requires exactly one logic:{link} object; found {}",
-                subject_str(node),
-                children.len()
-            ),
-        ));
-    }
-    term_as_subject(&children[0]).ok_or_else(|| {
-        formula_err(
-            node,
-            format!(
-                "logic:Formula {} has a non-resource logic:{link} object",
-                subject_str(node)
-            ),
-        )
-    })
-}
-
 /// Recursively reconstruct a [`Formula`] rooted at `node`.
 ///
 /// The parser is deliberately strict: every node has exactly one constructor family; singleton
 /// constructors have exactly one child; `and`/`or` have at least two children; `iff` has exactly
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
 pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
-    parse_formula_inner(store, node, &mut Vec::new())
+    FormulaReader::new(store).read(node)
 }
 
 /// Reconstruct the [`Formula`] rooted at the `logic:Formula` node named `root_iri` from `store`.
@@ -3751,856 +4279,41 @@ pub fn reconstruct_formula(store: &RdfDataset, root_iri: &str) -> gmeow_errors::
     parse_formula(store, &Subject::Iri(root_iri.to_owned()))
 }
 
-fn parse_formula_inner(
-    store: &RdfDataset,
-    node: &Subject,
-    active: &mut Vec<String>,
+/// Reconstruct a contextual query through the canonical shared reader. The
+/// selected context scopes every connective; nested context selectors and modal
+/// binders retain their own scope. Reading a query asserts no formula.
+pub fn reconstruct_formula_in_context(
+    store: &(impl purrdf::DatasetView + ?Sized),
+    root_iri: &str,
+    context_iri: &str,
 ) -> gmeow_errors::Result<Formula> {
-    let node_id = subject_str(node);
-    if let Some(cycle_start) = active.iter().position(|member| member == &node_id) {
-        let mut members = active[cycle_start..].to_vec();
-        members.sort();
-        members.dedup();
-        let focus = members.first().cloned().unwrap_or_else(|| node_id.clone());
-        return Err(formula_err_for(
-            focus,
-            format!(
-                "logic:Formula recursive constructor cycle among {}",
-                members.join(", ")
-            ),
-        ));
-    }
-    active.push(node_id.clone());
-
-    let result = (|| {
-        let relation = formula_objects(store, node, "relation");
-        let not = formula_objects(store, node, "not");
-        let and = formula_objects(store, node, "and");
-        let or = formula_objects(store, node, "or");
-        let iff = formula_objects(store, node, "iff");
-        let antecedent = formula_objects(store, node, "antecedent");
-        let consequent = formula_objects(store, node, "consequent");
-        let forall = formula_objects(store, node, "forall");
-        let exists = formula_objects(store, node, "exists");
-        let necessarily = formula_objects(store, node, "necessarily");
-        let possibly = formula_objects(store, node, "possibly");
-
-        // `logic:overAccessibility` is a SATELLITE of a modal node, not a constructor family:
-        // it is read separately by `read_over_accessibility` and must never enter the
-        // exactly-one-family guard (exactly like `logic:quantifiedVariable`/`logic:argument`,
-        // which are also read as satellites of their owning family).
-        let families = [
-            ("relation", !relation.is_empty()),
-            ("not", !not.is_empty()),
-            ("and", !and.is_empty()),
-            ("or", !or.is_empty()),
-            ("iff", !iff.is_empty()),
-            (
-                "antecedent/consequent",
-                !antecedent.is_empty() || !consequent.is_empty(),
-            ),
-            ("forall", !forall.is_empty()),
-            ("exists", !exists.is_empty()),
-            ("necessarily", !necessarily.is_empty()),
-            ("possibly", !possibly.is_empty()),
-        ];
-        let present: Vec<&str> = families
-            .iter()
-            .filter_map(|(name, is_present)| is_present.then_some(*name))
-            .collect();
-        if present.len() != 1 {
-            return Err(formula_err(
-                node,
-                format!(
-                    "logic:Formula {node_id} requires exactly one constructor family; found {} ({})",
-                    present.len(),
-                    present.join(", ")
-                ),
-            ));
-        }
-
-        match present[0] {
-            "relation" => {
-                if relation.len() != 1 {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} requires exactly one logic:relation; found {}",
-                            relation.len()
-                        ),
-                    ));
-                }
-                let Node::Iri(relation_iri) = &relation[0] else {
-                    return Err(formula_err(
-                        node,
-                        format!("logic:Formula {node_id} requires an IRI-valued logic:relation"),
-                    ));
-                };
-                let relation =
-                    Term::iri(relation_iri.clone()).map_err(|e| formula_err(node, e.message()))?;
-                let args = parse_term_carriers(store, node, "argument", &mut Vec::new())?;
-                if args.is_empty() {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} atomic predication requires at least one logic:argument"
-                        ),
-                    ));
-                }
-                Formula::atom(relation, args).map_err(|e| formula_err(node, e.message()))
-            }
-            "not" => {
-                let child = one_child_subject(store, node, "not")?;
-                Ok(Formula::Not(Box::new(parse_formula_inner(
-                    store, &child, active,
-                )?)))
-            }
-            "and" | "or" => {
-                let link = present[0];
-                let child_terms = if link == "and" { &and } else { &or };
-                if child_terms.len() < 2 {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} logic:{link} requires at least two operands; found {}",
-                            child_terms.len()
-                        ),
-                    ));
-                }
-                let mut parsed = Vec::with_capacity(child_terms.len());
-                for child in child_terms {
-                    let child = term_as_subject(child).ok_or_else(|| {
-                        formula_err(
-                            node,
-                            format!(
-                                "logic:Formula {node_id} has a non-resource logic:{link} operand"
-                            ),
-                        )
-                    })?;
-                    parsed.push(parse_formula_inner(store, &child, active)?);
-                }
-                Ok(if link == "and" {
-                    Formula::And(parsed)
-                } else {
-                    Formula::Or(parsed)
-                })
-            }
-            "iff" => {
-                if iff.len() != 2 {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} logic:iff requires exactly two operands; found {}",
-                            iff.len()
-                        ),
-                    ));
-                }
-                let a = term_as_subject(&iff[0]).ok_or_else(|| {
-                    formula_err(
-                        node,
-                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
-                    )
-                })?;
-                let b = term_as_subject(&iff[1]).ok_or_else(|| {
-                    formula_err(
-                        node,
-                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
-                    )
-                })?;
-                Ok(Formula::Iff(
-                    Box::new(parse_formula_inner(store, &a, active)?),
-                    Box::new(parse_formula_inner(store, &b, active)?),
-                ))
-            }
-            "antecedent/consequent" => {
-                let a = one_child_subject(store, node, "antecedent")?;
-                let c = one_child_subject(store, node, "consequent")?;
-                Ok(Formula::Implies(
-                    Box::new(parse_formula_inner(store, &a, active)?),
-                    Box::new(parse_formula_inner(store, &c, active)?),
-                ))
-            }
-            "forall" | "exists" => {
-                let link = present[0];
-                let body_node = one_child_subject(store, node, link)?;
-                let vars = parse_bound_vars(store, node)?;
-                let body = Box::new(parse_formula_inner(store, &body_node, active)?);
-                Ok(if link == "forall" {
-                    Formula::Forall { vars, body }
-                } else {
-                    Formula::Exists { vars, body }
-                })
-            }
-            "necessarily" | "possibly" => {
-                // Parse-time STANDARD-TRANSLATION sugar entry: a top-level modal node carries no
-                // new Formula IR variant — it expands (□/◇) into the existing FOL core, beginning
-                // at the actual world (modal depth 0). `st_expand_modal` recurses only into the
-                // BODY node (never `node` itself), so the shared cycle guard is not tripped by the
-                // node this `parse_formula_inner` frame has already pushed.
-                let world =
-                    Term::iri(ACTUAL_WORLD_IRI).map_err(|e| formula_err(node, e.message()))?;
-                st_expand_modal(store, node, present[0], &world, 0, active)
-            }
-            _ => unreachable!("constructor family was selected from a closed local array"),
-        }
-    })();
-
-    let popped = active.pop();
-    debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
-    result
+    FormulaReader::new(store)
+        .read_in_context(&Subject::Iri(root_iri.to_owned()), Term::iri(context_iri)?)
 }
 
-/// Expand a single modal operator (`link` = `"necessarily"` = □ / `"possibly"` = ◇) rooted at
-/// `node` into the FOL core, relativized to world `w` at modal `depth`. Shared by
-/// [`parse_formula_inner`] (top-level entry) and [`st_translate`] (nested) so the expansion lives
-/// in one place. It recurses via [`st_translate`] into the BODY node ONLY — never `node` itself —
-/// so the caller's already-pushed cycle-guard frame for `node` is never re-entered.
-///
-/// * □B over R ↦ `∀ __w{depth} . R(w, __w{depth}) → ST(B, __w{depth}, depth+1)`
-/// * ◇B over R ↦ `∃ __w{depth} . R(w, __w{depth}) ∧ ST(B, __w{depth}, depth+1)`
-fn st_expand_modal(
-    store: &RdfDataset,
-    node: &Subject,
-    link: &str,
-    world: &Term,
-    depth: usize,
-    active: &mut Vec<String>,
+/// Reconstruct and admit a contextual query from exactly one named source graph.
+/// Missing formula fields cannot be supplied by default or foreign graphs.
+pub fn reconstruct_formula_in_named_context(
+    dataset: &(impl purrdf::DatasetView + ?Sized),
+    source_graph_iri: &str,
+    root_iri: &str,
+    context_iri: &str,
 ) -> gmeow_errors::Result<Formula> {
-    let body_node = one_child_subject(store, node, link)?;
-    let relation_iri = read_over_accessibility(store, node)?;
-    let accessibility =
-        Term::iri(relation_iri.as_str()).map_err(|e| formula_err(node, e.message()))?;
-    let next_world = Term::Var(format!("__w{depth}"));
-    let acc_atom = Formula::atom(accessibility, vec![world.clone(), next_world.clone()])
-        .map_err(|e| formula_err(node, e.message()))?;
-    let inner = st_translate(store, &body_node, &next_world, depth + 1, active)?;
-    Ok(if link == "necessarily" {
-        Formula::Forall {
-            vars: vec![format!("__w{depth}")],
-            body: Box::new(Formula::Implies(Box::new(acc_atom), Box::new(inner))),
-        }
-    } else {
-        Formula::Exists {
-            vars: vec![format!("__w{depth}")],
-            body: Box::new(Formula::And(vec![acc_atom, inner])),
-        }
-    })
-}
-
-/// The **standard translation** ST(φ, w): expand a `logic:Formula` rooted at `node` into the
-/// existing 8-variant FOL [`Formula`] IR, relativized to the world term `w`. This is the
-/// parse-time expansion of the modal operators (`logic:necessarily` = □, `logic:possibly` = ◇)
-/// — NO new IR variant is minted, mirroring the frontend-only sugar of the constraint records.
-///
-/// * □B over R ↦ `∀ __w{depth} . R(w, __w{depth}) → ST(B, __w{depth}, depth+1)`
-/// * ◇B over R ↦ `∃ __w{depth} . R(w, __w{depth}) ∧ ST(B, __w{depth}, depth+1)`
-/// * an atom `P(a₁…aₙ)` gains the world as its first argument: `P(w, a₁…aₙ)`
-/// * the boolean connectives and the individual quantifiers are homomorphic — the SAME world
-///   `w` and the SAME modal `depth` thread through unchanged (individual binders are preserved).
-///
-/// `R` is the single typed accessibility relation the node pins via `logic:overAccessibility`
-/// ([`read_over_accessibility`]); the fresh world variable name `__w{depth}` is derived from the
-/// modal nesting depth so a nested □◇ threads distinct world variables. The cycle guard, family
-/// dispatch, and satellite readers are shared verbatim with [`parse_formula_inner`].
-fn st_translate(
-    store: &RdfDataset,
-    node: &Subject,
-    world: &Term,
-    depth: usize,
-    active: &mut Vec<String>,
-) -> gmeow_errors::Result<Formula> {
-    let node_id = subject_str(node);
-    if let Some(cycle_start) = active.iter().position(|member| member == &node_id) {
-        let mut members = active[cycle_start..].to_vec();
-        members.sort();
-        members.dedup();
-        let focus = members.first().cloned().unwrap_or_else(|| node_id.clone());
-        return Err(formula_err_for(
-            focus,
-            format!(
-                "logic:Formula recursive constructor cycle among {}",
-                members.join(", ")
-            ),
-        ));
-    }
-    active.push(node_id.clone());
-
-    let result = (|| {
-        let relation = formula_objects(store, node, "relation");
-        let not = formula_objects(store, node, "not");
-        let and = formula_objects(store, node, "and");
-        let or = formula_objects(store, node, "or");
-        let iff = formula_objects(store, node, "iff");
-        let antecedent = formula_objects(store, node, "antecedent");
-        let consequent = formula_objects(store, node, "consequent");
-        let forall = formula_objects(store, node, "forall");
-        let exists = formula_objects(store, node, "exists");
-        let necessarily = formula_objects(store, node, "necessarily");
-        let possibly = formula_objects(store, node, "possibly");
-
-        let families = [
-            ("relation", !relation.is_empty()),
-            ("not", !not.is_empty()),
-            ("and", !and.is_empty()),
-            ("or", !or.is_empty()),
-            ("iff", !iff.is_empty()),
-            (
-                "antecedent/consequent",
-                !antecedent.is_empty() || !consequent.is_empty(),
-            ),
-            ("forall", !forall.is_empty()),
-            ("exists", !exists.is_empty()),
-            ("necessarily", !necessarily.is_empty()),
-            ("possibly", !possibly.is_empty()),
-        ];
-        let present: Vec<&str> = families
-            .iter()
-            .filter_map(|(name, is_present)| is_present.then_some(*name))
-            .collect();
-        if present.len() != 1 {
-            return Err(formula_err(
-                node,
-                format!(
-                    "logic:Formula {node_id} requires exactly one constructor family; found {} ({})",
-                    present.len(),
-                    present.join(", ")
-                ),
-            ));
-        }
-
-        match present[0] {
-            "relation" => {
-                if relation.len() != 1 {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} requires exactly one logic:relation; found {}",
-                            relation.len()
-                        ),
-                    ));
-                }
-                let Node::Iri(relation_iri) = &relation[0] else {
-                    return Err(formula_err(
-                        node,
-                        format!("logic:Formula {node_id} requires an IRI-valued logic:relation"),
-                    ));
-                };
-                let relation =
-                    Term::iri(relation_iri.clone()).map_err(|e| formula_err(node, e.message()))?;
-                let args = parse_term_carriers(store, node, "argument", &mut Vec::new())?;
-                if args.is_empty() {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} atomic predication requires at least one logic:argument"
-                        ),
-                    ));
-                }
-                // The standard translation relativizes each atom to the current world: prepend
-                // `w` as its first argument, so `P(a₁…aₙ)` becomes `P(w, a₁…aₙ)`.
-                let mut world_args = Vec::with_capacity(args.len() + 1);
-                world_args.push(world.clone());
-                world_args.extend(args);
-                Formula::atom(relation, world_args).map_err(|e| formula_err(node, e.message()))
-            }
-            "not" => {
-                let child = one_child_subject(store, node, "not")?;
-                Ok(Formula::Not(Box::new(st_translate(
-                    store, &child, world, depth, active,
-                )?)))
-            }
-            "and" | "or" => {
-                let link = present[0];
-                let child_terms = if link == "and" { &and } else { &or };
-                if child_terms.len() < 2 {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} logic:{link} requires at least two operands; found {}",
-                            child_terms.len()
-                        ),
-                    ));
-                }
-                let mut parsed = Vec::with_capacity(child_terms.len());
-                for child in child_terms {
-                    let child = term_as_subject(child).ok_or_else(|| {
-                        formula_err(
-                            node,
-                            format!(
-                                "logic:Formula {node_id} has a non-resource logic:{link} operand"
-                            ),
-                        )
-                    })?;
-                    parsed.push(st_translate(store, &child, world, depth, active)?);
-                }
-                Ok(if link == "and" {
-                    Formula::And(parsed)
-                } else {
-                    Formula::Or(parsed)
-                })
-            }
-            "iff" => {
-                if iff.len() != 2 {
-                    return Err(formula_err(
-                        node,
-                        format!(
-                            "logic:Formula {node_id} logic:iff requires exactly two operands; found {}",
-                            iff.len()
-                        ),
-                    ));
-                }
-                let a = term_as_subject(&iff[0]).ok_or_else(|| {
-                    formula_err(
-                        node,
-                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
-                    )
-                })?;
-                let b = term_as_subject(&iff[1]).ok_or_else(|| {
-                    formula_err(
-                        node,
-                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
-                    )
-                })?;
-                Ok(Formula::Iff(
-                    Box::new(st_translate(store, &a, world, depth, active)?),
-                    Box::new(st_translate(store, &b, world, depth, active)?),
-                ))
-            }
-            "antecedent/consequent" => {
-                let a = one_child_subject(store, node, "antecedent")?;
-                let c = one_child_subject(store, node, "consequent")?;
-                Ok(Formula::Implies(
-                    Box::new(st_translate(store, &a, world, depth, active)?),
-                    Box::new(st_translate(store, &c, world, depth, active)?),
-                ))
-            }
-            "forall" | "exists" => {
-                let link = present[0];
-                let body_node = one_child_subject(store, node, link)?;
-                let vars = parse_bound_vars(store, node)?;
-                // An individual quantifier is homomorphic: the SAME world and modal depth thread
-                // through, and the authored bound variables are preserved unchanged.
-                let body = Box::new(st_translate(store, &body_node, world, depth, active)?);
-                Ok(if link == "forall" {
-                    Formula::Forall { vars, body }
-                } else {
-                    Formula::Exists { vars, body }
-                })
-            }
-            "necessarily" | "possibly" => {
-                // A NESTED modal operator: recurse via the shared expander, threading the
-                // current world and modal depth (a fresh world var __w{depth} is bound here).
-                st_expand_modal(store, node, present[0], world, depth, active)
-            }
-            _ => unreachable!("constructor family was selected from a closed local array"),
-        }
-    })();
-
-    let popped = active.pop();
-    debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
-    result
-}
-
-/// Read the single typed accessibility relation a modal node pins on `logic:overAccessibility`.
-///
-/// A well-formed modal node pins EXACTLY ONE IRI drawn from the six typed accessibility
-/// relations ([`MODAL_ACCESSIBILITY_RELATIONS`]). An absent, plural, non-IRI, or out-of-set
-/// value is malformed: in particular the bare `logic:accessibleFrom` superproperty and any
-/// `gmeow:modalForce*` register IRI are rejected, because the standard translation must be taken
-/// over a single typed relation, never the blurred union. Every rejection routes through
-/// [`formula_err`] so the shared `MALFORMED_FORMULA` error path reports it.
-fn read_over_accessibility(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<String> {
-    let values = formula_objects(store, node, "overAccessibility");
-    if values.len() != 1 {
-        return Err(formula_err(
-            node,
-            format!(
-                "modal logic:Formula {} requires exactly one logic:overAccessibility typed accessibility relation; found {}",
-                subject_str(node),
-                values.len()
-            ),
-        ));
-    }
-    let Node::Iri(iri) = &values[0] else {
-        return Err(formula_err(
-            node,
-            format!(
-                "modal logic:Formula {} requires an IRI-valued logic:overAccessibility",
-                subject_str(node)
-            ),
-        ));
-    };
-    if !MODAL_ACCESSIBILITY_RELATIONS.contains(&iri.as_str()) {
-        return Err(formula_err(
-            node,
-            format!(
-                "modal logic:Formula {} logic:overAccessibility {} is not one of the six typed accessibility relations; the bare logic:accessibleFrom superproperty, any gmeow:modalForce* register, and any other IRI are rejected",
-                subject_str(node),
-                iri.as_str()
-            ),
-        ));
-    }
-    Ok(iri.as_str().to_owned())
-}
-
-/// Read an ordered argument list from `node`'s `logic:<link>` term-carriers (sorted by
-/// `logic:termIndex`). Duplicate or gapped ordinals are malformed: RDF order must never become a
-/// hidden fallback for the IR's explicit order.
-fn parse_term_carriers(
-    store: &RdfDataset,
-    node: &Subject,
-    link: &str,
-    active: &mut Vec<String>,
-) -> gmeow_errors::Result<Vec<Term>> {
-    let mut indexed: Vec<(usize, Term)> = Vec::new();
-    for carrier_term in formula_objects(store, node, link) {
-        let carrier = term_as_subject(&carrier_term).ok_or_else(|| {
-            formula_err(
-                node,
-                format!(
-                    "logic:Formula {} has a non-resource logic:{link} carrier",
-                    subject_str(node)
-                ),
+    let graph = dataset
+        .term_id_by_value(&TermValue::Iri(source_graph_iri.to_owned()))
+        .ok_or_else(|| {
+            formula_err_for(
+                root_iri,
+                format!("selected formula source graph {source_graph_iri} is absent"),
             )
         })?;
-        let idx = parse_term_index(store, node, &carrier)?;
-        indexed.push((idx, parse_term(store, node, &carrier, active)?));
-    }
-    indexed.sort_by_key(|(i, _)| *i);
-    validate_contiguous_indices(&indexed, node, link)?;
-    Ok(indexed.into_iter().map(|(_, t)| t).collect())
-}
-
-/// Read a quantifier's ordered bound-variable names from its `logic:quantifiedVariable`
-/// term-carriers (sorted by `logic:termIndex`).
-///
-/// Returns an error if any carrier is malformed (unparsable `termIndex` or missing
-/// `termVariable`) or if the binder is vacuous (zero bound variables) — a malformed
-/// binder must surface as `MALFORMED_FORMULA`, never silently narrow `∀{x,y}` to `∀{x}`.
-fn parse_bound_vars(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Vec<String>> {
-    let mut indexed: Vec<(usize, String)> = Vec::new();
-    for carrier_term in formula_objects(store, node, "quantifiedVariable") {
-        let carrier = term_as_subject(&carrier_term).ok_or_else(|| {
-            formula_err(
-                node,
-                format!(
-                    "logic:Formula {} has a non-resource logic:quantifiedVariable carrier",
-                    subject_str(node)
-                ),
-            )
-        })?;
-        let idx = parse_term_index(store, node, &carrier)?;
-        // A bound-variable carrier must resolve to a plain variable, so it never opens a
-        // function-term recursion; a fresh cycle guard suffices.
-        let term = parse_term(store, node, &carrier, &mut Vec::new())?;
-        let Term::Var(name) = term else {
-            return Err(formula_err(
-                node,
-                format!(
-                    "logic:Formula {} bound-variable carrier {} must contain exactly one logic:termVariable",
-                    subject_str(node),
-                    subject_str(&carrier)
-                ),
-            ));
-        };
-        indexed.push((idx, name));
-    }
-    if indexed.is_empty() {
-        return Err(formula_err(
-            node,
-            format!(
-                "logic:Formula {} quantifier requires at least one logic:quantifiedVariable",
-                subject_str(node)
-            ),
-        ));
-    }
-    indexed.sort_by_key(|(i, _)| *i);
-    validate_contiguous_indices(&indexed, node, "quantifiedVariable")?;
-    Ok(indexed.into_iter().map(|(_, n)| n).collect())
-}
-
-/// Reconstruct a [`Term`] from a term-carrier node by its single term-value property.
-fn parse_term(
-    store: &RdfDataset,
-    formula: &Subject,
-    carrier: &Subject,
-    active: &mut Vec<String>,
-) -> gmeow_errors::Result<Term> {
-    let fields = [
-        "termIri",
-        "termVariable",
-        "termLiteral",
-        "termSequenceMarker",
-        "termApplication",
-    ];
-    let present: Vec<(&str, Vec<Node>)> = fields
-        .iter()
-        .map(|field| (*field, formula_objects(store, carrier, field)))
-        .filter(|(_, values)| !values.is_empty())
-        .collect();
-    if present.len() != 1 {
-        return Err(formula_err(
-            formula,
-            format!(
-                "logic:Formula {} logic:TermCarrier {} requires exactly one term-value property; found {} ({})",
-                subject_str(formula),
-                subject_str(carrier),
-                present.len(),
-                present
-                    .iter()
-                    .map(|(field, _)| format!("logic:{field}"))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ),
-        ));
-    }
-    let (field, values) = &present[0];
-    if values.len() != 1 {
-        return Err(formula_err(
-            formula,
-            format!(
-                "logic:Formula {} logic:TermCarrier {} requires exactly one logic:{field} value; found {}",
-                subject_str(formula),
-                subject_str(carrier),
-                values.len()
-            ),
-        ));
-    }
-    let datatype_values = formula_objects(store, carrier, "termLiteralDatatype");
-    if *field != "termLiteral" && !datatype_values.is_empty() {
-        return Err(formula_err(
-            formula,
-            format!(
-                "logic:Formula {} logic:TermCarrier {} may carry logic:termLiteralDatatype only with logic:termLiteral",
-                subject_str(formula),
-                subject_str(carrier)
-            ),
-        ));
-    }
-
-    let value = &values[0];
-    match *field {
-        "termIri" => {
-            let Node::Iri(iri) = value else {
-                return Err(formula_err(
-                    formula,
-                    format!(
-                        "logic:Formula {} logic:TermCarrier {} requires an IRI-valued logic:termIri",
-                        subject_str(formula),
-                        subject_str(carrier)
-                    ),
-                ));
-            };
-            Term::iri(iri.clone()).map_err(|e| formula_err(formula, e.message()))
-        }
-        "termVariable" => {
-            if !term_is_literal(value) {
-                return Err(formula_err(
-                    formula,
-                    format!(
-                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termVariable name",
-                        subject_str(formula),
-                        subject_str(carrier)
-                    ),
-                ));
-            }
-            Term::var(term_str(value)).map_err(|e| formula_err(formula, e.message()))
-        }
-        "termLiteral" => {
-            if !term_is_literal(value) {
-                return Err(formula_err(
-                    formula,
-                    format!(
-                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termLiteral value",
-                        subject_str(formula),
-                        subject_str(carrier)
-                    ),
-                ));
-            }
-            if datatype_values.len() > 1 {
-                return Err(formula_err(
-                    formula,
-                    format!(
-                        "logic:Formula {} logic:TermCarrier {} permits at most one logic:termLiteralDatatype; found {}",
-                        subject_str(formula),
-                        subject_str(carrier),
-                        datatype_values.len()
-                    ),
-                ));
-            }
-            let datatype = match datatype_values.first() {
-                Some(Node::Iri(iri)) => Some(iri.clone()),
-                Some(_) => {
-                    return Err(formula_err(
-                        formula,
-                        format!(
-                            "logic:Formula {} logic:TermCarrier {} requires an IRI-valued logic:termLiteralDatatype",
-                            subject_str(formula),
-                            subject_str(carrier)
-                        ),
-                    ));
-                }
-                None => None,
-            };
-            Term::literal(term_str(value), datatype).map_err(|e| formula_err(formula, e.message()))
-        }
-        "termSequenceMarker" => {
-            if !term_is_literal(value) {
-                return Err(formula_err(
-                    formula,
-                    format!(
-                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termSequenceMarker name",
-                        subject_str(formula),
-                        subject_str(carrier)
-                    ),
-                ));
-            }
-            Term::sequence_marker(term_str(value)).map_err(|e| formula_err(formula, e.message()))
-        }
-        "termApplication" => {
-            let function_term = term_as_subject(value).ok_or_else(|| {
-                formula_err(
-                    formula,
-                    format!(
-                        "logic:Formula {} logic:TermCarrier {} requires a resource-valued logic:termApplication (a logic:FunctionTerm node)",
-                        subject_str(formula),
-                        subject_str(carrier)
-                    ),
-                )
-            })?;
-            parse_function_term(store, formula, &function_term, active)
-        }
-        _ => unreachable!("term value property was selected from a closed local array"),
-    }
-}
-
-/// Reconstruct a [`Term::App`] from the `logic:FunctionTerm` node a `logic:termApplication`
-/// carrier points at: its single reified `logic:functionSymbol` (an IRI-named `logic:Type`
-/// individual, never a variable — keeping the object level first-order) applied to its ordered
-/// `logic:argument` term-carriers. The argument carriers are read with the same
-/// [`parse_term_carriers`] machinery the atomic-predication arguments use, so an argument may
-/// itself be a `logic:termApplication` and a nested term like `cons(H, cons(1, nil))`
-/// round-trips. `active` is the path of function-term nodes currently being expanded: a node
-/// reached from its own expansion is a cycle (`cons` whose argument is `cons`) and is rejected
-/// rather than recursed into forever.
-fn parse_function_term(
-    store: &RdfDataset,
-    formula: &Subject,
-    function_term: &Subject,
-    active: &mut Vec<String>,
-) -> gmeow_errors::Result<Term> {
-    let node_id = subject_str(function_term);
-    if active.contains(&node_id) {
-        return Err(formula_err(
-            formula,
-            format!(
-                "logic:Formula {} logic:FunctionTerm {} is cyclic: it appears within its own logic:argument expansion",
-                subject_str(formula),
-                node_id
-            ),
-        ));
-    }
-
-    let symbols = formula_objects(store, function_term, "functionSymbol");
-    if symbols.len() != 1 {
-        return Err(formula_err(
-            formula,
-            format!(
-                "logic:Formula {} logic:FunctionTerm {} requires exactly one logic:functionSymbol; found {}",
-                subject_str(formula),
-                node_id,
-                symbols.len()
-            ),
-        ));
-    }
-    let Node::Iri(symbol) = &symbols[0] else {
-        return Err(formula_err(
-            formula,
-            format!(
-                "logic:Formula {} logic:FunctionTerm {} requires an IRI-valued logic:functionSymbol (the reified function symbol, never a variable)",
-                subject_str(formula),
-                node_id
-            ),
-        ));
-    };
-
-    active.push(node_id.clone());
-    let args = parse_term_carriers(store, function_term, "argument", active);
-    let popped = active.pop();
-    debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
-    let args = args?;
-
-    // `Term::app` rejects a nullary application (a 0-ary function symbol is a constant and
-    // must be a logic:termIri), so a logic:FunctionTerm with no logic:argument fails here
-    // rather than minting a second spelling for a constant.
-    Term::app(symbol.clone(), args).map_err(|e| formula_err(formula, e.message()))
-}
-
-fn parse_term_index(
-    store: &RdfDataset,
-    formula: &Subject,
-    carrier: &Subject,
-) -> gmeow_errors::Result<usize> {
-    let values = formula_objects(store, carrier, "termIndex");
-    if values.len() != 1 {
-        return Err(formula_err(
-            formula,
-            format!(
-                "logic:Formula {} logic:TermCarrier {} requires exactly one logic:termIndex; found {}",
-                subject_str(formula),
-                subject_str(carrier),
-                values.len()
-            ),
-        ));
-    }
-    term_str(&values[0]).parse::<usize>().map_err(|_| {
-        formula_err(formula, format!(
-            "logic:Formula {} logic:TermCarrier {} has an invalid non-negative integer logic:termIndex {:?}",
-            subject_str(formula),
-            subject_str(carrier),
-            term_str(&values[0])
-        ))
-    })
-}
-
-fn validate_contiguous_indices<T>(
-    indexed: &[(usize, T)],
-    node: &Subject,
-    link: &str,
-) -> gmeow_errors::Result<()> {
-    for (expected, (actual, _)) in indexed.iter().enumerate() {
-        if *actual != expected {
-            return Err(formula_err(
-                node,
-                format!(
-                    "logic:Formula {} logic:{link} indices must be unique and contiguous from zero; expected {expected}, found {actual}",
-                    subject_str(node)
-                ),
-            ));
-        }
-    }
-    Ok(())
+    FormulaReader::in_graph(dataset, GraphMatch::Named(graph))
+        .read_in_context(&Subject::Iri(root_iri.to_owned()), Term::iri(context_iri)?)
 }
 
 // --------------------------------------------------------------------------- //
 // Reasoning-program extraction (`logic:ReasoningProgram`)
 // --------------------------------------------------------------------------- //
-
-/// The `logic:` sub-formula links a `logic:variableSort` declaration may be reached
-/// through, mirroring [`FORMULA_SUBLINKS`] (the SAME structural links [`parse_formula`]
-/// already validates). Walking these links again to harvest sort declarations — rather
-/// than re-deriving term identity — keeps the sort harvest a read-only companion pass over
-/// an already-validated tree, not a second clause reader.
-const SORT_WALK_SUBFORMULA_LINKS: [&str; 8] = [
-    "not",
-    "and",
-    "or",
-    "antecedent",
-    "consequent",
-    "iff",
-    "forall",
-    "exists",
-];
 
 /// Collect `(variable name, sort IRI)` pairs from every `logic:variableSort`-bearing
 /// `logic:TermCarrier` reachable from `node`, a `logic:Formula` tree already known
@@ -4612,7 +4325,7 @@ fn collect_variable_sorts(
     node: &Subject,
     out: &mut Vec<(String, String)>,
 ) -> gmeow_errors::Result<()> {
-    for link in SORT_WALK_SUBFORMULA_LINKS {
+    for link in FORMULA_SUBLINKS {
         for obj in formula_objects(store, node, link) {
             if let Some(child) = term_as_subject(&obj) {
                 collect_variable_sorts(store, &child, out)?;
@@ -4712,7 +4425,7 @@ fn collect_constant_iris_from_term(t: &Term, out: &mut Vec<String>) {
                 collect_constant_iris_from_term(a, out);
             }
         }
-        Term::Var(_) | Term::Literal { .. } | Term::SequenceMarker(_) => {}
+        Term::Var(_) | Term::Literal(_) | Term::SequenceMarker(_) => {}
     }
 }
 
@@ -4723,9 +4436,10 @@ fn collect_constant_iris_from_term(t: &Term, out: &mut Vec<String>) {
 /// and [`collect_variable_sorts`] to harvest each clause/query's `logic:variableSort`
 /// declarations.
 fn read_reasoning_program(
-    store: &RdfDataset,
+    reader: &mut FormulaReader<'_>,
     node: &Subject,
 ) -> gmeow_errors::Result<ReasoningProgramIr> {
+    let store = reader.dataset();
     let iri = subject_str(node);
 
     // Clause set: zero-or-more logic:clause roots, each an existing logic:Formula tree.
@@ -4742,7 +4456,7 @@ fn read_reasoning_program(
     }
     let mut clauses = Vec::with_capacity(clause_nodes.len());
     for clause_node in &clause_nodes {
-        clauses.push(parse_formula(store, clause_node)?);
+        clauses.push(reader.read(clause_node)?);
     }
 
     // Goal: exactly one logic:programQuery root — never zero, never more than one.
@@ -4762,7 +4476,7 @@ fn read_reasoning_program(
             format!("logic:ReasoningProgram {iri} has a non-resource logic:programQuery object"),
         )
     })?;
-    let query = parse_formula(store, &query_node)?;
+    let query = reader.read(&query_node)?;
 
     // Verdict probes: zero-or-more logic:verdictProbe roots. Atomicity is enforced by
     // ReasoningProgramIr::new, not duplicated here.
@@ -4780,7 +4494,7 @@ fn read_reasoning_program(
     }
     let mut verdict_probes = Vec::with_capacity(probe_nodes.len());
     for probe_node in &probe_nodes {
-        verdict_probes.push(parse_formula(store, probe_node)?);
+        verdict_probes.push(reader.read(probe_node)?);
     }
 
     // Evaluation strategy: exactly one logic:evaluationMode, drawn from the closed
@@ -4921,19 +4635,31 @@ fn read_reasoning_program(
 /// segment is append-only) — so adding this stage to every parse leaves every existing
 /// artifact byte-identical.
 fn extract_reasoning_programs(
-    store: &RdfDataset,
+    reader: &mut FormulaReader<'_>,
     diagnostics: &mut Vec<Diagnostic>,
-) -> Vec<ReasoningProgramIr> {
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<ReasoningProgramIr>> {
+    let store = reader.dataset();
     let program_ty = Node::iri(logic_iri("ReasoningProgram"));
     let mut programs = Vec::new();
-    for subj in subjects_with(store, &nn(RDF_TYPE), &program_ty) {
-        match read_reasoning_program(store, &subj) {
-            Ok(p) => programs.push(p),
-            Err(err) => diagnostics.push(Diagnostic::error(
-                "MALFORMED_REASONING_PROGRAM",
-                err.message().to_owned(),
-                Some(subject_str(&subj)),
-            )),
+    for subj in subjects_of_structural_class(store, &program_ty) {
+        if let Some(emitted) = capture_owner(
+            owner_source(store, &subj),
+            OwnerFamily::ReasoningProgram,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                read_reasoning_program(reader, &subj).map_err(|err| {
+                    diagnostics.push(Diagnostic::error(
+                        "MALFORMED_REASONING_PROGRAM",
+                        err.message().to_owned(),
+                        Some(subject_str(&subj)),
+                    ));
+                    Vec::new()
+                })
+            },
+        ) {
+            programs.push(emitted);
         }
     }
     programs
@@ -4948,19 +4674,147 @@ fn extract_reasoning_programs(
 /// is a no-op in `LogicProgram::canonical_key` (the segment is append-only) — so adding
 /// this stage to every parse leaves every existing artifact byte-identical.
 fn extract_correspondences(
-    store: &RdfDataset,
+    reader: &mut FormulaReader<'_>,
     diagnostics: &mut Vec<Diagnostic>,
-) -> Vec<Correspondence> {
-    let (correspondences, errors) =
-        crate::projections::correspondence::extract_correspondences(store);
-    for (iri, message) in errors {
-        diagnostics.push(Diagnostic::warning(
-            "MALFORMED_CORRESPONDENCE",
-            message,
-            Some(iri),
-        ));
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<Correspondence>> {
+    let store = reader.dataset();
+    let mut correspondences = Vec::new();
+    for subject in subjects_of_structural_class(store, &Node::iri(logic_iri("Correspondence"))) {
+        if let Some(emitted) = capture_owner(
+            owner_source(store, &subject),
+            OwnerFamily::Correspondence,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                crate::projections::correspondence::read_source_correspondence(reader, &subject)
+                    .map_err(|err| {
+                        diagnostics.push(Diagnostic::warning(
+                            if subject_is_blank(&subject) {
+                                "UNLOWERED_CORRESPONDENCE_IDENTITY"
+                            } else {
+                                "MALFORMED_CORRESPONDENCE"
+                            },
+                            err.message().to_owned(),
+                            Some(subject_str(&subject)),
+                        ));
+                        Vec::new()
+                    })
+            },
+        ) {
+            correspondences.push(emitted);
+        }
     }
     correspondences
+}
+
+fn extract_compositions(
+    store: &RdfDataset,
+    source_graph: &StructuralSourceGraph,
+    diagnostics: &mut Vec<Diagnostic>,
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<crate::ir::CorrespondenceComposition>> {
+    let mut compositions = Vec::new();
+    // Invalid membership targets are not structural resource units, but must still
+    // produce an owned rejection rather than silently selecting no declaration.
+    for edge in source_graph.edges().iter().filter(|edge| {
+        edge.source.graph.is_none()
+            && edge.predicate.iri(store) == "https://blackcatinformatics.ca/logic/hasComposition"
+            && !matches!(store.resolve(edge.target), purrdf::TermRef::Iri(_))
+    }) {
+        let diagnostic = diagnostics.len();
+        diagnostics.push(Diagnostic::error(
+            "MALFORMED_CORRESPONDENCE_COMPOSITION",
+            "logic:hasComposition requires a named composition identity",
+            Some(source_graph::focus(store, edge.source.term)),
+        ));
+        lowerings.push(OwnerLowering {
+            source: edge.source,
+            family: OwnerFamily::CorrespondenceComposition,
+            disposition: OwnerDisposition::Rejected,
+            diagnostics: vec![diagnostic],
+        });
+    }
+    for unit in source_graph.units().filter(|unit| {
+        unit.node.graph.is_none()
+            && (unit
+                .declared_kinds
+                .contains(&SourceUnitKind::CorrespondenceComposition)
+                || unit
+                    .required_kinds
+                    .contains(&SourceUnitKind::CorrespondenceComposition))
+    }) {
+        if let Some(emitted) = capture_owner(
+            unit.node,
+            OwnerFamily::CorrespondenceComposition,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                crate::projections::correspondence::read_source_composition(store, unit.node)
+                    .map_err(|error| {
+                        diagnostics.push(Diagnostic::error(
+                            "MALFORMED_CORRESPONDENCE_COMPOSITION",
+                            error.message().to_owned(),
+                            Some(source_graph::focus(store, unit.node.term)),
+                        ));
+                        Vec::new()
+                    })
+            },
+        ) {
+            compositions.push(emitted);
+        }
+    }
+    compositions
+}
+
+fn extract_owned_leg_programs(
+    store: &RdfDataset,
+    correspondences: &[OwnerEmission<Correspondence>],
+    diagnostics: &mut Vec<Diagnostic>,
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<crate::ir::TransactionProgramIr>> {
+    // These are original source references, captured before correspondence IDs can
+    // be projected or rewritten. A shared leg is read only once.
+    let legs: BTreeSet<_> = correspondences
+        .iter()
+        .flat_map(|emission| {
+            emission
+                .value
+                .get_leg
+                .iter()
+                .chain(emission.value.put_leg.iter())
+        })
+        .collect();
+    let mut programs = Vec::new();
+    for iri in legs {
+        let source = SourceNode {
+            term: store
+                .term_id_by_iri(iri)
+                .expect("leg reference came from the source"),
+            graph: None,
+        };
+        if let Some(emitted) = capture_owner(
+            source,
+            OwnerFamily::TransactionProgram,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                crate::projections::correspondence::read_source_leg_program(store, iri).map_err(
+                    |error| {
+                        diagnostics.push(Diagnostic::warning(
+                            "UNLOWERED_TRANSACTION_PROGRAM",
+                            error.message().to_owned(),
+                            Some(iri.clone()),
+                        ));
+                        Vec::new()
+                    },
+                )
+            },
+        ) {
+            programs.push(emitted);
+        }
+    }
+    programs
 }
 
 /// Read every authored `logic:Constraint` individual into a [`ConstraintIr`] — the typed
@@ -4980,31 +4834,42 @@ fn extract_correspondences(
 /// in [`LogicProgram::canonical_key`] (the segment is append-only) — so adding this stage to
 /// every parse leaves every existing artifact byte-identical.
 fn extract_constraints(
-    store: &RdfDataset,
+    reader: &mut FormulaReader<'_>,
     diagnostics: &mut Vec<Diagnostic>,
-    malformed_formulas: &BTreeSet<String>,
-) -> Vec<ConstraintIr> {
+    malformed_formulas: &BTreeMap<String, usize>,
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<ConstraintIr>> {
+    let store = reader.dataset();
     let constraint_ty = Node::iri(logic_iri("Constraint"));
-    let mut constraints: Vec<ConstraintIr> = Vec::new();
-    for subj in subjects_with(store, &nn(RDF_TYPE), &constraint_ty) {
-        match read_constraint(store, &subj) {
-            Ok(c) => constraints.push(c),
-            Err(err) => {
-                let focus = err
-                    .inner()
-                    .source_ctx
-                    .focus
-                    .as_ref()
-                    .map(|focus| focus.0.as_str());
-                if focus.is_some_and(|focus| malformed_formulas.contains(focus)) {
-                    continue;
-                }
-                diagnostics.push(Diagnostic::warning(
-                    "MALFORMED_CONSTRAINT",
-                    err.message().to_owned(),
-                    Some(subject_str(&subj)),
-                ));
-            }
+    let mut constraints = Vec::new();
+    for subj in subjects_of_structural_class(store, &constraint_ty) {
+        if let Some(emitted) = capture_owner(
+            owner_source(store, &subj),
+            OwnerFamily::Constraint,
+            diagnostics,
+            lowerings,
+            |diagnostics| {
+                read_constraint(reader, &subj).map_err(|err| {
+                    let focus = err
+                        .inner()
+                        .source_ctx
+                        .focus
+                        .as_ref()
+                        .map(|focus| focus.0.as_str());
+                    if let Some(diagnostic) = focus.and_then(|focus| malformed_formulas.get(focus))
+                    {
+                        return vec![*diagnostic];
+                    }
+                    diagnostics.push(Diagnostic::warning(
+                        "MALFORMED_CONSTRAINT",
+                        err.message().to_owned(),
+                        Some(subject_str(&subj)),
+                    ));
+                    Vec::new()
+                })
+            },
+        ) {
+            constraints.push(emitted);
         }
     }
     constraints
@@ -5019,11 +4884,36 @@ fn extract_constraints(
 /// [`derive_validation_shapes`], which already reads the merged dataset). The returned vector is
 /// unsorted; [`LogicProgram::with_constraints`] canonicalizes it.
 pub fn extract_all_constraints(store: &RdfDataset) -> (Vec<ConstraintIr>, Vec<Diagnostic>) {
-    let mut diagnostics = Vec::new();
-    let malformed_formulas = extract_formulas(store, &mut diagnostics).malformed;
-    let mut constraints = extract_constraints(store, &mut diagnostics, &malformed_formulas);
-    constraints.extend(extract_sugar_constraints(store, &mut diagnostics));
-    (constraints, diagnostics)
+    extract_constraints_from_source(store, &StructuralSourceGraph::new(store))
+}
+
+fn extract_constraints_from_source(
+    store: &RdfDataset,
+    source_graph: &StructuralSourceGraph,
+) -> (Vec<ConstraintIr>, Vec<Diagnostic>) {
+    let mut reader = FormulaReader::new(store);
+    let mut diagnostics = source_graph.ownership_diagnostics(store);
+    let malformed_formulas =
+        extract_formulas(&mut reader, source_graph, &mut diagnostics).malformed;
+    let mut lowerings = Vec::new();
+    let mut constraints = extract_constraints(
+        &mut reader,
+        &mut diagnostics,
+        &malformed_formulas,
+        &mut lowerings,
+    );
+    constraints.extend(extract_sugar_constraints(
+        store,
+        &mut diagnostics,
+        &mut lowerings,
+    ));
+    (
+        constraints
+            .into_iter()
+            .map(|emission| emission.value)
+            .collect(),
+        diagnostics,
+    )
 }
 
 /// Build a `MALFORMED_CONSTRAINT`-grade frontend [`Diag`] from a message. The constraint-sugar
@@ -5066,7 +4956,11 @@ fn distinct_failure_classes(
 /// Reconstruct one [`ConstraintIr`] rooted at a `logic:Constraint` node, or return a
 /// human-readable reason the constraint is malformed (surfaced as one `MALFORMED_CONSTRAINT`
 /// warning by [`extract_constraints`]).
-fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
+fn read_constraint(
+    reader: &mut FormulaReader<'_>,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
+    let store = reader.dataset();
     let iri = subject_str(node);
     // Validate constraint-owned metadata before parsing the integrity tree. If both the formula
     // and an independent constraint annotation are malformed, each receives its own authoritative
@@ -5114,7 +5008,7 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
     // Preserve the malformed formula's own focus through the constraint reader. The formula
     // extractor has already emitted MALFORMED_FORMULA for that identity, so the caller can
     // suppress only the redundant constraint wrapper while retaining independent defects.
-    let integrity = parse_formula(store, &integrity_node)?;
+    let integrity = reader.read(&integrity_node)?;
 
     let mut constraint = ConstraintIr::new(&iri, integrity, severity, message)
         .map_err(|err| err.with_focus(iri.clone()))?;
@@ -5348,9 +5242,7 @@ fn read_guarded_implication(
         Some(v) => {
             let obj = match &v {
                 Node::Iri(i) => Term::iri(i)?,
-                Node::Lit {
-                    lexical, datatype, ..
-                } => Term::literal(lexical.clone(), datatype.clone())?,
+                Node::Lit(literal) => Term::rdf_literal(literal.clone())?,
                 _ => return Err(sugar_err("logic:triggerValue must be an IRI or a literal")),
             };
             f_atom2(&trigger, t_var("this"), obj)?
@@ -5431,9 +5323,7 @@ fn read_path_value_type(store: &RdfDataset, node: &Subject) -> gmeow_errors::Res
         (None, Some(q)) => {
             let obj = match value(store, node, &nn(&logic_iri("valueObject"))) {
                 Some(Node::Iri(i)) => Term::iri(&i)?,
-                Some(Node::Lit {
-                    lexical, datatype, ..
-                }) => Term::literal(lexical, datatype)?,
+                Some(Node::Lit(literal)) => Term::rdf_literal(literal.clone())?,
                 _ => {
                     return Err(sugar_err(
                         "logic:PathValueTypeConstraint with logic:valuePredicate requires a \
@@ -5529,9 +5419,7 @@ fn read_forbidden_pattern(
         Some(v) => {
             let obj = match &v {
                 Node::Iri(i) => Term::iri(i)?,
-                Node::Lit {
-                    lexical, datatype, ..
-                } => Term::literal(lexical.clone(), datatype.clone())?,
+                Node::Lit(literal) => Term::rdf_literal(literal.clone())?,
                 _ => {
                     return Err(sugar_err(
                         "logic:forbiddenValue must be an IRI or a literal",
@@ -5557,9 +5445,7 @@ fn read_forbidden_pattern(
 fn node_to_term(n: &Node) -> gmeow_errors::Result<Term> {
     match n {
         Node::Iri(i) => Term::iri(i),
-        Node::Lit {
-            lexical, datatype, ..
-        } => Term::literal(lexical.clone(), datatype.clone()),
+        Node::Lit(literal) => Term::rdf_literal(literal.clone()),
         other => Err(sugar_err(format!(
             "a set member must be an IRI or literal, not {}",
             term_str(other)
@@ -5638,7 +5524,10 @@ fn read_string_pattern(store: &RdfDataset, node: &Subject) -> gmeow_errors::Resu
         .map(|t| term_str(&t))
         .ok_or_else(|| sugar_err("logic:StringPatternConstraint requires logic:valuePath"))?;
     let pattern = match value(store, node, &nn(&logic_iri("stringPattern"))) {
-        Some(Node::Lit { lexical, .. }) => lexical,
+        Some(Node::Lit(purrdf::RdfLiteral {
+            lexical_form: lexical,
+            ..
+        })) => lexical,
         _ => {
             return Err(sugar_err(
                 "logic:StringPatternConstraint requires a literal logic:stringPattern",
@@ -5719,9 +5608,11 @@ fn read_aggregate_constraint(
     // comparison value.
     let compare_to = match value(store, node, &nn(&logic_iri("aggCompareTo"))) {
         Some(Node::Iri(p)) => AggregateRhs::Property(p),
-        Some(Node::Lit {
-            lexical, datatype, ..
-        }) => AggregateRhs::Literal { lexical, datatype },
+        Some(Node::Lit(purrdf::RdfLiteral {
+            lexical_form: lexical,
+            datatype,
+            ..
+        })) => AggregateRhs::Literal { lexical, datatype },
         _ => {
             return Err(sugar_err(
                 "logic:AggregateConstraint requires logic:aggCompareTo (a property IRI or a literal)",
@@ -5824,9 +5715,11 @@ fn read_join_aggregate_constraint(
         node,
         &nn(&logic_iri("aggThreshold")),
     ) {
-        Some(Node::Lit {
-            lexical, datatype, ..
-        }) => (lexical, datatype),
+        Some(Node::Lit(purrdf::RdfLiteral {
+            lexical_form: lexical,
+            datatype,
+            ..
+        })) => (lexical, datatype),
         _ => {
             return Err(sugar_err(
                 "logic:JoinAggregateConstraint requires a literal logic:aggThreshold (the fixed \
@@ -6185,9 +6078,7 @@ fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
     let bound = |local: &str| -> gmeow_errors::Result<Option<Term>> {
         match value(store, node, &nn(&logic_iri(local))) {
             None => Ok(None),
-            Some(Node::Lit {
-                lexical, datatype, ..
-            }) => Ok(Some(Term::literal(lexical, datatype)?)),
+            Some(Node::Lit(literal)) => Ok(Some(Term::rdf_literal(literal)?)),
             Some(_) => Err(sugar_err(format!(
                 "logic:{local} must be a literal (an inclusive numeric bound)"
             ))),
@@ -6235,7 +6126,8 @@ fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
 fn extract_sugar_constraints(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
-) -> Vec<ConstraintIr> {
+    lowerings: &mut Vec<OwnerLowering>,
+) -> Vec<OwnerEmission<ConstraintIr>> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
     let readers: [(&str, Reader); 18] = [
         ("ChoiceGroupConstraint", read_choice_group),
@@ -6266,17 +6158,27 @@ fn extract_sugar_constraints(
         ("ValueSetMembershipConstraint", read_value_set_membership),
         ("StringPatternConstraint", read_string_pattern),
     ];
-    let mut out: Vec<ConstraintIr> = Vec::new();
+    let mut out: Vec<OwnerEmission<ConstraintIr>> = Vec::new();
     for (class_local, reader) in readers {
         let class_ty = Node::iri(logic_iri(class_local));
-        for subj in subjects_with(store, &nn(RDF_TYPE), &class_ty) {
-            match reader(store, &subj) {
-                Ok(c) => out.push(c),
-                Err(err) => diagnostics.push(Diagnostic::warning(
-                    "MALFORMED_CONSTRAINT",
-                    err.message().to_owned(),
-                    Some(subject_str(&subj)),
-                )),
+        for subj in subjects_of_structural_class(store, &class_ty) {
+            if let Some(emitted) = capture_owner(
+                owner_source(store, &subj),
+                OwnerFamily::Constraint,
+                diagnostics,
+                lowerings,
+                |diagnostics| {
+                    reader(store, &subj).map_err(|err| {
+                        diagnostics.push(Diagnostic::warning(
+                            "MALFORMED_CONSTRAINT",
+                            err.message().to_owned(),
+                            Some(subject_str(&subj)),
+                        ));
+                        Vec::new()
+                    })
+                },
+            ) {
+                out.push(emitted);
             }
         }
     }
@@ -6289,6 +6191,16 @@ pub fn parse_logic_dataset(
     dataset: &RdfDataset,
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+    require_nonempty_source(dataset)?;
+
+    // Ordinary callers retain the mapping-free canonicalization path. Source-aware
+    // callers use PreparedLogicSource and share the same extraction boundary below.
+    let canon =
+        canonicalize_blank_nodes(dataset).map_err(|e| LogicParseError(e.message().to_owned()))?;
+    compile_canonical_source(canon.as_ref(), source_iri)
+}
+
+fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), LogicParseError> {
     if is_empty(dataset) {
         return Err(LogicParseError(
             "Source graph is empty — nothing to parse.  Pass a non-empty graph or a \
@@ -6297,16 +6209,28 @@ pub fn parse_logic_dataset(
         ));
     }
 
-    // Re-label blank nodes to their RDFC-1.0 canonical ids BEFORE extraction, so
-    // every projection (text back-ends included) is a deterministic function of the
-    // source graph rather than the parser's random per-parse blank-node labels.
-    let canon =
-        canonicalize_blank_nodes(dataset).map_err(|e| LogicParseError(e.message().to_owned()))?;
-    let store = canon.as_ref();
+    Ok(())
+}
 
-    let mut diagnostics: Vec<Diagnostic> = Vec::new();
+fn compile_canonical_source(
+    store: &RdfDataset,
+    source_iri: Option<String>,
+) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+    let (program, diagnostics, _) =
+        compile_source_graph(store, &StructuralSourceGraph::new(store), source_iri)?;
+    Ok((program, diagnostics))
+}
 
-    let plain_axioms = extract_axioms(store, &mut diagnostics);
+fn compile_source_graph(
+    store: &RdfDataset,
+    source_graph: &StructuralSourceGraph,
+    source_iri: Option<String>,
+) -> Result<(LogicProgram, Vec<Diagnostic>, EmissionTrace), LogicParseError> {
+    let mut diagnostics = source_graph.ownership_diagnostics(store);
+    let mut owner_lowerings = emission::excluded_owners(source_graph);
+    let mut reader = FormulaReader::new(store);
+
+    let plain_axioms = extract_axioms(store, source_graph, &mut diagnostics);
     let scoped_axioms = extract_scoped_axioms(store, &mut diagnostics);
     // Lift the RDFS/SKOS annotation surface into first-class NodeKind::Annotation axioms
     // (logic: isSupersetOf SKOS/RDFS); fail-closed on a non-carrier language tag.
@@ -6323,73 +6247,170 @@ pub fn parse_logic_dataset(
     // panicking. A degenerate binary atom with a literal / sequence-marker subject cannot be a
     // triple subject, so it is neither a formula nor an axiom: emit `MALFORMED_FORMULA`.
     let FormulaExtraction {
+        presentation_formulas,
         formulas: extracted_formulas,
         malformed: malformed_formulas,
-    } = extract_formulas(store, &mut diagnostics);
-    let mut formulas: Vec<Formula> = Vec::new();
-    let mut horn_axioms: Vec<LogicAxiom> = Vec::new();
-    for f in extracted_formulas {
+        lowerings: mut formula_lowerings,
+    } = extract_formulas(&mut reader, source_graph, &mut diagnostics);
+    let mut formulas: Vec<SourceFormula> = Vec::new();
+    let mut horn_axioms: Vec<AxiomEmission> = Vec::new();
+    for SourceFormula { source, formula: f } in extracted_formulas {
         if f.is_trivially_horn() {
             match f.as_horn_axiom() {
-                Some(ax) => horn_axioms.push(ax),
-                None => diagnostics.push(Diagnostic::error(
+                Some(ax) => horn_axioms.push(AxiomEmission::new(ax, AxiomSource::Formula(source))),
+                None => {
+                    formula_lowerings.push(FormulaLowering {
+                        source,
+                        disposition: FormulaDisposition::Malformed {
+                            diagnostic: diagnostics.len(),
+                        },
+                    });
+                    diagnostics.push(Diagnostic::error(
                     "MALFORMED_FORMULA",
                     "trivially-Horn logic:Formula has a non-subject term (a literal or sequence \
                      marker) in argument position 0; it is neither a formula nor a fact; skipped",
-                    None,
-                )),
+                    Some(source_graph::focus(store, source.term)),
+                ));
+                }
             }
         } else {
-            formulas.push(f);
+            formulas.push(SourceFormula { source, formula: f });
         }
     }
 
     // Merge + dedup by full content (mirrors the Python `set(...) | set(...)`),
     // preserving first-occurrence order (plain, then scoped, then the routed Horn leaves) for
     // deterministic tie-breaking; `LogicProgram::new` then sorts canonically.
-    let mut seen: HashSet<String> = HashSet::new();
-    let mut all_axioms: Vec<LogicAxiom> = Vec::new();
-    for ax in plain_axioms
+    let mut seen: HashMap<String, usize> = HashMap::new();
+    let mut all_axioms: Vec<AxiomEmission> = Vec::new();
+    for emitted in plain_axioms
         .into_iter()
         .chain(scoped_axioms)
         .chain(horn_axioms)
         .chain(annotation_axioms)
     {
-        if seen.insert(content_dedup_key(&ax)) {
-            all_axioms.push(ax);
+        let next = all_axioms.len();
+        let index = *seen
+            .entry(content_dedup_key(&emitted.axiom))
+            .or_insert(next);
+        if index == next {
+            all_axioms.push(emitted);
+        } else {
+            all_axioms[index].sources.extend(emitted.sources);
         }
     }
 
-    let contracts = extract_contracts(store, &mut diagnostics);
-    let rules = extract_rules(store, &mut diagnostics);
-    let path_shapes = extract_path_shapes(store, &mut diagnostics);
-    let correspondences = extract_correspondences(store, &mut diagnostics);
+    let mut contracts = extract_contracts(store, &mut diagnostics, &mut owner_lowerings);
+    let mut rules = extract_rules(store, &mut diagnostics, &mut owner_lowerings);
+    let mut path_shapes = extract_path_shapes(store, &mut diagnostics, &mut owner_lowerings);
+    let mut correspondences =
+        extract_correspondences(&mut reader, &mut diagnostics, &mut owner_lowerings);
+    let mut compositions =
+        extract_compositions(store, source_graph, &mut diagnostics, &mut owner_lowerings);
     // Resolve each leg IRI to its `gm:path` body so the round-trip gate can compose the
     // actual leg paths (not IRI strings). Leg-body-free corpora yield an empty registry and
     // leave the canonical key byte-identical (the segment is append-only).
-    let transaction_programs =
-        crate::projections::correspondence::extract_leg_programs(store, &correspondences);
+    let transaction_programs = extract_owned_leg_programs(
+        store,
+        &correspondences,
+        &mut diagnostics,
+        &mut owner_lowerings,
+    );
 
     // Authored `logic:Constraint` individuals PLUS the compact constraint-sugar records (P1–P5,
     // P7, and the aggregate P6), each expanded to one canonical `ConstraintIr`. Both feed the same
     // `LogicProgram::constraints` home (which sorts + content-keys them canonically).
-    let mut constraints = extract_constraints(store, &mut diagnostics, &malformed_formulas);
-    constraints.extend(extract_sugar_constraints(store, &mut diagnostics));
+    let mut constraints = extract_constraints(
+        &mut reader,
+        &mut diagnostics,
+        &malformed_formulas,
+        &mut owner_lowerings,
+    );
+    constraints.extend(extract_sugar_constraints(
+        store,
+        &mut diagnostics,
+        &mut owner_lowerings,
+    ));
 
     // Authored `logic:ReasoningProgram` clause-set-plus-goal individuals. A structurally
     // malformed program emits an error-grade MALFORMED_REASONING_PROGRAM diagnostic above
     // and is excluded here; every other authored program still compiles.
-    let reasoning_programs = extract_reasoning_programs(store, &mut diagnostics);
+    let mut reasoning_programs =
+        extract_reasoning_programs(&mut reader, &mut diagnostics, &mut owner_lowerings);
 
-    let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
-        .with_path_shapes(path_shapes)
-        .with_correspondences(correspondences)
+    // Sort values WITH their origins, then detach them once. The normal constructor
+    // receives empty axiom/formula vectors so neither trees nor keys are rebuilt and
+    // the already canonical vectors need no second sort. No generated-IRI matching.
+    all_axioms.sort_by_cached_key(|emission| emission.axiom.sort_key());
+    let mut axiom_sources = Vec::with_capacity(all_axioms.len());
+    let mut axioms = Vec::with_capacity(all_axioms.len());
+    for (index, mut emission) in all_axioms.into_iter().enumerate() {
+        emission.sources.sort_unstable();
+        emission.sources.dedup();
+        for source in &emission.sources {
+            if let AxiomSource::Formula(source) = source {
+                formula_lowerings.push(FormulaLowering {
+                    source: *source,
+                    disposition: FormulaDisposition::Axiom(index),
+                });
+            }
+        }
+        axioms.push(emission.axiom);
+        axiom_sources.push(emission.sources);
+    }
+    formulas.sort_by_cached_key(|emission| emission.formula.sort_key());
+    let formulas = formulas
+        .into_iter()
+        .enumerate()
+        .map(|(index, emission)| {
+            formula_lowerings.push(FormulaLowering {
+                source: emission.source,
+                disposition: FormulaDisposition::Formula(index),
+            });
+            emission.formula
+        })
+        .collect();
+    formula_lowerings.sort_by_key(|lowering| lowering.source);
+
+    rules.sort_by_cached_key(|emission| emission.value.sort_key());
+    contracts.sort_by_cached_key(|emission| emission.value.sort_key());
+    path_shapes.sort_by_cached_key(|emission| emission.value.sort_key());
+    correspondences.sort_by(|a, b| a.value.iri.cmp(&b.value.iri));
+    compositions.sort_by(|a, b| a.value.cmp(&b.value));
+    constraints.sort_by(|a, b| a.value.iri.cmp(&b.value.iri));
+    reasoning_programs.sort_by(|a, b| a.value.iri.cmp(&b.value.iri));
+    // Leg extraction already visits sorted unique source IRIs.
+    let mut program = LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), source_iri)
+        .with_ordered_correspondences(finish_owners(correspondences, &mut owner_lowerings))
         .map_err(|e| LogicParseError(e.message().to_owned()))?
-        .with_transaction_programs(transaction_programs)
-        .with_formulas(formulas)
-        .with_constraints(constraints)
-        .with_reasoning_programs(reasoning_programs);
-    Ok((program, diagnostics))
+        .with_ordered_constraints(finish_owners(constraints, &mut owner_lowerings))
+        .with_ordered_reasoning_programs(finish_owners(reasoning_programs, &mut owner_lowerings));
+    program.rules = finish_owners(rules, &mut owner_lowerings);
+    program.contracts = finish_owners(contracts, &mut owner_lowerings);
+    program.path_shapes = finish_owners(path_shapes, &mut owner_lowerings);
+    program.transaction_programs = finish_owners(transaction_programs, &mut owner_lowerings);
+    program.correspondence_compositions = finish_owners(compositions, &mut owner_lowerings);
+    program.axioms = axioms;
+    program.formulas = formulas;
+    program.presentations = presentation::extract(
+        store,
+        source_graph,
+        &program,
+        &presentation_formulas,
+        &mut diagnostics,
+        &mut owner_lowerings,
+    );
+    owner_lowerings.sort_by_key(|lowering| (lowering.source, lowering.family));
+    Ok((
+        program,
+        diagnostics,
+        EmissionTrace {
+            presentation_formulas,
+            axiom_sources,
+            formulas: formula_lowerings,
+            owners: owner_lowerings,
+        },
+    ))
 }
 
 /// Parse Turtle source text into a [`LogicProgram`] + diagnostics.
@@ -6475,3 +6496,12 @@ fn path_to_file_uri(path: &Path) -> Option<String> {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod native_statement_tests;
+
+#[cfg(test)]
+mod native_literal_tests;
+
+#[cfg(test)]
+mod compact_term_tests;

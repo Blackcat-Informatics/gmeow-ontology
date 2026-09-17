@@ -25,58 +25,77 @@
 //!
 //! ## Engine lock
 //!
-//! Compilation is pure (parse + projection); it never drives a reasoning engine, so it
-//! declares no resource and holds no capability — a parallel-eligible stage with no
-//! engine lock.
+//! Compilation includes native correspondence-law evaluation and source-presentation
+//! checking. Those operations own their invocation-local state and share immutable
+//! source publications; there is no external reasoner or process-global engine state
+//! to lock. The stage therefore remains eligible for parallel scheduling.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_errors::Location;
-use gmeow_logic_compile::frontend::parse_logic_str;
-use gmeow_logic_compile::ir::{LogicProgram, PreservationKind};
+use gmeow_logic_compile::frontend::{
+    CompiledTheory, OwnerDisposition, OwnerFamily, parse_logic_str,
+};
+use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
 use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
-    CorrespondenceProgram, extract_correspondences, extract_leg_programs, parse_correspondence,
-    project_correspondence,
+    CorrespondenceProgram, parse_correspondence, project_correspondence_dataset,
 };
 use gmeow_logic_compile::projections::correspondence_gates::{
     assert_gates, evaluate_gates, liftability,
 };
-use gmeow_logic_compile::projections::report::ReportHeader;
-use gmeow_logic_compile::projections::{ProjectionResult, compile_program};
+use gmeow_logic_compile::projections::report::ProjectionReportRow;
+use gmeow_logic_compile::projections::{CompiledArtifacts, compile_program};
 use gmeow_logic_compile::relational_core::{
-    RelationalCoreProgram, lower_program, project_relational_core,
+    RelationalCoreProgram, lower_program_with_formulas, project_relational_core_dataset,
 };
 use purrdf::provenance::DatasetProvenance;
-use purrdf::{PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm, parse_dataset};
-use serde::{Deserialize, Serialize};
+use purrdf::{PipelineBundle, RdfDataset, parse_dataset};
 
-use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
+use crate::bundle::{
+    CompiledLogicPublication, LogicReportInputs, PipelineHandle, bundle_from_artifacts_over,
+};
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::diag_render::{DiagnosticsPaths, render_diagnostics_artifacts};
+use crate::stages::diag_render::{
+    DiagnosticsPaths, RenderedDiagnostics, render_diagnostics_artifacts,
+};
 
-/// The single authoritative `logic:` vocabulary source the compiler reads.
+mod correspondence_roundtrip;
+mod formula_fixtures;
+mod native_carrier;
+mod projection_fixtures;
+mod roundtrip;
+mod validation_fixtures;
+mod vocabulary_fixtures;
+
+/// The grounding vocabulary document within the complete admitted source catalog.
 pub const SOURCE_PATH: &str = "slices/grounding/logic/module.ttl";
+/// Canonical provenance identity for the standalone grounding-logic module.
+///
+/// Every producer consumer must use this exact identity when asking the shared
+/// source catalog for the compiled document. A second spelling creates a second
+/// lowering of the same large module and leaves a serial compiler tail after the
+/// parallel conformance observations have completed.
+pub const SOURCE_IRI: &str = gmeow_logic::operator_rules::OPERATOR_SOURCE_IRI;
 
 /// The named-graph IRI carrying the canonical RDF-1.2 projection of the compiled
 /// [`LogicProgram`] (C6). The compile-logic stage pins its typed
-/// [`PipelineHandle::Logic`] handle to THIS graph's canonical digest, and
+/// [`PipelineHandle::CompiledLogic`] handle to THIS graph's canonical digest, and
 /// `stage-snapshot` folds the same projection into the bundle under this IRI — so the
 /// in-graph carriage and the typed handle are the two faces of one content identity.
 pub const GRAPH_LOGIC: &str = gmeow_logic::reasoning_graphs::GRAPH_LOGIC;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the relational-core
 /// lowering of the compiled [`LogicProgram`] (C8) — the engine-agnostic
-/// Datalog±-with-stratified-negation dialect lowered from the program's Horn `rules`.
+/// Datalog±-with-stratified-negation dialect lowered from the program's Horn rules
+/// and the supported Formula fragment, with explicit residue for unlowered formulas.
 /// The compile-logic stage pins its typed [`PipelineHandle::RelationalCore`] handle to
 /// THIS graph's canonical digest, and `stage-snapshot` folds the same projection into the
 /// bundle under this IRI — so the in-graph carriage and the typed handle are the two faces
-/// of one content identity. A downstream consumer reads this LOWERED lane WITHOUT
-/// re-lowering. When the full-FOL formula lowering lands, its richer lowering plugs into
-/// this SAME lane (same dialect + carried residue).
+/// of one content identity. A downstream consumer reads this lowered lane and its
+/// residue without repeating lowering.
 pub const GRAPH_RELATIONAL_CORE: &str = gmeow_logic::reasoning_graphs::GRAPH_RELATIONAL_CORE;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the compiled
@@ -138,6 +157,11 @@ pub const N3_PATH: &str = "generated/n3/gmeow.n3";
 pub const GUFO_PATH: &str = "generated/foundation/gufo.ttl";
 /// Committed canonical RDF 1.2 IR serialization.
 pub const CANONICAL_RDF12_PATH: &str = "generated/logic/gmeow.logic.rdf12.ttl";
+/// Certified physical plans for every executable authored correspondence
+/// composition. The typed program remains the semantic authority; this artifact
+/// records deterministic native plan selection and its independently checkable
+/// scope.
+pub const CORRESPONDENCE_PLANS_PATH: &str = "generated/logic/correspondence-physical-plans.json";
 /// Committed CLIF (Common Logic Interchange Format) projection: the bidirectional,
 /// `PreservationKind::Exact` s-expression FOL dialect.
 pub const CLIF_PATH: &str = "generated/cl/gmeow.clif";
@@ -180,16 +204,30 @@ pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/Te
 /// `paths::project_path_shapes` emits zero per-shape `property-path:<iri>` ledger rows,
 /// and the docs term-loss table (`TermLossDigest`) is vacuous on every term.
 pub const PATH_SHAPES_EXAMPLE_PATH: &str = "slices/grounding/logic/examples/predicate-paths.ttl";
-/// The authored §14 affine-triangle worked example the correspondence lane reads.
+/// The authored executable correspondence worked program the carrier lane reads.
 ///
 /// A SCOPED worked-example source (the `PATH_SHAPES_EXAMPLE_PATH` precedent): parsed
 /// INDEPENDENTLY of the merged authored corpus and read back via
 /// [`gmeow_logic_compile::projections::correspondence::parse_correspondence`] into the
-/// one [`CorrespondenceProgram`] the lane projects onto `graph/correspondence`. This is
-/// the honest DOGFOODED replacement for the former hardcoded Rust worked example: the
-/// affine cell is authored `logic:` TTL, not a `CorrespondenceProgram` literal in code.
+/// selected [`CorrespondenceProgram`] merged into the complete source program. It
+/// carries the §14 affine cell and the executable blood-pressure path compositions;
+/// neither is a hardcoded Rust `CorrespondenceProgram` literal.
 pub const CORRESPONDENCE_EXAMPLE_PATH: &str =
-    "slices/grounding/logic/examples/affine-correspondence.ttl";
+    "slices/grounding/logic/examples/correspondence-program.ttl";
+/// The process-axis worked source: a fixed-count RCHOPS21 `logic:Plan` carrying
+/// guarded branches, tracked-state freshness, nondeterministic outcomes,
+/// compensation and a conditional addition. It is projected by the same native
+/// correspondence execution layer, never treated as an observed run.
+pub const RCHOPS21_PLAN_SOURCE_PATH: &str =
+    "docs/APPLIED_CATEGORY_THEORY/fixtures/rchops21.plan.ttl";
+/// A descriptive process record whose occurrences carry the two in-band
+/// plan/schema witnesses required for honest planned-skeleton recovery.
+pub const RCHOPS21_OBSERVED_SOURCE_PATH: &str =
+    "docs/APPLIED_CATEGORY_THEORY/fixtures/rchops21.observed.ttl";
+/// Certified bounded projection of [`RCHOPS21_PLAN_SOURCE_PATH`].
+pub const RCHOPS21_PLAN_PROJECTION_PATH: &str = "generated/logic/rchops21-plan-projection.json";
+/// Certified planned-skeleton recovery from [`RCHOPS21_OBSERVED_SOURCE_PATH`].
+pub const RCHOPS21_PLAN_RECOVERY_PATH: &str = "generated/logic/rchops21-plan-recovery.json";
 /// The authored goal-directed demonstrator corpus: six `logic:ReasoningProgram`
 /// individuals (Peano addition, cons-list membership, three-valued SLG-WFS negation, the
 /// positive/negative order-sorted math-subsort pair, and the function-free reachability
@@ -209,7 +247,7 @@ pub const REASONING_PROGRAMS_EXAMPLE_PATH: &str =
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
-/// unions the logic projection rows (handed over via [`LOGIC_PROJECTIONS_CHANNEL`]) with
+/// unions the logic projection rows (handed over via [`LogicReportInputs`]) with
 /// the correspondence-calculus loss ledger and serializes the report ONCE. `stage-snapshot`
 /// reads it from the mappings product.
 pub const PROJECTION_REPORT_PATH: &str = "generated/logic/projection-report.ttl";
@@ -224,53 +262,6 @@ pub const RELATIONAL_CORE_PATH: &str = "generated/logic/gmeow.relational-core.nt
 /// pins to (the same role the canonical RDF-1.2 projection plays for the Logic handle).
 pub const CORRESPONDENCE_PATH: &str = "generated/logic/gmeow.correspondence.nt";
 
-/// In-memory dataflow channel (the `pipeline/` prefix is never written to disk): the
-/// JSON-encoded logic projection rows + report-header counts compile-logic hands to
-/// the mappings stage so the latter can assemble the FINAL projection report over the
-/// union of the logic rows and the correspondence ledger.
-pub const LOGIC_PROJECTIONS_CHANNEL: &str = "pipeline/logic-projections.json";
-
-/// The payload of [`LOGIC_PROJECTIONS_CHANNEL`]: the logic program's projection rows
-/// (the eight whole-program targets + the per-shape `property-path:<iri>` rows) and the
-/// report-header counts, so the mappings stage can re-serialize the report over the union
-/// without re-running the logic compiler.
-///
-/// Count ownership is split by seam:
-/// - `header` carries ONLY the axiom/rule/profile/formula counts compile-logic solely
-///   owns (read straight off the compiled program). Its `correspondence_count` /
-///   `lawful_uplift_count` / `claimed_uplift_count` fields ride the channel as 0 — they are
-///   NOT owned here.
-/// - `base_correspondence_count` / `base_lawful_uplift_count` carry the curated affine-gate
-///   BASE (the §14 affine-triangle worked-example gate verdicts). mappings composes this
-///   base with the external-term up-projection audit to form the committed
-///   `correspondenceCount` / `lawfulUpliftCount`. mappings is the SINGLE writer of the final
-///   correspondence/uplift/claimed counts (`fold_up_projection_audit`).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogicProjectionsChannel {
-    /// The report-header counts compile-logic solely owns
-    /// (`axiomCount`/`ruleCount`/`profileCount`/`formulaCount`). The correspondence/uplift
-    /// count fields of this header ride as 0: mappings owns the final composed values.
-    pub header: ReportHeader,
-    /// The curated affine-gate BASE for `logic:correspondenceCount`: the number of
-    /// correspondences in the §14 affine-triangle gate lane. mappings adds the external-term
-    /// audit's `total()` to this base to form the committed count (mappings is the single
-    /// writer of the final field).
-    pub base_correspondence_count: usize,
-    /// The curated affine-gate BASE for `logic:lawfulUpliftCount`: the lawful (round-trip /
-    /// mnemomorphism PASS) up-lift count from the affine-triangle gate report. mappings adds
-    /// the external-term audit's proved tier to this base to form the committed count
-    /// (mappings is the single writer of the final field).
-    pub base_lawful_uplift_count: usize,
-    /// The logic projection rows that fed the compiler's own (diagnostics-only) report.
-    pub projections: Vec<ProjectionResult>,
-    /// The compile's single loss store as owned, serializable nodes (the channel is JSON, so the
-    /// live ledger cannot cross it). The mappings stage rebuilds the store via
-    /// `LossLedger::from_nodes`, unions the correspondence + lang losses in, and reads each row's
-    /// residue back through `projection_drops_for` — so the FINAL report's per-target drops flow
-    /// from the SAME substrate ledger the producers interned into.
-    pub loss_nodes: Vec<gmeow_errors::DiagNode>,
-}
-
 /// Committed JSON projection of the compile diagnostics report.
 pub const DIAG_JSON_PATH: &str = "generated/diagnostics/logic-compile.json";
 /// Committed SARIF projection of the compile diagnostics report.
@@ -283,6 +274,19 @@ pub const DIAG_RDF_PATH: &str = "generated/diagnostics/logic-compile.nq";
 /// The diagnostics tool/code namespace for this surface.
 const TOOL: &str = "logic-compile";
 
+/// Lower a detached compiler observation at its artifact boundary. Operational
+/// functions propagate live diagnostics; the artifact retains the typed record.
+fn observed<T>(result: gmeow_errors::Result<T>) -> Result<T, gmeow_errors::RecordedDiag> {
+    result.map_err(record_failure)
+}
+
+fn record_failure(error: impl Into<gmeow_errors::Diag>) -> gmeow_errors::RecordedDiag {
+    gmeow_errors::DiagLedger::new().record(
+        error.into(),
+        gmeow_errors::StageId::new("stage-compile-logic"),
+    )
+}
+
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-compile-logic".to_string(),
@@ -290,60 +294,29 @@ fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
-/// Re-serialize an N-Triples projection as the RDFC-1.0 canonical N-Triples document
-/// (blank labels canonicalized, lines bytewise-sorted) so the committed file IS the
-/// fold the superset gate reconstructs. RDFC is idempotent, so the round-trip is
-/// byte-stable even for the blank-node-bearing relational-core program.
-pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| stage_err(format!("parse N-Triples projection: {e}")))?;
-    crate::stages::superset::canonical_ntriples(&ds)
-        .map_err(|e| stage_err(format!("canonicalize N-Triples projection: {e}")))
-}
-
-/// The §14 affine-triangle worked example as the PRODUCTION path derives it: read the
-/// authored `CORRESPONDENCE_EXAMPLE_PATH` cell and re-derive its [`CorrespondenceProgram`]
-/// via `parse_correspondence`. Test-only helper so every pipeline test exercises the SAME
-/// canonical authored source the stage does (the fidelity oracle in `gmeow-logic-compile`
-/// proves this equals the `affine_triangle_worked_example` Rust literal byte-for-byte).
 #[cfg(test)]
-pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .join(CORRESPONDENCE_EXAMPLE_PATH);
-    let source = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read authored affine correspondence cell {path:?}: {e}"));
-    let dataset = parse_dataset(source.as_bytes(), "text/turtle", None)
-        .expect("parse authored affine correspondence cell");
-    parse_correspondence(&dataset).expect("re-derive authored affine correspondence program")
-}
+mod test_fixtures;
+#[cfg(test)]
+pub(crate) use test_fixtures::synthetic_affine_program;
 
 /// The `stage-compile-logic` pipeline stage.
 pub struct CompileLogicStage {
-    /// The upstream products this stage consumes — `stage-source-load`, off which it reads
-    /// the complete [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
-    /// lossless merged authored RDF 1.2 corpus its augmentation readers walk).
+    /// The producer retaining original documents and the shared aggregate selection.
     consumes: Vec<String>,
-    /// The typed dataflow entities: it reads ONLY the `graph/logic-compile-inputs` named
-    /// graph of the `stage-source-load` product. The graph retains the whole RDF 1.2
-    /// carrier so new ownership/projection readers cannot be starved by an older predicate
-    /// filter.
+    /// The catalog receipt graph and its complete native source commitment.
     entities: Vec<(String, Vec<String>)>,
 }
 
 impl CompileLogicStage {
-    /// Construct the stage. It consumes `stage-source-load`, reading ONLY that product's
-    /// complete [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] named graph for the
-    /// five augmentation readers (validation shapes, constraints, correspondences, leg
-    /// programs, the diagnostic meta-fold); the canonical `logic:` source and the vendored
-    /// OPTs / worked examples it still reads directly from disk (declared via
-    /// [`Stage::input_files`]).
+    /// Consume the native parse catalog. Source publication and compilation can
+    /// run concurrently; the compiler's explicitly selected OPTs and worked
+    /// examples remain declared direct inputs.
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-source-load".to_string()],
+            consumes: vec!["stage-parse-sources".to_string()],
             entities: vec![(
-                "stage-source-load".to_string(),
-                vec![crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS.to_string()],
+                "stage-parse-sources".to_string(),
+                vec![crate::stages::parse_sources::GRAPH_SOURCE_CATALOG.to_string()],
             )],
         }
     }
@@ -377,6 +350,102 @@ fn lift_opt_constraints(
         .collect()
 }
 
+/// Keep the throwing boundary coupled to the original owner dispositions and
+/// the gates already evaluated by the shared compilation. A rejected owner or
+/// leg remains fatal even when it has no claimed law requiring execution.
+fn compile_source_projections(
+    theory: &Arc<CompiledTheory>,
+    program: &LogicProgram,
+) -> gmeow_errors::Result<(
+    CompiledArtifacts,
+    gmeow_logic::correspondence_exec::presentation::source::SourceMerges,
+    gmeow_logic::correspondence_exec::axes::SourceAxes,
+)> {
+    for owner in theory.owner_lowerings() {
+        if matches!(
+            owner.family,
+            OwnerFamily::Correspondence
+                | OwnerFamily::CorrespondenceComposition
+                | OwnerFamily::TransactionProgram
+        ) && owner.disposition == OwnerDisposition::Rejected
+        {
+            let detail = owner
+                .diagnostics
+                .iter()
+                .map(|&index| theory.diagnostics()[index].message.as_str())
+                .collect::<Vec<_>>()
+                .join("; ");
+            return Err(stage_err(format!(
+                "rejected authored {:?}: {detail}",
+                owner.family
+            )));
+        }
+    }
+    let merges = gmeow_logic::correspondence_exec::presentation::source::execute(
+        Arc::clone(theory),
+        gmeow_logic::correspondence_exec::presentation::PresentationLimits::default(),
+    )?;
+    let artifacts = compile_program(program, gmeow_logic::correspondence_exec::program_verdicts)
+        .map_err(|error| stage_err(format!("compile: {error}")))?;
+    if let Some(report) = &artifacts.correspondence_gates {
+        assert_gates(report)
+            .map_err(|error| stage_err(format!("authored correspondence gate: {error}")))?;
+    }
+    let axes = gmeow_logic::correspondence_exec::axes::execute(Arc::clone(theory))?;
+    Ok((artifacts, merges, axes))
+}
+
+/// Form the single shipped correspondence program from the complete compiled
+/// source and the explicitly selected worked cell. Duplicate identities are an
+/// authoring conflict, never an order-dependent override. Program-level
+/// preservation is the lattice join (worst preservation wins).
+fn merge_correspondence_programs(
+    source: Option<CorrespondenceProgram>,
+    selected: CorrespondenceProgram,
+) -> gmeow_errors::Result<CorrespondenceProgram> {
+    let Some(source) = source else {
+        return Ok(selected);
+    };
+    let preservation =
+        gmeow_errors::BoundedLattice::join(source.preservation, selected.preservation);
+    let mut correspondences = source.correspondences;
+    correspondences.extend(selected.correspondences);
+    reject_duplicate_identity(
+        "correspondence",
+        correspondences.iter().map(|value| value.iri.as_str()),
+    )?;
+    let mut compositions = source.compositions;
+    compositions.extend(selected.compositions);
+    reject_duplicate_identity(
+        "correspondence composition",
+        compositions.iter().map(|value| value.iri.as_str()),
+    )?;
+    let mut legs = source.leg_programs;
+    legs.extend(selected.leg_programs);
+    reject_duplicate_identity(
+        "correspondence transaction program",
+        legs.iter().map(|value| value.iri.as_str()),
+    )?;
+    Ok(CorrespondenceProgram::new(correspondences, preservation)
+        .with_compositions(compositions)
+        .with_leg_programs(legs))
+}
+
+fn reject_duplicate_identity<'a>(
+    kind: &str,
+    identities: impl IntoIterator<Item = &'a str>,
+) -> gmeow_errors::Result<()> {
+    let mut seen = BTreeSet::new();
+    for identity in identities {
+        if !seen.insert(identity) {
+            return Err(stage_err(format!(
+                "duplicate {kind} identity <{identity}> while assembling the shipped program"
+            )));
+        }
+    }
+    Ok(())
+}
+
 impl Stage for CompileLogicStage {
     fn id(&self) -> &str {
         "stage-compile-logic"
@@ -384,10 +453,8 @@ impl Stage for CompileLogicStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
-    /// Typed dataflow (artifact-level): from `stage-source-load` it reads ONLY the
-    /// `graph/logic-compile-inputs` named graph (the complete authored RDF 1.2 corpus).
-    /// Declaring that entity folds its digest into the compiler's cache key while retaining
-    /// every semantic input an evolving reader may consume.
+    /// The parse-stage receipt and native payload commitment authenticate every
+    /// original source input without duplicating the corpus in a transport graph.
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
     }
@@ -403,60 +470,42 @@ impl Stage for CompileLogicStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn cache_policy(&self) -> CachePolicy {
-        // The structural cache stores graph-derived relational/correspondence handles and
-        // the complete typed Logic IR. The latter is required because graph/logic is an
+        // The structural cache stores complete typed Logic, relational and correspondence
+        // handles. Native values are required because graph/logic is an
         // intentionally lossy governed projection; serving a reverse-parsed shorter
         // program would violate no-optionality.
         CachePolicy::Persistent
     }
     fn impl_version(&self) -> &str {
-        // v5: the authored `logic:PathShape` worked-example instances
-        // (`PATH_SHAPES_EXAMPLE_PATH`) are now folded into `program.path_shapes`, so
-        // `project_path_shapes` emits real per-shape ledger rows (G1: the B2 per-term
-        // projection-loss table is no longer vacuous).
-        // v6: the affine worked example is now read from `CORRESPONDENCE_EXAMPLE_PATH`
-        // (authored `logic:` TTL) via `parse_correspondence`, not a hardcoded Rust literal.
-        // v7: the correspondence/uplift BASE rides the channel's `base_*` fields; the report
-        // header's count fields ship as 0, and mappings is the single owner of the final counts.
-        // v8: the five augmentation readers consume the narrowed source-load
-        // `graph/logic-compile-inputs` graph (a SOUND denylist narrowing of the whole
-        // authored corpus) instead of re-parsing the corpus from disk; the whole-corpus file
-        // list is dropped from `input_files` and freshness rides the typed `consumed_entities`
-        // edge.
-        // v9: the authored goal-directed demonstrator corpus
-        // (`REASONING_PROGRAMS_EXAMPLE_PATH`) is now folded into `program.reasoning_programs`,
-        // so `stage-goal-directed` compiles authored `logic:ReasoningProgram`s instead of the
-        // hand-interned Rust demonstrator constants.
-        // v10: persistence is fail-closed for typed handles. graph/logic deliberately
-        // omits source-verbatim IR collections, so a semantically shorter reverse parse
-        // is never admitted.
-        // v11: the structural cache carries the complete serde LogicProgram payload,
-        // authenticates its canonical key, and can therefore persist this exact product.
-        // v12: consume the lossless RDF 1.2 source-load carrier. Predicate narrowing was
-        // not a stable boundary for the evolving ownership and projection readers.
-        "compile-logic.v12-lossless-input"
+        "compile-logic.v40-leg-program-roundtrip"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
-        // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
-        // two worked-example cells directly from disk, so those are declared as raw input
-        // files for byte-level cache soundness. The WHOLE authored corpus is NO LONGER
-        // declared here: the augmentation readers now read the complete
-        // `graph/logic-compile-inputs` entity off the `stage-source-load` product
-        // (`consumed_entities`), so corpus freshness rides that typed dataflow edge.
-        Ok(vec![
-            root.join(SOURCE_PATH),
+        // Explicit OPT, worked-example and counterexample selections are direct inputs.
+        // Canonical source and augmentation freshness come from the parse-stage
+        // receipt graph and complete typed catalog commitment.
+        let mut files = vec![
             root.join(OPT_SOURCE_PATH),
             root.join(OPT_TEST_DATATYPES_PATH),
             root.join(PATH_SHAPES_EXAMPLE_PATH),
             root.join(CORRESPONDENCE_EXAMPLE_PATH),
+            root.join(RCHOPS21_PLAN_SOURCE_PATH),
+            root.join(RCHOPS21_OBSERVED_SOURCE_PATH),
             root.join(REASONING_PROGRAMS_EXAMPLE_PATH),
-        ])
+        ];
+        files.extend(validation_fixtures::input_files(root));
+        files.extend(formula_fixtures::input_files(root));
+        files.extend(projection_fixtures::input_files(root));
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
-            .map_err(|e| stage_err(format!("read {SOURCE_PATH}: {e}")))?;
-        let (program, mut diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
-            .map_err(|e| stage_err(format!("parse {SOURCE_PATH}: {}", e.0)))?;
+        let catalog = crate::stages::parse_sources::catalog(&input)?;
+        let theory = catalog.compiled_logic()?;
+        let ontology = theory.source().dataset();
+        // The immutable source theory remains coupled to its exact native roots
+        // and diagnostics. This projection program additionally carries explicitly
+        // selected OPT/example products; it is not the source-execution authority.
+        let program = theory.program().clone();
+        let mut diagnostics = theory.diagnostics().to_vec();
         // Constraints axis: lift the vendored openEHR OPTs' constraints to logic:ValidationShapes
         // and attach them, so the SHACL Core + ShEx shape surfaces flow into gmeow.gts as
         // generated projections (DATA FLOWS TO gmeow.gts; maximal dogfooding). A hard fail if
@@ -484,36 +533,10 @@ impl Stage for CompileLogicStage {
             TEST_DATATYPES_BASE,
             &BTreeMap::new(),
         )?);
-        // Derive closed-world validation shapes from the merged authored ontology's OWL
-        // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
-        // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
-        // derived ontology shapes ride into gmeow.gts through the shape surfaces.
-        //
-        // Read the merged authored corpus as the complete `graph/logic-compile-inputs`
-        // entity off the `stage-source-load` product. The producer carries every authored
-        // RDF 1.2 quad and statement side table; no predicate-level guess may discard a
-        // future ownership or projection input. `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
-        // default graph, so the five augmentation readers (all graph-position-agnostic over
-        // the default graph) consume it directly. A missing product or an empty projection
-        // is a corrupt build — HARD-fail (no-optionality), never a silently-empty corpus.
-        let source_load = input.upstream.get("stage-source-load").ok_or_else(|| {
-            stage_err("missing stage-source-load product for the graph/logic-compile-inputs corpus")
-        })?;
-        let ontology = Arc::new(
-            source_load
-                .bundle()
-                .dataset()
-                .project_named_graph(crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS),
-        );
-        if ontology.quad_count() == 0 {
-            return Err(stage_err(format!(
-                "stage-source-load product carries an empty <{}> graph — the complete \
-                 compile-logic input corpus is missing (corrupt upstream product)",
-                crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS
-            )));
-        }
+        // Derive validation views from the same retained source selection,
+        // before carrier graph placement and public literal projection.
         validation_shapes.extend(
-            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology)
                 .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
         );
         // Migration-surviving functional-carrier integrity gate. The pre-migration completeness
@@ -527,7 +550,7 @@ impl Stage for CompileLogicStage {
         // diff, forcing a conscious re-bless). HARD FAIL over the merged corpus — never a soft
         // warning; each violation kind is listed distinctly.
         let functional_carrier_violations =
-            gmeow_logic_compile::frontend::functional_carrier_integrity(ontology.as_ref());
+            gmeow_logic_compile::frontend::functional_carrier_integrity(ontology);
         if !functional_carrier_violations.is_empty() {
             let count = functional_carrier_violations.len();
             let detail = functional_carrier_violations
@@ -542,18 +565,10 @@ impl Stage for CompileLogicStage {
                 if count == 1 { "" } else { "s" },
             )));
         }
-        // Procedural constraints (`logic:Constraint` + the P1–P7 / aggregate sugar) are gathered
-        // from the WHOLE merged authored dataset — not only the `logic:` terminal module parsed
-        // above — so a constraint may be authored in the slice that OWNS the constrained class (the
-        // constraint peer of `derive_validation_shapes`, which already reads the merged ontology).
-        // This REPLACES the logic-module-only constraint set the parse above produced (the merged
-        // set is a superset, canonicalized by `with_constraints`).
-        let (all_constraints, constraint_diags) =
-            gmeow_logic_compile::frontend::extract_all_constraints(ontology.as_ref());
-        diagnostics.extend(constraint_diags);
-        let program = program
-            .with_validation_shapes(validation_shapes)
-            .with_constraints(all_constraints);
+        // Canonical constraints already belong to the complete shared compilation.
+        // Keep them intact; only the explicitly selected OPT products are added.
+        validation_shapes.extend(program.validation_shapes.iter().cloned());
+        let program = program.with_validation_shapes(validation_shapes);
 
         // Fold in the authored `logic:PathShape` worked-example instances (see
         // `PATH_SHAPES_EXAMPLE_PATH`'s doc comment): parse the example file as an
@@ -601,30 +616,21 @@ impl Stage for CompileLogicStage {
                  worked-example source)"
             )));
         }
-        let program =
-            program.with_reasoning_programs(reasoning_programs_program.reasoning_programs);
+        let mut reasoning_programs = program.reasoning_programs.clone();
+        reasoning_programs.extend(reasoning_programs_program.reasoning_programs);
+        let program = program.with_reasoning_programs(reasoning_programs);
 
-        // The overclaim / rule-safety gate runs inside `compile_program`; a violation
-        // is a hard error (fail-closed), never a silently dropped product.
-        // Discharge every authored correspondence's lens law by EXECUTION so the five
-        // correspondence gates inside `compile_program` read a real per-correspondence verdict.
-        // The canonical logic: source authors no `logic:Correspondence` cells today, so this is
-        // an empty map (the gates never run) — but authoring one MUST not reach the gates'
-        // missing-verdict hard-fail; computing the verdicts here is what guarantees that. (The
-        // affine-triangle correspondence lane is discharged + gated separately below.)
-        let verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
-            .map_err(|e| stage_err(format!("discharge correspondence lens laws: {e}")))?;
-        let mut arts =
-            compile_program(&program, &verdicts).map_err(|e| stage_err(format!("compile: {e}")))?;
+        // The complete catalog supplies the source correspondences and their legs.
+        // Execute and enforce their gates once, retaining the compiled evidence.
+        let (mut arts, merges, axes) = compile_source_projections(&theory, &program)?;
+        let authored_lift = arts.correspondence_gates.as_ref().map(liftability);
 
-        // Correspondence carrier lane (F4): derive the lawful put legs for the §14 affine
-        // triangle, run the five gates as a HARD FAIL, and fold the gate-derived liftability
-        // statistic into the report header. The affine lane bypasses `compile_program` (whose
-        // `program.correspondences` is empty in production), so the gates are RECORDED but
-        // never enforced there — this is the one place they are thrown, AND the one place the
-        // committed loss ledger learns its `correspondenceCount` / `lawfulUpliftCount` over
-        // REAL gate verdicts (the honest replacement for the SSSOM "81% liftable" heuristic).
-        // Read the affine cell from its authored `logic:` TTL (the honest dogfooded
+        // Correspondence carrier lane (F4): derive every supported put leg in the authored
+        // worked program, run the five gates as a HARD FAIL, and fold the gate-derived
+        // liftability statistic into the report header. This explicitly selected program remains
+        // separate from the source catalog, so its domain facts do not become source
+        // axioms. Its counts join those of the source correspondences below.
+        // Read the program from its authored `logic:` TTL (the honest dogfooded
         // replacement for the former hardcoded Rust worked example) and re-derive the one
         // `CorrespondenceProgram` via `parse_correspondence` — the EXACT inverse of the
         // `project_correspondence` below, so `graph/correspondence` stays byte-identical.
@@ -646,87 +652,129 @@ impl Stage for CompileLogicStage {
             .clone()
             .with_derived_puts()
             .map_err(|e| stage_err(format!("derive correspondence put legs: {e}")))?;
-        // Discharge the affine triangle's lens laws by EXECUTION (engine-adjacent) and gate on
-        // the resulting per-correspondence verdicts — the gates themselves stay execution-free.
+        // Discharge executable lens laws engine-adjacent and gate on the resulting
+        // per-correspondence verdicts — the gates themselves stay execution-free.
         let gate_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
         let gate_report = evaluate_gates(&gated, &[], &gate_verdicts);
         assert_gates(&gate_report).map_err(|e| stage_err(format!("correspondence gate: {e}")))?;
         let lift = liftability(&gate_report);
+        let selected_correspondence_count = gated.correspondences.len();
+        // Ship one complete typed program. The source compiler has already
+        // derived and checked its candidate put legs; the selected worked program
+        // has just passed the same native law/gate authority above. No source
+        // program is discarded behind a worked-example-only handle.
+        let correspondence =
+            merge_correspondence_programs(arts.correspondence_program.take(), gated)?;
+        let physical_plans =
+            gmeow_logic::correspondence_exec::physical_plan::PreparedCompositionProgram::prepare(
+                &correspondence,
+                gmeow_logic::correspondence_exec::physical_plan::CompositionPlanLimits::default(),
+            )?;
+        let rchops21_source =
+            std::fs::read_to_string(input.root.join(RCHOPS21_PLAN_SOURCE_PATH))
+                .map_err(|error| stage_err(format!("read {RCHOPS21_PLAN_SOURCE_PATH}: {error}")))?;
+        let rchops21_dataset = parse_dataset(rchops21_source.as_bytes(), "text/turtle", None)
+            .map_err(|error| stage_err(format!("parse {RCHOPS21_PLAN_SOURCE_PATH}: {error}")))?;
+        let rchops21_projection = gmeow_logic::correspondence_exec::plan_projection::project_plan(
+            &rchops21_dataset,
+            "urn:gmeow:plan:rchops21",
+            None,
+            gmeow_logic::correspondence_exec::plan_projection::PlanProjectionLimits::default(),
+        )
+        .map_err(|error| {
+            stage_err(format!(
+                "project RCHOPS21 process correspondence from {RCHOPS21_PLAN_SOURCE_PATH}: {error}"
+            ))
+        })?;
+        let rchops21_observed_source = std::fs::read_to_string(
+            input.root.join(RCHOPS21_OBSERVED_SOURCE_PATH),
+        )
+        .map_err(|error| stage_err(format!("read {RCHOPS21_OBSERVED_SOURCE_PATH}: {error}")))?;
+        let rchops21_observed =
+            parse_dataset(rchops21_observed_source.as_bytes(), "text/turtle", None).map_err(
+                |error| stage_err(format!("parse {RCHOPS21_OBSERVED_SOURCE_PATH}: {error}")),
+            )?;
+        let rchops21_recovery =
+            gmeow_logic::correspondence_exec::plan_projection::recover_planned_schema_skeleton(
+                &rchops21_projection,
+                &rchops21_observed,
+            )
+            .map_err(|error| {
+                stage_err(format!(
+                    "recover RCHOPS21 planned skeleton from {RCHOPS21_OBSERVED_SOURCE_PATH}: {error}"
+                ))
+            })?;
         // Count-ownership seam (Seam 1): compile-logic no longer writes the FINAL
         // `correspondence_count` / `lawful_uplift_count` into the report header. It ships the
-        // curated affine-gate BASE explicitly on the channel (`base_correspondence_count` /
+        // source-and-example BASE explicitly in native report inputs (`base_correspondence_count` /
         // `base_lawful_uplift_count`, populated below from `gated`/`lift`), and mappings'
         // `fold_up_projection_audit` is the SINGLE writer that composes base + external-term
-        // audit into the committed counts. Force the header's count fields to 0 so the channel
-        // header carries no correspondence/uplift base (`ReportHeader::of_program` seeds
-        // `correspondence_count` from `program.correspondences.len()`, which is empty in
-        // production but is zeroed here to make the single-owner contract explicit and
-        // future-proof).
+        // audit into the committed counts. Force the header's count fields to 0 so the
+        // header carries no correspondence/uplift base; the native inputs retain
+        // both the source and selected-example gate totals for that single writer.
         arts.report_header.correspondence_count = 0;
         arts.report_header.lawful_uplift_count = 0;
         arts.report_header.claimed_uplift_count = 0;
 
-        // Authored-correspondence enforcement: extract EVERY `a logic:Correspondence`
-        // individual from the merged authored surface (the supersession ledger and any
-        // other authored crossing), derive its lawful put legs, and run the five gates as
-        // a HARD FAIL. This is the throwing seam for authored correspondences — a false
-        // Section-Retraction (a claimed recovery whose get leg cannot invert to put ∘ get =
-        // id) reds the build here, so a supersession rung can never be an unchecked prose
-        // claim. A malformed correspondence cell is surfaced, never silently dropped.
-        let (authored_corrs, authored_errors) = extract_correspondences(ontology.as_ref());
-        if let Some((iri, msg)) = authored_errors.first() {
-            return Err(stage_err(format!(
-                "malformed authored logic:Correspondence <{iri}>: {msg}"
-            )));
-        }
-        if !authored_corrs.is_empty() {
-            let authored_legs = extract_leg_programs(ontology.as_ref(), &authored_corrs);
-            let authored_program =
-                CorrespondenceProgram::new(authored_corrs, Vec::new(), PreservationKind::Exact)
-                    .with_leg_programs(authored_legs);
-            let (authored_gated, _authored_outcomes) = authored_program
-                .with_derived_puts()
-                .map_err(|e| stage_err(format!("derive authored correspondence put legs: {e}")))?;
-            // Discharge the authored correspondences' lens laws by EXECUTION and gate on the
-            // resulting per-correspondence verdicts (mirroring the affine lane above) — the
-            // law gate now reads real discharge verdicts, so a claimed Section-Retraction whose
-            // get leg cannot invert reds the build here rather than passing unverified.
-            let authored_verdicts =
-                gmeow_logic::correspondence_exec::program_verdicts(&authored_gated);
-            let authored_report = evaluate_gates(&authored_gated, &[], &authored_verdicts);
-            assert_gates(&authored_report)
-                .map_err(|e| stage_err(format!("authored correspondence gate: {e}")))?;
-        }
-
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(
+            CORRESPONDENCE_PLANS_PATH.into(),
+            physical_plans.report_json()?,
+        );
+        let mut rchops21_projection_json = serde_json::to_vec_pretty(&rchops21_projection)
+            .map_err(|error| stage_err(format!("encode RCHOPS21 plan projection: {error}")))?;
+        rchops21_projection_json.push(b'\n');
+        artifacts.insert(
+            RCHOPS21_PLAN_PROJECTION_PATH.into(),
+            rchops21_projection_json,
+        );
+        let mut rchops21_recovery_json = serde_json::to_vec_pretty(&rchops21_recovery)
+            .map_err(|error| stage_err(format!("encode RCHOPS21 plan recovery: {error}")))?;
+        rchops21_recovery_json.push(b'\n');
+        artifacts.insert(RCHOPS21_PLAN_RECOVERY_PATH.into(), rchops21_recovery_json);
+        artifacts.insert(
+            "generated/logic/presentation-merges.json".into(),
+            merges.report()?,
+        );
+        artifacts.insert(
+            "generated/logic/correspondence-axes.json".into(),
+            axes.report()?,
+        );
+        let grounding = catalog.compiled_document(SOURCE_PATH, Some(SOURCE_IRI.to_owned()))?;
+        roundtrip::record(grounding.program(), &mut artifacts)?;
+        vocabulary_fixtures::record(catalog.document(SOURCE_PATH)?, &mut artifacts)?;
+        validation_fixtures::record(catalog, input.root, &mut artifacts)?;
+        formula_fixtures::record(input.root, &mut artifacts)?;
+        projection_fixtures::record(input.root, &mut artifacts)?;
         // The nine projection serializations, byte-for-byte as the compiler produced
         // them (RDF targets are reconciled by graph isomorphism, text targets by bytes).
-        artifacts.insert(OWL_DL_PATH.to_string(), arts.owl_dl.into_bytes());
-        artifacts.insert(OWL_EL_PATH.to_string(), arts.owl_el.into_bytes());
+        artifacts.insert(
+            OWL_DL_PATH.to_string(),
+            arts.owl_dl.into_text().content.into_bytes(),
+        );
+        artifacts.insert(
+            OWL_EL_PATH.to_string(),
+            arts.owl_el.into_text().content.into_bytes(),
+        );
         artifacts.insert(DATALOG_PATH.to_string(), arts.datalog.into_bytes());
         artifacts.insert(N3_PATH.to_string(), arts.n3.into_bytes());
         // gUFO rides as an RDF-fanout named graph: emit EXACTLY the canonical fold
         // (shared prefix authority, no banner) so the superset gate reconstructs it.
         artifacts.insert(
             GUFO_PATH.to_string(),
-            purrdf::turtle_normalize::canonical_turtle(
-                arts.gufo.as_bytes(),
+            purrdf::turtle_normalize::render(
+                &arts.gufo.dataset,
                 &crate::stages::superset::rdf_prefixes(),
             )
-            .map(String::into_bytes)
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-compile-logic".to_string(),
-                    message: format!("canonicalize gufo.ttl: {e}"),
-                })
-            })?,
+            .into_bytes(),
         );
         // Keep the canonical RDF-1.2 projection: it is BOTH a committed artifact AND
         // the backing graph the typed Logic handle (C6) pins to.
-        let canonical_rdf12 = arts.canonical_rdf12;
+        let canonical_dataset = Arc::clone(&arts.canonical_rdf12.dataset);
+        let canonical_rdf12 = arts.canonical_rdf12.into_text().content;
         artifacts.insert(
             CANONICAL_RDF12_PATH.to_string(),
-            canonical_rdf12.clone().into_bytes(),
+            canonical_rdf12.into_bytes(),
         );
         artifacts.insert(CLIF_PATH.to_string(), arts.clif.into_bytes());
         artifacts.insert(CGIF_PATH.to_string(), arts.cgif.into_bytes());
@@ -780,55 +828,58 @@ impl Stage for CompileLogicStage {
         // The COMMITTED projection report is no longer emitted here: the loss ledger
         // must carry BOTH the logic projection rows AND the correspondence-calculus
         // rows, and the correspondences are reconstructed only in the mappings stage.
-        // Hand the logic rows + header counts to mappings over the in-memory channel;
-        // mappings assembles + emits the final `PROJECTION_REPORT_PATH`.
-        let channel = LogicProjectionsChannel {
+        // Share compact native report inputs with mappings. Projection bodies stay
+        // in their artifact lanes; the complete loss ledger moves into the immutable
+        // publication and is encoded only at the persistent action boundary.
+        let report_inputs = LogicReportInputs {
             header: arts.report_header,
-            // The curated affine-gate BASE the mappings stage composes with the external-term
+            // The source-and-example BASE mappings composes with the external-term
             // up-projection audit to form the committed correspondence/uplift counts.
-            base_correspondence_count: gated.correspondences.len(),
-            base_lawful_uplift_count: lift.lawful,
-            projections: arts.logic_projections.clone(),
-            loss_nodes: arts.loss.to_nodes(),
+            base_correspondence_count: selected_correspondence_count
+                + authored_lift.map_or(0, |ledger| ledger.total),
+            base_lawful_uplift_count: lift.lawful + authored_lift.map_or(0, |ledger| ledger.lawful),
+            projections: arts
+                .logic_projections
+                .into_iter()
+                .map(ProjectionReportRow::from)
+                .collect(),
+            loss: arts.loss,
         };
-        artifacts.insert(
-            LOGIC_PROJECTIONS_CHANNEL.to_string(),
-            serde_json::to_vec(&channel)
-                .map_err(|e| stage_err(format!("encode logic-projections channel: {e}")))?,
-        );
 
         // The relational-core lowering (C8): lower the program's Horn rules into the
         // engine-agnostic Datalog±-with-stratified-negation dialect, then project it into
-        // a deterministic N-Triples graph. Keep the projection: it is BOTH a committed
-        // artifact AND the backing graph the typed RelationalCore handle pins to. The
+        // one native RDF graph. Keep the projection: it backs BOTH a terminal
+        // artifact and the graph the typed RelationalCore handle pins to. The
         // lowering runs EXACTLY ONCE here; every downstream consumer reads the typed handle
         // (or the folded graph), never re-lowering.
-        let relational_core = lower_program(&program);
-        let relational_core_nt = project_relational_core(&relational_core);
+        let relational_core = lower_program_with_formulas(&program);
+        let relational_core_projection = project_relational_core_dataset(&relational_core)?;
         artifacts.insert(
             RELATIONAL_CORE_PATH.to_string(),
-            canon_fanout_nt(&relational_core_nt)?,
+            super::superset::canonical_ntriples(&relational_core_projection)?,
         );
 
-        // The correspondence carrier lane (C10): the §14 affine-triangle worked
-        // transform (`foaf:Person` + `schema:ContactPoint` co-projecting onto
-        // `gmeow:contact`). Constructed ONCE here, projected ONCE here, then carried BOTH
+        // The correspondence carrier lane (C10): the complete typed source program plus
+        // the executable worked program. Constructed ONCE here, projected ONCE here, then carried BOTH
         // as the typed `PipelineHandle::Correspondence` payload AND its backing
-        // `graph/correspondence` projection. The overclaim gate (run at construction +
-        // re-asserted below) keeps a caveated affine overlap at `skos:relatedMatch`,
-        // never `skos:exactMatch` / `owl:equivalentClass`.
-        // The affine triangle was derived + gate-asserted above (the hard-fail + the report
-        // header's liftability statistic); project the carrier lane here.
-        let correspondence_nt = project_correspondence(&correspondence);
+        // `graph/correspondence` projection. The overclaim gate keeps every relation at its
+        // certified strength, and the physical-plan report binds every admitted composition
+        // to this same complete program.
+        let correspondence_projection = project_correspondence_dataset(&correspondence)?;
+        correspondence_roundtrip::record(
+            &correspondence,
+            &correspondence_projection,
+            &mut artifacts,
+        )?;
         artifacts.insert(
             CORRESPONDENCE_PATH.to_string(),
-            canon_fanout_nt(&correspondence_nt)?,
+            crate::stages::superset::canonical_ntriples(&correspondence_projection)?,
         );
 
         // The compile diagnostics: the front-end parse findings (already coded
         // `logic-compile.<code>` by the shared bridge) UNIONED with the loss ledger's
         // OWN witness projection. Rather than hand-build identity-less notes, project the
-        // single runtime loss store (`arts.loss`) through `to_finding`: each structural
+        // single runtime loss store (`report_inputs.loss`) through `to_finding`: each structural
         // and actual lossy-drop witness surfaces as a finding carrying its stable
         // `finding_iri` / `anchor_iri` and — for an actual drop — the wired antecedent DAG
         // edge (its causing structural-limitation witness) as a structured antecedent +
@@ -836,37 +887,28 @@ impl Stage for CompileLogicStage {
         // joins on to derive `gmeow:findingRootCause` on the SHIPPED bundle (the hand-built
         // notes carried no such identity, so the meta chase derived nothing).
         let mut report = gmeow_logic::logic_diagnostics::diagnostics_report(&diagnostics);
-        for finding in arts.loss.project_report(TOOL).findings {
+        for finding in report_inputs.loss.project_report(TOOL).findings {
             report.add_finding(finding);
         }
-        // Anchor every compiler finding to the real repo-relative source file so
-        // SARIF physical locations point to `slices/grounding/logic/module.ttl` rather
-        // than falling back to the synthetic `ontology/gmeow.ttl` placeholder.
-        // Findings that already carry a physical path (path.is_some()) are left
-        // unchanged; logical-only findings (IRI subject) get a prepended physical
-        // location so GitHub code-scanning can navigate to the right file.
-        for finding in &mut report.findings {
-            let has_physical = finding.locations.iter().any(|l| l.path.is_some());
-            if !has_physical {
-                finding.locations.insert(
-                    0,
-                    Location::new(Some(SOURCE_PATH.to_string()), None, None, None),
-                );
-            }
-        }
+        // Whole-catalog findings cannot all be assigned to the grounding module.
+        // Preserve actual locations and logical anchors; the shared source theory
+        // retains original document bindings for precise attribution.
         // Normalize for a deterministic committed artifact (mirrors the PyO3 surface).
-        let report = report.normalized();
+        report.normalize();
         // The diagnostic meta-fold: the authored `gmeow:DiagnosticMetaRule` rules (from
         // slices/grounding/logic/module.ttl) + the `gmeow:categoryPolarity` wiring (from
         // slices/core/diagnostics/module.ttl) discovered BY TYPE off the merged authored
-        // dataset (`ontology` carries both slices via `load_authored_dataset`). The loss
+        // catalog's compiled theory and native source. The loss
         // findings above now carry closing antecedent DAGs, so this fold derives the
         // root-cause / cluster / cross-node-glut meta-findings on the SHIPPED bundle.
-        let meta = crate::stages::meta_findings::MetaProgram::from_source_dataset(&ontology)
+        let meta = crate::stages::meta_findings::MetaProgram::from_compiled_theory(&theory)
             .map_err(|e| stage_err(format!("diagnostic meta-fold: {e}")))?;
-        artifacts.extend(render_diagnostics_artifacts(
+        // The run ledger keeps its existing pre-meta findings; native docs share
+        // the renderer's final enriched report independently of that projection.
+        let nodes = crate::stages::diag_render::finding_nodes(&report, self.id());
+        let mut rendered = render_diagnostics_artifacts(
             self.id(),
-            &report,
+            report,
             &DiagnosticsPaths {
                 json: DIAG_JSON_PATH,
                 sarif: DIAG_SARIF_PATH,
@@ -880,28 +922,32 @@ impl Stage for CompileLogicStage {
             // No consumer reads this record back in place of re-running the compiler, so
             // it carries no self-digest (a seal nobody verifies is decoration).
             None,
-        )?);
+        )?;
+        rendered.artifacts.append(&mut artifacts);
 
-        // The REAL typed Logic handle (C6): carry the compiled program itself
-        // on the bundle, pinned to the canonical RDF-1.2 projection of THIS program
+        // Share the program and mandatory report publication, pinned to the
+        // canonical RDF-1.2 projection of THIS program
         // folded into the `graph/logic` named graph. A downstream consumer takes the
-        // typed `Arc<LogicProgram>` and never re-parses the logic graph; on a cache
-        // hit the cache re-derives it from the backing graph via `parse_logic_dataset`.
+        // typed `Arc<LogicProgram>` and never re-parses the logic graph. A persistent
+        // hit restores the authenticated typed program; the graph is a governed
+        // projection and cannot reconstruct every source capability.
         let bundle = build_logic_bundle(
-            program,
-            &canonical_rdf12,
+            CompiledLogicPublication {
+                program: Arc::new(program),
+                report: report_inputs,
+            },
+            canonical_dataset,
             relational_core,
-            &relational_core_nt,
+            relational_core_projection,
             correspondence,
-            &correspondence_nt,
-            artifacts,
+            correspondence_projection,
+            rendered,
         )?;
         // FORWARD diagnostics fold: the compile report's findings are the SINGLE source
         // of both the shipped `graph/diagnostics` RDF (folded into the bundle above) AND
         // the run-level DiagLedger. Project them once to pre-lowered DiagNodes, carry
         // them on the product's `diagnostics:nodes` blob (so a cache hit re-serves them),
         // and hand them up as `StageOutput.diags` for the scheduler to fold on a fresh run.
-        let nodes = crate::stages::diag_render::finding_nodes(&report, self.id());
         let diag_blob = serde_json::to_vec(&nodes)
             .map_err(|e| stage_err(format!("encode diagnostics nodes blob: {e}")))?;
         let bundle = crate::bundle::attach_rep_blob(
@@ -920,56 +966,60 @@ impl Stage for CompileLogicStage {
 
 /// Assemble the compile-logic product bundle: the named byte-artifact lane riding over
 /// a dataset whose `graph/logic` named graph IS the program's canonical RDF-1.2
-/// projection, with the typed [`PipelineHandle::Logic`] handle pinned to that graph's
+/// projection, with the typed [`PipelineHandle::CompiledLogic`] handle pinned to that graph's
 /// canonical digest.
 ///
-/// The handle's payload is the live [`LogicProgram`] (the typed content-addressed IR);
+/// The handle carries the live program and compact, complete report inputs;
 /// its backing graph is the SAME projection `stage-snapshot` folds into `gmeow.gts`, so
 /// the in-graph carriage and the handle are pinned to one identity. `pin_handle`
 /// HARD-fails on a digest mismatch, so a handle that disagrees with its backing graph
 /// can never be attached (no-optionality, fail-closed).
 fn build_logic_bundle(
-    program: LogicProgram,
-    canonical_rdf12_turtle: &str,
+    publication: CompiledLogicPublication,
+    canonical_rdf12: Arc<RdfDataset>,
     relational_core: RelationalCoreProgram,
-    relational_core_nt: &str,
+    relational_core_projection: Arc<RdfDataset>,
     correspondence: CorrespondenceProgram,
-    correspondence_nt: &str,
-    artifacts: BTreeMap<String, Vec<u8>>,
+    correspondence_projection: Arc<RdfDataset>,
+    rendered: RenderedDiagnostics,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
-    // All handles ride one bundle: union their backing graphs (each in its own named
-    // graph) so each pins to the dataset the bundle carries.
-    let logic_dataset = logic_graph_dataset(canonical_rdf12_turtle)?;
-    let rc_dataset = relational_core_graph_dataset(relational_core_nt)?;
-    let corr_dataset = correspondence_graph_dataset(correspondence_nt)?;
     // The logic-compile diagnostics RDF also rides the carrier, in the shared
     // `graph/diagnostics` named graph, so the presenter unions it with the SHACL
     // diagnostics as a pure keyed fold (PIPELINE_SPINE §4) instead of re-parsing the byte
     // artifact. It is object-level-inert (a Finding graph), so it never reaches the reason
     // EDB (which projects only logic / relational-core). The byte lane is
-    // kept for the byte readers.
-    let diag_rdf = artifacts.get(DIAG_RDF_PATH).ok_or_else(|| {
-        stage_err(format!(
-            "build_logic_bundle missing {DIAG_RDF_PATH} artifact"
-        ))
-    })?;
-    let diag_dataset = crate::stages::carrier::parse_into_graph(
-        diag_rdf,
-        "application/n-quads",
-        crate::stages::carrier::GRAPH_DIAGNOSTICS,
+    // kept for terminal output readers; docs borrow the complete native Report.
+    let RenderedDiagnostics {
+        artifacts,
+        dataset: diag_dataset,
+        report,
+    } = rendered;
+    // Retain the original projections, route their complete RDF surfaces, and
+    // materialize the final bundle once. Each independent input has its own blank
+    // scope; diagnostics retain their graph placement. No rooted intermediates
+    // or owned-term union precede this publication.
+    let dataset = native_carrier::assemble(
+        [
+            canonical_rdf12,
+            relational_core_projection,
+            correspondence_projection,
+        ],
+        diag_dataset,
     )?;
-    let dataset = Arc::new(purrdf::RdfDataset::union(&[
-        logic_dataset.as_ref(),
-        rc_dataset.as_ref(),
-        corr_dataset.as_ref(),
-        diag_dataset.as_ref(),
-    ]));
     let mut bundle = bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
+    crate::bundle::pin_diagnostics(
+        &mut bundle,
+        "stage-compile-logic",
+        Arc::new(crate::bundle::DiagnosticsPublication::producer(
+            crate::bundle::DiagnosticReportOwner::CompileLogic,
+            report,
+        )?),
+    )?;
     let pinned = bundle.graph_digest(GRAPH_LOGIC);
     bundle
         .pin_handle(
             GRAPH_LOGIC,
-            PipelineHandle::Logic(Arc::new(program)),
+            PipelineHandle::CompiledLogic(Arc::new(publication)),
             pinned,
         )
         .map_err(|e| stage_err(format!("pin Logic handle to <{GRAPH_LOGIC}>: {e}")))?;
@@ -1006,628 +1056,6 @@ fn build_logic_bundle(
     Ok(bundle)
 }
 
-/// Parse the correspondence N-Triples projection and route every triple into the
-/// `graph/correspondence` named graph of a fresh frozen dataset — the backing graph the
-/// typed Correspondence handle pins to and the cache re-derives the program from. Mirrors
-/// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
-fn correspondence_graph_dataset(
-    projection_nt: &str,
-) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let parsed = parse_dataset(projection_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| stage_err(format!("parse correspondence projection: {e}")))?;
-    let graph = RdfTerm::Iri(GRAPH_CORRESPONDENCE.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let mut routed = quad.clone();
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
-    }
-    builder
-        .freeze()
-        .map_err(|e| stage_err(format!("freeze graph/correspondence dataset: {e}")))
-}
-
-/// Parse the relational-core N-Triples projection and route every triple into the
-/// `graph/relational-core` named graph of a fresh frozen dataset — the backing graph the
-/// typed RelationalCore handle pins to and the cache re-derives the dialect from. Mirrors
-/// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
-fn relational_core_graph_dataset(
-    projection_nt: &str,
-) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let parsed = parse_dataset(projection_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| stage_err(format!("parse relational-core projection: {e}")))?;
-    let graph = RdfTerm::Iri(GRAPH_RELATIONAL_CORE.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let mut routed = quad.clone();
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
-    }
-    builder
-        .freeze()
-        .map_err(|e| stage_err(format!("freeze graph/relational-core dataset: {e}")))
-}
-
-/// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
-/// `graph/logic` named graph of a fresh frozen dataset — the backing graph the typed
-/// Logic handle pins to. Persistent receipts carry the complete typed program beside
-/// this deliberately lossy governed projection.
-fn logic_graph_dataset(
-    canonical_rdf12_turtle: &str,
-) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let parsed = parse_dataset(canonical_rdf12_turtle.as_bytes(), "text/turtle", None)
-        .map_err(|e| stage_err(format!("parse canonical rdf12: {e}")))?;
-    let graph = RdfTerm::Iri(GRAPH_LOGIC.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let mut routed = quad.clone();
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
-    }
-    // The canonical RDF-1.2 projection carries no RDF-1.2 statement-layer side tables
-    // (it is a plain RDF-1.1 graph of reifier IRIs), so there are no reifiers/annotations
-    // to carry across — the routed quads ARE the whole projection.
-    builder
-        .freeze()
-        .map_err(|e| stage_err(format!("freeze graph/logic dataset: {e}")))
-}
-
+#[path = "compile_logic.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    use gmeow_logic_compile::frontend::{parse_logic_dataset, parse_logic_str};
-    use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom};
-    use purrdf::ContentDigest;
-
-    fn compile_logic_fixture() -> StageProduct {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .expect("repository root");
-        crate::fixture::stage_fixture(&root, 0, "stage-compile-logic")
-            .expect("authenticated compile-logic fixture; tests never produce it")
-            .outcome
-            .product
-    }
-
-    /// A small clean program whose canonical RDF-1.2 projection is an EXACT round-trip
-    /// (the documented ExactPreservation case): only graph-derivable constructs —
-    /// `rdf:type → logic:Class` axioms (the form the reverse parser re-extracts) — no
-    /// modal reifiers, no rule-structural re-emission, no contract facet loss, and a
-    /// `None` source (`source_iri` is program provenance the canonical graph does not
-    /// carry, so a graph round-trip can only preserve it when it is absent).
-    fn clean_program() -> LogicProgram {
-        let ax = |s: &str, o: &str| {
-            LogicAxiom::new(
-                s,
-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-                o,
-                false,
-                false,
-                ContextualScope::default(),
-            )
-            .expect("valid axiom")
-        };
-        LogicProgram::new(
-            vec![
-                ax(
-                    "https://blackcatinformatics.ca/gmeow/Animal",
-                    "https://blackcatinformatics.ca/logic/Kind",
-                ),
-                ax(
-                    "https://blackcatinformatics.ca/gmeow/Cat",
-                    "https://blackcatinformatics.ca/logic/Subkind",
-                ),
-            ],
-            vec![],
-            vec![],
-            None,
-        )
-    }
-
-    /// P17 round-trip identity (C6): the canonical RDF-1.2 projection of a
-    /// LogicProgram parses back — BOTH via the string reverse parser AND via the
-    /// dataset reverse parser the cache uses on a hit — to a canonical-key-EQUAL
-    /// program. This is the identity the typed Logic handle relies on: a consumer can
-    /// re-derive the program from `graph/logic` and get the same content.
-    #[test]
-    fn canonical_rdf12_round_trips_to_equal_canonical_key() {
-        let program = clean_program();
-        let arts = compile_program(&program, &Default::default()).expect("compile clean program");
-
-        // Via the string reverse parser.
-        let (rp_str, diags) = parse_logic_str(&arts.canonical_rdf12, program.source_iri.clone())
-            .expect("reparse str");
-        assert!(
-            diags.is_empty(),
-            "clean round-trip emits no diagnostics: {diags:?}"
-        );
-        assert_eq!(
-            program.canonical_key(),
-            rp_str.canonical_key(),
-            "string round-trip must preserve the canonical key"
-        );
-
-        // Via the dataset reverse parser the cache hit path uses: project → parse the
-        // Turtle into a dataset → reparse the dataset. The handle re-derivation is
-        // canonical-key-equal too.
-        let ds = parse_dataset(arts.canonical_rdf12.as_bytes(), "text/turtle", None)
-            .expect("parse canonical rdf12 to dataset");
-        let (rp_ds, _d) =
-            parse_logic_dataset(ds.as_ref(), program.source_iri.clone()).expect("reparse dataset");
-        assert_eq!(
-            program.canonical_key(),
-            rp_ds.canonical_key(),
-            "dataset round-trip (cache re-derivation) must preserve the canonical key"
-        );
-    }
-
-    /// The compile-logic stage pins a REAL typed [`PipelineHandle::Logic`] handle to
-    /// `graph/logic`, and the handle re-derives (via the SAME reverse parser the cache
-    /// uses) to a program whose rules + contracts are isomorphic to the original. The
-    /// full real-module canonical key is NOT asserted equal: the canonical RDF-1.2
-    /// projection re-emits rules as `logic:rule/...` structural triples that the
-    /// reverse parser reads back as BOTH rules and plain axioms (and the module's
-    /// `ProbabilisticProfile` contract intentionally drops its `ProbabilityModel` on
-    /// projection) — both are documented projection characteristics, not C6 defects.
-    /// The rule/contract IR isomorphism is the round-trip identity that holds whole.
-    #[test]
-    fn stage_pins_logic_handle_re_derivable_to_isomorphic_ir() {
-        use crate::bundle::PipelineHandle;
-        let product = compile_logic_fixture();
-        let bundle = product.bundle();
-        let entry = bundle
-            .handle(GRAPH_LOGIC)
-            .expect("the stage pins a Logic handle to graph/logic");
-        // The pin is digest-valid: the pinned digest equals the live graph/logic digest.
-        assert_eq!(
-            entry.content_digest,
-            bundle.graph_digest(GRAPH_LOGIC),
-            "the Logic handle is digest-pinned to its backing graph/logic"
-        );
-        let PipelineHandle::Logic(program) = &entry.payload else {
-            panic!("the handle is the Logic arm carrying the typed program");
-        };
-
-        // Re-derive the program from the backing graph/logic exactly as the cache does.
-        let canonical_ttl = product
-            .artifact(CANONICAL_RDF12_PATH)
-            .expect("canonical rdf12 artifact");
-        let ds = parse_dataset(canonical_ttl, "text/turtle", None).expect("parse backing graph");
-        let (re_derived, _d) = parse_logic_dataset(ds.as_ref(), program.source_iri.clone())
-            .expect("re-derive program");
-
-        // rules + contracts round-trip isomorphic (whole-program identity).
-        let rc = |p: &LogicProgram| {
-            LogicProgram::new(
-                vec![],
-                p.rules.clone(),
-                p.contracts.clone(),
-                p.source_iri.clone(),
-            )
-        };
-        gmeow_logic_compile::adapter::assert_ir_isomorphic(&rc(program), &rc(&re_derived))
-            .expect("the re-derived handle program is rule/contract-isomorphic to the original");
-    }
-
-    /// `pin_handle` HARD-fails when the Logic handle's pinned digest disagrees with
-    /// its backing graph (no-optionality, fail-closed) — the bundle never carries a
-    /// Logic handle that disagrees with `graph/logic`.
-    #[test]
-    fn pin_logic_handle_hard_fails_on_digest_mismatch() {
-        let program = clean_program();
-        let arts = compile_program(&program, &Default::default()).expect("compile clean program");
-        let dataset = logic_graph_dataset(&arts.canonical_rdf12).expect("graph/logic dataset");
-        let mut bundle =
-            bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
-        // A deliberately WRONG digest (the all-zero digest never equals a real graph).
-        let wrong = ContentDigest::of(b"not the graph/logic canonical bytes");
-        let err = bundle
-            .pin_handle(GRAPH_LOGIC, PipelineHandle::Logic(Arc::new(program)), wrong)
-            .expect_err("a mismatched pin must HARD-fail");
-        assert!(
-            matches!(
-                err,
-                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
-            ),
-            "the Logic handle pin must fail closed on a digest mismatch, got {err:?}"
-        );
-    }
-
-    // ── C8: the relational-core carrier lane ──────────────────────────────
-
-    /// The compile-logic stage pins a REAL typed [`PipelineHandle::RelationalCore`]
-    /// handle to `graph/relational-core`, and that handle re-derives (via the SAME
-    /// reverse parser the cache uses) from its backing graph to a content-key-EQUAL
-    /// dialect. Over main's Horn rules the lowering is `{exact}` (no residue).
-    #[test]
-    fn stage_pins_relational_core_handle_re_derivable_to_equal_dialect() {
-        use gmeow_logic_compile::relational_core::parse_relational_core;
-        let product = compile_logic_fixture();
-        let bundle = product.bundle();
-        let entry = bundle
-            .handle(GRAPH_RELATIONAL_CORE)
-            .expect("the stage pins a RelationalCore handle to graph/relational-core");
-        // The pin is digest-valid: the pinned digest equals the live backing digest.
-        assert_eq!(
-            entry.content_digest,
-            bundle.graph_digest(GRAPH_RELATIONAL_CORE),
-            "the RelationalCore handle is digest-pinned to its backing graph/relational-core"
-        );
-        let PipelineHandle::RelationalCore(program) = &entry.payload else {
-            panic!("the handle is the RelationalCore arm carrying the typed dialect");
-        };
-        // Main's rules are all Horn → the lowering is exact (no carried residue).
-        assert!(
-            program.residue.is_empty(),
-            "main's Horn rule set lowers with no residue; got {:?}",
-            program.residue
-        );
-
-        // Re-derive the dialect from the backing graph exactly as the cache does, off
-        // the committed N-Triples projection artifact.
-        let nt = product
-            .artifact(RELATIONAL_CORE_PATH)
-            .expect("relational-core artifact");
-        let ds = parse_dataset(nt, "application/n-triples", None).expect("parse backing graph");
-        let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive dialect");
-        assert_eq!(
-            re_derived.content_key(),
-            program.content_key(),
-            "the cache re-derivation yields a content-key-equal relational-core dialect"
-        );
-    }
-
-    /// `pin_handle` HARD-fails when the RelationalCore handle's pinned digest disagrees
-    /// with its backing graph (no-optionality, fail-closed).
-    #[test]
-    fn pin_relational_core_handle_hard_fails_on_digest_mismatch() {
-        use gmeow_logic_compile::relational_core::{lower_program, project_relational_core};
-        let program = clean_program();
-        let lowered = lower_program(&program);
-        let nt = project_relational_core(&lowered);
-        let dataset = relational_core_graph_dataset(&nt).expect("graph/relational-core dataset");
-        let mut bundle =
-            bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
-        let wrong = ContentDigest::of(b"not the relational-core canonical bytes");
-        let err = bundle
-            .pin_handle(
-                GRAPH_RELATIONAL_CORE,
-                PipelineHandle::RelationalCore(Arc::new(lowered)),
-                wrong,
-            )
-            .expect_err("a mismatched pin must HARD-fail");
-        assert!(
-            matches!(
-                err,
-                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
-            ),
-            "the RelationalCore handle pin must fail closed on a digest mismatch, got {err:?}"
-        );
-    }
-
-    /// No-second-lowering proof: the relational-core lowering runs EXACTLY ONCE (in the
-    /// producing stage). A downstream consumer reads the typed handle's already-lowered
-    /// dialect — it does NOT call `lower_program` again. This test exercises the consumer
-    /// path (`bundle.handle(...).payload`) and asserts it is the typed dialect, equal to
-    /// the producer's lowering of the SAME program, without invoking a fresh lowering on
-    /// the consumer side.
-    #[test]
-    fn downstream_consumer_reads_the_handle_without_re_lowering() {
-        let product = compile_logic_fixture();
-        let bundle = product.bundle();
-
-        // The CONSUMER path: take the typed handle. This is the ONLY way the dialect is
-        // obtained downstream — there is no second `lower_program` call here.
-        let entry = bundle
-            .handle(GRAPH_RELATIONAL_CORE)
-            .expect("handle present");
-        let PipelineHandle::RelationalCore(consumer_view) = &entry.payload else {
-            panic!("consumer reads the RelationalCore handle");
-        };
-
-        // It carries a real lowered dialect (facts/rules present), proving the consumer
-        // did not have to re-lower to read the rules.
-        assert!(
-            !consumer_view.facts.is_empty() || !consumer_view.rules.is_empty(),
-            "the handle carries the already-lowered dialect (facts and/or rules)"
-        );
-        // And it is the SAME content as the committed projection the producer emitted —
-        // i.e. the producer lowered once and that single result rides both faces.
-        let nt = product
-            .artifact(RELATIONAL_CORE_PATH)
-            .expect("projection artifact");
-        let re_derived = gmeow_logic_compile::relational_core::parse_relational_core(
-            parse_dataset(nt, "application/n-triples", None)
-                .expect("parse")
-                .as_ref(),
-        )
-        .expect("re-derive");
-        assert_eq!(
-            consumer_view.content_key(),
-            re_derived.content_key(),
-            "the consumer handle and the folded projection are one content identity"
-        );
-    }
-
-    // ── C10: the correspondence carrier lane ──────────────────────────────
-
-    /// Correspondence is shipped and digest-pinned, but it is a meta-formula envelope:
-    /// target vocabulary IRIs must never be scanned as object-level OWL commitments.
-    #[test]
-    fn correspondence_is_carried_but_not_reasoned() {
-        assert!(
-            CARRIER_GRAPHS.contains(&GRAPH_CORRESPONDENCE),
-            "the shipped carrier must retain graph/correspondence"
-        );
-        assert!(
-            !OBJECT_LEVEL_GRAPHS.contains(&GRAPH_CORRESPONDENCE),
-            "the meta-level correspondence graph must stay outside object-level closure"
-        );
-        assert!(
-            carrier_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
-            "validation/cache dataflow must still see the complete compiled carrier"
-        );
-        assert!(
-            !object_level_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
-            "reasoning dataflow must not consume correspondence target IRIs"
-        );
-    }
-
-    /// The compile-logic stage pins a REAL typed [`PipelineHandle::Correspondence`]
-    /// handle to `graph/correspondence`, and that handle re-derives (via the SAME reverse
-    /// parser the cache uses) from its backing graph to a content-key-EQUAL program. The
-    /// load-bearing correctness point is asserted on the committed projection: the §14
-    /// affine overlap stays at `skos:relatedMatch`, never `skos:exactMatch` /
-    /// `owl:equivalentClass`, and the loss-ledger row is present.
-    #[test]
-    fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
-        use gmeow_logic_compile::projections::correspondence::parse_correspondence;
-        let product = compile_logic_fixture();
-        let bundle = product.bundle();
-        let entry = bundle
-            .handle(GRAPH_CORRESPONDENCE)
-            .expect("the stage pins a Correspondence handle to graph/correspondence");
-        // The pin is digest-valid: the pinned digest equals the live backing digest.
-        assert_eq!(
-            entry.content_digest,
-            bundle.graph_digest(GRAPH_CORRESPONDENCE),
-            "the Correspondence handle is digest-pinned to its backing graph/correspondence"
-        );
-        let PipelineHandle::Correspondence(program) = &entry.payload else {
-            panic!("the handle is the Correspondence arm carrying the typed program");
-        };
-
-        // The committed projection artifact: the load-bearing alignment correctness point.
-        let nt = product
-            .artifact(CORRESPONDENCE_PATH)
-            .expect("correspondence artifact");
-        let nt_str = std::str::from_utf8(nt).expect("utf8");
-        // Check the alignment PREDICATE position (`<...#relatedMatch>` as a predicate),
-        // not a bare substring — the loss-ledger prose mentions the forbidden predicates
-        // by name (that prose is the disclosure, not an emitted alignment edge).
-        assert!(
-            nt_str.contains("<http://www.w3.org/2004/02/skos/core#relatedMatch>"),
-            "the affine overlap stays at skos:relatedMatch:\n{nt_str}"
-        );
-        assert!(
-            !nt_str.contains("<http://www.w3.org/2004/02/skos/core#exactMatch>"),
-            "a caveated overlap MUST NOT emit a skos:exactMatch edge:\n{nt_str}"
-        );
-        assert!(
-            !nt_str.contains("<http://www.w3.org/2002/07/owl#equivalentClass>"),
-            "a caveated overlap MUST NOT emit an owl:equivalentClass edge:\n{nt_str}"
-        );
-        assert!(
-            nt_str.contains("lossyDrop"),
-            "the lane carries an explicit loss-ledger row:\n{nt_str}"
-        );
-
-        // Re-derive the program from the backing graph exactly as the cache does.
-        let ds = parse_dataset(nt, "application/n-triples", None).expect("parse backing graph");
-        let re_derived = parse_correspondence(ds.as_ref()).expect("re-derive program");
-        assert_eq!(
-            re_derived.content_key(),
-            program.content_key(),
-            "the cache re-derivation yields a content-key-equal correspondence program"
-        );
-    }
-
-    /// The overclaim gate is a BUILD FAILURE for an attempt to emit a class equivalence
-    /// for the §14 affine/overlaps correspondence the stage carries (the gate fires).
-    #[test]
-    fn stage_correspondence_overclaim_gate_rejects_equivalence() {
-        use gmeow_logic_compile::projections::correspondence::assert_no_overclaim_correspondence;
-        let product = compile_logic_fixture();
-        let bundle = product.bundle();
-        let entry = bundle.handle(GRAPH_CORRESPONDENCE).expect("handle present");
-        let PipelineHandle::Correspondence(program) = &entry.payload else {
-            panic!("Correspondence arm");
-        };
-        let correspondence = &program.correspondences[0];
-        // Asking for equivalence over this caveated affine overlap is an overclaim → red.
-        assert_no_overclaim_correspondence(correspondence, true)
-            .expect_err("emitting equivalence for the §14 affine overlap must HARD-fail");
-        // The related-match surface (what the lane actually emits) is NOT an overclaim.
-        assert_no_overclaim_correspondence(correspondence, false)
-            .expect("the related-match surface is not an overclaim");
-    }
-
-    /// The five-gate `assert_gates` is now a STAGE hard-fail (not merely recorded): the
-    /// lawful affine triangle passes all five, and a constructed RED report errors — the
-    /// exact `?` the stage propagates to abort the build around an unlawful correspondence.
-    #[test]
-    fn stage_asserts_five_correspondence_gates_as_hard_fail() {
-        use gmeow_logic_compile::ir::{
-            Correspondence, CorrespondenceRelation, MorphismClass, MorphismKind, PreservationKind,
-        };
-        use gmeow_logic_compile::projections::correspondence_gates::{
-            assert_gates, evaluate_gates,
-        };
-
-        // The production affine triangle passes the five gates: the wiring will not spuriously
-        // fail the build (and the full stage `run` succeeds in the sibling tests).
-        let (gated, _) = affine_worked_example_program()
-            .with_derived_puts()
-            .expect("derive affine put legs");
-        let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
-        assert_gates(&evaluate_gates(&gated, &[], &verdicts))
-            .expect("the §14 affine triangle is lawful");
-
-        // A bridge view declaring equivalence is an overclaim RED → `assert_gates` errors,
-        // which is precisely what the stage propagates as a `gmeow_errors::Diag` build failure.
-        let bridge = Correspondence::new(
-            "https://gmeow.example/corr/bridge".to_owned(),
-            CorrespondenceRelation::Equiv,
-            MorphismClass::BridgeView,
-            MorphismKind::CommitmentShiftingBridge,
-            false,
-            None,
-            Some("https://gmeow.example/corr/bridgeGet".to_owned()),
-            None,
-            Vec::new(),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-        .expect("well-formed bridge correspondence");
-        let red =
-            CorrespondenceProgram::new(vec![bridge], Vec::new(), PreservationKind::SoundUnder);
-        let red_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&red);
-        assert_gates(&evaluate_gates(&red, &[], &red_verdicts))
-            .expect_err("a bridge-view equivalence overclaim must HARD-fail the build");
-    }
-
-    /// Production-path negative control for recovery/leg semantic coupling. The source is
-    /// parsed through the real Turtle frontend, receives the production derived put, executes
-    /// through `logic_program_verdicts`, compiles through `compile_program`, and reaches the
-    /// exact `assert_gates` boundary used by this stage. Changing only the authored get-leg
-    /// body while holding the RecoveryCase fixed must therefore red both recovery gates.
-    #[test]
-    fn stage_recovery_gates_consume_the_resolved_get_leg_body() {
-        use gmeow_logic_compile::frontend::Severity;
-        use gmeow_logic_compile::projections::correspondence_gates::GateVerdict;
-
-        const SOURCE: &str = r#"
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix ex: <https://example.org/> .
-
-ex:correspondence a logic:Correspondence ;
-    logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:SectionRetraction ;
-    logic:morphismKind logic:InstitutionMorphism ;
-    logic:mnemomorphic true ;
-    logic:getLeg ex:get ;
-    logic:recoveryCase ex:case .
-
-ex:get a logic:TransactionProgram ;
-    gmeow:path ex:sourceRel .
-
-ex:case a logic:RecoveryCase ;
-    logic:recoveryTransform ex:transform .
-
-ex:transform a logic:Formula ;
-    logic:quantifiedVariable
-        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "subject" ] ,
-        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "object" ] ;
-    logic:forall [
-        a logic:Formula ;
-        logic:antecedent [
-            a logic:Formula ;
-            logic:relation ex:sourceRel ;
-            logic:argument
-                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "subject" ] ,
-                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "object" ]
-        ] ;
-        logic:consequent [
-            a logic:Formula ;
-            logic:relation ex:viewRel ;
-            logic:argument
-                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "subject" ] ,
-                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "object" ]
-        ]
-    ] .
-"#;
-
-        let parse = |source: &str| {
-            let (program, diagnostics) = parse_logic_str(
-                source,
-                Some("https://example.org/recovery-leg-regression".to_owned()),
-            )
-            .expect("parse recovery correspondence");
-            assert!(
-                diagnostics
-                    .iter()
-                    .all(|diagnostic| diagnostic.severity != Severity::Error),
-                "unexpected frontend diagnostics: {diagnostics:#?}"
-            );
-            program
-        };
-
-        let baseline = parse(SOURCE);
-        let baseline_verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&baseline)
-            .expect("execute baseline recovery correspondence");
-        let baseline_artifacts = compile_program(&baseline, &baseline_verdicts)
-            .expect("compile baseline recovery correspondence");
-        let baseline_gates = baseline_artifacts
-            .correspondence_gates
-            .as_ref()
-            .expect("baseline correspondence gates");
-        assert_gates(baseline_gates).expect("the body-aligned recovery case must pass");
-
-        let mutated_source =
-            SOURCE.replacen("gmeow:path ex:sourceRel", "gmeow:path ex:mutatedRel", 1);
-        let mutated = parse(&mutated_source);
-        assert_eq!(
-            baseline.correspondences[0].recovery_cases, mutated.correspondences[0].recovery_cases,
-            "the mutation must hold the canonical RecoveryCase fixed"
-        );
-        let mutated_verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&mutated)
-            .expect("execute mutated recovery correspondence");
-        let mutated_artifacts = compile_program(&mutated, &mutated_verdicts)
-            .expect("compile mutated recovery correspondence");
-        let mutated_gates = mutated_artifacts
-            .correspondence_gates
-            .as_ref()
-            .expect("mutated correspondence gates");
-        let report = &mutated_gates.per_correspondence[0];
-        assert!(matches!(report.round_trip, GateVerdict::Red { .. }));
-        assert!(matches!(report.mnemomorphism, GateVerdict::Red { .. }));
-        assert_gates(mutated_gates).expect_err(
-            "changing only the formerly inert LegPath body must hard-fail the production gates",
-        );
-    }
-
-    /// `pin_handle` HARD-fails when the Correspondence handle's pinned digest disagrees
-    /// with its backing graph (no-optionality, fail-closed).
-    #[test]
-    fn pin_correspondence_handle_hard_fails_on_digest_mismatch() {
-        use gmeow_logic_compile::projections::correspondence::project_correspondence;
-        let program = affine_worked_example_program();
-        let nt = project_correspondence(&program);
-        let dataset = correspondence_graph_dataset(&nt).expect("graph/correspondence dataset");
-        let mut bundle =
-            bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
-        let wrong = ContentDigest::of(b"not the correspondence canonical bytes");
-        let err = bundle
-            .pin_handle(
-                GRAPH_CORRESPONDENCE,
-                PipelineHandle::Correspondence(Arc::new(program)),
-                wrong,
-            )
-            .expect_err("a mismatched pin must HARD-fail");
-        assert!(
-            matches!(
-                err,
-                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
-            ),
-            "the Correspondence handle pin must fail closed on a digest mismatch, got {err:?}"
-        );
-    }
-}
+mod tests;

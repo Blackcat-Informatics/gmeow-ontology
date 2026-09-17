@@ -1924,16 +1924,6 @@ gmeow:gtsProducerTransformOutput
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
-gmeow:gtsProducerCorrespondenceLowering
-    a gmeow:GtsProducer ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "GTS producer — the correspondence lowering"@x-gmeow-english ;
-    skos:definition "The correspondence-lowering stage's GTS emission of a single lowered alignment graph. A whole-artifact product with no rep registry."@x-gmeow-english ;
-    gmeow:producerCallSite "crates/pipeline/src/stages/correspondence_lower.rs" ;
-    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
 gmeow:gtsProducerDocsMeasure
     a gmeow:GtsProducer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;

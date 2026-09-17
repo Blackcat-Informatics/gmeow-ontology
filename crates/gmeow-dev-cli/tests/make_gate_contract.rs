@@ -26,6 +26,17 @@ fn ci_workflow() -> String {
     std::fs::read_to_string(repo_root().join(".github/workflows/ci.yml")).expect("read ci.yml")
 }
 
+/// Bound a named workflow step independently of sibling order or unnamed steps.
+fn workflow_step<'a>(job: &'a str, name: &str) -> &'a str {
+    let marker = format!("- name: {name}\n");
+    job.split_once(&marker)
+        .unwrap_or_else(|| panic!("missing workflow step {name}"))
+        .1
+        .split("\n      - ")
+        .next()
+        .expect("workflow step body")
+}
+
 fn manifest(path: &str) -> String {
     std::fs::read_to_string(repo_root().join(path)).expect("read Cargo manifest")
 }
@@ -152,6 +163,7 @@ const HEAVY_TASKS: &[&str] = &[
     "console-smoke",
     "acceptance",
     "bench-soak",
+    "conformance-heavy",
     "medium-consumer-surface",
 ];
 
@@ -196,13 +208,13 @@ fn evidence_binaries_have_one_dependency_light_owner() {
         pipeline.contains("autobins = false") && validate.contains("autobins = false"),
         "the heavyweight owner directories must not auto-discover the evidence binaries"
     );
-    for retained_pipeline_binary in ["bench-compare", "gmn-dialect-paths", "perf_gate_merge"] {
+    for retained_pipeline_binary in ["bench-compare", "gmn-dialect-paths", "perf-gate-merge"] {
         assert!(
             pipeline.contains(&format!("name = \"{retained_pipeline_binary}\"")),
             "pipeline manifest dropped required binary {retained_pipeline_binary}"
         );
     }
-    for evidence_binary in ["perf_sample", "perf_accept", "junit_inventory"] {
+    for evidence_binary in ["perf-sample", "perf-accept", "junit-inventory"] {
         assert!(
             evidence.contains(&format!("name = \"{evidence_binary}\"")),
             "evidence leaf does not own {evidence_binary}"
@@ -215,10 +227,90 @@ fn evidence_binaries_have_one_dependency_light_owner() {
     }
 }
 
-/// Heavy tasks that need only the producer artifact. The medium consumer proof is
-/// scheduled separately because it also consumes the authenticated Rust archive.
-const CI_HEAVY_MATRIX_TASKS: &[&str] =
-    &["wasm-parity", "console-smoke", "acceptance", "bench-soak"];
+/// Heavy tasks outside the Rust archive. Browser builds additionally consume the
+/// producer-selected native codebook; the medium proof consumes the Rust archive.
+const CI_HEAVY_MATRIX_TASKS: &[&str] = &[
+    "wasm-parity",
+    "console-smoke",
+    "acceptance",
+    "bench-soak",
+    "conformance-heavy",
+];
+
+/// Browser and native consumers must admit the prepared dictionary before compilation,
+/// without letting any test or documentation target trigger corpus production.
+#[test]
+fn browser_codebook_builds_require_exact_read_only_producer_selection() {
+    let makefile = makefile();
+    for target in ["wasm", "gmn-wasm-pkg", "validate-wasm-pkg", "rust-docs"] {
+        assert!(
+            target_header(&makefile, target).contains("verify-wasm-codebook"),
+            "{target} must admit the native dictionary before embedding it"
+        );
+    }
+    let stamp = target_header(&makefile, "$(RUST_READY_STAMP)");
+    assert!(
+        stamp.contains("generated/projections/lang/gmn-codebook.cbor | verify-wasm-codebook"),
+        "changed native bytes invalidate the build stamp; read-only admission precedes compilation"
+    );
+    let verifier = target_recipe(&makefile, "verify-wasm-codebook");
+    assert!(
+        verifier.contains(
+            "$(TEST_FIXTURE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope wasm-codebook"
+        ) && !verifier.contains("produce")
+            && !verifier.contains("cargo ")
+            && !verifier.contains("check-sync"),
+        "browser build admission must never launch a producer or rebuild its verifier"
+    );
+    let prebuild = makefile
+        .lines()
+        .find(|line| line.starts_with("RUST_PREBUILD_WORKSPACE_ARGS :="))
+        .expect("source-only prebuild declares its exact workspace selection");
+    for consumer in ["gmeow-gmn-wasm", "gmeow-validate-wasm"] {
+        assert!(
+            prebuild.contains(&format!("--exclude {consumer}")),
+            "source-only prebuild cannot embed an unproduced {consumer} codebook"
+        );
+    }
+
+    let ci = ci_workflow();
+    for (job_name, compilation) in [
+        ("rust-static", "- name: Workspace clippy"),
+        ("heavy", "- name: Heavy DAG branch — ${{ matrix.task }}"),
+    ] {
+        let marker = format!("\n  {job_name}:\n");
+        let job = ci
+            .split_once(&marker)
+            .expect("codebook consumer job exists")
+            .1
+            .split("\n  # ")
+            .next()
+            .expect("job body exists");
+        assert!(job_needs(job).contains(&"fixture-prefix")
+            && job.contains("FIXTURE_MANIFEST_SHA256: ${{ needs.fixture-prefix.outputs.selector_sha256 }}")
+            && workflow_step(job, "Download the producer-selected browser codebook fixtures")
+                .contains("uses: actions/download-artifact@")
+            && job.contains("name: prefix-test-fixtures-${{ github.sha }}")
+            && !job.contains("test-actions-v")
+            && job.contains("${FIXTURE_MANIFEST_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json\" | sha256sum -c -"),
+            "{job_name} must require the exact producer-owned same-run fixture transfer and selector digest");
+        assert_eq!(
+            job_needs(job).contains(&"rust-prebuild"),
+            job_name == "rust-static",
+            "only the static consumer reuses native build products; browser admission depends on its fixture producer"
+        );
+        assert!(
+            job.find("make verify-wasm-codebook")
+                .expect("read-only codebook admission")
+                < job.find(compilation).expect("consumer compilation"),
+            "{job_name} cannot compile embedded dictionaries before their admission"
+        );
+        assert!(
+            !job.contains("test-fixtures produce") && !job.contains("make produce-"),
+            "{job_name} cannot recreate a missing corpus selection"
+        );
+    }
+}
 
 #[test]
 fn every_check_dag_target_is_exercised_by_ci() {
@@ -313,23 +405,6 @@ fn target_recipe(source: &str, target: &str) -> String {
 }
 
 /// Every real-DAG medium refresh must enter through the admitted producer.
-#[test]
-fn medium_sweep_has_only_the_authenticated_producer_entry_point() {
-    let recipe = target_recipe(&makefile(), "maint-medium-sweep");
-    assert!(
-        recipe.contains("$(GMEOW_DEV) medium-seed --out bench/medium-baseline.json")
-            && recipe.contains("$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json")
-            && !recipe.contains("cargo run"),
-        "both bootstrap and measured production must use the authenticated producer"
-    );
-    assert!(
-        !manifest("crates/pipeline/Cargo.toml").contains("name = \"medium-sweep\"")
-            && !repo_root()
-                .join("crates/pipeline/src/bin/medium-sweep.rs")
-                .exists(),
-        "a standalone binary would bypass optimized producer admission"
-    );
-}
 
 /// Release-authority publication must use the same admitted producer as synchronization.
 #[test]
@@ -551,14 +626,13 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
         "every corpus consumer must receive the producer-written selector and its exact digest"
     );
     assert!(
-        pipeline_build.contains("build_inputs::crate_input_paths")
-            && pipeline_build.contains("is_library_implementation_input")
-            && pipeline_build.contains("src/fixture.rs\" | \"src/tests.rs")
-            && !std::fs::read_to_string(
-                repo_root().join("build-support/path_dependency_inputs.rs")
-            )
-            .expect("read exact path-dependency input walker")
-            .contains("\"tests\", \"examples\", \"benches\""),
+        pipeline_build.contains("gmeow_build_inputs::emit_action_identity")
+            && !repo_root()
+                .join("build-support/path_dependency_inputs.rs")
+                .exists()
+            && std::fs::read_to_string(repo_root().join("crates/build-inputs/src/modules.rs"))
+                .expect("shared typed module inventory")
+                .contains("inline test implementation must be extracted"),
         "external Rust test/example/bench sources must not invalidate production-stage actions"
     );
     // Filtering is nextest-side: retaining `--workspace` keeps Cargo's feature graph
@@ -859,29 +933,128 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     let prebuild_job = ci
         .split_once("\n  rust-prebuild:\n")
-        .and_then(|(_, tail)| tail.split_once("\n  # The receipt binds the\n"))
+        .and_then(|(_, tail)| tail.split_once("\n  # Optimized corpus work"))
         .map(|(job, _)| job)
-        .expect("producer-independent Rust prebuild job is bounded by the archive comment");
+        .expect("producer-independent Rust prebuild job precedes fixture production");
     assert!(
         prebuild_job.contains("run: make rust-prebuild")
-            && prebuild_job.contains("make produce-producer-independent-test-fixtures")
-            && prebuild_job.contains("rust-prebuild-evidence-${{ github.sha }}")
+            && job_needs(prebuild_job).is_empty()
+            && !prebuild_job.contains("test-fixtures")
             && !prebuild_job.contains("generated-tree-${{ github.sha }}"),
-        "the Rust build and explicit producer-independent fixture stage must overlap generation and must not consume its output"
+        "test compilation must start without waiting for any corpus producer"
     );
+    let prefix_job = ci
+        .split_once("\n  fixture-prefix:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # Complete the producer-selected fixtures"))
+        .map(|(job, _)| job)
+        .expect("independent optimized fixture producer");
+    let complete_job = ci
+        .split_once("\n  fixture-complete:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # The receipt binds the\n"))
+        .map(|(job, _)| job)
+        .expect("completed fixture producer");
+    assert!(
+        job_needs(prefix_job) == ["producer-build"]
+            && prefix_job.contains("make produce-producer-independent-test-fixtures")
+            && !prefix_job.contains("generated-tree-${{ github.sha }}")
+            && job_needs(complete_job) == ["producer", "fixture-prefix"]
+            && complete_job.contains("make produce-producer-bound-test-fixtures"),
+        "optimized prefix production must overlap cold generations, then complete against their exact bundle"
+    );
+    assert!(
+        workflow_step(prefix_job, "Transfer the selected prefix fixtures")
+            .contains(".cache/gmeow-sync/stage-fixture-candidate-v2.json"),
+        "the completion producer must retain the prefix's current receipt candidate in its reusable action cache"
+    );
+    for (producer, transfer) in [
+        (prefix_job, "Transfer the selected prefix fixtures"),
+        (complete_job, "Transfer the selected complete fixtures"),
+    ] {
+        assert!(
+            producer.contains("GMEOW_DEV: ./dist/bin/gmeow-dev")
+                && producer.contains("gmeow-dev-producer-${{ github.sha }}")
+                && producer.contains("actions/cache/restore@")
+                && producer.contains("actions/cache/save@")
+                && producer.contains("always() && !cancelled()")
+                && producer.contains("steps.fixture-actions.outputs.cache-primary-key")
+                && !producer.contains("cargo nextest")
+                && !producer.contains("make rust-prebuild"),
+            "the optimized producer must publish completed actions even after a later failure, independently of test compilation"
+        );
+        for step in [
+            "Restore reusable completed actions",
+            "Persist every completed bounded action",
+        ] {
+            let cache_step = workflow_step(producer, step);
+            assert!(
+                cache_step.contains("path: |")
+                    && cache_step.contains(".cache/gmeow-sync/actions")
+                    && cache_step.contains(".cache/gmeow-sync/stage-fixture-candidate-v2.json")
+                    && !cache_step.contains(".cache/gmeow-sync/test-fixture-manifest-v2.json"),
+                "producer caches contain bounded actions and untrusted receipt candidates only; finalized runner selectors belong to authenticated current-run artifacts"
+            );
+        }
+        for publication in ["Bind the exact current-run fixture selector", transfer] {
+            let conditions = workflow_step(producer, publication)
+                .lines()
+                .filter_map(|line| line.strip_prefix("        if: "))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                conditions,
+                ["success()"],
+                "only a successful producer may publish its finalized selector or selected fixture artifact: {publication}"
+            );
+        }
+        assert!(
+            producer.find("make produce-").expect("mandatory producer")
+                < producer
+                    .find("Bind the exact current-run fixture selector")
+                    .expect("current-run selector binding"),
+            "a cached candidate cannot become current-run authority before production revalidates the selected inputs and outputs"
+        );
+        let keys = workflow_step(producer, "Restore reusable completed actions")
+            .split_once("restore-keys: |")
+            .expect("restore preferences")
+            .1
+            .lines()
+            .skip_while(|line| line.trim().is_empty())
+            .take_while(|line| line.starts_with("            "))
+            .map(str::trim)
+            .collect::<Vec<_>>();
+        let [
+            current_complete,
+            current_prefix,
+            compatible_complete,
+            compatible_prefix,
+        ] = keys.as_slice()
+        else {
+            panic!("action cache requires four ordered restore preferences, got {keys:?}");
+        };
+        assert!(
+            current_complete.contains("-complete-${{github.sha}}-")
+                && current_prefix.contains("-prefix-${{github.sha}}-")
+                && compatible_complete.ends_with("-complete-")
+                && compatible_prefix.ends_with("-prefix-"),
+            "completed actions at the current revision must remain reachable after a later failure"
+        );
+    }
     let archive_job = ci
         .split_once("\n  rust-archive:\n")
         .and_then(|(_, tail)| tail.split_once("\n  # Shards execute"))
         .map(|(job, _)| job)
         .expect("Rust archive job is bounded by the shard comment");
     assert!(
-        job_needs(archive_job) == ["producer", "rust-prebuild"]
+        job_needs(archive_job) == ["producer", "rust-prebuild", "fixture-complete"]
             && archive_job.contains("Restore same-run producer-independent Rust build products")
             && archive_job
                 .contains("Verify every transferred producer-selected pipeline fixture read-only")
-            && archive_job.contains("Produce generated-bound fixtures before archive construction")
+            && archive_job.contains("complete-test-fixtures-${{ github.sha }}")
+            && archive_job.contains("needs.fixture-complete.outputs.selector_sha256")
+            && archive_job.contains("make verify-test-fixtures")
+            && !archive_job.contains("make produce-")
+            && !archive_job.contains("test-actions-v5-")
             && archive_job.contains("Build dependency-light archive evidence tools")
-            && archive_job.contains("target/debug/perf_sample")
+            && archive_job.contains("target/debug/perf-sample")
             && archive_job.contains("archive-build-sample.json")
             && archive_job.contains("rust-archive-evidence-${{ github.sha }}")
             && archive_job
@@ -1054,23 +1227,23 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         );
     }
     assert!(
-        ci.matches("key: test-actions-v3-").count() == 2
+        ci.matches("key: test-actions-v5-").count() == 2
             && ci.matches("key: bundle-import-v1-").count() == 1
             && ci
                 .matches("name: bundle-import-cache-${{ github.sha }}")
                 .count()
-                == 3
+                == 4
             && ci
                 .matches(".cache/gmeow-sync/test-fixture-manifest-v2.json")
                 .count()
                 >= 3
             && ci.contains("fixture-timings-producer-bound.json"),
-        "the bounded shared action store and exact bundle import need distinct cache, artifact, and evidence authorities in archive, shard, and medium consumers"
+        "the bounded shared action store must reach archive, static and browser consumers; exact bundle import retains its separate artifact and evidence authority"
     );
     assert!(
-        ci.contains("dist/nextest/perf_sample")
-            && ci.contains("dist/nextest/perf_accept")
-            && ci.contains("dist/nextest/junit_inventory")
+        ci.contains("dist/nextest/perf-sample")
+            && ci.contains("dist/nextest/perf-accept")
+            && ci.contains("dist/nextest/junit-inventory")
             && ci.contains("--identity-receipt producer=dist/producer-receipt.json")
             && ci.contains("junit-shard-${{ matrix.shard }}.json")
             && ci.contains("shard-${{ matrix.shard }}-sample.json"),
@@ -1079,7 +1252,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     assert_eq!(
         normalized_whitespace(&ci)
             .matches(
-            "chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample dist/nextest/perf_accept"
+            "chmod +x dist/nextest/junit-inventory dist/nextest/perf-sample dist/nextest/perf-accept"
         )
         .count(),
         2,
@@ -1114,7 +1287,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("      GMEOW_DEV: ./dist/bin/gmeow-dev").count(),
-        7,
+        8,
         "ontology, heavy, and fixture production lanes must use the authenticated producer binary"
     );
     assert!(
@@ -1129,14 +1302,14 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         target_recipe(&makefile, "nextest-evidence-tools")
             .contains("-p gmeow-perf-evidence --bins")
             && !target_recipe(&makefile, "nextest-evidence-tools")
-                .contains("-p gmeow-pipeline --bin perf_sample")
+                .contains("-p gmeow-pipeline --bin perf-sample")
             && !target_recipe(&makefile, "nextest-evidence-tools")
-                .contains("-p gmeow-validate --bin junit_inventory"),
+                .contains("-p gmeow-validate --bin junit-inventory"),
         "archive evidence tools must build through the dependency-light leaf package"
     );
     assert!(
         target_recipe(&makefile, "perf-accept")
-            .contains("-p gmeow-perf-evidence --bin perf_accept")
+            .contains("-p gmeow-perf-evidence --bin perf-accept")
             && !target_recipe(&makefile, "perf-accept").contains("-p gmeow-pipeline"),
         "paired outcome grading must use the dependency-light evidence package"
     );
@@ -1594,5 +1767,23 @@ fn validate_help_matches_the_phase_coverage_registry() {
             && !help.contains("per-example")
             && !help.contains("slice-test"),
         "validate help must not claim corpus validation is delegated to tests: {help:?}"
+    );
+}
+
+#[test]
+fn medium_sweep_has_only_the_authenticated_producer_entry_point() {
+    let recipe = target_recipe(&makefile(), "maint-medium-sweep");
+    assert!(
+        recipe.contains("$(GMEOW_DEV) medium-seed --out bench/medium-baseline.json")
+            && recipe.contains("$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json")
+            && !recipe.contains("cargo run"),
+        "both bootstrap and measured production must use the authenticated producer"
+    );
+    assert!(
+        !manifest("crates/pipeline/Cargo.toml").contains("name = \"medium-sweep\"")
+            && !repo_root()
+                .join("crates/pipeline/src/bin/medium-sweep.rs")
+                .exists(),
+        "a standalone binary would bypass optimized producer admission"
     );
 }

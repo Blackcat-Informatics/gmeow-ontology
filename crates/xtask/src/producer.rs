@@ -11,16 +11,17 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
 
 use gmeow_action_cache::executable::{
-    CompilationUnit, ExecutableReceipt, ExecutableRecipe, sha256_file, source_digest,
+    CompilationUnit, ExecutableReceipt, ExecutableRecipe, ReceiptDocument, sha256_file,
 };
 use gmeow_errors::Diag;
 use serde_json::Value;
 
-#[path = "../../../build-support/producer_inputs.rs"]
-mod producer_inputs;
+use gmeow_build_inputs::{
+    CargoResolutionEvidence, CargoResolutionInputs, CfgContext, CompilerArtifact, CompilerInputs,
+    GeneratedInputs, InputInventory, ProductionSelection, UnitSelection,
+};
 
 type Result<T> = gmeow_errors::Result<T>;
-const TARGET_FLAGS: &str = "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS";
 const CONTRACT_ENV: &str = "GMEOW_PRODUCER_BUILD_CONTRACT";
 
 /// Attach producer-build context to the shared typed evidence diagnostic.
@@ -50,7 +51,16 @@ fn execute(args: &[String]) -> Result<ExitCode> {
     let Some(operation) = args.first() else {
         return Err(fail("expected build, verify, recipe, or run -- COMMAND"));
     };
-    let recipe = resolve_recipe(&root)?;
+    if operation == "source-selection" && args.len() == 1 {
+        let resolved = resolve_context(&root)?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&resolved.source_selection).map_err(fail)?
+        );
+        return Ok(ExitCode::SUCCESS);
+    }
+    let admitted = resolve_admission(&root)?;
+    let recipe = &admitted.recipe;
     if operation == "recipe" && args.len() == 1 {
         println!("{}", recipe.digest().map_err(fail)?);
         return Ok(ExitCode::SUCCESS);
@@ -58,7 +68,7 @@ fn execute(args: &[String]) -> Result<ExitCode> {
     let staged = root.join("dist/bin/gmeow-dev");
     let receipt_path = staged.with_extension("receipt.json");
     if operation == "verify" && args.len() == 1 {
-        verify(&staged, &receipt_path, &recipe)?;
+        verify(&root, &staged, &receipt_path, recipe)?;
         return Ok(ExitCode::SUCCESS);
     }
     if operation != "build" && operation != "run" {
@@ -84,11 +94,17 @@ fn execute(args: &[String]) -> Result<ExitCode> {
         .map_err(fail)?;
     election.lock().map_err(fail)?;
     // A fresh hit already authenticates the executable bytes and complete recipe.
-    let fresh = staged_is_fresh(&staged, &receipt_path, &recipe)?;
+    admitted
+        .resolution
+        .verify_current(&root, &recipe.source_inventory.selection)
+        .map_err(fail)?;
+    let fresh = staged_is_fresh(&staged, &receipt_path, recipe)?;
     if !fresh {
-        build(&root, &staged, &receipt_path, &recipe)?;
-        verify(&staged, &receipt_path, &recipe)?;
+        build(&root, &staged, &receipt_path, recipe)?;
+    } else {
+        refresh_resolution(&root, &staged, &receipt_path, &admitted)?;
     }
+    verify(&root, &staged, &receipt_path, recipe)?;
     election.unlock().map_err(fail)?;
     if operation == "run" {
         let status = Command::new(&staged)
@@ -126,40 +142,28 @@ fn cargo_program() -> OsString {
 
 /// Resolve rustflags in Cargo environment precedence, then reject competing codegen policy.
 ///
-/// Use encoded flags first, then generic or target-specific flags, and finally
-/// Cargo's resolved x86-64 Linux target configuration. Missing or malformed
-/// configuration is an error.
+/// Resolve environment, matching target/cfg entries and build-level defaults through
+/// Cargo's configuration model. Absent flags mean the compiler defaults; malformed
+/// configuration and competing producer codegen settings remain errors.
 fn configured_flags(root: &Path) -> Result<Vec<String>> {
-    let flags = if let Ok(encoded) = std::env::var("CARGO_ENCODED_RUSTFLAGS") {
-        encoded.split('\u{1f}').map(str::to_owned).collect()
-    } else if let Ok(flags) = std::env::var("RUSTFLAGS").or_else(|_| std::env::var(TARGET_FLAGS)) {
-        flags.split_whitespace().map(str::to_owned).collect()
-    } else {
-        let mut command = Command::new(cargo_program());
-        command.current_dir(root).args([
-            "-Z",
-            "unstable-options",
-            "config",
-            "get",
-            "--format",
-            "json",
-            "target.x86_64-unknown-linux-gnu.rustflags",
-        ]);
-        let config: Value = serde_json::from_str(&checked_output(command)?).map_err(fail)?;
-        let flags = config
-            .pointer("/target/x86_64-unknown-linux-gnu/rustflags")
-            .and_then(Value::as_array)
-            .ok_or_else(|| fail("resolved target rustflags are missing"))?;
-        flags
-            .iter()
-            .map(|flag| {
-                flag.as_str()
-                    .map(str::to_owned)
-                    .ok_or_else(|| fail("non-string rustflag"))
-            })
-            .collect::<Result<Vec<_>>>()?
-    };
+    admitted_config_flags(&cargo_config2::Config::load_with_cwd(root).map_err(fail)?)
+}
+
+/// Admit exactly the resolved flags that will be encoded into the producer recipe.
+fn admitted_config_flags(config: &cargo_config2::Config) -> Result<Vec<String>> {
+    let flags = config
+        .rustflags("x86_64-unknown-linux-gnu")
+        .map_err(fail)?
+        .unwrap_or_default()
+        .flags;
     validate_flags(&flags)?;
+    // An embedded separator must not turn one admitted argument into additional
+    // unvalidated arguments when the recipe is passed to Cargo.
+    if flags.iter().any(|flag| flag.contains('\u{1f}')) {
+        return Err(fail(
+            "resolved rustflag contains the encoded argument separator",
+        ));
+    }
     Ok(flags)
 }
 
@@ -235,7 +239,280 @@ fn cargo_build(root: &Path, flags: &str, native_flags: &str) -> Command {
 /// CI selects portable x86-64-v3 code; local builds bind native CPU identity.
 /// Reject competing native overrides or weakened runtime profiles before creating
 /// the recipe used for executable authentication and action compilation policy.
-fn resolve_recipe(root: &Path) -> Result<ExecutableRecipe> {
+struct ResolvedProducer {
+    source_selection: ProductionSelection,
+    resolution: CargoResolutionEvidence,
+    rustc: String,
+    cargo: String,
+    compiler_environment: BTreeMap<String, String>,
+    units: Vec<CompilationUnit>,
+    roots: Vec<usize>,
+}
+
+struct AdmittedProducer {
+    recipe: ExecutableRecipe,
+    resolution: CargoResolutionEvidence,
+}
+
+/// Cargo's unit graph indices are process-local presentation details. In particular,
+/// Cargo may exchange two otherwise identical host units whose only distinction is
+/// the recursively selected dependency feature set. Hashing those raw indices makes
+/// a read-only recipe change from one resolution to the next.
+///
+/// Give every unit a recursive content identity, order units by that identity, and
+/// rewrite every edge to the first canonical representative of its identity class.
+/// Equivalent duplicate nodes remain in the inventory so its multiplicity is still
+/// visible, but references no longer depend on which interchangeable occurrence Cargo
+/// happened to number first.
+fn canonicalize_compilation_graph(
+    units: &mut Vec<CompilationUnit>,
+    roots: &mut Vec<usize>,
+) -> Result<()> {
+    fn normalized(mut unit: CompilationUnit) -> CompilationUnit {
+        unit.target_kinds.sort();
+        unit.target_kinds.dedup();
+        unit.features.sort();
+        unit.features.dedup();
+        unit.dependencies.clear();
+        unit
+    }
+
+    fn identity(
+        index: usize,
+        units: &[CompilationUnit],
+        states: &mut [u8],
+        identities: &mut [Option<String>],
+    ) -> Result<String> {
+        if let Some(identity) = &identities[index] {
+            return Ok(identity.clone());
+        }
+        if states[index] == 1 {
+            return Err(fail("Cargo compilation unit graph contains a cycle"));
+        }
+        states[index] = 1;
+        let unit = units
+            .get(index)
+            .ok_or_else(|| fail("dangling Cargo compilation unit"))?;
+        let mut dependencies = Vec::with_capacity(unit.dependencies.len());
+        for dependency in &unit.dependencies {
+            if *dependency >= units.len() {
+                return Err(fail("dangling Cargo compilation unit dependency"));
+            }
+            dependencies.push(identity(*dependency, units, states, identities)?);
+        }
+        dependencies.sort();
+        let payload =
+            serde_json::to_vec(&(normalized(unit.clone()), dependencies)).map_err(fail)?;
+        let value =
+            gmeow_action_cache::content_digest(&[b"gmeow-canonical-compilation-unit-v1", &payload]);
+        states[index] = 2;
+        identities[index] = Some(value.clone());
+        Ok(value)
+    }
+
+    if units.is_empty() {
+        return Err(fail("Cargo compilation unit graph is empty"));
+    }
+    let mut states = vec![0; units.len()];
+    let mut identities = vec![None; units.len()];
+    for index in 0..units.len() {
+        identity(index, units, &mut states, &mut identities)?;
+    }
+    let identities: Vec<_> = identities
+        .into_iter()
+        .map(|identity| identity.expect("every unit received an identity"))
+        .collect();
+    let mut order: Vec<_> = (0..units.len()).collect();
+    order.sort_by(|left, right| {
+        identities[*left]
+            .cmp(&identities[*right])
+            .then_with(|| left.cmp(right))
+    });
+    let mut representatives = BTreeMap::new();
+    for (canonical, original) in order.iter().copied().enumerate() {
+        representatives
+            .entry(identities[original].clone())
+            .or_insert(canonical);
+    }
+    let remap: Vec<_> = identities
+        .iter()
+        .map(|identity| representatives[identity])
+        .collect();
+    let mut canonical = Vec::with_capacity(units.len());
+    for original in order {
+        let mut unit = normalized(units[original].clone());
+        unit.dependencies = units[original]
+            .dependencies
+            .iter()
+            .map(|dependency| remap[*dependency])
+            .collect();
+        unit.dependencies.sort_unstable();
+        canonical.push(unit);
+    }
+    *roots = roots
+        .iter()
+        .map(|root| {
+            remap
+                .get(*root)
+                .copied()
+                .ok_or_else(|| fail("dangling Cargo compilation root"))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    roots.sort_unstable();
+    *units = canonical;
+    Ok(())
+}
+
+/// Canonicalize the richer source-selection graph while preserving the Cargo extern
+/// name paired with each dependency. Two otherwise equal units that select different
+/// feature lineages therefore remain distinct without retaining Cargo's raw indices.
+fn canonicalize_source_graph(units: &mut Vec<UnitSelection>, roots: &mut Vec<usize>) -> Result<()> {
+    fn normalized(mut unit: UnitSelection) -> UnitSelection {
+        unit.kinds.sort();
+        unit.kinds.dedup();
+        unit.dependencies.clear();
+        unit.dependency_names.clear();
+        unit
+    }
+
+    fn identity(
+        index: usize,
+        units: &[UnitSelection],
+        states: &mut [u8],
+        identities: &mut [Option<String>],
+    ) -> Result<String> {
+        if let Some(identity) = &identities[index] {
+            return Ok(identity.clone());
+        }
+        if states[index] == 1 {
+            return Err(fail("Cargo source-selection graph contains a cycle"));
+        }
+        states[index] = 1;
+        let unit = units
+            .get(index)
+            .ok_or_else(|| fail("dangling Cargo source-selection unit"))?;
+        if unit.dependencies.len() != unit.dependency_names.len() {
+            return Err(fail(
+                "Cargo source-selection dependency lost its extern name",
+            ));
+        }
+        let mut dependencies = Vec::with_capacity(unit.dependencies.len());
+        for (name, dependency) in unit.dependency_names.iter().zip(&unit.dependencies) {
+            if *dependency >= units.len() {
+                return Err(fail("dangling Cargo source-selection dependency"));
+            }
+            dependencies.push((
+                name.clone(),
+                identity(*dependency, units, states, identities)?,
+            ));
+        }
+        dependencies.sort();
+        let payload =
+            serde_json::to_vec(&(normalized(unit.clone()), dependencies)).map_err(fail)?;
+        let value =
+            gmeow_action_cache::content_digest(&[b"gmeow-canonical-source-unit-v1", &payload]);
+        states[index] = 2;
+        identities[index] = Some(value.clone());
+        Ok(value)
+    }
+
+    if units.is_empty() {
+        return Err(fail("Cargo source-selection graph is empty"));
+    }
+    let mut states = vec![0; units.len()];
+    let mut identities = vec![None; units.len()];
+    for index in 0..units.len() {
+        identity(index, units, &mut states, &mut identities)?;
+    }
+    let identities: Vec<_> = identities
+        .into_iter()
+        .map(|identity| identity.expect("every unit received an identity"))
+        .collect();
+    let mut order: Vec<_> = (0..units.len()).collect();
+    order.sort_by(|left, right| {
+        identities[*left]
+            .cmp(&identities[*right])
+            .then_with(|| left.cmp(right))
+    });
+    let mut representatives = BTreeMap::new();
+    for (canonical, original) in order.iter().copied().enumerate() {
+        representatives
+            .entry(identities[original].clone())
+            .or_insert(canonical);
+    }
+    let remap: Vec<_> = identities
+        .iter()
+        .map(|identity| representatives[identity])
+        .collect();
+    let mut canonical = Vec::with_capacity(units.len());
+    for original in order {
+        let mut unit = normalized(units[original].clone());
+        let mut dependencies: Vec<_> = units[original]
+            .dependency_names
+            .iter()
+            .cloned()
+            .zip(
+                units[original]
+                    .dependencies
+                    .iter()
+                    .map(|dependency| remap[*dependency]),
+            )
+            .collect();
+        dependencies.sort();
+        (unit.dependency_names, unit.dependencies) = dependencies.into_iter().unzip();
+        canonical.push(unit);
+    }
+    *roots = roots
+        .iter()
+        .map(|root| {
+            remap
+                .get(*root)
+                .copied()
+                .ok_or_else(|| fail("dangling Cargo source-selection root"))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    roots.sort_unstable();
+    *units = canonical;
+    Ok(())
+}
+
+fn resolve_admission(root: &Path) -> Result<AdmittedProducer> {
+    let resolved = resolve_context(root)?;
+    let source_inventory =
+        InputInventory::collect(root, &resolved.source_selection).map_err(fail)?;
+    resolved
+        .resolution
+        .verify_current(root, &resolved.source_selection)
+        .map_err(fail)?;
+    Ok(AdmittedProducer {
+        recipe: ExecutableRecipe {
+            schema: 2,
+            profile: "pipeline".into(),
+            source_digest: source_inventory.digest().map_err(fail)?,
+            source_inventory,
+            rustc: resolved.rustc,
+            cargo: resolved.cargo,
+            compiler_environment: resolved.compiler_environment,
+            units: resolved.units,
+            roots: resolved.roots,
+        },
+        resolution: resolved.resolution,
+    })
+}
+
+/// Resolve actual Cargo units without admitting source implementation. The
+/// extraction planner uses this read-only context before the strict source
+/// partition can be admitted; it never constructs an executable recipe.
+fn resolve_context(root: &Path) -> Result<ResolvedProducer> {
+    let manifests = metadata_manifests(root)?;
+    let resolution_inputs = CargoResolutionInputs::capture(
+        root,
+        manifests
+            .values()
+            .map(|path| workspace_relative(root, Path::new(path)))
+            .collect::<Result<_>>()?,
+    )
+    .map_err(fail)?;
     for (name, _) in std::env::vars() {
         if name.starts_with("CFLAGS_")
             || name.starts_with("CXXFLAGS_")
@@ -273,7 +550,7 @@ fn resolve_recipe(root: &Path) -> Result<ExecutableRecipe> {
     let units = graph["units"]
         .as_array()
         .ok_or_else(|| fail("Cargo unit graph has no units"))?;
-    let roots = indices(&graph["roots"])?;
+    let mut roots = indices(&graph["roots"])?;
     let mut recipe_units = Vec::new();
     for unit in units {
         let package =
@@ -294,6 +571,7 @@ fn resolve_recipe(root: &Path) -> Result<ExecutableRecipe> {
                 .collect::<Result<Vec<_>>>()?,
         });
     }
+    canonicalize_compilation_graph(&mut recipe_units, &mut roots)?;
     validate_units(&recipe_units, &roots)?;
     let mut compiler_environment: BTreeMap<String, String> = std::env::vars()
         .filter(|(key, _)| {
@@ -333,14 +611,23 @@ fn resolve_recipe(root: &Path) -> Result<ExecutableRecipe> {
             &["--version"],
         )?,
     );
-    Ok(ExecutableRecipe {
-        schema: 1,
-        profile: "pipeline".into(),
-        source_digest: source_digest(
-            root,
-            producer_inputs::paths(root, &root.join("crates/gmeow-dev-cli")),
-        )
-        .map_err(fail)?,
+    let source_selection = resolve_source_selection(
+        root,
+        &graph,
+        &manifests,
+        &rustc,
+        &compiler_environment["CARGO_ENCODED_RUSTFLAGS"],
+    )?;
+    if metadata_manifests(root)? != manifests {
+        return Err(fail(
+            "Cargo metadata membership changed during resolution; no admission published",
+        ));
+    }
+    resolution_inputs.verify_current(root).map_err(fail)?;
+    let resolution = resolution_inputs.bind(&source_selection).map_err(fail)?;
+    Ok(ResolvedProducer {
+        source_selection,
+        resolution,
         rustc: identity(&rustc, &["-Vv"])?,
         cargo: identity(
             cargo_program()
@@ -352,6 +639,160 @@ fn resolve_recipe(root: &Path) -> Result<ExecutableRecipe> {
         units: recipe_units,
         roots,
     })
+}
+
+/// Capture actual Cargo roots for runtime and the build controller. This only
+/// resolves source selection; it never creates a speculative compilation lane.
+fn resolve_source_selection(
+    root: &Path,
+    graph: &Value,
+    manifests: &BTreeMap<String, String>,
+    rustc: &str,
+    flags: &str,
+) -> Result<ProductionSelection> {
+    // This is the actual default-profile controller target used by the xtask
+    // alias, resolved independently of the O3 corpus-producing executable.
+    let mut controller = Command::new(cargo_program());
+    controller.current_dir(root).args([
+        "build",
+        "--locked",
+        "-p",
+        "xtask",
+        "--bin",
+        "xtask",
+        "--unit-graph",
+        "-Z",
+        "unstable-options",
+    ]);
+    let controller_flags = configured_flags(root)?.join("\u{1f}");
+    let controller: Value = serde_json::from_str(&checked_output(controller)?).map_err(fail)?;
+    let mut selection = ProductionSelection {
+        schema: gmeow_build_inputs::SCHEMA,
+        units: Vec::new(),
+        roots: Vec::new(),
+        policy_files: Vec::new(),
+    };
+    let mut cfg_outputs: BTreeMap<(Option<String>, bool), String> = BTreeMap::new();
+    for (graph, controller, flags) in [
+        (graph, false, flags),
+        (&controller, true, controller_flags.as_str()),
+    ] {
+        let explicit_target = graph["units"]
+            .as_array()
+            .ok_or_else(|| fail("missing selected units"))?
+            .iter()
+            .any(|unit| !unit["platform"].is_null());
+        let offset = selection.units.len();
+        for unit in graph["units"]
+            .as_array()
+            .ok_or_else(|| fail("missing selected units"))?
+        {
+            let id = string(unit, "pkg_id")?;
+            let manifest = manifests
+                .get(id)
+                .map(|path| workspace_relative(root, Path::new(path)))
+                .transpose()?;
+            if manifest.is_none() && id.starts_with("path+") {
+                return Err(fail(format!(
+                    "local dependency is outside the admitted workspace: {id}"
+                )));
+            }
+            let source = manifest
+                .as_ref()
+                .map(|_| {
+                    string(&unit["target"], "src_path")
+                        .and_then(|path| workspace_relative(root, Path::new(path)))
+                })
+                .transpose()?;
+            let features = strings(&unit["features"])?;
+            let platform = if unit["platform"].is_null() {
+                None
+            } else {
+                Some(string(unit, "platform")?.to_owned())
+            };
+            let cfg_key = (platform.clone(), controller);
+            if !cfg_outputs.contains_key(&cfg_key) {
+                let mut compiler = Command::new(rustc);
+                compiler.args(["--print", "cfg"]);
+                if let Some(target) = &platform {
+                    compiler.args(["--target", target]);
+                }
+                if platform.is_some() || !explicit_target {
+                    compiler.args(flags.split('\u{1f}').filter(|flag| !flag.is_empty()));
+                }
+                cfg_outputs.insert(cfg_key.clone(), checked_output(compiler)?);
+            }
+            let mut cfg = CfgContext::from_rustc(
+                &cfg_outputs[&cfg_key],
+                &features,
+                unit["profile"]["debug_assertions"]
+                    .as_bool()
+                    .ok_or_else(|| fail("missing selected debug assertion policy"))?,
+            )
+            .map_err(fail)?;
+            if let Some(panic) = unit["profile"]["panic"].as_str() {
+                cfg.values
+                    .insert("panic".into(), [panic.to_owned()].into_iter().collect());
+            }
+            let dependency_names = unit["dependencies"]
+                .as_array()
+                .ok_or_else(|| fail("missing dependency names"))?
+                .iter()
+                .map(|dependency| string(dependency, "extern_crate_name").map(str::to_owned))
+                .collect::<Result<_>>()?;
+            selection.units.push(UnitSelection {
+                package: id.replace(root.to_string_lossy().as_ref(), "<workspace>"),
+                manifest,
+                source,
+                target: string(&unit["target"], "name")?.to_owned(),
+                kinds: strings(&unit["target"]["kind"])?,
+                cfg,
+                dependency_names,
+                dependencies: unit["dependencies"]
+                    .as_array()
+                    .ok_or_else(|| fail("missing dependencies"))?
+                    .iter()
+                    .map(|dependency| index(&dependency["index"]).map(|index| index + offset))
+                    .collect::<Result<_>>()?,
+                controller,
+            });
+        }
+        selection.roots.extend(
+            indices(&graph["roots"])?
+                .into_iter()
+                .map(|index| index + offset),
+        );
+    }
+    selection.policy_files = gmeow_build_inputs::cargo_policy_files(root).map_err(fail)?;
+    canonicalize_source_graph(&mut selection.units, &mut selection.roots)?;
+    selection.validate().map_err(fail)?;
+    Ok(selection)
+}
+
+fn metadata_manifests(root: &Path) -> Result<BTreeMap<String, String>> {
+    let mut command = Command::new(cargo_program());
+    command
+        .current_dir(root)
+        .args(["metadata", "--format-version", "1", "--no-deps", "--locked"]);
+    let metadata: Value = serde_json::from_str(&checked_output(command)?).map_err(fail)?;
+    metadata["packages"]
+        .as_array()
+        .ok_or_else(|| fail("Cargo metadata has no packages"))?
+        .iter()
+        .map(|package| {
+            Ok((
+                string(package, "id")?.to_owned(),
+                string(package, "manifest_path")?.to_owned(),
+            ))
+        })
+        .collect()
+}
+fn workspace_relative(root: &Path, path: &Path) -> Result<String> {
+    path.strip_prefix(root)
+        .map_err(fail)?
+        .to_str()
+        .map(str::to_owned)
+        .ok_or_else(|| fail("source path is not UTF-8"))
 }
 
 /// Encode the first processor's model and feature fields in deterministic key order.
@@ -473,7 +914,7 @@ fn validate_units(units: &[CompilationUnit], roots: &[usize]) -> Result<()> {
 ///
 /// A missing, malformed, stale, or substituted artifact is an error; this read-only
 /// operation never rebuilds or repairs either file.
-fn verify(binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()> {
+fn verify(root: &Path, binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()> {
     let receipt = ExecutableReceipt::read(path).map_err(fail)?;
     if &receipt.recipe != expected {
         return Err(fail(
@@ -482,7 +923,36 @@ fn verify(binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()>
     }
     receipt
         .verify(binary, &expected.digest().map_err(fail)?)
-        .map_err(fail)
+        .map_err(fail)?;
+    receipt.verify_current_inputs(root).map_err(fail)
+}
+
+/// Re-admit a byte-identical executable after Cargo resolved the same production
+/// recipe. Only resolution evidence is replaced; no compilation is requested.
+fn refresh_resolution(
+    root: &Path,
+    binary: &Path,
+    path: &Path,
+    admitted: &AdmittedProducer,
+) -> Result<()> {
+    admitted
+        .resolution
+        .verify_current(root, &admitted.recipe.source_inventory.selection)
+        .map_err(fail)?;
+    let mut receipt = ExecutableReceipt::read(path).map_err(fail)?;
+    receipt
+        .verify(binary, &admitted.recipe.digest().map_err(fail)?)
+        .map_err(fail)?;
+    if receipt.recipe != admitted.recipe {
+        return Err(fail(
+            "cannot refresh resolution evidence for a different producer recipe",
+        ));
+    }
+    if receipt.resolution != admitted.resolution {
+        receipt.resolution = admitted.resolution.clone();
+        receipt.write(path).map_err(fail)?;
+    }
+    Ok(())
 }
 
 /// An interrupted first publication or replacement can leave a binary without its receipt.
@@ -492,7 +962,10 @@ fn staged_is_fresh(staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe
     if !receipt_path.try_exists().map_err(fail)? {
         return Ok(false);
     }
-    let receipt = ExecutableReceipt::read(receipt_path).map_err(fail)?;
+    let receipt = match ExecutableReceipt::read_versioned(receipt_path).map_err(fail)? {
+        ReceiptDocument::Current(receipt) => receipt,
+        ReceiptDocument::Unsupported { .. } => return Ok(false),
+    };
     receipt
         .verify(staged, &receipt.recipe.digest().map_err(fail)?)
         .map_err(fail)?;
@@ -528,6 +1001,19 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
         &environment["CFLAGS"],
     );
     command.env(CONTRACT_ENV, recipe.digest().map_err(fail)?);
+    // A resolved workspace graph can exceed the platform's single-environment-
+    // value bound. Transfer the exact document by an owned, digest-bound file.
+    let selection_file = tempfile::NamedTempFile::new().map_err(fail)?;
+    std::fs::write(
+        selection_file.path(),
+        serde_json::to_vec(&recipe.source_inventory.selection).map_err(fail)?,
+    )
+    .map_err(fail)?;
+    command.env(gmeow_build_inputs::SELECTION_ENV, selection_file.path());
+    command.env(
+        gmeow_build_inputs::SELECTION_DIGEST_ENV,
+        sha256_file(selection_file.path()).map_err(fail)?,
+    );
     command.env(
         "GMEOW_PRODUCER_COMPILATION_CONTRACT",
         recipe.compilation_digest().map_err(fail)?,
@@ -537,6 +1023,8 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
         .stdout(Stdio::piped());
     let mut child = command.spawn().map_err(fail)?;
     let mut built: Option<PathBuf> = None;
+    let mut artifacts = Vec::new();
+    let mut generated_roots = Vec::new();
     for line in BufReader::new(
         child
             .stdout
@@ -546,6 +1034,41 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     .lines()
     {
         let value: Value = serde_json::from_str(&line.map_err(fail)?).map_err(fail)?;
+        if value["reason"] == "compiler-message" {
+            if let Some(message) = value["message"]["rendered"].as_str() {
+                eprint!("{message}");
+            }
+        }
+        if value["reason"] == "build-script-executed" {
+            generated_roots.push(GeneratedInputs {
+                directory: PathBuf::from(string(&value, "out_dir")?),
+                package: string(&value, "package_id")?
+                    .replace(root.to_string_lossy().as_ref(), "<workspace>"),
+            });
+        }
+        if value["reason"] == "compiler-artifact" {
+            let package = string(&value, "package_id")?
+                .replace(root.to_string_lossy().as_ref(), "<workspace>");
+            if recipe
+                .source_inventory
+                .selection
+                .units
+                .iter()
+                .any(|unit| unit.package == package && unit.manifest.is_some() && !unit.controller)
+            {
+                artifacts.push(CompilerArtifact {
+                    files: strings(&value["filenames"])?
+                        .into_iter()
+                        .map(PathBuf::from)
+                        .collect(),
+                    source: PathBuf::from(string(&value["target"], "src_path")?),
+                    build_script: strings(&value["target"]["kind"])?
+                        .iter()
+                        .any(|kind| kind == "custom-build"),
+                    package,
+                });
+            }
+        }
         if value["reason"] == "compiler-artifact"
             && value["target"]["name"] == "gmeow-dev"
             && let Some(path) = value["executable"].as_str()
@@ -558,12 +1081,52 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     }
     // Re-resolve after compiling: source/config changes during a build cannot be
     // stamped as the pre-build recipe.
-    if &resolve_recipe(root)? != recipe {
+    let after = resolve_admission(root)?;
+    if &after.recipe != recipe {
         return Err(fail(
             "producer inputs changed during compilation; no receipt published",
         ));
     }
     let built = built.ok_or_else(|| fail("Cargo did not identify the producer executable"))?;
+    let compiler_inputs = CompilerInputs::from_artifacts(root, &artifacts).map_err(fail)?;
+    let mut metadata = Command::new(cargo_program());
+    metadata
+        .current_dir(root)
+        .args(["metadata", "--format-version", "1", "--locked"]);
+    let metadata: Value = serde_json::from_str(&checked_output(metadata)?).map_err(fail)?;
+    let selected: BTreeSet<_> = recipe
+        .source_inventory
+        .selection
+        .units
+        .iter()
+        .filter(|unit| unit.manifest.is_none())
+        .map(|unit| unit.package.as_str())
+        .collect();
+    let external_roots = metadata["packages"]
+        .as_array()
+        .ok_or_else(|| fail("missing resolved packages"))?
+        .iter()
+        .filter(|package| {
+            package["id"]
+                .as_str()
+                .is_some_and(|id| selected.contains(id))
+        })
+        .map(|package| {
+            Ok(PathBuf::from(string(package, "manifest_path")?)
+                .parent()
+                .ok_or_else(|| fail("package root absent"))?
+                .to_path_buf())
+        })
+        .collect::<Result<Vec<_>>>()?;
+    compiler_inputs
+        .verify(
+            root,
+            &recipe.source_inventory,
+            &after.resolution,
+            &external_roots,
+            &generated_roots,
+        )
+        .map_err(fail)?;
     let mut probe = Command::new(&built);
     probe.arg("build-identity");
     if checked_output(probe)?.trim() != recipe.digest().map_err(fail)? {
@@ -580,242 +1143,18 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     let temporary = staged.with_extension(format!("tmp-{}", std::process::id()));
     std::fs::copy(&built, &temporary).map_err(fail)?;
     let receipt = ExecutableReceipt {
-        schema: 1,
+        schema: 2,
         recipe: recipe.clone(),
         executable_sha256: sha256_file(&temporary).map_err(fail)?,
+        resolution: after.resolution,
     };
+    receipt.verify_current_inputs(root).map_err(fail)?;
     replace_staged_executable(&temporary, staged, receipt_path)?;
     receipt.write(receipt_path).map_err(fail)?;
     println!("optimized producer staged at {}", staged.display());
     Ok(())
 }
 
+#[path = "producer.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json::json;
-
-    /// Create an admitted synthetic runtime unit with the selected workspace check policy.
-    fn runtime_unit(workspace: bool) -> CompilationUnit {
-        CompilationUnit {
-            package: if workspace {
-                "path+file://<workspace>/crates/example#0.1.0"
-            } else {
-                "registry+https://example.invalid/index#upstream@1.0.0"
-            }
-            .into(),
-            target: "example".into(),
-            target_kinds: vec!["lib".into()],
-            mode: "build".into(),
-            platform: None,
-            features: vec![],
-            profile: json!({
-                "name": "pipeline", "opt_level": "3", "lto": "fat",
-                "codegen_units": 1, "debuginfo": 0, "incremental": false,
-                "debug_assertions": workspace, "overflow_checks": workspace,
-                "strip": {"resolved": {"Named": "symbols"}}
-            }),
-            dependencies: vec![],
-        }
-    }
-
-    /// Supply a tiny recipe for publication tests without resolving tools or repository inputs.
-    fn publication_recipe() -> ExecutableRecipe {
-        ExecutableRecipe {
-            schema: 1,
-            profile: "pipeline".into(),
-            source_digest: "source".into(),
-            rustc: "compiler".into(),
-            cargo: "cargo".into(),
-            compiler_environment: BTreeMap::new(),
-            units: Vec::new(),
-            roots: Vec::new(),
-        }
-    }
-
-    /// Treat an absent receipt as a build miss; reject substituted or missing receipted bytes.
-    #[test]
-    fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
-        let scratch = tempfile::tempdir().expect("scratch");
-        let binary = scratch.path().join("gmeow-dev");
-        let path = binary.with_extension("receipt.json");
-        let recipe = publication_recipe();
-        assert!(!staged_is_fresh(&binary, &path, &recipe).expect("empty build miss"));
-        std::fs::write(&binary, b"linked executable").expect("binary");
-        assert!(!staged_is_fresh(&binary, &path, &recipe).expect("unreceipted build miss"));
-        ExecutableReceipt {
-            schema: 1,
-            recipe: recipe.clone(),
-            executable_sha256: sha256_file(&binary).expect("digest"),
-        }
-        .write(&path)
-        .expect("receipt");
-        assert!(staged_is_fresh(&binary, &path, &recipe).expect("authenticated hit"));
-        let mut changed = recipe.clone();
-        changed.source_digest = "changed source".into();
-        assert!(!staged_is_fresh(&binary, &path, &changed).expect("stale build miss"));
-        assert!(verify(&binary, &path, &changed).is_err());
-        std::fs::write(&binary, b"substituted bytes").expect("replace");
-        assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
-        std::fs::remove_file(&binary).expect("remove binary");
-        assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
-        std::fs::write(&binary, b"linked executable").expect("restore binary");
-        std::fs::write(&path, b"malformed receipt").expect("corrupt receipt");
-        assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
-    }
-
-    /// Recover an interrupted replacement of an authenticated pair through an unreceipted miss.
-    #[test]
-    fn interrupted_replacement_retires_old_receipt_before_publishing_new_bytes() {
-        let scratch = tempfile::tempdir().expect("scratch");
-        let binary = scratch.path().join("gmeow-dev");
-        let path = binary.with_extension("receipt.json");
-        let temporary = binary.with_extension("prepared");
-        let old_recipe = publication_recipe();
-        std::fs::write(&binary, b"old executable").expect("old binary");
-        ExecutableReceipt {
-            schema: 1,
-            recipe: old_recipe.clone(),
-            executable_sha256: sha256_file(&binary).expect("old digest"),
-        }
-        .write(&path)
-        .expect("old receipt");
-        assert!(staged_is_fresh(&binary, &path, &old_recipe).expect("old authenticated pair"));
-
-        let mut new_recipe = old_recipe;
-        new_recipe.source_digest = "new source".into();
-        std::fs::write(&temporary, b"new executable").expect("prepared replacement");
-        replace_staged_executable(&temporary, &binary, &path).expect("replace executable");
-        // Stop at the actual production boundary before the new receipt is published.
-        assert_eq!(
-            std::fs::read(&binary).expect("new bytes"),
-            b"new executable"
-        );
-        assert!(!path.exists(), "old evidence must not survive replacement");
-        assert!(!staged_is_fresh(&binary, &path, &new_recipe).expect("recoverable build miss"));
-        assert!(verify(&binary, &path, &new_recipe).is_err());
-
-        std::fs::write(&temporary, b"new executable").expect("prepared retry");
-        replace_staged_executable(&temporary, &binary, &path).expect("retry without a receipt");
-        ExecutableReceipt {
-            schema: 1,
-            recipe: new_recipe.clone(),
-            executable_sha256: sha256_file(&binary).expect("new digest"),
-        }
-        .write(&path)
-        .expect("new receipt");
-        verify(&binary, &path, &new_recipe).expect("recovered authenticated pair");
-        assert!(staged_is_fresh(&binary, &path, &new_recipe).expect("recovered fresh hit"));
-    }
-
-    /// Reject weakened dependency optimization and disabled workspace runtime checks.
-    #[test]
-    fn runtime_dependency_policy_is_checked_transitively() {
-        let mut root = runtime_unit(true);
-        root.target_kinds = vec!["bin".into()];
-        root.dependencies = vec![1];
-        let dependency = runtime_unit(false);
-        validate_units(&[root.clone(), dependency.clone()], &[0]).expect("admitted");
-        for (key, weakened) in [
-            ("opt_level", json!("2")),
-            ("lto", json!("thin")),
-            ("codegen_units", json!(16)),
-            ("debuginfo", json!(1)),
-            ("incremental", json!(true)),
-        ] {
-            let mut changed = dependency.clone();
-            changed.profile[key] = weakened;
-            assert!(
-                validate_units(&[root.clone(), changed], &[0]).is_err(),
-                "{key}"
-            );
-        }
-        for key in ["debug_assertions", "overflow_checks"] {
-            let mut changed = root.clone();
-            changed.profile[key] = json!(false);
-            assert!(
-                validate_units(&[changed, dependency.clone()], &[0]).is_err(),
-                "{key}"
-            );
-        }
-    }
-
-    /// Permit a host macro's distinct build profile without admitting the same profile for runtime code.
-    #[test]
-    fn host_build_tools_are_separate_from_runtime_code() {
-        let mut root = runtime_unit(true);
-        root.dependencies = vec![1];
-        let mut build_tool = runtime_unit(false);
-        build_tool.target_kinds = vec!["proc-macro".into()];
-        build_tool.profile["opt_level"] = json!("0");
-        validate_units(&[root.clone(), build_tool.clone()], &[0]).expect("host tool");
-        build_tool.target_kinds = vec!["lib".into()];
-        assert!(validate_units(&[root, build_tool], &[0]).is_err());
-    }
-
-    /// Reject alternate codegen flag spellings while retaining unrelated warning and linker settings.
-    #[test]
-    fn rustflags_cannot_override_admitted_codegen_policy() {
-        for flags in [
-            vec!["-C", "opt-level=2"],
-            vec!["-Clto=thin"],
-            vec!["--codegen=codegen-units=16"],
-            vec!["--codegen", "debuginfo=2"],
-            vec!["-Zcodegen-backend=cranelift"],
-            vec!["-g"],
-            vec!["-Ctarget-feature=-avx2"],
-        ] {
-            assert!(
-                validate_flags(&flags.into_iter().map(str::to_owned).collect::<Vec<_>>()).is_err()
-            );
-        }
-        validate_flags(&["-Dwarnings".into(), "-Clink-self-contained=+linker".into()])
-            .expect("non-competing flags");
-    }
-
-    /// Track runtime sources and added embedded queries while excluding workflow-only edits.
-    #[test]
-    fn producer_inventory_tracks_embedded_queries_and_runtime_dependencies() {
-        // Synthetic source tree only: inventory discovery must never invoke a
-        // compiler, pipeline stage, or corpus fixture producer.
-        let scratch = tempfile::tempdir().expect("source tree");
-        let root = scratch.path();
-        for (path, contents) in [
-            ("Cargo.toml", "[workspace]"),
-            (
-                "crates/gmeow-dev-cli/Cargo.toml",
-                "[dependencies]\nruntime = { path = \"../runtime\" }\n[dev-dependencies]\ntest-only = { path = \"../test-only\" }",
-            ),
-            ("crates/gmeow-dev-cli/src/main.rs", "fn main() {}"),
-            ("crates/runtime/Cargo.toml", "[package]\nname = \"runtime\""),
-            ("crates/runtime/src/lib.rs", "pub fn runtime() {}"),
-            ("crates/runtime/src/bin/tool.rs", "fn main() {}"),
-            ("queries/verify/root.rq", "ASK {}"),
-            ("slices/group/one/queries/verify/first.rq", "ASK {}"),
-        ] {
-            let path = root.join(path);
-            std::fs::create_dir_all(path.parent().expect("parent")).expect("directory");
-            std::fs::write(path, contents).expect("source");
-        }
-        let producer = root.join("crates/gmeow-dev-cli");
-        let initial = producer_inputs::paths(root, &producer);
-        assert!(initial.contains(&root.join("crates/runtime/src/lib.rs")));
-        assert!(!initial.contains(&root.join("crates/runtime/src/bin/tool.rs")));
-        let before = source_digest(root, initial).expect("source digest");
-        std::fs::write(root.join("Makefile"), "producer-build:\n").expect("workflow edit");
-        assert_eq!(
-            before,
-            source_digest(root, producer_inputs::paths(root, &producer))
-                .expect("workflow inventory")
-        );
-        std::fs::write(
-            root.join("slices/group/one/queries/verify/second.rq"),
-            "ASK { ?s ?p ?o }",
-        )
-        .expect("new embedded query");
-        assert_ne!(
-            before,
-            source_digest(root, producer_inputs::paths(root, &producer)).expect("query inventory")
-        );
-    }
-}
+mod tests;

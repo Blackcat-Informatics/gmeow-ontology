@@ -27,6 +27,7 @@ members = [
     # Dependency-leaf action cache: canonical keys, immutable receipts/blobs,
     # cross-process election, and bounded reachability GC shared by pipeline/docs.
     "crates/action-cache",
+    "crates/build-inputs",
     # Rust-owned typed documentation model built from the slice catalog.
     "crates/docs",
     # Deterministic Typst-source renderer + in-memory byte-reproducible PDF
@@ -188,18 +189,15 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-# PINNED BY EXACT CRATES.IO VERSION — `=2.0.0` admits exactly one release, and the
-# lockfile records that release's content `checksum`, so the docs wasm engines that
-# statically link this crate cannot drift from the substrate record. The record now keys
-# off the crate version plus the registry checksum rather than a commit SHA: a published
-# release is immutable and content-addressed, so it carries the same no-drift guarantee the
-# earlier git-rev pin provided, without the git source or a rev that no release names.
-#
-# PurRDF 2.0 makes JSON Schema compilation fallible and preserves SHACL property-shape
-# identities, RDF 1.2 directional literal datatypes, and statement graph identities.
-# Compilation errors propagate through the pipeline; all bundled wasm engines must be
-# rebuilt against this exact release with `make maint-bump-purrdf VERSION=2.0.0`.
+cargo-config2 = "0.1.45"
+# Compatible PurRDF releases. Cargo.lock is the exact version/source/checksum
+# authority; fuzz/Cargo.lock must select the same substrate, and every shipped
+# wasm engine must attest that resolved version. `make maint-bump-purrdf VERSION=...`
+# updates both resolutions and rebuilds all browser engines without changing this
+# compatibility requirement.
 purrdf = "2"
+# Diagnostics and gate orchestration use the RDF kernel without parser/query/shape engines.
+purrdf-core = "2"
 
 # Harness-scoped allocation accounting. Keeping the path here makes the workspace
 # the single dependency authority while individual crates retain dev-only scope.

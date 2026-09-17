@@ -63,7 +63,7 @@ const GRAMMAR_PUT_LEG: &str = "https://blackcatinformatics.ca/lang/grammarSerial
 /// Which formalism a [`Grammar`] is expressed in. Selects the concrete surface syntax the
 /// bridges parse and emit, and the `lang:grammarFormalism` individual the RDF projection
 /// declares.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Formalism {
     /// W3C-style EBNF (`Name ::= expr`, postfix `* + ?`, `[...]` char classes, `#xNN` hex,
     /// `A - B` exclusion) — the notation the W3C Turtle grammar is written in.
@@ -102,7 +102,7 @@ impl Formalism {
 /// The body of a grammar production — a structural expression tree over the notation. The
 /// tree is surface-syntax-independent: EBNF `x*` and ABNF `*x` both lift to [`RuleExpr::Star`],
 /// so identity is decided over structure, not over the notation's spelling.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum RuleExpr {
     /// A reference to another rule by name (`nonterminal`).
     Ref(String),
@@ -141,7 +141,7 @@ pub enum RuleExpr {
 }
 
 /// A single grammar production: `name` and its body expression.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GrammarRule {
     /// The rule's nonterminal name (the left-hand side).
     pub name: String,
@@ -150,7 +150,7 @@ pub struct GrammarRule {
 }
 
 /// A whole grammar: its formalism and its production rules.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Grammar {
     /// The formalism the grammar is expressed in.
     pub formalism: Formalism,

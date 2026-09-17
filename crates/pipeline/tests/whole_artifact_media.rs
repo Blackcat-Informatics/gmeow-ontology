@@ -19,8 +19,8 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::medium::registry::{MediumRegistry, MediumSourceKind};
-use gmeow_pipeline::{MediumDeclaration, declared_medium_of, validate_declared_media};
+use gmeow_pipeline::medium::registry::MediumSourceKind;
+use gmeow_pipeline::{MediumDeclaration, validate_declared_media};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -32,13 +32,10 @@ fn repo_root() -> PathBuf {
         .expect("workspace root")
 }
 
-/// The authored medium axis plus the producer→medium map, parsed from the slice that
-/// owns both. A whole-artifact producer's output carries no registry of its own, which
-/// is exactly why the declaration has to come from the ontology rather than the bytes.
-fn gts_slice() -> std::sync::Arc<purrdf::RdfDataset> {
-    let text = std::fs::read(repo_root().join("slices/core/gts/module.ttl"))
-        .expect("the gts slice is readable");
-    purrdf::parse_dataset(&text, "text/turtle", Some(GMEOW)).expect("the gts slice parses")
+/// Read the exact source-local registry and producer declarations selected for this run.
+fn declared_source() -> gmeow_pipeline::medium::source_observation::SourceMediumRegistry {
+    gmeow_pipeline::medium::source_observation::authenticated(&repo_root())
+        .expect("authenticated source medium declarations")
 }
 
 /// Audit `bytes` through the branch `producer`'s declared medium routes it to, and
@@ -49,13 +46,15 @@ fn audit_whole_artifact(producer: &str, bytes: &[u8]) {
     gmeow_pipeline::validate_mandated_frames(bytes)
         .unwrap_or_else(|e| panic!("{producer}: universal mandated-frame rule failed: {e}"));
 
-    let ds = gts_slice();
-    let registry = MediumRegistry::from_dataset(&ds).expect("the live medium axis reads");
-    let medium_iri = declared_medium_of(&ds, producer)
-        .unwrap_or_else(|e| panic!("{producer}: no declared gmeow:producerMedium: {e}"));
+    let source = declared_source();
+    let registry = &source.registry;
+    let medium_iri = source
+        .producer_media
+        .get(producer)
+        .unwrap_or_else(|| panic!("{producer}: no declared gmeow:producerMedium"));
     let medium = registry
         .media()
-        .get(&medium_iri)
+        .get(medium_iri)
         .unwrap_or_else(|| panic!("{producer}: <{medium_iri}> is not a declared gmeow:Medium"));
     assert_eq!(
         medium.source_kind,
@@ -65,8 +64,8 @@ fn audit_whole_artifact(producer: &str, bytes: &[u8]) {
     validate_declared_media(
         bytes,
         &MediumDeclaration {
-            medium: &medium_iri,
-            registry: &registry,
+            medium: medium_iri,
+            registry,
         },
     )
     .unwrap_or_else(|e| panic!("{producer}: declared-media audit failed: {e}"));
@@ -81,21 +80,37 @@ fn the_music_bundle_routes_to_the_whole_artifact_branch() {
         voices: Vec::new(),
     };
     // gmeow-test-input: synthetic-only
-    let bytes = gmeow_music::piece_to_gts_bytes(&piece).expect("the music producer emits");
+    let bytes = {
+        let emission = gmeow_music::piece_to_gts_bytes(&piece).expect("the music producer emits");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     audit_whole_artifact(&format!("{GMEOW}gtsProducerMusicBundle"), &bytes);
 }
 
 #[test]
 fn the_math_bundle_routes_to_the_whole_artifact_branch() {
     // gmeow-test-input: synthetic-only
-    let bytes = gmeow_math::turtle_to_gts(
-        concat!(
-            "@prefix math: <https://blackcatinformatics.ca/math/> .\n",
-            "<urn:gmeow:math:space> a math:InnerProductSpace ; math:dimension 2 .\n",
+    let bytes = {
+        let emission = gmeow_math::turtle_to_gts(
+            concat!(
+                "@prefix math: <https://blackcatinformatics.ca/math/> .\n",
+                "<urn:gmeow:math:space> a math:InnerProductSpace ; math:dimension 2 .\n",
+            )
+            .as_bytes(),
         )
-        .as_bytes(),
-    )
-    .expect("the math producer emits");
+        .expect("the math producer emits");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     audit_whole_artifact(&format!("{GMEOW}gtsProducerMathBundle"), &bytes);
 }
 
@@ -113,8 +128,16 @@ fn the_convert_exit_routes_to_the_whole_artifact_branch() {
     )
     .expect("the convert fixture parses");
     // gmeow-test-input: synthetic-only
-    let bytes =
-        gmeow_gts_profile::dataset_to_gmeow_gts(&dataset).expect("the convert --to gts exit emits");
+    let bytes = {
+        let emission = gmeow_gts_profile::view_to_gmeow_gts(&dataset)
+            .expect("the convert --to gts exit emits");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     audit_whole_artifact(&format!("{GMEOW}gtsProducerConvertExit"), &bytes);
 }
 
@@ -126,16 +149,9 @@ fn the_convert_exit_routes_to_the_whole_artifact_branch() {
 fn every_declared_producer_routes_to_a_live_branch() {
     use std::collections::BTreeMap;
 
-    let ds = gts_slice();
-    let registry = MediumRegistry::from_dataset(&ds).expect("the live medium axis reads");
-    let producers: Vec<String> = purrdf::flat_rdf_quads_from_dataset(&ds)
-        .into_iter()
-        .filter(|q| q.predicate == format!("{GMEOW}producerMedium"))
-        .filter_map(|q| match q.subject {
-            purrdf::RdfTerm::Iri(iri) => Some(iri),
-            _ => None,
-        })
-        .collect();
+    let source = declared_source();
+    let registry = &source.registry;
+    let producers: Vec<String> = source.producer_media.keys().cloned().collect();
     assert!(
         producers.len() >= 6,
         "the producer→medium map is implausibly small: {producers:?}"
@@ -143,10 +159,13 @@ fn every_declared_producer_routes_to_a_live_branch() {
 
     let mut by_kind: BTreeMap<MediumSourceKind, Vec<String>> = BTreeMap::new();
     for producer in &producers {
-        let medium_iri = declared_medium_of(&ds, producer).expect("exactly one declared medium");
+        let medium_iri = source
+            .producer_media
+            .get(producer)
+            .expect("exactly one declared medium");
         let medium = registry
             .media()
-            .get(&medium_iri)
+            .get(medium_iri)
             .unwrap_or_else(|| panic!("<{medium_iri}> is not a declared gmeow:Medium"));
         by_kind
             .entry(medium.source_kind)

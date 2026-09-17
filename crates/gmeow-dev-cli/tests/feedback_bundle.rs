@@ -30,7 +30,15 @@ fn sample_report() -> Report {
 
 #[test]
 fn bundle_carries_sarif_and_findings_blobs() {
-    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let bundle = {
+        let emission = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     let mut graph = purrdf::gts::reader::read(&bundle, true, None);
     let blobs = read_report_blobs(&mut graph).expect("read report blobs");
 
@@ -54,7 +62,15 @@ fn bundle_carries_sarif_and_findings_blobs() {
 
 #[test]
 fn bundle_self_attests() {
-    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let bundle = {
+        let emission = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
 
     let mut graph = purrdf::gts::reader::read(&bundle, true, None);
     let blobs = read_report_blobs(&mut graph).expect("read report blobs");
@@ -77,8 +93,25 @@ fn bundle_self_attests() {
 
 #[test]
 fn bundle_is_deterministic() {
-    let a = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
-    let b = build_feedback_bundle(&sample_report()).expect("build feedback bundle again");
+    let a = {
+        let emission = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
+    let b = {
+        let emission =
+            build_feedback_bundle(&sample_report()).expect("build feedback bundle again");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     assert_eq!(
         a, b,
         "two bundles built from the same report must be byte-identical"
@@ -87,7 +120,15 @@ fn bundle_is_deterministic() {
 
 #[test]
 fn empty_report_bundle_round_trips() {
-    let bundle = build_feedback_bundle(&Report::new("validate")).expect("build empty bundle");
+    let bundle = {
+        let emission = build_feedback_bundle(&Report::new("validate")).expect("build empty bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     assert!(
         verify_feedback_bundle(&bundle),
         "empty-report bundle self-attests"
@@ -109,7 +150,15 @@ fn verify_returns_false_on_garbage_bytes() {
 
 #[test]
 fn verify_returns_false_on_truncated_bundle() {
-    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let bundle = {
+        let emission = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     let truncated = &bundle[..bundle.len() / 2];
     assert!(
         !verify_feedback_bundle(truncated),
@@ -119,7 +168,15 @@ fn verify_returns_false_on_truncated_bundle() {
 
 #[test]
 fn verify_returns_false_when_snapshot_id_is_tampered() {
-    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let bundle = {
+        let emission = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     let mut graph = purrdf::gts::reader::read(&bundle, true, None);
     let blobs = read_report_blobs(&mut graph).expect("read report blobs");
     let mut flat: serde_json::Value =
@@ -190,7 +247,15 @@ fn verify_returns_false_when_snapshot_id_is_tampered() {
 /// call silently falls back to plain `zstd`.
 #[test]
 fn bundle_uses_the_mandated_frame_profile() {
-    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let bundle = {
+        let emission = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     gmeow_gts_profile::validate_mandated_frames(&bundle)
         .expect("feedback bundle uses the mandated zstd-rsyncable-L12 frame profile");
     // …and the SECOND half: the branch the ontology routes this producer to. The
@@ -203,27 +268,18 @@ fn bundle_uses_the_mandated_frame_profile() {
 /// Hold a feedback bundle to the medium `gmeow:gtsProducerFeedbackBundle` declares,
 /// and assert that declaration really routes to the whole-artifact branch.
 fn audit_declared_media(bundle: &[u8]) {
-    use gmeow_pipeline::medium::registry::{MediumRegistry, MediumSourceKind};
+    use gmeow_pipeline::medium::registry::MediumSourceKind;
 
     const PRODUCER: &str = "https://blackcatinformatics.ca/gmeow/gtsProducerFeedbackBundle";
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .expect("workspace root");
-    let text = std::fs::read(root.join("slices/core/gts/module.ttl")).expect("the gts slice reads");
-    let ds = purrdf::parse_dataset(
-        &text,
-        "text/turtle",
-        Some("https://blackcatinformatics.ca/gmeow/"),
-    )
-    .expect("the gts slice parses");
-    let registry = MediumRegistry::from_dataset(&ds).expect("the live medium axis reads");
-    let medium_iri = gmeow_pipeline::declared_medium_of(&ds, PRODUCER)
+    let source = source_medium_registry();
+    let registry = &source.registry;
+    let medium_iri = source
+        .declared_medium(PRODUCER)
         .expect("the feedback producer is declared");
     assert_eq!(
         registry
             .media()
-            .get(&medium_iri)
+            .get(medium_iri)
             .expect("a declared gmeow:Medium")
             .source_kind,
         MediumSourceKind::WholeArtifact,
@@ -232,11 +288,28 @@ fn audit_declared_media(bundle: &[u8]) {
     gmeow_pipeline::validate_declared_media(
         bundle,
         &gmeow_pipeline::MediumDeclaration {
-            medium: &medium_iri,
-            registry: &registry,
+            medium: medium_iri,
+            registry,
         },
     )
     .expect("the feedback bundle satisfies its declared whole-artifact medium");
+}
+
+/// Share the typed source registry selected by the producer across the two small
+/// feedback cases. Tests never parse the authored GTS module or construct a registry.
+fn source_medium_registry()
+-> &'static gmeow_pipeline::medium::source_observation::SourceMediumRegistry {
+    static OBSERVATION: std::sync::OnceLock<
+        gmeow_pipeline::medium::source_observation::SourceMediumRegistry,
+    > = std::sync::OnceLock::new();
+    OBSERVATION.get_or_init(|| {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("workspace root");
+        gmeow_pipeline::medium::source_observation::authenticated(&root)
+            .expect("source medium registry has an authenticated producer selection")
+    })
 }
 
 /// The same audit over the EMPTY report: an empty findings graph still emits a
@@ -244,7 +317,15 @@ fn audit_declared_media(bundle: &[u8]) {
 /// binds there too.
 #[test]
 fn empty_bundle_uses_the_mandated_frame_profile() {
-    let bundle = build_feedback_bundle(&Report::new("validate")).expect("build empty bundle");
+    let bundle = {
+        let emission = build_feedback_bundle(&Report::new("validate")).expect("build empty bundle");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     gmeow_gts_profile::validate_mandated_frames(&bundle)
         .expect("empty feedback bundle uses the mandated zstd-rsyncable-L12 frame profile");
     audit_declared_media(&bundle);

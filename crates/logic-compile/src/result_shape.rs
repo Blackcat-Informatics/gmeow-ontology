@@ -43,7 +43,9 @@ use crate::ir::LOGIC_NAMESPACE;
 // --------------------------------------------------------------------------- //
 
 /// The RDF term kind of a result-set value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum TermKind {
     /// An IRI (a named node).
     Iri,
@@ -110,7 +112,9 @@ impl fmt::Display for TermKind {
 
 /// Whether a column's variable is bound in every row (`Required`) or may be
 /// unbound (`Optional`, e.g. projected from a SPARQL `OPTIONAL`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum ColumnBinding {
     /// The variable is bound in every result row.
     Required,
@@ -166,7 +170,9 @@ impl fmt::Display for ColumnBinding {
 /// The row-set cardinality contract — subsumes the test-DSL's three tiers 1:1:
 /// `Exact` ↔ `cqExactRows true`, `Contains` ↔ `cqExactRows false`/absent,
 /// `Count(n)` ↔ `cqExpectRowCount n`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum RowCardinality {
     /// The declared example rows are the complete, exact result set.
     Exact,
@@ -227,7 +233,7 @@ impl fmt::Display for RowCardinality {
 /// datatype is meaningful only for a literal column; `None` there means "any
 /// literal" (a *declared* loosening, matching the test-DSL's bare
 /// `cellValueLiteral`), never a half-typed column.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ColumnKind {
     /// The column binds IRIs.
     Iri,
@@ -256,7 +262,7 @@ impl ColumnKind {
 
 /// One typed column of a [`ResultShape`] — a declared `SELECT` variable, its
 /// kind, and whether it is bound in every row.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ResultColumn {
     /// The bare SPARQL variable name (no leading `?`).
     pub var: String,
@@ -278,7 +284,7 @@ impl ResultColumn {
 }
 
 /// The typed `logic:ResultShape` — a schema-level type contract on a result set.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ResultShape {
     /// The declared columns, canonicalised sorted-by-`var`.
     pub columns: Vec<ResultColumn>,

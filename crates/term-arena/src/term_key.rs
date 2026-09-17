@@ -30,8 +30,8 @@
 //!
 //! Per node kind (`net(s) = "{s.len()}:{s}"`):
 //!
-//! - `Leaf(id)`             → `I`   `net(term_display(atom))`
-//! - `Free(id)`             → `V`   `net("free_" + term_display(atom))`
+//! - `Leaf(id)`             → `I`   `net(native_term_key(atom))`
+//! - `Free(id)`             → `V`   `net(native_term_key(atom))`
 //! - `Meta(m)`              → `M`   `net(m.index())`               (metavars are identity-bearing)
 //! - `Bound{debruijn,slot}` → `B`   `net(debruijn)` `net(slot)`    (locally-nameless de-Bruijn)
 //! - `App{op,args}`         → `APP` `net(key(op))` `net(count)` `net(key(argᵢ))…`
@@ -42,7 +42,23 @@
 //! deeper (`Bound`'s next byte is a decimal digit from `net(debruijn)`; `Binder`'s is the
 //! `I` of `BIND`).
 
+use purrdf::TermValue;
+
 use crate::term_dag::{NodeData, TermDag};
+
+/// Persistent text identity over PurRDF's injective native term encoding.
+/// This encoding is used only for content keys, never for relation lookup. It
+/// includes every native field; RDF presentation text is deliberately excluded.
+pub fn native_term_key(term: &TermValue) -> String {
+    use std::fmt::Write as _;
+    let bytes = term.to_canonical_bytes();
+    let mut key = String::with_capacity(3 + 2 * bytes.len());
+    key.push_str("T2:");
+    for byte in bytes {
+        let _ = write!(key, "{byte:02x}");
+    }
+    key
+}
 
 /// Frame one fragment as an injective netstring `"{len}:{s}"` (byte length, colon, bytes).
 ///
@@ -67,26 +83,21 @@ fn push_netstring_num(out: &mut String, n: usize) {
 }
 
 /// The content key for `data`, given a [`TermDag`] in which every child of `data` is
-/// already interned (so each child's cached key and each atom's display resolve).
+/// already interned (so each child's cached key and each native atom resolve).
 ///
 /// A pure `O(children)` fold: it reads children's cached keys (never re-folds a subtree)
-/// and the leaf atoms' cached displays.  It never inspects the node being built, so it is
+/// and encodes native leaf values using PurRDF's canonical identity.  It never inspects the node being built, so it is
 /// safe to call before the node is pushed.
 pub(crate) fn content_key(dag: &TermDag, data: &NodeData) -> String {
     let mut out = String::new();
     match data {
         NodeData::Leaf(atom) => {
             out.push('I');
-            push_netstring(&mut out, dag.atom_display(*atom));
+            push_netstring(&mut out, &native_term_key(dag.atom_value(*atom)));
         }
         NodeData::Free(atom) => {
             out.push('V');
-            // The `free_` prefix keeps a free variable named `x` distinct from a leaf
-            // IRI/literal whose display is `x`, mirroring the IR's `free_<name>` token.
-            let mut framed = String::with_capacity(5 + dag.atom_display(*atom).len());
-            framed.push_str("free_");
-            framed.push_str(dag.atom_display(*atom));
-            push_netstring(&mut out, &framed);
+            push_netstring(&mut out, &native_term_key(dag.atom_value(*atom)));
         }
         NodeData::Meta(m) => {
             out.push('M');
@@ -117,3 +128,7 @@ pub(crate) fn content_key(dag: &TermDag, data: &NodeData) -> String {
     }
     out
 }
+
+#[path = "term_key.tests.rs"]
+#[cfg(test)]
+mod tests;

@@ -182,7 +182,7 @@ fn kb_refutes_candidate_is_refuted_in_standpoint_with_witness() {
         !witness.premises.is_empty(),
         "the witness carries the premises that entailed the clash"
     );
-    // ContradictionWitness derives Ord over sorted premises; run_reasoning sorts them.
+    // The diagnostic witness projection sorts premises without changing firing traces.
     let mut sorted = witness.premises.clone();
     sorted.sort();
     assert_eq!(witness.premises, sorted, "premises must be sorted");
@@ -302,13 +302,13 @@ fn ground_candidate_step_budget_cuts_incremental_recursion_inline() {
     assert!(triples.contains(&(
         IND_X.to_owned(),
         TYPE.to_owned(),
-        format!("<{A_CLS}>"),
+        purrdf::TermValue::iri(A_CLS),
         SCN.to_owned(),
     )));
     assert!(!triples.contains(&(
         IND_X.to_owned(),
         TYPE.to_owned(),
-        format!("<{B_CLS}>"),
+        purrdf::TermValue::iri(B_CLS),
         SCN.to_owned(),
     )));
 }
@@ -340,7 +340,7 @@ fn new_literal_candidate_is_not_falsely_corroborated() {
     assert!(ans.verdict.inferred().iter().any(|axiom| {
         axiom.subject == IND_X
             && axiom.predicate == NAME
-            && axiom.object.contains("Alice")
+            && crate::provenance::term_display(&axiom.object).contains("Alice")
             && axiom.is_edb
     }));
 }
@@ -389,30 +389,23 @@ fn literal_candidate_reaches_literal_aware_dl_refutation() {
 #[test]
 fn ground_candidate_incremental_closure_matches_scratch_with_real_premises() {
     let store = kb(&[(A_CLS, SUBCLASS, B_CLS), (B_CLS, SUBCLASS, C_CLS)]);
-    let base_edb = build_scenario_edb(&store, SCN, &[], None).unwrap();
-    let base = reason_all(&base_edb).unwrap();
-    let with_candidate = build_scenario_edb(
-        &store,
-        SCN,
-        &[],
-        Some((IND_X.to_owned(), TYPE.to_owned(), RdfTerm::iri(A_CLS))),
-    )
-    .unwrap();
-    let scratch = reason_all(&with_candidate).unwrap();
-    let object = RdfTerm::iri(A_CLS);
-    let incremental = crate::reason::reason_ground_fact_insert_incremental(
-        crate::reason::GroundFactIncrementalRequest {
-            base_edb: &base_edb,
-            with_candidate_edb: &with_candidate,
-            base: &base,
-            scenario_world: SCN,
-            subject: IND_X,
-            predicate: TYPE,
-            object: &object,
-            max_steps: None,
-        },
-    )
-    .unwrap();
+    let input = prepare_scenario_input(&store, SCN, &[]).unwrap();
+    let domains = scenario_domains(SCN, STANDPOINT).unwrap();
+    let fact = Fact {
+        subject: TermValue::iri(IND_X),
+        predicate: TYPE.to_owned(),
+        object: TermValue::iri(A_CLS),
+    };
+    let session =
+        NativeReasoningSession::new(input, &domains, vec![(SCN.to_owned(), fact.clone())]).unwrap();
+    let mut with_candidate = session.input();
+    with_candidate
+        .assert_fact(LogicalGraph::Named(TermValue::iri(SCN)), fact.clone())
+        .unwrap();
+    let scratch = crate::reason::reason_all(with_candidate, &domains).unwrap();
+    let incremental = session
+        .insert(LogicalGraph::Named(TermValue::iri(SCN)), fact, None)
+        .unwrap();
 
     assert_eq!(incremental.status, crate::seam::BudgetStatus::Ok);
     assert_eq!(
@@ -428,7 +421,7 @@ fn ground_candidate_incremental_closure_matches_scratch_with_real_premises() {
         .find(|axiom| {
             axiom.subject == IND_X
                 && axiom.predicate == TYPE
-                && axiom.object == format!("<{B_CLS}>")
+                && crate::provenance::term_display(&axiom.object) == format!("<{B_CLS}>")
         })
         .expect("x:B is incrementally derived");
     assert!(derived_b.rule_name.is_some());
@@ -436,41 +429,44 @@ fn ground_candidate_incremental_closure_matches_scratch_with_real_premises() {
         !derived_b.premises.is_empty(),
         "incremental derivations carry their real immediate premises"
     );
+    let scratch_b = scratch
+        .inferred()
+        .iter()
+        .find(|axiom| {
+            axiom.subject == IND_X
+                && axiom.predicate == TYPE
+                && crate::provenance::term_display(&axiom.object) == format!("<{B_CLS}>")
+        })
+        .unwrap();
+    assert_eq!(
+        derived_b.premises, scratch_b.premises,
+        "incremental premises retain the selected rule's body order"
+    );
 }
 
 #[test]
 fn asserting_an_already_derived_candidate_promotes_it_to_edb_provenance() {
     let store = kb(&[(A_CLS, SUBCLASS, B_CLS), (B_CLS, SUBCLASS, C_CLS)]);
-    let base_edb = build_scenario_edb(&store, SCN, &[], None).unwrap();
-    let base = reason_all(&base_edb).unwrap();
+    let input = prepare_scenario_input(&store, SCN, &[]).unwrap();
+    let domains = scenario_domains(SCN, STANDPOINT).unwrap();
+    let fact = Fact {
+        subject: TermValue::iri(A_CLS),
+        predicate: SUBCLASS.to_owned(),
+        object: TermValue::iri(C_CLS),
+    };
+    let session =
+        NativeReasoningSession::new(input, &domains, vec![(SCN.to_owned(), fact.clone())]).unwrap();
+    let base = session.base();
     assert!(base.inferred().iter().any(|axiom| {
         axiom.subject == A_CLS
             && axiom.predicate == SUBCLASS
-            && axiom.object == format!("<{C_CLS}>")
+            && crate::provenance::term_display(&axiom.object) == format!("<{C_CLS}>")
             && !axiom.is_edb
     }));
 
-    let with_candidate = build_scenario_edb(
-        &store,
-        SCN,
-        &[],
-        Some((A_CLS.to_owned(), SUBCLASS.to_owned(), RdfTerm::iri(C_CLS))),
-    )
-    .unwrap();
-    let object = RdfTerm::iri(C_CLS);
-    let adjusted = crate::reason::reason_ground_fact_insert_incremental(
-        crate::reason::GroundFactIncrementalRequest {
-            base_edb: &base_edb,
-            with_candidate_edb: &with_candidate,
-            base: &base,
-            scenario_world: SCN,
-            subject: A_CLS,
-            predicate: SUBCLASS,
-            object: &object,
-            max_steps: None,
-        },
-    )
-    .unwrap();
+    let adjusted = session
+        .insert(LogicalGraph::Named(TermValue::iri(SCN)), fact, None)
+        .unwrap();
 
     let candidate = adjusted
         .result
@@ -479,7 +475,7 @@ fn asserting_an_already_derived_candidate_promotes_it_to_edb_provenance() {
         .find(|axiom| {
             axiom.subject == A_CLS
                 && axiom.predicate == SUBCLASS
-                && axiom.object == format!("<{C_CLS}>")
+                && crate::provenance::term_display(&axiom.object) == format!("<{C_CLS}>")
                 && axiom.world == SCN
         })
         .expect("candidate remains in the adjusted closure");
@@ -774,4 +770,22 @@ fn rule_program_candidate_with_ample_step_budget_completes_normally() {
         "an ample ceiling never trips the governor"
     );
     assert_ne!(ans.verdict.information, InformationState::Undetermined);
+}
+
+/// A redundant unrelated fact does not turn a foreign contradiction into its counterproof.
+#[test]
+fn redundant_candidate_cannot_borrow_an_unrelated_same_world_clash() {
+    let store = kb(&[
+        (IND_A, TYPE, A_CLS),
+        (IND_A, TYPE, B_CLS),
+        (A_CLS, DISJOINT, B_CLS),
+        (SAM_P, KNOWS, ALICE),
+    ]);
+    let candidate = binary_atom(KNOWS, SAM_P, ALICE);
+    let error = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect_err("redundancy is not candidate-local counterproof for an unrelated glut");
+    assert!(
+        error.message().contains("ALREADY") && error.message().contains("inconsistent"),
+        "the selected scenario's unrelated inconsistency must remain an explicit refusal: {error}"
+    );
 }

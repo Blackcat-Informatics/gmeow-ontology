@@ -25,24 +25,71 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use serde::Deserialize;
+use std::sync::OnceLock;
+
+#[path = "source_observations/reader.rs"]
+mod observation_reader;
+
+#[derive(Deserialize)]
+struct Observations {
+    source_path: String,
+    source_digest: String,
+    dictionaries: Vec<Node>,
+    corpora: Vec<Node>,
+    splits: Vec<Node>,
+    schemas: Vec<Node>,
+    classes: BTreeMap<String, Option<Node>>,
+    gmn_terms: BTreeSet<String>,
+    shacl_terms: BTreeSet<String>,
+}
+
+#[derive(Deserialize)]
+struct Node {
+    name: Value,
+    values: BTreeMap<String, Vec<Value>>,
+}
+
+#[derive(Debug, PartialEq, Eq, Deserialize)]
+enum Value {
+    Iri(String),
+    Literal(String),
+    Other(String),
+}
+
+impl Value {
+    fn iri(&self) -> &str {
+        match self {
+            Self::Iri(iri) => iri,
+            other => panic!("expected an IRI term, got {other:?}"),
+        }
+    }
+    fn literal(&self) -> &str {
+        match self {
+            Self::Literal(lexical) => lexical,
+            other => panic!("expected a literal term, got {other:?}"),
+        }
+    }
+}
+
+impl Node {
+    fn objects(&self, predicate: &str) -> &[Value] {
+        self.values
+            .get(predicate)
+            .unwrap_or_else(|| panic!("producer omitted selected field {predicate}"))
+            .as_slice()
+    }
+}
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
 
-/// The seven dictionaries the bundle ships, by `gmeow:dictionaryId`.
+/// The six shipped dictionaries, by `gmeow:dictionaryId`.
+/// Each dictionary is justified by the frame population it primes.
 ///
-/// SEVEN, not eight. The inventory was first drafted from SLICE NAMES, and the rule
-/// that decides it is that a dictionary is justified by the FRAME SET it primes and
-/// must pay for its own in-band bytes on that set. Two of the drafts named frame sets
-/// the bundle did not yet have, and the answer was to build them: the `lang:`
-/// terminology surfaces and the statement layer's byte projections were already
-/// opaque bytes on the general archive, so they moved onto their families' own reps
-/// and their dictionaries are measured over the populations their names claim.
-///
-/// The eighth, `gmeow-math-v1`, is absent as a THEOREM rather than a measurement: a
+/// `gmeow-math-v1` is absent because a
 /// dictionary primes a frame, `gmeow:payloadSchemaDictionary` is
 /// `maxQualifiedCardinality 1`, and every `math:` named graph is unioned into the ONE
 /// snapshot frame, which already binds `gmeow-core-v1`. No mathematical BYTE family
@@ -106,126 +153,88 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
-fn gts_module_path() -> PathBuf {
-    repo_root().join("slices/core/gts/module.ttl")
-}
-
-fn gts_module_text() -> String {
-    std::fs::read_to_string(gts_module_path()).expect("gts module.ttl readable")
-}
-
-fn gts_module() -> std::sync::Arc<RdfDataset> {
-    purrdf::parse_dataset(gts_module_text().as_bytes(), "text/turtle", Some(GMEOW))
-        .expect("gts module.ttl parses as Turtle")
-}
-
-fn id(ds: &RdfDataset, iri: &str) -> Option<TermId> {
-    ds.term_id_by_value(&TermValue::iri(iri))
+fn gts_module() -> &'static Observations {
+    static OBSERVED: OnceLock<gmeow_errors::Result<observation_reader::Selected<Observations>>> =
+        OnceLock::new();
+    let observed = observation_reader::selected(
+        &OBSERVED,
+        "stage-conformance",
+        "pipeline/medium-axis-observations.json",
+    );
+    assert_eq!(observed.source_path, "slices/core/gts/module.ttl");
+    assert!(
+        observed.source_digest.len() == 64
+            && observed
+                .source_digest
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit()),
+        "exact original medium source identity"
+    );
+    observed
 }
 
 fn gm(local: &str) -> String {
     format!("{GMEOW}{local}")
 }
 
-/// Every object of `subject predicate ?o`, as a term-id list.
-fn objects(ds: &RdfDataset, subject: TermId, predicate: &str) -> Vec<TermId> {
-    let Some(p) = id(ds, predicate) else {
-        return Vec::new();
-    };
-    ds.quads_for_pattern(Some(subject), Some(p), None, GraphMatch::Any)
-        .map(|q| q.o)
-        .collect()
-}
-
-/// Every subject typed `class_iri`.
-fn instances(ds: &RdfDataset, class_iri: &str) -> Vec<TermId> {
-    let (Some(t), Some(c)) = (id(ds, RDF_TYPE), id(ds, class_iri)) else {
-        return Vec::new();
-    };
-    ds.quads_for_pattern(None, Some(t), Some(c), GraphMatch::Any)
-        .map(|q| q.s)
-        .collect()
-}
-
-fn iri_of(ds: &RdfDataset, term: TermId) -> String {
-    match ds.resolve(term) {
-        TermRef::Iri(iri) => iri.to_owned(),
-        other => panic!("expected an IRI term, got {other:?}"),
-    }
-}
-
-fn literal_of(ds: &RdfDataset, term: TermId) -> String {
-    match ds.resolve(term) {
-        TermRef::Literal { lexical, .. } => lexical.to_string(),
-        other => panic!("expected a literal term, got {other:?}"),
-    }
-}
-
 // --------------------------------------------------------------------------- //
 // (a) Every shipped dictionary resolves to exactly one corpus with a selector.
 // --------------------------------------------------------------------------- //
 
-#[test]
 fn every_shipped_dictionary_resolves_to_one_corpus_with_at_least_one_selector() {
-    let ds = gts_module();
-    let selectors = [
-        gm("corpusSelectsBlobRep"),
-        gm("corpusSelectsGraph"),
-        gm("corpusSelectsPathPrefix"),
-        gm("corpusSelectsStageProduct"),
-    ];
-
-    // dictionaryId -> dictionary IRI, over every authored gmeow:CompressionDictionary.
-    let mut by_id: BTreeMap<String, TermId> = BTreeMap::new();
-    for dict in instances(&ds, &gm("CompressionDictionary")) {
-        let ids = objects(&ds, dict, &gm("dictionaryId"));
+    let observed = gts_module();
+    let mut by_id = BTreeMap::new();
+    for dictionary in &observed.dictionaries {
+        let ids = dictionary.objects(&gm("dictionaryId"));
         assert_eq!(
             ids.len(),
             1,
             "{} must carry exactly one gmeow:dictionaryId",
-            iri_of(&ds, dict)
+            dictionary.name.iri()
         );
-        let previous = by_id.insert(literal_of(&ds, ids[0]), dict);
-        assert!(previous.is_none(), "duplicate gmeow:dictionaryId");
+        assert!(
+            by_id.insert(ids[0].literal(), dictionary).is_none(),
+            "duplicate gmeow:dictionaryId"
+        );
     }
-
-    let found: BTreeSet<&str> = by_id.keys().map(String::as_str).collect();
-    let expected: BTreeSet<&str> = SHIPPED_DICTIONARY_IDS.into_iter().collect();
+    let found: BTreeSet<_> = by_id.keys().copied().collect();
     assert_eq!(
         found.len(),
         SHIPPED_DICTIONARY_IDS.len(),
-        "the gts slice must declare exactly {} dictionaries; got {found:?}",
-        SHIPPED_DICTIONARY_IDS.len()
+        "the exact shipped dictionary count"
     );
     assert_eq!(
-        found, expected,
-        "the gts slice must declare exactly the shipped dictionary inventory"
+        found,
+        SHIPPED_DICTIONARY_IDS.into_iter().collect(),
+        "the exact shipped dictionary inventory"
     );
-
-    for (dictionary_id, dict) in &by_id {
-        let corpora = objects(&ds, *dict, &gm("trainsOverCorpus"));
+    for (dictionary_id, dictionary) in by_id {
+        let corpora = dictionary.objects(&gm("trainsOverCorpus"));
         assert_eq!(
             corpora.len(),
             1,
-            "{dictionary_id} must gmeow:trainsOverCorpus exactly one gmeow:DictionaryCorpus"
+            "{dictionary_id} must train over exactly one corpus"
         );
-        let corpus = corpora[0];
-        let corpus_iri = iri_of(&ds, corpus);
-
-        // The corpus is a declared gmeow:DictionaryCorpus, not an untyped stand-in.
-        assert!(
-            instances(&ds, &gm("DictionaryCorpus")).contains(&corpus),
-            "{dictionary_id}'s corpus {corpus_iri} must be a declared gmeow:DictionaryCorpus"
-        );
-
-        let selector_count: usize = selectors
+        let corpus_iri = corpora[0].iri();
+        let corpus = observed
+            .corpora
             .iter()
-            .map(|p| objects(&ds, corpus, p).len())
-            .sum();
+            .find(|corpus| corpus.name == corpora[0])
+            .unwrap_or_else(|| {
+                panic!("{dictionary_id}'s corpus {corpus_iri} must be a declared DictionaryCorpus")
+            });
+        let selectors: usize = [
+            "corpusSelectsBlobRep",
+            "corpusSelectsGraph",
+            "corpusSelectsPathPrefix",
+            "corpusSelectsStageProduct",
+        ]
+        .into_iter()
+        .map(|predicate| corpus.objects(&gm(predicate)).len())
+        .sum();
         assert!(
-            selector_count >= 1,
-            "{dictionary_id}'s corpus {corpus_iri} declares no selector — its training set \
-             would be undefined and the bundle-internal guarantee uncheckable"
+            selectors >= 1,
+            "{dictionary_id}'s corpus {corpus_iri} declares no selector"
         );
     }
 }
@@ -242,62 +251,40 @@ fn every_shipped_dictionary_resolves_to_one_corpus_with_at_least_one_selector() 
 /// evaluation most needs an unseen member is exactly the one whose author would be
 /// tempted to widen its own training set. So this pins BOTH halves — that a split
 /// exists at all, and that no corpus carries a second one.
-#[test]
 fn exactly_one_held_out_split_governs_every_archive_backed_corpus() {
-    let ds = gts_module();
-
-    let splits = instances(&ds, &gm("CorpusTrainingSplit"));
+    let observed = gts_module();
     assert_eq!(
-        splits.len(),
+        observed.splits.len(),
         1,
-        "the gts slice must declare EXACTLY ONE gmeow:CorpusTrainingSplit — zero would leave \
-         every archive-backed dictionary trained on the bytes it is scored over, and two would \
-         leave 'which members did this dictionary never see' with two answers"
+        "exactly one held-out split must govern every archive-backed dictionary"
     );
-    let split = splits[0];
-
-    let stride: u64 = {
-        let values = objects(&ds, split, &gm("splitHeldOutStride"));
-        assert_eq!(values.len(), 1, "exactly one gmeow:splitHeldOutStride");
-        literal_of(&ds, values[0]).parse().expect("an integer")
-    };
-    let offset: u64 = {
-        let values = objects(&ds, split, &gm("splitHeldOutOffset"));
-        assert_eq!(values.len(), 1, "exactly one gmeow:splitHeldOutOffset");
-        literal_of(&ds, values[0]).parse().expect("an integer")
-    };
-    assert!(
-        stride >= 2,
-        "a stride below 2 holds out every member, leaving no training set"
-    );
+    let split = &observed.splits[0];
+    let stride = split.objects(&gm("splitHeldOutStride"));
+    let offset = split.objects(&gm("splitHeldOutOffset"));
+    assert_eq!(stride.len(), 1, "exactly one held-out stride");
+    assert_eq!(offset.len(), 1, "exactly one held-out offset");
+    let stride: u64 = stride[0].literal().parse().expect("an integer");
+    let offset: u64 = offset[0].literal().parse().expect("an integer");
+    assert!(stride >= 2, "a stride below two leaves no training set");
     assert!(
         offset < stride,
-        "an offset at or above the stride can never be hit, so the split would hold nothing out \
-         while still claiming to"
+        "an offset outside the stride holds out nothing"
     );
-
-    // No corpus carries its own split coordinates: the rule is uniform by
-    // construction, not by convention.
-    for corpus in instances(&ds, &gm("DictionaryCorpus")) {
-        for predicate in [gm("splitHeldOutStride"), gm("splitHeldOutOffset")] {
+    for corpus in &observed.corpora {
+        for property in ["splitHeldOutStride", "splitHeldOutOffset"] {
             assert!(
-                objects(&ds, corpus, &predicate).is_empty(),
-                "{} carries its own split coordinate — the split is ONE rule over EVERY \
-                 archive-backed corpus, and a per-corpus value is a per-dictionary carve-out",
-                iri_of(&ds, corpus)
+                corpus.objects(&gm(property)).is_empty(),
+                "{} carries a per-corpus split override",
+                corpus.name.iri()
             );
         }
     }
-
-    // …and at least one shipped corpus is archive-backed, so the split governs
-    // something rather than being decoration.
-    let archive_backed = instances(&ds, &gm("DictionaryCorpus"))
-        .into_iter()
-        .filter(|corpus| !objects(&ds, *corpus, &gm("corpusSelectsBlobRep")).is_empty())
-        .count();
     assert!(
-        archive_backed > 0,
-        "no shipped corpus selects a blob rep — the held-out split would govern nothing"
+        observed
+            .corpora
+            .iter()
+            .any(|corpus| !corpus.objects(&gm("corpusSelectsBlobRep")).is_empty()),
+        "the held-out split must govern an archive-backed corpus"
     );
 }
 
@@ -305,24 +292,11 @@ fn exactly_one_held_out_split_governs_every_archive_backed_corpus() {
 // (b) The medium axis and the GMN dialect axis share no vocabulary.
 // --------------------------------------------------------------------------- //
 
-#[test]
 fn gts_module_declares_no_gmn_terms() {
-    let ds = gts_module();
-    let mut offenders: BTreeSet<String> = BTreeSet::new();
-    for quad in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        for term in [quad.s, quad.p, quad.o] {
-            if let TermRef::Iri(iri) = ds.resolve(term)
-                && let Some(local) = iri.strip_prefix(GMEOW)
-                && (local.starts_with("gmn") || local.starts_with("Gmn"))
-            {
-                offenders.insert(iri.to_owned());
-            }
-        }
-    }
+    let offenders = &gts_module().gmn_terms;
     assert!(
         offenders.is_empty(),
-        "the gts slice must declare zero gmeow:gmn* terms — the medium axis and the GMN \
-         dialect axis share no vocabulary; found {offenders:?}"
+        "the medium and GMN dialect axes share no vocabulary; found {offenders:?}"
     );
 }
 
@@ -330,35 +304,15 @@ fn gts_module_declares_no_gmn_terms() {
 // (c) The slice ships no hand-authored shapes.ttl.
 // --------------------------------------------------------------------------- //
 
-#[test]
 fn gts_slice_ships_no_hand_authored_shapes_file() {
-    let shapes = repo_root().join("slices/core/gts/shapes.ttl");
     assert!(
-        !shapes.exists(),
-        "slices/core/gts/shapes.ttl must not exist — declarative obligations are EL-safe \
-         logic: restrictions in module.ttl and procedural ones are logic:Constraint + \
-         logic:Formula; a shapes file would be a forbidden second source of truth"
+        !repo_root().join("slices/core/gts/shapes.ttl").exists(),
+        "the gts slice must author validation only through logic: and derive its shapes"
     );
-    // Belt and braces: not one SHACL term appears in the PARSED module. A text scan
-    // would trip over prose mentioning the derived surface, so the check is over the
-    // triples themselves — exactly what the projection-vocabulary ratchet counts.
-    const SHACL: &str = "http://www.w3.org/ns/shacl#";
-    let ds = gts_module();
-    let mut shacl_terms: BTreeSet<String> = BTreeSet::new();
-    for quad in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        for term in [quad.s, quad.p, quad.o] {
-            if let TermRef::Iri(iri) = ds.resolve(term)
-                && iri.starts_with(SHACL)
-            {
-                shacl_terms.insert(iri.to_owned());
-            }
-        }
-    }
+    let shacl_terms = &gts_module().shacl_terms;
     assert!(
         shacl_terms.is_empty(),
-        "slices/core/gts/module.ttl must hand-author no SHACL vocabulary — the shape \
-         surface is DERIVED from the logic: restrictions and logic:Constraints; found \
-         {shacl_terms:?}"
+        "the gts module must author no SHACL vocabulary; found {shacl_terms:?}"
     );
 }
 
@@ -366,39 +320,38 @@ fn gts_slice_ships_no_hand_authored_shapes_file() {
 // (d) Every medium-axis class carries its logic: meta-type and docsConcern.
 // --------------------------------------------------------------------------- //
 
-#[test]
 fn every_medium_axis_class_carries_a_ufo_meta_type_and_a_docs_concern() {
-    let ds = gts_module();
+    let observed = gts_module();
     let meta_types: BTreeSet<String> = UFO_META_TYPES
         .into_iter()
         .map(|local| format!("{LOGIC}{local}"))
         .collect();
-
+    assert_eq!(
+        observed.classes.keys().cloned().collect::<BTreeSet<_>>(),
+        MEDIUM_AXIS_CLASSES.into_iter().map(gm).collect()
+    );
     for local in MEDIUM_AXIS_CLASSES {
-        let iri = gm(local);
-        let subject = id(&ds, &iri).unwrap_or_else(|| panic!("gmeow:{local} is not declared"));
-
-        let types: BTreeSet<String> = objects(&ds, subject, RDF_TYPE)
-            .into_iter()
-            .map(|t| iri_of(&ds, t))
+        let declaration = observed.classes[&gm(local)]
+            .as_ref()
+            .unwrap_or_else(|| panic!("gmeow:{local} is not declared"));
+        let types: BTreeSet<String> = declaration
+            .objects(RDF_TYPE)
+            .iter()
+            .map(|term| term.iri().to_owned())
             .collect();
         assert!(
             types.contains(LOGIC_CLASS),
-            "gmeow:{local} must be declared a logic:Class"
+            "gmeow:{local} must be a logic:Class"
         );
-
-        let stereotypes: Vec<&String> = types.intersection(&meta_types).collect();
+        let stereotypes: Vec<_> = types.intersection(&meta_types).collect();
         assert_eq!(
             stereotypes.len(),
             1,
-            "gmeow:{local} must carry EXACTLY ONE logic: UFO meta-type (OntoUML stereotype \
-             discipline); found {stereotypes:?}"
+            "gmeow:{local} must carry exactly one logic: UFO meta-type; found {stereotypes:?}"
         );
-
-        let concerns = objects(&ds, subject, &gm("docsConcern"));
         assert!(
-            !concerns.is_empty(),
-            "gmeow:{local} must carry a gmeow:docsConcern"
+            !declaration.objects(&gm("docsConcern")).is_empty(),
+            "gmeow:{local} must carry a docsConcern"
         );
     }
 }
@@ -479,21 +432,21 @@ fn record_rep_constant(out: &mut BTreeMap<String, String>, rest: &str) {
     );
 }
 
-#[test]
 fn every_carrier_blob_rep_has_a_registered_payload_schema() {
-    let ds = gts_module();
+    let observed = gts_module();
 
-    let registered: BTreeSet<String> = instances(&ds, &gm("PayloadSchema"))
-        .into_iter()
+    let registered: BTreeSet<String> = observed
+        .schemas
+        .iter()
         .flat_map(|schema| {
-            let ids = objects(&ds, schema, &gm("payloadSchemaId"));
+            let ids = schema.objects(&gm("payloadSchemaId"));
             assert_eq!(
                 ids.len(),
                 1,
                 "{} must carry exactly one gmeow:payloadSchemaId",
-                iri_of(&ds, schema)
+                schema.name.iri()
             );
-            ids.into_iter().map(|t| literal_of(&ds, t))
+            ids.iter().map(|term| term.literal().to_owned())
         })
         .collect();
 
@@ -538,18 +491,17 @@ fn every_carrier_blob_rep_has_a_registered_payload_schema() {
     );
 }
 
-#[test]
 fn the_payload_schema_registry_carries_no_labels_the_carrier_never_emits() {
-    let ds = gts_module();
+    let observed = gts_module();
     let emitted: BTreeSet<String> = carrier_rep_constants().into_values().collect();
 
     let mut orphans: Vec<String> = Vec::new();
-    for schema in instances(&ds, &gm("PayloadSchema")) {
-        for label in objects(&ds, schema, &gm("payloadSchemaId")) {
-            let label = literal_of(&ds, label);
+    for schema in &observed.schemas {
+        for label in schema.objects(&gm("payloadSchemaId")) {
+            let label = label.literal();
             // The snapshot wire schema is the one deliberate non-blob registration.
-            if label != "gmeow:snapshot/wire" && !emitted.contains(&label) {
-                orphans.push(label);
+            if label != "gmeow:snapshot/wire" && !emitted.contains(label) {
+                orphans.push(label.to_owned());
             }
         }
     }
@@ -557,5 +509,68 @@ fn the_payload_schema_registry_carries_no_labels_the_carrier_never_emits() {
         orphans.is_empty(),
         "the payload-schema registry must not carry labels no carrier REP_* constant emits \
          — a stale registration hides a removed archive: {orphans:?}"
+    );
+}
+
+#[test]
+fn seven_medium_axis_contracts_share_one_authenticated_observation() {
+    let contracts: [(&str, fn()); 7] = [
+        (
+            "every_shipped_dictionary_resolves_to_one_corpus_with_at_least_one_selector",
+            every_shipped_dictionary_resolves_to_one_corpus_with_at_least_one_selector,
+        ),
+        (
+            "exactly_one_held_out_split_governs_every_archive_backed_corpus",
+            exactly_one_held_out_split_governs_every_archive_backed_corpus,
+        ),
+        (
+            "gts_module_declares_no_gmn_terms",
+            gts_module_declares_no_gmn_terms,
+        ),
+        (
+            "gts_slice_ships_no_hand_authored_shapes_file",
+            gts_slice_ships_no_hand_authored_shapes_file,
+        ),
+        (
+            "every_medium_axis_class_carries_a_ufo_meta_type_and_a_docs_concern",
+            every_medium_axis_class_carries_a_ufo_meta_type_and_a_docs_concern,
+        ),
+        (
+            "every_carrier_blob_rep_has_a_registered_payload_schema",
+            every_carrier_blob_rep_has_a_registered_payload_schema,
+        ),
+        (
+            "the_payload_schema_registry_carries_no_labels_the_carrier_never_emits",
+            the_payload_schema_registry_carries_no_labels_the_carrier_never_emits,
+        ),
+    ];
+    assert_eq!(
+        contracts
+            .iter()
+            .map(|(name, _)| *name)
+            .collect::<BTreeSet<_>>()
+            .len(),
+        7
+    );
+    let mut failures = Vec::new();
+    for (name, contract) in contracts {
+        if let Err(payload) = std::panic::catch_unwind(contract) {
+            let detail = payload
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| {
+                    payload
+                        .downcast_ref::<&str>()
+                        .map(|text| (*text).to_owned())
+                })
+                .unwrap_or_else(|| "non-string assertion panic".to_owned());
+            failures.push(format!("{name}: {detail}"));
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} of 7 medium contracts failed:\n{}",
+        failures.len(),
+        failures.join("\n")
     );
 }

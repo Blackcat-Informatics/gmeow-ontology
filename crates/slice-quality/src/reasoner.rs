@@ -14,6 +14,9 @@
 //! The proof compares only IRI-object triples (the DL calculus's structural output
 //! — `rdf:type`, `rdfs:subClassOf`, `rdfs:domain`, characteristics, …).
 
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, prepare_reasoning_input,
+};
 use std::collections::BTreeSet;
 #[cfg(test)]
 use std::sync::Arc;
@@ -33,34 +36,15 @@ use crate::score::{AxisScore, ScoreContext, advisory};
 /// The SHACL namespace — the shape vocabulary the disjointness-projection check reads.
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
 
-#[cfg(test)]
-/// Normalize an inferred axiom's surface object to a bare IRI, or `None` when the
-/// object is a literal / blank (not an IRI surface).
-fn surface_iri(object: &str) -> Option<&str> {
-    let o = object.trim();
-    if o.starts_with('"') || o.is_empty() {
-        return None;
-    }
-    Some(o.trim_start_matches('<').trim_end_matches('>'))
-}
-
-#[cfg(test)]
-/// Whether the closure contains one target IRI-object axiom.
-///
-/// A leave-one-out probe asks exactly one membership question. Borrowing the existing
-/// strings and stopping on the first match avoids constructing a complete
-/// `BTreeSet<String>` for every probe (up to 64 full closure re-indexes per slice).
-fn closure_contains_iri(
-    inferred: &[InferredAxiom],
-    subject: &str,
-    predicate: &str,
-    object: &str,
-) -> bool {
-    inferred.iter().any(|axiom| {
-        axiom.subject == subject
-            && axiom.predicate == predicate
-            && surface_iri(&axiom.object) == Some(object)
-    })
+/// A slice module and its selected Turtle counterexample form one default theory.
+fn slice_theory_domains() -> gmeow_errors::Result<SelectedDomains> {
+    SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Default,
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow.slice-quality.module-theory.v1".to_owned(),
+        *blake3::hash(b"gmeow.slice-quality.module-theory.v1/default/nonempty-object-domain-v1")
+            .as_bytes(),
+    )?])
 }
 
 /// The inferential OWL/RDFS predicates whose IRI-object triples are authored TBox
@@ -158,39 +142,6 @@ fn named_subclass_triples(ds: &RdfDataset) -> Vec<(String, String)> {
         .collect()
 }
 
-#[cfg(test)]
-/// Rebuild the dataset without the single IRI triple `(s, p, o)`, preserving every
-/// OTHER quad of every kind — blank-node (`owl:Restriction`-encoded) and literal
-/// quads included. Only the exact `(s, p, o)` triple under test is removed; because
-/// OWL restrictions and equivalences are blank-node encoded, dropping them would
-/// corrupt the reasoned closure and thus the redundancy / clash scores. Blank
-/// identity is preserved by round-tripping through the dataset's own
-/// scope-qualified owned model (`owned_quads`), so co-referring blanks stay
-/// co-referring after the rebuild.
-fn edb_without_triple(
-    ds: &RdfDataset,
-    drop_s: &str,
-    drop_p: &str,
-    drop_o: &str,
-) -> Arc<RdfDataset> {
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in ds.owned_quads() {
-        // The target axiom is always an IRI→IRI-predicate→IRI triple; drop exactly
-        // that one and preserve everything else regardless of term kind.
-        if quad.predicate == drop_p
-            && let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&quad.subject, &quad.object)
-            && s == drop_s
-            && o == drop_o
-        {
-            continue; // the triple under test — leave it out
-        }
-        builder.push_owned_quad(&quad);
-    }
-    builder
-        .freeze()
-        .unwrap_or_else(|_| Arc::new(RdfDataset::union(&[])))
-}
-
 /// Fold the exact batch leave-one-out verdicts into findings in authored-axiom order.
 fn redundancy_finding(
     (subject, predicate, object): &(String, String, String),
@@ -214,7 +165,9 @@ fn redundancy_probes(
         .iter()
         .map(|(subject, predicate, object)| LeaveOneOutAxiom::new(subject, predicate, object))
         .collect::<Vec<_>>();
-    let rederived = leave_one_out_rederived(ds, &probes)?;
+    let input = prepare_reasoning_input(ds)?;
+    let domains = slice_theory_domains()?;
+    let rederived = leave_one_out_rederived(input, &domains, &probes)?;
     Ok(axioms
         .iter()
         .zip(rederived)
@@ -363,7 +316,11 @@ fn counterexample_clash_check(ctx: &ScoreContext) -> ClashTally {
         docs.push((*fixture_key, fixture_bytes));
         let clashes = crate::dataset_from_documents(&docs)
             .ok()
-            .and_then(|edb| dl_consistency(&edb).ok())
+            .and_then(|edb| {
+                let input = prepare_reasoning_input(&edb).ok()?;
+                let domains = slice_theory_domains().ok()?;
+                dl_consistency(input, &domains).ok()
+            })
             .is_some_and(|v| !v.consistent || !v.unsatisfiable_classes.is_empty());
 
         if clashes {
@@ -530,7 +487,9 @@ pub fn closure_redundant_subclasses(
             LeaveOneOutAxiom::new(subject, gmeow_ns::RDFS_SUB_CLASS_OF, object)
         })
         .collect::<Vec<_>>();
-    let rederived = leave_one_out_rederived(ds, &probes)?;
+    let input = prepare_reasoning_input(ds)?;
+    let domains = slice_theory_domains()?;
+    let rederived = leave_one_out_rederived(input, &domains, &probes)?;
     Ok(subclasses
         .into_iter()
         .zip(rederived)
@@ -538,163 +497,14 @@ pub fn closure_redundant_subclasses(
         .collect())
 }
 
+#[path = "reasoner.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod tests;
 
-    fn parse(ttl: &str) -> Arc<RdfDataset> {
-        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse ttl");
-        let mut b = RdfDatasetBuilder::new();
-        b.push_dataset(&ds);
-        b.freeze().expect("freeze")
-    }
-
-    /// The number of quads that mention `owl:Restriction` as an object — the
-    /// blank-node encoding that must survive leave-one-out.
-    fn restriction_quad_count(ds: &RdfDataset) -> usize {
-        let owl_restriction = "http://www.w3.org/2002/07/owl#Restriction";
-        ds.owned_quads()
-            .filter(|q| matches!(&q.object, RdfTerm::Iri(o) if o == owl_restriction))
-            .count()
-    }
-
-    #[test]
-    fn leave_one_out_preserves_blank_node_restrictions() {
-        // A class whose subclass axiom is IRI-encoded AND an owl:Restriction that is
-        // BLANK-node encoded. Dropping the one subclass triple must not disturb the
-        // restriction quads: they are the DL structure the closure depends on.
-        let ds = parse(
-            r#"
-            @prefix ex:   <https://example.org/> .
-            @prefix owl:  <http://www.w3.org/2002/07/owl#> .
-            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-
-            ex:A a owl:Class ;
-                rdfs:subClassOf ex:B ;
-                rdfs:subClassOf [ a owl:Restriction ;
-                                  owl:onProperty ex:p ;
-                                  owl:someValuesFrom ex:C ] .
-            ex:B a owl:Class .
-            "#,
-        );
-
-        // Precondition: the source graph carries exactly one owl:Restriction blank.
-        assert_eq!(
-            restriction_quad_count(&ds),
-            1,
-            "fixture has one restriction"
-        );
-
-        let subclass = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        let reduced = edb_without_triple(
-            &ds,
-            "https://example.org/A",
-            subclass,
-            "https://example.org/B",
-        );
-
-        // The blank-node restriction and its inner axioms survive the leave-one-out.
-        assert_eq!(
-            restriction_quad_count(&reduced),
-            1,
-            "the owl:Restriction blank node must survive leave-one-out (regression: blank/literal quads were silently dropped)"
-        );
-        let onproperty = reduced.owned_quads().any(|q| {
-            q.predicate == "http://www.w3.org/2002/07/owl#onProperty"
-                && matches!(&q.object, RdfTerm::Iri(o) if o == "https://example.org/p")
-        });
-        assert!(onproperty, "the restriction's owl:onProperty edge survives");
-
-        // The single targeted (A subClassOf B) IRI triple is the ONLY thing removed.
-        let a_subclass_b = reduced.owned_quads().any(|q| {
-            q.predicate == subclass
-                && matches!(&q.subject, RdfTerm::Iri(s) if s == "https://example.org/A")
-                && matches!(&q.object, RdfTerm::Iri(o) if o == "https://example.org/B")
-        });
-        assert!(!a_subclass_b, "the targeted triple is removed");
-    }
-
-    /// G9 canonical-subsumption sweep: `INFERENTIAL_PREDS` — the population whose
-    /// load-bearingness the reasoner axis measures — must count a TBox axiom
-    /// authored with the canonical `logic:subClassOf`/`logic:subPropertyOf` spelling,
-    /// not only the `rdfs:` projection (crates/ns/src/lib.rs:106-166), or a
-    /// re-authored axiom silently leaves the axis's own denominator.
-    #[test]
-    fn authored_axioms_counts_canonical_logic_subsumption_edges() {
-        let ds = parse(
-            r#"
-            @prefix ex:    <https://example.org/> .
-            @prefix logic: <https://blackcatinformatics.ca/logic/> .
-
-            ex:A logic:subClassOf ex:B .
-            ex:p logic:subPropertyOf ex:q .
-            "#,
-        );
-        let axioms = authored_axioms(&ds);
-        assert!(
-            axioms.contains(&(
-                "https://example.org/A".to_owned(),
-                gmeow_ns::LOGIC_SUB_CLASS_OF.to_owned(),
-                "https://example.org/B".to_owned(),
-            )),
-            "authored_axioms must count the canonical logic:subClassOf edge: {axioms:?}"
-        );
-        assert!(
-            axioms.contains(&(
-                "https://example.org/p".to_owned(),
-                gmeow_ns::LOGIC_SUB_PROPERTY_OF.to_owned(),
-                "https://example.org/q".to_owned(),
-            )),
-            "authored_axioms must count the canonical logic:subPropertyOf edge: {axioms:?}"
-        );
-    }
-
-    #[test]
-    fn parallel_redundancy_probes_match_serial_findings_and_order() {
-        let ds = parse(
-            r#"
-            @prefix ex:   <https://example.org/> .
-            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-
-            ex:A rdfs:subClassOf ex:B, ex:C .
-            ex:B rdfs:subClassOf ex:C .
-            ex:C rdfs:subClassOf ex:D .
-            "#,
-        );
-        let axioms = authored_axioms(&ds);
-        let serial: Vec<Option<Finding>> = axioms
-            .iter()
-            .map(|(subject, predicate, object)| {
-                let reduced = edb_without_triple(&ds, subject, predicate, object);
-                let redundant =
-                    gmeow_logic::reason::reason_closure_axioms(&reduced).is_ok_and(|closure| {
-                        closure_contains_iri(&closure, subject, predicate, object)
-                    });
-                redundancy_finding(
-                    &(subject.clone(), predicate.clone(), object.clone()),
-                    redundant,
-                )
-            })
-            .collect();
-        let pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(4)
-            .build()
-            .expect("four-worker pool");
-        for _ in 0..8 {
-            let parallel = pool
-                .install(|| redundancy_probes(&ds, &axioms))
-                .expect("incremental leave-one-out succeeds");
-            let summary = |findings: &[Option<Finding>]| {
-                findings
-                    .iter()
-                    .map(|finding| {
-                        finding
-                            .as_ref()
-                            .map(|finding| (finding.code.clone(), finding.message.clone()))
-                    })
-                    .collect::<Vec<_>>()
-            };
-            assert_eq!(summary(&parallel), summary(&serial));
-        }
-    }
-}
+#[cfg(test)]
+#[path = "reasoner_test_support.rs"]
+mod test_support;
+#[cfg(test)]
+use test_support::closure_contains_iri;
+#[cfg(test)]
+use test_support::edb_without_triple;

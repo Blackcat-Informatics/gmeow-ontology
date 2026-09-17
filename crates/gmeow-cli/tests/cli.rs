@@ -309,18 +309,44 @@ fn validate_unknown_extension_hard_fails() {
 
 // ── export / project / convert ───────────────────────────────────────────────
 
+/// A tiny independent user bundle for exporter and projector command wiring.
+fn user_view_bundle(dir: &Path) -> PathBuf {
+    let dataset = purrdf::parse_dataset(
+        br#"
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+g:cliEnglish a lang:LanguageVariety ; lang:carrierTag "x-gmeow-english" ; g:bcp47Tag "en" .
+g:cliFrench a lang:LanguageVariety ; lang:carrierTag "x-gmeow-french" ; g:bcp47Tag "fr" .
+g:CliParcel a owl:Class ; rdfs:label "Parcel"@x-gmeow-english, "Colis"@x-gmeow-french ;
+  skos:definition "A user parcel."@x-gmeow-english ; rdfs:isDefinedBy g:cliVocabulary .
+g:cliParcel a g:CliParcel ; <https://schema.org/name> "CLI parcel" .
+"#,
+        "text/turtle",
+        None,
+    )
+    .unwrap();
+    // gmeow-test-input: synthetic-only
+    let bytes =
+        purrdf::gts_write::to_gts(&dataset, &purrdf::RdfLookaside::default(), "cli-user-view")
+            .unwrap();
+    let path = dir.join("user.gts");
+    std::fs::write(&path, bytes).unwrap();
+    path
+}
+
 #[test]
 fn export_respects_language_selector() {
-    // test_export_respects_language_selector: --lang fr yields fr-keyed labels /
-    // definitions in the JSONL term records. purrdf's CSVW package (dist/csvw/*, see
-    // stages::export's module doc) is now a generic lossless RDF-1.2-in-CSV encoding
-    // with no per-language columns, so the selector's effect is asserted against
-    // gmeow-terms.jsonl (the flattened Term surface still carries a
-    // language-tag-keyed `labels`/`definitions` map) instead of the retired
-    // gmeow-classes.csv.
+    // The selected French label and English definition fallback belong to a
+    // tiny user term, so command wiring does not regenerate the shipped corpus.
     let (_tmp, out) = scratch("export");
+    let source = user_view_bundle(&out);
     gmeow()
         .arg("export")
+        .arg("--gts")
+        .arg(&source)
         .arg("--out")
         .arg(&out)
         .args(["--lang", "fr"])
@@ -329,6 +355,10 @@ fn export_respects_language_selector() {
     let jsonl = out.join("gmeow-terms.jsonl");
     assert!(jsonl.exists(), "gmeow-terms.jsonl written");
     let text = std::fs::read_to_string(&jsonl).unwrap();
+    assert!(
+        text.contains("Colis"),
+        "the requested French user label is exported"
+    );
     assert!(
         text.contains("\"fr\":"),
         "french label/definition key present"
@@ -341,24 +371,31 @@ fn export_respects_language_selector() {
 
 #[test]
 fn project_schema_org_view_filter() {
-    // Mirrors `gmeow project --profile schema.org`: the schema.org VIEW filter over
-    // the bundle (the registry name is `schema-org`). Writes a Turtle projection.
+    // The explicit user snapshot carries one schema.org edge to project.
     let (_tmp, out) = scratch("project");
+    let source = user_view_bundle(&out);
     gmeow()
         .args(["project", "--profile", "schema-org"])
+        .arg(&source)
         .arg("--out")
         .arg(&out)
         .assert()
         .success()
         .stdout(predicate::str::contains("schema-org.ttl"));
-    assert!(out.join("schema-org.ttl").exists());
+    let projection = std::fs::read_to_string(out.join("schema-org.ttl")).unwrap();
+    assert!(
+        projection.contains("CLI parcel"),
+        "selected user name survives"
+    );
 }
 
 #[test]
 fn project_unknown_view_fails() {
     let (_tmp, out) = scratch("project-bad");
+    let source = user_view_bundle(&out);
     gmeow()
         .args(["project", "--profile", "definitely-not-a-view"])
+        .arg(&source)
         .arg("--out")
         .arg(&out)
         .assert()
@@ -982,151 +1019,128 @@ fn hybrid_query_relation_not_referenced_by_program_still_succeeds() {
 
 // ── Interactive backward-engine CLI surface ─────────────────────────────────
 
-/// The repo-committed goal-directed demonstrator corpus — the SAME
-/// `logic:ReasoningProgram` cell `stage-goal-directed` compiles into
-/// `gmeow.gts`'s `graph/goal-directed`.
-fn reasoning_programs_fixture() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/logic/examples/reasoning-programs.ttl")
+/// Independent user programs for command dispatch, selection and sort-input wiring.
+/// Full Peano, reachability, membership and WFS corpus verdicts are consumed by
+/// the authenticated `goal_directed_bundle` test in the pipeline suite.
+fn backward_inputs() -> (tempfile::TempDir, PathBuf, PathBuf) {
+    let (guard, dir) = scratch("logic-backward");
+    let programs = dir.join("programs.ttl");
+    let sorts = dir.join("sorts.ttl");
+    let mut source = String::from(
+        "@prefix ex: <https://example.org/cli/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         ex:parcel a ex:Parcel .\n",
+    );
+    for (name, sort) in [
+        ("lookup", ""),
+        ("sorted", "; logic:variableSort ex:Shipment"),
+        ("control", "; logic:variableSort ex:Person"),
+    ] {
+        source.push_str(&format!(
+            "ex:{name} a logic:ReasoningProgram ;
+               logic:evaluationMode logic:BackwardEvaluation ;
+               logic:programQuery [ a logic:Formula ; logic:relation ex:received ;
+                 logic:argument [ logic:termIndex 0 ; logic:termVariable \"X\" {sort} ] ] ;
+               logic:clause [ a logic:Formula ; logic:relation ex:received ;
+                 logic:argument [ logic:termIndex 0 ; logic:termIri ex:parcel ] ] .\n"
+        ));
+    }
+    std::fs::write(&programs, source).expect("write independent user programs");
+    std::fs::write(
+        &sorts,
+        "@prefix ex: <https://example.org/cli/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         ex:Parcel logic:subClassOf ex:Shipment .\n",
+    )
+    .expect("write independent user sort edge");
+    (guard, programs, sorts)
 }
 
-/// The repo-committed `math:` grounding module, whose told `rdfs:subClassOf`
-/// chain (`math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber ⊑ …`) seeds
-/// the order-sorted `ex:mathSubsort` demonstrator's unification lattice.
-fn math_module_fixture() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/math/module.ttl")
-}
-
-/// The example corpus's namespace (`@prefix ex:` in `reasoning-programs.ttl`).
-const LOGIC_BACKWARD_EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
-
-/// `gmeow logic backward` over the full shipped demonstrator corpus (no
-/// `--program-iri`, no `--subsort-source`) drives the SAME
-/// `evaluate_reasoning_programs` production path `stage-goal-directed` folds
-/// into `gmeow.gts`, and prints the Peano-addition proof-checked answer, the
-/// reachability answers, and the three-valued WFS verdicts. The order-sorted
-/// `mathSubsort`/`mathSubsortControl` pair correctly yields zero answers here —
-/// no subsort edges are supplied, which is an honest gap, never a silent
-/// fallback to a hardcoded math tower.
+/// Dispatch prints proof-checked answers and every selected user program. A
+/// sorted query without the explicit sort input produces no answer.
 #[test]
-fn logic_backward_evaluates_the_shipped_demonstrator_corpus() {
-    const EX: &str = LOGIC_BACKWARD_EX;
+fn logic_backward_evaluates_user_programs() {
+    let (_guard, programs, _sorts) = backward_inputs();
     gmeow()
-        .args(["logic", "backward"])
-        .arg("--program-file")
-        .arg(reasoning_programs_fixture())
+        .args(["logic", "backward", "--program-file"])
+        .arg(&programs)
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("program peanoAdd")
-                .and(predicate::str::contains(format!(
-                    "answer atom={EX}add({EX}s({EX}s({EX}zero)), {EX}s({EX}zero), \
-                     {EX}s({EX}s({EX}s({EX}zero))))"
-                )))
-                .and(predicate::str::contains(format!(
-                    "binding R = {EX}s({EX}s({EX}s({EX}zero)))"
-                )))
+            predicate::str::contains("program lookup")
+                .and(predicate::str::contains(
+                    "answer atom=https://example.org/cli/received(https://example.org/cli/parcel)",
+                ))
+                .and(predicate::str::contains(
+                    "binding X = https://example.org/cli/parcel",
+                ))
                 .and(predicate::str::contains("proof-checked=true"))
-                .and(predicate::str::contains("program reachability"))
-                .and(predicate::str::contains(format!(
-                    "answer atom={EX}reach({EX}a, {EX}b)"
-                )))
-                .and(predicate::str::contains(format!(
-                    "answer atom={EX}reach({EX}a, {EX}c)"
-                )))
-                .and(predicate::str::contains("program memberCons"))
-                .and(predicate::str::contains(format!("binding M = {EX}a")))
-                .and(predicate::str::contains(format!("binding M = {EX}b")))
-                .and(predicate::str::contains(format!("binding M = {EX}c")))
-                .and(predicate::str::contains("program winWfs"))
-                .and(predicate::str::contains(format!(
-                    "verdict atom={EX}win({EX}a) verdict=undefined"
-                )))
-                .and(predicate::str::contains(format!(
-                    "verdict atom={EX}win({EX}c) verdict=true"
-                )))
-                .and(predicate::str::contains(format!(
-                    "verdict atom={EX}win({EX}d) verdict=false"
-                )))
-                .and(predicate::str::contains("program mathSubsort"))
-                .and(predicate::str::contains("program mathSubsortControl")),
+                .and(predicate::str::contains("program sorted"))
+                .and(predicate::str::contains("program control")),
         );
-
-    // Narrowed to just `mathSubsort`, with no `--subsort-source` supplied,
-    // the order-sorted lattice is empty and the demonstrator honestly
-    // produces zero answers — proving the positive case exercised elsewhere
-    // (`logic_backward_subsort_source_seeds_the_order_sorted_lattice`) is
-    // reasoned-closure-driven from the told `math:` subsort chain, never a
-    // hardcoded math tower baked into the engine.
     gmeow()
-        .args(["logic", "backward"])
-        .arg("--program-file")
-        .arg(reasoning_programs_fixture())
-        .args(["--program-iri", &format!("{EX}mathSubsort")])
+        .args(["logic", "backward", "--program-file"])
+        .arg(&programs)
+        .args(["--program-iri", "https://example.org/cli/sorted"])
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("program mathSubsort")
+            predicate::str::contains("program sorted")
                 .and(predicate::str::contains("answer atom=").not()),
         );
 }
 
-/// `--program-iri` narrows evaluation to exactly the named program: the output
-/// carries only `peanoAdd` and neither `reachability` nor `winWfs` appears.
+/// `--program-iri` selects exactly one program from an independent user file.
 #[test]
 fn logic_backward_program_iri_narrows_to_one_program() {
-    const EX: &str = LOGIC_BACKWARD_EX;
+    let (_guard, programs, _sorts) = backward_inputs();
     gmeow()
-        .args(["logic", "backward"])
-        .arg("--program-file")
-        .arg(reasoning_programs_fixture())
-        .args(["--program-iri", &format!("{EX}peanoAdd")])
+        .args(["logic", "backward", "--program-file"])
+        .arg(&programs)
+        .args(["--program-iri", "https://example.org/cli/lookup"])
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("program peanoAdd")
-                .and(predicate::str::contains("program reachability").not())
-                .and(predicate::str::contains("program winWfs").not()),
+            predicate::str::contains("program lookup")
+                .and(predicate::str::contains("program sorted").not())
+                .and(predicate::str::contains("program control").not()),
         );
 }
 
-/// `--subsort-source` seeds the order-sorted unification lattice from the
-/// `math:` module's TOLD `rdfs:subClassOf` chain: the engine composes its own
-/// reflexive-transitive closure, so `ex:mathSubsort` (whose query variable
-/// carries `logic:variableSort math:RealNumber`) accepts the `math:Integer`
-/// constant `ex:one` (ℤ ⊑ ℝ), while the negative control `ex:mathSubsortControl`
-/// (an incomparable `math:Set` sort) still correctly refuses it.
+/// The explicit sort input enables the compatible query and keeps the
+/// incomparable control empty. The complete math tower is producer-owned.
 #[test]
 fn logic_backward_subsort_source_seeds_the_order_sorted_lattice() {
-    const EX: &str = LOGIC_BACKWARD_EX;
+    let (_guard, programs, sorts) = backward_inputs();
     gmeow()
-        .args(["logic", "backward"])
-        .arg("--program-file")
-        .arg(reasoning_programs_fixture())
-        .args(["--program-iri", &format!("{EX}mathSubsort")])
-        .arg("--subsort-source")
-        .arg(math_module_fixture())
+        .args(["logic", "backward", "--program-file"])
+        .arg(&programs)
+        .args([
+            "--program-iri",
+            "https://example.org/cli/sorted",
+            "--subsort-source",
+        ])
+        .arg(&sorts)
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("program mathSubsort")
-                .and(predicate::str::contains(format!(
-                    "answer atom={EX}p({EX}one)"
-                )))
-                .and(predicate::str::contains(format!("binding X = {EX}one"))),
+            predicate::str::contains("program sorted").and(predicate::str::contains(
+                "binding X = https://example.org/cli/parcel",
+            )),
         );
-
     gmeow()
-        .args(["logic", "backward"])
-        .arg("--program-file")
-        .arg(reasoning_programs_fixture())
-        .args(["--program-iri", &format!("{EX}mathSubsortControl")])
-        .arg("--subsort-source")
-        .arg(math_module_fixture())
+        .args(["logic", "backward", "--program-file"])
+        .arg(&programs)
+        .args([
+            "--program-iri",
+            "https://example.org/cli/control",
+            "--subsort-source",
+        ])
+        .arg(&sorts)
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("program mathSubsortControl")
+            predicate::str::contains("program control")
                 .and(predicate::str::contains("answer atom=").not()),
         );
 }
@@ -1148,10 +1162,11 @@ fn logic_backward_missing_program_file_hard_fails() {
 /// never a silently empty result set.
 #[test]
 fn logic_backward_unknown_program_iri_hard_fails() {
+    let (_guard, programs, _sorts) = backward_inputs();
     gmeow()
         .args(["logic", "backward"])
         .arg("--program-file")
-        .arg(reasoning_programs_fixture())
+        .arg(&programs)
         .args(["--program-iri", "https://example.org/nope"])
         .assert()
         .failure()
@@ -1181,23 +1196,12 @@ fn logic_backward_program_free_cell_hard_fails() {
 
 // ── Shipped decidability-surface query ───────────────────────────────────────
 
-/// The committed `logic` grounding slice `module.ttl`, which ships the
-/// `logic:DecidedFragment` / `logic:RefutationPattern` / `logic:expressivenessBoundary`
-/// decidability manifest (the projection of the kernel registry proven by
-/// `crates/logic`'s `module_ttl_projects_the_kernel_registry`). The default embedded
-/// bundle is materialized by `make check` and may not carry the manifest yet in this
-/// worktree, so the verb is driven against this authored Turtle graph source — the
-/// least-effort correct route that carries the real manifest.
-fn logic_module_fixture() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/logic/module.ttl")
-}
-
-/// `gmeow logic fragments --bundle <logic module.ttl>` reads the shipped
+/// `gmeow logic fragments` reads the produced embedded bundle's shipped
 /// decidability surface by graph queries and lists (1) every decided construct
 /// family with its `logic:RefutationPattern` and completeness bound and (2) their
 /// dual, the retained `logic:expressivenessBoundary` records with their technical
 /// reasons. The assertions pin representative real manifest content (falsifiable, not
-/// tautological): the eight decided families under their patterns and the FOUR
+/// tautological): the seven decided families under their patterns and the FOUR
 /// retained boundaries with their reasons — three classical DL withholds and the
 /// residue of the RDF 1.2 statement-metadata lowering, which is the one an operator
 /// meeting a nested triple term needs the verb to name.
@@ -1205,14 +1209,12 @@ fn logic_module_fixture() -> PathBuf {
 fn logic_fragments_lists_decided_families_and_retained_boundaries() {
     gmeow()
         .args(["logic", "fragments"])
-        .arg("--bundle")
-        .arg(logic_module_fixture())
         .assert()
         .success()
         .stdout(
-            // The two section headers with their exact counts (8 decided, 4 retained).
-            predicate::str::contains("decided-fragments 8")
-                .and(predicate::str::contains("retained-boundaries 4"))
+            // The two section headers with their exact counts (7 decided, 5 retained).
+            predicate::str::contains("decided-fragments 7")
+                .and(predicate::str::contains("retained-boundaries 5"))
                 // Decided families keyed to their patterns.
                 .and(predicate::str::contains("fragment complement-refutation"))
                 .and(predicate::str::contains("pattern complement-clash"))
@@ -1228,11 +1230,15 @@ fn logic_fragments_lists_decided_families_and_retained_boundaries() {
                 .and(predicate::str::contains(
                     "pattern arithmetic-equality-collapse",
                 ))
-                .and(predicate::str::contains("fragment malformed-rdf-list"))
-                .and(predicate::str::contains("pattern malformed-metamodel"))
+                .and(predicate::str::contains("source-admission-contracts 1"))
+                .and(predicate::str::contains(
+                    "source-admission nativeClassExpressionListAdmission",
+                ))
+                .and(predicate::str::contains("fragment malformed-rdf-list").not())
+                .and(predicate::str::contains("pattern malformed-metamodel").not())
                 // A representative completeness bound (real manifest text).
                 .and(predicate::str::contains(
-                    "math-grounded finite-cardinality table",
+                    "native datatype definitions and primitive capacity evidence",
                 ))
                 // The four retained boundaries with their technical reasons.
                 .and(predicate::str::contains("boundary xsd-pattern-facet"))
@@ -1264,8 +1270,6 @@ fn logic_fragments_lists_decided_families_and_retained_boundaries() {
 fn logic_fragments_json_carries_the_manifest() {
     gmeow()
         .args(["logic", "fragments", "--format", "json"])
-        .arg("--bundle")
-        .arg(logic_module_fixture())
         .assert()
         .success()
         .stdout(
@@ -1287,8 +1291,6 @@ fn logic_fragments_json_carries_the_manifest() {
 fn logic_fragments_output_is_deterministic() {
     let first = gmeow()
         .args(["logic", "fragments"])
-        .arg("--bundle")
-        .arg(logic_module_fixture())
         .assert()
         .success()
         .get_output()
@@ -1296,8 +1298,6 @@ fn logic_fragments_output_is_deterministic() {
         .clone();
     let second = gmeow()
         .args(["logic", "fragments"])
-        .arg("--bundle")
-        .arg(logic_module_fixture())
         .assert()
         .success()
         .get_output()
@@ -1327,6 +1327,51 @@ fn logic_fragments_empty_source_hard_fails() {
         .stderr(predicate::str::contains("no logic:DecidedFragment"));
 }
 
+/// The public manifest reader preserves the source-admission category and refuses
+/// missing, contradictory or semantically misclassified contract metadata.
+#[test]
+fn logic_fragments_source_admission_records_are_complete_and_separate() {
+    let (_tmp, dir) = scratch("logic-fragments-admission");
+    let source = dir.join("admission.ttl");
+    let prefix = "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n";
+    std::fs::write(&source, format!("{prefix}logic:chosen a logic:SourceAdmissionContract; rdfs:label \"chosen grammar\"; logic:sourceAdmissionRequirement \"selected owners only\" .")).unwrap();
+    let output = gmeow()
+        .args(["logic", "fragments", "--format", "json"])
+        .arg("--bundle")
+        .arg(&source)
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let value: serde_json::Value = serde_json::from_slice(&output).unwrap();
+    assert_eq!(value["decided_fragments"], serde_json::json!([]));
+    assert_eq!(value["retained_boundaries"], serde_json::json!([]));
+    assert_eq!(
+        value["source_admission_contracts"],
+        serde_json::json!([{
+            "id": "chosen", "label": "chosen grammar", "requirement": "selected owners only",
+        }])
+    );
+    for body in [
+        "logic:chosen a logic:SourceAdmissionContract .",
+        "logic:chosen logic:sourceAdmissionRequirement \"untyped\" .",
+        "logic:chosen a logic:SourceAdmissionContract; logic:sourceAdmissionRequirement \"one\", \"two\" .",
+        "logic:chosen a logic:SourceAdmissionContract; logic:sourceAdmissionRequirement logic:Other .",
+        "logic:chosen a logic:SourceAdmissionContract, logic:RefutationPattern; logic:sourceAdmissionRequirement \"grammar\" .",
+        "logic:chosen a logic:SourceAdmissionContract, logic:DecidedFragment; logic:sourceAdmissionRequirement \"grammar\" .",
+    ] {
+        std::fs::write(&source, format!("{prefix}{body}")).unwrap();
+        gmeow()
+            .args(["logic", "fragments"])
+            .arg("--bundle")
+            .arg(&source)
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains("invalid-surface"));
+    }
+}
+
 /// `gmeow logic fragments --format json` with NO `--bundle` — the DEFAULT
 /// production path every real consumer of the shipped `gmeow` binary takes,
 /// exercising the embedded `BUNDLE_GTS` (`crates/gmeow-cli/src/lib.rs`'s
@@ -1338,7 +1383,7 @@ fn logic_fragments_empty_source_hard_fails() {
 /// graph source carries it (driven against the authored `module.ttl` source); this
 /// test is the one that proves the manifest actually SHIPS in the artifact real
 /// users run against. It pins the same real, falsifiable content as
-/// `logic_fragments_json_carries_the_manifest`: all eight
+/// `logic_fragments_json_carries_the_manifest`: all seven
 /// `logic:DecidedFragment` ids and all three retained-boundary ids (with their
 /// technical reasons), read back from `BUNDLE_GTS`.
 ///
@@ -1357,7 +1402,7 @@ fn logic_fragments_default_embedded_bundle_ships_the_manifest() {
         .stdout(
             predicate::str::contains("\"decided_fragments\"")
                 .and(predicate::str::contains("\"retained_boundaries\""))
-                // All eight certified-complete decided-fragment families.
+                // All seven certified-complete decided-fragment families.
                 .and(predicate::str::contains(
                     "\"id\": \"complement-refutation\"",
                 ))
@@ -1374,7 +1419,12 @@ fn logic_fragments_default_embedded_bundle_ships_the_manifest() {
                 .and(predicate::str::contains(
                     "\"id\": \"inverse-functional-identity-collapse\"",
                 ))
-                .and(predicate::str::contains("\"id\": \"malformed-rdf-list\""))
+                .and(predicate::str::contains(
+                    "\"id\": \"nativeClassExpressionListAdmission\"",
+                ))
+                .and(predicate::str::contains("\"source_admission_contracts\""))
+                .and(predicate::str::contains("\"id\": \"malformed-rdf-list\"").not())
+                .and(predicate::str::contains("malformed-metamodel").not())
                 .and(predicate::str::contains("\"id\": \"has-self-membership\""))
                 // All three retained-boundary reason records.
                 .and(predicate::str::contains("\"id\": \"xsd-pattern-facet\""))

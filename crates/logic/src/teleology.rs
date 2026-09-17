@@ -252,6 +252,22 @@ struct Triple {
     object_n3: String,
 }
 
+impl Triple {
+    fn from_values(quad: purrdf::QuadValues) -> Self {
+        let identity = |value: &TermValue| {
+            value
+                .as_iri()
+                .map_or_else(|| crate::provenance::term_display(value), str::to_owned)
+        };
+        Self {
+            subject: identity(&quad.s),
+            predicate: identity(&quad.p),
+            object_iri: quad.o.as_iri().map(str::to_owned),
+            object_n3: crate::provenance::term_display(&quad.o),
+        }
+    }
+}
+
 /// The content-sorted fact view of a single world.
 ///
 /// Facts are sorted by `(subject, predicate, object_n3)` so all enumeration is
@@ -265,22 +281,49 @@ pub struct WorldFacts {
 impl WorldFacts {
     /// Read and content-sort the facts of one world from the store.
     pub fn read(store: &WorldStore, world: &str) -> Self {
-        let raw = store.quads_in_world(world);
-        let mut triples: Vec<Triple> = Vec::with_capacity(raw.len());
-        for r in &raw {
-            let subject = strip_angle(&r[0]).to_owned();
-            let predicate = strip_angle(&r[1]).to_owned();
-            let (object_iri, object_n3) = match strip_angle_opt(&r[2]) {
-                Some(iri) => (Some(iri.to_owned()), n3(iri)),
-                None => (None, r[2].clone()),
-            };
-            triples.push(Triple {
-                subject,
-                predicate,
-                object_iri,
-                object_n3,
-            });
-        }
+        Self::from_triples(
+            store
+                .quads_for_pattern_in_world(world, None, None, None)
+                .into_iter()
+                .map(Triple::from_values)
+                .collect(),
+        )
+    }
+
+    /// Read one named world directly from its immutable native carrier.
+    /// Assertion, reifier and annotation tables have the same world scope. This
+    /// avoids copying the carrier into a mutable store or rendering a quad stream.
+    /// The transaction interpreter's existing object-key representation is built
+    /// only for selected rows, through the shared term renderer.
+    pub fn read_dataset(dataset: &purrdf::RdfDataset, world: &str) -> Self {
+        use purrdf::{GraphMatch, QuadValues};
+
+        let Some(graph) = dataset.term_id_by_value(&TermValue::iri(world)) else {
+            return Self::from_triples(Vec::new());
+        };
+        let rows = purrdf::DatasetView::quads_for_pattern(
+            dataset,
+            None,
+            None,
+            None,
+            GraphMatch::Named(graph),
+        )
+        .chain(purrdf::DatasetView::reifier_quads(dataset).filter(|quad| quad.g == Some(graph)))
+        .chain(purrdf::DatasetView::annotation_quads(dataset).filter(|quad| quad.g == Some(graph)));
+        Self::from_triples(
+            rows.map(|quad| {
+                Triple::from_values(QuadValues {
+                    s: dataset.term_value(quad.s),
+                    p: dataset.term_value(quad.p),
+                    o: dataset.term_value(quad.o),
+                    g: None,
+                })
+            })
+            .collect(),
+        )
+    }
+
+    fn from_triples(mut triples: Vec<Triple>) -> Self {
         triples.sort();
         triples.dedup();
         let mut sp_index: HashMap<(String, String), Vec<usize>> = HashMap::new();
@@ -396,11 +439,6 @@ impl WorldFacts {
 /// Strip `<` … `>` if both delimiters are present.
 fn strip_angle_opt(s: &str) -> Option<&str> {
     s.strip_prefix('<').and_then(|x| x.strip_suffix('>'))
-}
-
-/// Strip `<` … `>` if present; identity otherwise.
-fn strip_angle(s: &str) -> &str {
-    strip_angle_opt(s).unwrap_or(s)
 }
 
 // ── Path: an ordered run of states via logic:temporallySucceeds ─────────────────

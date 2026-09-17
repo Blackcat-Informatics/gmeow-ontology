@@ -88,19 +88,6 @@ pub fn register_all() {
     }
 }
 
+#[path = "error.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::collections::BTreeSet;
-
-    #[test]
-    fn every_slice_quality_code_interns_with_no_collision() {
-        register_all();
-        let codes: BTreeSet<_> = SLICE_QUALITY_DIAG_CODES.iter().map(|reg| reg()).collect();
-        assert_eq!(
-            codes.len(),
-            SLICE_QUALITY_DIAG_CODES.len(),
-            "slice-quality diagnostic codes must be collision-free"
-        );
-    }
-}
+mod tests;

@@ -130,6 +130,8 @@ impl From<String> for UnitKey {
 /// same premises in a different order are equal and content-addressed identically.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RuleApplication {
+    /// Bounded contextual modal evidence is retained independently of positive premises.
+    pub modal_evaluation: Option<Box<crate::modal::ModalEvaluation>>,
     /// The IRI of the fired rule (or a sentinel pass IRI). Content, not a runtime id.
     pub rule_iri: String,
     /// The content keys (reifier IRIs) of the AND-ed premise facts, sorted.
@@ -145,9 +147,55 @@ impl RuleApplication {
         prem.sort();
         prem.dedup();
         RuleApplication {
+            modal_evaluation: None,
             rule_iri: rule_iri.into(),
             premises: prem.into_boxed_slice(),
         }
+    }
+
+    /// Validate the public application before either insertion or replacement.
+    fn validate_for(&self, fact: &FactKey) -> gmeow_errors::Result<()> {
+        if self.premises.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return Err(provenance_err(
+                "rule application premises must be sorted and distinct".to_owned(),
+            ));
+        }
+        match &self.modal_evaluation {
+            Some(evidence) => {
+                evidence.validate()?;
+                let expected: BTreeSet<FactKey> = evidence
+                    .positive_premises()
+                    .iter()
+                    .map(|premise| FactKey(premise.occurrence_id()))
+                    .collect();
+                let conclusion = crate::modal::occurrence_id(
+                    &evidence.context,
+                    &evidence.formula,
+                    &evidence.conclusion_predicate,
+                    &format!("<{}>", evidence.conclusion_object),
+                );
+                if self.rule_iri != crate::modal::MODAL_RULE_IRI
+                    || self.premises.iter().ne(expected.iter())
+                    || fact.as_str() != conclusion
+                {
+                    return Err(provenance_err("modal rule application does not match its contextual evidence, positive premises and conclusion".to_owned()));
+                }
+            }
+            None if self.rule_iri == crate::modal::MODAL_RULE_IRI => {
+                return Err(provenance_err(
+                    "modal rule application is missing contextual evaluation evidence".to_owned(),
+                ));
+            }
+            None => {}
+        }
+        if self.premises.binary_search(fact).is_ok() {
+            return Err(provenance_err(format!(
+                "self-attestation: fact <{}> cannot be a premise of its own derivation (rule <{}>)",
+                fact.as_str(),
+                self.rule_iri,
+            )));
+        }
+        Ok(())
     }
 
     /// The content-addressed derivation IRI for this firing.
@@ -159,6 +207,9 @@ impl RuleApplication {
     /// insertion order.
     #[must_use]
     pub fn derivation_id(&self) -> String {
+        if let Some(evidence) = &self.modal_evaluation {
+            return evidence.derivation_id();
+        }
         let refs: Vec<&str> = self.premises.iter().map(FactKey::as_str).collect();
         mint_derivation_id(&self.rule_iri, &refs)
     }
@@ -226,16 +277,7 @@ impl DerivationGraph {
         fact: FactKey,
         app: RuleApplication,
     ) -> gmeow_errors::Result<()> {
-        // `premises` is sorted (RuleApplication::new), so a binary search is the
-        // correct membership test for the self-attestation guard.
-        if app.premises.binary_search(&fact).is_ok() {
-            return Err(provenance_err(format!(
-                "self-attestation: fact <{}> cannot be a premise of its own \
-                 derivation (rule <{}>)",
-                fact.as_str(),
-                app.rule_iri
-            )));
-        }
+        app.validate_for(&fact)?;
         self.justifications
             .entry(fact)
             .or_default()
@@ -262,14 +304,7 @@ impl DerivationGraph {
     ) -> gmeow_errors::Result<()> {
         let apps: Vec<RuleApplication> = apps.into_iter().collect();
         for app in &apps {
-            if app.premises.binary_search(fact).is_ok() {
-                return Err(provenance_err(format!(
-                    "self-attestation: fact <{}> cannot be a premise of its own \
-                     derivation (rule <{}>)",
-                    fact.as_str(),
-                    app.rule_iri
-                )));
-            }
+            app.validate_for(fact)?;
         }
         let set = self.justifications.entry(fact.clone()).or_default();
         // Keep only the Asserted justifications; drop all Derived ones.
@@ -448,9 +483,24 @@ pub fn from_foundation_quads(
 ) -> gmeow_errors::Result<DerivationGraph> {
     use crate::foundation::ASSERT_RULE_IRI;
 
+    // Build the contextual lookup only for a selected modal proof, sharing the
+    // triple identities already computed for the ordinary foundation graph.
+    let has_modal = quads.iter().any(|q| q.modal_evaluation.is_some());
+    let mut occurrences = std::collections::BTreeMap::<(String, String), Vec<usize>>::new();
     let mut graph = DerivationGraph::new();
-    for q in quads {
+    for (i, q) in quads.iter().enumerate() {
         let fact = FactKey(crate::foundation::quad_reifier(q)?);
+        if has_modal {
+            let triple = if q.modal_evaluation.is_some() {
+                crate::provenance::reifier_from_strings(&q.subject, &q.predicate, &q.object)
+            } else {
+                fact.0.clone()
+            };
+            occurrences
+                .entry((q.graph.clone(), triple))
+                .or_default()
+                .push(i);
+        }
         if q.rule_iri == ASSERT_RULE_IRI {
             // Asserted: the world IRI is the assertion unit in the v1 oracle.
             graph.add_assertion(fact, UnitKey(q.graph.clone()));
@@ -460,8 +510,68 @@ pub fn from_foundation_quads(
                 .iter()
                 .map(|s| FactKey(s.clone()))
                 .collect::<Vec<_>>();
-            let app = RuleApplication::new(q.rule_iri.clone(), premises);
+            let mut app = RuleApplication::new(q.rule_iri.clone(), premises);
+            app.modal_evaluation = q.modal_evaluation.clone().map(Box::new);
             graph.add_derivation(fact, app)?;
+        }
+    }
+    let mut pending = Vec::new();
+    for quad in quads {
+        if let Some(evidence) = &quad.modal_evaluation {
+            for premise in evidence.positive_premises() {
+                pending.push((premise.context.clone(), premise.triple_id()));
+            }
+        }
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    while let Some(key) = pending.pop() {
+        if !seen.insert(key.clone()) {
+            continue;
+        }
+        let rows = occurrences.get(&key).ok_or_else(|| gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: format!("modal proof has no admitted contextual positive occurrence for {key:?}; an unscoped source is not an explicit bridge"),
+        }))?;
+        for &i in rows {
+            let q = &quads[i];
+            let fact = FactKey(crate::modal::occurrence_id(
+                &q.graph,
+                &q.subject,
+                &q.predicate,
+                &q.object,
+            ));
+            if q.rule_iri == ASSERT_RULE_IRI {
+                graph.add_assertion(fact, UnitKey(q.graph.clone()));
+            } else if let Some(evidence) = &q.modal_evaluation {
+                let mut app = RuleApplication::new(
+                    q.rule_iri.clone(),
+                    evidence
+                        .positive_premises()
+                        .iter()
+                        .map(|p| FactKey(p.occurrence_id())),
+                );
+                app.modal_evaluation = Some(Box::new(evidence.clone()));
+                graph.add_derivation(fact, app)?;
+                for premise in evidence.positive_premises() {
+                    pending.push((premise.context.clone(), premise.triple_id()));
+                }
+            } else {
+                let mut premises = Vec::new();
+                for source in &q.source_quad_ids {
+                    let source_key = (q.graph.clone(), source.clone());
+                    let prior = occurrences.get(&source_key).and_then(|rows| rows.first()).ok_or_else(|| gmeow_errors::Diag::of_kind(crate::error::Reason {
+                        detail: format!("modal premise derivation lacks a contextual source for {source_key:?}; explicit cross-context proof evidence is required"),
+                    }))?;
+                    let p = &quads[*prior];
+                    premises.push(FactKey(crate::modal::occurrence_id(
+                        &p.graph,
+                        &p.subject,
+                        &p.predicate,
+                        &p.object,
+                    )));
+                    pending.push(source_key);
+                }
+                graph.add_derivation(fact, RuleApplication::new(q.rule_iri.clone(), premises))?;
+            }
         }
     }
     Ok(graph)

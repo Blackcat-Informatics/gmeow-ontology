@@ -3,7 +3,7 @@
 
 //! DETERMINISTIC allocation cost-partition for the whole-ontology-union conformance
 //! path — the always-available half of the gate-policy measurement (needs no
-//! valgrind; the sibling `conformance_union_cost_iai` bench adds the retired-
+//! valgrind; the sibling `conformance_union_cost_instructions` bench adds the retired-
 //! instruction corroboration when valgrind is present).
 //!
 //! It partitions the cost a single whole-ontology-union twin pays into one-time

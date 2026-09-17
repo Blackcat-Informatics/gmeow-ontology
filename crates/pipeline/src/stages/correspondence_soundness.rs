@@ -481,36 +481,13 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, SliceError> {
     b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
 }
 
-/// Re-intern an object term (IRI / literal / blank) of `ds` into the filtered builder.
+/// Re-intern an RDF 1.2 object through the native carrier's value-preserving door.
 fn intern_object(
     b: &mut RdfDatasetBuilder,
     ds: &RdfDataset,
     obj: purrdf::TermId,
 ) -> purrdf::TermId {
-    match ds.resolve(obj) {
-        TermRef::Iri(iri) => b.intern_iri(iri),
-        TermRef::Blank { label, scope } => b.intern_blank(label, scope),
-        TermRef::Literal {
-            lexical,
-            datatype,
-            language,
-            ..
-        } => {
-            let lit = match language {
-                Some(lang) => {
-                    purrdf::RdfLiteral::language_tagged(lexical.to_owned(), lang.to_owned())
-                }
-                None => match ds.resolve(datatype) {
-                    TermRef::Iri(dt) => {
-                        purrdf::RdfLiteral::typed(lexical.to_owned(), dt.to_owned())
-                    }
-                    _ => purrdf::RdfLiteral::simple(lexical.to_owned()),
-                },
-            };
-            b.intern_literal(lit)
-        }
-        TermRef::Triple { .. } => b.intern_iri("urn:gmeow:unsupported-triple-term"),
-    }
+    b.intern_owned_term(&ds.to_owned_term(obj))
 }
 
 /// Whether a quad is a structural axiom or an `rdf:type` naming a property kind.
@@ -682,32 +659,6 @@ pub fn lint_correspondence_soundness(
     Ok(corpus.run())
 }
 
+#[path = "correspondence_soundness.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn canonical_property_typing_loads_the_target_axiom_prefix() {
-        let ontology = parse_dataset(
-            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-              @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-              gmeow:geometry a logic:ObjectProperty .\n",
-            NativeRdfFormat::Turtle.media_type(),
-            None,
-        )
-        .expect("parse canonical property fixture");
-        let view = DslView::new(&ontology);
-        let mappings = [Mapping {
-            subject_id: "gmeow:geometry".to_owned(),
-            predicate_id: "skos:closeMatch".to_owned(),
-            object_id: "geo:hasGeometry".to_owned(),
-            confidence: "1.0".to_owned(),
-            mapping_justification: "semapv:ManualMappingCuration".to_owned(),
-        }];
-
-        assert_eq!(
-            referenced_prefixes(&mappings, &view),
-            BTreeSet::from(["geo".to_owned()])
-        );
-    }
-}
+mod tests;

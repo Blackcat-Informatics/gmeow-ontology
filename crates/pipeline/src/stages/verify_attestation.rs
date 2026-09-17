@@ -60,6 +60,7 @@ impl VerifyAttestationStage {
         Self {
             consumes: vec![
                 "stage-compile-logic".to_string(),
+                crate::stages::parse_sources::STAGE_ID.to_string(),
                 "stage-reason".to_string(),
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
@@ -110,7 +111,7 @@ impl Stage for VerifyAttestationStage {
     }
 
     fn impl_version(&self) -> &str {
-        "verify-attestation.v2-transport-normalized-receipt"
+        "verify-attestation.v4-shared-native-laws"
     }
 
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
@@ -145,8 +146,27 @@ impl Stage for VerifyAttestationStage {
         };
 
         let queries = gmeow_logic::verify::embedded_verify_queries();
+        let prepare_started = Instant::now();
+        let gates = crate::stages::parse_sources::catalog(&input)?.prepared_reasoned_gates()?;
+        let verification =
+            gmeow_logic::verify::PreparedVerification::new(&queries, gates.as_ref())?;
+        timings.push(StageRunTiming {
+            phase: "prepare-native-verification".into(),
+            elapsed_ms: prepare_started.elapsed().as_millis(),
+            metadata: Some(format!(
+                "source-modules={};queries={}",
+                gates.source_digests().len(),
+                queries.len()
+            )),
+        });
         let evaluate_started = Instant::now();
-        let mut output = build_output(self.id(), canonical.as_ref(), reasoning.as_ref(), &queries)?;
+        let mut output = build_output(
+            self.id(),
+            canonical.as_ref(),
+            reasoning.as_ref(),
+            &queries,
+            &verification,
+        )?;
         let output_bytes = output
             .product
             .artifact(VERIFY_JSON_PATH)
@@ -171,10 +191,19 @@ fn build_output(
     edb: &RdfDataset,
     reasoning: &gmeow_logic::result::ReasoningResult,
     queries: &[(String, String)],
+    verification: &gmeow_logic::verify::PreparedVerification<'_>,
 ) -> Result<StageOutput, gmeow_errors::Diag> {
-    let report = gmeow_logic::verify::verify_with_reasoning_result(edb, reasoning, queries)
+    let report = verification
+        .verify_with_reasoning_result(edb, reasoning)
         .map_err(|e| stage_err(format!("native verify: {e}")))?;
-    build_output_from_report(stage_id, edb, reasoning, queries, report)
+    build_output_from_report(
+        stage_id,
+        edb,
+        reasoning,
+        queries,
+        report,
+        verification.gates(),
+    )
 }
 
 /// Render the producer's graph and normalized record from an already-evaluated report.
@@ -187,7 +216,11 @@ fn build_output_from_report(
     reasoning: &gmeow_logic::result::ReasoningResult,
     queries: &[(String, String)],
     mut report: gmeow_errors::Report,
+    gates: &gmeow_logic::verify::PreparedReasonedGates,
 ) -> Result<StageOutput, gmeow_errors::Diag> {
+    gates.validate_source_identity()?;
+    let prepared_gates = serde_json::to_vec(gates)
+        .map_err(|error| stage_err(format!("encode prepared native laws: {error}")))?;
     let failed: BTreeSet<String> = report
         .findings
         .iter()
@@ -210,18 +243,21 @@ fn build_output_from_report(
     // the transport-normalized value the consumer can actually recover rather than the
     // richer in-process handle. Query evaluation is unchanged: it reads only non-EDB
     // inferred rows, all of which the projection carries.
-    let live_projection = gmeow_logic::result_rdf::project_reasoning_result(reasoning);
-    let transported_reasoning = gmeow_logic::result_rdf::parse_reasoning_graph(&live_projection)
-        .map_err(|error| stage_err(format!("re-read graph/reasoning projection: {error}")))?;
+    let live_projection = gmeow_logic::result_rdf::project_reasoning_dataset(reasoning)?;
+    let transported_reasoning = gmeow_logic::result_rdf::parse_reasoning_dataset(
+        &live_projection,
+        purrdf::GraphMatch::Default,
+    )
+    .map_err(|error| stage_err(format!("read native graph/reasoning summary: {error}")))?;
     let reasoning_projection =
-        gmeow_logic::result_rdf::project_reasoning_result(&transported_reasoning);
+        gmeow_logic::result_rdf::project_reasoning_result(&transported_reasoning)?;
     let query_digest = query_set_digest(queries);
     let finding_count = report.findings.len();
     let error_count = report.error_count();
     let warning_count = report.warning_count();
     report.metadata.insert(
         "schemaVersion".to_string(),
-        serde_json::json!("gmeow.verify-attestation.v1"),
+        serde_json::json!("gmeow.verify-attestation.v2"),
     );
     report.metadata.insert(
         "verifyInputDigest".to_string(),
@@ -238,6 +274,10 @@ fn build_output_from_report(
     report.metadata.insert(
         "verifyQuerySetDigest".to_string(),
         serde_json::json!(query_digest),
+    );
+    report.metadata.insert(
+        "verifyPreparedLawsDigest".to_owned(),
+        serde_json::json!(ContentDigest::of(&prepared_gates).to_hex()),
     );
     report.metadata.insert(
         "verifyQueryCount".to_string(),
@@ -273,7 +313,13 @@ fn build_output_from_report(
     let nodes = crate::stages::diag_render::finding_nodes(&report, stage_id);
     let diag_blob = serde_json::to_vec(&nodes)
         .map_err(|e| stage_err(format!("encode verify diagnostic nodes: {e}")))?;
-    let artifacts = BTreeMap::from([(VERIFY_JSON_PATH.to_string(), json.into_bytes())]);
+    let artifacts = BTreeMap::from([
+        (VERIFY_JSON_PATH.to_string(), json.into_bytes()),
+        (
+            gmeow_logic::verify::PREPARED_GATES_CHANNEL.to_owned(),
+            prepared_gates,
+        ),
+    ]);
     let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
         dataset,
         artifacts,
@@ -304,6 +350,7 @@ pub fn grade_shipped_attestation(
     queries: &[(String, String)],
     report: &gmeow_errors::Report,
     shipped_record: &[u8],
+    gates: &gmeow_logic::verify::PreparedReasonedGates,
 ) -> Result<AttestationFreshness, gmeow_errors::Diag> {
     let fresh = build_output_from_report(
         "stage-verify-attestation",
@@ -311,6 +358,7 @@ pub fn grade_shipped_attestation(
         reasoning,
         queries,
         report.clone(),
+        gates,
     )?;
     let expected_record = fresh
         .product
@@ -459,34 +507,6 @@ fn short_json(value: &serde_json::Value) -> String {
     }
 }
 
-/// Evaluate every selected bad-example query against the exact EDB/result pair and
-/// project one deterministic quality assessment per query. This function never invokes
-/// the reasoner.
-#[cfg(test)]
-fn evaluate_attestation(
-    edb: &RdfDataset,
-    reasoning: &gmeow_logic::result::ReasoningResult,
-    queries: &[(String, String)],
-) -> Result<(Arc<RdfDataset>, gmeow_errors::Report), gmeow_errors::Diag> {
-    let report = gmeow_logic::verify::verify_with_reasoning_result(edb, reasoning, queries)
-        .map_err(|e| stage_err(format!("native verify: {e}")))?;
-    let failed: BTreeSet<String> = report
-        .findings
-        .iter()
-        .filter(|finding| {
-            finding.severity == gmeow_errors::Severity::Error && finding.code.starts_with("verify.")
-        })
-        .map(|finding| finding.code["verify.".len()..].to_string())
-        .collect();
-    let turtle = emit_verify_attestation(queries, &failed);
-    let dataset = crate::stages::carrier::parse_into_graph(
-        turtle.as_bytes(),
-        "text/turtle",
-        crate::stages::carrier::GRAPH_VERIFY,
-    )?;
-    Ok((dataset, report))
-}
-
 fn query_set_digest(queries: &[(String, String)]) -> String {
     let mut framed = Vec::new();
     framed.extend_from_slice(b"gmeow.verify-query-set.v1\0");
@@ -578,168 +598,14 @@ fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+#[path = "verify_attestation.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use purrdf::RdfTerm;
+mod tests;
 
-    fn fixture() -> (Arc<RdfDataset>, gmeow_logic::result::ReasoningResult) {
-        let edb = purrdf::parse_dataset(
-            b"<urn:s> <urn:p> <urn:o> <urn:world> .\n",
-            "application/n-quads",
-            None,
-        )
-        .expect("fixture EDB");
-        let reasoning = gmeow_logic::reason::reason_all(edb.as_ref()).expect("fixture closure");
-        (edb, reasoning)
-    }
-
-    fn assessments(dataset: &RdfDataset) -> usize {
-        dataset
-            .project_named_graph(crate::stages::carrier::GRAPH_VERIFY)
-            .owned_quads()
-            .filter(|quad| {
-                quad.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-                    && matches!(&quad.object, RdfTerm::Iri(iri) if iri == QUALITY_ASSESSMENT)
-            })
-            .count()
-    }
-
-    #[test]
-    fn clean_and_poisoned_queries_have_attestation_teeth_without_re_reasoning() {
-        let (edb, reasoning) = fixture();
-        let clean = vec![(
-            "clean.rq".to_string(),
-            "SELECT ?s WHERE { ?s <urn:missing> <urn:o> . }".to_string(),
-        )];
-        let (clean_graph, clean_report) =
-            evaluate_attestation(edb.as_ref(), &reasoning, &clean).expect("clean verify");
-        assert_eq!(assessments(clean_graph.as_ref()), 1);
-        assert!(clean_report.ok(), "clean query must pass: {clean_report:?}");
-
-        let poisoned = vec![(
-            "poisoned.rq".to_string(),
-            "SELECT ?s WHERE { ?s <urn:p> <urn:o> . }".to_string(),
-        )];
-        let (poisoned_graph, poisoned_report) =
-            evaluate_attestation(edb.as_ref(), &reasoning, &poisoned).expect("poisoned verify");
-        assert_eq!(assessments(poisoned_graph.as_ref()), 1);
-        assert!(
-            poisoned_report
-                .findings
-                .iter()
-                .any(|finding| finding.code == "verify.poisoned"
-                    && finding.severity == gmeow_errors::Severity::Error),
-            "the poisoned query must produce a hard verification finding: {poisoned_report:?}"
-        );
-    }
-
-    #[test]
-    fn output_receipt_records_zero_closure_constructions() {
-        let (edb, reasoning) = fixture();
-        let queries = vec![(
-            "clean.rq".to_string(),
-            "SELECT ?s WHERE { ?s <urn:missing> <urn:o> . }".to_string(),
-        )];
-        let output = build_output(
-            "stage-verify-attestation",
-            edb.as_ref(),
-            &reasoning,
-            &queries,
-        )
-        .expect("verify product");
-        let report: serde_json::Value = serde_json::from_slice(
-            output
-                .product
-                .artifact(VERIFY_JSON_PATH)
-                .expect("verify JSON artifact"),
-        )
-        .expect("normalized report JSON");
-        assert_eq!(report["metadata"]["closureConstructions"], 0);
-        assert_eq!(report["metadata"]["verifyQueryCount"], 1);
-        assert!(!output.product.diag_nodes().is_empty());
-    }
-
-    #[test]
-    fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
-        let (edb, reasoning) = fixture();
-        let queries = vec![(
-            "clean.rq".to_string(),
-            "SELECT ?s WHERE { ?s <urn:missing> <urn:o> . }".to_string(),
-        )];
-        let report =
-            gmeow_logic::verify::verify_with_reasoning_result(edb.as_ref(), &reasoning, &queries)
-                .expect("evaluate exact report");
-        let output = build_output_from_report(
-            "stage-verify-attestation",
-            edb.as_ref(),
-            &reasoning,
-            &queries,
-            report.clone(),
-        )
-        .expect("render producer outputs");
-        let snapshot = output.product.dataset();
-        let record = output
-            .product
-            .artifact(VERIFY_JSON_PATH)
-            .expect("verify record");
-
-        let exact = grade_shipped_attestation(
-            snapshot,
-            edb.as_ref(),
-            &reasoning,
-            &queries,
-            &report,
-            record,
-        )
-        .expect("exact producer projections grade fresh");
-        assert_eq!(exact.query_count, 1);
-        assert_eq!(exact.closure_constructions, 0);
-
-        let mut tampered_record = record.to_vec();
-        tampered_record.push(b' ');
-        let record_error = grade_shipped_attestation(
-            snapshot,
-            edb.as_ref(),
-            &reasoning,
-            &queries,
-            &report,
-            &tampered_record,
-        )
-        .expect_err("tampered normalized record must fail");
-        assert!(record_error.to_string().contains("verify record is stale"));
-
-        let mut stale_value: serde_json::Value =
-            serde_json::from_slice(record).expect("record JSON");
-        stale_value["metadata"]["verifyQueryCount"] = serde_json::json!(999);
-        let stale_record = serde_json::to_vec_pretty(&stale_value).expect("stale JSON");
-        let value_error = grade_shipped_attestation(
-            snapshot,
-            edb.as_ref(),
-            &reasoning,
-            &queries,
-            &report,
-            &stale_record,
-        )
-        .expect_err("stale JSON value must fail");
-        assert!(
-            value_error
-                .to_string()
-                .contains("/metadata/verifyQueryCount: expected 1, shipped 999"),
-            "{value_error}"
-        );
-
-        let empty_snapshot = purrdf::parse_dataset(b"", "application/n-quads", None)
-            .expect("empty snapshot dataset");
-        let graph_error = grade_shipped_attestation(
-            empty_snapshot.as_ref(),
-            edb.as_ref(),
-            &reasoning,
-            &queries,
-            &report,
-            record,
-        )
-        .expect_err("missing graph/verify must fail");
-        assert!(graph_error.to_string().contains("no graph/verify"));
-    }
-}
+#[cfg(test)]
+#[path = "verify_attestation_test_support.rs"]
+mod test_support;
+#[cfg(test)]
+use test_support::evaluate_attestation;
+#[cfg(test)]
+use test_support::test_gates;

@@ -25,7 +25,7 @@ use crate::serialize::VerdictStatus;
 /// A normalized external problem outcome, abstracting over the concrete SZS token
 /// or W3C entailment kind. The adapter parses a source into one of these, then maps
 /// it onto a [`VerdictStatus`] for the runner.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ExternalOutcome {
     /// The conjecture is entailed / the axiom set has no model — the reduction
     /// `premises ∧ ¬conclusion` is UNSATISFIABLE. TPTP `Theorem` / `Unsatisfiable`
@@ -75,55 +75,6 @@ pub fn outcome_for_szs(token: &str) -> gmeow_errors::Result<ExternalOutcome> {
     }
 }
 
+#[path = "status.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn szs_inconsistent_branch() {
-        for t in ["Theorem", "Unsatisfiable", "ContradictoryAxioms"] {
-            assert_eq!(
-                outcome_for_szs(t).unwrap(),
-                ExternalOutcome::Inconsistent,
-                "{t}"
-            );
-            assert_eq!(
-                outcome_for_szs(t).unwrap().verdict_status(),
-                VerdictStatus::Inconsistent
-            );
-        }
-    }
-
-    #[test]
-    fn szs_consistent_branch() {
-        for t in ["Satisfiable", "CounterSatisfiable"] {
-            assert_eq!(
-                outcome_for_szs(t).unwrap(),
-                ExternalOutcome::Consistent,
-                "{t}"
-            );
-        }
-    }
-
-    #[test]
-    fn szs_incomplete_branch() {
-        for t in ["Unknown", "GaveUp", "Timeout", "ResourceOut"] {
-            assert_eq!(
-                outcome_for_szs(t).unwrap(),
-                ExternalOutcome::Incomplete,
-                "{t}"
-            );
-        }
-    }
-
-    #[test]
-    fn unknown_szs_token_hard_fails() {
-        let err = outcome_for_szs("Banana").unwrap_err();
-        assert!(
-            err.message().contains("unknown TPTP SZS status token"),
-            "{err}"
-        );
-        // No casing leniency — SZS tokens are case-sensitive.
-        assert!(outcome_for_szs("theorem").is_err());
-    }
-}
+mod tests;

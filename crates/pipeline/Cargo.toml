@@ -8,7 +8,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-readme = "README.md"
 keywords = ["pipeline", "dag", "build", "rdf", "gmeow"]
 autobins = false
 
@@ -21,7 +20,7 @@ name = "gmn-dialect-paths"
 path = "src/bin/gmn-dialect-paths.rs"
 
 [[bin]]
-name = "perf_gate_merge"
+name = "perf-gate-merge"
 path = "src/bin/perf_gate_merge.rs"
 
 [lib]
@@ -163,8 +162,7 @@ serde_json.workspace = true
 # The tracked term-changelog authority is bound to an ordered ontology release
 # identity; arbitrary same-release boundary rewrites are rejected.
 semver.workspace = true
-# Report-only `perf_sample` binary: Unix child CPU/RSS/fault/block-I/O counters; the
-# scheduler also uses glibc's thread-safe `malloc_trim` at declarative serialization-
+# The scheduler uses glibc's thread-safe `malloc_trim` at declarative serialization-
 # resource handoffs and the sole-terminal level boundary to return already-freed cold-
 # wave pages before the next whole-carrier serialization. Non-glibc targets compile
 # that reclamation hint as a no-op.
@@ -197,11 +195,13 @@ tracing.workspace = true
 ed25519-dalek = "2"
 
 [build-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
 # Hash the pipeline library's exact local implementation closure into
 # GMEOW_BUILD_FINGERPRINT so unrelated workspace edits retain stage receipts.
-sha2.workspace = true
 
 [dev-dependencies]
+# Independent confusable-glyph audit over producer-selected source observations.
+unicode-security = "0.1.2"
 # Dedicated integration-test allocation accounting for the GTS sink's stratum
 # canonicalization. The single-test binary installs the allocator; the pipeline
 # library and shipped CLIs do not.
@@ -214,13 +214,6 @@ gmeow-bundle-import = { path = "../bundle-import" }
 # routes it to. Music is not otherwise a dependency of this crate, so it is dev-only;
 # gmeow-math already is one and is deliberately NOT duplicated here.
 gmeow-music = { path = "../music" }
-# The medium-axis concurrency proof (`medium::train`): each worker thread PERTURBS
-# its own thread-local `fastrand` generator around the training call, so a
-# regression to an ambient-seeded trainer shows up as diverging dictionary bytes
-# instead of passing by luck. Same generator purrdf's `gts::dict` seeds explicitly
-# and round-trips, so this pins the property that actually matters rather than a
-# proxy for it.
-fastrand = "2"
 # Byte goldens for the per-graph `graph/logic` fold: a deterministic
 # snapshot of the canonical RDF-1.2 named-graph carriage, regression-pinned
 # independent of the full gmeow.gts.

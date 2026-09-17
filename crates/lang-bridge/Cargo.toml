@@ -17,6 +17,8 @@ path = "src/lib.rs"
 # SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
 # an independent implementation reproduces the byte-exact digest.
 blake3.workspace = true
+# Compact prepared dictionaries hydrate on browser targets without parsing source RDF.
+ciborium.workspace = true
 gmeow-errors = { path = "../errors" }
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
@@ -24,6 +26,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
+serde.workspace = true
 sha2.workspace = true
 # The plain-text bridge declares each lifted surface's Unicode normalization form
 # HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared

@@ -30,7 +30,7 @@ use crate::bcp47::Bcp47Target;
 use crate::bridge::{IngestDiagnostic, LangFailure};
 use crate::conllu::ConlluTarget;
 use crate::emit::{digest16, ntriples_sorted};
-use crate::gmn_metrics::{TokenMetrics, compute_token_metrics};
+use crate::gmn_metrics::{MeasuredTokenCorpus, TokenMetrics, measure_token_metrics};
 use crate::gmn_migrate::tag_schema_version;
 use crate::gmn1_codec::{
     CurrentCodebook, Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
@@ -50,14 +50,87 @@ use crate::tei::TeiBridge;
 /// correspondence IRIs) lives under, matching every other `lang:` producer.
 const EXAMPLE_BASE: &str = "http://example.org/lang/";
 
-/// A named source surface a target lifts (authored grammar notation, or a `lang:` RDF surface
-/// from the composed model). `name` becomes the emitted artifact's file stem.
+/// A named `lang:` RDF surface from the composed model. Its name becomes the emitted
+/// artifact stem; grammar targets receive a prepared [`GrammarSource`] instead.
 #[derive(Clone, Debug)]
 pub struct NamedSource {
     /// The source's stable name (the artifact file stem, e.g. `turtle` / `gts`).
     pub name: String,
-    /// The raw source bytes (grammar notation / `lang:` Turtle).
+    /// The raw `lang:` Turtle source bytes.
     pub bytes: Vec<u8>,
+}
+
+/// A named grammar with one native parse and canonical analysis shared by every target.
+/// The raw authoring bytes remain with the source owner; target emission never reparses them.
+#[derive(Clone, Debug)]
+pub struct GrammarSource {
+    /// Stable artifact stem selected by the source catalog.
+    pub name: String,
+    prepared: std::sync::Arc<PreparedGrammar>,
+}
+
+#[derive(Debug)]
+struct PreparedGrammar {
+    parsed: Grammar,
+    canonical: Grammar,
+    ebnf: String,
+    source_iri: String,
+}
+
+impl GrammarSource {
+    /// Parse the selected EBNF source and prepare its common target analyses once.
+    ///
+    /// # Errors
+    /// Rejects invalid source grammar with the native ingestion diagnostic.
+    pub fn parse(name: impl Into<String>, bytes: &[u8]) -> Result<Self, IngestDiagnostic> {
+        let parsed = EbnfBridge.to_grammar(bytes)?;
+        let canonical = parsed.canonicalize();
+        let ebnf = serialize_grammar(&canonical);
+        let source_iri = grammar_iri_for(&ebnf);
+        Ok(Self {
+            name: name.into(),
+            prepared: std::sync::Arc::new(PreparedGrammar {
+                parsed,
+                canonical,
+                ebnf,
+                source_iri,
+            }),
+        })
+    }
+
+    /// Original native syntax tree, before canonical normalization.
+    #[must_use]
+    pub fn parsed(&self) -> &Grammar {
+        &self.prepared.parsed
+    }
+
+    /// Shared canonical grammar used by all selected target views.
+    #[must_use]
+    pub fn canonical(&self) -> &Grammar {
+        &self.prepared.canonical
+    }
+
+    /// Single canonical EBNF serialization shared by correspondence identities.
+    #[must_use]
+    pub fn ebnf(&self) -> &str {
+        &self.prepared.ebnf
+    }
+
+    /// Common source identity of every projection of this grammar.
+    #[must_use]
+    pub fn source_iri(&self) -> &str {
+        &self.prepared.source_iri
+    }
+}
+
+/// The typed result of reading a target's exact grammar output bytes.
+/// The digest binds the result to that output so later consumers reuse the same parse.
+#[derive(Clone, Debug)]
+pub struct GrammarReparse {
+    /// BLAKE3 digest of the bytes passed to the native grammar parser.
+    pub emitted_digest: String,
+    /// Canonical reparsed grammar, or the complete native ingestion diagnostic.
+    pub grammar: Result<Grammar, IngestDiagnostic>,
 }
 
 /// The projection input aBox: every source surface the registered targets lower FROM. Every
@@ -67,8 +140,8 @@ pub struct NamedSource {
 /// still registered, the driver folds one honest no-source ledger row).
 #[derive(Clone, Debug, Default)]
 pub struct LangProjectionInput {
-    /// Authored grammar source surfaces (EBNF notation) — the EBNF/ABNF targets' input.
-    pub grammars: Vec<NamedSource>,
+    /// Prepared native grammars shared across EBNF, ABNF and selected GMN target views.
+    pub grammars: Vec<GrammarSource>,
     /// Raw `lang:` RDF surfaces (Turtle) already present in the composed model, each scanned by
     /// the lexical/morphosyntax/document/surface/meaning targets (OntoLex, CoNLL-U, TEI, NIF,
     /// SemAF) for the individuals it projects (`lang:Lexeme`, `lang:ComposedForm`,
@@ -82,13 +155,13 @@ pub struct LangProjectionInput {
     /// The one carrier-authored GMN dictionary and scoped glyph registry. Keeping this
     /// separate from each projected source graph ensures every writer/reader invocation uses
     /// the codebook the shipped ontology pins, rather than a source-local empty fallback.
-    pub gmn_dictionary: Option<GmnDictionary>,
+    pub gmn_dictionary: Option<std::sync::Arc<GmnDictionary>>,
     /// The resolved current GMN codebook — the second clean carrier of codebook identity
     /// (reference inventory, script graphemes, pinned versions) the conformance pack's
     /// codebook digest folds over alongside [`gmn_dictionary`](Self::gmn_dictionary). Set
     /// together with the dictionary from the SAME lang module dataset so the emitted digest
     /// equals what the gate/CLI recompute; `None` ⇒ no pack is emitted.
-    pub gmn_codebook: Option<CurrentCodebook>,
+    pub gmn_codebook: Option<std::sync::Arc<CurrentCodebook>>,
     /// The AUTHORED GMN grammar bytes (`grammars/gmn.ebnf`, pre-render) — the grammar leaf of
     /// the conformance pack's Merkle root. Kept separate from [`grammars`](Self::grammars),
     /// whose `gmn` entry the projection stage replaces with the graph-rendered production, so
@@ -152,12 +225,28 @@ pub struct LangEmission {
     /// The MEASURED round-trip verdict (re-parse / byte round-trip) — the value
     /// `lang:roundTripHolds` carries. Computed by the target, never asserted.
     pub round_trip_holds: bool,
+    /// Native reparse of actual emitted grammar bytes, shared with observation consumers.
+    /// Grammar targets with an artifact must carry this; non-grammar targets and
+    /// explicitly unsupported grammar views have no grammar reparse.
+    pub grammar_reparse: Option<GrammarReparse>,
     /// The preservation kind to record when the carried correspondence is NOT exact (the
     /// driver derives `Exact` from [`crate::is_exact_correspondence`], else uses this).
     pub lossy_kind: PreservationKind,
     /// The lifted `lang:` RDF this emission projects into the corpus graph (N-Triples
     /// bytes); empty when the source RDF is already carried by a sibling emission.
     pub source_rdf: Vec<u8>,
+}
+
+/// Native emissions and the measurements used to construct their shipped products.
+/// Keeping the measured value beside the emissions lets the producer authenticate it
+/// without running the selected corpus through the codec again.
+#[derive(Clone, Debug)]
+pub struct LangEmissionBatch {
+    /// The same correspondence-carrying products returned by [`LangProjectionTarget::emit`].
+    pub emissions: Vec<LangEmission>,
+    /// The actual GMN measurement, present whenever its dictionary and major are selected.
+    /// An empty selected corpus still carries its zero-source measurement.
+    pub gmn_metrics: Option<MeasuredTokenCorpus>,
 }
 
 /// A registered projection target: the projection peer of [`crate::Bridge`]. It CARRIES a
@@ -172,6 +261,18 @@ pub trait LangProjectionTarget {
     /// folds one honest no-source ledger row. Hard-fails (naming the construct) rather than
     /// ever silently dropping source material.
     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic>;
+
+    /// Emit once while retaining native measurements for producer-owned contract receipts.
+    /// Targets without a GMN measurement return only their normal emission products.
+    fn emit_observed(
+        &self,
+        input: &LangProjectionInput,
+    ) -> Result<LangEmissionBatch, IngestDiagnostic> {
+        self.emit(input).map(|emissions| LangEmissionBatch {
+            emissions,
+            gmn_metrics: None,
+        })
+    }
 }
 
 /// The ordered projection-target registry. Adding a target is a one-line change here plus
@@ -257,20 +358,23 @@ impl LangProjectionTarget for EbnfTarget {
     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
         let mut emissions = Vec::new();
         for source in &input.grammars {
-            let grammar = EbnfBridge.to_grammar(&source.bytes)?;
-            let canon = grammar.canonicalize();
-            let text = serialize_grammar(&canon);
-            let grammar_iri = grammar_iri_for(&text);
-            let round_trip_holds = grammar_round_trips(&canon);
-            let source_rdf = grammar_to_ntriples(&canon, &grammar_iri);
+            let canon = source.canonical();
+            let text = source.ebnf();
+            let grammar_iri = source.source_iri().to_owned();
+            let grammar_reparse = grammar_round_trip(text, canon);
+            let round_trip_holds = grammar_reparse
+                .grammar
+                .as_ref()
+                .is_ok_and(|grammar| grammar == canon);
+            let source_rdf = grammar_to_ntriples(canon, &grammar_iri);
             let mut loss = LossLedger::new();
             emissions.push(LangEmission {
                 artifacts: vec![EmittedArtifact {
                     path_suffix: format!("ebnf/{}.ebnf", source.name),
-                    bytes: text.clone().into_bytes(),
+                    bytes: text.as_bytes().to_vec(),
                     is_rdf: false,
                 }],
-                correspondence: grammar_correspondence(&text),
+                correspondence: grammar_correspondence(text),
                 ledger: vec![grammar_ledger_row(
                     &mut loss,
                     "ebnf",
@@ -286,6 +390,7 @@ impl LangProjectionTarget for EbnfTarget {
                     .iter()
                     .map(|s| (*s).to_owned())
                     .collect(),
+                grammar_reparse: Some(grammar_reparse),
                 round_trip_holds,
                 lossy_kind: PreservationKind::Exact,
                 source_rdf,
@@ -312,14 +417,13 @@ impl LangProjectionTarget for AbnfTarget {
     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
         let mut emissions = Vec::new();
         for source in &input.grammars {
-            let grammar = EbnfBridge.to_grammar(&source.bytes)?;
-            let canon = grammar.canonicalize();
+            let canon = source.canonical();
             // The grammar's lang:Grammar RDF is emitted once by the EBNF target — the ABNF
             // emission points at the SAME source IRI and never re-emits it.
-            let ebnf_text = serialize_grammar(&canon);
-            let source_iri = grammar_iri_for(&ebnf_text);
+            let ebnf_text = source.ebnf();
+            let source_iri = source.source_iri().to_owned();
 
-            let blocking = abnf_blocking_constructs(&canon);
+            let blocking = abnf_blocking_constructs(canon);
             if blocking.is_empty() {
                 // ABNF-expressible: render the canonical grammar under the ABNF formalism and
                 // hold it to the same round-trip bar as EBNF.
@@ -328,7 +432,11 @@ impl LangProjectionTarget for AbnfTarget {
                     rules: canon.rules.clone(),
                 };
                 let text = serialize_grammar(&abnf_view);
-                let round_trip_holds = grammar_round_trips(&abnf_view);
+                let grammar_reparse = grammar_round_trip(&text, &abnf_view);
+                let round_trip_holds = grammar_reparse
+                    .grammar
+                    .as_ref()
+                    .is_ok_and(|grammar| grammar == &abnf_view);
                 let mut loss = LossLedger::new();
                 emissions.push(LangEmission {
                     artifacts: vec![EmittedArtifact {
@@ -352,6 +460,7 @@ impl LangProjectionTarget for AbnfTarget {
                         .iter()
                         .map(|s| (*s).to_owned())
                         .collect(),
+                    grammar_reparse: Some(grammar_reparse),
                     round_trip_holds,
                     lossy_kind: PreservationKind::Exact,
                     source_rdf: Vec::new(),
@@ -365,7 +474,7 @@ impl LangProjectionTarget for AbnfTarget {
                 let mut loss = LossLedger::new();
                 emissions.push(LangEmission {
                     artifacts: Vec::new(),
-                    correspondence: lossy_grammar_correspondence(&ebnf_text),
+                    correspondence: lossy_grammar_correspondence(ebnf_text),
                     ledger: vec![grammar_ledger_row(
                         &mut loss,
                         "abnf",
@@ -378,6 +487,7 @@ impl LangProjectionTarget for AbnfTarget {
                     emitted_reading_count: None,
                     source_iri,
                     unsupported,
+                    grammar_reparse: None,
                     round_trip_holds: false,
                     lossy_kind: PreservationKind::SoundUnder,
                     source_rdf: Vec::new(),
@@ -484,15 +594,14 @@ fn gmn_glyph_grammar_emissions(
             ),
         })?;
 
-    let grammar = EbnfBridge.to_grammar(&source.bytes)?;
-    let canon = grammar.canonicalize();
+    let canon = source.canonical();
     // The gmn grammar's lang:Grammar RDF is emitted once by the EBNF target — this emission
     // points at the SAME source IRI (derived from the canonical EBNF serialization) and never
     // re-emits it.
-    let ebnf_text = serialize_grammar(&canon);
-    let source_iri = grammar_iri_for(&ebnf_text);
+    let ebnf_text = source.ebnf();
+    let source_iri = source.source_iri().to_owned();
 
-    let blocking = blocking_constructs(&canon);
+    let blocking = blocking_constructs(canon);
     if blocking.is_empty() {
         // Representable: render the ONE canonical tree under `formalism` and hold it to the same
         // round-trip bar as EBNF.
@@ -501,7 +610,11 @@ fn gmn_glyph_grammar_emissions(
             rules: canon.rules.clone(),
         };
         let text = serialize_grammar(&view);
-        let round_trip_holds = grammar_round_trips(&view);
+        let grammar_reparse = grammar_round_trip(&text, &view);
+        let round_trip_holds = grammar_reparse
+            .grammar
+            .as_ref()
+            .is_ok_and(|grammar| grammar == &view);
         let mut loss = LossLedger::new();
         Ok(vec![LangEmission {
             artifacts: vec![EmittedArtifact {
@@ -525,6 +638,7 @@ fn gmn_glyph_grammar_emissions(
                 .iter()
                 .map(|s| (*s).to_owned())
                 .collect(),
+            grammar_reparse: Some(grammar_reparse),
             round_trip_holds,
             lossy_kind: PreservationKind::Exact,
             source_rdf: Vec::new(),
@@ -537,7 +651,7 @@ fn gmn_glyph_grammar_emissions(
         let mut loss = LossLedger::new();
         Ok(vec![LangEmission {
             artifacts: Vec::new(),
-            correspondence: lossy_grammar_correspondence(&ebnf_text),
+            correspondence: lossy_grammar_correspondence(ebnf_text),
             ledger: vec![grammar_ledger_row(
                 &mut loss,
                 target,
@@ -550,6 +664,7 @@ fn gmn_glyph_grammar_emissions(
             emitted_reading_count: None,
             source_iri,
             unsupported,
+            grammar_reparse: None,
             round_trip_holds: false,
             lossy_kind: PreservationKind::SoundUnder,
             source_rdf: Vec::new(),
@@ -624,6 +739,13 @@ impl LangProjectionTarget for Gmn1Target {
     }
 
     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+        self.emit_observed(input).map(|batch| batch.emissions)
+    }
+
+    fn emit_observed(
+        &self,
+        input: &LangProjectionInput,
+    ) -> Result<LangEmissionBatch, IngestDiagnostic> {
         let mut emissions = Vec::new();
         if !input.lang_models.is_empty() {
             let dict = input
@@ -654,13 +776,17 @@ impl LangProjectionTarget for Gmn1Target {
         // leaf. The token-metric gate is the flagship compression claim's teeth — a corpus where
         // GMN's byte-fallback worst case does NOT beat Turtle's best case HARD-FAILS. A
         // non-injective / non-round-tripping verbalization likewise HARD-FAILS.
-        let token_metrics_emission = if let (Some(dict), Some(major)) = (
+        let (token_metrics_emission, gmn_metrics) = if let (Some(dict), Some(major)) = (
             input.gmn_dictionary.as_ref(),
             input.gmn_dialect_major.as_deref(),
         ) {
-            gmn1_token_metrics_emission(&input.lang_models, dict, major)?
+            let metrics = measure_token_metrics(&input.lang_models, dict);
+            (
+                gmn1_token_metrics_emission(&metrics.aggregate(), dict, major)?,
+                Some(metrics),
+            )
         } else {
-            None
+            (None, None)
         };
         let verbalizer_emission = if let (Some(dict), Some(major)) = (
             input.gmn_dictionary.as_ref(),
@@ -719,7 +845,10 @@ impl LangProjectionTarget for Gmn1Target {
         if let Some(emission) = verbalizer_emission {
             emissions.push(emission);
         }
-        Ok(emissions)
+        Ok(LangEmissionBatch {
+            emissions,
+            gmn_metrics,
+        })
     }
 }
 
@@ -794,6 +923,7 @@ impl Gmn1Target {
                 emitted_reading_count: None,
                 source_iri,
                 unsupported,
+                grammar_reparse: None,
                 round_trip_holds: exact,
                 lossy_kind: PreservationKind::SoundUnder,
                 source_rdf: Vec::new(),
@@ -862,6 +992,7 @@ fn gmn1_conformance_pack_emission(
         emitted_reading_count: None,
         source_iri: GMN_PACK_IRI.to_owned(),
         unsupported: Vec::new(),
+        grammar_reparse: None,
         round_trip_holds: true,
         lossy_kind: PreservationKind::Exact,
         source_rdf: nt,
@@ -996,11 +1127,10 @@ const GMN1_METRICS_GET_LEG: &str = "https://blackcatinformatics.ca/lang/gmn1Metr
 /// claim's teeth: a corpus where GMN's byte-fallback worst case fails to beat Turtle's best
 /// case reds the projection rather than shipping a false "GMN < Turtle" claim.
 fn gmn1_token_metrics_emission(
-    sources: &[NamedSource],
+    metrics: &TokenMetrics,
     dict: &GmnDictionary,
     major: &str,
 ) -> Result<Option<LangEmission>, IngestDiagnostic> {
-    let metrics = compute_token_metrics(sources, dict);
     if metrics.measured_sources == 0 {
         // No source round-trips ⇒ no GMN artifact ships ⇒ no corpus to measure. Emit nothing
         // rather than a vacuous all-zero product (mirrors the pack's no-input branch).
@@ -1022,7 +1152,7 @@ fn gmn1_token_metrics_emission(
             ),
         });
     }
-    let nt = ntriples_sorted(token_metrics_triples(&metrics, dict));
+    let nt = ntriples_sorted(token_metrics_triples(metrics, dict));
     let mut loss = LossLedger::new();
     Ok(Some(LangEmission {
         artifacts: vec![EmittedArtifact {
@@ -1046,6 +1176,7 @@ fn gmn1_token_metrics_emission(
         emitted_reading_count: None,
         source_iri: GMN_METRICS_IRI.to_owned(),
         unsupported: Vec::new(),
+        grammar_reparse: None,
         round_trip_holds: true,
         lossy_kind: PreservationKind::Exact,
         source_rdf: nt,
@@ -1295,6 +1426,7 @@ fn gmn1_verbalizer_emission(
         emitted_reading_count: None,
         source_iri: GMN_VERBALIZER_IRI.to_owned(),
         unsupported: Vec::new(),
+        grammar_reparse: None,
         round_trip_holds: exact,
         lossy_kind: PreservationKind::SoundUnder,
         source_rdf: nt,
@@ -1620,11 +1752,11 @@ fn grammar_iri_for(canonical_text: &str) -> String {
 
 /// The decidable grammar round-trip: `parse(serialize(canon)).canonicalize() == canon`
 /// over the grammar's own formalism — the fixpoint discipline, not a raw-byte compare.
-fn grammar_round_trips(canon: &Grammar) -> bool {
-    let text = serialize_grammar(canon);
-    match parse_grammar(text.as_bytes(), canon.formalism) {
-        Ok(reparsed) => reparsed.canonicalize() == *canon,
-        Err(_) => false,
+fn grammar_round_trip(text: &str, canon: &Grammar) -> GrammarReparse {
+    GrammarReparse {
+        emitted_digest: blake3::hash(text.as_bytes()).to_hex().to_string(),
+        grammar: parse_grammar(text.as_bytes(), canon.formalism)
+            .map(|grammar| grammar.canonicalize()),
     }
 }
 
@@ -1749,645 +1881,6 @@ fn lossy_grammar_correspondence(source_key: &str) -> Correspondence {
     .expect("lossy grammar correspondence is well-formed by construction")
 }
 
+#[path = "registry.pack_tests.rs"]
 #[cfg(test)]
-mod pack_tests {
-    use super::*;
-    use std::path::Path;
-
-    fn lang_slice_file(rel: &str) -> Vec<u8> {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../slices/grounding/lang")
-            .join(rel);
-        std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
-    }
-
-    /// The grounding-slice token-metric corpus: every `lang:`-bearing `examples/*.ttl` across
-    /// the `lang`/`math`/`logic` grounding slices — the sources the GMN target lowers FROM,
-    /// in deterministic (slice, filename) order. Mirrors the pipeline's `collect_input` scope
-    /// filter (a source references the `lang:` namespace) so the unit-level corpus matches the
-    /// bundle corpus the projection stage feeds.
-    fn grounding_corpus() -> Vec<NamedSource> {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding");
-        let mut corpus = Vec::new();
-        for slice in ["lang", "math", "logic"] {
-            let dir = root.join(slice).join("examples");
-            let mut paths: Vec<_> = std::fs::read_dir(&dir)
-                .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
-                .flatten()
-                .map(|entry| entry.path())
-                .filter(|p| p.extension().and_then(|s| s.to_str()) == Some("ttl"))
-                .collect();
-            paths.sort();
-            for path in paths {
-                let bytes =
-                    std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-                if String::from_utf8_lossy(&bytes).contains("blackcatinformatics.ca/lang/") {
-                    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("src");
-                    corpus.push(NamedSource {
-                        name: format!("{slice}-{stem}"),
-                        bytes,
-                    });
-                }
-            }
-        }
-        corpus
-    }
-
-    /// The carrier GMN dictionary + resolved dialect major, both read off the SAME lang module
-    /// dataset (the pipeline's single source of both).
-    fn carrier_dict_and_major() -> (GmnDictionary, String) {
-        let module = lang_slice_file("module.ttl");
-        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
-        let dict = GmnDictionary::from_dataset(&ds).expect("load carrier GMN dictionary");
-        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
-            .expect("resolve GMN dialect acceptance")
-            .expect("lang module carries the gmeow:gmnDialectVersions lineage")
-            .latest_major_key();
-        (dict, major)
-    }
-
-    /// The full projection input over the grounding corpus (dictionary + codebook + grammar +
-    /// resolved major + the corpus), the shape `Gmn1Target::emit` consumes.
-    fn grounding_input() -> LangProjectionInput {
-        let module = lang_slice_file("module.ttl");
-        let grammar = lang_slice_file("grammars/gmn.ebnf");
-        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
-        let dict = GmnDictionary::from_dataset(&ds).expect("dict");
-        let codebook =
-            crate::gmn1_codec::resolve_current_codebook(&ds).expect("resolve current codebook");
-        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
-            .expect("resolve acceptance")
-            .expect("lineage present")
-            .latest_major_key();
-        LangProjectionInput {
-            lang_models: grounding_corpus(),
-            gmn_dictionary: Some(dict),
-            gmn_codebook: Some(codebook),
-            gmn_grammar_source: Some(grammar),
-            gmn_dialect_major: Some(major),
-            ..Default::default()
-        }
-    }
-
-    /// The token-metric measurement product is DETERMINISTIC (two emissions byte-identical),
-    /// keyed under the resolved-version subtree, carries all seven metrics + the version stamp,
-    /// and is valid Turtle whose triples ride the corpus graph verbatim.
-    #[test]
-    fn gmn1_metrics_are_deterministic() {
-        let input = grounding_input();
-        let major = input.gmn_dialect_major.clone().expect("major");
-
-        let find = |emissions: &[LangEmission]| -> LangEmission {
-            emissions
-                .iter()
-                .find(|e| e.source_iri == GMN_METRICS_IRI)
-                .expect("token-metrics emission present")
-                .clone()
-        };
-        let first = find(&Gmn1Target.emit(&input).expect("gmn1 emit"));
-        let second = find(&Gmn1Target.emit(&input).expect("gmn1 emit (second run)"));
-
-        let versioned_path = format!("gmn1/v{major}/token-metrics.ttl");
-        let artifact = first
-            .artifacts
-            .iter()
-            .find(|a| a.path_suffix == versioned_path)
-            .unwrap_or_else(|| panic!("metrics artifact keyed at {versioned_path}"));
-        assert!(
-            artifact.is_rdf,
-            "the metrics artifact is an RDF serialization"
-        );
-
-        // Byte-deterministic across runs.
-        assert_eq!(
-            artifact.bytes, second.artifacts[0].bytes,
-            "the token-metrics product is byte-deterministic"
-        );
-        // The triples ride the reasoned corpus graph verbatim.
-        assert_eq!(
-            first.source_rdf, artifact.bytes,
-            "the metrics triples ride the corpus graph verbatim"
-        );
-        // Valid Turtle (N-Triples is a Turtle subset).
-        purrdf::parse_dataset(artifact.bytes.as_slice(), "text/turtle", None)
-            .expect("the metrics artifact is valid Turtle");
-        // Carries an EXACT correspondence with a measured-true round-trip.
-        assert!(
-            crate::is_exact_correspondence(&first.correspondence),
-            "the metrics carry an exact correspondence"
-        );
-        assert!(
-            first.round_trip_holds,
-            "the metrics round-trip is measured true"
-        );
-
-        let ttl = String::from_utf8(artifact.bytes.clone()).expect("utf8");
-        // The measurement subject is a gmeow:Measurement bound to codebook + notation.
-        assert!(
-            ttl.contains(&format!(
-                "<{GMN_METRICS_IRI}> <{RDF_TYPE}> \
-                 <https://blackcatinformatics.ca/gmeow/Measurement>"
-            )),
-            "metrics subject typed gmeow:Measurement:\n{ttl}"
-        );
-        // All SEVEN core metrics are present as dimensionless math:Quantity results.
-        for metric in [
-            "bytes_on_disk",
-            "tokens_in_context",
-            "ast_validity_rate",
-            "roundtrip_loss",
-            "compression_ratio",
-            "glyph_density",
-            "dictionary_hit_rate",
-        ] {
-            let metric_iri = format!("{GMN_METRICS_IRI}/{metric}");
-            assert!(
-                ttl.contains(&format!(
-                    "<{metric_iri}> <{RDF_TYPE}> \
-                     <https://blackcatinformatics.ca/math/Quantity>"
-                )),
-                "metric {metric} typed math:Quantity:\n{ttl}"
-            );
-            assert!(
-                ttl.contains(&format!(
-                    "<{metric_iri}> <https://blackcatinformatics.ca/math/quantityValue>"
-                )),
-                "metric {metric} carries a math:quantityValue:\n{ttl}"
-            );
-        }
-        // Version-tagged via tag_schema_version.
-        assert!(
-            ttl.contains(&format!(
-                "<{GMN_METRICS_IRI}> <{}> ",
-                crate::gmn_migrate::PRED_GMN_SCHEMA_VERSION
-            )),
-            "metrics carry the gmnSchemaVersion provenance stamp:\n{ttl}"
-        );
-    }
-
-    /// The SOUND compression gate: GMN's CONSISTENT byte-fallback worst case (ASCII merged 4:1,
-    /// non-ASCII glyph bytes each a fallback token) is strictly cheaper than Turtle's optimistic
-    /// best case over the REAL grounding corpus. Asserts the exact formula so a regression that
-    /// charged ALL bytes (the internally-inconsistent bound) would change `gmn_worst_case_tokens`
-    /// and RED this test.
-    #[test]
-    fn gmn_beats_turtle_under_byte_fallback_worst_case() {
-        let (dict, _major) = carrier_dict_and_major();
-        let metrics = compute_token_metrics(&grounding_corpus(), &dict);
-
-        // The corpus is non-vacuous and every source round-trips (the grounding scope).
-        assert!(
-            metrics.measured_sources > 0,
-            "the grounding corpus has round-tripping sources"
-        );
-
-        // The gate's left side is EXACTLY the non-ASCII-byte-fallback formula — not total bytes.
-        let expected_worst = metrics.gmn_ascii_bytes.div_ceil(4) + metrics.gmn_nonascii_bytes;
-        assert_eq!(
-            metrics.gmn_worst_case_tokens, expected_worst,
-            "gmn_worst_case_tokens must be ceil(ascii/4)+nonascii, not total bytes \
-             (ascii={}, nonascii={}, total_bytes={})",
-            metrics.gmn_ascii_bytes, metrics.gmn_nonascii_bytes, metrics.bytes_on_disk
-        );
-        // Falsifiable teeth: the inconsistent all-bytes bound (bytes_on_disk) must be visibly
-        // LARGER than the sound bound here — so if a regression swapped it in, the gate below
-        // would flip. (On this corpus all-bytes LOSES: bytes_on_disk > turtle_best.)
-        assert!(
-            metrics.bytes_on_disk > metrics.gmn_worst_case_tokens,
-            "the all-bytes bound is strictly more pessimistic than the sound bound"
-        );
-
-        // THE GATE: GMN worst case < Turtle best case, with a real, non-trivial margin.
-        assert!(
-            metrics.compression_gate_holds(),
-            "GMN must beat Turtle under the sound byte-fallback worst case: \
-             gmn_worst={} !< turtle_best={} (ascii={}, nonascii={})",
-            metrics.gmn_worst_case_tokens,
-            metrics.turtle_best_case_tokens,
-            metrics.gmn_ascii_bytes,
-            metrics.gmn_nonascii_bytes
-        );
-        assert!(
-            metrics.gmn_worst_case_tokens < metrics.turtle_best_case_tokens,
-            "explicit gate inequality on the real numbers: {} < {}",
-            metrics.gmn_worst_case_tokens,
-            metrics.turtle_best_case_tokens
-        );
-        // The realistic reading (both at chars/4) wins by an even wider margin, and GMN is
-        // smaller on disk than both Turtle and JSON-LD.
-        assert!(metrics.gmn_realistic_tokens < metrics.turtle_best_case_tokens);
-        assert!(metrics.bytes_on_disk < metrics.turtle_bytes_on_disk);
-        assert!(metrics.bytes_on_disk < metrics.jsonld_bytes_on_disk);
-    }
-
-    /// Every emitted GMN artifact (per-source `.gmn` AND the bundle conformance pack) is keyed
-    /// under `gmn1/v<major>/…`, where `<major>` is RESOLVED FROM THE GRAPH (the dialect
-    /// lineage's roleLatest member `owl:versionInfo`), never a hardcoded literal.
-    #[test]
-    fn artifacts_are_keyed_by_resolved_dialect_version() {
-        let module = lang_slice_file("module.ttl");
-        let grammar = lang_slice_file("grammars/gmn.ebnf");
-        // A real lang example that round-trips exactly, so a per-source artifact is emitted.
-        let example = lang_slice_file("examples/gmn-grounding-glyphs.ttl");
-        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
-        let dict = GmnDictionary::from_dataset(&ds).expect("load carrier GMN dictionary");
-        let codebook =
-            crate::gmn1_codec::resolve_current_codebook(&ds).expect("resolve current codebook");
-
-        // The version-key major is READ OFF THE GRAPH, never a literal.
-        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
-            .expect("resolve GMN dialect acceptance")
-            .expect("lang module carries the gmeow:gmnDialectVersions lineage")
-            .latest_major_key();
-
-        let build = |keyed_major: &str| {
-            let input = LangProjectionInput {
-                lang_models: vec![NamedSource {
-                    name: "gmn-grounding-glyphs".to_owned(),
-                    bytes: example.clone(),
-                }],
-                gmn_dictionary: Some(dict.clone()),
-                gmn_codebook: Some(codebook.clone()),
-                gmn_grammar_source: Some(grammar.clone()),
-                gmn_dialect_major: Some(keyed_major.to_owned()),
-                ..Default::default()
-            };
-            Gmn1Target
-                .emit(&input)
-                .expect("gmn1 emit")
-                .iter()
-                .flat_map(|e| e.artifacts.iter().map(|a| a.path_suffix.clone()))
-                .collect::<Vec<_>>()
-        };
-
-        // Under the graph-resolved major, EVERY emitted artifact is keyed gmn1/v<major>/…,
-        // and both the per-source .gmn and the conformance pack are present.
-        let paths = build(&major);
-        let prefix = format!("gmn1/v{major}/");
-        assert!(
-            !paths.is_empty(),
-            "at least the conformance pack is emitted"
-        );
-        for path in &paths {
-            assert!(
-                path.starts_with(&prefix),
-                "artifact {path:?} must be keyed under the resolved-version subtree {prefix:?}"
-            );
-        }
-        assert!(
-            paths.iter().any(|p| p.ends_with("/conformance-pack.ttl")),
-            "the bundle conformance pack is emitted under the versioned subtree: {paths:?}"
-        );
-        assert!(
-            paths
-                .iter()
-                .any(|p| p.ends_with("gmn-grounding-glyphs.gmn")),
-            "the per-source GMN artifact is emitted under the versioned subtree: {paths:?}"
-        );
-
-        // Falsifiability: the key comes from the THREADED (graph-resolved) major, not a
-        // hardcoded string. Re-key under a synthetic major and every path moves — a literal
-        // in the emitter would leave them under v1 and fail here.
-        assert_ne!(
-            major, "7",
-            "the resolved major differs from the synthetic bump"
-        );
-        for path in build("7") {
-            assert!(
-                path.starts_with("gmn1/v7/"),
-                "re-keyed artifact {path:?} must follow the threaded major into gmn1/v7/"
-            );
-        }
-    }
-
-    /// Drive the pack emission from the REAL carrier lang codebook/dictionary/grammar (no
-    /// per-source models), and assert the artifact is produced, is valid Turtle, carries the
-    /// pack class + a blake3-tagged root + the codebook digest on `gmnCodebookCurrent`, is
-    /// DETERMINISTIC across runs, and that the root matches an independent recomputation of
-    /// the Merkle construction.
-    #[test]
-    fn gmn1_conformance_pack_projects_deterministic_self_certifying_identity() {
-        let module = lang_slice_file("module.ttl");
-        let grammar = lang_slice_file("grammars/gmn.ebnf");
-        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
-        let dict = GmnDictionary::from_dataset(&ds).expect("load carrier GMN dictionary");
-        let codebook =
-            crate::gmn1_codec::resolve_current_codebook(&ds).expect("resolve current codebook");
-
-        // The version-key major is RESOLVED FROM THE GRAPH (the same lineage the codec reads),
-        // never a literal — so a change to the lineage's roleLatest membership flows through.
-        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
-            .expect("resolve GMN dialect acceptance")
-            .expect("lang module carries the gmeow:gmnDialectVersions lineage")
-            .latest_major_key();
-        let input = LangProjectionInput {
-            gmn_dictionary: Some(dict.clone()),
-            gmn_codebook: Some(codebook.clone()),
-            gmn_grammar_source: Some(grammar.clone()),
-            gmn_dialect_major: Some(major.clone()),
-            ..Default::default()
-        };
-
-        // With no lang_models, the sole emission is the bundle-level conformance pack.
-        let emissions = Gmn1Target.emit(&input).expect("gmn1 emit");
-        let pack = emissions
-            .iter()
-            .find(|e| e.source_iri == GMN_PACK_IRI)
-            .expect("bundle-level conformance-pack emission present");
-        let versioned_pack_path = format!("gmn1/v{major}/conformance-pack.ttl");
-        let artifact = pack
-            .artifacts
-            .iter()
-            .find(|a| a.path_suffix == versioned_pack_path)
-            .unwrap_or_else(|| panic!("pack artifact keyed at {versioned_pack_path}"));
-        assert!(artifact.is_rdf, "the pack artifact is an RDF serialization");
-
-        // The pack correspondence derives Exact (the driver's Invariant 1 acceptance path).
-        assert!(
-            crate::is_exact_correspondence(&pack.correspondence),
-            "the pack carries an exact correspondence"
-        );
-        assert!(
-            pack.round_trip_holds,
-            "the pack's round-trip is measured true"
-        );
-
-        let ttl = String::from_utf8(artifact.bytes.clone()).expect("utf8");
-        // Valid Turtle: N-Triples is a Turtle subset, so a Turtle parse must accept it.
-        purrdf::parse_dataset(artifact.bytes.as_slice(), "text/turtle", None)
-            .expect("the pack artifact is valid Turtle");
-
-        assert!(
-            ttl.contains("<https://blackcatinformatics.ca/gmeow/GmnConformancePack>"),
-            "pack artifact types the pack individual:\n{ttl}"
-        );
-        assert!(
-            ttl.contains("<https://blackcatinformatics.ca/gmeow/gmnPackRoot> \"blake3:"),
-            "pack artifact carries a blake3-tagged gmnPackRoot:\n{ttl}"
-        );
-        assert!(
-            ttl.contains(
-                "<https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent> \
-                 <https://blackcatinformatics.ca/gmeow/gmnCodebookDigest> \"blake3:"
-            ),
-            "pack artifact carries the codebook digest on gmnCodebookCurrent:\n{ttl}"
-        );
-        // Every ecosystem-view Merkle leaf is pinned into the bundle on its own subject, so
-        // `gmeow gmn verify` recomputes the whole-ecosystem pack root from the bundle alone.
-        for (subject, predicate) in [
-            ("gmnGbnf", "gmnGbnfDigest"),
-            ("gmnLark", "gmnLarkDigest"),
-            ("gmnTokenMetricsCurrent", "gmnTokenMetricsDigest"),
-            ("gmnVerbalizationsCurrent", "gmnVerbalizationsDigest"),
-        ] {
-            assert!(
-                ttl.contains(&format!(
-                    "<https://blackcatinformatics.ca/gmeow/{subject}> \
-                     <https://blackcatinformatics.ca/gmeow/{predicate}> \""
-                )),
-                "pack artifact pins the {predicate} ecosystem-view Merkle leaf:\n{ttl}"
-            );
-            assert!(
-                ttl.contains(&format!(
-                    "<https://blackcatinformatics.ca/gmeow/gmnPackCurrent> \
-                     <https://blackcatinformatics.ca/gmeow/references> \
-                     <https://blackcatinformatics.ca/gmeow/{subject}> ."
-                )),
-                "pack references its {subject} ecosystem view:\n{ttl}"
-            );
-        }
-
-        // The same triples ride into the reasoned corpus graph via source_rdf.
-        assert_eq!(
-            pack.source_rdf, artifact.bytes,
-            "the pack triples ride the corpus graph verbatim"
-        );
-
-        // Deterministic: a second emission is byte-identical.
-        let again = Gmn1Target.emit(&input).expect("gmn1 emit (second run)");
-        let pack2 = again
-            .iter()
-            .find(|e| e.source_iri == GMN_PACK_IRI)
-            .expect("second pack emission");
-        assert_eq!(
-            artifact.bytes, pack2.artifacts[0].bytes,
-            "the conformance pack is byte-deterministic"
-        );
-
-        // Independent recomputation of the Merkle construction matches the emitted root. This
-        // input carries no `gmn` grammar / corpus / operator inventory, so every ecosystem view
-        // is absent and folds as the stable empty leaf — the SAME leaves the emission computed.
-        let expected_digest = codebook_digest(&codebook, &dict);
-        let expected_ecosystem = EcosystemLeaves::from_view_bytes(&[], &[], &[], &[]);
-        let expected_root = pack_root(&expected_digest, &dict, &grammar, &expected_ecosystem);
-        let expected_root_triple = format!(
-            "<{GMN_PACK_IRI}> <https://blackcatinformatics.ca/gmeow/gmnPackRoot> \
-             \"{expected_root}\" ."
-        );
-        assert!(
-            ttl.contains(&expected_root_triple),
-            "emitted gmnPackRoot must equal the independently recomputed Merkle root\n\
-             expected: {expected_root_triple}\ngot:\n{ttl}"
-        );
-        assert!(
-            ttl.contains(&format!("\"{expected_digest}\"")),
-            "emitted codebook digest must equal the recomputed codebook_digest\n\
-             expected: {expected_digest}\ngot:\n{ttl}"
-        );
-    }
-
-    use crate::gmn_verbalize::{
-        FIXITY_INFIX, FIXITY_POSTFIX, FIXITY_PREFIX, GmnOperatorForm, VerbalizedPair,
-        build_verbalization_pairs, forward_index, invert_nl, round_trip_holds as pairs_round_trip,
-    };
-
-    fn op(term: &str, label: &str, glyph: &str, fixity: &str, arity: u32) -> GmnOperatorForm {
-        op_scoped(term, label, glyph, fixity, arity, "")
-    }
-
-    fn op_scoped(
-        term: &str,
-        label: &str,
-        glyph: &str,
-        fixity: &str,
-        arity: u32,
-        sigil: &str,
-    ) -> GmnOperatorForm {
-        GmnOperatorForm {
-            term_iri: term.to_owned(),
-            term_label: label.to_owned(),
-            gmn_glyph: glyph.to_owned(),
-            fixity: fixity.to_owned(),
-            arity,
-            sigil: sigil.to_owned(),
-        }
-    }
-
-    /// Build the bundle-level verbalizer emission over a set of operator forms, using the real
-    /// carrier dictionary (for the version stamp) and resolved major (for the keyed path).
-    fn verbalizer_emission(forms: Vec<GmnOperatorForm>) -> (LangEmission, String) {
-        let (dict, major) = carrier_dict_and_major();
-        let input = LangProjectionInput {
-            gmn_dictionary: Some(dict),
-            gmn_dialect_major: Some(major),
-            gmn_operator_forms: forms,
-            ..Default::default()
-        };
-        let emissions = Gmn1Target.emit(&input).expect("gmn1 emit");
-        let emission = emissions
-            .into_iter()
-            .find(|e| e.source_iri == GMN_VERBALIZER_IRI)
-            .expect("verbalizer emission present");
-        let major = input.gmn_dialect_major.clone().expect("major");
-        (emission, major)
-    }
-
-    /// The verbalizer emission's bidirectional pairs are injective, deterministic, version-
-    /// tagged, carry `lang:translationCorrespondence`, MEASURE their NL→GMN inverse as exact,
-    /// and are genuinely fixity-driven (perturbing a fixity changes the verbalization).
-    #[test]
-    fn verbalizer_pairs_are_bidirectional_and_injective_and_deterministic() {
-        // One of each fixity plus a HOMOGRAPH: two distinct terms sharing the label "contains".
-        let forms = vec![
-            op("logic:not", "not", "¬", FIXITY_PREFIX, 1),
-            op("logic:subClassOf", "subsumes", "⊑", FIXITY_INFIX, 2),
-            op("math:factorial", "factorial", "!", FIXITY_POSTFIX, 1),
-            op("math:supersetRel", "contains", "⊃", FIXITY_INFIX, 2),
-            op("math:hasElement", "contains", "∋", FIXITY_INFIX, 2),
-        ];
-
-        let (emission, major) = verbalizer_emission(forms.clone());
-
-        // Keyed under the resolved-version subtree, an RDF artifact.
-        let path = format!("gmn1/v{major}/verbalizations.ttl");
-        let artifact = emission
-            .artifacts
-            .iter()
-            .find(|a| a.path_suffix == path)
-            .unwrap_or_else(|| panic!("verbalizations artifact keyed at {path}"));
-        assert!(artifact.is_rdf, "the verbalizations artifact is RDF");
-
-        // MEASURED-exact: the carried correspondence derives Exact and the round-trip holds.
-        assert!(
-            crate::is_exact_correspondence(&emission.correspondence),
-            "the verbalizer carries an exact correspondence"
-        );
-        assert!(
-            emission.round_trip_holds,
-            "the NL→GMN inverse round-trip is measured true"
-        );
-
-        let ttl = String::from_utf8(artifact.bytes.clone()).expect("utf8");
-        // Valid Turtle (N-Triples is a Turtle subset), and the triples ride the corpus verbatim.
-        purrdf::parse_dataset(artifact.bytes.as_slice(), "text/turtle", None)
-            .expect("the verbalizations artifact is valid Turtle");
-        assert_eq!(
-            emission.source_rdf, artifact.bytes,
-            "the verbalization triples ride the corpus graph verbatim"
-        );
-
-        // It types translation crossings carried by lang:translationCorrespondence.
-        assert!(
-            ttl.contains("<https://blackcatinformatics.ca/lang/TranslationUnit>"),
-            "verbalizations type lang:TranslationUnit:\n{ttl}"
-        );
-        assert!(
-            ttl.contains("<https://blackcatinformatics.ca/lang/translationCorrespondence>"),
-            "verbalizations carry lang:translationCorrespondence:\n{ttl}"
-        );
-        assert!(
-            ttl.contains("<https://blackcatinformatics.ca/logic/ExactPreservation>"),
-            "an exact verbalization crossing records logic:ExactPreservation:\n{ttl}"
-        );
-        // Version-tagged via tag_schema_version.
-        assert!(
-            ttl.contains(&format!(
-                "<{GMN_VERBALIZER_IRI}> <{}> ",
-                crate::gmn_migrate::PRED_GMN_SCHEMA_VERSION
-            )),
-            "verbalizations carry the gmnSchemaVersion provenance stamp:\n{ttl}"
-        );
-
-        // Byte-deterministic across runs.
-        let (again, _) = verbalizer_emission(forms.clone());
-        assert_eq!(
-            artifact.bytes, again.artifacts[0].bytes,
-            "the verbalizer product is byte-deterministic"
-        );
-
-        // ── Injectivity + bidirectionality over the SAME forms, at the pair level ──
-        let pairs = build_verbalization_pairs(&forms).expect("pairs build");
-        // Every controlled-NL string is distinct (injective).
-        let mut nls: Vec<&str> = pairs.iter().map(|p| p.nl.as_str()).collect();
-        let count = nls.len();
-        nls.sort_unstable();
-        nls.dedup();
-        assert_eq!(nls.len(), count, "controlled-NL strings must be injective");
-        // The homograph "contains" collided → both got disambiguated with a CURIE tag.
-        let contains: Vec<&VerbalizedPair> = pairs
-            .iter()
-            .filter(|p| p.form.term_label == "contains")
-            .collect();
-        assert_eq!(contains.len(), 2);
-        assert!(
-            contains.iter().all(|p| p.nl.contains('⟪')),
-            "a homograph label must be disambiguated by CURIE: {:?}",
-            contains.iter().map(|p| &p.nl).collect::<Vec<_>>()
-        );
-        // The NL→GMN inverse template recovers the SAME operator form for every pair.
-        assert!(pairs_round_trip(&pairs), "every pair round-trips");
-        let index = forward_index(&pairs);
-        for pair in &pairs {
-            assert_eq!(
-                invert_nl(&pair.nl, &index),
-                Some(&pair.form),
-                "inverse of {:?} must recover its own form",
-                pair.nl
-            );
-        }
-
-        // ── Falsifiability: perturbing ONE form's fixity changes the emitted product ──
-        let mut perturbed = forms;
-        perturbed[1].fixity = FIXITY_PREFIX.to_owned(); // subsumes: infix → prefix
-        let (perturbed_emission, _) = verbalizer_emission(perturbed);
-        assert_ne!(
-            artifact.bytes, perturbed_emission.artifacts[0].bytes,
-            "perturbing a form's fixity must change its verbalization"
-        );
-    }
-
-    /// The codebook's lawful cross-plane codepoint reuse survives the WHOLE emission, not just
-    /// the pair builder: `→` under `@ℒ` (material implication) and under `@μ` (the morphism
-    /// arrow) are two operators, and the shipped corpus states the scope each reads in — so
-    /// the emission is produced and MEASURES its inverse as exact rather than hard-failing on
-    /// a surface collision.
-    #[test]
-    fn one_glyph_under_two_sigils_emits_and_measures_exact() {
-        let forms = vec![
-            op_scoped("logic:consequent", "implies", "→", FIXITY_INFIX, 2, "@ℒ"),
-            op_scoped("math:Morphism", "maps to", "→", FIXITY_INFIX, 2, "@μ"),
-        ];
-        let (emission, _) = verbalizer_emission(forms.clone());
-        assert!(
-            crate::is_exact_correspondence(&emission.correspondence),
-            "cross-scope reuse still round-trips exactly"
-        );
-
-        let pairs = build_verbalization_pairs(&forms).expect("cross-scope reuse is lawful");
-        let surfaces: Vec<&str> = pairs.iter().map(|p| p.gmn_surface.as_str()).collect();
-        assert_eq!(surfaces, vec!["@ℒ arg1 → arg2", "@μ arg1 → arg2"]);
-
-        // Falsifiability: erase the scope and the SAME two forms collide — the emission that
-        // would ship an ambiguous training pair is refused.
-        let unscoped: Vec<GmnOperatorForm> = forms
-            .into_iter()
-            .map(|mut f| {
-                f.sigil = String::new();
-                f
-            })
-            .collect();
-        let err = build_verbalization_pairs(&unscoped)
-            .expect_err("scope-erased reuse must be refused, not silently shipped");
-        assert!(err.0.contains("injectivity"), "{err}");
-    }
-}
+mod pack_tests;

@@ -32,6 +32,7 @@ pub mod error;
 pub mod gmn1_codec;
 pub mod gmn1_digest;
 pub mod gmn1_witness;
+pub mod gmn_conformance;
 pub mod gmn_consume;
 // The glyph legend (inventory joined to pinned token cost). Deliberately NOT gated on
 // `glyph-cost`: a wasm shim that selects the tokenizer OUT must still serve a complete
@@ -40,6 +41,7 @@ pub mod gmn_consume;
 pub mod gmn_legend;
 pub mod gmn_metrics;
 pub mod gmn_migrate;
+pub mod gmn_validation;
 pub mod gmn_verbalize;
 // The glyph-cost analytics module depends on `tiktoken-rs` (a ~1.7 MB embedded BPE
 // vocabulary). Gated on the `glyph-cost` FEATURE (on by default) in lockstep with its sole
@@ -111,7 +113,7 @@ pub use gmn1_digest::{
 };
 pub use gmn1_witness::{
     StandaloneReport, compare_claim_partitions, idempotence_check, partition_by_subject,
-    per_claim_round_trip_check, per_claim_standalone_check,
+    per_claim_round_trip_check, per_claim_standalone_check, round_trip_with_claims_check,
 };
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,

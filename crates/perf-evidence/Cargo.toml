@@ -9,24 +9,23 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 publish = false
+autobins = false
 
-# Keep the reviewed implementations beside the owning receipt/test contracts while
-# assigning their sole Cargo binary ownership to this dependency-light CI package.
-# `autobins = false` in the pipeline and validate packages prevents those heavyweight
-# crates from compiling duplicate units from these paths.
+# Library ownership keeps the real SHA/XML/resource implementations and their
+# synthetic tests in every library build; the resource/JUnit binaries are only launchers.
 [[bin]]
-name = "perf_sample"
-path = "../pipeline/src/bin/perf_sample.rs"
+name = "perf-sample"
+path = "src/bin/perf-sample.rs"
 test = false
 bench = false
 
 [[bin]]
-name = "perf_accept"
-path = "../pipeline/src/bin/perf_accept.rs"
+name = "perf-accept"
+path = "src/bin/perf-accept.rs"
 
 [[bin]]
-name = "junit_inventory"
-path = "../validate/src/bin/junit_inventory.rs"
+name = "junit-inventory"
+path = "src/bin/junit-inventory.rs"
 test = false
 bench = false
 

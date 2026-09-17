@@ -11,7 +11,7 @@
 //! Timing records are collected when [`ValidateOptions::timings`] is true and
 //! can be serialized to JSON alongside the error/warning output.
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -22,11 +22,7 @@ use gmeow_errors::{
     Standpoint, register_code,
 };
 use gmeow_logic::certificate::ContradictionPolicy;
-use purrdf::gts::model::Graph;
-use purrdf::{
-    PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm, RdfTriple,
-    pair_loss_ledger,
-};
+use purrdf::{PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, pair_loss_ledger};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -38,10 +34,12 @@ use crate::cache::{CachedResult, ValidationCache};
 use crate::findings::FailureClassIndex;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
-use crate::model::{owl, rdf, rdfs};
 use crate::report_bridge::shacl_findings_from_report;
 use crate::signature;
 use crate::store;
+
+#[cfg(test)]
+pub(crate) mod verification_fixture;
 
 /// One per-phase timing record.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -459,13 +457,16 @@ impl ValidationRun {
             }));
         }
 
-        // Read the GTS segment-heads graph once (for the cache key) outside the timed
-        // store-build phase; the timing should measure only dataset construction.
-        let gts_graph: Option<Graph> = if let Some(bytes) = &options.gts_bytes {
-            Some(store::read_gts_graph(bytes)?)
-        } else {
-            None
-        };
+        // One authoritative native import retains the envelope and the exact archive
+        // selection. The shared dataset supplies both the flat validation view and
+        // the graph-preserving deep pass; segment heads need no separate Graph fold.
+        let imported = timed(&mut timings, "import-bundle", options, None, || {
+            options
+                .gts_bytes
+                .as_deref()
+                .map(|bytes| import_bundle_for_validation(bytes, options.deep))
+                .transpose()
+        })?;
 
         // Parse every source Turtle file exactly once before the timed store-build
         // phase. The per-file frozen datasets are reused by:
@@ -491,8 +492,8 @@ impl ValidationRun {
         // Build the shared dataset once: from the GTS bundle (flattened) or by merging
         // the per-file parsed datasets under fresh blank scopes.
         let dataset = timed(&mut timings, "build-store", options, None, || {
-            if let Some(bytes) = &options.gts_bytes {
-                store::dataset_from_gts(bytes)
+            if let Some(imported) = &imported {
+                crate::data_validate::flatten_to_default_graph(&imported.bundle.dataset)
             } else {
                 merge_parsed_sources(&parsed_sources)
             }
@@ -508,43 +509,23 @@ impl ValidationRun {
                     .to_owned(),
             }));
         }
-        let (shape_store, shapes) =
-            timed(
-                &mut timings,
-                "parse-shapes",
-                options,
-                None,
-                || match &options.shape_union_root {
-                    Some(root) => purrdf::shapes::shape_union::load_shapes(root)
-                        .map(|(store, shapes)| (Some(store), shapes))
-                        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
-                    None => purrdf::shapes::engine::parse_shapes(shapes_ttl, None)
-                        .map(|shapes| (None, shapes))
-                        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
-                },
-            )?;
+        let shapes = timed(
+            &mut timings,
+            "parse-shapes",
+            options,
+            None,
+            || match &options.shape_union_root {
+                Some(root) => purrdf::shapes::shape_union::load_shapes(root)
+                    .map(|(_, shapes)| shapes)
+                    .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+                None => purrdf::shapes::engine::parse_shapes(shapes_ttl, None)
+                    .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+            },
+        )?;
 
-        // The shape surface's `gmeow:enforcesFailureClass` annotations, read ONCE from
-        // the very dataset the shapes were parsed from (the union loader hands its own
-        // store back, so a second parse with different blank scoping is impossible).
-        // Every SHACL finding this run emits is resolved through it, so a violation
-        // NAMES the typed conformance failure its law declares rather than shipping
-        // only the generic component code every gate of that shape shares.
-        let failure_classes = match &shape_store {
-            Some(store) => FailureClassIndex::from_shapes_dataset(store),
-            None => {
-                let shapes_ds = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
-                    .map_err(|e| {
-                    Diag::of_kind(crate::error::Parse {
-                        detail: format!(
-                            "SHACL shapes failed to parse as a dataset for the \
-                                 gmeow:enforcesFailureClass index: {e}"
-                        ),
-                    })
-                })?;
-                FailureClassIndex::from_shapes_dataset(&shapes_ds)
-            }
-        };
+        // Failure classes and advisory provenance read the exact source dataset
+        // retained by these parsed shapes, including its original blank scopes.
+        let failure_classes = FailureClassIndex::from_shapes_dataset(shapes.dataset());
 
         // Signature/trust verification pre-gate.
         // Runs after the GTS bundle has been folded into a graph but before any
@@ -795,15 +776,12 @@ impl ValidationRun {
         // comment-insensitive (a comment-only module/manifest edit folds the same
         // *semantic* digest). Three mutually exclusive sources, no silent
         // degraded path (no-optionality):
-        //   • gts_graph present  → segment_heads (already content-addressed).
+        //   • native bundle present → segment heads (already content-addressed).
         //   • slices_dir present → semantic Merkle product key over the catalog.
         //   • neither            → shapes-only key (the no-root case is preserved).
         let merged_shacl_key = if let Some(cache) = cache.as_ref() {
-            let source_key = if let Some(graph) = &gts_graph {
-                let mut heads: Vec<&[u8]> =
-                    graph.segment_heads.iter().map(|h| h.as_slice()).collect();
-                heads.sort();
-                ValidationCache::cache_key(&heads)
+            let source_key = if let Some(imported) = &imported {
+                native_segment_heads_cache_key(&imported.bundle.envelope)?
             } else if let Some((catalog, ownership)) = &slice_analysis {
                 // Reuse the Phase 5 catalog + S4 dependency edges so validate does
                 // not run the ownership analyzer twice. A catalog/ownership failure
@@ -1000,19 +978,10 @@ impl ValidationRun {
         // merely because a rule exists. Find harvested findings via the "advisory-harvested"
         // tag. (CLI twin of the pipeline's result-based split; both build advisories through
         // `advisory::build_advisory`, so the two surfaces cannot drift.)
-        // The shape STORE the advisory split scans is the one the shapes were parsed
-        // from: the union loader already returns it (so a second parse of a
-        // re-concatenated text — with different blank-node scoping than the union the
-        // engine actually ran — is impossible), and the literal-document source parses
-        // its own text.
-        let advisory_shapes = match &shape_store {
-            Some(store) => Some(Arc::clone(store)),
-            None => purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok(),
-        };
-        let advisories = advisory_shapes
-            .as_deref()
-            .map(|shapes| crate::advisory::split_advisory_findings(&mut report, shapes, &dataset))
-            .unwrap_or_default();
+        // The advisory split reads the retained shape dataset. There is no reparse
+        // or parse-error fallback that could silently drop requested advice.
+        let advisories =
+            crate::advisory::split_advisory_findings(&mut report, shapes.dataset(), &dataset);
         let mut advisory_ledger = DiagLedger::new();
         let mut advisory_claims = Vec::with_capacity(advisories.len());
         for advisory in &advisories {
@@ -1057,9 +1026,9 @@ impl ValidationRun {
         // shared logic:ReasoningResult, folding its semantic verdict into the same
         // canonical report. Opt-in (runs the full reasoner) and gts-bundle-scoped.
         if options.deep {
-            if let Some(bytes) = &options.gts_bytes {
+            if let (Some(bytes), Some(imported)) = (&options.gts_bytes, &imported) {
                 timed(&mut timings, "deep-semantic", options, None, || {
-                    deep_semantic_findings(bytes, &mut report)
+                    deep_semantic_findings_imported(bytes, imported, &mut report)
                 })?;
             } else {
                 report.add_finding(
@@ -1157,11 +1126,31 @@ pub fn bundle_deep_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_erro
 }
 
 fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors::Result<()> {
-    let bundle = purrdf::import_gts_events(gts_bytes).map_err(|e| {
-        Diag::of_kind(crate::error::Dataset {
-            detail: format!("validate --deep: GTS read error: {e}"),
-        })
-    })?;
+    let imported = import_bundle_for_validation(gts_bytes, true)?;
+    deep_semantic_findings_imported(gts_bytes, &imported, report)
+}
+
+fn deep_semantic_findings_imported(
+    gts_bytes: &[u8],
+    imported: &purrdf::GtsImportWithBlobs,
+    report: &mut Report,
+) -> gmeow_errors::Result<()> {
+    let gates = prepared_imported_gates(imported)?;
+    let verification = gmeow_logic::verify::PreparedVerification::new(&[], &gates)?;
+    deep_semantic_findings_dataset(
+        gts_bytes,
+        imported.bundle.dataset.as_ref(),
+        report,
+        &verification,
+    )
+}
+
+fn deep_semantic_findings_dataset(
+    gts_bytes: &[u8],
+    dataset: &RdfDataset,
+    report: &mut Report,
+    verification: &gmeow_logic::verify::PreparedVerification<'_>,
+) -> gmeow_errors::Result<()> {
     // Narrow the full bundle down to the object-level reasoning EDB — the SAME
     // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
     // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`),
@@ -1169,13 +1158,16 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
     // `make reason-verify` gate rather than silently drifting by also reasoning over
     // meta/report graphs (documentation, diagnostics, correspondence, …) that assert no
     // object-level axioms.
-    let edb = gmeow_logic::reasoning_graphs::project_object_level_edb(bundle.dataset.as_ref())
-        .map_err(|e| {
-            Diag::of_kind(crate::error::Engine {
-                detail: format!("validate --deep: object-level EDB projection failed: {e}"),
-            })
-        })?;
-    let result = gmeow_logic::reason::reason_all(edb.as_ref()).map_err(|e| {
+    let edb = gmeow_logic::reasoning_graphs::project_object_level_edb(dataset).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("validate --deep: object-level EDB projection failed: {e}"),
+        })
+    })?;
+    let result = gmeow_logic::reason::reason_all(
+        gmeow_logic::reason::prepare_reasoning_input(edb.as_ref())?,
+        &gmeow_logic::reasoning_graphs::object_level_domains()?,
+    )
+    .map_err(|e| {
         Diag::of_kind(crate::error::Engine {
             detail: format!("validate --deep: native reasoning failed: {e}"),
         })
@@ -1186,12 +1178,11 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
     // / no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing, a
     // forbidden violation); multiple conflicting valuations ⇒ the MOST CONSERVATIVE
     // governs. A garbled valuation HARD-FAILS rather than silently relaxing the gate.
-    let policy =
-        ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref()).map_err(|e| {
-            Diag::of_kind(crate::error::Engine {
-                detail: format!("validate --deep: contract resolution failed: {e}"),
-            })
-        })?;
+    let policy = ContradictionPolicy::resolve_from_dataset(dataset).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("validate --deep: contract resolution failed: {e}"),
+        })
+    })?;
     // Build the faithful cited-quad-reifier derivation skeletons for the SAME
     // result; a build failure AFTER a real verdict is an internal invariant
     // violation and HARD-FAILS the dev bundle pass (propagated as Err), never
@@ -1218,7 +1209,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
     // means this dev bundle-only pass's own EDB projection produced a graph the
     // shared gate could not materialize — an internal invariant violation, so it
     // hard-fails rather than degrading to an advisory note.
-    run_math_reasoned_gates(edb.as_ref(), &result, report).map_err(|e| {
+    run_math_reasoned_gates(edb.as_ref(), &result, verification, report).map_err(|e| {
         Diag::of_kind(crate::error::Engine {
             detail: format!("validate --deep: reasoned-graph materialization failed: {e}"),
         })
@@ -1229,7 +1220,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
     // (C2). The validate and release lanes share ONE certificate constructor.
     let bundle_hash = purrdf::gts::writer::digest_string(gts_bytes);
     let axiom_hashes = gmeow_logic::certificate::per_graph_axiom_hashes(
-        bundle.dataset.as_ref(),
+        dataset,
         purrdf::gts::writer::digest_string,
     );
     // Compute genuine projection-loss codes from the static loss ledger — the same
@@ -1289,14 +1280,6 @@ fn attach_coherence_certificate(
     );
 }
 
-/// `owl:Nothing` — the class every contradiction/unsatisfiability clash quad forces
-/// its witness into. The clash quad the explain skeleton is attached from is exactly
-/// `type(individual, owl:Nothing)` (a contradiction) or `subClassOf(class,
-/// owl:Nothing)` (an unsatisfiable class), so a witness's derivation is located by
-/// the explanation whose target quad has the witness as subject, the witness world,
-/// and `owl:Nothing` as object.
-const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
-
 /// An internal-invariant violation raised while folding a reasoning verdict: a
 /// contradiction / permitted-conflict / unsatisfiability witness named a
 /// `(subject, world)` quad that is NOT present among the reasoning result's derived
@@ -1317,12 +1300,15 @@ pub(crate) struct WitnessDerivationMissing {
 /// Returns the sorted, deduped UNION of the `cited_iris` of every explanation whose
 /// target quad concerns `(witness_name, witness_world)` — i.e. whose target step's
 /// `subject_iri` is the witness, whose `world_iri` is the witness world, and whose
-/// target object is `owl:Nothing` (the clash quad). Returns `None` when NO such
-/// explanation exists — the absent-witness invariant violation the fold hard-fails on.
+/// target assertion has the requested empty-class role. The shared native
+/// classifier recognizes canonical operators and their declared grounding views;
+/// data predicates mentioning the empty class cannot supply a derivation. Returns
+/// `None` when no such explanation exists, which the fold hard-fails on.
 fn derived_quads_for_witness(
     explanations: &[gmeow_logic::explain::Explanation],
     witness_name: &str,
     witness_world: &str,
+    role: gmeow_logic::reason::dl::EmptyClassAssertion,
 ) -> Option<Vec<String>> {
     let mut cited: BTreeSet<String> = BTreeSet::new();
     let mut matched = false;
@@ -1333,16 +1319,19 @@ fn derived_quads_for_witness(
         let Some(target) = expl.step_skeleton.first() else {
             continue;
         };
-        if target.subject_iri != witness_name {
+        if target.subject_iri != witness_name || target.graph_iri != witness_world {
             continue;
         }
-        // The clash quad forces the witness into owl:Nothing; match its N3 object
-        // IRI so an unrelated quad about the same subject is never over-cited.
+        // Explanation objects are an output spelling, never reparsed into a
+        // reasoning input. Retain the exact predicate and class-marker roles.
         let object_iri = target
             .obj_n3
             .strip_prefix('<')
             .and_then(|s| s.strip_suffix('>'));
-        if object_iri != Some(OWL_NOTHING) {
+        if object_iri.and_then(|iri| {
+            gmeow_logic::reason::dl::EmptyClassAssertion::classify(&target.predicate_iri, iri)
+        }) != Some(role)
+        {
             continue;
         }
         matched = true;
@@ -1350,6 +1339,10 @@ fn derived_quads_for_witness(
     }
     matched.then(|| cited.into_iter().collect())
 }
+
+#[cfg(test)]
+#[path = "validate_all_verdict_tests.rs"]
+mod verdict_derivation_tests;
 
 /// Fold a shared `logic:ReasoningResult` verdict into `report` as the deep-pass
 /// finding projection. The SINGLE fold both the dev bundle-only pass
@@ -1391,16 +1384,20 @@ pub(crate) fn fold_reasoning_result(
             // Locate the explain-skeleton derivation of this witness's clash quad
             // BEFORE minting the finding; an unlocatable witness is a hard-fail
             // invariant violation, never a silently-underived verdict.
-            let derived_from_quads =
-                derived_quads_for_witness(explanations, &witness.individual, &witness.world)
-                    .ok_or_else(|| WitnessDerivationMissing {
-                        message: format!(
-                            "contradiction witness (individual {}, world {}) names a quad absent \
+            let derived_from_quads = derived_quads_for_witness(
+                explanations,
+                &witness.individual,
+                &witness.world,
+                gmeow_logic::reason::dl::EmptyClassAssertion::Membership,
+            )
+            .ok_or_else(|| WitnessDerivationMissing {
+                message: format!(
+                    "contradiction witness (individual {}, world {}) names a quad absent \
                      from the reasoning result's derivations — no explain skeleton could \
                      be located",
-                            witness.individual, witness.world
-                        ),
-                    })?;
+                    witness.individual, witness.world
+                ),
+            })?;
             let finding = if permitted {
                 Finding::new(
                     Severity::Warning,
@@ -1439,16 +1436,19 @@ pub(crate) fn fold_reasoning_result(
         // The unsatisfiable class is the subject of a `subClassOf(class, owl:Nothing)`
         // clash quad; attach its explain-skeleton derivation, hard-failing if the
         // verdict named a quad the result does not carry.
-        let derived_from_quads =
-            derived_quads_for_witness(explanations, &unsat.class, &unsat.world).ok_or_else(
-                || WitnessDerivationMissing {
-                    message: format!(
-                        "unsatisfiable class {} (world {}) names a quad absent from the \
+        let derived_from_quads = derived_quads_for_witness(
+            explanations,
+            &unsat.class,
+            &unsat.world,
+            gmeow_logic::reason::dl::EmptyClassAssertion::Subsumption,
+        )
+        .ok_or_else(|| WitnessDerivationMissing {
+            message: format!(
+                "unsatisfiable class {} (world {}) names a quad absent from the \
                          reasoning result's derivations — no explain skeleton could be located",
-                        unsat.class, unsat.world
-                    ),
-                },
-            )?;
+                unsat.class, unsat.world
+            ),
+        })?;
         report.add_finding(
             Finding::new(
                 Severity::Warning,
@@ -1546,6 +1546,76 @@ pub(crate) fn fold_reasoning_result(
     Ok(())
 }
 
+/// Decode required native laws from the same imported dataset/envelope selection.
+pub(crate) fn prepared_imported_gates(
+    imported: &purrdf::GtsImportWithBlobs,
+) -> gmeow_errors::Result<gmeow_logic::verify::PreparedReasonedGates> {
+    use gmeow_gts_profile::archive;
+    let blob = archive::required_imported_blob(imported, archive::REASONING_REP)?;
+    let bytes = archive::archive_member(
+        &blob.bytes,
+        archive::REASONED_GATES_MEMBER,
+        archive::MAX_NATIVE_MEMBER_BYTES,
+    )?;
+    let gates: gmeow_logic::verify::PreparedReasonedGates =
+        serde_json::from_slice(bytes).map_err(|error| {
+            Diag::of_kind(crate::error::Engine {
+                detail: format!("required native verification laws cannot be decoded: {error}"),
+            })
+        })?;
+    gates.validate_source_identity()?;
+    Ok(gates)
+}
+
+fn import_bundle_for_validation(
+    bytes: &[u8],
+    deep: bool,
+) -> gmeow_errors::Result<purrdf::GtsImportWithBlobs> {
+    let selectors = if deep {
+        vec![purrdf::GtsBlobSelector::Representation(
+            gmeow_gts_profile::archive::REASONING_REP,
+        )]
+    } else {
+        Vec::new()
+    };
+    let limit = gmeow_gts_profile::archive::MAX_SELECTED_ARCHIVE_BYTES;
+    purrdf::import_gts_events_with_blobs(
+        bytes,
+        &selectors,
+        purrdf::GtsBlobLimits::new(limit, limit),
+    )
+    .map_err(|error| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("validate: native GTS import failed: {error}"),
+        })
+    })
+}
+
+/// Preserve the existing cache's sorted raw-head-byte key, rather than hashing
+/// the native envelope's hexadecimal presentation as if it were the head itself.
+/// The upstream fixed-width hex decoder supplies raw bytes here; no hash is recomputed.
+fn native_segment_heads_cache_key(envelope: &purrdf::RdfEnvelope) -> gmeow_errors::Result<String> {
+    let mut heads = envelope
+        .lookaside
+        .segments
+        .iter()
+        .filter_map(|segment| segment.head.as_deref())
+        .map(|head| {
+            purrdf::ContentDigest::from_hex(head)
+                .map(|head| *head.as_bytes())
+                .ok_or_else(|| {
+                    Diag::of_kind(crate::error::Dataset {
+                        detail: "native envelope contains an invalid segment head".to_owned(),
+                    })
+                })
+        })
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    heads.sort();
+    Ok(ValidationCache::cache_key(
+        &heads.iter().map(|head| head.as_slice()).collect::<Vec<_>>(),
+    ))
+}
+
 /// Run the `math:` dimensional-homogeneity + `math:` expression-identity reasoned
 /// gates: the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
 /// build time over the pipeline's own `assemble_object_level_edb`, now reachable
@@ -1574,7 +1644,7 @@ pub(crate) fn fold_reasoning_result(
 /// # Errors
 ///
 /// Returns `Err` if reasoned-graph materialization
-/// ([`gmeow_logic::verify::materialize_reasoned_graph`]) fails. The two callers
+/// ([`gmeow_logic::verify::PreparedVerification::materialize_reasoned_graph`]) fails. The two callers
 /// intentionally map this failure differently (a caller-supplied-data pass
 /// degrades it to an advisory note; the dev bundle-only pass hard-fails on it,
 /// since a failure there can only mean the bundle itself is broken) — that
@@ -1583,9 +1653,10 @@ pub(crate) fn fold_reasoning_result(
 pub(crate) fn run_math_reasoned_gates(
     edb: &RdfDataset,
     result: &gmeow_logic::result::ReasoningResult,
+    verification: &gmeow_logic::verify::PreparedVerification<'_>,
     report: &mut Report,
 ) -> gmeow_errors::Result<()> {
-    match gmeow_logic::verify::materialize_reasoned_graph(edb, result)? {
+    match verification.materialize_reasoned_graph(edb, result)? {
         gmeow_logic::verify::ReasonedGraphOutcome::Ready(reasoned) => {
             for finding in gmeow_logic::math_dimension::check_math_dimension_findings(
                 reasoned.dataset.as_ref(),
@@ -1879,6 +1950,12 @@ fn check_examples(
     // view ONCE, then each example only projects its own small graph before merging
     // the two projected datasets under fresh blank scopes.
     let examples = find_example_files(slices_dir)?;
+    // Older entries were computed with an unsound touched-term filter. They
+    // cannot certify complete example validation even when input bytes match.
+    let base_key = ValidationCache::cache_key(&[
+        base_key.as_bytes(),
+        b"gmeow-example-shacl-canonical-complete-targets-v3",
+    ]);
 
     // Fast path: if every example's SHACL result is already cached, skip the
     // parallel re-validation entirely (main's example-shacl cache).
@@ -1886,7 +1963,7 @@ fn check_examples(
         let mut cached_findings: Vec<Finding> = Vec::new();
         let mut all_hit = true;
         for (_, path) in &examples {
-            let example_key = example_shacl_key(cache, base_key, path)?;
+            let example_key = example_shacl_key(cache, &base_key, path)?;
             let Some(cached) = cache.read_cached_result("example-shacl", &example_key) else {
                 all_hit = false;
                 break;
@@ -1901,11 +1978,8 @@ fn check_examples(
         }
     }
 
-    let base_projected = purrdf::shapes::engine::project_dataset(dataset).map_err(|e| {
-        Diag::of_kind(crate::error::Engine {
-            detail: format!("example base SHACL projection failed: {e}"),
-        })
-    })?;
+    let base_projected = gmeow_logic_compile::projections::reader_view::shacl_reader_view(dataset);
+    let prepared_shapes = purrdf::shapes::engine::PreparedShapes::new(Arc::new(shapes.clone()));
 
     let results: Vec<CachedPhaseResult> = examples
         .par_iter()
@@ -1920,7 +1994,13 @@ fn check_examples(
                 ])
             };
             run_cached(cache, "example-shacl", &example_key, || {
-                run_example_shacl(&base_projected, shapes, failure_classes, path, name)
+                run_example_shacl(
+                    &base_projected,
+                    &prepared_shapes,
+                    failure_classes,
+                    path,
+                    name,
+                )
             })
         })
         .collect();
@@ -1972,7 +2052,7 @@ fn example_shacl_key(
 /// with the native SHACL engine.
 fn run_example_shacl(
     base_projected: &Arc<RdfDataset>,
-    shapes: &purrdf::shapes::shapes::Shapes,
+    shapes: &purrdf::shapes::engine::PreparedShapes,
     failure_classes: &FailureClassIndex,
     path: &Path,
     name: &str,
@@ -1995,11 +2075,7 @@ fn run_example_shacl(
         }
     };
     let example_projected =
-        purrdf::shapes::engine::project_dataset(example_ds.as_ref()).map_err(|e| {
-            Diag::of_kind(crate::error::Engine {
-                detail: format!("example {name}: SHACL projection failed: {e}"),
-            })
-        })?;
+        gmeow_logic_compile::projections::reader_view::shacl_reader_view(&example_ds);
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(base_projected);
     builder.push_dataset(&example_projected);
@@ -2013,27 +2089,20 @@ fn run_example_shacl(
             detail: format!("example {name}: projected base ∪ example freeze failed: {e}"),
         })
     })?;
-    let mut report = if example_allows_focus_pruning(example_ds.as_ref()) {
-        let affected = affected_focus_terms(example_projected.as_ref());
-        // ABox-only examples cannot alter the ontology's target/class/property
-        // structure, so the merged run only needs to recheck focus terms touched
-        // by the example. Examples that edit schema or SHACL shapes take the
-        // full-scan branch above.
-        purrdf::shapes::engine::validate_projected_dataset_with_focus_filter(
-            merged,
-            shapes,
-            |_, focus| affected.contains(focus),
-        )
-    } else {
-        purrdf::shapes::engine::validate_projected_dataset(merged, shapes)
-    }
-    .map_err(|e| {
-        Diag::of_kind(crate::error::Engine {
-            detail: format!("example {name}: SHACL validation failed: {e}"),
-        })
-    })?;
-    // The per-example path calls the engine directly (it needs the focus-filter
-    // variant), so it applies the same result-set collapse
+    // Target dependencies may reach arbitrary nodes through property paths,
+    // SPARQL, class membership or custom expressions. Mentioning only ABox
+    // terms does not prove that untouched focus nodes are unaffected. Until an
+    // effect analysis certifies the complete affected set, evaluate all targets.
+    let mut report = shapes
+        .bind_projected_dataset(merged)
+        .and_then(|validator| validator.validate())
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Engine {
+                detail: format!("example {name}: SHACL validation failed: {e}"),
+            })
+        })?;
+    // The per-example path calls the engine directly, so it applies the same
+    // result-set collapse
     // `store::shacl_validate_dataset` does — a violation reported twice is one
     // violation on every validate surface, not just the bundle-driven one.
     store::dedupe_validation_results(&mut report);
@@ -2042,103 +2111,6 @@ fn run_example_shacl(
         Some(name),
         failure_classes,
     ))
-}
-
-const RDF_PROPERTY: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property";
-const SHACL_NS: &str = "http://www.w3.org/ns/shacl#";
-
-fn example_allows_focus_pruning(example: &RdfDataset) -> bool {
-    for quad in example.owned_quads() {
-        // Scan both the canonical `logic:subClassOf`/`logic:subPropertyOf` edges and
-        // their `rdfs:` projection (gmeow_ns::subsumption_predicates doctrine;
-        // crates/ns/src/lib.rs:106-166) — an example whose only structural content
-        // is a re-authored canonical subsumption edge must be treated the same as
-        // one authored in `rdfs:`, or focus pruning silently drops it.
-        if gmeow_ns::SUB_CLASS_OF.contains(&quad.predicate.as_str())
-            || gmeow_ns::SUB_PROPERTY_OF.contains(&quad.predicate.as_str())
-            || quad.predicate.starts_with(SHACL_NS)
-        {
-            return false;
-        }
-        if quad.predicate == rdf::TYPE && is_schema_type(&quad.object) {
-            return false;
-        }
-    }
-    true
-}
-
-fn is_schema_type(term: &RdfTerm) -> bool {
-    // A schema type is authored in the canonical `logic:` spelling; lower it to its
-    // `owl:` view so the test recognizes both spellings after the surface flip.
-    match term {
-        RdfTerm::Iri(iri) => {
-            let iri = gmeow_ns::to_owl_view(iri);
-            iri == owl::CLASS
-                || iri == rdfs::DATATYPE
-                || iri == RDF_PROPERTY
-                || iri == owl::OBJECT_PROPERTY
-                || iri == owl::DATATYPE_PROPERTY
-                || iri == owl::ANNOTATION_PROPERTY
-                || iri == owl::FUNCTIONAL_PROPERTY
-                || iri.starts_with(SHACL_NS)
-        }
-        _ => false,
-    }
-}
-
-fn affected_focus_terms(example_projected: &RdfDataset) -> HashSet<purrdf::shapes::term::Term> {
-    let mut affected = HashSet::new();
-    for quad in example_projected.owned_quads() {
-        affected.insert(rdf_term_to_shacl_term(&quad.subject));
-        affected.insert(purrdf::shapes::term::Term::NamedNode(
-            purrdf::shapes::term::NamedNode::new_unchecked(quad.predicate),
-        ));
-        affected.insert(rdf_term_to_shacl_term(&quad.object));
-    }
-    affected
-}
-
-fn rdf_term_to_shacl_term(term: &RdfTerm) -> purrdf::shapes::term::Term {
-    use purrdf::shapes::term::{NamedNode, Term};
-
-    match term {
-        RdfTerm::Iri(iri) => Term::NamedNode(NamedNode::new_unchecked(iri.clone())),
-        RdfTerm::BlankNode(label) => Term::BlankNode(label.clone()),
-        RdfTerm::Literal(literal) => Term::Literal(rdf_literal_to_shacl_literal(literal)),
-        RdfTerm::Triple(triple) => Term::Triple(Box::new(rdf_triple_to_shacl_triple(triple))),
-    }
-}
-
-fn rdf_triple_to_shacl_triple(triple: &RdfTriple) -> purrdf::shapes::term::Triple {
-    use purrdf::shapes::term::{NamedNode, Triple};
-
-    let subject = rdf_term_to_shacl_term(&triple.subject);
-    let predicate = NamedNode::new_unchecked(triple.predicate.clone());
-    let object = rdf_term_to_shacl_term(&triple.object);
-    Triple::new(subject, predicate, object)
-}
-
-fn rdf_literal_to_shacl_literal(literal: &RdfLiteral) -> purrdf::shapes::term::Literal {
-    use purrdf::shapes::term::Literal;
-
-    match (&literal.language, &literal.datatype) {
-        (Some(lang), _) => match literal.direction {
-            Some(direction) => Literal::new_directional_language_tagged_literal_unchecked(
-                literal.lexical_form.clone(),
-                lang.clone(),
-                direction,
-            ),
-            None => Literal::new_language_tagged_literal_unchecked(
-                literal.lexical_form.clone(),
-                lang.clone(),
-            ),
-        },
-        (None, Some(datatype)) => Literal::new_typed_literal(
-            literal.lexical_form.clone(),
-            purrdf::shapes::term::NamedNode::new_unchecked(datatype.clone()),
-        ),
-        (None, None) => Literal::new_simple_literal(literal.lexical_form.clone()),
-    }
 }
 
 /// Phase 11/12/13: validate a merged set of DSL Turtle sources against dedicated
@@ -2332,1159 +2304,12 @@ fn find_example_files(slices_dir: &str) -> gmeow_errors::Result<Vec<(String, Pat
     Ok(examples)
 }
 
+#[path = "validate_all.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::collections::{BTreeSet, HashSet};
-
-    use purrdf::{DatasetView, GraphMatch, parse_dataset};
-
-    /// Write `contents` to `name` inside a fresh RAII temp directory.
-    ///
-    /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
-    /// drop, including on panic and early return. Bind it to a named `_tmp`
-    /// (never a bare `_`, which would drop it immediately) so it outlives the
-    /// path. The file *name* is preserved because the validation run dispatches
-    /// on the `.ttl` extension.
-    fn write_tmp(name: &str, contents: &str) -> (tempfile::TempDir, PathBuf) {
-        let dir = tempfile::tempdir().expect("create temp dir");
-        let path = dir.path().join(name);
-        std::fs::write(&path, contents).unwrap();
-        (dir, path)
-    }
-
-    /// The per-example `base ∪ example` merge dedups shared base quads and adds the
-    /// example-only quads, leaving the base unaffected (each example merges into a
-    /// fresh dataset; there is no shared mutable store to leak into).
-    #[test]
-    fn example_merge_unions_base_and_example() {
-        let base = parse_dataset(
-            b"@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
-            "text/turtle",
-            None,
-        )
-        .unwrap();
-        let base_quads: Vec<purrdf::RdfQuad> = base.owned_quads().collect();
-
-        // An example carrying one duplicate of the base quad plus one new quad.
-        let (_tmp, example_path) = write_tmp(
-            "gmeow_validate_example_merge.ttl",
-            "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
-        );
-        let example = store::parse_file_dataset(&example_path).unwrap();
-
-        let mut builder = RdfDatasetBuilder::new();
-        for q in &base_quads {
-            builder.push_owned_quad(q);
-        }
-        builder.push_dataset(&example);
-        let merged = builder.freeze().unwrap();
-        // The duplicate base quad collapses; the example-only quad is added → 2 total.
-        assert_eq!(merged.quad_count(), 2, "duplicate base quad must dedup");
-        // The base dataset is unchanged by the merge.
-        assert_eq!(base.quad_count(), 1, "base dataset must be untouched");
-        assert_eq!(
-            merged
-                .quads_for_pattern(None, None, None, GraphMatch::Default)
-                .count(),
-            2
-        );
-    }
-
-    /// G9 canonical-subsumption sweep: an example whose only structural content is a
-    /// canonical `logic:subClassOf` edge must disable focus pruning exactly like an
-    /// `rdfs:subClassOf` example does — otherwise the node under validation could be
-    /// silently pruned away (crates/ns/src/lib.rs:106-166).
-    #[test]
-    fn example_with_canonical_logic_subclass_of_disallows_focus_pruning() {
-        let example = parse_dataset(
-            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-              @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-              gmeow:Cyborg logic:subClassOf gmeow:Animal .\n",
-            "text/turtle",
-            None,
-        )
-        .unwrap();
-        assert!(
-            !example_allows_focus_pruning(example.as_ref()),
-            "a canonical logic:subClassOf edge must disable focus pruning"
-        );
-    }
-
-    /// The `rdfs:subPropertyOf` projected spelling must also disable pruning (the
-    /// existing arm this migration preserves).
-    #[test]
-    fn example_with_rdfs_subproperty_of_disallows_focus_pruning() {
-        let example = parse_dataset(
-            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-              @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
-              gmeow:mediatesRole rdfs:subPropertyOf gmeow:mediates .\n",
-            "text/turtle",
-            None,
-        )
-        .unwrap();
-        assert!(
-            !example_allows_focus_pruning(example.as_ref()),
-            "a projected rdfs:subPropertyOf edge must disable focus pruning"
-        );
-    }
-
-    #[test]
-    fn affected_focus_terms_include_predicate_iris() {
-        use purrdf::shapes::term::{NamedNode, Term};
-
-        let example = parse_dataset(
-            b"@prefix ex: <https://example.org/> .\nex:s ex:p ex:o .\n",
-            "text/turtle",
-            None,
-        )
-        .unwrap();
-        let affected = affected_focus_terms(example.as_ref());
-
-        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
-            "https://example.org/s"
-        ))));
-        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
-            "https://example.org/p"
-        ))));
-        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
-            "https://example.org/o"
-        ))));
-    }
-
-    fn minimal_gts_bytes() -> Vec<u8> {
-        use purrdf::gts::model::{Term, TermKind};
-        use purrdf::gts::writer::Writer;
-
-        let mut graph = purrdf::gts::model::Graph::default();
-        graph.terms.push(Term {
-            kind: TermKind::Iri,
-            value: Some("https://example.org/a".to_string()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-            triple: None,
-        });
-        graph.terms.push(Term {
-            kind: TermKind::Iri,
-            value: Some("https://example.org/p".to_string()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-            triple: None,
-        });
-        graph.terms.push(Term {
-            kind: TermKind::Iri,
-            value: Some("https://example.org/b".to_string()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-            triple: None,
-        });
-        graph.quads.push((0, 1, 2, None));
-
-        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
-            .expect("deterministic GTS writer must succeed");
-        writer.to_bytes()
-    }
-
-    #[test]
-    fn deep_semantic_pass_flags_inconsistency_and_consistency() {
-        // An inconsistent bundle: A⊑B, A⊑C, B disjointWith C, x:A forces x into
-        // owl:Nothing — the shared ReasoningResult reports information=both.
-        let inconsistent = "\
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix ex: <http://gmeow.example/> .
-ex:A rdfs:subClassOf ex:B .
-ex:A rdfs:subClassOf ex:C .
-ex:B owl:disjointWith ex:C .
-ex:x rdf:type ex:A .
-";
-        let bytes = gts_bytes_from_turtle(inconsistent);
-        let mut report = Report::new("validate");
-        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|f| f.code == "validate.deep.inconsistent"),
-            "the deep pass must flag the inconsistency: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-
-        // A consistent bundle: A⊑B, x:A. No clash → a consistency note, no error.
-        let consistent = "\
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix ex: <http://gmeow.example/> .
-ex:A rdfs:subClassOf ex:B .
-ex:x rdf:type ex:A .
-";
-        let bytes = gts_bytes_from_turtle(consistent);
-        let mut report = Report::new("validate");
-        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|f| f.code == "validate.deep.consistent"),
-            "a consistent bundle must record the consistency note"
-        );
-        assert!(
-            !report
-                .findings
-                .iter()
-                .any(|f| f.code == "validate.deep.inconsistent"),
-            "a consistent bundle must NOT flag inconsistency"
-        );
-    }
-
-    #[test]
-    fn fold_categorizes_permitted_versus_forbidden_glut() {
-        // A real within-world glut, reasoned from an inconsistent fixture.
-        let inconsistent = "\
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix ex: <http://gmeow.example/> .
-ex:A rdfs:subClassOf ex:B .
-ex:A rdfs:subClassOf ex:C .
-ex:B owl:disjointWith ex:C .
-ex:x rdf:type ex:A .
-";
-        let bytes = gts_bytes_from_turtle(inconsistent);
-        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
-        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
-        assert!(!result.is_consistent(), "the fixture must produce a glut");
-        let explanations = gmeow_logic::explain::explanations_for_result(&result)
-            .expect("explain skeletons must build for a real verdict");
-
-        // FORBIDDEN (classical): an Error categorized ContradictionWitness; gate fails.
-        let mut forbidden = Report::new("validate");
-        fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGapAndGlut,
-            &explanations,
-            &mut forbidden,
-        )
-        .expect("fold must locate every witness derivation");
-        let f = forbidden
-            .findings
-            .iter()
-            .find(|f| f.code == "validate.deep.inconsistent")
-            .expect("forbidden glut must emit a deep.inconsistent error");
-        assert_eq!(f.severity, Severity::Error);
-        assert_eq!(f.category, Some(FindingCategory::ContradictionWitness));
-        assert!(!forbidden.ok(), "a forbidden glut must fail the gate");
-
-        // PERMITTED (glut-admitting): a Warning categorized PermittedEpistemicConflict;
-        // the gate stays green — the load-bearing acceptance criterion (c).
-        let mut permitted = Report::new("validate");
-        fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGap,
-            &explanations,
-            &mut permitted,
-        )
-        .expect("fold must locate every witness derivation");
-        assert!(
-            !permitted
-                .findings
-                .iter()
-                .any(|f| f.code == "validate.deep.inconsistent"),
-            "a permitted glut must NOT emit the forbidden inconsistency error"
-        );
-        let p = permitted
-            .findings
-            .iter()
-            .find(|f| f.code == "validate.deep.permitted-conflict")
-            .expect("permitted glut must emit a permitted-conflict warning");
-        assert_eq!(p.severity, Severity::Warning);
-        assert_eq!(
-            p.category,
-            Some(FindingCategory::PermittedEpistemicConflict)
-        );
-        assert!(
-            permitted.ok(),
-            "a permitted, disclosed contradiction must NOT fail the gate"
-        );
-    }
-
-    /// The inconsistent bundle every derivation-attach test reasons over: `x : A`,
-    /// `A ⊑ B`, `A ⊑ C`, `B ⊐⊏ C` forces `x` into `owl:Nothing`.
-    const INCONSISTENT_TTL: &str = "\
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix ex: <http://gmeow.example/> .
-ex:A rdfs:subClassOf ex:B .
-ex:A rdfs:subClassOf ex:C .
-ex:B owl:disjointWith ex:C .
-ex:x rdf:type ex:A .
-";
-
-    /// A forbidden contradiction finding carries the explain-skeleton
-    /// cited-quad-reifier derivation (`derived_from_quads`) of its clash quad, and
-    /// leaves the finding-fingerprint edges (`antecedents`/`root_cause`) untouched —
-    /// the namespace guard: the two edges are NEVER conflated.
-    #[test]
-    fn deep_inconsistent_finding_carries_derivation_not_antecedents() {
-        let bytes = gts_bytes_from_turtle(INCONSISTENT_TTL);
-        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
-        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
-        assert!(!result.is_consistent(), "the fixture must produce a glut");
-        let explanations = gmeow_logic::explain::explanations_for_result(&result)
-            .expect("explain skeletons must build for a real verdict");
-
-        let mut report = Report::new("validate");
-        fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGapAndGlut,
-            &explanations,
-            &mut report,
-        )
-        .expect("fold must locate every witness derivation");
-
-        let finding = report
-            .findings
-            .iter()
-            .find(|f| f.code == "validate.deep.inconsistent")
-            .expect("a forbidden glut must emit a deep.inconsistent error");
-
-        assert!(
-            !finding.derived_from_quads.is_empty(),
-            "the reasoned-quad verdict must carry its explain-skeleton derivation"
-        );
-        // The cited-IRI skeleton names the clash quad's own reifier and its world —
-        // the load-bearing logic-world coordinates of the derivation.
-        assert!(
-            finding
-                .derived_from_quads
-                .iter()
-                .any(|iri| iri.starts_with("https://blackcatinformatics.ca/gmeow/reifier/")),
-            "derived_from_quads must cite at least one logic-world quad reifier; got {:?}",
-            finding.derived_from_quads
-        );
-        assert!(
-            finding
-                .derived_from_quads
-                .contains(&"https://blackcatinformatics.ca/gmeow/graph/rl-default".to_owned()),
-            "the derivation is cited within its world; got {:?}",
-            finding.derived_from_quads
-        );
-        // Namespace guard: the finding-fingerprint edges stay empty — a quad reifier
-        // must NEVER be written into antecedents/root_cause.
-        assert!(
-            finding.antecedents.is_empty(),
-            "antecedents (finding-fingerprint IRIs) must stay empty"
-        );
-        assert!(
-            finding.root_cause.is_none(),
-            "root_cause (finding-fingerprint IRI) must stay unset"
-        );
-    }
-
-    /// The absent-witness invariant: a verdict names a witness whose clash quad has
-    /// no locatable explain skeleton → `fold_reasoning_result` HARD-FAILS with
-    /// [`WitnessDerivationMissing`], never a silent (or advisory-Note) attach. Here
-    /// the real inconsistent result is folded with an EMPTY explanation set, so no
-    /// witness can be located — the same shape as a verdict referencing a quad the
-    /// result does not carry.
-    #[test]
-    fn fold_hard_fails_when_witness_derivation_absent() {
-        let bytes = gts_bytes_from_turtle(INCONSISTENT_TTL);
-        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
-        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
-        assert!(!result.is_consistent(), "the fixture must produce a glut");
-
-        let mut report = Report::new("validate");
-        let err = fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGapAndGlut,
-            &[],
-            &mut report,
-        )
-        .expect_err("an unlocatable witness derivation must HARD-FAIL the fold");
-        assert!(
-            err.message.contains("contradiction witness")
-                && err.message.contains("no explain skeleton"),
-            "the invariant violation must name the unlocatable witness; got {:?}",
-            err.message
-        );
-    }
-
-    /// Build canonical GTS bytes from a Turtle string for the deep-pass test.
-    fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
-        let dataset =
-            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse test turtle");
-        // gmeow-test-input: synthetic-only
-        purrdf::gts_write::to_gts(
-            &dataset,
-            &purrdf::RdfLookaside::default(),
-            "gmeow-validate-deep-test",
-        )
-        .expect("encode GTS bytes")
-    }
-
-    /// A bundle that BOTH reasons to a within-world glut AND declares a
-    /// `logic:ReasoningContract` whose `logic:admissibleValuation` is the supplied
-    /// policy local name (e.g. `ForbidGap` admits a glut; `ForbidGapAndGlut` forbids
-    /// it). The contract is real RDF in the bundle, so `deep_semantic_findings`
-    /// resolves the governing policy off the bundle exactly as production does.
-    fn glut_bundle_with_contract(valuation_local: &str) -> Vec<u8> {
-        let ttl = format!(
-            "\
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix ex: <http://gmeow.example/> .
-ex:A rdfs:subClassOf ex:B .
-ex:A rdfs:subClassOf ex:C .
-ex:B owl:disjointWith ex:C .
-ex:x rdf:type ex:A .
-ex:governingContract rdf:type logic:ReasoningContract ;
-    logic:admissibleValuation logic:{valuation_local} .
-"
-        );
-        gts_bytes_from_turtle(&ttl)
-    }
-
-    /// H3(a)+(b)+(c): the FULL deep path on a real glut-admitting bundle. The policy
-    /// comes from the bundle's declared contract (proving the C1 wiring works on real
-    /// data): a `ForbidGap` (glut-admitting) contract turns the within-world glut into
-    /// a PERMITTED, disclosed conflict — a non-error finding that keeps the gate
-    /// GREEN — and a coherence certificate is attached to the report metadata.
-    #[test]
-    fn deep_pass_permitted_glut_stays_green_with_certificate() {
-        let bytes = glut_bundle_with_contract("ForbidGap");
-        let mut report = Report::new("validate");
-        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
-
-        // (a) a PermittedEpistemicConflict finding at NON-error severity.
-        let permitted = report
-            .findings
-            .iter()
-            .find(|f| f.category == Some(FindingCategory::PermittedEpistemicConflict))
-            .expect("a glut-admitting contract must emit a permitted-conflict finding");
-        assert_ne!(
-            permitted.severity,
-            Severity::Error,
-            "a permitted, disclosed conflict must NOT be an error"
-        );
-
-        // (b) NO error-severity finding from the conflict — the gate stays GREEN.
-        assert!(
-            report.ok(),
-            "a permitted glut under its declared contract must keep the gate green: {:?}",
-            report.legacy_errors()
-        );
-        assert!(
-            !report
-                .findings
-                .iter()
-                .any(|f| f.code == "validate.deep.inconsistent"),
-            "no forbidden inconsistency error must be emitted"
-        );
-
-        // (c) a coherence certificate is present in report metadata.
-        assert!(
-            report.metadata.contains_key("coherence_certificate"),
-            "the deep pass must attach a coherence certificate"
-        );
-        let cert = report.metadata["coherence_certificate"]
-            .as_str()
-            .expect("certificate is serialized as N-Quads string");
-        assert!(
-            cert.contains("permittedConflictWitness"),
-            "the certificate must disclose the permitted conflict: {cert}"
-        );
-    }
-
-    /// H3 (forbidding side): the SAME glut under a glut-FORBIDDING declared contract
-    /// (`ForbidGapAndGlut`) yields an Error-severity ContradictionWitness (gate fails),
-    /// and the release-lane certificate build REFUSES (Err) on the same bundle.
-    #[test]
-    fn deep_pass_forbidden_glut_fails_and_release_refuses() {
-        let bytes = glut_bundle_with_contract("ForbidGapAndGlut");
-        let mut report = Report::new("validate");
-        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
-
-        let witness = report
-            .findings
-            .iter()
-            .find(|f| f.category == Some(FindingCategory::ContradictionWitness))
-            .expect("a glut-forbidding contract must emit a contradiction witness");
-        assert_eq!(witness.severity, Severity::Error);
-        assert!(!report.ok(), "a forbidden glut must fail the gate");
-
-        // The release lane reasons over the SAME bundle bytes under the SAME
-        // bundle-resolved policy, then REFUSES to sign an incoherent bundle (hard-fail,
-        // no DEFAULT papering-over). gmeow-pipeline cannot be imported here (it depends
-        // on gmeow-validate — a cycle), so exercise the exact decision the release lane
-        // makes: resolve the policy off the bundle, build the outcome, and assert it is
-        // refused (release.rs returns Err on `outcome.is_refused()`).
-        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
-        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
-        let policy =
-            ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref()).expect("policy");
-        assert_eq!(
-            policy,
-            ContradictionPolicy::ForbidGapAndGlut,
-            "the bundle's declared contract must resolve to the glut-forbidding policy"
-        );
-        let projection_loss_codes: BTreeSet<String> = PROJECTION_CODECS
-            .iter()
-            .flat_map(|&to| {
-                pair_loss_ledger("gts", to)
-                    .entries()
-                    .iter()
-                    .map(|e| e.code.to_string())
-                    .collect::<Vec<_>>()
-            })
-            .collect();
-        let outcome = gmeow_logic::certificate::CoherenceOutcome::from_reasoning_result(
-            &result,
-            purrdf::gts::writer::digest_string(&bytes),
-            gmeow_logic::certificate::per_graph_axiom_hashes(
-                bundle.dataset.as_ref(),
-                purrdf::gts::writer::digest_string,
-            ),
-            policy,
-            "2026-06-28T00:00:00Z",
-            projection_loss_codes,
-        )
-        .expect("outcome build");
-        assert!(
-            outcome.is_refused(),
-            "the release lane must refuse to sign a bundle carrying a forbidden integrity violation"
-        );
-    }
-
-    fn minimal_lint_config() -> LintConfig {
-        LintConfig {
-            namespace: "https://blackcatinformatics.ca/gmeow/".to_owned(),
-            ontology_iri: "https://blackcatinformatics.ca/gmeow".to_owned(),
-            selector_tokens: BTreeSet::new(),
-            core_slice_iris: HashSet::new(),
-            annotation_predicates: HashSet::new(),
-        }
-    }
-
-    #[test]
-    fn run_with_gts_bytes_succeeds_with_empty_source_paths() {
-        let bytes = minimal_gts_bytes();
-        let options = ValidateOptions {
-            gts_bytes: Some(bytes),
-            ..ValidateOptions::default()
-        };
-
-        let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
-            .expect("ValidationRun::run with gts_bytes must succeed");
-
-        assert!(
-            run.errors().is_empty(),
-            "unexpected errors: {:?}",
-            run.errors()
-        );
-        assert!(
-            run.warnings().is_empty(),
-            "unexpected warnings: {:?}",
-            run.warnings()
-        );
-        // The canonical report is always present, even on a clean run.
-        assert!(run.report.normalized().ok());
-        assert_eq!(run.dataset.quad_count(), 1);
-
-        // The single triple (s,p,o) is present in the shared dataset.
-        let ds = &run.dataset;
-        let s = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/a"));
-        let p = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/p"));
-        let o = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/b"));
-        assert!(
-            ds.quads_for_pattern(s, p, o, GraphMatch::Any)
-                .next()
-                .is_some(),
-            "the (a,p,b) triple must be present in the shared dataset"
-        );
-    }
-
-    /// With the fixed demonstrator removed (greenfield), a normal-completion run
-    /// over a bundle carrying NO accepted recommendation candidates emits an EMPTY
-    /// advisory tier — honest absence, not a synthetic always-on Note. This proves the
-    /// unconditional demonstrator is gone. Harvested advisories surfacing on a real
-    /// candidate-bearing dataset is covered by the advisory-bridge unit tests
-    /// (`harvest_yields_note_with_subject_and_howtouse_suggestion` et al.) and the
-    /// pipeline stage test; the full `make check` over gmeow.gts (which ships the advisory
-    /// candidates) exercises the whole path end to end.
-    #[test]
-    fn clean_run_over_candidate_free_bundle_emits_no_advisory() {
-        let bytes = minimal_gts_bytes();
-        let options = ValidateOptions {
-            gts_bytes: Some(bytes),
-            ..ValidateOptions::default()
-        };
-
-        let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
-            .expect("ValidationRun::run must succeed");
-
-        // No advisory contaminates the error/warning surfaces, and a clean run is ok.
-        assert!(
-            run.errors().is_empty(),
-            "no errors on a clean run: {:?}",
-            run.errors()
-        );
-        assert!(
-            run.warnings().is_empty(),
-            "no warnings on a clean run: {:?}",
-            run.warnings()
-        );
-        assert!(
-            run.report.normalized().ok(),
-            "a clean report must still be ok"
-        );
-
-        // A candidate-free bundle harvests NOTHING — no claim hook, no advice.* finding.
-        assert!(
-            run.advisory_claims.is_empty(),
-            "a candidate-free bundle must harvest no advisory claims; got: {:?}",
-            run.advisory_claims
-        );
-        assert!(
-            !run.report
-                .findings
-                .iter()
-                .any(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY)),
-            "a candidate-free bundle must emit no advice.* finding"
-        );
-    }
-
-    /// The syntax/sameAs short-circuit early return (a hard-failed run) must NOT
-    /// emit any advisory. Triggered with VALID Turtle carrying a banned
-    /// `owl:sameAs` to an external entity: the file parses (so build-store
-    /// succeeds), then Phase 2 records a sameAs-ban error, so `run` returns at the
-    /// `!errors.is_empty()` short-circuit (NOT via an Err) — exercising the real
-    /// Ok early-return path, not the vacuous build-store-failure path.
-    #[test]
-    fn early_return_path_emits_no_advisory() {
-        let (_tmp, banned_ttl_path) = write_tmp(
-            "gmeow_validate_advisory_early_return_sameas.ttl",
-            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
-             gmeow:Foo owl:sameAs <https://external.example.org/bar> .\n",
-        );
-        let source = banned_ttl_path.to_string_lossy().to_string();
-
-        let options = ValidateOptions::default();
-        let run = ValidationRun::run(&[source], "", "", "", &minimal_lint_config(), &options)
-            .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
-
-        // The run hard-failed (the sameAs ban is an error), proving we hit the
-        // short-circuit early-return path.
-        assert!(
-            !run.errors().is_empty(),
-            "expected a sameAs-ban error to drive the short-circuit; got none"
-        );
-        // The hard-fail path emits NO advisory claim and NO advisory finding.
-        assert!(
-            run.advisory_claims.is_empty(),
-            "early-return path must emit no advisory claims"
-        );
-        assert!(
-            !run.report
-                .findings
-                .iter()
-                .any(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY)),
-            "early-return path must emit no advice.* finding"
-        );
-    }
-
-    // ── Category-assignment tests (H1) ──────────────────────────────────────
-
-    /// A SHACL constraint violation folded through `shacl_findings_from_report`
-    /// must carry `FindingCategory::DataShapeViolation`.
-    #[test]
-    fn shacl_violation_is_categorized_data_shape_violation() {
-        use purrdf::shapes::report::{ValidationReport, ValidationResult};
-        use purrdf::shapes::term::{Literal, NamedNode, Term};
-
-        let result = ValidationResult {
-            focus_node: Term::NamedNode(NamedNode::new_unchecked("https://example.org/FocusA")),
-            result_path: None,
-            path_structure: None,
-            value: None,
-            source_constraint_component: NamedNode::new_unchecked(
-                "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
-            ),
-            source_shape: Term::NamedNode(NamedNode::new_unchecked("https://example.org/ShapeA")),
-            severity: purrdf::shapes::report::Severity::Violation,
-            message: Some("must have at least one value".to_owned()),
-            source_box_roles: vec![],
-            path_box_roles: vec![],
-            result_box_roles: vec![],
-            attributions: vec![],
-        };
-        let _ = Literal::new_simple_literal("unused");
-        let report = ValidationReport {
-            conforms: false,
-            results: vec![result],
-        };
-
-        let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
-
-        assert_eq!(findings.len(), 1, "expected exactly one finding");
-        assert_eq!(
-            findings[0].category,
-            Some(FindingCategory::DataShapeViolation),
-            "a SHACL violation must carry DataShapeViolation; got {:?}",
-            findings[0].category
-        );
-        assert!(
-            findings[0].code.starts_with("shacl."),
-            "finding code must start with 'shacl.'; got {}",
-            findings[0].code
-        );
-    }
-
-    /// A non-conforming SHACL report with zero results (the `shacl.nonconforming`
-    /// guard) must also carry `FindingCategory::DataShapeViolation`.
-    #[test]
-    fn shacl_nonconforming_guard_is_categorized_data_shape_violation() {
-        use purrdf::shapes::report::ValidationReport;
-
-        let report = ValidationReport {
-            conforms: false,
-            results: vec![],
-        };
-
-        let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
-
-        assert_eq!(
-            findings.len(),
-            1,
-            "expected the nonconforming guard finding"
-        );
-        assert_eq!(findings[0].code, "shacl.nonconforming");
-        assert_eq!(
-            findings[0].category,
-            Some(FindingCategory::DataShapeViolation),
-            "the nonconforming guard must carry DataShapeViolation"
-        );
-    }
-
-    /// A `ReasoningResult` with `evaluation=BudgetExhausted` must cause
-    /// `fold_reasoning_result` to emit a finding categorized `IncompleteCheck`.
-    #[test]
-    fn budget_exhausted_result_emits_incomplete_check() {
-        use gmeow_logic::result::{
-            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-            ReasoningResult, ResultPayload, ResultProvenance,
-        };
-
-        let result = ReasoningResult::new(
-            InputStatus::Valid,
-            EvaluationStatus::BudgetExhausted,
-            // BudgetExhausted → completeness must be Incomplete or Unknown (not CompleteForFragment
-            // with BudgetExhausted, as that would mean conclusive). Use Incomplete.
-            CompletenessStatus::Incomplete,
-            PreservationClaim::exact(),
-            // Neither requires conclusive, but BudgetExhausted + Incomplete is non-conclusive,
-            // so the information state must be Undetermined (not Neither).
-            InformationState::Undetermined,
-            ResultProvenance::native("test-contract", "test-world"),
-            ResultPayload::Empty,
-        );
-
-        let mut report = Report::new("validate");
-        fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGapAndGlut,
-            &[],
-            &mut report,
-        )
-        .expect("synthetic empty-payload result folds without witnesses");
-
-        let incomplete_findings: Vec<_> = report
-            .findings
-            .iter()
-            .filter(|f| f.category == Some(FindingCategory::IncompleteCheck))
-            .collect();
-
-        assert!(
-            !incomplete_findings.is_empty(),
-            "a BudgetExhausted result must emit at least one IncompleteCheck finding; \
-             got findings: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-        assert_eq!(
-            incomplete_findings[0].code, "validate.deep.incomplete",
-            "incomplete finding must carry the expected code"
-        );
-        assert_eq!(
-            incomplete_findings[0].severity,
-            Severity::Warning,
-            "incomplete check must be a Warning, not an error"
-        );
-    }
-
-    /// A `ReasoningResult` with `completeness=Incomplete` (but evaluation Completed)
-    /// must also trigger the `IncompleteCheck` category.
-    #[test]
-    fn completeness_incomplete_result_emits_incomplete_check() {
-        use gmeow_logic::result::{
-            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-            ReasoningResult, ResultPayload, ResultProvenance,
-        };
-
-        // Completed + CompleteForFragment is conclusive → Neither is valid.
-        // Completed + Incomplete is conclusive via Completed → Neither is still valid.
-        // We want to fire the IncompleteCheck path: evaluation=Completed, completeness=Incomplete.
-        let result = ReasoningResult::new(
-            InputStatus::Valid,
-            EvaluationStatus::Completed,
-            CompletenessStatus::Incomplete,
-            PreservationClaim::exact(),
-            // Completed alone makes it conclusive, so Neither is valid.
-            InformationState::Neither,
-            ResultProvenance::native("test-contract", "test-world"),
-            ResultPayload::Empty,
-        );
-
-        let mut report = Report::new("validate");
-        fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGapAndGlut,
-            &[],
-            &mut report,
-        )
-        .expect("synthetic empty-payload result folds without witnesses");
-
-        let incomplete = report
-            .findings
-            .iter()
-            .find(|f| f.category == Some(FindingCategory::IncompleteCheck))
-            .expect("completeness=Incomplete must emit an IncompleteCheck finding");
-        assert_eq!(incomplete.code, "validate.deep.incomplete");
-        assert_eq!(incomplete.severity, Severity::Warning);
-    }
-
-    /// A fully-conclusive, consistent result (evaluation=Completed, completeness=CompleteForFragment)
-    /// must NOT emit any IncompleteCheck finding.
-    #[test]
-    fn conclusive_consistent_result_does_not_emit_incomplete_check() {
-        use gmeow_logic::result::{
-            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-            ReasoningResult, ResultPayload, ResultProvenance,
-        };
-
-        let result = ReasoningResult::new(
-            InputStatus::Valid,
-            EvaluationStatus::Completed,
-            CompletenessStatus::CompleteForFragment,
-            PreservationClaim::exact(),
-            InformationState::Neither,
-            ResultProvenance::native("test-contract", "test-world"),
-            ResultPayload::Empty,
-        );
-
-        let mut report = Report::new("validate");
-        fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGapAndGlut,
-            &[],
-            &mut report,
-        )
-        .expect("synthetic empty-payload result folds without witnesses");
-
-        assert!(
-            !report
-                .findings
-                .iter()
-                .any(|f| f.category == Some(FindingCategory::IncompleteCheck)),
-            "a conclusive, consistent result must NOT emit IncompleteCheck; \
-             got: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-    }
-
-    /// `fold_reasoning_result` must emit at least one `FindingCategory::ProjectionLoss`
-    /// finding sourced from the genuine static loss ledger, distinct from any
-    /// `UnsupportedSemanticFeature` findings. The ledger has at least one entry for
-    /// `gts → owl-dl` (named-graph-dropped + owl-dl-projection), so the count is
-    /// deterministically at least 2.
-    #[test]
-    fn fold_emits_projection_loss_findings_from_ledger() {
-        use gmeow_logic::result::{
-            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-            ReasoningResult, ResultPayload, ResultProvenance,
-        };
-
-        let result = ReasoningResult::new(
-            InputStatus::Valid,
-            EvaluationStatus::Completed,
-            CompletenessStatus::CompleteForFragment,
-            PreservationClaim::exact(),
-            InformationState::Neither,
-            ResultProvenance::native("test-contract", "test-world"),
-            ResultPayload::Empty,
-        );
-
-        let mut report = Report::new("validate");
-        fold_reasoning_result(
-            &result,
-            ContradictionPolicy::ForbidGapAndGlut,
-            &[],
-            &mut report,
-        )
-        .expect("synthetic empty-payload result folds without witnesses");
-
-        let projection_loss_findings: Vec<_> = report
-            .findings
-            .iter()
-            .filter(|f| f.category == Some(FindingCategory::ProjectionLoss))
-            .collect();
-
-        assert!(
-            !projection_loss_findings.is_empty(),
-            "fold_reasoning_result must emit at least one ProjectionLoss finding; \
-             got findings: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-
-        // All ProjectionLoss findings carry the expected code and severity.
-        for f in &projection_loss_findings {
-            assert_eq!(
-                f.code, "validate.deep.projection-loss",
-                "ProjectionLoss finding must carry the expected code"
-            );
-            assert_eq!(
-                f.severity,
-                Severity::Note,
-                "ProjectionLoss must be a Note (informational), not a failure"
-            );
-        }
-
-        // The ledger must contribute at least the owl-dl pair (named-graph-dropped +
-        // owl-dl-projection), so we expect at least 2 findings.
-        assert!(
-            projection_loss_findings.len() >= 2,
-            "must have at least 2 ProjectionLoss findings (owl-dl pair); got {}",
-            projection_loss_findings.len()
-        );
-
-        // Messages must name the target codec and contain the loss code.
-        let has_named_graph_dropped = projection_loss_findings
-            .iter()
-            .any(|f| f.message.contains("named-graph-dropped"));
-        assert!(
-            has_named_graph_dropped,
-            "at least one ProjectionLoss finding must mention 'named-graph-dropped'"
-        );
-
-        // ProjectionLoss findings must NOT carry UnsupportedSemanticFeature category.
-        for f in &projection_loss_findings {
-            assert_ne!(
-                f.category,
-                Some(FindingCategory::UnsupportedSemanticFeature),
-                "ProjectionLoss must not be conflated with UnsupportedSemanticFeature"
-            );
-        }
-    }
-
-    /// Verify that `deep_semantic_findings` (the full GTS path) also emits
-    /// ProjectionLoss findings — confirming they reach the report via the real bundle path.
-    #[test]
-    fn deep_semantic_findings_emits_projection_loss_on_consistent_bundle() {
-        // A minimal consistent bundle is sufficient; the projection losses come from
-        // the static ledger, not from bundle content.
-        let consistent = "\
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix ex: <http://gmeow.example/> .
-ex:A rdfs:subClassOf ex:B .
-ex:x rdf:type ex:A .
-";
-        let bytes = gts_bytes_from_turtle(consistent);
-        let mut report = Report::new("validate");
-        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
-
-        let projection_loss_findings: Vec<_> = report
-            .findings
-            .iter()
-            .filter(|f| f.category == Some(FindingCategory::ProjectionLoss))
-            .collect();
-
-        assert!(
-            !projection_loss_findings.is_empty(),
-            "deep_semantic_findings must emit at least one ProjectionLoss finding; \
-             got findings: {:?}",
-            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
-        );
-    }
-
-    #[test]
-    fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
-        use gmeow_errors::Location;
-
-        // A SHACL-shaped finding: focus-node PRIMARY location, result-path + value
-        // RELATED locations, and a "source shape: …" detail (exactly what
-        // `finding_from_shacl` produces). Interning it onto the run ledger and
-        // projecting back via `project_report` must carry ALL of them — the
-        // fingerprint keys on the message-INDEPENDENT structural identity, but no
-        // structural anchor is lost through the ledger round-trip.
-        let mut finding = Finding::new(
-            Severity::Error,
-            "shacl.MinCountConstraintComponent",
-            "missing required property",
-        )
-        .with_tool("shacl")
-        .with_category(FindingCategory::DataShapeViolation);
-        finding.add_location(Location {
-            logical: Some("https://ex/a".to_owned()),
-            ..Location::default()
-        });
-        finding.related_locations.push(Location {
-            logical: Some("path https://ex/p".to_owned()),
-            ..Location::default()
-        });
-        finding.related_locations.push(Location {
-            logical: Some("value https://ex/bad".to_owned()),
-            ..Location::default()
-        });
-        finding.detail = Some("source shape: https://ex/shape".to_owned());
-
-        let mut ledger = DiagLedger::new();
-        intern_finding(
-            &mut ledger,
-            StageId::new("validate.shacl"),
-            Standpoint::Binding,
-            &finding,
-        );
-        let report = ledger.project_report("validate");
-        let projected = report
-            .findings
-            .iter()
-            .find(|f| f.code == "shacl.MinCountConstraintComponent")
-            .expect("interned SHACL finding must project back into the report");
-
-        // The focus-node primary location survives.
-        assert_eq!(
-            projected
-                .primary_location()
-                .and_then(|l| l.logical.as_deref()),
-            Some("https://ex/a"),
-            "focus-node primary location must round-trip"
-        );
-        // The SHACL result-path and offending-value related locations survive
-        // (carried as first-class Labels, re-emitted by `to_finding`).
-        assert!(
-            projected
-                .related_locations
-                .iter()
-                .any(|l| l.logical.as_deref() == Some("path https://ex/p")),
-            "result-path related location must round-trip; got {:?}",
-            projected.related_locations
-        );
-        assert!(
-            projected
-                .related_locations
-                .iter()
-                .any(|l| l.logical.as_deref() == Some("value https://ex/bad")),
-            "offending-value related location must round-trip; got {:?}",
-            projected.related_locations
-        );
-        // The "source shape: …" detail survives (carried as a context frame,
-        // folded back into the projected finding's detail).
-        assert_eq!(
-            projected.detail.as_deref(),
-            Some("source shape: https://ex/shape"),
-            "the source-shape detail must round-trip"
-        );
-
-        // Hard Invariant 6: two findings identical in structural identity but
-        // differing only in message are the SAME witness — interning a
-        // message-variant of the same finding must NOT add a second finding.
-        let mut variant = finding.clone();
-        variant.message = "a differently-worded violation".to_owned();
-        intern_finding(
-            &mut ledger,
-            StageId::new("validate.shacl"),
-            Standpoint::Binding,
-            &variant,
-        );
-        let merged = ledger.project_report("validate");
-        assert_eq!(
-            merged
-                .findings
-                .iter()
-                .filter(|f| f.code == "shacl.MinCountConstraintComponent")
-                .count(),
-            1,
-            "a message-only variant must hash-cons-merge, not fork a new finding"
-        );
-    }
-
-    #[test]
-    fn distinct_lines_of_same_constraint_do_not_hash_cons_merge() {
-        use gmeow_errors::Location;
-
-        // Two structurally-distinct violations of the SAME constraint at DIFFERENT
-        // lines of one file: identical code / severity / path / detail, no `logical`
-        // location, differing only by `line`. Because line/column are part of the
-        // message-independent structural identity, these are genuinely different
-        // witnesses and must NOT hash-cons-merge — both line numbers must survive.
-        let make = |line: u32| {
-            let mut finding = Finding::new(
-                Severity::Error,
-                "shacl.MinCountConstraintComponent",
-                "missing required property",
-            )
-            .with_tool("shacl")
-            .with_category(FindingCategory::DataShapeViolation);
-            finding.add_location(Location {
-                path: Some("ontology.ttl".to_owned()),
-                line: Some(line),
-                ..Location::default()
-            });
-            finding.detail = Some("source shape: https://ex/shape".to_owned());
-            finding
-        };
-
-        let mut ledger = DiagLedger::new();
-        for line in [10u32, 40u32] {
-            intern_finding(
-                &mut ledger,
-                StageId::new("validate.shacl"),
-                Standpoint::Binding,
-                &make(line),
-            );
-        }
-        let report = ledger.project_report("validate");
-
-        let lines: std::collections::BTreeSet<u32> = report
-            .findings
-            .iter()
-            .filter(|f| f.code == "shacl.MinCountConstraintComponent")
-            .filter_map(|f| f.primary_location().and_then(|l| l.line))
-            .collect();
-        assert_eq!(
-            report
-                .findings
-                .iter()
-                .filter(|f| f.code == "shacl.MinCountConstraintComponent")
-                .count(),
-            2,
-            "two distinct-line violations of one constraint must NOT merge; got \
-             lines {lines:?}"
-        );
-        assert!(
-            lines.contains(&10) && lines.contains(&40),
-            "both violated line numbers must survive the ledger round-trip; got {lines:?}"
-        );
-    }
-}
+mod tests;
+
+#[cfg(test)]
+#[path = "validate_all_test_support.rs"]
+mod test_support;
+#[cfg(test)]
+use test_support::deep_semantic_findings_prepared;

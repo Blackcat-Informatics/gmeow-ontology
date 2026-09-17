@@ -28,21 +28,37 @@ define_diag_kind! {
     failure_class = "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation";
 }
 
+define_diag_kind! {
+    /// Selected native snapshot input failed admission. The original typed cause
+    /// remains downcastable, including the failed checkpoint or offending term.
+    pub struct SnapshotAdmission { cause: purrdf::gts_compose::GtsIngestError }
+    code = "gts-profile.snapshot-admission";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "GTS snapshot input admission: {}", cause;
+}
+
 /// The complete GTS-profile diagnostic-code catalog, in registration order.
-pub const GTS_PROFILE_DIAG_CODES: &[&str] = &[Profile::CODE];
+pub const GTS_PROFILE_DIAG_CODES: &[&str] =
+    &[Profile::CODE, Archive::CODE, SnapshotAdmission::CODE];
+
+define_diag_kind! {
+    /// A required native artifact has no unique authenticated archive member.
+    pub struct Archive { message: String }
+    code = "gts-profile.archive";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "GTS archive profile: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable";
+}
 
 /// Eagerly intern every GTS-profile diagnostic code (idempotent).
 pub fn register_all() -> Vec<Code> {
-    vec![Profile::register()]
+    vec![
+        Profile::register(),
+        Archive::register(),
+        SnapshotAdmission::register(),
+    ]
 }
 
+#[path = "error.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn every_declared_code_registers() {
-        let registered = register_all();
-        assert_eq!(registered.len(), GTS_PROFILE_DIAG_CODES.len());
-    }
-}
+mod tests;

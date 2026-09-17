@@ -20,10 +20,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, OnceLock};
 
-use purrdf::sparql::NativeSparqlEngine;
+use purrdf::sparql::{NativeSparqlEngine, PreparedQuery, QueryOptions};
 use purrdf::{
     DatasetView, GraphMatch, NativeRdfFormat, RdfDataset, RdfLiteral, RdfQuad, RdfTerm,
-    SparqlEngine, SparqlRequest, SparqlResult, TermId, TermRef, TermValue,
+    SparqlResult, TermId, TermRef, TermValue,
 };
 use sha2::{Digest, Sha256};
 
@@ -43,7 +43,6 @@ const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty"
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
 const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
 const OWL_SAME_AS: &str = "http://www.w3.org/2002/07/owl#sameAs";
-const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 
 const GM_DISPLAYABLE: &str = "https://blackcatinformatics.ca/gmeow/displayable";
 const GM_COARSEN_TO: &str = "https://blackcatinformatics.ca/gmeow/coarsenTo";
@@ -105,6 +104,8 @@ pub struct TransformReportNative {
     pub base_nt: String,
     pub base_plus_derived_nt: String,
     pub gts_bytes: Vec<u8>,
+    /// Complete native input receipt, including exact declaration omissions.
+    pub gts_ingestion: purrdf::gts_compose::IngestReport,
     pub asserted: usize,
     pub saturated: usize,
     pub projected: usize,
@@ -117,7 +118,7 @@ pub struct CellInput {
     pub subject: String,
     pub predicate_curie: String,
     pub object: String,
-    pub confidence: String,
+    pub confidence: Option<gmeow_logic_compile::ir::UnitInterval>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -129,16 +130,8 @@ pub struct DerivedRowNative {
     pub annotations: Vec<(String, String)>,
 }
 
-/// A cell's IRIs are kept as plain strings (already validated as absolute IRIs by the
-/// native term model when they enter the dataset).
-#[derive(Debug, Clone)]
-struct Cell {
-    iri: String,
-    subject: String,
-    predicate_curie: String,
-    object: String,
-    confidence: String,
-}
+/// The same admitted input cell is shared by the edge index; no second lowering.
+type Cell = CellInput;
 
 type EdgeMap = BTreeMap<String, Vec<Cell>>;
 
@@ -146,7 +139,23 @@ type EdgeMap = BTreeMap<String, Vec<Cell>>;
 struct TripleKey(String, String, String);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct AnnotationKey(String, String);
+struct AnnotationKey(String, AnnotationValue);
+
+/// The actual value domain emitted by derivation provenance.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum AnnotationValue {
+    Iri(String),
+    Numeric(gmeow_logic_compile::ir::UnitInterval),
+}
+
+impl AnnotationValue {
+    fn term(&self) -> RdfTerm {
+        match self {
+            Self::Iri(value) => RdfTerm::iri(value),
+            Self::Numeric(value) => RdfTerm::literal(value.literal().clone()),
+        }
+    }
+}
 
 /// A derived triple. The subject is an IRI (a skolemized blank becomes a skolem IRI,
 /// and every materialized/projected subject is an IRI), the predicate is an IRI, and
@@ -169,15 +178,15 @@ struct SuppressionVocab {
 
 // ── Native flat triple store ─────────────────────────────────────────────────────
 
-/// A transient, flat (un-folded) RDF store: a `Vec<RdfQuad>` plus a frozen
-/// [`RdfDataset`] index over it for pattern queries. The oxigraph-free twin of the
-/// transform's transient `oxigraph::store::Store`. Built once, then queried read-only.
+/// A transient, flat (un-folded) native index, built once and queried read-only.
+/// Owned input rows are released after indexing. The row count preserves the
+/// transform's existing input/output accounting without retaining a second carrier.
 ///
 /// The dataset is built with the FLAT codec ([`purrdf::flat_dataset_from_quads`]):
 /// `rdf:reifies` / quoted-triple rows stay plain quads (no RDF 1.2 fold), exactly as
-/// oxigraph's `Store` held them. The final GTS path re-folds via `parse_dataset`.
+/// oxigraph's `Store` held them. The final GTS path folds the native quad stream.
 struct Graph {
-    quads: Vec<RdfQuad>,
+    row_count: usize,
     ds: Arc<RdfDataset>,
 }
 
@@ -188,7 +197,30 @@ impl Graph {
                 message: format!("flat dataset build failed: {e}"),
             })
         })?;
-        Ok(Self { quads, ds })
+        Ok(Self {
+            row_count: quads.len(),
+            ds,
+        })
+    }
+
+    /// Select the default graph. Already-flat default inputs share their native
+    /// carrier directly; other inputs stream only selected assertions into the
+    /// flat index, including the RDF 1.2 statement layer in that graph.
+    fn from_default_dataset(source: &Arc<RdfDataset>) -> gmeow_errors::Result<Self> {
+        if source.reifiers().next().is_none()
+            && source.annotations().next().is_none()
+            && source.named_graphs().next().is_none()
+        {
+            return Ok(Self {
+                row_count: source.quad_count(),
+                ds: Arc::clone(source),
+            });
+        }
+        Self::from_quads(
+            purrdf::native_quads::flat_rdf_quads(source)
+                .filter(|quad| quad.graph_name.is_none())
+                .collect(),
+        )
     }
 
     fn id(&self, value: &TermValue) -> Option<TermId> {
@@ -200,7 +232,7 @@ impl Graph {
     }
 
     fn len(&self) -> usize {
-        self.quads.len()
+        self.row_count
     }
 
     /// Scan `(s?, p?, o?)` in the DEFAULT graph, yielding the resolved owned quads. The
@@ -291,10 +323,9 @@ pub fn saturate_nt(
 ) -> gmeow_errors::Result<Vec<DerivedRowNative>> {
     let abox = parse_graph(abox_nt.as_bytes())?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
-    let cells = convert_cells(cells)?;
     let denied = denied.iter().cloned().collect();
     let vocab = suppression_vocab(&onto)?;
-    let derived = saturate_graph(&abox, &onto, &cells, &denied, &vocab)?;
+    let derived = saturate_graph(&abox, &onto, cells, &denied, &vocab)?;
     Ok(derived_to_rows(&derived))
 }
 
@@ -321,65 +352,128 @@ pub fn transform_nt(
     projection_queries: &[(String, String)],
     tag_map: &TagMap,
 ) -> gmeow_errors::Result<TransformReportNative> {
-    let mut abox = skolemized_graph(raw_nt)?;
-    let onto = parse_graph(ontology_nt.as_bytes())?;
-    let cells = convert_cells(cells)?;
-    let denied = denied.iter().cloned().collect();
-    let vocab = suppression_vocab(&onto)?;
-    let suppressed = suppressed_nodes(&abox, &vocab)?;
-    if !suppressed.is_empty() {
-        abox = published_graph(&abox, &suppressed)?;
-    }
-
-    let saturated = saturate_graph(&abox, &onto, &cells, &denied, &vocab)?;
-    let saturated_count = saturated.len();
-    let projected = projection_derived(&abox, &onto, projection_queries, &suppressed)?;
-    let projected_count = projected.len();
-    let derived = merge_derived(saturated, projected);
-
-    let base_nt = dump_nt(&abox)?;
-    let base_plus_derived = base_plus_derived_graph(&abox, &derived, tag_map)?;
-    let base_plus_derived_nt = dump_nt(&base_plus_derived)?;
-    let gts_bytes = gts_from_maximal(&base_plus_derived, &derived)?;
-
-    Ok(TransformReportNative {
-        asserted: abox.len(),
-        saturated: saturated_count,
-        projected: projected_count,
-        suppressed_dropped: suppressed.len(),
-        base_nt,
-        base_plus_derived_nt,
-        gts_bytes,
-    })
+    let source = purrdf::parse_dataset(raw_nt.as_bytes(), "application/n-triples", None)?;
+    TransformProgram::prepare(ontology_nt, cells, denied, projection_queries, tag_map)?
+        .execute_default_graph(&source)?
+        .into_text()
 }
 
-fn convert_cells(inputs: &[CellInput]) -> gmeow_errors::Result<Vec<Cell>> {
-    inputs
-        .iter()
-        .map(|cell| {
-            // A cell either records no confidence (legal — no annotation) or a
-            // well-formed probability. A malformed value is a HARD FAIL: an
-            // authored `gmeow:confidence` must be an `xsd:decimal` in [0.0, 1.0]
-            // — never emitted verbatim into the derived triple's provenance.
-            if !cell.confidence.is_empty()
-                && crate::up_projection_corpus::decimal_confidence(&cell.confidence).is_none()
-            {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Transform {
-                    message: format!(
-                        "cell {} carries a malformed gmeow:confidence {:?}: expected a decimal in [0.0, 1.0]",
-                        cell.iri, cell.confidence
-                    ),
-                }));
-            }
-            Ok(Cell {
-                iri: cell.iri.clone(),
-                subject: cell.subject.clone(),
-                predicate_curie: cell.predicate_curie.clone(),
-                object: cell.object.clone(),
-                confidence: cell.confidence.clone(),
+/// Corpus-independent analyses and prepared projection operations for MAXIMAL(G).
+/// Each execution owns its query state; only immutable ontology and plans are shared.
+pub struct TransformProgram {
+    ontology: Graph,
+    class_edges: EdgeMap,
+    property_edges: EdgeMap,
+    vocab: SuppressionVocab,
+    projections: Vec<(String, Arc<PreparedQuery>)>,
+    tag_map: TagMap,
+}
+
+impl TransformProgram {
+    /// Prepare every selected input once. A malformed operation fails before any file runs.
+    pub fn prepare(
+        ontology_nt: &str,
+        cells: &[CellInput],
+        denied: &[(String, String, String)],
+        projection_queries: &[(String, String)],
+        tag_map: &TagMap,
+    ) -> gmeow_errors::Result<Self> {
+        let ontology = parse_graph(ontology_nt.as_bytes())?;
+        let denied = denied.iter().cloned().collect();
+        let (class_edges, property_edges) = build_strong_edges(cells, &ontology, &denied)?;
+        let vocab = suppression_vocab(&ontology)?;
+        let engine = NativeSparqlEngine::new();
+        let projections = projection_queries
+            .iter()
+            .map(|(name, query)| {
+                engine
+                    .prepare_query(query, None)
+                    .map(|query| (name.clone(), query))
+                    .with_ctx(|| format!("prepare projection {name}"))
             })
+            .collect::<gmeow_errors::Result<_>>()?;
+        Ok(Self {
+            ontology,
+            class_edges,
+            property_edges,
+            vocab,
+            projections,
+            tag_map: tag_map.clone(),
         })
-        .collect()
+    }
+
+    /// Transform the selected default graph, retaining the native output and the complete
+    /// distribution bundle. Named graphs are outside this operation's explicit input scope.
+    pub fn execute_default_graph(
+        &self,
+        source: &Arc<RdfDataset>,
+    ) -> gmeow_errors::Result<TransformDatasetReport> {
+        let input = Graph::from_default_dataset(source)?;
+        let mut abox = skolemized_dataset(&input.ds)?;
+        let suppressed = suppressed_nodes(&abox, &self.vocab)?;
+        if !suppressed.is_empty() {
+            abox = published_graph(&abox, &suppressed)?;
+        }
+        let saturated =
+            saturate_with_edges(&abox, &self.class_edges, &self.property_edges, &self.vocab)?;
+        let saturated_count = saturated.len();
+        let projected = projection_derived(&abox, &self.ontology, &self.projections, &suppressed)?;
+        let projected_count = projected.len();
+        let derived = merge_derived(saturated, projected);
+        let maximal = base_plus_derived_graph(&abox, &derived, &self.tag_map)?;
+        let emission = gts_from_maximal(&maximal, &derived, &self.tag_map)?;
+        Ok(TransformDatasetReport {
+            asserted: abox.len(),
+            saturated: saturated_count,
+            projected: projected_count,
+            suppressed_dropped: suppressed.len(),
+            base: abox.ds,
+            dataset: maximal.ds,
+            gts_bytes: emission.bytes,
+            gts_ingestion: emission.ingestion,
+        })
+    }
+}
+
+/// The complete transform result before requesting textual graph projections.
+#[derive(Debug, Clone)]
+pub struct TransformDatasetReport {
+    /// Published, skolemized source before derivation.
+    pub base: Arc<RdfDataset>,
+    /// Public-tagged source and derivations, consumed directly by downstream checks.
+    pub dataset: Arc<RdfDataset>,
+    /// Complete distribution bundle, including derivation provenance.
+    pub gts_bytes: Vec<u8>,
+    /// Complete native input receipt, including exact declaration omissions.
+    pub gts_ingestion: purrdf::gts_compose::IngestReport,
+    pub asserted: usize,
+    pub saturated: usize,
+    pub projected: usize,
+    pub suppressed_dropped: usize,
+}
+
+impl TransformDatasetReport {
+    /// Render the existing consumer-facing text outputs without reparsing either graph.
+    pub fn into_text(self) -> gmeow_errors::Result<TransformReportNative> {
+        let render = |dataset: &RdfDataset| {
+            let bytes = purrdf::serialize_dataset(
+                dataset,
+                "application/n-triples",
+                purrdf::SerializeGraph::DefaultGraph,
+            )?;
+            String::from_utf8(bytes).ctx("transform output is not UTF-8")
+        };
+        Ok(TransformReportNative {
+            base_nt: render(&self.base)?,
+            base_plus_derived_nt: render(&self.dataset)?,
+            gts_bytes: self.gts_bytes,
+            gts_ingestion: self.gts_ingestion,
+            asserted: self.asserted,
+            saturated: self.saturated,
+            projected: self.projected,
+            suppressed_dropped: self.suppressed_dropped,
+        })
+    }
 }
 
 fn skolemized_graph(raw_nt: &str) -> gmeow_errors::Result<Graph> {
@@ -392,21 +486,19 @@ fn skolemized_graph(raw_nt: &str) -> gmeow_errors::Result<Graph> {
         None,
     )
     .ctx("skolem input parse failed")?;
-    let canon_nq = purrdf::canonical_flat_nquads(parsed.as_ref()).map_err(|e| {
+    let flat = Graph::from_quads(purrdf::flat_rdf_quads_from_dataset(&parsed))?;
+    skolemized_dataset(&flat.ds)
+}
+
+fn skolemized_dataset(parsed: &RdfDataset) -> gmeow_errors::Result<Graph> {
+    let canon = purrdf::canonical_relabel(parsed).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Transform {
             message: format!("canonicalization failed: {e}"),
         })
     })?;
-    let canon = purrdf::parse_dataset(
-        canon_nq.as_bytes(),
-        NativeRdfFormat::NQuads.media_type(),
-        None,
-    )
-    .ctx("canonical re-parse failed")?;
 
-    let flat = purrdf::flat_rdf_quads_from_dataset(canon.as_ref());
-    let mut out: Vec<RdfQuad> = Vec::with_capacity(flat.len());
-    for quad in &flat {
+    let mut out = Vec::with_capacity(canon.quad_count());
+    for quad in purrdf::native_quads::flat_rdf_quads(&canon) {
         let subject = skolem_term(&quad.subject)?;
         let object = skolem_term(&quad.object)?;
         let predicate = quad.predicate.clone();
@@ -501,6 +593,15 @@ fn saturate_graph(
     vocab: &SuppressionVocab,
 ) -> gmeow_errors::Result<BTreeMap<TripleKey, DerivedTriple>> {
     let (class_edges, property_edges) = build_strong_edges(cells, onto, denied)?;
+    saturate_with_edges(abox, &class_edges, &property_edges, vocab)
+}
+
+fn saturate_with_edges(
+    abox: &Graph,
+    class_edges: &EdgeMap,
+    property_edges: &EdgeMap,
+    vocab: &SuppressionVocab,
+) -> gmeow_errors::Result<BTreeMap<TripleKey, DerivedTriple>> {
     let suppressed = suppressed_nodes(abox, vocab)?;
     let mut derived: BTreeMap<TripleKey, DerivedTriple> = BTreeMap::new();
 
@@ -527,7 +628,7 @@ fn saturate_graph(
         }
     }
 
-    for (prop, edge_cells) in &property_edges {
+    for (prop, edge_cells) in property_edges {
         let Some(pred) = abox.iri_id(prop) else {
             continue;
         };
@@ -568,7 +669,7 @@ fn saturate_graph(
                 q.object,
                 vec![AnnotationKey(
                     GM_MAPPED_FROM.to_owned(),
-                    format!("<{SAME_AS_MIRROR_RULE}>"),
+                    AnnotationValue::Iri(SAME_AS_MIRROR_RULE.to_owned()),
                 )],
             )?;
         }
@@ -602,11 +703,13 @@ fn emit_derived(
 fn cell_annotations(cell: &Cell) -> Vec<AnnotationKey> {
     let mut rows = vec![AnnotationKey(
         GM_MAPPED_FROM.to_owned(),
-        format!("<{}>", cell.iri),
+        AnnotationValue::Iri(cell.iri.clone()),
     )];
-    if !cell.confidence.is_empty() {
-        let lit = RdfTerm::literal(RdfLiteral::typed(cell.confidence.clone(), XSD_DECIMAL));
-        rows.push(AnnotationKey(GM_CONFIDENCE.to_owned(), term_token(&lit)));
+    if let Some(confidence) = &cell.confidence {
+        rows.push(AnnotationKey(
+            GM_CONFIDENCE.to_owned(),
+            AnnotationValue::Numeric(confidence.clone()),
+        ));
     }
     rows
 }
@@ -614,7 +717,7 @@ fn cell_annotations(cell: &Cell) -> Vec<AnnotationKey> {
 fn projection_derived(
     abox: &Graph,
     onto: &Graph,
-    projection_queries: &[(String, String)],
+    projection_queries: &[(String, Arc<PreparedQuery>)],
     suppressed: &BTreeSet<String>,
 ) -> gmeow_errors::Result<BTreeMap<TripleKey, DerivedTriple>> {
     let projection_input = projection_input_graph(abox, onto)?;
@@ -633,14 +736,7 @@ fn projection_derived(
     for (name, query) in projection_queries {
         let alignment = format!("{GM}projections/{name}");
         let result = engine
-            .query(
-                &projection_input.ds,
-                SparqlRequest {
-                    query,
-                    base_iri: None,
-                    substitutions: &[],
-                },
-            )
+            .query_prepared(&projection_input.ds, query, &[], QueryOptions::EMPTY)
             .with_ctx(|| format!("projection query evaluation failed for {name}"))?;
         let SparqlResult::Graph(triples) = result else {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Transform {
@@ -671,7 +767,7 @@ fn projection_derived(
                 object,
                 vec![AnnotationKey(
                     GM_MAPPED_FROM.to_owned(),
-                    format!("<{alignment}>"),
+                    AnnotationValue::Iri(alignment.clone()),
                 )],
             )?;
         }
@@ -753,46 +849,61 @@ fn base_plus_derived_graph(
 fn gts_from_maximal(
     base_plus_derived: &Graph,
     derived: &BTreeMap<TripleKey, DerivedTriple>,
-) -> gmeow_errors::Result<Vec<u8>> {
+    tag_map: &TagMap,
+) -> gmeow_errors::Result<gmeow_gts_profile::GmeowGtsEmission> {
     let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
-    // Native carrier ingestion: serialize the default graph to N-Triples and
-    // parse it into a frozen dataset, then fold it in. The native parse folds any RDF
-    // 1.2 statement layer into the dataset's reifier/annotation side-tables, so a
-    // single `add_dataset` reproduces the old `add_quads` + `add_rdf12` split.
-    let base_nt = dump_nt(base_plus_derived)?;
-    let base_dataset = purrdf::parse_dataset(base_nt.as_bytes(), "application/n-triples", None)?;
-    builder
-        .add_dataset(&base_dataset)
-        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))?;
-    let statement_nt = statement_layer_nt(derived);
-    if !statement_nt.trim().is_empty() {
-        let statement_dataset =
-            purrdf::parse_dataset(statement_nt.as_bytes(), "application/n-triples", None)?;
-        builder
-            .add_dataset(&statement_dataset)
-            .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))?;
+    // Fold the native quad stream with PurRDF's same RDF 1.2 ingestion authority.
+    let fold = |quads: &[RdfQuad]| {
+        purrdf::native_quads::dataset_from_quads(quads)
+            .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
+    };
+    let _ingestion = builder.add_view(&base_plus_derived.ds).map_err(|message| {
+        gmeow_errors::Diag::of_kind(crate::error::Transform {
+            message: message.to_string(),
+        })
+    })?;
+    let mut statements = statement_layer_quads(derived);
+    retag_quads(&mut statements, tag_map);
+    if !statements.is_empty() {
+        let _ingestion = builder
+            .add_view(fold(&statements)?.as_ref())
+            .map_err(|message| {
+                gmeow_errors::Diag::of_kind(crate::error::Transform {
+                    message: message.to_string(),
+                })
+            })?;
     }
-    gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+    gmeow_gts_profile::emit_gmeow_gts(
+        builder,
+        Vec::new(),
+        Vec::new(),
+        None,
+        &gmeow_gts_profile::baseline_medium_plan(),
+    )
 }
 
-fn statement_layer_nt(derived: &BTreeMap<TripleKey, DerivedTriple>) -> String {
-    use std::fmt::Write as _;
-
-    let mut out = String::new();
+fn statement_layer_quads(derived: &BTreeMap<TripleKey, DerivedTriple>) -> Vec<RdfQuad> {
+    let mut quads = Vec::new();
     for row in derived.values() {
-        let reifier = reifier_for(&row.subject, &row.predicate, &row.object);
-        let _ = writeln!(
-            &mut out,
-            "<{reifier}> <{RDF_REIFIES}> <<( {} <{}> {} )>> .",
-            term_token(&row.subject),
-            row.predicate,
-            term_token(&row.object)
-        );
-        for ann in &row.annotations {
-            let _ = writeln!(&mut out, "<{reifier}> <{}> {} .", ann.0, ann.1);
+        let reifier = RdfTerm::iri(reifier_for(&row.subject, &row.predicate, &row.object));
+        quads.push(RdfQuad::new(
+            reifier.clone(),
+            RDF_REIFIES,
+            RdfTerm::triple(purrdf::RdfTriple::new(
+                row.subject.clone(),
+                row.predicate.clone(),
+                row.object.clone(),
+            )),
+        ));
+        for annotation in &row.annotations {
+            quads.push(RdfQuad::new(
+                reifier.clone(),
+                annotation.0.clone(),
+                annotation.1.term(),
+            ));
         }
     }
-    out
+    quads
 }
 
 fn derived_to_rows(derived: &BTreeMap<TripleKey, DerivedTriple>) -> Vec<DerivedRowNative> {
@@ -806,7 +917,7 @@ fn derived_to_rows(derived: &BTreeMap<TripleKey, DerivedTriple>) -> Vec<DerivedR
             annotations: row
                 .annotations
                 .iter()
-                .map(|ann| (ann.0.clone(), ann.1.clone()))
+                .map(|ann| (ann.0.clone(), term_token(&ann.1.term())))
                 .collect(),
         })
         .collect()
@@ -1060,13 +1171,8 @@ fn dump_nt(graph: &Graph) -> gmeow_errors::Result<String> {
     // Serialize the FLAT default graph to N-Triples, matching oxigraph's
     // `dump_graph_to_writer(DefaultGraph, NTriples)`: every default-graph quad as a
     // single `s p o .` line, in canonical dataset order.
-    let flat = purrdf::flat_dataset_from_quads(&default_quads(graph)).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Transform {
-            message: format!("N-Triples flatten failed: {e}"),
-        })
-    })?;
     let bytes = purrdf::serialize_dataset(
-        flat.as_ref(),
+        graph.ds.as_ref(),
         NativeRdfFormat::NTriples.media_type(),
         purrdf::SerializeGraph::DefaultGraph,
     )
@@ -1189,543 +1295,12 @@ fn parse_graph(data: &[u8]) -> gmeow_errors::Result<Graph> {
     Graph::from_quads(flat)
 }
 
+#[path = "transform.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod tests;
 
-    #[test]
-    fn reifier_hash_matches_python_contract() {
-        let s = RdfTerm::iri("https://example.org/s");
-        let p = "https://example.org/p";
-        let o = RdfTerm::iri("https://example.org/o");
-        assert_eq!(
-            reifier_for(&s, p, &o),
-            "https://blackcatinformatics.ca/gmeow/derivations/bc5c0b0074e06845"
-        );
-    }
-
-    /// G9 canonical-subsumption sweep: `subclass_closure` reads `onto` — the
-    /// AUTHORED `ontology/gmeow.ttl` ⊕ slice `module.ttl` merge (see
-    /// `ontology_source_files` in `crates/pipeline/src/scoreboards.rs`), never a
-    /// lowered `rdfs:`-only projection. It must traverse the canonical
-    /// `logic:subClassOf` edge, not only its `rdfs:` projection (gmeow_ns::SUB_CLASS_OF
-    /// doctrine; crates/ns/src/lib.rs:106-166), or a re-authored Appellation
-    /// subclass silently drops out of the suppression vocabulary.
-    #[test]
-    fn subclass_closure_traverses_canonical_logic_subclass_of() {
-        const GM_APPELLATION_LOCAL: &str = "https://blackcatinformatics.ca/gmeow/Appellation";
-        const GM_PERSON_NAME: &str = "https://blackcatinformatics.ca/gmeow/PersonName";
-        let nt = format!(
-            "<{GM_PERSON_NAME}> <https://blackcatinformatics.ca/logic/subClassOf> <{GM_APPELLATION_LOCAL}> .\n"
-        );
-        let graph = parse_graph(nt.as_bytes()).expect("fixture must parse");
-        let closure = subclass_closure(&graph, GM_APPELLATION_LOCAL);
-        assert!(
-            closure.contains(&format!("<{GM_PERSON_NAME}>")),
-            "subclass_closure must traverse the canonical logic:subClassOf edge: {closure:?}"
-        );
-    }
-
-    #[test]
-    fn curie_prefers_longest_namespace() {
-        assert_eq!(
-            curie("http://id.loc.gov/ontologies/bibframe/Work"),
-            "bf:Work"
-        );
-    }
-
-    // ── Equivalence saturation E(G): strong-only, lint-gated, suppression-safe ──
-    //
-    // These reproduce the saturation-engine scenarios over hermetic, minimal
-    // N-Triples inputs — no repo ontology, DSL, or fixture files. `saturate_nt`
-    // is the engine under test; the fixtures below exercise every branch of
-    // `build_strong_edges` / `saturate_graph` / `emit_derived` / `cell_annotations`.
-
-    const GM_PERSON: &str = "https://blackcatinformatics.ca/gmeow/Person";
-    const GM_CORPUS: &str = "https://blackcatinformatics.ca/gmeow/Corpus";
-    const SCHEMA_PERSON: &str = "https://schema.org/Person";
-    const SCHEMA_DATASET: &str = "https://schema.org/Dataset";
-    const FOAF_PERSON: &str = "http://xmlns.com/foaf/0.1/Person";
-    const WD_Q42: &str = "http://www.wikidata.org/entity/Q42";
-    const EX_ME: &str = "https://example.org/sat/me";
-    const EX_CORPUS: &str = "https://example.org/sat/corpus";
-    const EX_SUPPRESSED: &str = "https://example.org/sat/suppressed";
-    const EX_CONTROL: &str = "https://example.org/sat/control";
-    const PERSON_SCHEMA_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/person-schema";
-    const PERSON_FOAF_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/person-foaf";
-    const GM_KNOWS: &str = "https://blackcatinformatics.ca/gmeow/knows";
-    const FOAF_KNOWS: &str = "http://xmlns.com/foaf/0.1/knows";
-    const KNOWS_FOAF_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/knows-foaf";
-    const EX_A: &str = "https://example.org/sat/a";
-    const EX_B: &str = "https://example.org/sat/b";
-    const EX_C: &str = "https://example.org/sat/c";
-    const EX_D: &str = "https://example.org/sat/d";
-
-    fn cell(
-        iri: &str,
-        subject: &str,
-        predicate_curie: &str,
-        object: &str,
-        confidence: &str,
-    ) -> CellInput {
-        CellInput {
-            iri: iri.to_owned(),
-            subject: subject.to_owned(),
-            predicate_curie: predicate_curie.to_owned(),
-            object: object.to_owned(),
-            confidence: confidence.to_owned(),
-        }
-    }
-
-    /// One N-Triples statement with an IRI object.
-    fn nt(subject: &str, predicate: &str, object: &str) -> String {
-        format!("<{subject}> <{predicate}> <{object}> .\n")
-    }
-
-    /// The minimal ontology every class-edge scenario needs: `gmeow:Person a owl:Class`.
-    fn person_onto() -> String {
-        nt(GM_PERSON, RDF_TYPE, OWL_CLASS)
-    }
-
-    /// A single `gmeow:Person` instance.
-    fn person_abox() -> String {
-        nt(EX_ME, RDF_TYPE, GM_PERSON)
-    }
-
-    /// Two strong class edges for `gmeow:Person`: one via `owl:equivalentClass`
-    /// (confidence 0.9), one via `skos:exactMatch` (confidence 0.8).
-    fn person_cells() -> Vec<CellInput> {
-        vec![
-            cell(
-                PERSON_SCHEMA_CELL,
-                GM_PERSON,
-                "owl:equivalentClass",
-                SCHEMA_PERSON,
-                "0.9",
-            ),
-            cell(
-                PERSON_FOAF_CELL,
-                GM_PERSON,
-                "skos:exactMatch",
-                FOAF_PERSON,
-                "0.8",
-            ),
-        ]
-    }
-
-    /// The minimal ontology a property-edge scenario needs: `gmeow:knows a owl:ObjectProperty`.
-    fn knows_onto() -> String {
-        nt(GM_KNOWS, RDF_TYPE, OWL_OBJECT_PROPERTY)
-    }
-
-    /// One strong property edge: `gmeow:knows owl:equivalentProperty foaf:knows`.
-    fn knows_cells() -> Vec<CellInput> {
-        vec![cell(
-            KNOWS_FOAF_CELL,
-            GM_KNOWS,
-            "owl:equivalentProperty",
-            FOAF_KNOWS,
-            "0.9",
-        )]
-    }
-
-    fn iri_token(iri: &str) -> String {
-        format!("<{iri}>")
-    }
-
-    fn type_objects(rows: &[DerivedRowNative]) -> BTreeSet<String> {
-        rows.iter()
-            .filter(|r| r.predicate == RDF_TYPE)
-            .map(|r| r.object.clone())
-            .collect()
-    }
-
-    #[test]
-    fn saturate_materializes_all_strong_class_edges() {
-        // gmeow:Person saturates to every strong external equivalent at once.
-        let rows = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &[]).unwrap();
-        assert_eq!(
-            type_objects(&rows),
-            BTreeSet::from([iri_token(SCHEMA_PERSON), iri_token(FOAF_PERSON)]),
-        );
-    }
-
-    #[test]
-    fn saturate_ignores_close_match_hints() {
-        // gmeow:Corpus has ONLY a closeMatch cell — a hint must not become a fact.
-        let onto = nt(GM_CORPUS, RDF_TYPE, OWL_CLASS);
-        let corpus_cell = "https://blackcatinformatics.ca/gmeow/te/corpus-dataset";
-        let cells = vec![cell(
-            corpus_cell,
-            GM_CORPUS,
-            "skos:closeMatch",
-            SCHEMA_DATASET,
-            "0.5",
-        )];
-        let abox = nt(EX_CORPUS, RDF_TYPE, GM_CORPUS);
-        let rows = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
-        assert!(
-            rows.is_empty(),
-            "closeMatch must never materialize: {rows:?}"
-        );
-
-        // Positive control (non-vacuous): the SAME fixture with a STRONG
-        // predicate DOES materialize — proving the empty result above is
-        // closeMatch filtering, not a broken/inert fixture.
-        let strong = vec![cell(
-            corpus_cell,
-            GM_CORPUS,
-            "owl:equivalentClass",
-            SCHEMA_DATASET,
-            "0.5",
-        )];
-        let control = saturate_nt(&abox, &onto, &strong, &[]).unwrap();
-        assert_eq!(
-            type_objects(&control),
-            BTreeSet::from([iri_token(SCHEMA_DATASET)]),
-            "strong predicate over the same fixture must materialize"
-        );
-    }
-
-    #[test]
-    fn saturate_refuses_denied_cell_keeps_siblings() {
-        // A lint-ERROR row (the denial key is the CURIE triple) emits nothing;
-        // the sibling strong edge is untouched.
-        let denied = vec![(
-            "gmeow:Person".to_owned(),
-            "owl:equivalentClass".to_owned(),
-            "schema:Person".to_owned(),
-        )];
-        let rows = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &denied).unwrap();
-        let types = type_objects(&rows);
-        assert!(
-            !types.contains(&iri_token(SCHEMA_PERSON)),
-            "denied edge leaked"
-        );
-        assert!(types.contains(&iri_token(FOAF_PERSON)), "sibling edge lost");
-    }
-
-    #[test]
-    fn saturate_drops_suppressed_nodes_keeps_control() {
-        // A displayable-false node never saturates; its control twin does (non-vacuous).
-        let cells = vec![cell(
-            PERSON_SCHEMA_CELL,
-            GM_PERSON,
-            "owl:equivalentClass",
-            SCHEMA_PERSON,
-            "0.9",
-        )];
-        let mut abox = String::new();
-        abox.push_str(&nt(EX_SUPPRESSED, RDF_TYPE, GM_PERSON));
-        abox.push_str(&format!(
-            "<{EX_SUPPRESSED}> <{GM_DISPLAYABLE}> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
-        ));
-        abox.push_str(&nt(EX_CONTROL, RDF_TYPE, GM_PERSON));
-        let rows = saturate_nt(&abox, &person_onto(), &cells, &[]).unwrap();
-        let subjects: BTreeSet<String> = rows.iter().map(|r| r.subject.clone()).collect();
-        assert!(
-            !subjects.contains(&iri_token(EX_SUPPRESSED)),
-            "suppressed node saturated"
-        );
-        assert!(
-            subjects.contains(&iri_token(EX_CONTROL)),
-            "control twin missing"
-        );
-    }
-
-    #[test]
-    fn saturate_mirrors_same_as_to_schema() {
-        // owl:sameAs external links mirror to schema:sameAs, rule-attributed.
-        let abox = nt(EX_ME, OWL_SAME_AS, WD_Q42);
-        let rows = saturate_nt(&abox, &person_onto(), &[], &[]).unwrap();
-        let mirrors: Vec<&DerivedRowNative> = rows
-            .iter()
-            .filter(|r| r.predicate == SCHEMA_SAME_AS)
-            .collect();
-        assert_eq!(mirrors.len(), 1);
-        assert_eq!(mirrors[0].subject, iri_token(EX_ME));
-        assert_eq!(mirrors[0].object, iri_token(WD_Q42));
-        assert!(
-            mirrors[0]
-                .annotations
-                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(SAME_AS_MIRROR_RULE)))
-        );
-    }
-
-    #[test]
-    fn saturate_mirrors_strong_property_edge() {
-        // A strong equivalentProperty cell mirrors <a> gmeow:knows <b> to
-        // <a> foaf:knows <b>, carrying the object through, cell-attributed.
-        let abox = nt(EX_A, GM_KNOWS, EX_B);
-        let rows = saturate_nt(&abox, &knows_onto(), &knows_cells(), &[]).unwrap();
-        assert_eq!(rows.len(), 1, "exactly the one mirrored edge: {rows:?}");
-        let mirror = &rows[0];
-        assert_eq!(mirror.predicate, FOAF_KNOWS);
-        assert_eq!(mirror.subject, iri_token(EX_A));
-        assert_eq!(mirror.object, iri_token(EX_B));
-        assert!(
-            mirror
-                .annotations
-                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(KNOWS_FOAF_CELL)))
-        );
-    }
-
-    #[test]
-    fn saturate_drops_property_edge_with_suppressed_object() {
-        // The property branch skips an edge whose OBJECT is suppressed (the
-        // class-edge test only covers subject suppression); a control edge to a
-        // visible object still mirrors — non-vacuous.
-        let mut abox = String::new();
-        abox.push_str(&nt(EX_A, GM_KNOWS, EX_SUPPRESSED));
-        abox.push_str(&format!(
-            "<{EX_SUPPRESSED}> <{GM_DISPLAYABLE}> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
-        ));
-        abox.push_str(&nt(EX_C, GM_KNOWS, EX_B));
-        let rows = saturate_nt(&abox, &knows_onto(), &knows_cells(), &[]).unwrap();
-        let edges: BTreeSet<(String, String)> = rows
-            .iter()
-            .filter(|r| r.predicate == FOAF_KNOWS)
-            .map(|r| (r.subject.clone(), r.object.clone()))
-            .collect();
-        assert!(
-            !edges.contains(&(iri_token(EX_A), iri_token(EX_SUPPRESSED))),
-            "suppressed-object edge leaked"
-        );
-        assert!(
-            edges.contains(&(iri_token(EX_C), iri_token(EX_B))),
-            "control edge lost"
-        );
-    }
-
-    #[test]
-    fn saturate_coarsen_guard_skips_edge_when_coarsen_to_present() {
-        // A coarsen-guarded property whose subject carries gmeow:coarsenTo is
-        // skipped; an unguarded subject still mirrors (positive control).
-        let mut onto = knows_onto();
-        onto.push_str(&format!(
-            "<{GM_KNOWS}> <{GM_COARSEN_GUARDED}> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
-        ));
-        let mut abox = String::new();
-        abox.push_str(&nt(EX_A, GM_KNOWS, EX_B));
-        abox.push_str(&nt(EX_A, GM_COARSEN_TO, EX_D)); // guard trips for EX_A
-        abox.push_str(&nt(EX_C, GM_KNOWS, EX_B)); // no coarsenTo → control mirrors
-        let rows = saturate_nt(&abox, &onto, &knows_cells(), &[]).unwrap();
-        let subjects: BTreeSet<String> = rows
-            .iter()
-            .filter(|r| r.predicate == FOAF_KNOWS)
-            .map(|r| r.subject.clone())
-            .collect();
-        assert!(
-            !subjects.contains(&iri_token(EX_A)),
-            "coarsen-guarded edge leaked"
-        );
-        assert!(
-            subjects.contains(&iri_token(EX_C)),
-            "unguarded control edge lost"
-        );
-    }
-
-    #[test]
-    fn saturate_annotates_cell_iri_and_confidence() {
-        // Every derived triple is mappedFrom-attributed to its authored cell and
-        // carries the cell's confidence as a typed decimal literal.
-        let rows = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &[]).unwrap();
-        let schema_row = rows
-            .iter()
-            .find(|r| r.object == iri_token(SCHEMA_PERSON))
-            .expect("schema:Person row");
-        assert!(
-            schema_row
-                .annotations
-                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL)))
-        );
-        assert!(schema_row.annotations.contains(&(
-            GM_CONFIDENCE.to_owned(),
-            format!("\"0.9\"^^<{XSD_DECIMAL}>")
-        )));
-    }
-
-    #[test]
-    fn saturate_allows_absent_confidence() {
-        // A cell may record no confidence — it still materializes, the
-        // gmeow:confidence annotation is simply omitted (not a default).
-        let cells = vec![cell(
-            PERSON_SCHEMA_CELL,
-            GM_PERSON,
-            "owl:equivalentClass",
-            SCHEMA_PERSON,
-            "",
-        )];
-        let rows = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap();
-        let schema_row = rows
-            .iter()
-            .find(|r| r.object == iri_token(SCHEMA_PERSON))
-            .expect("schema:Person row");
-        assert!(
-            schema_row
-                .annotations
-                .iter()
-                .all(|(k, _)| k != GM_CONFIDENCE),
-            "absent confidence must not be annotated: {:?}",
-            schema_row.annotations
-        );
-        assert!(
-            schema_row
-                .annotations
-                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL)))
-        );
-    }
-
-    #[test]
-    fn saturate_rejects_out_of_range_confidence() {
-        // A confidence outside [0.0, 1.0] is malformed — hard fail, never
-        // emitted verbatim as a bogus xsd:decimal into the provenance layer.
-        let cells = vec![cell(
-            PERSON_SCHEMA_CELL,
-            GM_PERSON,
-            "owl:equivalentClass",
-            SCHEMA_PERSON,
-            "1.5",
-        )];
-        let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
-        assert_eq!(err.code(), crate::error::Transform::register());
-        assert!(
-            err.to_string().contains("malformed gmeow:confidence"),
-            "{err}"
-        );
-    }
-
-    #[test]
-    fn saturate_rejects_non_numeric_confidence() {
-        // A non-numeric confidence is malformed — hard fail.
-        let cells = vec![cell(
-            PERSON_SCHEMA_CELL,
-            GM_PERSON,
-            "owl:equivalentClass",
-            SCHEMA_PERSON,
-            "abc",
-        )];
-        let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
-        assert_eq!(err.code(), crate::error::Transform::register());
-        assert!(
-            err.to_string().contains("malformed gmeow:confidence"),
-            "{err}"
-        );
-    }
-
-    #[test]
-    fn saturate_skips_already_asserted_triple() {
-        // G is canonical — a triple already in the A-Box gets no derived row / reifier.
-        let cells = vec![cell(
-            PERSON_SCHEMA_CELL,
-            GM_PERSON,
-            "owl:equivalentClass",
-            SCHEMA_PERSON,
-            "0.9",
-        )];
-        let mut abox = person_abox();
-        abox.push_str(&nt(EX_ME, RDF_TYPE, SCHEMA_PERSON));
-        let rows = saturate_nt(&abox, &person_onto(), &cells, &[]).unwrap();
-        assert!(
-            rows.is_empty(),
-            "already-asserted triple was re-derived: {rows:?}"
-        );
-    }
-
-    #[test]
-    fn saturate_is_deterministic() {
-        // Two runs over a RICH A-Box — multiple subjects, class + property +
-        // sameAs edges, and a literal-bearing triple — derive byte-identical
-        // rows, including the content-addressed reifiers. Ordering/reifier
-        // nondeterminism only surfaces with many mixed rows, not the 2-row
-        // single-subject case.
-        let mut onto = person_onto();
-        onto.push_str(&knows_onto());
-        let mut cells = person_cells();
-        cells.extend(knows_cells());
-        let mut abox = String::new();
-        abox.push_str(&nt(EX_ME, RDF_TYPE, GM_PERSON));
-        abox.push_str(&nt(EX_CONTROL, RDF_TYPE, GM_PERSON));
-        abox.push_str(&nt(EX_A, GM_KNOWS, EX_B));
-        abox.push_str(&nt(EX_C, GM_KNOWS, EX_D));
-        abox.push_str(&nt(EX_ME, OWL_SAME_AS, WD_Q42));
-        abox.push_str(&format!("<{EX_ME}> <{GM}fullName> \"Ada\" .\n"));
-
-        let run_a = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
-        let run_b = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
-        assert_eq!(run_a, run_b);
-        assert_eq!(
-            run_a.len(),
-            7,
-            "2 Person subjects × 2 class edges + 2 property mirrors + 1 sameAs mirror: {run_a:?}"
-        );
-    }
-
-    // ── projection P(G): onto-only-catalog exclusion + tag_map retag boundary ──
-    //
-    // Regression coverage for the `gmeow-cli/tests/self_sufficiency.rs` "zero
-    // x-gmeow leak" finding: a projection CONSTRUCT whose WHERE clause matches
-    // `?app gmeow:fullName ?name` (the `ontolex` profile's real shape) and mints
-    // a fresh `<subject>-form` IRI via `BIND(IRI(CONCAT(...)))` must NOT leak an
-    // onto-only individual's data into MAXIMAL(G) — only abox-derived facts are
-    // "about the instance" — and any internally-tagged literal that DOES survive
-    // into the output must be retagged to its public BCP-47 form.
-
-    const CATALOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/catalogEntry";
-    const FULL_NAME_QUERY: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\nCONSTRUCT { ?form gmeow:writtenRep ?name }\nWHERE { ?app gmeow:fullName ?name . BIND(IRI(CONCAT(STR(?app), \"-form\")) AS ?form) }";
-
-    #[test]
-    fn projection_derived_excludes_onto_only_catalog_forms_but_keeps_abox_derived_ones() {
-        // onto: an ontology-authored "reference catalog" individual (mirrors
-        // `imports/languages-reference.ttl`'s exonym Appellations) — NOT part of
-        // the transpiled instance.
-        let ontology_nt = format!("<{CATALOG_ENTRY}> <{GM}fullName> \"Catalog Entry\" .\n");
-        // abox: our actual instance data, carrying the SAME predicate.
-        let raw_nt = format!("<{EX_ME}> <{GM}fullName> \"Ada Lovelace\" .\n");
-
-        let report = transform_nt(
-            &raw_nt,
-            &ontology_nt,
-            &[],
-            &[],
-            &[("catalog-forms".to_owned(), FULL_NAME_QUERY.to_owned())],
-            &TagMap::new(),
-        )
-        .unwrap();
-
-        assert!(
-            !report.base_plus_derived_nt.contains("catalogEntry-form"),
-            "onto-only catalog individual's synthesized form leaked into MAXIMAL(G): {}",
-            report.base_plus_derived_nt
-        );
-        assert!(
-            report.base_plus_derived_nt.contains("sat/me-form"),
-            "abox-derived synthesized form is missing (over-exclusion): {}",
-            report.base_plus_derived_nt
-        );
-    }
-
-    #[test]
-    fn transform_nt_retags_internal_language_tags_at_the_maximal_output_boundary() {
-        // The instance's own fullName literal carries an internal x-gmeow-*
-        // authoring tag (the normal in-ontology convention); `tag_map` maps it
-        // to its public BCP-47 form, exactly as `project`/`export` already do at
-        // their projection boundaries (`crate::projections::retag_quads`).
-        let raw_nt = format!("<{EX_ME}> <{GM}fullName> \"Ada Lovelace\"@x-gmeow-english .\n");
-        let mut tag_map = TagMap::new();
-        tag_map.insert("x-gmeow-english".to_owned(), "en".to_owned());
-
-        let report = transform_nt(&raw_nt, "", &[], &[], &[], &tag_map).unwrap();
-
-        assert!(
-            report.base_plus_derived_nt.contains("\"Ada Lovelace\"@en"),
-            "internal tag was not retagged to its public BCP-47 form: {}",
-            report.base_plus_derived_nt
-        );
-        assert!(
-            !report.base_plus_derived_nt.contains("x-gmeow-english"),
-            "internal tag leaked into the MAXIMAL(G) output: {}",
-            report.base_plus_derived_nt
-        );
-    }
-}
+#[cfg(test)]
+#[path = "transform_test_support.rs"]
+mod test_support;
+#[cfg(test)]
+use test_support::XSD_DECIMAL;

@@ -2,12 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Projection tests — unit checks plus the **insta snapshot goldens** (T8,
-//! every projection of every `conformance/logic/cases/projections/*` case
-//! is pinned by a committed `.snap` golden (text targets byte-for-byte; RDF
-//! targets as a canonicalized sorted triple-set, since no golden uses blank
-//! nodes). The `.snap` files ARE the byte-exact unit golden; cross-engine
-//! semantic corpus parity over the same `expected/` files is owned by the native
-//! `crates/conformance` harness (graph-isomorphism + bless), which is untouched.
+//! synthetic programs are projected here. Authored conformance-case goldens
+//! consume authenticated producer outputs in the pipeline crate.
 
 use super::*;
 use crate::frontend::parse_logic_str;
@@ -51,6 +47,33 @@ fn overclaim_gate_fires_on_exact_with_drops() {
     assert!(err.0.contains("Overclaim"));
     // SoundUnder with drops is fine.
     assert!(assert_no_overclaim("owl-dl", PreservationKind::SoundUnder, &["x"]).is_ok());
+}
+
+#[test]
+fn rdf_projections_preserve_blank_subjects_as_blank_resources() {
+    let source = "\
+@prefix ex: <https://example.org/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+[] logic:properPartOf ex:whole .
+";
+    let (program, diagnostics) = parse_logic_str(source, None).expect("parse blank subject");
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert!(
+        program
+            .axioms
+            .iter()
+            .any(|axiom| axiom.subject.starts_with("c14n")),
+        "the fixture must exercise a canonical blank-node subject"
+    );
+
+    let canonical = rdf::project_canonical_rdf12(&program).expect("canonical projection");
+    assert!(
+        canonical.content.contains("_:c14n"),
+        "{}",
+        canonical.content
+    );
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).expect("OWL projection");
+    assert!(dl.content.contains("_:c14n"), "{}", dl.content);
 }
 
 #[test]
@@ -183,10 +206,6 @@ fn datalog_rule_emits_world_var_and_guard() {
 
 // ── The parity gate ──────────────────────────────────────────────────────────
 
-fn conformance_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../conformance/logic/cases/projections")
-}
-
 fn parse(ttl: &str) -> LogicProgram {
     let prefixes = "\
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -235,41 +254,6 @@ fn triple_set(turtle: &str) -> Vec<String> {
 /// labels and statement order are non-deterministic.
 fn rdf_snapshot(turtle: &str) -> String {
     triple_set(turtle).join("\n")
-}
-
-/// Pin every projection of one conformance case with insta snapshot goldens.
-///
-/// The `.snap` files are the byte-exact unit golden; the native
-/// `crates/conformance` harness owns cross-engine semantic parity over the same
-/// `expected/` corpus, so this only re-compiles the case `input.logic.ttl` (it
-/// no longer reads the `expected/projections/` files).
-fn run_case(case: &str) {
-    let dir = conformance_dir().join(case);
-    let input = std::fs::read_to_string(dir.join("input.logic.ttl")).expect("read input");
-    let (program, diags) = parse_logic_str(&input, None).expect("parse conformance input");
-    assert!(
-        diags.is_empty(),
-        "[{case}] unexpected parse diagnostics: {diags:?}"
-    );
-    let arts = compile_program(&program, &Default::default()).expect("compile");
-
-    // One `.snap` per (case, target). The per-case suffix keeps the goldens
-    // discoverable and avoids a single mega-snapshot.
-    let mut settings = insta::Settings::clone_current();
-    settings.set_snapshot_suffix(case);
-    settings.set_prepend_module_to_snapshot(false);
-    settings.bind(|| {
-        // Text targets: byte-identical (the front-end canonicalizes blank labels).
-        insta::assert_snapshot!("datalog", arts.datalog);
-        insta::assert_snapshot!("n3", arts.n3);
-
-        // RDF targets: canonicalized sorted triple-set.
-        insta::assert_snapshot!("owl-dl", rdf_snapshot(&arts.owl_dl));
-        insta::assert_snapshot!("owl-el", rdf_snapshot(&arts.owl_el));
-        insta::assert_snapshot!("gufo", rdf_snapshot(&arts.gufo));
-        insta::assert_snapshot!("canonical-rdf12", rdf_snapshot(&arts.canonical_rdf12));
-        insta::assert_snapshot!("projection-report", rdf_snapshot(&arts.report));
-    });
 }
 
 // ── ReasoningContract round-trip ─────────────────────────────────────────────
@@ -396,8 +380,7 @@ fn aggregation_rule_round_trips_through_canonical_rdf12() {
     let head = LogicAxiom::new(
         "?g",
         "https://blackcatinformatics.ca/gmeow/total",
-        "?sum",
-        false,
+        crate::ir::AtomicTerm::resource("?sum"),
         false,
         ContextualScope::default(),
     )
@@ -406,8 +389,7 @@ fn aggregation_rule_round_trips_through_canonical_rdf12() {
         LogicAxiom::new(
             "?g",
             "https://blackcatinformatics.ca/gmeow/hasItem",
-            "?x",
-            false,
+            crate::ir::AtomicTerm::resource("?x"),
             false,
             ContextualScope::default(),
         )
@@ -539,26 +521,11 @@ fn contract_round_trip_is_exact_preservation_no_drops() {
     );
 }
 
-#[test]
-fn parity_confidence_scoped_axiom() {
-    run_case("confidence-scoped-axiom");
-}
-
-#[test]
-fn parity_kind_hierarchy() {
-    run_case("kind-hierarchy");
-}
-
-#[test]
-fn parity_relator_mediation() {
-    run_case("relator-mediation");
-}
-
 // ── Validation-shape projection goldens (shacl-core / shex) ───────────────────
 //
 // Byte-exact + graph-isomorphic + well-formedness + determinism goldens over the
 // REAL `compile_program` emit path for the two closed-world shape surfaces. The
-// three `run_case` conformance cases carry no `logic:ValidationShape`, so these
+// three authored conformance cases carry no `logic:ValidationShape`, so these
 // surfaces need a purpose-built, full-surface fixture to be pinned non-vacuously.
 
 /// A fixture `LogicProgram` whose ONLY populated content is `validation_shapes`
@@ -635,16 +602,18 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
                 Some(ConstraintProvenance::OptNative),
                 vec![C::In(vec![
                     ShapeValue::Iri(x("v1")),
-                    ShapeValue::Literal {
-                        lexical: "typed".into(),
+                    ShapeValue::Literal(purrdf::RdfLiteral {
+                        lexical_form: "typed".into(),
                         datatype: Some("http://www.w3.org/2001/XMLSchema#token".into()),
-                        lang: None,
-                    },
-                    ShapeValue::Literal {
-                        lexical: "bonjour".into(),
+                        language: None,
+                        direction: None,
+                    }),
+                    ShapeValue::Literal(purrdf::RdfLiteral {
+                        lexical_form: "bonjour".into(),
                         datatype: None,
-                        lang: Some("fr".into()),
-                    },
+                        language: Some("fr".into()),
+                        direction: None,
+                    }),
                 ])],
             )
             .unwrap(),
@@ -814,7 +783,7 @@ fn validation_shape_projection_goldens() {
 
     // The REAL production path: the ledgered projections the pipeline writes to
     // generated/shapes/validation-shapes.{ttl,shex}. Hard-fail if a target is absent.
-    let arts = compile_program(&program, &Default::default()).expect("compile");
+    let arts = compile_program(&program, |_| Default::default()).expect("compile");
     let find = |t: &str| {
         arts.logic_projections
             .iter()
@@ -825,7 +794,7 @@ fn validation_shape_projection_goldens() {
     let shex = find("shex");
 
     // C1 determinism: compiling the same program twice yields byte-identical surfaces.
-    let arts2 = compile_program(&program, &Default::default()).expect("recompile");
+    let arts2 = compile_program(&program, |_| Default::default()).expect("recompile");
     let find2 = |t: &str| {
         arts2
             .logic_projections
@@ -939,7 +908,7 @@ fn derived_validation_shapes_project_golden() {
         Some("urn:test:validation-derive".into()),
     )
     .with_validation_shapes(shapes);
-    let arts = compile_program(&program, &Default::default()).expect("compile");
+    let arts = compile_program(&program, |_| Default::default()).expect("compile");
     let content = |t: &str| {
         arts.logic_projections
             .iter()
@@ -970,7 +939,7 @@ fn derived_validation_shapes_project_golden() {
 fn shacl_af_projection_golden() {
     // The adjacent emit-only surface: the SHACL-AF (derivation `sh:SPARQLRule`) projection shares
     // the identical structural gap as the validation-shape surfaces — `is_rdf:false`, byte-compared,
-    // previously pinned by no focused insta golden. The three `run_case` conformance cases carry no
+    // previously pinned by no focused insta golden. The three authored conformance cases carry no
     // rules, so a rule-bearing fixture is required. Built via the `parse(...)` helper so the fixture
     // is authored as declarative `logic:` Turtle, not hand-built IR.
     let program = parse(
@@ -979,7 +948,7 @@ fn shacl_af_projection_golden() {
             logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
             logic:distinctBody [ rdf:subject \"?x\" ; rdf:object \"?y\" ] .",
     );
-    let arts = compile_program(&program, &Default::default()).expect("compile");
+    let arts = compile_program(&program, |_| Default::default()).expect("compile");
     assert!(
         arts.shacl_af.contains("sh:SPARQLRule"),
         "shacl-af must project the rule to a sh:SPARQLRule:\n{}",
@@ -1011,7 +980,7 @@ ex:nearbyOrgs a logic:PathShape ;
     logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
     logic:pathMinDepth 1 ; logic:pathMaxDepth 2 ; logic:pathDepthParam \"maxDepth\" .";
     let (program, _diags) = parse_logic_str(ttl, None).expect("parse");
-    let arts = compile_program(&program, &Default::default()).expect("compile");
+    let arts = compile_program(&program, |_| Default::default()).expect("compile");
 
     // G1a: path_projections is non-empty and carries both surfaces.
     assert_eq!(
@@ -1068,7 +1037,7 @@ ex:nearbyOrgs a logic:PathShape ;
     logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
     logic:pathMinDepth 1 ; logic:pathMaxDepth 2 ; logic:pathDepthParam \"maxDepth\" .";
     let (program, _diags) = parse_logic_str(ttl, None).expect("parse");
-    let arts = compile_program(&program, &Default::default()).expect("compile");
+    let arts = compile_program(&program, |_| Default::default()).expect("compile");
 
     // The report Turtle must carry the property-path target as an rdfs:label, in
     // lock-step with the ledger row keyed `property-path:<iri>`.
@@ -1103,8 +1072,7 @@ fn program_with_satisfied_by() -> crate::ir::LogicProgram {
     let axiom = LogicAxiom::ground(
         "https://example.org/goal",
         SATISFIED_BY_IRI,
-        "https://example.org/situation",
-        false,
+        crate::ir::AtomicTerm::resource("https://example.org/situation"),
     )
     .expect("valid satisfied-by axiom");
     LogicProgram::new(vec![axiom], vec![], vec![], None)
@@ -1113,7 +1081,7 @@ fn program_with_satisfied_by() -> crate::ir::LogicProgram {
 #[test]
 fn satisfied_by_axiom_injects_collapse_drop_on_lossy_targets() {
     let program = program_with_satisfied_by();
-    let arts = compile_program(&program, &Default::default()).expect("compile ok");
+    let arts = compile_program(&program, |_| Default::default()).expect("compile ok");
 
     // Every GOAL_EVAL_COLLAPSE_TARGETS entry must carry the drop note.
     for target in GOAL_EVAL_COLLAPSE_TARGETS {
@@ -1155,12 +1123,11 @@ fn no_satisfied_by_axiom_leaves_ledger_clean() {
     let axiom = LogicAxiom::ground(
         "https://example.org/Bird",
         "https://blackcatinformatics.ca/logic/subClassOf",
-        "https://example.org/Animal",
-        false,
+        crate::ir::AtomicTerm::resource("https://example.org/Animal"),
     )
     .expect("valid axiom");
     let program = LogicProgram::new(vec![axiom], vec![], vec![], None);
-    let arts = compile_program(&program, &Default::default()).expect("compile ok");
+    let arts = compile_program(&program, |_| Default::default()).expect("compile ok");
 
     // No target in the ledger should carry the collapse drop when there is no
     // satisfiedBy axiom in the program.
@@ -1302,8 +1269,7 @@ fn disjoint_axiom(a: &str, b: &str) -> crate::ir::LogicAxiom {
     crate::ir::LogicAxiom::new(
         iri(a),
         "http://www.w3.org/2002/07/owl#disjointWith",
-        iri(b),
-        false,
+        crate::ir::AtomicTerm::resource(iri(b)),
         false,
         crate::ir::ContextualScope::default(),
     )
@@ -1596,6 +1562,23 @@ fn cardinality_restriction_projects_typed_integer_in_dl() {
     let ttl = "ex:Parent logic:subClassOf [ a logic:Restriction ;
         logic:onProperty ex:hasChild ; logic:minCardinality 1 ] .";
     let (program, _) = parse_logic_str(&format!("{prefixes}{ttl}"), None).expect("parse ok");
+    let count = program
+        .axioms
+        .iter()
+        .find(|axiom| axiom.predicate == "https://blackcatinformatics.ca/logic/minCardinality")
+        .unwrap();
+    assert_eq!(
+        count.obj.as_literal().unwrap().datatype_iri(),
+        "http://www.w3.org/2001/XMLSchema#integer"
+    );
+    let canonical = rdf::project_canonical_rdf12_dataset(&program).unwrap();
+    let (restored, diagnostics) =
+        crate::frontend::parse_logic_dataset(&canonical.dataset, None).unwrap();
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert!(
+        restored.axioms.contains(count),
+        "the canonical carrier retains the source count datatype"
+    );
     let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     assert!(
         dl.content
@@ -1609,6 +1592,34 @@ fn cardinality_restriction_projects_typed_integer_in_dl() {
         "the count is a typed xsd:nonNegativeInteger:\n{}",
         dl.content
     );
+}
+
+#[test]
+fn owl_cardinality_projection_refuses_non_integer_native_values() {
+    for value in [
+        "-1",
+        "1.5",
+        "\"1\"@en",
+        "\"1\"@ar--rtl",
+        "ex:one",
+        "\"1\"^^ex:unknown",
+        "\"300\"^^xsd:byte",
+    ] {
+        let source = format!(
+            "@prefix ex: <https://example.org/> . @prefix logic: <https://blackcatinformatics.ca/logic/> .
+             @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+             ex:Parent logic:subClassOf [ a logic:Restriction; logic:onProperty ex:p; logic:minCardinality {value} ] ."
+        );
+        let (program, diagnostics) = parse_logic_str(&source, None).unwrap();
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        let failure = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap_err();
+        assert!(
+            failure
+                .to_string()
+                .contains("requires a non-negative integer count"),
+            "{value}: {failure}"
+        );
+    }
 }
 
 #[test]

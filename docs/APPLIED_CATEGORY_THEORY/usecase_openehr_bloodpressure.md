@@ -14,6 +14,13 @@
 > hand-worked round trip, runs the **in-band complement slot test**, and reports the result and
 > its honest caveats.
 
+The [normative logic design](../../slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md#independent-law-domains-and-evidence)
+governs the law claims below. The available evidence is one committed RM fixture,
+its reconstruction check, and a separate bounded three-edge recovery case. The
+recorded external validator result concerns the two committed compositions only.
+General archetype replacement, stateful lens laws and production fusion require
+their own admitted domains and certified evidence.
+
 ---
 
 ## 1. The real data
@@ -203,25 +210,30 @@ golden source `blood_pressure.source.ttl`).
 - the complement gives back `:sysBP-of-P` identity, the generic↔role ladder, the four axes +
   determinacy, the standpoint, and the reifier identities.
 
-Because `get` was mnemomorphic and the complement carries exactly `S ∖ im(get)`, **nothing the
-retraction needs was discarded** → `u(d(g)) = g` on the canonical IR. Two complementary checks
-back this, and it is worth being precise about what each proves. The **bounded query-class**
+For the committed fixture, the RM slice and complement together retain the data
+needed to reconstruct its canonical source. Two checks exercise different parts
+of that claim. The **bounded query-class**
 Round-trip / Mnemomorphism gates (`take1.md` §15.3–§15.4, conformance case
 `correspondence/openehr-bloodpressure-section-retraction`) execute the complete three-edge source
 path through get and candidate put, proving that all declared path atoms recover; the SeqPath's
-structural inverse alone is not accepted as evidence. The **full fixture data** proof
+structural inverse alone is not accepted as evidence. The **fixture reconstruction** check
 (`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) re-lifts the RM `DV_QUANTITY`
 values through the `rmPath` witness (`at0004`/`at0005`), unions them with the parsed complement, and
 asserts the canonicalization equals the golden source `blood_pressure.source.ttl` — so corrupting
-the RM magnitude fails the test. Together they realize the **section/retraction rung**:
+the RM magnitude fails the test. These are bounded **section/retraction** witnesses:
 `:sysBP-of-P` round-trips via the persistent-quality identity carried in the complement; the framed
 value round-trips via the RM `DV_QUANTITY`; the standpoint/axes round-trip via the Turtle blob keyed
-by `at0004`.
+by `at0004`. The fixture test uses a dedicated JSON field reader and complement
+union, not the general typed correspondence executor. It supplies no independent
+edited-view or nonempty prior-state cases. Full execution must additionally check
+GetPut, PutGet and PutPut on their separate domains, fail closed on missing or
+corrupt complements, and retain the complete RDF 1.2 carrier in each comparison.
 
 Without the complement (RM slice alone), `u` would be a **candidate preimage only** (`take1.md`
 §6.1): it could not recover the standpoint, the axes, or the persistent-quality identity — it
-would *reconstruct* a plausible GMEOW graph, not *recover* the original. The complement is what
-moves this cell from lossy-lens to section/retraction.
+would *reconstruct* a plausible GMEOW graph, not *recover* the original. The complement
+supplies the recovery witness for the declared fixture domain; its presence alone
+does not certify recovery for every admitted source.
 
 ---
 
@@ -280,16 +292,17 @@ diastolic) — the "augment" beyond subsumption.
 | `take1.md` law / gate | This case |
 |---|---|
 | Validation (§13.1.1) | **PASS observed via the standalone lane, not CI** — `source` and `augmented` both validate under `Blutdruck.opt` against pinned EHRbase `2.15.0` (`validations/openehr-bloodpressure/`, reproduce on demand); complement in RM-level `feeder_audit`/`links`, the `LINK.target` `DV_EHR_URI` on the `ehr` scheme |
-| Lossless subsumption `u∘d=id` (§13.1.2) | holds — the data test reconstructs `S` from the RM slice re-lifted via the `rmPath` witness ∪ the complement and asserts it equals the golden `blood_pressure.source.ttl`; load-bearing (corrupting an RM magnitude fails) — **section/retraction rung** (`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) |
-| Store-replacement `d∘u≅o` (§13.1.3) | holds for faithful instances — RM slice regenerated incl. the half-open interval read from the OPT (`crates/shacl/src/openehr_opt.rs`, `crates/shacl/tests/bloodpressure_halfopen.rs`) |
-| Round-trip gate (§15.3) | passes by native execution over the declared complete three-edge source case (`correspondence/openehr-bloodpressure-section-retraction`); full RM-slice + complement recovery is proven by the reconstruction test above |
-| Mnemomorphism gate (§15.4) | passes — witness = `archetype_node_id` path + complement |
-| Loss ledger (§15.6) | **exact** for the RM slice + complement; **under-approximation** for any consumer that drops the complement (RM-only reader) — that reader gets a valid-but-lessened view, declared |
+| Lossless subsumption `u∘d=id` (§13.1.2) | fixture-specific reconstruction: RM magnitudes re-lifted via `rmPath` ∪ complement equal `blood_pressure.source.ttl`; bounded SectionLaw evidence, not a theorem over all admitted sources |
+| Store-replacement `d∘u≅o` (§13.1.3) | not established over independently admitted external instances; the half-open OPT interval tests establish interval lowering, not RM store replacement |
+| Round-trip gate (§15.3) | native execution over the declared complete three-edge source case (`correspondence/openehr-bloodpressure-section-retraction`); the separate fixture reconstruction uses a dedicated JSON reader |
+| Mnemomorphism gate (§15.4) | bounded case passes with its declared recovery witness; complement presence does not establish arbitrary-domain recovery |
+| Loss ledger (§15.6) | reconstruction is exact for the fixture's selected canonical source; an RM-only consumer must select an explicit lossy projection whose omitted complement is recorded |
 
-**Boundary finding:** for `openEHR-EHR-OBSERVATION.blood_pressure.v2`, *no field in `S ∖ im(get)`
-forces a validation-vs-losslessness tradeoff* — the complement fits in RM-level transparent
-slots. "Perfectly replace openEHR" **holds for this archetype** — now confirmed empirically (both
-compositions validate in EHRbase), modulo the one remaining honest caveat in §5 (semantic propriety
-of `feeder_audit` as the canonical-source carrier). That is exactly the falsifiable, nameable result
-`take1.md` §17 asks for — here, a *positive* one. The probe also caught and fixed one real RM
-invariant the by-hand reading missed (`LINK.target` must be an `ehr`-scheme `DV_EHR_URI`).
+**Boundary finding:** the committed fixture's complement fits in RM-level slots,
+and the standalone lane recorded validation of both compositions. This is a
+positive bounded result for complement transparency, subject to §5's carrier
+semantics caveat. It does not prove replacement of the archetype or store as a
+whole. Full typed execution and the four independent law domains remain required;
+production optimization additionally requires certified-fragment evidence with
+checked use-site premises. The probe also caught and fixed an RM invariant:
+`LINK.target` must be an `ehr`-scheme `DV_EHR_URI`.

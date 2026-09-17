@@ -5,8 +5,8 @@
 //!
 //! The medium axis re-CODES the bundle's bytes. Its whole claim is that coding is not
 //! meaning, so nothing a model reads may move. The producer-authenticated bundle is
-//! audited read-only by `medium_bundle`, and the declared codec law is covered by
-//! `medium_codec_composition`; the two cheap branch/source legs here run on every
+//! audited read-only by `medium_bundle`. PurRDF owns the codec and dictionary laws
+//! in its `crates/gts/src/codec.rs` tests; the two branch/source legs here run on every
 //! `cargo nextest` pass:
 //!
 //! * **producer non-interference** — this branch's diff against the merge base must not

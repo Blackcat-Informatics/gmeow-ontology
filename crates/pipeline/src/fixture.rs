@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write as _;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 
 use gmeow_action_cache::{
@@ -32,18 +32,25 @@ use crate::scheduler::{
     RunContext, action_key_context_from_receipts_cached, dependency_closure, run_targets,
 };
 
-const STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION: u32 = 2;
+const STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION: u32 =
+    gmeow_action_cache::selection::MANIFEST_SCHEMA_VERSION;
 const SETTLED_SOURCE_LOAD_WITNESS_CODEC: &str = "json:settled-source-load-witness:v1";
 
 /// Producer-written selector for the exact pipeline actions admitted to tests.
 pub const STAGE_FIXTURE_MANIFEST_RELATIVE_PATH: &str =
     ".cache/gmeow-sync/test-fixture-manifest-v2.json";
 
+/// Reusable receipt metadata, never a runner-authenticated fixture selector.
+/// The explicit fixture producer must revalidate this candidate against current inputs.
+pub const STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH: &str =
+    ".cache/gmeow-sync/stage-fixture-candidate-v2.json";
+
 /// Runner-supplied path to the immutable stage-fixture selector.
-pub const STAGE_FIXTURE_MANIFEST_PATH_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST";
+pub const STAGE_FIXTURE_MANIFEST_PATH_ENV: &str = gmeow_action_cache::selection::MANIFEST_PATH_ENV;
 
 /// Runner-supplied SHA-256 of the immutable stage-fixture selector.
-pub const STAGE_FIXTURE_MANIFEST_SHA256_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST_SHA256";
+pub const STAGE_FIXTURE_MANIFEST_SHA256_ENV: &str =
+    gmeow_action_cache::selection::MANIFEST_SHA256_ENV;
 
 /// Complete set of production-stage identities consumed by tests.
 ///
@@ -52,6 +59,7 @@ pub const STAGE_FIXTURE_MANIFEST_SHA256_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST
 /// fixture without also making that product an authenticated DAG prerequisite.
 pub const AUTHENTICATED_TEST_STAGE_IDS: &[&str] = &[
     "stage-conformance",
+    "stage-validate",
     "stage-source-load",
     "stage-compile-logic",
     "stage-export-constraint-shapes",
@@ -89,7 +97,7 @@ pub struct StageFixture {
     pub outcome: FixtureOutcome,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 struct StageFixtureManifest {
     schema_version: u32,
     build_fingerprint: String,
@@ -119,23 +127,11 @@ struct SettledSourceLoadWitness {
     settled_product_digest: String,
 }
 
-/// Identity of the producer-written stage-fixture selector.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct StageFixtureManifestIdentity {
-    /// Worktree-local path written atomically by the explicit producer.
-    pub path: PathBuf,
-    /// SHA-256 the runner must provide to every consumer process.
-    pub sha256: String,
-    /// Exact number of selected stage actions.
-    pub stage_count: usize,
-}
-
 /// A warm producer admission proved from current raw inputs and exact cached receipts.
 #[derive(Debug)]
 pub struct ReusedStageFixtures {
-    /// Identity the runner must pass to every test process.
-    pub manifest: StageFixtureManifestIdentity,
-    /// Selected receipts in [`AUTHENTICATED_TEST_STAGE_IDS`] order.
+    /// Complete admitted dependency closure in topological order. The explicit
+    /// fixture producer must publish its selector before any test process starts.
     pub receipts: Vec<StageReceipt>,
 }
 
@@ -376,19 +372,107 @@ fn validate_stage_fixture_manifest(
     Ok(())
 }
 
-/// Atomically publish the exact selected receipts emitted by the explicit producer.
+/// Prepare the exact stage selection without publishing a runner selector.
+/// The explicit fixture producer retains this value until every selected phase
+/// succeeds, then publishes the complete selection in one atomic replacement.
+/// Reusable candidate metadata may persist even if a later phase fails.
+/// No stage or carrier is executed, hydrated or reconstructed here.
 ///
-/// The returned SHA-256 is runner state, not a discoverable fallback: every test
-/// process must receive it through [`STAGE_FIXTURE_MANIFEST_SHA256_ENV`].
-pub fn publish_stage_fixture_manifest(
+/// # Errors
+/// Rejects an incomplete or invalid receipt closure, encoding or candidate I/O.
+pub fn prepare_stage_fixture_candidate(
     root: &Path,
     run_receipts: &[StageReceipt],
-) -> Result<StageFixtureManifestIdentity, gmeow_errors::Diag> {
+) -> gmeow_errors::Result<serde_json::Value> {
+    let manifest = stage_fixture_manifest(run_receipts)?;
+    let value = serde_json::to_value(&manifest)
+        .map_err(|error| fixture_manifest_error(format!("encode fixture receipts: {error}")))?;
+    write_stage_fixture_record(root, STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH, &manifest)?;
+    Ok(value)
+}
+
+/// Record reusable receipts without mutating the runner's finalized selection.
+pub(crate) fn record_stage_fixture_candidate(
+    root: &Path,
+    run_receipts: &[StageReceipt],
+) -> gmeow_errors::Result<()> {
+    let manifest = stage_fixture_manifest(run_receipts)?;
+    write_stage_fixture_record(root, STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH, &manifest)?;
+    Ok(())
+}
+
+fn write_stage_fixture_record(
+    root: &Path,
+    relative_path: &str,
+    manifest: &StageFixtureManifest,
+) -> Result<String, gmeow_errors::Diag> {
+    let mut bytes = serde_json::to_vec_pretty(manifest)
+        .map_err(|error| fixture_manifest_error(format!("encode fixture receipts: {error}")))?;
+    bytes.push(b'\n');
+    let digest = sha256(&bytes);
+    let path = root.join(relative_path);
+    let parent = path
+        .parent()
+        .ok_or_else(|| fixture_manifest_error("fixture receipt path has no parent"))?;
+    std::fs::create_dir_all(parent).map_err(|error| {
+        fixture_manifest_error(format!(
+            "create fixture receipt directory {}: {error}",
+            parent.display()
+        ))
+    })?;
+    let mut temporary = tempfile::NamedTempFile::new_in(parent).map_err(|error| {
+        fixture_manifest_error(format!("create fixture receipt temporary file: {error}"))
+    })?;
+    temporary
+        .write_all(&bytes)
+        .and_then(|()| temporary.as_file().sync_all())
+        .map_err(|error| fixture_manifest_error(format!("write fixture receipts: {error}")))?;
+    temporary.persist(&path).map_err(|error| {
+        fixture_manifest_error(format!(
+            "publish fixture receipts {}: {}",
+            path.display(),
+            error.error
+        ))
+    })?;
+
+    Ok(digest)
+}
+
+struct BoundFixtureClosure {
+    graph: crate::graph::StageGraph,
+    stages: Vec<Arc<dyn crate::node::Stage>>,
+    required: BTreeSet<String>,
+}
+
+/// Producer publication and warm admission use the same current authored closure.
+fn bound_fixture_closure() -> Result<BoundFixtureClosure, gmeow_errors::Diag> {
+    let spec = full_spec();
+    let graph = spec.validate()?;
+    let stages = bind(&spec, &graph, &default_registry())?;
+    let targets = AUTHENTICATED_TEST_STAGE_IDS
+        .iter()
+        .map(|stage| (*stage).to_owned())
+        .collect();
+    let required = dependency_closure(&stages, &targets)?;
+    Ok(BoundFixtureClosure {
+        graph,
+        stages,
+        required,
+    })
+}
+
+fn stage_fixture_manifest(
+    run_receipts: &[StageReceipt],
+) -> Result<StageFixtureManifest, gmeow_errors::Diag> {
     let selected: BTreeSet<&str> = AUTHENTICATED_TEST_STAGE_IDS.iter().copied().collect();
+    let required = bound_fixture_closure()?.required;
     let mut closure_receipts = BTreeMap::new();
     let mut stages = BTreeMap::new();
     for receipt in run_receipts {
         let stage_id = receipt.context.stage_id.as_str();
+        if !required.contains(stage_id) {
+            continue;
+        }
         if closure_receipts
             .insert(stage_id.to_string(), receipt.clone())
             .is_some()
@@ -401,6 +485,13 @@ pub fn publish_stage_fixture_manifest(
             stages.insert(stage_id.to_string(), receipt.clone());
         }
     }
+    let actual = closure_receipts.keys().cloned().collect();
+    let missing: Vec<_> = required.difference(&actual).collect();
+    if !missing.is_empty() {
+        return Err(fixture_manifest_error(format!(
+            "producer did not supply the complete fixture dependency closure: missing={missing:?}"
+        )));
+    }
     let manifest = StageFixtureManifest {
         schema_version: STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION,
         build_fingerprint: BUILD_FINGERPRINT.to_string(),
@@ -409,62 +500,29 @@ pub fn publish_stage_fixture_manifest(
     };
     validate_stage_fixture_manifest(&manifest)?;
 
-    let mut bytes = serde_json::to_vec_pretty(&manifest)
-        .map_err(|error| fixture_manifest_error(format!("encode selector: {error}")))?;
-    bytes.push(b'\n');
-    let digest = sha256(&bytes);
-    let path = root.join(STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
-    let parent = path
-        .parent()
-        .ok_or_else(|| fixture_manifest_error("selector path has no parent"))?;
-    std::fs::create_dir_all(parent).map_err(|error| {
-        fixture_manifest_error(format!(
-            "create selector directory {}: {error}",
-            parent.display()
-        ))
-    })?;
-    let mut temporary = tempfile::NamedTempFile::new_in(parent).map_err(|error| {
-        fixture_manifest_error(format!("create selector temporary file: {error}"))
-    })?;
-    temporary
-        .write_all(&bytes)
-        .and_then(|()| temporary.as_file().sync_all())
-        .map_err(|error| fixture_manifest_error(format!("write selector: {error}")))?;
-    temporary.persist(&path).map_err(|error| {
-        fixture_manifest_error(format!(
-            "publish selector {}: {}",
-            path.display(),
-            error.error
-        ))
-    })?;
-
-    Ok(StageFixtureManifestIdentity {
-        path,
-        sha256: digest,
-        stage_count: manifest.stages.len(),
-    })
+    Ok(manifest)
 }
 
 /// Admit an unchanged producer closure without hydrating or rebuilding any carrier.
 ///
-/// The prior manifest is only a candidate. This function rebinds the current authored
+/// The recorded receipt metadata is only a candidate. This function rebinds the current authored
 /// DAG, re-hashes every declared raw input, derives every action context from its exact
 /// upstream receipts, and authenticates every stable/persistent cache blob through
 /// [`PipelineCache::inspect_receipt`]. A normal miss or source/code/DAG change returns
 /// `Ok(None)` so the explicit producer can execute the DAG once. Corrupt cache content
 /// remains a hard error.
-pub fn reuse_stage_fixture_manifest(
+pub fn reuse_stage_fixture_candidate(
     root: &Path,
 ) -> Result<Option<ReusedStageFixtures>, gmeow_errors::Diag> {
-    let path = root.join(STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
+    let path = root.join(STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH);
     let bytes = match std::fs::read(&path) {
         Ok(bytes) => bytes,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return Ok(warm_manifest_miss("selector-not-found"));
+            return Ok(warm_manifest_miss("candidate-not-found"));
         }
         Err(error) => {
             return Err(fixture_manifest_error(format!(
-                "read warm selector {}: {error}",
+                "read warm receipt candidate {}: {error}",
                 path.display()
             )));
         }
@@ -473,31 +531,31 @@ pub fn reuse_stage_fixture_manifest(
         Ok(manifest) => manifest,
         Err(error) => {
             return Ok(warm_manifest_miss(format_args!(
-                "selector-decode error={error}"
+                "candidate-decode error={error}"
             )));
         }
     };
     if manifest.schema_version != STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION
         || manifest.build_fingerprint != BUILD_FINGERPRINT
     {
-        return Ok(warm_manifest_miss("selector-schema-or-build-fingerprint"));
+        return Ok(warm_manifest_miss("candidate-schema-or-build-fingerprint"));
     }
     validate_stage_fixture_manifest(&manifest)?;
 
-    let spec = full_spec();
-    let graph = spec.validate()?;
-    let bound = bind(&spec, &graph, &default_registry())?;
-    let targets = AUTHENTICATED_TEST_STAGE_IDS
-        .iter()
-        .map(|stage| (*stage).to_string())
-        .collect::<BTreeSet<_>>();
-    let expected_closure = dependency_closure(&bound, &targets)?;
+    let BoundFixtureClosure {
+        graph,
+        stages: bound,
+        required: expected_closure,
+    } = bound_fixture_closure()?;
     let actual_closure = manifest
         .closure_receipts
         .keys()
         .cloned()
         .collect::<BTreeSet<_>>();
-    if actual_closure != expected_closure {
+    // A full synchronization also records stages outside the fixture selection.
+    // Authenticate every current dependency below; unrelated receipt rows cannot
+    // grant a hit or supply a missing input to the selected action closure.
+    if !expected_closure.is_subset(&actual_closure) {
         return Ok(warm_manifest_miss("dependency-closure-changed"));
     }
 
@@ -620,64 +678,32 @@ pub fn reuse_stage_fixture_manifest(
         admitted.insert(stage_id, recorded.clone());
     }
 
-    let receipts = AUTHENTICATED_TEST_STAGE_IDS
-        .iter()
+    let receipts = graph
+        .order()
+        .into_iter()
+        .filter(|stage_id| expected_closure.contains(stage_id))
         .map(|stage_id| {
             admitted
-                .get(*stage_id)
-                .cloned()
-                .expect("selected targets are members of the admitted closure")
+                .remove(&stage_id)
+                .expect("every selected dependency has been admitted")
         })
         .collect();
-    Ok(Some(ReusedStageFixtures {
-        manifest: StageFixtureManifestIdentity {
-            path,
-            sha256: sha256(&bytes),
-            stage_count: manifest.stages.len(),
-        },
-        receipts,
-    }))
+    Ok(Some(ReusedStageFixtures { receipts }))
 }
 
 fn load_stage_fixture_manifest(root: &Path) -> Result<StageFixtureManifest, gmeow_errors::Diag> {
-    let selected_path = std::env::var_os(STAGE_FIXTURE_MANIFEST_PATH_ENV)
-        .filter(|value| !value.is_empty())
-        .ok_or_else(|| {
-            fixture_manifest_error(format!(
-                "{STAGE_FIXTURE_MANIFEST_PATH_ENV} is required; tests may not discover or produce a fallback selector"
-            ))
-        })?;
-    let selected_path = PathBuf::from(selected_path);
-    let path = if selected_path.is_absolute() {
-        selected_path
-    } else {
-        root.join(selected_path)
-    };
-    let expected = std::env::var(STAGE_FIXTURE_MANIFEST_SHA256_ENV)
-        .ok()
-        .filter(|value| value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()))
-        .ok_or_else(|| {
-            fixture_manifest_error(format!(
-                "{STAGE_FIXTURE_MANIFEST_SHA256_ENV} must select one exact SHA-256; tests may not infer it"
-            ))
-        })?
-        .to_ascii_lowercase();
-    let bytes = std::fs::read(&path).map_err(|error| {
-        fixture_manifest_error(format!("read selector {}: {error}", path.display()))
-    })?;
-    let actual = sha256(&bytes);
-    if actual != expected {
-        return Err(fixture_manifest_error(format!(
-            "selector identity mismatch: expected {expected}, actual {actual}"
-        )));
-    }
-    let manifest: StageFixtureManifest = serde_json::from_slice(&bytes)
-        .map_err(|error| fixture_manifest_error(format!("decode selector: {error}")))?;
+    let manifest: StageFixtureManifest = gmeow_action_cache::selection::load_manifest(root)
+        .map_err(|error| fixture_manifest_error(error.to_string()))?;
     validate_stage_fixture_manifest(&manifest)?;
     Ok(manifest)
 }
 
-fn selected_stage_receipt(root: &Path, stage_id: &str) -> Result<StageReceipt, gmeow_errors::Diag> {
+/// Read the exact receipt selected by the authenticated producer manifest.
+/// Product bytes are authenticated separately by the consuming cache operation.
+pub(crate) fn selected_stage_receipt(
+    root: &Path,
+    stage_id: &str,
+) -> Result<StageReceipt, gmeow_errors::Diag> {
     load_stage_fixture_manifest(root)?
         .stages
         .remove(stage_id)
@@ -813,6 +839,322 @@ pub fn verify_stage_fixtures(
     Ok(verified)
 }
 
+/// Compact original-source observations explicitly exported before test processes start.
+pub const AUTHENTICATED_SOURCE_ARTIFACTS: &[(&str, &str)] = &[
+    (
+        "stage-validate",
+        crate::stages::validate::norm_claims::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::gmn_vectors::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::epistemics::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::cl_ingest::CHANNEL,
+    ),
+    ("stage-mappings", crate::projection_profiles::CHANNEL),
+    (
+        "stage-mappings",
+        gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH,
+    ),
+    (
+        "stage-mappings",
+        crate::stages::correspondence_lower::WORKED_ENVELOPE_CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::documentation_graph::CHANNEL,
+    ),
+    ("stage-conformance", "pipeline/source-glyph-legend.json"),
+    (
+        "stage-conformance",
+        crate::stages::conformance::glossary::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::execution::CONSISTENCY_CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::native_cases::CLASS_ADMISSION_CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::native_cases::CLASS_DIAGNOSTIC_CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::native_cases::DETERMINISM_CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::registry_surface::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::medium::source_observation::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        gmeow_logic::verify::PREPARED_GATES_CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        "pipeline/verify-gate-observations.json",
+    ),
+    (
+        "stage-conformance",
+        "pipeline/expression-substrate-observations.json",
+    ),
+    (
+        "stage-conformance",
+        "pipeline/logic-module-contract-observations.json",
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::wasm_gmn::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::gmn_grounding::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::gmn_signatures::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::native_scene::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::gufo_superset::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::math_lowering::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        "pipeline/wellfounded-plan-observation.json",
+    ),
+    (
+        "stage-conformance",
+        "pipeline/grounding-catalog-observations.json",
+    ),
+    (
+        "stage-validate",
+        crate::stages::conformance::inference_validation::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::yaml_ld::source_observation::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        "pipeline/medium-axis-observations.json",
+    ),
+    (
+        "stage-conformance",
+        crate::stages::superset::source_contracts::CHANNEL,
+    ),
+    (
+        "stage-conformance",
+        gmeow_logic_compile::action_policy::SOURCE_ARTIFACT,
+    ),
+    (
+        "stage-conformance",
+        crate::stages::conformance::action_policy::CONTROLS,
+    ),
+    (
+        "stage-conformance",
+        "pipeline/authored-lint-observations.json",
+    ),
+    (
+        "stage-conformance",
+        gmeow_logic::operator_rules::PREPARED_OPERATOR_CHANNEL,
+    ),
+    ("stage-conformance", gmeow_logic::operator::scene::CHANNEL),
+];
+
+/// Read the producer-selected native verification laws without recompiling sources.
+///
+/// # Errors
+/// Rejects a missing or unauthenticated source artifact, invalid native payload, or
+/// laws whose original authored identities differ from this executable.
+pub fn authenticated_reasoned_gates(
+    root: &Path,
+) -> gmeow_errors::Result<gmeow_logic::verify::PreparedReasonedGates> {
+    let fail = |message: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-conformance".into(),
+            message,
+        })
+    };
+    let bytes = gmeow_action_cache::selection::source_artifacts::load(
+        root,
+        "stage-conformance",
+        gmeow_logic::verify::PREPARED_GATES_CHANNEL,
+    )
+    .map_err(|error| fail(error.to_string()))?;
+    let gates: gmeow_logic::verify::PreparedReasonedGates =
+        serde_json::from_slice(&bytes).map_err(|error| fail(error.to_string()))?;
+    gates.validate_source_identity()?;
+    Ok(gates)
+}
+
+/// Export exact source artifacts after authenticating the complete selected parent product.
+///
+/// This is an explicit producer operation, never a consumer fallback. Every parent
+/// artifact commitment is verified once per stage. Export actions bind that exact
+/// parent receipt and code identity and retain only compact selected payloads.
+pub fn export_source_artifacts(
+    root: &Path,
+    receipts: &[StageReceipt],
+) -> gmeow_errors::Result<gmeow_action_cache::selection::source_artifacts::SourceArtifactSelector> {
+    use gmeow_action_cache::selection::source_artifacts::{
+        self, SourceArtifactOrigin, SourceArtifactSelector,
+    };
+    let mut selections: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for &(stage, artifact) in AUTHENTICATED_SOURCE_ARTIFACTS {
+        selections.entry(stage).or_default().push(artifact);
+    }
+    let cache = PipelineCache::open_existing_default_read_only(root)?;
+    let store = ActionStore::open_existing_writable(
+        ActionStore::default_root(root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .map_err(action_cache_error)?;
+    let mut selector = SourceArtifactSelector::default();
+    for (stage, paths) in selections {
+        let expected = receipts
+            .iter()
+            .find(|receipt| receipt.context.stage_id == stage)
+            .ok_or_else(|| fixture_miss(stage))?;
+        let hit = cache
+            .get_selected_artifacts(&expected.context, &paths)?
+            .ok_or_else(|| fixture_miss(stage))?;
+        if hit.receipt != *expected {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: expected.digest(),
+                actual: hit.receipt.digest(),
+            }));
+        }
+        let origin = SourceArtifactOrigin {
+            stage: stage.to_owned(),
+            action_key: expected.action_key.clone(),
+            receipt_digest: expected.digest(),
+            product_digest: expected.product_digest.clone(),
+            implementation: expected.context.action_context().implementation,
+        };
+        let mut exported = BTreeMap::new();
+        for path in paths {
+            let entity = expected
+                .logical_artifacts
+                .iter()
+                .find(|entity| entity.identity == path)
+                .ok_or_else(|| {
+                    fixture_manifest_error(format!("source-stage receipt omitted {path}"))
+                })?;
+            let bytes = hit.artifacts.get(path).ok_or_else(|| {
+                fixture_manifest_error(format!("authenticated source artifact omitted {path}"))
+            })?;
+            let selected = source_artifacts::publish(
+                &store,
+                origin.clone(),
+                path,
+                &entity.digest,
+                entity.decoded_bytes,
+                bytes,
+            )
+            .map_err(action_cache_error)?;
+            if exported.insert(path.to_owned(), selected).is_some() {
+                return Err(fixture_manifest_error(format!(
+                    "duplicate source artifact selection {stage}/{path}"
+                )));
+            }
+        }
+        selector.source_artifacts.insert(stage.to_owned(), exported);
+    }
+    Ok(selector)
+}
+
+/// Verify compact exports against the same selector's exact parent stage receipts.
+/// The parent product is already authenticated by stage admission; this comparison
+/// reads only receipt commitments and the small exported blobs.
+///
+/// # Errors
+/// Refuses missing selections, mixed parent identities, changed artifact commitments,
+/// or corrupt export actions. This operation never constructs or publishes a product.
+pub fn verify_source_artifacts(root: &Path) -> gmeow_errors::Result<BTreeMap<String, usize>> {
+    #[derive(Deserialize)]
+    struct Selection {
+        #[serde(flatten)]
+        stages: StageFixtureManifest,
+        #[serde(flatten)]
+        artifacts: gmeow_action_cache::selection::source_artifacts::SourceArtifactSelector,
+    }
+    let selected: Selection =
+        gmeow_action_cache::selection::load_manifest(root).map_err(action_cache_error)?;
+    validate_stage_fixture_manifest(&selected.stages)?;
+    let mut sizes = BTreeMap::new();
+    for &(stage, path) in AUTHENTICATED_SOURCE_ARTIFACTS {
+        let receipt = selected
+            .stages
+            .stages
+            .get(stage)
+            .ok_or_else(|| fixture_miss(stage))?;
+        let artifact = selected
+            .artifacts
+            .source_artifacts
+            .get(stage)
+            .and_then(|artifacts| artifacts.get(path))
+            .ok_or_else(|| {
+                fixture_manifest_error(format!("missing source export {stage}/{path}"))
+            })?;
+        verify_source_artifact_origin(receipt, path, artifact)?;
+        let bytes = gmeow_action_cache::selection::source_artifacts::load(root, stage, path)
+            .map_err(action_cache_error)?;
+        sizes.insert(format!("{stage}/{path}"), bytes.len());
+    }
+    Ok(sizes)
+}
+
+fn verify_source_artifact_origin(
+    receipt: &StageReceipt,
+    path: &str,
+    selected: &gmeow_action_cache::selection::source_artifacts::SelectedSourceArtifact,
+) -> gmeow_errors::Result<()> {
+    let entity = receipt
+        .logical_artifacts
+        .iter()
+        .find(|entity| entity.identity == path)
+        .ok_or_else(|| fixture_manifest_error(format!("source receipt omitted {path}")))?;
+    let expected = gmeow_action_cache::selection::source_artifacts::SourceArtifactOrigin {
+        stage: receipt.context.stage_id.clone(),
+        action_key: receipt.action_key.clone(),
+        receipt_digest: receipt.digest(),
+        product_digest: receipt.product_digest.clone(),
+        implementation: receipt.context.action_context().implementation,
+    };
+    if selected.source != expected
+        || selected.artifact != path
+        || selected.digest != entity.digest
+        || selected.bytes != entity.decoded_bytes
+    {
+        return Err(fixture_manifest_error(format!(
+            "source export {path} differs from the selected parent stage receipt"
+        )));
+    }
+    Ok(())
+}
+
 /// Load one production stage's committed artifact lane without producing it.
 ///
 /// A warm action authenticates the same receipt/product blob as the scheduler but does
@@ -822,15 +1164,25 @@ pub fn stage_artifacts(
     _jobs: usize,
     stage_id: &str,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    selected_artifacts(root, stage_id, None)
+}
+
+fn selected_artifacts(
+    root: &Path,
+    stage_id: &str,
+    artifact_paths: Option<&[&str]>,
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let expected_receipt = selected_stage_receipt(root, stage_id)?;
     // The producer fingerprint is already a typed action-key field. Opening a
     // fingerprint-suffixed directory here would create a reader-only namespace,
     // miss every receipt written by the scheduler/primer, and force full product
     // hydration on every artifact-only fixture request.
     let cache = PipelineCache::open_existing_default_read_only(root)?;
-    let hit = cache
-        .get_artifacts(&expected_receipt.context)?
-        .ok_or_else(|| fixture_miss(stage_id))?;
+    let hit = match artifact_paths {
+        Some(paths) => cache.get_selected_artifacts(&expected_receipt.context, paths),
+        None => cache.get_artifacts(&expected_receipt.context),
+    }?
+    .ok_or_else(|| fixture_miss(stage_id))?;
     if hit.receipt != expected_receipt {
         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
             expected: expected_receipt.digest(),
@@ -843,13 +1195,14 @@ pub fn stage_artifacts(
 /// Load one exact artifact from an authenticated production-stage product.
 ///
 /// This is the concise consumer seam for output-focused tests. It inherits the
-/// manifest-selected, fail-closed behavior of [`stage_artifacts`].
+/// manifest-selected, fail-closed behavior of [`stage_artifacts`], while copying
+/// only the requested artifact out of the authenticated product buffer.
 pub fn authenticated_artifact(
     root: &Path,
     stage_id: &str,
     artifact_path: &str,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    stage_artifacts(root, 1, stage_id)?
+    authenticated_artifacts(root, stage_id, &[artifact_path])?
         .remove(artifact_path)
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -859,6 +1212,19 @@ pub fn authenticated_artifact(
         })
 }
 
+/// Load selected artifacts with one complete product authentication.
+///
+/// Every artifact commitment is verified, including unselected artifacts. Only
+/// requested payloads are copied and retained; the large product buffer is dropped
+/// before this returns. Missing products or requested paths are terminal failures.
+pub fn authenticated_artifacts(
+    root: &Path,
+    stage_id: &str,
+    artifact_paths: &[&str],
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    selected_artifacts(root, stage_id, Some(artifact_paths))
+}
+
 /// Load and return the mappings stage's authenticated artifact lane.
 pub fn mapping_artifacts(
     root: &Path,
@@ -866,3 +1232,7 @@ pub fn mapping_artifacts(
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     stage_artifacts(root, jobs, "stage-mappings")
 }
+
+#[path = "fixture.tests.rs"]
+#[cfg(test)]
+mod tests;

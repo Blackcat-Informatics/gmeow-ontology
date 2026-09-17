@@ -55,17 +55,19 @@ particular the GTS form is **exit-only** — the bundle is serialized to `gmeow.
 once, by the terminal, and never re-parsed back into the pipeline as transport.
 There is no `dataset → gts → dataset` round-trip inside the spine.
 
-**Pin-on-attach (the integrity invariant).** When a stage attaches a typed result
-to a named graph, the carrier records the graph's canonical digest and rejects any
-later attachment whose payload disagrees with its backing graph. A handle that
-contradicts its graph can never attach — fail-closed, no silently-stale view. This
-is the construction half of "verified by construction" (Principle 7).
+**Typed publication identity.** A typed attachment binds its named graph's
+canonical digest and its complete native payload commitment. Downstream action
+keys and release receipts retain both. A graph projection can omit fields that
+remain authoritative in the native program; its digest alone is therefore
+insufficient to identify that program. Persistent publication verifies each
+handle's governed projection contract, and restoration authenticates the complete
+native payload, graph binding and product commitment before admitting a hit.
 
 ## 3. The stage contract
 
 A stage is a function from carrier to carrier. It **reads** what upstream stages
 contributed and **attaches** its own contribution — one or more named graphs and/or
-blobs. Three rules bind every stage:
+blobs. Four rules bind every stage:
 
 1. **No out-of-band writes.** A stage never writes a file under `generated/`, never
    reads one back as input, and never opens a side channel to a later stage. Its
@@ -90,6 +92,197 @@ blobs. Three rules bind every stage:
 Stage kinds (source-load, transform, reason, validate, docs-render) differ only in
 *what* they contribute and *what they read*, never in *how* they deliver it: all
 deliver by attaching to the carrier.
+
+`stage-parse-sources` owns the original native root, module and import document
+parses. Its typed source catalog retains exact source receipts, document bases,
+roles, scopes and positions, plus one bounded composite view and one shared
+aggregate materialization. A small generated receipt graph binds the catalog;
+the original datasets are ephemeral and cannot enter the persistent stage cache.
+
+After that boundary, `stage-source-load` and `stage-compile-logic` are independent
+consumers. Source-load alone publishes source-origin provenance and the selected
+carrier partitions. The catalog compiles the complete admitted root, module and
+import selection once, before carrier graph projection. Concurrent consumers
+share one immutable compiled theory, retaining the prepared source, its actual
+source-term mapping, program, original diagnostics and owner emission evidence.
+This invocation-local value expires with its consumers; it never enters a
+cumulative carrier cache. Diagnostic meta-rules select their actual source-owner
+emissions rather than matching provenance strings, and every selected rule must
+be present. Correspondence projection enforces the original rejected-owner/leg
+dispositions and the already evaluated native law gates, without a second
+correspondence extraction or execution. Selected OPT and worked-example products
+augment a separate projection program while preserving authored collections;
+their example facts do not enter the source theory. No duplicate full-corpus
+compiler transport graph is built or cached.
+
+The compiler publishes its shared program and mandatory report inputs as one typed
+`CompiledLogic` handle. The report retains compact projection judgments, complete
+source-attributed loss witnesses and compiler-owned counts; serialized projection
+bodies belong only to their required output artifacts. Mappings borrows these
+inputs directly and owns the final correspondence counts. Report rendering indexes
+the selected ledgers once by target, retaining borrowed evidence for that invocation.
+A program-only snapshot cannot satisfy this report-bearing input contract. The
+affine example likewise travels on its native correspondence handle without a
+duplicate serialized program channel.
+
+Compiler and validation diagnostics each publish the renderer's final normalized,
+meta-enriched `Arc<Report>` through a native `Diagnostics` handle. The validation
+record seal is applied before that value becomes immutable. The closed owner set
+contains only these two producers; the snapshot shares both report Arcs and the
+original producers release at their existing last consumers. In-DAG docs borrow
+the producer reports, while post-DAG measurement selects the retained snapshot
+explicitly. Both use one borrowed fold, preserving every documented-term and
+logical-location join, slice attribution and exact constraint-code help link.
+Neither consumer reparses report JSON or reconstructs rich findings from the
+loss ledger or diagnostic RDF. Missing native identity is a hard failure.
+
+Report handles authenticate every nested report field and the backing diagnostic
+graph together. That graph also contains gate and meta conclusions, so its RDF
+projection does not replace the complete reports as semantic input. Empty valid
+reports retain an explicit diagnostic graph declaration. Action persistence uses
+mandatory CBOR for the full publication, including report-only evidence and
+metadata; those bytes enter the normal cache receipt and hydration accounting.
+Required JSON, SARIF, HTML and RDF artifacts remain terminal presentations, and
+the run ledger retains its established pre-meta finding projection. This removes
+transport reparsing; it still retains two rich reports alongside terminal bytes.
+
+Mapping source admission also publishes one immutable `CorrespondenceAnalysis`.
+SSSOM, EDOAL, SPARQL and FnO borrow its exact alignment cells, patterns and bindings;
+FnO derives its signature model from those patterns without another RDF parser.
+Alignment lookup retains the authored morphism qualifiers, so two declarations
+about the same assertion cannot overwrite each other's overclaim checks. Source
+statistics share this admission and preserve per-file memberships even when the
+canonical program deduplicates a correspondence. This analysis lives only for the
+lowering invocation; it neither adds a persistent carrier nor certifies a rewrite.
+
+Compiler carrier assembly places the existing canonical, relational-core and
+correspondence datasets through one composite view and materializes the final
+carrier once. Routing moves ordinary statements, reifier bindings, annotations and
+graph declarations together. The old graph has no remaining ownership or empty
+declaration; an IRI used as a provenance value remains that value. Independent
+input blank scopes remain distinct. These producer inputs carry locations in their
+RDF and report payloads; unexpected physical row-location attachments fail admission
+before publication. Diagnostics retain their selected graph placement.
+
+`stage-validate` declares the same native catalog as an input. It validates that
+complete root/module/import dataset directly and reuses the shared compilation
+for its gate and meta-rule folds. The authored-only presentation graph remains a
+different selection; neither it nor the byte transport defines this input.
+The validation-only substrate role is a borrowed subject/graph selection imported
+through PurRDF, preserving native annotations and reifier bindings. Its statements
+join the validation data without a Turtle/N-Triples/N-Quads intermediate; the rest
+of the provenance graph stays outside the validation target set.
+Each prepared selection retains a structural source graph before extraction or
+lowering. Typed owner claims, formula/term components, mathematical backing,
+module/import links and standpoint references remain distinct. Source documents
+keep their exact byte/base/role receipts and original-to-canonical node bindings,
+including each contributor to a deduplicated named law and separate anonymous
+anchors. Native reifier and annotation tables retain their own source positions
+and graph identity, including quoted statements, without a flattening round trip.
+Native remapping uses a bounded per-document lookup cache; saturation
+recomputes the same binding. This invocation-local structural inventory is not a
+complete law-coverage certificate or permission to assert an imported context.
+The catalog inventories inputs; a source/import role or transport graph is never
+implicit permission to assert its contents in every logical context. Tests consume
+the downstream producer-selected persistent receipts and cannot rebuild a catalog
+or corpus on a cache miss.
+
+Compiler graph reads stream ordinary statements, native reifier bindings and
+annotations through one default-graph boundary. Ordinary patterns use PurRDF's
+indexes; subject-bound native probes use its sorted side-table runs. An unbound
+native probe streams the side tables. Exact indexed membership deduplicates a
+statement stored in multiple physical carriers without an accumulating seen set.
+No whole-source owned quad vector or second dataset is created for these passes.
+Named-graph metadata cannot supply default-graph scope, and a bare quoted
+proposition cannot become an asserted axiom. Unsupported nested scoped terms
+receive a lowering error instead of being stringified or dropped.
+Invalid confidence, unknown modality, proposition-valued scope coordinates and
+unlowered coordinate multiplicity withhold the whole claim or rule with an error.
+Separate reifiers preserve coexisting standpoints; table order cannot pick a winner.
+
+The prepared compiler can retain emission evidence bound to that exact source.
+Ordinary and annotation axioms carry their native statement coordinates; scoped
+axioms and class-expression expansions carry their original structural roots.
+Horn routing retains each formula root, and axiom deduplication unions all these
+origins. Values and source anchors are sorted together once, so canonical IR
+positions come from actual lowering rather than matching generated identifiers.
+Every declared formula has an explicit outcome: emitted axiom, emitted formula,
+read under an owner, malformed with a diagnostic reference, or outside the selected
+default graph. A shared malformed subtree records every affected root even when
+the diagnostic itself is shared. These invocation-local records do not certify
+complete source coverage, owner execution or optimization laws; class-expression
+roots alone do not account for every consumed restriction or list statement.
+
+The rule, contract, path-shape, constraint/sugar, reasoning-program and
+correspondence readers also capture their original owner at invocation. Emitted
+values keep their owner and diagnostic references through canonical ordering;
+rejected owners retain their own errors or a reference to the shared formula
+failure. An emitted contract carrying an admission error remains visibly invalid
+for execution. Named-graph owners have explicit default-graph exclusions.
+Correspondences and their referenced transaction legs borrow PurRDF's native
+indexes directly, including annotation rows. There is no separately materialized
+subject/predicate string index to rebuild for the legs. Shared leg references are
+read once, and a leg without a supported selected path program has an explicit
+unlowered diagnostic. Anonymous correspondence identities are recorded as
+unlowered by the current named-IR reader, not as invalid correspondence semantics.
+Nested owner/component consumption and complete native
+admission still require their own evidence; these root records do not supply it.
+
+Selected correspondence scalar reads distinguish an absent field from a present
+wrong-kind, conflicting or undecodable value. Enum fields require a recognized
+canonical `logic:` value, including optional determinacy, preservation and law
+conditions. Quantitative axes retain their exact RDF numeric literals alongside
+validated native numeric values. Their lexical decoder and the mnemomorphic
+boolean decoder come from PurRDF; numeric value equality never erases authored
+literal identity.
+No malformed number becomes an absent axis, and no unrecognized boolean becomes
+false. Multivalue readers require every declared member, including law, recovery,
+caveat and program-registry references. Physical duplicate rows remain one RDF
+value rather than a scalar conflict.
+
+Named textual caveats belong to their `Correspondence` IR owner. Every
+`rdfs:comment` is retained as a complete PurRDF literal: lexical form, datatype,
+language and RDF 1.2 base direction. Multiple comments are a canonical RDF set;
+no language or comment wins over another. Literal shape checks use PurRDF's
+component validator, and canonical ordering compares borrowed native fields.
+The serialized cache representation includes every component and rejects
+incoherent language/datatype/direction combinations and unknown directions.
+Bare-source
+compilation and wrapper rehydration use the same reader; an unreadable caveat
+rejects its owner with a diagnostic. Program assembly, put derivation, law
+attachment and Common Logic projections retain that typed payload. CLIF and
+CGIF metadata literals carry direction in their language token; XCL retains
+the native RDF carrier. Caveat identity, comment counts and every literal
+component are length-framed in the owner's content key. No program-level
+caveat registry or per-correspondence scan of an unrelated side collection is
+needed. This literal representation does not implement formula-valued caveats.
+
+The selected path-program reader requires constructor fields, member items and
+list tails to agree. A malformed tail cannot truncate a sequence, and conflicting
+or unsupported constructors cannot become a bare predicate step. Constructor and
+list cycles fail explicitly; the existing depth and length limits remain bounded
+errors. Public leg-registry extraction and the producer propagate any selected
+leg failure instead of publishing the remaining programs as a complete registry.
+
+Formula assertions, constraints, reasoning-program clauses and correspondence
+recovery transforms share one reconstruction session per selected dataset. Its
+memo uses native source-term identity together with modal world and depth, with
+an 8 MiB retained-payload limit and a 4096-entry limit. Eviction recomputes the
+same formula; it cannot omit a check. Modal binders use a deterministic namespace
+disjoint from authored variables, and sort declarations remain occurrence-scoped
+through modal bodies. Only assertion roots retain owned trees in the formula
+extractor; intermediate reuse belongs to the bounded session. Source ownership,
+admission and execution evidence are separate from this derived-value memo.
+
+The mapping adapter borrows native reifier identities from the same source dataset.
+It probes each reifier's indexed statement rows and allocates only the selected
+correspondence fields; unrelated propositions do not become owned intermediate
+records. Scalar field kind and multiplicity are checked before lowering. Ordinary
+and native annotation carriers share the same default-graph read boundary.
+The adapter's value type is PurRDF's complete `TermValue`, including scoped blanks,
+directional literals and nested propositions. Expression constants retain that
+value until the target renderer admits them or records unsupported residue. A
+source-scoped blank in a proposition requires an explicit target query binding.
 
 **The carrier's lifetime is bounded (drop-after-last-carrier-consumer).** Every
 `dataflowConsumes` edge remains the authored scheduling, action-key, and artifact
@@ -139,6 +332,31 @@ compute — never in how it travels:
 | `stage-compile-logic` | the `logic:` IR and its typed views | `GRAPH_LOGIC`, `GRAPH_RELATIONAL_CORE`, `GRAPH_CORRESPONDENCE`, `GRAPH_DIAGNOSTICS` |
 | `stage-reason` | the reasoned closure (once — the razor) | `GRAPH_REASONING`, `GRAPH_EXAMPLES`, `GRAPH_DIAGNOSTICS` |
 | `stage-math-producers` | the `math:` producer outputs, including executed R / ONNX / TSTP lifts | `GRAPH_EXAMPLES` |
+
+Diagnostic reports project directly into native datasets for rule execution and
+carrier publication. The same finding projection supplies the terminal text
+renderer, preserving grade coordinates, exact location integers, antecedent
+identities and quad-provenance links. The shared diagnostics renderer carries its
+native findings plus authored gate and meta-rule conclusions alongside JSON,
+SARIF, HTML and canonical RDF artifacts. Compilation and validation consume that
+dataset directly; neither reads its RDF artifact back. Meta-findings append into
+the final builder, and an empty derivation reuses the immutable input publication.
+The reason stage appends chase diagnostics into its final carrier builder.
+Minted cross-node conflict witnesses use the shared A-Box annotation contract,
+including their required carrier-language label and definition. These changes
+remove transport conversions; they neither replace the authored rules nor grant
+composition or optimization certificates.
+
+The reason stage projects each derived axiom once into its native carrier and
+required Turtle artifact. Proof reifiers, source receipts, world evidence and
+math-expression identity edges share that traversal. The native carrier is frozen
+once after its reasoning and diagnostic graphs are attached; the closure is never
+parsed back from Turtle or frozen as an intermediate dataset. Resolved witness
+heads also flow directly into native diagnostics and are reused for certificate
+links. Anonymous proof nodes occupy a scope disjoint from source blanks, including
+quoted and composite-literal occurrences. The completed carrier is shared by the
+stage product. Stage timing metadata reports removed closure-reparse bytes and
+witness wire bytes separately from required artifact bytes.
 
 Four properties bind a grounding generator, all inherited rather than special:
 

@@ -35,14 +35,16 @@ pub const META_SNAPSHOT_ID: &str = "snapshotContentId";
 /// The snapshot content id is stamped into the report metadata before the
 /// JSON/SARIF projections are rendered, so the embedded report attests to the
 /// bundle it lives in.
-pub fn build_feedback_bundle(report: &Report) -> gmeow_errors::Result<Vec<u8>> {
+pub fn build_feedback_bundle(
+    report: &Report,
+) -> gmeow_errors::Result<gmeow_gts_profile::GmeowGtsEmission> {
     let mut builder = SnapshotBuilder::new();
     let nquads = render::to_gmeow_rdf(report);
     if !nquads.trim().is_empty() {
         let dataset = parse_dataset(nquads.as_bytes(), "application/n-quads", None)
             .map_err(|e| crate::error::feedback(format!("parse findings RDF: {e}")))?;
-        builder
-            .add_dataset(&dataset)
+        let _ingestion = builder
+            .add_view(&dataset)
             .map_err(|e| crate::error::feedback(format!("add findings dataset: {e}")))?;
     }
 
@@ -62,7 +64,7 @@ pub fn build_feedback_bundle(report: &Report) -> gmeow_errors::Result<Vec<u8>> {
     // one mandated door: the SARIF and findings blobs are small and must NOT
     // fall back to the plain-`zstd` default `emit_gts` would otherwise apply.
     gmeow_gts_profile::emit_gmeow_gts(
-        &builder,
+        builder,
         Vec::new(),
         vec![
             BlobRow {
@@ -77,8 +79,7 @@ pub fn build_feedback_bundle(report: &Report) -> gmeow_errors::Result<Vec<u8>> {
             },
         ],
         None,
-        None,
-        None,
+        &gmeow_gts_profile::baseline_medium_plan(),
     )
     .map_err(|e| crate::error::feedback(format!("emit feedback bundle: {e}")))
 }
@@ -146,7 +147,7 @@ pub fn verify_feedback_bundle(bundle: &[u8]) -> bool {
     };
 
     let mut builder = SnapshotBuilder::new();
-    if builder.add_dataset(dataset.as_ref()).is_err() {
+    if builder.add_view(dataset.as_ref()).is_err() {
         return false;
     }
 
