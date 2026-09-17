@@ -84,6 +84,50 @@ fn executable_and_recipe_substitution_are_rejected() {
     assert!(receipt.verify(&binary, &digest).is_err());
 }
 
+/// A producer transferred to a clean execution host keeps the build controller's
+/// resolution evidence, but runtime admission must not require that host to recreate
+/// the controller's Cargo environment. Exact graph binding and source freshness remain
+/// mandatory.
+#[test]
+fn runtime_source_admission_is_portable_across_cargo_environments() {
+    let scratch = tempfile::tempdir().expect("scratch");
+    let binary = scratch.path().join("producer");
+    std::fs::write(&binary, b"linked executable").expect("write");
+    let recipe = recipe(scratch.path());
+    let receipt = ExecutableReceipt {
+        schema: 2,
+        resolution: gmeow_build_inputs::CargoResolutionInputs::capture(
+            scratch.path(),
+            ["Cargo.toml".into()].into_iter().collect(),
+        )
+        .unwrap()
+        .bind(&recipe.source_inventory.selection)
+        .unwrap(),
+        recipe,
+        executable_sha256: sha256_file(&binary).expect("digest"),
+    };
+    let mut transferred = serde_json::to_value(receipt).expect("serialize receipt");
+    transferred["resolution"]["inputs"]["environment"]["RUSTUP_TOOLCHAIN"] =
+        serde_json::Value::String("0".repeat(64));
+    let transferred: ExecutableReceipt =
+        serde_json::from_value(transferred).expect("deserialize transferred receipt");
+
+    transferred
+        .verify_current_sources(scratch.path())
+        .expect("current selected sources remain portable");
+    assert!(
+        transferred.verify_current_inputs(scratch.path()).is_err(),
+        "the build-controller verification must still reject stale resolution inputs"
+    );
+
+    std::fs::write(scratch.path().join("input.rs"), "pub fn changed() {}\n")
+        .expect("change selected source");
+    assert!(
+        transferred.verify_current_sources(scratch.path()).is_err(),
+        "portable admission must still reject changed selected sources"
+    );
+}
+
 /// Keep source-only edits out of action policy while retaining compiler and flag changes.
 #[test]
 fn compilation_policy_and_executable_source_have_separate_identities() {
