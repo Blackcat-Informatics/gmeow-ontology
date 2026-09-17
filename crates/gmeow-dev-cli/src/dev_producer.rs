@@ -132,7 +132,7 @@ pub(crate) fn admit() -> gmeow_errors::Result<()> {
     }
     let root = crate::dev_common::project_root();
     receipt
-        .verify_current_inputs(&root)
+        .verify_current_sources(&root)
         .map_err(|e| fail(e.to_string()))?;
     let current = receipt
         .recipe

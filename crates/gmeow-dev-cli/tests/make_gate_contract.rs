@@ -936,12 +936,18 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         .and_then(|(_, tail)| tail.split_once("\n  # Optimized corpus work"))
         .map(|(job, _)| job)
         .expect("producer-independent Rust prebuild job precedes fixture production");
+    let prebuild_ripgrep = prebuild_job
+        .find("tool: ripgrep")
+        .expect("prebuild job provisions the corpus-purity scanner");
+    let prebuild_compile = prebuild_job
+        .find("run: make rust-prebuild")
+        .expect("prebuild job compiles the producer-independent inventory");
     assert!(
-        prebuild_job.contains("run: make rust-prebuild")
+        prebuild_ripgrep < prebuild_compile
             && job_needs(prebuild_job).is_empty()
             && !prebuild_job.contains("test-fixtures")
             && !prebuild_job.contains("generated-tree-${{ github.sha }}"),
-        "test compilation must start without waiting for any corpus producer"
+        "test compilation must start without waiting for any corpus producer and must provision its source scanner"
     );
     let prefix_job = ci
         .split_once("\n  fixture-prefix:\n")
@@ -1083,9 +1089,12 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     let transfer_fallback = archive_job
         .find("Rebuild producer-independent products on transfer miss")
         .expect("archive job carries a complete cache-miss fallback");
+    let ripgrep_install = archive_job
+        .find("tool: ripgrep")
+        .expect("archive fallback provisions the corpus-purity scanner");
     assert!(
-        nextest_install < transfer_fallback,
-        "the archive cache-miss fallback must provision nextest before invoking make rust-prebuild"
+        nextest_install < transfer_fallback && ripgrep_install < transfer_fallback,
+        "the archive cache-miss fallback must provision nextest and ripgrep before invoking make rust-prebuild"
     );
     assert!(
         compact_ci

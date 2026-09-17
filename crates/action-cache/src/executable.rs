@@ -215,6 +215,22 @@ impl ExecutableReceipt {
             .map_err(|error| ActionCacheError::message(error.to_string()))
     }
 
+    /// Require the selected source inventory to remain current while admitting an
+    /// already-authenticated producer on an execution host.
+    ///
+    /// Cargo-resolution inputs include the controller host's toolchain environment and
+    /// configuration layering. They are strict build/refresh evidence, but a transferred
+    /// producer deliberately runs without resolving Cargo on the receiving host. The
+    /// immutable selected graph remains bound by [`Self::verify`]; this check admits only
+    /// current source bytes and inventory membership without pretending the execution
+    /// host performed the build controller's resolution.
+    pub fn verify_current_sources(&self, root: &Path) -> Result<(), ActionCacheError> {
+        self.resolution
+            .verify_selection(&self.recipe.source_inventory.selection)
+            .and_then(|()| self.recipe.source_inventory.verify_current(root))
+            .map_err(|error| ActionCacheError::message(error.to_string()))
+    }
+
     /// Publish a complete receipt atomically beside its executable.
     pub fn write(&self, path: &Path) -> Result<(), ActionCacheError> {
         let parent = path.parent().ok_or_else(|| {
@@ -258,7 +274,7 @@ pub fn current_source_inventory(
             "producer executable does not embed the selected source recipe",
         ));
     }
-    receipt.verify_current_inputs(root)?;
+    receipt.verify_current_sources(root)?;
     let selected = receipt
         .recipe
         .source_inventory
