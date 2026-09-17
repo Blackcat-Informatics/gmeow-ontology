@@ -3771,12 +3771,12 @@ msgid "program query"
 msgstr "requête de programme"
 
 msgctxt "https://blackcatinformatics.ca/logic/ProjectionLoss|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "Projection Loss"
-msgstr "Perte de projection"
+msgid "Projection Loss Declaration"
+msgstr "Déclaration de perte de projection"
 
 msgctxt "https://blackcatinformatics.ca/logic/projectionLoss|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "projection loss"
-msgstr "perte de projection"
+msgid "projection loss code"
+msgstr "code de perte de projection"
 
 msgctxt "https://blackcatinformatics.ca/logic/ProjectionTarget|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Projection Target"
@@ -19910,7 +19910,7 @@ msgstr "Jugement de préservation d’un programme abaissé complet, contraint p
 
 msgctxt "https://blackcatinformatics.ca/logic/lossyDrop|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "lossy drop"
-msgstr "perte de projection"
+msgstr "abandon avec perte"
 
 msgctxt "https://blackcatinformatics.ca/logic/lossyDrop|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An explicit explanation of source content that a lowered projection cannot represent."

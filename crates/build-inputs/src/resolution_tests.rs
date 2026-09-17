@@ -5,10 +5,21 @@ use super::*;
 
 #[test]
 fn resolution_environment_tracks_selection_without_cargo_injected_test_noise() {
-    let values = |target: &str, temporary: &str| {
+    let values = |target: &str, output_slot: &str| {
         vec![
             ("CARGO_BUILD_TARGET".into(), target.into()),
-            ("CARGO_TARGET_TMPDIR".into(), temporary.into()),
+            (
+                "CARGO_TARGET_DIR".into(),
+                std::ffi::OsString::from(format!("{output_slot}/target")),
+            ),
+            (
+                "CARGO_BUILD_BUILD_DIR".into(),
+                std::ffi::OsString::from(format!("{output_slot}/build")),
+            ),
+            (
+                "CARGO_TARGET_TMPDIR".into(),
+                std::ffi::OsString::from(format!("{output_slot}/temporary")),
+            ),
             ("CARGO_PKG_VERSION".into(), "1".into()),
         ]
     };

@@ -3804,7 +3804,7 @@ logic:projectionLoss
     rdfs:domain [ a logic:Class ; logic:unionOf ( logic:CoherenceCertificate logic:CoherenceCheckAttestation ) ] ;
     rdfs:range xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "projection loss"@x-gmeow-english ;
+    rdfs:label "projection loss code"@x-gmeow-english ;
     skos:definition "Names a loss-ledger code carried on a logic:CoherenceCertificate / logic:CoherenceCheckAttestation payload — MULTI-valued. Distinct from logic:unsupportedConstruct (which names the undecided DL construct): logic:projectionLoss records the ledger code of a lossy projection (Principle 17) that co-held when the coherence artifact was issued."@x-gmeow-english .
 
 logic:contractHash
@@ -7208,7 +7208,7 @@ logic:conjectureEntails
 logic:ProjectionLoss
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Projection Loss"@x-gmeow-english ;
+    rdfs:label "Projection Loss Declaration"@x-gmeow-english ;
     skos:definition "An in-band declaration that a lossy projection dropped structure its source carried — emitted into the projected graph itself, never a sidecar. GTS stays lossless; loss is declared only at the exit gate (Principle 17 / Principle 4). A loss-aware SPARQL CONSTRUCT mints one when its template omits an RDF-1.2 reification layer that its WHERE matched, so a downstream consumer of the projection can see exactly what was shed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

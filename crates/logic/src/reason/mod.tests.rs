@@ -81,9 +81,12 @@ fn scratch_leave_one_out(edb: &RdfDataset, axiom: &LeaveOneOutAxiom) -> bool {
     .expect("scratch leave-one-out reasons")
     .iter()
     .any(|inferred| {
-        inferred.subject == axiom.subject
-            && inferred.predicate == axiom.predicate
-            && inferred.object.as_iri() == Some(axiom.object.as_str())
+        calculus_term(&inferred.subject) == calculus_term(&axiom.subject)
+            && calculus_term(&inferred.predicate) == calculus_term(&axiom.predicate)
+            && inferred
+                .object
+                .as_iri()
+                .is_some_and(|object| calculus_term(object) == calculus_term(&axiom.object))
     })
 }
 
@@ -387,6 +390,7 @@ fn batched_leave_one_out_matches_scratch_for_every_fast_tbox_family() {
         quad(D, LOGIC_DISJOINT, E),
         quad(S, LOGIC_INVERSE, T),
         quad(P, TYPE, FUNCTIONAL),
+        quad(P, TYPE, LOGIC_FUNCTIONAL),
         quad(S, TYPE, LOGIC_FUNCTIONAL),
         quad(Q, TYPE, MARKER),
         quad(MARKER, SUBCLASS, FUNCTIONAL),
@@ -422,7 +426,7 @@ fn batched_leave_one_out_matches_scratch_for_every_fast_tbox_family() {
     assert_eq!(
         batched,
         vec![
-            true, false, false, false, false, false, true, false, false, false, false, false, true
+            true, false, false, false, false, false, true, false, false, false, true, false, true
         ]
     );
 }
