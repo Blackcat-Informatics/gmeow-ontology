@@ -18,16 +18,100 @@
 use std::sync::Arc;
 
 use gmeow_errors::{Finding, Location, Report, Severity};
-use purrdf::sparql::NativeSparqlEngine;
+use purrdf::sparql::{NativeSparqlEngine, PreparedQuery, QueryOptions};
 use purrdf::{
-    DatasetMut, MutableDataset, QuadValues, RdfDataset, RdfQuad, RdfTerm, SparqlEngine,
-    SparqlRequest, SparqlResult, TermValue,
+    DatasetMut, MutableDataset, QuadValues, RdfDataset, RdfQuad, RdfTerm, SparqlResult, TermValue,
 };
 
 use crate::math_expression::{MATH_ALPHA_EQUIVALENCE_CLASS, MATH_ALPHA_EQUIVALENCE_CLASS_TYPE};
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
 use crate::result::ReasoningResult;
+
+pub(crate) mod prepared_gates;
+pub use prepared_gates::{GATE_SOURCES, PREPARED_GATES_CHANNEL, PreparedReasonedGates};
+
+/// One selected query set and native law preparation reused across verification scenes.
+/// The same reasoned-graph materialization and finding path backs every entry point.
+pub struct PreparedVerification<'a> {
+    gates: &'a PreparedReasonedGates,
+    engine: NativeSparqlEngine,
+    queries: Vec<(String, Arc<PreparedQuery>)>,
+}
+
+impl<'a> PreparedVerification<'a> {
+    /// The exact immutable native law preparation used by this verifier.
+    #[must_use]
+    pub fn gates(&self) -> &PreparedReasonedGates {
+        self.gates
+    }
+
+    /// Retain prepared query plans over the explicitly supplied native law identity.
+    ///
+    /// # Errors
+    /// Rejects stale law identities and malformed selected queries.
+    pub fn new(
+        queries: &[(String, String)],
+        gates: &'a PreparedReasonedGates,
+    ) -> gmeow_errors::Result<Self> {
+        gates.validate_source_identity()?;
+        let engine = NativeSparqlEngine::new();
+        let queries = queries
+            .iter()
+            .map(|(name, text)| {
+                let prepared = engine.prepare_query(text, None).map_err(|error| {
+                    gmeow_errors::Diag::of_kind(crate::error::Verify {
+                        detail: format!("verify query {name} preparation error: {error}"),
+                    })
+                })?;
+                Ok((name.clone(), prepared))
+            })
+            .collect::<gmeow_errors::Result<_>>()?;
+        Ok(Self {
+            gates,
+            engine,
+            queries,
+        })
+    }
+
+    /// Evaluate the selected native logical worlds once using these retained laws and queries.
+    ///
+    /// # Errors
+    /// Propagates the same reasoning, closure and query failures as [`verify`].
+    pub fn verify(
+        &self,
+        edb: &RdfDataset,
+        domains: &crate::physical::SelectedDomains,
+    ) -> gmeow_errors::Result<Report> {
+        let input = crate::reason::prepare_reasoning_input(edb)?;
+        let result = reason_all(input, domains)?;
+        self.verify_with_reasoning_result(edb, &result)
+    }
+
+    /// Reuse a caller-owned complete native result without another reasoning chase.
+    ///
+    /// # Errors
+    /// Propagates the same materialization and query failures as [`verify_with_reasoning_result`].
+    pub fn verify_with_reasoning_result(
+        &self,
+        edb: &RdfDataset,
+        result: &ReasoningResult,
+    ) -> gmeow_errors::Result<Report> {
+        verify_prepared(edb, result, self)
+    }
+
+    /// Materialize a caller-owned closure under the same explicitly selected native laws.
+    ///
+    /// # Errors
+    /// Propagates the same gate and insertion errors as [`materialize_reasoned_graph`].
+    pub fn materialize_reasoned_graph(
+        &self,
+        edb: &RdfDataset,
+        result: &ReasoningResult,
+    ) -> gmeow_errors::Result<ReasonedGraphOutcome> {
+        materialize_with_gates(edb, result, self.gates)
+    }
+}
 
 /// Strip a single pair of angle brackets from an IRI term, if present.
 ///
@@ -82,8 +166,8 @@ fn query_stem(name: &str) -> &str {
 /// [`Ready`]: ReasonedGraphOutcome::Ready
 pub struct ReasonedGraph {
     /// The flat asserted graph (default graph) unioned with the DL-derived (non-EDB)
-    /// edges and the math: dimension-gate markers — the frozen dataset every verify
-    /// query and the math: dimension/expression-identity gates evaluate against.
+    /// edges and alpha-equivalence projection. Full verification additionally
+    /// includes its math-dimension and enactment-integrity markers.
     pub dataset: Arc<RdfDataset>,
     /// The predicate IRIs of the DERIVED (non-EDB) edges — the finite-closure oracle
     /// the non-entailment obligation check (Arm B) needs: a forbidden predicate that
@@ -117,22 +201,17 @@ fn reasoned_insert_err(e: impl std::fmt::Display) -> gmeow_errors::Diag {
     })
 }
 
-/// Materialize the reasoned graph every reasoned-graph consumer shares: flatten
-/// `edb`'s default graph (literals + `owl:members` RDF lists preserved), layer the
-/// native EL/DL closure's DERIVED (non-EDB) edges on top, splice in the math:
-/// dimension-gate markers (`crate::reason::math_gate::dimension_gate_markers`), and
-/// freeze — OR, if the native reasoner left a DL coverage gap, return the gap
-/// findings instead of an untrustworthy closure (defense-in-depth: a gap means the
-/// reasoner could NOT genuinely decide the consequences of one or more OWL
-/// constructs present in the bundle, so checking the closure risks a false
-/// negative).
+/// Materialize the full reasoned-verification graph: flatten `edb`'s default
+/// graph, layer the native EL/DL closure's derived edges on top, run the authored
+/// math-dimension and enactment-integrity gate programs, attach expression
+/// identity, and freeze. If the reasoner left a DL coverage gap, return the gap
+/// findings instead of an untrustworthy closure.
 ///
 /// This is the SHARED first stage [`verify_with_reasoning_result`] (the embedded
 /// `queries/verify/*.rq` bad-example battery + the typed-formalization obligations)
-/// and every standalone reasoned-graph consumer (the math: dimension/expression-
-/// identity gates, when a caller wants ONLY those without the full-ontology-shaped
-/// query battery — e.g. `gmeow validate --deep` reasoning a consumer's own partial
-/// data graph, where the 30-query battery's fixed-vocabulary checks like
+/// and full-gate consumers (for example `gmeow validate --deep` reasoning a
+/// consumer's own partial data graph without the full-ontology-shaped query
+/// battery, where fixed-vocabulary checks like
 /// `axis-not-disjoint` would misfire on a bundle that never carries gmeow's own
 /// identity-axis classes) build from.
 ///
@@ -153,6 +232,49 @@ pub fn materialize_reasoned_graph(
     edb: &RdfDataset,
     result: &ReasoningResult,
 ) -> gmeow_errors::Result<ReasonedGraphOutcome> {
+    materialize_with_gates(edb, result, prepared_gates::shared())
+}
+
+/// Materialize the checked native closure and expression identity projection
+/// without running the independent math-dimension and enactment-integrity gate
+/// programs.
+///
+/// This is the typed projection for consumers that inspect consequences of one
+/// selected reasoning scene rather than execute the repository's full
+/// reasoned-verify contract. It still rejects incomplete DL coverage, malformed
+/// RDF terms, and derived effect records, and it uses the same closure and
+/// alpha-equivalence materialization as [`materialize_reasoned_graph`].
+///
+/// # Errors
+/// Returns `Err` when closure materialization violates any of those shared
+/// contracts.
+pub fn materialize_reasoned_closure(
+    edb: &RdfDataset,
+    result: &ReasoningResult,
+) -> gmeow_errors::Result<ReasonedGraphOutcome> {
+    match materialize_closure_base(edb, result)? {
+        ClosureBaseOutcome::Ready(base) => finalize_reasoned_graph(edb, base),
+        ClosureBaseOutcome::IncompleteClosure(findings) => {
+            Ok(ReasonedGraphOutcome::IncompleteClosure(findings))
+        }
+    }
+}
+
+struct ClosureBase {
+    store: MutableDataset,
+    derived_edges: Vec<RdfQuad>,
+    derived_predicates: std::collections::BTreeSet<String>,
+}
+
+enum ClosureBaseOutcome {
+    Ready(ClosureBase),
+    IncompleteClosure(Vec<Finding>),
+}
+
+fn materialize_closure_base(
+    edb: &RdfDataset,
+    result: &ReasoningResult,
+) -> gmeow_errors::Result<ClosureBaseOutcome> {
     // 1. Flat asserted graph (default graph; literals + owl:members lists kept).
     //    A no-GRAPH verify query then matches it, exactly like ROBOT's single
     //    merged reasoned graph. The native flatten re-materializes the RDF 1.2
@@ -220,7 +342,7 @@ pub fn materialize_reasoned_graph(
             )
             .with_tool("verify"),
         );
-        return Ok(ReasonedGraphOutcome::IncompleteClosure(findings));
+        return Ok(ClosureBaseOutcome::IncompleteClosure(findings));
     }
 
     // The predicate IRIs of the DERIVED (non-EDB) edges — the finite-closure oracle
@@ -233,8 +355,7 @@ pub fn materialize_reasoned_graph(
     // merely the raw asserted EDB. A dimension-relevant triple (`math:hasDimension`,
     // `math:homogeneousOperand`, `math:integrand`, `math:withRespectTo`, or an `rdf:type`
     // classifying a dimension node) that is *derived* rather than asserted must still
-    // reach the hard-fail gate; the native closure only materializes all-IRI edges, so
-    // these carry no literal terms.
+    // reach the hard-fail gate. Native literal and quoted-triple objects are retained.
     let mut derived_edges: Vec<RdfQuad> = Vec::new();
     // The same derived edges as `(subject, predicate, object)` rows, for the enactment
     // kernel's observed-not-derived guard immediately below. Built here rather than
@@ -247,22 +368,25 @@ pub fn materialize_reasoned_graph(
         }
         let subject = bare_iri(&ax.subject);
         let predicate = bare_iri(&ax.predicate);
-        let object = bare_iri(&ax.object);
         derived_predicates.insert(predicate.to_owned());
         store
             .insert(QuadValues {
                 s: TermValue::iri(subject),
                 p: TermValue::iri(predicate),
-                o: TermValue::iri(object),
+                o: ax.object.clone(),
                 g: None,
             })
             .map_err(reasoned_insert_err)?;
         derived_edges.push(RdfQuad::new(
             RdfTerm::iri(subject),
             predicate,
-            RdfTerm::iri(object),
+            crate::reason::term_value_to_rdf_term(&ax.object)?,
         ));
-        derived_rows.push((subject.to_owned(), predicate.to_owned(), object.to_owned()));
+        let object = ax.object.as_iri().map_or_else(
+            || crate::provenance::term_display(&ax.object),
+            str::to_owned,
+        );
+        derived_rows.push((subject.to_owned(), predicate.to_owned(), object));
     }
 
     // The enactment kernel's observed-not-derived guard, over the REASONED CLOSURE — the
@@ -285,6 +409,85 @@ pub fn materialize_reasoned_graph(
     // the verify queries reason about like any other data.
     crate::reason::enactment::reject_banned_heads(&derived_rows)?;
 
+    Ok(ClosureBaseOutcome::Ready(ClosureBase {
+        store,
+        derived_edges,
+        derived_predicates,
+    }))
+}
+
+fn finalize_reasoned_graph(
+    edb: &RdfDataset,
+    base: ClosureBase,
+) -> gmeow_errors::Result<ReasonedGraphOutcome> {
+    let ClosureBase {
+        store,
+        derived_edges: _,
+        derived_predicates,
+    } = base;
+    let dataset = store.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Verify {
+            detail: format!("freeze reasoned graph failed: {e}"),
+        })
+    })?;
+
+    // One asserted-graph derivation supplies the in-process verifier and the
+    // shipped closure, so accepted expression roots expose identical joinable
+    // alpha-class individuals on both surfaces.
+    let alpha_edges = crate::math_expression::alpha_equivalence_edges(edb);
+    if alpha_edges.is_empty() {
+        return Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
+            dataset,
+            derived_predicates,
+        }));
+    }
+    let mut with_alpha = MutableDataset::new(Arc::clone(&dataset));
+    for (root, alpha_class) in alpha_edges {
+        with_alpha
+            .insert(QuadValues {
+                s: TermValue::iri(root),
+                p: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS),
+                o: TermValue::iri(alpha_class.clone()),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
+        with_alpha
+            .insert(QuadValues {
+                s: TermValue::iri(alpha_class),
+                p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                o: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
+    }
+    let dataset = with_alpha.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Verify {
+            detail: format!("freeze reasoned graph with alpha-equivalence classes failed: {e}"),
+        })
+    })?;
+    Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
+        dataset,
+        derived_predicates,
+    }))
+}
+
+fn materialize_with_gates(
+    edb: &RdfDataset,
+    result: &ReasoningResult,
+    gates: &PreparedReasonedGates,
+) -> gmeow_errors::Result<ReasonedGraphOutcome> {
+    let base = match materialize_closure_base(edb, result)? {
+        ClosureBaseOutcome::Ready(base) => base,
+        ClosureBaseOutcome::IncompleteClosure(findings) => {
+            return Ok(ReasonedGraphOutcome::IncompleteClosure(findings));
+        }
+    };
+    let ClosureBase {
+        mut store,
+        derived_edges,
+        derived_predicates,
+    } = base;
+
     // The reasoner-derived `math:` dimensional-homogeneity gate: compiles the two
     // builtin-bound-consequent `logic:Constraint`s authored in `slices/grounding/math/
     // module.ttl` into VIOLATION-EMITTING forward rules and materializes
@@ -299,9 +502,11 @@ pub fn materialize_reasoned_graph(
     // freeze below, so the `dimensional-inhomogeneity.rq` verify query (and every
     // obligation check below) renders it like any other row — never a Rust side-channel
     // finding.
-    for (subject, failure_class) in
-        crate::reason::math_gate::dimension_gate_markers(edb, &derived_edges)?
-    {
+    for (subject, failure_class) in crate::reason::math_gate::dimension_gate_markers_with_rules(
+        edb,
+        &derived_edges,
+        &gates.math_rules,
+    )? {
         store
             .insert(QuadValues {
                 s: TermValue::iri(subject),
@@ -342,7 +547,11 @@ pub fn materialize_reasoned_graph(
     // `gmeow:enforcesFailureClass`: which class a law's findings carry is a property of
     // the law, so writing it down is a projection of what the author declared and not a
     // second decision about the record.
-    let kernel_markers = crate::reason::enactment::enactment_gate_markers(edb, &derived_edges)?;
+    let kernel_markers = crate::reason::enactment::enactment_gate_markers_with_laws(
+        edb,
+        &derived_edges,
+        &gates.enactment,
+    )?;
     crate::reason::enactment::reject_banned_heads(
         &kernel_markers
             .iter()
@@ -374,59 +583,14 @@ pub fn materialize_reasoned_graph(
             .map_err(reasoned_insert_err)?;
     }
 
-    // Freeze the reasoned graph once; every verify query + the obligation checks
-    // evaluate against this shared frozen dataset via the native engine.
-    let dataset = store.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Verify {
-            detail: format!("freeze reasoned graph failed: {e}"),
-        })
-    })?;
-
-    // Splice `math:alphaEquivalenceClass` into the reasoned graph this gate evaluates over,
-    // for every expression that LOWERS CLEANLY — an ordinary triple, exactly as the
-    // dimension-gate markers are spliced above, not a Rust side-channel.
-    //
-    // The edges come from the ONE derivation, `math_expression::alpha_equivalence_edges`
-    // (asserted substrate, accepted roots, IRI-named roots — the rationale for each lives
-    // there). The pipeline's reasoning stage serializes the SAME derivation into the shipped
-    // closure, so the joinable node a consumer reaches off `gmeow.gts` /
-    // `generated/logic/inferred-closure.rdf12.ttl` is the identical individual this in-process
-    // reasoned graph carries; there is no second, independently-computed identity.
-    let alpha_edges = crate::math_expression::alpha_equivalence_edges(edb);
-    if alpha_edges.is_empty() {
-        return Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
-            dataset,
+    finalize_reasoned_graph(
+        edb,
+        ClosureBase {
+            store,
+            derived_edges,
             derived_predicates,
-        }));
-    }
-    let mut with_alpha = MutableDataset::new(Arc::clone(&dataset));
-    for (root, alpha_class) in alpha_edges {
-        with_alpha
-            .insert(QuadValues {
-                s: TermValue::iri(root),
-                p: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS),
-                o: TermValue::iri(alpha_class.clone()),
-                g: None,
-            })
-            .map_err(reasoned_insert_err)?;
-        with_alpha
-            .insert(QuadValues {
-                s: TermValue::iri(alpha_class),
-                p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                o: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE),
-                g: None,
-            })
-            .map_err(reasoned_insert_err)?;
-    }
-    let dataset = with_alpha.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Verify {
-            detail: format!("freeze reasoned graph with alpha-equivalence classes failed: {e}"),
-        })
-    })?;
-    Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
-        dataset,
-        derived_predicates,
-    }))
+        },
+    )
 }
 
 /// Run the reasoned-graph negative tests natively over `edb` and an already-built closure.
@@ -450,11 +614,20 @@ pub fn verify_with_reasoning_result(
     result: &ReasoningResult,
     queries: &[(String, String)],
 ) -> gmeow_errors::Result<Report> {
+    PreparedVerification::new(queries, prepared_gates::shared())?
+        .verify_with_reasoning_result(edb, result)
+}
+
+fn verify_prepared(
+    edb: &RdfDataset,
+    result: &ReasoningResult,
+    prepared: &PreparedVerification<'_>,
+) -> gmeow_errors::Result<Report> {
     let mut report = Report::new("verify");
     let ReasonedGraph {
         dataset: reasoned,
         derived_predicates,
-    } = match materialize_reasoned_graph(edb, result)? {
+    } = match prepared.materialize_reasoned_graph(edb, result)? {
         ReasonedGraphOutcome::Ready(graph) => graph,
         ReasonedGraphOutcome::IncompleteClosure(findings) => {
             for finding in findings {
@@ -463,21 +636,13 @@ pub fn verify_with_reasoning_result(
             return Ok(report);
         }
     };
-    let engine = NativeSparqlEngine::new();
-
     // 3. Evaluate each verify query; any solution row is a violation.
     let mut violations = 0usize;
-    for (name, sparql) in queries {
+    for (name, query) in &prepared.queries {
         let stem = query_stem(name);
-        let result = engine
-            .query(
-                &reasoned,
-                SparqlRequest {
-                    query: sparql,
-                    base_iri: None,
-                    substitutions: &[],
-                },
-            )
+        let result = prepared
+            .engine
+            .query_prepared(&reasoned, query, &[], QueryOptions::EMPTY)
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Verify {
                     detail: format!("verify query {name} evaluation error: {e}"),
@@ -605,8 +770,12 @@ pub fn verify_with_reasoning_result(
             "verify.native.summary",
             format!(
                 "native reasoned-graph verify: {} quer{} run, {violations} with violations",
-                queries.len(),
-                if queries.len() == 1 { "y" } else { "ies" }
+                prepared.queries.len(),
+                if prepared.queries.len() == 1 {
+                    "y"
+                } else {
+                    "ies"
+                }
             ),
         )
         .with_tool("verify"),
@@ -619,513 +788,16 @@ pub fn verify_with_reasoning_result(
 ///
 /// Call [`verify_with_reasoning_result`] when the caller has already run
 /// [`reason_all`] and needs to avoid a second native chase.
-pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> gmeow_errors::Result<Report> {
-    let result = reason_all(edb)?;
+pub fn verify(
+    edb: &RdfDataset,
+    queries: &[(String, String)],
+    domains: &crate::physical::SelectedDomains,
+) -> gmeow_errors::Result<Report> {
+    let input = crate::reason::prepare_reasoning_input(edb)?;
+    let result = reason_all(input, domains)?;
     verify_with_reasoning_result(edb, &result, queries)
 }
 
+#[path = "verify.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
-
-    const W: &str = "http://gmeow.example/w";
-    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-    const A: &str = "http://gmeow.example/A";
-    const B: &str = "http://gmeow.example/B";
-    const C: &str = "http://gmeow.example/C";
-
-    fn quad(s: &str, p: &str, o: &str) -> RdfQuad {
-        RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
-    }
-
-    fn store() -> std::sync::Arc<RdfDataset> {
-        // A ⊑ B ⊑ C — the native EL closure derives A ⊑ C.
-        let mut builder = RdfDatasetBuilder::new();
-        for quad in [quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)] {
-            builder.push_owned_quad(&quad);
-        }
-        builder.freeze().expect("valid test dataset")
-    }
-
-    /// The embedded verify query set is non-empty, sorted by stem, contains a
-    /// known top-level query, and carries no empty sparql text — proving
-    /// `build.rs` actually walked `queries/verify/` + `slices/**/queries/verify/`
-    /// and embedded real content rather than an empty/degenerate set.
-    #[test]
-    fn embedded_verify_queries_are_sorted_nonempty_and_known() {
-        let queries = embedded_verify_queries();
-        assert!(
-            !queries.is_empty(),
-            "the embedded verify query set must not be empty"
-        );
-        for window in queries.windows(2) {
-            let (prev, next) = (&window[0].0, &window[1].0);
-            assert!(
-                prev < next,
-                "embedded_verify_queries() must be strictly sorted by stem: {prev:?} >= {next:?}"
-            );
-        }
-        assert!(
-            queries
-                .iter()
-                .any(|(stem, _)| stem == "notability-without-secondary"),
-            "the known top-level query `notability-without-secondary` must be embedded: {:?}",
-            queries.iter().map(|(s, _)| s).collect::<Vec<_>>()
-        );
-        for (stem, sparql) in &queries {
-            assert!(
-                !sparql.trim().is_empty(),
-                "embedded query {stem:?} must carry non-empty sparql text"
-            );
-        }
-    }
-
-    #[test]
-    fn clean_query_yields_no_error_findings() {
-        // No class is a subclass of itself → no rows → clean.
-        let q = (
-            "queries/verify/no-self-subclass.rq".to_owned(),
-            format!("SELECT ?x WHERE {{ ?x <{SUBCLASS}> ?x }}"),
-        );
-        let dataset = store();
-        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(report.ok(), "clean run must have no error findings");
-        assert_eq!(report.error_count(), 0);
-    }
-
-    #[test]
-    fn violating_query_yields_error_finding_with_detail() {
-        // Anything that is a subclass of C → A (asserted) and B (asserted) and,
-        // crucially, the DERIVED A ⊑ C is also present, proving the closure layer.
-        let q = (
-            "queries/verify/subclass-of-c.rq".to_owned(),
-            format!("SELECT ?x WHERE {{ ?x <{SUBCLASS}> <{C}> }}"),
-        );
-        let dataset = store();
-        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(!report.ok(), "a returned row must fail the report");
-        assert_eq!(report.error_count(), 1);
-        let finding = report
-            .findings
-            .iter()
-            .find(|f| f.severity == Severity::Error)
-            .expect("error finding present");
-        assert_eq!(finding.code, "verify.subclass-of-c");
-        let detail = finding.detail.as_deref().unwrap_or("");
-        // B ⊑ C is asserted; A ⊑ C is the derived edge — both must be caught,
-        // which proves the native closure was layered onto the asserted graph.
-        assert!(detail.contains(A), "derived A ⊑ C must be caught: {detail}");
-        assert!(
-            detail.contains(B),
-            "asserted B ⊑ C must be caught: {detail}"
-        );
-    }
-
-    #[test]
-    fn ask_query_is_rejected() {
-        let q = (
-            "queries/verify/bad.rq".to_owned(),
-            "ASK { ?s ?p ?o }".to_owned(),
-        );
-        let dataset = store();
-        let err = verify(dataset.as_ref(), std::slice::from_ref(&q)).unwrap_err();
-        assert!(
-            err.message().contains("SELECT"),
-            "ASK must be rejected: {err}"
-        );
-    }
-
-    /// A DL coverage gap makes `verify` hard-fail with an `error` Finding.
-    ///
-    /// Use an unparsable `owl:maxCardinality` literal — the same case the
-    /// `unparseable_cardinality_bound_stays_unsupported_so_the_gate_can_fire`
-    /// test in `dl.rs` validates against the DL verdict directly. Here we prove
-    /// the gap propagates all the way through `verify` to an `error` Finding,
-    /// and that the summary note says "aborted" rather than listing a query count
-    /// (since we short-circuit before running any queries).
-    #[test]
-    fn dl_coverage_gap_makes_verify_fail() {
-        const W2: &str = "http://gmeow.example/w2";
-        const ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
-        const MAX_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#maxCardinality";
-        const P: &str = "http://gmeow.example/p";
-        const R: &str = "http://gmeow.example/R";
-        const X: &str = "http://gmeow.example/x";
-        const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-        // R = ≤? p (maxCardinality with an unparsable bound) — the native handler
-        // cannot act on it, so maxCardinality stays unsupported → a DL gap.
-        let mut builder = RdfDatasetBuilder::new();
-        for (s, p, o) in [(R, ON_PROPERTY, P), (X, TYPE, R)] {
-            builder.push_owned_quad(
-                &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W2)),
-            );
-        }
-        builder.push_owned_quad(
-            &RdfQuad::new(
-                RdfTerm::iri(R),
-                MAX_CARDINALITY,
-                RdfTerm::Literal(RdfLiteral::typed(
-                    "not-a-number",
-                    "http://www.w3.org/2001/XMLSchema#string",
-                )),
-            )
-            .in_graph(RdfTerm::iri(W2)),
-        );
-        let dataset = builder.freeze().expect("valid gap-trigger dataset");
-
-        // Pass an empty query slice — we want to prove the gap fires BEFORE any
-        // query is evaluated, i.e. the short-circuit path works.
-        let report = verify(dataset.as_ref(), &[]).expect("verify itself must not Err on a gap");
-
-        assert!(
-            !report.ok(),
-            "a DL coverage gap must make verify fail (report.ok() == false)"
-        );
-        assert!(
-            report.error_count() >= 1,
-            "there must be at least one error Finding for the gap: {:?}",
-            report.findings
-        );
-
-        // The error finding code must reference the gap.
-        let gap_finding = report
-            .findings
-            .iter()
-            .find(|f| f.severity == Severity::Error && f.code.contains("dl-gap"))
-            .expect("an error finding with 'dl-gap' in the code must be present");
-        assert!(
-            gap_finding.code.contains("maxCardinality")
-                || gap_finding.message.contains("maxCardinality"),
-            "the finding must name the undecided construct: {:?}",
-            gap_finding
-        );
-
-        // The summary note must say "aborted".
-        let summary = report
-            .findings
-            .iter()
-            .find(|f| f.code == "verify.native.summary")
-            .expect("a summary note must be present");
-        assert!(
-            summary.message.contains("aborted"),
-            "summary must say 'aborted' when gaps prevent closure: {:?}",
-            summary
-        );
-    }
-
-    // ── Typed formalization governance: Arm B + reviewer gate ───────────────────
-
-    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-    // The committed `.rq` files ARE the queries under test (include_str! keeps the
-    // tests in lockstep with what `make verify` runs).
-    const COUNTERPART_Q: &str = include_str!(
-        "../../../slices/grounding/logic/queries/verify/non-entailment-counterpart.rq"
-    );
-    const REVIEWER_Q: &str =
-        include_str!("../../../slices/grounding/logic/queries/verify/reviewer-gate.rq");
-
-    fn gm(local: &str) -> String {
-        format!("{GMEOW}{local}")
-    }
-    fn lg(local: &str) -> String {
-        format!("{LOGIC}{local}")
-    }
-
-    fn dataset(triples: &[(&str, &str, &str)]) -> std::sync::Arc<RdfDataset> {
-        let mut builder = RdfDatasetBuilder::new();
-        for (s, p, o) in triples {
-            builder.push_owned_quad(&quad(s, p, o));
-        }
-        builder.freeze().expect("valid test dataset")
-    }
-
-    fn has_violation(report: &Report, code: &str) -> bool {
-        report
-            .findings
-            .iter()
-            .any(|f| f.code == code && f.severity == Severity::Error)
-    }
-
-    #[test]
-    fn counterpart_non_transitivity_green_then_red() {
-        let (a, b, c) = ("http://ex/a", "http://ex/b", "http://ex/c");
-        let cp = gm("counterpartOf");
-        let q = (
-            "queries/verify/non-entailment-counterpart.rq".to_owned(),
-            COUNTERPART_Q.to_owned(),
-        );
-        // Green: a chain A→B→C with no transitive A→C.
-        let green = dataset(&[(a, &cp, b), (b, &cp, c)]);
-        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            !has_violation(&report, "verify.non-entailment-counterpart"),
-            "no transitive edge → obligation discharged"
-        );
-        // Red: add the forbidden transitive A→C; the obligation must fire.
-        let red = dataset(&[(a, &cp, b), (b, &cp, c), (a, &cp, c)]);
-        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            has_violation(&report, "verify.non-entailment-counterpart"),
-            "transitive A→C in the closure → obligation violated"
-        );
-    }
-
-    #[test]
-    fn asserted_deceptive_intent_is_not_a_derived_violation() {
-        // Regression: an ASSERTED gmeow:deceptiveIntentClaim (the real-bundle shape —
-        // an attributed assessment) is EDB, never a DERIVED edge, so the finite-closure
-        // arm of the deception obligation must NOT fire on it. We assert the standing
-        // obligation alongside an asserted, attributed intent on a held≠projected gap
-        // and confirm no violation surfaces. (The red path — an actually-derived intent
-        // — is unit-tested in `obligations::tests::arm_b_finite_closure_green_then_red`.)
-        let intent_pred = "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim";
-        let mut builder = RdfDatasetBuilder::new();
-        // The standing obligation, declaring finite-closure discharge.
-        builder.push_owned_quad(&quad(
-            "http://ex/obl",
-            RDF_TYPE,
-            &lg("NonEntailmentObligation"),
-        ));
-        builder.push_owned_quad(&quad(
-            "http://ex/obl",
-            &lg("obligationDischargeCondition"),
-            &lg("DischargeFiniteClosure"),
-        ));
-        builder.push_owned_quad(
-            &RdfQuad::new(
-                RdfTerm::iri("http://ex/obl"),
-                lg("obligationForbiddenPredicate"),
-                RdfTerm::Literal(RdfLiteral::typed(
-                    intent_pred,
-                    "http://www.w3.org/2001/XMLSchema#anyURI",
-                )),
-            )
-            .in_graph(RdfTerm::iri(W)),
-        );
-        // An ASSERTED, attributed deceptive-intent claim on a held≠projected gap.
-        for (s, p, o) in [
-            ("http://ex/ev", gm("heldStandpoint"), "http://ex/held"),
-            ("http://ex/ev", gm("projectedStandpoint"), "http://ex/proj"),
-            (
-                "http://ex/ev",
-                gm("deceptiveIntentClaim"),
-                "http://ex/intent",
-            ),
-            ("http://ex/intent", gm("accordingTo"), "http://ex/assessor"),
-        ] {
-            builder.push_owned_quad(&quad(s, &p, o));
-        }
-        let dataset = builder.freeze().expect("valid test dataset");
-        // A no-op query (the obligation checks run regardless of the query list).
-        let q = (
-            "queries/verify/non-entailment-counterpart.rq".to_owned(),
-            COUNTERPART_Q.to_owned(),
-        );
-        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            !has_violation(&report, "verify.non-entailment.derived"),
-            "an asserted (EDB) attributed intent claim must not be read as a derived entailment"
-        );
-        assert!(
-            !has_violation(&report, "verify.non-entailment.violated"),
-            "deceptiveIntentClaim is not a foundation rule head → Arm A discharged"
-        );
-    }
-
-    #[test]
-    fn reviewer_gate_green_then_red() {
-        let (cand, reviewer) = ("http://ex/cand", "http://ex/reviewer");
-        let (candidate, lifecycle, accepted, reviewed_by, category, deriv) = (
-            lg("FormalizationCandidate"),
-            lg("candidateLifecycle"),
-            lg("CandidateAccepted"),
-            lg("reviewedBy"),
-            lg("candidateCategory"),
-            lg("CategoryDerivationRule"),
-        );
-        let q = (
-            "queries/verify/reviewer-gate.rq".to_owned(),
-            REVIEWER_Q.to_owned(),
-        );
-        // Green: an accepted candidate WITH a recorded reviewer decision (and a
-        // category, so the coverage check is also clean).
-        let green = dataset(&[
-            (cand, RDF_TYPE, &candidate),
-            (cand, &lifecycle, &accepted),
-            (cand, &reviewed_by, reviewer),
-            (cand, &category, &deriv),
-        ]);
-        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            !has_violation(&report, "verify.reviewer-gate"),
-            "a reviewed accepted candidate is canonical-legitimate"
-        );
-        // Red: an accepted candidate with NO reviewer decision — an extraction
-        // promoted straight to canonical. The gate must fire.
-        let red = dataset(&[
-            (cand, RDF_TYPE, &candidate),
-            (cand, &lifecycle, &accepted),
-            (cand, &category, &deriv),
-        ]);
-        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            has_violation(&report, "verify.reviewer-gate"),
-            "an unreviewed accepted candidate → reviewer-gate violation"
-        );
-    }
-
-    /// A `logic:reviewedBy` whose object is a plain literal is not an auditable
-    /// reviewer node — the tightened gate must still fire.
-    ///
-    /// This proves the inner `FILTER(isIRI(?reviewer) || isBlank(?reviewer))`
-    /// clause is load-bearing: the old query (bare `FILTER NOT EXISTS { ?candidate
-    /// logic:reviewedBy ?reviewer }`) would have passed this case because the
-    /// triple EXISTS; the new query correctly rejects it because the object is a
-    /// literal rather than a node.
-    #[test]
-    fn reviewer_gate_literal_reviewer_is_a_violation() {
-        let cand = "http://ex/cand-lit";
-        let (candidate, lifecycle, accepted, reviewed_by, category, deriv) = (
-            lg("FormalizationCandidate"),
-            lg("candidateLifecycle"),
-            lg("CandidateAccepted"),
-            lg("reviewedBy"),
-            lg("candidateCategory"),
-            lg("CategoryDerivationRule"),
-        );
-        let q = (
-            "queries/verify/reviewer-gate.rq".to_owned(),
-            REVIEWER_Q.to_owned(),
-        );
-        // Build the dataset manually so we can assert a literal-object triple.
-        let mut builder = RdfDatasetBuilder::new();
-        for (s, p, o) in [
-            (cand, RDF_TYPE, candidate.as_str()),
-            (cand, lifecycle.as_str(), accepted.as_str()),
-            (cand, category.as_str(), deriv.as_str()),
-        ] {
-            builder.push_owned_quad(&quad(s, p, o));
-        }
-        // The only reviewedBy value is a plain string literal — not a node.
-        builder.push_owned_quad(
-            &RdfQuad::new(
-                RdfTerm::iri(cand),
-                reviewed_by.clone(),
-                RdfTerm::Literal(RdfLiteral::typed(
-                    "alice",
-                    "http://www.w3.org/2001/XMLSchema#string",
-                )),
-            )
-            .in_graph(RdfTerm::iri(W)),
-        );
-        let dataset = builder.freeze().expect("valid literal-reviewer dataset");
-        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            has_violation(&report, "verify.reviewer-gate"),
-            "a literal-valued reviewedBy is not an auditable node → gate must fire"
-        );
-    }
-
-    // ── Typed formalization governance: conditional-carrier verify queries ───────
-
-    const NON_ENT_CARRIER_Q: &str = include_str!(
-        "../../../slices/grounding/logic/queries/verify/non-entailment-carrier-required.rq"
-    );
-    const PROMOTION_CASES_Q: &str =
-        include_str!("../../../slices/grounding/logic/queries/verify/promotion-cases-required.rq");
-
-    #[test]
-    fn non_entailment_carrier_required_green_then_red() {
-        // A FormalizationCandidate with CategoryNonEntailmentObligation that HAS
-        // a candidateNonEntailment link → zero rows (obligation is wired).
-        let cand = "http://ex/cand-ne";
-        let obl = "http://ex/obl-ne";
-        let (candidate, cat, ne_cat, candidate_ne) = (
-            lg("FormalizationCandidate"),
-            lg("candidateCategory"),
-            lg("CategoryNonEntailmentObligation"),
-            lg("candidateNonEntailment"),
-        );
-        let q = (
-            "queries/verify/non-entailment-carrier-required.rq".to_owned(),
-            NON_ENT_CARRIER_Q.to_owned(),
-        );
-        // Green: candidate with CategoryNonEntailmentObligation AND a candidateNonEntailment.
-        let green = dataset(&[
-            (cand, RDF_TYPE, &candidate),
-            (cand, &cat, &ne_cat),
-            (cand, &candidate_ne, obl),
-        ]);
-        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            !has_violation(&report, "verify.non-entailment-carrier-required"),
-            "a CategoryNonEntailmentObligation candidate with candidateNonEntailment is coherent"
-        );
-        // Red: CategoryNonEntailmentObligation candidate MISSING candidateNonEntailment → violation.
-        let red = dataset(&[(cand, RDF_TYPE, &candidate), (cand, &cat, &ne_cat)]);
-        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            has_violation(&report, "verify.non-entailment-carrier-required"),
-            "a CategoryNonEntailmentObligation candidate with no candidateNonEntailment → violation"
-        );
-    }
-
-    #[test]
-    fn promotion_cases_required_green_then_red() {
-        // An ACCEPTED candidate in an entailment-asserting category that HAS both
-        // positive and negative cases → zero rows.
-        let (cand, pos, neg, reviewer) = (
-            "http://ex/cand-pc",
-            "http://ex/pos-case",
-            "http://ex/neg-case",
-            "http://ex/reviewer",
-        );
-        let (candidate, lifecycle, accepted, reviewed_by, cat, int_cat, pos_case, neg_case) = (
-            lg("FormalizationCandidate"),
-            lg("candidateLifecycle"),
-            lg("CandidateAccepted"),
-            lg("reviewedBy"),
-            lg("candidateCategory"),
-            lg("CategoryIntegrityConstraint"),
-            lg("candidatePositiveCase"),
-            lg("candidateNegativeCase"),
-        );
-        let q = (
-            "queries/verify/promotion-cases-required.rq".to_owned(),
-            PROMOTION_CASES_Q.to_owned(),
-        );
-        // Green: accepted + entailment category + both cases present.
-        let green = dataset(&[
-            (cand, RDF_TYPE, &candidate),
-            (cand, &lifecycle, &accepted),
-            (cand, &reviewed_by, reviewer),
-            (cand, &cat, &int_cat),
-            (cand, &pos_case, pos),
-            (cand, &neg_case, neg),
-        ]);
-        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            !has_violation(&report, "verify.promotion-cases-required"),
-            "an accepted entailment-category candidate with both cases is promotion-ready"
-        );
-        // Red: accepted + entailment category MISSING the negative case → violation.
-        let red = dataset(&[
-            (cand, RDF_TYPE, &candidate),
-            (cand, &lifecycle, &accepted),
-            (cand, &reviewed_by, reviewer),
-            (cand, &cat, &int_cat),
-            (cand, &pos_case, pos),
-            // neg_case intentionally absent
-        ]);
-        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
-        assert!(
-            has_violation(&report, "verify.promotion-cases-required"),
-            "an accepted entailment-category candidate missing the negative case → violation"
-        );
-    }
-}
+mod tests;

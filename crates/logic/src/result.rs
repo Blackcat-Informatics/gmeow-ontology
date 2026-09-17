@@ -36,6 +36,10 @@
 //! means "the engine could not look". The three are never interchangeable. The
 //! invariant is enforced at construction by [`ReasoningResult::validate`].
 
+mod native;
+pub use native::NativeExecutionEvidence;
+pub(crate) use native::validate_committed_native;
+
 use std::collections::BTreeSet;
 use std::fmt;
 
@@ -63,7 +67,9 @@ fn result_err(detail: String) -> gmeow_errors::Diag {
 // --------------------------------------------------------------------------- //
 
 /// `input` — was the request well-formed? (SEMANTICS:246-251)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum InputStatus {
     /// The request and its sources parsed and type-checked; reasoning was attempted.
     Valid,
@@ -117,7 +123,9 @@ impl fmt::Display for InputStatus {
 }
 
 /// `evaluation` — what the engine was able to do (the computation axis). (SEMANTICS:252-260)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum EvaluationStatus {
     /// The engine ran to its natural end on this request.
     Completed,
@@ -177,7 +185,9 @@ impl fmt::Display for EvaluationStatus {
 }
 
 /// `completeness` — relative to what is the answer complete? (SEMANTICS:261-266)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum CompletenessStatus {
     /// Complete for the certified fragment the contract pins.
     CompleteForFragment,
@@ -244,7 +254,9 @@ impl fmt::Display for CompletenessStatus {
 /// non-results are **never** interchangeable with `Neither`:
 /// [`Self::Undetermined`] = the engine did not reach a verdict;
 /// [`Self::NotEvaluated`] = the engine could not look.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum InformationState {
     /// A proof exists and no counterproof.
     Supported,
@@ -374,7 +386,7 @@ impl fmt::Display for InformationState {
 /// [`PreservationKind::ValidationOnly`]: that individual describes a *lowering's
 /// purpose*, not an answer-preservation polarity, so it is not a legal member of
 /// a result's polarity set ([`Self::insert`] / [`Self::validate`] reject it).
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub struct PreservationClaim {
     /// Co-holding answer-preservation polarities (the five doc polarities).
     pub polarities: BTreeSet<PreservationKind>,
@@ -500,7 +512,9 @@ impl PreservationClaim {
 /// historical per-engine status strings: answer-cap (`partial`), inference-budget
 /// (`exhausted`), and nested-depth (`incomplete`) are all budget exhaustion of
 /// *different* budgets, indistinguishable from `(evaluation, completeness)` alone.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum BudgetLimit {
     /// The answer cap was hit during resolution (historical `partial`).
     Answers,
@@ -528,7 +542,7 @@ impl fmt::Display for BudgetLimit {
 }
 
 /// Budget consumed by a run, against the contract's declared allowance.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub struct BudgetUsage {
     /// Inference steps / units consumed.
     pub consumed: u64,
@@ -540,7 +554,7 @@ pub struct BudgetUsage {
 
 /// A content-addressed handle into the [`crate::explain`] proof tree: a proof or
 /// counterproof, identified by its derivation IRI and the set of IRIs it cites.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct DerivationRef {
     /// The `derivation_id` of the explained conclusion.
     pub derivation_id: String,
@@ -564,12 +578,16 @@ impl DerivationRef {
 
 /// The context an answer is true in: a world (always present — "an answer is
 /// always somewhere", SEMANTICS:362) and the optional standpoint/time/path axes.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub struct ResultContext {
     /// The world (named-graph) IRI the answer holds in.
     pub world: String,
     /// The standpoint IRI, when scoped.
     pub standpoint: Option<String>,
+    /// The complete attributed-context record selected by a contextual query.
+    /// Its world, standpoint, enactment, journal, norm, and protocol coordinates
+    /// remain first-class source data; this link retains their shared identity.
+    pub attributed: Option<String>,
     /// The time expression (ISO 8601 / EDTF), when scoped.
     pub time: Option<String>,
     /// The predicate-path IRI, when the answer rode a named path.
@@ -577,7 +595,7 @@ pub struct ResultContext {
 }
 
 /// The engine identity that produced a result.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct EngineId {
     /// Engine name (e.g. `gmeow-logic`).
     pub name: String,
@@ -600,7 +618,7 @@ impl EngineId {
 ///
 /// Adapted from [`crate::reason::InconsistencyWitness`]; carries the individual
 /// forced into a clash, the world, and the premise triples.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub struct ContradictionWitness {
     /// The individual forced into `owl:Nothing` (the clash subject).
     pub individual: String,
@@ -612,17 +630,23 @@ pub struct ContradictionWitness {
 
 impl From<&InconsistencyWitness> for ContradictionWitness {
     fn from(w: &InconsistencyWitness) -> Self {
+        // The diagnostic witness has canonical premise ordering. Keep that
+        // presentation fold separate from the ordered firing trace on inferred rows.
+        let mut premises = w.premises.clone();
+        premises.sort();
         Self {
             individual: w.individual.clone(),
             world: w.world.clone(),
-            premises: w.premises.clone(),
+            premises,
         }
     }
 }
 
 /// A declared closure / identity / revision / witness-policy assumption the
 /// result rests on (SEMANTICS:368-369).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum Assumption {
     /// Closed-world closure was applied (NAF over the declared predicates).
     ClosedWorld,
@@ -655,9 +679,43 @@ impl fmt::Display for Assumption {
     }
 }
 
+/// The proposition whose information axis this result classifies. A contextual
+/// contradiction in one world does not prove an unrelated queried conclusion.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum ResultClaim {
+    /// Support and counter-support concern the explicitly queried conclusion.
+    Conclusion,
+    /// Consistency of the complete selected native world inventory.
+    WorldConsistency,
+}
+
+impl ResultClaim {
+    /// Canonical vocabulary individual identifying this proposition scope.
+    #[must_use]
+    pub fn local_name(self) -> &'static str {
+        match self {
+            Self::Conclusion => "ConclusionClaim",
+            Self::WorldConsistency => "WorldConsistencyClaim",
+        }
+    }
+
+    /// Parse an exact vocabulary local name; there is no legacy inference from
+    /// a payload kind, query string, missing field or empty result context.
+    #[must_use]
+    pub fn from_local(name: &str) -> Option<Self> {
+        match name {
+            "ConclusionClaim" => Some(Self::Conclusion),
+            "WorldConsistencyClaim" => Some(Self::WorldConsistency),
+            _ => None,
+        }
+    }
+}
+
 /// The full provenance bundle a result carries (SEMANTICS:357-369).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ResultProvenance {
+    /// The exact proposition scope of this result's information axis.
+    pub claim: ResultClaim,
     /// The reasoning-contract identity (content hash) this result was produced under.
     pub contract_hash: String,
     /// The canonical query text (the question asked).
@@ -680,6 +738,10 @@ pub struct ResultProvenance {
     pub projection_class: PreservationClaim,
     /// The within-world contradiction witnesses justifying [`InformationState::Both`] (sorted).
     pub contradiction_witnesses: Vec<ContradictionWitness>,
+    /// Complete retained forward-native evidence when this operation executed a
+    /// native closure. No native closure result may omit it; operations without
+    /// such an execution carry their existing proof/counterproof evidence.
+    pub native_execution: Option<Box<NativeExecutionEvidence>>,
     /// The declared closure/identity/revision/witness-policy assumptions (sorted).
     pub assumptions: BTreeSet<Assumption>,
 }
@@ -689,6 +751,7 @@ impl ResultProvenance {
     /// engine under `contract_hash`, with no proof/counterproof/witnesses yet.
     pub fn native(contract_hash: impl Into<String>, world: impl Into<String>) -> Self {
         Self {
+            claim: ResultClaim::Conclusion,
             contract_hash: contract_hash.into(),
             query: String::new(),
             conclusion: String::new(),
@@ -703,6 +766,7 @@ impl ResultProvenance {
             certified_fragment: None,
             projection_class: PreservationClaim::default(),
             contradiction_witnesses: Vec::new(),
+            native_execution: None,
             assumptions: BTreeSet::new(),
         }
     }
@@ -715,7 +779,7 @@ impl ResultProvenance {
 /// The surface-specific answer a result carries, so a single [`ReasoningResult`]
 /// type serves every reasoning surface (SEMANTICS:235-238) without one surface's
 /// fields polluting another.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum ResultPayload {
     /// The asserted + derived closure (the `reason` / DL surface).
     Inferred(Vec<InferredAxiom>),
@@ -732,7 +796,7 @@ pub enum ResultPayload {
 // --------------------------------------------------------------------------- //
 
 /// The typed `logic:ReasoningResult` — the single shared result model.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ReasoningResult {
     /// Was the request well-formed?
     pub input: InputStatus,
@@ -808,6 +872,31 @@ impl ReasoningResult {
     /// # Errors
     /// Returns `Err` describing the first violated invariant.
     pub fn validate(&self) -> gmeow_errors::Result<()> {
+        if self.provenance.claim == ResultClaim::WorldConsistency
+            && self.provenance.native_execution.is_none()
+        {
+            return Err(result_err(
+                "world consistency result is missing its native execution evidence".into(),
+            ));
+        }
+        if let Some(execution) = &self.provenance.native_execution {
+            execution.validate(&self.provenance.consumed_budget)?;
+        }
+        self.validate_surface()
+    }
+
+    /// Validate orthogonal result fields after native proof admission. The native
+    /// constructor calls this without traversing its complete proof DAG twice.
+    fn validate_surface(&self) -> gmeow_errors::Result<()> {
+        for axiom in self.inferred() {
+            match &axiom.modal_evaluation {
+                Some(evidence) => evidence.validate_axiom(axiom)?,
+                None if axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI) => {
+                    return Err(result_err("ReasoningResult: native modal firing is missing contextual evaluation evidence".to_owned()));
+                }
+                None => {}
+            }
+        }
         if self.information == InformationState::Neither && !self.is_conclusive() {
             return Err(result_err(
                 "ReasoningResult: information=neither requires a conclusive evaluation \
@@ -820,15 +909,148 @@ impl ReasoningResult {
         if self.information == InformationState::Both
             && (self.provenance.proof.is_none() || self.provenance.counterproof.is_none())
             && self.provenance.contradiction_witnesses.is_empty()
+            && !(self.provenance.claim == ResultClaim::WorldConsistency
+                && self
+                    .provenance
+                    .native_execution
+                    .as_deref()
+                    .is_some_and(NativeExecutionEvidence::has_conflict))
         {
             return Err(result_err(
                 "ReasoningResult: information=both requires either a proof+counterproof pair \
-                 or at least one contradiction witness; a lone proof or counterproof without \
-                 the other does not justify a glut"
+                 or a contradiction witness for the claimed proposition; native contextual \
+                 conflict supports world consistency only"
                     .to_owned(),
             ));
         }
         Ok(())
+    }
+
+    /// Require the complete evidence of an explicitly selected native closure.
+    /// Query-only results cannot supply a fabricated empty execution instead.
+    ///
+    /// # Errors
+    /// Fails when this result did not retain an actual native execution.
+    pub fn native_execution(&self) -> gmeow_errors::Result<&NativeExecutionEvidence> {
+        self.provenance.native_execution.as_deref().ok_or_else(|| {
+            result_err("native closure result is missing its execution evidence".into())
+        })
+    }
+
+    /// Fold consistency diagnostics from this exact retained native execution.
+    /// The full closure and its native proof commitments are admitted once; this
+    /// projection does not ingest RDF, run another closure or dispatch a refuter.
+    ///
+    /// # Errors
+    /// Rejects query-only results, missing or invalid native evidence, and an
+    /// incomplete transport payload lacking the committed closure premises.
+    pub fn native_verdict(&self) -> gmeow_errors::Result<DlVerdict> {
+        self.validate_native_closure()?;
+        Ok(crate::reason::dl::verdict_from_validated_native(
+            self.inferred(),
+            self.native_execution()?,
+        ))
+    }
+
+    /// Validate the complete producer-selected closure, including committed minting
+    /// heads and their actual premises. A projected verdict is not a full closure.
+    ///
+    /// # Errors
+    /// Rejects missing evidence, the wrong payload surface, and uncommitted receipts.
+    pub fn validate_native_closure(&self) -> gmeow_errors::Result<()> {
+        self.validate()?;
+        if self.provenance.claim != ResultClaim::WorldConsistency {
+            return Err(result_err(
+                "native closure result requires its world consistency claim".into(),
+            ));
+        }
+        let execution = self.native_execution()?;
+        let ResultPayload::Inferred(inferred) = &self.payload else {
+            return Err(result_err(
+                "native closure result requires its inferred payload".into(),
+            ));
+        };
+        execution.validate_committed(inferred)
+    }
+
+    /// Consume one native execution into its consistency result. The completed
+    /// producer frontier, every family/class boundary, and the lowering loss
+    /// jointly determine completeness. Positive conflict support survives an
+    /// unrelated blocked or exhausted obligation without publishing a new head.
+    ///
+    /// # Errors
+    /// Rejects invalid execution scope, absent committed witness heads, and
+    /// malformed proof or budget evidence before exposing a typed result.
+    pub(crate) fn from_native_closure(
+        inferred: Vec<InferredAxiom>,
+        execution: NativeExecutionEvidence,
+        lowering: &PreservationClaim,
+        budget: BudgetUsage,
+    ) -> gmeow_errors::Result<Self> {
+        execution.validate(&budget)?;
+        execution.validate_committed(&inferred)?;
+        let verdict = crate::reason::dl::verdict_from_validated_native(&inferred, &execution);
+        let mut unsupported = lowering.unsupported_constructs.clone();
+        unsupported.extend(verdict.coverage.unsupported.iter().cloned());
+        // A boundary may have no selected vocabulary label (an unfinished
+        // producer or source admission, for example). Every such gap remains
+        // visible instead of disappearing from the result's completeness axis.
+        unsupported.extend(
+            verdict
+                .gaps
+                .iter()
+                .map(|gap| format!("{}: {}", gap.code, gap.message)),
+        );
+        let preservation = PreservationClaim::for_unsupported(unsupported);
+        let evaluation = match &execution.status {
+            crate::reason::refute::native::NativeClosureStatus::Completed => {
+                EvaluationStatus::Completed
+            }
+            crate::reason::refute::native::NativeClosureStatus::Exhausted => {
+                EvaluationStatus::BudgetExhausted
+            }
+            crate::reason::refute::native::NativeClosureStatus::Blocked { .. } => {
+                EvaluationStatus::Unsupported
+            }
+        };
+        let complete = evaluation == EvaluationStatus::Completed
+            && execution.refutation_complete()
+            && preservation.unsupported_constructs.is_empty();
+        let information = if !verdict.consistent {
+            InformationState::Both
+        } else if complete {
+            InformationState::Supported
+        } else {
+            InformationState::Undetermined
+        };
+        let mut provenance = ResultProvenance::native(crate::reason::native_contract_hash(), "");
+        provenance.claim = ResultClaim::WorldConsistency;
+        provenance.consumed_budget = budget;
+        provenance.projection_class = preservation.clone();
+        provenance.contradiction_witnesses = verdict
+            .inconsistencies
+            .iter()
+            .map(ContradictionWitness::from)
+            .collect();
+        provenance.contradiction_witnesses.sort();
+        provenance.native_execution = Some(Box::new(execution));
+        preservation.validate()?;
+        let result = Self {
+            input: InputStatus::Valid,
+            evaluation,
+            completeness: if complete {
+                CompletenessStatus::CompleteForFragment
+            } else {
+                CompletenessStatus::Incomplete
+            },
+            preservation,
+            information,
+            provenance,
+            payload: ResultPayload::Inferred(inferred),
+            row_schema: None,
+        };
+        result.validate_surface()?;
+        Ok(result)
     }
 
     /// Construct, asserting the invariants in debug builds.
@@ -977,6 +1199,7 @@ impl ReasoningResult {
         );
         provenance.proof = proof;
         provenance.counterproof = counterproof;
+        provenance.claim = ResultClaim::Conclusion;
         provenance.projection_class = preservation.clone();
         Self::new(
             InputStatus::Valid,
@@ -1025,6 +1248,7 @@ impl ReasoningResult {
         extra: &PreservationClaim,
         mut provenance: ResultProvenance,
     ) -> Self {
+        provenance.claim = ResultClaim::WorldConsistency;
         // The shared unsupported-set → polarity rule (One-Path): `{exact}` when the
         // fragment is fully covered, `{sound-under}` carrying the uncovered constructs
         // otherwise — over the UNION of the DL coverage gap and the lowering residue.

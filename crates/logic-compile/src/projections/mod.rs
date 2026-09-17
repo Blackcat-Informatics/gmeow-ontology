@@ -50,7 +50,9 @@ pub mod fno;
 // The shared get leg both EDOAL and SPARQL lower from (spec-drift gone by construction).
 pub mod get_leg;
 pub mod paths;
+mod presentation;
 pub mod rdf;
+pub mod reader_view;
 pub mod reified_claim;
 pub mod report;
 // The SHACL-AF rule projection (logic: derivation rules → sh:SPARQLRule) — the
@@ -92,17 +94,17 @@ use put_derivation::DerivedPutOutcome;
 #[derive(Debug, Clone)]
 pub struct CompiledArtifacts {
     /// `generated/owl/gmeow-dl.ttl`.
-    pub owl_dl: String,
+    pub owl_dl: rdf::RdfProjectionResult,
     /// `generated/owl/gmeow-el.ttl`.
-    pub owl_el: String,
+    pub owl_el: rdf::RdfProjectionResult,
     /// `generated/datalog/gmeow.dl`.
     pub datalog: String,
     /// `generated/n3/gmeow.n3`.
     pub n3: String,
     /// `generated/foundation/gufo.ttl`.
-    pub gufo: String,
+    pub gufo: rdf::RdfProjectionResult,
     /// `generated/logic/gmeow.logic.rdf12.ttl`.
-    pub canonical_rdf12: String,
+    pub canonical_rdf12: rdf::RdfProjectionResult,
     /// `generated/cl/gmeow.clif`.
     pub clif: String,
     /// `generated/cl/gmeow.cgif`.
@@ -124,6 +126,8 @@ pub struct CompiledArtifacts {
     pub path_projections: Vec<PathProjection>,
     /// The whole-program + path-shape projection rows (the nine standard targets plus
     /// the per-shape `property-path:<iri>` rows) that fed [`report`](Self::report).
+    /// RDF entries are metadata-only rows; their datasets are held in the typed
+    /// fields above. Text and validation-shape entries carry their terminal text.
     /// Surfaced so a downstream assembler (the pipeline) can union them with the
     /// correspondence-calculus loss ledger and serialize the FINAL projection report
     /// over the union through the one routine — the committed report's logic rows stay
@@ -143,6 +147,10 @@ pub struct CompiledArtifacts {
     /// byte-unchanged). The per-correspondence gates are evaluated with no compositions;
     /// the conformance runner re-evaluates with the case's declared compositions.
     pub correspondence_gates: Option<CorrespondenceGateReport>,
+    /// Executed evidence for the exact derived program returned below. Consumers
+    /// may grade additional compositions without lowering or executing laws again.
+    /// Empty when the source declares no correspondences.
+    pub correspondence_verdicts: correspondence_gates::CorrespondenceVerdicts,
     /// The per-correspondence put-derivation outcomes (the derived legs / mint-with-claim
     /// / unsupported residue) — the source of the up-lift loss-ledger rows and the derived
     /// liftability statistic. Empty when no put leg was derived.
@@ -170,16 +178,27 @@ pub struct LedgerEntry {
 /// Run every projection back-end over `program` and build the report — the full
 /// compile surface. Returns `Err` on a projection failure or an overclaim.
 ///
-/// `verdicts` is the per-correspondence EXECUTED lens-law verdict map the five correspondence
-/// gates read (keyed by correspondence IRI). A correspondence-free program supplies an empty
-/// map (the gates never run); a program that authors `logic:Correspondence` cells MUST supply
-/// a verdict for every one (an engine-adjacent caller computes them via
-/// `gmeow_logic::correspondence_exec::program_verdicts` over the derived program) — a present
-/// correspondence with no verdict HARD-fails in the gates, never a silent pass.
+/// Correspondence legs are derived once. `execute_laws` receives that exact immutable
+/// program, and its verdicts feed both the gates and the returned artifacts. Native
+/// callers supply `gmeow_logic::correspondence_exec::program_verdicts`, keeping the
+/// compiler independent of the engine without rebuilding the program to execute it.
+/// The callback is invoked once for a correspondence-bearing program, never for an
+/// empty one. Every correspondence requires its own executed verdict; a missing
+/// entry hard-fails in the gates.
 pub fn compile_program(
     program: &LogicProgram,
-    verdicts: &correspondence_gates::CorrespondenceVerdicts,
+    execute_laws: impl FnOnce(&CorrespondenceProgram) -> correspondence_gates::CorrespondenceVerdicts,
 ) -> gmeow_errors::Result<CompiledArtifacts> {
+    if let crate::ir::PresentationProgramIr::Refused { focus, detail, .. } = &program.presentations
+    {
+        let failure = Diag::of_kind(crate::error::Projection {
+            detail: detail.clone(),
+        });
+        return Err(match focus {
+            Some(focus) => failure.with_focus(focus.clone()),
+            None => failure,
+        });
+    }
     // The ONE runtime loss store for this compile. Every lossy producer interns its
     // structural + per-run drops here (keyed by target focus); the report and the
     // preservation ledger below both READ this same instance, so the two loss surfaces
@@ -187,24 +206,24 @@ pub fn compile_program(
     // so they never touch the store and keep their pure signatures.
     let mut loss = crate::loss_ledger::LossLedger::new();
 
-    let owl_dl = rdf::project_owl_dl(program, &mut loss).map_err(|e| {
+    let owl_dl = rdf::project_owl_dl_dataset(program, &mut loss).map_err(|e| {
         Diag::of_kind(crate::error::Projection {
             detail: e.to_string(),
         })
     })?;
-    let owl_el = rdf::project_owl_el(program, &mut loss).map_err(|e| {
+    let owl_el = rdf::project_owl_el_dataset(program, &mut loss).map_err(|e| {
         Diag::of_kind(crate::error::Projection {
             detail: e.to_string(),
         })
     })?;
     let datalog = text::project_datalog(program, &mut loss);
     let n3 = text::project_n3(program, &mut loss);
-    let gufo = rdf::project_gufo(program, &mut loss).map_err(|e| {
+    let gufo = rdf::project_gufo_dataset(program, &mut loss).map_err(|e| {
         Diag::of_kind(crate::error::Projection {
             detail: e.to_string(),
         })
     })?;
-    let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| {
+    let canonical_rdf12 = rdf::project_canonical_rdf12_dataset(program).map_err(|e| {
         Diag::of_kind(crate::error::Projection {
             detail: e.to_string(),
         })
@@ -214,19 +233,21 @@ pub fn compile_program(
     let xcl = crate::xcl::project_xcl(program)?;
     let shacl_af = shacl_af::project_shacl_af(program, &mut loss);
 
-    let results = [
-        &owl_dl,
-        &owl_el,
-        &datalog,
-        &n3,
-        &gufo,
-        &canonical_rdf12,
-        &clif,
-        &cgif,
-        &xcl,
-        &shacl_af,
+    // RDF payloads remain native until a terminal artifact requests text. The
+    // report channel carries only their judgments, avoiding duplicate serialized
+    // copies and reparsing by the next stage.
+    let mut owned = vec![
+        owl_dl.report_row(),
+        owl_el.report_row(),
+        datalog.clone(),
+        n3.clone(),
+        gufo.report_row(),
+        canonical_rdf12.report_row(),
+        clif.clone(),
+        cgif.clone(),
+        xcl.clone(),
+        shacl_af.clone(),
     ];
-    let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
 
     // Property-path projections: every logic:PathShape → (property_path, datalog,
     // ledger row).  Wired here so the target is genuinely exercised in the compile
@@ -349,69 +370,32 @@ pub fn compile_program(
     // report header. Gated on a non-empty correspondence set so a correspondence-free
     // compile is byte-identical (no gates, no header counts). The gate report is RECORDED
     // here (compile_program stays total); the hard-fail `assert_gates` is thrown only by
-    // the pipeline stage. The per-correspondence gates run with no compositions — the
-    // conformance runner re-evaluates with the case's declared compositions over
-    // `correspondence_program`.
+    // the pipeline stage. Every authored composition is carried by the derived program
+    // and graded here. A conformance profile may request additional premise inspections;
+    // it cannot replace or erase the canonical declarations.
+    let mut correspondence_verdicts = correspondence_gates::CorrespondenceVerdicts::new();
     let (correspondence_gates, correspondence_outcomes, correspondence_program) =
-        if program.correspondences.is_empty() {
+        if program.correspondences.is_empty() && program.correspondence_compositions.is_empty() {
             (None, Vec::new(), None)
         } else {
             let assembled = CorrespondenceProgram::new(
                 program.correspondences.clone(),
-                Vec::new(),
                 PreservationKind::SoundUnder,
             )
-            .with_leg_programs(program.transaction_programs.clone());
+            .with_leg_programs(program.transaction_programs.clone())
+            .with_compositions(program.correspondence_compositions.clone());
             let (derived, outcomes) = assembled.with_derived_puts()?;
-            let report = correspondence_gates::evaluate_gates(&derived, &[], verdicts);
+            correspondence_verdicts = execute_laws(&derived);
+            let report =
+                correspondence_gates::evaluate_gates(&derived, &[], &correspondence_verdicts);
             (Some(report), outcomes, Some(derived))
         };
 
-    // Per-correspondence preservation residue (Principle-17 loss row): every
-    // carrier-extracted `program.correspondences` member that authors a lossy
-    // `logic:preservationKind` (Some, non-`Exact`) drops a real distinction its coarse view
-    // cannot carry. Fold ONE loss-ledger row per such correspondence HERE — the canonical
-    // doc's "one preservation row per correspondence" (LOGIC-CORRESPONDENCE.md ~:78) — so the
-    // dropped construct is a structured ledger row, never DARK. Mirrors the per-shape
-    // `property-path:<iri>` rows above (append to `owned`/`loss`; NOT part of the fixed
-    // LEDGER_TARGETS surface, which is program-independent).
-    {
-        use sha2::{Digest, Sha256};
-        let (_c_kind, c_compl, c_struct) = target_meta("correspondence");
-        let c_struct: Vec<String> = c_struct.into_iter().map(str::to_owned).collect();
-        for c in &program.correspondences {
-            let Some(pres) = c.preservation else { continue };
-            if pres == PreservationKind::Exact {
-                continue;
-            }
-            let digest = Sha256::digest(c.iri.as_bytes());
-            let short: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
-            let target = format!("correspondence:{short}");
-            // The concrete dropped constructs (`actual` notes), attributed to this cell. The
-            // SZS-status → verdict collapse's residue is the CAX≠UNS / CSA≠SAT distinctions:
-            // the finer contradictory-vs-unsatisfiable and countersatisfiable-vs-satisfiable
-            // tokens collapse into the coarse verdict and survive only via logic:rawStatusToken.
-            let actual = vec![
-                format!("correspondence: {}", c.iri),
-                "logic:SzsContradictoryAxioms and logic:SzsUnsatisfiable collapse to \
-                 logic:ConfInconsistent; the CAX≠UNS distinction survives only via \
-                 logic:rawStatusToken"
-                    .to_owned(),
-                "logic:SzsCounterSatisfiable and logic:SzsSatisfiable collapse to \
-                 logic:ConfConsistent; the CSA≠SAT distinction survives only via \
-                 logic:rawStatusToken"
-                    .to_owned(),
-            ];
-            loss.record_projection_drops(&target, pres, &c_struct, &actual);
-            owned.push(ProjectionResult {
-                target,
-                // The legal output is the correspondence's dialect artifacts (written
-                // elsewhere); the row is a preservation/residue record, not a serialization.
-                content: String::new(),
-                is_rdf: false,
-                preservation: pres,
-                complexity: c_compl.to_owned(),
-            });
+    // One judgment per authored cell, with only its own concrete loss evidence.
+    // A relation or preservation rung does not establish a particular lost distinction.
+    for c in &program.correspondences {
+        if let Some(row) = correspondence_preservation_result(c, &mut loss)? {
+            owned.push(row);
         }
     }
 
@@ -445,12 +429,12 @@ pub fn compile_program(
         .collect();
 
     Ok(CompiledArtifacts {
-        owl_dl: owl_dl.content,
-        owl_el: owl_el.content,
+        owl_dl,
+        owl_el,
         datalog: datalog.content,
         n3: n3.content,
-        gufo: gufo.content,
-        canonical_rdf12: canonical_rdf12.content,
+        gufo,
+        canonical_rdf12,
         clif: clif.content,
         cgif: cgif.content,
         xcl: xcl.content,
@@ -462,6 +446,7 @@ pub fn compile_program(
         report_header,
         loss,
         correspondence_gates,
+        correspondence_verdicts,
         correspondence_outcomes,
         correspondence_program,
     })
@@ -537,6 +522,32 @@ pub(crate) fn gmeow_term(iri: &str) -> Option<String> {
     iri.starts_with(GMEOW_NS).then(|| iri.to_owned())
 }
 
+/// Preserve the authored cell judgment without inventing an execution or loss claim.
+/// The complete cell key binds evidence and its context; the source IRI remains
+/// readable in the target name rather than masquerading as an actual-drop note.
+fn correspondence_preservation_result(
+    correspondence: &crate::ir::Correspondence,
+    ledger: &mut crate::loss_ledger::LossLedger,
+) -> gmeow_errors::Result<Option<ProjectionResult>> {
+    use sha2::{Digest, Sha256};
+
+    correspondence::validate_loss_evidence(correspondence)?;
+    let Some(preservation) = correspondence.preservation else {
+        return Ok(None);
+    };
+    let digest = Sha256::digest(correspondence.content_key().as_bytes());
+    let hash: String = digest.iter().map(|byte| format!("{byte:02x}")).collect();
+    let target = format!("correspondence:{}:{hash}", correspondence.iri);
+    ledger.record_correspondence_drops(&target, correspondence, preservation);
+    Ok(Some(ProjectionResult {
+        target,
+        content: String::new(),
+        is_rdf: false,
+        preservation,
+        complexity: "authored correspondence judgment; execution evidence is separate".to_owned(),
+    }))
+}
+
 pub(crate) fn correspondence_result(
     ledger: &mut crate::loss_ledger::LossLedger,
     dialect: &str,
@@ -547,24 +558,28 @@ pub(crate) fn correspondence_result(
     use sha2::{Digest, Sha256};
 
     let (kind, complexity, structural) = target_meta(dialect_target(dialect));
-    // The per-correspondence key embeds full IRIs + separators (`|`, `::`, spaces) that
-    // are illegal in an IRI, so the target NAME (which the report uses as the IRI's local
-    // segment) is `<dialect>:<sha256(key)[:16]>` — a stable, collision-free, IRI-legal
-    // identity. The human-readable key is preserved as the first residue note so nothing
-    // is lost.
-    let digest = Sha256::digest(format!("{dialect}\u{1f}{key}").as_bytes());
-    let short: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
-    let target = format!("{dialect}:{short}");
+    // The complete source key belongs to target identity, never to loss evidence.
+    // The report percent-encodes this readable identity at the RDF IRI boundary.
+    // Frame the two fields and retain every SHA-256 byte (no shortened aliases).
+    let mut hasher = Sha256::new();
+    hasher.update(b"gmeow.correspondence-report-target.v2\0");
+    for field in [dialect, key] {
+        hasher.update((field.len() as u64).to_be_bytes());
+        hasher.update(field.as_bytes());
+    }
+    let hash: String = hasher
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    let target = format!("{dialect}:{key}:{hash}");
     let structural: Vec<String> = structural.into_iter().map(str::to_owned).collect();
-    let mut actual_drops = Vec::with_capacity(residue.len() + 1);
-    actual_drops.push(format!("correspondence: {key}"));
-    actual_drops.extend(residue);
     // Attribute this correspondence cell's residue to its DOCUMENTED source term (the GMEOW
     // endpoint of the alignment) when one is supplied: the whole cell's drops concern that
     // term projected DOWN to the external vocabulary (Principle 17), so its projection-loss
     // row lands on that term's page. `None` (a non-gmeow / undocumented endpoint) leaves the
     // drops whole-program — never fabricated onto a term.
-    let attributed: Vec<(String, Option<String>)> = actual_drops
+    let attributed: Vec<(String, Option<String>)> = residue
         .into_iter()
         .map(|note| (note, source_term.clone()))
         .collect();
@@ -723,7 +738,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
         // CLIF: a bidirectional s-expression FOL dialect. ExactPreservation —
         // the idiomatic FOL channel (rules + formulas) round-trips verbatim and the
         // RDF/predication channel rides the lossless canonical-RDF-1.2 leg, so nothing
-        // is dropped (the production round-trip test pins this).
+        // is dropped (the producer round-trip observation pins this).
         "clif" => (
             PreservationKind::Exact,
             "full first-order (semi-decidable)",
@@ -732,7 +747,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
         // CGIF: a bidirectional conceptual-graph FOL dialect. ExactPreservation —
         // the idiomatic conceptual-graph channel (rules + formulas) round-trips verbatim and
         // the RDF/predication channel rides the lossless canonical-RDF-1.2 leg, so nothing is
-        // dropped (the production round-trip test pins this, as for its CLIF sibling).
+        // dropped (the producer round-trip observation pins this, as for its CLIF sibling).
         "cgif" => (
             PreservationKind::Exact,
             "full first-order (semi-decidable)",
@@ -742,7 +757,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
         // ExactPreservation — the idiomatic XCL2 sentence channel (rules + formulas) is a
         // human-readable view and the RDF/predication channel rides the lossless
         // canonical-RDF-1.2 leg carried as N-Triples in <gmeow-rdf-meta>, so nothing is
-        // dropped (the production round-trip test pins this, as for its CLIF/CGIF siblings).
+        // dropped (the producer round-trip observation pins this, as for its CLIF/CGIF siblings).
         "xcl" => (
             PreservationKind::Exact,
             "full first-order (semi-decidable)",
@@ -908,22 +923,6 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                  dropped",
                 "category and dimension names are emitted as a closed EmotionML vocabulary set; the \
                  open, contested axis basis (Principle 9) is flattened to a fixed enumeration",
-            ],
-        ),
-        // The per-correspondence preservation residue (Principle-17 loss row): a
-        // `logic:Correspondence` on a lossy rung authoring a non-`Exact`
-        // `logic:preservationKind` drops a real distinction its coarse view cannot carry.
-        // The concrete dropped constructs are the per-correspondence `actual` notes (e.g. the
-        // SZS-status collapse's CAX≠UNS / CSA≠SAT distinctions); this is the shared structural
-        // limitation every such row inherits.
-        "correspondence" => (
-            PreservationKind::SoundUnder,
-            "decidable/graph-iso lens-law check",
-            vec![
-                "a lossy correspondence's get leg is many-to-one (non-injective): the coarse \
-                 view cannot recover the source distinctions its finer domain drew, so the \
-                 lowering is a sound under-approximation, never exact — the dropped source \
-                 distinctions survive only in the canonical logic: layer",
             ],
         ),
         // The Pydantic v2 model package (gmeow_models): a closed-record instance
@@ -1158,6 +1157,23 @@ pub(crate) fn contract_drop_notes(
     // as its own shape-tagged drop (take1 §10.1 legalization — carried+flagged, never
     // silent). A formula-free program adds nothing, so its ledger is byte-unchanged.
     notes.extend(formula_residue_notes(program, target_label, representable));
+    match &program.presentations {
+        crate::ir::PresentationProgramIr::Empty => {}
+        crate::ir::PresentationProgramIr::Lowered(data) => {
+            for name in data.presentations.keys() {
+                notes.push(format!("finite presentation <{name}> and its indexed signature, signed sentences and evidence are not representable in {target_label}"));
+            }
+            for name in data.merges.keys() {
+                notes.push(format!("presentation merge <{name}> is not representable in {target_label}; no executable composition or rewrite certificate is emitted"));
+            }
+            if data.presentations.is_empty() && data.merges.is_empty() {
+                notes.push(format!("standalone typed presentation declarations are not representable in {target_label}"));
+            }
+        }
+        crate::ir::PresentationProgramIr::Refused { detail, .. } => {
+            notes.push(format!("presentation lowering was refused: {detail}; {target_label} carries no successful execution"));
+        }
+    }
     notes
 }
 

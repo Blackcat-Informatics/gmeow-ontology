@@ -5,15 +5,12 @@
 //!
 //! The 17 asserted-TBox guards run over the merged ontology (`GraphStore::ontology()`,
 //! the native twin of `load_merged_graph(include_imports=False)`). The two SHACL
-//! guards validate the slice module + an inline instance against the *slice*
-//! `shapes.ttl` (via `parse_shapes` + `validate_dataset`) exactly as the Python
-//! `run_shacl(..., shapes_path=_SHAPES)` did. `test_all_examples_parse` →
-//! `all_examples_parse`.
+//! guards read producer observations over the exact slice module and generated
+//! constraint-shape union. The six-example inventory is retained; syntax-only
+//! parser conformance belongs to PurRDF.
 
 use crate::conformance_support::*;
-use purrdf::parse_dataset;
-use purrdf::shapes::engine::{parse_shapes, validate_dataset};
-use purrdf::shapes::report::ValidationReport;
+use crate::inference_observations;
 use std::collections::BTreeSet;
 use std::fs;
 
@@ -27,9 +24,6 @@ const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const OWL_SYMMETRIC: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
 const OWL_IRREFLEXIVE: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
-
-const INFERENCE_MODULE: &str = "slices/core/inference/module.ttl";
-const INFERENCE_SHAPES: &str = "slices/core/inference/shapes.ttl";
 
 /// The allowed logic: master metaclasses (exactly one per class — the invariant).
 const LOGIC_MASTERS: &[&str] = &[
@@ -297,82 +291,24 @@ fn solver_layer_scores_are_decimal() {
     }
 }
 
-// ── SHACL guards against the SLICE shapes ─────────────────────────────────────
-
-const PRELUDE: &str = "\
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix ex: <http://example.org/inf/> .
-ex:methodReason a gmeow:ObservationMethod .
-";
-
-const WELLFORMED: &str = "\
-ex:p1 a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason .
-ex:concl a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason .
-ex:commit a gmeow:InferenceCommitment ;
-    gmeow:premise ex:p1 ;
-    gmeow:conclusion ex:concl ;
-    gmeow:inferenceModeOf gmeow:modeDeduction .
-ex:h1 a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason ;
-    gmeow:competesWith ex:h2 .
-ex:h2 a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason .
-";
-
-const MALFORMED: &str = "\
-ex:claimX a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason .
-ex:badCommit a gmeow:InferenceCommitment ;
-    gmeow:premise ex:claimX ;
-    gmeow:conclusion ex:claimX .
-ex:selfRival a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason ;
-    gmeow:competesWith ex:selfRival .
-ex:selfAttack a gmeow:Attack ;
-    gmeow:attackSource ex:claimX ;
-    gmeow:attackTarget ex:claimX ;
-    gmeow:attackKind gmeow:attackRebut .
-ex:claimY a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason .
-ex:selfArg a gmeow:Argument ; gmeow:argumentConclusion ex:claimY .
-ex:componentSelfAttack a gmeow:Attack ;
-    gmeow:attackSource ex:selfArg ;
-    gmeow:attackTarget ex:claimY ;
-    gmeow:attackKind gmeow:attackRebut .
-";
-
-/// Validate `slice module + instance` against the *slice* `shapes.ttl` — the twin
-/// of `run_shacl(_data(instance), shapes_path=_SHAPES)`.
-fn validate_against_slice_shapes(instance_ttl: &str) -> ValidationReport {
-    // The real post-migration enforcement surface: the residual hand-authored slice `shapes.ttl`
-    // PLUS the projected FOL constraint shapes. The premise≠conclusion cross-node check migrated
-    // out of the hand-authored slice shape into a `logic:` RelatumDistinctness axiom projected to
-    // `generated/shapes/constraint-shapes.ttl` (design/LOGIC-VALIDATION.md), so the slice-local
-    // check must fold that projection in to still exercise it. Turtle concatenation is well-formed
-    // (duplicate `@prefix` lines are legal); the FOL constraints fire only on malformed data.
-    let mut shapes_ttl =
-        fs::read_to_string(repo_root().join(INFERENCE_SHAPES)).expect("inference shapes");
-    shapes_ttl.push('\n');
-    shapes_ttl.push_str(&authenticated_corpus_text("validate-constraint-shapes.ttl"));
-    let shapes = parse_shapes(&shapes_ttl, None).expect("inference shapes parse");
-    let module_nt = ttl_file_to_nt(&repo_root().join(INFERENCE_MODULE));
-    let instance_nt = ttl_str_to_nt(&format!("{PRELUDE}{instance_ttl}"));
-    let data_nt = format!("{module_nt}\n{instance_nt}");
-    let dataset = parse_dataset(data_nt.as_bytes(), "application/n-triples", None)
-        .expect("data N-Triples parse");
-    validate_dataset(&dataset, &shapes).expect("slice SHACL validation")
-}
-
 #[gmeow_test_batch_macros::batch_test]
 fn wellformed_commitment_conforms() {
-    let report = validate_against_slice_shapes(WELLFORMED);
+    let report = inference_observations::report("wellformed");
     assert!(
-        ok(&report),
+        report.violations().is_empty(),
         "well-formed commitment should conform; violations: {:?}",
-        violations(&report)
+        report.violations()
     );
 }
 
 #[gmeow_test_batch_macros::batch_test]
 fn malformed_commitment_is_flagged() {
-    let report = validate_against_slice_shapes(MALFORMED);
-    assert!(!ok(&report), "malformed commitment should be flagged");
-    let blob = violations(&report).join(" ");
+    let report = inference_observations::report("malformed");
+    assert!(
+        !report.violations().is_empty(),
+        "malformed commitment should be flagged"
+    );
+    let blob = report.violations().join(" ");
     for needle in [
         // The premise≠conclusion and no-self-attack checks now project from the logic:
         // RelatumDistinctness constraints ("… must be distinct"), replacing the legacy sh:sparql
@@ -390,15 +326,13 @@ fn malformed_commitment_is_flagged() {
 }
 
 #[gmeow_test_batch_macros::batch_test]
-fn all_examples_parse() {
+fn all_six_worked_examples_remain_registered() {
     let dir = repo_root().join("slices/core/inference/examples");
     let mut names: BTreeSet<String> = BTreeSet::new();
     for entry in fs::read_dir(&dir).expect("examples dir") {
         let path = entry.expect("dir entry").path();
         if path.extension().and_then(|e| e.to_str()) == Some("ttl") {
             names.insert(path.file_name().unwrap().to_string_lossy().into_owned());
-            // Parse it — parse_ttl_file panics on malformed Turtle.
-            let _ = GraphStore::parse_ttl_file(&path);
         }
     }
     assert!(

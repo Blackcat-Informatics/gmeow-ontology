@@ -48,6 +48,79 @@ they cannot preserve reproducible output. Typed existential callers use
 `materialize_existential_rules`; only the repo-owned performance fixtures retain a
 small benchmark-only textual TGD adapter.
 
+Program materialization evaluates ordinary rules and conjunctive existential
+heads in one indexed fixed point. Canonical positive `∀x. B(x) → ∃z. H(x,z)`
+formulas lower directly into that execution, with shared and lexically scoped
+witnesses across all head conjuncts. Single binary existential heads use the same
+admission as reified n-ary tuples. Termination and stratification include both
+producer families; mathematical builtins also declare the structural predicates
+they read. One sorted commit charges the shared budget across all worlds.
+A partial run exposes only completed predicate extensions in its frontier.
+
+Prepared witness layouts and ordinary join plans are reused across selected
+datasets. Existential triggers are revisited when a body predicate changes;
+annotations fold the same selected physical lineage without replaying joins or
+reasserting an intermediate closure. Materializations retain their chase
+admission and decomposable witness recipes.
+
+`reason_program` uses this joint executor for the selected ordinary and formula
+rules together with the fixed native rules. It reads native statements, including
+default-graph facts and literal-valued annotations, directly into world partitions.
+`reason_program_certified` retains the chase admissions, witness recipes and
+ordered premises from that execution. These are execution-fragment certificates;
+they do not certify complete coverage of an authored source corpus or contextual
+scope semantics. Distinct source graphs that collide on the current string world
+key are rejected at admission.
+
+Native positive schema joins also participate in that fixed point: domain,
+range, subproperty propagation, inverse/symmetric/transitive properties, and
+value restrictions can consume schema facts derived by authored rules and wake
+their consumers. Predicates selected from data are bound directly over the same
+indexed store. Schema and data premises remain in the execution trace. A finite
+vocabulary reachability analysis selects the potentially active laws; a bounded
+plan cache keys the selected laws and complete predicate inventory, retaining no
+world facts or results. Unknown predicate effects remain conservative dependency
+edges. Combining those effects with invented terms requires a joint termination
+certificate or an explicit execution budget. The shared chase certifier analyzes
+all three statement positions, including values that become predicates. Its
+conservative pair projections preserve every concrete firing and may introduce
+additional abstract joins; a terminating abstract closure bounds the concrete
+one. These are immutable rule analyses, never executable RDF projections or
+rewrites of source data. An incomplete or refused analysis cannot authorize an
+unbounded run.
+
+Selected-program list laws use complete, witnessed lists from that same indexed
+store. Union, intersection, enumeration and pairwise-disjointness consequences
+can consume list cells derived in later rounds and wake their authored consumers.
+Intersection membership streams candidates from one listed class's type index
+and checks every member in the same world, without scanning unrelated types or
+materializing a candidate table. Empty intersections use explicit resource-domain
+laws whose effects also participate in joint termination admission. Nominal
+closure requires explicit inequality against every member, retaining the actual
+orientation of each premise and never assuming unique names. These finite guards
+participate in the producer dependency graph; their conservative termination
+analysis includes empty lists instead of treating missing members as absent
+producers. Late type or inequality facts wake the same authored consumers.
+Property-chain joins stream paths of arbitrary admitted length without collecting
+intermediate join tables. Their evidence carries the declaration, every list edge
+and every data edge. A shared cache retains at most 64 completed lists and 256 KiB
+of native ID payload per world and round; a cache miss only repeats the traversal.
+Incomplete lists wait for further producers and fail admission if the fixed point
+cannot complete them. Cyclic or ambiguous structure cannot authorize a consequence.
+The remaining DL reader uses the same complete-list admission and recognizes
+referenced shared tails; malformed pairwise lists withhold its coverage claim.
+
+Remaining DL augmentation and modal evaluation follow that joint rule closure.
+Maximum-cardinality clashes select a sufficient pairwise distinct subset, so
+additional fillers with unknown equality cannot hide a contradiction. The clash
+retains the exact bound literal, qualifying types, selected fillers and actual
+inequality premises; it makes no unique-name assumption.
+Budgeted reasoning and incremental ground insertion charge their new DL facts and
+modal verdicts against the remaining derivation allowance. Incomplete DL blocks
+modal evaluation; any budget cut withholds the final consistency verdict.
+The remaining sequential phases do not establish a general fixed point for all
+DL and modal consequences that feed back into authored rules.
+
 ## Foundation lowering
 
 Foundation lowering is the move of the five OntoUML structural disciplines from the native gUFO

@@ -1,0 +1,87 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/composite-modal/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# The explicit examples producer places this file in graph/examples. The request
+# metadata and formula carriers remain in that named source graph. Evidence is
+# selected independently by each context's world and standpoint.
+<https://blackcatinformatics.ca/gmeow/graph/examples> a logic:World .
+
+ex:proposalView
+    a logic:AttributedContext ;
+    logic:contextWorld <https://blackcatinformatics.ca/gmeow/graph/examples> ;
+    logic:contextStandpoint ex:proposer ;
+    logic:evidenceClosure logic:ClosedWorldClosure .
+
+ex:reviewView
+    a logic:AttributedContext ;
+    logic:contextWorld <https://blackcatinformatics.ca/gmeow/graph/examples> ;
+    logic:contextStandpoint ex:reviewer ;
+    logic:evidenceClosure logic:ClosedWorldClosure .
+
+ex:proposer a logic:Thing .
+ex:reviewer a logic:Thing .
+
+# These attributed claims coexist. Neither claim asserts the quoted proposition
+# as an unqualified fact, and neither standpoint has priority over the other.
+ex:proposalEvidence
+    rdf:reifies <<( ex:procedure ex:readyFor ex:execution )>> ;
+    gmeow:accordingTo ex:proposer ;
+    gmeow:standpointSupportStatus gmeow:supportSupported .
+
+ex:reviewEvidence
+    rdf:reifies <<( ex:procedure ex:readyFor ex:execution )>> ;
+    gmeow:accordingTo ex:reviewer ;
+    gmeow:standpointSupportStatus gmeow:supportOpposed .
+
+ex:reviewPossibilities
+    a logic:ContextSuccessorSet ;
+    logic:successorContext ex:reviewView ;
+    logic:successorAxis logic:epistemicallyPossible ;
+    logic:successorClosure logic:ClosedWorldClosure ;
+    logic:successorMember ex:reviewView .
+
+ex:readiness
+    a logic:Formula ;
+    logic:relation ex:readyFor ;
+    logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:procedure ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:execution ] .
+
+ex:notReady
+    a logic:Formula ;
+    logic:not ex:readiness .
+
+ex:reviewNecessarilyObjects
+    a logic:Formula ;
+    logic:inContext ex:reviewView ;
+    logic:necessarily ex:notReady ;
+    logic:overAccessibility logic:epistemicallyPossible .
+
+ex:proposalAndReviewDisagree
+    a logic:Formula ;
+    logic:and ex:readiness , ex:reviewNecessarilyObjects .
+
+# Direct readiness is supported in proposalView and opposed in reviewView.
+# The nested query is supported: the proposer supports readiness while every
+# explicitly admitted review possibility supports its strong negation. The
+# reviewer is selected explicitly: an epistemic edge cannot switch standpoint.
+# This scoped disagreement is neither an unqualified contradiction nor an
+# execution permit.
+ex:proposalAssessment
+    a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:readiness ;
+    logic:queryContext ex:proposalView .
+
+ex:reviewAssessment
+    a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:readiness ;
+    logic:queryContext ex:reviewView .
+
+ex:nestedAssessment
+    a logic:ContextualEvaluationRequest ;
+    logic:queryFormula ex:proposalAndReviewDisagree ;
+    logic:queryContext ex:proposalView .

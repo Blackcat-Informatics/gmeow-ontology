@@ -13385,3 +13385,38 @@ repo:README.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/35cf3ae20aad3156> a gmeow:Selector ;
     gmeow:selectorLocator "slices/grounding/logic/design/LOGIC.md:131" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/5e7ecd987ed01ce6> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-VALIDATION.md"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.w3.org/TR/shacl/> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-VALIDATION.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/5e7ecd987ed01ce6> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/5e7ecd987ed01ce6> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-VALIDATION.md#shacl-core" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/7ca01fe996c44d5f> a gmeow:CitationAct ;
+    rdfs:label "crates/logic-compile/src/projections/shapes.rs"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.w3.org/TR/shacl/> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/logic-compile/src/projections/shapes.rs> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/7ca01fe996c44d5f> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/7ca01fe996c44d5f> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/logic-compile/src/projections/shapes.rs:property_shape_blocks" .
+
+<https://www.ijcai.org/Proceedings/13/Papers/132.pdf> a gmeow:CreativeWork ;
+    rdfs:label "De Giacomo and Vardi: finite-trace temporal logic"@en ;
+    gmeow:sourceLocation "https://www.ijcai.org/Proceedings/13/Papers/132.pdf" ;
+    gmeow:bibliographicCitation "Giuseppe De Giacomo and Moshe Y. Vardi (2013). Linear Temporal Logic and Linear Dynamic Logic on Finite Traces. Proceedings of IJCAI 2013, section 2." .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/a117b8d20f1abd95> a gmeow:CitationAct ;
+    rdfs:label "logic: classical finite temporal clauses and their scoped evidence interpretation"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.ijcai.org/Proceedings/13/Papers/132.pdf> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-AGENTIC-MODALITY.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/a117b8d20f1abd95> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/a117b8d20f1abd95> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-AGENTIC-MODALITY.md" .

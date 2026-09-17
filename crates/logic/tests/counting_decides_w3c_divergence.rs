@@ -5,8 +5,8 @@
 //! refutation sub-decider DECIDES the committed W3C OWL 2 Full divergence slugs it
 //! now covers, matching the W3C published verdict EXACTLY.
 //!
-//! Each slug's `input.nq` is run through the SAME `dl_consistency` path the
-//! grader/runner uses. The native token — `incomplete` when a construct is
+//! Each slug's authenticated observation was produced by the SAME `dl_consistency`
+//! path the grader/runner uses; tests never execute it on the corpus. The native token — `incomplete` when a construct is
 //! undecided (a non-empty `gaps`), otherwise the consistency boolean — must equal
 //! the W3C ground truth. These cases were `native_verdict = "incomplete"` before
 //! the counting sub-decider; it now decides them soundly and completely (an empty

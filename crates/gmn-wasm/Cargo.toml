@@ -31,6 +31,9 @@ purrdf.workspace = true
 wasm-bindgen.workspace = true
 
 [dev-dependencies]
+# Native tests consume the exact producer-selected source legend without compiling it.
+gmeow-action-cache = { path = "../action-cache" }
+serde_json.workspace = true
 # The token-cost anti-rot gate measures the REAL `cl100k_base` cost of every codebook
 # glyph and pins `GLYPH_TOKEN_COSTS` to it, so it needs the `glyph-cost` feature the
 # shipped wasm image deliberately drops. A dev-dependency is exactly the right seam: it

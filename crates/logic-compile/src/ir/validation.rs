@@ -168,21 +168,28 @@ impl ShaclSeverity {
 }
 
 /// A single member of a closed value set (`sh:in`): an IRI or a typed/lang literal.
-#[derive(
-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum ShapeValue {
     /// An IRI term.
     Iri(String),
-    /// A literal term: lexical form with an optional datatype IRI XOR language tag.
-    Literal {
-        /// The lexical form.
-        lexical: String,
-        /// The datatype IRI (`None` for a plain / lang-tagged literal).
-        datatype: Option<String>,
-        /// The language tag (`None` for a plain / typed literal).
-        lang: Option<String>,
-    },
+    /// A complete native RDF 1.2 literal value.
+    Literal(#[serde(with = "super::literal_serde::single")] purrdf::RdfLiteral),
+}
+
+impl Ord for ShapeValue {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match (self, other) {
+            (Self::Iri(a), Self::Iri(b)) => a.cmp(b),
+            (Self::Literal(a), Self::Literal(b)) => super::literal_serde::structural_cmp(a, b),
+            (Self::Iri(_), Self::Literal(_)) => std::cmp::Ordering::Less,
+            (Self::Literal(_), Self::Iri(_)) => std::cmp::Ordering::Greater,
+        }
+    }
+}
+impl PartialOrd for ShapeValue {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl ShapeValue {
@@ -190,16 +197,7 @@ impl ShapeValue {
     fn content_key(&self) -> String {
         match self {
             ShapeValue::Iri(i) => format!("iri={}", key_field(i)),
-            ShapeValue::Literal {
-                lexical,
-                datatype,
-                lang,
-            } => format!(
-                "lit={}dt={}lang={}",
-                key_field(lexical),
-                key_field(datatype.as_deref().unwrap_or("")),
-                key_field(lang.as_deref().unwrap_or("")),
-            ),
+            ShapeValue::Literal(literal) => format!("lit={}", super::literal_serde::key(literal)),
         }
     }
 }
@@ -387,48 +385,31 @@ impl ConstraintComponent {
 
     /// Canonicalize the component's inner collections — sort the `In` value-set members, the
     /// `LanguageIn` tags, and the `TerminologyBinding` codes — so supply order never affects
-    /// identity, and reject an `In` literal that illegally carries BOTH a datatype and a
-    /// language tag (the [`ShapeValue::Literal`] invariant is datatype XOR lang). Called at
-    /// construction so the stored form — not just the key — is canonical.
+    /// identity, and admit complete literal components through PurRDF's coherence check.
+    /// Called at construction so the stored form and its key share one native identity.
     fn normalize(&mut self) -> gmeow_errors::Result<()> {
         match self {
             ConstraintComponent::In(vs) => {
-                for v in vs.iter() {
-                    if let ShapeValue::Literal {
-                        datatype: Some(_),
-                        lang: Some(_),
-                        ..
-                    } = v
-                    {
-                        return Err(Diag::of_kind(crate::error::Validation {
-                            detail: "ConstraintComponent::In: a value-set literal may carry a \
-                                    datatype XOR a language tag, never both"
-                                .to_owned(),
-                        }));
+                for value in vs.iter_mut() {
+                    if let ShapeValue::Literal(literal) = value {
+                        super::literal_serde::normalize(literal).map_err(|detail| {
+                            Diag::of_kind(crate::error::Validation {
+                                detail: detail.to_owned(),
+                            })
+                        })?;
                     }
                 }
-                // Sort by the type's own derived `Ord`, NOT by `content_key`: the content key is
-                // length-prefixed for unambiguous folding (`key_field`), which does not agree
-                // with plain lexical order once members differ in byte length (e.g. two IRIs of
-                // lengths 78 and 85 would fold-sort as "78:…" < "85:…", which happens to agree
-                // here, but a 9-vs-10-length pair would not). The OPT reader canonicalizes its
-                // own value sets with a plain `Vec<String>::sort()`; using the same natural order
-                // here is what keeps the two sides content-identical after a round trip.
                 vs.sort();
             }
             ConstraintComponent::LanguageIn(langs) => langs.sort(),
             ConstraintComponent::TerminologyBinding { codes, .. } => codes.sort(),
             ConstraintComponent::OrdinalSet { pairs } => pairs.sort(),
-            ConstraintComponent::HasValue(ShapeValue::Literal {
-                datatype: Some(_),
-                lang: Some(_),
-                ..
-            }) => {
-                return Err(Diag::of_kind(crate::error::Validation {
-                    detail: "ConstraintComponent::HasValue: a literal value may carry a \
-                            datatype XOR a language tag, never both"
-                        .to_owned(),
-                }));
+            ConstraintComponent::HasValue(ShapeValue::Literal(literal)) => {
+                super::literal_serde::normalize(literal).map_err(|detail| {
+                    Diag::of_kind(crate::error::Validation {
+                        detail: detail.to_owned(),
+                    })
+                })?;
             }
             ConstraintComponent::QualifiedValueShape { shape, .. } => {
                 for c in shape.iter_mut() {
@@ -1010,324 +991,6 @@ impl ValidationShapeIr {
     }
 }
 
+#[path = "validation.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn failure_class_is_unique_annotation_metadata() {
-        let bare = ValidationShapeIr::new(
-            "https://ex/Shape",
-            ShapeTarget::Class("https://ex/C".into()),
-            vec![],
-            None,
-        )
-        .unwrap();
-        let keyed = bare
-            .clone()
-            .with_failure_class("https://ex/Failure")
-            .unwrap();
-        assert_eq!(bare.content_key(), keyed.content_key());
-        let err = keyed
-            .with_failure_class("https://ex/OtherFailure")
-            .unwrap_err();
-        assert!(err.message().contains("duplicate"));
-    }
-
-    #[test]
-    fn value_set_members_are_order_independent() {
-        let members = |a: &str, b: &str| {
-            PropertyConstraintIr::new(
-                "https://ex/p",
-                None,
-                None,
-                None,
-                vec![ConstraintComponent::In(vec![
-                    ShapeValue::Iri(a.to_owned()),
-                    ShapeValue::Iri(b.to_owned()),
-                ])],
-            )
-            .unwrap()
-        };
-        let ab = members("https://ex/a", "https://ex/b");
-        let ba = members("https://ex/b", "https://ex/a");
-        assert_eq!(
-            ab.content_key(),
-            ba.content_key(),
-            "value-set member order must not affect identity"
-        );
-        assert_eq!(ab, ba, "normalized components must be structurally equal");
-    }
-
-    #[test]
-    fn value_set_literal_with_datatype_and_lang_is_rejected() {
-        let err = PropertyConstraintIr::new(
-            "https://ex/p",
-            None,
-            None,
-            None,
-            vec![ConstraintComponent::In(vec![ShapeValue::Literal {
-                lexical: "x".into(),
-                datatype: Some("https://ex/dt".into()),
-                lang: Some("en".into()),
-            }])],
-        )
-        .unwrap_err();
-        assert!(err.message().contains("XOR"), "got: {err}");
-    }
-
-    #[test]
-    fn value_keyed_target_key_is_unambiguous() {
-        // The classic delimiter collision: `"a=b" + "c"` and `"a" + "b=c"` must fold to DISTINCT
-        // keys, never the same `a=b=c`.
-        let x = ShapeTarget::ValueKeyed {
-            predicate: "a=b".into(),
-            value: "c".into(),
-        };
-        let y = ShapeTarget::ValueKeyed {
-            predicate: "a".into(),
-            value: "b=c".into(),
-        };
-        assert_ne!(
-            x.content_key(),
-            y.content_key(),
-            "distinct value-keyed targets must not share a content key"
-        );
-    }
-
-    #[test]
-    fn default_presentation_fields_leave_property_key_byte_identical() {
-        // The type-migration / new-field hazard the empty-attach test does NOT catch: a plain
-        // property shape (no inverse path, no severity, no message) must fold to the SAME bytes
-        // the key produced before those fields existed — i.e. the tail markers must be ABSENT.
-        let p = PropertyConstraintIr::new(
-            "https://ex/p",
-            Some(1),
-            Some(1),
-            Some(ConstraintProvenance::OwlRestriction),
-            vec![ConstraintComponent::Class("https://ex/C".into())],
-        )
-        .unwrap();
-        let key = p.content_key();
-        assert!(
-            !key.contains("inverse="),
-            "default key must not carry inverse: {key}"
-        );
-        assert!(
-            !key.contains("sev="),
-            "default key must not carry severity: {key}"
-        );
-        assert!(
-            !key.contains("msg="),
-            "default key must not carry message: {key}"
-        );
-        // And the presentation setters DO perturb the key (falsifiable).
-        assert_ne!(p.content_key(), p.clone().inverted().content_key());
-        assert_ne!(
-            p.content_key(),
-            p.clone()
-                .with_severity(ShaclSeverity::Warning)
-                .content_key()
-        );
-    }
-
-    #[test]
-    fn default_node_components_and_label_leave_shape_key_byte_identical() {
-        // A shape with no node_components and no label must fold to a key with NO NODECOMPS/label
-        // tail — the guarantee that the historical shape corpus's content-addressed key cannot
-        // drift now that these fields exist.
-        let shape = ValidationShapeIr::new(
-            "https://ex/S-shape",
-            ShapeTarget::Class("https://ex/S".into()),
-            vec![
-                PropertyConstraintIr::new(
-                    "https://ex/p",
-                    None,
-                    None,
-                    None,
-                    vec![ConstraintComponent::Class("https://ex/C".into())],
-                )
-                .unwrap(),
-            ],
-            None,
-        )
-        .unwrap();
-        let key = shape.content_key();
-        assert!(
-            key.ends_with(&format!("PROPS={}", {
-                key_list(
-                    shape
-                        .properties
-                        .iter()
-                        .map(PropertyConstraintIr::content_key),
-                )
-            })),
-            "a plain shape's key must end at PROPS with no NODECOMPS/label tail: {key}"
-        );
-        assert!(!key.contains("NODECOMPS="));
-        assert!(!key.contains("label="));
-        // Attaching a node component / label DOES perturb the key.
-        let with_nc = shape
-            .clone()
-            .with_node_components(vec![ConstraintComponent::Class("https://ex/D".into())])
-            .unwrap();
-        assert_ne!(shape.content_key(), with_nc.content_key());
-        assert!(with_nc.content_key().contains("NODECOMPS="));
-    }
-
-    #[test]
-    fn new_components_round_trip_content_key_and_order_independence() {
-        // HasValue, QualifiedValueShape, and Not all fold deterministically, and a qualified
-        // value shape's inner components are order-independent.
-        let mk = |inner_a: &str, inner_b: &str| {
-            PropertyConstraintIr::new(
-                "https://ex/p",
-                None,
-                None,
-                None,
-                vec![
-                    ConstraintComponent::HasValue(ShapeValue::Iri("https://ex/v".into())),
-                    ConstraintComponent::QualifiedValueShape {
-                        shape: vec![
-                            ConstraintComponent::Class(inner_a.into()),
-                            ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri),
-                            ConstraintComponent::Datatype(inner_b.into()),
-                        ],
-                        min: Some(1),
-                        max: None,
-                    },
-                    ConstraintComponent::Not(Box::new(ConstraintComponent::Class(
-                        "https://ex/Disjoint".into(),
-                    ))),
-                ],
-            )
-            .unwrap()
-        };
-        // Inner shape supplied in two different orders → identical key (order-independence).
-        let x = mk("https://ex/A", "https://ex/dt");
-        let mut reordered = PropertyConstraintIr::new(
-            "https://ex/p",
-            None,
-            None,
-            None,
-            vec![
-                ConstraintComponent::Not(Box::new(ConstraintComponent::Class(
-                    "https://ex/Disjoint".into(),
-                ))),
-                ConstraintComponent::QualifiedValueShape {
-                    shape: vec![
-                        ConstraintComponent::Datatype("https://ex/dt".into()),
-                        ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri),
-                        ConstraintComponent::Class("https://ex/A".into()),
-                    ],
-                    min: Some(1),
-                    max: None,
-                },
-                ConstraintComponent::HasValue(ShapeValue::Iri("https://ex/v".into())),
-            ],
-        )
-        .unwrap();
-        // sanity: normalization made reordered structurally equal to x
-        reordered.message = None;
-        assert_eq!(x.content_key(), reordered.content_key());
-        assert_eq!(x, reordered);
-    }
-
-    #[test]
-    fn has_value_literal_with_datatype_and_lang_is_rejected() {
-        let err = PropertyConstraintIr::new(
-            "https://ex/p",
-            None,
-            None,
-            None,
-            vec![ConstraintComponent::HasValue(ShapeValue::Literal {
-                lexical: "x".into(),
-                datatype: Some("https://ex/dt".into()),
-                lang: Some("en".into()),
-            })],
-        )
-        .unwrap_err();
-        assert!(err.message().contains("XOR"), "got: {err}");
-    }
-
-    #[test]
-    fn new_targets_and_qualified_shape_are_lossy_transparent() {
-        // A Not wrapping a lossy inner is lossy; a QualifiedValueShape over lossy inner is lossy.
-        let not_pattern = ConstraintComponent::Not(Box::new(ConstraintComponent::Pattern {
-            regex: "a".into(),
-            flags: None,
-        }));
-        assert!(not_pattern.is_lossy());
-        let qvs_clean = ConstraintComponent::QualifiedValueShape {
-            shape: vec![ConstraintComponent::Class("https://ex/C".into())],
-            min: Some(1),
-            max: None,
-        };
-        assert!(!qvs_clean.is_lossy());
-        // Subjects-of / objects-of targets validate their predicate.
-        assert!(
-            ValidationShapeIr::new(
-                "https://ex/s",
-                ShapeTarget::SubjectsOf("  ".into()),
-                vec![],
-                None,
-            )
-            .is_err()
-        );
-    }
-
-    #[test]
-    fn or_and_xone_branches_are_order_independent_and_lossy_transparent() {
-        // Branch supply order must not affect identity, and a lossy branch makes the whole
-        // disjunction lossy (recursion through Or/Xone).
-        let mk = |a: &str, b: &str| {
-            PropertyConstraintIr::new(
-                "https://ex/p",
-                None,
-                None,
-                None,
-                vec![ConstraintComponent::Or(vec![
-                    ConstraintComponent::Class(a.into()),
-                    ConstraintComponent::Class(b.into()),
-                ])],
-            )
-            .unwrap()
-        };
-        assert_eq!(
-            mk("https://ex/A", "https://ex/B").content_key(),
-            mk("https://ex/B", "https://ex/A").content_key(),
-            "Or branch order must not affect identity"
-        );
-        let clean =
-            ConstraintComponent::Xone(vec![ConstraintComponent::Class("https://ex/A".into())]);
-        assert!(!clean.is_lossy());
-        let lossy = ConstraintComponent::Or(vec![ConstraintComponent::Pattern {
-            regex: "^a".into(),
-            flags: None,
-        }]);
-        assert!(
-            lossy.is_lossy(),
-            "a Pattern branch makes the disjunction lossy"
-        );
-    }
-
-    #[test]
-    fn language_and_terminology_codes_are_sorted_at_construction() {
-        let p = PropertyConstraintIr::new(
-            "https://ex/p",
-            None,
-            None,
-            None,
-            vec![ConstraintComponent::LanguageIn(vec![
-                "fr".into(),
-                "en".into(),
-                "de".into(),
-            ])],
-        )
-        .unwrap();
-        match &p.components[0] {
-            ConstraintComponent::LanguageIn(langs) => assert_eq!(langs, &["de", "en", "fr"]),
-            other => panic!("expected LanguageIn, got {other:?}"),
-        }
-    }
-}
+mod tests;

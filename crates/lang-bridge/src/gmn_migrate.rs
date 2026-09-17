@@ -32,6 +32,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ir::PreservationKind;
 use purrdf::{RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
+use serde::{Deserialize, Serialize};
 
 use crate::gmn1_codec::GmnDictionary;
 
@@ -66,7 +67,7 @@ pub const PRED_GMN_SCHEMA_VERSION: &str = "https://blackcatinformatics.ca/gmeow/
 /// error (the carrier's own SHACL/round-trip gates are the primary authority — this is the
 /// executor's read-back safety net); `UnbridgedGlyphDrop` is the one runtime CONFORMANCE
 /// failure the executor raises, naming the `lang:GmnUnbridgedGlyphDrop` class.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GmnMigrateError {
     /// The authored `logic:Correspondence` migration leg is structurally incomplete — a
     /// missing/duplicate `gmeow:gmnMigratesFrom`/`gmnMigratesTo`, a version entity with
@@ -126,7 +127,7 @@ impl std::error::Error for GmnMigrateError {}
 /// operator's source and target glyph, and (when it changes) its source and target binding
 /// strength. It carries NO preservation judgment: that lives on the owning [`GmnMigration`]'s
 /// `logic:Correspondence`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GlyphRewrite {
     /// `gmeow:gmnRewriteTerm` — the version-stable denoted GMEOW term (the identity anchor).
     pub term: String,
@@ -455,7 +456,7 @@ impl GmnMigration {
 /// One operator occurrence in a stored GMN document, at the SOURCE dialect major: the
 /// version-stable term it denotes and the surface (glyph, binding strength) it was written
 /// under. A [`GmnRecordSet`] is the operator-surface projection of a stored GMN document.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OperatorOccurrence {
     /// The GMEOW term the operator denotes.
     pub term: String,
@@ -479,14 +480,14 @@ impl OperatorOccurrence {
 
 /// The operator-surface projection of a stored GMN document — the operator occurrences the
 /// migration executor re-emits at the target major.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GmnRecordSet {
     /// The operator occurrences, in document order.
     pub operators: Vec<OperatorOccurrence>,
 }
 
 /// One re-emitted operator at the target major.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MigratedOperator {
     /// The version-stable denoted term (unchanged by the crossing).
     pub term: String,
@@ -500,7 +501,7 @@ pub struct MigratedOperator {
 
 /// A stored GMN document re-emitted at the target major, carrying the crossing's preservation
 /// JUDGMENT so consumers read fidelity from the correspondence, never from a boolean.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MigratedRecordSet {
     /// The target major the document was re-emitted at.
     pub target_version: String,
@@ -874,59 +875,5 @@ fn optional_int(
         n => Err(GmnMigrateError::MalformedLeg(format!(
             "{subject} declares {n} {label} values, expected at most one"
         ))),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::Arc;
-
-    use purrdf::parse_dataset;
-
-    const MIGRATION_CORR: &str =
-        "https://blackcatinformatics.ca/gmeow/examples/lang/gmnMigrationVSrcToVTgt";
-    const LOGIC_NOT: &str = "https://blackcatinformatics.ca/logic/not";
-    const LEGACY_XOR: &str = "https://blackcatinformatics.ca/gmeow/examples/lang/gmnLegacyXorOp";
-
-    fn demonstrator_dataset() -> Arc<RdfDataset> {
-        let path = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../slices/grounding/lang/examples/gmn-migration.ttl"
-        );
-        let bytes = std::fs::read(path).expect("gmn-migration.ttl is readable");
-        parse_dataset(&bytes, "text/turtle", None).expect("gmn-migration.ttl parses")
-    }
-
-    #[test]
-    fn loads_the_authored_demonstrator_leg() {
-        let migration =
-            GmnMigration::from_dataset(&demonstrator_dataset(), MIGRATION_CORR).expect("leg loads");
-        assert_eq!(migration.from_version(), "1");
-        assert_eq!(migration.to_version(), "2");
-        assert_eq!(migration.preservation(), PreservationKind::Exact);
-        assert!(migration.mnemomorphic());
-        let rename = migration.rewrite_for(LOGIC_NOT).expect("logic:not rewrite");
-        assert!(rename.is_rename() && rename.is_precedence_change());
-        assert_eq!(
-            (rename.from_glyph.as_str(), rename.to_glyph.as_str()),
-            ("¬", "!")
-        );
-        assert_eq!(
-            (rename.from_precedence, rename.to_precedence),
-            (Some(90), Some(80))
-        );
-
-        // The bridged-drop rewrite (a glyph rename with no precedence legs).
-        let bridged = migration.rewrite_for(LEGACY_XOR).expect("xor rewrite");
-        assert!(bridged.is_rename() && !bridged.is_precedence_change());
-        assert_eq!(
-            (bridged.from_glyph.as_str(), bridged.to_glyph.as_str()),
-            ("⊻", "^")
-        );
-        assert_eq!(
-            (bridged.from_precedence, bridged.to_precedence),
-            (None, None)
-        );
     }
 }

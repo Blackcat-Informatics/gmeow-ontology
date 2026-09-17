@@ -12,7 +12,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::{ActionCacheError, bytes_digest, content_digest};
+use crate::{ActionCacheError, content_digest};
 
 /// A resolved Cargo compilation unit, with physical checkout paths removed.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -41,12 +41,14 @@ pub struct CompilationUnit {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutableRecipe {
-    /// Recipe format version; the current receipt reader accepts version 1.
+    /// Recipe format version; the current receipt reader accepts version 2.
     pub schema: u32,
     /// Selected Cargo profile name, `pipeline` for an admitted producer.
     pub profile: String,
-    /// Lowercase SHA-256 of the sorted relative-path/file-digest inventory from [`source_digest()`].
+    /// Domain-separated SHA-256 of the exact typed production input inventory.
     pub source_digest: String,
+    /// Typed pre-build source selection and its exact owned input inventory.
+    pub source_inventory: gmeow_build_inputs::InputInventory,
     /// Trimmed `rustc -Vv` output identifying the selected Rust compiler.
     pub rustc: String,
     /// Trimmed `cargo --version` output identifying the selected Cargo executable.
@@ -63,7 +65,7 @@ impl ExecutableRecipe {
     /// Domain-separated identity embedded by all producer artifact owners.
     pub fn digest(&self) -> Result<String, ActionCacheError> {
         Ok(content_digest(&[
-            b"executable-recipe-v1",
+            b"executable-recipe-v2",
             &serde_json::to_vec(self)?,
         ]))
     }
@@ -73,11 +75,16 @@ impl ExecutableRecipe {
     /// Excluding the executable-wide source digest here prevents CLI-only edits
     /// from invalidating products whose implementation and compiler are unchanged.
     pub fn compilation_digest(&self) -> Result<String, ActionCacheError> {
-        let mut compilation = self.clone();
-        compilation.source_digest.clear();
         Ok(content_digest(&[
-            b"producer-compilation-policy-v1",
-            &serde_json::to_vec(&compilation)?,
+            b"producer-compilation-policy-v2",
+            &serde_json::to_vec(&(
+                &self.profile,
+                &self.rustc,
+                &self.cargo,
+                &self.compiler_environment,
+                &self.units,
+                &self.roots,
+            ))?,
         ]))
     }
 }
@@ -86,17 +93,42 @@ impl ExecutableRecipe {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutableReceipt {
-    /// Receipt format version; the current reader accepts version 1.
+    /// Receipt format version; the current reader accepts version 2.
     pub schema: u32,
     /// Complete admitted recipe whose digest is embedded in the producer executable.
     pub recipe: ExecutableRecipe,
     /// Lowercase SHA-256 of the exact linked executable bytes.
     pub executable_sha256: String,
+    /// Freshness of the controller's actual Cargo resolution. Development-only
+    /// changes may refresh this witness without changing the recipe or binary.
+    pub resolution: gmeow_build_inputs::CargoResolutionEvidence,
+}
+
+/// Version classification available only to the explicit build controller. An
+/// unsupported receipt is never accepted as executable or corpus evidence.
+#[derive(Debug)]
+pub enum ReceiptDocument {
+    Current(ExecutableReceipt),
+    Unsupported {
+        receipt_schema: u32,
+        recipe_schema: u32,
+    },
 }
 
 impl ExecutableReceipt {
-    /// Read an existing receipt only. A missing or oversized receipt is an error.
+    /// Admit only the current receipt format. Read-only consumers never repair it.
     pub fn read(path: &Path) -> Result<Self, ActionCacheError> {
+        match Self::read_versioned(path)? {
+            ReceiptDocument::Current(receipt) => Ok(receipt),
+            ReceiptDocument::Unsupported { .. } => Err(ActionCacheError::message(
+                "unsupported executable receipt schema",
+            )),
+        }
+    }
+    /// Classify a bounded, structurally valid version header without accepting
+    /// obsolete executable evidence. Only the builder may turn Unsupported into
+    /// a fresh optimized build; malformed current documents remain errors.
+    pub fn read_versioned(path: &Path) -> Result<ReceiptDocument, ActionCacheError> {
         const MAX_RECEIPT_BYTES: u64 = 8 * 1024 * 1024;
         let file = File::open(path)?;
         let mut bytes = Vec::new();
@@ -106,13 +138,23 @@ impl ExecutableReceipt {
                 "executable receipt exceeds its bound",
             ));
         }
-        let receipt: Self = serde_json::from_slice(&bytes)?;
-        if receipt.schema != 1 || receipt.recipe.schema != 1 {
-            return Err(ActionCacheError::message(
-                "unsupported executable receipt schema",
-            ));
+        #[derive(Deserialize)]
+        struct Header {
+            schema: u32,
+            recipe: RecipeHeader,
         }
-        Ok(receipt)
+        #[derive(Deserialize)]
+        struct RecipeHeader {
+            schema: u32,
+        }
+        let header: Header = serde_json::from_slice(&bytes)?;
+        if header.schema != 2 || header.recipe.schema != 2 {
+            return Ok(ReceiptDocument::Unsupported {
+                receipt_schema: header.schema,
+                recipe_schema: header.recipe.schema,
+            });
+        }
+        Ok(ReceiptDocument::Current(serde_json::from_slice(&bytes)?))
     }
 
     /// Authenticate bytes and the recipe identity embedded in the executable.
@@ -122,6 +164,35 @@ impl ExecutableReceipt {
         executable: &Path,
         embedded_recipe_digest: &str,
     ) -> Result<(), ActionCacheError> {
+        if self.schema != 2 || self.recipe.schema != 2 {
+            return Err(ActionCacheError::message(
+                "unsupported executable receipt schema",
+            ));
+        }
+        if self.recipe.source_inventory.schema != gmeow_build_inputs::SCHEMA {
+            return Err(ActionCacheError::message(
+                "unsupported source inventory schema",
+            ));
+        }
+        self.recipe
+            .source_inventory
+            .selection
+            .validate()
+            .map_err(|error| ActionCacheError::message(error.to_string()))?;
+        self.resolution
+            .verify_selection(&self.recipe.source_inventory.selection)
+            .map_err(|error| ActionCacheError::message(error.to_string()))?;
+        if self
+            .recipe
+            .source_inventory
+            .digest()
+            .map_err(|error| ActionCacheError::message(error.to_string()))?
+            != self.recipe.source_digest
+        {
+            return Err(ActionCacheError::message(
+                "source digest does not bind the selected input inventory",
+            ));
+        }
         if self.recipe.digest()? != embedded_recipe_digest {
             return Err(ActionCacheError::message(
                 "executable recipe differs from the compiled producer identity",
@@ -133,6 +204,15 @@ impl ExecutableReceipt {
             ));
         }
         Ok(())
+    }
+
+    /// Require current Cargo-resolution evidence before source admission. This
+    /// is read-only and never invokes Cargo or repairs stale evidence.
+    pub fn verify_current_inputs(&self, root: &Path) -> Result<(), ActionCacheError> {
+        self.resolution
+            .verify_current(root, &self.recipe.source_inventory.selection)
+            .and_then(|()| self.recipe.source_inventory.verify_current(root))
+            .map_err(|error| ActionCacheError::message(error.to_string()))
     }
 
     /// Publish a complete receipt atomically beside its executable.
@@ -151,6 +231,44 @@ impl ExecutableReceipt {
     }
 }
 
+/// Admit the already-built producer and return one exact action owner's current
+/// source inventory. Read-only consumers neither resolve Cargo nor construct data.
+pub fn current_source_inventory(
+    root: &Path,
+    manifest: &str,
+) -> Result<gmeow_build_inputs::InputInventory, ActionCacheError> {
+    let executable = root.join("dist/bin/gmeow-dev");
+    let receipt = ExecutableReceipt::read(&executable.with_extension("receipt.json"))?;
+    if receipt.recipe.profile != "pipeline" {
+        return Err(ActionCacheError::message(
+            "source inventory requires the optimized producer profile",
+        ));
+    }
+    let expected = receipt.recipe.digest()?;
+    receipt.verify(&executable, &expected)?;
+    let probe = std::process::Command::new(&executable)
+        .arg("build-identity")
+        .current_dir(root)
+        .output()?;
+    if !probe.status.success()
+        || probe.stdout.len() > 128
+        || String::from_utf8_lossy(&probe.stdout).trim() != expected
+    {
+        return Err(ActionCacheError::message(
+            "producer executable does not embed the selected source recipe",
+        ));
+    }
+    receipt.verify_current_inputs(root)?;
+    let selected = receipt
+        .recipe
+        .source_inventory
+        .selection
+        .scoped_to_manifest(manifest)
+        .map_err(|error| ActionCacheError::message(error.to_string()))?;
+    gmeow_build_inputs::InputInventory::collect(root, &selected)
+        .map_err(|error| ActionCacheError::message(error.to_string()))
+}
+
 /// Stream the executable digest without holding its bytes in memory.
 pub fn sha256_file(path: &Path) -> Result<String, ActionCacheError> {
     let mut file = File::open(path)?;
@@ -166,118 +284,6 @@ pub fn sha256_file(path: &Path) -> Result<String, ActionCacheError> {
     Ok(format!("{:x}", hash.finalize()))
 }
 
-/// Fold a sorted source inventory without relying on timestamps or absolute paths.
-pub fn source_digest(
-    root: &Path,
-    inputs: impl IntoIterator<Item = std::path::PathBuf>,
-) -> Result<String, ActionCacheError> {
-    let mut records = BTreeMap::new();
-    for path in inputs {
-        let relative = path.strip_prefix(root).map_err(|_| {
-            ActionCacheError::message("producer source inventory escaped its workspace")
-        })?;
-        let relative = relative
-            .to_str()
-            .ok_or_else(|| ActionCacheError::message("producer source path is not UTF-8"))?;
-        records.insert(relative.to_owned(), sha256_file(&path)?);
-    }
-    Ok(bytes_digest(&serde_json::to_vec(&records)?))
-}
-
+#[path = "executable.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// Create a minimal recipe whose identity fields can be varied independently.
-    fn recipe() -> ExecutableRecipe {
-        ExecutableRecipe {
-            schema: 1,
-            profile: "pipeline".into(),
-            source_digest: "source".into(),
-            rustc: "compiler".into(),
-            cargo: "cargo".into(),
-            compiler_environment: BTreeMap::new(),
-            units: Vec::new(),
-            roots: Vec::new(),
-        }
-    }
-
-    /// Require the receipt to authenticate both the recipe and exact executable bytes.
-    #[test]
-    fn executable_and_recipe_substitution_are_rejected() {
-        let scratch = tempfile::tempdir().expect("scratch");
-        let binary = scratch.path().join("producer");
-        std::fs::write(&binary, b"linked executable").expect("write");
-        let receipt = ExecutableReceipt {
-            schema: 1,
-            recipe: recipe(),
-            executable_sha256: sha256_file(&binary).expect("digest"),
-        };
-        let digest = receipt.recipe.digest().expect("recipe");
-        receipt.verify(&binary, &digest).expect("authentic");
-        let mut changed = receipt.clone();
-        changed.recipe.profile = "test".into();
-        assert!(changed.verify(&binary, &digest).is_err());
-        std::fs::write(&binary, b"substituted executable").expect("replace");
-        assert!(receipt.verify(&binary, &digest).is_err());
-    }
-
-    /// Keep source-only edits out of action policy while retaining compiler and flag changes.
-    #[test]
-    fn compilation_policy_and_executable_source_have_separate_identities() {
-        let original = recipe();
-        let mut cli_edit = original.clone();
-        cli_edit.source_digest = "changed-cli-source".into();
-        assert_ne!(original.digest().unwrap(), cli_edit.digest().unwrap());
-        assert_eq!(
-            original.compilation_digest().unwrap(),
-            cli_edit.compilation_digest().unwrap()
-        );
-        let changes: [fn(&mut ExecutableRecipe); 3] = [
-            |recipe: &mut ExecutableRecipe| recipe.rustc.push_str("changed compiler"),
-            |recipe: &mut ExecutableRecipe| recipe.profile = "test".into(),
-            |recipe: &mut ExecutableRecipe| {
-                recipe
-                    .compiler_environment
-                    .insert("CFLAGS".into(), "-O2".into());
-            },
-        ];
-        for change in changes {
-            let mut changed = original.clone();
-            change(&mut changed);
-            assert_ne!(
-                original.compilation_digest().unwrap(),
-                changed.compilation_digest().unwrap()
-            );
-        }
-    }
-
-    /// Bind source content and inventory membership while allowing checkout relocation.
-    #[test]
-    fn source_inventory_detects_new_and_changed_files_but_not_location() {
-        let left = tempfile::tempdir().expect("left");
-        let right = tempfile::tempdir().expect("right");
-        for root in [left.path(), right.path()] {
-            std::fs::write(root.join("input"), b"source").expect("write");
-        }
-        let baseline = source_digest(left.path(), [left.path().join("input")]).expect("digest");
-        assert_eq!(
-            baseline,
-            source_digest(right.path(), [right.path().join("input")]).expect("relocation")
-        );
-        std::fs::write(left.path().join("new"), b"new source").expect("new");
-        assert_ne!(
-            baseline,
-            source_digest(
-                left.path(),
-                [left.path().join("input"), left.path().join("new")]
-            )
-            .expect("new inventory")
-        );
-        std::fs::write(right.path().join("input"), b"changed").expect("change");
-        assert_ne!(
-            baseline,
-            source_digest(right.path(), [right.path().join("input")]).expect("changed inventory")
-        );
-    }
-}
+mod tests;

@@ -43,8 +43,22 @@ fn build_test_gts() -> Vec<u8> {
     let mut builder = SnapshotBuilder::new();
     builder.add_dataset(&dataset).expect("add_dataset");
     // gmeow-test-input: synthetic-only
-    let bytes = emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+    let bytes = {
+        let emission = emit_gmeow_gts(
+            builder,
+            Vec::new(),
+            Vec::new(),
+            None,
+            &gmeow_gts_profile::baseline_medium_plan(),
+        )
         .expect("emit fixture gmeow.gts");
+        assert!(
+            emission.ingestion.declarations_omitted.is_empty(),
+            "unexpected GMEOW fixture graph omissions: {:?}",
+            emission.ingestion.declarations_omitted
+        );
+        emission.bytes
+    };
     gmeow_gts_profile::validate_mandated_frames(&bytes)
         .expect("fixture bundle uses the mandated GTS frame profile");
     bytes

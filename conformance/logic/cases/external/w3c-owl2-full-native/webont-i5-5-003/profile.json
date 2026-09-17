@@ -1,0 +1,7 @@
+{
+  "mode": "native",
+  "verdict_mode": "class-source-admission",
+  "w3c_published_verdict": "inconsistent",
+  "source_admission_contract": "nativeClassExpressionListAdmission",
+  "source_admission_status": "outside-selection"
+}

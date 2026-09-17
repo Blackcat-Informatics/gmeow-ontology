@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Tests for the canonical IR.  These are the authoritative IR tests; the Python
-//! `tests/test_logic_ir.py` they superseded has been retired.
+//! Synthetic canonical IR contracts. Authored vocabulary alignment is graded
+//! from authenticated producer observations by the pipeline suite.
 
 use super::*;
 
@@ -13,101 +13,10 @@ fn kind_pred() -> String {
 }
 
 fn axiom(subj: &str, pred: &str, obj: &str) -> LogicAxiom {
-    LogicAxiom::ground(subj, pred, obj, false).unwrap()
+    LogicAxiom::ground(subj, pred, crate::ir::AtomicTerm::resource(obj)).unwrap()
 }
 
-/// Read the canonical `module.ttl` (relative to the crate manifest).
-fn module_ttl_text() -> String {
-    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/logic/module.ttl");
-    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
-}
-
-/// The `logic:` local name at the head of a Turtle subject line: everything up to
-/// the first whitespace or Turtle terminal punctuation (`;`, `,`, `.`).  Trimming
-/// the punctuation keeps these parser helpers correct even if `module.ttl` is ever
-/// reformatted to put a separator flush against the subject (e.g. `logic:Foo;`).
-fn local_name(rest: &str) -> String {
-    rest.chars()
-        .take_while(|c| !c.is_whitespace() && !matches!(c, ';' | ',' | '.'))
-        .collect()
-}
-
-/// Collect the local names of every individual in `module.ttl` whose block names
-/// `logic:<type_local>` in an rdf:type position — either the inline `a … logic:T`
-/// clause or a bare `logic:T ;`/`logic:T ,` type-list continuation.  Deliberately
-/// ignores `rdfs:range logic:T` and other object positions (so the `logic:<prop>`
-/// property whose range is the taxonomy class is not mistaken for one of its
-/// members) and the class declaration itself.
-fn individuals_of_type(text: &str, type_local: &str) -> std::collections::BTreeSet<String> {
-    let type_ref = format!("logic:{type_local}");
-    let mut out: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    let mut current: Option<String> = None;
-    let mut is_member = false;
-    for line in text.lines() {
-        if let Some(rest) = line.strip_prefix("logic:") {
-            if let (Some(subj), true) = (current.take(), is_member) {
-                out.insert(subj);
-            }
-            current = Some(local_name(rest));
-            is_member = false;
-        }
-        let trimmed = line.trim_start();
-        let bare_type_entry = trimmed
-            .strip_prefix(&type_ref)
-            .is_some_and(|r| r.is_empty() || r.starts_with([' ', '\t', ';', ',']));
-        let inline_type = trimmed.starts_with("a ") && line.contains(&type_ref);
-        if (bare_type_entry || inline_type) && current.as_deref() != Some(type_local) {
-            is_member = true;
-        }
-    }
-    if let (Some(subj), true) = (current, is_member) {
-        out.insert(subj);
-    }
-    out
-}
-
-// ── Enum surface (local names match module.ttl verbatim) ─────────────────────
-
-#[test]
-fn semantic_profile_ids_match_module_ttl() {
-    let got: std::collections::BTreeSet<&str> = [
-        SemanticProfileId::PositiveHorn,
-        SemanticProfileId::StratifiedNaf,
-        SemanticProfileId::WellFounded,
-        SemanticProfileId::StableModel,
-        SemanticProfileId::ProceduralProlog,
-        SemanticProfileId::Probabilistic,
-    ]
-    .iter()
-    .map(|p| p.as_str())
-    .collect();
-
-    // The six preset local names must be EXACTLY the logic:ReasoningPreset named
-    // individuals declared in module.ttl: the historical
-    // logic:SemanticProfile class is retired, so the source of truth is now the
-    // set of logic:ReasoningPreset individuals. Reuse individuals_of_type, which
-    // only flags a block from a genuine rdf:type position (a bare `logic:T`
-    // type-list entry or an inline `a … logic:T` clause) and so ignores the class
-    // declaration itself, object positions (`rdfs:range`/`logic:expandsToFacet`),
-    // quoted skos:definition prose, AND `#` comments that merely mention the term
-    // in prose (e.g. the logic:EngineContract capability-manifest comment).
-    let text = module_ttl_text();
-    let from_ttl = individuals_of_type(&text, "ReasoningPreset");
-
-    let from_rust: std::collections::BTreeSet<&str> = got.iter().copied().collect();
-    let from_ttl_refs: std::collections::BTreeSet<&str> =
-        from_ttl.iter().map(String::as_str).collect();
-    assert_eq!(
-        from_rust, from_ttl_refs,
-        "SemanticProfileId enum must match the logic:ReasoningPreset individuals in module.ttl"
-    );
-
-    // Round-trip through from_local.
-    for p in &got {
-        assert_eq!(SemanticProfileId::from_local(p).unwrap().as_str(), *p);
-    }
-}
+// ── Native contract and identity behavior ──────────────────────────────────
 
 #[test]
 fn reasoning_contract_permits_procedural_execution_only_with_procedural_execution_facet() {
@@ -127,159 +36,6 @@ fn reasoning_contract_permits_procedural_execution_only_with_procedural_executio
         c.permits_procedural_execution(),
         "the ProceduralExecution facet licenses native builtins even alongside a budget"
     );
-}
-
-#[test]
-fn procedural_preset_carries_procedural_execution_facet() {
-    // Tie native builtin permission to the ontology surface: exactly the presets
-    // whose bundle includes logic:ProceduralExecution are procedural.
-    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/logic/module.ttl");
-    let text = std::fs::read_to_string(&module_ttl)
-        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
-
-    // Collect, per top-level preset block, whether it names logic:ProceduralExecution.
-    let mut carries: std::collections::BTreeMap<String, bool> = std::collections::BTreeMap::new();
-    let mut current: Option<String> = None;
-    let mut has_facet = false;
-    for line in text.lines() {
-        if let Some(rest) = line.strip_prefix("logic:") {
-            if let Some(subj) = current.take() {
-                carries
-                    .entry(subj)
-                    .and_modify(|seen| *seen |= has_facet)
-                    .or_insert(has_facet);
-            }
-            current = Some(local_name(rest));
-            has_facet = false;
-        }
-        if line.contains("logic:ProceduralExecution")
-            && current.as_deref() != Some("ProceduralExecution")
-        {
-            has_facet = true;
-        }
-    }
-    if let Some(subj) = current.take() {
-        carries
-            .entry(subj)
-            .and_modify(|seen| *seen |= has_facet)
-            .or_insert(has_facet);
-    }
-
-    for id in [
-        SemanticProfileId::PositiveHorn,
-        SemanticProfileId::StratifiedNaf,
-        SemanticProfileId::WellFounded,
-        SemanticProfileId::StableModel,
-        SemanticProfileId::ProceduralProlog,
-        SemanticProfileId::Probabilistic,
-    ] {
-        let in_ttl = carries.get(id.as_str()).copied().unwrap_or(false);
-        assert_eq!(
-            in_ttl,
-            id.permits_procedural_execution(),
-            "preset {} procedural-execution permission must agree between module.ttl \
-             ProceduralExecution \
-             bundle ({in_ttl}) and SemanticProfileId::permits_procedural_execution ({})",
-            id.as_str(),
-            id.permits_procedural_execution()
-        );
-    }
-}
-
-#[test]
-fn compatibility_rule_ids_match_module_ttl() {
-    // The Rust authority (compat.rs ALL_RULE_IDS) and the ontology surface
-    // (logic:CompatibilityRule individuals in module.ttl) must never diverge:
-    // every rust rule id is an individual local name and vice versa.
-    use crate::compat::ALL_RULE_IDS;
-
-    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/logic/module.ttl");
-    let text = std::fs::read_to_string(&module_ttl)
-        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
-
-    // Each individual is declared at column 0 as `logic:<Name>` and carries a
-    // `logic:CompatibilityRule` rdf:type within its statement block (terminated by
-    // a line-final ` .`).  Walk the blocks and collect the subjects whose block
-    // names logic:CompatibilityRule as a type.
-    let mut from_ttl: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    let mut current_subject: Option<String> = None;
-    let mut block_is_rule = false;
-    for line in text.lines() {
-        if let Some(rest) = line.strip_prefix("logic:") {
-            // A new top-level subject block begins.
-            if let (Some(subj), true) = (current_subject.take(), block_is_rule) {
-                from_ttl.insert(subj);
-            }
-            current_subject = Some(local_name(rest));
-            block_is_rule = false;
-        }
-        if line.contains("logic:CompatibilityRule") && !line.contains("a owl:Class") {
-            // Skip the class declaration itself (`logic:CompatibilityRule a owl:Class`);
-            // a type reference inside an individual block flags it as a rule.
-            if current_subject.as_deref() != Some("CompatibilityRule") {
-                block_is_rule = true;
-            }
-        }
-    }
-    if let (Some(subj), true) = (current_subject, block_is_rule) {
-        from_ttl.insert(subj);
-    }
-
-    let from_rust: std::collections::BTreeSet<String> =
-        ALL_RULE_IDS.iter().map(|s| (*s).to_owned()).collect();
-
-    assert_eq!(
-        from_rust, from_ttl,
-        "Rust compat rule ids must match logic:CompatibilityRule individuals in module.ttl"
-    );
-}
-
-#[test]
-fn preservation_kind_values_match_module_ttl() {
-    let got: std::collections::BTreeSet<&str> = [
-        PreservationKind::Exact,
-        PreservationKind::SoundUnder,
-        PreservationKind::CompleteOver,
-        PreservationKind::ValidationOnly,
-        PreservationKind::InconsistencyPreserving,
-        PreservationKind::InconsistencyReflecting,
-        PreservationKind::Unsupported,
-    ]
-    .iter()
-    .map(|k| k.as_str())
-    .collect();
-    let expected: std::collections::BTreeSet<&str> = [
-        "ExactPreservation",
-        "SoundUnderApproximation",
-        "CompleteOverApproximation",
-        "ValidationOnly",
-        "InconsistencyPreserving",
-        "InconsistencyReflecting",
-        "Unsupported",
-    ]
-    .into_iter()
-    .collect();
-    assert_eq!(got, expected);
-
-    // The seven enum values must be EXACTLY the logic:PreservationKind individuals
-    // declared in module.ttl — so the new Unsupported floor is pinned to the ontology.
-    let from_ttl = individuals_of_type(&module_ttl_text(), "PreservationKind");
-    let from_ttl_refs: std::collections::BTreeSet<&str> =
-        from_ttl.iter().map(String::as_str).collect();
-    assert_eq!(
-        got, from_ttl_refs,
-        "PreservationKind enum must match the logic:PreservationKind individuals in module.ttl"
-    );
-    assert!(
-        from_ttl.contains("Unsupported"),
-        "the Unsupported floor is declared"
-    );
-    for kind in PreservationKind::ALL {
-        assert_eq!(PreservationKind::from_local(kind.as_str()), Some(kind));
-    }
-    assert_eq!(PreservationKind::from_local("NotAPreservationKind"), None);
 }
 
 #[test]
@@ -362,70 +118,6 @@ fn preservation_join_is_worst_preservation_wins() {
 }
 
 #[test]
-fn node_kind_values_match_module_ttl() {
-    let from_rust: std::collections::BTreeSet<&str> = [
-        NodeKind::ObjectLevelFormula,
-        NodeKind::MetaLevelFormula,
-        NodeKind::Constraint,
-        NodeKind::DerivationRule,
-        NodeKind::Query,
-        NodeKind::TransactionProgram,
-        NodeKind::ActionSchema,
-        NodeKind::ValidationShape,
-        NodeKind::Correspondence,
-        NodeKind::Annotation,
-    ]
-    .iter()
-    .map(|k| k.as_str())
-    .collect();
-
-    let from_ttl = individuals_of_type(&module_ttl_text(), "NodeKind");
-    let from_ttl_refs: std::collections::BTreeSet<&str> =
-        from_ttl.iter().map(String::as_str).collect();
-    assert_eq!(
-        from_rust, from_ttl_refs,
-        "NodeKind enum must match the logic:NodeKind individuals in module.ttl"
-    );
-
-    // Round-trip through from_local, including the reserved ninth Correspondence slot.
-    for k in &from_rust {
-        assert_eq!(NodeKind::from_local(k).unwrap().as_str(), *k);
-    }
-    assert!(
-        from_rust.contains("Correspondence"),
-        "the reserved ninth kind is present"
-    );
-    assert_eq!(NodeKind::default(), NodeKind::ObjectLevelFormula);
-}
-
-#[test]
-fn formula_shape_values_match_module_ttl() {
-    let from_rust: std::collections::BTreeSet<&str> =
-        FormulaShape::ALL.iter().map(|s| s.as_str()).collect();
-
-    let from_ttl = individuals_of_type(&module_ttl_text(), "FormulaShape");
-    let from_ttl_refs: std::collections::BTreeSet<&str> =
-        from_ttl.iter().map(String::as_str).collect();
-    assert_eq!(
-        from_rust, from_ttl_refs,
-        "FormulaShape enum must match the logic:FormulaShape individuals in module.ttl"
-    );
-
-    // as_str ↔ from_local round-trips for every variant; ALL is in canonical order.
-    for s in FormulaShape::ALL {
-        assert_eq!(FormulaShape::from_local(s.as_str()), Some(s));
-    }
-    assert!(FormulaShape::from_local("NotAShape").is_none());
-    let ordered: Vec<&str> = FormulaShape::ALL.iter().map(|s| s.as_str()).collect();
-    let mut sorted = ordered.clone();
-    sorted.sort_unstable();
-    assert_eq!(
-        ordered, sorted,
-        "ALL must be declared in as_str-lexical order"
-    );
-}
-
-#[test]
 fn shape_tags_classify_the_residue_constructs() {
     let var = |n: &str| Term::var(n).unwrap();
     let rel = |l: &str, args: Vec<Term>| {
@@ -495,30 +187,23 @@ fn shape_tags_classify_the_residue_constructs() {
 }
 
 #[test]
-fn node_kind_folds_into_keys_only_when_non_default() {
-    // Axiom: the default ObjectLevelFormula keeps the byte-identical historical key.
+fn node_kind_and_load_bearing_participate_in_content_identity() {
     let base = axiom("ex:s", "p", "ex:o");
-    assert_eq!(base.sort_key(), "ex:s\u{0}p\u{0}ex:o\u{0}False");
     assert_eq!(base.node_kind, NodeKind::ObjectLevelFormula);
     assert!(!base.load_bearing);
-
-    // A non-default kind diverges, appending the kind segment after the obj-literal flag.
     let meta = axiom("ex:s", "p", "ex:o").with_node_kind(NodeKind::MetaLevelFormula);
-    assert_eq!(
-        meta.sort_key(),
-        "ex:s\u{0}p\u{0}ex:o\u{0}False\u{0}MetaLevelFormula"
-    );
-    assert_ne!(base, meta);
-
-    // FIXED segment order: load_bearing (when true) BEFORE node_kind, both after negated.
     let lb = axiom("ex:s", "p", "ex:o").with_load_bearing(true);
-    assert_eq!(lb.sort_key(), "ex:s\u{0}p\u{0}ex:o\u{0}False\u{0}True");
     let both = axiom("ex:s", "p", "ex:o")
         .with_load_bearing(true)
-        .with_node_kind(NodeKind::Constraint);
+        .with_node_kind(NodeKind::MetaLevelFormula);
+    let keys: std::collections::BTreeSet<_> = [&base, &meta, &lb, &both]
+        .into_iter()
+        .map(LogicAxiom::sort_key)
+        .collect();
     assert_eq!(
-        both.sort_key(),
-        "ex:s\u{0}p\u{0}ex:o\u{0}False\u{0}True\u{0}Constraint"
+        keys.len(),
+        4,
+        "neither declaration may disappear from identity"
     );
 
     // Two axioms differing ONLY in kind are != and have distinct canonical content.
@@ -626,29 +311,56 @@ fn logic_axiom_equality() {
 
 #[test]
 fn logic_axiom_rejects_empty_subject_and_predicate() {
-    let r = LogicAxiom::ground("", kind_pred(), "ex:o", false);
+    let r = LogicAxiom::ground("", kind_pred(), crate::ir::AtomicTerm::resource("ex:o"));
     assert!(r.unwrap_err().message().contains("subject"));
-    let r = LogicAxiom::ground("ex:s", "", "ex:o", false);
+    let r = LogicAxiom::ground("ex:s", "", crate::ir::AtomicTerm::resource("ex:o"));
     assert!(r.unwrap_err().message().contains("predicate"));
 }
 
 #[test]
-fn logic_axiom_literal_flag() {
-    let a = LogicAxiom::ground("ex:s", format!("{LOGIC}confidence"), "0.9", true).unwrap();
-    assert!(a.obj_is_literal);
+fn logic_axiom_native_literal_kind() {
+    let a = LogicAxiom::ground(
+        "ex:s",
+        format!("{LOGIC}confidence"),
+        crate::ir::AtomicTerm::Literal(purrdf::RdfLiteral::simple("0.9")),
+    )
+    .unwrap();
+    assert!(a.obj.is_literal());
 }
 
 #[test]
-fn logic_axiom_sort_key_byte_parity() {
-    // Mirrors the Python `_sort_key`: null-byte separators, Python bool Display.
-    let a = axiom("ex:s", "p", "ex:o");
-    assert_eq!(a.sort_key(), "ex:s\u{0}p\u{0}ex:o\u{0}False");
-    let lit = LogicAxiom::ground("ex:s", "p", "v", true).unwrap();
-    assert_eq!(lit.sort_key(), "ex:s\u{0}p\u{0}v\u{0}True");
-    // negated appends only when true.
-    let neg =
-        LogicAxiom::new("ex:s", "p", "ex:o", false, true, ContextualScope::default()).unwrap();
-    assert_eq!(neg.sort_key(), "ex:s\u{0}p\u{0}ex:o\u{0}False\u{0}True");
+fn logic_axiom_keys_separate_term_kinds_polarity_and_field_boundaries() {
+    let resource = axiom("ex:s", "p", "ex:o");
+    let literal = LogicAxiom::ground(
+        "ex:s",
+        "p",
+        AtomicTerm::Literal(purrdf::RdfLiteral::simple("ex:o")),
+    )
+    .unwrap();
+    let negated = LogicAxiom::new(
+        "ex:s",
+        "p",
+        AtomicTerm::resource("ex:o"),
+        true,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    let keys: std::collections::BTreeSet<_> = [&resource, &literal, &negated]
+        .into_iter()
+        .map(LogicAxiom::sort_key)
+        .collect();
+    assert_eq!(keys.len(), 3);
+    assert_eq!(
+        resource.sort_key(),
+        "axiom:4:ex:s1:p8:I:4:ex:o5:False5:False18:ObjectLevelFormula"
+    );
+    let left = axiom("ex:s\u{0}p", "q", "ex:o");
+    let right = axiom("ex:s", "p\u{0}q", "ex:o");
+    assert_ne!(
+        left.sort_key(),
+        right.sort_key(),
+        "embedded separators cannot move field boundaries"
+    );
 }
 
 // ── LogicRule body canonicalization ──────────────────────────────────────────
@@ -770,8 +482,7 @@ fn logic_program_canonical_round_trips_scope() {
     let ax = LogicAxiom::new(
         "ex:s",
         format!("{LOGIC}rigidlyAppliesTo"),
-        "ex:o",
-        false,
+        crate::ir::AtomicTerm::resource("ex:o"),
         false,
         scope.clone(),
     )
@@ -809,10 +520,22 @@ fn logic_program_canonical_treats_signed_zero_confidence_equally() {
         ContextualScope::new(None, None, Some(0.0), LogicModality::None, None, None).unwrap();
     let scope_neg =
         ContextualScope::new(None, None, Some(-0.0), LogicModality::None, None, None).unwrap();
-    let ax_pos =
-        LogicAxiom::new("ex:s", format!("{LOGIC}p"), "ex:o", false, false, scope_pos).unwrap();
-    let ax_neg =
-        LogicAxiom::new("ex:s", format!("{LOGIC}p"), "ex:o", false, false, scope_neg).unwrap();
+    let ax_pos = LogicAxiom::new(
+        "ex:s",
+        format!("{LOGIC}p"),
+        crate::ir::AtomicTerm::resource("ex:o"),
+        false,
+        scope_pos,
+    )
+    .unwrap();
+    let ax_neg = LogicAxiom::new(
+        "ex:s",
+        format!("{LOGIC}p"),
+        crate::ir::AtomicTerm::resource("ex:o"),
+        false,
+        scope_neg,
+    )
+    .unwrap();
     let prog_pos = LogicProgram::new(vec![ax_pos], vec![], vec![], None);
     let prog_neg = LogicProgram::new(vec![ax_neg], vec![], vec![], None);
     assert_eq!(prog_pos, prog_neg);
@@ -1143,128 +866,6 @@ fn corr(iri: &str, law_claims: Vec<LawClaimIr>) -> Correspondence {
     .unwrap()
 }
 
-/// Assert a Rust facet enum's `as_str` set exactly matches the `logic:<Class>`
-/// individuals in `module.ttl`, and that every member round-trips through `from_local`.
-fn assert_facet_matches_ttl(rust: &[&str], type_local: &str) {
-    let from_rust: std::collections::BTreeSet<&str> = rust.iter().copied().collect();
-    let from_ttl = individuals_of_type(&module_ttl_text(), type_local);
-    let from_ttl_refs: std::collections::BTreeSet<&str> =
-        from_ttl.iter().map(String::as_str).collect();
-    assert_eq!(
-        from_rust, from_ttl_refs,
-        "{type_local} enum must match the logic:{type_local} individuals in module.ttl"
-    );
-}
-
-#[test]
-fn correspondence_relation_values_match_module_ttl() {
-    let rust = [
-        CorrespondenceRelation::Equiv,
-        CorrespondenceRelation::Subsumes,
-        CorrespondenceRelation::SubsumedBy,
-        CorrespondenceRelation::Overlaps,
-        CorrespondenceRelation::RelatedMatch,
-        CorrespondenceRelation::Disjoint,
-    ];
-    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
-    assert_facet_matches_ttl(&names, "CorrespondenceRelation");
-    for r in &rust {
-        assert_eq!(CorrespondenceRelation::from_local(r.as_str()), Some(*r));
-    }
-}
-
-#[test]
-fn morphism_class_values_match_module_ttl() {
-    let rust = [
-        MorphismClass::Isomorphism,
-        MorphismClass::SectionRetraction,
-        MorphismClass::WellBehavedLens,
-        MorphismClass::LossyLens,
-        MorphismClass::Prism,
-        MorphismClass::AffineCorrespondence,
-        MorphismClass::BridgeView,
-    ];
-    assert_eq!(rust.len(), 7, "the law-spine has seven rungs");
-    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
-    assert_facet_matches_ttl(&names, "MorphismClass");
-    for r in &rust {
-        assert_eq!(MorphismClass::from_local(r.as_str()), Some(*r));
-    }
-    // The derived Ord is the spine order (strongest first): Isomorphism is the top,
-    // BridgeView the floor.
-    assert!(MorphismClass::Isomorphism < MorphismClass::BridgeView);
-    assert!(MorphismClass::Prism < MorphismClass::AffineCorrespondence);
-}
-
-#[test]
-fn morphism_kind_values_match_module_ttl() {
-    let rust = [
-        MorphismKind::InstitutionMorphism,
-        MorphismKind::CommitmentShiftingBridge,
-    ];
-    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
-    assert_facet_matches_ttl(&names, "MorphismKind");
-    for r in &rust {
-        assert_eq!(MorphismKind::from_local(r.as_str()), Some(*r));
-    }
-}
-
-#[test]
-fn determinacy_values_match_module_ttl() {
-    let rust = [Determinacy::Crisp, Determinacy::Vague];
-    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
-    assert_facet_matches_ttl(&names, "Determinacy");
-    for r in &rust {
-        assert_eq!(Determinacy::from_local(r.as_str()), Some(*r));
-    }
-}
-
-#[test]
-fn correspondence_law_values_match_module_ttl() {
-    let rust = [
-        CorrespondenceLaw::GetPut,
-        CorrespondenceLaw::PutGet,
-        CorrespondenceLaw::PutPut,
-        CorrespondenceLaw::SectionLaw,
-    ];
-    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
-    assert_facet_matches_ttl(&names, "CorrespondenceLaw");
-    for r in &rust {
-        assert_eq!(CorrespondenceLaw::from_local(r.as_str()), Some(*r));
-    }
-}
-
-#[test]
-fn discharge_verdict_values_match_module_ttl() {
-    // Reused from the foundation's non-entailment machinery; the IR enum mirrors it.
-    let rust = [
-        DischargeVerdict::ObligationDischarged,
-        DischargeVerdict::ObligationUnknown,
-        DischargeVerdict::ObligationViolated,
-    ];
-    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
-    assert_facet_matches_ttl(&names, "DischargeVerdict");
-    for r in &rust {
-        assert_eq!(DischargeVerdict::from_local(r.as_str()), Some(*r));
-    }
-}
-
-#[test]
-fn discharge_condition_values_match_module_ttl() {
-    let rust = [
-        DischargeCondition::DischargeCertifiedFragment,
-        DischargeCondition::DischargeFiniteClosure,
-        DischargeCondition::DischargeSyntacticReachability,
-        DischargeCondition::DischargeConservativeExtension,
-        DischargeCondition::DischargeBoundedCorpus,
-    ];
-    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
-    assert_facet_matches_ttl(&names, "DischargeCondition");
-    for r in &rust {
-        assert_eq!(DischargeCondition::from_local(r.as_str()), Some(*r));
-    }
-}
-
 #[test]
 fn correspondences_sort_canonically() {
     let prog = LogicProgram::new(vec![], vec![], vec![], None)
@@ -1445,9 +1046,9 @@ fn correspondence_dedups_duplicate_law_claims() {
 }
 
 #[test]
-fn correspondence_axes_signed_zero_normalized() {
-    // -0.0 and 0.0 confidence must produce the same content key (determinism).
-    let mk = |conf: f64| {
+fn correspondence_axes_preserve_signed_zero_term_identity() {
+    // Numerically equal source literals remain distinct authored RDF terms.
+    let mk = |conf: &str| {
         Correspondence::new(
             format!("{LOGIC}c"),
             CorrespondenceRelation::Equiv,
@@ -1458,7 +1059,13 @@ fn correspondence_axes_signed_zero_normalized() {
             None,
             None,
             vec![],
-            Some(conf),
+            Some(
+                UnitInterval::new(purrdf::RdfLiteral::typed(
+                    conf.to_owned(),
+                    "http://www.w3.org/2001/XMLSchema#double".to_owned(),
+                ))
+                .unwrap(),
+            ),
             None,
             None,
             None,
@@ -1468,12 +1075,12 @@ fn correspondence_axes_signed_zero_normalized() {
         .unwrap()
     };
     let pos = LogicProgram::new(vec![], vec![], vec![], None)
-        .with_correspondences(vec![mk(0.0)])
+        .with_correspondences(vec![mk("0.0")])
         .expect("single correspondence, no recovery cases");
     let neg = LogicProgram::new(vec![], vec![], vec![], None)
-        .with_correspondences(vec![mk(-0.0)])
+        .with_correspondences(vec![mk("-0.0")])
         .expect("single correspondence, no recovery cases");
-    assert_eq!(pos.canonical_key(), neg.canonical_key());
+    assert_ne!(pos.canonical_key(), neg.canonical_key());
 }
 
 #[test]
@@ -1490,24 +1097,11 @@ fn correspondence_new_rejects_empty_optional_leg() {
 }
 
 #[test]
-fn correspondence_new_rejects_out_of_range_confidence() {
-    let err = Correspondence::new(
-        format!("{LOGIC}c"),
-        CorrespondenceRelation::Equiv,
-        MorphismClass::Isomorphism,
-        MorphismKind::InstitutionMorphism,
-        false,
-        None,
-        None,
-        None,
-        vec![],
-        Some(1.5),
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
+fn correspondence_axis_rejects_out_of_range_confidence() {
+    let err = UnitInterval::new(purrdf::RdfLiteral::typed(
+        "1.5".to_owned(),
+        "http://www.w3.org/2001/XMLSchema#decimal".to_owned(),
+    ))
     .unwrap_err();
     assert!(err.message().contains("[0, 1]"), "got: {err}");
 }

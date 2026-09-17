@@ -297,65 +297,10 @@ fn mode_path(mode: &str) -> &'static str {
     }
 }
 
+#[path = "dev_logic.query_tests.rs"]
 #[cfg(test)]
-mod query_tests {
-    use super::resolve_query;
+mod query_tests;
 
-    const HORN_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
-
-    #[test]
-    fn counterfactual_depth_refusal_does_not_build_an_unused_base_snapshot() {
-        // The quoted-triple object is deliberately outside the snapshot reifier
-        // contract. A depth-zero counterfactual returns before it needs any base
-        // snapshot; the plain-query preparation path must not run speculatively.
-        let nquads = "<https://ex/s> <https://ex/meta> \
-                      <<( <https://ex/qs> <https://ex/qp> <https://ex/qo> )>> \
-                      <http://world/base> .\n";
-        let program = ":- prefix(ex, 'https://ex/').\n\
-                       :- counterfactual('http://world/cf', 'http://world/base').\n\
-                       :- depth_budget(0).\n\
-                       :- assume(ex:p2(ex:s, ex:o2)).\n\
-                       ?- ex:p(ex:s, Z).\n";
-
-        let (answers, status) =
-            resolve_query(nquads, program, HORN_PROFILE, None, None, None).unwrap();
-        assert!(answers.is_empty());
-        assert_eq!(status, "incomplete");
-    }
-}
-
+#[path = "dev_logic.compile_tests.rs"]
 #[cfg(test)]
-mod compile_tests {
-    /// On-gate wiring proof (instant, no pipeline run): every `--mode` name
-    /// maps to the committed pipeline artifact path — in particular `report`
-    /// maps to the committed UNION report `PROJECTION_REPORT_PATH`
-    /// (`stage-mappings`' output), never a compiler-private path. Together
-    /// with the deletion of the in-process `compile_one_mode`, this pins that
-    /// `--mode M` can only ever narrow the real pipeline output. No test calls
-    /// `compile()`, because that entry point runs the corpus producer.
-    #[test]
-    fn every_mode_maps_to_its_committed_pipeline_path() {
-        use super::{LOGIC_MODES, mode_path};
-        use gmeow_pipeline::stages::compile_logic::{
-            CANONICAL_RDF12_PATH, CGIF_PATH, CLIF_PATH, DATALOG_PATH, GUFO_PATH, N3_PATH,
-            OWL_DL_PATH, OWL_EL_PATH, PROJECTION_REPORT_PATH, XCL_PATH,
-        };
-
-        assert_eq!(mode_path("owl-dl"), OWL_DL_PATH);
-        assert_eq!(mode_path("owl-el"), OWL_EL_PATH);
-        assert_eq!(mode_path("datalog"), DATALOG_PATH);
-        assert_eq!(mode_path("n3"), N3_PATH);
-        assert_eq!(mode_path("gufo"), GUFO_PATH);
-        assert_eq!(mode_path("canonical-rdf12"), CANONICAL_RDF12_PATH);
-        assert_eq!(mode_path("clif"), CLIF_PATH);
-        assert_eq!(mode_path("cgif"), CGIF_PATH);
-        assert_eq!(mode_path("xcl"), XCL_PATH);
-        // The discriminator: `report` narrows to the committed UNION report.
-        assert_eq!(mode_path("report"), PROJECTION_REPORT_PATH);
-        // Every validated mode has a mapping (no mode falls through unhandled
-        // to the wrong artifact).
-        for m in LOGIC_MODES {
-            assert!(!mode_path(m).is_empty(), "mode {m} has no committed path");
-        }
-    }
-}
+mod compile_tests;

@@ -24,6 +24,9 @@
 
 use gmeow_lang_bridge::lower::{LoweringStage, flagship_svo_sentence, lower_svo};
 use gmeow_logic::reason::reason_program;
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, prepare_reasoning_input,
+};
 use gmeow_logic_compile::ir::{
     ContextualScope, Formula, LogicAxiom, LogicProgram, PreservationKind, Term,
 };
@@ -100,15 +103,30 @@ fn svo_lowering_is_consumed_by_the_native_reasoner_with_staged_preservation() {
     // `rdf:type` triples, the binary verb as a direct triple:
     //     chase(?x, sk)  :-  cat(?x)          [ (?x, chase, sk)     :- (?x, rdf:type, cat) ]
     //     mouse(sk)      :-  cat(?x)          [ (sk, rdf:type, mouse) :- (?x, rdf:type, cat) ]
-    let cat_body = LogicAxiom::ground("?x", RDF_TYPE, &cat_iri, false).expect("cat body");
+    let cat_body = LogicAxiom::ground(
+        "?x",
+        RDF_TYPE,
+        gmeow_logic_compile::ir::AtomicTerm::resource(&cat_iri),
+    )
+    .expect("cat body");
     let chase_rule = gmeow_logic_compile::ir::LogicRule::new(
-        LogicAxiom::ground("?x", &chase_iri, SK, false).expect("chase head"),
+        LogicAxiom::ground(
+            "?x",
+            &chase_iri,
+            gmeow_logic_compile::ir::AtomicTerm::resource(SK),
+        )
+        .expect("chase head"),
         vec![cat_body.clone()],
         vec![],
         ContextualScope::default(),
     );
     let mouse_rule = gmeow_logic_compile::ir::LogicRule::new(
-        LogicAxiom::ground(SK, RDF_TYPE, &mouse_iri, false).expect("mouse head"),
+        LogicAxiom::ground(
+            SK,
+            RDF_TYPE,
+            gmeow_logic_compile::ir::AtomicTerm::resource(&mouse_iri),
+        )
+        .expect("mouse head"),
         vec![cat_body],
         vec![],
         ContextualScope::default(),
@@ -165,26 +183,33 @@ fn svo_lowering_is_consumed_by_the_native_reasoner_with_staged_preservation() {
     );
     let edb = dataset(vec![quad(TOM, RDF_TYPE, &cat_iri)]);
 
-    let result =
-        reason_program(&program, edb.as_ref()).expect("reason_program consumes the program");
+    let reasoning_input = prepare_reasoning_input(&edb).expect("admit selected theory");
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Named(purrdf::TermValue::iri(W)),
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow.pipeline.svo-lowering.v1".to_owned(),
+        *reasoning_input.ingress_contract(),
+    )
+    .expect("admit selected theory")])
+    .expect("admit selected theory");
+    let result = reason_program(&program, reasoning_input, &domains)
+        .expect("reason_program consumes the program");
 
     // ── 4. Concrete entailment: chase(Tom, sk) and mouse(sk) ───────────────────────
     // Objects decode to their N3 surface (`<iri>`); subjects/predicates are bare IRIs.
     let sk_obj = format!("<{SK}>");
     let mouse_obj = format!("<{mouse_iri}>");
     assert!(
-        result
-            .inferred()
-            .iter()
-            .any(|ax| ax.subject == TOM && ax.predicate == chase_iri && ax.object == sk_obj),
+        result.inferred().iter().any(|ax| ax.subject == TOM
+            && ax.predicate == chase_iri
+            && gmeow_logic::provenance::term_display(&ax.object) == sk_obj),
         "the reasoner must derive chase(Tom, sk); closure: {:?}",
         result.inferred()
     );
     assert!(
-        result
-            .inferred()
-            .iter()
-            .any(|ax| ax.subject == SK && ax.predicate == RDF_TYPE && ax.object == mouse_obj),
+        result.inferred().iter().any(|ax| ax.subject == SK
+            && ax.predicate == RDF_TYPE
+            && gmeow_logic::provenance::term_display(&ax.object) == mouse_obj),
         "the reasoner must derive mouse(sk) [sk rdf:type mouse]; closure: {:?}",
         result.inferred()
     );

@@ -117,13 +117,54 @@ impl ReasoningSession {
     /// lowered, or (for a certified fragment) the maintainer cannot be prepared (e.g.
     /// the EDB is not exactly one named world).
     pub fn open(
-        edb: &RdfDataset,
+        edb: &std::sync::Arc<RdfDataset>,
         program: &LogicProgram,
         contract: &ReasoningContract,
         annotation: &AnnotationContract,
     ) -> gmeow_errors::Result<Self> {
         let data_generation = mint_edb_generation(edb)?;
         let (disposition, inner) = classify_disposition(program, edb, annotation)?;
+        Self::from_classification(
+            data_generation,
+            program,
+            contract,
+            annotation,
+            disposition,
+            inner,
+        )
+    }
+
+    /// Reuse the producer-owned means-end program and its retained native admission.
+    /// A detached rule slice cannot stand in for this source-bound preparation.
+    pub(crate) fn open_prepared(
+        edb: &std::sync::Arc<RdfDataset>,
+        preparation: &crate::operator_rules::PreparedOperatorRules,
+        contract: &ReasoningContract,
+        annotation: &AnnotationContract,
+    ) -> gmeow_errors::Result<Self> {
+        let (program, prepared) = preparation.means_end_preparation();
+        prepared.admission.admit_world_local_template()?;
+        let data_generation = mint_edb_generation(edb)?;
+        let (disposition, inner) =
+            classify_disposition_rules(program, edb, annotation, &prepared.rules)?;
+        Self::from_classification(
+            data_generation,
+            program,
+            contract,
+            annotation,
+            disposition,
+            inner,
+        )
+    }
+
+    fn from_classification(
+        data_generation: crate::seam::WorldSourceIdentity,
+        program: &LogicProgram,
+        contract: &ReasoningContract,
+        annotation: &AnnotationContract,
+        disposition: FragmentDisposition,
+        inner: Option<IncrementalForwardSession>,
+    ) -> gmeow_errors::Result<Self> {
         let closure = inner.as_ref().map_or_else(
             ForwardRows::default,
             IncrementalForwardSession::closure_rows,
@@ -516,7 +557,7 @@ impl ReasoningSession {
     #[allow(clippy::result_large_err)]
     pub fn restore(
         cp: &Checkpoint,
-        authorized_edb: &RdfDataset,
+        authorized_edb: &std::sync::Arc<RdfDataset>,
         program: &LogicProgram,
         contract: &ReasoningContract,
         annotation: &AnnotationContract,
@@ -597,7 +638,7 @@ impl ReasoningSession {
     #[allow(clippy::result_large_err)]
     pub fn restart(
         cp: &Checkpoint,
-        authorized_edb: &RdfDataset,
+        authorized_edb: &std::sync::Arc<RdfDataset>,
         program: &LogicProgram,
         contract: &ReasoningContract,
         annotation: &AnnotationContract,
@@ -641,43 +682,52 @@ fn classify_engine_error(diag: gmeow_errors::Diag) -> OperationOutcome {
 ///
 /// # Errors
 ///
-/// Returns `Err` only for a genuine infrastructure failure preparing a certified
-/// incremental session (e.g. a multi-world EDB), never for a fragment classification.
+/// Returns `Err` for a source admission/lowering failure or an infrastructure failure
+/// preparing a certified incremental session (e.g. a multi-world EDB). Source errors
+/// retain their diagnostic instead of being relabeled as a floundering program.
 fn classify_disposition(
     program: &LogicProgram,
-    edb: &RdfDataset,
+    edb: &std::sync::Arc<RdfDataset>,
     annotation: &AnnotationContract,
 ) -> gmeow_errors::Result<(FragmentDisposition, Option<IncrementalForwardSession>)> {
-    match crate::lower::lower_eval_rules(program) {
-        Ok(rules) => match crate::physical::classify_incremental_fragment(&rules) {
-            // Binary-Datalog rules AND the program's forward-derivable semantics is fully
-            // captured by `program.rules` (nothing the maintainer would drop) AND the bound
-            // annotation contract selects an algebra the maintainer materializes exactly:
-            // certify. A declared over-approximating annotation algebra is outside the
-            // incrementally-maintained fragment (the maintainer only computes the exact
-            // minimal-proof-height semiring), so it routes to a full rebuild rather than
-            // silently substituting the exact annotation.
-            Ok(())
-                if derivable_semantics_fully_captured_by_rules(program)
-                    && crate::cost::annotation_maintainable_incrementally(annotation) =>
-            {
-                let session = IncrementalForwardSession::prepare(edb, program, annotation)?;
-                Ok((FragmentDisposition::Incremental, Some(session)))
-            }
-            // Binary-Datalog rules, but the program ALSO carries forward-derivation
-            // content (`program.formulas`) the incremental maintainer would silently
-            // drop, or the bound annotation algebra is outside the maintained fragment.
-            // NEVER certify Incremental while dropping content or degrading the annotation:
-            // route/refuse via the full-native probe.
-            Ok(()) => Ok((classify_via_full_probe(program, edb, None), None)),
-            Err(refusal) => Ok((
-                classify_nonincremental(program, edb, &rules, &refusal),
-                None,
-            )),
-        },
-        // The program does not even lower to binary Datalog: it is not incremental. Let
-        // the full-native probe split decidable (Tier 2) from a hard gap (Tier 3).
-        Err(_lowering) => Ok((classify_via_full_probe(program, edb, None), None)),
+    // The full reasoner uses the same source-rule templates and context admission.
+    // Repeating it after a source failure cannot supply the missing capability.
+    let rules = crate::lower::lower_eval_rules(program)?;
+    classify_disposition_rules(program, edb, annotation, &rules)
+}
+
+/// Apply the same full-program and annotation admission to an already lowered slice.
+fn classify_disposition_rules(
+    program: &LogicProgram,
+    edb: &std::sync::Arc<RdfDataset>,
+    annotation: &AnnotationContract,
+    rules: &[crate::rule_ir::EvalRule],
+) -> gmeow_errors::Result<(FragmentDisposition, Option<IncrementalForwardSession>)> {
+    match crate::physical::classify_incremental_fragment(rules) {
+        // Binary-Datalog rules AND the program's forward-derivable semantics is fully
+        // captured by `program.rules` (nothing the maintainer would drop) AND the bound
+        // annotation contract selects an algebra the maintainer materializes exactly:
+        // certify. A declared over-approximating annotation algebra is outside the
+        // incrementally-maintained fragment (the maintainer only computes the exact
+        // minimal-proof-height semiring), so it routes to a full rebuild rather than
+        // silently substituting the exact annotation.
+        Ok(())
+            if derivable_semantics_fully_captured_by_rules(program)
+                && crate::cost::annotation_maintainable_incrementally(annotation) =>
+        {
+            let session = IncrementalForwardSession::prepare_with_rules(edb, rules, annotation)?;
+            Ok((FragmentDisposition::Incremental, Some(session)))
+        }
+        // Binary-Datalog rules, but the program ALSO carries forward-derivation
+        // content (`program.formulas`) the incremental maintainer would silently
+        // drop, or the bound annotation algebra is outside the maintained fragment.
+        // NEVER certify Incremental while dropping content or degrading the annotation:
+        // route/refuse via the full-native probe.
+        Ok(()) => Ok((classify_via_full_probe(program, edb, None)?, None)),
+        Err(refusal) => Ok((
+            classify_nonincremental(program, edb, rules, &refusal)?,
+            None,
+        )),
     }
 }
 
@@ -705,34 +755,52 @@ fn derivable_semantics_fully_captured_by_rules(program: &LogicProgram) -> bool {
 /// certifiers first, then the bounded full-native probe.
 fn classify_nonincremental(
     program: &LogicProgram,
-    edb: &RdfDataset,
+    edb: &std::sync::Arc<RdfDataset>,
     rules: &[crate::rule_ir::EvalRule],
     refusal: &crate::physical::FragmentRefusal,
-) -> FragmentDisposition {
+) -> gmeow_errors::Result<FragmentDisposition> {
     // Non-stratifiable negation — exact, static (`is_stratifiable` = the certifier's own
     // SCC/negative-edge check; a positive program is trivially stratifiable).
     let has_negation = rules
         .iter()
         .any(|rule| rule.body.iter().any(|atom| atom.negated));
-    if has_negation && !crate::certify::is_stratifiable(rules) {
-        return FragmentDisposition::Unsupported(UnsupportedFragment::NonStratifiable);
+    if (has_negation || rules.iter().any(|rule| rule.reduction.is_some()))
+        && !crate::certify::is_stratifiable(rules)
+    {
+        return Ok(FragmentDisposition::Unsupported(
+            UnsupportedFragment::NonStratifiable,
+        ));
     }
     // Clause body wider than the backward solver's u64 selection mask — exact, static.
     if rules
         .iter()
         .any(|rule| rule.body.len() > CLAUSE_BODY_MASK_WIDTH)
     {
-        return FragmentDisposition::Unsupported(UnsupportedFragment::ClauseBodyTooWide);
+        return Ok(FragmentDisposition::Unsupported(
+            UnsupportedFragment::ClauseBodyTooWide,
+        ));
     }
     // Non-terminating existential chase — exact, static (the chase admission certifier).
     let lowering = crate::relational_core::lower_formulas(program);
-    if !lowering.nary_head_rules.is_empty()
-        && matches!(
-            crate::physical::ChaseAdmission::certify(&lowering.nary_head_rules),
-            crate::physical::ChaseAdmission::Uncertified { .. }
-        )
+    if !lowering.existential_rules.is_empty()
+        && lowering.preservation.unsupported_constructs.is_empty()
     {
-        return FragmentDisposition::Unsupported(UnsupportedFragment::NonTerminatingExistential);
+        return Ok(
+            if matches!(
+                crate::physical::ChaseAdmission::certify(&lowering.existential_rules),
+                crate::physical::ChaseAdmission::Uncertified { .. }
+            ) {
+                FragmentDisposition::Unsupported(UnsupportedFragment::NonTerminatingExistential)
+            } else {
+                // Exact lowering plus a static termination certificate already proves
+                // the fixed program is safe for the full native route. Running the
+                // entire calculus merely to classify an update repeats production work
+                // and can spend the whole probe budget before returning the same answer.
+                FragmentDisposition::RequiresFullRebuild(
+                    RebuildReason::AdditionsOutsideIncrementalFragment,
+                )
+            },
+        );
     }
     classify_via_full_probe(program, edb, Some(refusal))
 }
@@ -741,25 +809,38 @@ fn classify_nonincremental(
 /// guaranteed-terminating probe) whether it accepts the program.
 fn classify_via_full_probe(
     program: &LogicProgram,
-    edb: &RdfDataset,
+    edb: &std::sync::Arc<RdfDataset>,
     refusal: Option<&crate::physical::FragmentRefusal>,
-) -> FragmentDisposition {
-    match crate::reason::reason_program_budgeted(program, edb, Some(DISPOSITION_PROBE_BUDGET)) {
-        // The full reasoner decided (or made governed progress) — decidable, not
-        // incrementally maintainable → routed to a full rebuild.
-        Ok(_) => FragmentDisposition::RequiresFullRebuild(
-            RebuildReason::AdditionsOutsideIncrementalFragment,
-        ),
-        // The full reasoner refused (a hard lowering/planning gap) → unsupported. The
-        // kind is taken from the typed incremental refusal (never a string match); a
-        // program that failed even to lower defaults to the unsafe/floundering class.
-        Err(_diag) => {
-            let kind = refusal.map_or(UnsupportedFragment::Floundering, |refusal| {
-                UnsupportedFragment::from_incremental_reason(&refusal.reason)
-            });
-            FragmentDisposition::Unsupported(kind)
-        }
-    }
+) -> gmeow_errors::Result<FragmentDisposition> {
+    let input = crate::reason::prepare_reasoning_input(edb.as_ref())?;
+    // This operation classifies the fixed rule-maintenance fragment only. That
+    // session contract declares no intrinsic nonempty-domain law; selecting one
+    // here would broaden the maintained semantics and its checkpoint identity.
+    // Source graphs therefore never supply implicit logical-domain authority.
+    let domains = crate::physical::SelectedDomains::new([])?;
+    Ok(
+        match crate::reason::reason_program_budgeted(
+            program,
+            input,
+            &domains,
+            Some(DISPOSITION_PROBE_BUDGET),
+        ) {
+            // The full reasoner decided (or made governed progress) — decidable, not
+            // incrementally maintainable → routed to a full rebuild.
+            Ok(_) => FragmentDisposition::RequiresFullRebuild(
+                RebuildReason::AdditionsOutsideIncrementalFragment,
+            ),
+            // The full reasoner refused (a hard lowering/planning gap) → unsupported. The
+            // kind is taken from the typed incremental refusal (never a string match); a
+            // program outside the rules-only fragment defaults to the unsafe/floundering class.
+            Err(_diag) => {
+                let kind = refusal.map_or(UnsupportedFragment::Floundering, |refusal| {
+                    UnsupportedFragment::from_incremental_reason(&refusal.reason)
+                });
+                FragmentDisposition::Unsupported(kind)
+            }
+        },
+    )
 }
 
 /// Map a typed paged-source failure onto an operation outcome.
@@ -809,43 +890,6 @@ fn map_paged_error(error: &PagedQueryError) -> OperationOutcome {
     }
 }
 
+#[path = "facade.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use purrdf::PageId;
-
-    fn stopped(cause: StopCause) -> PagedQueryError {
-        PagedQueryError::Stopped {
-            page: PageId(0),
-            cause,
-            message: String::from("test stop"),
-        }
-    }
-
-    // The governor merge unified cancellation and deadlines into one `Stopped` variant
-    // distinguished only by its `StopCause`. `map_paged_error` must keep the two outcomes
-    // separate: a cancellation and a deadline are different incompleteness causes and a
-    // caller reads them off `IncompleteCause`. Both arms are exercised here so neither can
-    // silently collapse into the other under a future dependency bump.
-    #[test]
-    fn stopped_cancelled_maps_to_incomplete_cancelled() {
-        assert!(matches!(
-            map_paged_error(&stopped(StopCause::Cancelled)),
-            OperationOutcome::Incomplete {
-                status: BudgetStatus::Partial,
-                cause: IncompleteCause::Cancelled,
-            }
-        ));
-    }
-
-    #[test]
-    fn stopped_deadline_maps_to_incomplete_deadline() {
-        assert!(matches!(
-            map_paged_error(&stopped(StopCause::Deadline)),
-            OperationOutcome::Incomplete {
-                status: BudgetStatus::Partial,
-                cause: IncompleteCause::Deadline,
-            }
-        ));
-    }
-}
+mod tests;

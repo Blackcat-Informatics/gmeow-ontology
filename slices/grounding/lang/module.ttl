@@ -5595,10 +5595,11 @@ gmeow:gmnUnitGmnToCompacted
 # logic:Formula) binds the tree-producing legs (codec, ebnf, abnf, gbnf, lark):
 # for the one graph glyph-signature every grammar formalism AND the codec parse
 # back to ONE canonical RuleExpr, so any two legs commute up to declared
-# preservation (the naturality square). The tree-level commutation is DISCHARGED
-# by the executable coherence gate (crates/lang-bridge/tests/notation_coherence.rs),
-# carried here as the discharged logic:SectionLaw claim on
-# gmeow:gmnCorrNotationCoherence — never asserted on faith.
+# preservation (the naturality square). The tree-level commutation is checked over
+# the selected graph-derived glyph signature by the native conformance producer and
+# carried here as a bounded logic:SectionLaw claim on
+# gmeow:gmnCorrNotationCoherence. That selected-signature evidence never authorizes
+# an unrestricted serializer or optimizer rewrite.
 
 gmeow:GmnNotationView
     a logic:Kind ,
@@ -5607,7 +5608,7 @@ gmeow:GmnNotationView
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Notation View"@x-gmeow-english ;
     logic:formalizes gmeow:gmnNotationCoherenceLaw ;
-    skos:definition "A typed surface view of the ONE GMN-1 glyph signature: a satisfaction-preserving comorphism leg that projects the single graph-derived notation (gmeow:gmnModelNotation — every operator's gmeow:gmnFixity, gmeow:gmnPrecedence, gmeow:gmnArity, and its lang:Denotation) into one concrete surface named through gmeow:gmnViewSurface. The tree-producing legs (codec, ebnf, abnf, gbnf, lark) all parse back to ONE canonical RuleExpr tree, so any two of them commute up to declared preservation — the cross-surface coherence law gmeow:gmnNotationCoherenceLaw, whose tree-level commutation is discharged by the executable coherence gate and recorded as the logic:SectionLaw claim on gmeow:gmnCorrNotationCoherence. A view is not a rival to lang:SignSystem or logic:Correspondence: the notation stays the one gmeow:gmnModelNotation sign system, and each view's law-spine is an ordinary logic:Correspondence; a GmnNotationView only names one surface leg of that single notation so the fan-out is enumerable and gate-checkable rather than implicit in generator code."@x-gmeow-english ;
+    skos:definition "A typed surface view of the ONE GMN-1 glyph signature: a satisfaction-preserving comorphism leg that projects the single graph-derived notation (gmeow:gmnModelNotation — every operator's gmeow:gmnFixity, gmeow:gmnPrecedence, gmeow:gmnArity, and its lang:Denotation) into one concrete surface named through gmeow:gmnViewSurface. The tree-producing legs (codec, EBNF, ABNF, GBNF, Lark) all parse the selected glyph signature back to ONE canonical RuleExpr tree, so any two of them commute on that declared corpus — the bounded cross-surface coherence law gmeow:gmnNotationCoherenceLaw recorded by the logic:SectionLaw claim on gmeow:gmnCorrNotationCoherence. A view is not a rival to lang:SignSystem or logic:Correspondence: the notation stays the one gmeow:gmnModelNotation sign system, and each view's law-spine is an ordinary logic:Correspondence; a GmnNotationView only names one surface leg of that single notation so the fan-out is enumerable and gate-checkable rather than implicit in generator code."@x-gmeow-english ;
     skos:example "gmeow:gmnViewEbnf a gmeow:GmnNotationView ; gmeow:gmnViewOf gmeow:gmnModelNotation ; gmeow:gmnViewSurface \"ebnf\" ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid minting a GmnNotationView for a surface that is not a projection of the ONE gmeow:gmnModelNotation glyph signature, and avoid using it to shadow a second notation identity — the notation is the single sign system gmeow:gmnModelNotation, and a view is only one of its surface legs, never a rival canon."@x-gmeow-english ;
@@ -5730,7 +5731,7 @@ gmeow:gmnCorrNotationCoherence
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-1 cross-surface coherence correspondence"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The judged cross-surface coherence of GMN-1's typed views: for the ONE graph glyph-signature, every grammar formalism (ebnf, abnf, and — as they land — gbnf, lark) AND the codec parse back to ONE canonical RuleExpr, so any two tree-producing legs commute — an isomorphism with exact preservation and a retained mnemomorphic witness. The claim is DISCHARGED by execution, not declared on faith: the executable coherence gate (crates/lang-bridge/tests/notation_coherence.rs) renders the graph-derived glyph grammar and asserts canonicalize(parse via Ebnf) == canonicalize(parse via Abnf) and that the codec's operator-precedence table (grammar.rs) agrees with the grammar's precedence, so the logic:SectionLaw claim below is a running check, not prose. The naturality square it witnesses is stated as the logic:Formula gmeow:gmnNotationCoherenceLaw."@x-gmeow-english ;
+    skos:definition "The judged cross-surface coherence of GMN-1's typed views for the selected graph-derived glyph signature: every grammar formalism (EBNF, ABNF, GBNF, and Lark) parses its rendering back to ONE canonical RuleExpr, so any two tree-producing legs commute on that declared corpus — an isomorphism with exact preservation and a retained mnemomorphic witness inside that boundary. The native conformance producer renders the selected glyph grammar and checks each formalism against the same canonical tree; its result is bounded-corpus evidence, not a proof over every possible RuleExpr and never authority for an unrestricted optimizer rewrite. The naturality square it witnesses is stated as the logic:Formula gmeow:gmnNotationCoherenceLaw."@x-gmeow-english ;
     logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Equiv ;
     logic:morphismClass logic:Isomorphism ;
@@ -5738,17 +5739,22 @@ gmeow:gmnCorrNotationCoherence
     logic:hasDeterminacy logic:Crisp ;
     logic:mnemomorphic true ;
     logic:getLeg gmeow:gmnCorrNotationCoherenceGet ;
-    logic:hasLawClaim [
-        a logic:LawClaim ;
-        logic:lawClaimed logic:SectionLaw ;
-        logic:lawDischargeVerdict logic:ObligationDischarged ;
-        logic:lawDischargeCondition logic:DischargeSyntacticReachability
-    ] ;
+    logic:hasLawClaim gmeow:gmnCorrNotationCoherenceSectionLawClaim ;
     gmeow:gmnCoheresView gmeow:gmnViewCodec ,
         gmeow:gmnViewEbnf ,
         gmeow:gmnViewAbnf ,
         gmeow:gmnViewGbnf ,
         gmeow:gmnViewLark .
+
+gmeow:gmnCorrNotationCoherenceSectionLawClaim
+    a logic:NamedIndividual , logic:LawClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-1 cross-surface section-law discharge"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The named executable discharge record for gmeow:gmnCorrNotationCoherence: the native conformance producer checks that the selected graph-derived GMN glyph signature recovers one canonical RuleExpr through the EBNF, ABNF, GBNF, and Lark tree-producing legs. This is exact evidence for that declared corpus only; it does not certify arbitrary RuleExpr values or authorize unrestricted rewrites."@x-gmeow-english ;
+    logic:lawClaimed logic:SectionLaw ;
+    logic:lawDischargeVerdict logic:ObligationDischarged ;
+    logic:lawDischargeCondition logic:DischargeBoundedCorpus .
 
 # The crossing's authored get-leg witness (the supersession-ledger pattern, as
 # gmeow:gmnCorrNormalToGtsGet): a one-step forward relation — render the
@@ -5767,7 +5773,7 @@ gmeow:gmnNotationCoherenceLaw
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-1 cross-surface coherence law"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "For every coherence correspondence and any two views it binds through gmeow:gmnCoheresView, the two views name the SAME notation through gmeow:gmnViewOf — the naturality square's shared apex, the graph-expressible precondition of the tree-level commutation (canonicalize(parse via one formalism) == canonicalize(parse via another)) that the executable coherence gate discharges and gmeow:gmnCorrNotationCoherence records as a logic:SectionLaw claim."@x-gmeow-english ;
+    skos:definition "For the selected GMN glyph signature, every coherence correspondence and any two views it binds through gmeow:gmnCoheresView name the SAME notation through gmeow:gmnViewOf — the naturality square's shared apex and the graph-expressible precondition of the bounded tree-level commutation check (canonicalize(parse via one formalism) == canonicalize(parse via another)) recorded by gmeow:gmnCorrNotationCoherence as a logic:SectionLaw claim."@x-gmeow-english ;
     logic:quantifiedVariable
         [ logic:termIndex 0 ; logic:termVariable "law" ] ,
         [ logic:termIndex 1 ; logic:termVariable "v1" ] ,

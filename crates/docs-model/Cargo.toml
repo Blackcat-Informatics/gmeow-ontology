@@ -48,6 +48,7 @@ blake3.workspace = true
 gmeow-action-cache = { path = "../action-cache" }
 
 [dev-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
 gmeow-bundle-import = { path = "../bundle-import" }
 # RAII temp directories/files for tests. Every scratch path a test creates is
 # removed on drop — including on panic and early return — so a gate run never

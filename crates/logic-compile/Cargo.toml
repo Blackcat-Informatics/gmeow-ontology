@@ -53,17 +53,17 @@ sha2.workspace = true
 # crates/logic (`ReasoningContract::content_digest` pins the reasoning contract for
 # the operational `ReasoningSession` identity). Pure-Rust, wasm-clean.
 blake3.workspace = true
-# serde: the projection-result ledger rows + report header counts are passed as an
-# in-memory product (JSON) from the compile-logic pipeline stage to the mappings stage,
-# which assembles the FINAL projection report over the union of the logic rows and the
-# correspondence ledger. Pure-Rust + wasm-clean (no oxigraph / no std::fs).
-serde.workspace = true
+# serde: complete typed compiler publications and compact report judgments support
+# authenticated persistence. Live pipeline consumers share native values directly.
+# Pure-Rust + wasm-clean (no oxigraph / no std::fs).
+serde = { workspace = true, features = ["rc"] }
+
+# Stream complete typed Formula syntax into bounded analysis-cache identities.
+# Already part of the wasm-clean dependency graph; no serialized input is retained.
+serde_json.workspace = true
 
 [dev-dependencies]
 # insta: snapshot goldens for the projection back-ends (the `.snap` files are the
 # byte-exact unit goldens; crates/conformance owns cross-engine corpus parity).
 # Pinned to match crates/logic. `json` drives `assert_json_snapshot!` where used.
 insta = { workspace = true, features = ["json"] }
-# serde_json: verify the correspondence gate report serializes to stable tagged JSON
-# (the conformance golden shape) in the gate unit tests.
-serde_json.workspace = true

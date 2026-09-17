@@ -36,7 +36,7 @@ fn make_delta(session: &ReasoningSession, additions: purrdf::RdfDataset) -> Sess
 fn ac5_crash_before_durable_journal_replays_idempotently() {
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let idb = idb_reach();
 
     // Path A — apply the delta once.
@@ -68,7 +68,7 @@ fn ac5_crash_before_durable_journal_replays_idempotently() {
     };
     let closure_b = session_derived(&recovered, &idb);
 
-    let edb1 = edge_dataset(&[("a", "b"), ("b", "c"), ("c", "d")]);
+    let edb1 = edge_arc(&[("a", "b"), ("b", "c"), ("c", "d")]);
     assert_eq!(
         closure_b, closure_a,
         "recovered closure equals the applied-once closure"
@@ -88,7 +88,7 @@ fn ac5_crash_before_durable_journal_replays_idempotently() {
 fn ac5_committed_delta_is_refused_after_restart() {
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let idb = idb_reach();
 
     let mut session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
@@ -126,7 +126,7 @@ fn ac5_committed_delta_is_refused_after_restart() {
     // post-apply checkpoint reproduces the committed post-delta closure (the 9-fact state
     // incl. c→d), NOT the base. Before the fix the restart reverted to the 5-fact base while
     // reporting the 9-fact head; this asserts the faithful round-trip.
-    let edb_committed = edge_dataset(&[("a", "b"), ("b", "c"), ("c", "d")]);
+    let edb_committed = edge_arc(&[("a", "b"), ("b", "c"), ("c", "d")]);
     assert_eq!(
         before, committed_closure,
         "restart reproduces the committed post-delta closure (the delta survived the crash)"
@@ -169,7 +169,7 @@ fn ac5_committed_delta_is_refused_after_restart() {
 fn ac5_double_apply_in_process_is_structurally_refused() {
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let idb = idb_reach();
 
     let mut session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
@@ -199,7 +199,7 @@ fn ac5_double_apply_in_process_is_structurally_refused() {
 fn ac5_apply_never_mints_a_new_authorized_generation() {
     let program = transitive_program();
     let (contract, annotation) = baseline_contracts();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
 
     let mut session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
     let generation_before = session.identity().data_generation.clone();

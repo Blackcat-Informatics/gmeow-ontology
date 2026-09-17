@@ -175,11 +175,25 @@ fn run_and_capture_shacl_nq() -> String {
         );
     }
 
-    // The D5 abductive tier consumes stage-reason's reasoned closure; an empty-EDB
-    // fixture yields an empty closure (the reasoned union is the authored graph alone).
+    // The D5 tier consumes a real selected empty-theory execution, including its
+    // intrinsic domain evidence. No authored corpus is built by this fixture.
+    use gmeow_logic::reason::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Default,
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow.pipeline.test.substrate-empty-theory.v1".to_owned(),
+        *blake3::hash(
+            b"gmeow.pipeline.test.substrate-empty-theory.v1/default/nonempty-object-domain-v1",
+        )
+        .as_bytes(),
+    )
+    .unwrap()])
+    .unwrap();
+    let empty = purrdf::RdfDatasetBuilder::new().freeze().unwrap();
     upstream.insert(
         "stage-reason".to_string(),
-        gmeow_pipeline::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        gmeow_pipeline::stages::reason::reason_product_over_dataset(&empty, &domains)
+            .expect("stage-reason fixture product"),
     );
 
     let output = ValidateStage::new()

@@ -33,6 +33,7 @@ gmeow-ns = { path = "../ns" }
 # a `Diag`, and `diagnostics_reader` rehydrates `gmeow_errors::Finding` values
 # (with their Grade / Standpoint / gate verdict lattice) out of the RDF projection.
 gmeow-errors = { path = "../errors" }
+gmeow-gts-profile = { path = "../gts-profile" }
 # The documentation MODEL only — never `gmeow-docs`, whose renderer embeds ~13.6 MB
 # of vendored wasm. `export` renders every term card and every `llms.txt` block
 # through the shared `card` / `llms` / `gmn1_primer` surfaces, so the MCP card is

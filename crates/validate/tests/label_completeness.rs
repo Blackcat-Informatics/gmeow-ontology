@@ -23,7 +23,7 @@ use std::sync::{Arc, OnceLock};
 
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use gmeow_validate::store::dataset_from_paths;
-use purrdf::{RdfDataset, SerializeGraph, parse_dataset, serialize_dataset};
+use purrdf::{DatasetView, RdfDataset};
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -83,20 +83,23 @@ fn lint_inline(name: &str, ttl: &str) -> Vec<String> {
 fn authenticated_authored_dataset() -> &'static Arc<RdfDataset> {
     static DATASET: OnceLock<Arc<RdfDataset>> = OnceLock::new();
     DATASET.get_or_init(|| {
-        let imported = gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
-            .expect("load authenticated repository corpus without rebuilding it");
-        let authored = serialize_dataset(
-            imported.dataset.as_ref(),
-            "application/n-quads",
-            SerializeGraph::DefaultGraph,
+        let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(
+            &repo_root(),
+            "validate-authored-ontology.purrpack",
         )
-        .expect("serialize authenticated terminal authored graph");
+        .expect("load authenticated terminal authored graph without rebuilding it");
+        let authored =
+            purrdf::restore_pack(&bytes).expect("authenticated native authored graph must restore");
         assert!(
-            !authored.is_empty(),
+            authored.quad_count() > 0,
             "authenticated bundle omitted its terminal authored default graph"
         );
-        parse_dataset(&authored, "application/n-triples", None)
-            .expect("authenticated terminal authored graph must parse")
+        assert_eq!(
+            authored.named_graphs().count(),
+            0,
+            "authored view is default-only"
+        );
+        authored
     })
 }
 

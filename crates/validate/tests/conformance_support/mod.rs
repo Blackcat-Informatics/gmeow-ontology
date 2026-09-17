@@ -3,7 +3,7 @@
 //! Shared helpers for whole-ontology native SHACL conformance tests.
 //!
 //! This module centralises:
-//! - Repo-root and shapes-corpus assembly helpers (mirrors Python `_shapes_turtle`).
+//! - Authenticated native ontology and shape-artifact readers.
 //! - Fixture-to-N-Triples converters.
 //! - Report helpers (`ok`, `violations`, `warnings`).
 //! - Two validation entry-points: `validate` (fixture-only) and
@@ -52,21 +52,6 @@ pub fn exactly_one(values: BTreeSet<String>, cell: &str, field: &str) -> String 
     values.into_iter().next().unwrap()
 }
 
-/// Read every native alignment cell from `path` through the canonical `equivalence_cells`
-/// reader over a reifier-preserving parse. `GraphStore` flattening drops the RDF-1.2 reifier
-/// side tables the reader needs, so we parse WITHOUT flattening here. Shared by the grounding
-/// conformance suites so they read the SAME cells the correspondence derivation does.
-pub fn native_alignment_cells_from_file(
-    path: &Path,
-) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
-    let ttl = std::fs::read_to_string(path).expect("read native alignment catalog");
-    let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None)
-        .expect("native alignment catalog must parse");
-    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
-    gmeow_logic_compile::projections::sssom::equivalence_cells(&view)
-        .expect("native alignment cells must read")
-}
-
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
 /// Absolute path to the repository root (`crates/validate/../../`).
@@ -91,7 +76,7 @@ pub fn read_ttl(path: &Path) -> String {
         .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()))
 }
 
-// ── Shapes corpus assembly ────────────────────────────────────────────────────
+// ── Authenticated shape artifacts ──────────────────────────────────────────────
 
 /// Load the producer-extracted SHACL union selected by the exact bundle identity.
 ///
@@ -114,33 +99,49 @@ pub fn whole_shapes_ttl() -> &'static str {
 
 // ── Merged-ontology helpers ───────────────────────────────────────────────────
 
-/// Authored ontology as one N-Triples document selected from the shipped carrier.
+/// Producer-published lexical view of the terminal default graph.
 ///
-/// `graph/authored-default` is the pipeline's internal transport label. The terminal
-/// presenter deliberately re-roots that graph into the GTS default graph, so the exact
-/// authenticated terminal default graph is the consumer authority here. No test parses
-/// or merges the authored module tree.
-///
-/// Cached via [`OnceLock`] so disk I/O happens at most once per test process.
+/// This surface serves the lexical inventory assertion; no test serializes the
+/// whole carrier to recover it or parses it to construct the native ontology.
 pub fn base_ontology_nt() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let authored = dataset_default_graph_to_nt(authenticated_bundle_dataset());
+        let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(
+            &repo_root(),
+            "validate-conformance-ontology.nt",
+        )
+        .expect("load authenticated lexical ontology without producing it");
+        let text = String::from_utf8(bytes).expect("published ontology text is UTF-8");
         assert!(
-            !authored.trim().is_empty(),
-            "authenticated bundle omitted its terminal authored default graph"
+            !text.trim().is_empty(),
+            "published ontology must be nonempty"
         );
-        authored
+        text
     })
 }
 
-/// Authenticated terminal authored graph as a frozen native dataset.
+/// Restore the producer's immutable default-ontology reader view once per test
+/// process. Its OWL/RDFS aliases and flat statement assertions were materialized
+/// by the authenticated producer; tests perform no corpus lowering or RDF parse.
 pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
     static CACHE: OnceLock<Arc<RdfDataset>> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let canonical = parse_dataset(base_ontology_nt().as_bytes(), "application/n-triples", None)
-            .expect("authenticated terminal authored graph must parse");
-        with_owl_rdfs_projection(&canonical)
+        let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(
+            &repo_root(),
+            "validate-conformance-ontology.purrpack",
+        )
+        .expect("load authenticated native ontology without producing it");
+        let dataset = purrdf::restore_pack(&bytes).expect("published ontology pack is valid");
+        assert!(
+            dataset.quad_count() > 0,
+            "published ontology must be nonempty"
+        );
+        assert_eq!(
+            dataset.named_graphs().count(),
+            0,
+            "ontology view is default-only"
+        );
+        dataset
     })
 }
 
@@ -155,80 +156,15 @@ pub fn authenticated_bundle_dataset() -> &'static Arc<RdfDataset> {
     })
 }
 
-/// Project one exact named graph from the producer-authenticated bundle as N-Triples.
-///
-/// This is the read-only replacement for tests that previously called the production
-/// graph emitter and thereby constructed a second copy of shipped corpus content. A
-/// missing graph is a hard failure; there is no source-tree or producer fallback.
-pub fn authenticated_named_graph_nt(graph_iri: &str) -> String {
+/// Select one exact named graph from the authenticated bundle as a native default
+/// view for validation. A missing graph fails; no RDF text is emitted or reparsed.
+pub fn authenticated_named_graph_dataset(graph_iri: &str) -> Arc<RdfDataset> {
     let graph = authenticated_bundle_dataset().project_named_graph(graph_iri);
     assert!(
         graph.quad_count() > 0,
         "authenticated bundle omitted required named graph <{graph_iri}>"
     );
-    dataset_default_graph_to_nt(&flatten_to_default_graph(&graph))
-}
-
-/// `dataset` with the complete OWL/RDFS projection of its canonical `logic:`
-/// vocabulary materialized. The authenticated carrier remains the sole corpus
-/// source; this consumer-only view adds the spellings used by generated shapes
-/// and legacy conformance assertions without reading or rebuilding slice modules.
-fn with_owl_rdfs_projection(dataset: &RdfDataset) -> Arc<RdfDataset> {
-    let base = flat_rdf_quads_from_dataset(dataset);
-    let mut out: Vec<purrdf::RdfQuad> = Vec::with_capacity(base.len());
-    for quad in base {
-        let pred_view = gmeow_ns::owl_view_of_predicate(&quad.predicate);
-        let obj_view = object_marker_view(&quad.predicate, &quad.object);
-        match (pred_view, obj_view) {
-            (None, None) => {}
-            (Some(predicate), None) => {
-                let mut lowered = quad.clone();
-                lowered.predicate = predicate.to_owned();
-                out.push(lowered);
-            }
-            (None, Some(object)) => {
-                let mut lowered = quad.clone();
-                lowered.object = purrdf::RdfTerm::iri(object);
-                out.push(lowered);
-            }
-            (Some(predicate), Some(object)) => {
-                let mut both = quad.clone();
-                both.predicate = predicate.to_owned();
-                both.object = purrdf::RdfTerm::iri(object);
-                out.push(both);
-
-                let mut pred_only = quad.clone();
-                pred_only.predicate = predicate.to_owned();
-                out.push(pred_only);
-
-                let mut obj_only = quad.clone();
-                obj_only.object = purrdf::RdfTerm::iri(object);
-                out.push(obj_only);
-            }
-        }
-        out.push(quad);
-    }
-    flat_dataset_from_quads(&out).expect("projected ontology dataset must freeze")
-}
-
-/// The OWL-view spelling of a canonical marker in object position, when the
-/// predicate gives that object class/type semantics.
-fn object_marker_view(predicate: &str, object: &purrdf::RdfTerm) -> Option<&'static str> {
-    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    let purrdf::RdfTerm::Iri(object_iri) = object else {
-        return None;
-    };
-    if predicate == RDF_TYPE_IRI {
-        gmeow_ns::owl_view_of_type_marker(object_iri)
-    } else if gmeow_ns::is_class_position_predicate(predicate) {
-        match object_iri.as_str() {
-            gmeow_ns::LOGIC_THING => Some(gmeow_ns::OWL_THING),
-            gmeow_ns::LOGIC_NOTHING => Some(gmeow_ns::OWL_NOTHING),
-            _ => None,
-        }
-    } else {
-        None
-    }
+    flatten_to_default_graph(&graph)
 }
 
 /// Parsed SHACL shape model for the whole conformance corpus.
@@ -259,10 +195,21 @@ pub fn ontology_with_fixture_dataset(fixture_nt: &str) -> Arc<RdfDataset> {
         return Arc::clone(base_ontology_dataset());
     }
 
-    let mut merged: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
     let fixture = nt_to_dataset(fixture_nt);
-    merged.extend(flat_rdf_quads_from_dataset(&fixture));
+    ontology_with_native_fixture(&fixture)
+}
+
+/// The native assembly shared by tiny lexical fixtures and existing bundle graphs.
+fn ontology_with_native_fixture(fixture: &RdfDataset) -> Arc<RdfDataset> {
+    let mut merged = flat_rdf_quads_from_dataset(base_ontology_dataset());
+    merged.extend(flat_rdf_quads_from_dataset(fixture));
     flat_dataset_from_quads(&merged).expect("merged dataset must freeze")
+}
+
+/// Validate an already-produced native fixture with the same complete shape set.
+pub fn validate_native_with_ontology(fixture: &RdfDataset) -> ValidationReport {
+    let dataset = ontology_with_native_fixture(fixture);
+    validate_dataset_sharded(&dataset, whole_shapes())
 }
 
 /// Validate a dataset against a shape corpus with the FOCUS NODES sharded across
@@ -622,7 +569,7 @@ impl GraphStore {
     }
 
     /// Wrap an already-parsed default-graph dataset.
-    pub fn from_dataset(ds: Arc<RdfDataset>) -> Self {
+    pub fn wrap_dataset(ds: Arc<RdfDataset>) -> Self {
         Self {
             ds,
             slice_ds: Arc::new(OnceLock::new()),
@@ -633,7 +580,7 @@ impl GraphStore {
     pub fn ontology() -> Self {
         static STORE: OnceLock<GraphStore> = OnceLock::new();
         STORE
-            .get_or_init(|| Self::from_dataset(base_ontology_dataset().clone()))
+            .get_or_init(|| Self::wrap_dataset(base_ontology_dataset().clone()))
             .clone()
     }
 
@@ -1816,10 +1763,8 @@ pub fn lang_lit(lexical: &str, language: &str) -> TermValue {
 
 /// A SPARQL language feature a migrated competency query exercises.
 ///
-/// The [`MIGRATION_FEATURE_REGISTRY`] must, in union, cover every variant (see the
-/// `feature_registry_covers_all_features` invariant in
-/// `conformance_sparql_features.rs`) so the native migration never silently drops a
-/// feature the source `.rq` corpus relies on.
+/// These tags describe GMEOW product queries. Generic SPARQL feature conformance
+/// belongs to PurRDF's own suite; this harness asserts GMEOW-specific results.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Feature {
     /// `{ … } UNION { … }`.
@@ -1830,100 +1775,11 @@ pub enum Feature {
     FilterNotExists,
     /// `BIND(expr AS ?v)`.
     Bind,
-    /// `COALESCE(?a, ?b, …)`.
-    Coalesce,
     /// `CONSTRUCT { … } WHERE { … }` graph projection.
     ConstructGraph,
     /// Pre-bound query variables (`SparqlRequest.substitutions`, the native
     /// `initBindings` equivalent), driven by [`QueryCase::bind`].
     InitBindings,
-}
-
-impl Feature {
-    /// Every `Feature` variant — the coverage bar the registry union must meet.
-    pub const ALL: &'static [Feature] = &[
-        Feature::Union,
-        Feature::Optional,
-        Feature::FilterNotExists,
-        Feature::Bind,
-        Feature::Coalesce,
-        Feature::ConstructGraph,
-        Feature::InitBindings,
-    ];
-}
-
-/// The registry of migration [`QueryCase`] identities and the SPARQL features each
-/// exercises. It is a **checked-in, append-only** list: every cluster task adds the
-/// `(cq_id, feature_tags)` of the cases it lands, and the tag-union must stay ⊇
-/// [`Feature::ALL`] (enforced by `feature_registry_covers_all_features`).
-///
-/// The rows below are the conformance seed; `conformance_sparql_features.rs` carries one
-/// small, self-contained [`QueryCase`] per feature so the invariant is green from
-/// the first commit; later migrations extend the union, never shrink it.
-pub const MIGRATION_FEATURE_REGISTRY: &[(&str, &[Feature])] = &[
-    ("sparql-features/union", &[Feature::Union]),
-    ("sparql-features/optional", &[Feature::Optional]),
-    (
-        "sparql-features/filter-not-exists",
-        &[Feature::FilterNotExists],
-    ),
-    ("sparql-features/bind", &[Feature::Bind]),
-    ("sparql-features/coalesce", &[Feature::Coalesce]),
-    (
-        "sparql-features/construct-graph",
-        &[Feature::ConstructGraph],
-    ),
-    ("sparql-features/init-bindings", &[Feature::InitBindings]),
-    // Migrated narrative-interior cluster cases (conformance_{narration,disclosure}.rs).
-    ("narrative/narration-cooccurrence", &[Feature::Union]),
-    (
-        "disclosure/public-candidates",
-        &[Feature::FilterNotExists, Feature::InitBindings],
-    ),
-    (
-        "disclosure/schema-org-projection",
-        &[Feature::ConstructGraph, Feature::FilterNotExists],
-    ),
-    // Migrated email cluster cases (conformance_email.rs).
-    ("email/dsn-kinds", &[Feature::InitBindings]),
-    (
-        "email/version-memberships",
-        &[Feature::Optional, Feature::InitBindings],
-    ),
-    // Migrated identity cluster cases (conformance_{gender,sexuality,risk,competency}.rs).
-    ("gender/gender-values", &[Feature::Optional]),
-    (
-        "sexuality/orientation-values",
-        &[Feature::Union, Feature::Bind],
-    ),
-    ("risk/severity-order", &[Feature::FilterNotExists]),
-    (
-        "competency/expertise-expiring-credentials",
-        &[Feature::Bind],
-    ),
-    // Migrated slice cluster cases (conformance_{gts_slice,music_competency,
-    // music_oral_tradition}.rs). The `gts-slice`/`music-oral` rows document the
-    // SPARQL features of migrated `.rq` queries run as smoke/aggregate selects; the
-    // `music-competency` row is a live `QueryCase` (15-way UNION with per-branch BIND).
-    ("gts-slice/evidence-packages-signers", &[Feature::Optional]),
-    (
-        "music-competency/query-bundle",
-        &[Feature::Union, Feature::Bind],
-    ),
-    ("music-oral/oral-works", &[Feature::FilterNotExists]),
-];
-
-/// The de-duplicated union of every feature tag in [`MIGRATION_FEATURE_REGISTRY`].
-pub fn registry_feature_union() -> Vec<Feature> {
-    let mut union: Vec<Feature> = Vec::new();
-    for (_, tags) in MIGRATION_FEATURE_REGISTRY {
-        for &tag in *tags {
-            if !union.contains(&tag) {
-                union.push(tag);
-            }
-        }
-    }
-    union
 }
 
 // ── Parameterized competency-query case harness ────────────────────────────────
@@ -2000,7 +1856,7 @@ impl QueryCase {
         }
     }
 
-    /// The competency-question id (matches a [`MIGRATION_FEATURE_REGISTRY`] row).
+    /// The stable competency-question id used in failure diagnostics.
     pub fn cq_id(&self) -> &'static str {
         self.cq_id
     }

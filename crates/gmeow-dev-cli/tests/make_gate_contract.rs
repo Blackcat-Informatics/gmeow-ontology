@@ -163,6 +163,7 @@ const HEAVY_TASKS: &[&str] = &[
     "console-smoke",
     "acceptance",
     "bench-soak",
+    "conformance-heavy",
     "medium-consumer-surface",
 ];
 
@@ -226,10 +227,90 @@ fn evidence_binaries_have_one_dependency_light_owner() {
     }
 }
 
-/// Heavy tasks that need only the producer artifact. The medium consumer proof is
-/// scheduled separately because it also consumes the authenticated Rust archive.
-const CI_HEAVY_MATRIX_TASKS: &[&str] =
-    &["wasm-parity", "console-smoke", "acceptance", "bench-soak"];
+/// Heavy tasks outside the Rust archive. Browser builds additionally consume the
+/// producer-selected native codebook; the medium proof consumes the Rust archive.
+const CI_HEAVY_MATRIX_TASKS: &[&str] = &[
+    "wasm-parity",
+    "console-smoke",
+    "acceptance",
+    "bench-soak",
+    "conformance-heavy",
+];
+
+/// Browser and native consumers must admit the prepared dictionary before compilation,
+/// without letting any test or documentation target trigger corpus production.
+#[test]
+fn browser_codebook_builds_require_exact_read_only_producer_selection() {
+    let makefile = makefile();
+    for target in ["wasm", "gmn-wasm-pkg", "validate-wasm-pkg", "rust-docs"] {
+        assert!(
+            target_header(&makefile, target).contains("verify-wasm-codebook"),
+            "{target} must admit the native dictionary before embedding it"
+        );
+    }
+    let stamp = target_header(&makefile, "$(RUST_READY_STAMP)");
+    assert!(
+        stamp.contains("generated/projections/lang/gmn-codebook.cbor | verify-wasm-codebook"),
+        "changed native bytes invalidate the build stamp; read-only admission precedes compilation"
+    );
+    let verifier = target_recipe(&makefile, "verify-wasm-codebook");
+    assert!(
+        verifier.contains(
+            "$(TEST_FIXTURE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope wasm-codebook"
+        ) && !verifier.contains("produce")
+            && !verifier.contains("cargo ")
+            && !verifier.contains("check-sync"),
+        "browser build admission must never launch a producer or rebuild its verifier"
+    );
+    let prebuild = makefile
+        .lines()
+        .find(|line| line.starts_with("RUST_PREBUILD_WORKSPACE_ARGS :="))
+        .expect("source-only prebuild declares its exact workspace selection");
+    for consumer in ["gmeow-gmn-wasm", "gmeow-validate-wasm"] {
+        assert!(
+            prebuild.contains(&format!("--exclude {consumer}")),
+            "source-only prebuild cannot embed an unproduced {consumer} codebook"
+        );
+    }
+
+    let ci = ci_workflow();
+    for (job_name, compilation) in [
+        ("rust-static", "- name: Workspace clippy"),
+        ("heavy", "- name: Heavy DAG branch — ${{ matrix.task }}"),
+    ] {
+        let marker = format!("\n  {job_name}:\n");
+        let job = ci
+            .split_once(&marker)
+            .expect("codebook consumer job exists")
+            .1
+            .split("\n  # ")
+            .next()
+            .expect("job body exists");
+        assert!(job_needs(job).contains(&"fixture-prefix")
+            && job.contains("FIXTURE_MANIFEST_SHA256: ${{ needs.fixture-prefix.outputs.selector_sha256 }}")
+            && workflow_step(job, "Download the producer-selected browser codebook fixtures")
+                .contains("uses: actions/download-artifact@")
+            && job.contains("name: prefix-test-fixtures-${{ github.sha }}")
+            && !job.contains("test-actions-v")
+            && job.contains("${FIXTURE_MANIFEST_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json\" | sha256sum -c -"),
+            "{job_name} must require the exact producer-owned same-run fixture transfer and selector digest");
+        assert_eq!(
+            job_needs(job).contains(&"rust-prebuild"),
+            job_name == "rust-static",
+            "only the static consumer reuses native build products; browser admission depends on its fixture producer"
+        );
+        assert!(
+            job.find("make verify-wasm-codebook")
+                .expect("read-only codebook admission")
+                < job.find(compilation).expect("consumer compilation"),
+            "{job_name} cannot compile embedded dictionaries before their admission"
+        );
+        assert!(
+            !job.contains("test-fixtures produce") && !job.contains("make produce-"),
+            "{job_name} cannot recreate a missing corpus selection"
+        );
+    }
+}
 
 #[test]
 fn every_check_dag_target_is_exercised_by_ci() {
@@ -324,23 +405,6 @@ fn target_recipe(source: &str, target: &str) -> String {
 }
 
 /// Every real-DAG medium refresh must enter through the admitted producer.
-#[test]
-fn medium_sweep_has_only_the_authenticated_producer_entry_point() {
-    let recipe = target_recipe(&makefile(), "maint-medium-sweep");
-    assert!(
-        recipe.contains("$(GMEOW_DEV) medium-seed --out bench/medium-baseline.json")
-            && recipe.contains("$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json")
-            && !recipe.contains("cargo run"),
-        "both bootstrap and measured production must use the authenticated producer"
-    );
-    assert!(
-        !manifest("crates/pipeline/Cargo.toml").contains("name = \"medium-sweep\"")
-            && !repo_root()
-                .join("crates/pipeline/src/bin/medium-sweep.rs")
-                .exists(),
-        "a standalone binary would bypass optimized producer admission"
-    );
-}
 
 /// Release-authority publication must use the same admitted producer as synchronization.
 #[test]
@@ -562,14 +626,13 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
         "every corpus consumer must receive the producer-written selector and its exact digest"
     );
     assert!(
-        pipeline_build.contains("build_inputs::crate_input_paths")
-            && pipeline_build.contains("is_library_implementation_input")
-            && pipeline_build.contains("src/fixture.rs\" | \"src/tests.rs")
-            && !std::fs::read_to_string(
-                repo_root().join("build-support/path_dependency_inputs.rs")
-            )
-            .expect("read exact path-dependency input walker")
-            .contains("\"tests\", \"examples\", \"benches\""),
+        pipeline_build.contains("gmeow_build_inputs::emit_action_identity")
+            && !repo_root()
+                .join("build-support/path_dependency_inputs.rs")
+                .exists()
+            && std::fs::read_to_string(repo_root().join("crates/build-inputs/src/modules.rs"))
+                .expect("shared typed module inventory")
+                .contains("inline test implementation must be extracted"),
         "external Rust test/example/bench sources must not invalidate production-stage actions"
     );
     // Filtering is nextest-side: retaining `--workspace` keeps Cargo's feature graph
@@ -1175,7 +1238,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
                 .count()
                 >= 3
             && ci.contains("fixture-timings-producer-bound.json"),
-        "the bounded shared action store and exact bundle import need distinct cache, artifact, and evidence authorities in archive, shard, and medium consumers"
+        "the bounded shared action store must reach archive, static and browser consumers; exact bundle import retains its separate artifact and evidence authority"
     );
     assert!(
         ci.contains("dist/nextest/perf-sample")
@@ -1704,5 +1767,23 @@ fn validate_help_matches_the_phase_coverage_registry() {
             && !help.contains("per-example")
             && !help.contains("slice-test"),
         "validate help must not claim corpus validation is delegated to tests: {help:?}"
+    );
+}
+
+#[test]
+fn medium_sweep_has_only_the_authenticated_producer_entry_point() {
+    let recipe = target_recipe(&makefile(), "maint-medium-sweep");
+    assert!(
+        recipe.contains("$(GMEOW_DEV) medium-seed --out bench/medium-baseline.json")
+            && recipe.contains("$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json")
+            && !recipe.contains("cargo run"),
+        "both bootstrap and measured production must use the authenticated producer"
+    );
+    assert!(
+        !manifest("crates/pipeline/Cargo.toml").contains("name = \"medium-sweep\"")
+            && !repo_root()
+                .join("crates/pipeline/src/bin/medium-sweep.rs")
+                .exists(),
+        "a standalone binary would bypass optimized producer admission"
     );
 }

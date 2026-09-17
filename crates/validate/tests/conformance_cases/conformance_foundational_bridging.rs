@@ -8,6 +8,7 @@
 //! declared lowerings of the richer `logic:` source (Principles 4, 5, 7, and 17).
 
 use crate::conformance_support::*;
+use crate::grounding_observations;
 
 use std::collections::BTreeSet;
 
@@ -24,7 +25,6 @@ const SH: &str = "http://www.w3.org/ns/shacl#";
 const SKOS: &str = "http://www.w3.org/2004/02/skos/core#";
 
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
-const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 
 const BRIDGE_VIEW: &str = "https://blackcatinformatics.ca/logic/BridgeView";
 const COMMITMENT_SHIFTING: &str = "https://blackcatinformatics.ca/logic/CommitmentShiftingBridge";
@@ -55,9 +55,7 @@ struct BridgeRecord {
     confidence: String,
 }
 
-fn catalog_path() -> std::path::PathBuf {
-    repo_root().join("slices/grounding/logic/mappings/grounding-bridges.ttl")
-}
+const CATALOG_PATH: &str = "slices/grounding/logic/mappings/grounding-bridges.ttl";
 
 #[gmeow_test_batch_macros::batch_test]
 fn grounding_bridge_fixture_pair_enforces_explicit_preservation() {
@@ -65,20 +63,7 @@ fn grounding_bridge_fixture_pair_enforces_explicit_preservation() {
     // well-formedness gate now lives in the fail-closed Rust correspondence transpiler. A
     // complete native grounding bridge transpiles; one missing logic:preservationKind
     // hard-fails naming preservationKind.
-    fn transpile(
-        rel: &str,
-    ) -> gmeow_errors::Result<(
-        gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
-        gmeow_logic_compile::projections::correspondence_frontend::CorrespondenceLookup,
-    )> {
-        let ttl = std::fs::read_to_string(repo_root().join(rel)).expect("fixture must read");
-        let ds =
-            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("fixture must parse");
-        let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
-        gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
-            &view, &view,
-        )
-    }
+    let transpile = grounding_observations::transpilation;
 
     assert!(
         transpile(
@@ -91,34 +76,25 @@ fn grounding_bridge_fixture_pair_enforces_explicit_preservation() {
     let err = transpile(
         "slices/grounding/logic/tests/counter-examples/grounding-bridge-missing-preservation.ttl",
     )
+    .as_ref()
     .expect_err("a grounding bridge without logic:preservationKind must be rejected");
     assert!(
-        err.message().contains("preservationKind"),
+        err.to_string().contains("preservationKind"),
         "the negative fixture must fail for its missing preservation judgment: {err}"
     );
 }
 
 fn records() -> Vec<BridgeRecord> {
-    native_bridge_records(&catalog_path())
+    native_bridge_records(CATALOG_PATH)
 }
 
-/// Read every native grounding alignment cell from `path` as a [`BridgeRecord`].
-/// The legacy gmeow:TermEquivalence / gmeow:GroundingCorrespondence cell NODE with
-/// alignSubject/Predicate/Object was deleted; grounding cells are now native RDF-1.2
-/// statement-annotated match triples whose envelope lives on the reifier (a side table).
-/// Re-parse the file WITHOUT flattening (GraphStore flattens, which drops the reifier side
-/// tables) and read through the canonical `equivalence_cells` reader.
-fn native_bridge_records(path: &std::path::Path) -> Vec<BridgeRecord> {
-    native_alignment_cells_from_file(path)
-        .into_iter()
+/// Read the producer's native envelope extraction without reconstructing RDF.
+fn native_bridge_records(path: &str) -> Vec<BridgeRecord> {
+    grounding_observations::cells(path)
+        .iter()
         .filter(|c| c.grounding)
         .map(|c| BridgeRecord {
-            iri:
-                gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri(
-                    &c.subject,
-                    &c.predicate,
-                    &c.obj,
-                ),
+            iri: c.iri.clone(),
             source: c
                 .source_endpoint
                 .clone()
@@ -129,7 +105,7 @@ fn native_bridge_records(path: &std::path::Path) -> Vec<BridgeRecord> {
             class: c.morphism_class.clone().unwrap_or_default(),
             kind: c.morphism_kind.clone().unwrap_or_default(),
             preservation: c.preservation.clone().unwrap_or_default(),
-            confidence: c.confidence.map(|v| v.to_string()).unwrap_or_default(),
+            confidence: c.confidence.clone().unwrap_or_default(),
         })
         .collect()
 }
@@ -172,10 +148,9 @@ fn grounding_catalog_is_single_owner_explicit_and_total() {
     let all = records();
     assert!(!all.is_empty(), "the grounding catalog must not be empty");
 
-    let logic_module =
-        GraphStore::parse_ttl_file(&repo_root().join("slices/grounding/logic/module.ttl"));
-    let math_module =
-        GraphStore::parse_ttl_file(&repo_root().join("slices/grounding/math/module.ttl"));
+    let observed = grounding_observations::observations();
+    let logic_module = &observed.declared_subjects["slices/grounding/logic/module.ttl"];
+    let math_module = &observed.declared_subjects["slices/grounding/math/module.ttl"];
     let expected_files: BTreeSet<&str> = CATALOGS.into_iter().collect();
     let mut actual_files = BTreeSet::new();
     for record in &all {
@@ -196,7 +171,7 @@ fn grounding_catalog_is_single_owner_explicit_and_total() {
             );
         };
         assert!(
-            owning_module.has(Some(&record.source), None, None),
+            owning_module.contains(&record.source),
             "{} uses undeclared grounding source {}",
             record.iri,
             record.source
@@ -221,11 +196,11 @@ fn grounding_catalog_is_single_owner_explicit_and_total() {
 
 #[gmeow_test_batch_macros::batch_test]
 fn gufo_catalog_covers_every_imported_class_without_silent_drop() {
-    let gufo = GraphStore::parse_ttl_file(&repo_root().join("imports/gufo.ttl"));
-    let imported: BTreeSet<String> = gufo
-        .subjects_of_type(OWL_CLASS)
-        .into_iter()
+    let observed = grounding_observations::observations();
+    let imported: BTreeSet<String> = observed.imported_classes["imports/gufo.ttl"]
+        .iter()
         .filter(|iri| iri.starts_with(GUFO))
+        .cloned()
         .collect();
     let rows = records_for("gmeow-logic-gufo.sssom.tsv");
     let targets: BTreeSet<String> = rows.iter().map(|r| r.target.clone()).collect();
@@ -286,13 +261,14 @@ fn bfo_bridge_targets_real_vendored_classes_and_labels() {
         ("Quality", "BFO_0000019", "quality"),
         ("Role", "BFO_0000023", "role"),
     ];
-    let snapshot = GraphStore::parse_ttl_file(&repo_root().join("imports/targets/bfo.ttl"));
+    let observed = grounding_observations::observations();
+    let classes = &observed.imported_classes["imports/targets/bfo.ttl"];
     let pairs = pairs_for("gmeow-logic-bfo.sssom.tsv");
     for (source, bfo_local, label) in expected {
         let target = format!("{BFO}{bfo_local}");
         assert!(pairs.contains(&(logic(source), target.clone())));
-        assert!(snapshot.has(Some(&target), Some(RDF_TYPE), Some(OWL_CLASS)));
-        assert!(snapshot.objects_lex(&target, RDFS_LABEL).contains(label));
+        assert!(classes.contains(&target));
+        assert!(observed.bfo_labels[&target].contains(label));
     }
 }
 
@@ -380,9 +356,7 @@ fn audited_foundation_rows_use_only_warranted_relations() {
 
 #[gmeow_test_batch_macros::batch_test]
 fn yamato_catalog_pins_material_quantity_and_quality_value() {
-    let records = native_bridge_records(
-        &repo_root().join("slices/grounding/logic/mappings/foundation-bridges.ttl"),
-    );
+    let records = native_bridge_records("slices/grounding/logic/mappings/foundation-bridges.ttl");
     assert!(
         records
             .iter()

@@ -13,6 +13,9 @@
 //! The clap `Cli`/`Commands` surface and its dispatch live here; the wired
 //! command bodies live in the per-area `dev_*` modules.
 
+// Successful producer inputs are shared without flattening failed initialization.
+#![feature(once_cell_try)]
+
 mod dev_build;
 mod dev_common;
 mod dev_docs_measure;
@@ -83,6 +86,10 @@ pub enum TestFixtureScope {
     ProducerIndependent,
     ProducerBound,
     Bundle,
+    /// Exhaustive native divergence evidence, produced separately from required fixtures.
+    ConformanceHeavy,
+    /// Read-only admission of the producer's native browser codebook embedding.
+    WasmCodebook,
 }
 
 impl SyncOutput {
@@ -180,6 +187,8 @@ pub enum Commands {
     /// three external-distribution design totals.
     #[command(name = "docs-measure")]
     DocsMeasure,
+    /// Verify two independent documentation productions and their size accounting.
+    DocsMeasureVerify,
     /// Assemble the standalone `<gmeow-console>` tree (shell + shared engine assets)
     /// into a directory, off the same bundle-backed exec the site render uses.
     #[command(name = "console-assemble")]
@@ -195,7 +204,7 @@ pub enum Commands {
         #[arg(long = "out", default_value = "dist/gmeow-docs.tar")]
         out: PathBuf,
     },
-    /// Fold check/conformance/SARIF evidence into a SIGNED gmeow.gts.
+    /// Fold evidence into a signed GTS output with its mandatory ingestion companion.
     #[command(name = "release-bundle")]
     ReleaseBundle {
         #[arg(long = "out", default_value = "dist/gmeow.gts")]
@@ -204,6 +213,7 @@ pub enum Commands {
         sign_key: PathBuf,
         #[arg(long = "public-key")]
         public_key: PathBuf,
+        /// Source GTS; its adjacent .ingestion.cbor receipt is required and retained.
         #[arg(long = "source", default_value = "generated/dist/gmeow.gts")]
         source: PathBuf,
         #[arg(long = "issued-at")]
@@ -402,6 +412,9 @@ pub enum Commands {
     /// Verify Rust crate layering and repository-static policy.
     #[command(name = "crate-check")]
     CrateCheck,
+    /// Verify that production and fuzzing resolve the same PurRDF package identities.
+    #[command(name = "fuzz-substrate-check")]
+    FuzzSubstrateCheck,
     /// Re-vendor minimal target-axiom snapshots (network).
     #[command(name = "refresh-target-axioms")]
     RefreshTargetAxioms {
@@ -502,7 +515,7 @@ pub enum Commands {
         #[arg(long = "strict")]
         strict: bool,
     },
-    /// Compile the statement-complete GTS dist snapshot.
+    /// Compile the statement-complete GTS snapshot and its ingestion companion.
     #[command(name = "compile-gts")]
     CompileGts {
         #[arg(long = "out", short = 'o')]
@@ -909,6 +922,7 @@ pub fn run() -> i32 {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
         }
         Commands::DocsMeasure => dev_docs_measure::docs_measure(),
+        Commands::DocsMeasureVerify => dev_docs_measure::docs_measure_verify(),
         Commands::ConsoleAssemble { out } => dev_project::console_assemble(&out),
         Commands::DocsPackage { out } => dev_docs_package::docs_package(&out),
         Commands::ReleaseBundle {
@@ -1031,6 +1045,7 @@ pub fn run() -> i32 {
         Commands::LintAlignment { network, strict } => dev_gates::lint_alignment(network, strict),
         Commands::DocLint => dev_gates::doc_lint(),
         Commands::CrateCheck => dev_gates::crate_check(),
+        Commands::FuzzSubstrateCheck => dev_gates::fuzz_substrate_check(),
         Commands::RefreshTargetAxioms { target } => dev_project::refresh_target_axioms(&target),
         Commands::Mappings => dev_build::mappings(),
         Commands::Wikidata {

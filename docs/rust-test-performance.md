@@ -60,8 +60,12 @@ runaway termination remain hard failures.
 
 ## Paired acceptance protocol
 
-A repository-wide optimization claim uses paired production-path samples; a fast
-mechanism test is not closure evidence. Record five baseline and five candidate
+A numerical repository-wide speedup claim uses paired production-path samples;
+implementation acceptance does not require such a claim or historical comparison.
+Record conversion removal, fusion, incremental reuse and scheduling separately on
+the O3/full-LTO producer, including elapsed time, peak memory and intermediate bytes.
+Both independent cold CI generations and exact output agreement remain required.
+When publishing a numerical comparison, record five baseline and five candidate
 samples when the runner population is available, and never report a conclusion from
 fewer than three complete pairs. Each pair must use the same node class, command,
 required logical proof inventory, build profile, toolchain, dependency lock, and selected
@@ -109,9 +113,9 @@ are the complete focused invalidation matrix and run on both histories; they are
 substitutes for the end-to-end partial sample.
 
 Use the median critical path for the headline comparison and retain every raw sample.
-For issue-driven 2x work, acceptance means the candidate median is at most half the
-baseline median on the specified slow-node population, with the same deterministic
-work/inventory and all correctness evidence green. CPU, peak RSS, faults, filesystem
+Any timing acceptance target must be explicitly selected before measurement; there
+is no built-in speedup floor or regression ceiling. Preserve the deterministic
+work/inventory and require all correctness evidence to pass. CPU, peak RSS, faults, filesystem
 block I/O, cache transfer, and host load explain the result but are not silently
 substituted for critical-path time. An outlier may be excluded only for a recorded
 external event; exclude and replace both members of that pair.
@@ -158,10 +162,13 @@ classes; and verifies the declared semantic/inventory JSON pointers before compa
 time. Equality identities use `--semantic-identity`; proof inventories use
 `--proof-inventory` and permit additions while hard-failing a baseline member dropped by
 the candidate. Callers must name at least one causal-work counter rather than letting the
-tool guess which semantic row or output-size count should fall. The emitted JSON retains
-every pair and median. Acceptance requires the slow-node headline median to reach 2.0x,
-the comparison-node median to stay within 5%, no declared work counter to rise, and at
-least one to fall. This tool is intentionally not a `make check` prerequisite.
+tool guess which observations explain the result. The emitted schema-v2 JSON retains
+every pair, median and work-counter change. `--slow-speedup-target` and
+`--comparison-regression-limit-pct` apply only when supplied; omitted targets are
+recorded as null, and `timing_targets_declared` distinguishes evidence admission from
+a timing judgment. Work-counter changes remain observations. Semantic identity,
+proof inventory and sample authentication always fail closed. This tool is
+intentionally not a `make check` prerequisite.
 
 For hosted critical-path samples, `scripts/ci-run-receipt.sh` reads one completed,
 successful Actions run through the GitHub CLI. It binds the exact head/workflow digest,

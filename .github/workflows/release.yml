@@ -132,6 +132,7 @@ jobs:
         with:
           subject-path: |
             dist/gmeow.gts
+            dist/gmeow.gts.ingestion.cbor
             dist/bin/gmeow
 
       # ── npm distribution ──────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# cargo-fuzz harness for the RDF, shape, and logic format frontends. Deep,
+# cargo-fuzz harness for GMEOW logic, query, and Common Logic frontends. Deep,
 # coverage-guided fuzzing enforces the "reject malformed, never panic" contract
 # across the same public parser boundaries used by production.
 
@@ -22,45 +22,10 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-# Must stay byte-identical to the root [workspace.dependencies] pin (repo-static gate).
+# The requirement matches the root; both committed locks select identical PurRDF packages.
 purrdf = "2"
 gmeow-logic = { path = "../crates/logic" }
 gmeow-logic-compile = { path = "../crates/logic-compile" }
-
-[[bin]]
-name = "nquads"
-path = "fuzz_targets/nquads.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "gts"
-path = "fuzz_targets/gts.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "shacl"
-path = "fuzz_targets/shacl.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "sssom"
-path = "fuzz_targets/sssom.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "statements"
-path = "fuzz_targets/statements.rs"
-test = false
-doc = false
-bench = false
 
 [[bin]]
 name = "logic"

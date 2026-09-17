@@ -38,5 +38,21 @@ pub fn docs_measure() -> i32 {
         "design-c (embedded profile, analytical proxy): {} bytes",
         measurements.design_c_bytes
     );
+    for (index, receipt) in measurements.ingestion_receipts.iter().enumerate() {
+        println!("ingestion-receipt[{index}] (CBOR hex): {receipt:02x?}");
+    }
     0
+}
+
+/// Verify two independent documentation measurements on the admitted producer.
+pub fn docs_measure_verify() -> i32 {
+    match gmeow_pipeline::docs_measure::verify_docs_measurement_determinism(&project_root()) {
+        Ok(()) => {
+            println!("independent documentation measurements agree");
+            0
+        }
+        Err(error) => fail(format!(
+            "documentation measurement determinism failed: {error}"
+        )),
+    }
 }

@@ -1967,10 +1967,10 @@ ex:cqAttemptReferentsRowunknownOfAttempt a gmeow:ExpectedRow ;
 ex:cqLogicFailureClasses a gmeow:CompetencyQuestion ;
     gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT DISTINCT ?term WHERE { ?c gmeow:enforcesFailureClass ?term . FILTER(STRSTARTS(STR(?term), \"https://blackcatinformatics.ca/logic/\")) } ORDER BY ?term" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Every constraint in the slice declares the failure class it enforces, and this reads the seven classes back off those declarations rather than off a hand-kept list. That direction is the point: a class nobody enforces would silently drop out of this roster, and a constraint that enforced a class the slice never declared would silently add to it. Enactment integrity is the largest of the seven and covers the fencing, digest, licence and journal laws together, because they all fail the same way — a run whose record no longer describes what happened." ;
+    gmeow:cqRationale "Reads the exact set of typed failures from the constraints that enforce them. Removing enforcement drops a class; adding a different failure changes the roster. Contextual admission refusals and formula resource exhaustion are distinguished from semantic opposition and from incomplete closure." ;
     gmeow:cqResultShape ex:cqKernelRosterShape ;
     gmeow:cqExactRows true ;
-    gmeow:cqExpectRow ex:cqLogicFailureClassesRowEnactmentIntegrityViolation , ex:cqLogicFailureClassesRowIncompleteClosure , ex:cqLogicFailureClassesRowSectionObligationViolated , ex:cqLogicFailureClassesRowUncertifiedChase , ex:cqLogicFailureClassesRowUnentrenchedCounterfactual , ex:cqLogicFailureClassesRowUnwiredFlagshipScenario , ex:cqLogicFailureClassesRowUnwitnessedRefutation , ex:cqLogicFailureClassesRowBrokenToolRegistration , ex:cqLogicFailureClassesRowDevToolSurfaceFailure , ex:cqLogicFailureClassesRowDuplicateToolRegistration , ex:cqLogicFailureClassesRowUnadvertisedResourceRead , ex:cqLogicFailureClassesRowUnadvertisedToolInvocation , ex:cqLogicFailureClassesRowUnloadedEngineSegment .
+    gmeow:cqExpectRow ex:cqLogicFailureClassesRowEnactmentIntegrityViolation , ex:cqLogicFailureClassesRowIncompleteClosure , ex:cqLogicFailureClassesRowSectionObligationViolated , ex:cqLogicFailureClassesRowUncertifiedChase , ex:cqLogicFailureClassesRowUnentrenchedCounterfactual , ex:cqLogicFailureClassesRowUnwiredFlagshipScenario , ex:cqLogicFailureClassesRowUnwitnessedRefutation , ex:cqLogicFailureClassesRowBrokenToolRegistration , ex:cqLogicFailureClassesRowDevToolSurfaceFailure , ex:cqLogicFailureClassesRowDuplicateToolRegistration , ex:cqLogicFailureClassesRowUnadvertisedResourceRead , ex:cqLogicFailureClassesRowUnadvertisedToolInvocation , ex:cqLogicFailureClassesRowUnloadedEngineSegment , ex:cqLogicFailureClassesRowContextualFragmentRefusal , ex:cqLogicFailureClassesRowFormulaAdmissionExhaustion .
 
 ex:cqLogicFailureClassesRowBrokenToolRegistration a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:BrokenToolRegistration ] .
@@ -2369,10 +2369,10 @@ ex:cqLawObjectReferentsShape a logic:ResultShape ;
 ex:cqLawObjectReferents a gmeow:CompetencyQuestion ;
     gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?lawKind ?term WHERE { VALUES ?lawKind { logic:Constraint logic:Formula } ?term rdfs:range ?lawKind } ORDER BY ?lawKind ?term" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Laws are data in this slice, so relations can point AT them, and this roster is what that buys. Twenty-one relations reach a formula — the connectives and quantifiers that build one (including the two modal operators, whose bodies are formulae), plus the six that attach a finished formula to something that uses it: a constraint's integrity condition, an axis transition law's admitted relation, a method's applicability guard, a reasoning program's query, and a sequent's antecedent context and succedent. Exactly ONE relation reaches a constraint, and that asymmetry is the point: a formula is a reusable term, whereas a constraint is a named enforcement, so the only edge that needs to name one is the violation record saying which law it breached. A second such relation would let one violation blame two laws with no way to say which check actually failed." ;
+    gmeow:cqRationale "Reads every relation whose range is a formula or constraint. Formula references cover composition, enforcement, recovery, queries and sequent structure. queryFormula selects the question of a contextual evaluation without asserting it as an axiom. violatedLaw names the constraint whose enforcement failed. Exact rows expose a removed referent or an unintended new authoring surface." ;
     gmeow:cqResultShape ex:cqLawObjectReferentsShape ;
     gmeow:cqExactRows true ;
-    gmeow:cqExpectRow ex:cqLawObjectReferentsRowConstraintviolatedLaw , ex:cqLawObjectReferentsRowFormulaand , ex:cqLawObjectReferentsRowFormulaantecedent , ex:cqLawObjectReferentsRowFormulaclause , ex:cqLawObjectReferentsRowFormulacompletenessFormula , ex:cqLawObjectReferentsRowFormulaconsequent , ex:cqLawObjectReferentsRowFormulaexists , ex:cqLawObjectReferentsRowFormulaforall , ex:cqLawObjectReferentsRowFormulahasFormula , ex:cqLawObjectReferentsRowFormulaiff , ex:cqLawObjectReferentsRowFormulaintegrity , ex:cqLawObjectReferentsRowFormulalawAdmits , ex:cqLawObjectReferentsRowFormulamethodApplicability , ex:cqLawObjectReferentsRowFormulanecessarily , ex:cqLawObjectReferentsRowFormulanot , ex:cqLawObjectReferentsRowFormulaor , ex:cqLawObjectReferentsRowFormulapossibly , ex:cqLawObjectReferentsRowFormulaprogramQuery , ex:cqLawObjectReferentsRowFormularecoveryTransform , ex:cqLawObjectReferentsRowFormulasequentContext , ex:cqLawObjectReferentsRowFormulasequentSuccedent , ex:cqLawObjectReferentsRowFormulaverdictProbe  .
+    gmeow:cqExpectRow ex:cqLawObjectReferentsRowConstraintviolatedLaw , ex:cqLawObjectReferentsRowFormulaand , ex:cqLawObjectReferentsRowFormulaantecedent , ex:cqLawObjectReferentsRowFormulaclause , ex:cqLawObjectReferentsRowFormulacompletenessFormula , ex:cqLawObjectReferentsRowFormulaconsequent , ex:cqLawObjectReferentsRowFormulaexists , ex:cqLawObjectReferentsRowFormulaforall , ex:cqLawObjectReferentsRowFormulahasFormula , ex:cqLawObjectReferentsRowFormulaiff , ex:cqLawObjectReferentsRowFormulaintegrity , ex:cqLawObjectReferentsRowFormulalawAdmits , ex:cqLawObjectReferentsRowFormulamethodApplicability , ex:cqLawObjectReferentsRowFormulanecessarily , ex:cqLawObjectReferentsRowFormulanot , ex:cqLawObjectReferentsRowFormulaor , ex:cqLawObjectReferentsRowFormulapossibly , ex:cqLawObjectReferentsRowFormulaprogramQuery , ex:cqLawObjectReferentsRowFormularecoveryTransform , ex:cqLawObjectReferentsRowFormulasequentContext , ex:cqLawObjectReferentsRowFormulasequentSuccedent , ex:cqLawObjectReferentsRowFormulaverdictProbe , ex:cqLawObjectReferentsRowFormulaqueryFormula .
 
 ex:cqLawObjectReferentsRowFormulanecessarily a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
@@ -2471,3 +2471,192 @@ ex:cqRetainedBoundariesRowNonBinaryChain a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:non-binary-property-chain ] .
 ex:cqRetainedBoundariesRowXsdPattern a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:xsd-pattern-facet ] .
+
+ex:cqLogicFailureClassesRowContextualFragmentRefusal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContextualFragmentRefusal ] .
+
+ex:cqLogicFailureClassesRowFormulaAdmissionExhaustion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FormulaAdmissionExhaustion ] .
+
+ex:cqLawObjectReferentsRowFormulaqueryFormula a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lawKind" ; gmeow:cellValueIri logic:Formula ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:queryFormula ] .
+
+# The selected context vocabulary has distinct schema and attribution roles.
+ex:cqContextVocabularyRoles a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT DISTINCT ?term WHERE {
+    VALUES (?term ?role) {
+        (<https://blackcatinformatics.ca/gmeow/graph/examples> gmeow:boxABox)
+        (logic:AttributedContext gmeow:boxTBox)
+        (logic:BoundedFormulaSourceFragment gmeow:boxTBox)
+        (logic:ContextJournalPositionConstraint gmeow:boxCBox)
+        (logic:ContextPositionJournalConstraint gmeow:boxCBox)
+        (logic:ContextSuccessorSet gmeow:boxTBox)
+        (logic:ContextualEvaluationRequest gmeow:boxTBox)
+        (logic:ContextualFragmentRefusal gmeow:boxTBox)
+        (logic:ContextualJudgment gmeow:boxTBox)
+        (logic:FiniteAttributedModalFragment gmeow:boxTBox)
+        (logic:FormulaAdmissionExhaustion gmeow:boxTBox)
+        (logic:ModalInference gmeow:boxTBox)
+        (logic:NormScope gmeow:boxTBox)
+        (logic:ProtocolScope gmeow:boxTBox)
+        (logic:contextEnactment gmeow:boxCBox)
+        (logic:contextJournal gmeow:boxCBox)
+        (logic:contextNormScope gmeow:boxCBox)
+        (logic:contextPosition gmeow:boxCBox)
+        (logic:contextProtocolScope gmeow:boxCBox)
+        (logic:contextStandpoint gmeow:boxCBox)
+        (logic:contextWorld gmeow:boxCBox)
+        (logic:contextualResult gmeow:boxCBox)
+        (logic:evidenceClosure gmeow:boxCBox)
+        (logic:inContext gmeow:boxCBox)
+        (logic:inferenceContext gmeow:boxCBox)
+        (logic:judgmentContext gmeow:boxCBox)
+        (logic:judgmentContextHash gmeow:boxCBox)
+        (logic:judgmentFormulaKey gmeow:boxCBox)
+        (logic:judgmentInstruction gmeow:boxCBox)
+        (logic:normBearer gmeow:boxCBox)
+        (logic:normIssuer gmeow:boxCBox)
+        (logic:normPolicy gmeow:boxCBox)
+        (logic:protocolIdentity gmeow:boxCBox)
+        (logic:protocolRole gmeow:boxCBox)
+        (logic:queryContext gmeow:boxCBox)
+        (logic:queryFormula gmeow:boxCBox)
+        (logic:resultAttributedContext gmeow:boxCBox)
+        (logic:successorAxis gmeow:boxCBox)
+        (logic:successorClosure gmeow:boxCBox)
+        (logic:successorContext gmeow:boxCBox)
+        (logic:successorMember gmeow:boxCBox)
+    }
+    ?term gmeow:graphBoxRole ?role .
+} ORDER BY ?term""" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Context assessment separates its schema from the coordinates and proof metadata that identify one attributed judgment. These graph-layer roles let a consumer distinguish a vocabulary declaration, a selected standpoint, and the example world without inferring truth or authorization from any of them. Pinning the complete selected interface makes a missing declaration or a changed role visible; the role assignment itself neither proves a formula nor permits an external effect." ;
+    gmeow:cqResultShape ex:cqKernelRosterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqContextVocabularyRole00, ex:cqContextVocabularyRole01, ex:cqContextVocabularyRole02, ex:cqContextVocabularyRole03, ex:cqContextVocabularyRole04, ex:cqContextVocabularyRole05, ex:cqContextVocabularyRole06, ex:cqContextVocabularyRole07, ex:cqContextVocabularyRole08, ex:cqContextVocabularyRole09, ex:cqContextVocabularyRole10, ex:cqContextVocabularyRole11, ex:cqContextVocabularyRole12, ex:cqContextVocabularyRole13, ex:cqContextVocabularyRole14, ex:cqContextVocabularyRole15, ex:cqContextVocabularyRole16, ex:cqContextVocabularyRole17, ex:cqContextVocabularyRole18, ex:cqContextVocabularyRole19, ex:cqContextVocabularyRole20, ex:cqContextVocabularyRole21, ex:cqContextVocabularyRole22, ex:cqContextVocabularyRole23, ex:cqContextVocabularyRole24, ex:cqContextVocabularyRole25, ex:cqContextVocabularyRole26, ex:cqContextVocabularyRole27, ex:cqContextVocabularyRole28, ex:cqContextVocabularyRole29, ex:cqContextVocabularyRole30, ex:cqContextVocabularyRole31, ex:cqContextVocabularyRole32, ex:cqContextVocabularyRole33, ex:cqContextVocabularyRole34, ex:cqContextVocabularyRole35, ex:cqContextVocabularyRole36, ex:cqContextVocabularyRole37, ex:cqContextVocabularyRole38, ex:cqContextVocabularyRole39, ex:cqContextVocabularyRole40 .
+
+ex:cqContextVocabularyRole00 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/graph/examples> ] .
+
+ex:cqContextVocabularyRole01 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:AttributedContext ] .
+
+ex:cqContextVocabularyRole02 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:BoundedFormulaSourceFragment ] .
+
+ex:cqContextVocabularyRole03 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContextJournalPositionConstraint ] .
+
+ex:cqContextVocabularyRole04 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContextPositionJournalConstraint ] .
+
+ex:cqContextVocabularyRole05 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContextSuccessorSet ] .
+
+ex:cqContextVocabularyRole06 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContextualEvaluationRequest ] .
+
+ex:cqContextVocabularyRole07 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContextualFragmentRefusal ] .
+
+ex:cqContextVocabularyRole08 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ContextualJudgment ] .
+
+ex:cqContextVocabularyRole09 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FiniteAttributedModalFragment ] .
+
+ex:cqContextVocabularyRole10 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FormulaAdmissionExhaustion ] .
+
+ex:cqContextVocabularyRole11 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ModalInference ] .
+
+ex:cqContextVocabularyRole12 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:NormScope ] .
+
+ex:cqContextVocabularyRole13 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:ProtocolScope ] .
+
+ex:cqContextVocabularyRole14 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextEnactment ] .
+
+ex:cqContextVocabularyRole15 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextJournal ] .
+
+ex:cqContextVocabularyRole16 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextNormScope ] .
+
+ex:cqContextVocabularyRole17 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextPosition ] .
+
+ex:cqContextVocabularyRole18 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextProtocolScope ] .
+
+ex:cqContextVocabularyRole19 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextStandpoint ] .
+
+ex:cqContextVocabularyRole20 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextWorld ] .
+
+ex:cqContextVocabularyRole21 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:contextualResult ] .
+
+ex:cqContextVocabularyRole22 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:evidenceClosure ] .
+
+ex:cqContextVocabularyRole23 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:inContext ] .
+
+ex:cqContextVocabularyRole24 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:inferenceContext ] .
+
+ex:cqContextVocabularyRole25 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:judgmentContext ] .
+
+ex:cqContextVocabularyRole26 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:judgmentContextHash ] .
+
+ex:cqContextVocabularyRole27 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:judgmentFormulaKey ] .
+
+ex:cqContextVocabularyRole28 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:judgmentInstruction ] .
+
+ex:cqContextVocabularyRole29 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:normBearer ] .
+
+ex:cqContextVocabularyRole30 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:normIssuer ] .
+
+ex:cqContextVocabularyRole31 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:normPolicy ] .
+
+ex:cqContextVocabularyRole32 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:protocolIdentity ] .
+
+ex:cqContextVocabularyRole33 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:protocolRole ] .
+
+ex:cqContextVocabularyRole34 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:queryContext ] .
+
+ex:cqContextVocabularyRole35 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:queryFormula ] .
+
+ex:cqContextVocabularyRole36 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:resultAttributedContext ] .
+
+ex:cqContextVocabularyRole37 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:successorAxis ] .
+
+ex:cqContextVocabularyRole38 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:successorClosure ] .
+
+ex:cqContextVocabularyRole39 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:successorContext ] .
+
+ex:cqContextVocabularyRole40 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:successorMember ] .

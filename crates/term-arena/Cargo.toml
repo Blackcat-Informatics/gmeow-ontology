@@ -20,7 +20,7 @@ path = "src/lib.rs"
 [dependencies]
 # purrdf: the RDF 1.2 term value space. An interned leaf IS a `TermValue` (an IRI or a
 # literal with its datatype/language intact), so the arena's atom dictionary is keyed on
-# the canonical `TermValue` display surface. This is the SAME wasm-clean umbrella
+# exact native `TermValue` identity. This is the SAME wasm-clean umbrella
 # `gmeow-logic-compile` pins (oxigraph OFF, python OFF), so the arena stays reasoner-free
 # and wasm-buildable — it is an RDF value-space dependency, never a reasoning one.
 purrdf.workspace = true

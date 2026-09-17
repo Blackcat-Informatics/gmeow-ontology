@@ -40,6 +40,32 @@ fn dl_term(value: &str, is_literal: bool) -> String {
     }
 }
 
+fn datalog_literal_supported(term: &crate::ir::AtomicTerm) -> bool {
+    term.as_literal().is_none_or(|literal| {
+        literal.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string"
+            && literal.language.is_none()
+            && literal.direction.is_none()
+    })
+}
+
+fn dl_atomic(term: &crate::ir::AtomicTerm) -> String {
+    match term {
+        crate::ir::AtomicTerm::Var(value) => value.clone(),
+        crate::ir::AtomicTerm::Iri(value) | crate::ir::AtomicTerm::Blank(value) => {
+            format!("\"{value}\"")
+        }
+        crate::ir::AtomicTerm::Literal(value) => python_repr(&value.lexical_form),
+    }
+}
+
+fn n3_atomic(term: &crate::ir::AtomicTerm) -> String {
+    if let Some(variable) = term.as_variable() {
+        variable.to_owned()
+    } else {
+        purrdf::turtle::emit_term(&term.rdf_term().expect("native RDF value"))
+    }
+}
+
 /// The context string for a ground axiom fact (modality value or `"default"`).
 fn ctx_str(axiom: &super::super::ir::LogicAxiom) -> String {
     if is_modal_or_scoped(axiom) && axiom.scope.modality != LogicModality::None {
@@ -56,15 +82,15 @@ fn fresh_world_var(rule: &LogicRule, base: &str) -> String {
     if rule.head.subject.starts_with('?') {
         rule_vars.insert(&rule.head.subject);
     }
-    if rule.head.obj.starts_with('?') {
-        rule_vars.insert(&rule.head.obj);
+    if let Some(var) = rule.head.obj.as_variable() {
+        rule_vars.insert(var);
     }
     for ba in &rule.body {
         if ba.subject.starts_with('?') {
             rule_vars.insert(&ba.subject);
         }
-        if ba.obj.starts_with('?') {
-            rule_vars.insert(&ba.obj);
+        if let Some(var) = ba.obj.as_variable() {
+            rule_vars.insert(var);
         }
     }
     let mut world = base.to_owned();
@@ -92,13 +118,17 @@ pub fn project_datalog(
         String::new(),
         "% === Ground facts (axioms) ===".to_owned(),
     ];
-    for axiom in &program.axioms {
+    for axiom in program
+        .axioms
+        .iter()
+        .filter(|axiom| datalog_literal_supported(&axiom.obj))
+    {
         let pred = if axiom.predicate == RDF_TYPE {
             "type".to_owned()
         } else {
             datalog_local(&axiom.predicate)
         };
-        let obj = dl_term(&axiom.obj, axiom.obj_is_literal);
+        let obj = dl_atomic(&axiom.obj);
         let subj = dl_term(&axiom.subject, false);
         lines.push(format!("{pred}({subj}, {obj}, \"{}\").", ctx_str(axiom)));
     }
@@ -106,6 +136,12 @@ pub fn project_datalog(
     lines.push(String::new());
     lines.push("% === Rules ===".to_owned());
     for rule in &program.rules {
+        if std::iter::once(&rule.head)
+            .chain(&rule.body)
+            .any(|atom| !datalog_literal_supported(&atom.obj))
+        {
+            continue;
+        }
         // Aggregation (reduce) rules are outside the Datalog fragment emitted here; they are
         // ledgered (see actual_drops) and projected to the SHACL-AF reduce surface, not
         // mis-emitted as a plain Horn rule.
@@ -119,7 +155,7 @@ pub fn project_datalog(
             datalog_local(&head.predicate)
         };
         let head_subj = dl_term(&head.subject, false);
-        let head_obj = dl_term(&head.obj, head.obj_is_literal);
+        let head_obj = dl_atomic(&head.obj);
         let world = fresh_world_var(rule, "?C");
 
         let mut body_parts: Vec<String> = Vec::new();
@@ -130,7 +166,7 @@ pub fn project_datalog(
                 datalog_local(&ba.predicate)
             };
             let bs = dl_term(&ba.subject, false);
-            let bo = dl_term(&ba.obj, ba.obj_is_literal);
+            let bo = dl_atomic(&ba.obj);
             let prefix = if ba.negated { "not " } else { "" };
             body_parts.push(format!("{prefix}{bp}({bs}, {bo}, {world})"));
         }
@@ -153,6 +189,13 @@ pub fn project_datalog(
             .into_iter()
             .map(|n| (n, None))
             .collect();
+    actual_drops.extend(program.axioms.iter().chain(program.rules.iter().flat_map(|rule| std::iter::once(&rule.head).chain(&rule.body))).filter_map(|axiom| {
+        let literal = axiom.obj.as_literal()?;
+        (literal.datatype_iri() != "http://www.w3.org/2001/XMLSchema#string" || literal.language.is_some() || literal.direction.is_some()).then(|| (
+            format!("Datalog omits the entire axiom or rule because it cannot express the datatype/language/direction of literal {}", axiom.obj.key()),
+            axiom.scope.provenance.clone(),
+        ))
+    }));
     actual_drops.extend(aggregation_drop_notes(program, "Datalog"));
     loss.record_projection_drops_attributed("datalog", kind, &structural, &actual_drops);
     ProjectionResult {
@@ -206,12 +249,7 @@ pub fn project_n3(
         } else {
             format!("<{}>", axiom.predicate)
         };
-        let obj_n3 = if axiom.obj_is_literal {
-            python_repr(&axiom.obj)
-        } else {
-            format!("<{}>", axiom.obj)
-        };
-
+        let obj_n3 = n3_atomic(&axiom.obj);
         if is_modal_or_scoped(axiom) {
             let modal = axiom.scope.modality.as_str();
             lines.push(format!("# modal context: {modal}"));
@@ -238,7 +276,7 @@ pub fn project_n3(
         } else {
             format!("<{}>", head.predicate)
         };
-        let head_obj = n3_term(&head.obj, head.obj_is_literal);
+        let head_obj = n3_atomic(&head.obj);
 
         let mut body_parts: Vec<String> = Vec::new();
         let mut dropped_naf: Vec<String> = Vec::new();
@@ -249,7 +287,7 @@ pub fn project_n3(
             } else {
                 format!("<{}>", b.predicate)
             };
-            let bo = n3_term(&b.obj, b.obj_is_literal);
+            let bo = n3_atomic(&b.obj);
             if b.negated {
                 // Monotone log:implies has no negation-as-failure. Emitting the
                 // negated literal as a positive antecedent would invert the rule

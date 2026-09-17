@@ -385,8 +385,8 @@ pub(crate) fn ledger_from_audit(
     let (corrs, legs, cells, unsupported_by_vocab) =
         correspondences_from_audit(audit, direct_q, inverse_q);
 
-    let program = CorrespondenceProgram::new(corrs, Vec::new(), PreservationKind::SoundUnder)
-        .with_leg_programs(legs);
+    let program =
+        CorrespondenceProgram::new(corrs, PreservationKind::SoundUnder).with_leg_programs(legs);
     // No-op for supplied-put (proved-candidate) cells; the claimed/asserted cells carry no get
     // leg, so nothing is fabricated. `evaluate_gates` (NOT `assert_gates`) records REDs.
     let (gated, _outcomes) = program.with_derived_puts().map_err(|e| {
@@ -933,12 +933,8 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> gmeow_errors::Result<Tier> {
             message: format!("gate-verified lift correspondence for {term} is malformed: {e}"),
         })
     })?;
-    let program = CorrespondenceProgram::new(
-        vec![correspondence],
-        Vec::new(),
-        PreservationKind::SoundUnder,
-    )
-    .with_leg_programs(legs);
+    let program = CorrespondenceProgram::new(vec![correspondence], PreservationKind::SoundUnder)
+        .with_leg_programs(legs);
     let (gated, _outcomes) = program.with_derived_puts().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::UpProjection {
             message: e.to_string(),

@@ -3,7 +3,8 @@
 
 //! Production-surface acceptance harness for the reasoner-derived enactment-kernel gate.
 //!
-//! These tests drive the **production `verify()` entrypoint** — the same one
+//! Authored source contracts are recorded by the explicit pipeline producer.
+//! These remaining synthetic scenes drive the **production verification entrypoint** — the same one
 //! `make reason-verify` invokes — with real input datasets, never a hand-assembled EDB and
 //! never `enactment_gate_markers` directly. That distinction is the entire reason this file
 //! exists: the gate it covers previously compiled no laws and returned an unconditionally
@@ -13,7 +14,7 @@
 //!
 //! The shape of the coverage:
 //!
-//! * **Red**, from the SHIPPED counter-example fixtures — the same
+//! * **Red**, retained by the producer observation consumers for the same
 //!   `tests/counter-examples/*.ttl` the slice's own conformance corpus names as the fail
 //!   witnesses for these laws. Driving the shipped artifact rather than an inline string is
 //!   what keeps the fixture and the gate from drifting apart: if a fixture stops violating
@@ -28,7 +29,8 @@
 //!   guard must not mistake one for the other.
 
 use gmeow_errors::Severity;
-use gmeow_logic::verify::{embedded_verify_queries, verify};
+#[path = "common/prepared_verify.rs"]
+mod prepared_verify;
 use std::sync::Arc;
 
 use purrdf::RdfDataset;
@@ -39,95 +41,12 @@ const VIOLATION_CODE: &str = "verify.enactment-integrity-violation";
 
 // ── Shipped counter-example fixtures (the slice's own named fail witnesses) ───────────
 
-/// N4 — a `logic:ExternalEffectReceipt` naming no attempt.
-/// Trips `logic:ReceiptRequiresAttemptConstraint`.
-const RECEIPT_WITHOUT_ATTEMPT: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/receipt-without-attempt.ttl"
-);
-
-/// N5 — a `logic:ExternalOutcomeUnknown` naming no attempt.
-/// Trips `logic:UnknownOutcomeNamesItsAttemptConstraint`.
-const UNKNOWN_OUTCOME_WITHOUT_ATTEMPT: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/unknown-outcome-without-attempt.ttl"
-);
-
-/// N6a — a `logic:CompensationAttempt` typed as the receipt it counteracts.
-/// Trips `logic:CompensationNotInverseConstraint` — the PROHIBITION shape, whose violation
-/// rule is a purely positive body, unlike the negation-as-failure obligations above.
-const COMPENSATION_TYPED_AS_ITS_RECEIPT: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/compensation-typed-as-its-forward-receipt.ttl"
-);
-
-/// N9 — a `logic:ActionableFrontier` claiming closure with no saturation witness.
-/// Trips `logic:FrontierCarriesSaturationWitnessConstraint`.
-const FRONTIER_WITHOUT_SATURATION_WITNESS: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/frontier-closed-without-saturation-witness.ttl"
-);
-
-/// A `logic:ActionableFrontier` citing a witness that carries no settled predicate and no
-/// budget. Trips `logic:FrontierClosureRequiresSaturationConstraint` — the presence sibling
-/// passes, which is exactly why counting the witness was never enough.
-const FRONTIER_WITH_CONTENT_FREE_WITNESS: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/frontier-cites-a-content-free-witness.ttl"
-);
-
-/// A `logic:PinnedExecutableSubgraph` freezing a sequence its named method never yielded.
-/// Trips `logic:PinStepsMatchInstantiatedMethodConstraint`.
-const PIN_MISMATCHED_WITH_ITS_METHOD: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/pin-freezes-steps-its-method-never-yielded.ttl"
-);
-
 // ── The RELATIONAL counter-example fixtures ──────────────────────────────────────────
 //
 // Each of the six below is the MISMATCH or SUBSTITUTION twin of an absence fixture above.
 // Every record in them individually satisfies every presence law the kernel authors, so a
 // red here can only have come from the relational body, and its absence sibling — which
 // shares the record kind — can only reach the presence law.
-
-/// A `logic:CheckpointRestore` whose fold disagrees with the checkpoint it restores.
-/// Trips `logic:CheckpointRestoreIdentityConstraint`, which the absence sibling cannot
-/// reach because its guard needs both folds bound.
-const CHECKPOINT_RESTORED_UNDER_A_DRIFTED_FOLD: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/checkpoint-restored-under-a-drifted-fold.ttl"
-);
-
-/// An undetermined outcome retried under the idempotency contract of a NEIGHBOURING
-/// attempt. Trips `logic:NoBlindRetryConstraint` — the law the absence sibling's cell used
-/// to name while tripping `logic:UnknownOutcomeNamesItsAttemptConstraint`.
-const UNKNOWN_OUTCOME_RETRIED_ON_A_BORROWED_LICENCE: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/unknown-outcome-retried-on-a-borrowed-licence.ttl"
-);
-
-/// A content-addressed `logic:PrescriptionVersion` whose address no longer matches what a
-/// running enactment froze. Trips `logic:PrescriptionVersionImmutabilityConstraint`.
-const PRESCRIPTION_VERSION_REVISED_IN_PLACE: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/prescription-version-revised-under-a-running-enactment.ttl"
-);
-
-/// A frontier whose witness records `logic:BudgetExhausted` — the roster cut by a budget and
-/// presented as closed. Trips `logic:FrontierClosureRequiresSaturationConstraint`.
-const FRONTIER_CLOSED_ON_A_BUDGET_CUT: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/frontier-closed-on-a-budget-cut-witness.ttl"
-);
-
-/// An OCR gap whose only proposal answers a different step, with the weaker parser recorded
-/// as dispatched at the blocked one. Trips `logic:OperationalGapCarriesProposalConstraint`.
-const OCR_GAP_REMEDIED_FOR_A_DIFFERENT_STEP: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/ocr-gap-remedied-for-a-different-step.ttl"
-);
-
-/// A `logic:Advisory` retyped as a `logic:AuthorizationProof` and pointed at an intent.
-/// Trips `logic:AdvisoryNeverAuthorityConstraint` through its PROOF leg — no pin is involved.
-const ADVISORY_LAUNDERED_INTO_A_PROOF: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/advisory-laundered-into-an-authorization-proof.ttl"
-);
-
-/// A continuing maintenance goal whose evaluation is BOTH `logic:Satisfied` and
-/// `logic:GoalEvaluationCompleted` — one good week presented as the permanent closure of a
-/// standing commitment. Trips `logic:MaintenanceGoalNeverConclusivelySatisfiedConstraint`.
-const MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/maintenance-goal-closed-by-one-good-week.ttl"
-);
 
 fn parse(ttl: &str) -> Arc<RdfDataset> {
     purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("fixture is valid Turtle")
@@ -137,7 +56,21 @@ fn parse(ttl: &str) -> Arc<RdfDataset> {
 /// query set.
 fn run_verify(ttl: &str) -> gmeow_errors::model::Report {
     let ds = parse(ttl);
-    verify(ds.as_ref(), &embedded_verify_queries()).expect("verify() must not error on the fixture")
+    let input =
+        gmeow_logic::reason::prepare_reasoning_input(ds.as_ref()).expect("synthetic gate input");
+    let domains = gmeow_logic::reason::SelectedDomains::new([
+        gmeow_logic::reason::SelectedLogicalWorld::new(
+            gmeow_logic::reason::LogicalGraph::Default,
+            gmeow_logic::reason::DomainProfile::NonemptyObjectDomainV1,
+            "urn:test:enactment_gate:default-theory".to_owned(),
+            *input.ingress_contract(),
+        )
+        .expect("explicit default theory"),
+    ])
+    .expect("one selected theory");
+    prepared_verify::verification(&gmeow_logic::verify::embedded_verify_queries())
+        .verify(ds.as_ref(), &domains)
+        .expect("verify() must not error on the fixture")
 }
 
 fn violation_findings(report: &gmeow_errors::model::Report) -> Vec<&gmeow_errors::model::Finding> {
@@ -244,13 +177,6 @@ fn assert_clean(report: &gmeow_errors::model::Report, why: &str) {
 
 // ── The obligation shape: a missing mandatory binding, decided by existential NAF ──────
 
-/// A shipped counter-example that breaks an authored kernel law produces a real finding.
-#[test]
-fn a_receipt_with_no_attempt_fires_on_verify() {
-    let report = run_verify(RECEIPT_WITHOUT_ATTEMPT);
-    assert_condemns(&report, "receiptNoAttempt");
-}
-
 /// The green half: the SAME record with the missing binding supplied passes.
 ///
 /// Only this makes the red case above informative. A gate that fired on every
@@ -273,31 +199,7 @@ ex:attempt1 a logic:EffectAttempt .
     );
 }
 
-/// A second obligation law, over a different record kind, so the coverage is not one law
-/// wearing the costume of a corpus.
-#[test]
-fn an_unknown_outcome_with_no_attempt_fires_on_verify() {
-    let report = run_verify(UNKNOWN_OUTCOME_WITHOUT_ATTEMPT);
-    assert_condemns(&report, "unknownNoAttempt");
-}
-
-/// The frontier-saturation law, whose violation is the headline enactment record claiming
-/// a closedness it cannot witness.
-#[test]
-fn a_frontier_claiming_closure_without_a_witness_fires_on_verify() {
-    let report = run_verify(FRONTIER_WITHOUT_SATURATION_WITNESS);
-    assert_condemns(&report, "frontierNoWitness");
-}
-
 // ── The prohibition shape: a forbidden co-occurrence, decided positively ──────────────
-
-/// A prohibition law fires: the violation rule's body is the forbidden pattern itself,
-/// carrying no NAF literal at all, so this exercises the other half of the lowering.
-#[test]
-fn a_compensation_typed_as_its_own_forward_receipt_fires_on_verify() {
-    let report = run_verify(COMPENSATION_TYPED_AS_ITS_RECEIPT);
-    assert_condemns(&report, "compensationAsInverse");
-}
 
 /// The prohibition's green half: a compensation that is NOT typed as a receipt, and that
 /// binds the forward receipt it addresses, passes.
@@ -994,20 +896,6 @@ ex:saturation1 a logic:SaturationWitness ;
     );
 }
 
-/// The SHIPPED content-free-witness counter-example fires through the real entrypoint.
-///
-/// Driving the artifact rather than an inline string is what keeps the slice's own named
-/// fail witness and the gate from drifting apart.
-#[test]
-fn the_shipped_content_free_witness_fixture_fires_on_verify() {
-    let report = run_verify(FRONTIER_WITH_CONTENT_FREE_WITNESS);
-    assert_condemns_under(
-        &report,
-        "frontierEmptyWitness",
-        "FrontierClosureRequiresSaturationConstraint",
-    );
-}
-
 #[test]
 fn a_frontier_whose_witness_ran_to_completion_passes_on_verify() {
     let report = run_verify(&scene(&format!(
@@ -1041,26 +929,6 @@ ex:labelOnlyPin a logic:PinnedExecutableSubgraph .
         &report,
         "labelOnlyPin",
         "PinnedSubgraphCompletenessConstraint",
-    );
-}
-
-/// The SHIPPED mismatch counter-example: the pin freezes steps its method never yielded.
-///
-/// Every record in that fixture is individually well-formed — the completeness law cannot
-/// fire on it — so a green here proves the RELATIONAL body ran rather than its presence
-/// sibling picking up the slack.
-#[test]
-fn a_pin_freezing_steps_its_method_never_yielded_fires_on_verify() {
-    let report = run_verify(PIN_MISMATCHED_WITH_ITS_METHOD);
-    assert_condemns_under(
-        &report,
-        "pinMismatchedWithMethod",
-        "PinStepsMatchInstantiatedMethodConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "PinnedSubgraphCompletenessConstraint",
-        "the fixture's pin binds all three mandatory fields, so only the relation is wrong",
     );
 }
 
@@ -1262,29 +1130,6 @@ ex:lease-7 a logic:ResourceLease .
 // LAW NAME, because every one of these six record kinds is governed by a presence sibling
 // that would otherwise pick up the slack invisibly.
 
-/// N1 — the restore whose folded identity disagrees with its checkpoint's.
-#[test]
-fn a_restore_against_a_drifted_fold_fires_on_verify() {
-    let report = run_verify(CHECKPOINT_RESTORED_UNDER_A_DRIFTED_FOLD);
-    assert_condemns_under(
-        &report,
-        "resumeWeek13",
-        "CheckpointRestoreIdentityConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "CheckpointCarriesFoldedIdentityConstraint",
-        "the fixture's checkpoint carries its fold, so the presence sibling must stay \
-         silent — otherwise this is the absence fixture wearing a mismatch's clothes",
-    );
-    assert_law_silent(
-        &report,
-        "RestoreStaysWithinItsEnactmentConstraint",
-        "the restore resumes the very run its checkpoint was taken from, so the second \
-         identity axis holds and only the fold axis is wrong",
-    );
-}
-
 #[test]
 fn a_restore_whose_fold_agrees_with_its_checkpoint_passes_on_verify() {
     let report = run_verify(&scene(
@@ -1302,31 +1147,6 @@ ex:ckptWeek13 a logic:EnactmentCheckpoint ;
         &report,
         "the same scene with the restoring engine's fold equal to the checkpoint's is the \
          identity gate PASSING, and the kernel must raise nothing at all on it",
-    );
-}
-
-/// N5 — the undetermined outcome retried under a neighbouring attempt's licence.
-#[test]
-fn an_unknown_outcome_retried_on_a_borrowed_licence_fires_on_verify() {
-    let report = run_verify(UNKNOWN_OUTCOME_RETRIED_ON_A_BORROWED_LICENCE);
-    assert_condemns_under(&report, "invoice901Retry", "NoBlindRetryConstraint");
-    assert_law_silent(
-        &report,
-        "RetryRequiresLicenceConstraint",
-        "the retry names a licence, so the presence sibling passes and only the coverage \
-         relation is wrong",
-    );
-    assert_law_silent(
-        &report,
-        "UnknownOutcomeNamesItsAttemptConstraint",
-        "the unknown outcome names its attempt; the defect is the retry, not the record of \
-         the undetermined position",
-    );
-    assert_law_silent(
-        &report,
-        "IdempotencyContractCompletenessConstraint",
-        "the borrowed contract binds all five of its fields — a real licence for a real \
-         attempt, which is exactly what makes borrowing it undetectable by a field check",
     );
 }
 
@@ -1356,29 +1176,6 @@ ex:invoice901Idempotency a logic:IdempotencyContract ;
     );
 }
 
-/// N3 — the landed version whose bytes were edited under a running occurrence.
-#[test]
-fn a_version_revised_in_place_fires_on_verify() {
-    let report = run_verify(PRESCRIPTION_VERSION_REVISED_IN_PLACE);
-    assert_condemns_under(
-        &report,
-        "adrReviewPrescriptionV4",
-        "PrescriptionVersionImmutabilityConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "PrescriptionVersionIsContentAddressedConstraint",
-        "the version IS content-addressed — that is the precondition of the check, and the \
-         absence sibling is the fixture that trips this one",
-    );
-    assert_law_silent(
-        &report,
-        "EnactmentPinsPrescriptionAndSnapshotConstraint",
-        "the enactment pins both its version and its input generation, so the run is \
-         reproducible and only the version underneath it moved",
-    );
-}
-
 #[test]
 fn a_version_whose_address_still_matches_what_its_run_froze_passes_on_verify() {
     let report = run_verify(&scene(
@@ -1398,23 +1195,6 @@ ex:adrReviewWeek13 a logic:Enactment ;
     );
 }
 
-/// N9 — the roster cut by a budget and presented as closed.
-#[test]
-fn a_frontier_closed_on_a_budget_cut_witness_fires_on_verify() {
-    let report = run_verify(FRONTIER_CLOSED_ON_A_BUDGET_CUT);
-    assert_condemns_under(
-        &report,
-        "frontierCutForBudget",
-        "FrontierClosureRequiresSaturationConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "FrontierCarriesSaturationWitnessConstraint",
-        "the frontier CITES a witness, so the counting sibling passes — which is the whole \
-         reason reading the witness had to become a separate law",
-    );
-}
-
 #[test]
 fn a_frontier_whose_witness_reached_a_fixed_point_passes_on_verify() {
     let report = run_verify(&scene(
@@ -1431,47 +1211,6 @@ ex:truncatedSaturation a logic:SaturationWitness ;
         &report,
         "the same roster whose witness ran to completion rather than to its bound certifies \
          the fixed point the frontier claims, and raises nothing",
-    );
-}
-
-/// The silent substitution — the OCR gap whose only proposal answers another step.
-#[test]
-fn an_ocr_gap_remedied_for_another_step_fires_on_verify() {
-    let report = run_verify(OCR_GAP_REMEDIED_FOR_A_DIFFERENT_STEP);
-    assert_condemns_under(
-        &report,
-        "noOcrProvider",
-        "OperationalGapCarriesProposalConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "OperationalGapNamesBlockedStepConstraint",
-        "the gap names the step it blocks, so the presence sibling passes and the failure is \
-         purely the join between the gap and the remedy",
-    );
-    assert_law_silent(
-        &report,
-        "CapabilityGapProposalCompletenessConstraint",
-        "the proposal in the scene binds all eight fields — it is a real remedy for a real \
-         blockage, just not for THIS one",
-    );
-    assert_law_silent(
-        &report,
-        "DispatchIntentCompletenessConstraint",
-        "the intent that dispatched the weaker parser binds all nine fields, so the \
-         substitution leaves a complete, well-formed record behind it — which is exactly why \
-         a field check cannot see it",
-    );
-    // The SUBSTITUTION itself, condemned at the record that carries it. Every assertion
-    // above condemns the GAP: between them they say the blockage was reported badly, and
-    // none of them says anything about the dispatch that went ahead against a plain-text
-    // extractor. Asserting this law BY NAME on the INTENT is what makes the difference
-    // legible — the gap's own laws stay green on a scene where the gap arrives with its
-    // remedy and the dispatch happens anyway.
-    assert_condemns_under(
-        &report,
-        "ocrStepIntent",
-        "NoDispatchAgainstAnUnremediedGapConstraint",
     );
 }
 
@@ -1528,74 +1267,6 @@ ex:ocrStepIntent a logic:DispatchIntent ;
 
 // ── The continuing goal a successful occurrence may not close ─────────────────────────
 
-/// The SHIPPED counter-example: one good week presented as the closure of a standing goal.
-///
-/// The pair `(logic:Satisfied, logic:GoalEvaluationCompleted)` is exactly what generates a
-/// conclusive `gmeow:satisfiedBy` edge, so a maintenance goal that reaches it is retired —
-/// and the recurrence then issues occurrences against a commitment the record says ended.
-/// Every record in the fixture is individually well-formed: all four factored axes bound,
-/// the criterion and time present, the goal carrying a well-formed condition. Only the
-/// JOIN between the condition's kind and the evaluation's conclusiveness is wrong.
-#[test]
-fn a_maintenance_goal_closed_by_one_good_week_fires_on_verify() {
-    let report = run_verify(MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK);
-    assert_condemns_under(
-        &report,
-        "maintenanceGoalClosedByWeek12",
-        "MaintenanceGoalNeverConclusivelySatisfiedConstraint",
-    );
-}
-
-/// The green half: the SAME scene judged honestly — held so far, not concluded.
-///
-/// The only edit is the conclusiveness axis. Without this the red half would be satisfied
-/// by a law condemning every evaluation of a maintenance goal, which would make the
-/// continuing goal unjudgeable rather than unclosable.
-#[test]
-fn a_maintenance_goal_held_so_far_but_undetermined_passes_on_verify() {
-    let honest = MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK.replace(
-        "logic:goalEvaluationStatus logic:GoalEvaluationCompleted",
-        "logic:goalEvaluationStatus logic:GoalEvaluationUndetermined",
-    );
-    assert_ne!(
-        honest, MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK,
-        "the edit must actually change the fixture, or the green half proves nothing"
-    );
-    let report = run_verify(&honest);
-    assert_clean(
-        &report,
-        "a maintenance goal that holds so far and says so — Satisfied, and UNDETERMINED — is \
-         the record that keeps a continuing cluster open, and the kernel must raise nothing \
-         on it",
-    );
-}
-
-/// The FAILING maintenance goal still concludes, and must stay expressible.
-///
-/// `logic:GoalEvaluationCompleted`'s own definition says a maintenance target reaches a
-/// conclusive judgment when its window closes (satisfied) or its target FAILS (violated).
-/// A law that condemned every completed maintenance evaluation would make the second
-/// unrepresentable — a broken standing commitment could then only be recorded as still
-/// undetermined, which is the opposite of the honesty the law exists to enforce.
-#[test]
-fn a_maintenance_goal_conclusively_violated_passes_on_verify() {
-    let failed = MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK.replace(
-        "logic:satisfactionStatus logic:Satisfied",
-        "logic:satisfactionStatus logic:Violated",
-    );
-    assert_ne!(
-        failed, MAINTENANCE_GOAL_CLOSED_BY_ONE_GOOD_WEEK,
-        "the edit must actually change the fixture"
-    );
-    let report = run_verify(&failed);
-    assert_law_silent(
-        &report,
-        "MaintenanceGoalNeverConclusivelySatisfiedConstraint",
-        "a maintenance target that FAILED has reached a conclusive judgment, and the law \
-         forbids the satisfied-and-concluded pair alone",
-    );
-}
-
 /// A maintenance target under a CLOSING window is outside the law's guard.
 ///
 /// The discrimination the whole law rests on. A windowed maintenance target is authored as
@@ -1628,20 +1299,6 @@ ex:auditWindowEvaluation a logic:GoalEvaluation ;
         "the goal's own condition is the DEADLINE-WINDOW kind, so a closed window concludes \
          exactly as the kernel says it may; only the unbounded maintenance target — the one \
          whose interval is the life of the cluster — can never be conclusively satisfied",
-    );
-}
-
-/// N8 — the model recommendation asserted as proof.
-///
-/// The PROOF leg of the advisory law, which no pin is involved in. Before the law's body
-/// covered all three positions its own class definition names, this scene raised nothing.
-#[test]
-fn an_advisory_laundered_into_an_authorization_proof_fires_on_verify() {
-    let report = run_verify(ADVISORY_LAUNDERED_INTO_A_PROOF);
-    assert_condemns_under(
-        &report,
-        "modelSaysTheChargeIsInPolicy",
-        "AdvisoryNeverAuthorityConstraint",
     );
 }
 
@@ -1723,217 +1380,6 @@ ex:payVendorApproval a logic:ApprovalCommitment ;
 // supplied, and each red also asserts that the sibling law governing the same record kind
 // stays SILENT, so the red cannot be a neighbouring law picking up the slack.
 
-/// A `logic:CompensationAttempt` with no `logic:compensatesEffect`.
-const COMPENSATION_NAMING_NO_FORWARD_EFFECT: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/compensation-names-no-forward-effect.ttl"
-);
-
-/// A `logic:ContextAssembly` with no `logic:assemblyForEnactment`.
-const CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/context-assembly-serving-no-enactment.ttl"
-);
-
-/// A `logic:JournalEntry` carrying its prior head and no new head.
-const JOURNAL_ENTRY_ESTABLISHING_NO_HEAD: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/journal-entry-establishing-no-head.ttl"
-);
-
-/// A `logic:RetryDispatch` licensed by a `logic:ReconciliationResult` with no verdict.
-const RETRY_LICENSED_BY_A_VERDICTLESS_PROBE: &str = include_str!(
-    "../../../slices/grounding/logic/tests/counter-examples/retry-licensed-by-a-verdictless-probe.ttl"
-);
-
-/// The refund that counteracts nothing nameable.
-///
-/// The forward charge is receipted and attributed in the same scene, so the effect laws
-/// pass and the ONLY defect is the empty binding — which is what makes the exactness
-/// sibling's silence informative rather than incidental.
-#[test]
-fn a_compensation_naming_no_forward_effect_fires_on_verify() {
-    let report = run_verify(COMPENSATION_NAMING_NO_FORWARD_EFFECT);
-    assert_condemns_under(
-        &report,
-        "invoice901Refund",
-        "CompensationNamesForwardEffectConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "CompensationBindsExactForwardEffectConstraint",
-        "the exactness law DEREFERENCES the binding, so its guard requires one; a \
-         compensation naming nothing falls outside it and only the presence law can speak",
-    );
-    assert_law_silent(
-        &report,
-        "CompensationNotInverseConstraint",
-        "the refund is not typed as the receipt it addresses, so the prohibition holds and \
-         the red above cannot be the double-typing law wearing another law's name",
-    );
-    assert_law_silent(
-        &report,
-        "ReceiptRequiresAttemptConstraint",
-        "the forward receipt in the scene names the attempt it reports on, so the effect \
-         record beside the refund is well-formed",
-    );
-}
-
-#[test]
-fn a_compensation_naming_its_forward_receipt_passes_on_verify() {
-    let repaired = COMPENSATION_NAMING_NO_FORWARD_EFFECT.replace(
-        "ex:invoice901Refund a logic:CompensationAttempt ;",
-        "ex:invoice901Refund a logic:CompensationAttempt ;\n    logic:compensatesEffect \
-         ex:invoice901ChargeReceipt ;",
-    );
-    assert_ne!(
-        repaired, COMPENSATION_NAMING_NO_FORWARD_EFFECT,
-        "the edit must actually change the fixture, or the green half proves nothing"
-    );
-    let report = run_verify(&repaired);
-    assert_clean(
-        &report,
-        "the SAME scene with the refund bound to the receipt of the charge it undoes is \
-         exactly what the compensation layer models, and the kernel must raise nothing",
-    );
-}
-
-/// The assembly that answers the audit question about nobody.
-#[test]
-fn an_assembly_naming_no_enactment_fires_on_verify() {
-    let report = run_verify(CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT);
-    assert_condemns_under(
-        &report,
-        "assemblyServingNobody",
-        "ContextAssemblyNamesItsEnactmentConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "ContextAssemblyRecordsExclusionsConstraint",
-        "the withheld item carries its reason, so the exclusion law is GUARDED here and \
-         passes on its merits rather than vacuously — the assembly's defect is its subject, \
-         not its bookkeeping",
-    );
-    assert_law_silent(
-        &report,
-        "ContextAssemblyExclusionIsNotInclusionConstraint",
-        "the surfaced item and the withheld item are different items, so the disjointness \
-         law is guarded and holds",
-    );
-}
-
-#[test]
-fn an_assembly_naming_the_run_it_served_passes_on_verify() {
-    let repaired = CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT.replace(
-        "ex:assemblyServingNobody a logic:ContextAssembly ;",
-        "ex:assemblyServingNobody a logic:ContextAssembly ;\n    logic:assemblyForEnactment \
-         ex:adrReviewWeek13 ;",
-    );
-    assert_ne!(
-        repaired, CONTEXT_ASSEMBLY_SERVING_NO_ENACTMENT,
-        "the edit must actually change the fixture, or the green half proves nothing"
-    );
-    let report = run_verify(&repaired);
-    assert_clean(
-        &report,
-        "an assembly bound to the run it surfaced material to is the record the kernel \
-         models, and the kernel must raise nothing on it",
-    );
-}
-
-/// The entry nothing can ever be appended after.
-///
-/// Its one link is CORRECT — the prior head reproduces the predecessor's new head — so
-/// the chain-integrity law is guarded and passes, and the red can only be the presence
-/// law. That is the whole discipline of this pair: an entry may be perfectly chained to
-/// its past and still be unchainable to its future.
-#[test]
-fn a_journal_entry_establishing_no_head_fires_on_verify() {
-    let report = run_verify(JOURNAL_ENTRY_ESTABLISHING_NO_HEAD);
-    assert_condemns_under(
-        &report,
-        "journalEntry9",
-        "JournalEntryNamesBothHeadsConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "JournalChainIntegrityConstraint",
-        "the entry's prior head IS its predecessor's new head, so the hash-chain invariant \
-         holds where it can be evaluated and the missing end is the only defect",
-    );
-}
-
-#[test]
-fn a_journal_entry_naming_both_of_its_heads_passes_on_verify() {
-    let repaired = JOURNAL_ENTRY_ESTABLISHING_NO_HEAD.replace(
-        "    logic:journalPredecessor ex:journalEntry8 ;",
-        "    logic:journalPredecessor ex:journalEntry8 ;\n    logic:journalNewHead \
-         \"b3:3fb1a7c05e29d648b03c7a15f9e02d84c76b1350ae42f9d867b0c31de5a4028f\" ;",
-    );
-    assert_ne!(
-        repaired, JOURNAL_ENTRY_ESTABLISHING_NO_HEAD,
-        "the edit must actually change the fixture, or the green half proves nothing"
-    );
-    let report = run_verify(&repaired);
-    assert_clean(
-        &report,
-        "an entry naming the head it was applied against AND the head it established is \
-         chainable in both directions, which is the whole of what the presence law asks",
-    );
-}
-
-/// The retry that proceeded on a probe with no verdict.
-///
-/// Every licensing law in the scene is guarded and passes on its merits: the undetermined
-/// outcome names its attempt, the retry names both its attempt and its licence, and the
-/// licence covers that exact attempt. Only the licence's CONTENT is absent — which is the
-/// same shape of defect as the content-free saturation witness, in the other layer.
-#[test]
-fn a_reconciliation_result_carrying_no_verdict_fires_on_verify() {
-    let report = run_verify(RETRY_LICENSED_BY_A_VERDICTLESS_PROBE);
-    assert_condemns_under(
-        &report,
-        "invoice903ProbeResult",
-        "ReconciliationResultCarriesVerdictConstraint",
-    );
-    assert_law_silent(
-        &report,
-        "RetryRequiresLicenceConstraint",
-        "the retry NAMES a licence, so the presence half of the retry discipline passes — \
-         which is exactly why a licence that records nothing had to become its own law",
-    );
-    assert_law_silent(
-        &report,
-        "NoBlindRetryConstraint",
-        "the licence carries logic:licenceCoversAttempt for the very attempt being \
-         re-sent, so the coverage relation holds and the retry is not a BORROWED licence \
-         but an EMPTY one",
-    );
-    assert_law_silent(
-        &report,
-        "UnknownOutcomeNamesItsAttemptConstraint",
-        "the undetermined position names the attempt it is undetermined about, so the \
-         precondition of the whole probe-and-retry discipline is met",
-    );
-}
-
-#[test]
-fn a_reconciliation_result_carrying_its_verdict_passes_on_verify() {
-    let repaired = RETRY_LICENSED_BY_A_VERDICTLESS_PROBE.replace(
-        "    logic:resultOfProbe ex:invoice903Probe ;",
-        "    logic:resultOfProbe ex:invoice903Probe ;\n    logic:reconciliationVerdict \
-         logic:ReconciledNotCommitted ;",
-    );
-    assert_ne!(
-        repaired, RETRY_LICENSED_BY_A_VERDICTLESS_PROBE,
-        "the edit must actually change the fixture, or the green half proves nothing"
-    );
-    let report = run_verify(&repaired);
-    assert_clean(
-        &report,
-        "a probe that established the charge never committed, recorded as the verdict it \
-         reached, is the licence the retry was entitled to proceed under — and the kernel \
-         must raise nothing on it",
-    );
-}
-
 // ── The absence siblings reach their PRESENCE law, and only it ────────────────────────
 //
 // The adjudication these six mismatch fixtures rest on, pinned rather than asserted. Each
@@ -1941,61 +1387,3 @@ fn a_reconciliation_result_carrying_its_verdict_passes_on_verify() {
 // and each can only reach the presence law: the relational law's guard requires the very
 // binding the absence fixture omits, so a cell pinning an absence fixture to a relational
 // law pins it to a law that cannot fire on it.
-
-#[test]
-fn the_absence_fixtures_reach_their_presence_law_and_not_their_relational_twin() {
-    for (fixture, subject, presence, relational) in [
-        (
-            include_str!(
-                "../../../slices/grounding/logic/tests/counter-examples/checkpoint-no-folded-identity.ttl"
-            ),
-            "ckptNoIdentity",
-            "CheckpointCarriesFoldedIdentityConstraint",
-            "CheckpointRestoreIdentityConstraint",
-        ),
-        (
-            include_str!(
-                "../../../slices/grounding/logic/tests/counter-examples/unknown-outcome-without-attempt.ttl"
-            ),
-            "unknownNoAttempt",
-            "UnknownOutcomeNamesItsAttemptConstraint",
-            "NoBlindRetryConstraint",
-        ),
-        (
-            include_str!(
-                "../../../slices/grounding/logic/tests/counter-examples/prescription-version-not-content-addressed.ttl"
-            ),
-            "versionNoDigest",
-            "PrescriptionVersionIsContentAddressedConstraint",
-            "PrescriptionVersionImmutabilityConstraint",
-        ),
-        (
-            include_str!(
-                "../../../slices/grounding/logic/tests/counter-examples/frontier-closed-without-saturation-witness.ttl"
-            ),
-            "frontierNoWitness",
-            "FrontierCarriesSaturationWitnessConstraint",
-            "FrontierClosureRequiresSaturationConstraint",
-        ),
-        (
-            include_str!(
-                "../../../slices/grounding/logic/tests/counter-examples/capability-gap-without-blocked-step.ttl"
-            ),
-            "ocrGapNoStep",
-            "OperationalGapNamesBlockedStepConstraint",
-            "OperationalGapCarriesProposalConstraint",
-        ),
-    ] {
-        let report = run_verify(fixture);
-        assert_condemns_under(&report, subject, presence);
-        assert_law_silent(
-            &report,
-            relational,
-            &format!(
-                "{relational} cannot fire on {subject}: its guard requires the binding the \
-                 fixture omits, so a conformance cell pinning this fixture to it would pin a \
-                 law that has nothing to say about the record"
-            ),
-        );
-    }
-}

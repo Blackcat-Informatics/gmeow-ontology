@@ -21,6 +21,8 @@
 //! EXACT ordering, so the committed goldens stay byte-identical while the loss
 //! serialization now flows through the ONE substrate ledger.
 
+use std::collections::{BTreeMap, BTreeSet};
+
 use gmeow_errors::{
     Diag, DiagLedger, DiagNode, DiagRef, FindingCategory, Grade, Severity, Slot, StageId,
     Standpoint, register_code,
@@ -78,6 +80,97 @@ pub struct LossLedger {
     ledger: DiagLedger,
 }
 
+/// Read the report-visible union without cloning or replaying diagnostic nodes.
+/// Complete source stores retain all other fields, including causal edges and
+/// standpoint. This view only projects the same set-valued report observations.
+/// Its borrowed index visits each store once and is bounded by the supplied
+/// observations; rendering another target never scans the other targets' losses.
+pub struct ProjectionLossView<'a> {
+    targets: BTreeMap<&'a str, ProjectionTargetLoss<'a>>,
+}
+
+/// Borrowed report observations for one target, in their required output order.
+#[derive(Default)]
+struct ProjectionTargetLoss<'a> {
+    structural: BTreeSet<&'a str>,
+    actual: BTreeSet<&'a str>,
+    /// Source first, then note; the public report surface returns note/source.
+    attributed: BTreeSet<(&'a str, &'a str)>,
+}
+
+impl<'a> ProjectionLossView<'a> {
+    /// Index the report observations once, retaining only references into stores.
+    pub fn new(ledgers: &[&'a LossLedger]) -> Self {
+        let mut targets: BTreeMap<&str, ProjectionTargetLoss<'_>> = BTreeMap::new();
+        let structural_code = format!("{RUNG_PREFIX}{STRUCTURAL_CODE}");
+        let actual_code = format!("{RUNG_PREFIX}{ACTUAL_CODE}");
+        for ledger in ledgers {
+            for node in ledger.ledger.emit_sorted() {
+                let structural = node.code == structural_code;
+                if !structural && node.code != actual_code {
+                    continue;
+                }
+                let Some(focus) = &node.source_ctx.focus else {
+                    continue;
+                };
+                let target = targets.entry(focus.0.as_str()).or_default();
+                for observation in &node.observations {
+                    let note = observation.message.as_str();
+                    if structural {
+                        target.structural.insert(note);
+                    } else {
+                        target.actual.insert(note);
+                        if let Some(source) = observation
+                            .observed
+                            .as_ref()
+                            .filter(|slot| slot.datatype.as_deref() == Some(SOURCE_TERM_DATATYPE))
+                        {
+                            target.attributed.insert((source.lexical.as_str(), note));
+                        }
+                    }
+                }
+            }
+        }
+        Self { targets }
+    }
+
+    /// Structural notes followed by actual notes, preserving the report ordering.
+    pub fn projection_drops_for(&self, target: &str) -> Vec<String> {
+        let Some(loss) = self.targets.get(target) else {
+            return Vec::new();
+        };
+        loss.structural
+            .iter()
+            .map(|note| (*note).to_owned())
+            .chain(loss.actual.iter().map(|note| format!("actual: {note}")))
+            .collect()
+    }
+
+    /// Every distinct note/source-term pair, with the existing source-first order.
+    pub fn term_source_drops(&self, target: &str) -> Vec<(String, String)> {
+        self.targets
+            .get(target)
+            .into_iter()
+            .flat_map(|loss| &loss.attributed)
+            .map(|(source, note)| ((*note).to_owned(), (*source).to_owned()))
+            .collect()
+    }
+}
+
+impl serde::Serialize for LossLedger {
+    /// Encode every native witness field in canonical node order, borrowing nodes.
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serde::Serialize::serialize(&self.ledger.emit_sorted(), serializer)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for LossLedger {
+    /// Restore complete native witnesses through the same canonical ledger ingress.
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        <Vec<DiagNode> as serde::Deserialize>::deserialize(deserializer).map(Self::from_nodes)
+    }
+}
+
 impl LossLedger {
     /// A fresh, empty loss store.
     pub fn new() -> Self {
@@ -115,9 +208,9 @@ impl LossLedger {
         self.ledger.findings(tool)
     }
 
-    /// The interned witnesses as owned, serializable nodes — the transport form that
-    /// carries the store across a stage boundary (the compile-logic → mappings channel is
-    /// JSON, so the live ledger cannot cross it). Round-trips through [`Self::from_nodes`].
+    /// The interned witnesses as owned nodes for callers that need independent ownership.
+    /// Native stage publications share the ledger itself; its codec borrows sorted nodes.
+    /// Round-trips through [`Self::from_nodes`].
     pub fn to_nodes(&self) -> Vec<DiagNode> {
         self.ledger.emit_sorted().into_iter().cloned().collect()
     }
@@ -267,6 +360,39 @@ impl LossLedger {
     }
 
     // ── Stage 2: F2 projection-report per-target drops ──────────────────────
+
+    /// Record actual cell-owned evidence after preservation admission. Human report
+    /// messages project its lexical text; complete RDF literals remain in the native
+    /// correspondence carrier. Owner, standpoint and evidence references stay attached
+    /// to the same diagnostic witness, not inferred from the message or a target class.
+    pub(crate) fn record_correspondence_drops(
+        &mut self,
+        target: &str,
+        correspondence: &crate::ir::Correspondence,
+        preservation: PreservationKind,
+    ) {
+        let mut tags = vec![format!("preservation:{}", preservation.as_str())];
+        if let Some(standpoint) = &correspondence.according_to {
+            tags.push(format!("according-to:{standpoint}"));
+        }
+        for source in &correspondence.axis_evidence.sources {
+            tags.push(format!("evidence-source:{source}"));
+        }
+        for evidence in &correspondence.loss_evidence {
+            self.intern(
+                "projection",
+                ACTUAL_CODE,
+                target.to_owned(),
+                &tags,
+                Some(Slot::typed(
+                    correspondence.iri.clone(),
+                    SOURCE_TERM_DATATYPE,
+                )),
+                &evidence.lexical_form,
+                &[],
+            );
+        }
+    }
 
     /// Record one projection's drops: the structural (target-metadata) notes and
     /// the concrete per-run actual notes, both under the target focus (**R1**), the
@@ -475,187 +601,6 @@ fn split_pair_focus(node: &gmeow_errors::DiagNode) -> (String, String) {
     }
 }
 
+#[path = "loss_ledger.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn transcode_rows_round_trip_and_sort() {
-        let mut store = LossLedger::new();
-        // Deliberately out of (from,to,code) order and across two pairs (R1).
-        store.record_transcode_loss("named-graph-dropped", "trig", "turtle", "graphs go", 1);
-        store.record_transcode_loss("rdf12-star-unrepresentable", "trig", "turtle", "star go", 3);
-        store.record_transcode_loss("owl-dl-projection", "turtle", "owl-dl", "dl drop", 2);
-
-        let rows = store.transcode_rows();
-        // Two distinct pairs never collapsed into one witness (R1).
-        assert_eq!(rows.len(), 3);
-        // Sorted by (from, to, code): trig<turtle pair first (named<rdf12), then turtle→owl-dl.
-        assert_eq!(rows[0].from, "trig");
-        assert_eq!(rows[0].code, "named-graph-dropped");
-        assert_eq!(rows[0].count, 1);
-        assert_eq!(rows[1].code, "rdf12-star-unrepresentable");
-        assert_eq!(rows[1].count, 3);
-        assert_eq!(rows[2].from, "turtle");
-        assert_eq!(rows[2].to, "owl-dl");
-        assert_eq!(rows[2].count, 2);
-    }
-
-    #[test]
-    fn transcode_rows_aggregate_multiple_observations_of_one_node() {
-        // Two records sharing the SAME (code, from, to) hash-cons-merge into one
-        // DiagNode carrying two observations. The read-back must aggregate ALL of
-        // them — reading only the first would silently drop the second's count.
-        let mut store = LossLedger::new();
-        store.record_transcode_loss("named-graph-dropped", "trig", "turtle", "graphs go", 2);
-        store.record_transcode_loss("named-graph-dropped", "trig", "turtle", "graphs go", 3);
-
-        let rows = store.transcode_rows();
-        // Still ONE row per (from, to, code) — the observations merged, not the rows.
-        assert_eq!(rows.len(), 1);
-        assert_eq!(rows[0].from, "trig");
-        assert_eq!(rows[0].to, "turtle");
-        assert_eq!(rows[0].code, "named-graph-dropped");
-        // Count is the SUM of every observation (2 + 3), not just the first (2).
-        assert_eq!(rows[0].count, 5);
-        // The static per-code note is preserved, never dropped.
-        assert_eq!(rows[0].note, "graphs go");
-    }
-
-    #[test]
-    fn actual_drop_carries_structural_limitation_as_antecedent() {
-        // U2 producer-side antecedent DAG: a concrete per-run drop is CAUSED BY the
-        // target's declared structural limitation. `actual_drop_causes` reads that edge off
-        // the actual witness's own antecedents and pairs each drop note with the stable
-        // finding IRI of its cause — the provenance a consumer attaches as a related location.
-        let mut store = LossLedger::new();
-        store.record_projection_drops(
-            "owl-dl",
-            PreservationKind::SoundUnder,
-            &["OWL-DL cannot carry full first-order formulas".to_owned()],
-            &["logic:Formula #3 dropped as unsupported residue".to_owned()],
-        );
-        let causes = store.actual_drop_causes("owl-dl");
-        assert_eq!(causes.len(), 1, "one (drop, cause) pair: {causes:?}");
-        assert_eq!(
-            causes[0].0,
-            "logic:Formula #3 dropped as unsupported residue"
-        );
-        assert!(
-            causes[0].1.starts_with("https://"),
-            "the cause is the structural witness's stable finding IRI: {}",
-            causes[0].1
-        );
-
-        // No fabrication: a target with NO declared structural limitation has no antecedent
-        // edge, so no cause is asserted (epistemic-shape preservation).
-        let mut bare = LossLedger::new();
-        bare.record_projection_drops(
-            "canonical-rdf12",
-            PreservationKind::SoundUnder,
-            &[],
-            &["a per-run drop with no structural cause".to_owned()],
-        );
-        assert!(
-            bare.actual_drop_causes("canonical-rdf12").is_empty(),
-            "with no structural limitation there is no genuine cause — no fabricated antecedent"
-        );
-
-        // And the antecedent edge is genuinely ON the witness (not re-derived): the actual
-        // node's `to_finding` projection surfaces the cause as a related location too.
-        let finding = store
-            .ledger
-            .findings("logic-compile")
-            .into_iter()
-            .find(|f| f.code.contains("actual"))
-            .expect("an actual-drop finding");
-        assert!(
-            !finding.related_locations.is_empty(),
-            "to_finding must project the wired antecedent as a related location: {finding:?}"
-        );
-    }
-
-    #[test]
-    fn attributed_actual_drops_carry_source_term_and_read_back_sorted() {
-        // Term-attributed drops ride the actual observation's typed `observed` slot; the note
-        // bytes are unchanged (still readable via `projection_drops_for`), and the structured
-        // source term reads back via `term_source_drops`, sorted by (source, note). A drop with
-        // no source term stays whole-program (never surfaces in `term_source_drops`).
-        let mut store = LossLedger::new();
-        store.record_projection_drops_attributed(
-            "sssom",
-            PreservationKind::SoundUnder,
-            &[],
-            &[
-                (
-                    "gmeow:Agent close-match loses caveats".to_owned(),
-                    Some("https://blackcatinformatics.ca/gmeow/Agent".to_owned()),
-                ),
-                (
-                    "gmeow:Activity exact-match loses standpoint".to_owned(),
-                    Some("https://blackcatinformatics.ca/gmeow/Activity".to_owned()),
-                ),
-                ("a genuinely program-wide drop".to_owned(), None),
-            ],
-        );
-
-        // All three notes survive as `gmeow:lossyDrop` (byte-identical to the unattributed
-        // path — the attribution is additive).
-        let drops = store.projection_drops_for("sssom");
-        assert_eq!(
-            drops,
-            vec![
-                "actual: a genuinely program-wide drop".to_owned(),
-                "actual: gmeow:Activity exact-match loses standpoint".to_owned(),
-                "actual: gmeow:Agent close-match loses caveats".to_owned(),
-            ]
-        );
-
-        // Only the two attributed drops read back, sorted by (source term, note); the
-        // program-wide drop is absent.
-        let attributed = store.term_source_drops("sssom");
-        assert_eq!(
-            attributed,
-            vec![
-                (
-                    "gmeow:Activity exact-match loses standpoint".to_owned(),
-                    "https://blackcatinformatics.ca/gmeow/Activity".to_owned()
-                ),
-                (
-                    "gmeow:Agent close-match loses caveats".to_owned(),
-                    "https://blackcatinformatics.ca/gmeow/Agent".to_owned()
-                ),
-            ]
-        );
-
-        // A different target is isolated by focus (R1): no cross-target attribution bleed.
-        assert!(store.term_source_drops("owl-dl").is_empty());
-
-        // The attribution survives the transport round-trip (the compile-logic → mappings JSON
-        // channel carries nodes, not the live store), so the report re-serialized in mappings
-        // sees the same source terms.
-        let round_tripped = LossLedger::from_nodes(store.to_nodes());
-        assert_eq!(round_tripped.term_source_drops("sssom"), attributed);
-    }
-
-    #[test]
-    fn projection_drops_match_structural_then_prefixed_actual() {
-        let mut store = LossLedger::new();
-        let structural = vec!["z structural".to_owned(), "a structural".to_owned()];
-        let actual = vec!["y actual".to_owned(), "b actual".to_owned()];
-        store.record_projection_drops("owl-dl", PreservationKind::SoundUnder, &structural, &actual);
-
-        let drops = store.projection_drops_for("owl-dl");
-        assert_eq!(
-            drops,
-            vec![
-                "a structural".to_owned(),
-                "z structural".to_owned(),
-                "actual: b actual".to_owned(),
-                "actual: y actual".to_owned(),
-            ]
-        );
-        // A different target is isolated by focus (R1): no cross-target bleed.
-        assert!(store.projection_drops_for("gufo").is_empty());
-    }
-}
+mod tests;

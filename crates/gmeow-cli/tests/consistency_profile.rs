@@ -95,6 +95,10 @@ fn run(subcommand: &str, extra: &[&str], ttl: &str) -> (tempfile::TempDir, PathB
     (dir, path, output)
 }
 
+fn json(output: &Output) -> serde_json::Value {
+    serde_json::from_slice(&output.stdout).expect("typed reasoning JSON")
+}
+
 // ── consistency ───────────────────────────────────────────────────────────────────────
 
 #[test]
@@ -163,17 +167,172 @@ fn consistency_hard_fails_with_a_command_specific_diagnostic_on_malformed_input(
 }
 
 #[test]
-fn consistency_reports_a_reasoner_open_failure_when_reverse_mapping_refuses() {
-    let (_d, _p, out) = run("consistency", &[], REASONER_OPEN_FAILURE_TTL);
-    let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(
-        !out.status.success(),
-        "an ontology the DL reverse mapping refuses to open is a hard fail: {out:?}"
+fn consistency_retains_a_constructor_no_model_as_a_negative_verdict() {
+    let (_d, _p, out) = run(
+        "consistency",
+        &["--format", "json"],
+        REASONER_OPEN_FAILURE_TTL,
     );
     assert!(
-        stderr.contains("cannot open the DL reasoner"),
-        "the reasoner-open failure is surfaced, not swallowed: {stderr}"
+        out.status.success(),
+        "reporter mode retains the decided negative result: {out:?}"
     );
+    let report = json(&out);
+    assert_eq!(report["verdict"], "false");
+    assert_eq!(report["decision"], "negative");
+    assert_eq!(report["evidence_grade"], "certificate");
+    assert_eq!(report["result"]["has_model"], false);
+    assert_eq!(report["diagnostics"][0]["code"], "ONTOLOGY_HAS_NO_MODEL");
+}
+
+#[test]
+fn consistency_json_carries_the_shared_identity_and_evidence_contract() {
+    let (_d, _p, out) = run("consistency", &["--format", "json"], CONSISTENT_TTL);
+    assert!(out.status.success(), "exact consistency report: {out:?}");
+    let report = json(&out);
+    assert_eq!(report["schema_version"], 1);
+    assert_eq!(report["operation"], "consistency");
+    assert_eq!(report["verdict"], "true");
+    assert_eq!(report["decision"], "positive");
+    assert_eq!(report["input_status"], "valid");
+    assert_eq!(report["evaluation_status"], "completed");
+    assert_eq!(report["completeness"], "complete-for-fragment");
+    assert_eq!(report["information_state"], "supported");
+    assert_eq!(report["evidence_grade"], "certificate");
+    assert_eq!(report["gate_admission"], "certificate");
+    assert_eq!(report["result"]["kind"], "consistency");
+    assert_eq!(report["result"]["has_model"], true);
+    assert_eq!(report["inputs"].as_array().map(Vec::len), Some(1));
+    assert_eq!(
+        report["inputs"][0]["content_digest"].as_str().map(str::len),
+        Some(64)
+    );
+    assert_eq!(
+        report["program"]["content_digest"].as_str().map(str::len),
+        Some(64)
+    );
+    assert!(report["engine"]["version"].is_string());
+    assert_eq!(report["engine"]["implementation"], "purrdf-owl-dl");
+    assert!(report["metrics"]["decisions"].is_number());
+}
+
+#[test]
+fn consistency_gate_distinguishes_positive_negative_and_undecided() {
+    let (_d, _p, positive) = run("consistency", &["--gate"], CONSISTENT_TTL);
+    assert!(
+        positive.status.success(),
+        "certificate admits: {positive:?}"
+    );
+
+    let (_d, _p, negative) = run("consistency", &["--gate"], INCONSISTENT_TTL);
+    assert_eq!(
+        negative.status.code(),
+        Some(1),
+        "refutation exit: {negative:?}"
+    );
+
+    let (_d, _p, undecided) = run(
+        "consistency",
+        &["--step-cap", "1", "--gate", "--format", "json"],
+        INCONSISTENT_TTL,
+    );
+    assert_eq!(
+        undecided.status.code(),
+        Some(3),
+        "bounded answer cannot admit a gate: {undecided:?}"
+    );
+    let report = json(&undecided);
+    assert_eq!(report["decision"], "undecided");
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "attestation");
+}
+
+#[test]
+fn malformed_reasoning_json_uses_the_dedicated_exit_and_report_shape() {
+    let (_d, _p, out) = run("consistency", &["--format", "json"], MALFORMED_TTL);
+    assert_eq!(out.status.code(), Some(4), "malformed input exit: {out:?}");
+    let report = json(&out);
+    assert_eq!(report["decision"], "malformed");
+    assert_eq!(report["input_status"], "invalid");
+    assert_eq!(report["gate_admission"], "refused");
+    assert_eq!(report["diagnostics"][0]["code"], "INPUT_PARSE_FAILED");
+}
+
+#[test]
+fn entailment_gate_distinguishes_entailment_countermodel_and_capability_gap() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let premise = directory.path().join("premise.ttl");
+    let entailed = directory.path().join("entailed.ttl");
+    let not_entailed = directory.path().join("not-entailed.ttl");
+    let gap = directory.path().join("gap.ttl");
+    std::fs::write(
+        &premise,
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+         @prefix ex: <http://gmeow.example/> .\nex:x rdf:type ex:A .\n",
+    )
+    .expect("premise");
+    std::fs::write(
+        &entailed,
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+         @prefix ex: <http://gmeow.example/> .\nex:x rdf:type ex:A .\n",
+    )
+    .expect("entailed conclusion");
+    std::fs::write(
+        &not_entailed,
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+         @prefix ex: <http://gmeow.example/> .\nex:x rdf:type ex:B .\n",
+    )
+    .expect("countermodel conclusion");
+    std::fs::write(
+        &gap,
+        "@prefix ex: <http://gmeow.example/> .\nex:x ex:knows ex:y .\n",
+    )
+    .expect("unsupported conclusion");
+
+    let invoke = |conclusion: &std::path::Path| {
+        gmeow()
+            .args([
+                "entails",
+                premise.to_str().expect("utf8 premise"),
+                conclusion.to_str().expect("utf8 conclusion"),
+                "--format",
+                "json",
+                "--gate",
+            ])
+            .output()
+            .expect("run entailment")
+    };
+
+    let positive = invoke(&entailed);
+    assert!(positive.status.success(), "entailed gate: {positive:?}");
+    let positive_report = json(&positive);
+    assert_eq!(positive_report["operation"], "entailment");
+    assert_eq!(positive_report["verdict"], "entailed");
+    assert_eq!(positive_report["gate_admission"], "certificate");
+    assert!(positive_report["metrics"]["decisions"].is_number());
+    assert!(positive_report["metrics"]["steps"].is_number());
+    assert_eq!(positive_report["engine"]["implementation"], "gmeow-logic");
+
+    let negative = invoke(&not_entailed);
+    assert_eq!(
+        negative.status.code(),
+        Some(1),
+        "countermodel gate: {negative:?}"
+    );
+    let negative_report = json(&negative);
+    assert_eq!(negative_report["verdict"], "not-entailed");
+    assert_eq!(negative_report["decision"], "negative");
+
+    let unsupported = invoke(&gap);
+    assert_eq!(
+        unsupported.status.code(),
+        Some(3),
+        "capability gap: {unsupported:?}"
+    );
+    let unsupported_report = json(&unsupported);
+    assert_eq!(unsupported_report["verdict"], "gap");
+    assert_eq!(unsupported_report["decision"], "unsupported");
+    assert_eq!(unsupported_report["result"]["gap_shape"], "role-assertion");
 }
 
 // ── profile ───────────────────────────────────────────────────────────────────────────
@@ -259,15 +418,33 @@ fn classify_prints_the_transitive_subsumptions_and_the_direct_reduction() {
 fn classify_hard_fails_on_an_unsatisfiable_ontology() {
     // An ontology with no model has no meaningful hierarchy: classification refuses rather
     // than emitting an empty (and misleading) answer.
-    let (_d, _p, out) = run("classify", &[], INCONSISTENT_TTL);
-    let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(
-        !out.status.success(),
-        "classifying an unsatisfiable ontology is a hard fail: {out:?}"
+    let (_d, _p, out) = run(
+        "classify",
+        &["--format", "json", "--gate"],
+        INCONSISTENT_TTL,
     );
+    assert_eq!(out.status.code(), Some(1), "typed negative exit: {out:?}");
+    let report = json(&out);
+    assert_eq!(report["verdict"], "no-model");
+    assert_eq!(report["decision"], "negative");
+    assert_eq!(report["diagnostics"][0]["code"], "ONTOLOGY_HAS_NO_MODEL");
+}
+
+#[test]
+fn classification_json_retains_the_operation_specific_answer_under_the_common_contract() {
+    let (_d, _p, out) = run("classify", &["--format", "json", "--gate"], CHAIN_TTL);
+    assert!(out.status.success(), "exact classification admits: {out:?}");
+    let report = json(&out);
+    assert_eq!(report["operation"], "classification");
+    assert_eq!(report["verdict"], "classified");
+    assert_eq!(report["gate_admission"], "certificate");
+    assert_eq!(report["result"]["kind"], "classification");
     assert!(
-        stderr.contains("gmeow-cli.classify"),
-        "the diagnostic is scoped to the classify command: {stderr}"
+        report["result"]["subsumptions"]
+            .as_array()
+            .is_some_and(|rows| rows.iter().any(|row| {
+                row["left"] == "http://gmeow.example/A" && row["right"] == "http://gmeow.example/C"
+            }))
     );
 }
 
@@ -292,15 +469,29 @@ fn realize_prints_the_entailed_types_of_named_individuals() {
 
 #[test]
 fn realize_hard_fails_on_an_unsatisfiable_ontology() {
-    let (_d, _p, out) = run("realize", &[], INCONSISTENT_TTL);
-    let stderr = String::from_utf8_lossy(&out.stderr);
+    let (_d, _p, out) = run("realize", &["--format", "json", "--gate"], INCONSISTENT_TTL);
+    assert_eq!(out.status.code(), Some(1), "typed negative exit: {out:?}");
+    let report = json(&out);
+    assert_eq!(report["verdict"], "no-model");
+    assert_eq!(report["decision"], "negative");
+    assert_eq!(report["diagnostics"][0]["code"], "ONTOLOGY_HAS_NO_MODEL");
+}
+
+#[test]
+fn realization_json_uses_the_shared_contract_and_retains_type_rows() {
+    let (_d, _p, out) = run("realize", &["--format", "json", "--gate"], CONSISTENT_TTL);
+    assert!(out.status.success(), "exact realization admits: {out:?}");
+    let report = json(&out);
+    assert_eq!(report["operation"], "realization");
+    assert_eq!(report["verdict"], "realized");
+    assert_eq!(report["evidence_grade"], "certificate");
+    assert_eq!(report["result"]["kind"], "realization");
     assert!(
-        !out.status.success(),
-        "realizing an unsatisfiable ontology is a hard fail: {out:?}"
-    );
-    assert!(
-        stderr.contains("gmeow-cli.realize"),
-        "the diagnostic is scoped to the realize command: {stderr}"
+        report["result"]["types"]
+            .as_array()
+            .is_some_and(|rows| rows.iter().any(|row| {
+                row["left"] == "http://gmeow.example/x" && row["right"] == "http://gmeow.example/B"
+            }))
     );
 }
 

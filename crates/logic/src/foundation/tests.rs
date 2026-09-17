@@ -229,6 +229,7 @@ fn derivation_graph_chase_wiring_and_survival() {
 
     // The derived MixIden violation fact is present and is derivable (not asserted).
     let viol = FoundationQuad {
+        modal_evaluation: None,
         graph: format!("{base}/schema"),
         subject: format!("{base}/Dog"),
         predicate: format!("{LOGIC}violation"),
@@ -596,7 +597,7 @@ fn modal_box_holds_when_body_true_in_all_accessible() {
         quads.iter().any(|q| q.subject == format!("{base}/F")
             && q.predicate == format!("{LOGIC}modalNecessityHolds")
             && q.object == format!("<{base}/B>")
-            && q.graph == format!("{base}/w0")),
+            && q.graph == format!("{base}/frame")),
         "□ must hold when the body atom is present in every accessible world"
     );
     assert!(
@@ -609,17 +610,57 @@ fn modal_box_holds_when_body_true_in_all_accessible() {
         .iter()
         .find(|q| q.predicate == format!("{LOGIC}modalNecessityHolds"))
         .expect("shared modal kernel verdict");
-    let source = crate::provenance::reifier_from_strings(
-        &format!("{base}/a"),
-        &format!("{base}/knows"),
-        &format!("<{base}/b>"),
-    );
+    let evidence = verdict
+        .modal_evaluation
+        .as_ref()
+        .expect("contextual evaluation");
+    super::validate_modal_quad(verdict).unwrap();
     assert_eq!(verdict.rule_iri, crate::modal::MODAL_RULE_IRI);
-    assert_eq!(verdict.source_quad_ids, vec![source.clone()]);
     assert_eq!(
-        verdict.derivation_id,
-        crate::provenance::mint_derivation_id(crate::modal::MODAL_RULE_IRI, &[source.as_str()])
+        verdict.source_quad_ids,
+        evidence
+            .positive_premises()
+            .iter()
+            .map(crate::modal::ModalPremise::occurrence_id)
+            .collect::<Vec<_>>()
     );
+    assert_eq!(verdict.derivation_id, evidence.derivation_id());
+}
+
+#[test]
+fn modal_contextual_occurrences_and_absence_survive_the_foundation_derivation_graph() {
+    let base = "https://example.org/foundation/modal";
+    let original = modal_frame_nq("necessarily", &["w1"]);
+    let other = original
+        .lines()
+        .filter(|line| line.ends_with(&format!("<{base}/frame> .")))
+        .filter(|line| !line.contains(&format!("<{base}/w2>")))
+        .map(|line| line.replace(&format!("<{base}/frame>"), "<urn:context:other>"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let quads = run(
+        &format!("{original}\n{other}\n"),
+        AntiRigidityPolicy::WitnessObligation,
+    );
+    let graph = crate::derivation_graph::from_foundation_quads(&quads).unwrap();
+    let modal: Vec<_> = quads
+        .iter()
+        .filter(|q| q.modal_evaluation.is_some())
+        .collect();
+    assert_eq!(modal.len(), 3);
+    let ids: std::collections::BTreeSet<_> = modal
+        .iter()
+        .map(|q| super::quad_reifier(q).unwrap())
+        .collect();
+    assert_eq!(ids.len(), 3);
+    for q in modal {
+        let key = crate::derivation_graph::FactKey(super::quad_reifier(q).unwrap());
+        let justifications = graph.justifications_of(&key).unwrap();
+        assert!(justifications.iter().any(|proof| matches!(proof, crate::derivation_graph::Justification::Derived(app) if app.modal_evaluation.as_deref() == q.modal_evaluation.as_ref())));
+        let mut corrupted = q.clone();
+        corrupted.modal_evaluation.as_mut().unwrap().context = "urn:foreign".to_owned();
+        assert!(super::quad_reifier(&corrupted).is_err());
+    }
 }
 
 #[test]
@@ -635,14 +676,14 @@ fn modal_box_fails_with_witness() {
         quads.iter().any(|q| q.subject == format!("{base}/F")
             && q.predicate == format!("{LOGIC}modalNecessityFails")
             && q.object == format!("<{base}/B>")
-            && q.graph == format!("{base}/w0")),
+            && q.graph == format!("{base}/frame")),
         "□ must fail when an accessible world lacks the body atom"
     );
     assert!(
         quads.iter().any(|q| q.subject == format!("{base}/F")
             && q.predicate == format!("{LOGIC}modalCounterexampleWorld")
             && q.object == format!("<{base}/w2>")
-            && q.graph == format!("{base}/w0")),
+            && q.graph == format!("{base}/frame")),
         "the least absent accessible world (w2) must be the counterexample world"
     );
     assert!(
@@ -665,7 +706,7 @@ fn modal_diamond_holds_when_body_true_in_some() {
         quads.iter().any(|q| q.subject == format!("{base}/F")
             && q.predicate == format!("{LOGIC}modalPossibilityHolds")
             && q.object == format!("<{base}/B>")
-            && q.graph == format!("{base}/w0")),
+            && q.graph == format!("{base}/frame")),
         "◇ must hold when the body atom is present in some accessible world"
     );
     assert!(

@@ -12,6 +12,9 @@
 //! Both matching the one attestation proves native ≡ wasm. Refreshed via
 //! The attestation is refreshed only by an explicit maintainer producer.
 
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, prepare_reasoning_input,
+};
 use std::path::PathBuf;
 
 /// A self-contained EDB whose structured-DL closure is non-empty: an RDFS subclass
@@ -34,7 +37,27 @@ fn attestation_path() -> PathBuf {
 /// The exact pipeline the wasm `reason(data, format)` shim runs.
 fn reason_nquads(data: &str, format: &str) -> String {
     let edb = purrdf::parse_dataset(data.as_bytes(), format, None).expect("parse EDB");
-    let closure = gmeow_logic::reason::reason_closure_dataset(&edb).expect("reason closure");
+    let input = prepare_reasoning_input(&edb).expect("admit submitted theory");
+    // This API explicitly treats every context in the submitted document as a
+    // logical theory, retaining default, IRI and scoped blank graph identities.
+    let domains = SelectedDomains::new(
+        input
+            .source_contexts()
+            .values()
+            .map(|graph| {
+                SelectedLogicalWorld::new(
+                    LogicalGraph::from_graph(graph.clone()),
+                    DomainProfile::NonemptyObjectDomainV1,
+                    "gmeow.reason-wasm.document-theories.v1".to_owned(),
+                    *input.ingress_contract(),
+                )
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()
+            .expect("admit submitted theory"),
+    )
+    .expect("admit submitted theory");
+    let closure = gmeow_logic::reason::reason_closure_dataset(input, &domains)
+        .expect("admit submitted theory");
     let bytes = purrdf::serialize_dataset(
         &*closure,
         "application/n-quads",

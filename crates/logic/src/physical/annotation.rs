@@ -12,7 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::plan::Executable;
-use super::seminaive::{Delta, StepGovernor, join_body_indexed};
+use super::seminaive::{Delta, StepGovernor, rule_solutions};
 use super::store::RelationStore;
 use crate::annotation::{
     AnnotationCertification, AnnotationContract, AnnotationLineageContract, AnnotationQueryClass,
@@ -20,10 +20,7 @@ use crate::annotation::{
 };
 use crate::provenance::{MinProofHeightSemiring, ProofHeight, mint_derivation_id};
 use crate::query_ir::CompletionFrontier;
-use crate::rule_ir::{
-    DerivedRow, EvalRule, Fact, FactKey, distinct_pairs_satisfied, echo_asserted, ground_head,
-    sort_rows,
-};
+use crate::rule_ir::{DerivedRow, EvalRule, Fact, FactKey, echo_asserted, ground_head, sort_rows};
 use crate::seam::BudgetStatus;
 
 fn annotation_err(detail: impl Into<String>) -> gmeow_errors::Diag {
@@ -133,6 +130,9 @@ fn positive_shape(rules: &[EvalRule], nary: bool) -> AnnotationQueryClass {
 
 /// Classify the actual binary program, including the explicit stratified-NAF contract.
 pub(super) fn classify_query(rules: &[EvalRule]) -> gmeow_errors::Result<AnnotationQueryClass> {
+    if rules.iter().any(|rule| rule.reduction.is_some()) {
+        return Ok(AnnotationQueryClass::StratifiedAggregate);
+    }
     if rules
         .iter()
         .any(|rule| rule.body.iter().any(|atom| atom.negated))
@@ -201,7 +201,11 @@ pub(crate) fn certify_query(
 ) -> gmeow_errors::Result<AnnotationCertification> {
     certify_class(
         classify_query(rules)?,
-        AnnotationLineageContract::AllPhysicalDerivations,
+        if rules.iter().any(|rule| rule.reduction.is_some()) {
+            AnnotationLineageContract::CompleteGroupSupport
+        } else {
+            AnnotationLineageContract::AllPhysicalDerivations
+        },
         contract,
     )
 }
@@ -360,10 +364,7 @@ pub(crate) fn evaluate_annotations<A: TupleAnnotationAlgebra>(
             let mut builtin_gap: Vec<super::builtin_eval::BuiltinGap> = Vec::new();
             for &index in rule_indices {
                 let (rule, plan) = exe.rule_entry(index);
-                for solution in join_body_indexed(rule, plan, &rel, &rel, full, &mut builtin_gap) {
-                    if !distinct_pairs_satisfied(&rule.distinct_pairs, &solution)? {
-                        continue;
-                    }
+                for solution in rule_solutions(rule, plan, &rel, &rel, full, &mut builtin_gap)? {
                     let head = ground_head(&rule.head, &solution)?;
                     let contribution = if control_predicates.contains(&head.predicate) {
                         algebra.one()
@@ -424,6 +425,8 @@ pub(crate) fn evaluate_annotations<A: TupleAnnotationAlgebra>(
                 facts.insert(key.clone(), winner.head.clone());
                 heights.insert(key.clone(), winner.proof_height);
                 rows.push(DerivedRow {
+                    // This row is an ordinary annotated rule firing, not a modal head.
+                    cross_world: None,
                     graph: world.to_owned(),
                     subject: winner.head.subject,
                     predicate: winner.head.predicate,

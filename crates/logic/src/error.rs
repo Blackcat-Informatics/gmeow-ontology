@@ -15,10 +15,9 @@
 //! [`define_diag_kind!`](gmeow_errors::define_diag_kind) under the `logic.*` code
 //! namespace, so the reasoning core reports on the shared substrate.
 //!
-//! Every kind carries a single `detail` string that preserves the authored
-//! condition text verbatim; discrimination is by code + grade, and the message
-//! is the preserved detail. The area codes track the core's subsystem boundaries
-//! so a downstream reader can key on where a defect arose.
+//! Conditions preserve authored details; source-capability refusals additionally
+//! identify their selected profile, source and world. The area codes track the
+//! core's subsystem boundaries so a downstream reader can key on the defect.
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
@@ -62,6 +61,28 @@ define_diag_kind! {
     code = "logic.reason";
     grade = logic_grade!();
     message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// A selected native source profile cannot certify its required capability.
+    /// Refusal precedes execution and cannot become a complete logical verdict.
+    pub struct NativeCoverage { profile: String, source: String, world: String, detail: String }
+    code = "logic.native-coverage";
+    grade = logic_grade!();
+    message = "profile {} source {} world {}: {}", profile, source, world, detail;
+}
+
+define_diag_kind! {
+    /// The exact original native source admission refuses the selected operation
+    /// before any writer runs. Typed boundaries distinguish malformed grammar
+    /// from a valid unsupported semantic profile; neither becomes consistency.
+    pub struct NativeSourceAdmission {
+        input_contract: [u8; 32],
+        admission: crate::reason::refute::ClassAdmissionObservation
+    }
+    code = "logic.native-source-admission";
+    grade = logic_grade!();
+    message = "selected native source admission refused before execution";
 }
 
 define_diag_kind! {
@@ -244,6 +265,26 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+define_diag_kind! {
+    /// A valid contextual formula has no procedure in the selected finite
+    /// fragment. This is capability refusal, never a syntax or truth judgment.
+    pub struct ContextualFragment { detail: String }
+    code = "logic.contextual-fragment";
+    grade = Grade::new(Severity::Error, FindingCategory::UnsupportedSemanticFeature, Standpoint::Binding);
+    message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/logic/ContextualFragmentRefusal";
+}
+
+define_diag_kind! {
+    /// Journal admission stopped at its declared finite input envelope. This
+    /// records an incomplete check, never an invalid chain or a false formula.
+    pub struct TemporalJournalAdmission { detail: String }
+    code = "logic.temporal-journal-admission";
+    grade = Grade::new(Severity::Error, FindingCategory::IncompleteCheck, Standpoint::Binding);
+    message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/logic/TemporalJournalAdmissionExhaustion";
+}
+
 /// The complete reasoning-core diagnostic-code catalog, in registration order.
 /// Every [`DiagKind`](gmeow_errors::DiagKind) minted in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -271,6 +312,8 @@ pub const LOGIC_DIAG_CODES: &[&str] = &[
     RelationalCore::CODE,
     Result::CODE,
     Reference::CODE,
+    ContextualFragment::CODE,
+    TemporalJournalAdmission::CODE,
 ];
 
 /// Eagerly intern every reasoning-core diagnostic code (idempotent).
@@ -298,36 +341,11 @@ pub fn register_all() -> Vec<Code> {
         RelationalCore::register(),
         Result::register(),
         Reference::register(),
+        ContextualFragment::register(),
+        TemporalJournalAdmission::register(),
     ]
 }
 
+#[path = "error.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use gmeow_errors::intern_code;
-    use std::collections::HashSet;
-
-    #[test]
-    fn every_logic_code_interns_with_no_collision() {
-        let handles = register_all();
-        assert_eq!(
-            handles.len(),
-            LOGIC_DIAG_CODES.len(),
-            "register_all() and LOGIC_DIAG_CODES must enumerate the same kinds"
-        );
-        for code in LOGIC_DIAG_CODES {
-            assert!(
-                intern_code(code).is_ok(),
-                "logic code `{code}` did not intern after register_all()"
-            );
-        }
-        let distinct_strings: HashSet<&&str> = LOGIC_DIAG_CODES.iter().collect();
-        assert_eq!(
-            distinct_strings.len(),
-            LOGIC_DIAG_CODES.len(),
-            "duplicate logic diagnostic code string detected"
-        );
-        let distinct_handles: HashSet<Code> = handles.iter().copied().collect();
-        assert_eq!(distinct_handles.len(), handles.len());
-    }
-}
+mod tests;

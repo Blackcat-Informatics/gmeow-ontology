@@ -40,6 +40,7 @@ fn transitive_rows() -> Vec<Row> {
     vec![
         // A subOf B (asserted)
         Row {
+            modal_evaluation: None,
             graph: world.clone(),
             subject: a.clone(),
             predicate: sub_of.clone(),
@@ -50,6 +51,7 @@ fn transitive_rows() -> Vec<Row> {
         },
         // B subOf C (asserted)
         Row {
+            modal_evaluation: None,
             graph: world.clone(),
             subject: b.clone(),
             predicate: sub_of.clone(),
@@ -60,6 +62,7 @@ fn transitive_rows() -> Vec<Row> {
         },
         // A subOf C (derived by ruleTransitiveSubOf from A subOf B + B subOf C)
         Row {
+            modal_evaluation: None,
             graph: world.clone(),
             subject: a.clone(),
             predicate: sub_of.clone(),
@@ -177,6 +180,7 @@ fn reflexive_self_overlap_rows() -> Vec<Row> {
 
     vec![
         Row {
+            modal_evaluation: None,
             graph: world.clone(),
             subject: part.clone(),
             predicate: proper_part_of.clone(),
@@ -186,6 +190,7 @@ fn reflexive_self_overlap_rows() -> Vec<Row> {
             source_quad_ids: vec![witness_reifier.clone()],
         },
         Row {
+            modal_evaluation: None,
             graph: world.clone(),
             subject: whole.clone(),
             predicate: overlaps.clone(),
@@ -281,6 +286,7 @@ fn cycle_is_detected() {
 
     let rows = vec![
         Row {
+            modal_evaluation: None,
             graph: world.clone(),
             subject: s.clone(),
             predicate: p.clone(),
@@ -290,6 +296,7 @@ fn cycle_is_detected() {
             source_quad_ids: vec![r2.clone()],
         },
         Row {
+            modal_evaluation: None,
             graph: world.clone(),
             subject: s2.clone(),
             predicate: p.clone(),
@@ -313,6 +320,7 @@ fn cycle_is_detected() {
 fn unresolved_antecedent_is_error() {
     let world = "https://example.org/w".to_owned();
     let rows = vec![Row {
+        modal_evaluation: None,
         graph: world.clone(),
         subject: "https://example.org/x".to_owned(),
         predicate: "https://example.org/p".to_owned(),
@@ -374,7 +382,18 @@ fn explanations_for_result_carries_faithful_two_step_derivation() {
     builder.push_owned_quad(&quad(B, C));
     let edb = builder.freeze().expect("valid edb");
 
-    let result = crate::reason::reason_all(edb.as_ref()).expect("reason_all must decide");
+    let input =
+        crate::reason::prepare_reasoning_input(edb.as_ref()).expect("prepare explanation source");
+    let domains =
+        crate::physical::SelectedDomains::new([crate::physical::SelectedLogicalWorld::new(
+            crate::physical::LogicalGraph::Named(purrdf::TermValue::iri(W)),
+            crate::physical::DomainProfile::NonemptyObjectDomainV1,
+            "urn:test:explanation:source-world".to_owned(),
+            *input.ingress_contract(),
+        )
+        .expect("explicit explanation world")])
+        .expect("one explanation world");
+    let result = crate::reason::reason_all(input, &domains).expect("reason_all must decide");
     let explanations =
         explanations_for_result(&result).expect("explanations must build for a real verdict");
 
@@ -424,7 +443,18 @@ fn explanations_for_result_asserted_fact_is_a_leaf() {
     );
     let edb = builder.freeze().expect("valid edb");
 
-    let result = crate::reason::reason_all(edb.as_ref()).expect("reason_all must decide");
+    let input =
+        crate::reason::prepare_reasoning_input(edb.as_ref()).expect("prepare explanation source");
+    let domains =
+        crate::physical::SelectedDomains::new([crate::physical::SelectedLogicalWorld::new(
+            crate::physical::LogicalGraph::Named(purrdf::TermValue::iri(W)),
+            crate::physical::DomainProfile::NonemptyObjectDomainV1,
+            "urn:test:explanation:source-world".to_owned(),
+            *input.ingress_contract(),
+        )
+        .expect("explicit explanation world")])
+        .expect("one explanation world");
+    let result = crate::reason::reason_all(input, &domains).expect("reason_all must decide");
     let explanations = explanations_for_result(&result).expect("explanations must build");
 
     let asserted = explanations

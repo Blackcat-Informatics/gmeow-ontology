@@ -40,7 +40,7 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// One declared projection-profile source document.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ProjectionProfile {
     /// IRI of the `gmeow:ProjectionProfile` individual (identity).
     pub iri: String,
@@ -57,18 +57,10 @@ fn inventory_err(message: String) -> gmeow_errors::Diag {
     })
 }
 
-/// Load the authored `gmeow:ProjectionProfile` inventory from `root`.
-///
-/// Every binding is mandatory and single-valued; a missing source path, a missing
-/// or non-integer floor, a duplicate path, or an empty inventory is a HARD FAIL
-/// (no-optionality) — a row that cannot be joined to a file gates nothing.
-pub fn load_projection_profiles(root: &Path) -> Result<Vec<ProjectionProfile>, gmeow_errors::Diag> {
-    let path = root.join(PROJECTION_PROFILES_PATH);
-    let bytes =
-        std::fs::read(&path).map_err(|e| inventory_err(format!("read {}: {e}", path.display())))?;
-    let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| inventory_err(format!("parse {}: {e}", path.display())))?;
-
+/// Lower the original projection-profile document without reparsing its authored bytes.
+fn projection_profiles_from_dataset(
+    dataset: &purrdf::RdfDataset,
+) -> Result<Vec<ProjectionProfile>, gmeow_errors::Diag> {
     let profile_type = format!("{GMEOW}ProjectionProfile");
     let source_p = format!("{GMEOW}profileSource");
     let minimum_p = format!("{GMEOW}profileCellMinimum");
@@ -189,12 +181,7 @@ fn on_disk_profiles(root: &Path) -> Result<BTreeSet<String>, gmeow_errors::Diag>
 }
 
 /// Count the `gmeow:ProjectionMapping` cells a profile document declares.
-fn authored_cell_count(root: &Path, source: &str) -> Result<usize, gmeow_errors::Diag> {
-    let path = root.join(source);
-    let bytes =
-        std::fs::read(&path).map_err(|e| inventory_err(format!("read {}: {e}", path.display())))?;
-    let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| inventory_err(format!("parse {}: {e}", path.display())))?;
+fn authored_cell_count(dataset: &purrdf::RdfDataset) -> usize {
     let cell_type = format!("{GMEOW}ProjectionMapping");
     let mut cells: BTreeSet<String> = BTreeSet::new();
     for quad in dataset.owned_quads() {
@@ -210,176 +197,95 @@ fn authored_cell_count(root: &Path, source: &str) -> Result<usize, gmeow_errors:
             cells.insert(subject.clone());
         }
     }
-    Ok(cells.len())
+    cells.len()
 }
 
-/// Run the inventory gate: declared profile paths must EQUAL the on-disk set, and
-/// every profile's authored cell count must hold at or above its floor.
-///
-/// Returns the measured per-profile cell counts on success.
-pub fn check_projection_profile_inventory(
-    root: &Path,
-) -> Result<BTreeMap<String, usize>, gmeow_errors::Diag> {
-    let declared = load_projection_profiles(root)?;
-    let declared_paths: BTreeSet<String> = declared.iter().map(|p| p.source.clone()).collect();
-    let on_disk = on_disk_profiles(root)?;
+/// Compact original-source inventory and independently observed profile cell counts.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub(crate) struct ProjectionInventory {
+    declared: Vec<ProjectionProfile>,
+    measured: BTreeMap<String, usize>,
+}
 
-    let missing: Vec<&str> = declared_paths
-        .difference(&on_disk)
-        .map(String::as_str)
-        .collect();
-    if !missing.is_empty() {
-        return Err(inventory_err(format!(
-            "{} declared consumer projection profile(s) are no longer on disk: {} — a consumer \
+pub(crate) const CHANNEL: &str = "pipeline/projection-profile-inventory.json";
+
+/// Observe original native source documents and grade the complete selected inventory.
+pub(crate) fn record_projection_profile_inventory(
+    root: &Path,
+    catalog: &crate::stages::parse_sources::SourceCatalog,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let declared = projection_profiles_from_dataset(catalog.document(PROJECTION_PROFILES_PATH)?)?;
+    let measured = on_disk_profiles(root)?
+        .into_iter()
+        .map(|path| {
+            let count = authored_cell_count(catalog.document(&path)?);
+            Ok((path, count))
+        })
+        .collect::<Result<_, gmeow_errors::Diag>>()?;
+    let observed = ProjectionInventory { declared, measured };
+    observed.check()?;
+    serde_json::to_vec(&observed).map_err(|error| inventory_err(error.to_string()))
+}
+
+impl ProjectionInventory {
+    fn check(&self) -> Result<BTreeMap<String, usize>, gmeow_errors::Diag> {
+        let declared = &self.declared;
+        let declared_paths: BTreeSet<String> = declared
+            .iter()
+            .map(|profile| profile.source.clone())
+            .collect();
+        let on_disk = self.measured.keys().cloned().collect();
+
+        let missing: Vec<&str> = declared_paths
+            .difference(&on_disk)
+            .map(String::as_str)
+            .collect();
+        if !missing.is_empty() {
+            return Err(inventory_err(format!(
+                "{} declared consumer projection profile(s) are no longer on disk: {} — a consumer \
              down-projection surface was removed; restore it, or retire its gmeow:ProjectionProfile \
              row deliberately",
-            missing.len(),
-            missing.join(", ")
-        )));
-    }
-    let unregistered: Vec<&str> = on_disk
-        .difference(&declared_paths)
-        .map(String::as_str)
-        .collect();
-    if !unregistered.is_empty() {
-        return Err(inventory_err(format!(
-            "{} projection profile document(s) are not declared in the inventory: {} — mint a \
+                missing.len(),
+                missing.join(", ")
+            )));
+        }
+        let unregistered: Vec<&str> = on_disk
+            .difference(&declared_paths)
+            .map(String::as_str)
+            .collect();
+        if !unregistered.is_empty() {
+            return Err(inventory_err(format!(
+                "{} projection profile document(s) are not declared in the inventory: {} — mint a \
              gmeow:ProjectionProfile row with its cell floor",
-            unregistered.len(),
-            unregistered.join(", ")
-        )));
-    }
+                unregistered.len(),
+                unregistered.join(", ")
+            )));
+        }
 
-    let mut measured: BTreeMap<String, usize> = BTreeMap::new();
-    let mut below: Vec<String> = Vec::new();
-    for profile in &declared {
-        let count = authored_cell_count(root, &profile.source)?;
-        measured.insert(profile.source.clone(), count);
-        if count < profile.cell_minimum {
-            below.push(format!(
-                "{} declares {count} gmeow:ProjectionMapping cell(s) < \
+        let mut measured: BTreeMap<String, usize> = BTreeMap::new();
+        let mut below: Vec<String> = Vec::new();
+        for profile in declared {
+            let count = self.measured[&profile.source];
+            measured.insert(profile.source.clone(), count);
+            if count < profile.cell_minimum {
+                below.push(format!(
+                    "{} declares {count} gmeow:ProjectionMapping cell(s) < \
                  gmeow:profileCellMinimum {}",
-                profile.source, profile.cell_minimum
-            ));
+                    profile.source, profile.cell_minimum
+                ));
+            }
         }
+        if !below.is_empty() {
+            return Err(inventory_err(format!(
+                "{} projection profile cell-count ratchet(s) breached: {}",
+                below.len(),
+                below.join("; ")
+            )));
+        }
+        Ok(measured)
     }
-    if !below.is_empty() {
-        return Err(inventory_err(format!(
-            "{} projection profile cell-count ratchet(s) breached: {}",
-            below.len(),
-            below.join("; ")
-        )));
-    }
-    Ok(measured)
 }
 
+#[path = "projection_profiles.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .expect("repo root")
-    }
-
-    #[test]
-    fn the_live_inventory_matches_the_live_projections_tree() {
-        let measured =
-            check_projection_profile_inventory(&repo_root()).expect("live inventory is exact");
-        assert!(
-            measured.len() >= 34,
-            "the consumer projection-profile inventory shrank: {} profiles",
-            measured.len()
-        );
-        assert_eq!(
-            measured
-                .get("dsl/mappings/projections/schema-org-procedures.ttl")
-                .copied(),
-            Some(8),
-            "the schema.org HowTo/Recipe consumer profile must declare its eight cells"
-        );
-    }
-
-    /// A deleted profile is caught by the declared ⊆ on-disk direction, and an
-    /// unregistered new one by the reverse direction. Exercised over a temp copy of
-    /// the live tree so the demonstration is the REAL gate over the REAL inventory,
-    /// never a synthetic stand-in.
-    #[test]
-    fn deleting_a_profile_reds_and_adding_an_undeclared_one_reds() {
-        let root = repo_root();
-        let temp = tempfile::tempdir().expect("temp dir");
-        let staged = temp.path().join("repo");
-        std::fs::create_dir_all(staged.join(PROJECTIONS_DIR)).expect("staged tree");
-        std::fs::copy(
-            root.join(PROJECTION_PROFILES_PATH),
-            staged.join(PROJECTION_PROFILES_PATH),
-        )
-        .expect("stage inventory");
-        for path in on_disk_profiles(&root).expect("live profiles") {
-            std::fs::copy(root.join(&path), staged.join(&path)).expect("stage profile");
-        }
-        check_projection_profile_inventory(&staged).expect("the staged copy is exact");
-
-        let victim = staged
-            .join(PROJECTIONS_DIR)
-            .join("schema-org-procedures.ttl");
-        std::fs::remove_file(&victim).expect("delete a profile");
-        let error = check_projection_profile_inventory(&staged)
-            .expect_err("deleting a consumer profile must red");
-        assert!(
-            error.to_string().contains("no longer on disk")
-                && error.to_string().contains("schema-org-procedures.ttl"),
-            "unexpected message: {error}"
-        );
-
-        std::fs::copy(
-            root.join(PROJECTIONS_DIR).join("schema-org-procedures.ttl"),
-            &victim,
-        )
-        .expect("restore the profile");
-        check_projection_profile_inventory(&staged).expect("restored copy is exact again");
-
-        std::fs::copy(&victim, staged.join(PROJECTIONS_DIR).join("undeclared.ttl"))
-            .expect("add an undeclared profile");
-        let error = check_projection_profile_inventory(&staged)
-            .expect_err("an undeclared profile must red");
-        assert!(
-            error.to_string().contains("not declared in the inventory"),
-            "unexpected message: {error}"
-        );
-    }
-
-    /// Hollowing a profile out — the file survives, its cells do not — reds on the
-    /// cell-count ratchet, so "parses but projects nothing" is not a silent pass.
-    #[test]
-    fn hollowing_a_profile_out_reds_on_the_cell_floor() {
-        let root = repo_root();
-        let temp = tempfile::tempdir().expect("temp dir");
-        let staged = temp.path().join("repo");
-        std::fs::create_dir_all(staged.join(PROJECTIONS_DIR)).expect("staged tree");
-        std::fs::copy(
-            root.join(PROJECTION_PROFILES_PATH),
-            staged.join(PROJECTION_PROFILES_PATH),
-        )
-        .expect("stage inventory");
-        for path in on_disk_profiles(&root).expect("live profiles") {
-            std::fs::copy(root.join(&path), staged.join(&path)).expect("stage profile");
-        }
-        std::fs::write(
-            staged
-                .join(PROJECTIONS_DIR)
-                .join("schema-org-procedures.ttl"),
-            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
-        )
-        .expect("hollow the profile out");
-        let error =
-            check_projection_profile_inventory(&staged).expect_err("an emptied profile must red");
-        assert!(
-            error.to_string().contains("cell-count ratchet"),
-            "unexpected message: {error}"
-        );
-    }
-}
+mod tests;

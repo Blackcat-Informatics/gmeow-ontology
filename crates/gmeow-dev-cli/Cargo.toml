@@ -19,6 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 gmeow-action-cache = { path = "../action-cache" }
+gmeow-lang-bridge = { path = "../lang-bridge" }
 gmeow-cli-core = { path = "../cli-core" }
 clap = { version = "4", features = ["derive"] }
 gmeow-ns = { path = "../ns" }

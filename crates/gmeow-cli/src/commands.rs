@@ -5,8 +5,25 @@
 //! an already-native backend, following the console convention: product results
 //! → stdout, errors/diagnostics → stderr, and a `0`/`1` exit code.
 
+mod prove;
+pub(crate) use prove::prove;
+mod correspondence;
+pub(crate) use correspondence::{
+    correspondence_compose, correspondence_execute, correspondence_explain, correspondence_inspect,
+    correspondence_merge, correspondence_project_plan, correspondence_recover_plan,
+};
+mod reasoning_report;
+
+use reasoning_report::{
+    DecisionClass, EngineIdentity, EvidenceGrade, GateAdmission, InputIdentity,
+    NativeReasoningReport, PreservationReport, ProgramIdentity, ReasoningBoundary,
+    ReasoningMetrics, ReasoningOperation, ReasoningPayload, ReasoningReportCore, ReportDiagnostic,
+    TermPair,
+};
+
 use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -669,6 +686,18 @@ pub fn verify_release_bundle(
         Ok(b) => b,
         Err(code) => return code,
     };
+    let receipt_path = gmeow_gts_profile::ingestion_receipt_path(bundle);
+    let receipt = match read_bytes(reporter, &receipt_path) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    if let Err(error) = gmeow_gts_profile::read_ingestion_receipt(&bundle_bytes, &receipt) {
+        return fail(
+            reporter,
+            "gmeow-cli.verify-release.failed",
+            format!("invalid release ingestion companion: {error}"),
+        );
+    }
     let armor = match public_key {
         None => None,
         Some(path) => match std::fs::read_to_string(path) {
@@ -1096,6 +1125,16 @@ pub fn conjecture_test(
             );
         }
     };
+    let policy = match gmeow_mcp::prepared_action_policy(BUNDLE_GTS) {
+        Ok(policy) => policy,
+        Err(error) => {
+            return fail(
+                reporter,
+                "gmeow-cli.action-policy",
+                format!("cannot read the required native action policy: {error}"),
+            );
+        }
+    };
     let out = match gmeow_mcp::run_conjecture_test(
         &gmeow_mcp::ConjectureRunInput {
             formula_ttl: &formula_ttl,
@@ -1107,6 +1146,7 @@ pub fn conjecture_test(
             max_answers,
         },
         &medium,
+        &policy,
     ) {
         Ok(out) => out,
         Err(e) => {
@@ -1205,6 +1245,16 @@ pub fn candidate_submit(
             );
         }
     };
+    let policy = match gmeow_mcp::prepared_action_policy(BUNDLE_GTS) {
+        Ok(policy) => policy,
+        Err(error) => {
+            return fail(
+                reporter,
+                "gmeow-cli.action-policy",
+                format!("cannot read the required native action policy: {error}"),
+            );
+        }
+    };
     let out = match gmeow_mcp::run_submit_candidate(
         &gmeow_mcp::CandidateSubmitInput {
             formula_ttl: &formula_ttl,
@@ -1218,6 +1268,7 @@ pub fn candidate_submit(
             max_answers,
         },
         &medium,
+        &policy,
     ) {
         Ok(out) => out,
         Err(e) => {
@@ -1275,11 +1326,22 @@ pub fn candidate_withdraw(
             );
         }
     };
+    let policy = match gmeow_mcp::prepared_action_policy(BUNDLE_GTS) {
+        Ok(policy) => policy,
+        Err(error) => {
+            return fail(
+                reporter,
+                "gmeow-cli.action-policy",
+                format!("cannot read the required native action policy: {error}"),
+            );
+        }
+    };
     let body = match gmeow_mcp::run_withdraw_candidate(
         candidate_id,
         reason.unwrap_or(""),
         dry_run,
         &medium,
+        &policy,
     ) {
         Ok(body) => body,
         Err(e) => {
@@ -1427,7 +1489,7 @@ fn parse_candidates_file(text: &str) -> Result<Vec<RelationTuple<i64>>, Diag> {
 }
 
 /// Load an RDF facts file (Turtle or N-Triples, chosen by extension) and
-/// re-home every triple into the isolated [`HYBRID_QUERY_WORLD`] — the
+/// re-home every RDF record into the isolated [`HYBRID_QUERY_WORLD`] — the
 /// caller's asserted facts join against the provider relation inside one
 /// scenario world, never against any other world.
 fn load_hybrid_query_facts(reporter: &dyn Reporter, facts: &Path) -> Result<WorldStore, i32> {
@@ -1457,14 +1519,7 @@ fn load_hybrid_query_facts(reporter: &dyn Reporter, facts: &Path) -> Result<Worl
             format!("cannot parse {}: {e}", facts.display()),
         )
     })?;
-    let world = RdfTerm::iri(HYBRID_QUERY_WORLD);
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        builder.push_owned_quad(
-            &RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone()),
-        );
-    }
-    let dataset = builder.freeze().map_err(|e| {
+    let dataset = place_world_dataset(parsed, HYBRID_QUERY_WORLD).map_err(|e| {
         fail(
             reporter,
             "gmeow-cli.hybrid-query.facts-rehome",
@@ -2340,67 +2395,471 @@ fn parse_rdf_file(
     prefix: &str,
     path: &Path,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
-    let bytes = read_bytes(reporter, path)?;
+    match load_reasoning_input(path, "rdf-input") {
+        Ok(loaded) => Ok(loaded.dataset),
+        Err(error) => Err(fail(
+            reporter,
+            &format!("{prefix}.{}", error.code.to_ascii_lowercase()),
+            error.detail,
+        )),
+    }
+}
+
+struct LoadedReasoningInput {
+    dataset: std::sync::Arc<purrdf::RdfDataset>,
+    identity: InputIdentity,
+}
+
+struct ReasoningInputError {
+    code: &'static str,
+    detail: String,
+    identities: Vec<InputIdentity>,
+}
+
+fn load_reasoning_input(
+    path: &Path,
+    role: &'static str,
+) -> Result<LoadedReasoningInput, ReasoningInputError> {
+    let bytes = std::fs::read(path).map_err(|error| ReasoningInputError {
+        code: "INPUT_READ_FAILED",
+        detail: format!("cannot read {}: {error}", path.display()),
+        identities: Vec::new(),
+    })?;
     let media = match path.extension().and_then(|e| e.to_str()) {
         Some(ext) => ext.to_lowercase(),
         None => {
-            return Err(fail(
-                reporter,
-                &format!("{prefix}.unknown-syntax"),
-                format!(
+            let identity = InputIdentity::from_bytes(path, role, "unknown", None, &bytes);
+            return Err(ReasoningInputError {
+                code: "INPUT_SYNTAX_UNKNOWN",
+                detail: format!(
                     "cannot infer RDF syntax for {} (no extension); expected one of \
                      .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
                     path.display()
                 ),
-            ));
+                identities: vec![identity],
+            });
         }
     };
     let base = std::path::absolute(path)
         .ok()
         .map(|abs| format!("file://{}", abs.display()));
-    purrdf::parse_dataset(&bytes, &media, base.as_deref()).map_err(|e| {
-        fail(
+    let identity = InputIdentity::from_bytes(path, role, media.clone(), base.clone(), &bytes);
+    let dataset = purrdf::parse_dataset(&bytes, &media, base.as_deref()).map_err(|error| {
+        ReasoningInputError {
+            code: "INPUT_PARSE_FAILED",
+            detail: format!("cannot parse {} as {media}: {error}", path.display()),
+            identities: vec![identity.clone()],
+        }
+    })?;
+    Ok(LoadedReasoningInput { dataset, identity })
+}
+
+fn native_program(operation: ReasoningOperation, fragment: &str) -> ProgramIdentity {
+    match operation {
+        ReasoningOperation::Consistency
+        | ReasoningOperation::Classification
+        | ReasoningOperation::Realization => ProgramIdentity::selected(
+            fragment,
+            &[
+                operation.as_str(),
+                purrdf::entail::DL_CALCULUS_VERSION,
+                purrdf::entail::DL_TRUST_BASE_VERSION,
+            ],
+        ),
+        ReasoningOperation::Entailment | ReasoningOperation::AxiomConsistency => {
+            let contract = gmeow_logic::reason::native_contract_hash();
+            ProgramIdentity::selected(
+                fragment,
+                &[
+                    operation.as_str(),
+                    gmeow_logic::counterfactual::SOLVER_VERSION,
+                    &contract,
+                ],
+            )
+        }
+    }
+}
+
+fn reasoning_engine(operation: ReasoningOperation) -> EngineIdentity {
+    match operation {
+        ReasoningOperation::Consistency
+        | ReasoningOperation::Classification
+        | ReasoningOperation::Realization => EngineIdentity::purrdf_dl(),
+        ReasoningOperation::Entailment | ReasoningOperation::AxiomConsistency => {
+            EngineIdentity::gmeow_native()
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn publish_reasoning_failure(
+    reporter: &dyn Reporter,
+    diagnostic_prefix: &str,
+    operation: ReasoningOperation,
+    fragment: &str,
+    decision: DecisionClass,
+    verdict: &str,
+    input_status: &str,
+    inputs: Vec<InputIdentity>,
+    code: &'static str,
+    detail: String,
+    format: OutputFormat,
+    gate: bool,
+) -> i32 {
+    emit_error(
+        reporter,
+        &format!("{diagnostic_prefix}.{}", code.to_ascii_lowercase()),
+        detail.clone(),
+    );
+    NativeReasoningReport {
+        common: ReasoningReportCore::refused(
+            operation,
+            decision,
+            verdict,
+            input_status,
+            inputs,
+            native_program(operation, fragment),
+            reasoning_engine(operation),
+            ReportDiagnostic {
+                code: code.to_owned(),
+                detail,
+            },
+        ),
+        result: ReasoningPayload::Empty,
+    }
+    .publish(format, gate)
+}
+
+fn dl_service_failure_report(
+    reporter: &dyn Reporter,
+    diagnostic_prefix: &str,
+    operation: ReasoningOperation,
+    fragment: &str,
+    input: InputIdentity,
+    error: gmeow_logic::reasoner_services::DlServiceError,
+    format: OutputFormat,
+    gate: bool,
+) -> i32 {
+    use gmeow_logic::reasoner_services::DlServiceFailureKind;
+
+    let detail = error.detail().to_owned();
+    match error.kind() {
+        DlServiceFailureKind::NoModel => {
+            let verdict = if operation == ReasoningOperation::Consistency {
+                "false"
+            } else {
+                "no-model"
+            };
+            emit_error(
+                reporter,
+                &format!("{diagnostic_prefix}.no-model"),
+                detail.clone(),
+            );
+            NativeReasoningReport {
+                common: ReasoningReportCore {
+                    schema_version: 1,
+                    operation,
+                    verdict: verdict.to_owned(),
+                    decision: DecisionClass::Negative,
+                    input_status: "valid".to_owned(),
+                    evaluation_status: "completed".to_owned(),
+                    completeness: "complete-for-fragment".to_owned(),
+                    information_state: "opposed".to_owned(),
+                    preservation: PreservationReport::exact(),
+                    evidence_grade: EvidenceGrade::Certificate,
+                    gate_admission: GateAdmission::Refused,
+                    declared_fragment: Some(fragment.to_owned()),
+                    inputs: vec![input],
+                    program: native_program(operation, fragment),
+                    engine: reasoning_engine(operation),
+                    metrics: ReasoningMetrics::default(),
+                    boundaries: Vec::new(),
+                    diagnostics: vec![ReportDiagnostic {
+                        code: "ONTOLOGY_HAS_NO_MODEL".to_owned(),
+                        detail,
+                    }],
+                },
+                result: if operation == ReasoningOperation::Consistency {
+                    ReasoningPayload::Consistency {
+                        has_model: Some(false),
+                    }
+                } else {
+                    ReasoningPayload::Empty
+                },
+            }
+            .publish(format, gate)
+        }
+        DlServiceFailureKind::Malformed => publish_reasoning_failure(
             reporter,
-            &format!("{prefix}.parse"),
-            format!("cannot parse {} as {media}: {e}", path.display()),
-        )
-    })
+            diagnostic_prefix,
+            operation,
+            fragment,
+            DecisionClass::Malformed,
+            "malformed",
+            "invalid",
+            vec![input],
+            "REASONER_INPUT_MALFORMED",
+            detail,
+            format,
+            gate,
+        ),
+        DlServiceFailureKind::Execution => publish_reasoning_failure(
+            reporter,
+            diagnostic_prefix,
+            operation,
+            fragment,
+            DecisionClass::ExecutionFailure,
+            "execution-failure",
+            "valid",
+            vec![input],
+            "REASONER_EXECUTION_FAILED",
+            detail,
+            format,
+            gate,
+        ),
+    }
+}
+
+fn input_failure_report(
+    reporter: &dyn Reporter,
+    diagnostic_prefix: &str,
+    operation: ReasoningOperation,
+    fragment: &str,
+    error: ReasoningInputError,
+    format: OutputFormat,
+    gate: bool,
+) -> i32 {
+    publish_reasoning_failure(
+        reporter,
+        diagnostic_prefix,
+        operation,
+        fragment,
+        DecisionClass::Malformed,
+        "malformed",
+        "invalid",
+        error.identities,
+        error.code,
+        error.detail,
+        format,
+        gate,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn dl_report_core<T>(
+    operation: ReasoningOperation,
+    fragment: &str,
+    verdict: &str,
+    decision: DecisionClass,
+    information_state: &str,
+    evidence_grade: EvidenceGrade,
+    gate_admission: GateAdmission,
+    input: InputIdentity,
+    certified: &gmeow_logic::reasoner_services::CertifiedAnswer<T>,
+) -> ReasoningReportCore {
+    let boundaries: Vec<_> = certified
+        .boundaries
+        .iter()
+        .map(|boundary| ReasoningBoundary {
+            code: boundary.construct().to_string(),
+            detail: boundary.reason().to_owned(),
+        })
+        .collect();
+    let preservation = if certified.is_exact() {
+        PreservationReport::exact()
+    } else {
+        PreservationReport::sound_under(boundaries.iter().map(|row| row.code.clone()).collect())
+    };
+    ReasoningReportCore {
+        schema_version: 1,
+        operation,
+        verdict: verdict.to_owned(),
+        decision,
+        input_status: "valid".to_owned(),
+        evaluation_status: if certified.is_decided() {
+            "completed"
+        } else {
+            "budget-exhausted"
+        }
+        .to_owned(),
+        completeness: if certified.is_decided() {
+            "complete-for-fragment"
+        } else {
+            "incomplete"
+        }
+        .to_owned(),
+        information_state: information_state.to_owned(),
+        preservation,
+        evidence_grade,
+        gate_admission,
+        declared_fragment: Some(fragment.to_owned()),
+        inputs: vec![input],
+        program: native_program(operation, fragment),
+        engine: reasoning_engine(operation),
+        metrics: ReasoningMetrics {
+            decisions: Some(certified.decisions),
+            steps: Some(certified.steps),
+            budget: Some(certified.budget),
+        },
+        boundaries,
+        diagnostics: Vec::new(),
+    }
 }
 
 /// `gmeow entails` — decide whether the premise graph entails the conclusion
 /// (`A ⊨ C`) natively, by refutation over the DL consistency calculus
-/// ([`gmeow_logic::entail::dl_entails`]). Prints a stable, greppable verdict:
+/// ([`gmeow_logic::entail::dl_entailment_assessment`]). Prints a stable, greppable verdict:
 /// `verdict entailed` / `verdict not-entailed` / `verdict gap` (plus `gap-shape` /
-/// `gap-detail` for a gap). A malformed / unparsable input is a hard fail (exit 1);
-/// an honest capability gap is a successful, decided answer (exit 0).
-pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i32 {
-    let premise_ds = match parse_rdf_file(reporter, "gmeow-cli.entails", premise) {
-        Ok(ds) => ds,
-        Err(code) => return code,
+/// `gap-detail` for a gap). Malformed input exits 4, execution failure exits 5,
+/// and reporter mode retains exit 0 for every well-formed operation result.
+pub fn entails(
+    reporter: &dyn Reporter,
+    premise: &Path,
+    conclusion: &Path,
+    format: OutputFormat,
+    gate: bool,
+) -> i32 {
+    const FRAGMENT: &str = "gmeow-native-default-context-dl-refutation-v1";
+    let premise_input = match load_reasoning_input(premise, "premise") {
+        Ok(input) => input,
+        Err(error) => {
+            return input_failure_report(
+                reporter,
+                "gmeow-cli.entails",
+                ReasoningOperation::Entailment,
+                FRAGMENT,
+                error,
+                format,
+                gate,
+            );
+        }
     };
-    let conclusion_ds = match parse_rdf_file(reporter, "gmeow-cli.entails", conclusion) {
-        Ok(ds) => ds,
-        Err(code) => return code,
+    let conclusion_input = match load_reasoning_input(conclusion, "conclusion") {
+        Ok(input) => input,
+        Err(mut error) => {
+            error.identities.insert(0, premise_input.identity);
+            return input_failure_report(
+                reporter,
+                "gmeow-cli.entails",
+                ReasoningOperation::Entailment,
+                FRAGMENT,
+                error,
+                format,
+                gate,
+            );
+        }
     };
+    let inputs = vec![premise_input.identity, conclusion_input.identity];
 
-    let verdict = match gmeow_logic::entail::dl_entails(premise_ds.as_ref(), conclusion_ds.as_ref())
-    {
+    let assessment = match gmeow_logic::entail::dl_entailment_assessment(
+        premise_input.dataset.as_ref(),
+        conclusion_input.dataset.as_ref(),
+    ) {
         Ok(v) => v,
         Err(e) => {
-            return fail(
+            return publish_reasoning_failure(
                 reporter,
                 "gmeow-cli.entails.failed",
+                ReasoningOperation::Entailment,
+                FRAGMENT,
+                DecisionClass::ExecutionFailure,
+                "execution-failure",
+                "valid",
+                inputs,
+                "ENTAILMENT_EXECUTION_FAILED",
                 format!("entailment check failed: {e}"),
+                format,
+                gate,
             );
         }
     };
 
-    println!("verdict {}", verdict.as_token());
-    if let gmeow_logic::entail::EntailmentVerdict::Gap(gap) = &verdict {
-        println!("gap-shape {}", gap.shape.as_token());
-        println!("gap-detail {}", gap.detail);
+    let (decision, information, evidence, admission, preservation, boundaries, payload) =
+        match &assessment.verdict {
+            gmeow_logic::entail::EntailmentVerdict::Entailed => (
+                DecisionClass::Positive,
+                "supported",
+                EvidenceGrade::Certificate,
+                GateAdmission::Certificate,
+                PreservationReport::exact(),
+                Vec::new(),
+                ReasoningPayload::Entailment {
+                    entailed: Some(true),
+                    gap_shape: None,
+                    gap_detail: None,
+                },
+            ),
+            gmeow_logic::entail::EntailmentVerdict::NotEntailed => (
+                DecisionClass::Negative,
+                "opposed",
+                EvidenceGrade::Certificate,
+                GateAdmission::Refused,
+                PreservationReport::exact(),
+                Vec::new(),
+                ReasoningPayload::Entailment {
+                    entailed: Some(false),
+                    gap_shape: None,
+                    gap_detail: None,
+                },
+            ),
+            gmeow_logic::entail::EntailmentVerdict::Gap(gap) => {
+                let shape = gap.shape.as_token().to_owned();
+                (
+                    DecisionClass::Unsupported,
+                    "not-evaluated",
+                    EvidenceGrade::Refused,
+                    GateAdmission::Refused,
+                    PreservationReport::unsupported(vec![shape.clone()]),
+                    vec![ReasoningBoundary {
+                        code: shape.clone(),
+                        detail: gap.detail.clone(),
+                    }],
+                    ReasoningPayload::Entailment {
+                        entailed: None,
+                        gap_shape: Some(shape),
+                        gap_detail: Some(gap.detail.clone()),
+                    },
+                )
+            }
+        };
+    NativeReasoningReport {
+        common: ReasoningReportCore {
+            schema_version: 1,
+            operation: ReasoningOperation::Entailment,
+            verdict: assessment.verdict.as_token().to_owned(),
+            decision,
+            input_status: "valid".to_owned(),
+            evaluation_status: if decision == DecisionClass::Unsupported {
+                "unsupported"
+            } else {
+                "completed"
+            }
+            .to_owned(),
+            completeness: if decision == DecisionClass::Unsupported {
+                "unknown"
+            } else {
+                "complete-for-fragment"
+            }
+            .to_owned(),
+            information_state: information.to_owned(),
+            preservation,
+            evidence_grade: evidence,
+            gate_admission: admission,
+            declared_fragment: Some(FRAGMENT.to_owned()),
+            inputs,
+            program: native_program(ReasoningOperation::Entailment, FRAGMENT),
+            engine: reasoning_engine(ReasoningOperation::Entailment),
+            metrics: ReasoningMetrics {
+                decisions: Some(assessment.decisions),
+                steps: Some(assessment.steps),
+                budget: assessment.budget,
+            },
+            boundaries,
+            diagnostics: Vec::new(),
+        },
+        result: payload,
     }
-    0
+    .publish(format, gate)
 }
 
 /// `gmeow consistency` — decide whether an ontology has a model (OWL 2
@@ -2408,45 +2867,107 @@ pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i3
 /// ([`gmeow_logic::reasoner_services::DlReasoner`]). Prints a stable, greppable
 /// three-valued verdict (`true` / `false` / `unknown`) together with the run's
 /// completeness, measured cost, and every construct boundary — none of it flattened
-/// away. A malformed / unparsable input is a hard fail (exit 1); an `unknown`
-/// verdict is a successful, honestly-reported answer (exit 0).
-pub fn consistency(reporter: &dyn Reporter, ontology: &Path, step_cap: Option<u64>) -> i32 {
-    let dataset = match parse_rdf_file(reporter, "gmeow-cli.consistency", ontology) {
-        Ok(ds) => ds,
-        Err(code) => return code,
+/// away. Malformed input exits 4 and execution failure exits 5; an `unknown`
+/// verdict remains an honestly reported result in reporter mode.
+pub fn consistency(
+    reporter: &dyn Reporter,
+    ontology: &Path,
+    step_cap: Option<u64>,
+    format: OutputFormat,
+    gate: bool,
+) -> i32 {
+    const FRAGMENT: &str = "owl2-direct-semantics-dl-v1";
+    let input = match load_reasoning_input(ontology, "ontology") {
+        Ok(input) => input,
+        Err(error) => {
+            return input_failure_report(
+                reporter,
+                "gmeow-cli.consistency",
+                ReasoningOperation::Consistency,
+                FRAGMENT,
+                error,
+                format,
+                gate,
+            );
+        }
     };
     // A `--step-cap` narrows the per-decision tableau budget (clamped down only), so the honest
     // budget-exhausted `unknown` verdict is deterministically reachable; without it the reasoner
     // runs under its full size-derived ceiling.
     let opened = match step_cap {
         Some(cap) => {
-            gmeow_logic::reasoner_services::DlReasoner::with_step_cap(dataset.as_ref(), cap)
+            gmeow_logic::reasoner_services::DlReasoner::with_step_cap(input.dataset.as_ref(), cap)
         }
-        None => gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()),
+        None => gmeow_logic::reasoner_services::DlReasoner::new(input.dataset.as_ref()),
     };
     let reasoner = match opened {
         Ok(r) => r,
         Err(e) => {
-            return fail(
+            return dl_service_failure_report(
                 reporter,
-                "gmeow-cli.consistency.reason",
-                format!(
-                    "cannot open the DL reasoner over {}: {e}",
-                    ontology.display()
-                ),
+                "gmeow-cli.consistency",
+                ReasoningOperation::Consistency,
+                FRAGMENT,
+                input.identity,
+                e,
+                format,
+                gate,
             );
         }
     };
     let certified = reasoner.consistency();
-    println!("verdict {}", certified.answer);
-    println!("completeness {}", certified.completeness);
-    println!("decisions {}", certified.decisions);
-    println!("steps {}", certified.steps);
-    println!("budget {}", certified.budget);
-    for boundary in &certified.boundaries {
-        println!("boundary {boundary}");
+    let (decision, information, evidence, admission, has_model) = match certified.answer {
+        purrdf::entail::Verdict::True if certified.is_exact() => (
+            DecisionClass::Positive,
+            "supported",
+            EvidenceGrade::Certificate,
+            GateAdmission::Certificate,
+            Some(true),
+        ),
+        purrdf::entail::Verdict::True => (
+            DecisionClass::Positive,
+            "undetermined",
+            EvidenceGrade::Attestation,
+            GateAdmission::Attestation,
+            Some(true),
+        ),
+        purrdf::entail::Verdict::False if certified.is_decided() => (
+            DecisionClass::Negative,
+            "opposed",
+            EvidenceGrade::Certificate,
+            GateAdmission::Refused,
+            Some(false),
+        ),
+        purrdf::entail::Verdict::False => (
+            DecisionClass::Undecided,
+            "undetermined",
+            EvidenceGrade::Attestation,
+            GateAdmission::Attestation,
+            None,
+        ),
+        purrdf::entail::Verdict::Unknown => (
+            DecisionClass::Undecided,
+            "undetermined",
+            EvidenceGrade::Attestation,
+            GateAdmission::Attestation,
+            None,
+        ),
+    };
+    NativeReasoningReport {
+        common: dl_report_core(
+            ReasoningOperation::Consistency,
+            FRAGMENT,
+            &certified.answer.to_string(),
+            decision,
+            information,
+            evidence,
+            admission,
+            input.identity,
+            &certified,
+        ),
+        result: ReasoningPayload::Consistency { has_model },
     }
-    0
+    .publish(format, gate)
 }
 
 /// `gmeow profile` — certify an ontology against the OWL 2 profiles (EL, QL, RL, DL,
@@ -2487,57 +3008,109 @@ fn render_term(term: &TermValue) -> String {
 /// closed subsumptions (`subsumption C D`), the transitive reduction (`direct C D`),
 /// the equivalences (`equivalence C D`), the classes forced empty (`unsatisfiable C`),
 /// and the run's completeness + measured cost. An ontology with no model has no
-/// meaningful hierarchy, so classification hard-fails (exit 1) rather than emitting an
-/// empty answer; a malformed / unparsable input is a hard fail too.
-pub fn classify(reporter: &dyn Reporter, ontology: &Path) -> i32 {
-    let dataset = match parse_rdf_file(reporter, "gmeow-cli.classify", ontology) {
-        Ok(ds) => ds,
-        Err(code) => return code,
+/// meaningful hierarchy, so classification returns a typed negative result rather than
+/// emitting an empty answer.
+pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, gate: bool) -> i32 {
+    const FRAGMENT: &str = "owl2-direct-semantics-dl-v1";
+    let input = match load_reasoning_input(ontology, "ontology") {
+        Ok(input) => input,
+        Err(error) => {
+            return input_failure_report(
+                reporter,
+                "gmeow-cli.classify",
+                ReasoningOperation::Classification,
+                FRAGMENT,
+                error,
+                format,
+                gate,
+            );
+        }
     };
-    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()) {
+    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(input.dataset.as_ref()) {
         Ok(r) => r,
         Err(e) => {
-            return fail(
+            return dl_service_failure_report(
                 reporter,
-                "gmeow-cli.classify.reason",
-                format!(
-                    "cannot open the DL reasoner over {}: {e}",
-                    ontology.display()
-                ),
+                "gmeow-cli.classify",
+                ReasoningOperation::Classification,
+                FRAGMENT,
+                input.identity,
+                e,
+                format,
+                gate,
             );
         }
     };
     let certified = match reasoner.classify() {
         Ok(c) => c,
         Err(e) => {
-            return fail(
+            return dl_service_failure_report(
                 reporter,
-                "gmeow-cli.classify.no-model",
-                format!("cannot classify {}: {e}", ontology.display()),
+                "gmeow-cli.classify",
+                ReasoningOperation::Classification,
+                FRAGMENT,
+                input.identity,
+                e,
+                format,
+                gate,
             );
         }
     };
     let hierarchy = &certified.answer;
-    for (sub, sup) in hierarchy.subsumptions() {
-        println!("subsumption {} {}", render_term(sub), render_term(sup));
+    let exact = certified.is_exact();
+    NativeReasoningReport {
+        common: dl_report_core(
+            ReasoningOperation::Classification,
+            FRAGMENT,
+            if exact { "classified" } else { "partial" },
+            if exact {
+                DecisionClass::Positive
+            } else {
+                DecisionClass::Undecided
+            },
+            if exact { "supported" } else { "undetermined" },
+            if exact {
+                EvidenceGrade::Certificate
+            } else {
+                EvidenceGrade::Attestation
+            },
+            if exact {
+                GateAdmission::Certificate
+            } else {
+                GateAdmission::Attestation
+            },
+            input.identity,
+            &certified,
+        ),
+        result: ReasoningPayload::Classification {
+            subsumptions: hierarchy
+                .subsumptions()
+                .iter()
+                .map(|(left, right)| TermPair {
+                    left: render_term(left),
+                    right: render_term(right),
+                })
+                .collect(),
+            direct_subsumptions: hierarchy
+                .direct_subsumptions()
+                .iter()
+                .map(|(left, right)| TermPair {
+                    left: render_term(left),
+                    right: render_term(right),
+                })
+                .collect(),
+            equivalences: hierarchy
+                .equivalences()
+                .iter()
+                .map(|(left, right)| TermPair {
+                    left: render_term(left),
+                    right: render_term(right),
+                })
+                .collect(),
+            unsatisfiable: hierarchy.unsatisfiable().iter().map(render_term).collect(),
+        },
     }
-    for (sub, sup) in hierarchy.direct_subsumptions() {
-        println!("direct {} {}", render_term(sub), render_term(sup));
-    }
-    for (left, right) in hierarchy.equivalences() {
-        println!("equivalence {} {}", render_term(left), render_term(right));
-    }
-    for class in hierarchy.unsatisfiable() {
-        println!("unsatisfiable {}", render_term(class));
-    }
-    println!("completeness {}", certified.completeness);
-    println!("decisions {}", certified.decisions);
-    println!("steps {}", certified.steps);
-    println!("budget {}", certified.budget);
-    for boundary in &certified.boundaries {
-        println!("boundary {boundary}");
-    }
-    0
+    .publish(format, gate)
 }
 
 /// `gmeow realize` — print the entailed types of an ontology's named individuals,
@@ -2545,55 +3118,100 @@ pub fn classify(reporter: &dyn Reporter, ontology: &Path) -> i32 {
 /// ([`gmeow_logic::reasoner_services::DlReasoner::realize`]). Emits every established
 /// type (`type a C`), the most-specific ones (`direct-type a C`), and the run's
 /// completeness + measured cost. An ontology with no model has no meaningful
-/// realization, so it hard-fails (exit 1) rather than emitting an empty answer; a
-/// malformed / unparsable input is a hard fail too.
-pub fn realize(reporter: &dyn Reporter, ontology: &Path) -> i32 {
-    let dataset = match parse_rdf_file(reporter, "gmeow-cli.realize", ontology) {
-        Ok(ds) => ds,
-        Err(code) => return code,
+/// realization, so it returns a typed negative result rather than emitting an empty
+/// answer.
+pub fn realize(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, gate: bool) -> i32 {
+    const FRAGMENT: &str = "owl2-direct-semantics-dl-v1";
+    let input = match load_reasoning_input(ontology, "ontology") {
+        Ok(input) => input,
+        Err(error) => {
+            return input_failure_report(
+                reporter,
+                "gmeow-cli.realize",
+                ReasoningOperation::Realization,
+                FRAGMENT,
+                error,
+                format,
+                gate,
+            );
+        }
     };
-    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()) {
+    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(input.dataset.as_ref()) {
         Ok(r) => r,
         Err(e) => {
-            return fail(
+            return dl_service_failure_report(
                 reporter,
-                "gmeow-cli.realize.reason",
-                format!(
-                    "cannot open the DL reasoner over {}: {e}",
-                    ontology.display()
-                ),
+                "gmeow-cli.realize",
+                ReasoningOperation::Realization,
+                FRAGMENT,
+                input.identity,
+                e,
+                format,
+                gate,
             );
         }
     };
     let certified = match reasoner.realize() {
         Ok(c) => c,
         Err(e) => {
-            return fail(
+            return dl_service_failure_report(
                 reporter,
-                "gmeow-cli.realize.no-model",
-                format!("cannot realize {}: {e}", ontology.display()),
+                "gmeow-cli.realize",
+                ReasoningOperation::Realization,
+                FRAGMENT,
+                input.identity,
+                e,
+                format,
+                gate,
             );
         }
     };
     let realization = &certified.answer;
-    for (individual, class) in realization.types() {
-        println!("type {} {}", render_term(individual), render_term(class));
+    let exact = certified.is_exact();
+    NativeReasoningReport {
+        common: dl_report_core(
+            ReasoningOperation::Realization,
+            FRAGMENT,
+            if exact { "realized" } else { "partial" },
+            if exact {
+                DecisionClass::Positive
+            } else {
+                DecisionClass::Undecided
+            },
+            if exact { "supported" } else { "undetermined" },
+            if exact {
+                EvidenceGrade::Certificate
+            } else {
+                EvidenceGrade::Attestation
+            },
+            if exact {
+                GateAdmission::Certificate
+            } else {
+                GateAdmission::Attestation
+            },
+            input.identity,
+            &certified,
+        ),
+        result: ReasoningPayload::Realization {
+            types: realization
+                .types()
+                .iter()
+                .map(|(left, right)| TermPair {
+                    left: render_term(left),
+                    right: render_term(right),
+                })
+                .collect(),
+            direct_types: realization
+                .direct_types()
+                .iter()
+                .map(|(left, right)| TermPair {
+                    left: render_term(left),
+                    right: render_term(right),
+                })
+                .collect(),
+        },
     }
-    for (individual, class) in realization.direct_types() {
-        println!(
-            "direct-type {} {}",
-            render_term(individual),
-            render_term(class)
-        );
-    }
-    println!("completeness {}", certified.completeness);
-    println!("decisions {}", certified.decisions);
-    println!("steps {}", certified.steps);
-    println!("budget {}", certified.budget);
-    for boundary in &certified.boundaries {
-        println!("boundary {boundary}");
-    }
-    0
+    .publish(format, gate)
 }
 
 /// `gmeow module` — extract the syntactic-locality module of an ontology for a seed
@@ -2681,10 +3299,18 @@ struct RetainedBoundaryRow {
     reason: String,
 }
 
+/// A source grammar contract read from the same shipped native manifest.
+struct SourceAdmissionRow {
+    id: String,
+    label: String,
+    requirement: String,
+}
+
 /// The decidability surface extracted from a graph source.
 struct DecidabilitySurface {
     decided: Vec<DecidedFragmentRow>,
     boundaries: Vec<RetainedBoundaryRow>,
+    source_admissions: Vec<SourceAdmissionRow>,
 }
 
 /// Load the graph source the `logic fragments` verb queries: the embedded
@@ -2730,86 +3356,70 @@ fn fragments_graph_source(
 /// `module_ttl_projects_the_kernel_registry` agreement test asserts is exactly the
 /// Rust `decided_fragments()` / `retained_boundaries()` registry. Rows are returned
 /// sorted by id (deterministic).
-fn extract_decidability_surface(dataset: &purrdf::RdfDataset) -> DecidabilitySurface {
-    let decided_class = format!("{LOGIC_FRAGMENTS_NS}DecidedFragment");
-    let decides_under = format!("{LOGIC_FRAGMENTS_NS}decidesUnderPattern");
-    let completeness_bound = format!("{LOGIC_FRAGMENTS_NS}fragmentCompletenessBound");
-    let boundary_reason = format!("{LOGIC_FRAGMENTS_NS}fragmentBoundaryReason");
-
-    let local = |iri: &str| iri.strip_prefix(LOGIC_FRAGMENTS_NS).map(str::to_owned);
-
-    // A decided fragment is a subject typed logic:DecidedFragment carrying a deciding
-    // pattern + completeness bound; a retained boundary is a subject carrying a
-    // logic:fragmentBoundaryReason. Both are keyed by their local name; labels are
-    // collected for every logic: subject and joined in at render time.
-    let mut decided_ids: BTreeSet<String> = BTreeSet::new();
-    let mut pattern_of: BTreeMap<String, String> = BTreeMap::new();
-    let mut bound_of: BTreeMap<String, String> = BTreeMap::new();
-    let mut reason_of: BTreeMap<String, String> = BTreeMap::new();
-    let mut label_of: BTreeMap<String, String> = BTreeMap::new();
-
+fn extract_decidability_surface(
+    dataset: &purrdf::RdfDataset,
+) -> Result<DecidabilitySurface, String> {
+    let registry = gmeow_logic::reason::NativeFragmentRegistry::observe(dataset)
+        .map_err(|error| error.to_string())?;
+    let mut labels = BTreeMap::new();
     for quad in dataset.owned_quads() {
-        let RdfTerm::Iri(subject) = &quad.subject else {
+        if quad.predicate != RDFS_LABEL_IRI {
             continue;
-        };
-        let Some(subj) = local(subject) else {
-            continue;
-        };
-        match quad.predicate.as_str() {
-            RDF_TYPE_IRI => {
-                if let RdfTerm::Iri(o) = &quad.object
-                    && *o == decided_class
-                {
-                    decided_ids.insert(subj);
-                }
-            }
-            RDFS_LABEL_IRI => {
-                if let RdfTerm::Literal(l) = &quad.object {
-                    label_of.insert(subj, l.lexical_form.clone());
-                }
-            }
-            p if p == decides_under => {
-                if let RdfTerm::Iri(o) = &quad.object
-                    && let Some(pl) = local(o)
-                {
-                    pattern_of.insert(subj, pl);
-                }
-            }
-            p if p == completeness_bound => {
-                if let RdfTerm::Literal(l) = &quad.object {
-                    bound_of.insert(subj, l.lexical_form.clone());
-                }
-            }
-            p if p == boundary_reason => {
-                if let RdfTerm::Literal(l) = &quad.object {
-                    reason_of.insert(subj, l.lexical_form.clone());
-                }
-            }
-            _ => {}
+        }
+        if let (RdfTerm::Iri(subject), RdfTerm::Literal(label)) = (&quad.subject, &quad.object)
+            && let Some(local) = subject.strip_prefix(LOGIC_FRAGMENTS_NS)
+        {
+            labels.insert(local.to_owned(), label.lexical_form.clone());
         }
     }
-
-    let decided = decided_ids
-        .into_iter()
+    let source_admissions = registry
+        .source_admission_ids
+        .iter()
+        .map(|id| {
+            let label = labels
+                .get(id)
+                .filter(|label| !label.trim().is_empty())
+                .ok_or_else(|| format!("source admission {id} has no label"))?
+                .clone();
+            Ok(SourceAdmissionRow {
+                id: id.clone(),
+                label,
+                requirement: registry.source_admission_requirements[id].clone(),
+            })
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    let decided = registry
+        .decided_ids
+        .iter()
         .map(|id| DecidedFragmentRow {
-            pattern: pattern_of.get(&id).cloned().unwrap_or_default(),
-            label: label_of.get(&id).cloned().unwrap_or_default(),
-            bound: bound_of.get(&id).cloned().unwrap_or_default(),
-            id,
+            id: id.clone(),
+            label: labels.get(id).cloned().unwrap_or_default(),
+            pattern: registry
+                .deciding_patterns
+                .get(id)
+                .cloned()
+                .unwrap_or_default(),
+            bound: registry
+                .completeness_bounds
+                .get(id)
+                .cloned()
+                .unwrap_or_default(),
         })
         .collect();
-    let boundaries = reason_of
+    let boundaries = registry
+        .boundary_reasons
         .into_iter()
         .map(|(id, reason)| RetainedBoundaryRow {
-            label: label_of.get(&id).cloned().unwrap_or_default(),
+            label: labels.get(&id).cloned().unwrap_or_default(),
             id,
             reason,
         })
         .collect();
-    DecidabilitySurface {
+    Ok(DecidabilitySurface {
         decided,
         boundaries,
-    }
+        source_admissions,
+    })
 }
 
 /// Render the decidability surface as deterministic, greppable human text.
@@ -2828,6 +3438,16 @@ fn render_fragments_text(surface: &DecidabilitySurface) -> String {
         let _ = writeln!(out, "boundary {}", b.id);
         let _ = writeln!(out, "  label {}", b.label);
         let _ = writeln!(out, "  reason {}", b.reason);
+    }
+    let _ = writeln!(
+        out,
+        "source-admission-contracts {}",
+        surface.source_admissions.len()
+    );
+    for admission in &surface.source_admissions {
+        let _ = writeln!(out, "source-admission {}", admission.id);
+        let _ = writeln!(out, "  label {}", admission.label);
+        let _ = writeln!(out, "  requirement {}", admission.requirement);
     }
     out
 }
@@ -2860,6 +3480,9 @@ fn render_fragments_json(surface: &DecidabilitySurface) -> Result<String, serde_
     let doc = serde_json::json!({
         "decided_fragments": decided,
         "retained_boundaries": boundaries,
+        "source_admission_contracts": surface.source_admissions.iter().map(|admission| serde_json::json!({
+            "id": admission.id, "label": admission.label, "requirement": admission.requirement,
+        })).collect::<Vec<_>>(),
     });
     serde_json::to_string_pretty(&doc)
 }
@@ -2886,8 +3509,20 @@ pub fn logic_fragments(
         Ok(d) => d,
         Err(code) => return code,
     };
-    let surface = extract_decidability_surface(dataset.as_ref());
-    if surface.decided.is_empty() && surface.boundaries.is_empty() {
+    let surface = match extract_decidability_surface(dataset.as_ref()) {
+        Ok(surface) => surface,
+        Err(message) => {
+            return fail(
+                reporter,
+                "gmeow-cli.logic-fragments.invalid-surface",
+                message,
+            );
+        }
+    };
+    if surface.decided.is_empty()
+        && surface.boundaries.is_empty()
+        && surface.source_admissions.is_empty()
+    {
         return fail(
             reporter,
             "gmeow-cli.logic-fragments.empty-surface",
@@ -2966,6 +3601,56 @@ fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfD
             format!("cannot parse {} as Turtle: {e}", path.display()),
         )
     })
+}
+
+/// Assess a caller-supplied contextual query with the native finite modal kernel.
+/// The complete shared result and proof are emitted even for fragment refusal or
+/// budget exhaustion; either computation outcome returns a nonzero status.
+pub fn logic_evaluate(
+    reporter: &dyn Reporter,
+    input: &Path,
+    request: &str,
+    max_steps: Option<u64>,
+) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-evaluate";
+    let bytes = match read_bytes(reporter, input) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let suffix = input
+        .extension()
+        .map(|suffix| format!(".{}", suffix.to_string_lossy().to_ascii_lowercase()));
+    let Some(format) = suffix.as_deref().and_then(rdf_format_for_suffix) else {
+        return fail(
+            reporter,
+            CODE,
+            format!("unknown RDF format: {}", input.display()),
+        );
+    };
+    let dataset = match purrdf::parse_dataset(&bytes, format, None) {
+        Ok(dataset) => dataset,
+        Err(error) => {
+            return fail(
+                reporter,
+                CODE,
+                format!("cannot parse {}: {error}", input.display()),
+            );
+        }
+    };
+    let assessment =
+        match gmeow_logic::contextual::evaluate_request(&dataset, request, max_steps, None) {
+            Ok(assessment) => assessment,
+            Err(error) => return fail(reporter, CODE, error.to_string()),
+        };
+    let projection = match gmeow_logic::result_rdf::project_contextual_dataset(&assessment) {
+        Ok(projection) => projection,
+        Err(error) => {
+            reporter.report(&report_diag(error, "gmeow"));
+            return 1;
+        }
+    };
+    print!("{projection}");
+    i32::from(assessment.result.evaluation != gmeow_logic::result::EvaluationStatus::Completed)
 }
 
 /// `gmeow logic backward` — evaluate one or more authored `logic:ReasoningProgram`
@@ -3175,59 +3860,60 @@ fn session_load_program(
 }
 
 /// Load an RDF file (Turtle/N-Triples/N-Quads/TriG, syntax inferred from the
-/// extension) and re-home every quad into the single named-graph `world`, so the
+/// extension) and re-home every RDF record into the single named-graph `world`, so the
 /// façade sees exactly one world regardless of the source serialization's graph
 /// structure. A hard fail (never a degraded empty world) on read/parse/freeze error.
 fn session_load_world_dataset(
     reporter: &dyn Reporter,
     path: &Path,
     world: &str,
-) -> Result<RdfDataset, i32> {
+) -> Result<Arc<RdfDataset>, i32> {
     let parsed = parse_rdf_file(reporter, "gmeow-cli.logic-session", path)?;
-    let graph = RdfTerm::iri(world.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        builder.push_owned_quad(
-            &RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(graph.clone()),
-        );
-    }
-    let dataset = builder.freeze().map_err(|e| {
+    place_world_dataset(parsed, world).map_err(|e| {
         fail(
             reporter,
             "gmeow-cli.logic-session.edb-rehome",
             format!(
-                "cannot re-home {} into the session world: {e}",
+                "cannot place {} into the session world: {e}",
                 path.display()
             ),
-        )
-    })?;
-    // The façade takes an owned `RdfDataset` for deltas/suppressions; the builder
-    // hands back a fresh single-reference `Arc`, so unwrap it into the owned world.
-    Arc::try_unwrap(dataset).map_err(|_| {
-        fail(
-            reporter,
-            "gmeow-cli.logic-session.edb-own",
-            "internal: a freshly-frozen session dataset was unexpectedly shared",
         )
     })
 }
 
-/// An owned, empty single-world dataset — the additions slot of a suppression-only
-/// committed delta (`checkpoint --retract` without `--apply`). Never a degraded
-/// success: a freeze/own failure is a hard CLI fail.
-fn session_empty_world_dataset(reporter: &dyn Reporter) -> Result<RdfDataset, i32> {
-    let dataset = RdfDatasetBuilder::new().freeze().map_err(|e| {
+/// The single CLI world-placement path for session and hybrid facts. All source
+/// graph roles are deliberately collapsed into `world`, including native reifier
+/// bindings, annotations and empty declarations. Source graph IRIs used as RDF
+/// values survive; source blank identities remain shared within this one input.
+/// Physical parser locations are not part of the resulting logical world.
+///
+/// # Errors
+/// Refuses an invalid placement or native materialization; never returns a
+/// partial world or a weaker ordinary-triple projection.
+fn place_world_dataset(
+    parsed: Arc<RdfDataset>,
+    world: &str,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let source = purrdf::CompositeSource::new(parsed)
+        .with_graph_placement(purrdf::GraphPlacement::Named(purrdf::TermValue::iri(world)));
+    let view = purrdf::CompositeDatasetView::from_shared_sources(
+        vec![source],
+        purrdf::ViewLimits::default(),
+    )?;
+    Ok(purrdf::dataset_from_view(&view)?)
+}
+
+#[cfg(test)]
+#[path = "commands/world_routing_tests.rs"]
+mod world_routing_tests;
+
+/// A shared empty additions dataset for a suppression-only committed delta.
+fn session_empty_world_dataset(reporter: &dyn Reporter) -> Result<Arc<RdfDataset>, i32> {
+    RdfDatasetBuilder::new().freeze().map_err(|e| {
         fail(
             reporter,
             "gmeow-cli.logic-session.empty-additions",
             format!("cannot build an empty additions dataset: {e}"),
-        )
-    })?;
-    Arc::try_unwrap(dataset).map_err(|_| {
-        fail(
-            reporter,
-            "gmeow-cli.logic-session.empty-own",
-            "internal: a freshly-frozen empty session dataset was unexpectedly shared",
         )
     })
 }
@@ -3236,7 +3922,7 @@ fn session_empty_world_dataset(reporter: &dyn Reporter) -> Result<RdfDataset, i3
 /// annotation semiring, mapping a façade open error to a hard CLI fail.
 fn session_open(
     reporter: &dyn Reporter,
-    edb: &RdfDataset,
+    edb: &Arc<RdfDataset>,
     program: &gmeow_logic_compile::ir::LogicProgram,
 ) -> Result<ReasoningSession, i32> {
     let contract = gmeow_logic_compile::ir::ReasoningContract::new();
@@ -4834,6 +5520,17 @@ fn write_transpile_outputs(
             format!("cannot write {}: {e}", gts_path.display()),
         );
     }
+    if let Err(e) = gmeow_gts_profile::write_ingestion_receipt(
+        &gts_path,
+        &transform.gts_bytes,
+        &transform.gts_ingestion,
+    ) {
+        return fail(
+            reporter,
+            "gmeow-cli.io.write",
+            format!("cannot publish GTS ingestion receipt: {e}"),
+        );
+    }
     println!("wrote {}", gts_path.display());
     0
 }
@@ -4912,6 +5609,40 @@ pub fn convert(
         Ok(o) => o,
         Err(e) => return fail(reporter, "gmeow-cli.convert.transcode", e.to_string()),
     };
+
+    if let Some(ingestion) = &output.gts_ingestion {
+        match out {
+            Some(path) => {
+                if let Err(e) =
+                    gmeow_gts_profile::write_ingestion_receipt(path, &output.bytes, ingestion)
+                {
+                    return fail(
+                        reporter,
+                        "gmeow-cli.io.write",
+                        format!("cannot publish GTS ingestion receipt: {e}"),
+                    );
+                }
+            }
+            None => {
+                let receipt = match gmeow_gts_profile::ingestion_receipt(&output.bytes, ingestion) {
+                    Ok(bytes) => bytes,
+                    Err(e) => return fail(reporter, "gmeow-cli.convert.loss", e.to_string()),
+                };
+                let mut encoded = String::with_capacity(receipt.len() * 2);
+                let hex = b"0123456789abcdef";
+                for byte in receipt {
+                    encoded.push(char::from(hex[usize::from(byte >> 4)]));
+                    encoded.push(char::from(hex[usize::from(byte & 15)]));
+                }
+                gmeow_cli_core::note(
+                    reporter,
+                    "gmeow",
+                    "gmeow-cli.convert.loss",
+                    format!("GTS ingestion receipt (hex CBOR): {encoded}"),
+                );
+            }
+        }
+    }
 
     match out {
         Some(path) => {
@@ -6187,9 +6918,21 @@ mod entails_tests {
 
         // The production handler returns exit 0 for every decided verdict (entailed,
         // not-entailed, and an honest gap) — the verdict itself is on stdout.
-        assert_eq!(entails(r, &premise, &concl_pos), 0, "entailed exits 0");
-        assert_eq!(entails(r, &premise, &concl_neg), 0, "not-entailed exits 0");
-        assert_eq!(entails(r, &premise, &concl_gap), 0, "an honest gap exits 0");
+        assert_eq!(
+            entails(r, &premise, &concl_pos, OutputFormat::Text, false),
+            0,
+            "entailed exits 0"
+        );
+        assert_eq!(
+            entails(r, &premise, &concl_neg, OutputFormat::Text, false),
+            0,
+            "not-entailed exits 0"
+        );
+        assert_eq!(
+            entails(r, &premise, &concl_gap, OutputFormat::Text, false),
+            0,
+            "an honest gap exits 0"
+        );
 
         // The underlying verdicts are correct on the real datasets (parsed exactly as
         // the CLI does).
@@ -6211,11 +6954,12 @@ mod entails_tests {
             EntailmentVerdict::Gap(g) if g.shape == GapShape::RoleAssertion
         ));
 
-        // A missing conclusion file is a hard fail (exit 1), never a degraded verdict.
+        // A missing conclusion file is a typed malformed-input failure, never a
+        // degraded verdict.
         let missing = dir.path().join("nope.ttl");
         assert_eq!(
-            entails(r, &premise, &missing),
-            1,
+            entails(r, &premise, &missing, OutputFormat::Text, false),
+            reasoning_report::EXIT_MALFORMED,
             "missing input hard-fails"
         );
     }
@@ -6241,635 +6985,122 @@ mod entails_tests {
 /// The `logic:` namespace these commands read.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
-/// The shipped `logic:` module, embedded so the CLI derives with the SAME rule set the
-/// pipeline and the conformance corpus use.
-///
-/// Reading the rules from the repository at runtime would make the command's answer
-/// depend on the caller's working directory, which is exactly the kind of surface where
-/// an operator ends up looking at a frontier computed by a rule set they cannot name.
-const LOGIC_MODULE_TTL: &str = include_str!("../../../slices/grounding/logic/module.ttl");
+use gmeow_logic::operator::FactRow;
+use gmeow_logic::operator_rules::PreparedOperatorRules;
 
-/// The synthetic world the CLI reasons in.
-const CLI_WORLD: &str = "https://blackcatinformatics.ca/gmeow/cli/world";
-
-/// The `rdf:reifies` predicate — the RDF 1.2 statement layer's binding edge.
-///
-/// `purrdf` parses `<r> rdf:reifies <<( s p o )>>` into the dataset's reifier SIDE TABLE
-/// rather than a base quad, so a reader that only walks `quads()` never sees a reifier at
-/// all. The CLI lifts the side tables back into explicit base quads (below) so attributed
-/// provenance reaches the reasoner instead of being silently absent from its world.
-const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
-
-/// `xsd:string` — the implied datatype of a plain literal, elided in the display form
-/// exactly as Turtle elides it.
-const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-
-/// `rdf:langString` — the implied datatype of a language-tagged literal.
-const RDF_LANGSTRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
-
-/// The RDF kind of one derived row's subject or object.
-///
-/// Carried explicitly so an IRI can never be confused with a literal whose lexical form
-/// happens to spell one, and so a consumer folding the JSON back into a graph rebuilds
-/// the SAME term rather than guessing from a bare string.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum RowTermKind {
-    Iri,
-    BlankNode,
-    Literal,
-    TripleTerm,
-}
-
-impl RowTermKind {
-    /// The stable JSON tag for this kind.
-    fn as_str(self) -> &'static str {
-        match self {
-            Self::Iri => "iri",
-            Self::BlankNode => "blank",
-            Self::Literal => "literal",
-            Self::TripleTerm => "triple-term",
-        }
-    }
-}
-
-/// One term of a derived row, kept LOSSLESSLY.
-///
-/// The retired form was a bare `String`, which collapsed four different RDF terms into one
-/// spelling and threw the datatype, the language tag and the base direction away on the
-/// way past. A typed literal came back as its lexical form, a blank node and a triple term
-/// came back as nothing at all, and an operator had no way to tell any of that had
-/// happened.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct RowTerm {
-    kind: RowTermKind,
-    /// The IRI, the blank-node label, the literal's lexical form, or a triple term's
-    /// N-Triples text.
-    value: String,
-    /// The literal's datatype IRI. `None` for every non-literal.
-    datatype: Option<String>,
-    /// The literal's language tag, lowercased as RDF requires.
-    language: Option<String>,
-    /// The RDF 1.2 base direction (`ltr` / `rtl`) of a directional language-tagged string.
-    direction: Option<String>,
-}
-
-impl RowTerm {
-    /// This term as an IRI, or `None` when it is any other kind.
-    fn iri(&self) -> Option<&str> {
-        match self.kind {
-            RowTermKind::Iri => Some(self.value.as_str()),
-            _ => None,
-        }
-    }
-
-    /// The term in Turtle's own abbreviating syntax: a bare IRI, `_:label`, a quoted
-    /// literal carrying whichever of `@lang` / `^^<datatype>` is not implied, or a
-    /// `<<( … )>>` triple term. Faithful — reading it back reconstructs the term.
-    fn display(&self) -> String {
-        match self.kind {
-            RowTermKind::Iri | RowTermKind::TripleTerm => self.value.clone(),
-            RowTermKind::BlankNode => format!("_:{}", self.value),
-            RowTermKind::Literal => {
-                let mut out = format!("{:?}", self.value);
-                if let Some(lang) = &self.language {
-                    out.push('@');
-                    out.push_str(lang);
-                    if let Some(dir) = &self.direction {
-                        out.push_str("--");
-                        out.push_str(dir);
-                    }
-                } else if let Some(dt) = &self.datatype
-                    && dt != XSD_STRING
-                {
-                    out.push_str("^^<");
-                    out.push_str(dt);
-                    out.push('>');
-                }
-                out
-            }
-        }
-    }
-
-    /// The term in strict N-Triples syntax: `<iri>`, `_:label`, a quoted literal, or a
-    /// `<<( … )>>` triple term. Used INSIDE a triple term, where a bare IRI would not be
-    /// re-readable; [`RowTerm::display`] keeps the bare form for the table columns.
-    fn n3(&self) -> String {
-        match self.kind {
-            RowTermKind::Iri => format!("<{}>", self.value),
-            _ => self.display(),
-        }
-    }
-
-    /// The JSON object for this term: kind, value, and every literal facet that exists.
-    fn to_json(&self) -> serde_json::Value {
-        let mut map = serde_json::Map::new();
-        map.insert("kind".to_owned(), self.kind.as_str().into());
-        map.insert("value".to_owned(), self.value.clone().into());
-        if let Some(dt) = &self.datatype {
-            map.insert("datatype".to_owned(), dt.clone().into());
-        }
-        if let Some(lang) = &self.language {
-            map.insert("language".to_owned(), lang.clone().into());
-        }
-        if let Some(dir) = &self.direction {
-            map.insert("direction".to_owned(), dir.clone().into());
-        }
-        serde_json::Value::Object(map)
-    }
-
-    /// Build a row term from an owned [`purrdf::RdfTerm`] — the parse-side form.
-    fn from_rdf_term(term: &RdfTerm) -> Self {
-        match term {
-            RdfTerm::Iri(iri) => Self {
-                kind: RowTermKind::Iri,
-                value: iri.clone(),
-                datatype: None,
-                language: None,
-                direction: None,
-            },
-            RdfTerm::BlankNode(label) => Self {
-                kind: RowTermKind::BlankNode,
-                value: label.clone(),
-                datatype: None,
-                language: None,
-                direction: None,
-            },
-            RdfTerm::Literal(lit) => Self {
-                kind: RowTermKind::Literal,
-                value: lit.lexical_form.clone(),
-                // `None` on the wire means the IMPLIED datatype, which is
-                // `rdf:langString` for a tagged string and `xsd:string` otherwise. Naming
-                // it is the whole point: the retired code wrote `datatype: None` back out
-                // and lost the authored `^^<…>` entirely.
-                datatype: Some(lit.datatype.clone().unwrap_or_else(|| {
-                    if lit.language.is_some() {
-                        RDF_LANGSTRING.to_owned()
-                    } else {
-                        XSD_STRING.to_owned()
-                    }
-                })),
-                language: lit.language.clone(),
-                direction: lit.direction.map(|d| text_direction_str(d).to_owned()),
-            },
-            RdfTerm::Triple(triple) => Self {
-                kind: RowTermKind::TripleTerm,
-                value: format!(
-                    "<<( {} <{}> {} )>>",
-                    Self::from_rdf_term(&triple.subject).n3(),
-                    triple.predicate,
-                    Self::from_rdf_term(&triple.object).n3()
-                ),
-                datatype: None,
-                language: None,
-                direction: None,
-            },
-        }
-    }
-
-    /// Build a row term from a reasoner-side [`purrdf::TermValue`].
-    fn from_term_value(term: &TermValue) -> Self {
-        match term {
-            TermValue::Iri(iri) => Self {
-                kind: RowTermKind::Iri,
-                value: iri.clone(),
-                datatype: None,
-                language: None,
-                direction: None,
-            },
-            TermValue::Blank { label, .. } => Self {
-                kind: RowTermKind::BlankNode,
-                value: label.clone(),
-                datatype: None,
-                language: None,
-                direction: None,
-            },
-            TermValue::Literal {
-                lexical_form,
-                datatype,
-                language,
-                direction,
-            } => Self {
-                kind: RowTermKind::Literal,
-                value: lexical_form.clone(),
-                datatype: Some(datatype.clone()),
-                language: language.clone(),
-                direction: direction.map(|d| text_direction_str(d).to_owned()),
-            },
-            TermValue::Triple { s, p, o } => Self {
-                kind: RowTermKind::TripleTerm,
-                value: format!(
-                    "<<( {} <{p_iri}> {} )>>",
-                    Self::from_term_value(s).n3(),
-                    Self::from_term_value(o).n3(),
-                    p_iri = match p.as_ref() {
-                        TermValue::Iri(iri) => iri.clone(),
-                        other => Self::from_term_value(other).display(),
-                    }
-                ),
-                datatype: None,
-                language: None,
-                direction: None,
-            },
-        }
-    }
-}
-
-/// The BCP-47 / RDF 1.2 spelling of a base direction.
-fn text_direction_str(direction: purrdf::RdfTextDirection) -> &'static str {
-    match direction {
-        purrdf::RdfTextDirection::Ltr => "ltr",
-        purrdf::RdfTextDirection::Rtl => "rtl",
-    }
-}
-
-/// One `(subject, predicate, object)` row of the reasoning result, carrying WHERE it came
-/// from.
-///
-/// The two flags are independent rather than an either/or enum, because a row can be both:
-/// an author asserts a triple AND a rule re-derives it. That coincidence is the *agreement*
-/// case, and collapsing it into one "source" would make agreement indistinguishable from a
-/// label nothing checked. Keeping them apart is what lets the frontier command separate
-/// "the reasoner concluded this", "the reasoner concluded something else", and "an author
-/// typed this and no rule looked at it".
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct FactRow {
-    subject: RowTerm,
-    predicate: String,
-    object: RowTerm,
-    /// The row is in the asserted EDB — a human or an upstream tool wrote it.
-    asserted: bool,
-    /// A shipped `logic:Rule` concluded the row. Recognised by the derivation's `rule_iri`
-    /// being something other than [`gmeow_logic::provenance::ASSERT_RULE_IRI`], which is
-    /// the same EDB/IDB split `crates/logic` itself uses in `derivation_graph.rs` and in
-    /// the chase — not a scheme invented here.
-    derived: bool,
-}
-
-impl FactRow {
-    /// The row's provenance as the one word the operator surface prints.
-    fn provenance(&self) -> &'static str {
-        match (self.asserted, self.derived) {
-            (true, true) => "derived (input agrees)",
-            (false, true) => "derived",
-            _ => "ASSERTED-UNCHECKED",
-        }
-    }
-
-    /// The row as one JSON object: both terms in full, the predicate, and the provenance
-    /// split spelled out AND kept as the two independent flags it really is.
-    fn to_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "subject": self.subject.to_json(),
-            "predicate": self.predicate,
-            "object": self.object.to_json(),
-            "asserted": self.asserted,
-            "derived": self.derived,
-            "provenance": self.provenance(),
+/// Hydrate the native rules from this executable's captured immutable bundle once.
+/// Only the selected member and native preparation survive this initialization.
+fn operator_rules(
+    reporter: &dyn Reporter,
+    code: &str,
+) -> Result<&'static PreparedOperatorRules, i32> {
+    static RULES: std::sync::OnceLock<gmeow_errors::Result<PreparedOperatorRules>> =
+        std::sync::OnceLock::new();
+    RULES
+        .get_or_init(|| {
+            let bundle = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(BUNDLE_GTS)?;
+            let bytes = bundle.required_archive_member(
+                gmeow_pipeline::bundle_blobs::REP_REASONING,
+                gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER,
+                16 * 1024 * 1024,
+            )?;
+            PreparedOperatorRules::from_bytes(&bytes)
         })
-    }
+        .as_ref()
+        .map_err(|error| {
+            fail(
+                reporter,
+                code,
+                format!("cannot load the captured native operator rules: {error}"),
+            )
+        })
 }
 
-/// Parse `path`, materialize the shipped rule set over it, and return the input plus every
-/// derived triple, each row tagged with its provenance.
-///
-/// This is the same `materialize_program` path the conformance runner drives, so what the
-/// CLI prints and what a blessed golden records cannot diverge.
+/// Parse only caller-owned input and execute the captured native preparation.
 fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<FactRow>, i32> {
-    let bytes = std::fs::read(path).map_err(|e| {
+    let bytes = std::fs::read(path).map_err(|error| {
         fail(
             reporter,
             code,
-            format!("cannot read {}: {e}", path.display()),
+            format!("cannot read {}: {error}", path.display()),
         )
     })?;
-    let media = match path.extension().and_then(|e| e.to_str()) {
+    let media = match path.extension().and_then(|extension| extension.to_str()) {
         Some("nq") => "application/n-quads",
         Some("nt") => "application/n-triples",
         Some("trig") => "application/trig",
         _ => "text/turtle",
     };
-    let parsed = purrdf::parse_dataset(&bytes, media, None).map_err(|e| {
+    let parsed = purrdf::parse_dataset(&bytes, media, None).map_err(|error| {
         fail(
             reporter,
             code,
-            format!("cannot parse {}: {e}", path.display()),
+            format!("cannot parse {}: {error}", path.display()),
         )
     })?;
+    let derived = gmeow_logic::operator::derive(&parsed, operator_rules(reporter, code)?)
+        .map_err(|error| fail(reporter, code, format!("{}: {error}", path.display())))?;
+    report_operator_boundaries(reporter, path, code, &derived);
+    Ok(derived.rows)
+}
 
-    let world = cli_world_dataset(reporter, path, &parsed, None, code)?;
-    let edb = world.edb;
-    // The re-derivation audit world: the same input with every asserted `logic:entryLabel`
-    // WITHHELD.
-    //
-    // A second materialization is needed because the reasoner works over sets. An asserted
-    // fact that a rule would also conclude is already present, so nothing re-emits it, and
-    // the conclusion becomes indistinguishable from the assertion — an author's label would
-    // read as "unchecked" even when the rules agree with it exactly. Withholding the
-    // predicate under audit makes the derivation independent of what the author typed,
-    // which is the only reading under which "still re-derived" is a true claim.
-    let audit_edb = cli_world_dataset(
-        reporter,
-        path,
-        &parsed,
-        Some(&format!("{LOGIC_NS}entryLabel")),
-        code,
-    )?
-    .edb;
-
-    let (program, _diags) = gmeow_logic_compile::frontend::parse_logic_str(LOGIC_MODULE_TTL, None)
-        .map_err(|e| {
-            fail(
-                reporter,
-                code,
-                format!("cannot compile the embedded logic module: {e}"),
-            )
-        })?;
-
-    let mat = materialize_cli_world(reporter, &program, edb.as_ref(), code)?;
-    let audit = materialize_cli_world(reporter, &program, audit_edb.as_ref(), code)?;
-
-    // A row can be reached twice — once as an assertion, once as a conclusion — so the
-    // flags are OR-merged per triple rather than the rows being pushed twice and deduped.
-    // Deduping tagged rows would keep both copies and make an agreeing label look like a
-    // disagreement with itself.
-    let mut by_triple: BTreeMap<(RowTerm, String, RowTerm), (bool, bool)> = BTreeMap::new();
-    // The asserted input, so a caller sees the whole picture rather than only the delta.
-    // EVERY quad, whatever its terms: a blank-node subject, a typed literal and an RDF 1.2
-    // triple term are all carried whole. The retired reader `continue`d past each of them
-    // and rebuilt literals with the datatype stripped, so an operator read a reduced world
-    // with nothing on screen to say so.
-    for q in edb.owned_quads() {
-        by_triple
-            .entry((
-                RowTerm::from_rdf_term(&q.subject),
-                q.predicate.clone(),
-                RowTerm::from_rdf_term(&q.object),
-            ))
-            .or_default()
-            .0 = true;
+fn report_operator_source_diagnostics(
+    reporter: &dyn Reporter,
+    code: &str,
+    diagnostics: &[gmeow_logic_compile::frontend::Diagnostic],
+) {
+    for diagnostic in diagnostics {
+        emit_warning(
+            reporter,
+            &format!("{code}.source-{}", diagnostic.code),
+            format!(
+                "{}: {}",
+                gmeow_logic::operator_rules::OPERATOR_SOURCE_IRI,
+                diagnostic.message
+            ),
+        );
     }
-    // The RDF 1.2 statement metadata the engine's own EDB-echo term surface cannot
-    // round-trip. It IS carried — as asserted rows, with its triple term whole — and the
-    // boundary is REPORTED below, because an operator reading a frontier over a graph
-    // whose attributions the reasoner never saw must be told that, not left to assume it.
-    for (subject, predicate, object) in &world.unreasoned {
-        by_triple
-            .entry((
-                RowTerm::from_rdf_term(subject),
-                predicate.clone(),
-                RowTerm::from_rdf_term(object),
-            ))
-            .or_default()
-            .0 = true;
+}
+
+fn report_operator_boundaries(
+    reporter: &dyn Reporter,
+    path: &Path,
+    code: &str,
+    derived: &gmeow_logic::operator::Derivation,
+) {
+    report_operator_source_diagnostics(reporter, code, &derived.diagnostics);
+    let unsupported: BTreeSet<_> = derived
+        .preservation
+        .unsupported_constructs
+        .iter()
+        .chain(&derived.audit_preservation.unsupported_constructs)
+        .collect();
+    if !unsupported.is_empty() {
+        emit_warning(
+            reporter,
+            &format!("{code}.positive-horn-lowering-boundary"),
+            format!(
+                "the selected PositiveHorn operator projection retains unsupported source constructs: {unsupported:?}; its frontier is not a whole-theory consistency certificate"
+            ),
+        );
     }
-    // The residue, and ONLY the residue. The rule set now DOES run over flat statement
-    // metadata: `gmeow_logic::statement_lowering` decomposes each `rdf:reifies` triple term
-    // into three ordinary joinable edges before the world is built, so an attribution's
-    // subject, predicate and object are premises like any other. What survives as a
-    // withhold is exactly what `logic:rdf12-nested-triple-term` records — a statement whose
-    // own subject or object is itself a triple term, which has no non-term component to
-    // decompose into. The `rdf:reifies` rows themselves are still reported unreasoned,
-    // because the TERM is not a fact; that is the second half of the same boundary.
-    if !world.nested_statements.is_empty() {
+    if !derived.nested_statements.is_empty() {
         emit_warning(
             reporter,
             &format!("{code}.nested-triple-term-not-lowered"),
             format!(
                 "{} carries {} RDF 1.2 attribution(s) reifying a statement that NESTS a triple \
-                 term. Flat statement metadata IS reasoned over — the rule set joins on the \
-                 lowered logic:reifiedStatementSubject / logic:reifiedStatementPredicate / \
-                 logic:reifiedStatementObject edges — but a nested statement has no non-term \
-                 component to decompose into, so it is not lowered and nothing derived here \
-                 is a conclusion about it. This is the residue recorded at \
-                 logic:rdf12-nested-triple-term, and nothing wider.",
+             term. Flat statement metadata IS reasoned over — the rule set joins on the \
+             lowered logic:reifiedStatementSubject / logic:reifiedStatementPredicate / \
+             logic:reifiedStatementObject edges — but a nested statement has no non-term \
+             component to decompose into, so it is not lowered and nothing derived here \
+             is a conclusion about it. This is the residue recorded at \
+             logic:rdf12-nested-triple-term, and nothing wider.",
                 path.display(),
-                world.nested_statements.len()
+                derived.nested_statements.len()
             ),
         );
     }
-    // The audit run contributes ONLY its `logic:entryLabel` conclusions. It is a narrower
-    // world than the full one, so letting it speak about anything else could only ever
-    // subtract information, and scoping it to the one question it was run to answer keeps
-    // the closure the other commands read identical to the single-run closure.
-    let label_predicate = format!("{LOGIC_NS}entryLabel");
-    let audited = audit
-        .quads
-        .iter()
-        .filter(|d| d.predicate == label_predicate);
-    for d in mat.quads.iter().chain(audited) {
-        let slot = by_triple
-            .entry((
-                RowTerm::from_term_value(&d.subject),
-                d.predicate.clone(),
-                RowTerm::from_term_value(&d.object),
-            ))
-            .or_default();
-        // The materialization echoes the EDB back under the assert pseudo-rule. Treating
-        // that echo as a derivation is exactly the bug this split exists to prevent: every
-        // authored label would come back stamped "derived".
-        if d.rule_iri == gmeow_logic::provenance::ASSERT_RULE_IRI {
-            slot.0 = true;
-        } else {
-            slot.1 = true;
-        }
-    }
-    Ok(by_triple
-        .into_iter()
-        .map(
-            |((subject, predicate, object), (asserted, derived))| FactRow {
-                subject,
-                predicate,
-                object,
-                asserted,
-                derived,
-            },
-        )
-        .collect())
-}
-
-/// Promote `parsed` into the one synthetic [`CLI_WORLD`], optionally WITHHOLDING every quad
-/// carrying `withhold`.
-///
-/// The rules reason over named worlds, and Turtle input lands in the default graph, so a
-/// file that plainly carries frontier entries would otherwise derive nothing at all — the
-/// least useful failure available, because it looks exactly like "no rule matched".
-///
-/// Every term the reasoner CAN take is carried whole. A blank node, a typed literal and a
-/// directional language-tagged string all reach it exactly as authored: the reasoning store
-/// holds opaque `TermValue`s, so there is no reason to reduce any of them, and the retired
-/// reader's `datatype: None` rebuild was pure loss.
-///
-/// The RDF 1.2 statement layer is read too. `purrdf` parses `<r> rdf:reifies <<( s p o )>>`
-/// and its annotations into SIDE TABLES, not base quads, so a reader that walks `quads()`
-/// alone sees NO attributed statement at all — precisely the provenance an enactment kernel
-/// exists to carry. Annotations are plain triples and go straight into the world; a fact
-/// whose subject or object is a triple term is returned in
-/// [`CliWorld::unreasoned`] instead, because the engine's EDB-echo term surface
-/// (`gmeow_logic::term_codec`) has no triple-term form and would hand back a malformed IRI.
-/// Carried and reported, never carried and silently mangled.
-///
-/// A quad asserted in a NAMED graph is a hard fail rather than a silent re-homing: folding
-/// several distinct worlds into one reasoning world would let a fact asserted in one world
-/// satisfy a rule body about another, and the caller would never learn that their world
-/// structure had been flattened.
-struct CliWorld {
-    /// The world the shipped rule set is materialized over.
-    edb: Arc<purrdf::RdfDataset>,
-    /// `(subject, predicate, object)` facts carried to the caller but WITHHELD from the
-    /// reasoning world — every one of them a triple-term-bearing statement-metadata fact.
-    ///
-    /// The `rdf:reifies` rows stay here even for a statement that WAS lowered: the term is
-    /// not a fact, and reporting it as reasoned-over would claim the engine quantified over
-    /// the statement itself. What it CAN do is join the three lowered components, which is
-    /// the derivation `logic:contestedByAttribution` rests on.
-    unreasoned: Vec<(RdfTerm, String, RdfTerm)>,
-    /// The reifiers whose statement NESTS a triple term, and which therefore carry no
-    /// lowering at all — the narrow residue `logic:rdf12-nested-triple-term` records.
-    nested_statements: Vec<RdfTerm>,
-}
-
-/// True when `term` is (or contains) an RDF 1.2 triple term.
-fn bears_triple_term(term: &RdfTerm) -> bool {
-    match term {
-        RdfTerm::Triple(_) => true,
-        RdfTerm::Iri(_) | RdfTerm::BlankNode(_) | RdfTerm::Literal(_) => false,
-    }
-}
-
-fn cli_world_dataset(
-    reporter: &dyn Reporter,
-    path: &Path,
-    parsed: &purrdf::RdfDataset,
-    withhold: Option<&str>,
-    code: &str,
-) -> Result<CliWorld, i32> {
-    let mut builder = purrdf::RdfDatasetBuilder::new();
-    let world = builder.intern_iri(CLI_WORLD);
-
-    let mut named_graphs: BTreeSet<String> = BTreeSet::new();
-    let mut unreasoned: Vec<(RdfTerm, String, RdfTerm)> = Vec::new();
-    let push = |builder: &mut purrdf::RdfDatasetBuilder,
-                unreasoned: &mut Vec<(RdfTerm, String, RdfTerm)>,
-                subject: RdfTerm,
-                predicate: String,
-                object: RdfTerm| {
-        if bears_triple_term(&subject) || bears_triple_term(&object) {
-            unreasoned.push((subject, predicate, object));
-            return;
-        }
-        let s = builder.intern_owned_term(&subject);
-        let p = builder.intern_iri(&predicate);
-        let o = builder.intern_owned_term(&object);
-        builder.push_quad(s, p, o, Some(world));
-    };
-
-    for q in parsed.owned_quads() {
-        if let Some(g) = &q.graph_name {
-            named_graphs.insert(RowTerm::from_rdf_term(g).display());
-            continue;
-        }
-        if withhold == Some(q.predicate.as_str()) {
-            continue;
-        }
-        push(
-            &mut builder,
-            &mut unreasoned,
-            q.subject,
-            q.predicate,
-            q.object,
-        );
-    }
-    for reifier in parsed.owned_reifiers() {
-        if let Some(g) = &reifier.graph {
-            named_graphs.insert(RowTerm::from_rdf_term(g).display());
-            continue;
-        }
-        push(
-            &mut builder,
-            &mut unreasoned,
-            reifier.reifier,
-            RDF_REIFIES.to_owned(),
-            RdfTerm::Triple(Box::new(reifier.statement)),
-        );
-    }
-    // The statement-metadata LOWERING (Principle 17): the `rdf:reifies` term above stays
-    // withheld — a term is not a fact — while its three components enter the world as
-    // ordinary triples, so a rule can join a reifier to the statement it reifies. The
-    // authored dataset is untouched; this is derived from it, on the way in.
-    let lowering = gmeow_logic::statement_lowering::lower_reifiers(parsed);
-    for (subject, predicate, object) in lowering.rows {
-        push(&mut builder, &mut unreasoned, subject, predicate, object);
-    }
-    let nested_statements = lowering.nested;
-    for annotation in parsed.owned_annotations() {
-        if let Some(g) = &annotation.graph {
-            named_graphs.insert(RowTerm::from_rdf_term(g).display());
-            continue;
-        }
-        if withhold == Some(annotation.predicate.as_str()) {
-            continue;
-        }
-        push(
-            &mut builder,
-            &mut unreasoned,
-            annotation.reifier,
-            annotation.predicate,
-            annotation.object,
-        );
-    }
-
-    if !named_graphs.is_empty() {
-        return Err(fail(
-            reporter,
-            code,
-            format!(
-                "{} asserts content in {} named graph(s) ({}). The shipped rule set reasons \
-                 in ONE world, and merging distinct worlds into it would let a fact asserted \
-                 in one satisfy a rule body about another — so this is refused rather than \
-                 re-homed behind your back. Project the world you want reasoned over into the \
-                 default graph and pass that.",
-                path.display(),
-                named_graphs.len(),
-                named_graphs.into_iter().collect::<Vec<_>>().join(", ")
-            ),
-        ));
-    }
-
-    let edb = builder.freeze().map_err(|e| {
-        fail(
-            reporter,
-            code,
-            format!(
-                "cannot build the reasoning world for {}: {e}",
-                path.display()
-            ),
-        )
-    })?;
-    Ok(CliWorld {
-        edb,
-        unreasoned,
-        nested_statements,
-    })
-}
-
-/// Materialize the shipped rule set over one CLI world.
-fn materialize_cli_world(
-    reporter: &dyn Reporter,
-    program: &gmeow_logic_compile::ir::LogicProgram,
-    edb: &purrdf::RdfDataset,
-    code: &str,
-) -> Result<gmeow_logic::materialize::Materialization, i32> {
-    gmeow_logic::materialize::materialize_program(
-        program,
-        edb,
-        gmeow_logic::materialize::MaterializationLimits { max_steps: None },
-        // The frontier rules are positive Horn. The shipped module spans six semantic
-        // profiles, so the profile is declared here rather than inferred — an inferred
-        // profile over a mixed module is how a caller silently gets a stronger semantics
-        // than the rules were written for.
-        gmeow_logic_compile::ir::SemanticProfileId::from_local("PositiveHornProfile"),
-    )
-    .map_err(|e| fail(reporter, code, format!("materialization failed: {e}")))
 }
 
 /// Every `(subject IRI, object IRI)` pair carrying `predicate`, regardless of provenance.
@@ -6996,18 +7227,23 @@ impl LabelVerdict {
     }
 }
 
-/// Print a JSON document to stdout as ONE pretty block with a trailing newline — the
-/// convention `logic fragments` already established.
-fn print_json(reporter: &dyn Reporter, code: &str, doc: &serde_json::Value) -> i32 {
+/// Render one structured command answer to the same explicit string sink as text.
+fn render_json(
+    output: &mut String,
+    reporter: &dyn Reporter,
+    code: &str,
+    doc: &serde_json::Value,
+) -> i32 {
     match serde_json::to_string_pretty(doc) {
         Ok(text) => {
-            println!("{text}");
+            output.push_str(&text);
+            output.push('\n');
             0
         }
-        Err(e) => fail(
+        Err(error) => fail(
             reporter,
             code,
-            format!("cannot render the result as JSON: {e}"),
+            format!("cannot render the result as JSON: {error}"),
         ),
     }
 }
@@ -7119,9 +7355,24 @@ pub fn logic_frontier(
         Err(rc) => return rc,
     };
 
-    let verdicts = label_verdicts(&rows);
-    let witnesses = iri_pairs(&rows, &format!("{LOGIC_NS}entryAxisWitness"));
-    let actions = iri_pairs(&rows, &format!("{LOGIC_NS}entryAction"));
+    let mut output = String::new();
+    let code = render_logic_frontier(reporter, input, &rows, why_not, format, &mut output);
+    print!("{output}");
+    code
+}
+
+fn render_logic_frontier(
+    reporter: &dyn Reporter,
+    input: &Path,
+    rows: &[FactRow],
+    why_not: Option<&str>,
+    format: OutputFormat,
+    output: &mut String,
+) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-frontier";
+    let verdicts = label_verdicts(rows);
+    let witnesses = iri_pairs(rows, &format!("{LOGIC_NS}entryAxisWitness"));
+    let actions = iri_pairs(rows, &format!("{LOGIC_NS}entryAction"));
 
     if let Some(target) = why_not {
         // One action, in depth. The entry is named directly or reached through the
@@ -7148,16 +7399,15 @@ pub fn logic_frontier(
             );
         };
         if matches!(format, OutputFormat::Json) {
-            return print_json(
+            return render_json(
+                output,
                 reporter,
                 CODE,
-                &why_not_json(
-                    input, target, &entry, &verdicts, &witnesses, &actions, &rows,
-                ),
+                &why_not_json(input, target, &entry, &verdicts, &witnesses, &actions, rows),
             );
         }
-        println!("action:  {target}");
-        println!("entry:   {entry}");
+        writeln!(output, "action:  {target}").expect("writing to String is infallible");
+        writeln!(output, "entry:   {entry}").expect("writing to String is infallible");
         let mut spoke = false;
         for (_, verdict) in verdicts.iter().filter(|(e, _)| *e == entry) {
             spoke = true;
@@ -7165,32 +7415,38 @@ pub fn logic_frontier(
                 // `(derived)` is reserved for a value a rule concluded. An asserted label
                 // gets the opposite stamp, naming what has NOT happened to it.
                 LabelVerdict::Derived { label, .. } => {
-                    println!("label:   {}   (derived)", short(label));
+                    writeln!(output, "label:   {}   (derived)", short(label))
+                        .expect("writing to String is infallible");
                 }
                 LabelVerdict::AssertedUnchecked { asserted } => {
-                    println!(
+                    writeln!(
+                        output,
                         "label:   {}   (ASSERTED — no shipped logic:Rule derives a label for \
                          this entry, so nothing has verified this value)",
                         short(asserted)
-                    );
+                    )
+                    .expect("writing to String is infallible");
                 }
                 LabelVerdict::Disagreement { derived, asserted } => {
-                    println!(
+                    writeln!(
+                        output,
                         "DISAGREEMENT: the input asserts logic:entryLabel {}, which the shipped \
                          rule set does NOT derive from this entry's axis witnesses; the derived \
                          label {} is authoritative",
                         short(asserted),
                         short(derived)
-                    );
+                    )
+                    .expect("writing to String is infallible");
                 }
             }
         }
         if !spoke {
-            println!("label:   <no label derived and none asserted>");
+            writeln!(output, "label:   <no label derived and none asserted>")
+                .expect("writing to String is infallible");
         }
         for (e, w) in &witnesses {
             if *e == entry {
-                println!("axis:    {}", short(w));
+                writeln!(output, "axis:    {}", short(w)).expect("writing to String is infallible");
             }
         }
         // The blockage, if the graph carries one.
@@ -7199,20 +7455,22 @@ pub fn logic_frontier(
             .find(|(e, _)| *e == entry)
             .map(|(_, s)| s.clone());
         if let Some(step) = step {
-            for (gap, blocked) in iri_pairs(&rows, &format!("{LOGIC_NS}gapBlockedStep")) {
+            for (gap, blocked) in iri_pairs(rows, &format!("{LOGIC_NS}gapBlockedStep")) {
                 if blocked == step {
-                    println!("gap:     {gap}");
+                    writeln!(output, "gap:     {gap}").expect("writing to String is infallible");
                 }
             }
-            for (proposal, blocked) in iri_pairs(&rows, &format!("{LOGIC_NS}proposalBlockedStep")) {
+            for (proposal, blocked) in iri_pairs(rows, &format!("{LOGIC_NS}proposalBlockedStep")) {
                 if blocked == step {
-                    println!("proposal: {proposal}");
+                    writeln!(output, "proposal: {proposal}")
+                        .expect("writing to String is infallible");
                     for field in PROPOSAL_FIELDS {
-                        for row in &rows {
+                        for row in rows {
                             if row.predicate == format!("{LOGIC_NS}{field}")
                                 && row.subject.iri() == Some(proposal.as_str())
                             {
-                                println!("  {field}: {}", row.object.display());
+                                writeln!(output, "  {field}: {}", row.object.display())
+                                    .expect("writing to String is infallible");
                             }
                         }
                     }
@@ -7235,10 +7493,11 @@ pub fn logic_frontier(
     }
 
     if matches!(format, OutputFormat::Json) {
-        return print_json(
+        return render_json(
+            output,
             reporter,
             CODE,
-            &frontier_json(input, &verdicts, &witnesses, &actions, &rows),
+            &frontier_json(input, &verdicts, &witnesses, &actions, rows),
         );
     }
 
@@ -7246,10 +7505,12 @@ pub fn logic_frontier(
     // row: eleven of the sixteen shipped frontier labels have no derivation rule yet, so an
     // input may legitimately carry an authored label the reasoner never touched. Saying so
     // per row is the only honest layout.
-    println!(
+    writeln!(
+        output,
         "{:<44}  {:<36}  {:<22}  AXIS TUPLE",
         "ENTRY", "LABEL", "SOURCE"
-    );
+    )
+    .expect("writing to String is infallible");
     for (entry, verdict) in &verdicts {
         if let Some((label, source)) = verdict.row() {
             let axes: Vec<&str> = witnesses
@@ -7257,7 +7518,8 @@ pub fn logic_frontier(
                 .filter(|(e, _)| e == entry)
                 .map(|(_, w)| short(w))
                 .collect();
-            println!(
+            writeln!(
+                output,
                 "{:<44}  {:<36}  {:<22}  {}",
                 short(entry),
                 label,
@@ -7267,10 +7529,11 @@ pub fn logic_frontier(
                 } else {
                     axes.join(" + ")
                 }
-            );
+            )
+            .expect("writing to String is infallible");
         }
         if let Some(caveat) = verdict.caveat() {
-            println!("{caveat}");
+            writeln!(output, "{caveat}").expect("writing to String is infallible");
         }
     }
     0
@@ -7474,20 +7737,34 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
         Err(rc) => return rc,
     };
 
-    let attempts = iri_pairs(&rows, &format!("{LOGIC_NS}attemptOfIntent"));
-    let receipts = iri_pairs(&rows, &format!("{LOGIC_NS}receiptOfAttempt"));
-    let unknowns = iri_pairs(&rows, &format!("{LOGIC_NS}unknownOfAttempt"));
+    let mut output = String::new();
+    let code = render_logic_saga(reporter, input, &rows, format, &mut output);
+    print!("{output}");
+    code
+}
+
+fn render_logic_saga(
+    reporter: &dyn Reporter,
+    input: &Path,
+    rows: &[FactRow],
+    format: OutputFormat,
+    output: &mut String,
+) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-saga";
+    let attempts = iri_pairs(rows, &format!("{LOGIC_NS}attemptOfIntent"));
+    let receipts = iri_pairs(rows, &format!("{LOGIC_NS}receiptOfAttempt"));
+    let unknowns = iri_pairs(rows, &format!("{LOGIC_NS}unknownOfAttempt"));
     // The foreclosed position. It is NOT an unknown: an unknown is not-yet-probed and
     // still resolvable, this one has no reconciliation semantics left to reach for. The
     // two owe different next actions, so the reader that says what is owed must tell
     // them apart or it silently sends an operator after evidence that cannot be got.
-    let foreclosed = iri_pairs(&rows, &format!("{LOGIC_NS}impossibleOfAttempt"));
-    let probes = iri_pairs(&rows, &format!("{LOGIC_NS}probesAttempt"));
-    let all_verdicts = iri_pairs(&rows, &format!("{LOGIC_NS}reconciliationVerdict"));
-    let retry_of = iri_pairs(&rows, &format!("{LOGIC_NS}retryOfAttempt"));
-    let retry_licence = iri_pairs(&rows, &format!("{LOGIC_NS}retryLicence"));
-    let licence_covers = iri_pairs(&rows, &format!("{LOGIC_NS}licenceCoversAttempt"));
-    let types = iri_pairs(&rows, RDF_TYPE_IRI);
+    let foreclosed = iri_pairs(rows, &format!("{LOGIC_NS}impossibleOfAttempt"));
+    let probes = iri_pairs(rows, &format!("{LOGIC_NS}probesAttempt"));
+    let all_verdicts = iri_pairs(rows, &format!("{LOGIC_NS}reconciliationVerdict"));
+    let retry_of = iri_pairs(rows, &format!("{LOGIC_NS}retryOfAttempt"));
+    let retry_licence = iri_pairs(rows, &format!("{LOGIC_NS}retryLicence"));
+    let licence_covers = iri_pairs(rows, &format!("{LOGIC_NS}licenceCoversAttempt"));
+    let types = iri_pairs(rows, RDF_TYPE_IRI);
 
     // THE ROSTER. An attempt is owed an answer no matter which edge reaches it: its own
     // `logic:attemptOfIntent`, an outcome record naming it, a retry re-sending it, a probe
@@ -7496,7 +7773,7 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
     // undetermined outcome, a retry, and a borrowed licence print zero bytes and exit 0.
     let mut roster: BTreeSet<String> = attempts.iter().map(|(a, _)| a.clone()).collect();
     for edge in SAGA_ATTEMPT_EDGES {
-        for (_, attempt) in iri_pairs(&rows, &format!("{LOGIC_NS}{edge}")) {
+        for (_, attempt) in iri_pairs(rows, &format!("{LOGIC_NS}{edge}")) {
             roster.insert(attempt);
         }
     }
@@ -7524,7 +7801,8 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
     if roster.is_empty() {
         if record_types.is_empty() {
             if matches!(format, OutputFormat::Json) {
-                return print_json(
+                return render_json(
+                    output,
                     reporter,
                     CODE,
                     &serde_json::json!({
@@ -7533,11 +7811,12 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
                         "has_effect_records": false,
                         "attempts": [],
                         "reconciliation_verdicts": [],
-                        "facts": rows_json(&rows),
+                        "facts": rows_json(rows),
                     }),
                 );
             }
-            println!("no external-effect records in {}", input.display());
+            writeln!(output, "no external-effect records in {}", input.display())
+                .expect("writing to String is infallible");
             return 0;
         }
         return fail(
@@ -7703,7 +7982,8 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
                 })
             })
             .collect();
-        return print_json(
+        return render_json(
+            output,
             reporter,
             CODE,
             &serde_json::json!({
@@ -7718,29 +7998,37 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
                         "verdict": verdict,
                     }))
                     .collect::<Vec<_>>(),
-                "facts": rows_json(&rows),
+                "facts": rows_json(rows),
             }),
         );
     }
 
     for a in &settled_attempts {
-        println!("attempt: {}", short(&a.attempt));
+        writeln!(output, "attempt: {}", short(&a.attempt))
+            .expect("writing to String is infallible");
         // An attempt the graph never joins to a dispatch intent says so, rather than being
         // dropped from the roster — the join is what is missing, not the attempt.
-        println!(
+        writeln!(
+            output,
             "  intent:      {}",
             a.intent
                 .as_deref()
                 .map_or("none — no logic:attemptOfIntent names this attempt", short)
-        );
+        )
+        .expect("writing to String is infallible");
         match a.outcome {
-            "no-effect-record" => {
-                println!("  outcome:     no receipt and no unknown-outcome record")
+            "no-effect-record" => writeln!(
+                output,
+                "  outcome:     no receipt and no unknown-outcome record"
+            )
+            .expect("writing to String is infallible"),
+            other => {
+                writeln!(output, "  outcome:     {other}").expect("writing to String is infallible")
             }
-            other => println!("  outcome:     {other}"),
         }
         for r in &a.retries {
-            println!(
+            writeln!(
+                output,
                 "  retry:       {} (licence: {}{})",
                 short(&r.retry),
                 r.licence.as_deref().map_or("none", |l| short(l)),
@@ -7757,10 +8045,11 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -
                         if r.borrowed { " — BORROWED" } else { "" }
                     )
                 }
-            );
+            )
+            .expect("writing to String is infallible");
         }
         if let Some(owed) = &a.owed {
-            println!("  owed:        {owed}");
+            writeln!(output, "  owed:        {owed}").expect("writing to String is infallible");
         }
     }
     0
@@ -7782,13 +8071,16 @@ fn rejection_label(kind: gmeow_logic::RejectionKind) -> &'static str {
 /// A roster row without this is an assertion; with it, the operator can follow the same
 /// derivation the engine made. The premises are the chase's own, never reconstructed
 /// here.
-fn print_refine_witness(indent: &str, witness: &gmeow_logic::ProofWitness) {
-    println!(
+fn render_refine_witness(output: &mut String, indent: &str, witness: &gmeow_logic::ProofWitness) {
+    writeln!(
+        output,
         "{indent}derived by <{}> (proof height {})",
         witness.rule_iri, witness.proof_height
-    );
+    )
+    .expect("writing to String is infallible");
     for (subject, predicate, object) in &witness.premises {
-        println!("{indent}  from {subject} <{predicate}> {object}");
+        writeln!(output, "{indent}  from {subject} <{predicate}> {object}")
+            .expect("writing to String is infallible");
     }
 }
 
@@ -7852,8 +8144,38 @@ pub fn logic_refine(
         }
     };
 
-    let report = gmeow_logic::refine(parsed.as_ref(), task, fragment, budget);
+    let rules = match operator_rules(reporter, CODE) {
+        Ok(rules) => rules,
+        Err(code) => return code,
+    };
+    report_operator_source_diagnostics(reporter, CODE, rules.diagnostics());
+    let report = gmeow_logic::refine(parsed.as_ref(), task, fragment, budget, rules);
 
+    let mut output = String::new();
+    let code = render_logic_refine(
+        reporter,
+        input,
+        &gmeow_logic::operator::refinement::RefinementRecord::from(&report),
+        budget,
+        format,
+        &mut output,
+    );
+    print!("{output}");
+    code
+}
+
+fn render_logic_refine(
+    reporter: &dyn Reporter,
+    input: &Path,
+    report: &gmeow_logic::operator::refinement::RefinementRecord,
+    budget: u32,
+    format: OutputFormat,
+    output: &mut String,
+) -> i32 {
+    use gmeow_logic::operator::refinement::RefinementOutcome;
+    let task = report.task.as_str();
+    let fragment = report.fragment.as_str();
+    const CODE: &str = "gmeow-cli.logic-refine";
     // The two outcomes that are ANSWERS about the method set — a closed roster and a
     // budget-cut one — are the two the structured mode serializes. Every other outcome is
     // a refusal, and a refusal travels the console's error rail (stderr, exit 1, an NDJSON
@@ -7861,18 +8183,18 @@ pub fn logic_refine(
     // document a consumer could mistake for a roster.
     if matches!(format, OutputFormat::Json) {
         let (status, detail) = match &report.outcome {
-            gmeow_logic::runtime::OperationOutcome::Applied { run, .. } => (
+            RefinementOutcome::Applied { consumed_steps, .. } => (
                 "CLOSED",
                 serde_json::json!({
                     "complete_for_fragment": fragment,
-                    "derivations": run.consumed_steps,
+                    "derivations": consumed_steps,
                 }),
             ),
-            gmeow_logic::runtime::OperationOutcome::Incomplete { status, cause } => (
+            RefinementOutcome::Incomplete { status, cause } => (
                 "INCOMPLETE",
                 serde_json::json!({
                     "cut_status": format!("{status:?}"),
-                    "cause": format!("{cause:?}"),
+                    "cause": format!("{cause}"),
                     "budget": budget,
                     "note": "the derivation was cut, so NO roster is reported: a partial roster \
                              presented here would be read as the roster",
@@ -7882,7 +8204,8 @@ pub fn logic_refine(
         };
         if !status.is_empty() {
             let closed = status == "CLOSED";
-            return print_json(
+            return render_json(
+                output,
                 reporter,
                 CODE,
                 &serde_json::json!({
@@ -7932,7 +8255,7 @@ pub fn logic_refine(
     }
 
     match &report.outcome {
-        gmeow_logic::runtime::OperationOutcome::UnsupportedFragment { kind } => {
+        RefinementOutcome::UnsupportedFragment { kind } => {
             // Out of fragment is a REFUSAL, not a thin result: exiting 0 with an empty
             // candidate list would read as "no decomposition exists", which is a
             // different and much more comforting claim than "your method set does not
@@ -7948,7 +8271,7 @@ pub fn logic_refine(
                 CODE,
                 format!(
                     "method set is outside the declared search fragment <{fragment}> \
-                     ({kind:?}): decomposition cycle — {cycles} {} reachable from \
+                     ({kind}): decomposition cycle — {cycles} {} reachable from \
                      {} through the authored method set, so no expansion terminates. No \
                      budget increase would help; the method set needs fixing.",
                     if report.cycles.len() == 1 {
@@ -7964,85 +8287,123 @@ pub fn logic_refine(
                 ),
             );
         }
-        gmeow_logic::runtime::OperationOutcome::Invalid { fault } => {
+        RefinementOutcome::Invalid { fault } => {
             // A malformed request must not be answered with a clean empty roster: that
             // reads as "nothing decomposes this", which is both wrong and reassuring.
             return fail(
                 reporter,
                 CODE,
-                format!("the refinement request is invalid: {fault:?}"),
+                format!("the refinement request is invalid: {fault}"),
             );
         }
-        gmeow_logic::runtime::OperationOutcome::EngineFailure { diagnostic } => {
-            return fail(reporter, CODE, format!("engine failure: {diagnostic:?}"));
+        RefinementOutcome::EngineFailure { diagnostic } => {
+            return fail(reporter, CODE, format!("engine failure: {diagnostic}"));
         }
-        gmeow_logic::runtime::OperationOutcome::Applied { run, .. } => {
-            println!("task:        <{task}>");
-            println!("status:      CLOSED (complete for fragment <{fragment}>)");
-            println!("derivations: {}", run.consumed_steps);
+        RefinementOutcome::Applied { consumed_steps, .. } => {
+            writeln!(output, "task:        <{task}>").expect("writing to String is infallible");
+            writeln!(
+                output,
+                "status:      CLOSED (complete for fragment <{fragment}>)"
+            )
+            .expect("writing to String is infallible");
+            writeln!(output, "derivations: {}", consumed_steps)
+                .expect("writing to String is infallible");
         }
-        gmeow_logic::runtime::OperationOutcome::Incomplete { status, cause } => {
-            println!("task:        <{task}>");
-            println!(
-                "status:      INCOMPLETE — the derivation was cut ({status:?}, {cause:?}) under \
+        RefinementOutcome::Incomplete { status, cause } => {
+            writeln!(output, "task:        <{task}>").expect("writing to String is infallible");
+            writeln!(
+                output,
+                "status:      INCOMPLETE — the derivation was cut ({status:?}, {cause}) under \
                  a budget of {budget}"
-            );
-            println!("             No roster is shown: this run is NOT closed, and a partial");
-            println!("             roster presented here would be read as the roster.");
+            )
+            .expect("writing to String is infallible");
+            writeln!(
+                output,
+                "             No roster is shown: this run is NOT closed, and a partial"
+            )
+            .expect("writing to String is infallible");
+            writeln!(
+                output,
+                "             roster presented here would be read as the roster."
+            )
+            .expect("writing to String is infallible");
             return 0;
         }
-        other => {
+        RefinementOutcome::Unsettled { detail } => {
             // Every remaining outcome is a routing verdict about the program, not an
             // answer about the method set, and printing a roster under one would attribute
             // a result to a run that never committed.
             return fail(
                 reporter,
                 CODE,
-                format!("the refinement did not settle: {other:?}"),
+                format!("the refinement did not settle: {detail}"),
             );
         }
     }
 
-    println!("candidates:  {}", report.candidates.len());
+    writeln!(output, "candidates:  {}", report.candidates.len())
+        .expect("writing to String is infallible");
     for (i, candidate) in report.candidates.iter().enumerate() {
-        println!("  [{i}] <{}> via <{}>", candidate.task, candidate.method);
-        println!("       steps: {}", candidate.steps.join(" -> "));
+        writeln!(
+            output,
+            "  [{i}] <{}> via <{}>",
+            candidate.task, candidate.method
+        )
+        .expect("writing to String is infallible");
+        writeln!(output, "       steps: {}", candidate.steps.join(" -> "))
+            .expect("writing to String is infallible");
         if !candidate.open_steps.is_empty() {
-            println!(
+            writeln!(
+                output,
                 "       open:  {} (decomposed further below)",
                 candidate.open_steps.join(", ")
-            );
+            )
+            .expect("writing to String is infallible");
         }
-        print_refine_witness("       ", &candidate.witness);
+        render_refine_witness(output, "       ", &candidate.witness);
     }
 
-    println!("rejections:  {}", report.rejections.len());
+    writeln!(output, "rejections:  {}", report.rejections.len())
+        .expect("writing to String is infallible");
     for (i, rejection) in report.rejections.iter().enumerate() {
-        println!(
+        writeln!(
+            output,
             "  [{i}] <{}> rejected on {}: <{}>",
             rejection.step,
             rejection_label(rejection.kind),
             rejection.witness_iri
-        );
-        print_refine_witness("       ", &rejection.witness);
+        )
+        .expect("writing to String is infallible");
+        render_refine_witness(output, "       ", &rejection.witness);
     }
 
-    println!("reached:     {}", report.reached.len());
+    writeln!(output, "reached:     {}", report.reached.len())
+        .expect("writing to String is infallible");
     for step in &report.reached {
-        println!("  <{step}>");
+        writeln!(output, "  <{step}>").expect("writing to String is infallible");
     }
 
     // The PIN half. A refinement that validated a selection and froze nothing has done
     // half of what it claims to do, so the count is printed even at zero: an operator must
     // be able to tell "no candidate was authorized" from "pins are not reported here".
-    println!("pins:        {}", report.pins.len());
+    writeln!(output, "pins:        {}", report.pins.len())
+        .expect("writing to String is infallible");
     for (i, pin) in report.pins.iter().enumerate() {
-        println!("  [{i}] <{}> selected by <{}>", pin.pin, pin.episode);
-        println!("       instantiates: <{}>", pin.method);
-        println!("       frozen steps: {}", pin.steps.join(" -> "));
-        println!("       digest:       {}", pin.digest);
-        println!("       authority:    <{}>", pin.authority);
-        print_refine_witness("       ", &pin.witness);
+        writeln!(
+            output,
+            "  [{i}] <{}> selected by <{}>",
+            pin.pin, pin.episode
+        )
+        .expect("writing to String is infallible");
+        writeln!(output, "       instantiates: <{}>", pin.method)
+            .expect("writing to String is infallible");
+        writeln!(output, "       frozen steps: {}", pin.steps.join(" -> "))
+            .expect("writing to String is infallible");
+        writeln!(output, "       digest:       {}", pin.digest)
+            .expect("writing to String is infallible");
+        writeln!(output, "       authority:    <{}>", pin.authority)
+            .expect("writing to String is infallible");
+        render_refine_witness(output, "       ", &pin.witness);
     }
     0
 }
@@ -8114,21 +8475,36 @@ pub fn logic_explain(
     format: OutputFormat,
 ) -> i32 {
     const CODE: &str = "gmeow-cli.logic-explain";
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
     let rows = match logic_derive(reporter, input, CODE) {
         Ok(r) => r,
         Err(rc) => return rc,
     };
 
+    let mut output = String::new();
+    let code = render_logic_explain(reporter, input, &rows, action, format, &mut output);
+    print!("{output}");
+    code
+}
+
+fn render_logic_explain(
+    reporter: &dyn Reporter,
+    input: &Path,
+    rows: &[FactRow],
+    action: &str,
+    format: OutputFormat,
+    output: &mut String,
+) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-explain";
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
     // The action may be named directly or through the entry that positions it.
-    let entries: Vec<String> = iri_pairs(&rows, &format!("{LOGIC_NS}entryAction"))
+    let entries: Vec<String> = iri_pairs(rows, &format!("{LOGIC_NS}entryAction"))
         .into_iter()
         .filter(|(_, step)| step == action)
         .map(|(e, _)| e)
         .chain(std::iter::once(action.to_owned()))
         .collect();
 
-    let explains = iri_pairs(&rows, &format!("{GMEOW_NS}explainsEntry"));
+    let explains = iri_pairs(rows, &format!("{GMEOW_NS}explainsEntry"));
 
     if matches!(format, OutputFormat::Json) {
         let matched: Vec<&(String, String)> = explains
@@ -8142,7 +8518,7 @@ pub fn logic_explain(
                 format!("no gmeow:FrontierExplanation explains <{action}>"),
             );
         }
-        let all_verdicts = label_verdicts(&rows);
+        let all_verdicts = label_verdicts(rows);
         let explanations: Vec<serde_json::Value> = matched
             .iter()
             .map(|(explanation, entry)| {
@@ -8174,7 +8550,8 @@ pub fn logic_explain(
                 })
             })
             .collect();
-        return print_json(
+        return render_json(
+            output,
             reporter,
             CODE,
             &serde_json::json!({
@@ -8184,7 +8561,7 @@ pub fn logic_explain(
                 "explanations": explanations,
                 // The DERIVED counterpart of the authored dissent element, and the
                 // surfaced end of the RDF 1.2 statement-metadata lowering.
-                "contested": derived_contestations(&rows, action)
+                "contested": derived_contestations(rows, action)
                     .into_iter()
                     .map(|(affirming, opposing, subject, rest)| serde_json::json!({
                         "affirming_attribution": affirming,
@@ -8195,7 +8572,7 @@ pub fn logic_explain(
                         ),
                     }))
                     .collect::<Vec<_>>(),
-                "facts": rows_json(&rows),
+                "facts": rows_json(rows),
             }),
         );
     }
@@ -8206,31 +8583,36 @@ pub fn logic_explain(
             continue;
         }
         found = true;
-        println!("action:      {action}");
-        println!("entry:       {entry}");
+        writeln!(output, "action:      {action}").expect("writing to String is infallible");
+        writeln!(output, "entry:       {entry}").expect("writing to String is infallible");
         // The label is re-derived here so an explanation cannot disagree with the frontier
         // it explains — and when the input DOES disagree, the explanation says so rather
         // than quietly adopting the author's word.
-        for (_, verdict) in label_verdicts(&rows).iter().filter(|(e, _)| e == entry) {
+        for (_, verdict) in label_verdicts(rows).iter().filter(|(e, _)| e == entry) {
             match verdict {
                 LabelVerdict::Derived { label, .. } => {
-                    println!("label:       {}   (derived)", short(label));
+                    writeln!(output, "label:       {}   (derived)", short(label))
+                        .expect("writing to String is infallible");
                 }
                 LabelVerdict::AssertedUnchecked { asserted } => {
-                    println!(
+                    writeln!(
+                        output,
                         "label:       {}   (ASSERTED — no shipped logic:Rule derives a label \
                          for this entry, so nothing has verified this value)",
                         short(asserted)
-                    );
+                    )
+                    .expect("writing to String is infallible");
                 }
                 LabelVerdict::Disagreement { derived, asserted } => {
-                    println!(
+                    writeln!(
+                        output,
                         "DISAGREEMENT: the input asserts logic:entryLabel {}, which the shipped \
                          rule set does NOT derive from this entry's axis witnesses; the derived \
                          label {} is authoritative",
                         short(asserted),
                         short(derived)
-                    );
+                    )
+                    .expect("writing to String is infallible");
                 }
             }
         }
@@ -8246,28 +8628,35 @@ pub fn logic_explain(
                 .map(|r| r.object.display())
                 .collect();
             if vals.is_empty() {
-                println!("{heading:<12} <none recorded>");
+                writeln!(output, "{heading:<12} <none recorded>")
+                    .expect("writing to String is infallible");
             } else {
                 for v in vals {
-                    println!("{heading:<12} {v}");
+                    writeln!(output, "{heading:<12} {v}").expect("writing to String is infallible");
                 }
             }
         }
         // The DERIVED sixth line. Printed even at zero, because "no vantage contests the
         // claim this rests on" and "contestation is not reported here" are different
         // things, and the second is what an operator assumes when a section is missing.
-        let contested = derived_contestations(&rows, action);
+        let contested = derived_contestations(rows, action);
         if contested.is_empty() {
-            println!("contested    <none derived>");
+            writeln!(output, "contested    <none derived>")
+                .expect("writing to String is infallible");
         } else {
             for (affirming, opposing, subject, rest) in &contested {
-                println!("contested    {subject} {rest}");
-                println!("             affirmed by {affirming}");
-                println!("             opposed  by {opposing}");
-                println!(
+                writeln!(output, "contested    {subject} {rest}")
+                    .expect("writing to String is infallible");
+                writeln!(output, "             affirmed by {affirming}")
+                    .expect("writing to String is infallible");
+                writeln!(output, "             opposed  by {opposing}")
+                    .expect("writing to String is infallible");
+                writeln!(
+                    output,
                     "             (derived by <{LOGIC_NS}ruleAttributionContestedByOpposing\
                      Vantage> over the lowered RDF 1.2 statement components)"
-                );
+                )
+                .expect("writing to String is infallible");
             }
         }
     }
@@ -8281,3 +8670,6 @@ pub fn logic_explain(
     }
     0
 }
+
+#[cfg(test)]
+mod operator_corpus_tests;

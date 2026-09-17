@@ -51,17 +51,17 @@
 //! # Determinism
 //!
 //! Byte-deterministic: no clock, no RNG, no HashMap iteration order. The signature is resolved
-//! from the authored grounding sources under `input.root` (mirroring
-//! [`crate::stages::lang_projection`]'s verbalizer wiring and
-//! [`crate::stages::gmn1_gate`]'s dictionary loading), the base atoms + operators + depths are
+//! once from the admitted native source catalog, shared with language projection and
+//! conformance. The base atoms + operators + depths are
 //! enumerated in a fixed sorted order, and every proof derivation IRI is content-addressed.
 //! A signature-load / codec / prover failure is a HARD FAIL (no-optionality); a REJECTED
 //! candidate is not a failure — it is designed corpus filtering, recorded with its typed reason.
 //!
 //! # Dataflow edge (the 3-place declaration)
 //!
-//! The stage `gmeow:dataflowConsumes` `stage-compile-logic` (the typechecker/prover lane) AND
-//! `stage-mappings` (the projected GMN forms / glyph registry lane). That edge is declared
+//! The stage `gmeow:dataflowConsumes` `stage-compile-logic` (the typechecker/prover lane),
+//! `stage-mappings` (the projected GMN forms) and `stage-parse-sources` (the shared native
+//! language context). Those edges are declared
 //! IDENTICALLY in three places — [`Stage::consumes`] here, `gmeow:dataflowConsumes` in
 //! `slices/core/pipeline/module.ttl`, and [`crate::run::full_spec`] — and the dogfooding
 //! parity gate (`tests/dag_dogfood.rs`) proves the three never diverge.
@@ -72,7 +72,7 @@ use std::path::Path;
 use gmeow_lang_bridge::{
     ConsumeProjection, Gmn0Model, Gmn1Document, GmnConsumeError, GmnDictionary, GmnOperatorForm,
     RingLattice, consume_project, gmn0_canonically_equal, gmn1_read, gmn1_write,
-    resolve_operator_forms, resolved_schema_version,
+    resolved_schema_version,
 };
 use gmeow_logic::goal_directed::evaluate_reasoning_programs;
 use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
@@ -124,100 +124,43 @@ fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
-// ── Signature resolution (mirrors lang_projection's verbalizer wiring) ─────────────────
+// ── Native shared signature ────────────────────────────────────────────────────────
 
-/// The grounding slice module surfaces whose `rdfs:label`s name the GMN denotation targets and
-/// whose lang module carries the dictionary + ring lattice.
-const GROUNDING_MODULES: [&str; 3] = [
-    "slices/grounding/logic/module.ttl",
-    "slices/grounding/lang/module.ttl",
-    "slices/grounding/math/module.ttl",
-];
+use crate::stages::parse_sources::{SourceCatalog, language::MODULES as GROUNDING_MODULES};
 
 /// The resolved generation context: the carrier dictionary, the ring lattice, the selected
 /// binary operator forms, and the typed atom base.
 struct GenContext {
-    dict: GmnDictionary,
-    lattice: RingLattice,
+    dict: std::sync::Arc<GmnDictionary>,
+    lattice: std::sync::Arc<RingLattice>,
     /// The binary operator forms the functor applies (arity 2), sorted by `term_iri`.
     operators: Vec<GmnOperatorForm>,
     /// atom IRI → its order-sort (`rdf:type`) IRI, sorted.
     atom_sorts: BTreeMap<String, String>,
 }
 
-/// Harvest the `rdfs:label` index (`IRI → label`) from the grounding module bytes — the
-/// deterministic pick mirrors [`crate::stages::lang_projection`]'s `harvest_labels` (the
-/// GMEOW-English label wins; ties break to the smallest lexical form).
-fn harvest_labels(modules: &[Vec<u8>]) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
-    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-    const GMEOW_ENGLISH: &str = "x-gmeow-english";
-    let mut best: BTreeMap<String, (bool, String)> = BTreeMap::new();
-    for module in modules {
-        let dataset = purrdf::parse_dataset(module, "text/turtle", None)
-            .map_err(|e| stage_err(format!("parse grounding module for labels: {e}")))?;
-        for quad in dataset.owned_quads() {
-            if quad.predicate != RDFS_LABEL {
-                continue;
-            }
-            let RdfTerm::Iri(subject) = &quad.subject else {
-                continue;
-            };
-            let RdfTerm::Literal(literal) = &quad.object else {
-                continue;
-            };
-            let is_english = literal.language.as_deref() == Some(GMEOW_ENGLISH);
-            let candidate = (is_english, literal.lexical_form.clone());
-            let better = match best.get(subject) {
-                Some((cur_english, cur_lex)) => {
-                    (candidate.0, std::cmp::Reverse(candidate.1.clone()))
-                        > (*cur_english, std::cmp::Reverse(cur_lex.clone()))
-                }
-                None => true,
-            };
-            if better {
-                best.insert(subject.clone(), candidate);
-            }
-        }
-    }
-    Ok(best.into_iter().map(|(k, (_, lex))| (k, lex)).collect())
-}
-
 impl GenContext {
-    /// Resolve the signature from the authored grounding sources under `root`. The dictionary +
-    /// ring lattice come from the lang module; the operator forms are the carrier glyph
-    /// registry's bindings joined to their denotation targets' `rdfs:label`s across the three
-    /// grounding modules (the SAME resolution [`crate::stages::lang_projection`] performs). A
-    /// missing/malformed source is a HARD FAIL (no-optionality).
-    fn resolve(root: &Path) -> Result<Self, gmeow_errors::Diag> {
-        let mut module_bytes: Vec<Vec<u8>> = Vec::new();
-        for rel in GROUNDING_MODULES {
-            module_bytes.push(
-                std::fs::read(root.join(rel)).map_err(|e| stage_err(format!("read {rel}: {e}")))?,
-            );
-        }
-        // Index 1 is the lang module (see GROUNDING_MODULES order) — the dictionary + lattice
-        // carrier.
-        let lang_ds = purrdf::parse_dataset(&module_bytes[1], "text/turtle", None)
-            .map_err(|e| stage_err(format!("parse lang module: {e}")))?;
-        let dict = GmnDictionary::from_dataset(&lang_ds)
-            .map_err(|e| stage_err(format!("load GMN dictionary: {}", e.0)))?;
-        let lattice = RingLattice::from_dataset(&lang_ds);
+    /// Borrow the admitted native signature without source reads or repeated lowering.
+    fn resolve(sources: &SourceCatalog) -> Result<Self, gmeow_errors::Diag> {
+        let language = sources.language()?;
+        let dict = language.dictionary.clone();
+        let lattice = language.lattice.clone();
         if lattice.is_empty() {
             return Err(stage_err(
-                "the lang module resolved an empty GMN ring lattice — the consume-path \
-                 verifier cannot admit any content (corrupt signature source)",
+                "the selected language source has no GMN ring lattice",
             ));
         }
-        let labels = harvest_labels(&module_bytes)?;
-        let all_forms = resolve_operator_forms(dict.glyph_registry(), &labels)
-            .map_err(|e| stage_err(format!("resolve GMN operator forms: {e}")))?;
         // The functor's expressible fragment: binary operators. A binary operator denotes a
         // relation projectable to a single RDF triple `(subject, operator, object)` — the
         // round-trippable, first-order-binary shape the codec and the order-sorted prover both
         // cover. Higher-arity / unary operators are an explicit, documented enumeration
         // boundary, not a silent drop (Constitution: explicit feature selection is permitted).
-        let mut operators: Vec<GmnOperatorForm> =
-            all_forms.into_iter().filter(|f| f.arity == 2).collect();
+        let mut operators: Vec<GmnOperatorForm> = language
+            .operator_forms
+            .iter()
+            .filter(|f| f.arity == 2)
+            .cloned()
+            .collect();
         operators.sort();
         operators.dedup();
         if operators.is_empty() {
@@ -776,15 +719,15 @@ pub struct GmnTrainingCorpusStage {
 }
 
 impl GmnTrainingCorpusStage {
-    /// Construct the stage. It consumes `stage-compile-logic` (the typechecker/prover lane) AND
-    /// `stage-mappings` (the projected GMN forms / glyph registry lane) — the two producers
-    /// whose products the corpus is a function of. The edge is declared identically here, in
+    /// Construct the stage with the logic, projected forms and shared native language
+    /// dependencies. These edges are declared identically here, in
     /// `slices/core/pipeline/module.ttl`, and in [`crate::run::full_spec`].
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
+                crate::stages::parse_sources::STAGE_ID.to_owned(),
             ],
         }
     }
@@ -811,7 +754,7 @@ impl Stage for GmnTrainingCorpusStage {
     }
     fn impl_version(&self) -> &str {
         // v1: the rejection-sampled, proof-carrying GMN training-corpus emitter.
-        "gmn-training-corpus.v1"
+        "gmn-training-corpus.v2-native-signature"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The signature is resolved from the three grounding module surfaces; declare them for
@@ -819,7 +762,7 @@ impl Stage for GmnTrainingCorpusStage {
         Ok(GROUNDING_MODULES.iter().map(|rel| root.join(rel)).collect())
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let ctx = GenContext::resolve(input.root)?;
+        let ctx = GenContext::resolve(crate::stages::parse_sources::catalog(&input)?)?;
         let (quads, kept, _rejected) = build_corpus(&ctx);
         if kept == 0 {
             return Err(stage_err(

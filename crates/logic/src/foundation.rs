@@ -1977,7 +1977,8 @@ const STRATA: [&[Rule]; 5] = [STRATUM_0, STRATUM_1, STRATUM_2, STRATUM_3, STRATU
 /// unifies with it, directly or through any chain of rule applications (every
 /// derived fact is some rule's head). A `logic:NonEntailmentObligation` whose
 /// forbidden predicate is not in this set is discharged by syntactic reachability;
-/// one whose forbidden predicate IS in it is violated. The foundation heads are all
+/// a matching head prevents this syntactic discharge but is not a witnessed violation.
+/// The foundation heads are all
 /// `logic:`-namespaced, so an assertion-only `gmeow:` predicate (e.g.
 /// `gmeow:counterpartOf`, `gmeow:deceptiveIntentClaim`) is discharged today and trips
 /// only if a future rule introduces it as a head.
@@ -2050,6 +2051,7 @@ fn lower_foundation_rules() -> Vec<crate::rule_ir::EvalRule> {
     for stratum in STRATA {
         for rule in stratum {
             out.push(crate::rule_ir::EvalRule {
+                numeric: Vec::new(),
                 head: lower_atom(&rule.head),
                 body: rule.body.iter().map(lower_atom).collect(),
                 rule_iri: ANON_RULE_IRI.to_owned(),
@@ -2059,6 +2061,7 @@ fn lower_foundation_rules() -> Vec<crate::rule_ir::EvalRule> {
                     .map(|&(a, b)| (a.to_owned(), b.to_owned()))
                     .collect(),
                 builtins: Vec::new(),
+                reduction: None,
                 constraint_tag: None,
             });
         }
@@ -2135,6 +2138,7 @@ fn chase_all_worlds_physical(store: &WorldStore) -> gmeow_errors::Result<Vec<Fou
         // `subject`/`predicate` are bare IRIs on a `FoundationQuad`; `object` is N3.
         // A `DerivedRow` carries native terms whose `term_display` is the N3 surface.
         out.push(FoundationQuad {
+            modal_evaluation: None,
             graph: row.graph,
             subject: strip_angle(&crate::provenance::term_display(&row.subject)).to_owned(),
             predicate: row.predicate,
@@ -2156,6 +2160,8 @@ fn chase_all_worlds_physical(store: &WorldStore) -> gmeow_errors::Result<Vec<Fou
 /// derivation IRIs are byte-identical.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FoundationQuad {
+    /// The complete contextual modal evaluation, including bounded absence evidence.
+    pub modal_evaluation: Option<crate::modal::ModalEvaluation>,
     /// The world IRI (named-graph component).
     pub graph: String,
     /// The subject IRI.
@@ -2185,8 +2191,8 @@ impl ModalFact for FoundationQuad {
         &self.predicate
     }
 
-    fn object(&self) -> &str {
-        &self.object
+    fn object(&self) -> std::borrow::Cow<'_, str> {
+        std::borrow::Cow::Borrowed(&self.object)
     }
 }
 
@@ -2208,11 +2214,48 @@ fn n3(iri: &str) -> String {
 /// Never fails today (the inputs are validated IRIs + an N3 object), but returns a
 /// `Result` to keep the call site uniform with the other provenance helpers.
 pub fn quad_reifier(quad: &FoundationQuad) -> gmeow_errors::Result<String> {
+    validate_modal_quad(quad)?;
+    if quad.modal_evaluation.is_some() {
+        return Ok(modal::occurrence_id(
+            &quad.graph,
+            &quad.subject,
+            &quad.predicate,
+            &quad.object,
+        ));
+    }
     Ok(crate::provenance::reifier_from_strings(
         &quad.subject,
         &quad.predicate,
         &quad.object,
     ))
+}
+
+pub(crate) fn validate_modal_quad(quad: &FoundationQuad) -> gmeow_errors::Result<()> {
+    if let Some(evidence) = &quad.modal_evaluation {
+        evidence.validate()?;
+        if quad.graph != evidence.context
+            || quad.subject != evidence.formula
+            || quad.predicate != evidence.conclusion_predicate
+            || strip_angle(&quad.object) != evidence.conclusion_object
+            || quad.rule_iri != modal::MODAL_RULE_IRI
+            || quad.derivation_id != evidence.derivation_id()
+            || quad.source_quad_ids
+                != evidence
+                    .positive_premises()
+                    .iter()
+                    .map(modal::ModalPremise::occurrence_id)
+                    .collect::<Vec<_>>()
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: "foundation modal quad does not match its contextual evaluation".to_owned(),
+            }));
+        }
+    } else if quad.rule_iri == modal::MODAL_RULE_IRI {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: "foundation modal quad is missing contextual evaluation evidence".to_owned(),
+        }));
+    }
+    Ok(())
 }
 
 /// Reifier IRI for an explicit `(s, p, o)` IRI triple — used by the cross-world passes.
@@ -2327,6 +2370,7 @@ fn cross_world_rigidity_violations(
                 let witness = triple_reifier(&inst, RDF_TYPE, &type_iri)?;
                 let deriv = mint_derivation_id(RIGIDITY_RULE_IRI, &[witness.as_str()]);
                 out.push(FoundationQuad {
+                    modal_evaluation: None,
                     graph: w2.clone(),
                     subject: inst.clone(),
                     predicate: format!("{LOGIC_NS}rigidityViolation"),
@@ -2346,6 +2390,7 @@ fn evaluate_modal_formulas(quads: &[FoundationQuad]) -> gmeow_errors::Result<Vec
         verdicts
             .into_iter()
             .map(|verdict| FoundationQuad {
+                modal_evaluation: Some(verdict.evaluation),
                 graph: verdict.graph,
                 subject: verdict.subject,
                 predicate: verdict.predicate,
@@ -2442,6 +2487,7 @@ fn anti_rigidity_obligations(
             let witness = triple_reifier(&inst, RDF_TYPE, &type_iri)?;
             let deriv = mint_derivation_id(ANTI_RIGIDITY_RULE_IRI, &[witness.as_str()]);
             out.push(FoundationQuad {
+                modal_evaluation: None,
                 graph: typing_world.clone(),
                 subject: inst,
                 predicate: predicate.clone(),
@@ -2626,6 +2672,7 @@ fn characteristic_carrier_agreement_pass(
         let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
         let derivation_id = mint_derivation_id(CHAR_CARRIER_RULE_IRI, &source_refs);
         out.push(FoundationQuad {
+            modal_evaluation: None,
             graph: rec.graph.clone(),
             subject: rec.property.clone(),
             predicate: format!("{LOGIC_NS}violation"),
@@ -2825,6 +2872,7 @@ fn property_characteristic_pass(
                 let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                 let derivation_id = mint_derivation_id(rule, &source_refs);
                 out.push(FoundationQuad {
+                    modal_evaluation: None,
                     graph: world.clone(),
                     subject: s.clone(),
                     predicate: prop.clone(),
@@ -2878,6 +2926,7 @@ fn property_characteristic_pass(
                         let derivation_id =
                             mint_derivation_id(CHAR_ACYCLIC_RULE_IRI, &[source.as_str()]);
                         out.push(FoundationQuad {
+                            modal_evaluation: None,
                             graph: world.clone(),
                             subject: (*start).to_owned(),
                             predicate: format!("{LOGIC_NS}violation"),
@@ -2920,6 +2969,7 @@ fn property_characteristic_pass(
                 let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                 let derivation_id = mint_derivation_id(CHAR_CLASH_RULE_IRI, &source_refs);
                 out.push(FoundationQuad {
+                    modal_evaluation: None,
                     graph: world.clone(),
                     subject,
                     predicate: format!("{LOGIC_NS}violation"),
@@ -3050,6 +3100,7 @@ fn relatum_distinctness_pass(
                 let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                 let derivation_id = mint_derivation_id(RELATUM_DISTINCTNESS_RULE_IRI, &source_refs);
                 out.push(FoundationQuad {
+                    modal_evaluation: None,
                     graph: world.clone(),
                     subject: subject.clone(),
                     predicate: format!("{LOGIC_NS}violation"),

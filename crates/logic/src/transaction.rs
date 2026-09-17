@@ -53,6 +53,9 @@
 //! *precondition* that does not hold is NOT an error: it is a normal execution failure
 //! that `Fallback` / `Choice` route on.
 
+#[cfg(test)]
+mod test_support;
+
 use std::collections::BTreeSet;
 
 use crate::provenance::{LOGIC_NAMESPACE, sha1_hex};
@@ -282,27 +285,6 @@ impl ExecOutcome {
         match self {
             Self::Succeeded { sits_end, .. } => sits_end,
             _ => &EMPTY_SITS,
-        }
-    }
-
-    /// The executed states (start..=end) — non-empty only on `Succeeded`; an empty slice for a
-    /// `Pending` / `Failed` run, which committed no path. A test-only inspector: the production
-    /// emission path destructures the `Succeeded` variant directly.
-    #[cfg(test)]
-    pub(crate) fn path(&self) -> &[String] {
-        match self {
-            Self::Succeeded { path, .. } => path,
-            _ => &[],
-        }
-    }
-
-    /// The elementary steps applied along the executed path — empty for a `Pending` / `Failed`
-    /// run, which applied no committed step. A test-only inspector (see [`Self::path`]).
-    #[cfg(test)]
-    pub(crate) fn steps(&self) -> &[PlannedStep] {
-        match self {
-            Self::Succeeded { steps, .. } => steps,
-            _ => &[],
         }
     }
 }

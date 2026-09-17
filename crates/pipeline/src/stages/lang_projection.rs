@@ -47,12 +47,12 @@
 use purrdf::slice::SliceCatalog;
 
 use gmeow_lang_bridge::registry::{
-    EMISSION_WORTHY_CLASSES, LangEmission, LangProjectionInput, NamedSource,
+    EMISSION_WORTHY_CLASSES, GrammarSource, LangEmission, LangProjectionInput, NamedSource,
     assert_registry_covers, registry,
 };
 use gmeow_lang_bridge::{
     CurrentCodebook, GmnDictionary, exact_round_trip_holds, is_exact_correspondence,
-    ntriples_sorted, resolve_current_codebook, resolve_dialect_acceptance, resolve_operator_forms,
+    ntriples_sorted,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
@@ -60,6 +60,15 @@ use gmeow_logic_compile::projections::{ProjectionResult, assert_no_overclaim};
 
 use gmeow_ns::LANG_NS;
 use gmeow_ns::LOGIC_NS;
+#[cfg(test)]
+pub(crate) mod contract_fixtures;
+pub(crate) mod gmn_gate;
+#[cfg(test)]
+pub(crate) mod gmn_gate_tests;
+pub(crate) mod gmn_pack;
+#[cfg(test)]
+pub(crate) mod grammar_corpus_tests;
+mod grammar_observations;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
@@ -92,7 +101,9 @@ pub struct LangProjectionCorpus {
 /// the sources the shared in-memory [`SliceCatalog`] carries. `None` (no `slices/` tree)
 /// yields the empty-input corpus (every target folds its honest no-source row).
 pub fn build_corpus(
+    root: &std::path::Path,
     catalog: Option<&SliceCatalog>,
+    sources: &crate::stages::parse_sources::SourceCatalog,
 ) -> Result<LangProjectionCorpus, gmeow_errors::Diag> {
     // Functor totality (Invariant 4): every emission-worthy class must map to a registered
     // target BEFORE any emission runs — a gap is a hard fail, not a silent omission.
@@ -100,7 +111,10 @@ pub fn build_corpus(
         assert_registry_covers(class)?;
     }
 
-    let input = collect_input(catalog)?;
+    let input = collect_input(catalog, sources)?;
+    let mut grammar_observations = grammar_observations::Observations::new(&input.grammars);
+    let mut pack = gmn_pack::Recorder::default();
+    let mut gates = gmn_gate::Recorder::default();
 
     let mut lines: Vec<String> = Vec::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
@@ -109,13 +123,16 @@ pub fn build_corpus(
 
     for target in registry() {
         let name = target.name();
-        let emissions = target.emit(&input).map_err(|d| {
+        let batch = target.emit_observed(&input).map_err(|d| {
             stage_err(format!(
                 "lang-projection target '{name}' hard-failed ({}): {}",
                 d.failure_class.as_str(),
                 d.construct
             ))
         })?;
+        pack.record(name, &batch)?;
+        gates.record(name, &batch)?;
+        let emissions = batch.emissions;
 
         if emissions.is_empty() {
             // Honest no-source row: the target is registered but the composed model carries
@@ -126,6 +143,7 @@ pub fn build_corpus(
         }
 
         for emission in emissions {
+            grammar_observations.record(name, &emission)?;
             let derived = derived_kind(&emission);
             enforce_invariants(name, &emission, derived)?;
 
@@ -160,6 +178,26 @@ pub fn build_corpus(
         }
     }
 
+    if let Some(pack) = pack.finish(&input, catalog, &artifacts)? {
+        let gates = gates.finish(root, catalog, sources, &pack)?;
+        artifacts.push((
+            gmn_gate::CHANNEL.to_owned(),
+            serde_json::to_vec(&gates).map_err(|error| {
+                stage_err(format!("encode native GMN gate observations: {error}"))
+            })?,
+        ));
+        artifacts.push((
+            gmn_pack::CHANNEL.to_owned(),
+            serde_json::to_vec(&pack).map_err(|error| {
+                stage_err(format!("encode native GMN pack observations: {error}"))
+            })?,
+        ));
+    }
+    artifacts.push((
+        grammar_observations::CHANNEL.to_owned(),
+        serde_json::to_vec(&grammar_observations)
+            .map_err(|error| stage_err(format!("encode native grammar observations: {error}")))?,
+    ));
     artifacts.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(LangProjectionCorpus {
         ntriples: ntriples_sorted(lines),
@@ -326,7 +364,21 @@ fn no_source_row(target: &str, loss: &mut LossLedger) -> ProjectionResult {
 pub(crate) fn lang_model_sources(
     catalog: Option<&SliceCatalog>,
 ) -> Result<Vec<NamedSource>, gmeow_errors::Diag> {
-    Ok(collect_input(catalog)?.lang_models)
+    let mut models = Vec::new();
+    if let Some(catalog) = catalog {
+        for record in catalog.records() {
+            for artifact in &record.artifacts {
+                if is_lang_model(&artifact.logical_path, &artifact.content) {
+                    models.push(NamedSource {
+                        name: lang_model_stem(&artifact.logical_path),
+                        bytes: artifact.content.clone(),
+                    });
+                }
+            }
+        }
+    }
+    models.sort_by(|a, b| a.name.cmp(&b.name));
+    Ok(models)
 }
 
 /// Collect the projection input aBox from the shared source catalog: every authored
@@ -335,25 +387,17 @@ pub(crate) fn lang_model_sources(
 /// and — with the lang module surface — the BCP-47 target's variety scan).
 fn collect_input(
     catalog: Option<&SliceCatalog>,
+    sources: &crate::stages::parse_sources::SourceCatalog,
 ) -> Result<LangProjectionInput, gmeow_errors::Diag> {
     let mut grammars: Vec<NamedSource> = Vec::new();
     let mut lang_models: Vec<NamedSource> = Vec::new();
     let mut varieties: Vec<NamedSource> = Vec::new();
-    let mut gmn_dictionary: Option<GmnDictionary> = None;
-    let mut gmn_codebook: Option<CurrentCodebook> = None;
+    let mut gmn_dictionary: Option<std::sync::Arc<GmnDictionary>> = None;
+    let mut gmn_codebook: Option<std::sync::Arc<CurrentCodebook>> = None;
     let mut gmn_dialect_major: Option<String> = None;
-    // The grounding-slice module surfaces (lang/logic/math) whose `rdfs:label`s name the GMN
-    // denotation targets the verbalizer renders — captured here and parsed once after the loop
-    // into the shared label index, so the bundle-level verbalizer resolves a term's controlled-NL
-    // nucleus from the graph rather than from any local-name convention.
-    let mut grounding_modules: Vec<Vec<u8>> = Vec::new();
     if let Some(catalog) = catalog {
         for record in catalog.records() {
-            let record_is_grounding = is_grounding_slice(&record.slice_dir);
             for artifact in &record.artifacts {
-                if record_is_grounding && artifact.logical_path == "module.ttl" {
-                    grounding_modules.push(artifact.content.clone());
-                }
                 if artifact.logical_path.ends_with(".ebnf") {
                     grammars.push(NamedSource {
                         name: grammar_stem(&artifact.logical_path),
@@ -366,10 +410,7 @@ fn collect_input(
                 // namespace check scopes the scan to lang-bearing sources (a non-lang example is
                 // not fed to a lang bridge, so it never hard-fails the projection). A lang-bearing
                 // example ALSO feeds the BCP-47 target's variety scan.
-                if artifact.logical_path.starts_with("examples/")
-                    && artifact.logical_path.ends_with(".ttl")
-                    && contains_lang_namespace(&artifact.content)
-                {
+                if is_lang_model(&artifact.logical_path, &artifact.content) {
                     let source = NamedSource {
                         name: lang_model_stem(&artifact.logical_path),
                         bytes: artifact.content.clone(),
@@ -390,49 +431,10 @@ fn collect_input(
                         bytes: artifact.content.clone(),
                     });
                     if record.slice_dir.file_name().and_then(|name| name.to_str()) == Some("lang") {
-                        let dataset = purrdf::parse_dataset(&artifact.content, "text/turtle", None)
-                            .map_err(|error| {
-                                stage_err(format!(
-                                    "parse grounding/lang module for the GMN codebook: {error}"
-                                ))
-                            })?;
-                        gmn_dictionary =
-                            Some(GmnDictionary::from_dataset(&dataset).map_err(|error| {
-                                stage_err(format!("load grounding/lang GMN codebook: {}", error.0))
-                            })?);
-                        // The resolved codebook is the second carrier of codebook identity the
-                        // conformance pack's digest folds over (alongside the dictionary) — read
-                        // from the SAME dataset so the emitted digest equals the gate/CLI recompute.
-                        gmn_codebook =
-                            Some(resolve_current_codebook(&dataset).map_err(|error| {
-                                stage_err(format!(
-                                    "resolve grounding/lang current GMN codebook: {}",
-                                    error.0
-                                ))
-                            })?);
-                        // The dialect major that keys every emitted GMN artifact path is
-                        // RESOLVED FROM THE GRAPH (the gmeow:gmnDialectVersions lineage's
-                        // roleLatest member) — read from the SAME dataset as the codebook, so
-                        // the projection subtree and the codec's header pin one lineage. The
-                        // shipped lang module always carries the lineage; its absence is a hard
-                        // fail (no-optionality), never a constant default.
-                        gmn_dialect_major = Some(
-                            resolve_dialect_acceptance(&dataset)
-                                .map_err(|error| {
-                                    stage_err(format!(
-                                        "resolve grounding/lang GMN dialect version lineage: {}",
-                                        error.0
-                                    ))
-                                })?
-                                .ok_or_else(|| {
-                                    stage_err(
-                                        "grounding/lang module carries no gmeow:gmnDialectVersions \
-                                         lineage; the version-keyed GMN projection cannot default"
-                                            .to_owned(),
-                                    )
-                                })?
-                                .latest_major_key(),
-                        );
+                        let language = sources.language()?;
+                        gmn_dictionary = Some(language.dictionary.clone());
+                        gmn_codebook = Some(language.codebook.clone());
+                        gmn_dialect_major = Some(language.dialect.latest_major_key());
                     }
                 }
             }
@@ -464,18 +466,20 @@ fn collect_input(
     // bindings joined to their denotation targets' `rdfs:label`s (harvested from the grounding
     // modules). A non-injective inventory hard-fails downstream in the bundle emission; here a
     // missing label for a selected operator is a HARD FAIL (no-optionality), never a silent skip.
-    let gmn_operator_forms = if let Some(dictionary) = &gmn_dictionary {
-        let labels = harvest_labels(&grounding_modules)?;
-        resolve_operator_forms(dictionary.glyph_registry(), &labels).map_err(|error| {
-            stage_err(format!(
-                "resolve GMN verbalizable operator forms from the carrier registry: {error}"
-            ))
-        })?
+    let gmn_operator_forms = if gmn_dictionary.is_some() {
+        sources.language()?.operator_forms.to_vec()
     } else {
         Vec::new()
     };
 
     // Deterministic source order (independent of catalog discovery order).
+    let mut grammars = grammars
+        .into_iter()
+        .map(|source| {
+            GrammarSource::parse(source.name, &source.bytes)
+                .map_err(|error| stage_err(format!("prepare language grammar: {error:?}")))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     grammars.sort_by(|a, b| a.name.cmp(&b.name));
     lang_models.sort_by(|a, b| a.name.cmp(&b.name));
     varieties.sort_by(|a, b| a.name.cmp(&b.name));
@@ -492,58 +496,8 @@ fn collect_input(
     })
 }
 
-/// Whether a slice directory lives under the `grounding/` tree (lang/logic/math) — the source
-/// of the GMN denotation targets' `rdfs:label`s the verbalizer renders.
-fn is_grounding_slice(slice_dir: &std::path::Path) -> bool {
-    slice_dir.components().any(|c| c.as_os_str() == "grounding")
-}
-
-/// Harvest the `rdfs:label` index (`IRI → label`) from the grounding module surfaces. When an
-/// IRI carries several labels, the GMEOW-English one (`@x-gmeow-english`) wins; ties break to
-/// the lexicographically smallest lexical form, so the index is deterministic across runs.
-fn harvest_labels(
-    modules: &[Vec<u8>],
-) -> Result<std::collections::BTreeMap<String, String>, gmeow_errors::Diag> {
-    use purrdf::RdfTerm;
-    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-    const GMEOW_ENGLISH: &str = "x-gmeow-english";
-    // (is_gmeow_english, lexical_form) per IRI — preference order for the deterministic pick.
-    let mut best: std::collections::BTreeMap<String, (bool, String)> =
-        std::collections::BTreeMap::new();
-    for module in modules {
-        let dataset = purrdf::parse_dataset(module, "text/turtle", None).map_err(|error| {
-            stage_err(format!(
-                "parse grounding module for verbalizer labels: {error}"
-            ))
-        })?;
-        for quad in dataset.owned_quads() {
-            if quad.predicate != RDFS_LABEL {
-                continue;
-            }
-            let RdfTerm::Iri(subject) = &quad.subject else {
-                continue;
-            };
-            let RdfTerm::Literal(literal) = &quad.object else {
-                continue;
-            };
-            let is_english = literal.language.as_deref() == Some(GMEOW_ENGLISH);
-            let candidate = (is_english, literal.lexical_form.clone());
-            match best.get(subject) {
-                Some((cur_english, cur_lex)) => {
-                    // Prefer the GMEOW-English label; among equals, the smallest lexical form.
-                    let better = (candidate.0, std::cmp::Reverse(candidate.1.clone()))
-                        > (*cur_english, std::cmp::Reverse(cur_lex.clone()));
-                    if better {
-                        best.insert(subject.clone(), candidate);
-                    }
-                }
-                None => {
-                    best.insert(subject.clone(), candidate);
-                }
-            }
-        }
-    }
-    Ok(best.into_iter().map(|(k, (_, v))| (k, v)).collect())
+fn is_lang_model(path: &str, content: &[u8]) -> bool {
+    path.starts_with("examples/") && path.ends_with(".ttl") && contains_lang_namespace(content)
 }
 
 /// Whether a source references the `lang:` namespace — the cheap scope filter that keeps the

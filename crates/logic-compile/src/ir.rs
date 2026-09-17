@@ -14,18 +14,27 @@
 //! all collection fields as **sorted vectors**, built by the canonicalizing
 //! constructors ([`LogicProgram::new`], [`LogicRule::new`]).  Sorting is **stable**
 //! and keyed on [`LogicAxiom::sort_key`] / [`LogicRule::sort_key`] /
-//! [`ReasoningContract::sort_key`].  The axiom/rule keys reproduce the Python
-//! `_sort_key()` byte for byte (null-byte separators; Python `bool` `Display`
-//! `True`/`False`; corpus-safety: `negated` / `distinct` / `load_bearing` /
-//! `node_kind` are appended to the key only when non-default, so every historical
-//! program keeps its exact historical key string and the downstream artifacts stay
-//! byte-identical).  The contract key is greenfield: it has no Python byte form, only
-//! internal determinism.
+//! [`ReasoningContract::sort_key`]. Compact atoms share the relational core's native
+//! atomic term algebra. Their framed keys bind object kind and every RDF literal
+//! component; contextual scope is bound separately by the complete content key.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt;
+use std::fmt::{self, Write as _};
 
 use gmeow_errors::Diag;
+
+mod numeric_literal;
+pub use numeric_literal::{FiniteNumericLiteral, NumericLiteral, UnitInterval};
+
+mod axis_evidence;
+pub use axis_evidence::AxisEvidence;
+mod composition;
+pub use composition::CorrespondenceComposition;
+pub mod presentation;
+pub use presentation::PresentationProgramIr;
+
+pub(crate) mod atomic;
+pub use atomic::AtomicTerm;
 
 /// The workspace's ONE content-key type, minted by the shared term arena. Re-exported so
 /// a consumer of this IR names the same type the arena hands back.
@@ -605,43 +614,37 @@ fn py_bool(b: bool) -> &'static str {
 /// A single `logic:` axiom with contextual scope: a (possibly non-ground)
 /// subject-predicate-object assertion in the `logic:` vocabulary.
 ///
-/// Variables are encoded as `?`-prefixed strings inside `subject` / `obj` (there
-/// is no separate term enum at the compile layer — the lowering to the evaluable
-/// IR splits `?x` → variable, else IRI/literal).
+/// The subject is a compact resource token (`?`-prefixed for a variable). The object
+/// uses the shared [`AtomicTerm`] algebra, retaining complete native literals and
+/// distinguishing them from variables before any execution or projection.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct LogicAxiom {
     /// IRI string (or `?var`) of the axiom subject.
     pub subject: String,
     /// IRI string of the axiom predicate.
     pub predicate: String,
-    /// IRI string, `?var`, or literal value of the axiom object.
-    pub obj: String,
-    /// `true` when `obj` is a literal (data value), `false` when it is an IRI.
-    pub obj_is_literal: bool,
-    /// `true` when this is a negation-as-failure body literal. Defaults to
-    /// `false`; append-only in the sort key for corpus safety.
+    /// Explicitly typed object; native literal metadata is never separated from its value.
+    pub obj: AtomicTerm,
+    /// Whether this is a negation-as-failure body literal; included in content identity.
     pub negated: bool,
     /// Contextual scope for this axiom.
     pub scope: ContextualScope,
     /// The `logic:NodeKind` this axiom declares (default
-    /// [`NodeKind::ObjectLevelFormula`]).  Folded into the sort/content key only when
-    /// non-default, so the historical (all-`ObjectLevelFormula`) corpus is byte-stable.
+    /// [`NodeKind::ObjectLevelFormula`]). Always included in the sort/content key.
     pub node_kind: NodeKind,
     /// Whether this axiom's annotation is load-bearing (`logic:loadBearing`): an in-band
     /// complement or quantitative axis the inverse leg needs for `put∘get = id`, versus a
     /// droppable display hint (the default, `false`).  Without this bit a section /
-    /// retraction (perfect-subsumption) claim cannot be verified.  Folded into the keys
-    /// only when `true`.
+    /// retraction (perfect-subsumption) claim cannot be verified. Included in every key.
     pub load_bearing: bool,
 }
 
 impl LogicAxiom {
-    /// Construct, validating non-empty subject/predicate (Python `__post_init__`).
+    /// Construct with an explicit object kind and validated native literal components.
     pub fn new(
         subject: impl Into<String>,
         predicate: impl Into<String>,
-        obj: impl Into<String>,
-        obj_is_literal: bool,
+        mut obj: AtomicTerm,
         negated: bool,
         scope: ContextualScope,
     ) -> gmeow_errors::Result<Self> {
@@ -657,11 +660,17 @@ impl LogicAxiom {
                 detail: "LogicAxiom.predicate must be a non-empty IRI string".to_owned(),
             }));
         }
+        if let AtomicTerm::Literal(literal) = &mut obj {
+            literal_serde::normalize(literal).map_err(|detail| {
+                Diag::of_kind(crate::error::Ir {
+                    detail: detail.to_owned(),
+                })
+            })?;
+        }
         Ok(Self {
             subject,
             predicate,
-            obj: obj.into(),
-            obj_is_literal,
+            obj,
             negated,
             scope,
             node_kind: NodeKind::ObjectLevelFormula,
@@ -670,8 +679,7 @@ impl LogicAxiom {
     }
 
     /// Set this axiom's [`NodeKind`] (builder; default
-    /// [`NodeKind::ObjectLevelFormula`]).  Kept off [`Self::new`] so existing call sites
-    /// and the byte-pinned default-kind key are unchanged.
+    /// [`NodeKind::ObjectLevelFormula`]).
     pub fn with_node_kind(mut self, node_kind: NodeKind) -> Self {
         self.node_kind = node_kind;
         self
@@ -688,57 +696,29 @@ impl LogicAxiom {
     pub fn ground(
         subject: impl Into<String>,
         predicate: impl Into<String>,
-        obj: impl Into<String>,
-        obj_is_literal: bool,
+        obj: AtomicTerm,
     ) -> gmeow_errors::Result<Self> {
-        Self::new(
-            subject,
-            predicate,
-            obj,
-            obj_is_literal,
-            false,
-            ContextualScope::default(),
-        )
+        Self::new(subject, predicate, obj, false, ContextualScope::default())
     }
 
-    /// Stable sort key for canonical ordering — the golden-pinned key format.
-    /// Corpus-safety: `negated`, then `load_bearing`, then `node_kind` are appended only
-    /// when non-default, in that **fixed order** (frozen once committed — reordering
-    /// would churn every non-default node).  An all-default axiom keeps a byte-identical
-    /// key, so the golden corpus is unchanged.  The scope is intentionally excluded.
+    /// Stable, fully framed identity of this atom, excluding contextual scope.
     pub fn sort_key(&self) -> String {
-        let mut base = format!(
-            "{}{SEP}{}{SEP}{}{SEP}{}",
-            self.subject,
-            self.predicate,
-            self.obj,
-            py_bool(self.obj_is_literal),
-        );
-        if self.negated {
-            base.push(SEP);
-            base.push_str(py_bool(self.negated));
-        }
-        // FIXED segment order: load_bearing (when true) THEN node_kind (when != the
-        // axiom default ObjectLevelFormula).  Do not reorder — it pins the key.
-        if self.load_bearing {
-            base.push(SEP);
-            base.push_str(py_bool(self.load_bearing));
-        }
-        if self.node_kind != NodeKind::ObjectLevelFormula {
-            base.push(SEP);
-            base.push_str(self.node_kind.as_str());
-        }
-        base
+        atomic::frame(
+            "axiom",
+            [
+                self.subject.as_str(),
+                self.predicate.as_str(),
+                &self.obj.key(),
+                py_bool(self.negated),
+                py_bool(self.load_bearing),
+                self.node_kind.as_str(),
+            ],
+        )
     }
 
-    /// A deterministic full-content key (sort key + scope) for canonical equality
-    /// and the IR-isomorphism gate.
-    fn content_key(&self) -> String {
-        format!(
-            "{}{SEP}|scope|{SEP}{}",
-            self.sort_key(),
-            self.scope.content_key()
-        )
+    /// Complete atom identity, including the contextual envelope.
+    pub(crate) fn content_key(&self) -> String {
+        atomic::frame("scoped-axiom", [self.sort_key(), self.scope.content_key()])
     }
 }
 
@@ -906,7 +886,7 @@ impl LogicRule {
     }
 
     /// A deterministic full-content key for canonical equality / the gate.
-    fn content_key(&self) -> String {
+    pub(crate) fn content_key(&self) -> String {
         let body = self
             .body
             .iter()
@@ -1086,7 +1066,7 @@ impl ReasoningContract {
     }
 
     /// A deterministic full-content key (sort key + the carried complexity class).
-    fn content_key(&self) -> String {
+    pub(crate) fn content_key(&self) -> String {
         let compl = self
             .complexity
             .as_ref()
@@ -1385,9 +1365,10 @@ impl fmt::Display for CorrespondenceRelation {
 /// projected canonical text, so two bodies are "the same leg" iff their normalized path
 /// expressions are graph-isomorphic — never a hash of surrounding metadata.
 ///
-/// A lawful `put` leg is the structural [`LegPath::invert`] of its `get` leg: that is what
-/// makes `put ∘ get = id` a *decidable* canonical-IR identity (the spec's graph-iso check)
-/// rather than a data-execution round-trip (the F3 executor, off this path).
+/// [`LegPath::invert`] constructs a candidate reverse relation. Structural inversion
+/// does not establish recovery, injectivity, a stateful lens law or a rewrite license.
+/// Those judgments require executed evidence in the declared law domain or an
+/// independently checked certified-fragment derivation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum LegPath {
     /// A single forward predicate step (`gm:SeqPath` member / bare predicate IRI).
@@ -1401,10 +1382,10 @@ pub enum LegPath {
 }
 
 impl LegPath {
-    /// The structural reverse of this path — the lawful inverse leg. `reverse` is an
+    /// The structural reverse of this path — a candidate inverse leg. `reverse` is an
     /// involution: `reverse(^x) = x`, `reverse(a/b/c) = ^c / ^b / ^a`, and `reverse` of an
-    /// alternation reverses each branch. A lawful `put` leg equals `get.invert()`, so the
-    /// round-trip gate verifies `put == get.invert()` over the normalized canonical form.
+    /// alternation reverses each branch. This is a syntactic operation; the correspondence
+    /// executor must still check the resolved bodies and the declared recovery domain.
     pub fn invert(&self) -> LegPath {
         match self {
             LegPath::Step(_) => LegPath::Inverse(Box::new(self.clone())),
@@ -1822,7 +1803,7 @@ impl LawClaimIr {
     }
 }
 
-/// Format an optional unit-interval axis for the content key, collapsing `-0.0` to
+/// Format a binary64 validation bound for its content key, collapsing `-0.0` to
 /// `0.0` (signed-zero determinism) and rendering `None` as the empty string.
 fn opt_axis_key(v: Option<f64>) -> String {
     match v {
@@ -1873,13 +1854,25 @@ impl RecoveryCaseIr {
     }
 }
 
+/// A named, correspondence-owned limitation. Its complete text participates in the
+/// owner's identity and survives every typed program assembly.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct CorrespondenceCaveat {
+    /// IRI of the caveat individual.
+    pub iri: String,
+    /// All authored `rdfs:comment` literals, including datatype, language and RDF
+    /// 1.2 base direction. Canonically ordered; no language is selected as winner.
+    #[serde(with = "literal_serde")]
+    pub comments: Vec<purrdf::RdfLiteral>,
+}
+
 /// A `logic:Correspondence` IR node — the ninth node kind realized: an asymmetric lens
 /// (the `get`/`put` legs) wrapped in a relation/axes/laws/standpoint envelope.
 ///
 /// Identity is content-addressed: the IRI is the sort key (compared directly on the
 /// `iri` field) and [`Correspondence::content_key`] folds every field deterministically (the
-/// `law_claims` and recovery cases are canonicalized at construction). No `Eq`/`Hash` derive:
-/// the quantitative axes are `f64` (mirrors [`LogicAxiom`]).
+/// `law_claims` and recovery cases are canonicalized at construction). Quantitative
+/// coordinates retain complete RDF literal identity and a validated native numeric value.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Correspondence {
     /// IRI string of the correspondence individual (identity).
@@ -1901,23 +1894,33 @@ pub struct Correspondence {
     pub put_leg: Option<String>,
     /// The claimed lens laws with discharge state (`logic:hasLawClaim`); sorted+deduped.
     pub law_claims: Vec<LawClaimIr>,
+    /// Named limitations (`logic:hasCaveat`), sorted by IRI. Owned here so a
+    /// correspondence cannot lose its limitations when moved between programs.
+    pub caveats: Vec<CorrespondenceCaveat>,
+    /// Authored `logic:lossyDrop` evidence owned by this cell, retaining complete
+    /// RDF literal identity. An absent declaration is not evidence of a drop;
+    /// named caveats and preservation rungs never manufacture these observations.
+    /// The vector is a required positional codec field, including when empty.
+    #[serde(with = "literal_serde::loss_set")]
+    pub loss_evidence: Vec<purrdf::RdfLiteral>,
     /// `logic:confidence` — curator's epistemic confidence in `[0, 1]`.
-    pub confidence: Option<f64>,
+    pub confidence: Option<UnitInterval>,
     /// `logic:evidenceStrength` — provenance-derived warrant in `[0, 1]`.
-    pub evidence_strength: Option<f64>,
+    pub evidence_strength: Option<UnitInterval>,
+    /// Original evidence, warrant scale and probability-model references.
+    pub axis_evidence: AxisEvidence,
     /// `logic:weight` — solver ranking (finite; not range-bound).
-    pub weight: Option<f64>,
+    pub weight: Option<FiniteNumericLiteral>,
     /// `logic:probability` — only under a declared dependency model; in `[0, 1]`.
-    pub probability: Option<f64>,
+    pub probability: Option<UnitInterval>,
     /// IRI of the standpoint (`gmeow:accordingTo`); `None` ⇒ unspecified standpoint
     /// (unspecified, not universal).
     pub according_to: Option<String>,
     /// The declared preservation judgment (`logic:preservationKind`) — the loss residue
     /// this correspondence's lowering carries (Principle 17: the logic core is canonical,
     /// every dialect a lossy projection). `None` when the correspondence authors no rung; a
-    /// lossy correspondence authoring a non-[`PreservationKind::Exact`] kind is folded into
-    /// the loss ledger as ONE per-correspondence preservation row (the canonical doc's "one
-    /// preservation row per correspondence"), so the dropped construct is never DARK.
+    /// declared judgment is folded into ONE per-correspondence preservation row.
+    /// Concrete drops come only from [`Self::loss_evidence`], never from the rung alone.
     pub preservation: Option<PreservationKind>,
     /// The source endpoint of a term-level correspondence (`logic:sourceEndpoint`).
     /// This is distinct from [`Self::get_leg`]: an endpoint names the term or pattern being
@@ -1955,10 +1958,10 @@ impl Correspondence {
         get_leg: Option<String>,
         put_leg: Option<String>,
         law_claims: Vec<LawClaimIr>,
-        confidence: Option<f64>,
-        evidence_strength: Option<f64>,
-        weight: Option<f64>,
-        probability: Option<f64>,
+        confidence: Option<UnitInterval>,
+        evidence_strength: Option<UnitInterval>,
+        weight: Option<FiniteNumericLiteral>,
+        probability: Option<UnitInterval>,
         according_to: Option<String>,
         preservation: Option<PreservationKind>,
     ) -> gmeow_errors::Result<Self> {
@@ -1986,28 +1989,6 @@ impl Correspondence {
                 }));
             }
         }
-        // The unit-interval axes must be a finite value in [0, 1]; `weight` is a finite
-        // ranking, not range-bound.  NaN/infinite would break content-key determinism.
-        for (field, val) in [
-            ("confidence", confidence),
-            ("evidence_strength", evidence_strength),
-            ("probability", probability),
-        ] {
-            if let Some(x) = val
-                && !(0.0..=1.0).contains(&x)
-            {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!("Correspondence.{field} must be in [0, 1], got {x}"),
-                }));
-            }
-        }
-        if let Some(w) = weight
-            && !w.is_finite()
-        {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: format!("Correspondence.weight must be finite, got {w}"),
-            }));
-        }
         let mut law_claims = law_claims;
         law_claims.sort_by_cached_key(LawClaimIr::sort_key);
         law_claims.dedup();
@@ -2021,8 +2002,11 @@ impl Correspondence {
             get_leg,
             put_leg,
             law_claims,
+            caveats: Vec::new(),
+            loss_evidence: Vec::new(),
             confidence,
             evidence_strength,
+            axis_evidence: AxisEvidence::default(),
             weight,
             probability,
             according_to,
@@ -2032,6 +2016,88 @@ impl Correspondence {
             grounding: false,
             recovery_cases: Vec::new(),
         })
+    }
+
+    /// Preserve qualitative evidence independently of the numeric coordinates.
+    pub fn with_axis_evidence(mut self, evidence: AxisEvidence) -> Self {
+        self.axis_evidence = evidence;
+        self
+    }
+
+    /// Attach the cell's concrete loss evidence as an unordered RDF literal set.
+    ///
+    /// # Errors
+    /// Rejects malformed or blank evidence and evidence without an authored
+    /// preservation judgment. Projection admission separately checks that the
+    /// declared judgment agrees with the actual residue.
+    pub fn with_loss_evidence(
+        mut self,
+        mut evidence: Vec<purrdf::RdfLiteral>,
+    ) -> gmeow_errors::Result<Self> {
+        if !evidence.is_empty() && self.preservation.is_none() {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!(
+                    "Correspondence <{}> has loss evidence without logic:preservationKind",
+                    self.iri
+                ),
+            }));
+        }
+        for literal in &mut evidence {
+            if literal.lexical_form.trim().is_empty() {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!("Correspondence <{}> has blank loss evidence", self.iri),
+                }));
+            }
+            literal_serde::normalize(literal).map_err(|error| {
+                Diag::of_kind(crate::error::Ir {
+                    detail: format!("Correspondence <{}> loss evidence: {error}", self.iri),
+                })
+            })?;
+        }
+        evidence.sort_by(|a, b| literal_serde::sort_key(a).cmp(&literal_serde::sort_key(b)));
+        evidence.dedup();
+        self.loss_evidence = evidence;
+        Ok(self)
+    }
+
+    /// Attach named limitations in canonical order. Conflicting or repeated caveat
+    /// identities are rejected rather than selecting one text for that identity.
+    pub fn with_caveats(
+        mut self,
+        mut caveats: Vec<CorrespondenceCaveat>,
+    ) -> gmeow_errors::Result<Self> {
+        caveats.sort_by(|a, b| a.iri.cmp(&b.iri));
+        for caveat in &mut caveats {
+            if caveat.comments.is_empty() {
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "Correspondence caveat <{}> requires at least one comment",
+                        caveat.iri
+                    ),
+                }));
+            }
+            for comment in &mut caveat.comments {
+                literal_serde::normalize(comment).map_err(|error| {
+                    Diag::of_kind(crate::error::Ir {
+                        detail: format!("Correspondence caveat <{}>: {error}", caveat.iri),
+                    })
+                })?;
+            }
+            caveat
+                .comments
+                .sort_by(|a, b| literal_serde::sort_key(a).cmp(&literal_serde::sort_key(b)));
+            caveat.comments.dedup();
+        }
+        if let Some(duplicate) = caveats.windows(2).find(|pair| pair[0].iri == pair[1].iri) {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!(
+                    "Correspondence caveat IRI <{}> is duplicated",
+                    duplicate[0].iri
+                ),
+            }));
+        }
+        self.caveats = caveats;
+        Ok(self)
     }
 
     /// Attach the two term/pattern endpoints of this correspondence.
@@ -2090,7 +2156,7 @@ impl Correspondence {
 
     /// A deterministic full-content key for canonical equality, folding every field
     /// with explicit `name=value` framing and empty-string defaults.
-    fn content_key(&self) -> String {
+    pub(crate) fn content_key(&self) -> String {
         let claims = self
             .law_claims
             .iter()
@@ -2118,7 +2184,7 @@ impl Correspondence {
                     .join(",")
             )
         };
-        format!(
+        let mut key = format!(
             "{}{SEP}rel={}{SEP}class={}{SEP}kind={}{SEP}mnemo={}{SEP}det={}{SEP}\
              get={}{SEP}put={}{SEP}conf={}{SEP}ev={}{SEP}w={}{SEP}prob={}{SEP}\
              at={}{SEP}pres={}{SEP}laws={claims}{endpoints}{grounding}{recovery}",
@@ -2130,13 +2196,68 @@ impl Correspondence {
             self.determinacy.map(|d| d.as_str()).unwrap_or(""),
             self.get_leg.as_deref().unwrap_or(""),
             self.put_leg.as_deref().unwrap_or(""),
-            opt_axis_key(self.confidence),
-            opt_axis_key(self.evidence_strength),
-            opt_axis_key(self.weight),
-            opt_axis_key(self.probability),
+            self.confidence
+                .as_ref()
+                .map(NumericLiteral::content_key)
+                .unwrap_or_default(),
+            self.evidence_strength
+                .as_ref()
+                .map(NumericLiteral::content_key)
+                .unwrap_or_default(),
+            self.weight
+                .as_ref()
+                .map(NumericLiteral::content_key)
+                .unwrap_or_default(),
+            self.probability
+                .as_ref()
+                .map(NumericLiteral::content_key)
+                .unwrap_or_default(),
             self.according_to.as_deref().unwrap_or(""),
             self.preservation.map(|p| p.as_str()).unwrap_or(""),
-        )
+        );
+        if self.axis_evidence != AxisEvidence::default() {
+            let evidence = self.axis_evidence.content_key();
+            write!(key, "{SEP}axis-evidence={}:{evidence}", evidence.len())
+                .expect("writing to a String is infallible");
+        }
+        if !self.caveats.is_empty() {
+            write!(key, "{SEP}caveats={};", self.caveats.len())
+                .expect("writing to a String is infallible");
+            for caveat in &self.caveats {
+                write!(
+                    key,
+                    "{}:{}{};",
+                    caveat.iri.len(),
+                    caveat.iri,
+                    caveat.comments.len()
+                )
+                .expect("writing to a String is infallible");
+                for comment in &caveat.comments {
+                    for value in [
+                        comment.lexical_form.as_str(),
+                        comment.datatype_iri(),
+                        comment.language.as_deref().unwrap_or(""),
+                        comment
+                            .direction
+                            .map(purrdf::RdfTextDirection::as_str)
+                            .unwrap_or(""),
+                    ] {
+                        write!(key, "{}:{value}", value.len())
+                            .expect("writing to a String is infallible");
+                    }
+                }
+            }
+        }
+        if !self.loss_evidence.is_empty() {
+            write!(key, "{SEP}loss-evidence={};", self.loss_evidence.len())
+                .expect("writing to a String is infallible");
+            for literal in &self.loss_evidence {
+                let literal = literal_serde::key(literal);
+                write!(key, "{}:{literal}", literal.len())
+                    .expect("writing to a String is infallible");
+            }
+        }
+        key
     }
 }
 
@@ -2190,22 +2311,14 @@ fn assert_unique_recovery_case_iris(
 /// [`Term::Iri`], never as a higher-typed slot.  Variables carry their **authored**
 /// name (no `?` sigil — that is a surface convention); the canonical key replaces the
 /// name with a binder-relative token so alpha-equivalent formulas share identity.
-#[derive(
-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Term {
     /// A bound or free variable (authored name, no `?` sigil).
     Var(String),
     /// An IRI constant — an individual, or a reified relation/type (HiLog).
     Iri(String),
-    /// A data literal: lexical form plus an optional datatype IRI (`None` = a plain
-    /// literal). An empty `lexical` is a legal RDF literal; a `Some("")` datatype is not.
-    Literal {
-        /// The literal's lexical form.
-        lexical: String,
-        /// The datatype IRI, or `None` for a plain literal.
-        datatype: Option<String>,
-    },
+    /// A complete native RDF 1.2 literal, including language and base direction.
+    Literal(#[serde(with = "literal_serde::single")] purrdf::RdfLiteral),
     /// A sequence marker (Common Logic `...x`): a variadic placeholder that binds a
     /// **sequence** of terms, not a single term. A distinct variant so the AST cannot
     /// confuse a single-term variable with a sequence one.
@@ -2225,6 +2338,42 @@ pub enum Term {
         /// The ordered, non-empty argument terms (each may itself be an [`Term::App`]).
         args: Vec<Term>,
     },
+}
+
+impl Ord for Term {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let tag = |term: &Self| match term {
+            Self::Var(_) => 0,
+            Self::Iri(_) => 1,
+            Self::Literal(_) => 2,
+            Self::SequenceMarker(_) => 3,
+            Self::App { .. } => 4,
+        };
+        tag(self)
+            .cmp(&tag(other))
+            .then_with(|| match (self, other) {
+                (Self::Var(a), Self::Var(b))
+                | (Self::Iri(a), Self::Iri(b))
+                | (Self::SequenceMarker(a), Self::SequenceMarker(b)) => a.cmp(b),
+                (Self::Literal(a), Self::Literal(b)) => literal_serde::structural_cmp(a, b),
+                (
+                    Self::App {
+                        symbol: a,
+                        args: aa,
+                    },
+                    Self::App {
+                        symbol: b,
+                        args: ba,
+                    },
+                ) => (a, aa).cmp(&(b, ba)),
+                _ => std::cmp::Ordering::Equal,
+            })
+    }
+}
+impl PartialOrd for Term {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl Term {
@@ -2257,18 +2406,22 @@ impl Term {
         lexical: impl Into<String>,
         datatype: Option<String>,
     ) -> gmeow_errors::Result<Self> {
-        if let Some(dt) = &datatype
-            && dt.trim().is_empty()
-        {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Term::Literal datatype must be a non-empty IRI when present; pass None"
-                    .to_owned(),
-            }));
-        }
-        Ok(Self::Literal {
-            lexical: lexical.into(),
+        Self::rdf_literal(purrdf::RdfLiteral {
+            lexical_form: lexical.into(),
             datatype,
+            language: None,
+            direction: None,
         })
+    }
+
+    /// Admit a complete native literal without discarding its RDF identity.
+    pub fn rdf_literal(mut literal: purrdf::RdfLiteral) -> gmeow_errors::Result<Self> {
+        literal_serde::normalize(&mut literal).map_err(|detail| {
+            Diag::of_kind(crate::error::Ir {
+                detail: detail.to_owned(),
+            })
+        })?;
+        Ok(Self::Literal(literal))
     }
 
     /// A sequence-marker term, rejecting an empty/whitespace-only name.
@@ -2321,7 +2474,7 @@ impl Term {
     pub(crate) fn has_variable(&self) -> bool {
         match self {
             Self::Var(_) | Self::SequenceMarker(_) => true,
-            Self::Iri(_) | Self::Literal { .. } => false,
+            Self::Iri(_) | Self::Literal(_) => false,
             Self::App { args, .. } => args.iter().any(Term::has_variable),
         }
     }
@@ -2331,13 +2484,11 @@ impl Term {
     /// to its binder-relative token; a free one resolves to a stable `free_<name>`.
     /// The leading tag letter keeps the four term kinds from ever colliding (so a
     /// variable and a sequence marker of the same name are distinct).
-    fn key_in(&self, env: &[(String, String)]) -> String {
+    fn key_in(&self, env: &[(String, String)], symbols: Option<&BTreeMap<&str, String>>) -> String {
         match self {
             Self::Var(n) => format!("V{SEP}{}", resolve_binding(env, n)),
-            Self::Iri(i) => format!("I{SEP}{i}"),
-            Self::Literal { lexical, datatype } => {
-                format!("L{SEP}{lexical}{SEP}{}", datatype.as_deref().unwrap_or(""))
-            }
+            Self::Iri(i) => format!("I{SEP}{}", translated_symbol(i, symbols)),
+            Self::Literal(literal) => format!("L{SEP}{}", literal_serde::key(literal)),
             Self::SequenceMarker(n) => format!("S{SEP}{}", resolve_binding(env, n)),
             // A function-term application keys as its symbol plus its arity plus each
             // argument's env-aware key (in order): the arity prefix keeps `f(a, b)` from
@@ -2347,12 +2498,22 @@ impl Term {
                 let mut inner = String::new();
                 for a in args {
                     inner.push(SEP);
-                    inner.push_str(&a.key_in(env));
+                    inner.push_str(&a.key_in(env, symbols));
                 }
-                format!("A{SEP}{symbol}{SEP}{}{inner}", args.len())
+                format!(
+                    "A{SEP}{}{SEP}{}{inner}",
+                    translated_symbol(symbol, symbols),
+                    args.len()
+                )
             }
         }
     }
+}
+
+fn translated_symbol<'a>(symbol: &'a str, symbols: Option<&'a BTreeMap<&str, String>>) -> &'a str {
+    symbols
+        .and_then(|map| map.get(symbol))
+        .map_or(symbol, String::as_str)
 }
 
 /// Resolve a variable/marker name against the binding environment (innermost first).
@@ -2505,14 +2666,14 @@ impl Formula {
     /// [`LogicProgram::axioms`], not [`LogicProgram::formulas`]: a [`Formula::Atom`] that
     /// is exactly a binary predication (an IRI relation with two *flat* args — neither a
     /// sequence marker nor a compound function-term application) — i.e. an ordinary triple.
-    /// A function term exceeds the function-free Datalog fragment, so an atom carrying one is
-    /// a genuine formula, not a triple. Such a node has a Horn home and must not enter the
-    /// formula collection, where it would give one fact two distinct content keys.
+    /// Complete literal objects fit the native compact carrier. A literal subject,
+    /// sequence marker or compound application retains its full formula representation.
     pub(crate) fn is_trivially_horn(&self) -> bool {
         match self {
             Self::Atom { relation, args } => {
                 matches!(relation, Term::Iri(_))
                     && args.len() == 2
+                    && matches!(&args[0], Term::Iri(_) | Term::Var(_))
                     && !args
                         .iter()
                         .any(|a| a.is_sequence_marker() || a.is_application())
@@ -2526,13 +2687,13 @@ impl Formula {
     /// turns out to be an ordinary triple (`relation` + two arguments). Returns `None` for any
     /// non-trivially-Horn formula (a connective, quantifier, negation, or fixed-arity n-ary
     /// atom) — those keep their formula identity — AND for a degenerate binary atom whose
-    /// subject cannot be a triple subject (a literal or sequence marker in argument position 0),
-    /// which is malformed rather than a fact.
+    /// subject cannot be a triple subject (a literal or sequence marker in argument position 0).
+    /// Such predications retain their full formula carrier.
     ///
     /// This is what lets the front-end enforce the [`LogicProgram::with_formulas`] invariant by
     /// ROUTING rather than by assumption: a trivially-Horn leaf is redirected to
     /// [`LogicProgram::axioms`] (where a fact belongs) instead of tripping the assertion. A
-    /// variable argument is preserved with the `?name` sigil the axiom string encoding uses, so
+    /// variable argument retains its explicit kind and `?name` sigil, so
     /// a reified binary atom with variables becomes a rule-shaped axiom, and a fully ground one
     /// becomes an EDB fact.
     pub fn as_horn_axiom(&self) -> Option<LogicAxiom> {
@@ -2551,15 +2712,15 @@ impl Formula {
         let subject = match &args[0] {
             Term::Iri(iri) => iri.clone(),
             Term::Var(name) => format!("?{name}"),
-            Term::Literal { .. } | Term::SequenceMarker(_) | Term::App { .. } => return None,
+            Term::Literal(_) | Term::SequenceMarker(_) | Term::App { .. } => return None,
         };
-        let (obj, obj_is_literal) = match &args[1] {
-            Term::Iri(iri) => (iri.clone(), false),
-            Term::Var(name) => (format!("?{name}"), false),
-            Term::Literal { lexical, .. } => (lexical.clone(), true),
+        let obj = match &args[1] {
+            Term::Iri(iri) => AtomicTerm::Iri(iri.clone()),
+            Term::Var(name) => AtomicTerm::Var(format!("?{name}")),
+            Term::Literal(literal) => AtomicTerm::Literal(literal.clone()),
             Term::SequenceMarker(_) | Term::App { .. } => return None,
         };
-        LogicAxiom::ground(subject, predicate.clone(), obj, obj_is_literal).ok()
+        LogicAxiom::ground(subject, predicate.clone(), obj).ok()
     }
 
     /// The closed [`FormulaShape`] tags this formula exhibits, ordered and deduped — the
@@ -2626,7 +2787,15 @@ impl Formula {
     /// would leave two conventions and the guarantee unstated precisely where it is pinned.
     pub fn content_key(&self) -> ContentKey {
         let mut env: Vec<(String, String)> = Vec::new();
-        ContentKey::new(self.key_in(&mut env, 0))
+        ContentKey::new(self.key_in(&mut env, 0, None))
+    }
+
+    /// Canonical identity under an explicit interpretation of named symbols.
+    /// Uses the same binder and connective normalization as `content_key`, without
+    /// constructing or lowering another formula. Unlisted symbols retain their names;
+    /// literal datatypes and lexical evidence are never renamed by a signature map.
+    pub fn content_key_with_symbols(&self, symbols: &BTreeMap<&str, String>) -> ContentKey {
+        ContentKey::new(self.key_in(&mut Vec::new(), 0, Some(symbols)))
     }
 
     /// Canonical sort key for ordering the [`LogicProgram::formulas`] collection. A
@@ -2688,34 +2857,39 @@ impl Formula {
     /// The normalizing walk. `env` maps an authored bound name to its binder-relative
     /// token (innermost binder last); `depth` is the number of enclosing quantifier
     /// blocks (used to build de-Bruijn-style tokens `q{depth}_{i}`).
-    fn key_in(&self, env: &mut Vec<(String, String)>, depth: usize) -> String {
+    fn key_in(
+        &self,
+        env: &mut Vec<(String, String)>,
+        depth: usize,
+        symbols: Option<&BTreeMap<&str, String>>,
+    ) -> String {
         match self {
             Self::Atom { relation, args } => {
-                let r = relation.key_in(env);
+                let r = relation.key_in(env, symbols);
                 let a = args
                     .iter()
-                    .map(|t| t.key_in(env))
+                    .map(|t| t.key_in(env, symbols))
                     .collect::<Vec<_>>()
                     .join(",");
                 format!("ATOM{SEP}{r}{SEP}({a})")
             }
-            Self::Not(f) => format!("NOT{SEP}{}", f.key_in(env, depth)),
-            Self::And(fs) => commutative_key("AND", fs, env, depth),
-            Self::Or(fs) => commutative_key("OR", fs, env, depth),
+            Self::Not(f) => format!("NOT{SEP}{}", f.key_in(env, depth, symbols)),
+            Self::And(fs) => commutative_key("AND", fs, env, depth, symbols),
+            Self::Or(fs) => commutative_key("OR", fs, env, depth, symbols),
             Self::Implies(a, b) => {
                 format!(
                     "IMPL{SEP}{}{SEP}{}",
-                    a.key_in(env, depth),
-                    b.key_in(env, depth)
+                    a.key_in(env, depth, symbols),
+                    b.key_in(env, depth, symbols)
                 )
             }
             Self::Iff(a, b) => {
-                let mut pair = [a.key_in(env, depth), b.key_in(env, depth)];
+                let mut pair = [a.key_in(env, depth, symbols), b.key_in(env, depth, symbols)];
                 pair.sort();
                 format!("IFF{SEP}{}{SEP}{}", pair[0], pair[1])
             }
-            Self::Forall { vars, body } => binder_key("ALL", vars, body, env, depth),
-            Self::Exists { vars, body } => binder_key("EX", vars, body, env, depth),
+            Self::Forall { vars, body } => binder_key("ALL", vars, body, env, depth, symbols),
+            Self::Exists { vars, body } => binder_key("EX", vars, body, env, depth, symbols),
         }
     }
 }
@@ -2728,12 +2902,13 @@ fn commutative_key(
     fs: &[Formula],
     env: &mut Vec<(String, String)>,
     depth: usize,
+    symbols: Option<&BTreeMap<&str, String>>,
 ) -> String {
     let mut operands: Vec<&Formula> = Vec::new();
     flatten_commutative(tag, fs, &mut operands);
     let mut keys = operands
         .iter()
-        .map(|f| f.key_in(env, depth))
+        .map(|f| f.key_in(env, depth, symbols))
         .collect::<Vec<_>>();
     keys.sort();
     format!("{tag}{SEP}({})", keys.join(","))
@@ -2760,12 +2935,13 @@ fn binder_key(
     body: &Formula,
     env: &mut Vec<(String, String)>,
     depth: usize,
+    symbols: Option<&BTreeMap<&str, String>>,
 ) -> String {
     let base = env.len();
     for (i, v) in vars.iter().enumerate() {
         env.push((v.clone(), format!("q{depth}_{i}")));
     }
-    let body_key = body.key_in(env, depth + 1);
+    let body_key = body.key_in(env, depth + 1, symbols);
     env.truncate(base);
     format!("{tag}{SEP}[{}]{SEP}{body_key}", vars.len())
 }
@@ -3106,6 +3282,11 @@ pub struct LogicProgram {
     /// Attached via [`LogicProgram::with_correspondences`]; empty for the
     /// historical correspondence-free corpus, so the canonical key is unchanged there.
     pub correspondences: Vec<Correspondence>,
+    /// Named sequential composition obligations, in canonical order.
+    pub correspondence_compositions: Vec<CorrespondenceComposition>,
+    /// Selected finite presentation definitions or their explicit source refusal.
+    /// Native execution must bind the original source evidence separately.
+    pub presentations: PresentationProgramIr,
     /// Leg-program bodies (`logic:TransactionProgram`) a correspondence's `logic:getLeg` /
     /// `logic:putLeg` IRI resolves to, in canonical (IRI) order. Attached via
     /// [`LogicProgram::with_transaction_programs`]; empty for the historical leg-body-free
@@ -3159,6 +3340,8 @@ impl LogicProgram {
             contracts,
             path_shapes: Vec::new(),
             correspondences: Vec::new(),
+            correspondence_compositions: Vec::new(),
+            presentations: PresentationProgramIr::Empty,
             transaction_programs: Vec::new(),
             formulas: Vec::new(),
             validation_shapes: Vec::new(),
@@ -3166,6 +3349,17 @@ impl LogicProgram {
             reasoning_programs: Vec::new(),
             source_iri,
         }
+    }
+
+    /// Attach every authored sequential composition obligation. Operand order is semantic;
+    /// only the declaration collection is canonicalized.
+    pub fn with_correspondence_compositions(
+        mut self,
+        mut compositions: Vec<CorrespondenceComposition>,
+    ) -> Self {
+        compositions.sort();
+        self.correspondence_compositions = compositions;
+        self
     }
 
     /// Attach the leg-program registry (`logic:TransactionProgram` bodies the get/put leg
@@ -3206,11 +3400,19 @@ impl LogicProgram {
     /// program is visible together, so the cross-correspondence collision is hard-failed
     /// here rather than silently accepted.
     pub fn with_correspondences(
-        mut self,
+        self,
         correspondences: Vec<Correspondence>,
     ) -> gmeow_errors::Result<Self> {
         let mut correspondences = correspondences;
         correspondences.sort_by(|a, b| a.iri.cmp(&b.iri));
+        self.with_ordered_correspondences(correspondences)
+    }
+
+    /// Compiler-internal entry after values and source anchors were sorted together.
+    pub(crate) fn with_ordered_correspondences(
+        mut self,
+        correspondences: Vec<Correspondence>,
+    ) -> gmeow_errors::Result<Self> {
         assert_unique_recovery_case_iris(&correspondences)?;
         self.correspondences = correspondences;
         Ok(self)
@@ -3265,9 +3467,14 @@ impl LogicProgram {
     /// [`Self::with_validation_shapes`]: the IRI is the constraint's identity, so two
     /// constraints sharing one would make `canonical_key` depend on supply order — a hard
     /// invariant violation, rejected rather than silently kept.
-    pub fn with_constraints(mut self, constraints: Vec<ConstraintIr>) -> Self {
+    pub fn with_constraints(self, constraints: Vec<ConstraintIr>) -> Self {
         let mut constraints = constraints;
         constraints.sort_by(|a, b| a.iri.cmp(&b.iri));
+        self.with_ordered_constraints(constraints)
+    }
+
+    /// Compiler-internal entry after values and source anchors were sorted together.
+    pub(crate) fn with_ordered_constraints(mut self, constraints: Vec<ConstraintIr>) -> Self {
         assert!(
             constraints.windows(2).all(|w| w[0].iri != w[1].iri),
             "LogicProgram.constraints must not contain duplicate constraint IRIs"
@@ -3283,9 +3490,17 @@ impl LogicProgram {
     /// [`Self::with_constraints`]: the IRI is the program's identity, so two reasoning
     /// programs sharing one would make `canonical_key` depend on supply order — a hard
     /// invariant violation, rejected rather than silently kept.
-    pub fn with_reasoning_programs(mut self, reasoning_programs: Vec<ReasoningProgramIr>) -> Self {
+    pub fn with_reasoning_programs(self, reasoning_programs: Vec<ReasoningProgramIr>) -> Self {
         let mut reasoning_programs = reasoning_programs;
         reasoning_programs.sort_by(|a, b| a.iri.cmp(&b.iri));
+        self.with_ordered_reasoning_programs(reasoning_programs)
+    }
+
+    /// Compiler-internal entry after values and source anchors were sorted together.
+    pub(crate) fn with_ordered_reasoning_programs(
+        mut self,
+        reasoning_programs: Vec<ReasoningProgramIr>,
+    ) -> Self {
         assert!(
             reasoning_programs.windows(2).all(|w| w[0].iri != w[1].iri),
             "LogicProgram.reasoning_programs must not contain duplicate program IRIs"
@@ -3342,6 +3557,16 @@ impl LogicProgram {
                 .join("\n");
             key.push_str("\nCORRESPONDENCES\n");
             key.push_str(&corr);
+        }
+        if !self.correspondence_compositions.is_empty() {
+            key.push_str("\nCORRESPONDENCECOMPOSITIONS\n");
+            for composition in &self.correspondence_compositions {
+                key.push_str(&composition.content_key());
+            }
+        }
+        if !self.presentations.is_empty() {
+            key.push_str("\nPRESENTATIONS\n");
+            key.push_str(&self.presentations.canonical_key());
         }
         // Append-only at the FIXED position after CORRESPONDENCES (frozen once committed):
         // a formula-free (Horn-only) program keeps its exact historical key.
@@ -3404,6 +3629,7 @@ impl LogicProgram {
 }
 
 mod constraint;
+pub(crate) mod literal_serde;
 mod validation;
 pub use constraint::{
     AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, ConstraintIr,

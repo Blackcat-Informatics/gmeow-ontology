@@ -21,7 +21,13 @@ fn mnemomorphic_get_only(class: MorphismClass) -> Correspondence {
         Some(format!("{GMEOW}example/getLeg")),
         None,
         Vec::new(),
-        Some(1.0),
+        Some(
+            crate::ir::UnitInterval::new(purrdf::RdfLiteral::typed(
+                "1.0".to_owned(),
+                "http://www.w3.org/2001/XMLSchema#decimal".to_owned(),
+            ))
+            .expect("valid authored confidence"),
+        ),
         None,
         None,
         None,
@@ -32,7 +38,7 @@ fn mnemomorphic_get_only(class: MorphismClass) -> Correspondence {
 }
 
 #[test]
-fn recoverable_cell_derives_a_lawful_section_put() {
+fn recovery_candidate_requires_execution_before_its_section_law_is_discharged() {
     for class in [
         MorphismClass::Isomorphism,
         MorphismClass::SectionRetraction,
@@ -49,8 +55,9 @@ fn recoverable_cell_derives_a_lawful_section_put() {
         assert_eq!(dp.section_claim.law, CorrespondenceLaw::SectionLaw);
         assert_eq!(
             dp.section_claim.verdict,
-            DischargeVerdict::ObligationDischarged
+            DischargeVerdict::ObligationUnknown
         );
+        assert_eq!(dp.section_claim.condition, None);
         assert!(dp.residue.is_empty(), "a recovery flags no residue");
         // The mint is the content-addressed inverse-along-witness IRI.
         assert_eq!(dp.put_leg, derived_put_iri(&get_leg, &c));
@@ -63,18 +70,35 @@ fn mint_recomputes_identically_from_the_stored_cell() {
     // The Round-trip-gate hinge: the mint depends ONLY on the get-side identity, which is
     // invariant under the derivation. Folding the derived put + section claim back in must
     // NOT change the recomputed mint.
-    let c = mnemomorphic_get_only(MorphismClass::Isomorphism);
+    let caveats = vec![crate::ir::CorrespondenceCaveat {
+        iri: format!("{GMEOW}example/recoveryLimit"),
+        comments: vec![purrdf::RdfLiteral::language_tagged(
+            "Recovery requires the retained source witness.",
+            "en",
+        )],
+    }];
+    let mut c = mnemomorphic_get_only(MorphismClass::Isomorphism)
+        .with_caveats(caveats.clone())
+        .unwrap();
+    c.preservation = Some(PreservationKind::CompleteOver);
+    let losses = vec![purrdf::RdfLiteral::language_tagged(
+        "The candidate view omits the execution proof.",
+        "en",
+    )];
+    let c = c.with_loss_evidence(losses.clone()).unwrap();
     let get_leg = c.get_leg.clone().unwrap();
     let mint_before = derived_put_iri(&get_leg, &c);
 
-    let program = CorrespondenceProgram::new(vec![c], Vec::new(), PreservationKind::CompleteOver);
+    let program = CorrespondenceProgram::new(vec![c], PreservationKind::CompleteOver);
     let (rebuilt, outcomes) = program.with_derived_puts().expect("derive puts");
     assert_eq!(outcomes.len(), 1);
 
     let stored = &rebuilt.correspondences[0];
+    assert_eq!(stored.caveats, caveats);
+    assert_eq!(stored.loss_evidence, losses);
     assert_eq!(stored.put_leg.as_deref(), Some(mint_before.as_str()));
     // Recomputing from the STORED (put-bearing, section-claim-folded) cell yields the
-    // same mint — the gate's `put ∘ get = id` reduces to this string compare.
+    // same candidate identity; the recovery gate still requires actual execution.
     assert_eq!(derived_put_iri(&get_leg, stored), mint_before);
     assert!(
         stored
@@ -102,7 +126,13 @@ fn amnesic_co_authored_claim_mints_with_claim_validation_only() {
             verdict: DischargeVerdict::ObligationUnknown,
             condition: None,
         }],
-        Some(0.6),
+        Some(
+            crate::ir::UnitInterval::new(purrdf::RdfLiteral::typed(
+                "0.6".to_owned(),
+                "http://www.w3.org/2001/XMLSchema#decimal".to_owned(),
+            ))
+            .expect("valid authored confidence"),
+        ),
         None,
         None,
         None,
@@ -181,7 +211,7 @@ fn unsupported_cell_keeps_its_put_less_form_through_with_derived_puts() {
         None,
     )
     .unwrap();
-    let program = CorrespondenceProgram::new(vec![c], Vec::new(), PreservationKind::SoundUnder);
+    let program = CorrespondenceProgram::new(vec![c], PreservationKind::SoundUnder);
     let (rebuilt, outcomes) = program.with_derived_puts().expect("derive puts");
     assert_eq!(rebuilt.correspondences[0].put_leg, None, "no put minted");
     assert!(matches!(

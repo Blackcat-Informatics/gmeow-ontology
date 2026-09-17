@@ -197,184 +197,155 @@ pub fn compute_token_metrics(
     sources: &[crate::registry::NamedSource],
     dict: &GmnDictionary,
 ) -> TokenMetrics {
-    let glyphs = dict.glyph_registry().glyph_tokens();
+    measure_token_metrics(sources, dict).aggregate()
+}
 
-    let mut total_sources = 0u64;
-    let mut valid_sources = 0u64;
-    let mut roundtrip_sources = 0u64;
+/// Native per-source measurements retained for reductions over explicit source scopes.
+/// Source positions refer to the original input, including sources outside the parse domain;
+/// selecting a scope never parses or encodes its corpus again.
+#[derive(Clone, Debug)]
+pub struct MeasuredTokenCorpus {
+    sources: Vec<(usize, MetricTotals)>,
+}
 
-    let mut gmn_bytes = 0u64;
-    let mut gmn_ascii_bytes = 0u64;
-    let mut gmn_nonascii_bytes = 0u64;
-    let mut gmn_chars = 0u64;
-    let mut tokens_in_context = 0u64;
-    let mut glyph_chars = 0u64;
-    let mut turtle_bytes = 0u64;
-    let mut turtle_chars = 0u64;
-    let mut jsonld_bytes = 0u64;
-
-    let mut covered_quads = 0u64;
-    let mut total_quads = 0u64;
-
-    for source in sources {
-        let Ok(dataset) = purrdf::parse_dataset(&source.bytes, "text/turtle", None) else {
-            continue;
-        };
-        total_sources += 1;
-        let model = Gmn0Model::from_dataset(&dataset);
-
-        // Dictionary hit rate spans EVERY parseable source, round-tripping or not.
-        let coverage = measure_coverage(&model, dict);
-        covered_quads += coverage.covered as u64;
-        total_quads += coverage.total as u64;
-
-        let Ok(doc) = gmn1_write(&model, dict) else {
-            continue;
-        };
-        let Ok(back) = gmn1_read(&doc, dict) else {
-            continue;
-        };
-        valid_sources += 1;
-        if !gmn0_canonically_equal(&model, &back) {
-            continue;
-        }
-        let Some((src_turtle_bytes, src_turtle_chars, src_jsonld_bytes)) = serialize_sizes(&model)
-        else {
-            continue;
-        };
-        roundtrip_sources += 1;
-        gmn_bytes += doc.text.len() as u64;
-        // Split the GMN bytes into merge-eligible ASCII vs byte-fallback non-ASCII (glyph)
-        // bytes — the two terms of the consistent worst-case bound.
-        gmn_ascii_bytes += doc.text.bytes().filter(u8::is_ascii).count() as u64;
-        gmn_nonascii_bytes += doc.text.bytes().filter(|b| !b.is_ascii()).count() as u64;
-        gmn_chars += doc.text.chars().count() as u64;
-        tokens_in_context += estimate_tokens(&doc.text);
-        glyph_chars += count_glyph_chars(&doc.text, &glyphs);
-        turtle_bytes += src_turtle_bytes;
-        turtle_chars += src_turtle_chars;
-        jsonld_bytes += src_jsonld_bytes;
+impl MeasuredTokenCorpus {
+    /// The measurement over every parseable source in the selected input.
+    #[must_use]
+    pub fn aggregate(&self) -> TokenMetrics {
+        self.selected(|_| true)
     }
 
-    let compression_ratio = if turtle_bytes == 0 {
-        1.0
-    } else {
-        #[allow(clippy::cast_precision_loss)]
-        {
-            gmn_bytes as f64 / turtle_bytes as f64
+    /// Reduce the already measured sources whose original positions satisfy `includes`.
+    #[must_use]
+    pub fn selected(&self, includes: impl Fn(usize) -> bool) -> TokenMetrics {
+        let mut totals = MetricTotals::default();
+        for (index, source) in &self.sources {
+            if includes(*index) {
+                totals.add(source);
+            }
         }
-    };
-
-    TokenMetrics {
-        bytes_on_disk: gmn_bytes,
-        tokens_in_context,
-        ast_validity_rate: ratio(valid_sources, total_sources),
-        // roundtrip_loss = 1 − (exact round-trips ÷ parseable sources). Vacuous corpus ⇒ 0 loss.
-        roundtrip_loss: 1.0 - ratio(roundtrip_sources, total_sources),
-        compression_ratio,
-        glyph_density: ratio(glyph_chars, gmn_chars),
-        dictionary_hit_rate: ratio(covered_quads, total_quads),
-        // The consistent worst case: ASCII merged 4:1, non-ASCII glyph bytes each a fallback token.
-        gmn_worst_case_tokens: gmn_ascii_bytes.div_ceil(4) + gmn_nonascii_bytes,
-        gmn_realistic_tokens: gmn_chars.div_ceil(4),
-        turtle_best_case_tokens: turtle_chars.div_ceil(4),
-        gmn_ascii_bytes,
-        gmn_nonascii_bytes,
-        turtle_bytes_on_disk: turtle_bytes,
-        jsonld_bytes_on_disk: jsonld_bytes,
-        total_sources,
-        measured_sources: roundtrip_sources,
+        totals.metrics()
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Clone, Debug, Default)]
+struct MetricTotals {
+    total_sources: u64,
+    valid_sources: u64,
+    roundtrip_sources: u64,
+    gmn_bytes: u64,
+    gmn_ascii_bytes: u64,
+    gmn_nonascii_bytes: u64,
+    gmn_chars: u64,
+    tokens_in_context: u64,
+    glyph_chars: u64,
+    turtle_bytes: u64,
+    turtle_chars: u64,
+    jsonld_bytes: u64,
+    covered_quads: u64,
+    total_quads: u64,
+}
 
-    #[test]
-    fn estimate_tokens_is_chars_over_four_rounded_up() {
-        assert_eq!(estimate_tokens(""), 0, "empty text costs no tokens");
-        assert_eq!(estimate_tokens("abcd"), 1, "exactly four chars ⇒ one token");
-        assert_eq!(estimate_tokens("abcde"), 2, "five chars round up to two");
-        // Counted by CHARACTER, not UTF-8 byte: four 3-byte glyphs are four chars ⇒ one token,
-        // never twelve. The byte-fallback penalty lives in the worst-case bound, not here.
-        assert_eq!(
-            estimate_tokens("→→→→"),
-            1,
-            "four multibyte glyphs are four chars"
-        );
+impl MetricTotals {
+    fn add(&mut self, source: &Self) {
+        self.total_sources += source.total_sources;
+        self.valid_sources += source.valid_sources;
+        self.roundtrip_sources += source.roundtrip_sources;
+        self.gmn_bytes += source.gmn_bytes;
+        self.gmn_ascii_bytes += source.gmn_ascii_bytes;
+        self.gmn_nonascii_bytes += source.gmn_nonascii_bytes;
+        self.gmn_chars += source.gmn_chars;
+        self.tokens_in_context += source.tokens_in_context;
+        self.glyph_chars += source.glyph_chars;
+        self.turtle_bytes += source.turtle_bytes;
+        self.turtle_chars += source.turtle_chars;
+        self.jsonld_bytes += source.jsonld_bytes;
+        self.covered_quads += source.covered_quads;
+        self.total_quads += source.total_quads;
     }
 
-    #[test]
-    fn ratio_is_bounded_with_a_vacuous_denominator_perfect() {
-        assert_eq!(
-            ratio(0, 0),
-            1.0,
-            "0/0 is trivially perfect (nothing to fail)"
-        );
-        assert_eq!(ratio(0, 5), 0.0);
-        assert_eq!(ratio(1, 2), 0.5);
-        assert_eq!(ratio(3, 3), 1.0);
-    }
-
-    #[test]
-    fn count_glyph_chars_is_greedy_longest_match() {
-        // Longest-first ordering: "→→" wins over "→" where a position starts "→→".
-        let glyphs = ["→→", "→"];
-        // "a→→b→c": glyph-covered = the two chars in "→→" plus the one "→" = 3; a/b/c are not.
-        assert_eq!(count_glyph_chars("a→→b→c", &glyphs), 3);
-        // No glyph matches ⇒ zero coverage; an empty glyph string is ignored (never matches).
-        assert_eq!(count_glyph_chars("abc", &[""]), 0);
-        assert_eq!(count_glyph_chars("", &glyphs), 0);
-    }
-
-    /// A `TokenMetrics` carrying only the gate-relevant witnesses; every field
-    /// `compression_gate_holds` does not read is zero.
-    fn gate_witnesses(
-        measured_sources: u64,
-        gmn_worst_case_tokens: u64,
-        turtle_best_case_tokens: u64,
-    ) -> TokenMetrics {
+    fn metrics(&self) -> TokenMetrics {
         TokenMetrics {
-            bytes_on_disk: 0,
-            tokens_in_context: 0,
-            ast_validity_rate: 0.0,
-            roundtrip_loss: 0.0,
-            compression_ratio: 0.0,
-            glyph_density: 0.0,
-            dictionary_hit_rate: 0.0,
-            gmn_worst_case_tokens,
-            gmn_realistic_tokens: 0,
-            turtle_best_case_tokens,
-            gmn_ascii_bytes: 0,
-            gmn_nonascii_bytes: 0,
-            turtle_bytes_on_disk: 0,
-            jsonld_bytes_on_disk: 0,
-            total_sources: 0,
-            measured_sources,
+            bytes_on_disk: self.gmn_bytes,
+            tokens_in_context: self.tokens_in_context,
+            ast_validity_rate: ratio(self.valid_sources, self.total_sources),
+            roundtrip_loss: 1.0 - ratio(self.roundtrip_sources, self.total_sources),
+            compression_ratio: ratio(self.gmn_bytes, self.turtle_bytes),
+            glyph_density: ratio(self.glyph_chars, self.gmn_chars),
+            dictionary_hit_rate: ratio(self.covered_quads, self.total_quads),
+            gmn_worst_case_tokens: self.gmn_ascii_bytes.div_ceil(4) + self.gmn_nonascii_bytes,
+            gmn_realistic_tokens: self.gmn_chars.div_ceil(4),
+            turtle_best_case_tokens: self.turtle_chars.div_ceil(4),
+            gmn_ascii_bytes: self.gmn_ascii_bytes,
+            gmn_nonascii_bytes: self.gmn_nonascii_bytes,
+            turtle_bytes_on_disk: self.turtle_bytes,
+            jsonld_bytes_on_disk: self.jsonld_bytes,
+            total_sources: self.total_sources,
+            measured_sources: self.roundtrip_sources,
         }
     }
+}
 
-    #[test]
-    fn compression_gate_requires_strict_worst_below_best_over_a_nonvacuous_corpus() {
-        // Holds only when GMN's byte-fallback worst case is STRICTLY below Turtle's best case.
-        assert!(
-            gate_witnesses(1, 14_027, 23_695).compression_gate_holds(),
-            "worst < best ⇒ the gate holds"
-        );
-        assert!(
-            !gate_witnesses(1, 23_695, 23_695).compression_gate_holds(),
-            "worst == best ⇒ does NOT hold (the comparison is strict)"
-        );
-        assert!(
-            !gate_witnesses(1, 23_696, 23_695).compression_gate_holds(),
-            "worst > best ⇒ does NOT hold"
-        );
-        // A vacuous corpus (no round-tripping source) never holds, even with worst < best:
-        // there is no compression claim to make.
-        assert!(
-            !gate_witnesses(0, 1, 1_000_000).compression_gate_holds(),
-            "vacuous corpus ⇒ no claim, gate does not hold"
-        );
+/// Measure each source once, retaining integer witnesses before any aggregate rounding.
+/// Parse failures remain outside the domain. Read success contributes to AST validity even
+/// when canonical equality or serialization fails; byte totals count only complete round trips.
+#[must_use]
+pub fn measure_token_metrics(
+    sources: &[crate::registry::NamedSource],
+    dict: &GmnDictionary,
+) -> MeasuredTokenCorpus {
+    let glyphs = dict.glyph_registry().glyph_tokens();
+    MeasuredTokenCorpus {
+        sources: sources
+            .iter()
+            .enumerate()
+            .filter_map(|(index, source)| {
+                measure_source(source, dict, &glyphs).map(|measured| (index, measured))
+            })
+            .collect(),
     }
 }
+
+fn measure_source(
+    source: &crate::registry::NamedSource,
+    dict: &GmnDictionary,
+    glyphs: &[&str],
+) -> Option<MetricTotals> {
+    let dataset = purrdf::parse_dataset(&source.bytes, "text/turtle", None).ok()?;
+    let model = Gmn0Model::from_dataset(&dataset);
+    let coverage = measure_coverage(&model, dict);
+    let mut measured = MetricTotals {
+        total_sources: 1,
+        covered_quads: coverage.covered as u64,
+        total_quads: coverage.total as u64,
+        ..MetricTotals::default()
+    };
+    let Ok(doc) = gmn1_write(&model, dict) else {
+        return Some(measured);
+    };
+    let Ok(back) = gmn1_read(&doc, dict) else {
+        return Some(measured);
+    };
+    measured.valid_sources = 1;
+    if !gmn0_canonically_equal(&model, &back) {
+        return Some(measured);
+    }
+    let Some((turtle_bytes, turtle_chars, jsonld_bytes)) = serialize_sizes(&model) else {
+        return Some(measured);
+    };
+    measured.roundtrip_sources = 1;
+    measured.gmn_bytes = doc.text.len() as u64;
+    measured.gmn_ascii_bytes = doc.text.bytes().filter(u8::is_ascii).count() as u64;
+    measured.gmn_nonascii_bytes = doc.text.bytes().filter(|byte| !byte.is_ascii()).count() as u64;
+    measured.gmn_chars = doc.text.chars().count() as u64;
+    measured.tokens_in_context = estimate_tokens(&doc.text);
+    measured.glyph_chars = count_glyph_chars(&doc.text, glyphs);
+    measured.turtle_bytes = turtle_bytes;
+    measured.turtle_chars = turtle_chars;
+    measured.jsonld_bytes = jsonld_bytes;
+    Some(measured)
+}
+
+#[path = "gmn_metrics.tests.rs"]
+#[cfg(test)]
+mod tests;

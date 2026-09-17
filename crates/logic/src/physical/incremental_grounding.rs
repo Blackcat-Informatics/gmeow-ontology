@@ -27,8 +27,8 @@
 //! The construction is a finite, safe binary-rule seam.  Every rule must have a
 //! positive body atom, arithmetic builtins are rejected, and every variable in a
 //! head, NAF literal, or inequality guard must be bound by the positive body.  A
-//! blank-node binding cannot currently be represented as a constant [`EvalTerm`]
-//! and is rejected rather than rewritten as an IRI.
+//! bound value retains its native identity as a constant [`EvalTerm`], including
+//! scoped blanks and recursive triple terms.
 
 use std::cell::Cell;
 use std::collections::{BTreeMap, BTreeSet};
@@ -36,8 +36,8 @@ use std::sync::Arc;
 
 use crate::provenance::{ProvenanceSemiring, ZWeightSemiring};
 use crate::rule_ir::{
-    EvalAtom, EvalRule, EvalTerm, Fact, FactKey, Solution, distinct_pairs_satisfied, ground,
-    match_atom, surface_to_value,
+    EvalAtom, EvalRule, EvalTerm, Fact, FactKey, Solution, distinct_pairs_satisfied,
+    ground_term_to_value, match_atom,
 };
 
 use super::incremental::{IncrementalSession, SignedFact};
@@ -134,7 +134,7 @@ impl IncrementalGroundProgram {
     ///
     /// # Errors
     ///
-    /// Rejects an unsafe/non-finite source rule, a blank-node constant binding, or
+    /// Rejects an unsafe/non-finite source rule or
     /// any error from the signed positive-Datalog session.
     pub(crate) fn new(
         contract_hash: impl Into<String>,
@@ -359,6 +359,12 @@ fn keyed_facts(edb: impl IntoIterator<Item = Fact>) -> BTreeMap<FactKey, Fact> {
 fn positive_projection(rules: &[EvalRule]) -> gmeow_errors::Result<Vec<EvalRule>> {
     let mut projected = Vec::with_capacity(rules.len());
     for rule in rules {
+        if rule.reduction.is_some() {
+            return Err(grounding_err(format!(
+                "non-monotone grounding requires aggregate-aware completion for rule <{}>",
+                rule.rule_iri,
+            )));
+        }
         if !rule.builtins.is_empty() {
             return Err(grounding_err(format!(
                 "incremental grounding does not admit arithmetic/comparison builtins in rule <{}>",
@@ -569,6 +575,7 @@ fn add_groundings(
 
 fn ground_rule(source: &EvalRule, solution: &Solution) -> gmeow_errors::Result<EvalRule> {
     Ok(EvalRule {
+        numeric: Vec::new(),
         head: ground_atom(&source.head, solution)?,
         body: source
             .body
@@ -578,6 +585,7 @@ fn ground_rule(source: &EvalRule, solution: &Solution) -> gmeow_errors::Result<E
         rule_iri: source.rule_iri.clone(),
         distinct_pairs: Vec::new(),
         builtins: Vec::new(),
+        reduction: None,
         constraint_tag: None,
     })
 }
@@ -592,23 +600,11 @@ fn ground_atom(atom: &EvalAtom, solution: &Solution) -> gmeow_errors::Result<Eva
 }
 
 fn ground_term(term: &EvalTerm, solution: &Solution) -> gmeow_errors::Result<EvalTerm> {
-    let surface = ground(term, solution).ok_or_else(|| {
-        grounding_err(format!(
-            "incremental grounding left term {term:?} unbound after positive-body matching"
-        ))
-    })?;
-    if let Some(iri) = surface
-        .strip_prefix('<')
-        .and_then(|value| value.strip_suffix('>'))
-    {
-        return Ok(EvalTerm::ConstNamed(iri.to_owned()));
-    }
-    if surface.starts_with("_:") {
-        return Err(grounding_err(format!(
-            "incremental grounding cannot encode blank-node constant {surface:?} in EvalTerm"
-        )));
-    }
-    Ok(EvalTerm::ConstLit(surface_to_value(&surface)?))
+    let value = ground_term_to_value(term, solution, "incremental grounding")?;
+    Ok(match value {
+        purrdf::TermValue::Iri(iri) => EvalTerm::ConstNamed(iri),
+        value => EvalTerm::ConstLit(value),
+    })
 }
 
 fn ground_rule_key(rule: &EvalRule) -> String {

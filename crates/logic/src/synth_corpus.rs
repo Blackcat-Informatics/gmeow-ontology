@@ -55,8 +55,7 @@ fn axiom(subject: &str, predicate: &str, object: &str) -> LogicAxiom {
     LogicAxiom::new(
         subject,
         predicate,
-        object,
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource(object),
         false,
         ContextualScope::default(),
     )

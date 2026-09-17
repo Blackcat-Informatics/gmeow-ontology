@@ -98,12 +98,52 @@ pub fn batch_cases(_args: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn batch_mcp_module(_args: TokenStream, item: TokenStream) -> TokenStream {
     let mut module = parse_macro_input!(item as ItemMod);
-    let Some((_, items)) = module.content.as_mut() else {
+    let Some((_, items)) = module.content.take() else {
         return syn::Error::new_spanned(module, "batch_mcp_module requires an inline test module")
             .into_compile_error()
             .into();
     };
+    let items = match expand_mcp_items(items) {
+        Ok(items) => items,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    let attrs = module.attrs;
+    let vis = module.vis;
+    let unsafety = module.unsafety;
+    let ident = module.ident;
+    quote! {
+        #(#attrs)*
+        #vis #unsafety mod #ident {
+            #items
+        }
+    }
+    .into()
+}
 
+/// Apply the same MCP batching contract inside an external test-module file.
+///
+/// Keep external child-module declarations at file scope so rustc owns their
+/// ordinary path resolution. This macro emits items directly in the existing
+/// module; it introduces no namespace and performs no filesystem reads.
+#[proc_macro]
+pub fn batch_mcp_items(item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as syn::File);
+    if !input.attrs.is_empty() {
+        return syn::Error::new_spanned(
+            &input.attrs[0],
+            "batch_mcp_items accepts module items, not inner attributes",
+        )
+        .into_compile_error()
+        .into();
+    }
+    match expand_mcp_items(input.items) {
+        Ok(items) => items.into(),
+        Err(error) => error.into_compile_error().into(),
+    }
+}
+
+/// Single transformation and runner policy shared by both physical source forms.
+fn expand_mcp_items(mut items: Vec<Item>) -> syn::Result<proc_macro2::TokenStream> {
     let mut registrations = Vec::new();
     for item in items.iter_mut() {
         let Item::Fn(function) = item else {
@@ -113,52 +153,20 @@ pub fn batch_mcp_module(_args: TokenStream, item: TokenStream) -> TokenStream {
             .attrs
             .iter()
             .any(|attribute| attribute.path().is_ident("test"));
-        let is_ignored = function
-            .attrs
-            .iter()
-            .any(|attribute| attribute.path().is_ident("ignore"));
-        if !is_test || is_ignored {
+        let requires_libtest = function.attrs.iter().any(|attribute| {
+            attribute.path().is_ident("ignore") || attribute.path().is_ident("should_panic")
+        });
+        if !is_test || requires_libtest {
             continue;
         }
-        if let Err(error) = validate_zero_argument_contract(function) {
-            return error.into_compile_error().into();
-        }
+        let registration = mcp_registration(function)?;
         function
             .attrs
             .retain(|attribute| !attribute.path().is_ident("test"));
-        let cfg_attributes = function
-            .attrs
-            .iter()
-            .filter(|attribute| {
-                attribute.path().is_ident("cfg") || attribute.path().is_ident("cfg_attr")
-            })
-            .cloned()
-            .collect::<Vec<_>>();
-        let name = &function.sig.ident;
-        let name_text = name.to_string();
-        let maint_heavy = name_text.ends_with("_heavy_offgate")
-            || name_text == "json_rpc_protocol_conformance_round_trip";
-        registrations.push(quote! {
-            #(#cfg_attributes)*
-            inventory::submit! {
-                crate::tests::RegisteredMcpContract {
-                    module: module_path!(),
-                    name: stringify!(#name),
-                    run: #name,
-                    maint_heavy: #maint_heavy,
-                }
-            }
-        });
+        registrations.push(registration);
     }
 
-    let attrs = module.attrs;
-    let vis = module.vis;
-    let unsafety = module.unsafety;
-    let ident = module.ident;
-    let items = module.content.expect("inline module").1;
-    quote! {
-        #(#attrs)*
-        #vis #unsafety mod #ident {
+    Ok(quote! {
             #(#items)*
 
             pub(crate) struct RegisteredMcpContract {
@@ -242,9 +250,65 @@ pub fn batch_mcp_module(_args: TokenStream, item: TokenStream) -> TokenStream {
             fn maint_heavy_mcp_contracts_share_one_authenticated_view_heavy_offgate() {
                 run_registered_mcp_contracts(true);
             }
-        }
+    })
+}
+
+/// Register an MCP contract from a nested test module with the existing shared-view
+/// runner. Feature gates apply to both the function and its inventory entry.
+///
+/// Use this attribute instead of `#[test]`. Ignored and expected-panic tests must
+/// remain ordinary libtest cases so their special execution semantics are preserved.
+#[proc_macro_attribute]
+pub fn batch_mcp_test(_args: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemFn);
+    if input
+        .attrs
+        .iter()
+        .any(|attribute| attribute.path().is_ident("test"))
+    {
+        return syn::Error::new_spanned(&input, "use batch_mcp_test instead of #[test]")
+            .into_compile_error()
+            .into();
+    }
+    let registration = match mcp_registration(&input) {
+        Ok(registration) => registration,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    quote! {
+        #input
+        #registration
     }
     .into()
+}
+
+fn mcp_registration(function: &ItemFn) -> syn::Result<proc_macro2::TokenStream> {
+    validate_zero_argument_contract(function)?;
+    if function.attrs.iter().any(|attribute| {
+        attribute.path().is_ident("ignore") || attribute.path().is_ident("should_panic")
+    }) {
+        return Err(syn::Error::new_spanned(
+            function,
+            "ignored and expected-panic MCP contracts must remain ordinary #[test] cases",
+        ));
+    }
+    let cfg_attributes = function.attrs.iter().filter(|attribute| {
+        attribute.path().is_ident("cfg") || attribute.path().is_ident("cfg_attr")
+    });
+    let name = &function.sig.ident;
+    let name_text = name.to_string();
+    let maint_heavy = name_text.ends_with("_heavy_offgate")
+        || name_text == "json_rpc_protocol_conformance_round_trip";
+    Ok(quote! {
+        #(#cfg_attributes)*
+        inventory::submit! {
+            crate::tests::RegisteredMcpContract {
+                module: module_path!(),
+                name: stringify!(#name),
+                run: #name,
+                maint_heavy: #maint_heavy,
+            }
+        }
+    })
 }
 
 fn validate_zero_argument_contract(input: &ItemFn) -> syn::Result<()> {
@@ -283,4 +347,106 @@ fn is_case(attribute: &Attribute) -> bool {
         .segments
         .first()
         .is_some_and(|segment| segment.ident == "case")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shared_mcp_transform_preserves_bodies_names_and_special_libtest_cases() {
+        use quote::ToTokens;
+        let input = syn::parse_str::<syn::File>(
+            "mod child;\n#[test] #[cfg(test)] fn required_contract() { assert_eq!(2 + 2, 4); }\n#[test] fn breadth_contract_heavy_offgate() { assert!(true); }\n#[test] #[ignore] fn ignored_contract() { panic!(\"ignored\"); }\n#[test] #[should_panic(expected = \"expected\")] fn panic_contract() { panic!(\"expected\"); }",
+        ).unwrap();
+        let original_bodies = input
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                Item::Fn(function) => Some((
+                    function.sig.ident.to_string(),
+                    function.block.to_token_stream().to_string(),
+                )),
+                _ => None,
+            })
+            .collect::<std::collections::BTreeMap<_, _>>();
+        let output = syn::parse2::<syn::File>(expand_mcp_items(input.items).unwrap()).unwrap();
+        assert!(output.items.iter().any(|item| matches!(item, Item::Mod(module) if module.ident == "child" && module.content.is_none())));
+        let functions = output
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                Item::Fn(function) => Some((function.sig.ident.to_string(), function)),
+                _ => None,
+            })
+            .collect::<std::collections::BTreeMap<_, _>>();
+        for (name, body) in original_bodies {
+            let function = functions[&name];
+            assert_eq!(body, function.block.to_token_stream().to_string());
+            let ordinary_libtest = matches!(name.as_str(), "ignored_contract" | "panic_contract");
+            assert_eq!(
+                function
+                    .attrs
+                    .iter()
+                    .any(|attribute| attribute.path().is_ident("test")),
+                ordinary_libtest
+            );
+        }
+        assert!(
+            functions["required_contract"]
+                .attrs
+                .iter()
+                .any(|attribute| attribute.path().is_ident("cfg"))
+        );
+        assert!(
+            functions["ignored_contract"]
+                .attrs
+                .iter()
+                .any(|attribute| attribute.path().is_ident("ignore"))
+        );
+        assert!(
+            functions["panic_contract"]
+                .attrs
+                .iter()
+                .any(|attribute| attribute.path().is_ident("should_panic"))
+        );
+        for runner in [
+            "required_mcp_contracts_share_one_authenticated_view",
+            "maint_heavy_mcp_contracts_share_one_authenticated_view_heavy_offgate",
+        ] {
+            assert!(
+                functions[runner]
+                    .attrs
+                    .iter()
+                    .any(|attribute| attribute.path().is_ident("test"))
+            );
+        }
+    }
+
+    #[test]
+    fn mcp_registration_refuses_special_libtest_execution_semantics() {
+        for source in [
+            "#[ignore] fn ignored() {}",
+            "#[should_panic] fn expected_panic() {}",
+            "#[should_panic(expected = \"refusal\")] fn expected_message() {}",
+        ] {
+            let function = syn::parse_str::<ItemFn>(source).expect("test function parses");
+            let error = mcp_registration(&function).expect_err("requires ordinary libtest");
+            assert!(error.to_string().contains("must remain ordinary #[test]"));
+        }
+    }
+
+    #[test]
+    fn mcp_registration_refuses_contracts_the_runner_cannot_execute() {
+        for source in [
+            "async fn asynchronous() {}",
+            "fn parameterized(value: usize) {}",
+            "fn generic<T>() {}",
+            "fn returning() -> Result<(), ()> { Ok(()) }",
+        ] {
+            let function = syn::parse_str::<ItemFn>(source).expect("test function parses");
+            let error = mcp_registration(&function).expect_err("runner requires fn()");
+            assert!(error.to_string().contains("synchronous, non-generic fn()"));
+        }
+    }
 }

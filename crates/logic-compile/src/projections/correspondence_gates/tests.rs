@@ -101,7 +101,7 @@ fn corr_pres(
 
 fn program(correspondences: Vec<Correspondence>) -> CorrespondenceProgram {
     let legs = legs_for(&correspondences);
-    CorrespondenceProgram::new(correspondences, Vec::new(), PreservationKind::SoundUnder)
+    CorrespondenceProgram::new(correspondences, PreservationKind::SoundUnder)
         .with_leg_programs(legs)
 }
 
@@ -120,8 +120,75 @@ fn derived(correspondences: Vec<Correspondence>) -> CorrespondenceProgram {
 fn verdicts_all(prog: &CorrespondenceProgram, v: DischargeVerdict) -> CorrespondenceVerdicts {
     prog.correspondences
         .iter()
-        .map(|c| (c.iri.clone(), v))
+        .map(|c| (c.iri.clone(), ExecutedCorrespondenceLaws::section_only(v)))
         .collect()
+}
+
+#[test]
+fn recovery_evidence_cannot_discharge_another_lens_law() {
+    for law in [
+        CorrespondenceLaw::GetPut,
+        CorrespondenceLaw::PutGet,
+        CorrespondenceLaw::PutPut,
+    ] {
+        let correspondence = corr(
+            "urn:correspondence",
+            CorrespondenceRelation::Subsumes,
+            MorphismClass::SectionRetraction,
+            MorphismKind::InstitutionMorphism,
+            true,
+            Some("urn:get"),
+            Some("urn:put".into()),
+            vec![LawClaimIr {
+                law,
+                verdict: DischargeVerdict::ObligationDischarged,
+                condition: Some(DischargeCondition::DischargeBoundedCorpus),
+            }],
+        );
+        let evidence = BTreeMap::from([(
+            correspondence.iri.clone(),
+            ExecutedCorrespondenceLaws::section_only(DischargeVerdict::ObligationDischarged),
+        )]);
+        assert!(law_gate(&evidence, &correspondence).is_red(), "{law}");
+        assert_eq!(
+            round_trip_gate(&evidence, &correspondence),
+            GateVerdict::Pass
+        );
+    }
+}
+
+#[test]
+fn bounded_recovery_does_not_certify_a_fragment_or_an_unspecified_condition() {
+    let mut correspondence = corr(
+        "urn:correspondence",
+        CorrespondenceRelation::Subsumes,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        Some("urn:get"),
+        Some("urn:put".into()),
+        vec![LawClaimIr {
+            law: CorrespondenceLaw::SectionLaw,
+            verdict: DischargeVerdict::ObligationDischarged,
+            condition: Some(DischargeCondition::DischargeBoundedCorpus),
+        }],
+    );
+    let evidence = BTreeMap::from([(
+        correspondence.iri.clone(),
+        ExecutedCorrespondenceLaws::section_only(DischargeVerdict::ObligationDischarged),
+    )]);
+    assert_eq!(law_gate(&evidence, &correspondence), GateVerdict::Pass);
+    for condition in [
+        None,
+        Some(DischargeCondition::DischargeCertifiedFragment),
+        Some(DischargeCondition::DischargeFiniteClosure),
+    ] {
+        correspondence.law_claims[0].condition = condition;
+        assert!(
+            law_gate(&evidence, &correspondence).is_red(),
+            "{condition:?}"
+        );
+    }
 }
 
 #[test]
@@ -394,6 +461,130 @@ fn composition_law_status_overclaim_is_red() {
         "law-status overclaim must RED: {:?}",
         comp.composition
     );
+}
+
+fn composition_member(
+    name: &str,
+    laws: &[(CorrespondenceLaw, DischargeVerdict)],
+) -> Correspondence {
+    corr(
+        &format!("{GMEOW}ex/{name}"),
+        CorrespondenceRelation::Overlaps,
+        MorphismClass::LossyLens,
+        MorphismKind::InstitutionMorphism,
+        false,
+        Some(&format!("{GMEOW}ex/{name}/get")),
+        None,
+        laws.iter()
+            .map(|&(law, verdict)| LawClaimIr {
+                law,
+                verdict,
+                condition: (verdict == DischargeVerdict::ObligationDischarged)
+                    .then_some(DischargeCondition::DischargeBoundedCorpus),
+            })
+            .collect(),
+    )
+}
+
+fn composition_triple() -> Vec<(String, String, Option<String>)> {
+    vec![(
+        format!("{GMEOW}ex/premiseLeft"),
+        format!("{GMEOW}ex/premiseRight"),
+        Some(format!("{GMEOW}ex/premiseComposite")),
+    )]
+}
+
+#[test]
+fn composition_cannot_substitute_different_law_premises() {
+    let discharged = DischargeVerdict::ObligationDischarged;
+    let prog = program(vec![
+        composition_member("premiseLeft", &[(CorrespondenceLaw::GetPut, discharged)]),
+        composition_member("premiseRight", &[(CorrespondenceLaw::PutGet, discharged)]),
+        composition_member(
+            "premiseComposite",
+            &[(CorrespondenceLaw::SectionLaw, discharged)],
+        ),
+    ]);
+    // Even supplying independently successful execution cannot invent the
+    // missing source-domain premises for a compositional section argument.
+    let mut verdicts = verdicts_all(&prog, discharged);
+    for value in verdicts.values_mut() {
+        value.get_put = ExecutedLaw::bounded(discharged);
+        value.put_get = ExecutedLaw::bounded(discharged);
+    }
+    let report = evaluate_gates(&prog, &composition_triple(), &verdicts);
+    assert!(report.per_composition[0].composition.is_red());
+    assert_eq!(
+        report.per_composition[0].composed_law_status,
+        "ObligationUnknown"
+    );
+}
+
+#[test]
+fn an_unrelated_unknown_law_does_not_cap_a_supported_composition_law() {
+    let discharged = DischargeVerdict::ObligationDischarged;
+    let laws = [
+        (CorrespondenceLaw::GetPut, discharged),
+        (
+            CorrespondenceLaw::SectionLaw,
+            DischargeVerdict::ObligationUnknown,
+        ),
+    ];
+    let prog = program(vec![
+        composition_member("premiseLeft", &laws),
+        composition_member("premiseRight", &laws),
+        composition_member(
+            "premiseComposite",
+            &[(CorrespondenceLaw::GetPut, discharged)],
+        ),
+    ]);
+    let mut verdicts = verdicts_all(&prog, DischargeVerdict::ObligationUnknown);
+    for value in verdicts.values_mut() {
+        value.get_put = ExecutedLaw::bounded(discharged);
+    }
+    let report = evaluate_gates(&prog, &composition_triple(), &verdicts);
+    assert_eq!(report.per_composition[0].composition, GateVerdict::Pass);
+    assert_eq!(
+        report.per_composition[0].composed_law_status,
+        "ObligationUnknown"
+    );
+    assert!(assert_gates(&report).is_ok());
+}
+
+#[test]
+fn composition_preserves_an_executed_premise_refutation_before_unknown() {
+    let discharged = DischargeVerdict::ObligationDischarged;
+    let prog = program(vec![
+        composition_member("premiseLeft", &[(CorrespondenceLaw::GetPut, discharged)]),
+        composition_member(
+            "premiseRight",
+            &[(
+                CorrespondenceLaw::GetPut,
+                DischargeVerdict::ObligationUnknown,
+            )],
+        ),
+        composition_member(
+            "premiseComposite",
+            &[(CorrespondenceLaw::GetPut, discharged)],
+        ),
+    ]);
+    let mut verdicts = verdicts_all(&prog, DischargeVerdict::ObligationUnknown);
+    verdicts
+        .get_mut(&format!("{GMEOW}ex/premiseLeft"))
+        .unwrap()
+        .get_put = ExecutedLaw::bounded(DischargeVerdict::ObligationViolated);
+    verdicts
+        .get_mut(&format!("{GMEOW}ex/premiseComposite"))
+        .unwrap()
+        .get_put = ExecutedLaw::bounded(discharged);
+    let report = evaluate_gates(&prog, &composition_triple(), &verdicts);
+    let composition = &report.per_composition[0];
+    assert!(composition.composition.is_red());
+    assert_eq!(composition.composed_law_status, "ObligationViolated");
+    let GateVerdict::Red { reason } = &composition.composition else {
+        unreachable!()
+    };
+    assert!(reason.contains("premise refutation is not a composite countermodel"));
 }
 
 #[test]

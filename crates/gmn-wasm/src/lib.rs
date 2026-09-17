@@ -14,25 +14,27 @@
 //! byte-exact round-trip witness); this only marshals across the JS boundary.
 
 use gmeow_lang_bridge::{
-    Gmn0Model, Gmn1Document, GmnDictionary, GmnGlyphRegistry,
-    glyph_legend_json as bridge_glyph_legend_json, gmn1_read, gmn1_write,
+    Gmn0Model, Gmn1Document, glyph_legend_json as bridge_glyph_legend_json,
+    gmn1_codec::native::{self, NativeCodebook},
+    gmn1_read, gmn1_write,
 };
 use wasm_bindgen::prelude::*;
 
-/// The GMN codebook — the `lang:` slice's authored glyph/alias/prefix declarations
-/// the GMN-1 dictionary is minted from. Embedded so the browser widget is
-/// self-contained (no runtime codebook fetch); refreshed when the vendored engine is.
-const LANG_CODEBOOK: &str = include_str!("../../../slices/grounding/lang/module.ttl");
+/// Complete native tables projected by the optimized producer before this crate builds.
+/// The browser embeds no authored RDF and performs no source compilation.
+const NATIVE_CODEBOOK: &[u8] =
+    include_bytes!("../../../generated/projections/lang/gmn-codebook.cbor");
 
-/// Build the pinned GMN-1 dictionary from the embedded codebook.
+/// Hydrate the source-pinned native codebook once for all browser codec operations.
 ///
-/// Both legs of the transcode consult the SAME dictionary; the browser and the native
-/// witness both mint it from these exact bytes, so their glyph/alias resolution is
-/// identical by construction.
-fn codebook_dict() -> Result<GmnDictionary, JsError> {
-    let ds = purrdf::parse_dataset(LANG_CODEBOOK.as_bytes(), "text/turtle", None)
-        .map_err(|e| JsError::new(&e.to_string()))?;
-    GmnDictionary::from_dataset(&ds).map_err(|e| JsError::new(&e.0))
+/// Both transcode legs and the legend borrow the same prepared tables. A corrupted or
+/// stale embedded artifact is a build-integrity failure, never a fallback to parsing RDF.
+fn codebook() -> &'static NativeCodebook {
+    static CODEBOOK: std::sync::OnceLock<NativeCodebook> = std::sync::OnceLock::new();
+    CODEBOOK.get_or_init(|| {
+        native::decode(NATIVE_CODEBOOK, native::SOURCE_BLAKE3)
+            .expect("embedded native GMN codebook must match its exact producer-selected source")
+    })
 }
 
 /// Transcode `data` (RDF text in `format`) — its GMN-0 normal form — into the
@@ -47,7 +49,8 @@ pub fn transcode_to_gmn1(data: &str, format: &str) -> Result<String, JsError> {
     let ds = purrdf::parse_dataset(data.as_bytes(), format, None)
         .map_err(|e| JsError::new(&e.to_string()))?;
     let model = Gmn0Model::from_dataset(&ds);
-    let doc = gmn1_write(&model, &codebook_dict()?).map_err(|e| JsError::new(&e.to_string()))?;
+    let doc =
+        gmn1_write(&model, codebook().dictionary()).map_err(|e| JsError::new(&e.to_string()))?;
     Ok(doc.text)
 }
 
@@ -60,24 +63,9 @@ pub fn transcode_to_gmn1(data: &str, format: &str) -> Result<String, JsError> {
 /// Returns a `JsError` (thrown to JS at the boundary) if the GMN-1 text cannot be read back.
 pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
     let doc = Gmn1Document::from_text(gmn1_text);
-    let model = gmn1_read(&doc, &codebook_dict()?).map_err(|e| JsError::new(&e.to_string()))?;
+    let model =
+        gmn1_read(&doc, codebook().dictionary()).map_err(|e| JsError::new(&e.to_string()))?;
     Ok(model.canonical_nquads())
-}
-
-/// The pinned token cost of `glyph`, or a hard error if the glyph is not pinned. A
-/// missing entry is a HARD FAIL (never a silent zero or omission): the legend must carry
-/// every glyph's real cost, and the anti-rot test keeps [`GLYPH_TOKEN_COSTS`] complete
-/// against the live registry, so this only fires if the table was edited out of sync.
-/// The glyph registry of the embedded codebook — the inventory half of the legend.
-///
-/// # Errors
-///
-/// Returns a `JsError` if the embedded codebook cannot be parsed or the registry cannot be
-/// built from it.
-fn codebook_glyph_registry() -> Result<GmnGlyphRegistry, JsError> {
-    let ds = purrdf::parse_dataset(LANG_CODEBOOK.as_bytes(), "text/turtle", None)
-        .map_err(|e| JsError::new(&e.to_string()))?;
-    GmnGlyphRegistry::from_dataset(&ds).map_err(|e| JsError::new(&format!("{e:?}")))
 }
 
 /// The GMN-1 glyph legend for the codebook, as a deterministic JSON array of
@@ -93,11 +81,11 @@ fn codebook_glyph_registry() -> Result<GmnGlyphRegistry, JsError> {
 ///
 /// # Errors
 ///
-/// Returns a `JsError` (thrown to JS at the boundary) if the embedded codebook cannot be
-/// read, or if it carries a glyph the pinned cost table does not price.
+/// Returns a `JsError` (thrown to JS at the boundary) if the codebook carries a glyph
+/// the pinned cost table does not price. Invalid embedded native tables hard-fail.
 pub fn glyph_legend_json() -> Result<String, JsError> {
-    let registry = codebook_glyph_registry()?;
-    bridge_glyph_legend_json(&registry).map_err(|e| JsError::new(&e.to_string()))
+    bridge_glyph_legend_json(codebook().dictionary().glyph_registry())
+        .map_err(|e| JsError::new(&e.to_string()))
 }
 
 /// The codec version (the crate's SemVer), exposed to JS as `version()`.
@@ -111,7 +99,8 @@ pub fn version() -> String {
 ///
 /// # Errors
 ///
-/// Throws if the embedded codebook cannot be read.
+/// Throws if an admitted glyph lacks its required pinned token cost. Invalid
+/// embedded native tables hard-fail as a build-integrity violation.
 #[wasm_bindgen]
 pub fn glyph_legend() -> Result<String, JsError> {
     glyph_legend_json()
@@ -146,19 +135,44 @@ pub fn from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
 // and the shipped `glyph_legend_json` still reads the pinned `GLYPH_TOKEN_COSTS`.
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
-    use super::codebook_glyph_registry;
+    use std::collections::BTreeSet;
 
     /// The pinned per-glyph token cost table MUST equal the real `cl100k_base` BPE cost
     /// for every glyph the codebook registry can emit, and carry no stale entry. The
-    /// assertion itself lives with the table it guards
-    /// (`gmeow_lang_bridge::gmn_legend::assert_pinned_costs_match_the_real_bpe`); what THIS
-    /// crate contributes is the registry, bound from the SAME embedded codebook
-    /// `glyph_legend_json` serves, so the browser's pinned costs can never drift from the
-    /// tokenizer the native authority measures. A new glyph, a shifted cost, or a removed
-    /// glyph fails here until the table is re-pinned.
+    /// exact source legend is prepared before tests start from the SAME authored
+    /// codebook the browser embeds. Every observed glyph is measured independently,
+    /// and the reverse inventory check rejects stale pinned entries. No test rebuilds
+    /// the authored registry. A new glyph, shifted cost or removed glyph fails here.
     #[test]
     fn pinned_glyph_costs_match_the_real_bpe() {
-        let registry = codebook_glyph_registry().expect("embedded codebook builds a registry");
-        gmeow_lang_bridge::assert_pinned_costs_match_the_real_bpe(&registry);
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let bytes = gmeow_action_cache::selection::source_artifacts::load(
+            &root,
+            "stage-conformance",
+            "pipeline/source-glyph-legend.json",
+        )
+        .expect("browser source legend has an authenticated producer selection");
+        let legend: serde_json::Value = serde_json::from_slice(&bytes).expect("source legend JSON");
+        let rows = legend.as_array().expect("source legend is an array");
+        assert!(!rows.is_empty(), "the source registry must contain glyphs");
+        let mut glyphs = BTreeSet::new();
+        for row in rows {
+            let glyph = row["glyph"].as_str().expect("source legend glyph");
+            assert!(glyphs.insert(glyph), "source legend repeats {glyph:?}");
+            let pinned = gmeow_lang_bridge::pinned_glyph_token_cost(glyph)
+                .expect("every source glyph has a pinned token cost");
+            assert_eq!(row["tokenCost"].as_u64(), Some(pinned as u64));
+            assert_eq!(
+                pinned,
+                gmeow_lang_bridge::gmn_glyph_token_cost(glyph),
+                "pinned cost differs from real cl100k_base BPE for {glyph:?}"
+            );
+        }
+        for (glyph, _) in gmeow_lang_bridge::GLYPH_TOKEN_COSTS {
+            assert!(
+                glyphs.contains(glyph),
+                "pinned table contains stale glyph {glyph:?}"
+            );
+        }
     }
 }

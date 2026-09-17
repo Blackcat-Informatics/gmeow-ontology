@@ -23,8 +23,9 @@ serde_json.workspace = true
 sha2.workspace = true
 
 [build-dependencies]
-sha2.workspace = true
+gmeow-build-inputs = { path = "../build-inputs" }
 
 [dev-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
 gmeow-gts-profile = { path = "../gts-profile" }
 tempfile.workspace = true

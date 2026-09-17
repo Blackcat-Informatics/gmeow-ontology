@@ -20,13 +20,8 @@ use gmeow_docs::coverage::{DIMENSIONS, SLICE_DIMENSIONS};
 use gmeow_docs::maturity::Dimension;
 use gmeow_docs::model::ReasoningVerdict;
 use gmeow_docs::{DocSlice, DocTerm, DocTermCategory, DocsModel, to_gmeow_rdf};
-use purrdf::slice::rdf_query::{Dataset, GraphSel, Object, Subject};
-
-mod common;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const DOC_COVERAGE_DIMENSION: &str = "https://blackcatinformatics.ca/gmeow/DocCoverageDimension";
 
 /// A minimal but representative model: one slice owning one bare term. The bare
 /// term MISSES most dimensions (so `docMissesDimension` is exercised) while the
@@ -136,49 +131,6 @@ fn coverage_keys_are_unique_and_partition_all_dimensions() {
         "coverage dimensions must cover every maturity variant"
     );
     assert_eq!(keys.len(), Dimension::ALL.len(), "one key per dimension");
-}
-
-#[test]
-fn every_coverage_key_maps_to_a_declared_doc_coverage_dimension_individual() {
-    // The third leg of the three-way join: each maturity::Dimension local name is a
-    // gmeow:dim* individual typed `a gmeow:DocCoverageDimension` in the
-    // documentation slice module. No coverage key names an undeclared dimension.
-    let root = common::repo_root();
-    let path = root.join("slices/core/documentation/module.ttl");
-    let bytes = std::fs::read(&path).expect("read documentation module.ttl");
-    let ds = Dataset::parse_turtle(&bytes, None, &path.display().to_string())
-        .expect("documentation module.ttl parses");
-
-    let mut declared: BTreeSet<String> = BTreeSet::new();
-    ds.graph(GraphSel::Any).for_each_quad(|s, p, o, _g| {
-        if p != RDF_TYPE {
-            return;
-        }
-        if let (Subject::Named(iri), Object::Named(ty)) = (&s, &o)
-            && ty == DOC_COVERAGE_DIMENSION
-            && let Some(local) = iri.strip_prefix(GMEOW)
-        {
-            declared.insert(local.to_string());
-        }
-    });
-
-    // Non-vacuity: the eighteen dimensions must genuinely be declared.
-    assert_eq!(
-        declared.len(),
-        Dimension::ALL.len(),
-        "expected {} gmeow:DocCoverageDimension individuals, found {}: {declared:?}",
-        Dimension::ALL.len(),
-        declared.len(),
-    );
-    // Every coverage key's dimension local name is declared.
-    for cd in DIMENSIONS.iter().chain(SLICE_DIMENSIONS.iter()) {
-        let local = cd.dimension.local_name();
-        assert!(
-            declared.contains(local),
-            "coverage key `{}` → dimension `{local}` has no gmeow:DocCoverageDimension declaration",
-            cd.key
-        );
-    }
 }
 
 #[test]

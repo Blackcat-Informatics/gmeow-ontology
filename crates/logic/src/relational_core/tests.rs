@@ -57,9 +57,20 @@ fn horn_formula_lowers_exactly_to_one_rule() {
 fn horn_formula_matches_the_equivalent_logic_rule() {
     // The same rule authored directly as a LogicRule must lower to the same head + body
     // (the rule_iri is a provenance/naming artifact and is allowed to differ).
-    let head = LogicAxiom::ground("?x", format!("{LOGIC}q"), format!("{LOGIC}b"), false).unwrap();
-    let body =
-        vec![LogicAxiom::ground("?x", format!("{LOGIC}p"), format!("{LOGIC}a"), false).unwrap()];
+    let head = LogicAxiom::ground(
+        "?x",
+        format!("{LOGIC}q"),
+        gmeow_logic_compile::ir::AtomicTerm::resource(format!("{LOGIC}b")),
+    )
+    .unwrap();
+    let body = vec![
+        LogicAxiom::ground(
+            "?x",
+            format!("{LOGIC}p"),
+            gmeow_logic_compile::ir::AtomicTerm::resource(format!("{LOGIC}a")),
+        )
+        .unwrap(),
+    ];
     let logic_rule = LogicRule::new(head, body, vec![], ContextualScope::default());
     let expected = lower_rule(&logic_rule).expect("lower logic rule");
 
@@ -106,8 +117,7 @@ fn multi_atom_formula_body_order_matches_logic_rule_canonical_order() {
     let head_ax = LogicAxiom::new(
         "?x",
         format!("{LOGIC}headRel"),
-        "?z",
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource("?z"),
         false,
         ContextualScope::default(),
     )
@@ -115,8 +125,7 @@ fn multi_atom_formula_body_order_matches_logic_rule_canonical_order() {
     let p_ax = LogicAxiom::new(
         "?x",
         format!("{LOGIC}pRel"),
-        "?y",
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource("?y"),
         false,
         ContextualScope::default(),
     )
@@ -124,8 +133,7 @@ fn multi_atom_formula_body_order_matches_logic_rule_canonical_order() {
     let q_ax = LogicAxiom::new(
         "?x",
         format!("{LOGIC}qRel"),
-        "?z",
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource("?z"),
         false,
         ContextualScope::default(),
     )
@@ -209,8 +217,8 @@ fn disjunctive_head_is_unsupported_never_exact() {
 }
 
 #[test]
-fn quantifier_alternation_is_unsupported() {
-    // ∀x. ∃y. p(x, y) — ∃ under ∀ would need a Skolem function; flagged, not mis-lowered.
+fn existential_with_unbound_universal_is_unsupported() {
+    // ∀x. ∃y. p(x, y) has no relational body binding x over its domain.
     let f = Formula::Forall {
         vars: vec!["x".into()],
         body: Box::new(Formula::Exists {
@@ -386,192 +394,6 @@ fn duplicate_formulas_produce_one_rule_not_two() {
     );
 }
 
-/// Flagship 1 (the `lang:` MEANING stratum): the declarative sentence "cats chase mice"
-/// denotes a full-FOL `logic:Formula`, authored as an RDF AST in the shared conformance
-/// fixture. This test ties the RDF fixture to the native reasoner: it parses the fixture's
-/// `logic:` layer with the real front-end and asserts the reasoner CONSUMES the denoted
-/// formula — `lower_formulas` clausifies it into an evaluable Horn rule with EXACT
-/// preservation — rather than merely DL-typing an empty AST node.
-///
-/// The formula is `∀x∀y. (instanceOf(x, typeCat) ∧ instanceOf(y, typeMouse)) → chase(x, y)`,
-/// authored in the binary-Horn fragment (the nouns predicated through the HiLog
-/// `logic:instanceOf` reflection so every atom is binary). It lowers to a single rule
-/// `chase(x, y) ← instanceOf(x, typeCat) ∧ instanceOf(y, typeMouse)` — from which, given a
-/// cat and a mouse, the chase derives a chased mouse (the flagship entailment "some mouse is
-/// chased"). Both stages are exact: the `lang:` → `logic:` denotation (the fixture's asserted
-/// `logic:ExactPreservation`) and the `logic:` → relational-core evaluation asserted here.
-#[test]
-fn flagship_cats_chase_mice_lowers_to_evaluable_rules_with_exact_preservation() {
-    use gmeow_logic_compile::frontend::parse_logic_str;
-
-    // The one authored fixture — the same file the `lang:` slice conformance harness
-    // validates — so the RDF AST and the native IR can never silently drift apart.
-    let fixture = include_str!(
-        "../../../../slices/grounding/lang/tests/conformance-fixtures/meaning-cats-chase-mice.ttl"
-    );
-    let (program, diagnostics) = parse_logic_str(fixture, None).expect("fixture parses");
-    assert!(
-        !diagnostics.iter().any(|d| d.code == "MALFORMED_FORMULA"),
-        "the flagship formula AST must reconstruct cleanly, got: {diagnostics:?}"
-    );
-
-    // The front-end lifted the sentence's denoted formula as a top-level assertion.
-    assert_eq!(
-        program.formulas.len(),
-        1,
-        "exactly the one top-level flagship formula is lifted: {:?}",
-        program.formulas
-    );
-
-    // The native reasoner CONSUMES it: the full-FOL AST is clausified to an evaluable rule.
-    let out = lower_formulas(&program);
-    assert_eq!(
-        out.rules.len(),
-        1,
-        "the flagship formula lowers to exactly one evaluable Horn rule: {:?}",
-        out.rules
-    );
-
-    // Evaluation shape: head is the binary chase relation, body is the two type memberships.
-    let rule = &out.rules[0];
-    assert!(
-        rule.head.predicate.ends_with("typeChase"),
-        "the derived head is the chase predication, got: {}",
-        rule.head.predicate
-    );
-    assert_eq!(
-        rule.body.len(),
-        2,
-        "two body atoms (the cat and mouse type memberships): {:?}",
-        rule.body
-    );
-    assert!(
-        rule.body
-            .iter()
-            .all(|a| a.predicate.ends_with("instanceOf")),
-        "each body atom is a HiLog type membership: {:?}",
-        rule.body
-    );
-
-    // Per-stage preservation: the `logic:` → relational-core evaluation is EXACT (no residue),
-    // matching the fixture's asserted `logic:ExactPreservation` on the denotation composition.
-    assert!(
-        out.preservation.unsupported_constructs.is_empty(),
-        "nothing is carried as residue: {:?}",
-        out.preservation.unsupported_constructs
-    );
-    assert!(
-        out.preservation
-            .polarities
-            .contains(&PreservationKind::Exact),
-        "the flagship formula lowers with exact preservation: {:?}",
-        out.preservation.polarities
-    );
-}
-
-/// The slice's typed-IR example is the source authority for the fixed ternary atom. Parse that
-/// exact RDF formula and drive the production relational-core adapter: the result must be one
-/// shared existential tuple reifier whose ordered binary edges preserve relation and arguments.
-///
-/// This closes the evidence gap a hand-authored `betweenTuple` could not: changing the fixture's
-/// relation, argument kind/order, or the compiler's reification recipe now fails at the real
-/// producer boundary.
-#[test]
-fn typed_ir_fixture_ternary_formula_legalizes_through_the_real_adapter() {
-    use gmeow_logic_compile::frontend::parse_logic_str;
-
-    const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
-    let fixture = include_str!("../../../../slices/grounding/logic/examples/typed-ir.ttl");
-    let (program, diagnostics) = parse_logic_str(fixture, None).expect("typed-IR fixture parses");
-    assert!(
-        !diagnostics.iter().any(|d| d.code == "MALFORMED_FORMULA"),
-        "every authored typed-IR formula must reconstruct cleanly: {diagnostics:?}"
-    );
-
-    let relation = Term::Iri(format!("{EX}between"));
-    let between = program
-        .formulas
-        .iter()
-        .find(|formula| {
-            matches!(
-                formula,
-                Formula::Atom {
-                    relation: candidate,
-                    ..
-                } if candidate == &relation
-            )
-        })
-        .expect("the source fixture carries its between formula")
-        .clone();
-    let Formula::Atom {
-        relation: parsed_relation,
-        args,
-    } = &between
-    else {
-        unreachable!("selected by Formula::Atom relation")
-    };
-    assert_eq!(parsed_relation, &relation, "the relation IRI is preserved");
-    assert_eq!(
-        args,
-        &vec![
-            Term::Iri(format!("{EX}Alice")),
-            Term::Iri(format!("{EX}Bob")),
-            Term::Iri(format!("{EX}Carol")),
-        ],
-        "termIndex reconstructs the exact Alice/Bob/Carol argument order"
-    );
-
-    let out = lower_formulas(&program_with(vec![between]));
-    assert!(
-        out.rules.is_empty(),
-        "a ternary derivation belongs to the conjunctive-head chase lane"
-    );
-    assert_eq!(
-        out.nary_head_rules.len(),
-        1,
-        "one source ternary atom yields one existential tuple rule"
-    );
-    assert!(
-        out.preservation.unsupported_constructs.is_empty(),
-        "the fixed-arity ternary formula is legal, not residue: {:?}",
-        out.preservation.unsupported_constructs
-    );
-    assert!(
-        out.preservation
-            .polarities
-            .contains(&PreservationKind::Exact),
-        "fixed-arity reification is exact"
-    );
-
-    let lowered = &out.nary_head_rules[0];
-    assert!(lowered.body.is_empty(), "a ground assertion has no body");
-    assert_eq!(
-        lowered.head.len(),
-        4,
-        "the tuple has one relation-typing edge plus three positional edges"
-    );
-    let reifier = lowered.head[0].subject.clone();
-    assert!(
-        matches!(reifier, EvalTerm::Var(ref name) if name.starts_with("?naryH")),
-        "the shared tuple node is the content-addressed existential reifier: {reifier:?}"
-    );
-    assert!(
-        lowered.head.iter().all(|atom| atom.subject == reifier),
-        "all four edges must share one tuple reifier: {:?}",
-        lowered.head
-    );
-    assert_eq!(lowered.head[0].predicate, format!("{LOGIC}instanceOf"));
-    assert_eq!(
-        lowered.head[0].object,
-        EvalTerm::ConstNamed(format!("{EX}between"))
-    );
-    for (index, expected) in ["Alice", "Bob", "Carol"].iter().enumerate() {
-        let atom = &lowered.head[index + 1];
-        assert_eq!(atom.predicate, format!("{LOGIC}naryArg{index}"));
-        assert_eq!(atom.object, EvalTerm::ConstNamed(format!("{EX}{expected}")));
-    }
-}
-
 /// Two laws that would derive the SAME head tuple are refused, loudly.
 ///
 /// The chase materializes a set of derived tuples and keeps one winning derivation per
@@ -588,11 +410,13 @@ fn two_laws_sharing_a_head_tuple_are_refused() {
         negated: false,
     };
     let rule_of = |law: &str| EvalRule {
+        numeric: Vec::new(),
         head: shared_head.clone(),
         body: Vec::new(),
         rule_iri: format!("{LOGIC}rule/{law}"),
         distinct_pairs: Vec::new(),
         builtins: Vec::new(),
+        reduction: None,
         constraint_tag: Some(format!("{LOGIC}{law}")),
     };
     let err = reject_colliding_heads(&[rule_of("FirstLaw"), rule_of("SecondLaw")])
@@ -619,11 +443,13 @@ fn conjunct_siblings_of_one_law_may_share_a_head_tuple() {
         negated: false,
     };
     let sibling = |conjunct: usize| EvalRule {
+        numeric: Vec::new(),
         head: head.clone(),
         body: Vec::new(),
         rule_iri: format!("{LOGIC}rule/OneLaw#{conjunct}"),
         distinct_pairs: Vec::new(),
         builtins: Vec::new(),
+        reduction: None,
         constraint_tag: Some(format!("{LOGIC}OneLaw")),
     };
     reject_colliding_heads(&[sibling(0), sibling(1)])

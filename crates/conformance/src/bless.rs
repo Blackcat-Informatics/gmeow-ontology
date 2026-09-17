@@ -251,46 +251,6 @@ fn write_json(path: &Path, value: &serde_json::Value) -> gmeow_errors::Result<()
     write_text(path, &text)
 }
 
+#[path = "bless.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// Recursively copy `src` into `dst` (used to bless a scratch copy of a case).
-    fn copy_dir(src: &Path, dst: &Path) {
-        std::fs::create_dir_all(dst).expect("mkdir");
-        for entry in std::fs::read_dir(src).expect("read_dir") {
-            let entry = entry.expect("entry");
-            let from = entry.path();
-            let to = dst.join(entry.file_name());
-            if from.is_dir() {
-                copy_dir(&from, &to);
-            } else {
-                std::fs::copy(&from, &to).expect("copy");
-            }
-        }
-    }
-
-    /// Bless self-consistency: regenerating a case's goldens and re-running the diff
-    /// yields no mismatches. Comparison is canonical/graph-iso, so the freshly
-    /// blessed (canonical) goldens are accepted by the gate. (Explanation `.md` is
-    /// refreshed like every other existing golden, but the renderer is deterministic,
-    /// so it regenerates to byte-identical content and the cited-IRI skeleton still
-    /// matches.)
-    #[test]
-    fn bless_is_self_consistent() {
-        let src = crate::paths::cases_root()
-            .join("foundation")
-            .join("free-role");
-        let tmp = tempfile::tempdir().expect("create temp dir");
-        // Preserve the <category>/<case> tail so the derived case_id is stable.
-        let dst = tmp.path().join("foundation").join("free-role");
-        copy_dir(&src, &dst);
-
-        let out = crate::run::run_case(&dst).expect("run_case ok");
-        write_expected(&dst, &out).expect("bless ok");
-
-        let out2 = crate::run::run_case(&dst).expect("run_case (post-bless) ok");
-        let diffs = crate::compare::diff_case(&dst, &out2);
-        assert!(diffs.is_empty(), "bless not self-consistent: {diffs:?}");
-    }
-}
+mod tests;

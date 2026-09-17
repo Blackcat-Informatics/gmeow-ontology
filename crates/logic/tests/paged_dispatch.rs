@@ -261,8 +261,7 @@ fn forward_program() -> LogicProgram {
     let head = LogicAxiom::new(
         "?x",
         format!("{EX}reach"),
-        "?y",
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource("?y"),
         false,
         ContextualScope::default(),
     )
@@ -270,8 +269,7 @@ fn forward_program() -> LogicProgram {
     let body = LogicAxiom::new(
         "?x",
         format!("{EX}edge"),
-        "?y",
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource("?y"),
         false,
         ContextualScope::default(),
     )
@@ -296,8 +294,7 @@ fn ground_forward_program() -> LogicProgram {
     let head = LogicAxiom::new(
         format!("{EX}a"),
         format!("{EX}reach"),
-        format!("{EX}b"),
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource(format!("{EX}b")),
         false,
         ContextualScope::default(),
     )
@@ -305,8 +302,7 @@ fn ground_forward_program() -> LogicProgram {
     let body = LogicAxiom::new(
         format!("{EX}a"),
         format!("{EX}edge"),
-        format!("{EX}b"),
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource(format!("{EX}b")),
         false,
         ContextualScope::default(),
     )

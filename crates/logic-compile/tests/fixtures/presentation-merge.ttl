@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <urn:presentation-example:> .
+
+ex:contract a logic:ReasoningContract .
+ex:context a logic:PresentationContext ; logic:presentationWorld ex:world ;
+    logic:presentationModality "none" .
+ex:pSymbol a logic:PresentationSymbol ; logic:symbolContext ex:context ;
+    logic:symbolName ex:p ; logic:relationSymbolArity 1 .
+ex:xSymbol a logic:PresentationSymbol ; logic:symbolContext ex:context ;
+    logic:symbolName ex:x ; logic:individualSymbolRole true .
+ex:leftPrivate a logic:PresentationSymbol ; logic:symbolContext ex:context ;
+    logic:symbolName ex:private ; logic:individualSymbolRole true .
+ex:rightPrivate a logic:PresentationSymbol ; logic:symbolContext ex:context ;
+    logic:symbolName ex:private ; logic:individualSymbolRole true .
+
+ex:body a logic:Formula ; logic:relation ex:p ;
+    logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:x ] .
+ex:pBinding logic:bindingName ex:p ; logic:bindingSymbol ex:pSymbol .
+ex:xBinding logic:bindingName ex:x ; logic:bindingSymbol ex:xSymbol .
+ex:baseEvidence a logic:PresentationEvidence ; logic:evidenceOrigin ex:apexSource ;
+    logic:preservationKind logic:ExactPreservation .
+ex:positiveEvidence a logic:PresentationEvidence ; logic:evidenceOrigin ex:leftSource ;
+    logic:preservationKind logic:SoundUnderApproximation, logic:InconsistencyPreserving ;
+    logic:unsupportedConstruct "urn:presentation-example:unprojectedConstraint" .
+ex:negativeEvidence a logic:PresentationEvidence ; logic:evidenceOrigin ex:rightSource ;
+    logic:preservationKind logic:CompleteOverApproximation .
+ex:base a logic:PresentationSentence ; logic:presentationFormula ex:body ;
+    logic:sentenceContext ex:context ; logic:sentenceSign logic:PositiveSupport ;
+    logic:sentenceKind logic:PresentationAxiom ; logic:sentenceEvidence ex:baseEvidence ;
+    logic:sentenceBinding ex:pBinding, ex:xBinding .
+ex:positive a logic:PresentationSentence ; logic:presentationFormula ex:body ;
+    logic:sentenceContext ex:context ; logic:sentenceSign logic:PositiveSupport ;
+    logic:sentenceKind logic:PresentationAxiom ; logic:sentenceEvidence ex:positiveEvidence ;
+    logic:sentenceBinding ex:pBinding, ex:xBinding .
+ex:negative a logic:PresentationSentence ; logic:presentationFormula ex:body ;
+    logic:sentenceContext ex:context ; logic:sentenceSign logic:NegativeSupport ;
+    logic:sentenceKind logic:PresentationCaveat ; logic:sentenceEvidence ex:negativeEvidence ;
+    logic:sentenceBinding ex:pBinding, ex:xBinding .
+
+ex:apex a logic:FinitePresentation ; logic:presentationContract ex:contract ;
+    logic:presentationContext ex:context ; logic:presentationSymbol ex:pSymbol, ex:xSymbol ;
+    logic:presentationSentence ex:base .
+ex:left a logic:FinitePresentation ; logic:presentationContract ex:contract ;
+    logic:presentationContext ex:context ;
+    logic:presentationSymbol ex:pSymbol, ex:xSymbol, ex:leftPrivate ;
+    logic:presentationSentence ex:base, ex:positive .
+ex:right a logic:FinitePresentation ; logic:presentationContract ex:contract ;
+    logic:presentationContext ex:context ;
+    logic:presentationSymbol ex:pSymbol, ex:xSymbol, ex:rightPrivate ;
+    logic:presentationSentence ex:base, ex:negative .
+ex:pImage logic:bindingSource ex:pSymbol ; logic:bindingTarget ex:pSymbol .
+ex:xImage logic:bindingSource ex:xSymbol ; logic:bindingTarget ex:xSymbol .
+ex:leftMap a logic:PresentationMap ; logic:mapSource ex:apex ; logic:mapTarget ex:left ;
+    logic:generatorBinding ex:pImage, ex:xImage .
+ex:rightMap a logic:PresentationMap ; logic:mapSource ex:apex ; logic:mapTarget ex:right ;
+    logic:generatorBinding ex:pImage, ex:xImage .
+ex:merge a logic:PresentationMerge ; logic:mergeLeft ex:leftMap ; logic:mergeRight ex:rightMap .

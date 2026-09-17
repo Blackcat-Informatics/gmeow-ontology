@@ -1,166 +1,132 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Production-surface proof that the SHIPPED `gmeow` binary can RE-EMIT a stored GMN-1
-//! document at a target dialect major across an authored inter-version correspondence —
-//! the `Commands::Gmn { Migrate }` clap dispatch in `src/lib.rs`, driven through
-//! `assert_cmd`. It drives the version-migration executor
-//! (`gmeow_lang_bridge::GmnMigration::migrate`) end-to-end over the built binary
-//! and asserts:
-//!
-//! * a stored v1 document migrates to v2 — a ¬→! rename, a ⊑ native survivor, and a
-//!   bridged ⊻→^ drop — with the header re-stamped and the preservation JUDGMENT reported;
-//! * an operator the target major drops with NO covering rewrite HARD-FAILS with the named
-//!   `lang:GmnUnbridgedGlyphDrop` class and a non-zero exit — never a silent repair.
+//! Migration command dispatch over independent user inputs. The complete authored
+//! migration, registry, precedence and preservation verdicts are graded from
+//! authenticated producer observations by the pipeline corpus suite.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use assert_cmd::Command;
 use predicates::prelude::*;
 
-/// The built `gmeow` binary.
-fn gmeow() -> Command {
-    Command::cargo_bin("gmeow").expect("gmeow binary builds")
+const CORRESPONDENCE: &str = "https://example.org/cli/crossing";
+
+/// Own every tiny user input until the child command has exited.
+struct Inputs(tempfile::TempDir);
+impl Inputs {
+    fn new(document: &str, keep_star: bool) -> Self {
+        let inputs = Self(tempfile::tempdir().expect("temporary user directory"));
+        fs::write(inputs.path("stored.gmn"), document).unwrap();
+        fs::write(
+            inputs.path("language.ttl"),
+            r#"
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://example.org/cli/> .
+g:gmnCodebookCurrent a g:GmnCodebook ; g:references ex:dictionary, ex:script ;
+  g:gmnDictionaryVersion "3" ; g:gmnGlyphTableVersion "2" .
+ex:dictionary a g:GmnDictionary ; g:gmnDictionaryVersion "3" .
+ex:script a lang:Script ; lang:hasGrapheme ex:starGrapheme .
+ex:starGrapheme g:gmnCodepoints "U+2605" .
+ex:denotation a lang:Denotation ; lang:denotationTarget ex:star ;
+  lang:denotedForm ex:starForm ; g:gmnDenotationGrapheme ex:starGrapheme .
+ex:candidate a g:GmnSymbolCandidate ; g:gmnCandidateDenotation ex:denotation ;
+  g:gmnSymbolDisposition g:gmnDispositionAdoptedGlyph ; g:gmnAsciiFallback "cliStar" .
+g:gmnDialectVersions a g:VersionSet ; g:gmnAcceptWindow 1 .
+ex:latest logic:versionInfo "1" .
+ex:membership a g:VersionMembership ; g:versionMember ex:latest ;
+  g:versionSet g:gmnDialectVersions ; g:versionRole g:roleLatest .
+"#,
+        )
+        .unwrap();
+        let mut migration = String::from(
+            r#"
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://example.org/cli/> .
+ex:source logic:versionInfo "1" .
+ex:target logic:versionInfo "2" .
+ex:crossing a logic:Correspondence ; g:gmnMigratesFrom ex:source ;
+  g:gmnMigratesTo ex:target ; logic:preservationKind logic:ExactPreservation ;
+  g:gmnMigrationRewrite ex:rewrite .
+ex:rewrite g:gmnRewriteTerm ex:diamond ;
+  g:gmnRewriteFromGlyph "◆" ; g:gmnRewriteToGlyph "◇" .
+"#,
+        );
+        if keep_star {
+            migration.push_str("ex:target g:gmnVersionDefinesOperator ex:star .\n");
+        }
+        fs::write(inputs.path("migration.ttl"), migration).unwrap();
+        inputs
+    }
+
+    fn path(&self, name: &str) -> PathBuf {
+        self.0.path().join(name)
+    }
+
+    fn command(&self) -> Command {
+        let mut command = Command::cargo_bin("gmeow").expect("gmeow binary builds");
+        command
+            .args(["gmn", "migrate"])
+            .arg(self.path("stored.gmn"))
+            .args(["--correspondence", CORRESPONDENCE, "--migrations"])
+            .arg(self.path("migration.ttl"))
+            .arg("--lang-module")
+            .arg(self.path("language.ttl"));
+        command
+    }
 }
 
-/// The repo root (this crate lives at `crates/gmeow-cli`). Absolute so the test is
-/// insensitive to the process CWD `cargo`/`nextest` chooses.
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .expect("repo root canonicalizes")
-}
-
-/// The lang codebook/dictionary source (the dictionary + executable glyph registry).
-fn lang_module() -> PathBuf {
-    repo_root().join("slices/grounding/lang/module.ttl")
-}
-
-/// The authored synthetic v1 → v2 migration demonstrator (correspondence + rewrites +
-/// the target major's `gmeow:gmnVersionDefinesOperator` native inventory).
-fn migrations() -> PathBuf {
-    repo_root().join("slices/grounding/lang/examples/gmn-migration.ttl")
-}
-
-/// The demonstrator correspondence IRI.
-const CORRESPONDENCE: &str =
-    "https://blackcatinformatics.ca/gmeow/examples/lang/gmnMigrationVSrcToVTgt";
-
-/// Write `contents` to a `.gmn` file in a fresh temp dir and return both (the dir keeps the
-/// file alive for the command run).
-fn stored_doc(contents: &str) -> (tempfile::TempDir, PathBuf) {
-    let dir = tempfile::TempDir::new().expect("temp dir");
-    let path = dir.path().join("stored.gmn");
-    fs::write(&path, contents).expect("write stored .gmn");
-    (dir, path)
-}
-
-// ── success: a stored v1 document re-emitted at v2 ───────────────────────────────
-
-/// `gmeow gmn migrate` re-emits a stored v1 document at v2: the ¬→! rename and the bridged
-/// ⊻→^ drop are applied, the ⊑ native survivor is unchanged, the `@gmn{v: …}` header is
-/// re-stamped 1 → 2, and the preservation JUDGMENT (never a boolean) is reported on stderr.
+/// Dispatch emits the target header, a renamed glyph and a surviving glyph,
+/// and reports the preservation judgment and operator count on stderr.
 #[test]
 fn gmn_migrate_reemits_stored_document_at_target_major() {
-    // A stored source-major document using logic:not (¬), logic:subClassOf (⊑), and the
-    // retired xor operator (⊻, resolved via the migration leg's own rewrite).
-    let (_dir, doc) = stored_doc(
+    let inputs = Inputs::new(
         "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n\
-         @ℒ{s:ex__a,p:ex__rel,o:¬}\n\
-         @ℒ{s:ex__b,p:ex__rel,o:⊑}\n\
-         @ℒ{s:ex__c,p:ex__rel,o:⊻}\n",
+         @c{s:ex__a,p:ex__rel,o:◆}\n@c{s:ex__b,p:ex__rel,o:★}\n",
+        true,
     );
-    gmeow()
-        .args([
-            "gmn",
-            "migrate",
-            doc.to_str().unwrap(),
-            "--correspondence",
-            CORRESPONDENCE,
-            "--migrations",
-            migrations().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
-        ])
+    inputs
+        .command()
         .assert()
         .success()
-        // the header is re-stamped to the target major …
         .stdout(predicate::str::contains("@gmn{v: 2,"))
-        // … the ¬→! rename is applied …
-        .stdout(predicate::str::contains("o:!}"))
-        // … the ⊑ native survivor is unchanged …
-        .stdout(predicate::str::contains("o:⊑}"))
-        // … the bridged ⊻→^ drop is applied …
-        .stdout(predicate::str::contains("o:^}"))
-        // … and neither source operator glyph survives verbatim.
-        .stdout(predicate::str::contains("o:¬}").not())
-        .stdout(predicate::str::contains("o:⊻}").not())
-        // the crossing's preservation JUDGMENT is surfaced, not a boolean.
+        .stdout(predicate::str::contains("o:◇}"))
+        .stdout(predicate::str::contains("o:★}"))
+        .stdout(predicate::str::contains("o:◆}").not())
         .stderr(predicate::str::contains(
             "preservation logic:ExactPreservation",
         ))
-        .stderr(predicate::str::contains("3 operator(s) migrated"));
+        .stderr(predicate::str::contains("2 operator(s) migrated"));
 }
 
-// ── hard fail: an unbridged glyph drop ───────────────────────────────────────────
-
-/// A stored document using an operator the TARGET major does not define natively AND that
-/// the migration authors NO covering rewrite for HARD-FAILS with the named
-/// `lang:GmnUnbridgedGlyphDrop` class and a non-zero exit — no silent repair or drop.
+/// An uncovered source operator fails with its named failure class and term.
 #[test]
 fn gmn_migrate_unbridged_drop_hard_fails_with_named_class() {
-    // math:pi (π) is an adopted registry glyph the synthetic target major does NOT list in
-    // its gmeow:gmnVersionDefinesOperator inventory and no rewrite bridges.
-    let (_dir, doc) = stored_doc(
-        "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n\
-         @μ{s:ex__d,p:ex__rel,o:π}\n",
+    let inputs = Inputs::new(
+        "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s:ex__a,p:ex__rel,o:★}\n",
+        false,
     );
-    gmeow()
-        .args([
-            "gmn",
-            "migrate",
-            doc.to_str().unwrap(),
-            "--correspondence",
-            CORRESPONDENCE,
-            "--migrations",
-            migrations().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
-        ])
+    inputs
+        .command()
         .assert()
         .failure()
         .stderr(predicate::str::contains("lang:GmnUnbridgedGlyphDrop"))
-        .stderr(predicate::str::contains(
-            "https://blackcatinformatics.ca/math/pi",
-        ));
+        .stderr(predicate::str::contains("https://example.org/cli/star"));
 }
 
-// ── hard fail: a document out of the crossing's source window ─────────────────────
-
-/// A stored document whose `@gmn{v: …}` header pins a major OTHER than the migration's
-/// source major HARD-FAILS (exit 1) — the document is outside the crossing's source window,
-/// never migrated on a guess.
+/// A document outside the declared source major fails instead of guessing.
 #[test]
 fn gmn_migrate_out_of_window_source_major_hard_fails() {
-    let (_dir, doc) = stored_doc(
-        "@gmn{v: 2, aliases: dict-v3, glyphs: 2}\n\
-         @ℒ{s:ex__a,p:ex__rel,o:¬}\n",
+    let inputs = Inputs::new(
+        "@gmn{v: 9, aliases: dict-v3, glyphs: 2}\n@c{s:ex__a,p:ex__rel,o:◆}\n",
+        true,
     );
-    gmeow()
-        .args([
-            "gmn",
-            "migrate",
-            doc.to_str().unwrap(),
-            "--correspondence",
-            CORRESPONDENCE,
-            "--migrations",
-            migrations().to_str().unwrap(),
-            "--lang-module",
-            lang_module().to_str().unwrap(),
-        ])
+    inputs
+        .command()
         .assert()
         .failure()
         .stderr(predicate::str::contains(

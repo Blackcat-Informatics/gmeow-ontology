@@ -115,8 +115,8 @@ Every payload-bearing frame authored by production GMEOW code uses
 `zstd-rsyncable` at compression level 12. `crates/gts-profile` centralizes this
 policy through:
 
-- `emit_gmeow_gts` and `emit_gmeow_gts_with_medium` for snapshot bundles;
-- `dataset_to_gmeow_gts` for the frozen-dataset conversion exit;
+- `emit_gmeow_gts` for snapshot bundles;
+- `view_to_gmeow_gts` for native-view ingestion through the same consuming snapshot exit;
 - `GmeowGtsWriter` for append-only segments; and
 - `compact_gmeow_gts` for streamable repacking.
 

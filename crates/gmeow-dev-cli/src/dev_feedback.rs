@@ -313,7 +313,7 @@ fn append_surface_failure(report: &mut Report, label: &str, error: gmeow_errors:
 /// projections as content-addressed blobs in a GTS package whose snapshot graph
 /// IS the findings RDF and whose metadata stamps the snapshot content id.
 fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<(), i32> {
-    let bytes = crate::feedback_bundle::build_feedback_bundle(report)
+    let emission = crate::feedback_bundle::build_feedback_bundle(report)
         .map_err(|e| fail(format!("build feedback bundle: {e}")))?;
 
     if let Err(e) = std::fs::create_dir_all(&config.directory) {
@@ -323,10 +323,10 @@ fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<
         )));
     }
     let path = config.directory.join(format!("{}.gts", config.stem));
-    if let Err(e) = std::fs::write(&path, bytes) {
-        return Err(fail(format!("cannot write {}: {e}", path.display())));
-    }
-    println!("wrote {}", path.display());
+    let receipt = emission
+        .write_to(&path)
+        .map_err(|e| fail(format!("cannot publish {}: {e}", path.display())))?;
+    println!("wrote {} and {}", path.display(), receipt.display());
     Ok(())
 }
 
@@ -452,33 +452,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 &report,
             ))
         }),
-        ("logic-compile", |root| {
-            // The `logic:` compile diagnostics surface: parse diagnostics projected
-            // into the canonical report; a hard parse/compile failure is surfaced as
-            // one `logic-compile.failed` error rather than aborting the whole fold.
-            let source = root.join("slices/grounding/logic/module.ttl");
-            let source_ttl = std::fs::read_to_string(&source).map_err(|e| {
-                error::source(format!(
-                    "logic: source not found: {} ({e})",
-                    source.display()
-                ))
-            })?;
-            match compile_logic_report(&source_ttl) {
-                Ok(r) => Ok(r),
-                Err(msg) => {
-                    let mut r = Report::new("logic-compile");
-                    r.add_finding(
-                        Finding::new(
-                            Severity::Error,
-                            "logic-compile.failed",
-                            format!("logic: compile failed: {msg}"),
-                        )
-                        .with_tool("logic-compile"),
-                    );
-                    Ok(r)
-                }
-            }
-        }),
+        ("logic-compile", logic_compile_surface),
         ("statement-compile", |root| {
             // The native statement compiler's invariant + losslessness diagnostics,
             // over the merged ontology (no imports) — the `include_imports=False`
@@ -516,6 +490,35 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
     ]
 }
 
+// A registry entry stores this function; inspecting surface names executes no source work.
+fn logic_compile_surface(root: &Path) -> gmeow_errors::Result<Report> {
+    // The `logic:` compile diagnostics surface: parse diagnostics projected
+    // into the canonical report; a hard parse/compile failure is surfaced as
+    // one `logic-compile.failed` error rather than aborting the whole fold.
+    let source = root.join("slices/grounding/logic/module.ttl");
+    let source_ttl = std::fs::read_to_string(&source).map_err(|e| {
+        error::source(format!(
+            "logic: source not found: {} ({e})",
+            source.display()
+        ))
+    })?;
+    match compile_logic_report(&source_ttl) {
+        Ok(r) => Ok(r),
+        Err(msg) => {
+            let mut r = Report::new("logic-compile");
+            r.add_finding(
+                Finding::new(
+                    Severity::Error,
+                    "logic-compile.failed",
+                    format!("logic: compile failed: {msg}"),
+                )
+                .with_tool("logic-compile"),
+            );
+            Ok(r)
+        }
+    }
+}
+
 /// Compile the `logic:` source and project its parse diagnostics into the
 /// canonical report — the native twin of `compile_logic`'s `diagnostics_report`.
 /// A parse or compile hard error is returned as `Err` for the caller to surface
@@ -527,10 +530,11 @@ fn compile_logic_report(source_ttl: &str) -> gmeow_errors::Result<Report> {
     // correspondence gates inside `compile_program` read a real per-correspondence verdict
     // instead of hitting their missing-verdict hard-fail on a correspondence-bearing source.
     // A correspondence-free source yields an empty map (the gates never run).
-    let verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
-        .map_err(error::feedback)?;
-    gmeow_logic_compile::projections::compile_program(&program, &verdicts)
-        .map_err(error::feedback)?;
+    gmeow_logic_compile::projections::compile_program(
+        &program,
+        gmeow_logic::correspondence_exec::program_verdicts,
+    )
+    .map_err(error::feedback)?;
     Ok(gmeow_logic::logic_diagnostics::diagnostics_report(
         &diagnostics,
     ))
@@ -654,80 +658,9 @@ fn unified_diff(original: &str, patched: &str, path: &str) -> String {
     out
 }
 
+#[path = "dev_feedback.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::{compile_logic_report, surfaces};
-
-    /// The canonical offline dev-gate surface set `feedback` folds into one report
-    /// — the Rust twin of the retired Python `_EXPECTED_SURFACES`. Pinned here so a
-    /// future edit that adds or drops a fold surface without updating this set fails
-    /// the gate (the drift guard the deleted `test_feedback_surfaces.py` provided).
-    const EXPECTED_SURFACES: &[&str] = &[
-        "alignment",
-        "coverage",
-        "acceptance",
-        "wikidata",
-        "constitution",
-        "crate-layering",
-        "repo-static",
-        "box-roles",
-        "audit",
-        "generated",
-        "logic-compile",
-        "statement-compile",
-        "mapping-compile",
-        "slice-ownership",
-    ];
-
-    /// The separately admitted native producer plus the report-returning surfaces
-    /// cover the exact canonical set. This reads declarations only; no thunk runs.
-    #[test]
-    fn surfaces_cover_exactly_the_canonical_set() {
-        let mut got: Vec<&str> = surfaces().iter().map(|(label, _)| *label).collect();
-        got.push("generated"); // generated_feedback owns the native producer verdict.
-        got.sort_unstable();
-        let mut expected: Vec<&str> = EXPECTED_SURFACES.to_vec();
-        expected.sort_unstable();
-        assert_eq!(
-            got, expected,
-            "feedback surface set drifted from the canonical dev-gate surfaces"
-        );
-    }
-
-    /// A `logic:` source that DECLARES a `logic:Correspondence` (an isomorphism with a
-    /// realized get leg) must compile cleanly through the public `compile_logic_report`
-    /// surface — its correspondence gates run against EXECUTED lens-law verdicts computed
-    /// by the caller. This pins the fix for the missing-verdict hard-fail: before the
-    /// caller discharged the verdicts, `compile_program` fed the gates an empty verdict map
-    /// and the round-trip gate PANICKED on this exact input (a `PanicException` on the PyO3
-    /// twin) instead of returning a result. The assertion is `is_ok`; a regression re-arms
-    /// the panic and aborts the test process rather than returning `Err`.
-    #[test]
-    fn correspondence_bearing_source_compiles_without_missing_verdict_panic() {
-        // An Isomorphism cell with a single-step get leg. Its lawful put is the structural
-        // inverse, which the round-trip gate composes + discharges — reaching `verdict_for`.
-        let source = "\
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix ex: <https://gmeow.example/corr/> .
-@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
-
-ex:iso a logic:Correspondence ;
-    logic:correspondenceRelation logic:Equiv ;
-    logic:morphismClass logic:Isomorphism ;
-    logic:morphismKind logic:InstitutionMorphism ;
-    logic:mnemomorphic \"true\"^^xsd:boolean ;
-    logic:getLeg ex:isoGet .
-
-ex:isoGet gm:path ex:isoStep .
-";
-        let report = compile_logic_report(source);
-        assert!(
-            report.is_ok(),
-            "correspondence-bearing source must compile (verdicts discharged), got {report:?}"
-        );
-    }
-}
+mod tests;
 
 #[cfg(test)]
 #[path = "dev_feedback/acceptance_tests.rs"]

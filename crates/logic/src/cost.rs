@@ -628,19 +628,20 @@ impl RepeatForwardSession {
 }
 
 fn derived_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
-    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+    fn frame(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+        let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
-        hasher.update(value.as_bytes());
+        hasher.update(value);
     }
 
     let mut hasher = blake3::Hasher::new();
-    frame(&mut hasher, "gmeow-repeat-forward-closure-v1");
+    frame(&mut hasher, "gmeow-repeat-forward-closure-v2");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for row in rows {
         frame(&mut hasher, &row.graph);
-        frame(&mut hasher, &crate::provenance::term_display(&row.subject));
+        frame(&mut hasher, row.subject.to_canonical_bytes());
         frame(&mut hasher, &row.predicate);
-        frame(&mut hasher, &crate::provenance::term_display(&row.object));
+        frame(&mut hasher, row.object.to_canonical_bytes());
         frame(&mut hasher, &row.rule_iri);
         hasher.update(&row.proof_height.get().to_le_bytes());
     }
@@ -648,37 +649,39 @@ fn derived_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
 }
 
 fn derived_fact_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
-    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+    fn frame(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+        let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
-        hasher.update(value.as_bytes());
+        hasher.update(value);
     }
 
     let mut hasher = blake3::Hasher::new();
-    frame(&mut hasher, "gmeow-record-skip-fact-closure-v1");
+    frame(&mut hasher, "gmeow-record-skip-fact-closure-v2");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for row in rows {
         frame(&mut hasher, &row.graph);
-        frame(&mut hasher, &crate::provenance::term_display(&row.subject));
+        frame(&mut hasher, row.subject.to_canonical_bytes());
         frame(&mut hasher, &row.predicate);
-        frame(&mut hasher, &crate::provenance::term_display(&row.object));
+        frame(&mut hasher, row.object.to_canonical_bytes());
     }
     *hasher.finalize().as_bytes()
 }
 
 fn skipped_fact_rows_hash(rows: &[(String, crate::rule_ir::Fact)]) -> [u8; 32] {
-    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+    fn frame(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+        let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
-        hasher.update(value.as_bytes());
+        hasher.update(value);
     }
 
     let mut hasher = blake3::Hasher::new();
-    frame(&mut hasher, "gmeow-record-skip-fact-closure-v1");
+    frame(&mut hasher, "gmeow-record-skip-fact-closure-v2");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for (world, fact) in rows {
         frame(&mut hasher, world);
-        frame(&mut hasher, &crate::provenance::term_display(&fact.subject));
+        frame(&mut hasher, fact.subject.to_canonical_bytes());
         frame(&mut hasher, &fact.predicate);
-        frame(&mut hasher, &crate::provenance::term_display(&fact.object));
+        frame(&mut hasher, fact.object.to_canonical_bytes());
     }
     *hasher.finalize().as_bytes()
 }
@@ -1066,6 +1069,25 @@ impl IncrementalForwardSession {
         program: &gmeow_logic_compile::ir::LogicProgram,
         annotation: &crate::annotation::AnnotationContract,
     ) -> gmeow_errors::Result<Self> {
+        let (world, facts) = Self::prepare_input(edb, annotation)?;
+        let eval_rules = crate::lower::lower_eval_rules(program)?;
+        Self::prepare_facts(world, facts, &eval_rules, annotation)
+    }
+
+    /// Borrow the exact native rules already admitted by a selected preparation.
+    pub(crate) fn prepare_with_rules(
+        edb: &RdfDataset,
+        eval_rules: &[crate::rule_ir::EvalRule],
+        annotation: &crate::annotation::AnnotationContract,
+    ) -> gmeow_errors::Result<Self> {
+        let (world, facts) = Self::prepare_input(edb, annotation)?;
+        Self::prepare_facts(world, facts, eval_rules, annotation)
+    }
+
+    fn prepare_input(
+        edb: &RdfDataset,
+        annotation: &crate::annotation::AnnotationContract,
+    ) -> gmeow_errors::Result<(String, Vec<crate::rule_ir::Fact>)> {
         if !annotation_maintainable_incrementally(annotation) {
             return Err(cost_err(
                 "the incremental maintainer materializes the exact minimal-proof-height \
@@ -1074,16 +1096,23 @@ impl IncrementalForwardSession {
                     .to_owned(),
             ));
         }
-        let (world, facts) = incremental_dataset_facts(edb, None)?;
-        let eval_rules = crate::lower::lower_eval_rules(program)?;
-        let strata = crate::certify::predicate_strata(&eval_rules);
+        incremental_dataset_facts(edb, None)
+    }
+
+    fn prepare_facts(
+        world: String,
+        facts: Vec<crate::rule_ir::Fact>,
+        eval_rules: &[crate::rule_ir::EvalRule],
+        annotation: &crate::annotation::AnnotationContract,
+    ) -> gmeow_errors::Result<Self> {
+        let strata = crate::certify::predicate_strata(eval_rules);
         let edb_keys = facts.iter().map(crate::rule_ir::Fact::key).collect();
         let contract_hash = format!(
             "gmeow-native-incremental-forward-v1:{}\0annotation={}",
             blake3::hash(world.as_bytes()).to_hex(),
             annotation.canonical_key()
         );
-        let inner = crate::physical::IncrementalSession::new(contract_hash, facts, &eval_rules)?;
+        let inner = crate::physical::IncrementalSession::new(contract_hash, facts, eval_rules)?;
         Ok(Self {
             world,
             inner,

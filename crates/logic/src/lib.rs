@@ -7,6 +7,8 @@
 
 pub mod annotation;
 pub mod certificate;
+/// Explicit producer observations for shipped native coherence contracts.
+pub mod coherence_observations;
 /// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
 /// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
 pub mod conjecture;
@@ -29,14 +31,17 @@ pub mod derivation_graph;
 pub mod dispatch;
 /// Native entailment by refutation (`A ⊨ C` iff `A ∪ ¬C` inconsistent): a thin
 /// composition over [`reason::dl_consistency`] plus the shared conclusion-shape
-/// negation calculus with sound reserved-namespace minting. Lives OUTSIDE `reason`
-/// so it is not folded into `reason::native_contract_hash` (it adds no rule).
+/// negation calculus with sound reserved-namespace minting and explicit source-context
+/// admission. Its service behavior participates in [`reason::native_contract_hash`].
 pub mod entail;
 pub mod entrenchment;
 /// Reasoning-core diagnostic-kind catalog: the typed [`gmeow_errors::DiagKind`]
 /// set the core raises on the shared diagnostic substrate, one per subsystem.
 pub mod error;
 pub mod explain;
+/// Strict SZS artifact capture plus independent checks for the admitted external
+/// proof and finite-model formats used by the installed `gmeow prove` surface.
+pub mod external_evidence;
 /// Query-scoped annotated external relations and their deterministic receipts.
 pub mod external_relation;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
@@ -55,7 +60,8 @@ pub mod logic_diagnostics;
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
-pub(crate) mod modal;
+pub mod modal;
+pub use modal::{contextual, journal};
 // The math: measure-and-dimension reasoned-graph gate — dimensional homogeneity,
 // integral composition, math:dimensionVector drift, and Gram positive-definiteness,
 // all computed through the exact-rational (ℚ⁷) gmeow_math source at reason-verify
@@ -81,8 +87,12 @@ mod physical;
 /// (gmeow-affect's nearest-prototype classifier) compute Q9 metric
 /// distances THROUGH the governed moded-builtin family rather than a private path.
 pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
+mod native_semantics;
+pub mod operator;
+pub mod operator_rules;
 pub mod probabilistic;
 pub mod profile_gate;
+mod program_analysis;
 pub mod proof_tree;
 pub mod provenance;
 pub mod purremb_relation;
@@ -124,6 +134,7 @@ pub mod teleology;
 /// because it needs this crate's `purrdf`-backed `math:` expression lowering.
 pub mod term_arena;
 mod term_codec;
+pub mod term_serde;
 /// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general
 /// existential program per broader chase-termination class, each in its own world).
 pub mod termination_demonstrators;

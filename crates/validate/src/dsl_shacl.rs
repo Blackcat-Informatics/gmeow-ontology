@@ -41,16 +41,9 @@ pub fn validate_dsl(
             detail: format!("SHACL shapes failed to parse: {e}"),
         })
     })?;
-    // The SAME shapes text, read a second time as a plain dataset for its
-    // `gmeow:enforcesFailureClass` annotations, so a DSL finding names the typed
-    // conformance failure its shape declares and not only the component code.
-    let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("SHACL shapes failed to parse as a dataset: {e}"),
-            })
-        })?;
-    let classes = FailureClassIndex::from_shapes_dataset(&shapes_dataset);
+    // Read typed failure annotations from the retained dataset: property-shape
+    // blank identities must be the same ones reported by the engine.
+    let classes = FailureClassIndex::from_shapes_dataset(shapes.dataset());
     let report = store::shacl_validate_dataset(&merge.dataset, &shapes);
     let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
     Ok(dsl_findings(&report, &focus_to_file, label, &classes))

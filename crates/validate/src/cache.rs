@@ -146,6 +146,10 @@ impl ValidationCache {
         let shacl_version = purrdf::shapes::VERSION;
         let gts_version = purrdf::gts::wire::VERSION;
         Self::cache_key(&[
+            // Native segment scopes and all three RDF 1.2 tables define the
+            // validation input. Older Graph-fold verdicts cannot certify this view,
+            // even when package and wire versions happen to match.
+            b"gmeow-validation-input:native-scoped-flat-three-table-v1",
             format!("gmeow-validate={validate_version}").as_bytes(),
             format!("gmeow-shacl={shacl_version}").as_bytes(),
             format!("gmeow-gts-wire={gts_version}").as_bytes(),
@@ -259,64 +263,6 @@ fn hex_encode(bytes: &[u8]) -> String {
     s
 }
 
+#[path = "cache.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn cached_result_write_replaces_cleanly() {
-        // RAII: the directory is removed when `tmp` drops at end of scope,
-        // including on panic or early return.
-        let tmp = tempfile::tempdir().expect("create temp dir");
-        let cache = ValidationCache::new(tmp.path());
-        let key = "abc123";
-        let kind = "test-phase";
-
-        let old = CachedResult::from_findings(vec![Finding::new(
-            gmeow_errors::Severity::Error,
-            "old",
-            "old error",
-        )]);
-        let new = CachedResult::from_findings(vec![Finding::new(
-            gmeow_errors::Severity::Warning,
-            "new",
-            "new warning",
-        )]);
-
-        cache.write_cached_result(kind, key, &old).unwrap();
-        cache.write_cached_result(kind, key, &new).unwrap();
-
-        let read = cache
-            .read_cached_result(kind, key)
-            .expect("cached result must exist");
-        assert_eq!(read.findings.len(), 1);
-        assert_eq!(read.findings[0].code, "new");
-
-        // No stray temp files left behind.
-        let tmp_files: Vec<_> = cache
-            .cache_dir()
-            .read_dir()
-            .unwrap()
-            .filter_map(|e| e.ok())
-            .filter(|e| {
-                e.file_name()
-                    .to_string_lossy()
-                    .starts_with(&format!(".{key}.json."))
-            })
-            .collect();
-        assert!(tmp_files.is_empty(), "temp cache files must be cleaned up");
-    }
-
-    #[test]
-    fn cached_result_ignores_non_object_payload() {
-        // RAII: the directory is removed when `tmp` drops at end of scope,
-        // including on panic or early return.
-        let tmp = tempfile::tempdir().expect("create temp dir");
-        let cache = ValidationCache::new(tmp.path());
-        let path = cache.cache_path("test-phase", "abc123");
-        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(&path, b"[]").unwrap();
-
-        assert!(cache.read_cached_result("test-phase", "abc123").is_none());
-    }
-}
+mod tests;

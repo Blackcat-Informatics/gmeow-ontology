@@ -10,9 +10,6 @@
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
-#[path = "../../build-support/embedded_logic_inputs.rs"]
-mod embedded_logic_inputs;
-
 fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
     let workspace = manifest
@@ -20,16 +17,15 @@ fn main() {
         .canonicalize()
         .expect("workspace root");
     embed_verify_queries(&workspace);
+    embed_native_sources(&workspace);
 }
 
 /// Preserve the pre-existing build-script authority that embeds every authored
 /// `queries/verify/*.rq` source into `OUT_DIR/verify_queries.rs` fail-closed.
 fn embed_verify_queries(workspace: &Path) {
-    let by_stem = embedded_logic_inputs::verify_queries(workspace);
-    let top = workspace.join("queries/verify");
-    println!("cargo:rerun-if-changed={}", top.display());
-    let slices = workspace.join("slices");
-    println!("cargo:rerun-if-changed={}", slices.display());
+    let inputs = gmeow_build_inputs::VerifyQueries::collect(workspace).expect("exact query owner");
+    inputs.emit_cargo_rerun_directives(workspace);
+    let by_stem = inputs.files;
     assert!(
         !by_stem.is_empty(),
         "the embedded verify query set must never be empty"
@@ -51,4 +47,23 @@ fn embed_verify_queries(workspace: &Path) {
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR");
     std::fs::write(Path::new(&out_dir).join("verify_queries.rs"), out)
         .expect("write verify_queries.rs");
+}
+
+/// The kernel semantic identity is independent of target, profile and test sources.
+fn embed_native_sources(workspace: &Path) {
+    let sources = gmeow_build_inputs::NativeSources::collect(workspace)
+        .expect("canonical native source ownership");
+    sources.emit_cargo_rerun_directives(workspace);
+    let digest = sources.digest().expect("native semantic source digest");
+    let mut generated = format!(
+        "/// Portable identity of the complete canonical native kernel.\npub const NATIVE_SOURCE_CONTRACT: &str = {digest:?};\n"
+    );
+    generated.push_str("/// Whole-file semantic source commitments.\npub const NATIVE_SOURCE_FILES: &[(&str, &str)] = &[\n");
+    for (path, digest) in &sources.files {
+        writeln!(generated, "({path:?}, {digest:?}),").expect("write source commitment");
+    }
+    generated.push_str("];\n");
+    let output = PathBuf::from(std::env::var_os("OUT_DIR").expect("OUT_DIR"));
+    std::fs::write(output.join("native_semantic_sources.rs"), generated)
+        .expect("write native source identity");
 }

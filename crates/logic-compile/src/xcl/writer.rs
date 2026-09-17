@@ -16,7 +16,7 @@ use crate::projections::{ProjectionResult, rdf, target_meta};
 
 use super::{RDF_META_ELEMENT, ROOT_ELEMENT, xml_escape_attr, xml_escape_text};
 
-use purrdf::{SerializeGraph, parse_dataset, serialize_dataset};
+use purrdf::{SerializeGraph, serialize_dataset};
 
 /// `xsd:integer` — the datatype emitted for a path shape's integer min/max depths.
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
@@ -41,7 +41,7 @@ pub fn project_xcl(program: &LogicProgram) -> gmeow_errors::Result<ProjectionRes
 
     // ── Idiomatic sentence channel (human-readable rendering) ───────────────────
     // Rules and formulas are rendered as readable XCL2 elements. This channel is WRITE-ONLY:
-    // the canonical IR carries an `obj_is_literal` bit on a rule term (and a rule's minted
+    // the canonical IR carries contextual source data (and a rule's minted
     // reifier-node identity) that idiomatic sentence syntax cannot express, so reconstructing
     // the byte-exact IR from the sentences would be lossy. The lossless carrier is the
     // RDF/predication channel below (the Exact `canonical-rdf12` leg), from which the reader
@@ -99,19 +99,25 @@ pub fn project_xcl(program: &LogicProgram) -> gmeow_errors::Result<ProjectionRes
 /// Encode a [`LogicAxiom`] (a Horn triple) as an XCL2 `<atom>` predication.
 fn axiom_atom(axiom: &LogicAxiom) -> String {
     let rel = format!("<name>{}</name>", xml_escape_text(&axiom.predicate));
-    let subj = horn_term(&axiom.subject, false);
-    let obj = horn_term(&axiom.obj, axiom.obj_is_literal);
+    let subj = horn_term(&axiom.subject);
+    let obj = atomic_term(&axiom.obj);
     format!("<atom><rel>{rel}</rel><arg>{subj}</arg><arg>{obj}</arg></atom>")
 }
 
 /// A Horn subject/object argument: a `?var`, a literal, or a `<name>` IRI.
-fn horn_term(value: &str, is_literal: bool) -> String {
+fn atomic_term(term: &crate::ir::AtomicTerm) -> String {
+    use crate::ir::AtomicTerm;
+    match term {
+        AtomicTerm::Var(value) => term_to_xml(&Term::Var(value.trim_start_matches('?').to_owned())),
+        AtomicTerm::Iri(value) => term_to_xml(&Term::Iri(value.clone())),
+        AtomicTerm::Blank(value) => term_to_xml(&Term::Iri(format!("_:{value}"))),
+        AtomicTerm::Literal(value) => term_to_xml(&Term::Literal(value.clone())),
+    }
+}
+
+fn horn_term(value: &str) -> String {
     if let Some(var) = value.strip_prefix('?') {
         format!("<var>{}</var>", xml_escape_text(var))
-    } else if is_literal {
-        // A plain literal in the Horn fragment (the canonical IR carries no datatype on
-        // `LogicAxiom.obj`; that detail lives in the RDF channel).
-        format!("<literal>{}</literal>", xml_escape_text(value))
     } else {
         format!("<name>{}</name>", xml_escape_text(value))
     }
@@ -213,14 +219,22 @@ fn term_to_xml(term: &Term) -> String {
     match term {
         Term::Var(n) => format!("<var>{}</var>", xml_escape_text(n)),
         Term::Iri(i) => format!("<name>{}</name>", xml_escape_text(i)),
-        Term::Literal { lexical, datatype } => match datatype {
-            None => format!("<literal>{}</literal>", xml_escape_text(lexical)),
-            Some(dt) => format!(
-                "<literal datatype=\"{}\">{}</literal>",
-                xml_escape_attr(dt),
-                xml_escape_text(lexical)
-            ),
-        },
+        Term::Literal(literal) => {
+            let mut attrs = String::new();
+            if let Some(datatype) = &literal.datatype {
+                attrs.push_str(&format!(" datatype=\"{}\"", xml_escape_attr(datatype)));
+            }
+            if let Some(language) = &literal.language {
+                attrs.push_str(&format!(" xml:lang=\"{}\"", xml_escape_attr(language)));
+            }
+            if let Some(direction) = literal.direction {
+                attrs.push_str(&format!(" direction=\"{}\"", direction.as_str()));
+            }
+            format!(
+                "<literal{attrs}>{}</literal>",
+                xml_escape_text(&literal.lexical_form)
+            )
+        }
         Term::SequenceMarker(n) => format!("<seq>{}</seq>", xml_escape_text(n)),
         // A function-term application → an `<app>` element whose head names the function symbol
         // and whose body is the ordered argument terms (each recursively rendered, so a nested
@@ -288,34 +302,32 @@ fn meta_ntriples(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>> {
         .filter(|a| !corr_ownership.owns(&a.subject) && !path_subjects.contains(a.subject.as_str()))
         .cloned()
         .collect();
-    let canon_meta = LogicProgram::new(
+    let mut canon_meta = LogicProgram::new(
         axioms,
         program.rules.clone(),
         program.contracts.clone(),
         program.source_iri.clone(),
     )
     .with_formulas(program.formulas.clone());
-    let ttl = rdf::project_canonical_rdf12(&canon_meta)
+    canon_meta.presentations = program.presentations.clone();
+    let native = rdf::project_canonical_rdf12_dataset(&canon_meta)
         .map_err(|e| {
             Diag::of_kind(crate::error::Xcl {
                 detail: format!("XCL meta channel: canonical-rdf12 projection failed: {e}"),
             })
         })?
-        .content;
-    lines.extend(rdf_text_to_ntriples(ttl.as_bytes(), "text/turtle")?);
+        .dataset;
+    lines.extend(dataset_ntriples(&native)?);
 
-    // (2) Correspondences → the faithful correspondence N-Triples projection.
-    if !program.correspondences.is_empty() {
+    // (2) Correspondences → the shared native correspondence projection.
+    if !program.correspondences.is_empty() || !program.correspondence_compositions.is_empty() {
         let cp = crate::projections::correspondence::CorrespondenceProgram::new(
             program.correspondences.clone(),
-            Vec::new(),
             crate::ir::PreservationKind::Exact,
-        );
-        let nt = crate::projections::correspondence::project_correspondence(&cp);
-        lines.extend(rdf_text_to_ntriples(
-            nt.as_bytes(),
-            "application/n-triples",
-        )?);
+        )
+        .with_compositions(program.correspondence_compositions.clone());
+        let native = crate::projections::correspondence::project_correspondence_dataset(&cp)?;
+        lines.extend(dataset_ntriples(&native)?);
     }
 
     lines.sort();
@@ -460,21 +472,15 @@ fn path_shape_ntriples(shape: &crate::ir::PathShapeIr) -> Vec<String> {
     out
 }
 
-/// Parse RDF `bytes` of `media_type` and re-serialize to canonical N-Triples lines. Returns
-/// `Err` if the projection's own serialized output cannot be re-parsed or re-serialized (an
-/// invariant break in the canonical leg, surfaced to the caller rather than panicking).
-fn rdf_text_to_ntriples(bytes: &[u8], media_type: &str) -> gmeow_errors::Result<Vec<String>> {
-    let ds = parse_dataset(bytes, media_type, None).map_err(|e| {
-        Diag::of_kind(crate::error::Xcl {
-            detail: format!("XCL meta channel: re-parse of {media_type} failed: {e}"),
-        })
-    })?;
-    let nt = serialize_dataset(&ds, "application/n-triples", SerializeGraph::DefaultGraph)
-        .map_err(|e| {
+/// N-Triples is the terminal XCL metadata payload, emitted once from the native view.
+fn dataset_ntriples(ds: &purrdf::RdfDataset) -> gmeow_errors::Result<Vec<String>> {
+    let nt = serialize_dataset(ds, "application/n-triples", SerializeGraph::DefaultGraph).map_err(
+        |e| {
             Diag::of_kind(crate::error::Xcl {
                 detail: format!("XCL meta channel: N-Triples serialization failed: {e}"),
             })
-        })?;
+        },
+    )?;
     let text = String::from_utf8(nt).map_err(|e| {
         Diag::of_kind(crate::error::Xcl {
             detail: format!("XCL meta channel: N-Triples not UTF-8: {e}"),

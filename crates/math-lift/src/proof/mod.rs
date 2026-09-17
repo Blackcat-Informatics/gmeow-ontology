@@ -66,6 +66,6 @@ pub mod tstp;
 
 pub use lift::lift;
 pub use tstp::{
-    Clause, Conclusion, Connective, Derivation, ExternalSource, Formula, Literal, Quantifier, Role,
-    Source, Step, Term, parse,
+    Clause, Conclusion, Connective, Derivation, Document, ExternalSource, Formula, Literal,
+    Quantifier, Role, Source, Step, Term, parse, parse_document,
 };

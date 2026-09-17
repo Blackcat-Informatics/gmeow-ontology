@@ -1,18 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `source_load` stage (P3): parse the authored ontology sources into
-//! one in-memory base graph.
+//! Publish the authored ontology from the shared native source catalog.
 //!
-//! This is the root of the build DAG. It loads `ontology/gmeow.ttl`, every
-//! `slices/<group>/<name>/module.ttl`, and every `imports/*.ttl` into a single
-//! native [`purrdf::RdfDataset`] — the RDF 1.1 base graph assembled directly from
-//! canonical sources. The dataset is the
-//! frozen carrier downstream stages union and project from, with the N-Quads byte
-//! lane published alongside so the pre-carrier byte readers parse it from memory
-//! instead of re-reading `gmeow.gts` from disk per generator (the bottleneck
-//! this removes). Every parse routes through the native
-//! `purrdf::parse_dataset` codecs and merges via `RdfDataset::union`.
+//! The parse stage retains original documents, source roles and positions. This
+//! stage owns source-origin publication, provenance, authored/import partitions,
+//! self-description and the initial frozen carrier. Compilation independently
+//! consumes the same catalog before carrier projection. The base N-Quads lane
+//! remains an explicit serialization for downstream artifact consumers.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -28,6 +23,9 @@ use purrdf::{
 };
 
 use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
+
+mod parsed;
+pub(crate) use parsed::ParsedAuthoredSources;
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
 /// `ontology/gmeow.ttl` is the [`OriginKind::RootOntology`], every `imports/*.ttl`
@@ -66,6 +64,14 @@ fn authored_origin_kind(root: &Path, path: &Path) -> OriginKind {
 pub fn attributed_base_provenance(
     root: &Path,
 ) -> Result<(DatasetProvenance, Vec<QuadHandle>), gmeow_errors::Diag> {
+    let sources = ParsedAuthoredSources::load(root)?;
+    Ok(attributed_parsed_provenance(&sources))
+}
+
+/// Attribute the original parsed documents without another read or parse.
+pub(crate) fn attributed_parsed_provenance(
+    sources: &ParsedAuthoredSources,
+) -> (DatasetProvenance, Vec<QuadHandle>) {
     let mut prov = DatasetProvenance::new();
     // Content key (the per-file-scoped native quad, location stripped so two identical
     // triples on different source lines collapse exactly as the old oxigraph quad key
@@ -74,30 +80,18 @@ pub fn attributed_base_provenance(
     let mut handle_of: HashMap<RdfQuad, QuadHandle> = HashMap::new();
     let mut next: u32 = 0;
 
-    for path in authored_files(root)? {
-        let bytes = std::fs::read(&path)?;
-        let scope = path.display().to_string();
-        let rel = path
-            .strip_prefix(root)
-            .unwrap_or(&path)
-            .to_string_lossy()
-            .replace('\\', "/");
-        let kind = authored_origin_kind(root, &path);
-        let unit = prov.register_unit(rel.clone(), kind);
-        let artifact = prov.register_artifact(rel);
-
-        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("syntax error in {scope}: {e}"),
-            })
-        })?;
+    for source in sources.sources() {
+        let scope = source.path.display().to_string();
+        let unit = prov.register_unit(source.relative_path.clone(), source.kind.clone());
+        let artifact = prov.register_artifact(source.relative_path.clone());
+        let dataset = &source.ingested.dataset;
         // SCOPE blank labels by the source path: each authored file is a distinct RDF
         // document whose anonymous blanks restart per parse, so a structurally-distinct
         // blank axiom in two files must keep two handles. The native flat un-fold mirrors
         // the old `flat_oxigraph_quads_from_dataset_scoped` exactly (same FNV prefix), and
         // the location is stripped so the dedup key is the pure `(s, p, o, g)` content.
         let prefix = blank_scope_prefix(&scope);
-        let quads = flat_rdf_quads_from_dataset(&dataset);
+        let quads = flat_rdf_quads_from_dataset(dataset);
         for quad in quads {
             let key = rescope_quad_blanks_keyless(&quad, &prefix);
             let handle = *handle_of.entry(key).or_insert_with(|| {
@@ -111,7 +105,7 @@ pub fn attributed_base_provenance(
 
     let mut expected: Vec<QuadHandle> = handle_of.into_values().collect();
     expected.sort_unstable_by_key(|h| h.index());
-    Ok((prov, expected))
+    (prov, expected)
 }
 
 /// A stable (FNV-1a) blank-node label prefix for a source document — the native twin
@@ -173,24 +167,7 @@ pub const BASE_GRAPH_PATH: &str = "pipeline/base-graph.nq";
 pub fn build_source_span_index(
     root: &Path,
 ) -> Result<crate::ingest::SpanIndex, gmeow_errors::Diag> {
-    use crate::ingest::SourceAdapter;
-    let adapter = crate::ingest::PurrdfAdapter;
-    let mut index = crate::ingest::SpanIndex::new();
-    for path in authored_files(root)? {
-        // Fixed policy: RootOntology + Source contribute spans; Import is suppressed.
-        if matches!(authored_origin_kind(root, &path), OriginKind::Import) {
-            continue;
-        }
-        let bytes = std::fs::read(&path)?;
-        let rel = path
-            .strip_prefix(root)
-            .unwrap_or(&path)
-            .to_string_lossy()
-            .replace('\\', "/");
-        let ingested = adapter.ingest(&rel, "text/turtle", &bytes)?;
-        index.merge(ingested.spans.into_index());
-    }
-    Ok(index)
+    Ok(ParsedAuthoredSources::load(root)?.source_span_index())
 }
 
 /// Load `ontology/gmeow.ttl` + all slice modules + all imports into one frozen dataset.
@@ -202,31 +179,7 @@ pub fn build_source_span_index(
 /// anonymous blanks stay disjoint. The union canonicalizes on freeze, so the result is
 /// order-independent.
 pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
-    for path in authored_files(root)? {
-        let bytes = std::fs::read(&path)?;
-        let scope = path.display().to_string();
-        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("syntax error in {scope}: {e}"),
-            })
-        })?;
-        parsed.push(dataset);
-    }
-    let refs: Vec<&RdfDataset> = parsed.iter().map(|d| d.as_ref()).collect();
-    Ok(Arc::new(RdfDataset::union(&refs)))
-}
-
-/// The complete RDF 1.2 carrier consumed by `stage-compile-logic`.
-///
-/// Ownership, annotation, correspondence, and projection metadata are all reader inputs.
-/// Predicate-level narrowing is therefore unsound: a newly admitted reader can make any
-/// previously stripped predicate semantic without changing this boundary. Preserve the
-/// frozen carrier exactly and let the readers select what they understand.
-pub fn logic_compile_input_subgraph(
-    base: &Arc<RdfDataset>,
-) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    Ok(Arc::clone(base))
+    Ok(ParsedAuthoredSources::load(root)?.merged_dataset())
 }
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
@@ -497,6 +450,7 @@ pub fn turtle_bytes_to_dataset(
 /// `Source` (the kind-enum replacement: origin is read off a capability, not a tag).
 pub struct SourceLoadStage {
     capabilities: Vec<String>,
+    consumes: Vec<String>,
 }
 
 impl SourceLoadStage {
@@ -505,6 +459,7 @@ impl SourceLoadStage {
     pub fn new() -> Self {
         Self {
             capabilities: vec![SOURCE_ORIGIN.to_string()],
+            consumes: vec![crate::stages::parse_sources::STAGE_ID.to_owned()],
         }
     }
 }
@@ -520,7 +475,7 @@ impl Stage for SourceLoadStage {
         "stage-source-load"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities
@@ -537,49 +492,7 @@ impl Stage for SourceLoadStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        // v2: attach the self-description named graphs (authored-default / imports /
-        // metadata / alignments / slice-analysis / provenance) so the presenter
-        // reads them instead of re-loading + re-canonicalizing the sources on the serial
-        // snapshot node (PIPELINE_SPINE §3.2/§4). The BASE_GRAPH_PATH byte lane and the
-        // default-graph fold `gts_compose` takes are unchanged.
-        // v3: attach the authored subject→source-position SpanIndex as the digest-pinned
-        // REP_SPAN_TABLE blob (the fixed span policy — RootOntology+Source, Import
-        // suppressed) so the diagnostics consumers lift source coordinates onto findings.
-        // v4: score slice quality once at the DAG root, emitting both the queryable
-        // quality-assessment graph and the internal HTML report artifact consumed by the
-        // terminal docs archive.
-        // v5: attach the `graph/logic-compile-inputs` named graph — the SOUND (denylist)
-        // narrowing of the whole authored corpus compile-logic reads — so compile-logic
-        // consumes it as a typed entity and a documentation-only edit no longer busts the
-        // compiler's cache.
-        // v6: attach the `graph/grounding-seams` named graph — the authored `gmeow:Seam`
-        // registry re-projected losslessly off the SAME slice catalog the slice-analysis
-        // graph reads. A `manifest.ttl` never enters the composed fold, so this graph is
-        // the only path by which the closed set of sanctioned cross-grounding reference
-        // channels reaches `gmeow.gts`.
-        // v7: attach the `graph/examples` named graph — the union of EVERY slice's
-        // `examples/*.ttl` positive-demonstrator ABox. That corpus is authored source, so
-        // the loader that reads the slices reads it too; it is admitted to the object-level
-        // reasoning EDB, so every slice's worked examples reach the shipped bundle's
-        // reasoned closure instead of only the docs/competency-question harvest.
-        // v8: graph/verify leaves this root stage; the dedicated downstream verify
-        // stage projects it from stage-reason's already-built ReasoningResult instead
-        // of launching a second native chase here.
-        // v9: the source-load key includes the exact authored source closure consumed
-        // by the slice-quality assessment. That assessment reads tests, queries,
-        // docs.md, and translation catalogs beyond the carrier's ontology inputs; a
-        // change to any of them must invalidate graph/quality-assessment rather than
-        // serving a stale cached grade.
-        // v10: exclude grounding-surface demonstrators from graph/examples. They are
-        // correspondence-law material, not object-level ABox input. The version bump is
-        // mandatory because the action-cache key cannot infer semantic Rust changes.
-        // v11: publish the complete RDF 1.2 authored carrier for compile-logic. Predicate
-        // denylisting was not a stable reader boundary and could discard newly semantic
-        // ownership/projection metadata.
-        // v12: the pre-source field projector reads the canonical authored abstract;
-        // declare it here so the whole-run manifest and stage cache cannot serve a
-        // source graph whose projected description predates that authored byte string.
-        "source_load.v12-canonical-abstract"
+        "source_load.v13-shared-native-catalog"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -609,13 +522,15 @@ impl Stage for SourceLoadStage {
         // BASE_GRAPH_PATH N-Quads byte lane for the byte readers — BOTH from the base
         // dataset alone, so neither changes as the self-description graphs are added.
         let started = Instant::now();
-        let base = load_authored_dataset(input.root)?;
+        let catalog = crate::stages::parse_sources::catalog(&input)?;
+        let sources = catalog.sources();
+        let base = catalog.materialized();
         timings.push(crate::node::StageRunTiming::new(
             "authored-dataset",
             started.elapsed().as_millis(),
         ));
         let started = Instant::now();
-        let nq = dataset_to_sorted_nquads(&base)?;
+        let nq = dataset_to_sorted_nquads(base)?;
         timings.push(crate::node::StageRunTiming::new(
             "base-nquads",
             started.elapsed().as_millis(),
@@ -661,7 +576,7 @@ impl Stage for SourceLoadStage {
         let started = Instant::now();
         let self_desc = crate::stages::carrier::build_self_description_dataset_with_quality(
             input.root,
-            &base,
+            sources,
             &quality.nquads,
         )?;
         timings.push(crate::node::StageRunTiming::new(
@@ -701,7 +616,7 @@ impl Stage for SourceLoadStage {
         // lift onto their findings. It rides the by-reference blob lane (cache-replayable),
         // and the scheduler strips it once the last consumer has run.
         let started = Instant::now();
-        let span_index = build_source_span_index(input.root)?;
+        let span_index = sources.source_span_index();
         timings.push(crate::node::StageRunTiming::new(
             "source-spans",
             started.elapsed().as_millis(),
@@ -734,201 +649,6 @@ impl Stage for SourceLoadStage {
     }
 }
 
+#[path = "source_load.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn authored_files_includes_root_and_modules() {
-        let root = repo_root();
-        let files = authored_files(&root).unwrap();
-        assert!(files.iter().any(|p| p.ends_with("ontology/gmeow.ttl")));
-        assert!(
-            files
-                .iter()
-                .any(|p| p.ends_with("slices/core/pipeline/module.ttl"))
-        );
-        assert!(
-            files.len() > 50,
-            "expected 50+ authored files, got {}",
-            files.len()
-        );
-    }
-
-    /// Fixed span policy, asserted against the span table read back from the FOLDED
-    /// product bundle (not just the live index): a RootOntology + Source file contribute
-    /// their subjects; the imports/ (Import) file is SUPPRESSED. Mirrors
-    /// `bundle_carries_the_consumer_archives` in reading through the fold accessor.
-    #[test]
-    fn fixed_policy_emits_source_and_root_suppresses_imports_through_the_fold() {
-        use std::sync::Arc;
-        let repo = tempfile::tempdir().unwrap();
-        let root = repo.path();
-        // RootOntology: ontology/gmeow.ttl.
-        std::fs::create_dir_all(root.join("ontology")).unwrap();
-        std::fs::write(
-            root.join("ontology/gmeow.ttl"),
-            "@prefix ex: <https://example.test/> .\nex:rootSubject a ex:Root .\n",
-        )
-        .unwrap();
-        // Source: a slice module.ttl.
-        std::fs::create_dir_all(root.join("slices/g/n")).unwrap();
-        std::fs::write(
-            root.join("slices/g/n/module.ttl"),
-            "@prefix ex: <https://example.test/> .\nex:sourceSubject a ex:Thing .\n",
-        )
-        .unwrap();
-        // Import: imports/foo.ttl — must be SUPPRESSED.
-        std::fs::create_dir_all(root.join("imports")).unwrap();
-        std::fs::write(
-            root.join("imports/foo.ttl"),
-            "@prefix ex: <https://example.test/> .\nex:importSubject a ex:Imported .\n",
-        )
-        .unwrap();
-
-        // Fold the built index into a product bundle exactly as `run` does, then read it
-        // back through the `span_index()` accessor (the folded product, not the live index).
-        let index = build_source_span_index(root).expect("build span index");
-        let blob = serde_json::to_vec(&index).expect("encode");
-        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
-            Arc::new(RdfDataset::union(&[])),
-            BTreeMap::new(),
-            purrdf::provenance::DatasetProvenance::new(),
-            crate::stages::carrier::REP_SPAN_TABLE,
-            "application/json",
-            blob,
-        );
-        let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
-        let folded = product
-            .span_index()
-            .expect("read span table back from the fold");
-
-        assert!(
-            folded.lookup("https://example.test/rootSubject").is_some(),
-            "RootOntology subject must be tracked"
-        );
-        assert!(
-            folded
-                .lookup("https://example.test/sourceSubject")
-                .is_some(),
-            "Source subject must be tracked"
-        );
-        assert!(
-            folded
-                .lookup("https://example.test/importSubject")
-                .is_none(),
-            "Import subject must be SUPPRESSED by the fixed policy"
-        );
-    }
-
-    /// EVERY slice's demonstrator corpus is admitted, not one grounding slice's. The floor is
-    /// stated across all three slice groups, and named witnesses are asserted in `core/` and
-    /// `extensions/` as well as `grounding/`: a regression that quietly narrowed the sweep back
-    /// to `slices/grounding/math` would still satisfy a bare non-empty count.
-    #[test]
-    fn example_files_admits_every_slice_group_not_just_math() {
-        let root = repo_root();
-        let files = example_files(&root).expect("list every slice's examples");
-        assert!(
-            files.windows(2).all(|pair| pair[0] < pair[1]),
-            "files must be sorted"
-        );
-        assert!(
-            files
-                .iter()
-                .all(|path| path.extension().is_some_and(|ext| ext == "ttl")),
-            "only .ttl demonstrators are admitted"
-        );
-        let group_count = |group: &str| {
-            files
-                .iter()
-                .filter(|path| {
-                    path.to_string_lossy()
-                        .contains(&format!("/slices/{group}/"))
-                })
-                .count()
-        };
-        for group in ["core", "extensions", "grounding"] {
-            assert!(
-                group_count(group) > 0,
-                "slices/{group}/*/examples must be admitted, saw none"
-            );
-        }
-        assert!(
-            group_count("core") > group_count("grounding") / 2,
-            "the core slices' corpus is a first-class member, not a rounding error: \
-             core={} grounding={}",
-            group_count("core"),
-            group_count("grounding")
-        );
-        for witness in [
-            "slices/core/inference/examples",
-            "slices/extensions/finance/examples",
-            "slices/grounding/math/examples/alpha-equivalent-twins.ttl",
-        ] {
-            assert!(
-                files
-                    .iter()
-                    .any(|path| path.to_string_lossy().contains(witness)),
-                "the corpus must reach {witness}"
-            );
-        }
-    }
-
-    #[test]
-    fn missing_directory_listings_are_empty_not_errors() {
-        // `sorted_dirs` / `ttl_files_in` treat an absent directory as an empty listing
-        // (NotFound → Ok(empty)), so the discovery helpers on a root with no `slices`/
-        // `imports` tree return empty rather than erroring.
-        let empty = tempfile::tempdir().unwrap();
-        let root = empty.path();
-        assert!(sorted_dirs(&root.join("slices")).unwrap().is_empty());
-        assert!(ttl_files_in(&root.join("imports")).unwrap().is_empty());
-        assert!(module_files(root).unwrap().is_empty());
-        assert!(all_manifest_files(root).unwrap().is_empty());
-    }
-
-    /// A grounding-surface demonstrator (a slice example authoring a `logic:GroundingCorrespondence`)
-    /// is owned by `graph/correspondence-laws`, NOT the object-level `graph/examples` corpus. Its
-    /// representative out-of-fragment `logic:`-native constructs (`logic:inverseFunctionalProperty`,
-    /// `logic:oneOf`, …) are grounding DEMONSTRATIONS, not production object-level axioms, so they
-    /// must never enter the reasoned object-level EDB — where the native DL path would honestly but
-    /// uselessly WITHHOLD on them and red `reason-verify`. Regression for the `owl:`→`logic:`
-    /// authoring migration (the flip made these constructs visible to `scan_coverage`).
-    #[test]
-    fn grounding_surface_demonstrator_stays_out_of_object_level_examples() {
-        // Unit: the recognizer keys on the authored `logic:GroundingCorrespondence` type.
-        let demonstrator = turtle_bytes_to_dataset(
-            b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-              @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/> .\n\
-              ex:bridge a logic:GroundingCorrespondence .\n\
-              ex:identifiedBy a logic:inverseFunctionalProperty .\n",
-            "test-grounding-surface-demonstrator",
-        )
-        .expect("parse demonstrator fixture");
-        assert!(is_grounding_surface_demonstrator(demonstrator.as_ref()));
-        assert!(
-            !belongs_in_object_level_examples(demonstrator.as_ref()),
-            "a grounding-surface demonstrator is correspondence-law material"
-        );
-        let ordinary = turtle_bytes_to_dataset(
-            b"@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/> .\n\
-              ex:a ex:knows ex:b .\n",
-            "test-ordinary-demonstrator",
-        )
-        .expect("parse ordinary fixture");
-        assert!(!is_grounding_surface_demonstrator(ordinary.as_ref()));
-        assert!(
-            belongs_in_object_level_examples(ordinary.as_ref()),
-            "an ordinary positive demonstrator belongs in the object-level graph"
-        );
-    }
-}
+mod tests;

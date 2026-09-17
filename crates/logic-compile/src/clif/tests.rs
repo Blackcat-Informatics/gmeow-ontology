@@ -6,7 +6,6 @@
 
 use crate::adapter::assert_ir_isomorphic;
 use crate::clif::{parse_clif_str, project_clif};
-use crate::frontend::parse_logic_str;
 use crate::ir::{
     ContextualScope, Correspondence, CorrespondenceRelation, Formula, LegPath, LogicAxiom,
     LogicModality, LogicProgram, LogicRule, MorphismClass, MorphismKind, PathBase, PathShapeIr,
@@ -25,14 +24,18 @@ fn iri(local: &str) -> String {
 /// Build a small program with one rule + a few formulas (quantifier, disjunction, strong
 /// negation, sequence marker) + one axiom — the emit-shape fixture.
 fn shape_program() -> LogicProgram {
-    let axiom = LogicAxiom::ground(iri("a"), iri("knows"), iri("b"), false).expect("axiom");
+    let axiom = LogicAxiom::ground(
+        iri("a"),
+        iri("knows"),
+        crate::ir::AtomicTerm::resource(iri("b")),
+    )
+    .expect("axiom");
 
     let rule = LogicRule::new(
         LogicAxiom::new(
             "?x",
             iri("ancestor"),
-            "?z",
-            false,
+            crate::ir::AtomicTerm::resource("?z"),
             false,
             ContextualScope::default(),
         )
@@ -41,8 +44,7 @@ fn shape_program() -> LogicProgram {
             LogicAxiom::new(
                 "?x",
                 iri("parent"),
-                "?y",
-                false,
+                crate::ir::AtomicTerm::resource("?y"),
                 false,
                 ContextualScope::default(),
             )
@@ -50,8 +52,7 @@ fn shape_program() -> LogicProgram {
             LogicAxiom::new(
                 "?y",
                 iri("parent"),
-                "?z",
-                false,
+                crate::ir::AtomicTerm::resource("?z"),
                 false,
                 ContextualScope::default(),
             )
@@ -122,14 +123,18 @@ fn emit_shape_contains_idiomatic_forms() {
 fn comprehensive_round_trip_is_isomorphic() {
     // An axiom, a rule (negated body atom + distinct pair), a full-FOL formula (quantifier
     // + disjunction + sequence marker), plus meta: a reasoning contract and a correspondence.
-    let axiom = LogicAxiom::ground(iri("socrates"), iri("isA"), iri("Human"), false).unwrap();
+    let axiom = LogicAxiom::ground(
+        iri("socrates"),
+        iri("isA"),
+        crate::ir::AtomicTerm::resource(iri("Human")),
+    )
+    .unwrap();
 
     let rule = LogicRule::new(
         LogicAxiom::new(
             "?x",
             iri("eligible"),
-            "?y",
-            false,
+            crate::ir::AtomicTerm::resource("?y"),
             false,
             ContextualScope::default(),
         )
@@ -138,8 +143,7 @@ fn comprehensive_round_trip_is_isomorphic() {
             LogicAxiom::new(
                 "?x",
                 iri("member"),
-                "?y",
-                false,
+                crate::ir::AtomicTerm::resource("?y"),
                 false,
                 ContextualScope::default(),
             )
@@ -148,8 +152,7 @@ fn comprehensive_round_trip_is_isomorphic() {
             LogicAxiom::new(
                 "?x",
                 iri("banned"),
-                "?y",
-                false,
+                crate::ir::AtomicTerm::resource("?y"),
                 true,
                 ContextualScope::default(),
             )
@@ -192,7 +195,13 @@ fn comprehensive_round_trip_is_isomorphic() {
         None,
         None,
         Vec::new(),
-        Some(0.9),
+        Some(
+            crate::ir::UnitInterval::new(purrdf::RdfLiteral::typed(
+                "0.9".to_owned(),
+                "http://www.w3.org/2001/XMLSchema#decimal".to_owned(),
+            ))
+            .expect("valid authored confidence"),
+        ),
         None,
         None,
         None,
@@ -266,7 +275,6 @@ fn comprehensive_round_trip_is_isomorphic() {
 }
 
 #[test]
-#[should_panic(expected = "iri-disallowed-char")]
 fn forbidden_iriref_chars_are_refused_by_the_rdf_ir() {
     // `{ } | ^ ` `` ` ``, a space and a TAB are not legal in an IRI (RFC 3987), so the RDF
     // IR refuses to intern one carrying them and names the offending character and its byte
@@ -279,18 +287,26 @@ fn forbidden_iriref_chars_are_refused_by_the_rdf_ir() {
     // acceptance is caught. The `\uXXXX` escaping this test formerly reached only
     // indirectly is covered directly by `crate::nt::tests`.
     let weird = format!("{LOGIC}weird/a{{b}}c|d^e`f g\th");
-    let axiom = LogicAxiom::ground(weird, iri("knows"), iri("target"), false).unwrap();
+    let axiom = LogicAxiom::ground(
+        weird,
+        iri("knows"),
+        crate::ir::AtomicTerm::resource(iri("target")),
+    )
+    .unwrap();
     let orig = LogicProgram::new(
         vec![axiom],
         Vec::new(),
         Vec::new(),
         Some("urn:test:iri".to_owned()),
     );
-    let _ = project_clif(&orig);
+    let error = project_clif(&orig).expect_err("invalid IRI must fail closed");
+    assert!(
+        error.to_string().contains("iri-disallowed-char"),
+        "unexpected projection error: {error}"
+    );
 }
 
 #[test]
-#[should_panic(expected = "iri-disallowed-char")]
 fn control_chars_del_c1_c0_are_refused_by_the_rdf_ir() {
     // DEL (0x7F), a C1 control (0x85) and a C0 control (0x01) are not legal in an IRI
     // (RFC 3987), so the RDF IR refuses to intern one carrying them and names the offending
@@ -302,14 +318,23 @@ fn control_chars_del_c1_c0_are_refused_by_the_rdf_ir() {
     // acceptance is caught. The full-control-range `\uXXXX` escaping this test formerly
     // reached only indirectly is covered directly by `crate::nt::tests`.
     let weird = format!("{LOGIC}weird/a\u{7F}b\u{85}c\u{01}d");
-    let axiom = LogicAxiom::ground(weird, iri("knows"), iri("target"), false).unwrap();
+    let axiom = LogicAxiom::ground(
+        weird,
+        iri("knows"),
+        crate::ir::AtomicTerm::resource(iri("target")),
+    )
+    .unwrap();
     let orig = LogicProgram::new(
         vec![axiom],
         Vec::new(),
         Vec::new(),
         Some("urn:test:iri".to_owned()),
     );
-    let _ = project_clif(&orig);
+    let error = project_clif(&orig).expect_err("invalid IRI must fail closed");
+    assert!(
+        error.to_string().contains("iri-disallowed-char"),
+        "unexpected projection error: {error}"
+    );
 }
 
 #[test]
@@ -365,16 +390,31 @@ fn cl_modules_and_importation_round_trip_at_fixpoint() {
     // axiom channel; per-statement membership rides the reifier-scope carrier (`logic:inModule`),
     // exactly like `logic:standpoint`. Compared at the canonical FIXPOINT (the Exact reference:
     // the frontend's flat extraction of a scoped reifier is idempotent but not identity on the
-    // raw program), mirroring `production_module_round_trip_is_isomorphic`.
+    // raw program), matching the producer-owned Common Logic roundtrip obligation.
     // Module names are arbitrary IRIs (a CL module IRI is not `logic:`-namespaced — that
     // namespace is the ontology's own vocabulary, whose type declarations the frontend skips).
     let m1 = "https://example.org/module/geometry".to_owned();
     let m2 = "https://example.org/module/algebra".to_owned();
     let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-    let m1_is_module = LogicAxiom::ground(m1.clone(), rdf_type, iri("Module"), false).unwrap();
-    let m2_is_module = LogicAxiom::ground(m2.clone(), rdf_type, iri("Module"), false).unwrap();
-    let imports = LogicAxiom::ground(m1.clone(), iri("imports"), m2.clone(), false).unwrap();
+    let m1_is_module = LogicAxiom::ground(
+        m1.clone(),
+        rdf_type,
+        crate::ir::AtomicTerm::resource(iri("Module")),
+    )
+    .unwrap();
+    let m2_is_module = LogicAxiom::ground(
+        m2.clone(),
+        rdf_type,
+        crate::ir::AtomicTerm::resource(iri("Module")),
+    )
+    .unwrap();
+    let imports = LogicAxiom::ground(
+        m1.clone(),
+        iri("imports"),
+        crate::ir::AtomicTerm::resource(m2.clone()),
+    )
+    .unwrap();
 
     let scope = ContextualScope::new(
         None,
@@ -388,8 +428,7 @@ fn cl_modules_and_importation_round_trip_at_fixpoint() {
     let scoped = LogicAxiom::new(
         iri("point"),
         iri("liesOn"),
-        iri("line"),
-        false,
+        crate::ir::AtomicTerm::resource(iri("line")),
         false,
         scope,
     )
@@ -412,16 +451,16 @@ fn cl_modules_and_importation_round_trip_at_fixpoint() {
 
     // Module objects + the import edge survive (they ride the ordinary axiom channel).
     assert!(
-        fp.axioms
-            .iter()
-            .any(|a| a.subject == m1 && a.predicate == iri("imports") && a.obj == m2),
+        fp.axioms.iter().any(|a| a.subject == m1
+            && a.predicate == iri("imports")
+            && a.obj.as_iri() == Some(m2.as_str())),
         "module import edge lost:\n{:#?}",
         fp.axioms
     );
     assert!(
-        fp.axioms
-            .iter()
-            .any(|a| a.subject == m1 && a.predicate == rdf_type && a.obj == iri("Module")),
+        fp.axioms.iter().any(|a| a.subject == m1
+            && a.predicate == rdf_type
+            && a.obj.as_iri() == Some(iri("Module").as_str())),
         "logic:Module type declaration lost"
     );
     // Per-statement module membership survives on the scoped statement.
@@ -452,14 +491,22 @@ fn hilog_relation_as_individual_round_trips() {
     // logic:orderedType) — reusing logic:instanceOf / logic:orderedType / logic:Type, minting no
     // new terms (P5/P17). Both readings must round-trip through CLIF.
     let related = iri("related");
-    let ax_pred = LogicAxiom::ground(iri("a"), related.clone(), iri("b"), false).unwrap();
-    let ax_instanceof =
-        LogicAxiom::ground(related.clone(), iri("instanceOf"), iri("Type"), false).unwrap();
+    let ax_pred = LogicAxiom::ground(
+        iri("a"),
+        related.clone(),
+        crate::ir::AtomicTerm::resource(iri("b")),
+    )
+    .unwrap();
+    let ax_instanceof = LogicAxiom::ground(
+        related.clone(),
+        iri("instanceOf"),
+        crate::ir::AtomicTerm::resource(iri("Type")),
+    )
+    .unwrap();
     let ax_ordered = LogicAxiom::ground(
         related.clone(),
         iri("orderedType"),
-        iri("BinaryRelation"),
-        false,
+        crate::ir::AtomicTerm::resource(iri("BinaryRelation")),
     )
     .unwrap();
 
@@ -475,16 +522,16 @@ fn hilog_relation_as_individual_round_trips() {
 
     // The relation survives BOTH as a predicate and as a typed individual.
     assert!(
-        fp.axioms
-            .iter()
-            .any(|a| a.predicate == related && a.subject == iri("a") && a.obj == iri("b")),
+        fp.axioms.iter().any(|a| a.predicate == related
+            && a.subject == iri("a")
+            && a.obj.as_iri() == Some(iri("b").as_str())),
         "relation-as-predicate reading lost:\n{:#?}",
         fp.axioms
     );
     assert!(
         fp.axioms.iter().any(|a| a.subject == related
             && a.predicate == iri("instanceOf")
-            && a.obj == iri("Type")),
+            && a.obj.as_iri() == Some(iri("Type").as_str())),
         "relation-as-individual (instanceOf Type) reading lost:\n{:#?}",
         fp.axioms
     );
@@ -511,50 +558,6 @@ fn fol_only_clif_without_meta_carrier_fails_closed() {
         err.0.contains("no `;; @@gmeow-rdf-meta@@` carrier"),
         "expected a fail-closed error for FOL-only input, got: {}",
         err.0
-    );
-}
-
-#[test]
-fn production_module_round_trip_is_isomorphic() {
-    // The hard Exact proof: the real logic: slice module must round-trip through CLIF with
-    // ZERO loss against the Exact `canonical-rdf12` reference.
-    //
-    // The comparison is taken at the canonical FIXPOINT, which is the mathematically correct
-    // identity (not a weakening). The frontend's `extract_axioms` DOUBLE-extracts a rule's
-    // flat `logic:head` / `logic:body` triples as `program.axioms` whose object IRIs are the
-    // SOURCE serialization's blank-node labels (`c14n*`). No serializer reproduces those
-    // source-dependent labels — `canonical-rdf12` ITSELF maps the raw parse (119 axioms) to a
-    // fixpoint (123 axioms with minted `rule/_NNN/body/NNNN` IRIs), and a second pass is
-    // stable. So the Exact reference is `fixpoint = parse ∘ canonical-rdf12 ∘ parse(module)`;
-    // proving CLIF round-trips THAT exactly proves CLIF preserves everything the Exact
-    // `canonical-rdf12` target does — the genuine Exact bar.
-    use crate::projections::rdf;
-    let ttl = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../slices/grounding/logic/module.ttl"
-    ));
-    let src = Some("urn:gmeow:slices/grounding/logic".to_owned());
-    let (raw, _raw_diags) = parse_logic_str(ttl, src.clone()).expect("parse module.ttl");
-    let canon = rdf::project_canonical_rdf12(&raw).expect("canonical-rdf12 of module");
-    let (fixpoint, _) = parse_logic_str(&canon.content, src.clone()).expect("parse fixpoint");
-
-    let clif = project_clif(&fixpoint).expect("project_clif").content;
-    let (reparsed, diags) = parse_clif_str(&clif, src).expect("parse_clif_str(module)");
-    let malformed: Vec<_> = diags
-        .iter()
-        .filter(|d| d.code == "CLIF_MALFORMED_SENTENCE")
-        .collect();
-    assert!(
-        malformed.is_empty(),
-        "malformed CLIF sentences in the production round-trip: {malformed:?}"
-    );
-    assert_ir_isomorphic(&fixpoint, &reparsed)
-        .unwrap_or_else(|e| panic!("production module round-trip not isomorphic:\n{e}"));
-    // Full structural equality (assert_ir_isomorphic does not diff correspondences / scope).
-    assert!(
-        fixpoint == reparsed,
-        "production CLIF round-trip differs from the canonical fixpoint beyond the \
-         isomorphism gate's surfaced collections (scope / correspondences / path shapes)"
     );
 }
 
@@ -589,7 +592,13 @@ fn transaction_program_round_trips() {
         Some(leg_get.clone()),
         Some(leg_put.clone()),
         Vec::new(),
-        Some(0.9),
+        Some(
+            crate::ir::UnitInterval::new(purrdf::RdfLiteral::typed(
+                "0.9".to_owned(),
+                "http://www.w3.org/2001/XMLSchema#decimal".to_owned(),
+            ))
+            .expect("valid authored confidence"),
+        ),
         None,
         None,
         None,

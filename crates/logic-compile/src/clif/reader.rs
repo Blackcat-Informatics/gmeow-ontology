@@ -9,7 +9,7 @@
 //! RDF frontend ([`parse_logic_dataset`]), so the
 //! reconstructed IR — axioms, rules, formulas, contracts, correspondences — is exactly the
 //! Exact `canonical-rdf12` round-trip's. The idiomatic FOL sentences before the sentinel are
-//! a human-readable VIEW (an `obj_is_literal` rule-term bit and minted reifier-node identity
+//! a human-readable VIEW (contextual source data and minted reifier-node identity
 //! cannot be expressed in idiomatic CL syntax); the bespoke recursive-descent parser still
 //! VALIDATES them (a malformed FOL sentence raises a `CLIF_MALFORMED_SENTENCE` diagnostic),
 //! but the IR is never reconstructed from them.
@@ -349,71 +349,37 @@ fn parse_horn_atom(expr: &SExpr) -> gmeow_errors::Result<LogicAxiom> {
         }));
     }
     let predicate = name_string(&items[0])?;
-    let (subject, _) = horn_operand(&items[1])?;
-    let (obj, obj_is_literal) = horn_operand(&items[2])?;
+    let subject = match horn_operand(&items[1])? {
+        crate::ir::AtomicTerm::Iri(value) | crate::ir::AtomicTerm::Var(value) => value,
+        _ => {
+            return Err(Diag::of_kind(crate::error::Clif {
+                detail: "a compact Horn subject must be an IRI or variable".to_owned(),
+            }));
+        }
+    };
     LogicAxiom::new(
         subject,
         predicate,
-        obj,
-        obj_is_literal,
+        horn_operand(&items[2])?,
         false,
         ContextualScope::default(),
     )
 }
 
-/// Decode a Horn subject/object operand: a `?var` → `?name` string (non-literal); a
-/// `(lit "x")` → plain literal string (literal); a `'iri'` → IRI string (non-literal).
-/// Returns `(value, is_literal)`.
-fn horn_operand(expr: &SExpr) -> gmeow_errors::Result<(String, bool)> {
-    match expr {
-        SExpr::Atom(Atom::Var(n)) => Ok((format!("?{n}"), false)),
-        SExpr::Atom(Atom::Name(iri)) => Ok((iri.clone(), false)),
-        SExpr::List(items) => {
-            let lit = parse_lit_simple(items)?;
-            Ok((lit, true))
-        }
-        other => Err(Diag::of_kind(crate::error::Clif {
-            detail: format!("Horn operand must be ?var, 'iri', or (lit …), found {other:?}"),
+/// Share the complete Common Logic term reader, retaining native literal components.
+fn horn_operand(expr: &SExpr) -> gmeow_errors::Result<crate::ir::AtomicTerm> {
+    use crate::ir::AtomicTerm;
+    match parse_formula_term(expr)? {
+        Term::Var(value) => Ok(AtomicTerm::Var(format!("?{value}"))),
+        Term::Iri(value) => Ok(AtomicTerm::Iri(value)),
+        Term::Literal(value) => Ok(AtomicTerm::Literal(value)),
+        Term::SequenceMarker(_) | Term::App { .. } => Err(Diag::of_kind(crate::error::Clif {
+            detail: "structured terms require the full formula reader".to_owned(),
         })),
     }
 }
 
-/// Parse a `(lit "x")` form's lexical value (the Horn fragment carries no datatype on the
-/// object; the RDF channel carries that detail). Rejects a typed/lang `(lit …)`.
-fn parse_lit_simple(items: &[SExpr]) -> gmeow_errors::Result<String> {
-    if symbol_of(items.first().ok_or_else(|| {
-        Diag::of_kind(crate::error::Clif {
-            detail: "empty list".to_owned(),
-        })
-    })?) != Some("lit")
-    {
-        return Err(Diag::of_kind(crate::error::Clif {
-            detail: "expected a (lit …) form".to_owned(),
-        }));
-    }
-    // The Horn fragment's plain literal is exactly `(lit "x")`; a datatype/lang operand here
-    // is meaningless (the RDF channel carries that detail), so reject it rather than ignore it.
-    if items.len() != 2 {
-        return Err(Diag::of_kind(crate::error::Clif {
-            detail: format!(
-                "Horn (lit …) operand must be exactly `(lit \"x\")`; found {} operands",
-                items.len()
-            ),
-        }));
-    }
-    match items.get(1) {
-        Some(SExpr::Atom(Atom::Str(s))) => Ok(s.clone()),
-        other => Err(Diag::of_kind(crate::error::Clif {
-            detail: format!("(lit …) argument must be a \"string\", found {other:?}"),
-        })),
-    }
-}
-
-// --------------------------------------------------------------------------- //
-// Full-FOL formula parsing
-// --------------------------------------------------------------------------- //
-
-/// Parse a full-FOL [`Formula`] from a CL sentence.
+/// Parse a full Common Logic formula.
 fn parse_formula(expr: &SExpr) -> gmeow_errors::Result<Formula> {
     let SExpr::List(items) = expr else {
         return Err(Diag::of_kind(crate::error::Clif {
@@ -550,17 +516,35 @@ fn parse_formula_term(expr: &SExpr) -> gmeow_errors::Result<Term> {
 }
 
 /// Parse a `(lit "x")` / `(lit "x" 'dt')` form into a [`Term::Literal`] (the formula channel
-/// carries the datatype; a `@lang` is not used in the formula term position).
+/// carries the complete native literal, including `@lang` and `@lang--direction`).
 fn parse_lit_form_term(items: &[SExpr]) -> gmeow_errors::Result<Term> {
     let lit =
         parse_lit_form(items).map_err(|e| Diag::of_kind(crate::error::Clif { detail: e.0 }))?;
-    if lit.language.is_some() {
-        return Err(Diag::of_kind(crate::error::Clif {
-            detail: "a (lit … @lang) language-tagged literal is not a valid formula term"
-                .to_owned(),
-        }));
-    }
-    Term::literal(lit.lexical, lit.datatype)
+    let (language, direction) = match lit.language {
+        Some(language) => match language.rsplit_once("--") {
+            Some((language, "ltr")) => (
+                Some(language.to_owned()),
+                Some(purrdf::RdfTextDirection::Ltr),
+            ),
+            Some((language, "rtl")) => (
+                Some(language.to_owned()),
+                Some(purrdf::RdfTextDirection::Rtl),
+            ),
+            Some(_) => {
+                return Err(Diag::of_kind(crate::error::Clif {
+                    detail: "invalid RDF literal base direction".to_owned(),
+                }));
+            }
+            None => (Some(language), None),
+        },
+        None => (None, None),
+    };
+    Term::rdf_literal(purrdf::RdfLiteral {
+        lexical_form: lit.lexical,
+        datatype: lit.datatype,
+        language,
+        direction,
+    })
 }
 
 /// Parse a `(?v1 ?v2 …)` variable block into authored (sigil-free) names.

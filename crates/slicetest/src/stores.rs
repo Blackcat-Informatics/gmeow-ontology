@@ -33,7 +33,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 
 use gmeow_errors::{Diag, Result};
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlResult};
+use purrdf::{RdfDataset, SparqlResult};
 
 use crate::error::{LogicReasoning, MergedGraph, RdfsClosure, UnexpectedResultForm};
 use crate::native_query::{self, merge_preserving_blanks};
@@ -152,11 +152,9 @@ fn build_native_closed_store() -> Result<Arc<RdfDataset>> {
             detail: format!("loading the native-reasoning source files: {e}"),
         })
     })?;
-    // The program is extracted from the DEFAULT-graph source (parse_logic_dataset reads the
-    // default graph), but the native reasoner's EDB is world-scoped: it only reasons over
-    // NAMED-graph quads (WorldStore::worlds skips the default graph by design). Slice Turtle
-    // is a single default graph, so re-scope every quad into the reasoner's default world
-    // before reasoning; the closure projection maps that world back to the RDF default graph.
+    // Compile the canonical default-graph sources once. The competency operation
+    // explicitly joins this selected source set into one default logical theory;
+    // a named graph alias of the native default world is invalid.
     let (program, diagnostics) =
         gmeow_logic_compile::frontend::parse_logic_dataset(store.as_ref(), None).map_err(|e| {
             Diag::of_kind(LogicReasoning {
@@ -183,7 +181,16 @@ fn build_native_closed_store() -> Result<Arc<RdfDataset>> {
         }));
     }
     let edb = world_scoped(&store)?;
-    let closure = gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref())
+    let input = gmeow_logic::reason::prepare_reasoning_input(&edb)?;
+    let domains = gmeow_logic::reason::SelectedDomains::new([
+        gmeow_logic::reason::SelectedLogicalWorld::new(
+            gmeow_logic::reason::LogicalGraph::Default,
+            gmeow_logic::reason::DomainProfile::NonemptyObjectDomainV1,
+            "gmeow.slicetest.competency-theory.v1".to_owned(),
+            *input.ingress_contract(),
+        )?,
+    ])?;
+    let closure = gmeow_logic::reason::reason_program_closure_dataset(&program, input, &domains)
         .map_err(|e| {
             Diag::of_kind(LogicReasoning {
                 detail: format!("native logic reasoning over the native-reasoning sources: {e}"),
@@ -197,27 +204,28 @@ fn build_native_closed_store() -> Result<Arc<RdfDataset>> {
     Ok(native_query::with_owl_rdfs_projection(&closure))
 }
 
-/// Re-scope every quad of `dataset` into the native reasoner's default world
-/// ([`gmeow_logic::reason::rl::DEFAULT_WORLD`]) so it is visible to the world-scoped chase.
-///
-/// The reasoner reads its EDB from NAMED graphs only; slice Turtle is a single default
-/// graph, so without this every fact would be invisible and the closure empty. The closure
-/// projection maps this world back to the RDF default graph, so the round-trip is transparent
-/// to a competency query.
+/// Join every native record of the selected competency source set into one
+/// default logical theory. Reifiers and annotations follow their assertions;
+/// provenance graph IRIs remain values and scoped blank identities stay intact.
+/// The caller selects the default domain explicitly, including empty input.
 fn world_scoped(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
-    let world = RdfTerm::iri(gmeow_logic::reason::rl::DEFAULT_WORLD);
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in dataset.owned_quads() {
-        let scoped =
-            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone());
-        builder.push_owned_quad(&scoped);
-    }
-    builder.freeze().map_err(|e| {
+    let source = purrdf::CompositeSource::new(Arc::clone(dataset))
+        .with_graph_placement(purrdf::GraphPlacement::Default);
+    let routed = purrdf::CompositeDatasetView::from_shared_sources(
+        vec![source],
+        purrdf::ViewLimits::default(),
+    )
+    .and_then(|view| view.materialize());
+    routed.map_err(|e| {
         Diag::of_kind(LogicReasoning {
             detail: format!("re-scoping the merged graph into the reasoner world: {e}"),
         })
     })
 }
+
+#[cfg(test)]
+#[path = "stores_world_routing_tests.rs"]
+mod world_routing_tests;
 
 /// The four authored algebra-law example files — the `math:` component of
 /// [`native_reasoning_source_files`]. Each carries one of the four `math:` laws as a real
@@ -405,43 +413,6 @@ fn construct(dataset: &Arc<RdfDataset>, query: &str) -> Result<Arc<RdfDataset>> 
     }
 }
 
+#[path = "stores.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn rdfs_close_infers_type_and_subclass() {
-        // A synthetic graph exercising the entailments competency questions rely
-        // on: a domain typing (rdfs2) and type propagation up a subclass chain
-        // (rdfs9 + rdfs11) — neither present in the asserted data.
-        let nt = concat!(
-            "<https://example.org/hasPet> <http://www.w3.org/2000/01/rdf-schema#domain> <https://example.org/Owner> .\n",
-            "<https://example.org/Owner> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Person> .\n",
-            "<https://example.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Agent> .\n",
-            "<https://example.org/ada> <https://example.org/hasPet> <https://example.org/cat> .\n",
-        );
-        let base = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
-            .expect("synthetic NT must load");
-        let closed = rdfs_close(base).expect("rdfs closure must converge");
-
-        // rdfs2: ada hasPet => ada a Owner. rdfs9/11: => Person, => Agent.
-        for cls in ["Owner", "Person", "Agent"] {
-            assert!(
-                ask_type(
-                    &closed,
-                    "https://example.org/ada",
-                    &format!("https://example.org/{cls}")
-                ),
-                "expected ex:ada to be inferred a ex:{cls}"
-            );
-        }
-    }
-
-    fn ask_type(store: &Arc<RdfDataset>, s: &str, c: &str) -> bool {
-        let q = format!("ASK {{ <{s}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{c}> }}");
-        matches!(
-            native_query::query(store, &q).expect("ask"),
-            SparqlResult::Boolean(true)
-        )
-    }
-}
+mod tests;

@@ -33,11 +33,19 @@ mod builtin_eval;
 // THROUGH the governed moded-builtin family, never a private exact-ℚ path.
 pub use builtin_eval::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 mod chase;
+mod domain;
+pub use domain::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
 // The arrangement's native galloping lending cursor: a sealed GAT `LendingIterator`
 // that concatenates each sorted batch's galloped bound-run with a tail scan, replacing
 // the materialized per-stage `Vec<(TermId, TermId, RowId)>` on the semi-naive join hot
 // path (`seminaive`, `chase`).
 mod cursor;
+mod dependency;
+pub(crate) use dependency::ReadDependency;
+mod effects;
+pub(crate) use effects::{
+    CompletedWorldReads, ProducerEffect, WorldProducerEffect, WorldStatementObservation,
+};
 mod generic;
 // The signed-batch / nested-iteration incremental circuit for the finite positive
 // binary Datalog fragment. It owns recursive insert/retract maintenance and is the
@@ -48,6 +56,8 @@ mod incremental;
 // each grounding join while deliberately leaving WFS / stable-model solving on
 // its named from-scratch boundary.
 mod incremental_grounding;
+#[cfg(test)]
+mod native_binding_tests;
 // Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
 // `RowId`). `pub(crate)` so `crate::facts` can re-express its `TermId` as this
 // module's `Id<Term>` alias (one definition, not two — greenfield).
@@ -99,6 +109,7 @@ pub(crate) mod resolve_fol;
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
 // flat slots, SIPS/index/kernel choices, and selective cyclic groups.
+mod numeric;
 mod plan;
 mod seminaive;
 mod store;
@@ -108,7 +119,9 @@ mod store;
 // generic evaluator's index selection (`generic`).
 #[allow(unused_imports)]
 pub(crate) use binding_pattern::BindingPattern;
+pub(crate) use effects::StatementPattern;
 pub(crate) use magic::qterm_to_value;
+pub(crate) use store::metadata_identity;
 
 // The arity-generic positive-Datalog forward evaluator: the predicate-as-data n-ary
 // core the OWL 2 RL/RDF meta-rules need (variable property position). Consumed by
@@ -139,7 +152,9 @@ pub(crate) use store::{
 // The decomposable derivation of one chase-invented null (firing rule, existential
 // ordinal, frontier binding). Public so the pipeline can project it into the shipped
 // diagnostics graph and the CLI/playground can explain an invented individual.
-pub use store::WitnessDerivation;
+pub use store::{
+    WitnessDerivation, WitnessHead, WitnessOrigin, WitnessPosition, WitnessScope, WitnessStatement,
+};
 
 // The arrangement's native lending cursor + its sealed GAT trait: the zero-alloc row
 // scan consumed by the semi-naive join (`seminaive`) and the chase (`chase`).
@@ -152,8 +167,8 @@ pub(crate) use cursor::{LendingIterator, RowCursor};
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
 pub(crate) use seminaive::{
-    Budgeted, NativeOutcome, RuleParallelProbe, UnsupportedKind, evaluate, materialize_native,
-    rule_parallel_probe,
+    Budgeted, NativeOutcome, RuleParallelProbe, StepGovernor, UnsupportedKind, evaluate,
+    materialize_native, rule_parallel_probe,
 };
 
 pub(crate) use annotation::{
@@ -175,13 +190,14 @@ pub(crate) use plan::{
 // consumed by `materialize::materialize_routed`.
 #[allow(unused_imports)]
 pub(crate) use chase::{
-    ExistentialRule, WitnessPolicy, chase_materialize, chase_world, route_chase,
-    route_chase_with_registry, route_chase_with_registry_backstopped,
+    ExistentialRule, SourceExistentialRule, WitnessPolicy, chase_materialize, chase_world,
+    route_chase, route_chase_with_registry, route_chase_with_registry_backstopped,
 };
 // The termination certificate is surfaced PUBLICLY (re-exported through the public
 // `materialize` module below) so callers can read the chase's weak-acyclicity certificate
 // and its `to_finding()` gmeow:Finding off a `materialize_routed` result.
 pub use chase::ChaseAdmission;
+pub(crate) use chase::DL_CHASE_STEP_BACKSTOP;
 
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
@@ -205,3 +221,21 @@ pub(crate) use builtin_eval::{
     MathTriples, NoCellResolver, Value, XSD_INTEGER, emit_integer_surface, emit_surface,
     eval as eval_builtin, load_gram_cells, load_vector_dense,
 };
+
+// One indexed fixed point and governor for ordinary and existential producers.
+pub(crate) use seminaive::joint::{
+    DefinitionContract, JointInput, JointMaterialization, JointProgram, JointTemplate,
+    NativeWorldSnapshot, RetainedJoint, schema_identity,
+};
+pub(crate) use seminaive::property::datatype::{
+    DatatypeCache, DatatypePlan, finite_named_capacity,
+};
+pub(crate) use seminaive::property::{
+    CardinalityPattern, CardinalitySet, DatatypeConstraint, ListOperation, ListPattern,
+    MinimumPattern, PreparedPropertyRule, PropertyAtom, PropertyGuard, PropertyOperation,
+    PropertyRule, ValueComparison,
+};
+pub(crate) use seminaive::property::{ListCache as LogicalListCache, SchemaValues};
+
+/// Native completed-read stratification shared by aggregate certification.
+pub(crate) use seminaive::stratify;

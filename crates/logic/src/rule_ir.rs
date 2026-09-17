@@ -15,8 +15,8 @@
 //! strings), the IR here works over the native [`TermValue`] (with predicate IRIs
 //! as plain `String`) so literal object constants and the golden-pinned provenance
 //! recipe ([`crate::provenance::mint_reifier`]) are handled for free.  The dedup key
-//! is the `(term_display(subject), predicate, term_display(object))` triple of N3
-//! surfaces, mirroring `foundation.rs`'s first-wins `fact_index`.
+//! is the exact native `(subject, predicate, object)` triple. Output rendering
+//! never participates in deduplication, negation or model comparison.
 //!
 //! # The reduct least model (the crux)
 //!
@@ -43,6 +43,7 @@
 //! keeps a crate-internal `dead_code` allowance rather than exporting them.
 #![allow(dead_code)]
 
+use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap};
 use std::hash::{BuildHasher, Hash, Hasher};
 
@@ -58,6 +59,20 @@ use crate::provenance::{
     term_display,
 };
 use crate::query_ir::QBuiltin;
+
+/// Bridge an admitted complete RDF literal to the native value algebra.
+/// No lexical rendering, parsing, datatype coercion or language/direction loss.
+pub(crate) fn literal_value(literal: &purrdf::RdfLiteral) -> TermValue {
+    TermValue::Literal {
+        lexical_form: literal.lexical_form.clone(),
+        datatype: literal.datatype_iri().to_owned(),
+        language: literal
+            .language
+            .as_ref()
+            .map(|tag| tag.to_ascii_lowercase()),
+        direction: literal.direction,
+    }
+}
 
 /// A set of [`FactKey`]s — the whole-model comparison form used by the well-founded
 /// alternating fixpoint ([`crate::wellfounded`]) and the stable-model stability test
@@ -79,10 +94,14 @@ pub(crate) type FactKeySet = BTreeSet<FactKey>;
 /// The seed is fixed (`FixedState::default()`, never random) and NEVER persisted: it
 /// backs pure membership probes, never an emission-order source.
 pub(crate) fn fact_key_hash(key: &FactKey) -> u64 {
+    fact_parts_hash(&key.0, &key.1, &key.2)
+}
+
+fn fact_parts_hash(subject: &TermValue, predicate: &str, object: &TermValue) -> u64 {
     let mut hasher = FixedState::default().build_hasher();
-    key.0.hash(&mut hasher);
-    key.1.hash(&mut hasher);
-    key.2.hash(&mut hasher);
+    subject.hash(&mut hasher);
+    predicate.hash(&mut hasher);
+    object.hash(&mut hasher);
     hasher.finish()
 }
 
@@ -99,14 +118,14 @@ fn ir_err(detail: String) -> gmeow_errors::Diag {
 /// RDF ingress admits literals only in object position. Internal query relations are
 /// positional rather than RDF triples, however, so a builtin-generated head value may be
 /// a [`ConstLit`](EvalTerm::ConstLit) in either argument. Predicate identity remains an IRI.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub(crate) enum EvalTerm {
     /// A variable, e.g. `?X` (the string includes the leading `?`).
     Var(String),
     /// A constant IRI (the full IRI string).
     ConstNamed(String),
-    /// A constant literal (object position only).
-    ConstLit(TermValue),
+    /// A native non-IRI constant, including literals, scoped blanks and triple terms.
+    ConstLit(#[serde(with = "crate::term_serde")] TermValue),
 }
 
 impl EvalTerm {
@@ -120,7 +139,7 @@ impl EvalTerm {
 }
 
 /// A single arity-3-derived atom, with the world slot dropped (subject, object).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub(crate) struct EvalAtom {
     /// The subject term (slot 0).
     pub(crate) subject: EvalTerm,
@@ -145,8 +164,12 @@ impl EvalAtom {
 
 /// A lowered rule: one head atom, an ordered body (positive atoms then negated
 /// atoms), the firing rule IRI (from `#[name("...")]`), and inequality guards.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub(crate) struct EvalRule {
+    /// Canonical finite RDF numeric operators, prepared once with the rule plan.
+    pub(crate) numeric: Vec<gmeow_logic_compile::relational_core::RcNumeric>,
+    /// Complete-group reduction, executed after the input stratum has completed.
+    pub(crate) reduction: Option<Reduction>,
     /// The single head atom.
     pub(crate) head: EvalAtom,
     /// The body atoms, positive first then negated.
@@ -179,14 +202,19 @@ pub(crate) struct EvalRule {
     pub(crate) constraint_tag: Option<String>,
 }
 
+mod reduction;
+pub(crate) use reduction::Reduction;
+
 impl EvalRule {
     pub(crate) fn positive(rule_iri: &str, head: EvalAtom, body: Vec<EvalAtom>) -> Self {
         Self {
+            numeric: Vec::new(),
             head,
             body,
             rule_iri: rule_iri.to_owned(),
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            reduction: None,
             constraint_tag: None,
         }
     }
@@ -195,7 +223,7 @@ impl EvalRule {
 // ── Ground fact + store (oxigraph-term based, insertion-ordered, first-wins) ─────
 
 /// A fully-ground fact `(subject, predicate, object)` over native terms.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Fact {
     /// The first binary-relation argument. RDF-sourced rows contain an IRI/blank node;
     /// facts-only backward evaluation may carry a generated literal here.
@@ -206,16 +234,16 @@ pub(crate) struct Fact {
     pub(crate) object: TermValue,
 }
 
-/// The dedup key of a fact: the N3 surfaces of `(subject, predicate, object)`.
-pub(crate) type FactKey = (String, String, String);
+/// The exact native dedup key of `(subject, predicate, object)`.
+pub(crate) type FactKey = (TermValue, String, TermValue);
 
 impl Fact {
-    /// The dedup / membership key `(term_display(s), predicate, term_display(o))`.
+    /// The owned native key for model sets and retained candidate records.
     pub(crate) fn key(&self) -> FactKey {
         (
-            term_display(&self.subject),
+            self.subject.clone(),
             self.predicate.clone(),
-            term_display(&self.object),
+            self.object.clone(),
         )
     }
 
@@ -227,22 +255,13 @@ impl Fact {
 
 /// Insertion-ordered fact store with O(1) dedup — mirrors `foundation.rs::FactStore`.
 ///
-/// Dedup is a borrowed-key `HashTable<usize>` probe into `facts`/`surfaces` (mirrors
-/// `facts::TypedFactSet` / `physical::generic::GenericStore`): the owned
-/// `(subject, predicate, object)` key lives once in `surfaces`, so no owned-key clone
-/// is paid per probe.  Delta membership on the hot join path is NOT this table — it is
-/// a dense [`DenseBitset`] over each row's insertion-order index (see
-/// [`least_model_of_reduct`]).
+/// Dedup borrows native fields directly from the stored fact. The index owns only
+/// row handles, with no duplicate native key or rendered surface per row. Delta
+/// membership remains a dense [`DenseBitset`] over insertion-order row indices.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FactStore {
     facts: Vec<Fact>,
-    /// The cached `(subject, predicate, object)` N3-surface of each `facts[i]`,
-    /// computed once at insert — avoids re-rendering a stored fact's surface on every
-    /// subsequent probe against it, and is the side arena the `keys` probe resolves.
-    surfaces: Vec<FactKey>,
-    /// Borrowed-key dedup index into `facts`/`surfaces`: a hashbrown [`HashTable`]
-    /// holding only the ROW INDEX, hashed via [`fact_key_hash`] from the cached
-    /// surface.  No owned-key clone per probe.
+    /// Row handles hashed by their borrowed native fields.
     keys: HashTable<usize>,
     /// The store's predicate dictionary: predicate surface → dense [`PredId`].
     predicates: PredInterner,
@@ -264,7 +283,6 @@ impl FactStore {
     pub(crate) fn new() -> Self {
         Self {
             facts: Vec::new(),
-            surfaces: Vec::new(),
             keys: HashTable::new(),
             predicates: PredInterner::new(),
             predicate_index: HashMap::default(),
@@ -278,49 +296,49 @@ impl FactStore {
     /// `facts().len()` before the push), so callers keeping a parallel per-row column
     /// (a depth `Vec`, a delta [`DenseBitset`]) can address the new row directly.
     pub(crate) fn insert(&mut self, fact: Fact) -> Option<usize> {
-        let surface = fact.key();
-        let hash = fact_key_hash(&surface);
-        // Borrowed-key membership probe: compare against the cached surface in place,
-        // allocating NOTHING on a hit.
-        let surfaces = &self.surfaces;
-        if self.keys.find(hash, |&i| surfaces[i] == surface).is_some() {
+        let hash = fact_parts_hash(&fact.subject, &fact.predicate, &fact.object);
+        if self.keys.find(hash, |&i| self.facts[i] == fact).is_some() {
             return None;
         }
-        // Intern the predicate surface once to a dense `PredId` (borrowed-key probe —
-        // no owned-key clone per bucket), then push the new row index in lockstep with
-        // `facts`/`surfaces`, preserving insertion order within the predicate bucket.
         let pid = self.predicates.intern(&fact.predicate);
         let idx = self.facts.len();
         self.facts.push(fact);
-        self.surfaces.push(surface);
         self.predicate_index.entry(pid).or_default().push(idx);
-        let surfaces = &self.surfaces;
-        self.keys
-            .insert_unique(hash, idx, |&i| fact_key_hash(&surfaces[i]));
+        let facts = &self.facts;
+        self.keys.insert_unique(hash, idx, |&i| {
+            let fact = &facts[i];
+            fact_parts_hash(&fact.subject, &fact.predicate, &fact.object)
+        });
         Some(idx)
     }
 
     /// Whether a fact with this key exists.
     pub(crate) fn contains_key(&self, key: &FactKey) -> bool {
-        let hash = fact_key_hash(key);
-        self.keys
-            .find(hash, |&i| self.surfaces[i] == *key)
-            .is_some()
+        self.row_index(key).is_some()
     }
 
-    /// The insertion-order row index of the fact with this key, if present.
-    ///
-    /// The same borrowed-key probe as [`contains_key`](Self::contains_key), returning
-    /// the row index so a per-row side column (e.g. the derivation-depth `Vec`) can be
-    /// addressed without a second owned-key map.
+    /// Resolve a retained native key to its insertion-order row index.
     pub(crate) fn row_index(&self, key: &FactKey) -> Option<usize> {
-        let hash = fact_key_hash(key);
-        self.keys.find(hash, |&i| self.surfaces[i] == *key).copied()
+        self.row_index_parts(&key.0, &key.1, &key.2)
+    }
+
+    fn row_index_parts(
+        &self,
+        subject: &TermValue,
+        predicate: &str,
+        object: &TermValue,
+    ) -> Option<usize> {
+        self.keys
+            .find(fact_parts_hash(subject, predicate, object), |&i| {
+                let fact = &self.facts[i];
+                fact.subject == *subject && fact.predicate == predicate && fact.object == *object
+            })
+            .copied()
     }
 
     /// The set of all fact keys (for fixpoint comparison — a cold, whole-model path).
     pub(crate) fn key_set(&self) -> FactKeySet {
-        self.surfaces.iter().cloned().collect()
+        self.facts.iter().map(Fact::key).collect()
     }
 
     /// The number of stored rows (insertion-order slots `0..row_count`).
@@ -352,6 +370,8 @@ impl FactStore {
 /// `foundation.rs` and `py.rs`.
 #[derive(Debug, Clone)]
 pub(crate) struct DerivedRow {
+    /// Present only for an actual context-owned modal application.
+    pub(crate) cross_world: Option<crate::modal::native::NativeCrossWorldEvidence>,
     /// The world IRI (named-graph component).
     pub(crate) graph: String,
     /// The subject term.
@@ -414,79 +434,63 @@ pub(crate) struct ReductResult {
 
 // ── Join engine// ── Join engine (semi-naive, NAF against a SEPARATE reference store) ─────────────
 
-/// A candidate solution: variable→N3-surface bindings plus the matched positive
+/// A candidate solution: variable→native-term bindings plus the matched positive
 /// body facts (their full [`Fact`]s, for provenance recovery).
 #[derive(Clone)]
 pub(crate) struct Solution {
-    pub(crate) bindings: Vec<(String, String)>,
+    pub(crate) bindings: Vec<(String, TermValue)>,
     pub(crate) source_facts: Vec<Fact>,
 }
 
 impl Solution {
-    pub(crate) fn get(&self, var_name: &str) -> Option<&str> {
+    pub(crate) fn get(&self, var_name: &str) -> Option<&TermValue> {
         self.bindings
             .iter()
             .find(|(k, _)| k == var_name)
-            .map(|(_, v)| v.as_str())
+            .map(|(_, v)| v)
     }
 }
 
-/// The N3 surface of an [`EvalTerm`] under bindings, or `None` if an unbound var.
-pub(crate) fn ground(term: &EvalTerm, sol: &Solution) -> Option<String> {
+/// Borrow a grounded binding or literal; an IRI constant needs one owned wrapper.
+fn ground<'a>(term: &'a EvalTerm, sol: &'a Solution) -> Option<Cow<'a, TermValue>> {
     match term {
-        EvalTerm::ConstNamed(iri) => Some(format!("<{iri}>")),
-        EvalTerm::ConstLit(t) => Some(term_display(t)),
-        EvalTerm::Var(name) => sol.get(name).map(str::to_owned),
-    }
-}
-
-/// The N3 surface a term pattern must equal against a fact term, for a constant.
-fn const_surface(term: &EvalTerm) -> Option<String> {
-    match term {
-        EvalTerm::ConstNamed(iri) => Some(format!("<{iri}>")),
-        EvalTerm::ConstLit(t) => Some(term_display(t)),
-        EvalTerm::Var(_) => None,
+        EvalTerm::ConstNamed(iri) => Some(Cow::Owned(TermValue::iri(iri))),
+        EvalTerm::ConstLit(term) => Some(Cow::Borrowed(term)),
+        EvalTerm::Var(name) => sol.get(name).map(Cow::Borrowed),
     }
 }
 
 /// Try to match `atom` against fact `f`, extending `base`; return the merged
 /// solution or `None`.  A repeated variable must agree; a constant must equal the
-/// fact term's N3 surface exactly.  Mirrors `foundation.rs::match_atom`.
+/// native fact term exactly, including scoped blanks and recursive triple terms.
 pub(crate) fn match_atom(atom: &EvalAtom, f: &Fact, base: &Solution) -> Option<Solution> {
-    let fact_surfaces = [
-        term_display(&f.subject),
-        format!("<{}>", f.predicate),
-        term_display(&f.object),
-    ];
-    let pats = [
-        &atom.subject,
-        &EvalTerm::ConstNamed(atom.predicate.clone()),
-        &atom.object,
-    ];
-
-    let mut new_bindings: Vec<(String, String)> = Vec::new();
-    for (pat, fact_surface) in pats.into_iter().zip(fact_surfaces.iter()) {
+    if atom.predicate != f.predicate {
+        return None;
+    }
+    let mut new_bindings: Vec<(String, TermValue)> = Vec::new();
+    for (pat, value) in [(&atom.subject, &f.subject), (&atom.object, &f.object)] {
         match pat {
-            EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(_) => {
-                let want = const_surface(pat).expect("constant has a surface");
-                if &want != fact_surface {
+            EvalTerm::ConstNamed(iri) => {
+                if value.as_iri() != Some(iri.as_str()) {
+                    return None;
+                }
+            }
+            EvalTerm::ConstLit(expected) => {
+                if expected != value {
                     return None;
                 }
             }
             EvalTerm::Var(name) => {
-                let existing = base.get(name).or_else(|| {
-                    new_bindings
-                        .iter()
-                        .find(|(k, _)| k == name)
-                        .map(|(_, v)| v.as_str())
-                });
+                let existing = base
+                    .get(name)
+                    .or_else(|| new_bindings.iter().find(|(k, _)| k == name).map(|(_, v)| v));
                 match existing {
                     Some(existing) => {
-                        if existing != fact_surface {
+                        if existing != value {
                             return None;
                         }
                     }
-                    None => new_bindings.push((name.clone(), fact_surface.clone())),
+                    None => new_bindings.push((name.clone(), value.clone())),
                 }
             }
         }
@@ -500,12 +504,9 @@ pub(crate) fn match_atom(atom: &EvalAtom, f: &Fact, base: &Solution) -> Option<S
 /// is PRESENT in the `reference` store (the Gelfond-Lifschitz guess).
 fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, reference: &FactStore) -> bool {
     let s = ground(&atom.subject, sol);
-    // The predicate component of a `Fact::key` is the BARE IRI (no angle brackets);
-    // build the lookup key to match it exactly.
-    let p = atom.predicate.as_str().to_owned();
     let o = ground(&atom.object, sol);
     match (s, o) {
-        (Some(s), Some(o)) => reference.contains_key(&(s, p, o)),
+        (Some(s), Some(o)) => reference.row_index_parts(&s, &atom.predicate, &o).is_some(),
         // A partially-bound negated atom never arises in the DL-safe gmeow fragment
         // (every negated var is bound by a positive body atom).  Treat unbound as
         // not-satisfied (the rule is not blocked); the corpus never hits this.
@@ -513,7 +514,7 @@ fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, reference: &FactStore
     }
 }
 
-/// Whether every inequality guard holds (N3-surface inequality).  An unbound guard
+/// Whether every inequality guard holds (native-term inequality). An unbound guard
 /// variable is a hard error.  Mirrors `foundation.rs::distinct_pairs_satisfied`.
 pub(crate) fn distinct_pairs_satisfied(
     distinct_pairs: &[(String, String)],
@@ -680,6 +681,8 @@ fn join_body(
 /// sentinel-filled struct that "is never read."
 #[derive(Clone)]
 pub(crate) struct Provenance {
+    /// Native modal support may reference admitted facts in other worlds.
+    pub(crate) cross_world: Option<crate::modal::native::NativeCrossWorldEvidence>,
     /// Reifiers of matched positive body facts, in body (scan) order — goes into
     /// `DerivedRow.source_quad_ids`.
     pub(crate) sources: Vec<String>,
@@ -705,7 +708,7 @@ pub(crate) struct RuleRoundCandidate {
     pub(crate) head: Fact,
     // `key: FactKey` REMOVED — it was always identical to `head.key()`, computed once at
     // construction only to be re-derived by callers.  The per-round winner map now caches
-    // each candidate's key alongside it (like `FactStore.surfaces`), and the commit loop
+    // each candidate's key alongside it (like a retained native model key), and the commit loop
     // reads that cached key, so the redundant per-candidate field is gone.
     /// The recorded provenance, or `None` on the facts-only (Skip) lane.
     pub(crate) prov: Option<Provenance>,
@@ -715,7 +718,14 @@ pub(crate) struct RuleRoundCandidate {
 /// [`RuleRoundCandidate::tiebreak_key`]:
 /// `(proof_height, sum_src_depth, sorted_sources, rule_iri, sources)`, smaller wins.
 /// The trailing body-order `sources` is the total-order closer (see `tiebreak_key`).
-type TiebreakKey<'a> = (ProofHeight, u64, &'a [String], &'a str, &'a [String]);
+type TiebreakKey<'a> = (
+    ProofHeight,
+    u64,
+    &'a [String],
+    &'a str,
+    &'a [String],
+    &'a str,
+);
 
 impl RuleRoundCandidate {
     /// Whether this recorded candidate is the semiring-selected winner over
@@ -745,9 +755,9 @@ impl RuleRoundCandidate {
     /// — which drives `source_quad_ids` and the minted derivation id. Comparing it makes
     /// winner selection independent of candidate *enumeration order*, so the columnar
     /// store may enumerate rows in value order (not insertion order) without perturbing
-    /// which provenance wins. Two candidates that agree on `sources` are the identical
-    /// derivation (same premises, same order, same rule) and are byte-identical, so the
-    /// key is decisive exactly when output would otherwise differ.
+    /// which provenance wins. The final derivation identity additionally distinguishes
+    /// modal applications with equal triple reifiers but different context-qualified
+    /// occurrences or completed frontiers.
     pub(crate) fn tiebreak_key(&self) -> Option<TiebreakKey<'_>> {
         self.prov.as_ref().map(|p| {
             (
@@ -756,6 +766,7 @@ impl RuleRoundCandidate {
                 p.sorted_sources.as_slice(),
                 p.rule_iri.as_str(),
                 p.sources.as_slice(),
+                p.deriv.as_str(),
             )
         })
     }
@@ -795,6 +806,7 @@ pub(crate) fn least_model_of_reduct(
     rules: &[EvalRule],
     reference: &FactStore,
 ) -> gmeow_errors::Result<ReductResult> {
+    admit_reduct_rules(rules)?;
     let mut store = FactStore::new();
 
     // Per-fact derivation-depth column, indexed by the store's insertion-order row:
@@ -826,7 +838,7 @@ pub(crate) fn least_model_of_reduct(
     let mut delta = DenseBitset::all_set(store.row_count());
     loop {
         // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
-        // `Vec<(FactKey, RuleRoundCandidate)>` (mirrors `FactStore`'s cached-surface
+        // `Vec<(FactKey, RuleRoundCandidate)>` (uses a retained native key
         // probe), holding the candidate chosen by a quality-ordered total-order tiebreak
         // (see struct doc above).  This makes provenance selection independent of
         // firing-enumeration order.  The cached `FactKey` is reused at commit for the
@@ -881,6 +893,7 @@ pub(crate) fn least_model_of_reduct(
                 let candidate = RuleRoundCandidate {
                     head,
                     prov: Some(Provenance {
+                        cross_world: None,
                         sources,
                         sorted_sources,
                         deriv,
@@ -911,7 +924,7 @@ pub(crate) fn least_model_of_reduct(
             break; // fixpoint
         }
 
-        // Commit all winners from this round in resolved-lexical FactKey order, not raw
+        // Commit all winners from this round in native FactKey order, not raw
         // table order, so store/index insertion order is deterministic.
         let round_len = round_entries.len();
         let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round_entries;
@@ -943,6 +956,7 @@ pub(crate) fn least_model_of_reduct(
             // derivation row).
             if idx >= edb_row_count {
                 derivations.push(DerivedRow {
+                    cross_world: None,
                     graph: String::new(),
                     subject: head.subject,
                     predicate: head.predicate,
@@ -996,7 +1010,7 @@ pub(crate) fn ground_relational_head(
 }
 
 /// Ground an [`EvalTerm`] into a concrete native [`TermValue`].
-fn ground_term_to_value(
+pub(crate) fn ground_term_to_value(
     term: &EvalTerm,
     sol: &Solution,
     slot: &str,
@@ -1005,45 +1019,14 @@ fn ground_term_to_value(
         EvalTerm::ConstNamed(iri) => Ok(TermValue::iri(iri.clone())),
         EvalTerm::ConstLit(t) => Ok(t.clone()),
         EvalTerm::Var(name) => {
-            let surface = sol.get(name).ok_or_else(|| {
+            let value = sol.get(name).ok_or_else(|| {
                 ir_err(format!(
                     "{slot} variable {name:?} unbound after body matching"
                 ))
             })?;
-            surface_to_value(surface)
+            Ok(value.clone())
         }
     }
-}
-
-/// Re-materialize a native [`TermValue`] from its N3 surface (`<iri>`, `_:blank`, or
-/// a literal).
-pub(crate) fn surface_to_value(surface: &str) -> gmeow_errors::Result<TermValue> {
-    if let Some(iri) = surface.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
-        if iri.is_empty() {
-            return Err(ir_err(format!(
-                "rule_ir: invalid bound IRI {surface:?}: empty"
-            )));
-        }
-        return Ok(TermValue::iri(iri.to_owned()));
-    }
-    if let Some(inner) = surface.strip_prefix("_:") {
-        if inner.is_empty() {
-            return Err(ir_err(format!(
-                "rule_ir: invalid bound blank node {surface:?}: empty"
-            )));
-        }
-        return Ok(TermValue::blank(inner.to_owned()));
-    }
-    // Literal surface.
-    parse_n3_object_literal(surface)
-}
-
-fn parse_n3_object_literal(surface: &str) -> gmeow_errors::Result<TermValue> {
-    crate::term_codec::decode_term(surface).map_err(|error| {
-        ir_err(format!(
-            "rule_ir: cannot parse literal object {surface:?}: {error}"
-        ))
-    })
 }
 
 // ── Asserted-EDB echo (mirror of foundation.rs chase_world's assert block) ───────
@@ -1059,6 +1042,7 @@ pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> gmeow_errors::Result<V
         let reifier = f.reifier()?;
         let deriv = mint_derivation_id(ASSERT_RULE_IRI, &[reifier.as_str()]);
         out.push(DerivedRow {
+            cross_world: None,
             graph: world.to_owned(),
             subject: f.subject.clone(),
             predicate: f.predicate.clone(),
@@ -1081,31 +1065,42 @@ pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> gmeow_errors::Result<V
 ///
 /// # Errors
 ///
-/// Returns `Err` for an invalid IRI in the input.
+/// Returns `Err` if an admitted store row has a non-IRI predicate.
 pub(crate) fn world_edb_facts(
     store: &crate::store::WorldStore,
     world: &str,
 ) -> gmeow_errors::Result<Vec<Fact>> {
-    let raw = store.quads_in_world(world);
+    let raw = store.quads_for_pattern_in_world(world, None, None, None);
     let mut facts: Vec<Fact> = Vec::with_capacity(raw.len());
-    for r in &raw {
-        // r[0], r[1], r[2] are N3 surfaces from `term_display`.
-        let subject = surface_to_value(&r[0])?;
-        let predicate = strip_angle(&r[1]).to_owned();
-        let object = surface_to_value(&r[2])?;
+    for r in raw {
+        let predicate =
+            r.p.as_iri()
+                .ok_or_else(|| ir_err(format!("world EDB predicate is not an IRI: {:?}", r.p)))?
+                .to_owned();
         facts.push(Fact {
-            subject,
+            subject: r.s,
             predicate,
-            object,
+            object: r.o,
         });
     }
     facts.sort_by_key(Fact::key);
     Ok(facts)
 }
 
-/// Strip a leading `<` and trailing `>`; identity if absent.
-fn strip_angle(s: &str) -> &str {
-    s.strip_prefix('<')
-        .and_then(|t| t.strip_suffix('>'))
-        .unwrap_or(s)
+/// Admit the operators represented by the ordinary Gelfond-Lifschitz reduct.
+/// Check before iterating worlds, so an empty source cannot hide unsupported IR.
+pub(crate) fn admit_reduct_rules(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
+    if rules.iter().any(|rule| !rule.numeric.is_empty()) {
+        return Err(ir_err("finite RDF numeric relations require the certified native producer plan; reduct evaluation cannot erase their instructions".to_owned()));
+    }
+    if rules.iter().any(|rule| rule.reduction.is_some()) {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+            detail: "Gelfond-Lifschitz reduct requires aggregate-aware completion".into(),
+        }));
+    }
+    Ok(())
 }
+
+#[path = "rule_ir.tests.rs"]
+#[cfg(test)]
+mod tests;

@@ -352,7 +352,7 @@ jobs:
   # === ONE RUST TEST BUILD LINEAGE ===
   # Compile producer-independent test units immediately, alongside producer compilation.
   # The archive authority then restores that exact run-scoped Cargo target, completes
-  # the two consumers whose binaries embed the producer artifact, and authenticates
+  # consumers whose binaries embed producer artifacts, and authenticates
   # the archive with the completed fixture selection before any test runner starts.
   # A missing target cache
   # is a normal Cargo rebuild; restored units remain subject to Cargo's fingerprints.
@@ -650,6 +650,7 @@ jobs:
           retention-days: 1
 
       - name: Upload producer-bound bundle-import cache
+        if: success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bundle-import-cache-${{ github.sha }}
@@ -1129,7 +1130,7 @@ jobs:
   # restores the exact same-run prebuild target so docs and static surfaces reuse the
   # already-compiled dependency graph; Cargo still fingerprints every additional unit.
   rust-static:
-    needs: [producer, rust-prebuild]
+    needs: [producer, rust-prebuild, fixture-prefix]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -1180,6 +1181,30 @@ jobs:
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
+      - name: Download the authenticated optimized codebook verifier
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gmeow-dev-producer-${{ github.sha }}
+          path: dist/bin
+
+      - name: Make the codebook verifier executable
+        run: chmod +x dist/bin/gmeow-dev
+
+      - name: Download the producer-selected prefix fixtures
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: prefix-test-fixtures-${{ github.sha }}
+          path: .
+
+      - name: Authenticate the producer codebook before compiling static consumers
+        env:
+          FIXTURE_MANIFEST_SHA256: ${{ needs.fixture-prefix.outputs.selector_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$FIXTURE_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          echo "${FIXTURE_MANIFEST_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json" | sha256sum -c -
+          make verify-wasm-codebook
+
       - name: Workspace clippy
         run: cargo clippy --all-targets -- -D warnings
 
@@ -1214,7 +1239,8 @@ jobs:
   #   ontology-reason    : reason-verify, coverage
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
   #                        slice-quality, compliance-report
-  #   heavy              : wasm-parity, console-smoke, acceptance, bench-soak
+  #   heavy              : wasm-parity, console-smoke, acceptance, bench-soak,
+  #                        conformance-heavy
   #   medium-consumer-surface : archive replay of the two exhaustive medium suites
   ontology-validate:
     needs: [producer]
@@ -1483,14 +1509,15 @@ jobs:
   #                  perturbed trees, and the real installed npm tarball.
   #   acceptance  : full transpile-recall floor over every external RDF snapshot.
   #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
-  # The standalone `medium-consumer-surface` job above runs the fifth matrix-independent
+  #   conformance-heavy: exhaustive OWL-Full divergence and class-diagnostic corpus.
+  # The standalone `medium-consumer-surface` job above runs the sixth matrix-independent
   # HEAVY_TASKS member from the authenticated archive. The Make aggregate covers both.
   heavy:
-    needs: [producer]
+    needs: [producer, fixture-prefix]
     strategy:
       fail-fast: false
       matrix:
-        task: [wasm-parity, console-smoke, acceptance, bench-soak]
+        task: [wasm-parity, console-smoke, acceptance, bench-soak, conformance-heavy]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -1546,6 +1573,25 @@ jobs:
         run: |
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
+
+      # Browser builds consume the exact native dictionary prepared by fixture-prefix's
+      # explicit producer. Neither this transfer nor admission may produce fixtures.
+      - name: Download the producer-selected browser codebook fixtures
+        if: ${{ matrix.task == 'wasm-parity' || matrix.task == 'conformance-heavy' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: prefix-test-fixtures-${{ github.sha }}
+          path: .
+
+      - name: Authenticate the producer codebook before compiling browser consumers
+        if: ${{ matrix.task == 'wasm-parity' }}
+        env:
+          FIXTURE_MANIFEST_SHA256: ${{ needs.fixture-prefix.outputs.selector_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$FIXTURE_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          echo "${FIXTURE_MANIFEST_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json" | sha256sum -c -
+          make verify-wasm-codebook
 
       # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.125) byte
       # for byte, or it refuses to generate the JS bindings.

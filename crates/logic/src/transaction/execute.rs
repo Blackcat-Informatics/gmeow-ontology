@@ -14,11 +14,13 @@
 //! A child module of `transaction` so it reaches the engine's `pub(crate)` emission helpers
 //! through that one shared path — no duplicated branch, no second authority.
 
+use std::collections::BTreeSet;
+
 use super::{
     EXECUTED_HYPOTHETICALLY_AS, ExecutionMode, TEMPORALLY_SUCCEEDS, TRANSACTION_SUCCEEDS,
-    TRANSITION_FROM_STATE, emit_program_outcome, logic, parse_program, root_start, xsd_bool,
+    TRANSITION_FROM_STATE, TransactionProgram, emit_program_outcome, logic, parse_program,
+    root_start, xsd_bool,
 };
-use crate::store::WorldStore;
 use crate::teleology::{TeleologyQuad, WorldFacts, triple_reifier};
 
 /// Whether an executed transaction commits its effects or runs as the hypothetical (sandbox)
@@ -92,52 +94,123 @@ pub fn execute_transaction(
     root: &str,
     mode: CommitMode,
 ) -> gmeow_errors::Result<TxReceipt> {
-    let store = WorldStore::new();
-    store.load_nquads(nquads)?;
-    let facts = WorldFacts::read(&store, world);
+    let dataset =
+        purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Store {
+                detail: format!("N-Quads parse error: {error}"),
+            })
+        })?;
+    execute_transaction_dataset(&dataset, world, root, mode)
+}
 
-    let (start, sits) = root_start(&facts, root)?;
-    let program = parse_program(&facts, root, 0)?;
-    // Ground the outcome on the root's `logic:transitionFromState` quad — a REAL input quad.
-    // A primitive root has no `rdf:type` to reify, and the explain engine refuses a dangling
-    // reifier; mirror `trajectory::emit_trajectory_audits`, which grounds on the same anchor.
-    let source = triple_reifier(root, &logic(TRANSITION_FROM_STATE), &start)?;
+/// Execute the same transaction authority over a native input carrier.
+/// This adapter preserves the selected world and avoids RDF serialization/parsing.
+/// It returns the same committed or hypothetical receipt as [`execute_transaction`].
+pub fn execute_transaction_dataset(
+    dataset: &purrdf::RdfDataset,
+    world: &str,
+    root: &str,
+    mode: CommitMode,
+) -> gmeow_errors::Result<TxReceipt> {
+    PreparedTransaction::new(dataset, world, root)?.execute(mode)
+}
 
-    let exec_mode = match mode {
-        CommitMode::Committed => ExecutionMode::Committed,
-        CommitMode::Hypothetical => ExecutionMode::Hypothetical,
-    };
-    let quads = emit_program_outcome(
-        &facts, world, root, &program, exec_mode, &start, &sits, &source,
-    )?;
+/// One transaction root prepared against an immutable, world-scoped input.
+///
+/// Fact indexing, operand lowering and the start-state provenance anchor are
+/// computed once. Each execution uses the same native transaction authority with
+/// fresh work counters and effects; committed and hypothetical results cannot
+/// contaminate later runs. A changed source requires a new preparation. This is
+/// situation-level execution, not an RDF view-update or a lens-law certificate.
+pub struct PreparedTransaction {
+    facts: WorldFacts,
+    program: TransactionProgram,
+    world: String,
+    root: String,
+    start: String,
+    sits: BTreeSet<String>,
+    source: String,
+}
 
-    let succeeds_pred = logic(TRANSACTION_SUCCEEDS);
-    let succeeded_true = xsd_bool(true);
-    let succeeded = quads
-        .iter()
-        .any(|q| q.predicate == succeeds_pred && q.object == succeeded_true);
+impl PreparedTransaction {
+    /// Prepare the selected root from all three native RDF tables in `world`.
+    ///
+    /// # Errors
+    /// Refuses a missing or ambiguous start state and malformed program structure.
+    /// Runtime preconditions and termination remain checked on every execution.
+    pub fn new(
+        dataset: &purrdf::RdfDataset,
+        world: &str,
+        root: &str,
+    ) -> gmeow_errors::Result<Self> {
+        let facts = WorldFacts::read_dataset(dataset, world);
+        let (start, sits) = root_start(&facts, root)?;
+        let program = parse_program(&facts, root, 0)?;
+        // Ground the receipt on the real input anchor, including primitive roots
+        // that have no rdf:type assertion to reify.
+        let source = triple_reifier(root, &logic(TRANSITION_FROM_STATE), &start)?;
+        Ok(Self {
+            facts,
+            program,
+            world: world.to_owned(),
+            root: root.to_owned(),
+            start,
+            sits,
+            source,
+        })
+    }
 
-    Ok(match (mode, succeeded) {
-        (CommitMode::Committed, true) => TxReceipt::CommittedSuccess {
-            path_len: path_len(&quads),
-            outcome_nquads: render_nquads(&quads),
-        },
-        (CommitMode::Committed, false) => TxReceipt::CommittedFailure {
-            reason: format!("executional entailment failed from start state <{start}>"),
-        },
-        (CommitMode::Hypothetical, true) => TxReceipt::HypotheticalSuccess {
-            witness: witness(&quads).ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Transaction {
-                    detail: "hypothetical success emitted no logic:executedHypotheticallyAs \
+    /// Execute with fresh runtime state against the exact prepared input.
+    ///
+    /// # Errors
+    /// Propagates structural, termination and receipt-emission failures from the
+    /// shared engine without returning a partial receipt.
+    pub fn execute(&self, mode: CommitMode) -> gmeow_errors::Result<TxReceipt> {
+        let Self {
+            facts,
+            program,
+            world,
+            root,
+            start,
+            sits,
+            source,
+        } = self;
+
+        let exec_mode = match mode {
+            CommitMode::Committed => ExecutionMode::Committed,
+            CommitMode::Hypothetical => ExecutionMode::Hypothetical,
+        };
+        let quads =
+            emit_program_outcome(facts, world, root, program, exec_mode, start, sits, source)?;
+
+        let succeeds_pred = logic(TRANSACTION_SUCCEEDS);
+        let succeeded_true = xsd_bool(true);
+        let succeeded = quads
+            .iter()
+            .any(|q| q.predicate == succeeds_pred && q.object == succeeded_true);
+
+        Ok(match (mode, succeeded) {
+            (CommitMode::Committed, true) => TxReceipt::CommittedSuccess {
+                path_len: path_len(&quads),
+                outcome_nquads: render_nquads(&quads),
+            },
+            (CommitMode::Committed, false) => TxReceipt::CommittedFailure {
+                reason: format!("executional entailment failed from start state <{start}>"),
+            },
+            (CommitMode::Hypothetical, true) => TxReceipt::HypotheticalSuccess {
+                witness: witness(&quads).ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::Transaction {
+                        detail: "hypothetical success emitted no logic:executedHypotheticallyAs \
                              witness"
-                        .to_owned(),
-                })
-            })?,
-        },
-        (CommitMode::Hypothetical, false) => TxReceipt::HypotheticalFailure {
-            reason: format!("executional entailment failed from start state <{start}>"),
-        },
-    })
+                            .to_owned(),
+                    })
+                })?,
+            },
+            (CommitMode::Hypothetical, false) => TxReceipt::HypotheticalFailure {
+                reason: format!("executional entailment failed from start state <{start}>"),
+            },
+        })
+    }
 }
 
 /// States on the executed path = `logic:temporallySucceeds` edges + 1 (a one-step run walks
@@ -178,198 +251,6 @@ fn render_nquads(quads: &[TeleologyQuad]) -> String {
     lines.join("\n")
 }
 
+#[path = "execute.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    const W: &str = "https://example.org/txn/world";
-
-    fn li(local: &str) -> String {
-        format!("https://blackcatinformatics.ca/logic/{local}")
-    }
-    fn ex(local: &str) -> String {
-        format!("https://example.org/txn/{local}")
-    }
-    fn q(s: &str, p: &str, o: &str) -> String {
-        format!("<{s}> <{p}> <{o}> <{W}> .\n")
-    }
-
-    /// A one-step `store_claim` transaction world. The precondition (`wellFormedClaim`)
-    /// obtains at the start state iff `ready`.
-    fn store_world(ready: bool) -> String {
-        let mut s = String::new();
-        s += &q(
-            &ex("txStore"),
-            &li("instantiatesSchema"),
-            &ex("storeSchema"),
-        );
-        s += &q(&ex("txStore"), &li("transitionFromState"), &ex("start"));
-        if ready {
-            s += &q(
-                &ex("start"),
-                &li("situationObtains"),
-                &ex("wellFormedClaim"),
-            );
-        }
-        s += &q(
-            &ex("storeSchema"),
-            &li("precondition"),
-            &ex("wellFormedClaim"),
-        );
-        s += &q(&ex("storeSchema"), &li("effect"), &ex("storeEffect"));
-        s += &q(&ex("storeEffect"), &li("ins"), &ex("claimInMemory"));
-        s += &q(&ex("storeEffect"), &li("ins"), &ex("targetClaimExists"));
-        s
-    }
-
-    /// A one-step `revise_belief` transaction world — `revise_belief` IS `store_claim`'s
-    /// compensation. The del targets (`claimInMemory`, `targetClaimExists`) obtain at the
-    /// start so the committed run retires them via the supersession quartet (P10).
-    fn revise_world() -> String {
-        let mut s = String::new();
-        s += &q(
-            &ex("txRevise"),
-            &li("instantiatesSchema"),
-            &ex("reviseSchema"),
-        );
-        s += &q(&ex("txRevise"), &li("transitionFromState"), &ex("start"));
-        s += &q(
-            &ex("start"),
-            &li("situationObtains"),
-            &ex("targetClaimExists"),
-        );
-        s += &q(&ex("start"), &li("situationObtains"), &ex("claimInMemory"));
-        s += &q(
-            &ex("reviseSchema"),
-            &li("precondition"),
-            &ex("targetClaimExists"),
-        );
-        s += &q(&ex("reviseSchema"), &li("effect"), &ex("reviseEffect"));
-        s += &q(&ex("reviseEffect"), &li("ins"), &ex("claimSuppressed"));
-        s += &q(&ex("reviseEffect"), &li("del"), &ex("claimInMemory"));
-        s += &q(&ex("reviseEffect"), &li("del"), &ex("targetClaimExists"));
-        s
-    }
-
-    #[test]
-    fn committed_store_succeeds_when_precondition_obtains() {
-        let receipt =
-            execute_transaction(&store_world(true), W, &ex("txStore"), CommitMode::Committed)
-                .expect("execute");
-        match receipt {
-            TxReceipt::CommittedSuccess {
-                outcome_nquads,
-                path_len,
-            } => {
-                assert!(path_len >= 2, "one-step run walks start → end: {path_len}");
-                assert!(
-                    outcome_nquads.contains(&li("TransactionOutcome")),
-                    "committed substrate carries the outcome node"
-                );
-                assert!(
-                    outcome_nquads.contains(&li("transactionSucceeds")),
-                    "committed substrate carries the verdict"
-                );
-            }
-            other => panic!("expected CommittedSuccess, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn committed_store_fails_when_precondition_absent_leaves_start_untouched() {
-        let receipt = execute_transaction(
-            &store_world(false),
-            W,
-            &ex("txStore"),
-            CommitMode::Committed,
-        )
-        .expect("execute");
-        match receipt {
-            TxReceipt::CommittedFailure { .. } => {}
-            other => panic!("expected CommittedFailure, got {other:?}"),
-        }
-        assert!(!receipt_succeeded(
-            &store_world(false),
-            CommitMode::Committed
-        ));
-    }
-
-    #[test]
-    fn hypothetical_success_emits_witness_and_no_committed_substrate() {
-        let receipt = execute_transaction(
-            &store_world(true),
-            W,
-            &ex("txStore"),
-            CommitMode::Hypothetical,
-        )
-        .expect("execute");
-        match receipt {
-            TxReceipt::HypotheticalSuccess { witness } => {
-                assert!(!witness.is_empty(), "a sandbox run leaves a witness trace");
-            }
-            other => panic!("expected HypotheticalSuccess, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn revise_is_compensation_supersession_quartet_present() {
-        let receipt =
-            execute_transaction(&revise_world(), W, &ex("txRevise"), CommitMode::Committed)
-                .expect("execute");
-        match receipt {
-            TxReceipt::CommittedSuccess { outcome_nquads, .. } => {
-                // The supersession quartet (P10 — superseded, never erased).
-                for pred in [
-                    "activeInState",
-                    "validUntilState",
-                    "retiredByTransaction",
-                    "supersededBy",
-                ] {
-                    assert!(
-                        outcome_nquads.contains(&li(pred)),
-                        "committed revise emits logic:{pred}"
-                    );
-                }
-            }
-            other => panic!("expected CommittedSuccess, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn verdict_is_mode_invariant_only_substrate_differs() {
-        // Same world, both modes succeed; same world (no precondition) both fail.
-        assert!(receipt_succeeded(&store_world(true), CommitMode::Committed));
-        assert!(receipt_succeeded(
-            &store_world(true),
-            CommitMode::Hypothetical
-        ));
-        assert!(!receipt_succeeded(
-            &store_world(false),
-            CommitMode::Committed
-        ));
-        assert!(!receipt_succeeded(
-            &store_world(false),
-            CommitMode::Hypothetical
-        ));
-    }
-
-    #[test]
-    fn execution_is_deterministic() {
-        let a = execute_transaction(&store_world(true), W, &ex("txStore"), CommitMode::Committed)
-            .expect("execute");
-        let b = execute_transaction(&store_world(true), W, &ex("txStore"), CommitMode::Committed)
-            .expect("execute");
-        assert_eq!(a, b, "same world → byte-identical receipt");
-    }
-
-    fn receipt_succeeded(nquads: &str, mode: CommitMode) -> bool {
-        let root = if nquads.contains(&ex("txRevise")) {
-            ex("txRevise")
-        } else {
-            ex("txStore")
-        };
-        execute_transaction(nquads, W, &root, mode)
-            .expect("execute")
-            .succeeded()
-    }
-}
+mod tests;

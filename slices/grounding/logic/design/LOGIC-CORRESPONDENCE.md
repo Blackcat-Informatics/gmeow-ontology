@@ -86,6 +86,19 @@ a unit**: the loss ledger needs one preservation row per correspondence, hashing
 axes, the caveat, *and both legs* together, so it can attribute a dropped construct to the leg that
 dropped it. This is the same reasoning that keeps `constraint` distinct from `derivation-rule`.
 
+Concrete loss evidence is authored as `logic:lossyDrop` literals on the owning
+correspondence. Every literal retains its lexical form, datatype, language and RDF 1.2
+base direction through the typed carrier, content identity and canonical projection;
+the correspondence's standpoint, provenance evidence and legs qualify that same owner.
+Human loss reports may display lexical messages while retaining the native evidence.
+Caveats and preservation rungs do not imply particular drops, and one cell's evidence
+must never be copied to an unrelated cell. A declared judgment with no concrete loss
+asserts no fabricated residue: `ExactPreservation` rejects any loss, `Unsupported`
+requires actual evidence, and loss evidence without `preservationKind` is rejected.
+Identity labels never count as residue. Program-level unowned `lossyDrop` declarations
+are unsupported and rejected; each actual distinction must name its correspondence.
+These declarations are evidence disclosures, not discharged laws or fusion certificates.
+
 ### The relation lattice
 
 The correspondence's relation is a typed `logic:CorrespondenceRelation` on an ordered lattice, not a
@@ -227,6 +240,31 @@ therefore violates the obligation even when the unchanged recovery formula can i
 formula and the resolved bodies are one cross-checked proof object; neither is an independent semantic
 source.
 
+Recovery formulas and resolved path bodies lower directly to PurRDF's typed query
+algebra. Native algebra admission still applies before execution; constructing
+algebra does not waive IRI, variable, path or registry checks. The resolved legs
+are prepared once for all cases of a correspondence, while each case executes
+against its own immutable source and retains its own countermodel. Atomic path
+recovery uses the same typed admission. SPARQL text is an explicit input or output
+surface, not transport between these compiler and execution steps.
+
+Compilation derives the correspondence program once and passes that exact program
+to native law execution. Gates and returned projection artifacts retain its
+executed verdicts, so grading an additional composition does not repeat put
+derivation or law execution. Program handle identities bind the complete canonical
+correspondence payload, including selected legs, standpoint, determinacy,
+mnemomorphic claims and each law's verdict and evidence class. Length-framed
+caveats and collection boundaries prevent prose from impersonating identity
+structure. Cache hydration must reject a typed payload whose semantic identity
+differs from the program re-derived from its backing graph.
+
+The production up-projection program likewise admits fact and claim legs as native
+query algebra once per mapping inventory. Its reified-claim layout is shared with
+the exported put-query template: mapping evidence, confidence and the distinction
+between a claim and an asserted relation have one definition across both surfaces.
+Independent inputs share prepared plans while retaining separate execution state
+and per-query namespaces for newly created claim cells.
+
 The executor's synthetic view and seed IRIs live only under
 `https://blackcatinformatics.ca/logic/recovery#` and
 `https://blackcatinformatics.ca/logic/recovery-seed/`.  Authored formulas and leg predicates in
@@ -255,6 +293,107 @@ Instruction-State-Machine linkage (Instruction → Activity → Action) made can
 is present the planned portion round-trips; the off-plan reality is an honest loss-ledger entry, never
 a failure.
 
+## Independent law domains and evidence
+
+The four laws have separate input domains. Let `s` be an admitted rich source,
+`v`, `v₁` and `v₂` independently admitted views, and `s₀` the explicitly selected
+initial source for recovery:
+
+| Law | Executed equality | Required input domain |
+| --- | --- | --- |
+| GetPut | `put(get(s), s) = s` | admitted sources, including nonempty prior state |
+| PutGet | `get(put(v, s)) = v` | admitted edited views paired with admitted prior sources |
+| PutPut | `put(v₂, put(v₁, s)) = put(v₂, s)` | independently selected successive edits and prior sources |
+| SectionLaw | `put(get(s), s₀) = s` | augmented forward views with their required recovery witnesses and declared initial-state policy |
+
+An augmented view includes its load-bearing complement. Every equality compares
+the complete declared carrier: graph scope, RDF 1.2 terms, standpoint, provenance,
+complements and loss evidence. A missing or corrupt selected complement fails
+admission; a `mnemomorphic` flag does not substitute for the witness. Each verdict
+binds the exact correspondence, theories, legs, context/caveats, inputs,
+`ReasoningContract` and discharge condition.
+
+Checking `get(put(get(s), s₀)) = get(s)` on source-generated views establishes
+only that forward-image domain. It does not establish PutGet on independently
+edited views, GetPut with prior state, or PutPut. Synthetic recovery cases and
+bounded corpora retain `DischargeBoundedCorpus` with their exact coverage.
+Unrestricted rewrites require a checked certified-fragment derivation whose
+applicability premises hold at the use site. Sample agreement alone cannot
+provide that authority.
+
+Synthetic branch-domain admission is also bounded: at most 4,096 distributed
+branches, 65,536 pattern occurrences and 128 nested algebra edges. The shared
+native query is prepared before law execution; distribution checks its projected
+branch and pattern counts before allocating their Cartesian product. The combined
+case adds one seed and repeats the admitted pattern inventory once. Malformed or
+non-carrier queries and excessive expansion fail admission, rather than yielding
+an empty or truncated domain. These limits bound GMEOW's recovery-case synthesis;
+they are distinct from the native query runtime's execution budget.
+
+### Native atomic focus and complement execution
+
+An atomic property lens selects ordinary assertions of one source predicate and
+renames it to a view predicate, optionally reversing endpoints. Its update is
+`put(v, s) = residual(s) ∪ inverseFocus(v)`. The residual retains all assertions
+outside the selected focus, statement reifier bindings, annotations, graph
+declarations and native source sidecars. Quoted historical statements remain
+statements about their original values; updating a magnitude does not rewrite
+its earlier provenance record. This primitive does not own edits to metadata.
+Acquisition requires native statement classification: a flat wire carrier with
+unfolded reifier declarations must cross its import boundary first. Otherwise
+table-dependent focus selection could mistake statement annotations for ordinary
+assertions. The lens refuses that ambiguity rather than silently normalizing or
+reinterpreting the selected source.
+
+The operation has a fixed graph catalogue, including empty named graphs. An
+independently edited view must remain within that catalogue and the selected
+predicate. A new assertion cannot silently become an annotation of a residual
+reifier. Such edits fail admission. Inputs to the native shared-scope update
+entry point already share an explicit blank-node identity authority; parsing an
+independent document does not establish that authority.
+
+The augmented view carries its required residual as an immutable native handle.
+The explicit `EmptyWithComplement` initial-state policy reconstructs the rich
+source from that residual and the inverse focus. The residual is a suppression
+view over the original native dataset; subsequent edits share it and retain only
+the current focus. No complete source is serialized or materialized by get/put.
+Complete-carrier materialization used by a bounded law comparison is a separate
+evidence boundary. Persisting or exporting this augmented value must preserve
+the complement; the projected RDF view alone is not a recovery artifact.
+
+The native executor checks GetPut, PutGet, PutPut and SectionLaw separately.
+Atomic path recovery uses this executor with the independently resolved candidate
+put and an explicit empty initial state. Its existing synthesized one-triple
+domain still yields only bounded section evidence: it neither supplies the other
+three domains nor certifies unrestricted rewrites or composite-path recovery.
+
+Native atomic composition executes get left to right and put right to left. Each
+intermediate view predicate must match the next source predicate. This is an
+admission check on the selected atomic carrier types, not a general theorem about
+the correspondence wrapper's theories or quantitative axes. It composes executable
+lenses, not `LegPath::Seq` relational paths: following a path through intermediate
+nodes does not establish that those nodes can be recovered from its endpoints.
+Every original stage retains its own inversion and native retention checks; two inversions
+cannot erase a literal-subject refusal at the intermediate stage.
+
+The first complement retains the rich source. Later complements retain only the
+fixed graph catalogue: their inputs are typed, freshly projected atomic views,
+whose ordinary assertions all belong to the next focus. Those intermediate
+complements share one native graph catalogue. The augmented terminal view owns
+the ordered complements and checks their exact stage programs and
+retention policies at recovery. Discarding an intermediate view does not discard
+its recovery information or retain its obsolete payload through a residual base.
+
+On reverse execution, complete-focus reuse requires an operation-local witness:
+the residual comes from the typed graph-catalogue boundary, has no ordinary,
+reifier or annotation rows, and the native focus and graph catalogue belong to
+the actual immutable publication. Only then can the preceding stage consume the
+native focus directly instead of compacting the intermediate composite. Every
+preceding stage still admits and executes its own put. This check proves the
+specific carrier replacement against its complete input; its operational trace
+is neither a sampled law discharge nor an unrestricted optimizer certificate.
+Whole-carrier law comparisons remain a separate evidence boundary.
+
 ## The quantitative and contextual axes
 
 A correspondence carries each axis **separately**, because they answer different questions and the
@@ -267,6 +406,38 @@ single `gmeow:confidence` of the old DSL destroys the distinctions:
 - `logic:Determinacy` — whether the *target relationship* is ontically crisp or vague. "Similar but
   not quite" is `determinacy = vague` + `class = affine`, **not** low-confidence equivalence.
 
+Admission to a selected typed representation must distinguish an absent field from
+an unrecognized, malformed or conflicting present value. A scalar representation
+cannot choose one of several authored values; admitting that multiplicity requires
+an explicit contextual lowering that preserves every alternative. Enum values use
+their canonical `logic:` identities. Malformed quantitative values cannot erase an
+axis, and a malformed witness-retention flag cannot become false. Every declared
+law, recovery, caveat and selected-program reference must be accounted for; filtering
+an unreadable member out of the collection is not a legal lowering.
+
+Quantitative coordinates retain the complete authored RDF literal, including its
+numeric datatype and lexical form, through typed compilation, program identity,
+canonical graph projection and cache ingress. Numerically equal literals are not
+thereby the same authored RDF term. The native scalar profile admits finite RDF
+integer, decimal, float and double values within the native datatype's supported
+precision; confidence, evidence strength and probability additionally require
+`[0, 1]`. Unsupported precision, a nonnumeric datatype or a conflicting scalar
+fails admission. Range validation uses the declared numeric value, without first
+rounding an exact decimal through binary64. SSSOM and EDOAL's binary64 measures
+are explicit lossy export boundaries whose loss records name the dropped RDF
+identity; those export values never become canonical input coordinates.
+
+Caveat ownership survives every typed program boundary. A correspondence's
+identity includes its limitations; assembling a new program, deriving a put leg
+or attaching law evidence cannot detach them. Named textual caveats preserve
+their identity and every authored comment in the correspondence IR. Comments
+form an unordered RDF set with no preferred language; their complete lexical
+forms, datatypes, languages and base directions survive compilation, cache
+transport and faithful projection. Numeric-looking comment text is never
+coerced into a quantitative axis. Formula-valued caveats require
+their own typed lowering and meta-level admission; retaining prose does not
+discharge those obligations.
+
 Every correspondence is **standpoint-indexed** (`gmeow:accordingTo`, the typed context algebra of
 [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)). An unindexed correspondence holds in
 `gmeow:unspecifiedStandpoint` — **unspecified, not universal** — which kills the silent-universality bug where
@@ -274,20 +445,273 @@ a curated alignment is applied where it was never validated.
 
 ## Composition and merge
 
+Author a named `logic:CorrespondenceComposition` with exactly one
+`logic:compositionFirst`, `logic:compositionSecond` and `logic:compositionResult`.
+These reference correspondence individuals; acquisition executes first then
+second, while updates execute second then first. Every selected declaration
+enters the canonical IR, the program's content identity and the production
+composition report. `logic:hasComposition` records membership in the projected
+program. Malformed declarations retain their original source diagnostics and
+fail production admission; a missing member cannot become an empty inspection.
+
+The declaration gate requires explicit source and target endpoint references
+on both members and the result. The middle references must match, and the result
+must name the chain's outer endpoints. All three `logic:accordingTo` references
+must match exactly, including absence: an unspecified standpoint does not grant
+universal applicability. Cross-context composition requires an explicit context
+transport judgment. These reference checks prove neither theory equivalence nor
+execution or fusion. The original source selection retains its annotations and
+provenance; the declaration's named identity remains visible in the gate report.
+
 **Composition (sequential, `C₁ ∘ C₂`)** computes each axis in its own algebra: class by optic-lattice
 join (monotone-downward — composition only weakens the rung); laws with weakest-status-dominates
-(`unknown` is absorbing); `confidence` by a declared t-norm (default product, independence made
-explicit); `evidenceStrength` by weakest-link/min; `weight` solver-additive; `probability` only under a
+(`violated` dominates `unknown`, which dominates `discharged`); `confidence` by a declared t-norm
+(product requires declared independence); `evidenceStrength` by weakest-link/min; `weight` solver-additive; `probability` only under a
 declared cross-chain model (else `not-evaluated`); loss by Galois-connection composition with union of
 the unsupported-construct sets. All computed **by `logic:` rules over correspondence nodes** — dogfooded
-and conformance-checked, not buried in compiler arithmetic.
+and conformance-checked, not buried in compiler arithmetic. The warrant is per-law,
+with its exact domains and premises. A refuted premise blocks a compositional
+certificate; its countermodel remains a premise witness and is not relabeled as
+a countermodel of the final composite without executing that composite.
+
+Quantitative execution selects named `logic:Formula` roots with
+`logic:compositionAxisRule`. These references, and the composition-owned
+`logic:confidenceIndependenceEvidence` and
+`logic:probabilityIndependenceEvidence`, survive canonical IR and graph/cache
+transport. Each rule branch binds that exact selection and the ordered
+first/second/result records. The executor resolves the already-parsed source
+Formula through the original immutable frontend publication; it does not
+reparse a rule language or recover authority from a report.
+
+Axis rule bodies use a positive, composition-local input fragment: the three
+member references, selected rule references, independence assumptions, four
+member coordinates, evidence scales, probability models and evidence sources.
+Explicit member bindings admit both aliases and constants. These facts come
+from the typed composition and correspondence records; an unrelated record
+cannot become available merely because another composition shares its batch.
+An unsupported predicate or foreign subject fails admission, even when no
+result value is claimed. It must not be interpreted as a missing premise.
+
+A body may read a `composedConfidence`, `composedEvidenceStrength`,
+`composedWeight` or `composedProbability` value on that same composition only
+when the selected native rules include a producer for that coordinate. Native
+derivations supply these values; authored observations never seed them. Rule
+selection order does not determine availability. Missing admitted premises can
+still yield `not-evaluated` for an unclaimed value, subject to the completion
+and claim checks below.
+
+The canonical policies are `composeConfidenceProduct` (requiring the explicit
+confidence independence assumption), `composeConfidenceMinimum`,
+`composeConfidenceLukasiewicz`, `composeEvidenceMinimum`, `composeWeightAdd`,
+and `composeIndependentProbability`. There is no implicit product selection.
+Evidence minimum requires all three correspondences to name the same
+`logic:evidenceScale`. Probability product requires all three to name
+`logic:IndependentCorrespondenceProbabilities` through
+`logic:crossChainProbabilityModel`, together with the composition's probability
+independence evidence. This is distinct from the existing fact-level
+`logic:FullIndependence` model. Other dependency models require their own
+explicit source rules; naming an arbitrary model cannot imply multiplication.
+An assumption reference records what the curator assumed for these exact
+operands and standpoint; it is not a proof of independence.
+
+`logic:evidenceSource` retains the full qualitative justification identity.
+The mapping frontend never invents numerical warrant bands from SEMAPV terms
+or their local names. An authored score and its warrant scale are separate
+claims. The qualitative `manualSemanticReview` example in `take1.md` is an
+evidence source, not a numeric `evidenceStrength` value. Observation provenance
+in the worked examples must likewise remain qualitative unless an explicit
+numerical interpretation is authored.
+
+Native rules emit composition-owned `composedConfidence`,
+`composedEvidenceStrength`, `composedWeight` and `composedProbability`.
+These observations remain separate from the independently authored result
+correspondence. Present result claims must agree numerically with a derived
+value; absent prerequisites, conflicting outputs or incomplete execution
+cannot validate a claimed value. With no claimed output, missing premises are
+reported as `not-evaluated`, and an unselected axis as `not-selected`.
+Numerical agreement preserves the original literal identity in the source;
+it never rewrites that literal into the computed representation.
+
+The selected numeric datatype retains its precision, rounding and definedness
+boundaries. A mathematical t-norm name does not establish reassociation of
+finite machine arithmetic: floating-point operations and bounded decimal
+intermediates need not be associative. Certified fusion must establish both
+value preservation and definedness for the admitted input profile and original
+rule order. Bounded example agreement cannot supply that proof.
+
+The native executor groups compatible selections within a standpoint, reuses
+bounded formula and prepared-program analyses, and seeds typed values directly
+into the native store. It retains the exact source roots, assumptions and
+native derivations. A user-authored policy remains a conditional calculation:
+executing it does not prove it is a t-norm, a calibrated dependency model or an
+unrestricted rewrite law. Neither this result nor agreement on the worked
+cases certifies optic fusion. Structural and per-law admission still apply.
+
+The declaration gate therefore checks each claimed law against that same law's
+declarations and executed evidence on both premises. A successful GetPut cannot
+substitute for missing SectionLaw evidence, and an unrelated unknown SectionLaw
+cannot erase supported GetPut evidence. Its aggregate status is a summary of
+premise bounds, not a verdict on the final composite. Likewise, the weakest
+member's declared rung supplies only a necessary weakening bound; it does not
+compute a resulting optic type, approximation polarity or quantitative axis.
+Those judgments remain owned by canonical composition rules and typed admission.
 
 **Merge (the colimit/pushout direction)** — combining incoming data from several sources into GMEOW
 simultaneously is a **colimit/pushout in the category of theories**, gluing along the shared GMEOW apex
 without collapsing distinct, possibly contested, contexts. A pushout that would force `owl:sameAs`-style
 collapse of standpoint-indexed claims is ill-formed (Principles 5/9): the merge is a colimit in a
-category whose objects carry standpoint indices, so contested claims coexist. This axis is **declared,
-not yet fully specified** — an open axis for design (it is left open in `take1.md` §8.2).
+category whose objects carry standpoint indices, so contested claims coexist.
+
+The executable merge category is **finite standpoint-indexed theory
+presentations**, with an explicit shared apex and two typed embeddings. Merge
+forms the disjoint union and identifies only the corresponding images of apex
+symbols at their declared indices. It transports every signed axiom, caveat,
+provenance record, complement and loss record. Opposing claims remain distinct,
+including when they share a standpoint. A context mismatch cannot be repaired
+by silently declaring contexts equal.
+
+The result carries both injections and evidence that the square commutes. Given
+a compatible pair of presentation maps into another admitted presentation, its
+factorization must agree on the shared apex and be unique on the transported
+generators. This is a checkable universal property in the declared presentation
+category; it does not claim decidable equivalence or complete inference for
+arbitrary first-order theories. Those reasoning boundaries stay explicit in the
+selected contract.
+
+The native presentation API makes this category explicit. An object carries a
+finite typed signature and **closed canonical `Formula` sentences**, each with
+an axiom-or-caveat kind, an independent positive-or-negative support sign, and
+an immutable evidence publication. Generator positions belong to that exact
+presentation; source names are co-equal historical metadata. Equal names alone
+never identify two generators. Each context fixes world, standpoint, time, path,
+module and modality; declared empty contexts also survive transport. The entire
+selected reasoning contract is retained unchanged.
+
+A presentation map is total on generators, preserves their exact roles and
+context, retains every source name, and sends every decorated signed sentence to
+a target sentence modulo the shared IR's alpha and connective normalization.
+It does not discharge a sentence by entailment. Evidence identity is the exact
+immutable native publication, including original provenance, complement and
+loss information; separate evidence records cannot be replaced by equal labels
+or equal serialized bytes. Historical evidence is interpreted together with the
+explicit symbol bindings, rather than rewritten as if it originated downstream.
+General maps may identify generators, while the merge span and injections must
+be injective. These choices define the executable presentation category rather
+than implying decidability for arbitrary theories or every Common Logic surface.
+
+`CheckedPushout` independently checks the supplied square: the injections must
+cover every output generator, intersect exactly on the apex images, preserve
+exactly the union of source names and contexts, and carry exactly the transported
+signed sentences and evidence. This excludes commuting quotients with extra
+identifications and commuting extensions with extra axioms. For any admitted
+cocone agreeing on the apex, the induced map is checked on both injections;
+their joint coverage proves uniqueness on every output generator. This argument
+is structural, independent of the size or success of a test corpus.
+
+Sentence analysis is shared with its native formula body, and transport updates
+only symbol bindings. Canonical comparison uses the existing IR normalization
+under those bindings without constructing a translated formula or reparsing RDF.
+Provenance and complements retain their native dataset handles. Deterministic
+admission limits refuse excess work rather than truncating a result. The checked
+square is an invocation-local witness tied to the exact immutable publications
+and native engine descriptor; it is not a serialized rewrite certificate or a
+claim that the selected reasoning contract has been executed. Canonical-source
+admission and production scheduling must establish their own corresponding
+execution judgments before consuming this operation as an optimization.
+
+### Authored finite presentation merges
+
+The source-aware compiler retains the selected `logic:presentationFormula` roots
+with their exact source bindings. They remain owned sentences, including when
+their support is negative; they do not become global axioms. Native source merge
+execution consumes this same immutable compilation and its original document
+occurrences. It neither reparses the source nor reconstructs those formulas.
+
+The compiler stores the complete presentation declaration catalog in typed IR:
+named contracts, contexts, signatures, signed sentences, evidence, presentations,
+maps and selected merges. Standalone declarations remain in this catalog even
+when no merge is selected. Formula bodies are shared with their original compiler
+owners. Structural declaration fields do not also enter the flat axiom list.
+A malformed declaration is an explicit refused IR value, including its original
+source roots; caching or exporting it cannot turn refusal into an empty success.
+
+Canonical RDF 1.2, CLIF, CGIF and XCL retain these declarations and their original
+named references. The Common Logic metadata writers consume native RDF directly;
+XCL serializes its required terminal N-Triples payload once. These projections
+carry declarations, not native execution witnesses. OWL, gUFO, Datalog and N3
+disclose the presentation and merge operations they cannot express.
+
+Historical blank-node names and evidence origins require both their native label
+and source scope. Terminal RDF carries these values in a `ScopedBlankReference`
+with `sourceBlankLabel` and `sourceBlankScope`; source lowering reconstructs the
+same native resource value. A reference is metadata, so relabeling its anonymous
+transport node does not change the historical identity it describes. Direct
+native blank resources remain valid authored input. Neither spelling establishes
+provenance authority or equates generators: execution still binds the exact
+immutable source publication independently. Anonymous transport bindings use
+fresh labels disjoint from the emitted dataset and cannot collide with authored
+record IRIs.
+
+The source grammar uses named records in the default source graph. A declared
+`logic:PresentationMerge`, or a member required by `logic:hasPresentationMerge`,
+selects an operation. Missing or mistyped records, ambiguous singleton fields,
+and presentation declarations in another graph are explicit failures. Graph
+placement is not interpreted as a world or standpoint. Evidence may contain
+arbitrary native named graphs and RDF 1.2 metadata, retained in its source owner.
+
+| Record | Required content |
+|---|---|
+| `PresentationMerge` | `mergeLeft` and `mergeRight`, naming the two embedding maps |
+| `PresentationMap` | `mapSource`, `mapTarget`, and one `generatorBinding` per source generator, with `bindingSource` and `bindingTarget` |
+| `FinitePresentation` | `presentationContract`, plus explicit `presentationContext`, `presentationSymbol` and `presentationSentence` memberships; any membership set may be empty |
+| `PresentationContext` | Named `presentationWorld` and explicit string `presentationModality`; named standpoint, time, path and module coordinates use their corresponding `presentation*` properties when specified |
+| `PresentationSymbol` | `symbolContext`, native resource `symbolName` values, and its complete roles: true individual/variadic selectors or fixed relation/function arities |
+| `PresentationSentence` | `presentationFormula`, `sentenceContext`, `sentenceSign`, `sentenceKind`, `sentenceEvidence`, and total `sentenceBinding` records with `bindingName` and `bindingSymbol` |
+| `PresentationEvidence` | Native `evidenceOrigin`, explicit co-holding `preservationKind` values, and every `unsupportedConstruct` on its existing string-literal surface |
+
+`PositiveSupport` and `NegativeSupport` are independent of `PresentationAxiom`
+and `PresentationCaveat`. A source binding translates named Formula symbols,
+never literal datatypes or lexical evidence. Fixed relation arities are
+nonnegative, fixed function arities are positive, and a nullary function uses
+the individual role. A selected boolean role must be true. Temporal coordinates
+name resources whose descriptions remain in the original source publication.
+
+The finite presentation index is explicit: no scope is inherited from a map,
+binding, sentence or enclosing formula. Additional execution annotations
+(`logic:standpoint`, `accordingTo`, `world`, `time`, `path`, `modality`,
+`confidence`, `inModule`, `imports`, or `gmeow:accordingTo`) on these selected
+records require a contextual lowering and are refused by this admission boundary.
+That rule covers nested formula and term-carrier syntax through the shared source
+ownership graph. Sorted variables similarly require a sort-preserving lowering;
+retaining their original RDF is not a proof that an unsorted sentence preserves
+their meaning. Modal source constructors require a lowering bound to the selected
+presentation world; a default-world standard translation does not satisfy it.
+These refusals do not apply to evidence metadata, whose scope is retained as
+evidence rather than interpreted as the sentence's execution index. Named graphs
+outside the selected source grammar are never silently unioned into that index.
+Scope attached through RDF 1.2 reification of an asserted syntax statement is
+also part of admission, including metadata on metadata. A provenance-only
+reifier remains evidence; a standpoint annotation on the selected statement
+cannot escape admission merely by using a reifier. Unasserted quotations and
+reification in another graph do not import scope into the selected source graph.
+
+The same named evidence record shares one immutable native publication across
+all selected presentations. Distinct evidence records stay distinct even if
+their origin labels agree. Both provenance and complement retain the complete
+compiler source owner, including its original-to-canonical term correspondence;
+they are not fabricated by projecting the sentence's visible atoms. The selected
+contract must have a successful original compiler owner without unresolved
+extraction diagnostics. Registry and syntax limits refuse excess work without
+publishing a partial merge set.
+
+The production compile stage executes selected source merges and emits
+`generated/logic/presentation-merges.json`. This terminal report stores each
+original formula and evidence definition once, explicit injection maps, every
+result context and generator, and each transported signed sentence's bindings.
+Its source document receipts travel with the producer's authenticated source
+dependency. The report cannot be hydrated into an optimization certificate:
+native witnesses remain tied to the exact source publication and engine, and
+any downstream optimization still requires its complete execution judgment.
 
 ## A unifying lattice-graded reading
 
@@ -390,6 +814,20 @@ are **semiring annotations** computed in one evaluation pass, not N passes over 
 — the semiring *is* the axis algebra (§ Composition). The `ReasoningContract`
 ([`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md)) selects both correctness and the physical plan.
 
+Static legs and shared type, effect, termination, signature and closure analyses
+are prepared once for their exact identities. Native datasets and typed results
+cross execution boundaries directly. Text serialization belongs at selected
+input/output boundaries. Bounded caches may reuse exact immutable inputs;
+statistics fingerprints may rank plans but cannot identify cached answers.
+
+Identity elimination, reassociation, common-subexpression reuse, pushdown,
+cancellation and fusion each require a checked fragment/effect/contract
+certificate. Physical fusion preserves every logical stage contract, required
+check, provenance edge, complement and loss obligation. Template-created blank
+nodes retain their allocation scope across transformations. If bounded optimizer
+search yields no certified improvement, execution uses the original admitted
+program. Search limits cannot suppress an output or waive an obligation.
+
 ## Conformance
 
 A new **Correspondence** conformance category ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md))
@@ -413,6 +851,18 @@ parts) are adopted by-reference (Principle 5; see
 [`foundational-bridging.md`](../../../../docs/foundational-bridging.md)). Worked end-to-end against real
 GECCO data in [`usecase_openehr_bloodpressure.md`](../../../../docs/APPLIED_CATEGORY_THEORY/usecase_openehr_bloodpressure.md)
 and [`usecase_openehr_taskplan_rchops21.md`](../../../../docs/APPLIED_CATEGORY_THEORY/usecase_openehr_taskplan_rchops21.md).
+
+These are target capabilities, not an unrestricted implementation certificate.
+The blood-pressure fixtures establish bounded reconstruction and query-class
+recovery; their external validator observation is specific to the committed
+compositions, template and validator version. The process fixture establishes
+authored plan structure and selected native capabilities. Full adoption requires
+native typed execution of both cases and independent GetPut, PutGet, PutPut and
+SectionLaw domains. An ISM plan/schema link is a recovery witness only when its
+complete referenced content is available under an authenticated identity; missing
+or corrupt selected witnesses fail admission. Fixture agreement, by-reference
+mapping rows and interval-lowering tests do not establish general store
+replacement or authorize unrestricted composition/fusion.
 
 ## Constitutional alignment
 

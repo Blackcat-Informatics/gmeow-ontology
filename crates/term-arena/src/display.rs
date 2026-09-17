@@ -1,16 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The canonical [`TermValue`] surface renderer — the arena's atom-dictionary key.
+//! The shared [`TermValue`] surface renderer for output and explanation text.
 //!
 //! # Why this lives in the arena crate
 //!
-//! [`TermInterner`](crate::engine::TermInterner) dedups on the [`term_display`] surface:
-//! two terms are ONE [`TermId`](crate::engine::TermId) exactly when their display
-//! surfaces are byte-equal.  The renderer is therefore part of the arena's identity
-//! discipline, not of any consumer's, so it lives here as the single definition both the
-//! arena and the reasoning runtime's provenance recipes fold through.  There is exactly
-//! one traversal ([`render_term`]); the two styles differ only in the literal arm.
+//! Rendering is separate from native term identity. The arena and the reasoning
+//! runtime share one traversal ([`render_term`]); the two output styles differ
+//! only in the literal arm. A presentation may elide datatype fields and must
+//! never be used as a dictionary or content-identity key.
 //!
 //! # N3 serialization rules (mirror of rdflib `.n3()`)
 //!
@@ -183,9 +181,8 @@ fn render_term(term: &TermValue, style: TermRenderStyle) -> String {
 
 /// Render a [`TermValue`] in the canonical Turtle term Display form.
 ///
-/// This is the surface used for content-addressed dedup keys and sort keys — notably the
-/// arena's atom dictionary — so it MUST stay byte-identical to the historical
-/// `Term::to_string()` bytes.
+/// This output surface preserves the historical `Term::to_string()` spelling.
+/// It may elide native datatype fields and must not determine term identity.
 ///
 /// Unlike [`term_n3_unchecked`] it does **not** lowercase the language tag (the Display
 /// form preserves the stored tag verbatim) and renders a triple term in the RDF 1.2
@@ -216,67 +213,6 @@ pub fn term_n3_unchecked(term: &TermValue) -> String {
     render_term(term, TermRenderStyle::N3)
 }
 
+#[path = "display.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// The Display surface preserves the language tag verbatim while the N3 surface
-    /// lowercases it — the exact divergence the interner's dedup key depends on
-    /// (`"a"@EN` and `"a"@en` must stay DISTINCT atoms).
-    #[test]
-    fn display_preserves_lang_tag_case_and_n3_lowercases_it() {
-        let upper = TermValue::Literal {
-            lexical_form: "a".to_owned(),
-            datatype: RDF_LANG_STRING.to_owned(),
-            language: Some("EN".to_owned()),
-            direction: None,
-        };
-        assert_eq!(term_display(&upper), "\"a\"@EN");
-        assert_eq!(term_n3_unchecked(&upper), "\"a\"@en");
-    }
-
-    /// `xsd:string` and a lang-less `rdf:langString` render to the SAME Display bytes —
-    /// the historical collapse the atom dictionary preserves byte-exactly.
-    #[test]
-    fn display_elides_xsd_string_and_langless_lang_string_alike() {
-        let plain = TermValue::simple_literal("a");
-        let langless = TermValue::Literal {
-            lexical_form: "a".to_owned(),
-            datatype: RDF_LANG_STRING.to_owned(),
-            language: None,
-            direction: None,
-        };
-        assert_eq!(term_display(&plain), "\"a\"");
-        assert_eq!(term_display(&langless), "\"a\"");
-        assert_eq!(
-            term_display(&TermValue::iri("http://ex/a")),
-            "<http://ex/a>"
-        );
-    }
-
-    /// A nested triple term renders iteratively in the RDF 1.2 non-asserting form.
-    #[test]
-    fn display_renders_nested_triple_terms() {
-        let inner = TermValue::Triple {
-            s: Box::new(TermValue::iri("http://ex/a")),
-            p: Box::new(TermValue::iri("http://ex/p")),
-            o: Box::new(TermValue::iri("http://ex/b")),
-        };
-        let outer = TermValue::Triple {
-            s: Box::new(inner),
-            p: Box::new(TermValue::iri("http://ex/q")),
-            o: Box::new(TermValue::simple_literal("v")),
-        };
-        assert_eq!(
-            term_display(&outer),
-            "<<( <<( <http://ex/a> <http://ex/p> <http://ex/b> )>> <http://ex/q> \"v\" )>>"
-        );
-    }
-
-    /// Escaping is exactly the rdflib set, and nothing else.
-    #[test]
-    fn display_escapes_exactly_the_rdflib_set() {
-        let lit = TermValue::simple_literal("a\\b\"c\nd\re\tf");
-        assert_eq!(term_display(&lit), "\"a\\\\b\\\"c\\nd\\re\\tf\"");
-    }
-}
+mod tests;

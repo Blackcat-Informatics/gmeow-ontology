@@ -25,7 +25,7 @@
 
 use gmeow_errors::Diag;
 use purrdf::dataset_view::{DatasetView, GraphMatch};
-use purrdf::{BlankScope, RdfDataset, TermId, TermRef, TermValue, canonicalize, parse_dataset};
+use purrdf::{BlankScope, QuadIds, RdfDataset, TermId, TermRef, TermValue, canonical_relabel};
 use std::sync::Arc;
 
 // Well-known RDF IRIs (string constants — avoids per-call interning at the source).
@@ -75,15 +75,8 @@ pub(crate) enum Subject {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Node {
     Iri(String),
-    Blank {
-        label: String,
-        scope: BlankScope,
-    },
-    Lit {
-        lexical: String,
-        datatype: Option<String>,
-        lang: Option<String>,
-    },
+    Blank { label: String, scope: BlankScope },
+    Lit(purrdf::RdfLiteral),
     Triple(Box<TripleTerm>),
 }
 
@@ -96,11 +89,12 @@ impl Node {
     /// Construct an untyped (plain `xsd:string`) literal object term — the datatype/language
     /// carriers are `None`. Used by the term-model constructors that never mint a typed literal.
     pub(crate) fn plain_lit(lexical: impl Into<String>) -> Self {
-        Node::Lit {
-            lexical: lexical.into(),
+        Node::Lit(purrdf::RdfLiteral {
+            lexical_form: lexical.into(),
             datatype: None,
-            lang: None,
-        }
+            language: None,
+            direction: None,
+        })
     }
 }
 
@@ -126,7 +120,10 @@ pub(crate) fn term_str(term: &Node) -> String {
     match term {
         Node::Iri(iri) => iri.clone(),
         Node::Blank { label, .. } => label.clone(),
-        Node::Lit { lexical, .. } => lexical.clone(),
+        Node::Lit(purrdf::RdfLiteral {
+            lexical_form: lexical,
+            ..
+        }) => lexical.clone(),
         Node::Triple(_) => panic!(
             "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
              (a quoted triple cannot be stringified without silent data loss)"
@@ -142,9 +139,22 @@ pub(crate) fn subject_str(s: &Subject) -> String {
     }
 }
 
+/// Preserve the native object kind; a domain literal is never a rule variable.
+pub(crate) fn atomic_object(node: &Node) -> gmeow_errors::Result<crate::ir::AtomicTerm> {
+    use crate::ir::AtomicTerm;
+    match node {
+        Node::Iri(value) => Ok(AtomicTerm::Iri(value.clone())),
+        Node::Blank { label, .. } => Ok(AtomicTerm::Blank(label.clone())),
+        Node::Lit(value) => Ok(AtomicTerm::Literal(value.clone())),
+        Node::Triple(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "a nested proposition requires typed formula lowering".to_owned(),
+        })),
+    }
+}
+
 /// Whether a term is a literal (rdflib `isinstance(o, Literal)`).
 pub(crate) fn term_is_literal(term: &Node) -> bool {
-    matches!(term, Node::Lit { .. })
+    matches!(term, Node::Lit(purrdf::RdfLiteral { .. }))
 }
 
 /// Whether a subject node is a blank node (rdflib `isinstance(s, BNode)`).
@@ -180,7 +190,7 @@ pub(crate) fn nn(iri: &str) -> Iri {
 // --------------------------------------------------------------------------- //
 
 /// Resolve a predicate (always an IRI) to its string.
-pub(crate) fn iri_of(ds: &RdfDataset, id: TermId) -> Iri {
+pub(crate) fn iri_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Iri {
     match ds.resolve(id) {
         TermRef::Iri(s) => Iri(s.to_owned()),
         // A predicate is always an IRI; the remaining cases are unreachable for a
@@ -191,7 +201,7 @@ pub(crate) fn iri_of(ds: &RdfDataset, id: TermId) -> Iri {
 }
 
 /// Resolve a subject position to the pure [`Subject`] model.
-pub(crate) fn subject_of(ds: &RdfDataset, id: TermId) -> Subject {
+pub(crate) fn subject_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Subject {
     match ds.resolve(id) {
         TermRef::Iri(s) => Subject::Iri(s.to_owned()),
         TermRef::Blank { label, scope } => Subject::Blank {
@@ -206,7 +216,7 @@ pub(crate) fn subject_of(ds: &RdfDataset, id: TermId) -> Subject {
 }
 
 /// Resolve an object position to the pure [`Node`] model.
-fn node_of(ds: &RdfDataset, id: TermId) -> Node {
+pub(crate) fn node_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Node {
     match ds.resolve(id) {
         TermRef::Iri(s) => Node::Iri(s.to_owned()),
         TermRef::Blank { label, scope } => Node::Blank {
@@ -217,7 +227,7 @@ fn node_of(ds: &RdfDataset, id: TermId) -> Node {
             lexical,
             datatype,
             language,
-            ..
+            direction,
         } => {
             // A language-tagged literal records its `lang`; its datatype is the implied
             // `rdf:langString`, so the datatype carrier stays `None`. A plain `xsd:string`
@@ -231,11 +241,12 @@ fn node_of(ds: &RdfDataset, id: TermId) -> Node {
                     _ => None,
                 }
             };
-            Node::Lit {
-                lexical: lexical.to_owned(),
+            Node::Lit(purrdf::RdfLiteral {
+                lexical_form: lexical.to_owned(),
                 datatype,
-                lang,
-            }
+                language: lang,
+                direction,
+            })
         }
         TermRef::Triple { s, p, o } => Node::Triple(Box::new(TripleTerm {
             subject: subject_of(ds, s),
@@ -247,7 +258,7 @@ fn node_of(ds: &RdfDataset, id: TermId) -> Node {
 
 /// Best-effort lexical rendering of any term (used only for the unreachable
 /// non-IRI predicate / non-node subject fallbacks above).
-fn render_term(ds: &RdfDataset, term: TermRef<'_>) -> String {
+fn render_term<D: DatasetView + ?Sized>(ds: &D, term: TermRef<'_, D::Id>) -> String {
     match term {
         TermRef::Iri(s) => s.to_owned(),
         TermRef::Blank { label, .. } => label.to_owned(),
@@ -267,9 +278,9 @@ fn render_term(ds: &RdfDataset, term: TermRef<'_>) -> String {
 
 /// Intern a subject node to its dataset [`TermId`], or `None` if the dataset does
 /// not contain it (the wasm-clean analogue of an oxigraph pattern miss).
-fn subject_id(ds: &RdfDataset, subject: &Subject) -> Option<TermId> {
+pub(crate) fn subject_id<D: DatasetView + ?Sized>(ds: &D, subject: &Subject) -> Option<D::Id> {
     let value = match subject {
-        Subject::Iri(iri) => TermValue::Iri(iri.clone()),
+        Subject::Iri(iri) => return ds.term_id_by_value(&TermValue::iri(iri)),
         Subject::Blank { label, scope } => TermValue::Blank {
             label: label.clone(),
             scope: *scope,
@@ -279,22 +290,22 @@ fn subject_id(ds: &RdfDataset, subject: &Subject) -> Option<TermId> {
 }
 
 /// Intern a predicate IRI to its dataset [`TermId`].
-fn predicate_id(ds: &RdfDataset, predicate: &Iri) -> Option<TermId> {
-    ds.term_id_by_value(&TermValue::Iri(predicate.0.clone()))
+fn predicate_id<D: DatasetView + ?Sized>(ds: &D, predicate: &Iri) -> Option<D::Id> {
+    ds.term_id_by_value(&TermValue::iri(predicate.as_str()))
 }
 
 /// Intern an object term to its dataset [`TermId`]. Only IRI/blank objects are
 /// interned as query keys here — the compiler only ever matches on IRI objects
 /// (`rdf:type` class terms); a literal/triple object key cannot be reconstructed
 /// without datatype/language and never occurs as a query key, so it yields `None`.
-fn object_id(ds: &RdfDataset, object: &Node) -> Option<TermId> {
+fn object_id<D: DatasetView + ?Sized>(ds: &D, object: &Node) -> Option<D::Id> {
     let value = match object {
-        Node::Iri(iri) => TermValue::Iri(iri.clone()),
+        Node::Iri(iri) => return ds.term_id_by_value(&TermValue::iri(iri)),
         Node::Blank { label, scope } => TermValue::Blank {
             label: label.clone(),
             scope: *scope,
         },
-        Node::Lit { .. } | Node::Triple(_) => return None,
+        Node::Lit(purrdf::RdfLiteral { .. }) | Node::Triple(_) => return None,
     };
     ds.term_id_by_value(&value)
 }
@@ -316,16 +327,14 @@ fn object_id(ds: &RdfDataset, object: &Node) -> Option<TermId> {
 /// projection at the source (greenfield: one deterministic front door, not a
 /// per-back-end patch).
 ///
-/// Implementation: native full RDFC-1.0, the wasm-clean `purrdf::canonicalize`
-/// (SHA-256), then re-parse the canonical N-Quads so the relabeled `_:c14nN` ids
-/// become the dataset's blank labels. The labeling is identical to the oxigraph
-/// `canonicalize_store` it replaces (both are conformant RDFC-1.0 / SHA-256), so the
-/// text back-ends and conformance goldens are unchanged.
+/// Apply PurRDF's native RDFC-1.0 label mapping directly to the typed dataset.
+/// This preserves the full RDF 1.2 statement layer and removes the former canonical
+/// N-Quads allocation and immediate parser round trip. Canonicalization refusals remain
+/// hard compiler errors; there is no weaker labeling fallback.
 pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    let canon = canonicalize(ds);
-    parse_dataset(canon.nquads.as_bytes(), "application/n-quads", None).map_err(|e| {
+    canonical_relabel(ds).map(Arc::new).map_err(|e| {
         Diag::of_kind(crate::error::Graph {
-            detail: format!("blank-node canonicalization re-parse: {e}"),
+            detail: format!("native blank-node canonicalization: {e}"),
         })
     })
 }
@@ -334,49 +343,146 @@ pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> gmeow_errors::Result<
 // Default-graph queries
 // --------------------------------------------------------------------------- //
 
-/// All triples in the default graph, materialized for repeated iteration.
-pub(crate) fn default_graph_quads(ds: &RdfDataset) -> Vec<Quad> {
-    ds.quads()
-        .filter(|q| q.g.is_none())
-        .map(|q| Quad {
-            subject: subject_of(ds, q.s),
-            predicate: iri_of(ds, q.p),
-            object: node_of(ds, q.o),
-        })
-        .collect()
+/// Native default-graph statements across the ordinary and RDF 1.2 tables.
+///
+/// Ordinary rows retain PurRDF's indexed lookup. Subject-bound side-table probes
+/// use its sorted runs; unbound probes stream the side tables. Duplicate physical
+/// carriers are removed by exact indexed membership, without a growing seen set,
+/// another dataset, or RDF text. Reifier rows expose the binding only: the quoted
+/// triple remains an object and is never asserted by this read boundary.
+pub fn default_graph_pattern(
+    ds: &RdfDataset,
+    s: Option<TermId>,
+    p: Option<TermId>,
+    o: Option<TermId>,
+) -> impl Iterator<Item = QuadIds> + '_ {
+    source_graph_pattern(ds, s, p, o, GraphMatch::Default)
 }
 
-/// Whether the default graph is empty.
+/// Native assertions from the explicitly selected graph set. All physical
+/// carriers retain their original graph and exact term identity; quoted triples
+/// are never promoted into assertions. Duplicate carriers collapse only within
+/// their identical source graph.
+pub fn source_graph_pattern<D: DatasetView + ?Sized>(
+    ds: &D,
+    s: Option<D::Id>,
+    p: Option<D::Id>,
+    o: Option<D::Id>,
+    graph: GraphMatch<D::Id>,
+) -> impl Iterator<Item = QuadIds<D::Id>> + '_ {
+    let reifies = ds.term_id_by_value(&TermValue::iri(RDF_REIFIES));
+    let in_graph = move |g: Option<D::Id>| match graph {
+        GraphMatch::Default => g.is_none(),
+        GraphMatch::Named(selected) => g == Some(selected),
+        GraphMatch::Any => true,
+    };
+    let matches = move |q: &QuadIds<D::Id>| {
+        in_graph(q.g) && p.is_none_or(|p| q.p == p) && o.is_none_or(|o| q.o == o)
+    };
+    let in_base = move |q: &QuadIds<D::Id>| {
+        ds.quads_for_pattern(
+            Some(q.s),
+            Some(q.p),
+            Some(q.o),
+            q.g.map_or(GraphMatch::Default, GraphMatch::Named),
+        )
+        .next()
+        .is_some()
+    };
+    let reifiers = p
+        .is_none_or(|p| Some(p) == reifies)
+        .then_some(())
+        .into_iter()
+        .flat_map(move |()| {
+            s.into_iter().flat_map(|s| ds.reifier_quads_of(s)).chain(
+                s.is_none()
+                    .then_some(())
+                    .into_iter()
+                    .flat_map(|()| ds.reifier_quads()),
+            )
+        })
+        .filter(matches)
+        .filter(move |q| !in_base(q));
+    let annotations = s
+        .into_iter()
+        .flat_map(move |s| {
+            ds.annotations_of_with_graph(s)
+                .map(move |(p, o, g)| QuadIds { s, p, o, g })
+        })
+        .chain(
+            s.is_none()
+                .then_some(())
+                .into_iter()
+                .flat_map(|()| ds.annotation_quads()),
+        )
+        .filter(matches)
+        .filter(move |q| {
+            !in_base(q)
+                && !(Some(q.p) == reifies
+                    && ds.reifier_quads_of(q.s).any(|r| r.o == q.o && r.g == q.g))
+        });
+    ds.quads_for_pattern(s, p, o, graph)
+        .chain(reifiers)
+        .chain(annotations)
+}
+
+/// Stream default-graph statements, resolving only the current row. Callers do
+/// not materialize an owned copy of the entire source on every compiler pass.
+pub(crate) fn default_graph_quads(ds: &RdfDataset) -> impl Iterator<Item = Quad> + '_ {
+    default_graph_quads_with_ids(ds).map(|(_, quad)| quad)
+}
+
+/// Resolve the current row while retaining its exact native source occurrence.
+pub(crate) fn default_graph_quads_with_ids(
+    ds: &RdfDataset,
+) -> impl Iterator<Item = (QuadIds, Quad)> + '_ {
+    default_graph_pattern(ds, None, None, None).map(|q| {
+        (
+            q,
+            Quad {
+                subject: subject_of(ds, q.s),
+                predicate: iri_of(ds, q.p),
+                object: node_of(ds, q.o),
+            },
+        )
+    })
+}
+
+/// Whether the selected default graph has no ordinary or native statement rows.
 pub(crate) fn is_empty(ds: &RdfDataset) -> bool {
-    !ds.quads().any(|q| q.g.is_none())
+    default_graph_pattern(ds, None, None, None).next().is_none()
 }
 
 /// `graph.value(subject, predicate)` — the first object of
 /// `(subject, predicate, *)` in the default graph, or `None`.
 ///
-/// This and the pattern helpers below route through the dataset's INDEXED
-/// [`DatasetView::quads_for_pattern`] (lazy permutation indexes + binary search)
-/// rather than a full `ds.quads()` scan: the frontend calls these once per
-/// class/record over the whole merged authored ontology, so a linear scan per call
-/// is O(calls × total quads) and dominated the compile-stage wall time. Iteration
-/// order is unchanged — the frozen quad table and every permutation run are sorted
-/// on the same id axes, so for a fixed bound prefix the remaining axes iterate
-/// ascending exactly as the sequential SPOG scan does (the projection bytes stay
-/// deterministic and identical).
+/// All compiler lookups use the same native statement boundary. Ordinary-table
+/// order is preserved; native-only bindings and annotations follow in their
+/// frozen order. No scope is inferred from a named graph or a quoted term.
 pub(crate) fn value(ds: &RdfDataset, subject: &Subject, predicate: &Iri) -> Option<Node> {
     let s_id = subject_id(ds, subject)?;
     let p_id = predicate_id(ds, predicate)?;
-    ds.quads_for_pattern(Some(s_id), Some(p_id), None, GraphMatch::Default)
+    default_graph_pattern(ds, Some(s_id), Some(p_id), None)
         .next()
         .map(|q| node_of(ds, q.o))
 }
 
 /// All objects of `(subject, predicate, *)` in the default graph.
 pub(crate) fn objects(ds: &RdfDataset, subject: &Subject, predicate: &Iri) -> Vec<Node> {
+    objects_in_graph(ds, subject, predicate, GraphMatch::Default)
+}
+
+/// Objects in one selected source graph, preserving all native assertion tables.
+pub(crate) fn objects_in_graph<D: DatasetView + ?Sized>(
+    ds: &D,
+    subject: &Subject,
+    predicate: &Iri,
+    graph: GraphMatch<D::Id>,
+) -> Vec<Node> {
     let (Some(s_id), Some(p_id)) = (subject_id(ds, subject), predicate_id(ds, predicate)) else {
         return Vec::new();
     };
-    ds.quads_for_pattern(Some(s_id), Some(p_id), None, GraphMatch::Default)
+    source_graph_pattern(ds, Some(s_id), Some(p_id), None, graph)
         .map(|q| node_of(ds, q.o))
         .collect()
 }
@@ -386,8 +492,82 @@ pub(crate) fn subjects_with(ds: &RdfDataset, predicate: &Iri, object: &Node) -> 
     let (Some(p_id), Some(o_id)) = (predicate_id(ds, predicate), object_id(ds, object)) else {
         return Vec::new();
     };
-    ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Default)
+    default_graph_pattern(ds, None, Some(p_id), Some(o_id))
         .map(|q| subject_of(ds, q.s))
+        .collect()
+}
+
+/// The admitted structural typing predicates for a compiler record's class.
+/// Canonical logic classes admit native instance typing; external RDF grammar
+/// classes retain their exact RDF typing. No relation is inferred or rewritten.
+pub(crate) fn is_structural_type_predicate(predicate: &str, class: &str) -> bool {
+    predicate == RDF_TYPE
+        || (predicate == "https://blackcatinformatics.ca/logic/instanceOf"
+            && class.starts_with(crate::ir::LOGIC_NAMESPACE))
+}
+
+/// Resolve the admitted predicates to this dataset's native term identities.
+fn structural_type_predicates(ds: &RdfDataset, class: &Node) -> [Option<TermId>; 2] {
+    let native = matches!(class, Node::Iri(iri) if is_structural_type_predicate(
+        "https://blackcatinformatics.ca/logic/instanceOf", iri
+    ));
+    [
+        predicate_id(ds, &nn(RDF_TYPE)),
+        native
+            .then(|| predicate_id(ds, &nn("https://blackcatinformatics.ca/logic/instanceOf")))
+            .flatten(),
+    ]
+}
+
+/// Discover structural records once across their admitted typing surfaces.
+/// Keep RDF-only iteration order, deduplicating by native scoped term identity.
+pub(crate) fn subjects_of_structural_class(ds: &RdfDataset, class: &Node) -> Vec<Subject> {
+    let Some(class_id) = object_id(ds, class) else {
+        return Vec::new();
+    };
+    let mut seen = std::collections::HashSet::new();
+    structural_type_predicates(ds, class)
+        .into_iter()
+        .flatten()
+        .flat_map(|predicate| default_graph_pattern(ds, None, Some(predicate), Some(class_id)))
+        .filter(|quad| seen.insert(quad.s))
+        .map(|quad| subject_of(ds, quad.s))
+        .collect()
+}
+
+/// Test a compiler record's structural class without changing domain typing.
+pub(crate) fn has_structural_class(ds: &RdfDataset, subject: &Subject, class: &Node) -> bool {
+    let (Some(subject), Some(class_id)) = (subject_id(ds, subject), object_id(ds, class)) else {
+        return false;
+    };
+    structural_type_predicates(ds, class)
+        .into_iter()
+        .flatten()
+        .any(|predicate| {
+            default_graph_pattern(ds, Some(subject), Some(predicate), Some(class_id))
+                .next()
+                .is_some()
+        })
+}
+
+/// Read a compiler record's declared structural classes. Native instance typing
+/// contributes canonical logic classes only; arbitrary domain sorts are not RDF types.
+pub(crate) fn structural_classes(ds: &RdfDataset, subject: &Subject) -> Vec<Node> {
+    let Some(subject) = subject_id(ds, subject) else {
+        return Vec::new();
+    };
+    let mut seen = std::collections::HashSet::new();
+    [RDF_TYPE, "https://blackcatinformatics.ca/logic/instanceOf"]
+        .into_iter()
+        .filter_map(|predicate| predicate_id(ds, &nn(predicate)).map(|id| (predicate, id)))
+        .flat_map(|(predicate, id)| {
+            default_graph_pattern(ds, Some(subject), Some(id), None).filter(move |quad| {
+                matches!(ds.resolve(quad.o), TermRef::Iri(iri)
+                        if is_structural_type_predicate(predicate, iri))
+            })
+        })
+        .filter(|quad| seen.insert(quad.o))
+        .map(|quad| node_of(ds, quad.o))
         .collect()
 }
 
@@ -400,7 +580,7 @@ pub(crate) fn contains(ds: &RdfDataset, subject: &Subject, predicate: &Iri, obje
     ) else {
         return false;
     };
-    ds.quads_for_pattern(Some(s_id), Some(p_id), Some(o_id), GraphMatch::Default)
+    default_graph_pattern(ds, Some(s_id), Some(p_id), Some(o_id))
         .next()
         .is_some()
 }
@@ -410,7 +590,7 @@ pub(crate) fn has_predicate(ds: &RdfDataset, predicate: &Iri) -> bool {
     let Some(p_id) = predicate_id(ds, predicate) else {
         return false;
     };
-    ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Default)
+    default_graph_pattern(ds, None, Some(p_id), None)
         .next()
         .is_some()
 }
@@ -420,7 +600,7 @@ pub(crate) fn has_predicate_object(ds: &RdfDataset, predicate: &Iri, object: &No
     let (Some(p_id), Some(o_id)) = (predicate_id(ds, predicate), object_id(ds, object)) else {
         return false;
     };
-    ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Default)
+    default_graph_pattern(ds, None, Some(p_id), Some(o_id))
         .next()
         .is_some()
 }

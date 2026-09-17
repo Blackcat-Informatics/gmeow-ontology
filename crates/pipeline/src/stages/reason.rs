@@ -6,9 +6,9 @@
 //!
 //! It reasons ONCE over the object-level EDB
 //! ([`crate::stages::carrier::assemble_object_level_edb`]: ontology + imports +
-//! statements + alignments + logic/relational-core, WITHOUT correspondence or the
+//! statements + logic/relational-core, WITHOUT correspondence or the
 //! meta/report graphs), canonicalizes it (RDFC-1.0) for transport-independent Skolem
-//! witnesses, runs `gmeow_logic::reason::reason_all_certified`, and serializes the
+//! witnesses, runs `gmeow_logic::reason::reason_all`, and serializes the
 //! committed artifacts via the `gmeow_logic::reason::artifacts` builders. The single
 //! result also backs the bundle's `graph/reasoning` projection (dual carriage), so
 //! the closure shipped in `gmeow.gts` and the committed files agree by construction —
@@ -21,13 +21,17 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use gmeow_logic::reason::artifacts::{
-    build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
+    build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_into,
 };
 use gmeow_logic::reason::perf_ledger::perf_ledger;
-use gmeow_logic::reason::reason_all_certified;
+#[cfg(test)]
+use gmeow_logic::reason::{DomainProfile, SelectedLogicalWorld};
+use gmeow_logic::reason::{
+    LogicalGraph, PreparedReasoningInput, SelectedDomains, prepare_reasoning_input, reason_all,
+};
 use gmeow_logic::result::ReasoningResult;
-use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_result};
-use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
+use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_dataset};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm};
 
 use crate::bundle::PipelineHandle;
 use crate::node::{
@@ -56,6 +60,9 @@ pub const PERF_LEDGER_PATH: &str = "generated/logic/perf-ledger.ttl";
 pub struct ReasonArtifacts {
     /// The told-vs-inferred derived closure Turtle.
     pub closure: String,
+    /// Native dual-carriage product projected alongside the closure artifact,
+    /// including its proof reifiers, reasoning graph and diagnostics.
+    pub dataset: Arc<RdfDataset>,
     /// The per-axiom proof-skeleton explanations Turtle.
     pub explanations: String,
     /// The native DL·EL crosscheck ledger Turtle.
@@ -68,48 +75,25 @@ pub struct ReasonArtifacts {
     /// Production existential-chase termination evidence on the shared Finding
     /// substrate; this is the authority for both graph/diagnostics and run nodes.
     pub chase_report: gmeow_errors::Report,
-    /// The decomposable derivation of every chase-invented null (Skolem witness)
-    /// this run minted, sorted+deduped by content-addressed witness IRI. Empty
-    /// when the program has no existential obligation. Projected into
-    /// `graph/diagnostics` (via [`reason_dataset`]) so the offline `gmeow explain`
-    /// CLI can explain an invented individual.
-    pub witness_derivations: Vec<gmeow_logic::reason::WitnessDerivation>,
 }
 
-/// Reason over a composed dataset (N-Quads bytes) and return the three artifacts plus
-/// the typed [`ReasoningResult`]. Parses then delegates to [`reason_over_dataset`].
-pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
-    let edb = purrdf::parse_dataset(composed_nquads, NativeRdfFormat::NQuads.media_type(), None)
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("reason input parse: {e}"),
-            })
-        })?;
-    reason_over_dataset(edb.as_ref())
-}
-
-/// Build a `stage-reason` [`StageProduct`] by reasoning over `composed_nquads` — the
-/// real dual-carriage product a downstream consumer reads: the closure in the default
-/// graph, the `graph/reasoning` projection, and the pinned typed Reasoning handle. This
-/// is the SAME construction [`ReasonStage::run`] performs (minus the committed byte-lane
-/// artifacts a consumer never reads off the handle), exposed so a harness driving a
-/// single consumer stage in isolation can supply a genuine reasoned upstream rather than
-/// a hand-built stand-in. An empty EDB yields an empty closure (a valid "no entailments"
-/// reasoned product).
+/// Produce the pinned reasoning product from an admitted dataset and mandatory
+/// caller-owned domain selection, without a serialized stage input.
 ///
 /// # Errors
-///
-/// Returns `Err` if reasoning, the dual-carriage dataset build, or the handle pin fails.
-pub fn reason_product(composed_nquads: &[u8]) -> Result<StageProduct, gmeow_errors::Diag> {
-    let reasoned = reason_artifacts(composed_nquads)?;
-    let dataset = reason_dataset(
-        &reasoned.closure,
-        &reasoned.result,
-        &reasoned.chase_report,
-        &reasoned.witness_derivations,
-    )?;
+/// Propagates native reasoning, projection and typed-handle admission failures.
+pub fn reason_product_over_dataset(
+    edb: &RdfDataset,
+    domains: &SelectedDomains,
+) -> Result<StageProduct, gmeow_errors::Diag> {
+    reason_product_from_artifacts(reason_over_dataset(edb, domains)?)
+}
+
+fn reason_product_from_artifacts(
+    reasoned: ReasonArtifacts,
+) -> Result<StageProduct, gmeow_errors::Diag> {
     let mut bundle = crate::bundle::bundle_from_artifacts_over(
-        dataset,
+        reasoned.dataset,
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
@@ -131,31 +115,52 @@ pub fn reason_product(composed_nquads: &[u8]) -> Result<StageProduct, gmeow_erro
 
 /// Reason over an in-memory EDB and return the three artifacts plus the typed
 /// [`ReasoningResult`]. Canonicalizes the EDB (RDFC-1.0) BEFORE reasoning so the
-/// content-addressed Skolem witnesses are transport-independent (carrier vs a
-/// re-imported `gmeow.gts` yield byte-identical artifacts), then mirrors
-/// `reason_native_artifacts` in non-merge mode (the regenerate path).
-pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
-    // Flatten the EDB to its un-folded plain-quad stream, RDFC-1.0 canonicalize it
-    // (native full canon, byte-identical to the prior oxigraph `canonicalize_quads`
-    // over the flat oxigraph quads), then RE-FOLD the canonical N-Quads back through
-    // the native codec so the RDF 1.2 statement layer is reconstructed exactly as
-    // `dataset_from_oxigraph_quads` did — content-addressed Skolem witnesses are a pure
-    // function of this canonical, transport-independent EDB.
+/// content-addressed Skolem witnesses are transport-independent for the same
+/// retained domain selection. Pipeline theory roles are Default or named IRIs;
+/// selected blank graph identities cannot cross relabelling without its issuer map.
+/// The caller supplies the exact theory-role domain authority; merely occupying
+/// a support or diagnostic graph does not select a domain law.
+///
+/// # Errors
+/// Rejects native input/domain admission, execution, evidence or projection failures.
+pub fn reason_over_dataset(
+    edb: &RdfDataset,
+    domains: &SelectedDomains,
+) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
+    if domains.worlds().iter().any(
+        |domain| matches!(domain.graph(), LogicalGraph::Named(graph) if graph.as_iri().is_none()),
+    ) {
+        return Err(stage_failure(
+            "pipeline theory roles require Default or named IRIs; a selected blank graph cannot cross canonical relabelling without its issuer mapping",
+        ));
+    }
+    // Issue canonical labels directly over the native RDF 1.2 carrier. The
+    // shared issuer determines Skolem identity without a text document and a
+    // second parse/freeze; every statement-layer row remains in its own table.
     let canon = canonicalize_edb(edb, "stage-reason")?;
-    let certified = reason_all_certified(canon.as_ref()).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-reason".to_string(),
-            message: format!("native reasoning failed: {e}"),
-        })
-    })?;
-    let result = certified.result;
-    let witness_derivations = certified.witness_derivations;
-    // Resolve every chase-invented null to its minting head quad p(x, n) so the
-    // per-world certificate finding can cite the null-minting reifiers it derives
-    // from, and so `reason_dataset` can project the same skeletons into
-    // graph/diagnostics. World-scoped: each null is attributed to the certificate
-    // whose world its head quad was derived in (both are bare-IRI world keys).
-    let witness_projections = resolve_witness_projections(&witness_derivations, &result)?;
+    let input = prepare_reasoning_input(canon.as_ref())?;
+    reason_prepared_input(edb, input, domains)
+}
+
+fn stage_failure(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        stage: "stage-reason".to_owned(),
+        message: message.into(),
+    })
+}
+
+/// Execute the consuming input once and retain its native proof owner in the result.
+fn reason_prepared_input(
+    edb: &RdfDataset,
+    input: PreparedReasoningInput,
+    domains: &SelectedDomains,
+) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
+    let result = reason_all(input, domains)
+        .map_err(|error| stage_failure(format!("native reasoning failed: {error}")))?;
+    let native = result.native_execution()?;
+    // Admit the exact committed native minting heads and their world-local proof;
+    // certificate findings cite those heads, including subject-only value nulls.
+    let witness_projections = resolve_witness_projections(&native.witness_derivations, &result)?;
     let mut world_reifiers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for projection in &witness_projections {
         world_reifiers
@@ -164,11 +169,9 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
             .push(projection.r_head.clone());
     }
     let mut chase_report = gmeow_errors::Report::new("chase");
-    // `stage-reason` declares graph/diagnostics as an unconditional attachment.
-    // RDF has no representation for an empty named graph, so carry the run's
-    // content-addressed native contract as explicit evidence even when this EDB
-    // contains no existential obligations. This is an honest run fact, not a
-    // vacuous chase certificate; real per-world certificates follow below.
+    // Record the run's content-addressed native contract even when this EDB
+    // contains no existential obligations. This finding identifies the engine
+    // behind the selected result; per-world chase certificates follow below.
     chase_report.add_finding(
         gmeow_errors::Finding::new(
             gmeow_errors::Severity::Info,
@@ -180,7 +183,7 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
         )
         .with_tool("reason"),
     );
-    for certificate in certified.chase_certificates {
+    for certificate in &native.chase_certificates {
         let world = certificate.world.clone();
         let mut finding = certificate.to_finding();
         // A weakly-acyclic certificate's verdict derives from the existential edges
@@ -207,31 +210,34 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
     // file — instead of only inside a gate process.
     let alpha_edges = gmeow_logic::math_expression::alpha_equivalence_edges(edb);
     // Non-merge (the regenerate path): the closure is told-vs-inferred plus that derivation.
-    let closure = build_inferred_closure_ttl(&result, None, &alpha_edges).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-reason".to_string(),
-            message: format!("closure serialization failed: {e}"),
-        })
-    })?;
+    let mut builder = RdfDatasetBuilder::new();
+    let closure =
+        build_inferred_closure_into(&result, &alpha_edges, &mut builder).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_string(),
+                message: format!("closure serialization failed: {e}"),
+            })
+        })?;
     let explanations = build_explanations_ttl(&result).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-reason".to_string(),
             message: format!("explanations serialization failed: {e}"),
         })
     })?;
-    let ledger = build_dl_el_ledger_ttl(&result);
+    let ledger = build_dl_el_ledger_ttl(&result)?;
     // The performance ledger is canonical static content (a property of the native
     // physical engine's lever staging, not of this run's data), so it is byte-stable
     // run to run regardless of the reasoned result.
     let perf = perf_ledger().to_turtle();
+    let dataset = reason_dataset(builder, &result, &chase_report, &witness_projections)?;
     Ok(ReasonArtifacts {
         closure,
+        dataset,
         explanations,
         ledger,
         perf_ledger: perf,
         result,
         chase_report,
-        witness_derivations,
     })
 }
 
@@ -245,202 +251,282 @@ pub(crate) fn canonicalize_edb(
     edb: &RdfDataset,
     stage_id: &str,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let canon_nquads = purrdf::canonical_flat_nquads(edb).map_err(|e| {
+    purrdf::canonical_relabel(edb).map(Arc::new).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: stage_id.to_string(),
             message: format!("RDFC-1.0 canonicalize EDB: {e}"),
         })
-    })?;
-    purrdf::parse_dataset(
-        canon_nquads.as_bytes(),
-        NativeRdfFormat::NQuads.media_type(),
-        None,
-    )
-    .map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: stage_id.to_string(),
-            message: format!("re-fold canonical quads: {e}"),
-        })
     })
 }
 
-/// One chase-invented null (Skolem witness) resolved against the reasoned head quad
-/// `p(x, n)` whose OBJECT is that null — the existential edge that minted it.
+/// One actual committed minting head, retaining native terms and exact source proof.
 struct WitnessProjection {
-    /// The invented null IRI `n` (bare, content-addressed).
     witness: String,
-    /// The head-quad subject `x` (bare IRI).
-    subject: String,
-    /// The head-quad predicate `p` (bare IRI).
+    subject: purrdf::TermValue,
     predicate: String,
-    /// The content-addressed firing rule IRI that invented the null.
+    object: purrdf::TermValue,
     rule_iri: String,
-    /// The existential head-variable ordinal (distinct ∃-vars ⇒ distinct nulls).
     ordinal: usize,
-    /// The head-quad world (the certificate-association key; a bare-IRI world key).
     world: String,
-    /// The standard-RDF-reification node IRI for `⟨x p n⟩` (the null-minting reifier).
     r_head: String,
+    derivation_id: String,
+    source_reifiers: Vec<String>,
+    receipt: Arc<str>,
 }
 
-/// Resolve each chase-invented null to the reasoned head quad `p(x, n)` whose OBJECT
-/// is that null. Hard-fails (fail-closed) when a witness has no such existential edge
-/// (an unexplained invented individual) or is the object of more than one reasoned
-/// axiom (an existential null must have exactly one minting head quad). Returns the
-/// projections sorted by null IRI so any emitted fold is byte-stable across runs (the
-/// null IRIs are content-addressed).
+/// Admit retained minting heads and their actual world-local premises against this
+/// result. No inference from later incident edges and no subject/object restriction
+/// on where the invented value occurs. Only requested evidence is indexed.
 fn resolve_witness_projections(
     witnesses: &[gmeow_logic::reason::WitnessDerivation],
     result: &ReasoningResult,
 ) -> Result<Vec<WitnessProjection>, gmeow_errors::Diag> {
-    let mut projections = Vec::with_capacity(witnesses.len());
+    let fail = |message: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-reason".to_owned(),
+            message,
+        })
+    };
+    let mut required: BTreeMap<(&str, &str, &str), BTreeSet<&purrdf::TermValue>> = BTreeMap::new();
+    let mut minted = BTreeMap::<(&str, &str, &str), BTreeSet<&purrdf::TermValue>>::new();
+    let mut projections = Vec::new();
     for witness in witnesses {
-        let object_display = format!("<{}>", witness.witness);
-        // The bound frontier IRIs (the Skolem-function arguments) — the subject of the
-        // minting head quad p(x, null) is one of these.
-        let frontier_iris: BTreeSet<&str> = witness
-            .frontier
-            .iter()
-            .filter_map(|term| match term {
-                purrdf::TermValue::Iri(iri) => Some(iri.as_str()),
-                _ => None,
-            })
-            .collect();
-        // A null is the OBJECT of its minting head quad AND of every edge the closure
-        // entails from it (a superproperty of the existential property, say), so it can
-        // be the object of MORE THAN ONE reasoned axiom — that is normal, not an error.
-        // Choose the minting head quad deterministically: prefer the edge FROM a frontier
-        // binding (the Skolem argument), with a stable (predicate, subject) tiebreak.
-        let mut candidates: Vec<&_> = result
-            .inferred()
-            .iter()
-            .filter(|axiom| axiom.object == object_display)
-            .collect();
-        candidates.sort_by(|a, b| {
-            (a.predicate.as_str(), a.subject.as_str())
-                .cmp(&(b.predicate.as_str(), b.subject.as_str()))
-        });
-        let head = candidates
-            .iter()
-            .copied()
-            .find(|axiom| frontier_iris.contains(axiom.subject.as_str()))
-            .or_else(|| candidates.first().copied())
-            .ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-reason".to_string(),
-                    message: format!(
-                        "chase-invented null <{}> has no reasoned head quad p(x, null): \
-                         the existential edge that minted it must be in the closure",
+        let receipt: Arc<str> = witness.to_wire()?.into();
+        for head in &witness.heads {
+            for statement in std::iter::once(&head.statement).chain(&head.premises) {
+                let subject = statement.subject.as_iri().ok_or_else(|| {
+                    fail(format!(
+                        "witness <{}> requires a non-resource reasoning subject",
                         witness.witness
-                    ),
+                    ))
+                })?;
+                required
+                    .entry((&witness.scope.world, subject, &statement.predicate))
+                    .or_default()
+                    .insert(&statement.object);
+            }
+            let statement = &head.statement;
+            let subject = statement
+                .subject
+                .as_iri()
+                .expect("required head subject admitted");
+            minted
+                .entry((&witness.scope.world, subject, &statement.predicate))
+                .or_default()
+                .insert(&statement.object);
+            let r_head = gmeow_logic::provenance::mint_reifier(
+                &statement.subject,
+                &statement.predicate,
+                &statement.object,
+            )?;
+            let source_reifiers = head
+                .premises
+                .iter()
+                .map(|premise| {
+                    gmeow_logic::provenance::mint_reifier(
+                        &premise.subject,
+                        &premise.predicate,
+                        &premise.object,
+                    )
                 })
-            })?;
-        let r_head =
-            gmeow_logic::reason::reifier_iri(&head.subject, &head.predicate, &object_display);
-        projections.push(WitnessProjection {
-            witness: witness.witness.clone(),
-            subject: head.subject.clone(),
-            predicate: head.predicate.clone(),
-            rule_iri: witness.rule_iri.clone(),
-            ordinal: witness.ordinal,
-            world: head.world.clone(),
-            r_head,
-        });
+                .collect::<Result<Vec<_>, _>>()?;
+            projections.push(WitnessProjection {
+                witness: witness.witness.clone(),
+                subject: statement.subject.clone(),
+                predicate: statement.predicate.clone(),
+                object: statement.object.clone(),
+                rule_iri: witness.rule_iri.clone(),
+                ordinal: witness.ordinal,
+                world: witness.scope.world.clone(),
+                r_head,
+                derivation_id: head.derivation_id.clone(),
+                source_reifiers,
+                receipt: Arc::clone(&receipt),
+            });
+        }
     }
-    projections.sort_by(|a, b| a.witness.cmp(&b.witness));
+    for axiom in result.inferred() {
+        if !axiom.is_edb
+            && let Some(objects) = minted.get_mut(&(
+                axiom.world.as_str(),
+                axiom.subject.as_str(),
+                axiom.predicate.as_str(),
+            ))
+        {
+            objects.remove(&axiom.object);
+        }
+        if let Some(objects) = required.get_mut(&(
+            axiom.world.as_str(),
+            axiom.subject.as_str(),
+            axiom.predicate.as_str(),
+        )) {
+            objects.remove(&axiom.object);
+        }
+    }
+    if let Some(((world, subject, predicate), objects)) = required
+        .iter()
+        .chain(&minted)
+        .find(|(_, objects)| !objects.is_empty())
+    {
+        return Err(fail(format!(
+            "retained witness head/premise is absent from committed closure in {world}: {subject} {predicate} {objects:?}"
+        )));
+    }
+    projections.sort_by(|a, b| {
+        (&a.witness, &a.world, &a.r_head, &a.derivation_id).cmp(&(
+            &b.witness,
+            &b.world,
+            &b.r_head,
+            &b.derivation_id,
+        ))
+    });
     Ok(projections)
 }
 
-/// Serialize the resolved witness projections as N-Triples for the
-/// `graph/diagnostics` fold: standard RDF reification of each minting head quad
-/// `p(x, n)` (`rdf:subject`/`rdf:predicate`/`rdf:object` + the reused
-/// `gmeow:viaRule`) plus the `gmeow:InventedWitness` typing and the
-/// `gmeow:existentialOrdinal` of the null. Queryable with NO new vocabulary. Empty
-/// string when there are no witnesses.
-fn witness_projection_ntriples(projections: &[WitnessProjection]) -> String {
+/// Output-only native value projection; blank scopes and RDF 1.2 nested terms
+/// remain exact. There is no disposable RDF document or parser boundary.
+fn intern_witness_term(
+    builder: &mut RdfDatasetBuilder,
+    value: &purrdf::TermValue,
+) -> purrdf::TermId {
+    match value {
+        purrdf::TermValue::Iri(iri) => builder.intern_iri(iri),
+        purrdf::TermValue::Blank { label, scope } => builder.intern_blank(label, *scope),
+        purrdf::TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            direction,
+        } => builder.intern_literal(RdfLiteral {
+            lexical_form: lexical_form.clone(),
+            datatype: Some(datatype.clone()),
+            language: language.clone(),
+            direction: *direction,
+        }),
+        purrdf::TermValue::Triple { s, p, o } => {
+            let s = intern_witness_term(builder, s);
+            let p = intern_witness_term(builder, p);
+            let o = intern_witness_term(builder, o);
+            builder.intern_triple(s, p, o)
+        }
+    }
+}
+
+/// Publish exact head skeletons and the versioned native witness receipt. The
+/// receipt carries complete scope/frontier/head/position/premise identities;
+/// RDF metadata retains the owning world and individual derivation evidence.
+fn witness_projection_into(projections: &[WitnessProjection], builder: &mut RdfDatasetBuilder) {
     const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
     const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
-    let mut out = String::new();
-    for projection in projections {
-        use std::fmt::Write as _;
-        let _ = write!(
-            out,
-            "<{r}> <{RDF}subject> <{s}> .\n\
-             <{r}> <{RDF}predicate> <{p}> .\n\
-             <{r}> <{RDF}object> <{n}> .\n\
-             <{r}> <{GMEOW}viaRule> <{rule}> .\n\
-             <{n}> <{RDF}type> <{GMEOW}InventedWitness> .\n\
-             <{n}> <{GMEOW}existentialOrdinal> \"{ord}\"^^<{XSD_NNI}> .\n",
-            r = projection.r_head,
-            s = projection.subject,
-            p = projection.predicate,
-            n = projection.witness,
-            rule = projection.rule_iri,
-            ord = projection.ordinal,
-        );
+    if projections.is_empty() {
+        return;
     }
-    out
+    let graph = builder.intern_iri(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+    let subject = builder.intern_iri(&format!("{RDF}subject"));
+    let predicate = builder.intern_iri(&format!("{RDF}predicate"));
+    let object = builder.intern_iri(&format!("{RDF}object"));
+    let via_rule = builder.intern_iri(&format!("{GMEOW}viaRule"));
+    let in_world = builder.intern_iri(&format!("{GMEOW}inWorld"));
+    let rdf_type = builder.intern_iri(&format!("{RDF}type"));
+    let invented = builder.intern_iri(&format!("{GMEOW}InventedWitness"));
+    let ordinal = builder.intern_iri(&format!("{GMEOW}existentialOrdinal"));
+    let value = builder.intern_iri("http://www.w3.org/ns/prov#value");
+    let derived_from = builder.intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom");
+    let derivation =
+        builder.intern_iri("https://blackcatinformatics.ca/logic/derivationIdentifier");
+    let mut recorded = BTreeSet::new();
+    for projection in projections {
+        let r = builder.intern_iri(&projection.r_head);
+        let s = intern_witness_term(builder, &projection.subject);
+        let p = builder.intern_iri(&projection.predicate);
+        let o = intern_witness_term(builder, &projection.object);
+        let n = builder.intern_iri(&projection.witness);
+        let rule = builder.intern_iri(&projection.rule_iri);
+        let world = builder.intern_iri(&projection.world);
+        let proof = builder.intern_literal(RdfLiteral::simple(&projection.derivation_id));
+        let ord =
+            builder.intern_literal(RdfLiteral::typed(projection.ordinal.to_string(), XSD_NNI));
+        for (s, p, o) in [
+            (r, subject, s),
+            (r, predicate, p),
+            (r, object, o),
+            (r, via_rule, rule),
+            (r, in_world, world),
+            (r, derivation, proof),
+            (n, rdf_type, invented),
+            (n, ordinal, ord),
+            (n, in_world, world),
+        ] {
+            builder.push_quad(s, p, o, Some(graph));
+        }
+        if recorded.insert(projection.witness.as_str()) {
+            let receipt = builder.intern_literal(RdfLiteral::simple(projection.receipt.as_ref()));
+            builder.push_quad(n, value, receipt, Some(graph));
+        }
+        for source in &projection.source_reifiers {
+            let source = builder.intern_iri(source);
+            builder.push_quad(r, derived_from, source, Some(graph));
+        }
+    }
 }
 
-/// Parse the closure Turtle into the default graph and FOLD the deterministic
+/// Finish the native closure carrier with the deterministic
 /// `graph/reasoning` projection of `result` into the named graph [`GRAPH_REASONING`],
 /// returning the dual-carriage dataset the reason stage's bundle backs. The closure
 /// stays the default-graph contribution to the compose union; the reasoning
 /// projection rides alongside as its own named graph (the typed handle's backing).
 fn reason_dataset(
-    closure_ttl: &str,
+    mut builder: RdfDatasetBuilder,
     result: &ReasoningResult,
     chase_report: &gmeow_errors::Report,
-    witnesses: &[gmeow_logic::reason::WitnessDerivation],
+    projections: &[WitnessProjection],
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let closure_ds =
-        purrdf::parse_dataset(closure_ttl.as_bytes(), "text/turtle", None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("reason closure parse: {e}"),
+    let reasoning_ds = project_reasoning_dataset(result)?;
+    // This is an independently minted summary graph. Standardize its blanks
+    // apart from every already-projected source and proof identity.
+    let scopes: BTreeSet<_> = builder.blank_identities().map(|(_, scope)| scope).collect();
+    let mut scope = 1u32;
+    for used in scopes {
+        if used.0 < scope {
+            continue;
+        }
+        if used.0 > scope {
+            break;
+        }
+        scope = scope.checked_add(1).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_owned(),
+                message: "no blank scope remains for the reasoning summary".to_owned(),
             })
         })?;
-    let reasoning_nt = project_reasoning_result(result);
-    let reasoning_ds =
-        purrdf::parse_dataset(reasoning_nt.as_bytes(), "application/n-triples", None).map_err(
-            |e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: format!("reason projection parse: {e}"),
-                })
-            },
-        )?;
-
-    let mut builder = RdfDatasetBuilder::new();
-    // The closure stays in the default graph (the compose-union contribution).
-    builder.push_dataset(closure_ds.as_ref());
+    }
     // The graph/reasoning projection is routed into its own named graph.
     let graph = RdfTerm::Iri(GRAPH_REASONING.to_owned());
-    for quad in reasoning_ds.owned_quads() {
-        let mut routed = quad.clone();
+    for mut routed in reasoning_ds.owned_quads() {
         routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
+        builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope));
     }
-    let diagnostics_nq = gmeow_errors::render::to_gmeow_rdf(chase_report);
-    let diagnostics = crate::stages::carrier::parse_into_graph(
-        diagnostics_nq.as_bytes(),
-        "application/n-quads",
+    for mut routed in reasoning_ds.owned_reifiers() {
+        routed.graph = Some(graph.clone());
+        builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope));
+    }
+    for mut routed in reasoning_ds.owned_annotations() {
+        routed.graph = Some(graph.clone());
+        builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope));
+    }
+    let graph_id = builder.intern_owned_term(&graph);
+    builder.declare_named_graph(graph_id);
+    gmeow_errors::render::append_gmeow_findings(
+        chase_report,
         crate::stages::carrier::GRAPH_DIAGNOSTICS,
-    )?;
-    builder.push_dataset(diagnostics.as_ref());
-    // Chase-invented nulls (Skolem witnesses): project each minting head quad
-    // p(x, n) as standard RDF reification + type the null gmeow:InventedWitness,
+        &mut builder,
+    );
+    // Chase-invented nulls: project every retained committed minting head
+    // and its scoped native receipt; type the value gmeow:InventedWitness,
     // routed into graph/diagnostics so the offline `gmeow explain` CLI can decompose
     // an invented individual. Byte-stable: content-addressed null IRIs, sorted.
-    let projections = resolve_witness_projections(witnesses, result)?;
-    let witness_nt = witness_projection_ntriples(&projections);
-    if !witness_nt.is_empty() {
-        let witness_ds = crate::stages::carrier::parse_into_graph(
-            witness_nt.as_bytes(),
-            "application/n-triples",
-            crate::stages::carrier::GRAPH_DIAGNOSTICS,
-        )?;
-        builder.push_dataset(witness_ds.as_ref());
-    }
+    witness_projection_into(projections, &mut builder);
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("freeze reason dual-carriage dataset: {e}"),
@@ -449,6 +535,33 @@ fn reason_dataset(
 }
 
 // ── correspondence drift-gate (the mandatory reader — adversary F4) ────────────
+
+/// Select the pipeline's declared object-level roles, never the union's graph census.
+/// The semantic identity binds the selected domain profile and fixed role envelope.
+/// Source bytes and complete producer/handle identities remain separately bound by
+/// native input admission and scheduler receipts; data edits do not remint domains.
+fn object_level_domains(
+    stage: &ReasonStage,
+    input: &StageInput<'_>,
+) -> Result<SelectedDomains, gmeow_errors::Diag> {
+    for producer in stage.consumes() {
+        let product = input.upstream.get(producer).ok_or_else(|| {
+            stage_failure(format!("domain selection requires producer {producer}"))
+        })?;
+        if product.stage_id != *producer {
+            return Err(stage_failure(format!(
+                "domain selection producer key {producer} carries {}",
+                product.stage_id
+            )));
+        }
+        if product.carrier_released {
+            return Err(stage_failure(format!(
+                "domain selection cannot use released producer {producer}"
+            )));
+        }
+    }
+    gmeow_logic::reasoning_graphs::object_level_domains()
+}
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
@@ -534,29 +647,24 @@ impl Stage for ReasonStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        // The native contract changed when the external reasoners were removed and
-        // the structured existential/DL chase became the sole production authority.
-        // Bumping the stage version prevents a pre-removal closure from surviving in
-        // the content-addressed pipeline cache when its RDF inputs are unchanged.
-        // v4: the closure additionally carries the math: expression-identity derivation's
-        // math:alphaEquivalenceClass edges, so the α-equivalence class is a joinable node in
-        // the shipped bundle and the committed closure rather than a value that exists only
-        // inside a gate process.
-        // v5 briefly carried graph/verify directly. v6 restores single ownership:
-        // stage-verify-attestation consumes this stage's typed ReasoningResult and
-        // projects graph/verify without launching another closure.
-        "reason.v6-dedicated-verify-consumer"
+        // Explicit domain selection and retained single-run native evidence are
+        // part of both the result identity and every projected witness receipt.
+        "reason.v13-selected-native-execution"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let mut timings = Vec::with_capacity(3);
         // Reason ONCE over the object-level EDB (ontology + imports + statements +
-        // alignments + logic/relational-core), assembled in the SAME
+        // logic/relational-core), assembled in the SAME
         // graph layout the bundle carries but WITHOUT the meta/report graphs — they
         // assert no axioms, so excluding them is closure-isomorphic and makes the
         // Skolem witnesses a function of the ontology alone. This pass owns the
         // committed closure AND backs the bundle's `graph/reasoning`; there is no
         // second full-fold export leaf.
         let edb_started = Instant::now();
+        // Admit the declared producers and select theory roles before
+        // the physical union. Unselected report/support graphs cannot acquire an
+        // intrinsic nonempty-domain law merely by occupying the carrier.
+        let domains = object_level_domains(self, &input)?;
         let edb = crate::stages::carrier::assemble_object_level_edb(input.upstream)?;
         let edb_quads = edb.quad_count();
         timings.push(StageRunTiming {
@@ -565,7 +673,7 @@ impl Stage for ReasonStage {
             metadata: Some(format!("edb-quads={edb_quads}")),
         });
         let closure_started = Instant::now();
-        let reasoned = reason_over_dataset(edb.as_ref())?;
+        let reasoned = reason_over_dataset(edb.as_ref(), &domains)?;
         let inferred_axioms = reasoned.result.inferred().len();
         let budget = reasoned.result.provenance.consumed_budget;
         let budget_allowance = budget
@@ -578,15 +686,19 @@ impl Stage for ReasonStage {
             .saturating_add(reasoned.explanations.len())
             .saturating_add(reasoned.ledger.len())
             .saturating_add(reasoned.perf_ledger.len());
+        let closure_reparse_bytes_removed = reasoned.closure.len();
         timings.push(StageRunTiming {
             phase: "construct-closure-and-artifacts".to_string(),
             elapsed_ms: closure_started.elapsed().as_millis(),
             metadata: Some(format!(
                 "closure-constructions=1;edb-quads={edb_quads};inferred-axioms={inferred_axioms};\
                  budget-consumed={};budget-allowance={budget_allowance};budget-limit={budget_limit};\
-                 witness-derivations={};artifact-bytes={artifact_bytes}",
+                 witness-derivations={};artifact-bytes={artifact_bytes};\
+                 closure-rdf-parses=0;closure-intermediate-freezes=0;\
+                 closure-reparse-bytes-removed={closure_reparse_bytes_removed};\
+                 witness-projection-passes=1;witness-wire-bytes=0",
                 budget.consumed,
-                reasoned.witness_derivations.len(),
+                reasoned.result.native_execution()?.witness_derivations.len(),
             )),
         });
         let output_started = Instant::now();
@@ -597,12 +709,7 @@ impl Stage for ReasonStage {
         // typed five-axis result rides BOTH as the `graph/reasoning` named graph (the
         // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
         // pinned to that graph (C7) — dual carriage.
-        let dataset = reason_dataset(
-            &reasoned.closure,
-            &reasoned.result,
-            &reasoned.chase_report,
-            &reasoned.witness_derivations,
-        )?;
+        let dataset = reasoned.dataset;
         let nodes = crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
         let diag_blob = serde_json::to_vec(&nodes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -664,492 +771,19 @@ impl Stage for ReasonStage {
     }
 }
 
+#[path = "reason.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::bundle::bundle_from_artifacts_over;
+mod tests;
 
-    #[test]
-    fn reason_produces_nonempty_artifacts_over_tiny_graph() {
-        let nq = br#"
-<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/B> <http://gmeow.example/w> .
-<http://example.org/B> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> <http://gmeow.example/w> .
-"#;
-        let reasoned = reason_artifacts(nq).expect("reason");
+#[cfg(test)]
+mod witness_tests;
 
-        // Wiring check: the native reasoner ran end-to-end and the three
-        // builders produced their artifacts (each carries at least its generated
-        // header), and the closure contains a concrete derived transitive
-        // subclass axiom.
-        for (name, ttl) in [
-            ("closure", &reasoned.closure),
-            ("explanations", &reasoned.explanations),
-            ("ledger", &reasoned.ledger),
-            ("perf_ledger", &reasoned.perf_ledger),
-        ] {
-            assert!(!ttl.trim().is_empty(), "{name} artifact is empty");
-        }
-        assert!(reasoned.closure.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
-        assert!(reasoned.chase_report.findings.iter().any(|finding| {
-            finding.code == "reason.native-contract"
-                && finding
-                    .message
-                    .contains(&gmeow_logic::reason::native_contract_hash())
-        }));
-        // The perf ledger flags the deferred / non-incremental levers (static content).
-        assert!(
-            reasoned
-                .perf_ledger
-                .contains("https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental"),
-            "the perf ledger flags the non-incremental hard parts"
-        );
-    }
-
-    // The synthetic in-crate fold test that hand-built an `example.org` existential EDB
-    // and asserted the certificate's free-text edge message was RETIRED (AC3):
-    // its fold demonstration is now the non-vacuous golden over REAL sources
-    // (`tests/chase_certificate_golden.rs`, structured), the witness projection is
-    // covered by `invented_witness_skeletons_land_in_diagnostics_and_certificate_cites_them`
-    // below, and `finding_nodes` node-count rendering by `diag_render`'s own tests.
-
-    #[test]
-    fn invented_witness_skeletons_land_in_diagnostics_and_certificate_cites_them() {
-        // A `C ⊑ ∃p.D` obligation on an individual `x:R` mints exactly one chase
-        // witness null. The stage projects its minting head quad p(x, null) into
-        // graph/diagnostics as standard RDF reification + types the null a
-        // gmeow:InventedWitness, and the weakly-acyclic certificate finding cites
-        // the null-minting reifier through gmeow:findingDerivedFromQuad.
-        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
-        const INVENTED_WITNESS: &str = "https://blackcatinformatics.ca/gmeow/InventedWitness";
-        const EXISTENTIAL_ORDINAL: &str = "https://blackcatinformatics.ca/gmeow/existentialOrdinal";
-        const VIA_RULE: &str = "https://blackcatinformatics.ca/gmeow/viaRule";
-
-        let nq = br#"
-<http://example.org/R> <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/p> <http://gmeow.example/w> .
-<http://example.org/R> <http://www.w3.org/2002/07/owl#someValuesFrom> <http://example.org/D> <http://gmeow.example/w> .
-<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/R> <http://gmeow.example/w> .
-"#;
-        let reasoned = reason_artifacts(nq).expect("production existential reason");
-        assert!(
-            !reasoned.witness_derivations.is_empty(),
-            "the existential obligation must mint at least one witness"
-        );
-        let dataset = reason_dataset(
-            &reasoned.closure,
-            &reasoned.result,
-            &reasoned.chase_report,
-            &reasoned.witness_derivations,
-        )
-        .expect("witness diagnostics dataset");
-        let diagnostics = dataset.project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
-        let quads: Vec<_> = diagnostics.owned_quads().collect();
-
-        let iri = |term: &RdfTerm| match term {
-            RdfTerm::Iri(iri) => Some(iri.clone()),
-            _ => None,
-        };
-
-        // (1) ≥1 subject typed gmeow:InventedWitness.
-        let witness = quads
-            .iter()
-            .find(|quad| {
-                quad.predicate == RDF_TYPE
-                    && matches!(&quad.object, RdfTerm::Iri(iri) if iri == INVENTED_WITNESS)
-            })
-            .and_then(|quad| iri(&quad.subject))
-            .expect("a gmeow:InventedWitness null is projected into graph/diagnostics");
-
-        // (2) that witness carries gmeow:existentialOrdinal.
-        assert!(
-            quads.iter().any(|quad| {
-                iri(&quad.subject).as_deref() == Some(witness.as_str())
-                    && quad.predicate == EXISTENTIAL_ORDINAL
-            }),
-            "the invented witness must carry its gmeow:existentialOrdinal"
-        );
-
-        // (3) a reifier whose rdf:object IS the null AND that carries gmeow:viaRule.
-        let reifier = quads
-            .iter()
-            .find(|quad| {
-                quad.predicate == RDF_OBJECT
-                    && matches!(&quad.object, RdfTerm::Iri(iri) if iri == &witness)
-            })
-            .and_then(|quad| iri(&quad.subject))
-            .expect("a head-quad reifier with rdf:object = <null> is present");
-        assert!(
-            quads.iter().any(|quad| {
-                iri(&quad.subject).as_deref() == Some(reifier.as_str())
-                    && quad.predicate == VIA_RULE
-            }),
-            "the null-minting reifier must carry gmeow:viaRule"
-        );
-
-        // (4) the certificate finding rehydrated via the offline reader carries a
-        // non-empty derived_from_quads (the null-minting reifier it cites).
-        let index = crate::diagnostics_reader::read_findings(&dataset)
-            .expect("rehydrate the diagnostics graph");
-        let certificate = index
-            .findings
-            .values()
-            .find(|finding| finding.code == "chase.certificate.weakly-acyclic")
-            .expect("the weakly-acyclic certificate finding rehydrates");
-        assert!(
-            !certificate.derived_from_quads.is_empty(),
-            "the certificate must cite its null-minting reifiers via findingDerivedFromQuad: {certificate:?}"
-        );
-        assert!(
-            certificate.derived_from_quads.contains(&reifier),
-            "the certificate must cite the head-quad reifier whose object is the null"
-        );
-    }
-
-    #[test]
-    fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
-        // The dual-carriage dataset folds the graph/reasoning projection as a named
-        // graph and the typed handle pins to it (the digest invariant must hold).
-        let nq = br#"
-<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/B> <http://gmeow.example/w> .
-<http://example.org/B> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> <http://gmeow.example/w> .
-"#;
-        let reasoned = reason_artifacts(nq).expect("reason");
-        let dataset = reason_dataset(
-            &reasoned.closure,
-            &reasoned.result,
-            &reasoned.chase_report,
-            &reasoned.witness_derivations,
-        )
-        .expect("dual dataset");
-        let mut bundle = bundle_from_artifacts_over(
-            dataset,
-            BTreeMap::new(),
-            purrdf::provenance::DatasetProvenance::new(),
-        );
-        let pinned = bundle.graph_digest(GRAPH_REASONING);
-        bundle
-            .pin_handle(
-                GRAPH_REASONING,
-                PipelineHandle::Reasoning(Arc::new(reasoned.result.clone())),
-                pinned,
-            )
-            .expect("pin Reasoning handle to its backing graph");
-        let entry = bundle.handle(GRAPH_REASONING).expect("handle attached");
-        let PipelineHandle::Reasoning(r) = &entry.payload else {
-            panic!("the handle arm is Reasoning");
-        };
-        assert_eq!(
-            r.as_ref(),
-            &reasoned.result,
-            "the typed result is carried verbatim"
-        );
-        // The graph/reasoning named graph is non-empty (the projection landed).
-        assert_ne!(
-            bundle.graph_digest(GRAPH_REASONING),
-            bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
-            "graph/reasoning carries the projection"
-        );
-        assert_ne!(
-            bundle.graph_digest(crate::stages::carrier::GRAPH_DIAGNOSTICS),
-            bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
-            "graph/diagnostics always carries the run's native contract evidence"
-        );
-    }
-
-    #[test]
-    fn reason_product_projects_modal_verdict_and_counterexample_into_stage_reason() {
-        let nq = br#"
-<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/necessarily> <https://example.org/modal/B> <https://example.org/modal/frame> .
-<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/overAccessibility> <https://blackcatinformatics.ca/logic/epistemicallyPossible> <https://example.org/modal/frame> .
-<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalEvalWorld> <https://example.org/modal/w0> <https://example.org/modal/frame> .
-<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomSubject> <https://example.org/modal/a> <https://example.org/modal/frame> .
-<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomPredicate> <https://example.org/modal/knows> <https://example.org/modal/frame> .
-<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomObject> <https://example.org/modal/b> <https://example.org/modal/frame> .
-<https://example.org/modal/w0> <https://blackcatinformatics.ca/logic/epistemicallyPossible> <https://example.org/modal/w1> <https://example.org/modal/frame> .
-<https://example.org/modal/w0> <https://blackcatinformatics.ca/logic/epistemicallyPossible> <https://example.org/modal/w2> <https://example.org/modal/frame> .
-<https://example.org/modal/a> <https://example.org/modal/knows> <https://example.org/modal/b> <https://example.org/modal/w1> .
-"#;
-        let reasoned = reason_artifacts(nq).expect("reason modal frame");
-        let modal = reasoned
-            .result
-            .inferred()
-            .iter()
-            .find(|axiom| {
-                axiom.predicate == "https://blackcatinformatics.ca/logic/modalNecessityFails"
-            })
-            .expect("typed production result carries the modal verdict");
-        assert_eq!(modal.world, "https://example.org/modal/w0");
-        assert_eq!(modal.subject, "https://example.org/modal/F");
-        assert_eq!(modal.object, "<https://example.org/modal/B>");
-        assert_eq!(
-            modal.rule_name.as_deref(),
-            Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
-        );
-        assert_eq!(
-            modal.premises,
-            vec![(
-                "https://example.org/modal/a".to_owned(),
-                "https://example.org/modal/knows".to_owned(),
-                "<https://example.org/modal/b>".to_owned(),
-            )]
-        );
-        let body_source = gmeow_logic::provenance::reifier_from_strings(
-            "https://example.org/modal/a",
-            "https://example.org/modal/knows",
-            "<https://example.org/modal/b>",
-        );
-        let access_source = gmeow_logic::provenance::reifier_from_strings(
-            "https://example.org/modal/w0",
-            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
-            "<https://example.org/modal/w2>",
-        );
-        let verdict_derivation = gmeow_logic::provenance::mint_derivation_id(
-            "https://blackcatinformatics.ca/logic/rule/modal-evaluation",
-            &[body_source.as_str()],
-        );
-        let counterexample_derivation = gmeow_logic::provenance::mint_derivation_id(
-            "https://blackcatinformatics.ca/logic/rule/modal-evaluation",
-            &[body_source.as_str(), access_source.as_str()],
-        );
-        let counterexample = reasoned
-            .result
-            .inferred()
-            .iter()
-            .find(|axiom| {
-                axiom.predicate == "https://blackcatinformatics.ca/logic/modalCounterexampleWorld"
-            })
-            .expect("typed production result carries the counterexample world");
-        assert_eq!(counterexample.world, "https://example.org/modal/w0");
-        assert_eq!(counterexample.subject, "https://example.org/modal/F");
-        assert_eq!(counterexample.object, "<https://example.org/modal/w2>");
-        assert_eq!(
-            counterexample.rule_name.as_deref(),
-            Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
-        );
-        assert_eq!(
-            counterexample.premises,
-            vec![
-                (
-                    "https://example.org/modal/a".to_owned(),
-                    "https://example.org/modal/knows".to_owned(),
-                    "<https://example.org/modal/b>".to_owned(),
-                ),
-                (
-                    "https://example.org/modal/w0".to_owned(),
-                    "https://blackcatinformatics.ca/logic/epistemicallyPossible".to_owned(),
-                    "<https://example.org/modal/w2>".to_owned(),
-                ),
-            ]
-        );
-        assert!(
-            reasoned.closure.contains(
-                "<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalNecessityFails> <https://example.org/modal/B> ."
-            ),
-            "stage-reason's closure must carry the shared modal verdict"
-        );
-        assert!(
-            reasoned.closure.contains(
-                "<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalCounterexampleWorld> <https://example.org/modal/w2> ."
-            ),
-            "stage-reason's closure must carry the exact modal counterexample"
-        );
-        for artifact in [&reasoned.closure, &reasoned.explanations] {
-            assert!(
-                artifact.contains("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
-            );
-            assert!(artifact.contains(&body_source));
-            assert!(artifact.contains(&access_source));
-            assert!(artifact.contains(&verdict_derivation));
-            assert!(artifact.contains(&counterexample_derivation));
-            assert!(artifact.contains("https://example.org/modal/w0"));
-        }
-        let product = reason_product(nq).expect("stage-reason product");
-        let reasoning_graph = product.dataset().project_named_graph(GRAPH_REASONING);
-        let projected = reasoning_graph.owned_quads().collect::<Vec<_>>();
-        assert!(projected.iter().any(|quad| {
-            quad.predicate == "https://blackcatinformatics.ca/gmeow/viaRule"
-                && matches!(
-                    &quad.object,
-                    RdfTerm::Iri(iri)
-                        if iri == "https://blackcatinformatics.ca/logic/rule/modal-evaluation"
-                )
-        }));
-        assert!(projected.iter().any(|quad| {
-            quad.predicate == "https://blackcatinformatics.ca/logic/derivationIdentifier"
-                && matches!(
-                    &quad.object,
-                    RdfTerm::Literal(literal) if literal.lexical_form == verdict_derivation
-                )
-        }));
-        assert!(projected.iter().any(|quad| {
-            quad.predicate == "https://blackcatinformatics.ca/logic/derivationIdentifier"
-                && matches!(
-                    &quad.object,
-                    RdfTerm::Literal(literal) if literal.lexical_form == counterexample_derivation
-                )
-        }));
-        assert!(projected.iter().any(|quad| {
-            quad.predicate == "http://www.w3.org/ns/prov#wasDerivedFrom"
-                && matches!(&quad.object, RdfTerm::Iri(iri) if iri.as_str() == body_source.as_str())
-        }));
-        assert!(projected.iter().any(|quad| {
-            quad.predicate == "http://www.w3.org/ns/prov#wasDerivedFrom"
-                && matches!(&quad.object, RdfTerm::Iri(iri) if iri.as_str() == access_source.as_str())
-        }));
-
-        let handle = product
-            .bundle()
-            .handle(GRAPH_REASONING)
-            .expect("stage-reason pins its typed result");
-        let PipelineHandle::Reasoning(transported) = &handle.payload else {
-            panic!("graph/reasoning must carry a Reasoning handle");
-        };
-        let transported_modal = transported
-            .inferred()
-            .iter()
-            .find(|axiom| {
-                axiom.predicate == "https://blackcatinformatics.ca/logic/modalNecessityFails"
-            })
-            .expect("stage-reason handle retains modal verdict");
-        assert_eq!(transported_modal, modal);
-        let transported_counterexample = transported
-            .inferred()
-            .iter()
-            .find(|axiom| {
-                axiom.predicate == "https://blackcatinformatics.ca/logic/modalCounterexampleWorld"
-            })
-            .expect("stage-reason handle retains the modal counterexample");
-        assert_eq!(transported_counterexample, counterexample);
-    }
-
-    #[test]
-    fn shipped_modal_example_is_a_complete_reason_product_frame() {
-        // Parse only the authored example under test, root it exactly as source-load does,
-        // and hand its in-memory N-Quads to the actual stage-reason product. The example's
-        // frame is self-accessible while its ground atom remains in graph/examples, so both
-        // modal formulas must fail at the distinct example world. This is read-only fixture
-        // consumption: no corpus producer, cache fallback, or foundation evaluator is
-        // involved.
-        let example = purrdf::parse_dataset(
-            include_bytes!("../../../../slices/grounding/logic/examples/gmn-logic-roundtrip.ttl"),
-            "text/turtle",
-            None,
-        )
-        .expect("parse the shipped modal example");
-        let rooted = crate::stages::carrier::rooted_in_graph(
-            example.as_ref(),
-            gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
-        )
-        .expect("root the example in its production named world");
-        let nq = purrdf::serialize_dataset(
-            rooted.as_ref(),
-            "application/n-quads",
-            purrdf::SerializeGraph::Dataset,
-        )
-        .expect("serialize the rooted example as in-memory N-Quads");
-
-        let product = reason_product(&nq).expect("the shipped modal frame must reason");
-        let handle = product
-            .bundle()
-            .handle(GRAPH_REASONING)
-            .expect("stage-reason pins its typed result");
-        let PipelineHandle::Reasoning(result) = &handle.payload else {
-            panic!("graph/reasoning must carry a Reasoning handle");
-        };
-        for (formula, predicate) in [
-            (
-                "https://blackcatinformatics.ca/gmeow/examples/logic/necessarilyReliable",
-                "https://blackcatinformatics.ca/logic/modalNecessityFails",
-            ),
-            (
-                "https://blackcatinformatics.ca/gmeow/examples/logic/possiblyReliable",
-                "https://blackcatinformatics.ca/logic/modalPossibilityFails",
-            ),
-        ] {
-            let verdict = result
-                .inferred()
-                .iter()
-                .find(|axiom| axiom.subject == formula && axiom.predicate == predicate)
-                .unwrap_or_else(|| panic!("missing production modal verdict for {formula}"));
-            assert_eq!(
-                verdict.world,
-                "https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld"
-            );
-            assert_eq!(
-                verdict.rule_name.as_deref(),
-                Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
-            );
-        }
-        let counterexample = result
-            .inferred()
-            .iter()
-            .find(|axiom| {
-                axiom.subject
-                    == "https://blackcatinformatics.ca/gmeow/examples/logic/necessarilyReliable"
-                    && axiom.predicate
-                        == "https://blackcatinformatics.ca/logic/modalCounterexampleWorld"
-            })
-            .expect("shipped necessity verdict carries its exact counterexample world");
-        assert_eq!(
-            counterexample.object,
-            "<https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld>"
-        );
-        assert_eq!(
-            counterexample.world,
-            "https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld"
-        );
-        assert_eq!(
-            counterexample.rule_name.as_deref(),
-            Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
-        );
-    }
-
-    #[test]
-    fn reason_product_hard_fails_on_malformed_modal_frames() {
-        let nq = br#"
-<https://example.org/valid/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/valid/B> <https://example.org/valid/w> .
-<https://example.org/valid/B> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/valid/C> <https://example.org/valid/w> .
-<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/necessarily> <https://example.org/modal/B> <https://example.org/modal/frame> .
-<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/overAccessibility> <https://blackcatinformatics.ca/logic/accessibleFrom> <https://example.org/modal/frame> .
-<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalEvalWorld> <https://example.org/modal/w0> <https://example.org/modal/frame> .
-<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomSubject> <https://example.org/modal/a> <https://example.org/modal/frame> .
-<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomPredicate> <https://example.org/modal/knows> <https://example.org/modal/frame> .
-<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomObject> <https://example.org/modal/b> <https://example.org/modal/frame> .
-"#;
-        let err = reason_product(nq).expect_err("malformed modal frame must fail closed");
-        assert!(
-            err.message().contains("prose-only"),
-            "the hard-fail should name the malformed modal accessibility: {err}"
-        );
-    }
-
-    #[test]
-    fn pin_handle_hard_fails_on_a_digest_mismatch() {
-        let nq = br#"
-<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/B> <http://gmeow.example/w> .
-"#;
-        let reasoned = reason_artifacts(nq).expect("reason");
-        let dataset = reason_dataset(
-            &reasoned.closure,
-            &reasoned.result,
-            &reasoned.chase_report,
-            &reasoned.witness_derivations,
-        )
-        .expect("dual dataset");
-        let mut bundle = bundle_from_artifacts_over(
-            dataset,
-            BTreeMap::new(),
-            purrdf::provenance::DatasetProvenance::new(),
-        );
-        // A WRONG pinned digest must be rejected (no silently-stale handle).
-        let wrong = purrdf::ContentDigest::of(b"not the backing graph");
-        let err = bundle
-            .pin_handle(
-                GRAPH_REASONING,
-                PipelineHandle::Reasoning(Arc::new(reasoned.result)),
-                wrong,
-            )
-            .expect_err("a mismatched pin must hard-fail");
-        let _ = err;
-    }
-}
+#[cfg(test)]
+#[path = "reason_test_support.rs"]
+mod test_support;
+#[cfg(test)]
+pub(crate) use test_support::reason_artifacts;
+#[cfg(test)]
+pub(crate) use test_support::reason_product;
+#[cfg(test)]
+pub(crate) use test_support::reason_test_dataset;

@@ -14,17 +14,8 @@
 //! and contradictory evidence surfaces as a Belnap glut rather than an
 //! overwrite.
 
-/// Render-test snapshot helper (U5): a thin wrapper over
-/// `insta::assert_snapshot!` so every renderer golden goes through one
-/// substrate-owned entry point. The wrapper forwards its tokens verbatim, so
-/// the auto-derived snapshot name and rendered body are byte-identical to a
-/// direct `insta::assert_snapshot!` call.
-#[macro_export]
-macro_rules! assert_diag_snapshot {
-    ($($tokens:tt)*) => {
-        ::insta::assert_snapshot!($($tokens)*)
-    };
-}
+#[cfg(test)]
+mod snapshot_test_support;
 
 pub mod abox;
 pub mod code;
@@ -53,7 +44,8 @@ pub use grade::{
     Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,
 };
 pub use ledger::{
-    DiagFingerprint, DiagLedger, DiagNode, Observation, SerFrame, SerLocation, fingerprint_iri,
+    DiagFingerprint, DiagLedger, DiagNode, Observation, RecordedDiag, SerFrame, SerLocation,
+    fingerprint_iri,
 };
 pub use model::{
     DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule, Severity,

@@ -13,8 +13,8 @@
 //! [`crate::external::tptp`] pipeline parses the body, applies the FOL-negation
 //! reduction, and lowers the EL/DL-expressible fragment to a world-scoped EDB. For
 //! the W3C entailment seeds the negated conclusion is pre-baked in the authored
-//! `input.nq`. [`premise_ds_to_world_nquads`] is the shared world-scoping waist both
-//! paths (and the W3C-manifest ingest) funnel their default-graph triples through.
+//! `input.nq`. [`premise_ds_to_world_nquads`] world-scopes the W3C-manifest
+//! ingest. The TPTP lowerer builds its native world-scoped dataset directly.
 
 use std::collections::BTreeMap;
 
@@ -30,8 +30,8 @@ use crate::external::status::ExternalOutcome;
 /// The native N-Triples serializer does all the term encoding (IRI angle
 /// brackets, literal escaping, datatype IRIs, lang tags, blank-node labels), so
 /// the world-scoping never re-implements it. This is the shared lowering waist:
-/// the W3C-manifest ingest and the TPTP FOL lowerer both produce a default-graph
-/// dataset and world-scope it here, so a single code path owns the encoding.
+/// W3C-manifest sources produce a default-graph dataset and world-scope it here,
+/// so their external N-Quads encoding has one owner.
 pub fn premise_ds_to_world_nquads(
     ds: &purrdf::RdfDataset,
     world_iri: &str,
@@ -99,20 +99,6 @@ pub fn runner_verdict_json(
     crate::serialize::build_verdicts(&counts, |_| outcome.verdict_status())
 }
 
+#[path = "lower.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn runner_verdict_reflects_the_mapped_status() {
-        let v = runner_verdict_json("https://w/x", 4, ExternalOutcome::Inconsistent);
-        assert_eq!(v["https://w/x"]["status"], "inconsistent");
-        assert_eq!(v["https://w/x"]["quads"], 4);
-
-        let v = runner_verdict_json("https://w/x", 2, ExternalOutcome::Consistent);
-        assert_eq!(v["https://w/x"]["status"], "consistent");
-
-        let v = runner_verdict_json("https://w/x", 0, ExternalOutcome::Incomplete);
-        assert_eq!(v["https://w/x"]["status"], "incomplete");
-    }
-}
+mod tests;

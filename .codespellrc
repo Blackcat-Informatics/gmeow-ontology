@@ -4,8 +4,10 @@
 # content, not ours to correct), the i18n translation catalogs (*.po — foreign
 # msgstr is not English prose; their English msgids are checked at the source),
 # and the vendored openEHR archetypes (upstream Apache-2.0, not ours to correct).
+# Both Cargo locks are generated dependency identities; crate names such as
+# `inout` must retain their registry spelling.
 # Patterns are fnmatch'd against repo-relative paths.
-skip = Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*,validations/openehr-bloodpressure/Blutdruck.opt,validations/openehr-test-datatypes/TestAllDatatypes.opt,validations/common-logic-fol/clif2tptp/Cargo.lock
+skip = Cargo.lock,fuzz/Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*,validations/openehr-bloodpressure/Blutdruck.opt,validations/openehr-test-datatypes/TestAllDatatypes.opt,validations/common-logic-fol/clif2tptp/Cargo.lock
 # False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
 # opNe (the not-equal expression operator in the mapping DSL algebra),
 # ser (Rust serde/ciborium module path `ciborium::ser`),

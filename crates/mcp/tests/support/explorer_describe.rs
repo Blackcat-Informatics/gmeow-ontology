@@ -8,6 +8,8 @@ use std::path::PathBuf;
 use purrdf::{DatasetView, GraphMatch, TermRef};
 use serde_json::{Value, json};
 
+use super::McpServer;
+
 pub struct DescribeWitness {
     pub subject: String,
     pub rendered: String,
@@ -25,7 +27,7 @@ pub fn repo_root() -> PathBuf {
 }
 
 pub fn attestation_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/witness/describe.nt")
+    repo_root().join("crates/mcp/tests/witness/describe.nt")
 }
 
 /// Render every default-graph quad with `subject_iri` as sorted, deduplicated N-Triples.
@@ -61,10 +63,7 @@ fn describe_query(subject_iri: &str) -> String {
     format!("CONSTRUCT {{ <{subject_iri}> ?p ?o }} WHERE {{ <{subject_iri}> ?p ?o }}")
 }
 
-fn query_describe(
-    server: &gmeow_mcp::McpServer,
-    subject: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
+fn query_describe(server: &McpServer, subject: &str) -> Result<String, Box<dyn std::error::Error>> {
     let envelope = server.call_tool_result(
         "query_local",
         &json!({
@@ -91,13 +90,16 @@ fn query_describe(
 }
 
 /// Compute the native object-level description and the shipped query route over one
-/// caller-selected snapshot, require byte identity and repeat determinism, then return
-/// the exact attestation text. Tests supply authenticated producer artifacts; the
-/// explicit maintainer producer supplies a freshly folded bundle directly.
+/// caller-selected immutable view, require byte identity and repeat determinism, then
+/// return the exact attestation text. The direct dataset renderer and public query
+/// surface read the same input through independent paths, without a second bundle import.
 pub fn verified_describe(
-    snapshot: &[u8],
-    core: &purrdf::RdfDataset,
+    server: &McpServer,
 ) -> Result<DescribeWitness, Box<dyn std::error::Error>> {
+    let core = server
+        .view()
+        .graph_dataset()
+        .map_err(|error| fail(format!("read MCP dataset: {}", error.message())))?;
     let namespace = "https://blackcatinformatics.ca/gmeow/";
     let subject = core
         .quads_for_pattern(None, None, None, GraphMatch::Default)
@@ -107,15 +109,13 @@ pub fn verified_describe(
         })
         .min()
         .ok_or_else(|| fail("core bundle carries no GMEOW-namespace subject"))?;
-    let native = describe(core, &subject);
+    let native = describe(&core, &subject);
     if native.is_empty() {
         return Err(fail(format!("the native describe of {subject} is empty")));
     }
 
-    let server = gmeow_mcp::McpServer::from_snapshot(snapshot)
-        .map_err(|error| fail(format!("boot MCP server: {}", error.message())))?;
-    let shipped = query_describe(&server, &subject)?;
-    let repeated = query_describe(&server, &subject)?;
+    let shipped = query_describe(server, &subject)?;
+    let repeated = query_describe(server, &subject)?;
     if shipped != repeated {
         return Err(fail("the shipped explorer describe is not deterministic"));
     }

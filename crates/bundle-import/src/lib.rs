@@ -33,10 +33,6 @@ use sha2::{Digest, Sha256};
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
-#[cfg(test)]
-#[path = "../../../build-support/path_dependency_inputs.rs"]
-mod build_inputs;
-
 define_diag_kind! {
     /// A content-keyed bundle import could not be built, verified, restored, or
     /// published atomically. Cached material is never trusted after this refusal.
@@ -65,7 +61,8 @@ const RETAINED_NAMESPACES: usize = 4;
 const MAX_STORE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
 const STORE_SENTINEL: &str = ".gmeow-bundle-import-store-v1";
 const STORE_SENTINEL_BYTES: &[u8] = b"gmeow-bundle-import-store:v1\n";
-const CORPUS_ARTIFACT_CODEC: &str = "authenticated-corpus-artifact-v1";
+const CORPUS_ARTIFACT_CODEC: &str = "authenticated-corpus-artifact-v2";
+const CORPUS_ARTIFACT_SCHEMA_VERSION: u32 = 2;
 const TEST_FIXTURE_MANIFEST_PATH_ENV: &str = gmeow_action_cache::selection::MANIFEST_PATH_ENV;
 const TEST_FIXTURE_MANIFEST_SHA256_ENV: &str = gmeow_action_cache::selection::MANIFEST_SHA256_ENV;
 const BUNDLE_FIXTURE_SELECTOR_SCHEMA_VERSION: u32 = 1;
@@ -126,6 +123,9 @@ pub struct ImportAdmission {
     pub receipt: ImportReceipt,
     pub built: bool,
     pub transferred_bytes: u64,
+    /// Cold admissions retain the dataset they just produced for downstream
+    /// artifact work. Warm admissions leave it absent and avoid hydration.
+    pub produced_dataset: Option<Arc<RdfDataset>>,
 }
 
 /// Exact identity of one producer-published, bundle-derived test artifact.
@@ -139,10 +139,18 @@ pub struct CorpusArtifactPublication {
     pub action_key: String,
     pub receipt_digest: String,
     pub build_fingerprint: String,
+    pub artifact_producer_fingerprint: String,
     pub name: String,
     pub source_sha256: String,
     pub product_digest: String,
     pub product_bytes: u64,
+}
+
+/// Producer admission of one exact bundle-derived artifact, without warm hydration.
+#[derive(Debug)]
+pub struct CorpusArtifactAdmission {
+    pub publication: CorpusArtifactPublication,
+    pub built: bool,
 }
 
 /// Producer-issued selection for every fixture derived from one exact GTS bundle.
@@ -209,9 +217,10 @@ fn validate_bundle_fixture_selector(selector: &BundleFixtureSelector) -> gmeow_e
         ));
     }
     for (name, artifact) in &selector.corpus_artifacts {
-        if artifact.schema_version != 1
+        if artifact.schema_version != CORPUS_ARTIFACT_SCHEMA_VERSION
             || artifact.name != *name
             || artifact.build_fingerprint != receipt.build_fingerprint
+            || !is_digest(&artifact.artifact_producer_fingerprint)
             || artifact.source_sha256 != receipt.source_digest
             || !is_digest(&artifact.action_key)
             || !is_digest(&artifact.receipt_digest)
@@ -222,8 +231,12 @@ fn validate_bundle_fixture_selector(selector: &BundleFixtureSelector) -> gmeow_e
             )));
         }
         validate_corpus_artifact_name(name)?;
-        let context =
-            corpus_artifact_context_for(&artifact.source_sha256, name, &artifact.build_fingerprint);
+        let context = corpus_artifact_context_for(
+            &artifact.source_sha256,
+            name,
+            &artifact.build_fingerprint,
+            &artifact.artifact_producer_fingerprint,
+        );
         if artifact.action_key != context.key().as_str() {
             return Err(diag(format!(
                 "bundle import: producer fixture selector action key is not context-derived for {name}"
@@ -245,6 +258,7 @@ fn corpus_artifact_context_for(
     source_sha256: &str,
     name: &str,
     build_fingerprint: &str,
+    artifact_producer_fingerprint: &str,
 ) -> ActionContext {
     ActionContext::new(
         "test-corpus",
@@ -258,10 +272,7 @@ fn corpus_artifact_context_for(
             digest: source_sha256.to_string(),
         }],
     )
-}
-
-fn corpus_artifact_context(source_sha256: &str, name: &str) -> ActionContext {
-    corpus_artifact_context_for(source_sha256, name, BUILD_FINGERPRINT)
+    .with_dimension("artifact-producer", artifact_producer_fingerprint)
 }
 
 fn validate_corpus_artifact_name(name: &str) -> gmeow_errors::Result<()> {
@@ -278,24 +289,53 @@ fn validate_corpus_artifact_name(name: &str) -> gmeow_errors::Result<()> {
     }
 }
 
-/// Publish a derived corpus artifact from an explicitly selected source bundle.
+/// Authenticate a bundle-derived artifact or elect one producer for a clean miss.
 ///
-/// This is a producer-only API. The action key binds the exact source bytes, artifact
-/// kind, extraction codec, and producer build fingerprint. Test processes must call
-/// [`load_authenticated_corpus_artifact`] instead.
-pub fn publish_authenticated_corpus_artifact(
+/// The already-admitted import binds the source and producer identities. Warm
+/// artifact actions also bind the caller's authenticated executable recipe,
+/// independently of the narrower import implementation identity. Changing an
+/// extraction implementation invalidates artifacts without invalidating its pack.
+/// admissions stream-authenticate the product and return only its receipt; they
+/// never invoke `produce`, restore the dataset or allocate the artifact body.
+/// Corrupt existing material fails closed. Test consumers must use
+/// [`load_authenticated_corpus_artifact`] and cannot access this producer callback.
+pub fn admit_authenticated_corpus_artifact(
     repo_root: &Path,
-    gts_bytes: &[u8],
+    import: &ImportReceipt,
+    artifact_producer_fingerprint: &str,
     name: &str,
-    bytes: &[u8],
-) -> gmeow_errors::Result<CorpusArtifactPublication> {
+    produce: impl FnOnce() -> gmeow_errors::Result<Vec<u8>>,
+) -> gmeow_errors::Result<CorpusArtifactAdmission> {
     validate_corpus_artifact_name(name)?;
-    let source_sha256 = ContentDigest::of(gts_bytes).to_hex();
-    let context = corpus_artifact_context(&source_sha256, name);
+    if import.schema_version != SCHEMA_VERSION
+        || import.codec != CODEC
+        || import.build_fingerprint != BUILD_FINGERPRINT
+        || !is_digest(&import.source_digest)
+        || !is_digest(artifact_producer_fingerprint)
+        || !is_digest(&import.pack_digest)
+        || import.pack_bytes > MAX_PACK_BYTES
+        || import.action_key
+            != digest(&[
+                b"gmeow:bundle-import-action:v1",
+                BUILD_FINGERPRINT.as_bytes(),
+                CODEC.as_bytes(),
+                import.source_digest.as_bytes(),
+            ])
+    {
+        return Err(diag(
+            "bundle artifact admission requires the current producer's exact import receipt",
+        ));
+    }
+    let context = corpus_artifact_context_for(
+        &import.source_digest,
+        name,
+        BUILD_FINGERPRINT,
+        artifact_producer_fingerprint,
+    );
     let payload = CorpusArtifactPayload {
-        schema_version: 1,
-        name: name.to_string(),
-        source_sha256: source_sha256.clone(),
+        schema_version: CORPUS_ARTIFACT_SCHEMA_VERSION,
+        name: name.to_owned(),
+        source_sha256: import.source_digest.clone(),
     };
     let store = ActionStore::open(
         ActionStore::default_root(repo_root),
@@ -307,18 +347,52 @@ pub fn publish_authenticated_corpus_artifact(
             "bundle import: open corpus artifact store: {error}"
         ))
     })?;
-    let receipt = store
-        .publish(&context, ContentDigest::of(bytes).to_hex(), payload, bytes)
-        .map_err(|error| diag(format!("bundle import: publish corpus artifact: {error}")))?;
-    Ok(CorpusArtifactPublication {
-        schema_version: 1,
-        action_key: receipt.action_key.as_str().to_owned(),
-        receipt_digest: receipt.digest(),
-        build_fingerprint: BUILD_FINGERPRINT.to_string(),
-        name: name.to_string(),
-        source_sha256: source_sha256.to_string(),
-        product_digest: receipt.product_digest,
-        product_bytes: receipt.product_blob.bytes,
+    let admission = store
+        .coordinate(
+            &context.key(),
+            || {
+                let receipt = store.inspect::<CorpusArtifactPayload>(&context)?;
+                if receipt.as_ref().is_some_and(|receipt| {
+                    receipt.payload != payload
+                        || receipt.product_digest != receipt.product_blob.digest
+                }) {
+                    return Err(gmeow_action_cache::ActionCacheError::message(
+                        "bundle artifact payload identity mismatch",
+                    ));
+                }
+                Ok(receipt)
+            },
+            || {
+                let bytes = produce().map_err(|error| {
+                    gmeow_action_cache::ActionCacheError::message(error.to_string())
+                })?;
+                store.publish(
+                    &context,
+                    ContentDigest::of(&bytes).to_hex(),
+                    payload.clone(),
+                    &bytes,
+                )
+            },
+        )
+        .map_err(|error: gmeow_action_cache::ActionCacheError| {
+            diag(format!(
+                "bundle import: admit corpus artifact {name}: {error}"
+            ))
+        })?;
+    let receipt = admission.value;
+    Ok(CorpusArtifactAdmission {
+        built: admission.built,
+        publication: CorpusArtifactPublication {
+            schema_version: CORPUS_ARTIFACT_SCHEMA_VERSION,
+            action_key: receipt.action_key.as_str().to_owned(),
+            receipt_digest: receipt.digest(),
+            build_fingerprint: BUILD_FINGERPRINT.to_owned(),
+            artifact_producer_fingerprint: artifact_producer_fingerprint.to_owned(),
+            name: name.to_owned(),
+            source_sha256: import.source_digest.clone(),
+            product_digest: receipt.product_digest,
+            product_bytes: receipt.product_blob.bytes,
+        },
     })
 }
 
@@ -344,9 +418,14 @@ pub fn load_authenticated_corpus_artifact(
             "authenticated corpus artifact {name:?} is absent from the producer selector; tests may not rebuild it"
         ))
     })?;
-    let context = corpus_artifact_context_for(&source_sha256, name, &selected.build_fingerprint);
+    let context = corpus_artifact_context_for(
+        &source_sha256,
+        name,
+        &selected.build_fingerprint,
+        &selected.artifact_producer_fingerprint,
+    );
     let expected_payload = CorpusArtifactPayload {
-        schema_version: 1,
+        schema_version: CORPUS_ARTIFACT_SCHEMA_VERSION,
         name: name.to_string(),
         source_sha256,
     };
@@ -368,7 +447,9 @@ pub fn load_authenticated_corpus_artifact(
                 "authenticated corpus artifact {name:?} is absent; tests may not rebuild it"
             ))
         })?;
-    if entry.receipt.payload != expected_payload {
+    if entry.receipt.payload != expected_payload
+        || entry.receipt.product_digest != entry.receipt.product_blob.digest
+    {
         return Err(diag(format!(
             "bundle import: authenticated corpus artifact {name:?} payload identity mismatch"
         )));
@@ -481,6 +562,43 @@ pub fn import_graph_preserving_cached(
     cache_root: &Path,
     gts_bytes: &[u8],
 ) -> gmeow_errors::Result<ImportOutcome> {
+    let admission = import_graph_preserving_with(
+        cache_root,
+        gts_bytes,
+        ImportRead::Dataset,
+        import_native_dataset,
+    )?;
+    Ok(ImportOutcome {
+        dataset: admission.produced_dataset.ok_or_else(|| {
+            diag("bundle import: dataset import completed without its requested dataset")
+        })?,
+        receipt: admission.receipt,
+        built: admission.built,
+        transferred_bytes: admission.transferred_bytes,
+    })
+}
+
+#[derive(Clone, Copy)]
+enum ImportRead {
+    Dataset,
+    Receipt,
+}
+
+fn import_native_dataset(gts_bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    purrdf::import_gts_events(gts_bytes)
+        .map(|imported| imported.dataset)
+        .map_err(|error| diag(format!("bundle import: decode GTS source: {error}")))
+}
+
+/// All producer import variants share one election and publication path. Only
+/// this module can supply an importer; public callers cannot substitute a dataset
+/// unrelated to the source bytes authenticated by the receipt.
+fn import_graph_preserving_with(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+    read: ImportRead,
+    import: impl FnOnce(&[u8]) -> gmeow_errors::Result<Arc<RdfDataset>>,
+) -> gmeow_errors::Result<ImportAdmission> {
     fs::create_dir_all(cache_root).map_err(io_diag)?;
     ensure_real_directory(cache_root, "cache root")?;
     let root_lock = open_lock(&cache_root.join("store.lock"))?;
@@ -492,7 +610,7 @@ pub fn import_graph_preserving_cached(
     initialize_store_root(cache_root)?;
     root_lock.unlock().map_err(io_diag)?;
     root_lock.lock_shared().map_err(io_diag)?;
-    let outcome = import_graph_preserving_under_root(cache_root, gts_bytes)?;
+    let outcome = import_graph_preserving_under_root(cache_root, gts_bytes, read, import)?;
     root_lock.unlock().map_err(io_diag)?;
     // Enforce the bound after hits as well as publications. An outer CI transfer may
     // restore obsolete namespaces alongside a valid current entry; a warm hit cannot
@@ -504,27 +622,70 @@ pub fn import_graph_preserving_cached(
 /// Admit the exact graph-preserving import before tests without eagerly restoring a
 /// warm packed dataset.
 ///
-/// A clean miss delegates to [`import_graph_preserving_cached`] and therefore produces
-/// the action exactly once. A hit re-hashes the referenced pack and validates its
+/// A clean miss uses the shared native import election and produces the action
+/// exactly once. A hit re-hashes the referenced pack and validates its
 /// immutable receipt, returning only that identity. This is a producer API, not a test
 /// fallback; test consumers remain read-only through [`load_graph_preserving_cached`].
 pub fn admit_graph_preserving_cached(
     cache_root: &Path,
     gts_bytes: &[u8],
 ) -> gmeow_errors::Result<ImportAdmission> {
+    admit_graph_preserving_with(cache_root, gts_bytes, import_native_dataset)
+}
+
+/// Admit the scoped native dataset and retain explicitly selected archive blobs
+/// during the same cold import.
+///
+/// The existing packed action contains only the unchanged native dataset. On a
+/// cold publication, the returned blob import shares that exact dataset allocation
+/// with `ImportAdmission::produced_dataset`. A warm admission authenticates the
+/// receipt and pack without importing, restoring or selecting any blobs, including
+/// when another producer wins the action election. A caller with missing artifact
+/// actions may subsequently initialize its own bounded selected import.
+///
+/// This is an explicit producer API; test readers retain their fail-closed load
+/// path. The selectors and limits govern cold blob retention, not a different
+/// dataset codec or a change to the packed action identity.
+///
+/// # Errors
+/// Rejects the same corrupt import actions as [`admit_graph_preserving_cached`].
+/// A cold import also rejects missing, ambiguous, corrupt or over-budget selected
+/// blobs through PurRDF's authoritative selected-blob importer.
+pub fn admit_graph_preserving_cached_with_blobs(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+    selectors: &[purrdf::GtsBlobSelector<'_>],
+    limits: purrdf::GtsBlobLimits,
+) -> gmeow_errors::Result<(ImportAdmission, Option<purrdf::GtsImportWithBlobs>)> {
+    let mut selected = None;
+    let admission = admit_graph_preserving_with(cache_root, gts_bytes, |bytes| {
+        let imported =
+            purrdf::import_gts_events_with_blobs(bytes, selectors, limits).map_err(|error| {
+                diag(format!(
+                    "bundle import: decode selected GTS source: {error}"
+                ))
+            })?;
+        let dataset = Arc::clone(&imported.bundle.dataset);
+        selected = Some(imported);
+        Ok(dataset)
+    })?;
+    Ok((admission, selected))
+}
+
+fn admit_graph_preserving_with(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+    import: impl FnOnce(&[u8]) -> gmeow_errors::Result<Arc<RdfDataset>>,
+) -> gmeow_errors::Result<ImportAdmission> {
     if let Some(receipt) = inspect_graph_preserving_cached(cache_root, gts_bytes)? {
         return Ok(ImportAdmission {
             transferred_bytes: receipt.pack_bytes,
             receipt,
             built: false,
+            produced_dataset: None,
         });
     }
-    let outcome = import_graph_preserving_cached(cache_root, gts_bytes)?;
-    Ok(ImportAdmission {
-        receipt: outcome.receipt,
-        built: outcome.built,
-        transferred_bytes: outcome.transferred_bytes,
-    })
+    import_graph_preserving_with(cache_root, gts_bytes, ImportRead::Receipt, import)
 }
 
 fn inspect_graph_preserving_cached(
@@ -581,14 +742,13 @@ fn inspect_graph_preserving_cached(
     root_lock.lock_shared().map_err(io_diag)?;
     store_lock.lock_shared().map_err(io_diag)?;
     action_lock.lock_shared().map_err(io_diag)?;
-    let inspected = load_verified_pack(
+    let inspected = inspect_import(
         &namespace,
         &action_key,
         BUILD_FINGERPRINT,
         &source_digest,
         gts_bytes.len(),
-    )
-    .map(|entry| entry.map(|(receipt, _pack)| receipt));
+    );
     action_lock.unlock().map_err(io_diag)?;
     store_lock.unlock().map_err(io_diag)?;
     root_lock.unlock().map_err(io_diag)?;
@@ -759,7 +919,9 @@ fn initialize_store_root(cache_root: &Path) -> gmeow_errors::Result<()> {
 fn import_graph_preserving_under_root(
     cache_root: &Path,
     gts_bytes: &[u8],
-) -> gmeow_errors::Result<ImportOutcome> {
+    read: ImportRead,
+    import: impl FnOnce(&[u8]) -> gmeow_errors::Result<Arc<RdfDataset>>,
+) -> gmeow_errors::Result<ImportAdmission> {
     let source_digest = ContentDigest::of(gts_bytes).to_hex();
     let action_key = digest(&[
         b"gmeow:bundle-import-action:v1",
@@ -787,12 +949,13 @@ fn import_graph_preserving_under_root(
 
     store_lock.lock_shared().map_err(io_diag)?;
     action_lock.lock_shared().map_err(io_diag)?;
-    if let Some(outcome) = load(
+    if let Some(outcome) = read_import(
         &namespace,
         &action_key,
         BUILD_FINGERPRINT,
         &source_digest,
         gts_bytes.len(),
+        read,
     )? {
         action_lock.unlock().map_err(io_diag)?;
         store_lock.unlock().map_err(io_diag)?;
@@ -805,21 +968,20 @@ fn import_graph_preserving_under_root(
     // this builder/rechecker is active; unrelated action keys can still proceed.
     store_lock.lock_shared().map_err(io_diag)?;
     action_lock.lock().map_err(io_diag)?;
-    if let Some(outcome) = load(
+    if let Some(outcome) = read_import(
         &namespace,
         &action_key,
         BUILD_FINGERPRINT,
         &source_digest,
         gts_bytes.len(),
+        read,
     )? {
         action_lock.unlock().map_err(io_diag)?;
         store_lock.unlock().map_err(io_diag)?;
         return Ok(outcome);
     }
 
-    let imported = purrdf::import_gts_events(gts_bytes)
-        .map_err(|error| diag(format!("bundle import: decode GTS source: {error}")))?;
-    let dataset = imported.dataset;
+    let dataset = import(gts_bytes)?;
     let pack = PackBuilder::build_bytes(dataset.as_ref())
         .map_err(|error| diag(format!("bundle import: build PURRPCK1 image: {error}")))?;
     let pack_bytes = u64::try_from(pack.len()).unwrap_or(u64::MAX);
@@ -858,12 +1020,94 @@ fn import_graph_preserving_under_root(
     store_lock.unlock().map_err(io_diag)?;
 
     prune_namespace(&namespace, &action_key)?;
-    Ok(ImportOutcome {
-        dataset,
+    Ok(ImportAdmission {
+        produced_dataset: Some(dataset),
         receipt,
         built: true,
         transferred_bytes: pack_bytes,
     })
+}
+
+/// Read a completed action under its caller-held locks. Receipt-only admission
+/// takes this path again after election so a racing publisher cannot cause an
+/// otherwise warm admission to restore the indexed dataset.
+fn read_import(
+    namespace: &Path,
+    action_key: &str,
+    build_fingerprint: &str,
+    source_digest: &str,
+    source_bytes: usize,
+    read: ImportRead,
+) -> gmeow_errors::Result<Option<ImportAdmission>> {
+    match read {
+        ImportRead::Dataset => load(
+            namespace,
+            action_key,
+            build_fingerprint,
+            source_digest,
+            source_bytes,
+        )
+        .map(|outcome| {
+            outcome.map(|outcome| ImportAdmission {
+                receipt: outcome.receipt,
+                built: outcome.built,
+                transferred_bytes: outcome.transferred_bytes,
+                produced_dataset: Some(outcome.dataset),
+            })
+        }),
+        ImportRead::Receipt => inspect_import(
+            namespace,
+            action_key,
+            build_fingerprint,
+            source_digest,
+            source_bytes,
+        )
+        .map(|receipt| {
+            receipt.map(|receipt| ImportAdmission {
+                transferred_bytes: receipt.pack_bytes,
+                receipt,
+                built: false,
+                produced_dataset: None,
+            })
+        }),
+    }
+}
+
+fn inspect_import(
+    namespace: &Path,
+    action_key: &str,
+    build_fingerprint: &str,
+    source_digest: &str,
+    source_bytes: usize,
+) -> gmeow_errors::Result<Option<ImportReceipt>> {
+    let receipt = load_import_receipt(
+        namespace,
+        action_key,
+        build_fingerprint,
+        source_digest,
+        source_bytes,
+    )?;
+    if let Some(receipt) = &receipt {
+        let path = namespace.join(format!("blobs/{}", receipt.pack_digest));
+        let (file, _) = open_bounded(&path, MAX_PACK_BYTES, "referenced pack")?;
+        let mut reader = file.take(MAX_PACK_BYTES + 1);
+        let mut buffer = [0_u8; 64 * 1024];
+        let mut hash = Sha256::new();
+        let mut bytes = 0_u64;
+        loop {
+            let count = reader.read(&mut buffer).map_err(io_diag)?;
+            if count == 0 {
+                break;
+            }
+            bytes += count as u64;
+            hash.update(&buffer[..count]);
+        }
+        let digest = ContentDigest::from_raw(hash.finalize().into()).to_hex();
+        if bytes != receipt.pack_bytes || digest != receipt.pack_digest {
+            return Err(diag("bundle import: referenced pack digest/size mismatch"));
+        }
+    }
+    Ok(receipt)
 }
 
 fn load(
@@ -903,13 +1147,13 @@ fn load(
     }))
 }
 
-fn load_verified_pack(
+fn load_import_receipt(
     namespace: &Path,
     action_key: &str,
     build_fingerprint: &str,
     source_digest: &str,
     source_bytes: usize,
-) -> gmeow_errors::Result<Option<(ImportReceipt, Vec<u8>)>> {
+) -> gmeow_errors::Result<Option<ImportReceipt>> {
     let receipt_path = namespace.join(format!("receipts/{action_key}.json"));
     if !receipt_path.exists() {
         return Ok(None);
@@ -928,12 +1172,12 @@ fn load_verified_pack(
         || receipt.codec != CODEC
         || receipt.source_digest != source_digest
         || receipt.source_bytes != expected_source_bytes
+        || !is_digest(&receipt.pack_digest)
     {
         return Err(diag(
             "bundle import: receipt action/input identity mismatch",
         ));
     }
-    let pack_path = namespace.join(format!("blobs/{}", receipt.pack_digest));
     if receipt.pack_bytes > MAX_PACK_BYTES {
         return Err(diag(format!(
             "bundle import: receipt declares {} pack bytes, above the explicit \
@@ -941,6 +1185,27 @@ fn load_verified_pack(
             receipt.pack_bytes
         )));
     }
+    Ok(Some(receipt))
+}
+
+fn load_verified_pack(
+    namespace: &Path,
+    action_key: &str,
+    build_fingerprint: &str,
+    source_digest: &str,
+    source_bytes: usize,
+) -> gmeow_errors::Result<Option<(ImportReceipt, Vec<u8>)>> {
+    let Some(receipt) = load_import_receipt(
+        namespace,
+        action_key,
+        build_fingerprint,
+        source_digest,
+        source_bytes,
+    )?
+    else {
+        return Ok(None);
+    };
+    let pack_path = namespace.join(format!("blobs/{}", receipt.pack_digest));
     let pack = read_bounded(&pack_path, MAX_PACK_BYTES, "referenced pack")?;
     let actual_digest = ContentDigest::of(&pack).to_hex();
     let actual_bytes = u64::try_from(pack.len()).unwrap_or(u64::MAX);
@@ -1409,7 +1674,7 @@ fn open_lock(path: &Path) -> gmeow_errors::Result<File> {
     Ok(file)
 }
 
-fn read_bounded(path: &Path, max_bytes: u64, lane: &str) -> gmeow_errors::Result<Vec<u8>> {
+fn open_bounded(path: &Path, max_bytes: u64, lane: &str) -> gmeow_errors::Result<(File, usize)> {
     let metadata = fs::symlink_metadata(path).map_err(|error| {
         diag(format!(
             "bundle import: {lane} {} cannot be inspected: {error}",
@@ -1426,12 +1691,20 @@ fn read_bounded(path: &Path, max_bytes: u64, lane: &str) -> gmeow_errors::Result
             path.display()
         )));
     }
-    let mut bytes = Vec::with_capacity(usize::try_from(metadata.len()).unwrap_or(0));
-    File::open(path)
-        .and_then(|file| {
-            file.take(max_bytes.saturating_add(1))
-                .read_to_end(&mut bytes)
-        })
+    let file = File::open(path).map_err(io_diag)?;
+    if !file.metadata().map_err(io_diag)?.is_file() {
+        return Err(diag(format!(
+            "bundle import: {lane} opened a non-regular file"
+        )));
+    }
+    Ok((file, usize::try_from(metadata.len()).unwrap_or(0)))
+}
+
+fn read_bounded(path: &Path, max_bytes: u64, lane: &str) -> gmeow_errors::Result<Vec<u8>> {
+    let (file, length) = open_bounded(path, max_bytes, lane)?;
+    let mut bytes = Vec::with_capacity(length);
+    file.take(max_bytes.saturating_add(1))
+        .read_to_end(&mut bytes)
         .map_err(io_diag)?;
     if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > max_bytes {
         return Err(diag(format!(
@@ -1478,412 +1751,6 @@ fn diag(detail: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+#[path = "lib.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn build_fingerprint_covers_transitive_path_dependencies() {
-        let crate_root = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let errors_root = crate_root
-            .parent()
-            .expect("bundle-import is below crates/")
-            .join("errors");
-        let closure = build_inputs::transitive_path_dependency_dirs(crate_root);
-        assert!(
-            closure.contains(&errors_root),
-            "gmeow-errors must be in the bundle-import production dependency closure: {closure:?}"
-        );
-        let hashed = closure
-            .iter()
-            .flat_map(|crate_dir| build_inputs::crate_input_paths(crate_dir))
-            .collect::<BTreeSet<_>>();
-        assert!(
-            hashed.contains(&errors_root.join("Cargo.toml"))
-                && hashed
-                    .iter()
-                    .any(|path| path.starts_with(errors_root.join("src"))),
-            "the derived fingerprint inputs must include the gmeow-errors manifest and sources"
-        );
-    }
-    use gmeow_errors::intern_code;
-    use std::collections::HashSet;
-
-    fn tiny_gts() -> Vec<u8> {
-        tiny_gts_with_object("o")
-    }
-
-    fn tiny_gts_with_object(object: &str) -> Vec<u8> {
-        let dataset = purrdf::parse_dataset(
-            format!(
-                "<https://example.test/s> <https://example.test/p> \
-                 <https://example.test/{object}> .\n"
-            )
-            .as_bytes(),
-            "application/n-triples",
-            None,
-        )
-        .expect("fixture dataset");
-        // gmeow-test-input: synthetic-only
-        gmeow_gts_profile::dataset_to_gmeow_gts(dataset.as_ref()).expect("fixture GTS")
-    }
-
-    /// Exercise the cache publisher only over a one-triple synthetic container.
-    /// This is not a repository-corpus producer and can never resolve repository
-    /// inputs, `generated/`, or the authenticated bundle selector.
-    fn synthetic_import(root: &Path, bytes: &[u8]) -> gmeow_errors::Result<ImportOutcome> {
-        import_graph_preserving_cached(root, bytes) // gmeow-test-input: synthetic-only
-    }
-
-    #[test]
-    fn every_bundle_import_code_interns_with_no_collision() {
-        let handles = register_all();
-        assert_eq!(
-            handles.len(),
-            BUNDLE_IMPORT_DIAG_CODES.len(),
-            "register_all() and BUNDLE_IMPORT_DIAG_CODES must enumerate the same kinds"
-        );
-        for code in BUNDLE_IMPORT_DIAG_CODES {
-            assert!(
-                intern_code(code).is_ok(),
-                "bundle-import code `{code}` did not intern after register_all()"
-            );
-        }
-        let distinct_strings: HashSet<&&str> = BUNDLE_IMPORT_DIAG_CODES.iter().collect();
-        assert_eq!(distinct_strings.len(), BUNDLE_IMPORT_DIAG_CODES.len());
-        let distinct_handles: HashSet<Code> = handles.iter().copied().collect();
-        assert_eq!(distinct_handles.len(), handles.len());
-    }
-
-    #[test]
-    fn cold_then_warm_import_is_structurally_identical() {
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        let cold = synthetic_import(root.path(), &bytes).unwrap();
-        let warm = synthetic_import(root.path(), &bytes).unwrap();
-        assert!(cold.built);
-        assert!(!warm.built);
-        assert_eq!(cold.receipt, warm.receipt);
-        assert_eq!(cold.dataset.quad_count(), warm.dataset.quad_count());
-        assert_eq!(cold.transferred_bytes, warm.transferred_bytes);
-    }
-
-    #[test]
-    fn referenced_tampered_pack_hard_fails() {
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        let cold = synthetic_import(root.path(), &bytes).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        fs::write(
-            namespace.join(format!("blobs/{}", cold.receipt.pack_digest)),
-            b"truncated",
-        )
-        .unwrap();
-        let error =
-            synthetic_import(root.path(), &bytes).expect_err("corruption cannot turn into a miss");
-        assert!(error.to_string().contains("pack digest/size mismatch"));
-    }
-
-    #[test]
-    fn referenced_missing_pack_hard_fails() {
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        let cold = synthetic_import(root.path(), &bytes).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        fs::remove_file(namespace.join(format!("blobs/{}", cold.receipt.pack_digest))).unwrap();
-        let error = synthetic_import(root.path(), &bytes)
-            .expect_err("a referenced missing pack cannot turn into a clean miss");
-        assert!(
-            error.to_string().contains("cannot be inspected"),
-            "{error:?}"
-        );
-    }
-
-    #[test]
-    fn malformed_receipt_hard_fails() {
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        let cold = synthetic_import(root.path(), &bytes).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        fs::write(
-            namespace.join(format!("receipts/{}.json", cold.receipt.action_key)),
-            b"{not-json",
-        )
-        .unwrap();
-        let error = synthetic_import(root.path(), &bytes)
-            .expect_err("a malformed receipt cannot turn into a clean miss");
-        assert!(error.to_string().contains("corrupt receipt"), "{error:?}");
-    }
-
-    #[test]
-    fn structurally_invalid_digest_valid_pack_hard_fails() {
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        let cold = synthetic_import(root.path(), &bytes).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        let invalid_pack = b"PURRPCK1-invalid-structure";
-        let invalid_digest = ContentDigest::of(invalid_pack).to_hex();
-        fs::write(
-            namespace.join(format!("blobs/{invalid_digest}")),
-            invalid_pack,
-        )
-        .unwrap();
-        let mut receipt = cold.receipt;
-        receipt.pack_digest = invalid_digest;
-        receipt.pack_bytes = u64::try_from(invalid_pack.len()).unwrap();
-        let envelope = ReceiptEnvelope {
-            receipt_digest: receipt.receipt_digest(),
-            receipt,
-        };
-        fs::write(
-            namespace.join(format!("receipts/{}.json", envelope.receipt.action_key)),
-            serde_json::to_vec_pretty(&envelope).unwrap(),
-        )
-        .unwrap();
-        let error = synthetic_import(root.path(), &bytes)
-            .expect_err("a digest-valid but structurally invalid pack must fail closed");
-        assert!(
-            error.to_string().contains("structurally invalid pack"),
-            "{error:?}"
-        );
-    }
-
-    #[test]
-    fn concurrent_import_elects_one_builder() {
-        use std::sync::Barrier;
-
-        let root = tempfile::tempdir().unwrap();
-        let bytes = Arc::new(tiny_gts());
-        let barrier = Arc::new(Barrier::new(2));
-        let workers = (0..2)
-            .map(|_| {
-                let root = root.path().to_path_buf();
-                let bytes = Arc::clone(&bytes);
-                let barrier = Arc::clone(&barrier);
-                std::thread::spawn(move || {
-                    barrier.wait();
-                    synthetic_import(&root, bytes.as_slice()).unwrap()
-                })
-            })
-            .collect::<Vec<_>>();
-        let outcomes = workers
-            .into_iter()
-            .map(|worker| worker.join().unwrap())
-            .collect::<Vec<_>>();
-        assert_eq!(outcomes.iter().filter(|outcome| outcome.built).count(), 1);
-        assert_eq!(outcomes[0].receipt, outcomes[1].receipt);
-    }
-
-    #[test]
-    fn gc_retains_only_reachable_recent_imports() {
-        let root = tempfile::tempdir().unwrap();
-        for object in ["one", "two", "three"] {
-            synthetic_import(root.path(), &tiny_gts_with_object(object)).unwrap();
-        }
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        let receipts = fs::read_dir(namespace.join("receipts"))
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "json"))
-            .collect::<Vec<_>>();
-        assert_eq!(receipts.len(), RETAINED_IMPORTS);
-        let referenced = receipts
-            .iter()
-            .map(|entry| {
-                let bytes = read_bounded(&entry.path(), MAX_RECEIPT_BYTES, "test receipt").unwrap();
-                serde_json::from_slice::<ReceiptEnvelope>(&bytes)
-                    .unwrap()
-                    .receipt
-                    .pack_digest
-            })
-            .collect::<BTreeSet<_>>();
-        let blobs = fs::read_dir(namespace.join("blobs"))
-            .unwrap()
-            .filter_map(Result::ok)
-            .map(|entry| entry.file_name().to_string_lossy().into_owned())
-            .collect::<BTreeSet<_>>();
-        assert_eq!(
-            blobs, referenced,
-            "GC may keep only receipt-reachable packs"
-        );
-    }
-
-    #[test]
-    fn gc_removes_crash_leftovers_after_the_next_publication() {
-        let root = tempfile::tempdir().unwrap();
-        synthetic_import(root.path(), &tiny_gts()).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        let abandoned_blob = namespace.join("blobs/abandoned.1.1.tmp");
-        let abandoned_receipt = namespace.join("receipts/abandoned.json.1.1.tmp");
-        fs::write(&abandoned_blob, b"partial").unwrap();
-        fs::write(&abandoned_receipt, b"partial").unwrap();
-
-        synthetic_import(root.path(), &tiny_gts_with_object("changed")).unwrap();
-        assert!(!abandoned_blob.exists());
-        assert!(!abandoned_receipt.exists());
-    }
-
-    #[test]
-    fn store_gc_enforces_namespace_and_byte_quotas_while_protecting_current() {
-        let root = tempfile::tempdir().unwrap();
-        fs::write(root.path().join(STORE_SENTINEL), STORE_SENTINEL_BYTES).unwrap();
-        for index in 0..6 {
-            let namespace = root.path().join(format!("{index:016x}"));
-            fs::create_dir(&namespace).unwrap();
-            fs::write(namespace.join("payload"), b"four").unwrap();
-        }
-        let protected = "0000000000000000";
-        prune_store_with_limits(root.path(), protected, 4, 8).unwrap();
-
-        let retained = fs::read_dir(root.path())
-            .unwrap()
-            .map(Result::unwrap)
-            .filter(|entry| entry.file_type().unwrap().is_dir())
-            .map(|entry| entry.path())
-            .collect::<Vec<_>>();
-        assert!(retained.contains(&root.path().join(protected)));
-        assert!(retained.len() <= 4);
-        let retained_bytes = retained
-            .iter()
-            .map(|path| directory_census(path).unwrap().0)
-            .sum::<u64>();
-        assert!(retained_bytes <= 8);
-    }
-
-    #[test]
-    fn unrelated_cache_root_is_refused_without_deleting_anything() {
-        let root = tempfile::tempdir().unwrap();
-        let unrelated = root.path().join("docs-fixture");
-        fs::create_dir(&unrelated).unwrap();
-        fs::write(unrelated.join("owned-by-another-cache"), b"preserve me").unwrap();
-
-        let error = synthetic_import(root.path(), &tiny_gts())
-            .expect_err("a broad or unrelated cache root must never become a GC authority");
-        assert!(error.to_string().contains("refusing quota GC"), "{error:?}");
-        assert_eq!(
-            fs::read(unrelated.join("owned-by-another-cache")).unwrap(),
-            b"preserve me"
-        );
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn cache_root_and_internal_lanes_refuse_symlink_substitution() {
-        use std::os::unix::fs::symlink;
-
-        let parent = tempfile::tempdir().unwrap();
-        let actual = parent.path().join("actual-cache");
-        let selected = parent.path().join("selected-cache");
-        fs::create_dir(&actual).unwrap();
-        symlink(&actual, &selected).unwrap();
-        let root_error = synthetic_import(&selected, &tiny_gts())
-            .expect_err("a symlink cache root must never acquire cache or GC authority");
-        assert!(
-            root_error.to_string().contains("not a real directory"),
-            "{root_error:?}"
-        );
-
-        let root = tempfile::tempdir().unwrap();
-        synthetic_import(root.path(), &tiny_gts()).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        fs::remove_dir_all(namespace.join("receipts")).unwrap();
-        let outside = parent.path().join("outside-receipts");
-        fs::create_dir(&outside).unwrap();
-        symlink(&outside, namespace.join("receipts")).unwrap();
-        let lane_error = synthetic_import(root.path(), &tiny_gts())
-            .expect_err("a symlink cache lane must never be followed");
-        assert!(
-            lane_error.to_string().contains("not a real directory"),
-            "{lane_error:?}"
-        );
-        assert!(fs::read_dir(&outside).unwrap().next().is_none());
-    }
-
-    #[test]
-    fn warm_hit_still_enforces_the_store_wide_namespace_quota() {
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        let cold = synthetic_import(root.path(), &bytes).unwrap();
-        assert!(cold.built);
-        for index in 0..6 {
-            let obsolete = root.path().join(format!("{index:064x}"));
-            if obsolete != root.path().join(BUILD_FINGERPRINT) {
-                fs::create_dir(&obsolete).unwrap();
-                fs::write(obsolete.join("payload"), b"obsolete").unwrap();
-            }
-        }
-
-        let warm = synthetic_import(root.path(), &bytes).unwrap();
-        assert!(!warm.built);
-        let retained_namespaces = fs::read_dir(root.path())
-            .unwrap()
-            .map(Result::unwrap)
-            .filter(|entry| entry.file_type().unwrap().is_dir())
-            .count();
-        assert!(retained_namespaces <= RETAINED_NAMESPACES);
-        assert!(root.path().join(BUILD_FINGERPRINT).is_dir());
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn warm_hit_refuses_a_symlink_hidden_in_the_cache_store() {
-        use std::os::unix::fs::symlink;
-
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        synthetic_import(root.path(), &bytes).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        symlink(
-            namespace.join("receipts"),
-            namespace.join("blobs/hidden-link"),
-        )
-        .unwrap();
-        let error = synthetic_import(root.path(), &bytes)
-            .expect_err("the root quota census must refuse cache symlinks even on a warm hit");
-        assert!(error.to_string().contains("refuses symlink"), "{error:?}");
-    }
-
-    #[test]
-    fn oversized_referenced_pack_is_rejected_before_hydration() {
-        let root = tempfile::tempdir().unwrap();
-        let bytes = tiny_gts();
-        let cold = synthetic_import(root.path(), &bytes).unwrap();
-        let namespace = root
-            .path()
-            .join(BUILD_FINGERPRINT)
-            .join(format!("v{SCHEMA_VERSION}"));
-        OpenOptions::new()
-            .write(true)
-            .open(namespace.join(format!("blobs/{}", cold.receipt.pack_digest)))
-            .unwrap()
-            .set_len(MAX_PACK_BYTES + 1)
-            .unwrap();
-        let error = synthetic_import(root.path(), &bytes)
-            .expect_err("an oversized sparse cache pack must never be hydrated");
-        assert!(error.to_string().contains("byte bound"), "{error:?}");
-    }
-}
+mod tests;

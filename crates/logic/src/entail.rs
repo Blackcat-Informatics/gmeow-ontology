@@ -5,15 +5,22 @@
 //!
 //! Entailment is a *fundamental* reasoning operation, decided here as a thin
 //! composition over the native DL consistency calculus
-//! ([`crate::reason::dl_consistency`]) — NOT a second reasoning path. To decide
+//! ([`crate::reason::reason_all`]) — NOT a second reasoning path. To decide
 //! whether a premise graph `A` entails a conclusion `C`, we negate `C` by
 //! refutation, union the negation into the premise's world, and ask the native DL
 //! clash rule whether the result is inconsistent: if it is, every model of `A`
 //! satisfies `C`, so `A ⊨ C`.
 //!
-//! This module lives OUTSIDE [`crate::reason`] on purpose: it composes the
-//! reasoner without adding a rule to it, so it does not perturb
-//! [`crate::reason::native_contract_hash`].
+//! The selected profile is a single, unspecified default assertion context.
+//! Named graphs and explicit context coordinates require an admitted context
+//! selection this operation does not implement; they return a native-coverage
+//! gap before reduction. No union-of-contexts entailment is implicit. Native
+//! RDF 1.2 reifier and annotation evidence stays with admitted premises.
+//!
+//! This module composes the native reasoner without adding an inference rule.
+//! Its admission and reduction behavior belongs to the public native engine
+//! contract. An [`EntailmentVerdict`] is still an operation result, not a
+//! complete source-coverage certificate or an authorization for rewriting.
 //!
 //! ## The conclusion-shape calculus (the one negation waist)
 //!
@@ -36,7 +43,7 @@
 //!
 //! Refuting `P ⊑ Q` needs a counter-model `∃x,y.(P(x,y) ∧ ¬Q(x,y))`, whose role
 //! complement `¬Q` is NOT EL-expressible — so subproperty entailment cannot go through
-//! the [`negate`](crate::entail::negate)/[`crate::reason::dl_consistency`] refutation
+//! the [`negate`](crate::entail::negate)/[`crate::reason::reason_all`] refutation
 //! waist at all. It is
 //! instead decided directly (`decide_subproperty`) by REFLEXIVE-TRANSITIVE
 //! reachability over the premise's property hierarchy: `A ⊨ (P ⊑ Q)` iff `Q` is reachable
@@ -80,6 +87,9 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
 
 use gmeow_errors::Diag;
 
+mod admission;
+use admission::{AdmittedDefaultGraph, assertions};
+
 /// The RDF `type` predicate.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The RDFS `subClassOf` predicate.
@@ -100,9 +110,9 @@ const OWL_DISJOINTWITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 /// enforces that ([`Minter::new`]) so a minted symbol can never collide with a real one.
 pub const ENTAIL_RESERVED_NS: &str = "https://blackcatinformatics.ca/logic/entail/reserved#";
 
-/// The single world IRI every reduced-EDB quad is scoped under. The native chase
-/// reasons over named graphs (worlds) and drops default-graph triples, so premise
-/// and negation alike are re-scoped here into one world for the consistency check.
+/// The execution world for the admitted default assertion context. This is a
+/// placement of one context, never a union of source named graphs. The original
+/// premise remains unchanged; the reduction carries its native statement layer.
 pub const ENTAIL_WORLD: &str = "https://blackcatinformatics.ca/logic/entail/world";
 
 fn entail_err(detail: String) -> Diag {
@@ -329,6 +339,38 @@ impl EntailmentVerdict {
     }
 }
 
+/// One native entailment decision together with the work actually performed.
+///
+/// `decisions` counts conclusion components inspected before the conjunctive
+/// question was settled. `steps` is the sum of the native inference budget consumed
+/// by the refutation runs among those components. Reachability-only property
+/// hierarchy components count as decisions but consume no native inference steps.
+/// `budget` is present only when every executed refutation run declared a finite
+/// allowance; the ordinary installed operation is unbounded and therefore reports
+/// `None` rather than manufacturing a ceiling.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EntailmentAssessment {
+    /// The operation-specific answer.
+    pub verdict: EntailmentVerdict,
+    /// Conclusion components inspected before the conjunction was settled.
+    pub decisions: u64,
+    /// Native inference steps consumed by the executed refutation runs.
+    pub steps: u64,
+    /// Sum of finite per-run allowances, or `None` when any run was unbounded.
+    pub budget: Option<u64>,
+}
+
+impl EntailmentAssessment {
+    fn new(verdict: EntailmentVerdict, decisions: u64, steps: u64, budget: Option<u64>) -> Self {
+        Self {
+            verdict,
+            decisions,
+            steps,
+            budget,
+        }
+    }
+}
+
 /// A sound fresh-symbol minter for one entailment check.
 ///
 /// Constructed from the premise∪conclusion vocabulary; [`Minter::new`] hard-fails if
@@ -475,12 +517,15 @@ fn classify(subject: &Node, predicate: &str, object: &Node) -> Result<Conclusion
     }
 }
 
-/// Classify every conclusion triple into a refutable [`ConclusionShape`], returning
-/// the first structured [`EntailmentGap`] shape on any un-refutable triple. An empty
-/// conclusion yields an empty vector (trivially entailed — `A ⊨ ∅`).
-fn classify_conclusion(conclusion: &RdfDataset) -> Result<Vec<ConclusionShape>, EntailmentGap> {
+/// Classify every asserted native conclusion row into a [`ConclusionShape`],
+/// returning the first structured [`EntailmentGap`] on an un-refutable statement.
+/// Only a conclusion with no ordinary, reifier or annotation rows is empty.
+fn classify_conclusion(
+    admitted: &AdmittedDefaultGraph<'_>,
+) -> Result<Vec<ConclusionShape>, EntailmentGap> {
+    let conclusion = admitted.dataset();
     let mut shapes: Vec<ConclusionShape> = Vec::new();
-    for q in conclusion.quads() {
+    for q in assertions(conclusion) {
         let TermRef::Iri(pred) = conclusion.resolve(q.p) else {
             return Err(EntailmentGap {
                 shape: GapShape::Malformed,
@@ -491,7 +536,7 @@ fn classify_conclusion(conclusion: &RdfDataset) -> Result<Vec<ConclusionShape>, 
         let object = node_of(conclusion.resolve(q.o));
         match classify(&subject, pred, &object) {
             // Deduplicate: distinct-but-equivalent conclusion triples classify to the
-            // same shape, and each shape drives one (expensive) `dl_consistency`
+            // same shape, and each shape drives one native consistency
             // refutation in `dl_entails`. Grading a shape twice is redundant work with
             // no change in verdict, so collapse equal shapes here.
             Ok(shape) => {
@@ -538,7 +583,8 @@ pub enum VendorReduction {
 /// A single refutable triple yields [`VendorReduction::Single`] (the negation triples
 /// to union with the premise's world); a conjunctive multi-triple conclusion is
 /// [`VendorReduction::MultiGoal`] (decidable, but not as one EDB); an un-refutable or
-/// empty conclusion is [`VendorReduction::Gap`].
+/// empty conclusion is [`VendorReduction::Gap`]. The same default-context admission
+/// as [`dl_entails`] runs before returning any nonempty reduction.
 ///
 /// # Errors
 /// Hard-fails only on the reserved-namespace soundness guard.
@@ -546,10 +592,19 @@ pub fn reduce_for_vendoring(
     premise: &RdfDataset,
     conclusion: &RdfDataset,
 ) -> Result<VendorReduction, Diag> {
-    let shapes = match classify_conclusion(conclusion) {
+    let admitted_conclusion = match AdmittedDefaultGraph::new(conclusion, "conclusion") {
+        Ok(admitted) => admitted,
+        Err(gap) => return Ok(VendorReduction::Gap(gap)),
+    };
+    let shapes = match classify_conclusion(&admitted_conclusion) {
         Ok(shapes) => shapes,
         Err(gap) => return Ok(VendorReduction::Gap(gap)),
     };
+    if !shapes.is_empty()
+        && let Err(gap) = AdmittedDefaultGraph::new(premise, "premise")
+    {
+        return Ok(VendorReduction::Gap(gap));
+    }
     match shapes.as_slice() {
         [] => Ok(VendorReduction::Gap(EntailmentGap {
             shape: GapShape::Malformed,
@@ -570,40 +625,48 @@ pub fn reduce_for_vendoring(
     }
 }
 
-/// Collect every IRI (subject, predicate, object, graph) in `ds` into `out`.
+/// Collect every live IRI, including native annotations, quotations and literal
+/// datatypes. The reserved-symbol guard cannot ignore an input carrier.
 fn collect_iris(ds: &RdfDataset, out: &mut BTreeSet<String>) {
-    for q in ds.quads() {
-        for id in [q.s, q.p, q.o] {
-            if let TermRef::Iri(iri) = ds.resolve(id) {
-                out.insert(iri.to_owned());
+    let mut pending = Vec::new();
+    let mut visited = BTreeSet::new();
+    for quad in assertions(ds) {
+        pending.extend([quad.s, quad.p, quad.o]);
+        pending.extend(quad.g);
+        while let Some(term) = pending.pop() {
+            if !visited.insert(term) {
+                continue;
             }
-        }
-        if let Some(g) = q.g
-            && let TermRef::Iri(iri) = ds.resolve(g)
-        {
-            out.insert(iri.to_owned());
+            match ds.resolve(term) {
+                TermRef::Iri(iri) => {
+                    out.insert(iri.to_owned());
+                }
+                TermRef::Triple { s, p, o } => pending.extend([s, p, o]),
+                TermRef::Literal { datatype, .. } => pending.push(datatype),
+                TermRef::Blank { .. } => {}
+            }
         }
     }
 }
 
-/// Build the reduced EDB for one refutation goal: every premise quad re-scoped into
-/// [`ENTAIL_WORLD`], unioned with the negation triples (also world-scoped).
+/// Place the admitted default premise in [`ENTAIL_WORLD`] for one refutation
+/// goal. Keep native reifiers, annotations and source locations; quoting a triple
+/// does not assert it. No source named graph can pass the admission boundary.
 fn build_world_edb(
-    premise: &RdfDataset,
+    admitted: &AdmittedDefaultGraph<'_>,
     negation: &[(String, String, String)],
 ) -> Result<Arc<RdfDataset>, Diag> {
     let world = RdfTerm::iri(ENTAIL_WORLD);
+    let premise = admitted.dataset();
     let mut builder = RdfDatasetBuilder::new();
-    for q in premise.quads() {
-        let TermRef::Iri(pred) = premise.resolve(q.p) else {
-            // A non-IRI predicate is not well-formed RDF; skip it defensively.
-            continue;
-        };
-        let pred = pred.to_owned();
-        let subject = premise.to_owned_term(q.s);
-        let object = premise.to_owned_term(q.o);
-        let quad = RdfQuad::new(subject, pred, object).in_graph(world.clone());
-        builder.push_owned_quad(&quad);
+    for quad in premise.owned_quads() {
+        builder.push_owned_quad(&quad.in_graph(world.clone()));
+    }
+    for reifier in premise.owned_reifiers() {
+        builder.push_owned_reifier(&reifier.in_graph(Some(world.clone())));
+    }
+    for annotation in premise.owned_annotations() {
+        builder.push_owned_annotation(&annotation.in_graph(Some(world.clone())));
     }
     for (s, p, o) in negation {
         let quad = RdfQuad::new(RdfTerm::iri(s.clone()), p.clone(), RdfTerm::iri(o.clone()))
@@ -613,6 +676,34 @@ fn build_world_edb(
     builder
         .freeze()
         .map_err(|e| entail_err(format!("reduced entailment EDB failed to build: {e}")))
+}
+
+/// Execute one independently reduced goal in the admitted default-context profile.
+/// The domain authority belongs to this reduction, not to every physical graph
+/// present in a prepared input. The fixed domain authority is independent of the
+/// component's changing source content, which native input admission binds separately.
+fn reason_refutation(
+    admitted: &AdmittedDefaultGraph<'_>,
+    negation: &[(String, String, String)],
+) -> Result<crate::result::ReasoningResult, Diag> {
+    use crate::reason::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
+
+    let edb = build_world_edb(admitted, negation)?;
+    let input = crate::reason::prepare_reasoning_input(edb.as_ref())?;
+    const AUTHORITY: &str = "gmeow.entail.default-refutation.v1";
+    let selection = serde_json::to_vec(&(
+        AUTHORITY,
+        DomainProfile::NonemptyObjectDomainV1,
+        ENTAIL_WORLD,
+    ))
+    .map_err(|error| entail_err(format!("entailment domain identity: {error}")))?;
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Named(purrdf::TermValue::iri(ENTAIL_WORLD)),
+        DomainProfile::NonemptyObjectDomainV1,
+        AUTHORITY.to_owned(),
+        *blake3::hash(&selection).as_bytes(),
+    )?])?;
+    crate::reason::reason_all(input, &domains)
 }
 
 /// The verdict of the non-refutation subproperty-reachability decider
@@ -662,7 +753,12 @@ enum SubPropertyDecision {
 ///   quad, or a class-level axiom that could make the premise inconsistent — breaks that
 ///   completeness/consistency guarantee, so we return `Undecidable` (an honest gap),
 ///   never a guessed `NotEntailed`.
-fn decide_subproperty(premise: &RdfDataset, sub: &str, sup: &str) -> SubPropertyDecision {
+fn decide_subproperty(
+    admitted: &AdmittedDefaultGraph<'_>,
+    sub: &str,
+    sup: &str,
+) -> SubPropertyDecision {
+    let premise = admitted.dataset();
     // rdfs6 reflexivity, and the universal super-properties.
     if sub == sup || sup == OWL_TOP_OBJECT_PROPERTY || sup == OWL_TOP_DATA_PROPERTY {
         return SubPropertyDecision::Entailed;
@@ -672,13 +768,11 @@ fn decide_subproperty(premise: &RdfDataset, sub: &str, sup: &str) -> SubProperty
     // Determinism: BTreeMap/BTreeSet keep edges sorted; reachability is order-independent.
     let mut edges: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut restricted = true;
-    for q in premise.quads() {
-        if q.g.is_some() {
-            // A named-graph quad is not an asserted default-graph property axiom; its
-            // content is unaccounted for by the reachability closure.
-            restricted = false;
-            continue;
-        }
+    for q in assertions(premise) {
+        debug_assert!(
+            q.g.is_none(),
+            "source context was admitted before reachability"
+        );
         let (TermRef::Iri(pred), TermRef::Iri(s), TermRef::Iri(o)) = (
             premise.resolve(q.p),
             premise.resolve(q.s),
@@ -742,28 +836,70 @@ fn decide_subproperty(premise: &RdfDataset, sub: &str, sup: &str) -> SubProperty
 /// The conclusion's triples are each normalized to a [`ConclusionShape`] and negated;
 /// the premise entails the conclusion iff EVERY component's reduced EDB
 /// (`premise ∪ ¬component`) is inconsistent. An empty conclusion is trivially
-/// entailed (`A ⊨ ∅`).
+/// entailed (`A ⊨ ∅`); this tautology says nothing about premise consistency or
+/// source coverage. Nonempty goals require the single default-context profile:
+/// named graphs or explicit standpoint/time/module/modality/path selections yield
+/// a native-coverage gap. Native annotations remain asserted rows, and reifier
+/// bindings do not assert their quoted propositions.
 ///
 /// # Errors
 /// Hard-fails ([`Diag`]) only on a soundness-guard violation (a reserved-namespace
 /// collision in the input vocabulary) or an internal reasoner / dataset-build error.
 /// A conclusion outside the refutable fragment is a [`EntailmentVerdict::Gap`], NOT an
 /// error.
-pub fn dl_entails(
+pub fn dl_entailment_assessment(
     premise: &RdfDataset,
     conclusion: &RdfDataset,
-) -> Result<EntailmentVerdict, Diag> {
+) -> Result<EntailmentAssessment, Diag> {
+    let mut decisions = 0_u64;
+    let mut steps = 0_u64;
+    let mut aggregate_budget = Some(0_u64);
+    let mut refutation_runs = 0_u64;
+    let admitted_conclusion = match AdmittedDefaultGraph::new(conclusion, "conclusion") {
+        Ok(admitted) => admitted,
+        Err(gap) => {
+            return Ok(EntailmentAssessment::new(
+                EntailmentVerdict::Gap(gap),
+                decisions,
+                steps,
+                None,
+            ));
+        }
+    };
     // Classify every conclusion component; any un-refutable shape makes the whole
     // (conjunctive) conclusion an honest gap.
-    let shapes = match classify_conclusion(conclusion) {
+    let shapes = match classify_conclusion(&admitted_conclusion) {
         Ok(shapes) => shapes,
-        Err(gap) => return Ok(EntailmentVerdict::Gap(gap)),
+        Err(gap) => {
+            return Ok(EntailmentAssessment::new(
+                EntailmentVerdict::Gap(gap),
+                decisions,
+                steps,
+                None,
+            ));
+        }
     };
 
     // A ⊨ ∅ — the empty conclusion is trivially entailed.
     if shapes.is_empty() {
-        return Ok(EntailmentVerdict::Entailed);
+        return Ok(EntailmentAssessment::new(
+            EntailmentVerdict::Entailed,
+            decisions,
+            steps,
+            None,
+        ));
     }
+    let admitted_premise = match AdmittedDefaultGraph::new(premise, "premise") {
+        Ok(admitted) => admitted,
+        Err(gap) => {
+            return Ok(EntailmentAssessment::new(
+                EntailmentVerdict::Gap(gap),
+                decisions,
+                steps,
+                None,
+            ));
+        }
+    };
 
     // Build the sound minter over the whole input vocabulary (hard-fail on a reserved
     // collision).
@@ -776,581 +912,102 @@ pub fn dl_entails(
     // subproperty component is decided by hierarchy reachability (non-refutation); every
     // other (refutable) component is decided by the negation → consistency refutation.
     for shape in &shapes {
+        decisions = decisions.saturating_add(1);
         match shape {
             ConclusionShape::SubPropertyOf { sub, sup } => {
-                match decide_subproperty(premise, sub, sup) {
+                match decide_subproperty(&admitted_premise, sub, sup) {
                     // Entailed ⇒ this component holds; continue to the next.
                     SubPropertyDecision::Entailed => {}
                     // A counter-model exists (restricted premise), so the conjunction fails.
                     SubPropertyDecision::NotEntailed => {
-                        return Ok(EntailmentVerdict::NotEntailed);
+                        return Ok(EntailmentAssessment::new(
+                            EntailmentVerdict::NotEntailed,
+                            decisions,
+                            steps,
+                            if refutation_runs == 0 {
+                                None
+                            } else {
+                                aggregate_budget
+                            },
+                        ));
                     }
                     // Unreachable but the premise is not a pure hierarchy — honest gap.
                     SubPropertyDecision::Undecidable(detail) => {
-                        return Ok(EntailmentVerdict::Gap(EntailmentGap {
-                            shape: GapShape::NativeCoverage,
-                            detail,
-                        }));
+                        return Ok(EntailmentAssessment::new(
+                            EntailmentVerdict::Gap(EntailmentGap {
+                                shape: GapShape::NativeCoverage,
+                                detail,
+                            }),
+                            decisions,
+                            steps,
+                            if refutation_runs == 0 {
+                                None
+                            } else {
+                                aggregate_budget
+                            },
+                        ));
                     }
                 }
             }
             _ => {
                 let negation = negate(shape, &minter)?;
-                let edb = build_world_edb(premise, &negation)?;
-                let verdict = crate::reason::dl_consistency(edb.as_ref())?;
-                if !verdict.gaps.is_empty() {
+                let result = reason_refutation(&admitted_premise, &negation)?;
+                refutation_runs = refutation_runs.saturating_add(1);
+                let consumed = result.provenance.consumed_budget;
+                steps = steps.saturating_add(consumed.consumed);
+                aggregate_budget = match (aggregate_budget, consumed.allowance) {
+                    (Some(total), Some(allowance)) => Some(total.saturating_add(allowance)),
+                    _ => None,
+                };
+                let verdict = result.native_verdict()?;
+                if !verdict.gaps.is_empty() || !verdict.coverage.unsupported.is_empty() {
                     let codes: Vec<&str> = verdict.gaps.iter().map(|g| g.code.as_str()).collect();
-                    return Ok(EntailmentVerdict::Gap(EntailmentGap {
-                        shape: GapShape::NativeCoverage,
-                        detail: format!(
-                            "native DL coverage gap(s) {codes:?} on the reduced EDB — the engine \
-                             cannot honestly decide this entailment"
-                        ),
-                    }));
+                    return Ok(EntailmentAssessment::new(
+                        EntailmentVerdict::Gap(EntailmentGap {
+                            shape: GapShape::NativeCoverage,
+                            detail: format!(
+                                "native DL coverage gap(s) {codes:?}, unsupported constructs {:?} \
+                                 on the reduced EDB — the engine cannot honestly decide this entailment",
+                                verdict.coverage.unsupported,
+                            ),
+                        }),
+                        decisions,
+                        steps,
+                        aggregate_budget,
+                    ));
                 }
                 if verdict.consistent {
                     // This component has a counter-model, so the conjunction is not entailed.
-                    return Ok(EntailmentVerdict::NotEntailed);
+                    return Ok(EntailmentAssessment::new(
+                        EntailmentVerdict::NotEntailed,
+                        decisions,
+                        steps,
+                        aggregate_budget,
+                    ));
                 }
                 // Inconsistent ⇒ this component is entailed; continue to the next.
             }
         }
     }
 
-    Ok(EntailmentVerdict::Entailed)
+    Ok(EntailmentAssessment::new(
+        EntailmentVerdict::Entailed,
+        decisions,
+        steps,
+        aggregate_budget,
+    ))
 }
 
+/// Decide whether `premise` entails `conclusion`, returning only the historical
+/// operation verdict. This delegates to [`dl_entailment_assessment`] so the verdict
+/// and measured-report paths cannot drift into separate executions.
+pub fn dl_entails(
+    premise: &RdfDataset,
+    conclusion: &RdfDataset,
+) -> Result<EntailmentVerdict, Diag> {
+    dl_entailment_assessment(premise, conclusion).map(|assessment| assessment.verdict)
+}
+
+#[path = "entail.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    const RDF_XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-
-    fn dataset(nq: &str) -> Arc<RdfDataset> {
-        purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
-            .unwrap_or_else(|e| panic!("N-Quads parse failed: {e}\n{nq}"))
-    }
-
-    /// Premise `a ⊑ b`, `x ∈ a` entails `x ∈ b`.
-    #[test]
-    fn ground_type_positive_entailment_is_entailed() {
-        let premise = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n\
-             <http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/b> .\n",
-        );
-        let conclusion = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/b> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-    }
-
-    /// Premise `x ∈ a` alone does NOT entail `x ∈ b`.
-    #[test]
-    fn ground_type_non_entailment_is_not_entailed() {
-        let premise = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n",
-        );
-        let conclusion = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/b> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::NotEntailed
-        );
-    }
-
-    /// Premise `a ⊑ b`, `b ⊑ c` entails `a ⊑ c` (subsumption, via a fresh witness).
-    #[test]
-    fn subclass_positive_entailment_is_entailed() {
-        let premise = dataset(
-            "<http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/b> .\n\
-             <http://ex/b> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/c> .\n",
-        );
-        let conclusion = dataset(
-            "<http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/c> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-    }
-
-    /// `a ⊑ b` does NOT entail `a ⊑ c`.
-    #[test]
-    fn subclass_non_entailment_is_not_entailed() {
-        let premise = dataset(
-            "<http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/b> .\n",
-        );
-        let conclusion = dataset(
-            "<http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/c> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::NotEntailed
-        );
-    }
-
-    /// A premise authored in the CANONICAL `logic:` subsumption vocabulary entails the
-    /// same memberships and subsumptions as one authored in its `rdfs:` projection.
-    ///
-    /// This is the consumer-visible statement of
-    /// [`crate::reason::edb_predicate_spellings`]: `gmeow entails` composes over
-    /// [`crate::reason::dl_consistency`], which folds from the ONE chase
-    /// [`crate::reason::build_edb_facts`] feeds. Every `module.ttl` authors subsumption
-    /// as `logic:subClassOf` (Principle 17 — `rdfs:` is one of its lossy projections),
-    /// so without the EDB-boundary lowering a consumer asking "is this class a
-    /// `math:MathConformanceFailure`?" of the shipped bundle gets `not-entailed`: the
-    /// enforcement fires while the taxonomy stays dark.
-    #[test]
-    fn canonical_logic_subsumption_is_entailment_equivalent_to_its_rdfs_projection() {
-        const LOGIC_SUBCLASS: &str = "https://blackcatinformatics.ca/logic/subClassOf";
-        let premise = dataset(&format!(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n\
-             <http://ex/a> <{LOGIC_SUBCLASS}> <http://ex/b> .\n\
-             <http://ex/b> <{LOGIC_SUBCLASS}> <http://ex/c> .\n"
-        ));
-        let membership = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/c> .\n",
-        );
-        let subsumption = dataset(
-            "<http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/c> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), membership.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed,
-            "x ∈ c must follow from a canonically-spelled a ⊑ b ⊑ c"
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), subsumption.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed,
-            "a ⊑ c must follow from a canonically-spelled a ⊑ b ⊑ c"
-        );
-
-        // The lowering ADDS the taxonomy; it does not make everything entailed.
-        let unrelated = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/d> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), unrelated.as_ref()).unwrap(),
-            EntailmentVerdict::NotEntailed
-        );
-    }
-
-    /// A class-expression body authored in the CANONICAL `logic:` restriction vocabulary
-    /// entails exactly what its `owl:` projection does.
-    ///
-    /// This is the consumer-visible statement of the class-expression half of
-    /// [`crate::reason::edb_predicate_spellings`]. Every slice authors a value
-    /// restriction as `[ a logic:Restriction ; logic:onProperty P ; logic:allValuesFrom D ]`;
-    /// the fixed RL rule that acts on it (`cls-avf`) names `owl:onProperty` /
-    /// `owl:allValuesFrom` by W3C specification. Without the EDB-boundary lowering such a
-    /// body reaches the derived SHACL surface and contributes NOTHING to the DL closure —
-    /// a mandatory-value axiom that enforces in validation and is invisible to
-    /// `gmeow entails`.
-    #[test]
-    fn canonical_logic_restriction_is_entailment_equivalent_to_its_owl_projection() {
-        const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
-        const OWL: &str = "http://www.w3.org/2002/07/owl#";
-        const RDFS_SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-        // `C ⊑ ∀p.D`, `v ∈ C`, `v p w`  ⊨  `w ∈ D`.
-        let body = |ns: &str, subclass: &str| {
-            dataset(&format!(
-                "<http://ex/C> <{subclass}> <http://ex/r> .\n\
-                 <http://ex/r> <{TYPE}> <{ns}Restriction> .\n\
-                 <http://ex/r> <{ns}onProperty> <http://ex/p> .\n\
-                 <http://ex/r> <{ns}allValuesFrom> <http://ex/D> .\n\
-                 <http://ex/v> <{TYPE}> <http://ex/C> .\n\
-                 <http://ex/v> <http://ex/p> <http://ex/w> .\n"
-            ))
-        };
-        let canonical = body(LOGIC, &format!("{LOGIC}subClassOf"));
-        let projected = body(OWL, RDFS_SUBCLASS);
-        let conclusion = dataset(&format!("<http://ex/w> <{TYPE}> <http://ex/D> .\n"));
-
-        assert_eq!(
-            dl_entails(projected.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed,
-            "control: the `owl:`-spelled restriction must be read"
-        );
-        assert_eq!(
-            dl_entails(canonical.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed,
-            "the CANONICAL `logic:` restriction must decide identically to its `owl:` \
-             projection — an authored class-expression body is reasoner content, not \
-             shape-surface-only content"
-        );
-
-        // The lowering ADDS the restriction; it does not make everything entailed.
-        let unrelated = dataset(&format!("<http://ex/w> <{TYPE}> <http://ex/E> .\n"));
-        assert_eq!(
-            dl_entails(canonical.as_ref(), unrelated.as_ref()).unwrap(),
-            EntailmentVerdict::NotEntailed
-        );
-    }
-
-    /// A multi-triple conjunctive conclusion is entailed iff EVERY component is.
-    #[test]
-    fn multi_triple_conjunction_all_entailed_is_entailed() {
-        let premise = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n\
-             <http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/b> .\n\
-             <http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/c> .\n",
-        );
-        let conclusion = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/b> .\n\
-             <http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/c> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-    }
-
-    /// A multi-triple conclusion with one un-entailed component is NOT entailed
-    /// (the conjunction, not a disjunction).
-    #[test]
-    fn multi_triple_conjunction_one_failing_is_not_entailed() {
-        let premise = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n\
-             <http://ex/a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://ex/b> .\n",
-        );
-        let conclusion = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/b> .\n\
-             <http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/c> .\n",
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::NotEntailed
-        );
-    }
-
-    /// An empty conclusion is trivially entailed.
-    #[test]
-    fn empty_conclusion_is_entailed() {
-        let premise = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n",
-        );
-        let conclusion = dataset("");
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-    }
-
-    /// A blank-node conclusion subject is an existential-witness gap, not a verdict.
-    #[test]
-    fn blank_node_conclusion_is_existential_gap() {
-        let premise = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n",
-        );
-        let conclusion =
-            dataset("_:b <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n");
-        let v = dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap();
-        assert!(
-            matches!(
-                v,
-                EntailmentVerdict::Gap(EntailmentGap {
-                    shape: GapShape::ExistentialWitness,
-                    ..
-                })
-            ),
-            "{v:?}"
-        );
-    }
-
-    /// A role/property-assertion conclusion is a role-assertion gap (role negation is
-    /// not EL-expressible).
-    #[test]
-    fn role_assertion_conclusion_is_role_gap() {
-        let premise = dataset("<http://ex/a> <http://ex/knows> <http://ex/b> .\n");
-        let conclusion = dataset("<http://ex/a> <http://ex/knows> <http://ex/b> .\n");
-        let v = dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap();
-        assert!(
-            matches!(
-                v,
-                EntailmentVerdict::Gap(EntailmentGap {
-                    shape: GapShape::RoleAssertion,
-                    ..
-                })
-            ),
-            "{v:?}"
-        );
-    }
-
-    /// A conclusion typing an individual to a literal is malformed.
-    #[test]
-    fn literal_class_conclusion_is_malformed_gap() {
-        let premise = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n",
-        );
-        let conclusion = dataset(&format!(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \"oops\"^^<{RDF_XSD_STRING}> .\n"
-        ));
-        let v = dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap();
-        assert!(
-            matches!(
-                v,
-                EntailmentVerdict::Gap(EntailmentGap {
-                    shape: GapShape::Malformed,
-                    ..
-                })
-            ),
-            "{v:?}"
-        );
-    }
-
-    /// SOUNDNESS FLOOR: a premise that already mentions a reserved-namespace IRI is
-    /// rejected — a minted complement could otherwise collide and flip the verdict.
-    #[test]
-    fn reserved_namespace_input_hard_fails() {
-        let premise = dataset(&format!(
-            "<{ENTAIL_RESERVED_NS}complement-deadbeefdeadbeef> \
-             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n"
-        ));
-        let conclusion = dataset(
-            "<http://ex/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/a> .\n",
-        );
-        let err = dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap_err();
-        assert!(
-            err.message().contains("reserved entailment IRI"),
-            "expected a reserved-namespace hard fail, got {err}"
-        );
-    }
-
-    /// [`CapabilityGapShape::ontology_individual_local`] is the single naming
-    /// authority for the `gmeow:GapShape` individuals: every variant maps to a
-    /// distinct local name, and [`CapabilityGapShape::is_reasoner_fragment_gap`]
-    /// is true for exactly the first four (reasoner-fragment gaps), false only for
-    /// `VendoringMultiGoal` (a vendoring-format limit, not a reasoner gap).
-    #[test]
-    fn ontology_individual_locals_are_five_distinct_and_match_fragment_gap_flag() {
-        let locals: BTreeSet<&'static str> = CapabilityGapShape::ALL
-            .iter()
-            .map(CapabilityGapShape::ontology_individual_local)
-            .collect();
-        assert_eq!(
-            locals.len(),
-            5,
-            "all 5 CapabilityGapShape variants must map to distinct gmeow:GapShape locals"
-        );
-        for shape in &CapabilityGapShape::ALL[..4] {
-            assert!(
-                shape.is_reasoner_fragment_gap(),
-                "{shape:?} must be a reasoner-fragment gap"
-            );
-        }
-        assert!(
-            !CapabilityGapShape::VendoringMultiGoal.is_reasoner_fragment_gap(),
-            "VendoringMultiGoal is a vendoring-format limit, not a reasoner-fragment gap"
-        );
-    }
-
-    /// Positive transitive subproperty: `P ⊑ Q`, `Q ⊑ R` entails `P ⊑ R` by
-    /// reflexive-transitive reachability (rdfs5).
-    #[test]
-    fn subproperty_transitive_positive_is_entailed() {
-        let premise = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n\
-             <http://ex/Q> <{RDFS_SUBPROPERTYOF}> <http://ex/R> .\n"
-        ));
-        let conclusion = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/R> .\n"
-        ));
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-    }
-
-    /// Reflexive subproperty: `P ⊑ P` is always entailed (rdfs6), regardless of edges.
-    #[test]
-    fn subproperty_reflexive_is_entailed() {
-        let premise = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n"
-        ));
-        let conclusion = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/P> .\n"
-        ));
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-    }
-
-    /// `owl:equivalentProperty` is mutual subproperty: `P ≡ Q` entails BOTH `P ⊑ Q` and
-    /// `Q ⊑ P`.
-    #[test]
-    fn subproperty_equivalent_property_both_directions_are_entailed() {
-        let premise = dataset(&format!(
-            "<http://ex/P> <{OWL_EQUIVALENT_PROPERTY}> <http://ex/Q> .\n"
-        ));
-        let p_sub_q = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n"
-        ));
-        let q_sub_p = dataset(&format!(
-            "<http://ex/Q> <{RDFS_SUBPROPERTYOF}> <http://ex/P> .\n"
-        ));
-        assert_eq!(
-            dl_entails(premise.as_ref(), p_sub_q.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-        assert_eq!(
-            dl_entails(premise.as_ref(), q_sub_p.as_ref()).unwrap(),
-            EntailmentVerdict::Entailed
-        );
-    }
-
-    /// Negative subproperty in a restricted (pure-hierarchy) premise: `P ⊑ Q` does NOT
-    /// entail the reverse `Q ⊑ P` — unreachable, so a sound `NotEntailed`.
-    #[test]
-    fn subproperty_unreachable_restricted_is_not_entailed() {
-        let premise = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n"
-        ));
-        let conclusion = dataset(&format!(
-            "<http://ex/Q> <{RDFS_SUBPROPERTYOF}> <http://ex/P> .\n"
-        ));
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::NotEntailed
-        );
-    }
-
-    /// Unrelated subproperty edges do not entail the conclusion: a restricted premise
-    /// with only `X ⊑ Y` does NOT entail `P ⊑ Q`.
-    #[test]
-    fn subproperty_unrelated_restricted_is_not_entailed() {
-        let premise = dataset(&format!(
-            "<http://ex/X> <{RDFS_SUBPROPERTYOF}> <http://ex/Y> .\n"
-        ));
-        let conclusion = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n"
-        ));
-        assert_eq!(
-            dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap(),
-            EntailmentVerdict::NotEntailed
-        );
-    }
-
-    /// SOUNDNESS GATE: when the premise carries a property-relating construct beyond
-    /// `subPropertyOf`/`equivalentProperty` (here an `owl:propertyChainAxiom`), an
-    /// unreachable conclusion is an honest `native-coverage` GAP — NEVER a guessed
-    /// `NotEntailed`, because the chain axiom could derive further subproperty facts.
-    #[test]
-    fn subproperty_property_construct_makes_unreachable_a_gap() {
-        const OWL_PROPERTY_CHAIN_AXIOM: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
-        let premise = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n\
-             <http://ex/R> <{OWL_PROPERTY_CHAIN_AXIOM}> _:chain .\n"
-        ));
-        // `Q ⊑ P` is unreachable, but the chain axiom voids the restricted-vocabulary gate.
-        let conclusion = dataset(&format!(
-            "<http://ex/Q> <{RDFS_SUBPROPERTYOF}> <http://ex/P> .\n"
-        ));
-        let v = dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap();
-        assert!(
-            matches!(
-                v,
-                EntailmentVerdict::Gap(EntailmentGap {
-                    shape: GapShape::NativeCoverage,
-                    ..
-                })
-            ),
-            "{v:?}"
-        );
-    }
-
-    /// The same soundness gate fires for `owl:inverseOf` (another derivation-capable
-    /// property construct): an unreachable subproperty conclusion is a GAP, not a verdict.
-    #[test]
-    fn subproperty_inverse_of_construct_makes_unreachable_a_gap() {
-        const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
-        let premise = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n\
-             <http://ex/P> <{OWL_INVERSE_OF}> <http://ex/Pinv> .\n"
-        ));
-        let conclusion = dataset(&format!(
-            "<http://ex/Q> <{RDFS_SUBPROPERTYOF}> <http://ex/P> .\n"
-        ));
-        let v = dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap();
-        assert!(
-            matches!(
-                v,
-                EntailmentVerdict::Gap(EntailmentGap {
-                    shape: GapShape::NativeCoverage,
-                    ..
-                })
-            ),
-            "{v:?}"
-        );
-    }
-
-    /// `negate` HARD-FAILS on a subproperty shape: it is decided by reachability, never
-    /// refutation, so a caller that routes it to `negate` violates the contract and must
-    /// not receive a silent empty/garbage negation.
-    #[test]
-    fn negate_refuses_subproperty_shape() {
-        let minter = Minter::new(&BTreeSet::new()).unwrap();
-        let shape = ConclusionShape::SubPropertyOf {
-            sub: "http://ex/P".to_string(),
-            sup: "http://ex/Q".to_string(),
-        };
-        let err = negate(&shape, &minter).unwrap_err();
-        assert!(
-            err.message().contains("subproperty conclusion"),
-            "expected a subproperty-invariant hard fail, got {err}"
-        );
-    }
-
-    /// A subproperty conclusion with a literal superproperty is malformed (not a
-    /// reachability edge and not refutable).
-    #[test]
-    fn subproperty_literal_object_is_malformed_gap() {
-        let premise = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> <http://ex/Q> .\n"
-        ));
-        let conclusion = dataset(&format!(
-            "<http://ex/P> <{RDFS_SUBPROPERTYOF}> \"oops\"^^<{RDF_XSD_STRING}> .\n"
-        ));
-        let v = dl_entails(premise.as_ref(), conclusion.as_ref()).unwrap();
-        assert!(
-            matches!(
-                v,
-                EntailmentVerdict::Gap(EntailmentGap {
-                    shape: GapShape::Malformed,
-                    ..
-                })
-            ),
-            "{v:?}"
-        );
-    }
-
-    /// The minter is deterministic and content-addressed: same class → same symbol,
-    /// different classes → different symbols, and complement ≠ witness.
-    #[test]
-    fn minted_symbols_are_deterministic_and_distinct() {
-        let minter = Minter::new(&BTreeSet::new()).unwrap();
-        assert_eq!(
-            minter.complement("http://ex/a"),
-            minter.complement("http://ex/a")
-        );
-        assert_ne!(
-            minter.complement("http://ex/a"),
-            minter.complement("http://ex/b")
-        );
-        assert_ne!(
-            minter.complement("http://ex/a"),
-            minter.witness("http://ex/a")
-        );
-        assert!(
-            minter
-                .complement("http://ex/a")
-                .starts_with(ENTAIL_RESERVED_NS)
-        );
-    }
-}
+mod tests;

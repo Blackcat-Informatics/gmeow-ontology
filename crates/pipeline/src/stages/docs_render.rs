@@ -24,65 +24,121 @@ use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 pub const DOCS_GRAPH_PATH: &str = "pipeline/documentation.nq";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
 
-/// Derive the docs [`ReasoningVerdict`] from the `stage-reason` product's inferred
-/// closure — the SOLE reasoning pass, never re-run here.
-///
-/// A class is unsatisfiable exactly when the native DL reasoner entailed
-/// `<class> rdfs:subClassOf owl:Nothing` (the same signal
-/// [`gmeow_logic::reason::dl::unsatisfiable_from_inferred`] keys on); the ontology
-/// is inconsistent exactly when some individual is entailed `rdf:type owl:Nothing`
-/// (a witnessed clash). Both are read off the already-carried closure, so no new
-/// reasoning runs and no `crates/logic` type grows a field. Shared by the
-/// docs-graph stage (here) and the rendered-site archive (`carrier`), so the two
-/// surfaces report the SAME verdict. Hard-fails if the closure is absent — never a
-/// silent "consistent" default.
+/// Select the declared in-DAG reasoning owner. Post-DAG documentation explicitly
+/// selects its retained snapshot and uses the same native admission below.
 pub(crate) fn reasoning_verdict_from_reason(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<ReasoningVerdict, gmeow_errors::Diag> {
-    let closure = upstream
-        .get("stage-reason")
-        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-docs-render".to_string(),
-                message: format!(
-                    "missing stage-reason artifact {} for the reasoning verdict",
-                    crate::stages::reason::CLOSURE_PATH
-                ),
-            })
-        })?;
-    let dataset = crate::stages::source_load::turtle_bytes_to_dataset(closure, "reason-closure")
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-docs-render".to_string(),
-                message: format!("parse reasoned closure for the reasoning verdict: {e}"),
-            })
-        })?;
-    let mut unsatisfiable: BTreeSet<String> = BTreeSet::new();
-    let mut is_consistent = true;
-    for q in dataset.owned_quads() {
-        let RdfTerm::Iri(object) = &q.object else {
-            continue;
-        };
-        if object != OWL_NOTHING {
-            continue;
-        }
-        if q.predicate == RDFS_SUBCLASSOF {
-            if let RdfTerm::Iri(subject) = &q.subject
-                && subject != OWL_NOTHING
-            {
-                unsatisfiable.insert(subject.clone());
-            }
-        } else if q.predicate == RDF_TYPE {
-            is_consistent = false;
-        }
+    let reason = upstream.get("stage-reason").ok_or_else(|| {
+        reasoning_verdict_error("missing stage-reason product for the reasoning verdict".into())
+    })?;
+    reasoning_verdict_from_product(reason, "stage-reason")
+}
+
+/// Borrow the docs verdict from an explicitly selected, retained native owner.
+///
+/// Both documentation surfaces share the complete inferred payload and the DL
+/// reader's role-sensitive empty-class interpretation. The native information
+/// axis decides consistency; an empty class alone is not a witnessed clash.
+/// Missing identities, wrong payloads and inconclusive results refuse instead of
+/// becoming a fabricated positive verdict. Native hashing verifies the immutable
+/// publication contract without rendering, parsing or reasoning over RDF.
+pub(crate) fn reasoning_verdict_from_product(
+    reason: &StageProduct,
+    expected_owner: &str,
+) -> Result<ReasoningVerdict, gmeow_errors::Diag> {
+    use gmeow_logic::result::{
+        CompletenessStatus, EvaluationStatus, InformationState, InputStatus, ResultPayload,
+    };
+    use gmeow_logic::result_rdf::GRAPH_REASONING;
+
+    let fail = reasoning_verdict_error;
+    if reason.stage_id != expected_owner || reason.carrier_released {
+        return Err(fail(format!(
+            "the reasoning verdict requires the retained {expected_owner} product"
+        )));
     }
+    let bundle = reason.bundle();
+    let entry = bundle
+        .handle(GRAPH_REASONING)
+        .ok_or_else(|| fail("missing pinned Reasoning handle for the reasoning verdict".into()))?;
+    let crate::bundle::PipelineHandle::Reasoning(result) = &entry.payload else {
+        return Err(fail(
+            "graph/reasoning must carry the Reasoning handle arm".into(),
+        ));
+    };
+    if !crate::handle_identity::contains_graph(bundle, GRAPH_REASONING)
+        || entry.content_digest != bundle.graph_digest(GRAPH_REASONING)
+    {
+        return Err(fail(
+            "the Reasoning handle does not match its declared graph pin".into(),
+        ));
+    }
+    // Reuse the publication's native identity recipe, not a whole-bundle digest:
+    // recomputing that digest would canonicalize every unrelated closure row.
+    let published = reason
+        .handle_commitments()
+        .get(GRAPH_REASONING)
+        .ok_or_else(|| fail("missing published native Reasoning commitment".into()))?;
+    let current = crate::handle_identity::handle_commitment(
+        GRAPH_REASONING,
+        &entry.content_digest.to_hex(),
+        &entry.payload,
+    );
+    if current.identity != published.identity || current.digest != published.digest {
+        return Err(fail(
+            "native Reasoning payload identity changed after publication".into(),
+        ));
+    }
+    result.validate()?;
+    let ResultPayload::Inferred(inferred) = &result.payload else {
+        return Err(fail(
+            "the reasoning verdict requires a complete native Inferred payload".into(),
+        ));
+    };
+    if result.input != InputStatus::Valid
+        || !result.is_conclusive()
+        || result.evaluation == EvaluationStatus::Unsupported
+    {
+        return Err(fail(format!(
+            "the reasoning verdict is not conclusive: input={}, evaluation={}",
+            result.input.wire(),
+            result.evaluation.wire()
+        )));
+    }
+    let is_consistent = match result.information {
+        InformationState::Supported
+            if result.completeness == CompletenessStatus::CompleteForFragment
+                && result.preservation.unsupported_constructs.is_empty() =>
+        {
+            true
+        }
+        InformationState::Both => false,
+        _ => {
+            return Err(fail(format!(
+                "the native result does not decide consistency: information={}, completeness={}, unsupported={:?}",
+                result.information.wire(),
+                result.completeness.wire(),
+                result.preservation.unsupported_constructs
+            )));
+        }
+    };
+    let unsatisfiable = gmeow_logic::reason::dl::unsatisfiable_from_inferred(inferred)
+        .into_iter()
+        .map(|empty| empty.class)
+        .collect();
     Ok(ReasoningVerdict {
         is_consistent,
         unsatisfiable,
+    })
+}
+
+/// Keep both documentation consumers' native admission failures explicit.
+fn reasoning_verdict_error(message: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        stage: "stage-docs-render".to_owned(),
+        message,
     })
 }
 
@@ -115,39 +171,11 @@ fn doc_diag_finding(
     }
 }
 
-/// Fold the diagnostics→term join [`DiagnosticsDigest`] from the `stage-validate` +
-/// `stage-compile-logic` products' committed **JSON** diagnostics artifacts
-/// ([`crate::stages::validate::SHACL_JSON_PATH`] /
-/// [`crate::stages::compile_logic::DIAG_JSON_PATH`]) — never a re-run of SHACL or
-/// the logic compiler (reason/validate-once). This reads the full-fidelity
-/// `gmeow_errors::Report` (`gmeow_errors::render::to_json`'s exact wire form), NOT
-/// the lossy `diagnostics:nodes` blob: the forward `Finding → DiagNode` fold
-/// (`diag_render::finding_nodes`, `rdf_location_lossy`) deliberately drops
-/// `location.logical` (and the intermediate `purrdf::RdfDiagnostic` carries no
-/// attributions at all) so the diagnostics RDF projection and the run-ledger stay
-/// byte-identical — that lane can NEVER carry a term/slice join, no matter how
-/// many diagnostics exist. The JSON artifact is a plain `serde` serialization of
-/// the `Report`/`Finding` model itself, so `Location.logical` and
-/// `Finding.attributions` survive intact. Hard-fails when either declared upstream
-/// product/artifact is absent, or when the artifact bytes fail to parse as a
-/// `Report` (never a silently empty digest).
-///
-/// The per-term join has two legs, both EXACT string matches against
-/// `known_term_iris` (never heuristic/fuzzy). The PRIMARY leg reads each finding's
-/// purpose-built [`documented_terms`](gmeow_errors::Finding::documented_terms) — the
-/// DOCUMENTED term the finding structurally concerns, e.g. a SHACL violation's
-/// constrained `sh:path` property (a documented `gmeow:` term), recorded at the
-/// finding-construction site (`gmeow_validate::findings`). This is preferred over the
-/// raw focus node because a SHACL finding's focus is an ABox data individual that
-/// never names a documented term. The SECONDARY leg, retained for findings whose
-/// PRIMARY `Location.logical` genuinely names a documented term, matches the first
-/// such logical location (skipped when it duplicates a documented-term hit). A finding
-/// that resolves to no known term on either leg simply has no `by_term` entry (an
-/// honest absence, not a bug).
-///
-/// `by_slice` is keyed on EVERY recorded [`gmeow_errors::DiagnosticAttribution`]
-/// (a coarser join, available whenever the finding carries an attribution);
-/// `help_uri` resolves through `constraint_rules` by exact `code` match.
+/// Fold exact documented-term and slice joins from the two authenticated native
+/// diagnostic reports. These are the final normalized, meta-enriched reports
+/// shared by each producer's terminal renderer, including every logical location,
+/// standpoint, source attribution and labeled span omitted by the RDF projection.
+/// Missing publications refuse; there is no artifact or run-ledger fallback.
 pub(crate) fn diagnostics_digest_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     known_term_iris: &BTreeSet<String>,
@@ -165,47 +193,27 @@ pub(crate) fn diagnostics_digest_from_upstream(
             message: "missing stage-compile-logic product for the diagnostics digest".to_string(),
         })
     })?;
-    let shacl_json = validate
-        .artifact(crate::stages::validate::SHACL_JSON_PATH)
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-docs-render".to_string(),
-                message: format!(
-                    "missing stage-validate artifact {} for the diagnostics digest",
-                    crate::stages::validate::SHACL_JSON_PATH
-                ),
-            })
-        })?;
-    let compile_json = compile_logic
-        .artifact(crate::stages::compile_logic::DIAG_JSON_PATH)
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-docs-render".to_string(),
-                message: format!(
-                    "missing stage-compile-logic artifact {} for the diagnostics digest",
-                    crate::stages::compile_logic::DIAG_JSON_PATH
-                ),
-            })
-        })?;
-    let parse_report = |bytes: &[u8],
-                        source: &str|
-     -> Result<gmeow_errors::Report, gmeow_errors::Diag> {
-        serde_json::from_slice(bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-docs-render".to_string(),
-                message: format!("parse {source} diagnostics JSON for the diagnostics digest: {e}"),
-            })
-        })
-    };
-    let shacl_report = parse_report(shacl_json, crate::stages::validate::SHACL_JSON_PATH)?;
-    let compile_report = parse_report(compile_json, crate::stages::compile_logic::DIAG_JSON_PATH)?;
+    let shacl = crate::bundle::diagnostics_from_product(validate, "stage-validate")?;
+    let compile = crate::bundle::diagnostics_from_product(compile_logic, "stage-compile-logic")?;
+    Ok(diagnostics_digest_from_reports(
+        shacl.report(crate::bundle::DiagnosticReportOwner::Validate)?,
+        compile.report(crate::bundle::DiagnosticReportOwner::CompileLogic)?,
+        known_term_iris,
+        constraint_rules,
+    ))
+}
 
-    let findings: Vec<&gmeow_errors::Finding> = shacl_report
-        .findings
-        .iter()
-        .chain(compile_report.findings.iter())
-        .collect();
-    let total = findings.len();
+/// One borrowed fold for in-DAG producer publications and the retained snapshot.
+/// Source order is SHACL then compiler; findings never merge across those owners.
+/// The final docs rows are presentation projections of the complete native reports.
+pub(crate) fn diagnostics_digest_from_reports(
+    shacl_report: &gmeow_errors::Report,
+    compile_report: &gmeow_errors::Report,
+    known_term_iris: &BTreeSet<String>,
+    constraint_rules: &[ConstraintRule],
+) -> DiagnosticsDigest {
+    let total = shacl_report.findings.len() + compile_report.findings.len();
+    let findings = shacl_report.findings.iter().chain(&compile_report.findings);
 
     let by_code: BTreeMap<&str, &str> = constraint_rules
         .iter()
@@ -214,7 +222,7 @@ pub(crate) fn diagnostics_digest_from_upstream(
 
     let mut by_term: BTreeMap<String, Vec<DocDiagFinding>> = BTreeMap::new();
     let mut by_slice: BTreeMap<String, Vec<DocDiagFinding>> = BTreeMap::new();
-    for finding in &findings {
+    for finding in findings {
         let doc_finding = doc_diag_finding(finding, &by_code);
 
         // Primary join: the purpose-built documented-term attribution — a SHACL
@@ -258,11 +266,11 @@ pub(crate) fn diagnostics_digest_from_upstream(
         }
     }
 
-    Ok(DiagnosticsDigest {
+    DiagnosticsDigest {
         by_term,
         by_slice,
         total,
-    })
+    }
 }
 
 /// The `rdfs:label` prefix the compiler's projection ledger stamps on a per-shape
@@ -984,6 +992,9 @@ impl Stage for DocsRenderStage {
         CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
+        // v11: full native diagnostic reports replace JSON transport parsing.
+        // v10: documentation verdicts require the pinned native reasoning result,
+        // complete payload identity and an actually decided consistency judgment.
         // v9: the per-term content-address manifest (definition digest + first-seen
         // version + computed changelog) is read from THIS run's consumed
         // stage-term-manifest product (DocsModel::discover_with_manifest_and_catalog) instead of
@@ -1004,7 +1015,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v9"
+        "docs_render.v11-native-diagnostic-reports"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
@@ -1036,652 +1047,8 @@ impl Stage for DocsRenderStage {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod reasoning_tests;
 
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn docs_source_files_includes_new_inputs() {
-        let root = repo_root();
-        let files = docs_source_files(&root).expect("docs_source_files");
-        let has_shapes_ttl = files
-            .iter()
-            .any(|p| p.file_name().and_then(|n| n.to_str()) == Some("shapes.ttl"));
-        assert!(
-            has_shapes_ttl,
-            "docs_source_files must include at least one per-slice shapes.ttl"
-        );
-        let has_competency = files.iter().any(|p| {
-            p.file_name().and_then(|n| n.to_str()) == Some("competency.ttl")
-                && p.parent()
-                    .and_then(|parent| parent.file_name())
-                    .and_then(|n| n.to_str())
-                    == Some("tests")
-        });
-        assert!(
-            has_competency,
-            "docs_source_files must include at least one per-slice tests/competency.ttl"
-        );
-        let shapes_dir = root.join("shapes");
-        let has_root_shapes = files.iter().any(|p| {
-            p.extension().and_then(|s| s.to_str()) == Some("ttl")
-                && p.parent()
-                    .map(|parent| parent == shapes_dir)
-                    .unwrap_or(false)
-        });
-        assert!(
-            has_root_shapes,
-            "docs_source_files must include root shapes/*.ttl files"
-        );
-        // A CQ's `cqQueryFile` may resolve into a slice's own `queries/competency/`
-        // tree (`slices/grounding/logic/queries/competency/named-parametric-paths.rq`)
-        // or the shared repo-root tree (`queries/competency/citation-intents.rq`) —
-        // both must be cache-salted (`gmeow_docs::model::apply_competency_query_text`).
-        let has_slice_query = files
-            .iter()
-            .any(|p| p.ends_with("queries/competency/named-parametric-paths.rq"));
-        assert!(
-            has_slice_query,
-            "docs_source_files must include at least one per-slice queries/competency/*.rq"
-        );
-        let root_query = root.join("queries/competency/citation-intents.rq");
-        assert!(
-            files.contains(&root_query),
-            "docs_source_files must include the shared root queries/competency/*.rq tree"
-        );
-        // The notation-grammar exhibits (`gmeow_docs::model::DocGrammar`) — a
-        // `grammars/*.ebnf` edit must bust the docs cache.
-        let has_grammar = files
-            .iter()
-            .any(|p| p.ends_with("slices/grounding/lang/grammars/gmn.ebnf"));
-        assert!(
-            has_grammar,
-            "docs_source_files must include the lang slice's grammars/*.ebnf files"
-        );
-        // A recursively-discovered per-slice `design/*.md` — the canonical-Markdown soundness
-        // fix: editing a design doc must bust the docs cache, exactly as editing the
-        // top-level `docs.md` does. Before this, only the top-level `docs.md` was
-        // declared, so a `design/*.md` edit silently missed the key.
-        let has_design_md = files.iter().any(|p| {
-            p.extension().and_then(|s| s.to_str()) == Some("md")
-                && p.parent()
-                    .and_then(|parent| parent.file_name())
-                    .and_then(|n| n.to_str())
-                    == Some("design")
-        });
-        assert!(
-            has_design_md,
-            "docs_source_files must include recursively-discovered per-slice design/*.md sources"
-        );
-        // The vendored documentation site assets (`crates/docs/assets/**`) — the
-        // `SnapshotStage` embeds them into the rendered site, so a
-        // `maint-refresh-*-asset` swap must bust the docs cache (it does not change
-        // any `.rs`, the only thing `GMEOW_BUILD_FINGERPRINT` folds).
-        let has_vendored_asset = files
-            .iter()
-            .any(|p| p.ends_with("crates/docs/assets/query/gmeow_query_wasm_bg.wasm"));
-        assert!(
-            has_vendored_asset,
-            "docs_source_files must include the vendored crates/docs/assets/** site assets"
-        );
-        let assets_root = root.join("crates/docs/assets");
-        for derived in [
-            "console/pkg/gmeow.gts",
-            "console/node_modules/package/index.js",
-            "console/smoke/node_modules/playwright/index.js",
-            "console/blackcatinformatics-gmeow-console-0.2.0.tgz",
-        ] {
-            assert!(
-                is_derived_docs_asset(&assets_root, &assets_root.join(derived)),
-                "the producer-owned docs asset {derived} must be classified as derived"
-            );
-        }
-        assert!(
-            files
-                .iter()
-                .all(|path| !is_derived_docs_asset(&assets_root, path)),
-            "docs_source_files must never hash producer-owned console package/install outputs"
-        );
-        // F4/F5: each interactive engine's native↔wasm witness-ATTESTATION is itself a
-        // declared consumed input of this render leaf (it lives under crates/docs/assets/**
-        // and is walked here), so re-blessing an attestation busts the docs cache and the
-        // interactive preservation-kind is causally downstream of the proven parity — not
-        // a decorative gate.
-        //
-        // The edge is unchanged in kind and narrower in extent: it used to also name
-        // `assets/purrdf/WITNESS.describe.nt`, because `Capability::LiveSparql` was backed
-        // by two engines. It is backed by the core segment alone now, so the core segment's
-        // attestation carries the whole edge for live SPARQL. The describe property that
-        // witness attested is still proven — by `crates/mcp/tests/witness_explore.rs`,
-        // against the engine that now answers it.
-        for witness in [
-            "crates/docs/assets/query/WITNESS.describe.nt",
-            "crates/docs/assets/validate/WITNESS.validate.json",
-            "crates/docs/assets/reason/WITNESS.reason.nq",
-            "crates/docs/assets/gmn/WITNESS.gmn1.txt",
-            "crates/docs/assets/mcp-core/WITNESS.core-deferral.json",
-            "crates/docs/assets/mcp/WITNESS.mcp.json",
-        ] {
-            assert!(
-                files.iter().any(|p| p.ends_with(witness)),
-                "docs_source_files must consume the interactive witness-attestation {witness} \
-                 (the F4/F5 attestation→capability dataflow edge)"
-            );
-        }
-    }
-
-    /// Build a synthetic `stage_id` product carrying `report`'s JSON
-    /// serialization ([`gmeow_errors::render::to_json`]) at `json_path` — the
-    /// EXACT artifact lane `diagnostics_digest_from_upstream` reads, mirroring
-    /// the real `stage-validate`/`stage-compile-logic` producers
-    /// (`diag_render::render_diagnostics_artifacts`), so this test exercises the
-    /// real production code path rather than the lossy `diagnostics:nodes` blob.
-    fn report_json_product(
-        stage_id: &str,
-        json_path: &str,
-        report: &gmeow_errors::Report,
-    ) -> StageProduct {
-        let json = gmeow_errors::render::to_json(report).expect("encode report json");
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(json_path.to_string(), json.into_bytes());
-        StageProduct::from_artifacts(stage_id, artifacts)
-    }
-
-    /// A minimal synthetic [`gmeow_errors::Finding`] with the given code/
-    /// category/term-location/slice-attribution — a plain builder, since (unlike
-    /// the retired `DiagNode` lane) the JSON-artifact join needs no ledger
-    /// fingerprint.
-    fn synthetic_finding(
-        code: &str,
-        category: gmeow_errors::FindingCategory,
-        term_iri: Option<&str>,
-        slice_iri: Option<&str>,
-    ) -> gmeow_errors::Finding {
-        let mut finding = gmeow_errors::Finding::new(
-            gmeow_errors::Severity::Warning,
-            code,
-            format!("synthetic finding for {code}"),
-        )
-        .with_category(category);
-        if let Some(term_iri) = term_iri {
-            finding.add_location(gmeow_errors::Location::new(
-                None,
-                None,
-                None,
-                Some(term_iri.to_string()),
-            ));
-        }
-        if let Some(slice_iri) = slice_iri {
-            finding
-                .attributions
-                .push(gmeow_errors::DiagnosticAttribution {
-                    slice_iri: slice_iri.to_string(),
-                    role: "focus-origin".to_string(),
-                    evidence: None,
-                });
-        }
-        finding
-    }
-
-    #[test]
-    fn diagnostics_digest_joins_on_documented_term_attribution_not_abox_focus() {
-        // The PRIMARY join leg: a SHACL-shaped finding whose FOCUS is an ABox data
-        // individual (names no documented term) but whose `documented_terms` carries
-        // the constrained property (a documented term) joins by_term on the PROPERTY,
-        // never on the focus. This is the exact real-repo shape: the MinCount
-        // violations' focus nodes are fixture individuals; their constrained
-        // `gmeow:hasReferenceFrame` property is the documented term the panel lights up.
-        let property = "https://blackcatinformatics.ca/gmeow/hasReferenceFrame";
-        let mut known_terms: BTreeSet<String> = BTreeSet::new();
-        known_terms.insert(property.to_string());
-
-        let mut shacl_report = gmeow_errors::Report::new("shacl");
-        let mut finding = synthetic_finding(
-            "shacl.MinCountConstraintComponent",
-            gmeow_errors::FindingCategory::DataShapeViolation,
-            // The focus node is an ABox fixture individual — NOT a documented term.
-            Some("https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"),
-            None,
-        );
-        finding = finding.with_documented_term(property);
-        shacl_report.findings.push(finding);
-
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert(
-            "stage-validate".to_string(),
-            report_json_product(
-                "stage-validate",
-                crate::stages::validate::SHACL_JSON_PATH,
-                &shacl_report,
-            ),
-        );
-        upstream.insert(
-            "stage-compile-logic".to_string(),
-            report_json_product(
-                "stage-compile-logic",
-                crate::stages::compile_logic::DIAG_JSON_PATH,
-                &gmeow_errors::Report::new("logic-compile"),
-            ),
-        );
-
-        let digest =
-            diagnostics_digest_from_upstream(&upstream, &known_terms, &[]).expect("digest folds");
-        // Joined on the documented PROPERTY, exactly once, via the primary leg.
-        assert_eq!(
-            digest.by_term.get(property).map(Vec::len),
-            Some(1),
-            "the finding joins by_term on its documented constrained property"
-        );
-        assert_eq!(
-            digest.by_term[property][0].code,
-            "shacl.MinCountConstraintComponent"
-        );
-        // The ABox focus individual never fabricates a by_term key.
-        assert!(
-            !digest.by_term.contains_key(
-                "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"
-            ),
-            "the ABox focus node must never enter by_term"
-        );
-    }
-
-    #[test]
-    fn diagnostics_digest_joins_term_and_slice_and_hard_fails_on_missing_upstream() {
-        let term_iri = "https://blackcatinformatics.ca/gmeow/Cat";
-        let mut known_terms: BTreeSet<String> = BTreeSet::new();
-        known_terms.insert(term_iri.to_string());
-
-        let mut shacl_report = gmeow_errors::Report::new("shacl");
-        shacl_report.findings.push(synthetic_finding(
-            "shacl.MinCountConstraintComponent",
-            gmeow_errors::FindingCategory::DataShapeViolation,
-            Some(term_iri),
-            Some("https://blackcatinformatics.ca/gmeow/slices/core"),
-        ));
-        // A finding whose location names no KNOWN term: honestly absent from
-        // `by_term`, never a fuzzy/heuristic join.
-        shacl_report.findings.push(synthetic_finding(
-            "shacl.NodeKindConstraintComponent",
-            gmeow_errors::FindingCategory::DataShapeViolation,
-            Some("https://example.test/not-a-known-term"),
-            None,
-        ));
-
-        let mut compile_report = gmeow_errors::Report::new("logic-compile");
-        compile_report.findings.push(synthetic_finding(
-            "logic-compile.UNKNOWN_PROFILE",
-            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
-            None,
-            None,
-        ));
-
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert(
-            "stage-validate".to_string(),
-            report_json_product(
-                "stage-validate",
-                crate::stages::validate::SHACL_JSON_PATH,
-                &shacl_report,
-            ),
-        );
-        upstream.insert(
-            "stage-compile-logic".to_string(),
-            report_json_product(
-                "stage-compile-logic",
-                crate::stages::compile_logic::DIAG_JSON_PATH,
-                &compile_report,
-            ),
-        );
-
-        let rule = gmeow_docs::model::ConstraintRule {
-            code: "shacl.MinCountConstraintComponent".to_string(),
-            slug: "shacl-min-count-constraint-component".to_string(),
-            category: "https://blackcatinformatics.ca/gmeow/FindingDataShapeViolation".to_string(),
-            severity: "binding".to_string(),
-            help_uri:
-                "https://blackcatinformatics.ca/gmeow/rules#shacl-min-count-constraint-component"
-                    .to_string(),
-            label: None,
-            definition: None,
-            applies_to_terms: Vec::new(),
-            formalizes: None,
-        };
-
-        let digest =
-            diagnostics_digest_from_upstream(&upstream, &known_terms, std::slice::from_ref(&rule))
-                .expect("digest folds from synthetic upstream");
-        assert_eq!(digest.total, 3, "3 findings folded across both producers");
-        assert_eq!(
-            digest.by_term.get(term_iri).map(Vec::len),
-            Some(1),
-            "only the finding whose location names a KNOWN term joins by_term"
-        );
-        let joined = &digest.by_term[term_iri][0];
-        assert_eq!(joined.code, "shacl.MinCountConstraintComponent");
-        assert_eq!(joined.help_uri.as_deref(), Some(rule.help_uri.as_str()));
-        assert_eq!(
-            digest
-                .by_slice
-                .get("https://blackcatinformatics.ca/gmeow/slices/core")
-                .map(Vec::len),
-            Some(1)
-        );
-        // The unattributed / unresolved-code findings never fabricate a slice or help_uri.
-        assert!(
-            !digest
-                .by_slice
-                .values()
-                .flatten()
-                .any(|f| f.code == "logic-compile.UNKNOWN_PROFILE" && f.help_uri.is_some()),
-            "an unresolved code must never carry a fabricated help_uri"
-        );
-
-        // Missing EITHER declared upstream product hard-fails (never a silent empty digest).
-        let mut only_validate: BTreeMap<String, StageProduct> = BTreeMap::new();
-        only_validate.insert(
-            "stage-validate".to_string(),
-            report_json_product(
-                "stage-validate",
-                crate::stages::validate::SHACL_JSON_PATH,
-                &gmeow_errors::Report::new("shacl"),
-            ),
-        );
-        assert!(
-            diagnostics_digest_from_upstream(&only_validate, &known_terms, &[]).is_err(),
-            "missing stage-compile-logic must hard-fail"
-        );
-        assert!(
-            diagnostics_digest_from_upstream(&BTreeMap::new(), &known_terms, &[]).is_err(),
-            "missing both upstream products must hard-fail"
-        );
-
-        // A declared upstream product present but MISSING the JSON artifact (e.g. a
-        // stale/partial product) hard-fails too — never silently treated as empty.
-        let mut missing_artifact: BTreeMap<String, StageProduct> = BTreeMap::new();
-        missing_artifact.insert(
-            "stage-validate".to_string(),
-            StageProduct::from_artifacts("stage-validate", BTreeMap::new()),
-        );
-        missing_artifact.insert(
-            "stage-compile-logic".to_string(),
-            report_json_product(
-                "stage-compile-logic",
-                crate::stages::compile_logic::DIAG_JSON_PATH,
-                &gmeow_errors::Report::new("logic-compile"),
-            ),
-        );
-        assert!(
-            diagnostics_digest_from_upstream(&missing_artifact, &known_terms, &[]).is_err(),
-            "a stage-validate product missing the SHACL JSON artifact must hard-fail"
-        );
-    }
-
-    /// Build a synthetic `stage-mappings` product whose `GRAPH_PROJECTION_LEDGER`
-    /// named graph carries EXACTLY the given Turtle `body`, parsed and re-rooted
-    /// via [`crate::stages::carrier::parse_into_graph`] — the SAME producer-
-    /// attached-graph lane the real `stage-mappings` stage rides
-    /// (`mappings::run`'s own `parse_into_graph(..., GRAPH_PROJECTION_LEDGER)`
-    /// call), so this test exercises the real production read path
-    /// (`term_loss_digest_from_upstream` → `producer_graph`) rather than a stub.
-    fn mappings_product_with_ledger(turtle_body: &str) -> StageProduct {
-        let dataset = crate::stages::carrier::parse_into_graph(
-            turtle_body.as_bytes(),
-            "text/turtle",
-            crate::stages::carrier::GRAPH_PROJECTION_LEDGER,
-        )
-        .expect("parse synthetic projection-ledger turtle");
-        StageProduct::from_artifacts_over("stage-mappings", dataset, BTreeMap::new())
-    }
-
-    #[test]
-    fn term_loss_digest_joins_property_path_rows_and_hard_fails_on_missing_upstream() {
-        use gmeow_docs::model::{DocShape, DocTerm, DocTermCategory};
-
-        // (a) resolves via a DocShape whose shape_iri matches the ledger row and
-        // whose target_term names a documented term.
-        let shape_a = "https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs";
-        let term_a = "https://blackcatinformatics.ca/gmeow/PredicatePath";
-        // (b) a property-path row whose shape IRI resolves to NEITHER a DocShape
-        // NOR a known DocTerm — honestly absent from `by_term`.
-        let shape_b = "https://example.test/shapes/unresolvable";
-        // (c) resolves via the FALLBACK: no DocShape claims it, but the bare shape
-        // IRI itself names a known DocTerm.
-        let shape_c = "https://blackcatinformatics.ca/gmeow/AncestorsTo3";
-        let term_c = shape_c;
-
-        let preservation_kind_val = format!("{LOGIC_NS}SoundUnderApproximation");
-        let turtle = format!(
-            "<https://example.test/target/a> <{rdf_type}> <{pt}> .\n\
-             <https://example.test/target/a> <{label}> \"property-path:{shape_a}\" .\n\
-             <https://example.test/target/a> <{pk}> <{pk_val}> .\n\
-             <https://example.test/target/a> <{cc}> \"PTIME\" .\n\
-             <https://example.test/target/a> <{drop}> \"structural note B\" .\n\
-             <https://example.test/target/a> <{drop}> \"structural note A\" .\n\
-             <https://example.test/target/b> <{rdf_type}> <{pt}> .\n\
-             <https://example.test/target/b> <{label}> \"property-path:{shape_b}\" .\n\
-             <https://example.test/target/b> <{pk}> <{pk_val}> .\n\
-             <https://example.test/target/b> <{cc}> \"PTIME\" .\n\
-             <https://example.test/target/c> <{rdf_type}> <{pt}> .\n\
-             <https://example.test/target/c> <{label}> \"property-path:{shape_c}\" .\n\
-             <https://example.test/target/c> <{pk}> <{pk_val}> .\n\
-             <https://example.test/target/c> <{cc}> \"PTIME\" .\n\
-             <https://example.test/target/whole-program> <{rdf_type}> <{pt}> .\n\
-             <https://example.test/target/whole-program> <{label}> \"owl-dl\" .\n\
-             <https://example.test/target/whole-program> <{pk}> <{pk_val}> .\n\
-             <https://example.test/target/whole-program> <{cc}> \"PTIME\" .\n",
-            rdf_type = RDF_TYPE,
-            pt = LOGIC_PROJECTION_TARGET_TYPE,
-            label = RDFS_LABEL,
-            pk = LOGIC_PRESERVATION_KIND,
-            pk_val = preservation_kind_val,
-            cc = LOGIC_COMPLEXITY_CLASS,
-            drop = GMEOW_LOSSY_DROP,
-            shape_a = shape_a,
-            shape_b = shape_b,
-            shape_c = shape_c,
-        );
-
-        let shapes = vec![DocShape {
-            shape_iri: shape_a.to_string(),
-            target_term: term_a.to_string(),
-            messages: Vec::new(),
-            owner_slice: "test-slice".to_string(),
-        }];
-        let terms = vec![
-            DocTerm {
-                iri: term_a.to_string(),
-                curie: "gmeow:PredicatePath".to_string(),
-                category: DocTermCategory::Class,
-                owner_slice: "test-slice".to_string(),
-                ..Default::default()
-            },
-            DocTerm {
-                iri: term_c.to_string(),
-                curie: "gmeow:AncestorsTo3".to_string(),
-                category: DocTermCategory::Class,
-                owner_slice: "test-slice".to_string(),
-                ..Default::default()
-            },
-        ];
-
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert(
-            "stage-mappings".to_string(),
-            mappings_product_with_ledger(&turtle),
-        );
-
-        let digest = term_loss_digest_from_upstream(&upstream, &shapes, &terms)
-            .expect("digest folds from synthetic stage-mappings upstream");
-
-        assert_eq!(
-            digest.total_property_path_rows, 3,
-            "3 property-path rows (a, b, c) counted; the whole-program row must not count"
-        );
-        assert_eq!(
-            digest.by_term.get(term_a).map(Vec::len),
-            Some(1),
-            "shape_a joins via DocShape.shape_iri -> target_term"
-        );
-        let row_a = &digest.by_term[term_a][0];
-        assert_eq!(row_a.target, format!("property-path:{shape_a}"));
-        assert_eq!(row_a.preservation_kind, "SoundUnderApproximation");
-        assert_eq!(row_a.complexity_class, "PTIME");
-        assert_eq!(
-            row_a.lossy_drops,
-            vec![
-                "structural note A".to_string(),
-                "structural note B".to_string()
-            ],
-            "lossy_drops must be sorted"
-        );
-        assert_eq!(
-            digest.by_term.get(term_c).map(Vec::len),
-            Some(1),
-            "shape_c joins via the bare-shape-IRI == DocTerm.iri fallback"
-        );
-        assert!(
-            !digest
-                .by_term
-                .values()
-                .flatten()
-                .any(|r| r.target.contains("unresolvable")),
-            "shape_b names no DocShape and no DocTerm — honestly absent from by_term"
-        );
-        assert!(
-            !digest
-                .by_term
-                .values()
-                .flatten()
-                .any(|r| r.target == "owl-dl"),
-            "a whole-program row must never enter by_term"
-        );
-
-        // Missing the declared `stage-mappings` upstream product hard-fails (never a
-        // silent empty digest).
-        assert!(
-            term_loss_digest_from_upstream(&BTreeMap::new(), &shapes, &terms).is_err(),
-            "missing stage-mappings must hard-fail"
-        );
-    }
-
-    /// The GENERAL per-term attribution join (the source-term-attribution correction): a
-    /// `logic:TermProjectionLoss` node on ANY projection target attributes its drops to the
-    /// DOCUMENTED source term named by its structured `gmeow:lossySourceTerm` IRI — the
-    /// canonical core's loss when projected DOWN lands on the term's page. A node whose
-    /// source term is NOT documented is honestly absent (never forced onto a term).
-    #[test]
-    fn term_loss_digest_attributes_term_projection_loss_nodes_to_documented_source_terms() {
-        use gmeow_docs::model::{DocTerm, DocTermCategory};
-
-        let core_term = "https://blackcatinformatics.ca/gmeow/Agent";
-        let undocumented = "https://blackcatinformatics.ca/gmeow/NotDocumented";
-        let preservation_kind_val = format!("{LOGIC_NS}SoundUnderApproximation");
-        // Two term-loss nodes: one attributing to a documented CORE term (joins), one to an
-        // undocumented term (honest absence). Each carries the projection target label, the
-        // preservation kind, the complexity class, and a dropped feature.
-        let turtle = format!(
-            "<https://example.test/target/sssom:abc/termloss/agent> <{rdf_type}> <{tpl}> .\n\
-             <https://example.test/target/sssom:abc/termloss/agent> <{src}> <{core}> .\n\
-             <https://example.test/target/sssom:abc/termloss/agent> <{label}> \"sssom:abc\" .\n\
-             <https://example.test/target/sssom:abc/termloss/agent> <{pk}> <{pk_val}> .\n\
-             <https://example.test/target/sssom:abc/termloss/agent> <{cc}> \"1:1 lattice band\" .\n\
-             <https://example.test/target/sssom:abc/termloss/agent> <{drop}> \"gmeow:Agent equivalentClass prov:Agent loses the caveat structure\" .\n\
-             <https://example.test/target/sssom:def/termloss/nd> <{rdf_type}> <{tpl}> .\n\
-             <https://example.test/target/sssom:def/termloss/nd> <{src}> <{nd}> .\n\
-             <https://example.test/target/sssom:def/termloss/nd> <{label}> \"sssom:def\" .\n\
-             <https://example.test/target/sssom:def/termloss/nd> <{pk}> <{pk_val}> .\n\
-             <https://example.test/target/sssom:def/termloss/nd> <{drop}> \"orphan drop\" .\n",
-            rdf_type = RDF_TYPE,
-            tpl = LOGIC_TERM_PROJECTION_LOSS_TYPE,
-            src = GMEOW_LOSSY_SOURCE_TERM,
-            label = RDFS_LABEL,
-            pk = LOGIC_PRESERVATION_KIND,
-            pk_val = preservation_kind_val,
-            cc = LOGIC_COMPLEXITY_CLASS,
-            drop = GMEOW_LOSSY_DROP,
-            core = core_term,
-            nd = undocumented,
-        );
-
-        let terms = vec![DocTerm {
-            iri: core_term.to_string(),
-            curie: "gmeow:Agent".to_string(),
-            category: DocTermCategory::Class,
-            owner_slice: "test-slice".to_string(),
-            ..Default::default()
-        }];
-
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert(
-            "stage-mappings".to_string(),
-            mappings_product_with_ledger(&turtle),
-        );
-
-        let digest = term_loss_digest_from_upstream(&upstream, &[], &terms)
-            .expect("digest folds from synthetic term-loss upstream");
-
-        // The documented CORE term carries the attributed row (target = the projection
-        // target label, preservation kind + complexity + dropped feature all present).
-        let rows = digest
-            .by_term
-            .get(core_term)
-            .expect("documented source term must carry its attributed projection-loss row");
-        assert_eq!(rows.len(), 1);
-        assert_eq!(rows[0].target, "sssom:abc");
-        assert_eq!(rows[0].preservation_kind, "SoundUnderApproximation");
-        assert_eq!(rows[0].complexity_class, "1:1 lattice band");
-        assert_eq!(
-            rows[0].lossy_drops,
-            vec!["gmeow:Agent equivalentClass prov:Agent loses the caveat structure".to_string()]
-        );
-        // The undocumented source term is honestly absent — never fabricated onto a term.
-        assert!(
-            !digest.by_term.contains_key(undocumented),
-            "a term-loss node whose source term is undocumented must not enter by_term"
-        );
-        // Whole-program `property-path` count is untouched by the general attribution join.
-        assert_eq!(digest.total_property_path_rows, 0);
-    }
-
-    #[test]
-    fn reasoning_verdict_reads_unsat_and_inconsistency_from_closure() {
-        // A closure with one unsat class and one Nothing-typed individual.
-        let closure = concat!(
-            "<https://x/Empty> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ",
-            "<http://www.w3.org/2002/07/owl#Nothing> .\n",
-            "<https://x/i> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
-            "<http://www.w3.org/2002/07/owl#Nothing> .\n",
-        );
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(
-            crate::stages::reason::CLOSURE_PATH.to_string(),
-            closure.as_bytes().to_vec(),
-        );
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert(
-            "stage-reason".to_string(),
-            StageProduct::from_artifacts("stage-reason", artifacts),
-        );
-        let verdict = reasoning_verdict_from_reason(&upstream).expect("verdict");
-        assert!(
-            !verdict.is_consistent,
-            "Nothing-typed individual ⇒ inconsistent"
-        );
-        assert!(verdict.unsatisfiable.contains("https://x/Empty"));
-        assert!(
-            !verdict
-                .unsatisfiable
-                .contains("http://www.w3.org/2002/07/owl#Nothing")
-        );
-
-        // A missing stage-reason product hard-fails (never a silent default).
-        assert!(reasoning_verdict_from_reason(&BTreeMap::new()).is_err());
-    }
-}
+#[path = "docs_render.tests.rs"]
+#[cfg(test)]
+mod tests;

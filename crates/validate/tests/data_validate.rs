@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#![cfg(not(target_arch = "wasm32"))]
+
 //! Engine-level tests for the repo-free `gmeow validate <data>` path
 //! ([`gmeow_validate::data_validate`]). These exercise the Rust orchestration
-//! directly against the committed `gmeow.gts` bundle, independent of the Python
-//! CLI surface — the CLI test asserts the wheel-resolution and rendering on top.
+//! against the authenticated producer-selected `gmeow.gts` bundle. CLI contract
+//! tests cover command dispatch and rendering.
 
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock};
@@ -15,7 +17,7 @@ use purrdf::RdfDataset;
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 struct BundleFixture {
-    bytes: Vec<u8>,
+    gates: data_validate::PreparedReasonedGates,
     shapes: data_validate::Tier1Shapes,
     dataset: Arc<RdfDataset>,
 }
@@ -52,8 +54,19 @@ fn bundle_fixture() -> &'static BundleFixture {
         let shapes =
             data_validate::Tier1Shapes::from_shapes_and_ontology(&shapes_ttl, Arc::clone(&dataset))
                 .expect("parse the producer-extracted validation shapes once");
+        let gates: data_validate::PreparedReasonedGates = serde_json::from_slice(
+            &gmeow_bundle_import::load_authenticated_corpus_artifact(
+                &root,
+                "prepared-verify-gates.json",
+            )
+            .expect("load exact producer-selected native laws"),
+        )
+        .expect("decode selected native laws");
+        gates
+            .validate_source_identity()
+            .expect("selected native laws match their source");
         BundleFixture {
-            bytes,
+            gates,
             shapes,
             dataset,
         }
@@ -69,7 +82,7 @@ fn run(
     let fixture = bundle_fixture();
     data_validate::run_with(
         data_validate::BundleParts {
-            gts_bytes: &fixture.bytes,
+            native_gates: deep.then_some(Ok(&fixture.gates)),
             shapes: &fixture.shapes,
             dataset: fixture.dataset.as_ref(),
         },
@@ -137,8 +150,9 @@ fn fail_fixture_yields_three_errors_one_warning_with_locations() {
         "expected exactly one warning, got: {warnings:#?}"
     );
 
-    // Assert stable rule identity via (code, source-shape IRI) — not prose.
-    // Shapes discovered by running the test with --nocapture:
+    // Resolve stable rule identity against the exact parsed shape set: a property
+    // constraint reports its property shape, while procedural constraints report
+    // their directly annotated shape.
     //   disjointness: shacl.SPARQLConstraintComponent + IdentityAxisDisjointnessConstraintShape
     //     (the P17 projection of gmeow:identityAxisDisjointness in constraint-shapes.ttl,
     //      the former hand-authored IdentityAxisOrthogonalityShape was migrated to logic:)
@@ -149,7 +163,24 @@ fn fail_fixture_yields_three_errors_one_warning_with_locations() {
     // `conformance_teleology::commitment_without_beneficiary_fails_on_union`,
     // and the fixture's Commitment is now fully well-formed.
     const IDENTITY_SHAPE: &str = "IdentityAxisDisjointnessConstraintShape";
-    const FRAME_SHAPE: &str = "EventFrameRequirementShape";
+    let frame_shape = bundle_fixture()
+        .shapes
+        .parsed_shapes()
+        .node_shapes
+        .iter()
+        .find(|shape| shape.id.to_string() == format!("<{NS}EventFrameRequirementShape>"))
+        .expect("the authenticated shape set contains the exact frame requirement owner");
+    assert_eq!(
+        frame_shape.property_shapes.len(),
+        1,
+        "the frame rule has exactly one constrained property"
+    );
+    let property_id = frame_shape.property_shapes[0].id.to_string();
+    let property_id = property_id
+        .strip_prefix('<')
+        .and_then(|id| id.strip_suffix('>'))
+        .unwrap_or(&property_id);
+    let frame_source = format!("source shape: {property_id}");
 
     assert!(
         errors.iter().any(|f| {
@@ -162,10 +193,7 @@ fn fail_fixture_yields_three_errors_one_warning_with_locations() {
     );
     assert!(
         warnings[0].code == "shacl.MinCountConstraintComponent"
-            && warnings[0]
-                .detail
-                .as_deref()
-                .is_some_and(|d| d.contains(FRAME_SHAPE))
+            && warnings[0].detail.as_deref() == Some(frame_source.as_str())
             && warnings[0].severity == gmeow_errors::Severity::Warning,
         "warning is not the frame-relativity one (EventFrameRequirementShape)"
     );

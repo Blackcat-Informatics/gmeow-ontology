@@ -496,6 +496,13 @@ Outside these conditions the discharge result is **`unknown` / `not-discharged`*
 "proved absent." The obligation remains active and is carried forward to the next evaluation cycle
 or stronger fragment.
 
+A rule head matching the forbidden predicate establishes only a possible producer. It does not
+establish that the rule's premises hold, and cannot by itself justify `ObligationViolated`.
+The discharge conditions above are alternative sufficient proofs: a certified complete finite
+closure can discharge an obligation that syntactic analysis leaves unknown. An actual derived
+counterexample in the selected context justifies violation. A requested but unimplemented discharge
+condition remains a capability error, even when another condition is available.
+
 Two standing examples:
 
 - **intent must not be derived from structural deception** — the presence of a held/projected gap is

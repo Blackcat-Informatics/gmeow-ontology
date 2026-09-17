@@ -10,7 +10,7 @@ generations on every pull request; neither generation restores an action cache.
 | Job | Required inputs | Responsibility |
 | --- | --- | --- |
 | `rust-prebuild` | Canonical Rust sources | Compile the producer-independent workspace test inventory. |
-| `fixture-prefix` | Authenticated producer executable and receipt | Produce the selected stable-stage receipts. |
+| `fixture-prefix` | Authenticated producer executable and receipt | Produce the selected stable-stage receipts and compact source-artifact actions, then publish the prefix once. |
 | `fixture-complete` | Prefix selector and action artifact; authenticated generated tree and bundle | Produce slice-specification, docs, and bundle-derived actions, then finalize the selector. |
 | `rust-archive` | Rust build products; complete selector and action artifact; exact bundle import | Verify the selected corpus read-only, finish consumer compilation, and authenticate one nextest archive. |
 
@@ -32,11 +32,20 @@ receipts, blobs, source identity, and producer profile. The final nextest archiv
 receipt binds the same selector and the optimized executable's receipt. Cache
 keys never stand in for those checks.
 
+Source-artifact exports bind the exact parent stage action, receipt, product,
+implementation and artifact commitment. Prefix completion retains those selected
+exports alongside documentation and bundle actions. Every selected operation,
+including exhaustive conformance production, prepares its complete selector in
+memory and publishes once after all work and requested telemetry succeed. A failed
+phase preserves the previous selector bytes. Lazy bundle-artifact admissions reuse
+authenticated hits without hydration; misses share the producer's native dataset
+and decoded archive bodies. Tests have no extraction or production fallback.
+
 Successful update runs record reusable closure receipts in
 `.cache/gmeow-sync/stage-fixture-candidate-v2.json`. This candidate is separate
 from the finalized test selector; only the explicit fixture producer publishes
 that selector. Ordinary synchronization cannot replace its bundle-import or docs
-actions or invalidate a digest already handed to a runner. Before reusing a
+or source-artifact actions or invalidate a digest already handed to a runner. Before reusing a
 candidate, the producer rebinds the current DAG, rehashes every declared raw input,
 rederives action contexts, and authenticates the recorded stable products.
 Retaining these small closure receipts avoids reconstructing uncached cumulative

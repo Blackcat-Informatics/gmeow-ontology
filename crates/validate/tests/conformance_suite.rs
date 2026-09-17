@@ -9,6 +9,12 @@
 //! derived read indexes without dropping any assertion.
 
 mod conformance_support;
+#[path = "source_observations/grounding.rs"]
+mod grounding_observations;
+#[path = "source_observations/inference.rs"]
+mod inference_observations;
+#[path = "source_observations/reader.rs"]
+mod observation_reader;
 
 #[path = "conformance_cases/conformance_aboutness.rs"]
 mod conformance_aboutness;
@@ -170,10 +176,6 @@ mod conformance_sensory_environment;
 mod conformance_sexuality;
 #[path = "conformance_cases/conformance_software.rs"]
 mod conformance_software;
-#[path = "conformance_cases/conformance_sparql_features.rs"]
-mod conformance_sparql_features;
-#[path = "conformance_cases/conformance_sparql_surface.rs"]
-mod conformance_sparql_surface;
 #[path = "conformance_cases/conformance_standpoint.rs"]
 mod conformance_standpoint;
 #[path = "conformance_cases/conformance_support_tests.rs"]

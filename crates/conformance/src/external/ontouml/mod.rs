@@ -27,7 +27,7 @@
 pub mod lower;
 pub mod model;
 
-pub use lower::lower_model;
+pub use lower::{lower_model, lower_model_dataset};
 pub use model::{
     Generalization, LOGIC_NS, Mediation, ONTOUML_NS, OntoClass, OntoumlError, OntoumlModel,
     parse_ontouml_model,
@@ -45,21 +45,35 @@ pub const VIOLATION_PRED: &str = "https://blackcatinformatics.ca/logic/violation
 ///
 /// Returns the derived foundation quads, the lowered N-Quads text, and its quad
 /// count. A lowering that produces non-loadable N-Quads is an internal defect, so
-/// a load or evaluate error is reported as [`OntoumlError::Syntax`] (a lowering
+/// a native load or evaluate error is reported as [`OntoumlError::Syntax`] (a lowering
 /// gap is [`OntoumlError::Unsupported`], raised earlier by [`lower_model`]).
 pub fn lower_and_evaluate(
     model: &OntoumlModel,
     world_iri: &str,
     policy: AntiRigidityPolicy,
 ) -> Result<(Vec<FoundationQuad>, String, usize), OntoumlError> {
-    let (nq, count) = lower_model(model, world_iri)?;
-    let store = WorldStore::new();
-    store
-        .load_nquads(&nq)
-        .map_err(|e| OntoumlError::Syntax(e.message().to_owned()))?;
-    let quads =
-        evaluate(&store, policy).map_err(|e| OntoumlError::Syntax(e.message().to_owned()))?;
-    Ok((quads, nq, count))
+    let (quads, dataset) = evaluate_model(model, world_iri, policy)?;
+    let count = dataset.quads().count();
+    let text = purrdf::canonical_flat_nquads(&dataset)
+        .map_err(|error| OntoumlError::Syntax(format!("render lowered model: {error}")))?;
+    Ok((quads, text, count))
+}
+
+/// Evaluate the native lowered model without a serialization or parsing boundary.
+///
+/// # Errors
+/// Malformed input and execution failure remain distinct from unsupported constructs.
+pub fn evaluate_model(
+    model: &OntoumlModel,
+    world_iri: &str,
+    policy: AntiRigidityPolicy,
+) -> Result<(Vec<FoundationQuad>, std::sync::Arc<purrdf::RdfDataset>), OntoumlError> {
+    let dataset = lower_model_dataset(model, world_iri)?;
+    let store = WorldStore::from_dataset(&dataset)
+        .map_err(|error| OntoumlError::Syntax(error.message().to_owned()))?;
+    let quads = evaluate(&store, policy)
+        .map_err(|error| OntoumlError::Syntax(error.message().to_owned()))?;
+    Ok((quads, dataset))
 }
 
 /// The set of discipline local names fired as `logic:violation` in the derived
@@ -160,106 +174,6 @@ pub fn native_verdict_string(
     }
 }
 
+#[path = "mod.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn set(items: &[&str]) -> std::collections::BTreeSet<String> {
-        items.iter().map(|s| (*s).to_owned()).collect()
-    }
-
-    #[test]
-    fn agree_when_documented_fired() {
-        let fired = set(&["FreeRole", "MixIden"]);
-        assert_eq!(compare(Some("FreeRole"), &fired), DisciplineVerdict::Agree);
-        assert_eq!(native_verdict_string(Some("FreeRole"), &fired), "FreeRole");
-    }
-
-    #[test]
-    fn corpus_only_when_documented_missed() {
-        let fired = set(&["MixIden"]);
-        assert_eq!(
-            compare(Some("FreeRole"), &fired),
-            DisciplineVerdict::CorpusOnly
-        );
-        assert_eq!(native_verdict_string(Some("FreeRole"), &fired), "MixIden");
-    }
-
-    #[test]
-    fn agree_when_clean_fires_nothing() {
-        let fired = set(&[]);
-        assert_eq!(compare(None, &fired), DisciplineVerdict::Agree);
-        assert_eq!(native_verdict_string(None, &fired), "clean");
-    }
-
-    #[test]
-    fn engine_only_when_clean_fires_something() {
-        let fired = set(&["RelComp"]);
-        assert_eq!(compare(None, &fired), DisciplineVerdict::EngineOnly);
-        assert_eq!(native_verdict_string(None, &fired), "RelComp");
-    }
-
-    #[test]
-    fn free_role_model_fires_free_role_end_to_end() {
-        // A lone role class (no rigid ancestor) is the classic FreeRole anti-pattern.
-        let src = "\
-@prefix ontouml: <https://w3id.org/ontouml#> .\n\
-@prefix ex: <https://example.org/onto/> .\n\
-ex:Wanderer a ontouml:Class ; ontouml:stereotype ontouml:role .\n";
-        let model = parse_ontouml_model(src, None).unwrap();
-        let (quads, _nq, _count) = lower_and_evaluate(
-            &model,
-            "https://example.org/onto/schema",
-            AntiRigidityPolicy::SchemaOnly,
-        )
-        .unwrap();
-        let fired = fired_disciplines(&quads);
-        assert!(fired.contains("FreeRole"), "fired={fired:?}");
-        assert_eq!(compare(Some("FreeRole"), &fired), DisciplineVerdict::Agree);
-    }
-
-    #[test]
-    fn functional_relator_fires_relcomp_end_to_end() {
-        // A concrete relator mediating a single functional relatum is the RelComp
-        // anti-pattern (a relator must mediate at least two entities).
-        let src = "\
-@prefix ontouml: <https://w3id.org/ontouml#> .\n\
-@prefix ex: <https://example.org/onto/> .\n\
-ex:Marriage a ontouml:Class ; ontouml:stereotype ontouml:relator .\n\
-ex:Spouse a ontouml:Class ; ontouml:stereotype ontouml:role .\n\
-ex:med a ontouml:Relation ; ontouml:stereotype ontouml:mediation ;\n\
-    ontouml:relatorEnd ex:Marriage ; ontouml:mediatedEnd ex:Spouse ;\n\
-    ontouml:functionalMediation true .\n";
-        let model = parse_ontouml_model(src, None).unwrap();
-        let (quads, _nq, _count) = lower_and_evaluate(
-            &model,
-            "https://example.org/onto/schema",
-            AntiRigidityPolicy::SchemaOnly,
-        )
-        .unwrap();
-        let fired = fired_disciplines(&quads);
-        assert!(fired.contains("RelComp"), "fired={fired:?}");
-    }
-
-    #[test]
-    fn two_ended_relator_does_not_fire_relcomp() {
-        // A relator mediating two distinct entities satisfies the discipline.
-        let src = "\
-@prefix ontouml: <https://w3id.org/ontouml#> .\n\
-@prefix ex: <https://example.org/onto/> .\n\
-ex:Employment a ontouml:Class ; ontouml:stereotype ontouml:relator .\n\
-ex:Employee a ontouml:Class ; ontouml:stereotype ontouml:role .\n\
-ex:Employer a ontouml:Class ; ontouml:stereotype ontouml:role .\n\
-ex:med a ontouml:Relation ; ontouml:stereotype ontouml:mediation ;\n\
-    ontouml:relatorEnd ex:Employment ; ontouml:mediatedEnd ex:Employee , ex:Employer .\n";
-        let model = parse_ontouml_model(src, None).unwrap();
-        let (quads, _nq, _count) = lower_and_evaluate(
-            &model,
-            "https://example.org/onto/schema",
-            AntiRigidityPolicy::SchemaOnly,
-        )
-        .unwrap();
-        let fired = fired_disciplines(&quads);
-        assert!(!fired.contains("RelComp"), "fired={fired:?}");
-    }
-}
+mod tests;

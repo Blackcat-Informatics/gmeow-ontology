@@ -154,8 +154,14 @@ pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Opti
         Err(e) => return fail(format!("cannot read {}: {e}", snapshot.display())),
     };
 
+    let receipt_path = gmeow_gts_profile::ingestion_receipt_path(&snapshot);
+    let receipt = match std::fs::read(&receipt_path) {
+        Ok(receipt) => receipt,
+        Err(e) => return fail(format!("cannot read {}: {e}", receipt_path.display())),
+    };
+
     if let (Some(sk), Some(pk)) = (sign_key, public_key) {
-        let signed = match sign_snapshot(&bytes, sk, pk) {
+        let signed = match sign_snapshot(&bytes, &receipt, sk, pk) {
             Ok(s) => s,
             Err(code) => return code,
         };
@@ -163,21 +169,35 @@ pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Opti
         if let Some(parent) = target.parent() {
             let _ = std::fs::create_dir_all(parent);
         }
-        if let Err(e) = std::fs::write(target, &signed) {
+        if let Err(e) = signed.write_to(target) {
             return fail(format!("cannot write {}: {e}", target.display()));
         }
-        println!("{} ({} bytes, signed)", target.display(), signed.len());
+        println!(
+            "{} ({} bytes, signed)",
+            target.display(),
+            signed.bytes.len()
+        );
         return 0;
     }
+
+    let decoded_receipt = match gmeow_gts_profile::read_ingestion_receipt(&bytes, &receipt) {
+        Ok(report) => report,
+        Err(e) => return fail(format!("invalid terminal ingestion receipt: {e}")),
+    };
 
     if let Some(target) = out {
         if let Some(parent) = target.parent() {
             let _ = std::fs::create_dir_all(parent);
         }
-        if let Err(e) = std::fs::write(target, &bytes) {
+        let emission = gmeow_gts_profile::GmeowGtsEmission {
+            bytes,
+            ingestion: decoded_receipt.ingestion,
+            source_receipts: decoded_receipt.source_receipts,
+        };
+        if let Err(e) = emission.write_to(target) {
             return fail(format!("cannot write {}: {e}", target.display()));
         }
-        println!("{} ({} bytes)", target.display(), bytes.len());
+        println!("{} ({} bytes)", target.display(), emission.bytes.len());
     } else {
         println!("{} ({} bytes)", snapshot.display(), bytes.len());
     }
@@ -185,7 +205,12 @@ pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Opti
 }
 
 /// Re-emit a folded snapshot with an embedded release transport key + signature.
-fn sign_snapshot(bytes: &[u8], sign_key: &Path, public_key: &Path) -> Result<Vec<u8>, i32> {
+fn sign_snapshot(
+    bytes: &[u8],
+    receipt: &[u8],
+    sign_key: &Path,
+    public_key: &Path,
+) -> Result<gmeow_gts_profile::GmeowGtsEmission, i32> {
     let secret_armor = std::fs::read_to_string(sign_key).map_err(|e| {
         fail(format!(
             "cannot read --sign-key {}: {e}",
@@ -204,7 +229,8 @@ fn sign_snapshot(bytes: &[u8], sign_key: &Path, public_key: &Path) -> Result<Vec
     // Re-emit through the release fold with no added evidence: this signs the
     // committed snapshot content with the transport key embedded in metadata.
     gmeow_pipeline::stages::release::fold_release_bundle(
-        bytes,
+        gmeow_pipeline::stages::release::ReleaseSource::admit(bytes, receipt)
+            .map_err(|e| fail(format!("invalid signing input receipt: {e}")))?,
         Vec::new(),
         "https://blackcatinformatics.ca/gmeow/agent/release-lane",
         "1970-01-01T00:00:00Z",
@@ -234,6 +260,21 @@ pub fn release_bundle(
             return fail(format!(
                 "source snapshot {} is unreadable: {e}",
                 source.display()
+            ));
+        }
+    };
+    let source_receipt_path = gmeow_gts_profile::ingestion_receipt_path(source);
+    let source_receipt = match std::fs::read(&source_receipt_path)
+        .map_err(|e| e.to_string())
+        .and_then(|receipt| {
+            gmeow_pipeline::stages::release::ReleaseSource::admit(&snapshot, &receipt)
+                .map_err(|e| e.to_string())
+        }) {
+        Ok(receipt) => receipt,
+        Err(e) => {
+            return fail(format!(
+                "invalid release input receipt {}: {e}",
+                source_receipt_path.display()
             ));
         }
     };
@@ -270,7 +311,7 @@ pub fn release_bundle(
     }
 
     let signed = match gmeow_pipeline::stages::release::fold_release_bundle(
-        &snapshot,
+        source_receipt,
         rows,
         attester,
         issued_at,
@@ -285,14 +326,14 @@ pub fn release_bundle(
     if let Some(parent) = out.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    if let Err(e) = std::fs::write(out, &signed) {
+    if let Err(e) = signed.write_to(out) {
         return fail(format!("cannot write {}: {e}", out.display()));
     }
     println!(
         "signed release bundle: {} ({} evidence artifact(s), {} bytes)",
         out.display(),
         evidence.len(),
-        signed.len()
+        signed.bytes.len()
     );
     0
 }

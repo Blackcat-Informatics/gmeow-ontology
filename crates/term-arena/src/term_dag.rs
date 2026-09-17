@@ -261,7 +261,7 @@ impl TermDag {
         })
     }
 
-    /// The cached display surface of an atomic leaf, for the content-key fold.
+    /// The lazily cached display surface of an atomic leaf, for output.
     pub fn atom_display(&self, id: TermId) -> &str {
         self.atoms.display_of(id)
     }

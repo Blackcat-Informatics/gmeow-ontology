@@ -3,9 +3,8 @@
 
 //! The dogfooded substrate reconciliation projection.
 //!
-//! Promotes the purrdf substrate's identity — today scattered across eight
-//! mutually-unaware representations (two manifest pins, the lockfile, three
-//! compiled-in constants, four shipped `.wasm` SUBSTRATE.txt stamps, and prose) —
+//! Promotes the PurRDF substrate identity from manifest requirements, lockfiles,
+//! compiled-in constants, every shipped wasm asset and source prose
 //! to first-class reasoned ontology content in `graph/provenance`: one
 //! [`gmeow:SubstrateComponent`](https://blackcatinformatics.ca/gmeow/SubstrateComponent)
 //! per external engine/library, one `gmeow:PinClaim` per (site, component,
@@ -17,7 +16,7 @@
 //!
 //! ## Non-self-referential (why it folds at carrier time)
 //!
-//! Every claim value is read from a build INPUT — a manifest pin, the lockfile,
+//! Every claim value is read from a build INPUT — a manifest requirement, a lockfile,
 //! a linked `const`, a committed `SUBSTRATE.txt`, or doc prose — never from a
 //! render-derived digest of *this* bundle. So this folds with no fixpoint problem,
 //! unlike the per-release bundle digest [`distribution_catalog`] deliberately
@@ -43,9 +42,8 @@ use crate::stages::provenance_graph::GRAPH_PROVENANCE;
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The four committed docs `.wasm` engines whose `SUBSTRATE.txt` stamps record the
-/// substrate they were statically built against (the shipped-artifact claim site).
-const SHIPPED_ENGINES: &[&str] = &["gmn", "query", "reason", "validate"];
+// The renderer and substrate proof share the same complete shipped asset inventory.
+use gmeow_docs::vendored_asset::ALL_ASSETS;
 
 // ── claim-site + dimension value-vocabulary individuals (authored in the slice) ──
 const SITE_WORKSPACE_MANIFEST: &str = "claimSiteWorkspaceManifest";
@@ -56,6 +54,7 @@ const SITE_SHIPPED_ARTIFACT: &str = "claimSiteShippedArtifact";
 const SITE_PROSE: &str = "claimSiteProse";
 
 const DIM_CRATE_VERSION: &str = "dimensionCrateVersion";
+const DIM_VERSION_REQUIREMENT: &str = "dimensionVersionRequirement";
 const DIM_SHAPES_VERSION: &str = "dimensionShapesVersion";
 const DIM_WIRE_VERSION: &str = "dimensionWireVersion";
 const DIM_ZSTD_LEVEL: &str = "dimensionZstdLevel";
@@ -102,9 +101,11 @@ pub fn substrate_input_paths(root: &Path) -> Vec<PathBuf> {
         root.join("Cargo.toml"),
         root.join("fuzz/Cargo.toml"),
         root.join("Cargo.lock"),
+        root.join("fuzz/Cargo.lock"),
         root.join("docs/research-objects.md"),
     ];
-    for engine in SHIPPED_ENGINES {
+    for asset in ALL_ASSETS {
+        let engine = asset.name;
         paths.push(root.join(format!("crates/docs/assets/{engine}/SUBSTRATE.txt")));
     }
     paths
@@ -124,62 +125,6 @@ fn checked_slug(name: &str) -> Result<String, gmeow_errors::Diag> {
             "substrate carrier: component name {name:?} is not a valid IRI local part"
         )))
     }
-}
-
-/// Extract purrdf's pinned crate version from a Cargo manifest line
-/// `purrdf = "=<version>"`. Returns the bare version with the `=` requirement
-/// operator stripped, so the manifest claim compares equal to the lockfile's and the
-/// shipped stamps' plain version strings.
-///
-/// Only the EXACT-version form is accepted. A caret/tilde/wildcard requirement admits
-/// more than one release, which is precisely the drift this graph exists to detect —
-/// treating it as a pin would make the reconciliation report agreement it cannot
-/// actually guarantee, so it is rejected as "no pin found" rather than accepted
-/// loosely.
-fn parse_manifest_version_pin(manifest: &str) -> Option<String> {
-    for line in manifest.lines() {
-        let trimmed = line.trim_start();
-        if !(trimmed.starts_with("purrdf ") || trimmed.starts_with("purrdf=")) {
-            continue;
-        }
-        let rest = trimmed.split_once('=')?.1.trim_start();
-        let inner = rest.strip_prefix('"')?;
-        let end = inner.find('"')?;
-        let spec = &inner[..end];
-        // `=1.1.0` — the exact-version requirement, and nothing looser.
-        let version = spec.strip_prefix('=')?;
-        if version.is_empty() {
-            return None;
-        }
-        return Some(version.to_string());
-    }
-    None
-}
-
-/// Parse the `[[package]] name = "purrdf"` block of a Cargo.lock, returning the
-/// resolved crate version.
-///
-/// The block also carries the registry `checksum` — the release's content address —
-/// but that is not a claim any OTHER site can state, so it is not a reconciliation
-/// dimension. The crate version is what every site (both manifests, this lockfile,
-/// the shipped `SUBSTRATE.txt` stamps, and the prose) can name.
-fn parse_lock_purrdf(lock: &str) -> Option<String> {
-    let mut lines = lock.lines();
-    while let Some(line) = lines.next() {
-        if line.trim() == "name = \"purrdf\"" {
-            for follow in lines.by_ref() {
-                let t = follow.trim();
-                if t.starts_with("[[") {
-                    break;
-                }
-                if let Some(v) = t.strip_prefix("version = \"") {
-                    return v.strip_suffix('"').map(str::to_string);
-                }
-            }
-            return None;
-        }
-    }
-    None
 }
 
 /// Parse a `SUBSTRATE.txt` stamp of the form
@@ -475,7 +420,7 @@ fn dim_local(dim: &str) -> &str {
     dim.strip_prefix("dimension").unwrap_or(dim)
 }
 
-/// Read the eight substrate claim sites from `root` (all build INPUTS) plus the
+/// Read every substrate claim site from `root` (all build inputs) plus the
 /// compiled-in purrdf constants, reconcile, and project the `graph/provenance`
 /// A-Box. A missing manifest/lock/stamp is a HARD FAIL (no silent degradation).
 pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::Diag> {
@@ -489,45 +434,41 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
     let mut claims: Vec<Claim> = Vec::new();
     let mut embeds: Vec<Embed> = Vec::new();
 
-    // #1 workspace manifest version pin, #2 fuzz manifest version pin. Both manifests
-    // pin the exact crates.io release, and the lockfile records that release's content
-    // checksum, so the crate version is the identity every site can state — the git rev
-    // no site names any more.
-    let ws_version = parse_manifest_version_pin(&read("Cargo.toml")?).ok_or_else(|| {
-        stage_err(
-            "substrate carrier: no exact purrdf version pin (`purrdf = \"=x.y.z\"`) in Cargo.toml",
-        )
-    })?;
-    claims.push(Claim {
-        component_slug: purrdf.into(),
-        site: SITE_WORKSPACE_MANIFEST,
-        dimension: DIM_CRATE_VERSION,
-        value: ws_version,
-        witness: None,
-    });
-    let fuzz_version = parse_manifest_version_pin(&read("fuzz/Cargo.toml")?).ok_or_else(|| {
-        stage_err(
-            "substrate carrier: no exact purrdf version pin (`purrdf = \"=x.y.z\"`) in fuzz/Cargo.toml",
-        )
-    })?;
-    claims.push(Claim {
-        component_slug: purrdf.into(),
-        site: SITE_FUZZ_MANIFEST,
-        dimension: DIM_CRATE_VERSION,
-        value: fuzz_version,
-        witness: None,
-    });
-
-    // #3 lockfile crate version.
-    let lock_version = parse_lock_purrdf(&read("Cargo.lock")?)
-        .ok_or_else(|| stage_err("substrate carrier: no purrdf entry in Cargo.lock"))?;
-    claims.push(Claim {
-        component_slug: purrdf.into(),
-        site: SITE_LOCKFILE,
-        dimension: DIM_CRATE_VERSION,
-        value: lock_version.clone(),
-        witness: None,
-    });
+    // A manifest declares compatibility; its lockfile selects an exact release.
+    // Check all PurRDF component identities, then retain these as distinct claim
+    // dimensions so a compatibility range is never emitted as a concrete version.
+    gmeow_validate::substrate::verify_fuzz_substrate(root)?;
+    for (manifest, lock, site, witness) in [
+        (
+            "Cargo.toml",
+            "Cargo.lock",
+            SITE_WORKSPACE_MANIFEST,
+            "workspace",
+        ),
+        (
+            "fuzz/Cargo.toml",
+            "fuzz/Cargo.lock",
+            SITE_FUZZ_MANIFEST,
+            "fuzz",
+        ),
+    ] {
+        let resolution =
+            gmeow_validate::substrate::resolve_purrdf(&root.join(manifest), &root.join(lock))?;
+        claims.push(Claim {
+            component_slug: purrdf.into(),
+            site,
+            dimension: DIM_VERSION_REQUIREMENT,
+            value: resolution.requirement,
+            witness: None,
+        });
+        claims.push(Claim {
+            component_slug: purrdf.into(),
+            site: SITE_LOCKFILE,
+            dimension: DIM_CRATE_VERSION,
+            value: resolution.version,
+            witness: Some(witness.into()),
+        });
+    }
 
     // #4/#5/#6 linked constants (compiled into this binary from the pinned dep).
     claims.push(Claim {
@@ -555,7 +496,8 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
     // #7 shipped artifacts: each engine's SUBSTRATE.txt stamp → per-engine claims +
     // embeds edges. Every embedded component becomes a Component (SBOM package).
     let mut embedded_names: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for engine in SHIPPED_ENGINES {
+    for asset in ALL_ASSETS {
+        let engine = asset.name;
         let stamp = read(&format!("crates/docs/assets/{engine}/SUBSTRATE.txt"))?;
         let engine_slug = format!("{engine}-engine");
         components.push(Component {
@@ -577,7 +519,7 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
                 site: SITE_SHIPPED_ARTIFACT,
                 dimension: DIM_CRATE_VERSION,
                 value: version,
-                witness: Some((*engine).to_string()),
+                witness: Some(engine.to_string()),
             });
         }
     }
@@ -654,372 +596,6 @@ fn stage_err(msg: &str) -> gmeow_errors::Diag {
     })
 }
 
+#[path = "substrate_graph.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn claim(comp: &str, site: &'static str, dim: &'static str, value: &str) -> Claim {
-        Claim {
-            component_slug: comp.into(),
-            site,
-            dimension: dim,
-            value: value.into(),
-            witness: None,
-        }
-    }
-
-    fn sample() -> (Vec<Component>, Vec<Claim>, Vec<Embed>) {
-        let components = vec![
-            Component {
-                slug: "purrdf".into(),
-                name: "purrdf".into(),
-                expected_sites: vec![SITE_LOCKFILE, SITE_SHIPPED_ARTIFACT],
-            },
-            Component {
-                slug: "gmn-engine".into(),
-                name: "gmn-engine".into(),
-                expected_sites: vec![],
-            },
-        ];
-        let claims = vec![
-            claim("purrdf", SITE_LOCKFILE, DIM_CRATE_VERSION, "0.12.0"),
-            claim("purrdf", SITE_SHIPPED_ARTIFACT, DIM_CRATE_VERSION, "0.12.0"),
-        ];
-        let embeds = vec![Embed {
-            engine_slug: "gmn-engine".into(),
-            embedded_slug: "purrdf".into(),
-        }];
-        (components, claims, embeds)
-    }
-
-    #[test]
-    fn projection_is_byte_deterministic() {
-        let (c, cl, e) = sample();
-        let a = project_substrate_graph(&c, &cl, &e);
-        let mut c2 = c.clone();
-        c2.reverse();
-        let mut cl2 = cl.clone();
-        cl2.reverse();
-        let b = project_substrate_graph(&c2, &cl2, &e);
-        assert_eq!(a, b, "projection must be byte-stable across input order");
-    }
-
-    #[test]
-    fn projection_carries_no_runtime_ids() {
-        // Every substrate node IRI is built from a PUBLIC slug (component name, site,
-        // dimension) — never an opaque runtime id. So no IRI in the gmeow substrate
-        // namespace carries a `#` fragment (RDF predicate IRIs like `…-ns#type`
-        // legitimately do, so the check is scoped to the substrate namespace) and none
-        // carries a synthetic `unit#`/`artifact#`/`origin-set#` id.
-        let (c, cl, e) = sample();
-        let nt = project_substrate_graph(&c, &cl, &e);
-        for id in ["unit#", "artifact#", "origin-set#"] {
-            assert!(
-                !nt.contains(id),
-                "no runtime {id} id may leak into the graph"
-            );
-        }
-        for token in nt.split_whitespace() {
-            if let Some(rest) =
-                token.strip_prefix("<https://blackcatinformatics.ca/gmeow/substrate/")
-            {
-                let iri = rest.trim_end_matches('>');
-                assert!(
-                    !iri.contains('#'),
-                    "substrate IRI must be built from a public slug, not an opaque id: {token}"
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn substrate_inputs_are_all_build_inputs_never_generated() {
-        // The non-fixpoint property: every claim value
-        // derives from a repo INPUT, never a render-produced digest under generated/.
-        let root = Path::new("/repo");
-        for p in substrate_input_paths(root) {
-            let s = p.to_string_lossy();
-            assert!(
-                !s.contains("/generated/"),
-                "substrate input {s} must be a build input, not a generated artifact"
-            );
-        }
-    }
-
-    #[test]
-    fn agreeing_sites_reconcile_disagreeing_do_not() {
-        let agree = vec![
-            claim("p", SITE_LOCKFILE, DIM_CRATE_VERSION, "0.12.0"),
-            claim("p", SITE_PROSE, DIM_CRATE_VERSION, "0.12.0"),
-        ];
-        assert_eq!(
-            reconcile(&agree).len(),
-            1,
-            "agreeing sites reconcile to one value"
-        );
-        let disagree = vec![
-            claim("p", SITE_LOCKFILE, DIM_CRATE_VERSION, "0.12.0"),
-            claim("p", SITE_PROSE, DIM_CRATE_VERSION, "0.13.0"),
-        ];
-        assert!(
-            reconcile(&disagree).is_empty(),
-            "disagreeing sites leave no reconciled pin (drift)"
-        );
-    }
-
-    #[test]
-    fn only_an_exact_version_requirement_counts_as_a_pin() {
-        // The manifests and the lockfile must state the SAME string, so the `=`
-        // requirement operator is stripped and the bare version is the claim.
-        assert_eq!(
-            parse_manifest_version_pin(r#"purrdf = "=1.1.0""#).as_deref(),
-            Some("1.1.0")
-        );
-        // A requirement that admits more than one release is not a pin. Accepting it
-        // would let the graph report agreement it cannot guarantee, which is exactly
-        // the drift this stage exists to catch.
-        for loose in [
-            r#"purrdf = "1.1.0""#,
-            r#"purrdf = "^1.1.0""#,
-            r#"purrdf = "~1.1.0""#,
-            r#"purrdf = "1.1.*""#,
-            r#"purrdf = "*""#,
-        ] {
-            assert_eq!(
-                parse_manifest_version_pin(loose),
-                None,
-                "a non-exact requirement must not be read as a pin: {loose}"
-            );
-        }
-    }
-
-    #[test]
-    fn parses_manifest_lock_stamp_and_prose() {
-        assert_eq!(
-            parse_manifest_version_pin(r#"purrdf = "=1.1.0""#).as_deref(),
-            Some("1.1.0")
-        );
-        let v = parse_lock_purrdf(
-            "[[package]]\nname = \"purrdf\"\nversion = \"1.1.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"eda81955\"\n[[package]]\n",
-        )
-        .expect("lock parses");
-        assert_eq!(v, "1.1.0");
-        let stamp =
-            parse_substrate_stamp("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130\n")
-                .expect("well-formed stamp parses");
-        assert_eq!(stamp[0], ("purrdf".into(), "0.12.0".into()));
-        assert_eq!(stamp[2], ("binaryen".into(), "version_130".into()));
-        // A malformed stamp part (missing version, or extra token) is a hard fail.
-        assert!(
-            parse_substrate_stamp("purrdf 0.12.0; binaryen").is_err(),
-            "a part without a version must be rejected, not silently skipped"
-        );
-        assert!(
-            parse_substrate_stamp("purrdf 0.12.0 extra").is_err(),
-            "a part with an extra token must be rejected"
-        );
-        assert_eq!(
-            parse_prose_purrdf_version("projected by the Rust **purrdf 0.12.0 engine").as_deref(),
-            Some("0.12.0")
-        );
-    }
-
-    #[test]
-    fn distinct_engines_with_different_versions_emit_distinct_claims() {
-        // H1: two engines stamping DIFFERENT purrdf versions must produce two distinct
-        // gmeow:PinClaim IRIs (via the engine witness), so PinAgreementConstraint sees
-        // both and reports drift — rather than collapsing to one claim node.
-        let claims = vec![
-            Claim {
-                component_slug: "purrdf".into(),
-                site: SITE_SHIPPED_ARTIFACT,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.12.0".into(),
-                witness: Some("gmn".into()),
-            },
-            Claim {
-                component_slug: "purrdf".into(),
-                site: SITE_SHIPPED_ARTIFACT,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.13.0".into(),
-                witness: Some("query".into()),
-            },
-        ];
-        let nt = project_substrate_graph(&[], &claims, &[]);
-        assert!(
-            nt.contains("substrate/claim/purrdf-ShippedArtifact-CrateVersion-gmn"),
-            "the gmn engine's stamp is a distinct claim IRI: {nt}"
-        );
-        assert!(
-            nt.contains("substrate/claim/purrdf-ShippedArtifact-CrateVersion-query"),
-            "the query engine's stamp is a distinct claim IRI: {nt}"
-        );
-        // Keyed by (component, dimension), the two differing values do NOT reconcile.
-        assert!(
-            reconcile(&claims).is_empty(),
-            "disagreeing engine stamps leave no ReconciledPin (drift)"
-        );
-    }
-
-    #[test]
-    fn covers_all_six_claim_sites_and_reconciles_purrdf() {
-        use purrdf::{DatasetView, GraphMatch, TermValue};
-
-        // The producer owns the repository scan and reconciliation. Consume its exact
-        // admitted source-load product; a missing receipt is terminal.
-        let fixture = crate::fixture::stage_fixture(&crate_repo_root(), 1, "stage-source-load")
-            .expect("load authenticated source-load product without rebuilding corpus");
-        let dataset = fixture.outcome.product.dataset();
-        let graph = dataset
-            .term_id_by_value(&TermValue::iri(GRAPH_PROVENANCE))
-            .expect("provenance graph is present");
-        let rdf_type = dataset
-            .term_id_by_value(&TermValue::iri(RDF_TYPE))
-            .expect("rdf:type is interned");
-        let contains = |iri: String| {
-            let object = dataset
-                .term_id_by_value(&TermValue::iri(iri))
-                .expect("expected substrate term is interned");
-            dataset
-                .quads_for_pattern(None, Some(rdf_type), Some(object), GraphMatch::Named(graph))
-                .next()
-                .is_some()
-        };
-        for site in [
-            SITE_WORKSPACE_MANIFEST,
-            SITE_FUZZ_MANIFEST,
-            SITE_LOCKFILE,
-            SITE_LINKED_CONSTANT,
-            SITE_SHIPPED_ARTIFACT,
-            SITE_PROSE,
-        ] {
-            let site = dataset
-                .term_id_by_value(&TermValue::iri(format!("{GMEOW}{site}")))
-                .unwrap_or_else(|| panic!("the substrate graph must carry claim site {site}"));
-            assert!(
-                dataset
-                    .quads_for_pattern(None, None, Some(site), GraphMatch::Named(graph))
-                    .next()
-                    .is_some(),
-                "the substrate graph must carry a claim at every site"
-            );
-        }
-        assert!(contains(format!("{GMEOW}SubstrateComponent")));
-        assert!(contains(format!("{GMEOW}ReconciledPin")));
-        let embeds = dataset
-            .term_id_by_value(&TermValue::iri(format!("{GMEOW}embeds")))
-            .expect("gmeow:embeds is interned");
-        assert!(
-            dataset
-                .quads_for_pattern(None, Some(embeds), None, GraphMatch::Named(graph))
-                .next()
-                .is_some(),
-            "≥1 embeds edge (SBOM contains)"
-        );
-    }
-
-    #[test]
-    fn spdx_sbom_projection_carries_a_package_per_engine_and_contains_edges() {
-        // The substrate reconciliation A-Box, projected through the
-        // COMPILED `spdx.rq` (the same projection authority a consumer view runs), yields
-        // a first-class SBOM — one `spdx:Package` per shipped engine and embedded library,
-        // `spdx:versionInfo` from the reconciled pin, and an SPDX `contains` relationship
-        // for every `gmeow:embeds` edge. This is the production producer folded into
-        // gmeow.gts so `gmeow project --profile spdx` returns substrate packages.
-        use purrdf::{DatasetView, GraphMatch, TermValue};
-
-        let fixture = crate::fixture::stage_fixture(&crate_repo_root(), 1, "stage-mappings")
-            .expect("load authenticated mappings product without rebuilding corpus");
-        let dataset = fixture.outcome.product.dataset();
-        let graph_iri = crate::stages::carrier::GRAPH_SUBSTRATE_SBOM;
-        let graph = dataset
-            .term_id_by_value(&TermValue::iri(graph_iri))
-            .expect("substrate SBOM graph is present");
-        let id = |iri: &str| {
-            dataset
-                .term_id_by_value(&TermValue::iri(iri))
-                .unwrap_or_else(|| panic!("expected SBOM term {iri}"))
-        };
-        let rdf_type = id(RDF_TYPE);
-        let package = id("http://spdx.org/rdf/terms#Package");
-        let version = id("http://spdx.org/rdf/terms#versionInfo");
-        let relationship = id("http://spdx.org/rdf/terms#relationship");
-
-        // Every embedded library reconciles a crate version, so each carries an
-        // spdx:versionInfo — purrdf (0.12.0) plus the toolchain libraries.
-        for name in ["purrdf", "binaryen", "wasm-bindgen"] {
-            let comp = iri("component", name);
-            assert!(
-                dataset
-                    .quads_for_pattern(
-                        Some(id(&comp)),
-                        Some(rdf_type),
-                        Some(package),
-                        GraphMatch::Named(graph),
-                    )
-                    .next()
-                    .is_some(),
-                "{name} must project as an spdx:Package"
-            );
-            assert!(
-                dataset
-                    .quads_for_pattern(
-                        Some(id(&comp)),
-                        Some(version),
-                        None,
-                        GraphMatch::Named(graph),
-                    )
-                    .next()
-                    .is_some(),
-                "{name} must carry an spdx:versionInfo from its reconciled pin"
-            );
-        }
-        // Each of the four shipped engines is an spdx:Package that CONTAINS its embeds.
-        for engine in SHIPPED_ENGINES {
-            let engine_iri = iri("component", &format!("{engine}-engine"));
-            assert!(
-                dataset
-                    .quads_for_pattern(
-                        Some(id(&engine_iri)),
-                        Some(rdf_type),
-                        Some(package),
-                        GraphMatch::Named(graph),
-                    )
-                    .next()
-                    .is_some(),
-                "the {engine} engine must project as an spdx:Package"
-            );
-            assert!(
-                dataset
-                    .quads_for_pattern(
-                        Some(id(&engine_iri)),
-                        Some(relationship),
-                        None,
-                        GraphMatch::Named(graph),
-                    )
-                    .next()
-                    .is_some(),
-                "the {engine} engine must carry an spdx:relationship (contains)"
-            );
-        }
-        // Directional & lossy: the internal gmeow substrate vocabulary never leaks into
-        // the pure-SPDX projection.
-        assert!(
-            dataset
-                .term_id_by_value(&TermValue::iri(format!("{GMEOW}claimedValue")))
-                .is_none_or(|predicate| dataset
-                    .quads_for_pattern(None, Some(predicate), None, GraphMatch::Named(graph),)
-                    .next()
-                    .is_none()),
-            "internal gmeow substrate predicate leaked into the SBOM"
-        );
-    }
-
-    fn crate_repo_root() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .and_then(|p| p.parent())
-            .expect("workspace root")
-            .to_path_buf()
-    }
-}
+mod tests;

@@ -63,10 +63,15 @@
 //!     N-Quads graph to <out.nq>.
 //! ```
 
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, PreparedReasoningInput, SelectedDomains, SelectedLogicalWorld,
+    prepare_reasoning_input,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_conformance::external::lower::premise_ds_to_world_nquads;
+use gmeow_conformance::external::ontouml::evaluate_model;
 use gmeow_conformance::external::tptp::{TptpError, lower_and_decide, parse_tptp};
 use gmeow_conformance::external::{
     DisciplineVerdict, ExternalOutcome, ManifestTestKind, OntologyDoc, OntoumlError, compare,
@@ -94,6 +99,20 @@ usage:
   ingest-external --grade-ore <ontology-dir> <corpus-name> <out.nq>
   ingest-external --grade-tptp <problem-dir> <corpus-name> <out.nq>
   ingest-external --grade-ontouml <catalog-dir> <corpus-name> <out.nq>";
+
+/// Each vendored case supplies one declared logical theory; source/report graphs
+/// never acquire authority merely by being present in a carrier.
+fn external_theory_domains(
+    input: &PreparedReasoningInput,
+    graph: LogicalGraph,
+) -> gmeow_errors::Result<SelectedDomains> {
+    SelectedDomains::new([SelectedLogicalWorld::new(
+        graph,
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow-conformance.external-theory.v1".to_owned(),
+        *input.ingress_contract(),
+    )?])
+}
 
 /// Wrap a bin-local error message as a typed diagnostic on the substrate.
 fn ce(detail: String) -> gmeow_errors::Diag {
@@ -350,14 +369,8 @@ fn vendor_tptp_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
             })
         })?;
         let world_iri = format!("https://gmeow.example/{corpus_name}/{slug}/w");
-        let (native, lowered) = lower_and_decide(&formulas, &world_iri).map_err(|g| {
-            ce(format!(
-                "{}: native engine cannot decide this problem ({}) — it belongs in the \
-                 sibling -divergence corpus (an honest DlGap), not Lane-A",
-                problem.display(),
-                g.reason
-            ))
-        })?;
+        let (native, lowered) = lower_and_decide(&formulas, &world_iri)
+            .map_err(|error| ce(format!("{}: {error}", problem.display())))?;
 
         // Lane-A is agreeing-by-construction: native MUST match the SZS ground truth.
         if native != declared {
@@ -373,8 +386,8 @@ fn vendor_tptp_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
         write_tptp_case(
             &case_dir,
             &world_iri,
-            &lowered.input_nq,
-            lowered.quad_count,
+            &lowered.to_nquads().map_err(|error| ce(error.to_string()))?,
+            lowered.quad_count(),
             native,
             &raw_token,
         )?;
@@ -692,6 +705,7 @@ fn write_ontouml_case(
     let runner_quads: Vec<RunnerQuad> = fq
         .iter()
         .map(|q| RunnerQuad {
+            modal_evaluation: q.modal_evaluation.clone(),
             graph: q.graph.clone(),
             subject: q.subject.clone(),
             predicate: q.predicate.clone(),
@@ -1071,7 +1085,13 @@ fn lower_entailment_entry(
                     return EntailmentLowering::Skip;
                 }
             };
-            let verdict = match gmeow_logic::reason::dl_consistency(world_ds.as_ref()) {
+            let verdict = match prepare_reasoning_input(&world_ds).and_then(|input| {
+                let domains = external_theory_domains(
+                    &input,
+                    LogicalGraph::Named(purrdf::TermValue::iri(&world_iri)),
+                )?;
+                gmeow_logic::reason::dl_consistency(input, &domains)
+            }) {
                 Ok(v) => v,
                 Err(e) => {
                     println!("SKIP {slug}: reduced EDB dl_consistency failed: {e}");
@@ -1444,7 +1464,13 @@ fn vendor_lane_a_from_manifest(
             }
         };
 
-        let verdict = match gmeow_logic::reason::dl_consistency(world_ds.as_ref()) {
+        let verdict = match prepare_reasoning_input(&world_ds).and_then(|input| {
+            let domains = external_theory_domains(
+                &input,
+                LogicalGraph::Named(purrdf::TermValue::iri(&world_iri)),
+            )?;
+            gmeow_logic::reason::dl_consistency(input, &domains)
+        }) {
             Ok(v) => v,
             Err(e) => {
                 println!("SKIP {slug}: native DL consistency run failed: {e}");
@@ -1982,10 +2008,13 @@ fn grade_tptp_corpus(
         let native = match parse_tptp(&text) {
             Ok(formulas) => match lower_and_decide(&formulas, &world) {
                 Ok((outcome, _)) => outcome.verdict_status().as_str().to_string(),
-                Err(gap) => {
+                Err(gmeow_conformance::external::tptp::DecisionError::Gap(gap)) => {
                     println!("{}: capability gap: {}", problem.display(), gap.reason);
                     capability_gaps += 1;
                     "incomplete".to_string()
+                }
+                Err(error @ gmeow_conformance::external::tptp::DecisionError::Failure { .. }) => {
+                    return Err(ce(format!("{}: {error}", problem.display())));
                 }
             },
             Err(TptpError::Syntax(m)) => {
@@ -2226,9 +2255,8 @@ fn grade_ontouml_corpus(
             }
         };
 
-        let native = match lower_and_evaluate(&model, &world, AntiRigidityPolicy::WitnessObligation)
-        {
-            Ok((fq, _nq, _count)) => {
+        let native = match evaluate_model(&model, &world, AntiRigidityPolicy::WitnessObligation) {
+            Ok((fq, _dataset)) => {
                 let fired = fired_disciplines(&fq);
                 native_verdict_string(None, &fired)
             }
@@ -2398,7 +2426,13 @@ fn grade_suite_corpus(
         };
 
         // Run the native DL consistency path.
-        let verdict = match gmeow_logic::reason::dl_consistency(world_ds.as_ref()) {
+        let verdict = match prepare_reasoning_input(&world_ds).and_then(|input| {
+            let domains = external_theory_domains(
+                &input,
+                LogicalGraph::Named(purrdf::TermValue::iri(&world_iri)),
+            )?;
+            gmeow_logic::reason::dl_consistency(input, &domains)
+        }) {
             Ok(v) => v,
             Err(e) => {
                 println!("SKIP {slug}: native DL consistency run failed: {e}");
@@ -2596,7 +2630,10 @@ fn grade_ore_ontology(
         return (comparison, OreOutcome::DlGap);
     }
 
-    let verdict = match gmeow_logic::reason::dl_consistency(ds.as_ref()) {
+    let verdict = match prepare_reasoning_input(&ds).and_then(|input| {
+        let domains = external_theory_domains(&input, LogicalGraph::Default)?;
+        gmeow_logic::reason::dl_consistency(input, &domains)
+    }) {
         Ok(v) => v,
         Err(e) => {
             println!("DL-GAP {slug}: native DL consistency run failed: {e}");
@@ -3286,6 +3323,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             rule_iri: "https://blackcatinformatics.ca/logic/assert".to_owned(),
             source_quad_ids: Vec::new(),
             derivation_id: "d0".to_owned(),
+            modal_evaluation: None,
         }
     }
 

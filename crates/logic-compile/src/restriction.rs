@@ -21,6 +21,8 @@
 //! program's `axioms` — never a new collection — so a restriction-free program's
 //! axiom vector and content key are byte-identical (the append-only discipline).
 
+use crate::ir::AtomicTerm;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::RdfDataset;
@@ -32,8 +34,7 @@ use crate::graphutil::{
 };
 use crate::ir::LOGIC_NAMESPACE;
 
-/// The `\u{0}` field separator that pins the restriction `content_key` (matches the
-/// IR `sort_key` separator so the byte form is consistent across the compiler).
+/// Separates the outer restriction/datarange identity and its framed child keys.
 const SEP: char = '\u{0}';
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -110,17 +111,6 @@ pub(crate) const CONSTRAINT_LOCALS: &[&str] = &[
     "onDataRange",
 ];
 
-/// The cardinality-count constraint locals — their filler is a non-negative integer,
-/// which the OWL projection re-emits as an `xsd:nonNegativeInteger`-typed literal.
-pub(crate) const CARDINALITY_LOCALS: &[&str] = &[
-    "minCardinality",
-    "maxCardinality",
-    "cardinality",
-    "qualifiedCardinality",
-    "minQualifiedCardinality",
-    "maxQualifiedCardinality",
-];
-
 /// The source vocabulary a [`skolemize_restrictions`] pass reads — the canonical
 /// `logic:` surface.  The constraint / property-slot / type local names are shared
 /// verbatim with the OWL projection vocabulary; the namespace and the two anchoring
@@ -153,10 +143,11 @@ impl RestrictionVocab {
 /// A flat lifted triple, ready to become a [`crate::ir::LogicAxiom`] by either caller.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct LiftedTriple {
+    /// Actual pre-skolemization source root, never recovered from the generated IRI.
+    pub source: crate::frontend::SourceNode,
     pub subject: String,
     pub predicate: String,
-    pub obj: String,
-    pub obj_is_literal: bool,
+    pub obj: AtomicTerm,
 }
 
 fn logic(local: &str) -> String {
@@ -167,10 +158,8 @@ fn logic(local: &str) -> String {
 struct Constraint {
     /// The shared local name (e.g. `someValuesFrom`); emitted as `logic:<local>`.
     local: String,
-    /// The filler / value (IRI or literal lexical form).
-    value: String,
-    /// Whether `value` is a literal (`owl:hasValue` of a data value).
-    is_literal: bool,
+    /// The complete filler or literal value.
+    value: AtomicTerm,
     /// Whether the filler is itself an anonymous node (a nested class / datatype
     /// expression, e.g. `someValuesFrom [ owl:unionOf … ]` or a `withRestrictions`
     /// datarange).  Such fillers have no stable identity here and take the restriction
@@ -178,23 +167,15 @@ struct Constraint {
     is_blank: bool,
 }
 
-/// The mint key contribution of a constraint: `<local>=<value>[|lit]`.  Sorting these
+/// The mint key binds the constraint local name and the complete typed value. Sorting these
 /// (in [`content_key`]) makes a multi-constraint node's id order-independent.
 fn constraint_key(c: &Constraint) -> String {
-    if c.is_literal {
-        format!("{}={}|lit", c.local, c.value)
-    } else {
-        format!("{}={}", c.local, c.value)
-    }
+    crate::ir::atomic::frame("constraint", [c.local.as_str(), &c.value.key()])
 }
 
-/// The frozen restriction `content_key` — a canonical function of meaning only.
-///
-/// Format (do NOT reorder — it pins the skolem IRI, so any change re-mints every
-/// restriction and diverges the OWL/`logic:` isomorphism): `onProperty=<P>` then, for
-/// each constraint sorted by its [`constraint_key`], `␀<local>=<value>[|lit]`.  The
-/// subject class is deliberately EXCLUDED, so two classes bearing an identical
-/// restriction share one node.
+/// Restriction identity: `onProperty=<P>` followed by sorted, length-framed typed
+/// constraint keys. The subject class is excluded, so identical restrictions share
+/// one node regardless of which classes bear them.
 fn content_key(on_property: &str, constraints: &[Constraint]) -> String {
     let mut keys: Vec<String> = constraints.iter().map(constraint_key).collect();
     keys.sort();
@@ -222,7 +203,10 @@ fn restriction_nodes(store: &RdfDataset, vocab: &RestrictionVocab) -> Vec<Subjec
     let mut out: Vec<Subject> = Vec::new();
     for q in default_graph_quads(store) {
         let is_node = q.predicate.as_str() == on_property
-            || (q.predicate.as_str() == RDF_TYPE && term_str(&q.object) == restriction_ty);
+            || (crate::graphutil::is_structural_type_predicate(
+                q.predicate.as_str(),
+                &restriction_ty,
+            ) && term_str(&q.object) == restriction_ty);
         if is_node && seen.insert(subject_str(&q.subject)) {
             out.push(q.subject.clone());
         }
@@ -249,20 +233,19 @@ fn collect_constraints(
     store: &RdfDataset,
     node: &Subject,
     vocab: &RestrictionVocab,
-) -> Vec<Constraint> {
+) -> gmeow_errors::Result<Vec<Constraint>> {
     let mut constraints: Vec<Constraint> = Vec::new();
     for local in CONSTRAINT_LOCALS {
         let pred = crate::graphutil::nn(&vocab.iri(local));
         for obj in objects(store, node, &pred) {
             constraints.push(Constraint {
                 local: (*local).to_owned(),
-                value: term_str(&obj),
-                is_literal: term_is_literal(&obj),
+                value: crate::graphutil::atomic_object(&obj)?,
                 is_blank: crate::graphutil::term_is_blank(&obj),
             });
         }
     }
-    constraints
+    Ok(constraints)
 }
 
 /// Lift every OWL/`logic:` restriction under `vocab` into flat skolem-keyed
@@ -283,6 +266,11 @@ pub(crate) fn skolemize_restrictions(
     let mut out: Vec<LiftedTriple> = Vec::new();
 
     for node in restriction_nodes(store, vocab) {
+        let source = crate::frontend::SourceNode {
+            term: crate::graphutil::subject_id(store, &node)
+                .expect("selected class-expression root"),
+            graph: None,
+        };
         let node_label = subject_str(&node);
         let on_properties = objects(store, &node, &on_property_pred);
         let on_property = match on_properties.as_slice() {
@@ -308,7 +296,17 @@ pub(crate) fn skolemize_restrictions(
             ),
             [only] => term_str(only),
         };
-        let constraints = collect_constraints(store, &node, vocab);
+        let constraints = match collect_constraints(store, &node, vocab) {
+            Ok(constraints) => constraints,
+            Err(error) => {
+                diagnostics.push(Diagnostic::error(
+                    "MALFORMED_RESTRICTION",
+                    error.to_string(),
+                    Some(node_label),
+                ));
+                continue;
+            }
+        };
         if constraints.is_empty() {
             diagnostics.push(warn(
                 "MALFORMED_RESTRICTION",
@@ -340,23 +338,23 @@ pub(crate) fn skolemize_restrictions(
 
         // Restriction internals.
         out.push(LiftedTriple {
+            source,
             subject: skolem.clone(),
             predicate: RDF_TYPE.to_owned(),
-            obj: logic(RESTRICTION_CLASS_LOCAL),
-            obj_is_literal: false,
+            obj: AtomicTerm::resource(logic(RESTRICTION_CLASS_LOCAL)),
         });
         out.push(LiftedTriple {
+            source,
             subject: skolem.clone(),
             predicate: logic(ON_PROPERTY_LOCAL),
-            obj: on_property.clone(),
-            obj_is_literal: false,
+            obj: AtomicTerm::resource(on_property.clone()),
         });
         for c in &constraints {
             out.push(LiftedTriple {
+                source,
                 subject: skolem.clone(),
                 predicate: logic(&c.local),
                 obj: c.value.clone(),
-                obj_is_literal: c.is_literal,
             });
         }
 
@@ -366,18 +364,18 @@ pub(crate) fn skolemize_restrictions(
         let node_term = subject_as_object(&node);
         for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
             out.push(LiftedTriple {
+                source,
                 subject: subject_str(&anchor),
                 predicate: logic("subClassOf"),
-                obj: skolem.clone(),
-                obj_is_literal: false,
+                obj: AtomicTerm::resource(skolem.clone()),
             });
         }
         for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
             out.push(LiftedTriple {
+                source,
                 subject: subject_str(&anchor),
                 predicate: logic("equivalentClass"),
-                obj: skolem.clone(),
-                obj_is_literal: false,
+                obj: AtomicTerm::resource(skolem.clone()),
             });
         }
     }
@@ -482,6 +480,11 @@ pub(crate) fn skolemize_enumerations(
     let mut out: Vec<LiftedTriple> = Vec::new();
 
     for node in enumeration_nodes(store, vocab) {
+        let source = crate::frontend::SourceNode {
+            term: crate::graphutil::subject_id(store, &node)
+                .expect("selected class-expression root"),
+            graph: None,
+        };
         let node_label = subject_str(&node);
         let Some(list_head) = value(store, &node, &one_of_pred) else {
             continue;
@@ -516,10 +519,21 @@ pub(crate) fn skolemize_enumerations(
             continue;
         }
         // (value, is_literal) members, sorted + deduped for a stable content key.
-        let mut mem: Vec<(String, bool)> = members
+        let mut mem: Vec<AtomicTerm> = match members
             .iter()
-            .map(|m| (term_str(m), term_is_literal(m)))
-            .collect();
+            .map(crate::graphutil::atomic_object)
+            .collect::<gmeow_errors::Result<_>>()
+        {
+            Ok(members) => members,
+            Err(error) => {
+                diagnostics.push(Diagnostic::error(
+                    "MALFORMED_ENUMERATION",
+                    error.to_string(),
+                    Some(node_label),
+                ));
+                continue;
+            }
+        };
         mem.sort();
         mem.dedup();
 
@@ -531,17 +545,17 @@ pub(crate) fn skolemize_enumerations(
         );
 
         out.push(LiftedTriple {
+            source,
             subject: enum_node.clone(),
             predicate: RDF_TYPE.to_owned(),
-            obj: logic(ENUMERATION_CLASS_LOCAL),
-            obj_is_literal: false,
+            obj: AtomicTerm::resource(logic(ENUMERATION_CLASS_LOCAL)),
         });
-        for (member, is_literal) in &mem {
+        for member in &mem {
             out.push(LiftedTriple {
+                source,
                 subject: enum_node.clone(),
                 predicate: logic(ONE_OF_LOCAL),
                 obj: member.clone(),
-                obj_is_literal: *is_literal,
             });
         }
 
@@ -549,18 +563,18 @@ pub(crate) fn skolemize_enumerations(
         let node_term = subject_as_object(&node);
         for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
             out.push(LiftedTriple {
+                source,
                 subject: subject_str(&anchor),
                 predicate: logic("subClassOf"),
-                obj: enum_node.clone(),
-                obj_is_literal: false,
+                obj: AtomicTerm::resource(enum_node.clone()),
             });
         }
         for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
             out.push(LiftedTriple {
+                source,
                 subject: subject_str(&anchor),
                 predicate: logic("equivalentClass"),
-                obj: enum_node.clone(),
-                obj_is_literal: false,
+                obj: AtomicTerm::resource(enum_node.clone()),
             });
         }
     }
@@ -568,14 +582,9 @@ pub(crate) fn skolemize_enumerations(
     out
 }
 
-/// The frozen enumeration content key — `oneOf=<m1>[|lit],<m2>[|lit],…` over the sorted,
-/// deduped member list.  Do NOT reorder: it pins the anonymous-enumeration skolem IRI.
-fn enumeration_content_key(members: &[(String, bool)]) -> String {
-    let parts: Vec<String> = members
-        .iter()
-        .map(|(m, lit)| if *lit { format!("{m}|lit") } else { m.clone() })
-        .collect();
-    format!("oneOf={}", parts.join(","))
+/// The enumeration key frames each complete member, preserving literal kinds and metadata.
+fn enumeration_content_key(members: &[AtomicTerm]) -> String {
+    crate::ir::atomic::frame("oneOf", members.iter().map(AtomicTerm::key))
 }
 
 // --------------------------------------------------------------------------- //
@@ -588,22 +597,18 @@ fn enumeration_content_key(members: &[(String, bool)]) -> String {
 struct Facet {
     /// The full `xsd:` constraining-facet IRI (e.g. `…XMLSchema#minInclusive`).
     iri: String,
-    /// The facet value's literal lexical form.
-    value: String,
+    /// The complete native literal facet value.
+    value: AtomicTerm,
 }
 
-/// The mint-key contribution of a facet: `<facetIRI>=<value>|lit`.  Facet values are
-/// always literals, so the `|lit` tag is unconditional — it keeps a facet key distinct in
-/// shape from an `onDatatype=<IRI>` key.
+/// The facet IRI and complete native literal both participate in its framed key.
 fn facet_key(f: &Facet) -> String {
-    format!("{}={}|lit", f.iri, f.value)
+    crate::ir::atomic::frame("facet", [f.iri.as_str(), &f.value.key()])
 }
 
-/// The frozen datarange `content_key` — a canonical function of meaning only.
-///
-/// Format (do NOT reorder — it pins the skolem IRI): `onDatatype=<D>` then, for each facet
-/// sorted by its [`facet_key`], `␀<facetIRI>=<value>|lit`.  Two identical dataranges (and
-/// an `owl:`- and `logic:`-authored twin) collapse to one node.
+/// Datarange identity: `onDatatype=<D>` followed by sorted, length-framed facet
+/// keys. Identical OWL and logic source structures share a node without collapsing
+/// distinct native literal values.
 fn datarange_content_key(on_datatype: &str, facets: &[Facet]) -> String {
     let mut keys: Vec<String> = facets.iter().map(facet_key).collect();
     keys.sort();
@@ -715,9 +720,12 @@ fn collect_datarange_facets(
                 ));
                 return None;
             }
+            let Node::Lit(literal) = obj else {
+                unreachable!("literal-valued facet checked above")
+            };
             facets.push(Facet {
                 iri,
-                value: term_str(&obj),
+                value: AtomicTerm::Literal(literal),
             });
         }
     }
@@ -729,7 +737,7 @@ fn collect_datarange_facets(
 /// mirroring [`skolemize_enumerations`].  A well-formed datarange contributes: the
 /// `logic:subClassOf` / `logic:equivalentClass` anchor edge(s) redirected to the skolem
 /// node, the `rdf:type logic:Datarange` typing, the `logic:onDatatype` base slot, and one
-/// axiom per facet keyed on its full `xsd:` IRI (`obj_is_literal = true`).
+/// axiom per facet keyed on its full `xsd:` IRI (a native literal object).
 ///
 /// Every malformedness (a corrupt facet list, a missing `onDatatype`, a facet cell with no
 /// facet triple, a non-literal facet value) is disclosed and the datarange skipped whole;
@@ -747,6 +755,11 @@ pub(crate) fn skolemize_dataranges(
     let mut out: Vec<LiftedTriple> = Vec::new();
 
     for node in datarange_nodes(store, vocab) {
+        let source = crate::frontend::SourceNode {
+            term: crate::graphutil::subject_id(store, &node)
+                .expect("selected class-expression root"),
+            graph: None,
+        };
         let node_label = subject_str(&node);
         let on_datatypes = objects(store, &node, &on_datatype_pred);
         let on_datatype_term = match on_datatypes.as_slice() {
@@ -821,25 +834,25 @@ pub(crate) fn skolemize_dataranges(
 
         // Datarange internals.
         out.push(LiftedTriple {
+            source,
             subject: skolem.clone(),
             predicate: RDF_TYPE.to_owned(),
-            obj: logic(DATARANGE_CLASS_LOCAL),
-            obj_is_literal: false,
+            obj: AtomicTerm::resource(logic(DATARANGE_CLASS_LOCAL)),
         });
         out.push(LiftedTriple {
+            source,
             subject: skolem.clone(),
             predicate: logic(ON_DATATYPE_LOCAL),
-            obj: on_datatype.clone(),
-            obj_is_literal: false,
+            obj: AtomicTerm::resource(on_datatype.clone()),
         });
         for f in &facets {
             out.push(LiftedTriple {
+                source,
                 subject: skolem.clone(),
                 // Facets keep their full xsd: IRI on both surfaces (unlike the shared-local
                 // restriction constraints), so emit the facet IRI verbatim.
                 predicate: f.iri.clone(),
                 obj: f.value.clone(),
-                obj_is_literal: true,
             });
         }
 
@@ -847,18 +860,18 @@ pub(crate) fn skolemize_dataranges(
         let node_term = subject_as_object(&node);
         for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
             out.push(LiftedTriple {
+                source,
                 subject: subject_str(&anchor),
                 predicate: logic("subClassOf"),
-                obj: skolem.clone(),
-                obj_is_literal: false,
+                obj: AtomicTerm::resource(skolem.clone()),
             });
         }
         for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
             out.push(LiftedTriple {
+                source,
                 subject: subject_str(&anchor),
                 predicate: logic("equivalentClass"),
-                obj: skolem.clone(),
-                obj_is_literal: false,
+                obj: AtomicTerm::resource(skolem.clone()),
             });
         }
     }
@@ -886,98 +899,6 @@ fn warn(code: &str, message: String, subject: Option<String>) -> Diagnostic {
     }
 }
 
+#[path = "restriction.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn c(local: &str, value: &str, is_literal: bool) -> Constraint {
-        Constraint {
-            local: local.to_owned(),
-            value: value.to_owned(),
-            is_literal,
-            is_blank: false,
-        }
-    }
-
-    #[test]
-    fn content_key_is_order_independent() {
-        // The mint key sorts constraints, so declaration order cannot change the id.
-        let a = content_key(
-            "P",
-            &[c("someValuesFrom", "C", false), c("hasValue", "V", false)],
-        );
-        let b = content_key(
-            "P",
-            &[c("hasValue", "V", false), c("someValuesFrom", "C", false)],
-        );
-        assert_eq!(a, b);
-        assert_eq!(skolem_iri(&a), skolem_iri(&b));
-    }
-
-    #[test]
-    fn content_key_distinguishes_literal_from_iri_filler() {
-        // An IRI filler and a literal filler with the same lexical form must NOT collide.
-        let iri = content_key("P", &[c("hasValue", "Red", false)]);
-        let lit = content_key("P", &[c("hasValue", "Red", true)]);
-        assert_ne!(iri, lit);
-        assert_ne!(skolem_iri(&iri), skolem_iri(&lit));
-    }
-
-    #[test]
-    fn content_key_excludes_subject_class() {
-        // The key is a function of onProperty + constraints only — no subject — so two
-        // classes bearing the same restriction share one skolem node.
-        let k = content_key("P", &[c("someValuesFrom", "C", false)]);
-        assert!(k.starts_with("onProperty=P"));
-        assert!(!k.contains("subClassOf"));
-    }
-
-    fn f(facet_local: &str, value: &str) -> Facet {
-        Facet {
-            iri: format!("{XSD_NS}{facet_local}"),
-            value: value.to_owned(),
-        }
-    }
-
-    #[test]
-    fn datarange_content_key_is_order_independent() {
-        // The mint key sorts facets, so authored facet order cannot change the id.
-        let a = datarange_content_key(
-            "http://www.w3.org/2001/XMLSchema#decimal",
-            &[f("minInclusive", "0.0"), f("maxInclusive", "1.0")],
-        );
-        let b = datarange_content_key(
-            "http://www.w3.org/2001/XMLSchema#decimal",
-            &[f("maxInclusive", "1.0"), f("minInclusive", "0.0")],
-        );
-        assert_eq!(a, b);
-        assert_eq!(datarange_skolem_iri(&a), datarange_skolem_iri(&b));
-    }
-
-    #[test]
-    fn datarange_content_key_distinguishes_datatype_and_facets() {
-        // A different base datatype, a different facet IRI, and a different facet value
-        // must each mint a distinct node.
-        let base = datarange_content_key(
-            "http://www.w3.org/2001/XMLSchema#decimal",
-            &[f("minInclusive", "0.0")],
-        );
-        let other_dt = datarange_content_key(
-            "http://www.w3.org/2001/XMLSchema#integer",
-            &[f("minInclusive", "0.0")],
-        );
-        let other_facet = datarange_content_key(
-            "http://www.w3.org/2001/XMLSchema#decimal",
-            &[f("minExclusive", "0.0")],
-        );
-        let other_value = datarange_content_key(
-            "http://www.w3.org/2001/XMLSchema#decimal",
-            &[f("minInclusive", "0.5")],
-        );
-        assert!(base.starts_with("onDatatype=http://www.w3.org/2001/XMLSchema#decimal"));
-        assert_ne!(base, other_dt);
-        assert_ne!(base, other_facet);
-        assert_ne!(base, other_value);
-        assert_ne!(datarange_skolem_iri(&base), datarange_skolem_iri(&other_dt));
-    }
-}
+mod tests;

@@ -108,6 +108,7 @@ pub mod engine {
     pub use crate::id::{Id, Meta, MetaId, Node, NodeId, Term, TermId};
     pub use crate::interner::{TermInterner, surface_hash};
     pub use crate::term_dag::{ArenaId, MetaSet, NodeData, TermDag};
+    pub use crate::term_key::native_term_key;
 
     pub use super::{ArenaAccess, StructNodeParts};
 }

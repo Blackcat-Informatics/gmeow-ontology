@@ -52,7 +52,6 @@ use std::collections::BTreeSet;
 use gmeow_logic::entail::{self, ConclusionShape, Minter};
 use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
 
-use crate::external::lower::premise_ds_to_world_nquads;
 use crate::external::status::ExternalOutcome;
 use crate::external::tptp::parser::{AnnotatedFormula, TptpRole};
 
@@ -65,7 +64,7 @@ const OWL_DISJOINTWITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 
 /// A well-formed but out-of-fragment problem: the native engine cannot express
 /// this construct, so the caller records a DlGap ledger row (never `incomplete`).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct LoweringGap {
     /// Why the problem is outside the EL/DL-expressible fragment.
     pub reason: String,
@@ -83,128 +82,191 @@ impl std::fmt::Display for LoweringGap {
 
 impl std::error::Error for LoweringGap {}
 
-/// A TPTP problem lowered to a world-scoped OWL-RDF EDB.
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// A semantic fragment boundary or a failure to execute the selected operation.
+/// Only `Gap` may be recorded as an honest capability withhold.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum DecisionError {
+    /// The well-formed problem lies outside the selected native fragment.
+    Gap(LoweringGap),
+    /// Invalid lowered data or failed native execution; never a semantic verdict.
+    Failure {
+        /// Preserved diagnostic from invalid input or failed execution.
+        detail: String,
+    },
+}
+
+impl std::fmt::Display for DecisionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Gap(gap) => gap.fmt(formatter),
+            Self::Failure { detail } => write!(formatter, "TPTP execution failed: {detail}"),
+        }
+    }
+}
+
+impl std::error::Error for DecisionError {}
+
+impl From<LoweringGap> for DecisionError {
+    fn from(gap: LoweringGap) -> Self {
+        Self::Gap(gap)
+    }
+}
+
+fn execution_failure(detail: impl std::fmt::Display) -> DecisionError {
+    DecisionError::Failure {
+        detail: detail.to_string(),
+    }
+}
+
+/// A TPTP problem lowered directly to a validated, world-scoped native dataset.
+#[derive(Debug, Clone)]
 pub struct LoweredProblem {
     /// The single world IRI every EDB quad is scoped under.
     pub world_iri: String,
-    /// The world-scoped N-Quads EDB text (sorted, deduped, trailing newline).
-    pub input_nq: String,
-    /// The EDB quad count.
-    pub quad_count: usize,
+    dataset: std::sync::Arc<purrdf::RdfDataset>,
 }
 
-/// Lower a parsed TPTP problem into a world-scoped OWL-RDF EDB.
+impl LoweredProblem {
+    /// Borrow the native EDB used by the consistency evaluator.
+    pub fn dataset(&self) -> &purrdf::RdfDataset {
+        &self.dataset
+    }
+
+    /// Number of distinct asserted EDB quads.
+    pub fn quad_count(&self) -> usize {
+        self.dataset.quad_count()
+    }
+
+    /// Serialize only at the external corpus-writing boundary. Native execution
+    /// neither calls this method nor reparses its output.
+    pub fn to_nquads(&self) -> Result<String, DecisionError> {
+        let bytes = purrdf::serialize_dataset(
+            &self.dataset,
+            "application/n-quads",
+            purrdf::SerializeGraph::Dataset,
+        )
+        .map_err(execution_failure)?;
+        let text = String::from_utf8(bytes).map_err(execution_failure)?;
+        let lines: BTreeSet<_> = text.lines().filter(|line| !line.is_empty()).collect();
+        Ok(lines.into_iter().map(|line| format!("{line}\n")).collect())
+    }
+}
+
+/// Lower parsed formulas without an intermediate RDF text representation.
 ///
 /// # Errors
-/// [`LoweringGap`] when the problem uses a construct outside the EL/DL-expressible
-/// fragment — the caller turns this into a capability-gap ledger row.
+/// `Gap` names an unsupported formula shape. Invalid native terms and reserved
+/// symbol collisions are failures, not capability evidence.
 pub fn lower_problem(
     formulas: &[AnnotatedFormula],
     world_iri: &str,
-) -> Result<LoweredProblem, LoweringGap> {
-    // Build the sound fresh-symbol minter over the whole problem vocabulary, so a
-    // minted complement/witness can never collide with a problem symbol (the minter
-    // hard-fails on a reserved-namespace collision).
-    let mut vocab: BTreeSet<String> = BTreeSet::new();
-    for af in formulas {
-        collect_formula_iris(&af.formula, &mut vocab);
+) -> Result<LoweredProblem, DecisionError> {
+    let mut vocab = BTreeSet::new();
+    for formula in formulas {
+        collect_formula_iris(&formula.formula, &mut vocab);
     }
-    let minter = Minter::new(&vocab).map_err(|e| LoweringGap {
-        reason: format!("entailment minter rejected the problem vocabulary: {e}"),
-    })?;
-
-    let mut triples: Vec<(String, String, String)> = Vec::new();
-    for af in formulas {
-        match af.role {
+    let minter = Minter::new(&vocab).map_err(execution_failure)?;
+    let mut edb = NativeEdb::new(world_iri);
+    for formula in formulas {
+        match formula.role {
             TptpRole::Premise | TptpRole::NegatedConjecture => {
-                lower_assertion(&af.formula, &mut triples)?;
+                lower_assertion(&formula.formula, &mut edb)?;
             }
-            TptpRole::Conjecture => {
-                lower_negated_conjecture(&af.formula, &minter, &mut triples)?;
-            }
-            // A `plain` TSTP derivation step is a PROOF step, not a problem axiom.
-            // Asserting it would re-assert every inference as an independent axiom
-            // (a strictly stronger, possibly inconsistent theory), so a derivation
-            // is refused here rather than silently lowered as a problem.
-            TptpRole::Derived => {
-                return Err(gap(format!(
-                    "formula {:?} is a derived TSTP step (role `plain`); a derivation is not a \
-                     problem and its steps must not be asserted as axioms",
-                    af.name
-                )));
-            }
+            TptpRole::Conjecture => lower_negated_conjecture(&formula.formula, &minter, &mut edb)?,
+            TptpRole::Derived => return Err(gap(format!(
+                "formula {:?} is a derived TSTP step (role `plain`); a derivation is not a problem and its steps must not be asserted as axioms",
+                formula.name)).into()),
         }
     }
-    if triples.is_empty() {
-        return Err(LoweringGap {
-            reason: "problem lowered to zero EDB triples (a vacuous consistency check \
-                     is not permitted)"
-                .into(),
-        });
+    if !edb.emitted {
+        return Err(gap(
+            "problem lowered to zero EDB triples (a vacuous consistency check is not permitted)"
+                .to_owned(),
+        )
+        .into());
     }
-
-    // Reuse the shared lowering waist: build a default-graph dataset via the native
-    // N-Triples codec, then world-scope it. All terms are IRIs, so the emitted
-    // N-Triples needs no escaping.
-    let nt: String = triples
-        .iter()
-        .map(|(s, p, o)| format!("<{s}> <{p}> <{o}> .\n"))
-        .collect();
-    let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", Some(world_iri))
-        .map_err(|e| LoweringGap {
-            reason: format!("lowered EDB failed to parse as N-Triples: {e}"),
-        })?;
-    let (input_nq, quad_count) =
-        premise_ds_to_world_nquads(ds.as_ref(), world_iri).map_err(|e| LoweringGap {
-            reason: format!("world-scoping the lowered EDB failed: {e}"),
-        })?;
-
     Ok(LoweredProblem {
-        world_iri: world_iri.to_string(),
-        input_nq,
-        quad_count,
+        world_iri: world_iri.to_owned(),
+        dataset: edb.builder.freeze().map_err(execution_failure)?,
     })
 }
 
-/// Lower a problem and decide it natively, returning the normalized outcome.
-///
-/// Runs the lowered world-scoped EDB through [`gmeow_logic::reason::dl_consistency`].
-/// A non-empty native coverage `gaps` set means the DL engine cannot honestly
-/// decide the EDB — that is a capability gap, surfaced as [`LoweringGap`], never a
-/// silent `incomplete`.
-///
-/// # Errors
-/// [`LoweringGap`] for an out-of-fragment problem (from lowering) or a native DL
-/// coverage gap.
+/// Stream each lowered assertion straight into one world-scoped native builder.
+struct NativeEdb {
+    builder: purrdf::RdfDatasetBuilder,
+    world: purrdf::TermId,
+    emitted: bool,
+}
+
+impl NativeEdb {
+    fn new(world_iri: &str) -> Self {
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        let world = builder.intern_iri(world_iri);
+        Self {
+            builder,
+            world,
+            emitted: false,
+        }
+    }
+
+    fn push(&mut self, (subject, predicate, object): (String, String, String)) {
+        let subject = self.builder.intern_iri(&subject);
+        let predicate = self.builder.intern_iri(&predicate);
+        let object = self.builder.intern_iri(&object);
+        self.builder
+            .push_quad(subject, predicate, object, Some(self.world));
+        self.emitted = true;
+    }
+
+    fn extend(&mut self, triples: impl IntoIterator<Item = (String, String, String)>) {
+        for triple in triples {
+            self.push(triple);
+        }
+    }
+}
+
+/// Lower and decide using the same native dataset. Only actual unsupported
+/// constructs become `Gap`; native execution failures retain their own type.
 pub fn lower_and_decide(
     formulas: &[AnnotatedFormula],
     world_iri: &str,
-) -> Result<(ExternalOutcome, LoweredProblem), LoweringGap> {
+) -> Result<(ExternalOutcome, LoweredProblem), DecisionError> {
     let lowered = lower_problem(formulas, world_iri)?;
-    let dataset = purrdf::parse_dataset(lowered.input_nq.as_bytes(), "application/n-quads", None)
-        .map_err(|e| LoweringGap {
-        reason: format!("lowered EDB N-Quads failed to parse: {e}"),
-    })?;
-    let verdict =
-        gmeow_logic::reason::dl_consistency(dataset.as_ref()).map_err(|e| LoweringGap {
-            reason: format!("native DL consistency failed: {e}"),
-        })?;
+    let outcome = decide_lowered_with(&lowered, &gmeow_logic::reason::dl_consistency)?;
+    Ok((outcome, lowered))
+}
+
+fn decide_lowered_with(
+    lowered: &LoweredProblem,
+    evaluate: &impl Fn(
+        gmeow_logic::reason::PreparedReasoningInput,
+        &gmeow_logic::reason::SelectedDomains,
+    ) -> gmeow_errors::Result<gmeow_logic::reason::DlVerdict>,
+) -> Result<ExternalOutcome, DecisionError> {
+    use gmeow_logic::reason::{
+        DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, prepare_reasoning_input,
+    };
+    let input = prepare_reasoning_input(lowered.dataset()).map_err(execution_failure)?;
+    // The lowering operation explicitly owns this named problem theory; unrelated
+    // RDF graph names never grant nonempty-domain authority.
+    let world = SelectedLogicalWorld::new(
+        LogicalGraph::Named(purrdf::TermValue::iri(&lowered.world_iri)),
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow-conformance.tptp-problem.v1".to_owned(),
+        *input.ingress_contract(),
+    )
+    .map_err(execution_failure)?;
+    let domains = SelectedDomains::new([world]).map_err(execution_failure)?;
+    let verdict = evaluate(input, &domains).map_err(execution_failure)?;
     if !verdict.gaps.is_empty() {
-        let codes: Vec<&str> = verdict.gaps.iter().map(|g| g.code.as_str()).collect();
-        return Err(LoweringGap {
-            reason: format!(
-                "native DL coverage gap(s) {codes:?} — the engine cannot honestly decide \
-                 this EDB (a capability gap, not `incomplete`)"
-            ),
-        });
+        let codes: Vec<_> = verdict.gaps.iter().map(|gap| gap.code.as_str()).collect();
+        return Err(gap(format!("native DL coverage gap(s) {codes:?}")).into());
     }
-    let outcome = if verdict.consistent {
+    Ok(if verdict.consistent {
         ExternalOutcome::Consistent
     } else {
         ExternalOutcome::Inconsistent
-    };
-    Ok((outcome, lowered))
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -520,10 +582,7 @@ fn horn_goal(
 // ---------------------------------------------------------------------------
 
 /// Assert a premise / negated-conjecture formula as EDB triples.
-fn lower_assertion(
-    f: &Formula,
-    out: &mut Vec<(String, String, String)>,
-) -> Result<(), LoweringGap> {
+fn lower_assertion(f: &Formula, out: &mut NativeEdb) -> Result<(), LoweringGap> {
     match f {
         // Ground atom: `C(a)` (type) or `r(a,b)` (role).
         Formula::Atom { relation, args } => {
@@ -563,11 +622,7 @@ fn lower_assertion(
 }
 
 /// Lower the body of a single-variable `∀X. body` axiom.
-fn lower_universal_body(
-    var: &str,
-    body: &Formula,
-    out: &mut Vec<(String, String, String)>,
-) -> Result<(), LoweringGap> {
+fn lower_universal_body(var: &str, body: &Formula, out: &mut NativeEdb) -> Result<(), LoweringGap> {
     match body {
         // `C(X) → D(X)` = subclass; `C(X) → ¬D(X)` = disjointness.
         Formula::Implies(ante, cons) => {
@@ -651,10 +706,19 @@ fn classify_literal(lit: &Formula, var: &str) -> Result<(bool, String), Lowering
 /// RDF-conclusion entailment path also uses, so the sound reserved-namespace minting
 /// lives in a single place.
 fn lower_negated_conjecture(
-    f: &Formula,
+    formula: &Formula,
     minter: &Minter,
-    out: &mut Vec<(String, String, String)>,
-) -> Result<(), LoweringGap> {
+    out: &mut NativeEdb,
+) -> Result<(), DecisionError> {
+    let shape = conjecture_shape(formula)?;
+    // An admitted GroundType/SubClassOf must be negatable. Failure is an
+    // implementation/input error, never evidence of an unsupported shape.
+    let negation = entail::negate(&shape, minter).map_err(execution_failure)?;
+    out.extend(negation);
+    Ok(())
+}
+
+fn conjecture_shape(f: &Formula) -> Result<ConclusionShape, LoweringGap> {
     let shape = match f {
         // Ground unary `C(a)` → ground membership conclusion.
         Formula::Atom { relation, args } => {
@@ -705,12 +769,7 @@ fn lower_negated_conjecture(
             )));
         }
     };
-    // `negate` refuses a subproperty shape (decided by reachability, not refutation), but
-    // the conjecture lowering only ever builds `GroundType`/`SubClassOf` here, so this
-    // never fires — surface any invariant violation as a lowering gap rather than panic.
-    let negation = entail::negate(&shape, minter).map_err(|d| gap(d.to_string()))?;
-    out.extend(negation);
-    Ok(())
+    Ok(shape)
 }
 
 // ---------------------------------------------------------------------------
@@ -795,343 +854,6 @@ fn shape_name(f: &Formula) -> &'static str {
     }
 }
 
+#[path = "lower_fol.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::external::tptp::parser::{TptpSource, TstpTerm, parse_tptp};
-
-    fn decide(src: &str) -> Result<ExternalOutcome, LoweringGap> {
-        let fs = parse_tptp(src).expect("parse ok");
-        lower_and_decide(&fs, "https://gmeow.example/tptp-test/w").map(|(o, _)| o)
-    }
-
-    #[test]
-    fn disjointness_clash_is_inconsistent() {
-        // unsat-clash: a⊑b, a⊑c, b⊥c, a(x).
-        let src = "\
-            fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
-            fof(a_sub_c, axiom, ![X] : (a(X) => c(X))).\n\
-            fof(b_disj_c, axiom, ![X] : ~(b(X) & c(X))).\n\
-            fof(x_is_a, axiom, a(x)).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Inconsistent);
-    }
-
-    #[test]
-    fn open_model_is_consistent() {
-        // satisfiable-open: a⊑b, a(x) — no clash.
-        let src = "\
-            fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
-            fof(x_is_a, axiom, a(x)).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Consistent);
-    }
-
-    #[test]
-    fn implication_to_negation_is_disjointness() {
-        // a⊑b, b⊑¬c (as C→¬D), a(x), c(x) → x∈b and x∈¬c but also x∈c → clash.
-        let src = "\
-            fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
-            fof(b_disj_c, axiom, ![X] : (b(X) => ~c(X))).\n\
-            fof(x_is_a, axiom, a(x)).\n\
-            fof(x_is_c, axiom, c(x)).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Inconsistent);
-    }
-
-    #[test]
-    fn ground_unary_theorem_refutes_to_inconsistent() {
-        // Premises a⊑b, a(x) ⊢ conjecture b(x): refutation is UNSAT.
-        let src = "\
-            fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
-            fof(x_is_a, axiom, a(x)).\n\
-            fof(goal, conjecture, b(x)).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Inconsistent);
-    }
-
-    #[test]
-    fn negated_ground_conjecture_is_an_honest_gap() {
-        // A conjecture whose shape is `~C(a)` (a `Not(Atom)`) is not expressed by the
-        // EL refutation lowerer, so it must surface as an honest capability gap
-        // (LoweringGap) — never a silently-decided verdict. Extending the fragment to
-        // cover it is a separate, soundness-reviewed change, not a silent approximation.
-        let src = "\
-            fof(prem, axiom, c(a)).\n\
-            fof(goal, conjecture, ~c(a)).\n";
-        let err = decide(src).unwrap_err();
-        assert!(
-            err.reason.contains("refutable") || err.reason.contains("conjecture shape"),
-            "{}",
-            err.reason
-        );
-    }
-
-    #[test]
-    fn ground_unary_non_theorem_refutes_to_consistent() {
-        // Premises a(x) do NOT entail b(x): refutation stays satisfiable.
-        let src = "\
-            fof(x_is_a, axiom, a(x)).\n\
-            fof(goal, conjecture, b(x)).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Consistent);
-    }
-
-    #[test]
-    fn subclass_theorem_refutes_via_fresh_witness() {
-        // a⊑b, b⊑c ⊢ a⊑c: negate → ∃X.(a(X) ∧ ¬c(X)); witness w∈a ⇒ w∈b ⇒ w∈c, clash w∈c̄.
-        let src = "\
-            fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
-            fof(b_sub_c, axiom, ![X] : (b(X) => c(X))).\n\
-            fof(goal, conjecture, ![X] : (a(X) => c(X))).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Inconsistent);
-    }
-
-    #[test]
-    fn subclass_non_theorem_is_consistent() {
-        // a⊑b does NOT entail a⊑c.
-        let src = "\
-            fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
-            fof(goal, conjecture, ![X] : (a(X) => c(X))).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Consistent);
-    }
-
-    #[test]
-    fn cnf_disjointness_clash_is_inconsistent() {
-        // Same unsat-clash, authored in CNF: ¬a∨b, ¬a∨c, ¬b∨¬c, a(x).
-        let src = "\
-            cnf(a_sub_b, axiom, ( ~a(X) | b(X) )).\n\
-            cnf(a_sub_c, axiom, ( ~a(X) | c(X) )).\n\
-            cnf(b_disj_c, axiom, ( ~b(X) | ~c(X) )).\n\
-            cnf(x_is_a, axiom, a(x)).\n";
-        assert_eq!(decide(src).unwrap(), ExternalOutcome::Inconsistent);
-    }
-
-    #[test]
-    fn cnf_two_positive_clause_is_a_capability_gap() {
-        // `a(X) | b(X)` = ⊤ ⊑ a ⊔ b, a genuine disjunction outside EL.
-        let src = "cnf(c, axiom, ( a(X) | b(X) )).\n";
-        let err = decide(src).unwrap_err();
-        assert!(err.reason.contains("disjunction"), "{err}");
-    }
-
-    #[test]
-    fn disjunctive_premise_is_a_capability_gap() {
-        // A genuine disjunction in a premise body is outside the EL fragment.
-        let src = "fof(d, axiom, ![X] : (a(X) => (b(X) | c(X)))).\n";
-        let err = decide(src).unwrap_err();
-        assert!(err.reason.contains("disjunction"), "{err}");
-    }
-
-    #[test]
-    fn binary_predicate_conjecture_is_a_capability_gap() {
-        let src = "\
-            fof(edge, axiom, r(a, b)).\n\
-            fof(goal, conjecture, r(a, b)).\n";
-        let err = decide(src).unwrap_err();
-        assert!(err.reason.contains("role"), "{err}");
-    }
-
-    // -----------------------------------------------------------------------
-    // The Horn / backward-resolution (proof-minting) lowering
-    // -----------------------------------------------------------------------
-
-    /// The committed `tptp-mini` problems, by case name.
-    const THEOREM_SUBCLASS: &str = include_str!(
-        "../../../../../conformance/logic/cases/external/tptp-mini/theorem-subclass/source/problem.p"
-    );
-    const THEOREM_GROUND: &str = include_str!(
-        "../../../../../conformance/logic/cases/external/tptp-mini/theorem-ground/source/problem.p"
-    );
-    const COUNTERSATISFIABLE: &str = include_str!(
-        "../../../../../conformance/logic/cases/external/tptp-mini/countersatisfiable/source/problem.p"
-    );
-    const SATISFIABLE_OPEN: &str = include_str!(
-        "../../../../../conformance/logic/cases/external/tptp-mini/satisfiable-open/source/problem.p"
-    );
-    const CONTRADICTORY_AXIOMS: &str = include_str!(
-        "../../../../../conformance/logic/cases/external/tptp-mini/contradictory-axioms/source/problem.p"
-    );
-    const CNF_DISJOINT_CLASH: &str = include_str!(
-        "../../../../../conformance/logic/cases/external/tptp-mini/cnf-disjoint-clash/source/problem.p"
-    );
-
-    fn prove(src: &str) -> gmeow_logic::proof_tree::ProvedProgram {
-        let formulas = parse_tptp(src).expect("parse ok");
-        let program = lower_to_fol_program(&formulas).expect("Horn lowering");
-        gmeow_logic::proof_tree::prove_reasoning_program(&program, &[]).expect("resolution")
-    }
-
-    #[test]
-    fn theorem_subclass_lowers_to_a_proof_carrying_derivation() {
-        // a ⊑ b, b ⊑ c ⊢ a ⊑ c. Negating the conjecture mints a witness w with a(w);
-        // the Horn derivation c(w) ← b(w) ← a(w) IS the refutation of ¬c(w).
-        let proved = prove(THEOREM_SUBCLASS);
-        assert_eq!(proved.status, "ok");
-        assert_eq!(proved.answers.len(), 1, "one derived goal instance");
-        let tree = &proved.answers[0].tree;
-        assert_eq!(tree.len(), 3, "c(w) ← b(w) ← a(w)");
-        assert!(!tree.root().asserted, "the root is a rule application");
-        assert_eq!(tree.root().premises, vec![1]);
-        assert!(
-            tree.steps()[2].asserted,
-            "the witness membership a(w) is the asserted leaf"
-        );
-        // Every step's identity is a genuine content-addressed derivation IRI.
-        for step in tree.steps() {
-            assert!(
-                step.derivation_iri
-                    .starts_with("https://blackcatinformatics.ca/gmeow/derivation/"),
-                "{}",
-                step.derivation_iri
-            );
-        }
-    }
-
-    #[test]
-    fn theorem_ground_lowers_to_a_two_step_derivation() {
-        // a ⊑ b, a(x) ⊢ b(x): one rule application over one asserted fact.
-        let proved = prove(THEOREM_GROUND);
-        assert_eq!(proved.answers.len(), 1);
-        let tree = &proved.answers[0].tree;
-        assert_eq!(tree.len(), 2);
-        assert!(tree.steps()[1].asserted);
-    }
-
-    #[test]
-    fn a_non_theorem_lowers_and_derives_nothing() {
-        // a(x) does NOT entail b(x): the goal is decided with an EMPTY answer set — no
-        // proof exists, and none is fabricated.
-        let proved = prove(COUNTERSATISFIABLE);
-        assert_eq!(proved.status, "ok");
-        assert!(proved.answers.is_empty());
-    }
-
-    #[test]
-    fn non_horn_and_goal_free_problems_are_honest_gaps() {
-        // No conjecture ⇒ no goal to derive.
-        let no_goal = lower_to_fol_program(&parse_tptp(SATISFIABLE_OPEN).unwrap()).unwrap_err();
-        assert!(no_goal.reason.contains("no conjecture"), "{no_goal}");
-
-        // `∀X.¬(b(X) ∧ c(X))` is a disjointness constraint, not a Horn clause.
-        let disjointness =
-            lower_to_fol_program(&parse_tptp(CONTRADICTORY_AXIOMS).unwrap()).unwrap_err();
-        assert!(disjointness.reason.contains("Horn"), "{disjointness}");
-
-        // `¬b(X) ∨ ¬c(X)` is an all-negative (goal) clause with no Horn head.
-        let all_negative =
-            lower_to_fol_program(&parse_tptp(CNF_DISJOINT_CLASH).unwrap()).unwrap_err();
-        assert!(
-            all_negative.reason.contains("all-negative"),
-            "{all_negative}"
-        );
-    }
-
-    #[test]
-    fn the_lowered_program_identity_is_content_addressed_and_stable() {
-        let a = lower_to_fol_program(&parse_tptp(THEOREM_SUBCLASS).unwrap()).unwrap();
-        let b = lower_to_fol_program(&parse_tptp(THEOREM_SUBCLASS).unwrap()).unwrap();
-        assert_eq!(a.iri, b.iri, "the same problem mints the same program IRI");
-        let other = lower_to_fol_program(&parse_tptp(THEOREM_GROUND).unwrap()).unwrap();
-        assert_ne!(a.iri, other.iri, "distinct problems mint distinct IRIs");
-    }
-
-    #[test]
-    fn the_tstp_derivation_round_trips_through_the_parser() {
-        use gmeow_logic::proof_tree::{tstp_step_derivation_iri, tstp_step_name};
-
-        let proved = prove(THEOREM_SUBCLASS);
-        let tree = &proved.answers[0].tree;
-        let tstp = tree.to_tstp().expect("TSTP projection");
-
-        let parsed = parse_tptp(&tstp).expect("our own TSTP derivation must re-parse");
-        assert_eq!(parsed.len(), tree.len(), "one annotated formula per step");
-
-        // Names round-trip to the step identities, and the emitted (reverse) order lines up
-        // with the tree's step table read backwards.
-        for (i, af) in parsed.iter().enumerate() {
-            let step = &tree.steps()[tree.len() - 1 - i];
-            assert_eq!(
-                af.name,
-                tstp_step_name(&step.derivation_iri).expect("name"),
-                "step name"
-            );
-            assert_eq!(
-                tstp_step_derivation_iri(&af.name).expect("inverse"),
-                step.derivation_iri,
-                "name → derivation IRI is the exact inverse"
-            );
-            match (&step.rule_iri, &af.source, af.role) {
-                (None, None, TptpRole::Premise) => {
-                    assert!(step.asserted, "an axiom line is an asserted leaf");
-                }
-                (
-                    Some(rule),
-                    Some(TptpSource::Inference {
-                        rule: parsed_rule,
-                        status,
-                        parents,
-                    }),
-                    TptpRole::Derived,
-                ) => {
-                    assert_eq!(parsed_rule, rule, "the cited firing rule survives");
-                    assert_eq!(
-                        status,
-                        &vec![TstpTerm::Func(
-                            "status".into(),
-                            vec![TstpTerm::Name("thm".into())]
-                        )]
-                    );
-                    let expected: Vec<String> = step
-                        .premises
-                        .iter()
-                        .map(|&p| tstp_step_name(&tree.steps()[p].derivation_iri).expect("name"))
-                        .collect();
-                    assert_eq!(parents, &expected, "the parent SET survives");
-                }
-                other => panic!("step {i} did not round-trip: {other:?}"),
-            }
-        }
-    }
-
-    #[test]
-    fn the_committed_tstp_fixture_is_exactly_what_our_reasoner_produces() {
-        // The shipped derivation fixture is a PRODUCT of the pipeline above, not a
-        // hand-written artifact: regenerate it from the committed problem and require a
-        // byte match of its derivation lines (the `%` header is prose). This also parses
-        // the fixture as it ships, header and all.
-        const FIXTURE: &str = include_str!("../../../../math-lift/fixtures/theorem-subclass.tstp");
-
-        let regenerated = prove(THEOREM_SUBCLASS).answers[0]
-            .tree
-            .to_tstp()
-            .expect("TSTP projection");
-        let committed: String = FIXTURE
-            .lines()
-            .filter(|l| !l.starts_with('%'))
-            .map(|l| format!("{l}\n"))
-            .collect();
-        assert_eq!(
-            committed, regenerated,
-            "the committed TSTP fixture drifted from what the reasoner now produces"
-        );
-        assert_eq!(
-            parse_tptp(FIXTURE)
-                .expect("the shipped fixture must parse")
-                .len(),
-            3
-        );
-    }
-
-    #[test]
-    fn world_scoped_edb_shape_matches_seed() {
-        let src = "\
-            fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
-            fof(x_is_a, axiom, a(x)).\n";
-        let fs = parse_tptp(src).unwrap();
-        let lowered = lower_problem(&fs, "https://gmeow.example/t/w").unwrap();
-        assert_eq!(lowered.quad_count, 2);
-        // Every quad is scoped under the single world IRI.
-        for line in lowered.input_nq.lines() {
-            assert!(
-                line.ends_with("<https://gmeow.example/t/w> ."),
-                "quad not world-scoped: {line}"
-            );
-        }
-    }
-}
+mod tests;

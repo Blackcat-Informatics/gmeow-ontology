@@ -58,7 +58,7 @@ fn ac6_paged_and_resident_closures_are_equal() {
     let (contract, annotation) = baseline_contracts();
     let idb = idb_reach();
 
-    let resident_edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let resident_edb = edge_arc(&[("a", "b"), ("b", "c")]);
     let resident =
         ReasoningSession::open(&resident_edb, &program, &contract, &annotation).expect("resident");
     let paged = open_paged_session(&program);
@@ -124,7 +124,7 @@ fn ac6_paged_session_maintains_parity_across_a_delta() {
     }
 
     // Parity against the full-recompute oracle over the paged base + delta facts.
-    let combined = edge_dataset(&[("a", "b"), ("b", "c"), ("c", "d")]);
+    let combined = edge_arc(&[("a", "b"), ("b", "c"), ("c", "d")]);
     assert_eq!(
         session_derived(&paged, &idb),
         oracle_derived(&program, &combined, &idb),

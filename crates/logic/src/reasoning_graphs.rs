@@ -62,6 +62,41 @@ pub const OBJECT_LEVEL_NAMED_GRAPHS: [&str; 8] = [
     GRAPH_EXAMPLES,
 ];
 
+/// Select the fixed object-level theory roles shared by production and bundle readers.
+/// The domain identity belongs to this declared role envelope, independently of
+/// current source contents or graph census. Empty selected theories remain present.
+pub fn object_level_domains() -> gmeow_errors::Result<crate::physical::SelectedDomains> {
+    use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
+    const AUTHORITY: &str = "gmeow.pipeline.object-level.v1";
+    let roles: Vec<_> = std::iter::once(LogicalGraph::Default)
+        .chain(
+            OBJECT_LEVEL_NAMED_GRAPHS
+                .into_iter()
+                .map(|graph| LogicalGraph::Named(purrdf::TermValue::iri(graph))),
+        )
+        .collect();
+    let bytes = serde_json::to_vec(&(AUTHORITY, DomainProfile::NonemptyObjectDomainV1, &roles))
+        .map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!("object-level domain selection identity: {error}"),
+            })
+        })?;
+    let selection = *blake3::hash(&bytes).as_bytes();
+    SelectedDomains::new(
+        roles
+            .into_iter()
+            .map(|graph| {
+                SelectedLogicalWorld::new(
+                    graph,
+                    DomainProfile::NonemptyObjectDomainV1,
+                    AUTHORITY.to_owned(),
+                    selection,
+                )
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()?,
+    )
+}
+
 /// Whether a named graph belongs to the object-level reasoning EDB.
 pub fn is_object_level_named_graph(iri: &str) -> bool {
     OBJECT_LEVEL_NAMED_GRAPHS.contains(&iri)
@@ -124,11 +159,16 @@ pub fn is_correspondence_quad(quad: &RdfQuad, correspondence_subjects: &HashSet<
 /// build-time twin) applies it to the assembled object-level union. A correspondence's
 /// `logic:sourceEndpoint`/`logic:targetEndpoint` referents are correspondence data (preserved
 /// in `graph/correspondence-laws`), not production object-level class expressions.
+/// Removing records does not remove their declared worlds, including empty graphs.
 pub fn exclude_grounding_correspondences(
     dataset: &RdfDataset,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let correspondence_subjects = grounding_correspondence_subjects(dataset);
     let mut builder = RdfDatasetBuilder::new();
+    for graph in dataset.owned_named_graphs() {
+        let graph = builder.intern_owned_term(&graph);
+        builder.declare_named_graph(graph);
+    }
     for quad in dataset.owned_quads() {
         if !is_correspondence_quad(&quad, &correspondence_subjects) {
             builder.push_owned_quad(&quad);
@@ -171,6 +211,7 @@ fn admitted_graph(graph: &Option<RdfTerm>) -> bool {
 /// Traversal follows only ownership links. In particular, `logic:relation` and
 /// `logic:termIri` are deliberately not followed: their objects are ontology vocabulary terms,
 /// not nodes owned by the recovery case.
+/// The original graph inventory survives even when all records in a graph are pruned.
 pub fn without_recovery_case_envelopes(
     dataset: &RdfDataset,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
@@ -236,6 +277,10 @@ pub fn without_recovery_case_envelopes(
     }
 
     let mut builder = RdfDatasetBuilder::new();
+    for graph in dataset.owned_named_graphs() {
+        let graph = builder.intern_owned_term(&graph);
+        builder.declare_named_graph(graph);
+    }
     for quad in quads {
         let recovery_owned = quad.predicate == RECOVERY_CASE
             || owned.contains(&(quad.graph_name.clone(), quad.subject.clone()));
@@ -297,6 +342,12 @@ pub fn project_object_level_edb(
     // The correspondence itself is preserved in `graph/correspondence-laws` (the mappings stage).
     let correspondence_subjects = grounding_correspondence_subjects(snapshot);
     let mut builder = RdfDatasetBuilder::new();
+    for graph in snapshot.owned_named_graphs() {
+        if admitted_graph(&Some(graph.clone())) {
+            let graph = builder.intern_owned_term(&graph);
+            builder.declare_named_graph(graph);
+        }
+    }
     for quad in snapshot.owned_quads() {
         if admitted_graph(&quad.graph_name)
             && !is_correspondence_quad(&quad, &correspondence_subjects)
@@ -322,70 +373,6 @@ pub fn project_object_level_edb(
     without_recovery_case_envelopes(admitted.as_ref())
 }
 
+#[path = "reasoning_graphs.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn boundary_is_unique_and_excludes_meta_graphs() {
-        let unique = OBJECT_LEVEL_NAMED_GRAPHS
-            .iter()
-            .copied()
-            .collect::<std::collections::BTreeSet<_>>();
-        assert_eq!(unique.len(), OBJECT_LEVEL_NAMED_GRAPHS.len());
-        assert!(!is_object_level_named_graph(
-            "https://blackcatinformatics.ca/gmeow/graph/correspondence"
-        ));
-        assert!(!is_object_level_named_graph(
-            "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws"
-        ));
-        // The grounding seam registry asserts governance/policy data (which
-        // cross-grounding reference channels are sanctioned), not object-level
-        // axioms — excluded exactly like the correspondence-laws graph.
-        assert!(!is_object_level_named_graph(
-            "https://blackcatinformatics.ca/gmeow/graph/grounding-seams"
-        ));
-    }
-
-    #[test]
-    fn endpoint_predicates_identify_a_correspondence_without_its_type_triple() {
-        // The build-time object-level-EDB twin sees a narrowed union in which the compile
-        // stage has already projected the `rdf:type logic:GroundingCorrespondence` triple into
-        // the meta `graph/correspondence-laws` graph, leaving only the raw endpoint triples in
-        // an admitted graph. Keying on the endpoint predicates still identifies the record, so
-        // its out-of-fragment `owl:InverseFunctionalProperty` referent never reaches the EDB
-        // (the reason-verify regression these leaks caused).
-        let ttl = concat!(
-            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
-            "logic:corrIFP\n",
-            "  logic:sourceEndpoint logic:inverseFunctionalProperty ;\n",
-            "  logic:targetEndpoint <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> .\n",
-            "logic:Person a logic:Class .\n",
-        );
-        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse ttl");
-
-        let subjects = grounding_correspondence_subjects(&ds);
-        assert!(
-            subjects.contains("https://blackcatinformatics.ca/logic/corrIFP"),
-            "an endpoint-only correspondence record must be detected: {subjects:?}"
-        );
-
-        let excluded = exclude_grounding_correspondences(&ds).expect("exclude correspondences");
-        let leaks_ifp = excluded.owned_quads().any(|q| {
-            matches!(&q.object, RdfTerm::Iri(o)
-                if o == "http://www.w3.org/2002/07/owl#InverseFunctionalProperty")
-        });
-        assert!(
-            !leaks_ifp,
-            "the inverse-functional endpoint referent must be excluded from the object-level EDB"
-        );
-        let keeps_person = excluded.owned_quads().any(|q| {
-            matches!(&q.subject, RdfTerm::Iri(s)
-                if s == "https://blackcatinformatics.ca/logic/Person")
-        });
-        assert!(
-            keeps_person,
-            "ordinary object-level axioms (logic:Person a logic:Class) must be preserved"
-        );
-    }
-}
+mod tests;

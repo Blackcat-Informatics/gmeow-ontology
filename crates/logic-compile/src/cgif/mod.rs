@@ -18,8 +18,8 @@
 //! 1. **Idiomatic conceptual-graph channel** — `program.rules` + `program.formulas`. These
 //!    become readable conceptual graphs (`[If: … [Then: …]]` rules, `~[…]` negated contexts,
 //!    `[@every*x]` universals, `[*x]` existentials) by bespoke code below. This channel is
-//!    **WRITE-ONLY / validated-only on read**: the canonical IR carries an `obj_is_literal`
-//!    bit and minted reifier-node identities that idiomatic conceptual-graph syntax cannot
+//!    **WRITE-ONLY / validated-only on read**: the canonical IR carries contextual source data
+//!    and minted reifier-node identities that idiomatic conceptual-graph syntax cannot
 //!    express, so reconstructing the byte-exact IR from a graph alone would be lossy.
 //! 2. **RDF / predication channel** — everything else (axioms + scope, contracts, path shapes,
 //!    correspondences, transaction programs). These are already flat RDF; the writer serializes

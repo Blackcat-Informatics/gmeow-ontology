@@ -5,8 +5,8 @@
 //! DECIDES the committed W3C OWL 2 Full divergence slugs it now covers, matching
 //! the W3C published verdict EXACTLY.
 //!
-//! Each slug's `input.nq` is run through the SAME `dl_consistency` path the
-//! grader/runner uses. The native token — `incomplete` when a construct is
+//! Each slug's authenticated observation was produced by the SAME `dl_consistency`
+//! path the grader/runner uses; tests never execute it on the corpus. The native token — `incomplete` when a construct is
 //! undecided (a non-empty `gaps`), otherwise the consistency boolean — must equal
 //! the W3C ground truth. These cases were `native_verdict = "incomplete"` before
 //! Family 5; the subsolver now decides them soundly and completely (an empty
@@ -115,7 +115,19 @@ fn xsd_pattern_restricted_datatype_stays_incomplete() {
         iri_quad("http://ex/y", RDF_TYPE, "http://ex/R"),
     ];
     let edb = build(quads);
-    let verdict = gmeow_logic::reason::dl_consistency(edb.as_ref())
+    let input = gmeow_logic::reason::prepare_reasoning_input(edb.as_ref())
+        .expect("synthetic datatype input");
+    let domains = gmeow_logic::reason::SelectedDomains::new([
+        gmeow_logic::reason::SelectedLogicalWorld::new(
+            gmeow_logic::reason::LogicalGraph::Named(purrdf::TermValue::iri(W)),
+            gmeow_logic::reason::DomainProfile::NonemptyObjectDomainV1,
+            "urn:test:datatype-value-space-negative:declared-world".to_owned(),
+            *input.ingress_contract(),
+        )
+        .expect("explicit named datatype theory"),
+    ])
+    .expect("one selected datatype theory");
+    let verdict = gmeow_logic::reason::dl_consistency(input, &domains)
         .expect("dl_consistency over the pattern-restricted datatype case");
     assert!(
         !verdict.gaps.is_empty(),
@@ -176,19 +188,29 @@ fn satisfiable_datatype_obligation_does_not_mask_a_foreign_case_split_clash() {
         iri_quad("http://ex/l1", RDF_REST, RDF_NIL),
     ];
     let edb = build(quads);
-    let verdict = gmeow_logic::reason::dl_consistency(edb.as_ref())
+    let input = gmeow_logic::reason::prepare_reasoning_input(edb.as_ref())
+        .expect("synthetic datatype and class input");
+    let domains = gmeow_logic::reason::SelectedDomains::new([
+        gmeow_logic::reason::SelectedLogicalWorld::new(
+            gmeow_logic::reason::LogicalGraph::Named(purrdf::TermValue::iri(W)),
+            gmeow_logic::reason::DomainProfile::NonemptyObjectDomainV1,
+            "urn:test:datatype-value-space-negative:declared-world".to_owned(),
+            *input.ingress_contract(),
+        )
+        .expect("explicit named datatype and class theory"),
+    ])
+    .expect("one selected datatype and class theory");
+    let verdict = gmeow_logic::reason::dl_consistency(input, &domains)
         .expect("dl_consistency over the mixed datatype-obligation + case-split-clash case");
-    assert!(
-        verdict.gaps.is_empty(),
-        "the case-split decider must fully decide this whole case (no honest withhold \
-         should remain): {:?}",
-        verdict.gaps
-    );
     assert!(
         !verdict.consistent,
         "G1 SOUNDNESS: a foreign owl:unionOf/owl:disjointWith case-split clash must NOT be \
          masked by a satisfiable, unrelated datatype value-space obligation — the whole-case \
          completeness gate must force the datatype decider to withhold so the case-split \
          decider proves INCONSISTENT"
+    );
+    assert!(
+        !verdict.gaps.is_empty(),
+        "the proved class conflict must not erase the unrelated datatype/source loss evidence"
     );
 }

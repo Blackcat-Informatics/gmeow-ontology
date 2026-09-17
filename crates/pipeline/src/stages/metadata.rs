@@ -35,6 +35,12 @@ use crate::stages::profiles::{
 pub const VOID_PATH: &str = "generated/metadata/void.ttl";
 /// Logical path of the generated DCAT document.
 pub const DCAT_PATH: &str = "generated/metadata/dcat.ttl";
+/// Native products of the exact datasets supplied to the public RDF serializer.
+/// These authenticated stage channels are read directly by semantic consumers.
+const NATIVE_PRODUCTS: [(&str, &str); 2] = [
+    (VOID_PATH, "pipeline/metadata-void.purrpack"),
+    (DCAT_PATH, "pipeline/metadata-dcat.purrpack"),
+];
 
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -663,17 +669,11 @@ fn build_dcat_quads(store: &RdfDataset, root: &Path) -> Result<Vec<RdfQuad>, gme
     Ok(out)
 }
 
-/// Fold a built quad set into the frozen IR (the native twin of the old
-/// `Store` + `dataset_from_store`), then serialize the default graph to Turtle
-/// bytes, banner-prefixed. The quad set is blank-node-free plain triples, so the
-/// statement-layer fold is a no-op and the output is byte-identical to the prior
-/// oxigraph-built path.
-fn serialize(quads: &[RdfQuad]) -> Result<Vec<u8>, gmeow_errors::Diag> {
+/// Serialize the same native default graph published for semantic consumption.
+fn serialize(dataset: &RdfDataset) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut buf: Vec<u8> = BANNER.as_bytes().to_vec();
-    let dataset = dataset_from_quads(quads)
-        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
     let body =
-        serialize_dataset(&dataset, "text/turtle", SerializeGraph::DefaultGraph).map_err(|e| {
+        serialize_dataset(dataset, "text/turtle", SerializeGraph::DefaultGraph).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!("turtle serialize: {e}"),
             })
@@ -682,10 +682,9 @@ fn serialize(quads: &[RdfQuad]) -> Result<Vec<u8>, gmeow_errors::Diag> {
     Ok(buf)
 }
 
-/// Render the committed metadata artifacts from the same carrier dataset the
-/// export leaf reads. The snapshot folds these byte projections into the generated
-/// archive so the superset gate can reconstruct the committed files without adding
-/// self-describing metadata graphs back into the carrier they describe.
+/// Produce public metadata and native read products from one carrier selection.
+/// Each public serializer and native product share one frozen dataset. Semantic
+/// consumers restore that product without reparsing the presentation document.
 pub(crate) fn render_metadata_from_dataset(
     root: &Path,
     store: &RdfDataset,
@@ -694,8 +693,19 @@ pub(crate) fn render_metadata_from_dataset(
     let dcat = build_dcat_quads(store, root)?;
 
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    artifacts.insert(VOID_PATH.to_string(), serialize(&void)?);
-    artifacts.insert(DCAT_PATH.to_string(), serialize(&dcat)?);
+    for ((path, native_path), quads) in NATIVE_PRODUCTS.into_iter().zip([void, dcat]) {
+        let dataset = dataset_from_quads(&quads)
+            .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Parse { message }))?;
+        artifacts.insert(path.to_owned(), serialize(&dataset)?);
+        artifacts.insert(
+            native_path.to_owned(),
+            purrdf::PackBuilder::build_bytes(&dataset).map_err(|error| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("native metadata product: {error}"),
+                })
+            })?,
+        );
+    }
     Ok(artifacts)
 }
 
@@ -729,7 +739,7 @@ impl Stage for MetadataStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "metadata.v2-public-en"
+        "metadata.v3-native-products"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // THIS run's snapshot carrier dataset, read DIRECTLY off the product bundle —
@@ -745,103 +755,6 @@ impl Stage for MetadataStage {
     }
 }
 
+#[path = "metadata.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    /// Read a `void:<key>` integer literal from the authenticated producer
-    /// artifact so this semantic check never consults the materialized tree.
-    fn authenticated_void_stat(dataset: &RdfDataset, key: &str) -> u64 {
-        let predicate = format!("{VOID}{key}");
-        let mut found: Option<u64> = None;
-        for q in dataset.owned_quads() {
-            if term_iri(&q.subject) != Some(VOID_DATASET_IRI) || q.predicate != predicate {
-                continue;
-            }
-            if let RdfTerm::Literal(RdfLiteral { lexical_form, .. }) = &q.object {
-                found = Some(
-                    lexical_form
-                        .parse()
-                        .unwrap_or_else(|_| panic!("void:{key} not an integer: {lexical_form}")),
-                );
-            }
-        }
-        found.unwrap_or_else(|| panic!("authenticated void.ttl lacks void:{key} on dataset"))
-    }
-
-    #[test]
-    fn authenticated_metadata_stats_are_non_zero() {
-        let root = repo_root();
-        let artifact =
-            crate::fixture::authenticated_artifact(&root, "stage-export-metadata", VOID_PATH)
-                .expect("authenticated VoID artifact; tests never produce it");
-        let dataset = purrdf::parse_dataset(&artifact, "text/turtle", None)
-            .expect("authenticated VoID artifact parses");
-        for key in ["triples", "entities", "classes", "properties"] {
-            assert!(
-                authenticated_void_stat(&dataset, key) > 0,
-                "authenticated void:{key} census must be non-zero"
-            );
-        }
-    }
-
-    #[test]
-    fn metadata_census_counts_canonical_logic_typing() {
-        let dataset = purrdf::parse_dataset(
-            br#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
-                @prefix ex: <https://blackcatinformatics.ca/gmeow/test/> .
-                ex:Class a logic:Class .
-                ex:object a logic:ObjectProperty .
-                ex:data a logic:DatatypeProperty .
-                ex:annotation a logic:AnnotationProperty ."#,
-            "text/turtle",
-            None,
-        )
-        .expect("canonical logic typing fixture parses");
-        let stats = fold_stats(&dataset).expect("metadata census succeeds");
-        assert_eq!(stats.classes, 1);
-        assert_eq!(stats.properties, 3);
-    }
-
-    #[test]
-    /// Generated VoID/DCAT prose exposes only public `@en` language tags.
-    fn authenticated_external_metadata_uses_only_public_english_tags() {
-        let root = repo_root();
-        for path in [VOID_PATH, DCAT_PATH] {
-            let artifact =
-                crate::fixture::authenticated_artifact(&root, "stage-export-metadata", path)
-                    .unwrap_or_else(|error| {
-                        panic!("authenticated {path}; tests never produce it: {error}")
-                    });
-            let dataset = purrdf::parse_dataset(&artifact, "text/turtle", None)
-                .unwrap_or_else(|error| panic!("{path} parses: {error}"));
-            let languages: Vec<String> = dataset
-                .owned_quads()
-                .filter_map(|quad| match quad.object {
-                    RdfTerm::Literal(RdfLiteral { language, .. }) => language,
-                    _ => None,
-                })
-                .collect();
-            assert!(
-                !languages.is_empty(),
-                "{path} carries language-tagged prose"
-            );
-            assert!(
-                languages.iter().all(|language| language == "en"),
-                "{path} publishes only public English language tags: {languages:?}"
-            );
-            assert!(
-                !String::from_utf8_lossy(&artifact).contains("@x-gmeow-"),
-                "{path} must not leak internal carrier language tags"
-            );
-        }
-    }
-}
+mod tests;

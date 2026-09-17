@@ -452,3 +452,19 @@ msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:ClaimSite rdfs:
 msgctxt "https://blackcatinformatics.ca/logic/attestationClaimDimensionSubsumption|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The subsumption axiom the gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimDimension(x) → QualityValue(x) — every claim dimension is an enumerated quality value, a member of the value vocabulary naming which versioned fact a claim asserts."
 msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue est la projection : ∀x. ClaimDimension(x) → QualityValue(x) — toute dimension de revendication est une valeur de qualité énumérée, un membre du vocabulaire de valeurs nommant quel fait versionné une revendication affirme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSiteWorkspaceManifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The root Cargo.toml [workspace.dependencies] compatibility requirement for the substrate. Cargo.lock records the exact selected release."
+msgstr "L’exigence de compatibilité du substrat dans [workspace.dependencies] du Cargo.toml racine. Cargo.lock consigne la version exacte sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSiteFuzzManifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fuzz/Cargo.toml compatibility requirement for the substrate. Its committed lockfile must select the same PurRDF package identities as the root lockfile."
+msgstr "L’exigence de compatibilité du substrat dans fuzz/Cargo.toml. Son fichier de verrouillage versionné doit sélectionner les mêmes identités de paquets PurRDF que le fichier de verrouillage racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionVersionRequirement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version requirement dimension"
+msgstr "dimension de l’exigence de version"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionVersionRequirement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The manifest's normalized semantic-version compatibility requirement. It constrains the exact release selected by a lockfile but does not itself name that release."
+msgstr "L’exigence de compatibilité de version sémantique normalisée du manifeste. Elle contraint la version exacte sélectionnée par un fichier de verrouillage sans désigner elle-même cette version."

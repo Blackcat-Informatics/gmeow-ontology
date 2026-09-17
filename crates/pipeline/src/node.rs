@@ -80,7 +80,7 @@ pub const SOURCE_ORIGIN: &str = "https://blackcatinformatics.ca/gmeow/sourceOrig
 /// the byte reads with dataset/lane reads and retire the lane per stage.
 ///
 /// `digest` is the cache key: for a freshly produced bundle it is
-/// `bundle.digest().to_hex()` (the handle-excluded content fold), so `combined()`
+/// the carrier content fold plus complete typed bindings, so `combined()`
 /// over stages stays an order-independent Merkle fold; abstract/test products may
 /// carry an explicit digest decoupled from the (empty) carrier.
 #[derive(Debug, Clone)]
@@ -109,6 +109,8 @@ pub struct StageProduct {
     /// dataflow and MUST hard-fail on this flag rather than read an empty carrier — see
     /// [`crate::stages::carrier::snapshot_dataset`].
     pub carrier_released: bool,
+    /// Published typed identities survive payload release and avoid repeated lowering.
+    handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
 }
 
 impl StageProduct {
@@ -127,6 +129,7 @@ impl StageProduct {
                 DatasetProvenance::new(),
             )),
             carrier_released: false,
+            handle_commitments: BTreeMap::new(),
         }
     }
 
@@ -152,17 +155,19 @@ impl StageProduct {
     }
 
     /// Construct a product wrapping an already-assembled carrier; the digest is the
-    /// bundle's content fold (handle lane excluded).
+    /// bundle's content fold plus each complete typed handle binding.
     pub fn from_bundle(
         stage_id: impl Into<String>,
         bundle: Arc<PipelineBundle<PipelineHandle>>,
     ) -> Self {
-        let digest = bundle.digest().to_hex();
+        let handle_commitments = crate::handle_identity::handle_commitments(&bundle);
+        let digest = crate::handle_identity::product_digest(&bundle, &handle_commitments);
         Self {
             stage_id: stage_id.into(),
             digest,
             bundle,
             carrier_released: false,
+            handle_commitments,
         }
     }
 
@@ -186,7 +191,24 @@ impl StageProduct {
             digest: self.digest,
             bundle: Arc::new(bundle),
             carrier_released: true,
+            handle_commitments: self.handle_commitments,
         })
+    }
+
+    /// Immutable typed commitments from publication, shared with action receipts.
+    pub(crate) fn handle_commitments(
+        &self,
+    ) -> &BTreeMap<String, crate::handle_identity::HandleCommitment> {
+        &self.handle_commitments
+    }
+
+    /// Release a declared payload after its last consumer while preserving the
+    /// published product and entity identities used by immutable receipts.
+    pub(crate) fn with_released_bundle(&self, bundle: PipelineBundle<PipelineHandle>) -> Self {
+        Self {
+            bundle: Arc::new(bundle),
+            ..self.clone()
+        }
     }
 
     /// Borrow the structured carrier this product emitted.

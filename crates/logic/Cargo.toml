@@ -20,6 +20,8 @@ path = "src/lib.rs"
 # world-indexed logic stores. The world-store now holds the native
 # `MutableDataset`/`RdfDataset` IR directly — oxigraph-free.
 purrdf.workspace = true
+# Native composite-literal blank identities share the upstream core's authority.
+purrdf-core.workspace = true
 # The native SPARQL engine over `Arc<RdfDataset>`: the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (purrdf's rdf-core/sparql-algebra/xsd
@@ -45,6 +47,10 @@ gmeow-math = { path = "../math" }
 # project surface (frontend / ir / projections) and bridges its IR into the runtime
 # EvalRule via crate::lower; certify + the compile_logic entrypoint call into it.
 gmeow-logic-compile = { path = "../logic-compile" }
+# The shipped, reasoner-free TPTP/TSTP syntax AST. External evidence checking
+# reuses its one FOF/CNF parser; it does not link the repository conformance
+# harness or a second reasoning authority.
+gmeow-math-lift = { path = "../math-lift" }
 # THE one structured-term representation: the persistent hash-consed, binder-aware,
 # content-addressed term arena, relocated OUT of this runtime so a front-end can intern
 # terms without linking the native DL engine. This crate is its engine-tier consumer —
@@ -65,6 +71,7 @@ gmeow-lang-form = { path = "../lang-form" }
 # `content_address`, so `Checkpoint::verify` can still detect tampering.
 serde.workspace = true
 serde_json.workspace = true
+ciborium.workspace = true
 blake3.workspace = true
 # Delimited-data reader for the n-ary EDB loader (nary_rls): proper quoting/escaping
 # and STRICT uniform-arity parsing of ChaseBench-family CSV/TSV corpora. Already in the
@@ -116,6 +123,8 @@ sha2.workspace = true
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
+gmeow-action-cache = { path = "../action-cache" }
 # The whole-bundle coherence integration test imports the shipped snapshot through
 # the native cross-process transport cache. It is deliberately test-only: the
 # reasoning core and its browser consumers must not inherit filesystem/locking code.
@@ -188,3 +197,6 @@ harness = false
 [[bench]]
 name = "purremb_retrieval"
 harness = false
+
+[build-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }

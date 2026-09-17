@@ -13,10 +13,9 @@
 //!
 //! These wrappers add exactly two things and remove nothing:
 //!
-//! * they map [`purrdf::entail::EntailError`] onto the shared
-//!   [`gmeow_errors`] substrate through the reasoning-core
-//!   [`Reason`](crate::error::Reason) diagnostic, so a caller inside this workspace
-//!   sees a typed [`Diag`](gmeow_errors::Diag) rather than a foreign error type; and
+//! * they classify OWL-DL service refusals as [`DlServiceError`] so no-model,
+//!   malformed-input and execution failures remain distinct, while non-service
+//!   operations map foreign errors onto the shared [`gmeow_errors`] substrate; and
 //! * they carry every [`purrdf::entail::Certified`] answer WITH its
 //!   [`purrdf::entail::DlCertificate`] completeness verdict and construct boundaries
 //!   as one value, [`CertifiedAnswer`](crate::reasoner_services::CertifiedAnswer), so a service's answer is never read apart
@@ -61,6 +60,50 @@ use purrdf::entail::{
 };
 use purrdf::{RdfDataset, TermValue};
 
+/// Stable disposition of a refused OWL Direct-Semantics service operation.
+///
+/// The category is deliberately separate from rendered diagnostics. In particular,
+/// an unsatisfiable ontology is a decided negative result for classification and
+/// realization, while malformed reverse-mapping input and an engine failure are not.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DlServiceFailureKind {
+    /// The ontology has no model, so the requested model-relative product is undefined.
+    NoModel,
+    /// The RDF graph cannot be admitted as a well-formed OWL Direct-Semantics input.
+    Malformed,
+    /// The selected engine failed to execute or exhausted a construction resource.
+    Execution,
+}
+
+/// Typed failure from an OWL Direct-Semantics reasoning service.
+#[derive(Debug)]
+pub struct DlServiceError {
+    kind: DlServiceFailureKind,
+    detail: String,
+}
+
+impl DlServiceError {
+    /// Machine-stable failure category.
+    #[must_use]
+    pub const fn kind(&self) -> DlServiceFailureKind {
+        self.kind
+    }
+
+    /// Complete human-readable upstream detail.
+    #[must_use]
+    pub fn detail(&self) -> &str {
+        &self.detail
+    }
+}
+
+impl std::fmt::Display for DlServiceError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.detail)
+    }
+}
+
+impl std::error::Error for DlServiceError {}
+
 /// Lower a purrdf [`EntailError`] onto the shared reasoning-core diagnostic
 /// substrate, preserving its rendered text verbatim.
 ///
@@ -73,6 +116,18 @@ fn map_entail_err(error: EntailError) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason {
         detail: format!("purrdf entail service refused: {error}"),
     })
+}
+
+fn map_dl_service_err(error: EntailError) -> DlServiceError {
+    let kind = match &error {
+        EntailError::Unsatisfiable => DlServiceFailureKind::NoModel,
+        EntailError::Parse(_) | EntailError::MalformedList(_) => DlServiceFailureKind::Malformed,
+        _ => DlServiceFailureKind::Execution,
+    };
+    DlServiceError {
+        kind,
+        detail: format!("purrdf entail service refused: {error}"),
+    }
 }
 
 /// A DL reasoning answer together with the completeness verdict and construct
@@ -163,13 +218,12 @@ impl DlReasoner {
     ///
     /// # Errors
     ///
-    /// A [`Reason`](crate::error::Reason) diagnostic if the reverse mapping refuses —
-    /// a malformed OWL class-expression graph, or an `owl:hasKey` axiom that
-    /// exhausts the tableau or finds the ontology already unsatisfiable.
-    pub fn new(dataset: &RdfDataset) -> Result<Self> {
+    /// A typed [`DlServiceError`] if reverse mapping sees malformed input, execution
+    /// fails, or an `owl:hasKey` axiom proves the ontology has no model.
+    pub fn new(dataset: &RdfDataset) -> std::result::Result<Self, DlServiceError> {
         Reasoner::new(dataset)
             .map(|inner| Self { inner })
-            .map_err(map_entail_err)
+            .map_err(map_dl_service_err)
     }
 
     /// Open the reasoning services over `dataset` with the per-decision step cap
@@ -182,12 +236,15 @@ impl DlReasoner {
     /// # Errors
     ///
     /// As [`new`](Self::new).
-    pub fn with_step_cap(dataset: &RdfDataset, cap: u64) -> Result<Self> {
+    pub fn with_step_cap(
+        dataset: &RdfDataset,
+        cap: u64,
+    ) -> std::result::Result<Self, DlServiceError> {
         Reasoner::new(dataset)
             .map(|reasoner| Self {
                 inner: reasoner.with_step_cap(cap),
             })
-            .map_err(map_entail_err)
+            .map_err(map_dl_service_err)
     }
 
     /// The per-decision step cap every tableau run of this reasoner runs under.
@@ -224,26 +281,30 @@ impl DlReasoner {
     ///
     /// # Errors
     ///
-    /// A [`Reason`](crate::error::Reason) diagnostic if the ontology has no model at
-    /// all — every class is then vacuously unsatisfiable and the answer would say
-    /// nothing.
-    pub fn class_satisfiability(&mut self, class: &TermValue) -> Result<CertifiedAnswer<Verdict>> {
+    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// no model at all — every class is then vacuously unsatisfiable and the answer
+    /// would say nothing.
+    pub fn class_satisfiability(
+        &mut self,
+        class: &TermValue,
+    ) -> std::result::Result<CertifiedAnswer<Verdict>, DlServiceError> {
         self.inner
             .class_satisfiability(class)
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+            .map_err(map_dl_service_err)
     }
 
     /// The subsumption hierarchy over the ontology's named classes.
     ///
     /// # Errors
     ///
-    /// A [`Reason`](crate::error::Reason) diagnostic if the ontology has no model.
-    pub fn classify(&self) -> Result<CertifiedAnswer<ClassHierarchy>> {
+    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// no model.
+    pub fn classify(&self) -> std::result::Result<CertifiedAnswer<ClassHierarchy>, DlServiceError> {
         self.inner
             .classify()
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+            .map_err(map_dl_service_err)
     }
 
     /// The entailed types of the ontology's named individuals, and the most specific
@@ -251,37 +312,46 @@ impl DlReasoner {
     ///
     /// # Errors
     ///
-    /// A [`Reason`](crate::error::Reason) diagnostic if the ontology has no model.
-    pub fn realize(&self) -> Result<CertifiedAnswer<Realization>> {
+    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// no model.
+    pub fn realize(&self) -> std::result::Result<CertifiedAnswer<Realization>, DlServiceError> {
         self.inner
             .realize()
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+            .map_err(map_dl_service_err)
     }
 
     /// The named individuals entailed to be instances of `class`, sorted.
     ///
     /// # Errors
     ///
-    /// A [`Reason`](crate::error::Reason) diagnostic if the ontology has no model.
-    pub fn instances(&mut self, class: &TermValue) -> Result<CertifiedAnswer<Vec<TermValue>>> {
+    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// no model.
+    pub fn instances(
+        &mut self,
+        class: &TermValue,
+    ) -> std::result::Result<CertifiedAnswer<Vec<TermValue>>, DlServiceError> {
         self.inner
             .instances(class)
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+            .map_err(map_dl_service_err)
     }
 
     /// Whether the ontology entails `axiom`, decided by refutation.
     ///
     /// # Errors
     ///
-    /// A [`Reason`](crate::error::Reason) diagnostic if the ontology has no model, in
-    /// which case every axiom is entailed and the answer would be worthless.
-    pub fn entails(&mut self, axiom: &DlAxiom) -> Result<CertifiedAnswer<Verdict>> {
+    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// no model, in which case every axiom is entailed and the answer would be
+    /// worthless.
+    pub fn entails(
+        &mut self,
+        axiom: &DlAxiom,
+    ) -> std::result::Result<CertifiedAnswer<Verdict>, DlServiceError> {
         self.inner
             .entails(axiom)
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+            .map_err(map_dl_service_err)
     }
 }
 
@@ -354,150 +424,6 @@ pub fn certain_answers(
     purrdf::entail::certain_answers(premise, bgp, regime, imports).map_err(map_entail_err)
 }
 
+#[path = "reasoner_services.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use purrdf::RdfDatasetBuilder;
-    use purrdf::entail::OwlProfile;
-
-    /// Reserved vocabulary the fixtures below assert over.
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-    const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
-
-    const CAT: &str = "http://example.org/Cat";
-    const DOG: &str = "http://example.org/Dog";
-    const ANIMAL: &str = "http://example.org/Animal";
-    const TOM: &str = "http://example.org/tom";
-
-    /// A tiny, consistent A-Box: `Cat ⊑ Animal`, `tom a Cat`.
-    fn consistent_dataset() -> std::sync::Arc<RdfDataset> {
-        let mut builder = RdfDatasetBuilder::new();
-        let cat = builder.intern_iri(CAT);
-        let animal = builder.intern_iri(ANIMAL);
-        let tom = builder.intern_iri(TOM);
-        let sub = builder.intern_iri(RDFS_SUBCLASSOF);
-        let ty = builder.intern_iri(RDF_TYPE);
-        builder.push_quad(cat, sub, animal, None);
-        builder.push_quad(tom, ty, cat, None);
-        builder.freeze().expect("freeze the consistent fixture")
-    }
-
-    /// A tiny, INCONSISTENT A-Box: `Cat` and `Dog` are disjoint, yet `tom` is both.
-    fn inconsistent_dataset() -> std::sync::Arc<RdfDataset> {
-        let mut builder = RdfDatasetBuilder::new();
-        let cat = builder.intern_iri(CAT);
-        let dog = builder.intern_iri(DOG);
-        let tom = builder.intern_iri(TOM);
-        let disjoint = builder.intern_iri(OWL_DISJOINT_WITH);
-        let ty = builder.intern_iri(RDF_TYPE);
-        builder.push_quad(cat, disjoint, dog, None);
-        builder.push_quad(tom, ty, cat, None);
-        builder.push_quad(tom, ty, dog, None);
-        builder.freeze().expect("freeze the inconsistent fixture")
-    }
-
-    #[test]
-    fn consistency_true_on_a_satisfiable_abox() {
-        let dataset = consistent_dataset();
-        let reasoner = DlReasoner::new(&dataset).expect("reverse-map the consistent ontology");
-        let certified = reasoner.consistency();
-        assert_eq!(certified.answer, Verdict::True);
-        // The whole ontology was read and every search finished: an exact answer.
-        assert!(certified.is_decided());
-        assert!(certified.is_exact());
-        assert!(certified.boundaries.is_empty());
-    }
-
-    #[test]
-    fn consistency_false_on_a_disjointness_violation() {
-        let dataset = inconsistent_dataset();
-        let reasoner = DlReasoner::new(&dataset).expect("reverse-map the inconsistent ontology");
-        let certified = reasoner.consistency();
-        // Detected, not errored: consistency is the one service that reports an
-        // unsatisfiable ontology as a verdict rather than as a refusal.
-        assert_eq!(certified.answer, Verdict::False);
-        assert!(certified.is_decided());
-    }
-
-    #[test]
-    fn entailed_subsumption_is_certified_true() {
-        let dataset = consistent_dataset();
-        let mut reasoner = DlReasoner::new(&dataset).expect("reverse-map");
-        let axiom = DlAxiom::ClassAssertion {
-            individual: TermValue::iri(TOM),
-            class: TermValue::iri(ANIMAL),
-        };
-        // `tom a Animal` is not asserted but IS entailed through `Cat ⊑ Animal`.
-        let certified = reasoner.entails(&axiom).expect("consistent ontology");
-        assert_eq!(certified.answer, Verdict::True);
-        assert!(certified.is_exact());
-    }
-
-    #[test]
-    fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
-        let dataset = inconsistent_dataset();
-        let mut reasoner = DlReasoner::new(&dataset).expect("reverse-map");
-        // Every class is vacuously unsatisfiable in an ontology with no model, so
-        // the service refuses rather than answering — and the refusal is a typed
-        // reasoning-core diagnostic, not a foreign error.
-        let error = reasoner
-            .class_satisfiability(&TermValue::iri(CAT))
-            .expect_err("an unsatisfiable ontology has no meaningful class answer");
-        assert!(
-            error.to_string().contains("purrdf entail service refused"),
-            "unexpected diagnostic text: {error}"
-        );
-    }
-
-    #[test]
-    fn a_narrowed_step_cap_reports_unknown_rather_than_a_fabricated_verdict() {
-        let dataset = consistent_dataset();
-
-        // Under the size-derived ceiling the same ontology is DECIDED exactly: this is
-        // the control that makes the exhausted arm below falsifiable — the ontology is
-        // trivially consistent, so a non-conclusion can only come from the ceiling, not
-        // from the input being genuinely undecidable.
-        let decided = DlReasoner::new(&dataset)
-            .expect("reverse-map the consistent ontology")
-            .consistency();
-        assert_eq!(decided.answer, Verdict::True);
-        assert!(decided.is_exact());
-        assert_eq!(decided.completeness, DlCompleteness::Decided);
-
-        // Now narrow the per-decision step cap to one round — the one ceiling this
-        // repository can move, and only downward. One round decides nothing, so the
-        // hypertableau search must exhaust.
-        let starved =
-            DlReasoner::with_step_cap(&dataset, 1).expect("reverse-map under a narrowed step cap");
-        assert_eq!(starved.step_cap(), 1, "the cap was narrowed to one round");
-
-        let answer = starved.consistency();
-
-        // The honest contract: exhaustion is a NON-CONCLUSION, never a fabricated
-        // verdict and never a panic. A boolean service reports `Unknown`, the
-        // certificate reports `BudgetExhausted`, and both completeness predicates read
-        // `false` — the answer is not presented as if it were decided or exact.
-        assert_eq!(
-            answer.answer,
-            Verdict::Unknown,
-            "an exhausted search is Unknown, never True/False as if decided"
-        );
-        assert_ne!(answer.answer, Verdict::True);
-        assert_ne!(answer.answer, Verdict::False);
-        assert_eq!(answer.completeness, DlCompleteness::BudgetExhausted);
-        assert!(!answer.is_decided());
-        assert!(!answer.is_exact());
-    }
-
-    #[test]
-    fn profile_certifies_a_bare_subclass_ontology_everywhere() {
-        let dataset = consistent_dataset();
-        let certificate = certify_profiles(&dataset);
-        // A bare sub-class axiom plus a class assertion is in every OWL 2 profile.
-        assert_eq!(certificate.certified(), OwlProfile::ALL.to_vec());
-        assert!(certificate.violations().is_empty());
-        // Full is certified unconditionally: every RDF graph is an OWL 2 Full ontology.
-        assert!(certificate.certifies(OwlProfile::Full));
-    }
-}
+mod tests;

@@ -60,6 +60,7 @@ purrdf.workspace = true
 # the default BTreeMap-backed `Value` serializes keys in sorted order, which IS
 # the canonical form the Python runner produced via `json.dumps(sort_keys=True)`.
 serde_json.workspace = true
+serde.workspace = true
 # Content-addressed, blake3-keyed instance IRIs for the reified conformance
 # comparison + agreement-tally individuals (the SAME hash the diagnostics finding
 # IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals
@@ -73,60 +74,6 @@ gmeow-bundle-import = { path = "../bundle-import" }
 # under `std::env::temp_dir()` is banned by the repo-static guard
 # (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
 tempfile = "3"
-# File-driven test harness: one nextest case per discovered profile.json (i.e. per
-# case directory), run in parallel. Mirrors crates/slicetest.
-datatest-stable = "0.3"
 # NOTE: `purrdf` is now a regular dependency (above) — the RDF comparator uses its
 # native canonicalizer, and the native-DL gold lane parses curated OWL/gUFO
 # fixtures into the frozen `RdfDataset` IR via the same dependency.
-
-[[test]]
-name = "conformance"
-harness = false
-
-# The native⊇oracle DL gold lane: load each curated fixture, run native
-# `reason_all`, and assert the native verdict reproduces every FROZEN external
-# DL oracle inconsistency/unsat class. Offline + deterministic (no Docker/Java/network);
-# the standard libtest harness (not datatest-stable).
-[[test]]
-name = "dl_oracle_gold"
-
-# The per-op numeric-builtin oracle-gold lane: drives each frozen,
-# independently hand-derived case under `coverage/external/1428-numeric-builtin-oracle-gold/`
-# through the PUBLIC `gmeow_logic::dispatch::dispatch_query` surface (never the
-# crate-private `builtin_eval::eval`), so the exact-ℚ arithmetic / comparison / SI-dimension
-# / dimensioned-quantity builtins are each anchored to an oracle independent of the engine
-# under test. Offline + deterministic (no Docker/Java/network); the standard libtest harness
-# (not datatest-stable).
-[[test]]
-name = "numeric_builtin_oracle_gold"
-
-# The W3C OWL 2 EL soundness-divergence regression gate: re-runs the eight
-# correctness-crux cases (seven agreeing soundness fixes + the owl:Thing-oneOf
-# honest gaps) through the native reasoner and pins each verdict + the exact
-# divergence-set membership. Offline + deterministic + sub-second (standard
-# libtest harness, not datatest-stable).
-[[test]]
-name = "el_divergence_gate"
-
-# The TPTP honest-capability-gap gate: pins each source-only
-# `tptp-mini-divergence` problem as an honest gap (parser/lowerer error), never a
-# silently-decided verdict. Offline + deterministic + sub-second.
-[[test]]
-name = "tptp_divergence_gate"
-
-# The entailment-mini coverage-floor + divergence gate: asserts the native
-# `dl_entails` reduction grades at least the pinned number of both-inline W3C-style
-# entailment cases (the executable coverage floor for native entailment grading), and pins the
-# honest structured-gap divergence set + its recorded `gmeow:gapShape` tokens.
-[[test]]
-name = "entailment_mini_gate"
-
-# The W3C OWL 2 Full soundness-divergence SCALING gate: walks all 154 vendored
-# `w3c-owl2-full-divergence` cases (no hardcoded slug list) and re-runs the live
-# reasoner over each. Asserts the non-negotiable soundness invariant (native never
-# decides a verdict that contradicts the W3C published verdict), pins the frozen
-# honest-gap reproduction, and floors + provenance-pins the corpus. Offline +
-# deterministic + sub-second (standard libtest harness, not datatest-stable).
-[[test]]
-name = "full_divergence_gate"

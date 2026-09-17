@@ -412,18 +412,18 @@ about whether the priming changed what the bundle **says**, and that is the clai
 medium axis actually rests on. The gate deliberately never obtains that evidence by
 emitting the corpus again from a test.
 
-## On-gate: authenticated artifact plus compositional codec law
+## On-gate: authenticated artifact and declared medium policy
 
 `crates/pipeline/tests/medium_bundle.rs` consumes the ONE exact bundle selected by the
 fixture producer. It authenticates the selector before opening the bytes, recomputes
 every frame digest, audits the dictionary table and medium envelopes, and checks the
 stratified snapshot digest. A miss or identity mismatch fails closed.
 
-`crates/pipeline/tests/medium_codec_composition.rs` proves `decode ∘ encode = id` for
-every chain the registry declares over bounded inputs that straddle the 64 KiB
-rsyncable cut grid plus committed frozen codec corpora, primed and unprimed. It also
-proves that a mis-primed decode never silently returns the payload. This is codec work,
-not a second DAG emission.
+The medium registry tests gate GMEOW's authored codec, level, dictionary selection
+and reader-capability contracts. PurRDF's `crates/gts/src/codec.rs` owns codec round
+trips, dictionary mismatch refusal and rsyncable block boundaries. Those upstream
+laws are not rerun in GMEOW; its authenticated-bundle checks exercise the actual
+product composition.
 
 ## On-gate: zero model-facing change (source legs)
 

@@ -24,7 +24,7 @@
 // `alpha-equivalent-twins.ttl` (every composite expression came back carrying one
 // `math:operator` per graph it appeared in), and every property in this file stayed green
 // throughout, because a single-graph parse cannot express the failure. The same construction
-// is used by `crates/logic/tests/math_expression_reasoned_substrate.rs`'s
+// is used by the pipeline expression-substrate observations'
 // `shipped_examples_are_clean_over_a_multi_graph_substrate`; here it runs under generation
 // rather than over three fixed files.
 //

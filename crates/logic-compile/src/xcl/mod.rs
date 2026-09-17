@@ -20,7 +20,7 @@
 //!    readable XCL2 elements (`<forall>` / `<exists>` quantifiers, `<and>` / `<or>` / `<not>` /
 //!    `<implies>` / `<iff>` connectives, `<atom>` predications with `<name>` / `<var>` /
 //!    `<literal>` terms, `<rule>` for Horn rules). This channel is **WRITE-ONLY / validated-only
-//!    on read**: the canonical IR carries an `obj_is_literal` bit and minted reifier-node
+//!    on read**: the canonical IR carries contextual source data and minted reifier-node
 //!    identities that idiomatic sentence syntax cannot express, so reconstructing the byte-exact
 //!    IR from the sentences alone would be lossy.
 //! 2. **RDF / predication channel** — everything else (axioms + scope, contracts, path shapes,

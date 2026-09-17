@@ -54,7 +54,9 @@ pub trait TupleAnnotationAlgebra {
 }
 
 /// A semiring law a caller may explicitly declare its annotation algebra violates.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum SemiringLaw {
     /// `a ⊕ b = b ⊕ a`.
     AddCommutative,
@@ -89,7 +91,9 @@ impl SemiringLaw {
 }
 
 /// Structural class certified for one annotated run.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum AnnotationQueryClass {
     /// Positive, finite Datalog with an acyclic IDB dependency graph.
     PositiveAcyclic,
@@ -102,6 +106,13 @@ pub enum AnnotationQueryClass {
     /// Stratified negation-as-failure. Negative literals are membership guards:
     /// a satisfied absence contributes `one()` and is not a lineage source.
     StratifiedNaf,
+    /// Complete, stratified reduce groups. Each member contributes one canonical
+    /// concrete witness; the union of its positive supports is the group lineage.
+    /// Completion/absence is a guard, not a scored premise.
+    StratifiedAggregate,
+    /// Complete reduce groups and existential heads in one certified producer
+    /// schedule. Annotations follow the selected physical support of both.
+    StratifiedAggregateChase,
     /// Well-founded non-monotone evaluation. Scores follow the selected positive
     /// support of rows in the well-founded result; negative guards contribute `one()`.
     WellFounded,
@@ -123,6 +134,8 @@ impl AnnotationQueryClass {
             Self::PositiveNaryAcyclic => "positive-nary-acyclic",
             Self::PositiveNaryRecursive => "positive-nary-recursive",
             Self::StratifiedNaf => "stratified-naf",
+            Self::StratifiedAggregate => "stratified-aggregate",
+            Self::StratifiedAggregateChase => "stratified-aggregate-chase",
             Self::WellFounded => "well-founded",
             Self::StableModel => "stable-model",
             Self::ExistentialChase => "existential-chase",
@@ -136,10 +149,13 @@ impl AnnotationQueryClass {
 /// grounding during the one closure pass. Non-monotone solvers and the restricted
 /// chase already select deterministic physical proof rows, so their annotation fold
 /// follows those selected rows without re-running a second closure.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum AnnotationLineageContract {
     /// Every direct positive grounding contributes to `add` (`oplus`).
     AllPhysicalDerivations,
+    /// Ordinary groundings plus the union of canonical member witnesses for
+    /// each complete reduce group. Alternate proofs do not multiply membership.
+    CompleteGroupSupport,
     /// The native solver's deterministic selected proof carrier contributes.
     SelectedPhysicalDerivation,
 }
@@ -258,7 +274,7 @@ impl<'a, A, F> AnnotationRequest<'a, A, F> {
 }
 
 /// Engine-certified scope and preservation polarity for one annotated run.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AnnotationCertification {
     /// The structural class inspected from the actual rule program.
     pub query_class: AnnotationQueryClass,
@@ -272,7 +288,9 @@ pub struct AnnotationCertification {
 }
 
 /// Stable public identity of one world-scoped tuple in annotation lineage.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct AnnotatedFactKey {
     /// Named graph/world IRI.
     pub graph: String,
@@ -285,7 +303,9 @@ pub struct AnnotatedFactKey {
 }
 
 /// Stable identity of an arity-generic world-scoped tuple in annotation lineage.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct AnnotatedTupleKey {
     /// Named graph/world IRI.
     pub graph: String,
@@ -300,7 +320,7 @@ pub struct AnnotatedTupleKey {
 /// This is a one-hop lineage edge, not an eagerly-expanded proof tree.  Recursive
 /// consumers follow `sources` by key, preserving the repository's bounded-provenance
 /// doctrine while retaining the score attached to each alternative firing.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AnnotationDerivation<E> {
     /// Rule that produced this contribution (`logic:assert` for an input tuple).
     pub rule_iri: String,
@@ -343,7 +363,7 @@ pub struct AnnotatedAnswerSet<E> {
 }
 
 /// One materialized quad plus its combined annotation and direct score lineage.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct AnnotatedQuad<E> {
     /// Existing world-scoped fact/proof carrier.
     pub quad: DerivedQuad,

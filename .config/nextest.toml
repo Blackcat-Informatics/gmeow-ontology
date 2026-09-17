@@ -32,7 +32,7 @@
 #     on-gate. Same corpus, same process discipline, exhaustive inventory.
 #  3. `projections::tests::up_project_(recovers_message_superclass_via_prp_dom|
 #     never_fabricates_subkind_or_sibling)` — SIOC up-projection over the real corpus.
-#  4. `full_divergence_gate` `_heavy_offgate` — the 154-case soundness-scaling proof.
+#  4. `full_divergence_gate` `_heavy_offgate` — the 122-case soundness-scaling proof.
 #     Runtime is set by corpus breadth, which is criterion 2 of P6.
 #  5. `cli_parity::project_view_over_the_snapshot` — drives `project --profile gmeow`
 #     across the committed snapshot and writes a Turtle artifact.
@@ -67,7 +67,7 @@ default-filter = '''
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-validate) & binary(conformance_suite) & test(maint_heavy_conformance_contracts_share_one_authenticated_corpus_heavy_offgate))
     | (package(gmeow-pipeline) & test(/projections::tests::up_project_(recovers_message_superclass_via_prp_dom|never_fabricates_subkind_or_sibling)/))
-    | (package(gmeow-conformance) & binary(full_divergence_gate) & test(/_heavy_offgate/))
+    | (package(gmeow-pipeline) & test(stages::conformance::corpus_tests::full_divergence_gate::) & test(/_heavy_offgate/))
     | (package(gmeow-dev-cli) & binary(cli_parity) & test(project_view_over_the_snapshot))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown) | test(describe_resolves_grounding_curies) | test(describe_resolves_grounding_full_iris) | test(describe_unknown_language_fails_with_available_list) | test(describe_toon_format_emits_toon) | test(describe_json_format_is_valid_card_json)))
     | (package(gmeow-cli) & binary(bundle_smoke) & test(describe_names_a_known_term))
@@ -240,6 +240,8 @@ slow-timeout = { period = "900s", "terminate-after" = 3, "grace-period" = "30s" 
 # authenticated view and multi-gigabyte indexes are restored once rather than once per
 # assertion. Focused verifier laws stay required; the breadth-priced whole-bundle overlay
 # proof remains registered in the maintained aggregate.
+# Conversion, distribution, glyph, segment and explorer contracts join the same
+# process; each retains its own server configuration and named failure report.
 [[profile.default.overrides]]
 filter = 'package(gmeow-mcp) & test(/tests::(required|maint_heavy)_mcp_contracts_share_one_authenticated_view/)'
 threads-required = "num-cpus"

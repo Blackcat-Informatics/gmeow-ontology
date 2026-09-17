@@ -53,6 +53,7 @@ fn split_literal_content(s: &str) -> gmeow_errors::Result<(&str, &str)> {
 
 pub(crate) fn decode_term(surface: &str) -> gmeow_errors::Result<TermValue> {
     const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+    const RDF_DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
     const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
     if let Some(iri) = surface
@@ -82,11 +83,25 @@ pub(crate) fn decode_term(surface: &str) -> gmeow_errors::Result<TermValue> {
         if language.is_empty() {
             return Err(decode_err("empty language tag", surface));
         }
+        let (language, direction) = match language.rsplit_once("--") {
+            Some((language, "ltr")) => (language, Some(purrdf::RdfTextDirection::Ltr)),
+            Some((language, "rtl")) => (language, Some(purrdf::RdfTextDirection::Rtl)),
+            Some(_) => return Err(decode_err("invalid text direction", surface)),
+            None => (language, None),
+        };
+        if language.is_empty() {
+            return Err(decode_err("empty language tag", surface));
+        }
         return Ok(TermValue::Literal {
             lexical_form,
-            datatype: RDF_LANG_STRING.to_owned(),
+            datatype: if direction.is_some() {
+                RDF_DIR_LANG_STRING
+            } else {
+                RDF_LANG_STRING
+            }
+            .to_owned(),
             language: Some(language.to_owned()),
-            direction: None,
+            direction,
         });
     }
     if let Some(datatype) = suffix

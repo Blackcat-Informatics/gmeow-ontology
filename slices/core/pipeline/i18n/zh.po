@@ -64,3 +64,11 @@ msgstr "验证证明"
 msgctxt "https://blackcatinformatics.ca/gmeow/stage-verify-attestation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Evaluate the complete embedded native bad-example query battery as a dedicated downstream transform over the exact object-level EDB and gmeow:stage-reason's already-built typed ReasoningResult. It repeats only the shared transport-independent EDB canonicalization and constructs ZERO additional closures. Its bounded persistent contribution is graph/verify, a normalized generated/diagnostics/verify.json receipt carrying input, reasoning-contract, query-set, work-count, and zero-closure evidence, plus the diagnostics:nodes cache lane. Missing EDB producers or a missing/mistyped Reasoning handle hard-fail; a cache miss recomputes the complete selected battery, never a reduced fallback. It is not a second reasoner, a reduced verification profile, or permission to accept stale verification evidence."
 msgstr "把完整的内置原生反例查询组作为专用下游变换，在精确的对象级 EDB 与 gmeow:stage-reason 已构建的类型化 ReasoningResult 上执行。它只重复共享且与传输无关的 EDB 规范化，并构建零个额外闭包。其有界持久贡献是 graph/verify：规范化的 generated/diagnostics/verify.json 收据，其中携带输入、推理契约、查询集、工作计数与零闭包证据，以及 diagnostics:nodes 缓存通道。EDB 生产者缺失或 Reasoning 句柄缺失、类型错误都会硬性失败；缓存未命中会重新计算完整的所选查询组，绝不退化为缩减的替代路径。它不是第二个推理器、缩减的验证配置，也不是接受陈旧验证证据的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → validate"
+msgstr "数据流：parse-sources → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The validator consumes the exact native source catalog and its shared compiled theory. The receipt binds every root, module and import document, including its source role and base. Validation adds only the declared substrate role to its data selection; diagnostic folds reuse the source compilation without parsing a transport projection."
+msgstr "验证器使用精确的原生源目录及其共享编译理论。回执绑定每个根文档、模块文档和导入文档，包括其源角色与基准。验证仅将声明的基底角色加入数据选择；诊断推导复用源编译结果，无需解析传输投影。"

@@ -12,14 +12,11 @@
 //! `js/pkg/` and asserts the WASM output equals the same attestation. Both matching the
 //! one attestation proves native ≡ wasm.
 //!
-//! The attestation lives WITH the engine it attests. It used to live under
-//! the docs site's own asset tree, back when the site vendored a copy of this engine and
-//! that directory was the only place a browser build existed. The console
-//! consolidated the site onto the MCP segments and that vendored copy is gone, but
-//! `gmeow-validate-wasm` remains a published npm package, so its native≡wasm evidence is
-//! still load-bearing — it MOVED rather than being dropped with the asset.
+//! The attestation lives WITH the engine it attests. The docs asset carries the same
+//! attestation beside its vendored browser engine.
 //!
-//! Refreshed only by an explicit maintainer producer; this test is read-only.
+//! Refreshed only by `make maint-refresh-validate-witness`, which consumes an existing
+//! bundle and updates both copies. This test is read-only.
 
 use std::path::PathBuf;
 

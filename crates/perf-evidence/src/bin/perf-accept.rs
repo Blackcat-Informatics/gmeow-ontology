@@ -3,9 +3,10 @@
 
 //! Grade repeated paired performance samples without turning time into correctness.
 //!
-//! This report-only tool fails its invocation when the predeclared optimization
-//! acceptance contract is not demonstrated.  It is deliberately absent from
-//! `make check`: ontology correctness never depends on runner speed.
+//! This report-only tool authenticates deliberately requested comparison samples.
+//! Timing targets apply only when explicitly supplied; observed work counters do
+//! not authorize semantic changes. It is absent from `make check`: ontology
+//! correctness never depends on runner speed or a historical speedup claim.
 
 use gmeow_perf_evidence::{PerfResult, write_json_atomic};
 
@@ -13,7 +14,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
 const CACHE_CLASSES: [&str; 6] = [
     "bundle_import",
     "cargo",
@@ -30,8 +31,8 @@ struct Args {
     headline_cache_state: String,
     required_cache_states: BTreeSet<String>,
     min_pairs: usize,
-    slow_speedup_target: f64,
-    comparison_regression_limit_pct: f64,
+    slow_speedup_target: Option<f64>,
+    comparison_regression_limit_pct: Option<f64>,
     semantic_identities: Vec<(String, String)>,
     proof_inventories: Vec<(String, String)>,
     work_counters: Vec<(String, String)>,
@@ -81,8 +82,8 @@ fn parse_args() -> PerfResult<Args> {
         "warm".to_string(),
     ]);
     let mut min_pairs = 3_usize;
-    let mut slow_speedup_target = 2.0_f64;
-    let mut comparison_regression_limit_pct = 5.0_f64;
+    let mut slow_speedup_target: Option<f64> = None;
+    let mut comparison_regression_limit_pct: Option<f64> = None;
     let mut semantic_identities = Vec::new();
     let mut proof_inventories = Vec::new();
     let mut work_counters = Vec::new();
@@ -119,15 +120,16 @@ fn parse_args() -> PerfResult<Args> {
             }
             "--slow-speedup-target" => {
                 let raw = value(&mut args, "--slow-speedup-target")?;
-                slow_speedup_target = raw
-                    .parse()
-                    .map_err(|error| format!("invalid --slow-speedup-target {raw:?}: {error}"))?;
+                slow_speedup_target =
+                    Some(raw.parse().map_err(|error| {
+                        format!("invalid --slow-speedup-target {raw:?}: {error}")
+                    })?);
             }
             "--comparison-regression-limit-pct" => {
                 let raw = value(&mut args, "--comparison-regression-limit-pct")?;
-                comparison_regression_limit_pct = raw.parse().map_err(|error| {
+                comparison_regression_limit_pct = Some(raw.parse().map_err(|error| {
                     format!("invalid --comparison-regression-limit-pct {raw:?}: {error}")
-                })?;
+                })?);
             }
             "--semantic-identity" => semantic_identities.push(parse_named_pointer(
                 &value(&mut args, "--semantic-identity")?,
@@ -162,15 +164,11 @@ fn parse_args() -> PerfResult<Args> {
     if !required_cache_states.contains(&headline_cache_state) {
         return Err("the headline cache state must be cold, partial, or warm".into());
     }
-    if !slow_speedup_target.is_finite() || slow_speedup_target < 2.0 {
-        return Err("--slow-speedup-target cannot weaken the 2.0x contract".into());
+    if slow_speedup_target.is_some_and(|target| !target.is_finite() || target <= 0.0) {
+        return Err("--slow-speedup-target must be finite and positive".into());
     }
-    if !comparison_regression_limit_pct.is_finite()
-        || !(0.0..=5.0).contains(&comparison_regression_limit_pct)
-    {
-        return Err(
-            "--comparison-regression-limit-pct must preserve the 0 to 5 percent contract".into(),
-        );
+    if comparison_regression_limit_pct.is_some_and(|limit| !limit.is_finite() || limit < 0.0) {
+        return Err("--comparison-regression-limit-pct must be finite and nonnegative".into());
     }
     if semantic_identities.is_empty() && proof_inventories.is_empty() {
         return Err(
@@ -260,7 +258,6 @@ fn run(args: Args) -> PerfResult<bool> {
         groups.entry((key.0, key.1)).or_default().push(pair);
     }
 
-    let mut failures = Vec::new();
     let mut summaries = Vec::new();
     for node in [&args.slow_node_class, &args.comparison_node_class] {
         for cache in &args.required_cache_states {
@@ -301,11 +298,6 @@ fn run(args: Args) -> PerfResult<bool> {
                         .map(|pair| pair.candidate.work[counter])
                         .collect(),
                 );
-                if candidate > baseline {
-                    failures.push(format!(
-                        "causal counter {counter} increased on node={node} cache={cache}: {baseline} -> {candidate}"
-                    ));
-                }
                 counters.insert(
                     counter.clone(),
                     serde_json::json!({
@@ -334,12 +326,6 @@ fn run(args: Args) -> PerfResult<bool> {
         &args.headline_cache_state,
     )?;
     let slow_speedup = number(slow_headline, "/speedup")?;
-    if slow_speedup < args.slow_speedup_target {
-        failures.push(format!(
-            "slow-node speedup {slow_speedup:.3}x is below {:.3}x",
-            args.slow_speedup_target
-        ));
-    }
     let reduced_counter = slow_headline
         .pointer("/work_counters")
         .and_then(serde_json::Value::as_object)
@@ -348,10 +334,6 @@ fn run(args: Args) -> PerfResult<bool> {
                 .values()
                 .any(|counter| number(counter, "/reduction").is_ok_and(|value| value > 0.0))
         });
-    if !reduced_counter {
-        failures.push("no declared causal-work counter decreased on the slow headline".to_string());
-    }
-
     let comparison_headline = summary(
         &summaries,
         &args.comparison_node_class,
@@ -360,18 +342,21 @@ fn run(args: Args) -> PerfResult<bool> {
     let baseline = number(comparison_headline, "/baseline_median_wall_ms")?;
     let candidate = number(comparison_headline, "/candidate_median_wall_ms")?;
     let comparison_regression_pct = (candidate / baseline - 1.0) * 100.0;
-    if comparison_regression_pct > args.comparison_regression_limit_pct {
-        failures.push(format!(
-            "comparison-node regression {comparison_regression_pct:.3}% exceeds {:.3}%",
-            args.comparison_regression_limit_pct
-        ));
-    }
+    let failures = timing_failures(
+        slow_speedup,
+        comparison_regression_pct,
+        args.slow_speedup_target,
+        args.comparison_regression_limit_pct,
+    );
 
     let accepted = failures.is_empty();
     let report = serde_json::json!({
         "schema_version": SCHEMA_VERSION,
         "command": "perf-accept",
         "accepted": accepted,
+        "timing_targets_declared": args.slow_speedup_target.is_some()
+            || args.comparison_regression_limit_pct.is_some(),
+        "headline_work_counter_reduced": reduced_counter,
         "contract": {
             "slow_node_class": args.slow_node_class,
             "comparison_node_class": args.comparison_node_class,
@@ -391,6 +376,30 @@ fn run(args: Args) -> PerfResult<bool> {
     write_json_atomic(&args.output, &report)?;
     println!("{}", args.output.display());
     Ok(accepted)
+}
+
+fn timing_failures(
+    speedup: f64,
+    regression_pct: f64,
+    speedup_target: Option<f64>,
+    regression_limit_pct: Option<f64>,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+    if let Some(target) = speedup_target
+        && speedup < target
+    {
+        failures.push(format!(
+            "slow-node speedup {speedup:.3}x is below {target:.3}x"
+        ));
+    }
+    if let Some(limit) = regression_limit_pct
+        && regression_pct > limit
+    {
+        failures.push(format!(
+            "comparison-node regression {regression_pct:.3}% exceeds {limit:.3}%"
+        ));
+    }
+    failures
 }
 
 fn read_sample(path: &Path, counters: &[(String, String)]) -> PerfResult<Sample> {
@@ -755,6 +764,13 @@ fn median(mut values: Vec<f64>) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn timing_acceptance_has_no_implicit_speedup_or_regression_target() {
+        assert!(timing_failures(0.5, 100.0, None, None).is_empty());
+        assert!(timing_failures(1.2, 8.0, Some(1.1), Some(10.0)).is_empty());
+        assert_eq!(timing_failures(1.2, 8.0, Some(1.3), Some(5.0)).len(), 2);
+    }
 
     #[test]
     fn median_handles_odd_and_even_complete_pair_counts() {

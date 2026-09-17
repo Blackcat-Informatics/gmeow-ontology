@@ -340,13 +340,11 @@ fn ml_schema_reified_lift_never_materializes_under_the_reason_lane() {
         .expect("el_closure over the lifted graph")
         .inferred;
 
-    // Stored axioms keep the object in its decoded display form `<iri>`; subject/predicate are
-    // bare IRIs.
+    // Match native class IRIs without interpreting a display string.
     let has = |s: &str, p: &str, o: &str| {
-        let obj = format!("<{o}>");
         closure
             .iter()
-            .any(|a| a.subject == s && a.predicate == p && a.object == obj)
+            .any(|a| a.subject == s && a.predicate == p && a.object.as_iri() == Some(o))
     };
     let import = format!("{GMEOW}import/ml-schema");
 
@@ -355,9 +353,8 @@ fn ml_schema_reified_lift_never_materializes_under_the_reason_lane() {
     // ImportActivity DID materialize its superclass gmeow:Activity — so the subsumption rule is
     // firing. Only against this backdrop do the absences below carry weight.
     assert!(
-        closure
-            .iter()
-            .any(|a| a.predicate == RDF_TYPE && a.object == format!("<{GMEOW}StatementMetadata>")),
+        closure.iter().any(|a| a.predicate == RDF_TYPE
+            && a.object == purrdf::TermValue::iri(format!("{GMEOW}StatementMetadata"))),
         "positive control: reified StatementMetadata cells must be present in the reasoned closure\n{closure:#?}"
     );
     assert!(

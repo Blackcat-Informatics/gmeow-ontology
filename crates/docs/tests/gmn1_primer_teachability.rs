@@ -20,122 +20,34 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, OnceLock};
+use std::sync::OnceLock;
 
-use gmeow_docs::gmn1_primer::{Gmn1Primer, build_primer};
-use gmeow_lang_bridge::{Gmn1Document, GmnDictionary, gmn1_read};
-use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use gmeow_docs::gmn1_primer::teachability::{ARTIFACT, Observations};
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
+        .join("../..")
         .canonicalize()
         .expect("repo root must be resolvable")
 }
 
-/// The folded carrier dataset over the shipped `gmeow.gts` bundle — the same import-once path
-/// the MCP consumer and the export leaf use, so the primer under test is the shipped one.
-fn bundle_dataset() -> Arc<RdfDataset> {
-    static DATASET: OnceLock<Arc<RdfDataset>> = OnceLock::new();
-    Arc::clone(DATASET.get_or_init(|| {
-        gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
-            .expect("authenticated repository corpus; tests never produce it")
-            .dataset
-    }))
-}
-
-fn shipped_primer(ds: &RdfDataset) -> Gmn1Primer {
-    build_primer(ds).expect("build the shipped GMN-1 teachability primer")
-}
-
-/// One held-out emission task: the CONFORMANT GMN-1 document a fresh model should emit, plus
-/// the constructs (record sigils, operator glyphs) it exercises — DERIVED from the document
-/// text, never hand-declared, so the corpus cannot claim to exercise a construct it does not.
-struct HeldoutTask {
-    label: String,
-    document: String,
-    sigils: BTreeSet<String>,
-    operator_glyphs: BTreeSet<String>,
-}
-
-/// Load the held-out corpus, deriving each task's exercised constructs from its GMN document.
-/// `operator_alphabet` is the primer's operator glyph set — used ONLY to scan which operators a
-/// document contains (the completeness gate then independently asserts each is TAUGHT).
-fn load_heldout_tasks(operator_alphabet: &BTreeSet<String>) -> Vec<HeldoutTask> {
-    let path = repo_root().join("slices/grounding/lang/examples/gmn-heldout-emission-tasks.ttl");
-    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-    let ds = purrdf::parse_dataset(&bytes, "text/turtle", None).expect("parse held-out corpus");
-
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    const SKOS_EXAMPLE: &str = "http://www.w3.org/2004/02/skos/core#example";
-    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-    const TASK_CLASS: &str =
-        "https://blackcatinformatics.ca/gmeow/examples/gmn-heldout/GmnHeldoutEmissionTask";
-
-    let id = |iri: &str| ds.term_id_by_value(&TermValue::iri(iri));
-    let (Some(rt), Some(cls)) = (id(RDF_TYPE), id(TASK_CLASS)) else {
-        panic!("held-out corpus declares no ex:GmnHeldoutEmissionTask instances");
-    };
-
-    let mut subjects: Vec<String> = ds
-        .quads_for_pattern(None, Some(rt), Some(cls), GraphMatch::Any)
-        .filter_map(|q| match ds.resolve(q.s) {
-            TermRef::Iri(iri) => Some(iri.to_owned()),
-            _ => None,
-        })
-        .collect();
-    subjects.sort();
-    subjects.dedup();
-    assert!(!subjects.is_empty(), "held-out corpus is empty");
-
-    let one_literal = |subject: &str, pred: &str| -> Option<String> {
-        let (Some(s), Some(p)) = (id(subject), id(pred)) else {
-            return None;
-        };
-        ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Any)
-            .find_map(|q| match ds.resolve(q.o) {
-                TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
-                _ => None,
-            })
-    };
-
-    subjects
-        .iter()
-        .map(|subject| {
-            let label = one_literal(subject, RDFS_LABEL).unwrap_or_else(|| subject.clone());
-            let document = one_literal(subject, SKOS_EXAMPLE)
-                .unwrap_or_else(|| panic!("held-out task {subject} carries no skos:example"));
-            let sigils = record_sigils(&document);
-            let operator_glyphs = operator_alphabet
-                .iter()
-                .filter(|g| document.contains(g.as_str()))
-                .cloned()
-                .collect();
-            HeldoutTask {
-                label,
-                document,
-                sigils,
-                operator_glyphs,
-            }
-        })
-        .collect()
-}
-
-/// The record sigils a GMN document opens records with — every line after the `@gmn{…}` header
-/// whose first token is `@<sigil>{`. Returns the sigil tokens (`@ℒ`, `@err`, …).
-fn record_sigils(document: &str) -> BTreeSet<String> {
-    document
-        .lines()
-        .filter(|l| !l.starts_with("@gmn{"))
-        .filter_map(|l| {
-            let l = l.trim_start();
-            if !l.starts_with('@') {
-                return None;
-            }
-            l.find('{').map(|i| l[..i].to_string())
-        })
-        .collect()
+fn observations() -> &'static Observations {
+    static SELECTED: OnceLock<(String, gmeow_errors::Result<Observations>)> = OnceLock::new();
+    let selector = std::env::var("GMEOW_TEST_FIXTURE_MANIFEST_SHA256")
+        .expect("teachability requires the producer-selected corpus identity");
+    let (identity, observed) = SELECTED.get_or_init(|| {
+        let observed =
+            gmeow_bundle_import::load_authenticated_corpus_artifact(&repo_root(), ARTIFACT)
+                .and_then(|bytes| serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from));
+        (selector.clone(), observed)
+    });
+    assert_eq!(
+        identity, &selector,
+        "teachability observations cannot cross corpus identities"
+    );
+    observed
+        .as_ref()
+        .unwrap_or_else(|error| panic!("authenticated teachability observation: {error}"))
 }
 
 /// The three repair sigils that map to a repair CARD (`gmeow:GmnErr` / `GmnPatch` / `GmnRetract`)
@@ -153,8 +65,8 @@ fn repair_card_curie(sigil: &str) -> Option<&'static str> {
 
 #[test]
 fn primer_fits_the_500_token_budget() {
-    let ds = bundle_dataset();
-    let primer = shipped_primer(ds.as_ref());
+    let observed = observations();
+    let primer = &observed.primer;
     let tokens = primer.token_count();
     assert!(
         tokens <= gmeow_docs::llms::GMN1_PRIMER_TOKEN_BUDGET,
@@ -171,8 +83,8 @@ fn primer_fits_the_500_token_budget() {
 
 #[test]
 fn gmn1_primer_fits_budget_and_is_graph_derived() {
-    let ds = bundle_dataset();
-    let primer = shipped_primer(ds.as_ref());
+    let observed = observations();
+    let primer = &observed.primer;
 
     // (a) Budget — the same SEPARATE compliance property, re-asserted here so this test is a
     // complete standalone witness of the shipped card.
@@ -241,14 +153,13 @@ fn gmn1_primer_fits_budget_and_is_graph_derived() {
 
 #[test]
 fn primer_covers_every_heldout_construct() {
-    let ds = bundle_dataset();
-    let primer = shipped_primer(ds.as_ref());
+    let observed = observations();
+    let primer = &observed.primer;
     let operator_index: BTreeMap<String, (String, String)> = primer.operator_index();
-    let operator_alphabet: BTreeSet<String> = operator_index.keys().cloned().collect();
     let sigil_glyphs = primer.sigil_glyphs();
     let cited = primer.cited_curies();
 
-    let tasks = load_heldout_tasks(&operator_alphabet);
+    let tasks = &observed.tasks;
 
     // Sanity: the corpus must genuinely exercise a spread of constructs, or the gate is vacuous.
     let all_sigils: BTreeSet<_> = tasks
@@ -274,7 +185,7 @@ fn primer_covers_every_heldout_construct() {
         "held-out corpus must exercise the whole @err/@patch/@retract repair loop; saw {all_sigils:?}"
     );
 
-    for task in &tasks {
+    for task in tasks {
         for sigil in &task.sigils {
             if let Some(card) = repair_card_curie(sigil) {
                 // A repair sigil is TAUGHT by its repair card being present in the primer.
@@ -313,7 +224,7 @@ fn primer_covers_every_heldout_construct() {
     // taught constructs in whole documents the primer never shows, so completeness is not the
     // trivial "the primer copied the answer" outcome.
     let rendered = primer.resource_text();
-    for task in &tasks {
+    for task in tasks {
         let record = task
             .document
             .lines()
@@ -330,21 +241,17 @@ fn primer_covers_every_heldout_construct() {
 
 #[test]
 fn heldout_ast_validity_rate_meets_gate() {
-    let ds = bundle_dataset();
-    let primer = shipped_primer(ds.as_ref());
-    let operator_alphabet: BTreeSet<String> = primer.operator_index().keys().cloned().collect();
-    let dict = GmnDictionary::from_dataset(ds.as_ref()).expect("resolve the shipped dictionary");
+    let observed = observations();
 
-    let tasks = load_heldout_tasks(&operator_alphabet);
+    let tasks = &observed.tasks;
     let total = tasks.len();
     assert!(total >= 12, "held-out corpus is too small to gate: {total}");
 
     let mut valid = 0usize;
-    for task in &tasks {
-        let doc = Gmn1Document::from_text(task.document.clone());
-        match gmn1_read(&doc, &dict) {
-            Ok(_) => valid += 1,
-            Err(e) => panic!(
+    for task in tasks {
+        match &task.ast_error {
+            None => valid += 1,
+            Some(e) => panic!(
                 "held-out task {:?} must be a conformant GMN-1 document, but gmn1_read rejected it: {e}\n{}",
                 task.label, task.document
             ),

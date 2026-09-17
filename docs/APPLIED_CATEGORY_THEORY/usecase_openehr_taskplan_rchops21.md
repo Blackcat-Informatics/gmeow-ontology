@@ -15,6 +15,13 @@
 > `logic:Plan`* (`take1.md` §13.5), and RCHOPS21 exercises exactly the constructs a pure DAG
 > **cannot** express — proving why the full `logic:Plan` superset is needed and the acyclic DAG profile is only a restriction of it.
 
+The [normative logic design](../../slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md)
+governs the execution and law claims. This case describes an authored plan, its
+certified native bounded projection, and witnessed planned-skeleton recovery. Its vocabulary representation and
+by-reference mappings do not establish a complete TP-VML/DLM exporter, a lawful
+stateful update, or a certified composition. Those claims require executable legs
+over admitted source/view/complement theories and their own evidence domains.
+
 ---
 
 ## 1. The real example (PROC 1.6.0, RCHOPS21)
@@ -123,8 +130,10 @@ by-reference bridge to YAMATO terms) each earn their keep here:
 ## 5. The prescriptive↔descriptive lens — a *lossy* lens, not a mnemomorphism
 
 The relationship between the plan and its execution record is a correspondence — but a
-**lossy lens on the lossy/prism rung**, *not* a section/retraction, and **not mnemomorphic in
-general**:
+**lossy correspondence**, *not* a section/retraction, and **not mnemomorphic in
+general**. The lossy-lens classification describes the intended relationship;
+it does not establish lawful update operations. A prism and an affine
+correspondence are separate rungs, each requiring its own focus and operations:
 
 ```text
    :rchops21 (prescriptive logic:Plan)
@@ -143,14 +152,48 @@ general**:
   with a given record.
 - **When it *is* recoverable.** If each executed Action carries the **witness** — a back-reference
   to the plan/ActionSchema it instantiates (openEHR's Instruction-State-Machine linkage:
-  Instruction → Activity → Action with `instruction_details`) — then `put` becomes recovery *of
-  the planned skeleton* (not of the off-plan reality). That witness is the mnemomorphism's
-  in-band complement at the process layer; where the ISM linkage is present, the planned portion
-  round-trips; the manual/off-plan portion is an **honest loss-ledger entry**, never a failure.
+  Instruction → Activity → Action with `instruction_details`) — recovery can resolve
+  the planned skeleton if the referenced plan and schemas remain available with
+  authenticated identities. A bare link does not reconstruct a deleted or changed
+  plan. The admitted complement must carry or resolve the complete required witness;
+  missing or corrupt selected witnesses fail admission. A profile may explicitly
+  limit recovery to the planned portion and record off-plan information as loss.
 - **Two distinct correspondences, never conflated** (the canonical process model's "path vs. intention vs. causation:
   connected, never identified"): (i) plan ⟷ external workflow surface (BPMN/Airflow/TP-VML — the
   §13.5 by-reference targets), and (ii) plan ⟷ its own execution record (this lossy lens). The
   calculus keeps them apart.
+
+### Native executable surface
+
+The installed CLI projects the caller's canonical plan and rechecks its source-bound certificate:
+
+```console
+gmeow correspondence project-plan \
+  docs/APPLIED_CATEGORY_THEORY/fixtures/rchops21.plan.ttl \
+  --plan urn:gmeow:plan:rchops21 --format json
+```
+
+The selected fixed count is an explicit bounded-unrolling contract. For this source it produces
+six cycles and 30 prescriptive positions while retaining the condition/effect fact closures,
+tracked-state freshness, both guarded alternatives, nondeterministic outcomes, compensation, and
+the high-IPI conditional additions. The positions are never represented as observed events.
+
+Witnessed recovery requires the still-available canonical plan source and the descriptive record:
+
+```console
+gmeow correspondence recover-plan \
+  docs/APPLIED_CATEGORY_THEORY/fixtures/rchops21.plan.ttl \
+  docs/APPLIED_CATEGORY_THEORY/fixtures/rchops21.observed.ttl \
+  --plan urn:gmeow:plan:rchops21 --format json
+```
+
+Every selected occurrence must carry exactly one matching `logic:instantiatesPlan` and exactly one
+`logic:instantiatesSchema`; absence or ambiguity fails admission. The returned receipt binds the
+source projection certificate and the canonical observed-input digest. It recovers the planned
+skeleton only. It does not infer order, timing, outcomes, unreported events, or execution of the
+other guarded branch. The optimized producer emits the same two results as
+`generated/logic/rchops21-plan-projection.json` and
+`generated/logic/rchops21-plan-recovery.json`.
 
 ---
 
@@ -160,9 +203,9 @@ general**:
 |---|---|
 | `logic:Plan` projection to TP-VML/DLM (§13.5) | under-approximation where TP-VML lacks concurrency-serializability / per-outcome compensation |
 | DAG profile | **`unsupported`** for the cycle loop, offending back-edge named; or unrolled with loss recorded |
-| Mnemomorphism gate (§15.4) | prescriptive↔descriptive lens is **not** mnemomorphic in general; recoverable only via ISM witness |
+| Mnemomorphism gate (§15.4) | prescriptive↔descriptive correspondence is **not** mnemomorphic in general; planned-skeleton recovery requires an authenticated, resolvable plan/schema witness |
 | Composition / merge (§8) | the DLM terminology bindings are **nested** correspondences (§13.4-Q3) |
-| Loss ledger (§15.6) | loops→error/unroll; concurrency→serialize; compensation→omit (in the DAG profile); off-plan reality→declared loss on the descriptive lens |
+| Loss ledger (§15.6) | an acyclic profile refuses a loop unless an explicit bounded-unrolling profile is selected; any serialization, compensation omission or off-plan loss must be selected and disclosed, never an automatic fallback |
 
 ---
 
@@ -176,7 +219,7 @@ general**:
   property of the world (events happen off-engine). The honest move is to *name* it: the
   plan→record correspondence sits on the lossy-lens rung, recoverable only to the extent the ISM
   witness is present. Do **not** claim section/retraction for the process execution lens.
-- **Grounding — closed.** A machine-readable RCHOPS21 exists as `fixtures/rchops21.plan.ttl` —
+- **Authored grounding.** A machine-readable RCHOPS21 exists as `fixtures/rchops21.plan.ttl` —
   GMEOW's own `logic:Plan` rendering, derived from the PROC 1.6.0 source
   (`openEHR/specifications-PROC : docs/process_examples/master05-chemo.adoc`, DLM "RCHOPS21"), with
   the loop / patient-fit guard / nondeterministic-outcome+compensation / high-IPI
@@ -189,9 +232,11 @@ general**:
   plan→execution linkage is the `logic:instantiatesSchema` + `logic:instantiatesPlan` in-band
   witness. The lowering `logic:Plan → openEHR Task Planning` is wired as a by-reference projection in
   `slices/core/work-orchestration/mappings/` with its preservation judgment in the loss ledger.
-- **The two axes together** complete the openEHR subsumption picture (`take1.md` §13 table): the
-  **data axis** reaches the section/retraction rung (perfect replacement of the RM data, with the
-  in-band complement); the **process axis** reaches the lossy-lens rung for execution and a faithful
-  by-reference projection for the plan. "Perfectly replace openEHR" is therefore *layer-relative*:
-  provably true for the data layer, honestly bounded for the process-execution layer — and the
-  calculus states which is which, in the loss ledger, by construction.
+- **The two axes have separate evidence domains** (`take1.md` §13 table). The
+  data axis supplies bounded section/retraction evidence for the committed
+  fixture and query case. The process axis supplies a certified bounded projection
+  and witnessed planned-skeleton recovery for the committed plan/record pair. It
+  does not reconstruct a plan from a witnessless record and does not establish a
+  complete external TP-VML/DLM export. Stateful update and composition laws retain
+  their own evidence domains. Bounded agreement cannot certify unrestricted fusion
+  rewrites.

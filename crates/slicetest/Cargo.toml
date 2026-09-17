@@ -48,11 +48,12 @@ serde_json.workspace = true
 sha2.workspace = true
 
 [build-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
 # Slice-spec action receipts bind this crate's exact local implementation closure,
 # independently of the wider pipeline producer identity.
-sha2.workspace = true
 
 [dev-dependencies]
+gmeow-build-inputs = { path = "../build-inputs" }
 gmeow-bundle-import = { path = "../bundle-import" }
 # RAII temp directories/files for tests. Every scratch path a test creates is
 # removed on drop — including on panic and early return — so a gate run never

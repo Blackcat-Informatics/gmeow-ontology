@@ -13,7 +13,11 @@
 //! It runs the shipped [`gmeow_logic::reason::reason_closure_dataset`] entry — the production
 //! closure, not a hand-built internal — on both spellings.
 
-use gmeow_logic::reason::reason_closure_dataset;
+use gmeow_logic::reason::{
+    DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, native_closure_to_dataset,
+    prepare_reasoning_input, reason_all,
+};
+use gmeow_logic::result::ReasoningResult;
 use purrdf::{NativeRdfFormat, RdfDataset, RdfTerm, dataset_from_bytes};
 use std::collections::BTreeSet;
 
@@ -73,12 +77,27 @@ fn term_key(t: &RdfTerm) -> String {
 }
 
 /// The set of inferred `(subject, predicate, object)` triples of the reasoned closure.
-fn closure_triples(turtle: &str) -> BTreeSet<(String, String, String)> {
+fn closure_result(turtle: &str) -> (BTreeSet<(String, String, String)>, ReasoningResult) {
     let edb = dataset_from_bytes(turtle.as_bytes(), NativeRdfFormat::Turtle)
         .expect("parse the fixture turtle");
+    let input = prepare_reasoning_input(edb.as_ref()).expect("synthetic vocabulary input");
+    // Both spellings select the same default logical domain. Bind that admission
+    // to the complete fixture pair so its intrinsic witness keeps one identity;
+    // the prepared input independently authenticates each spelling's source.
+    let domain_selection =
+        blake3::hash(format!("{PREFIXES_OWL}{BODY_OWL}\0{PREFIXES_LOGIC}{BODY_LOGIC}").as_bytes());
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Default,
+        DomainProfile::NonemptyObjectDomainV1,
+        "urn:test:logic-authoring-vocabulary-parity:default-theory".to_owned(),
+        *domain_selection.as_bytes(),
+    )
+    .expect("explicit default vocabulary theory")])
+    .expect("one selected vocabulary theory");
+    let result = reason_all(input, &domains).expect("reason the closure");
     let closure: std::sync::Arc<RdfDataset> =
-        reason_closure_dataset(&edb).expect("reason the closure");
-    closure
+        native_closure_to_dataset(&result).expect("project the retained closure");
+    let triples = closure
         .owned_quads()
         .map(|q| {
             (
@@ -87,17 +106,65 @@ fn closure_triples(turtle: &str) -> BTreeSet<(String, String, String)> {
                 term_key(&q.object),
             )
         })
+        .collect();
+    (triples, result)
+}
+
+fn closure_triples(turtle: &str) -> BTreeSet<(String, String, String)> {
+    closure_result(turtle).0
+}
+
+fn canonical_vocabulary(iri: String) -> String {
+    match iri.as_str() {
+        "https://blackcatinformatics.ca/logic/subClassOf" => {
+            "http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned()
+        }
+        "https://blackcatinformatics.ca/logic/disjointWith" => {
+            "http://www.w3.org/2002/07/owl#disjointWith".to_owned()
+        }
+        "https://blackcatinformatics.ca/logic/domain" => {
+            "http://www.w3.org/2000/01/rdf-schema#domain".to_owned()
+        }
+        "https://blackcatinformatics.ca/logic/range" => {
+            "http://www.w3.org/2000/01/rdf-schema#range".to_owned()
+        }
+        "https://blackcatinformatics.ca/logic/hasValue" => {
+            "http://www.w3.org/2002/07/owl#hasValue".to_owned()
+        }
+        "https://blackcatinformatics.ca/logic/onProperty" => {
+            "http://www.w3.org/2002/07/owl#onProperty".to_owned()
+        }
+        "https://blackcatinformatics.ca/logic/transitiveProperty" => {
+            "http://www.w3.org/2002/07/owl#TransitiveProperty".to_owned()
+        }
+        "https://blackcatinformatics.ca/logic/Restriction" => {
+            "http://www.w3.org/2002/07/owl#Restriction".to_owned()
+        }
+        _ => iri,
+    }
+}
+
+fn semantic_closure(turtle: &str) -> BTreeSet<(String, String, String)> {
+    closure_triples(turtle)
+        .into_iter()
+        .map(|(subject, predicate, object)| {
+            (
+                subject,
+                canonical_vocabulary(predicate),
+                canonical_vocabulary(object),
+            )
+        })
         .collect()
 }
 
 #[test]
 fn logic_authored_closure_equals_owl_authored_closure() {
-    let owl = closure_triples(&format!("{PREFIXES_OWL}{BODY_OWL}"));
-    let logic = closure_triples(&format!("{PREFIXES_LOGIC}{BODY_LOGIC}"));
+    let owl = semantic_closure(&format!("{PREFIXES_OWL}{BODY_OWL}"));
+    let logic = semantic_closure(&format!("{PREFIXES_LOGIC}{BODY_LOGIC}"));
 
-    // Parity: the reasoner normalizes the canonical `logic:` spelling onto the `owl:`/`rdfs:`
-    // vocabulary the fixed calculi are specified in, so the two authorings must yield the SAME
-    // reasoned closure. A single differing triple is the dark-vocabulary regression this pins.
+    // Parity is semantic. The retained closure keeps the exact authored spelling
+    // for provenance, while the native operator vocabulary interprets both
+    // spellings identically. Compare through that declared correspondence.
     assert_eq!(
         owl,
         logic,
@@ -111,7 +178,7 @@ fn logic_authored_closure_equals_owl_authored_closure() {
 
 #[test]
 fn logic_authored_body_is_not_dark() {
-    let logic = closure_triples(&format!("{PREFIXES_LOGIC}{BODY_LOGIC}"));
+    let (logic, result) = closure_result(&format!("{PREFIXES_LOGIC}{BODY_LOGIC}"));
 
     // The closure must be non-vacuous and must contain the specific entailments that ONLY exist
     // if the logic:-authored typing + restriction vocabulary is actually read:
@@ -153,7 +220,9 @@ fn logic_authored_body_is_not_dark() {
     );
     assert!(
         logic.contains(&has_value),
-        "logic:hasValue restriction did not fire — the logic: restriction body went dark; got {logic:?}"
+        "logic:hasValue restriction did not fire — the logic: restriction body went dark; got \
+         {logic:?}; execution={:#?}",
+        result.native_execution()
     );
     assert!(
         logic.contains(&type_prop),

@@ -1,0 +1,12 @@
+{
+  "contract": "nativeClassExpressionListAdmission",
+  "selected_worlds": {},
+  "source_worlds": {
+    "https://gmeow.example/w3c-owl2-full/webont-i5-5-003/w": {
+      "assertions": 1,
+      "graph": {
+        "Iri": "https://gmeow.example/w3c-owl2-full/webont-i5-5-003/w"
+      }
+    }
+  }
+}

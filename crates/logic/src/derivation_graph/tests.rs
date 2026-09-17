@@ -437,6 +437,7 @@ fn from_foundation_quads_builds_assertions_and_derivations() {
     // reifier. We compute the asserted reifier via the public helper so the
     // derived quad's premise references the right key.
     let asserted = FoundationQuad {
+        modal_evaluation: None,
         graph: "http://world/base".to_owned(),
         subject: "http://ex/a".to_owned(),
         predicate: "http://ex/p".to_owned(),
@@ -448,6 +449,7 @@ fn from_foundation_quads_builds_assertions_and_derivations() {
     let asserted_reifier = crate::foundation::quad_reifier(&asserted).unwrap();
 
     let derived = FoundationQuad {
+        modal_evaluation: None,
         graph: "http://world/base".to_owned(),
         subject: "http://ex/a".to_owned(),
         predicate: "http://ex/q".to_owned(),
@@ -490,6 +492,7 @@ fn from_foundation_quads_rejects_self_referential_derivation() {
     use crate::foundation::FoundationQuad;
     // A derived quad that lists its OWN reifier as a source must be rejected.
     let mut q = FoundationQuad {
+        modal_evaluation: None,
         graph: "http://world/base".to_owned(),
         subject: "http://ex/a".to_owned(),
         predicate: "http://ex/q".to_owned(),
@@ -503,4 +506,71 @@ fn from_foundation_quads_rejects_self_referential_derivation() {
     let err =
         super::from_foundation_quads(&[q]).expect_err("self-referential quad must be rejected");
     assert!(err.message().contains("self-attestation"), "got: {err}");
+}
+
+#[test]
+fn modal_application_admission_rejects_tampering_without_mutating_the_graph() {
+    use crate::modal::{ModalEvaluation, ModalFrontier, ModalOp, ModalWorldEvidence};
+    let evidence = ModalEvaluation {
+        context: "urn:context".to_owned(),
+        formula: "urn:formula".to_owned(),
+        operator: ModalOp::Box,
+        body: "urn:body".to_owned(),
+        evaluation_world: "urn:w0".to_owned(),
+        accessibility_relation: crate::modal::TYPED_ACCESSIBILITY[0].to_owned(),
+        atom_subject: "urn:s".to_owned(),
+        atom_predicate: "urn:p".to_owned(),
+        atom_object: "urn:o".to_owned(),
+        frontier: ModalFrontier::CompletedFinitePredecessor {
+            worlds: vec![ModalWorldEvidence {
+                world: "urn:w1".to_owned(),
+                atom_present: false,
+            }],
+        },
+        conclusion_predicate: crate::modal::MODAL_NECESSITY_FAILS.to_owned(),
+        conclusion_object: "urn:body".to_owned(),
+    };
+    let fact = FactKey(crate::modal::occurrence_id(
+        &evidence.context,
+        &evidence.formula,
+        &evidence.conclusion_predicate,
+        "<urn:body>",
+    ));
+    let mut app = RuleApplication::new(
+        crate::modal::MODAL_RULE_IRI,
+        evidence
+            .positive_premises()
+            .iter()
+            .map(|p| FactKey(p.occurrence_id())),
+    );
+    app.modal_evaluation = Some(Box::new(evidence));
+    let mut graph = DerivationGraph::new();
+    graph.add_derivation(fact.clone(), app.clone()).unwrap();
+    let before = graph.content_digest();
+    for mutation in 0..5 {
+        let mut invalid = app.clone();
+        let mut target = fact.clone();
+        match mutation {
+            0 => invalid.rule_iri = "urn:unadmitted-rule".to_owned(),
+            1 => {
+                invalid.premises =
+                    vec![FactKey("urn:fabricated-premise".to_owned())].into_boxed_slice()
+            }
+            2 => invalid.modal_evaluation.as_mut().unwrap().context = "urn:foreign".to_owned(),
+            3 => invalid.modal_evaluation = None,
+            _ => target = FactKey("urn:unrelated-conclusion".to_owned()),
+        }
+        assert!(
+            graph
+                .add_derivation(target.clone(), invalid.clone())
+                .is_err(),
+            "insertion mutation {mutation}"
+        );
+        assert_eq!(graph.content_digest(), before);
+        assert!(
+            graph.replace_derivations(&target, [invalid]).is_err(),
+            "replacement mutation {mutation}"
+        );
+        assert_eq!(graph.content_digest(), before);
+    }
 }

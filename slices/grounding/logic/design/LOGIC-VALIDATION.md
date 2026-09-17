@@ -105,6 +105,18 @@ the shape declares. GMEOW's RDF-1.2 statement-layer extension (`sh:reifierShape`
 the shape node can carry — so the projected surface validates reified statements a
 standard-SHACL surface cannot even name.
 
+Qualified cardinality restrictions over a structurally identical value set share
+one `sh:qualifiedValueShape`: lower bounds combine by maximum and upper bounds by
+minimum. Conflicting bounds stay conflicting. Restrictions over different value
+sets produce separate property shapes on the same path, each carrying the owning
+law's failure class, severity and message. Ordinary value, total-cardinality and
+reifier constraints occur once. This layout preserves the conjunction of the
+canonical restrictions and satisfies the target's
+[single qualified-shape parameter rule](https://www.w3.org/TR/shacl/#QualifiedValueShapeConstraintComponent).
+It changes no canonical constraint, provenance or loss record. The bound
+intersection follows from cardinality arithmetic on the identical set; finite
+test examples do not authorize it or a rewrite across different qualifying sets.
+
 ### ShEx
 
 The **same** validation shape projects to a ShEx shape expression: the target becomes the

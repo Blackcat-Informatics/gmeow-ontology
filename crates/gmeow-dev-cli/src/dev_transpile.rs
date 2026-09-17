@@ -423,6 +423,13 @@ pub fn transform(
     if let Err(e) = std::fs::write(&gts_path, &report_native.transform.gts_bytes) {
         return fail(format!("cannot write {}: {e}", gts_path.display()));
     }
+    if let Err(e) = gmeow_gts_profile::write_ingestion_receipt(
+        &gts_path,
+        &report_native.transform.gts_bytes,
+        &report_native.transform.gts_ingestion,
+    ) {
+        return fail(format!("cannot publish GTS ingestion receipt: {e}"));
+    }
     println!("wrote {}", gts_path.display());
 
     // Optional vocabulary-coverage diff against a parity target.

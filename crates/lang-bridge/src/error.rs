@@ -147,6 +147,7 @@ pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     GmnNonNfcLiteral::CODE,
     GmnGraphOutOfDomain::CODE,
     GmnUnpinnedGlyphCost::CODE,
+    crate::gmn1_codec::native::NativeCodebookInvalid::CODE,
 ];
 
 /// Eagerly intern every `lang:` bridge diagnostic code (idempotent).
@@ -163,6 +164,7 @@ pub fn register_all() -> Vec<Code> {
         GmnNonNfcLiteral::register(),
         GmnGraphOutOfDomain::register(),
         GmnUnpinnedGlyphCost::register(),
+        crate::gmn1_codec::native::NativeCodebookInvalid::register(),
     ]
 }
 
@@ -225,33 +227,6 @@ pub fn attach_gmn_failure(
     ledger.attach(diag, gmeow_errors::StageId::new(stage_id.to_owned()));
 }
 
+#[path = "error.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use gmeow_errors::intern_code;
-    use std::collections::HashSet;
-
-    #[test]
-    fn every_lang_bridge_code_interns_with_no_collision() {
-        let handles = register_all();
-        assert_eq!(
-            handles.len(),
-            LANG_BRIDGE_DIAG_CODES.len(),
-            "register_all() and LANG_BRIDGE_DIAG_CODES must enumerate the same kinds"
-        );
-        for code in LANG_BRIDGE_DIAG_CODES {
-            assert!(
-                intern_code(code).is_ok(),
-                "lang-bridge code `{code}` did not intern after register_all()"
-            );
-        }
-        let distinct_strings: HashSet<&&str> = LANG_BRIDGE_DIAG_CODES.iter().collect();
-        assert_eq!(
-            distinct_strings.len(),
-            LANG_BRIDGE_DIAG_CODES.len(),
-            "duplicate lang-bridge diagnostic code string detected"
-        );
-        let distinct_handles: HashSet<Code> = handles.iter().copied().collect();
-        assert_eq!(distinct_handles.len(), handles.len());
-    }
-}
+mod tests;

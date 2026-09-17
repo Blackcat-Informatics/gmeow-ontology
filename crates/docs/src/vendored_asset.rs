@@ -47,7 +47,8 @@ pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
 /// The substrate-identity record filename, in every asset dir.
 ///
 /// Holds the RESOLVED `purrdf` and `wasm-bindgen` versions the engine's bytes were built
-/// against — purrdf because it is the RDF/SHACL/SPARQL core the browser and native engines
+/// against, including the resolved Git revision for a first-party source pin.
+/// PurRDF is the RDF/SHACL/SPARQL core the browser and native engines
 /// must share, wasm-bindgen because it fixes the JS glue ABI. `DIGESTS.blake3` compares
 /// committed bytes to committed bytes and therefore cannot see either drift; this record can.
 /// See [`VendoredWasmAsset::substrate_status`].
@@ -315,13 +316,12 @@ impl VendoredWasmAsset {
         // Digest: pin the exact bytes. The structural checks alone pass a
         // stale-but-still-functional engine; this gate does not.
         let manifest_path = dir.join(DIGEST_MANIFEST);
-        let current = self.current_manifest(root);
         if refresh {
             // Resolve the substrate BEFORE pinning anything. Writing the digests first and
             // failing here would leave bytes pinned with no record of what they were built
-            // against — which every later run reads as "current". This runs only on the
-            // refresh path, which depends on the Node parity lane, so a substrate record
-            // can only ever describe bytes that passed parity.
+            // against. This records candidate build identity; parity acceptance belongs
+            // to the refresh workflow's required Node lanes. A coordinated substrate
+            // refresh prepares all stamps before producing their validation bundle.
             let key = workspace_substrate_key(root).unwrap_or_else(|e| {
                 panic!(
                     "cannot compute the substrate key to stamp {} — refusing to bless \
@@ -329,12 +329,17 @@ impl VendoredWasmAsset {
                     self.name
                 )
             });
-            std::fs::write(&manifest_path, &current)
-                .unwrap_or_else(|e| panic!("write {DIGEST_MANIFEST} for {}: {e}", self.name));
+            // MCP assets include the substrate stamp in their digest inventory.
+            // Publish that stamp before hashing, then publish the manifest last.
+            // An interrupted refresh remains a detectable digest mismatch.
             std::fs::write(dir.join(SUBSTRATE_RECORD), format!("{key}\n"))
                 .unwrap_or_else(|e| panic!("write {SUBSTRATE_RECORD} for {}: {e}", self.name));
+            let current = self.current_manifest(root);
+            std::fs::write(&manifest_path, &current)
+                .unwrap_or_else(|e| panic!("write {DIGEST_MANIFEST} for {}: {e}", self.name));
             return;
         }
+        let current = self.current_manifest(root);
         let committed = std::fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
             panic!(
                 "missing {DIGEST_MANIFEST} (run make {}): {e}",
@@ -831,58 +836,6 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
     }
 }
 
+#[path = "vendored_asset.substrate_tests.rs"]
 #[cfg(test)]
-mod substrate_tests {
-    use super::*;
-
-    const OK: Result<&str, &str> = Ok("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130");
-
-    #[test]
-    fn agreeing_substrate_is_current() {
-        assert!(
-            substrate_verdict("query", "maint-refresh-query-asset", OK, OK).is_none(),
-            "matching records must report current"
-        );
-    }
-
-    #[test]
-    fn a_missing_stamp_is_a_failure() {
-        let out = substrate_verdict::<&str, &str>(
-            "query",
-            "maint-refresh-query-asset",
-            Err("No such file or directory"),
-            OK,
-        )
-        .expect("a missing stamp must not report current");
-        assert!(out.contains("has no SUBSTRATE.txt"), "{out}");
-        assert!(out.contains("maint-refresh-query-asset"), "{out}");
-    }
-
-    #[test]
-    fn a_mismatched_stamp_is_a_failure() {
-        let out = substrate_verdict::<&str, &str>(
-            "query",
-            "maint-refresh-query-asset",
-            Ok("purrdf 0.11.0; wasm-bindgen 0.2.125; binaryen version_130"),
-            OK,
-        )
-        .expect("a stale stamp must not report current");
-        assert!(out.contains("0.11.0"), "{out}");
-        assert!(out.contains("DIFFERENT substrate"), "{out}");
-    }
-
-    #[test]
-    fn an_unreadable_workspace_pin_is_a_failure_not_agreement() {
-        let out = substrate_verdict::<&str, &str>(
-            "query",
-            "maint-refresh-query-asset",
-            OK,
-            Err("Cargo.lock: cannot read"),
-        )
-        .expect("an unreadable pin must not report current");
-        assert!(
-            out.contains("failed comparison, not agreement"),
-            "the unreadable-pin branch must say so plainly: {out}"
-        );
-    }
-}
+mod substrate_tests;

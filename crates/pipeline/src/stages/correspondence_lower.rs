@@ -24,6 +24,8 @@ use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset};
 
+mod statistics;
+
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublished";
 
@@ -36,9 +38,40 @@ const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublis
 /// vector or the metric Gram reds that test.
 const SF_INTENSITY_IRI: &str = "https://blackcatinformatics.ca/gmeow/schadenfreudeIntensity";
 
+pub(crate) const WORKED_ENVELOPE_CHANNEL: &str = "pipeline/affect-worked-envelope.json";
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct WorkedEnvelopeObservation {
+    observation_present: bool,
+    envelope: emotionml::WorkedEnvelope,
+}
+
+/// Observe the original affect module once, independently of the merged emission view.
+pub(crate) fn record_worked_envelope(
+    sources: &crate::stages::parse_sources::SourceCatalog,
+    artifacts: &mut BTreeMap<String, Vec<u8>>,
+) -> gmeow_errors::Result<()> {
+    let original = sources.document("slices/core/affect/module.ttl")?;
+    let observed = WorkedEnvelopeObservation {
+        observation_present: original.term_id_by_iri(SF_INTENSITY_IRI).is_some(),
+        envelope: compute_worked_envelope(original)?,
+    };
+    artifacts.insert(
+        WORKED_ENVELOPE_CHANNEL.into(),
+        serde_json::to_vec(&observed).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Transform {
+                message: error.to_string(),
+            })
+        })?,
+    );
+    Ok(())
+}
+
 /// All four alignment dialects' outputs, keyed by bare file name within each
 /// generated directory.
 pub struct CorrespondenceArtifacts {
+    /// Required DSL statistics emitted from the same admitted source analysis.
+    pub dsl_stats: String,
     /// `<name>.sssom.tsv` → TSV.
     pub sssom: BTreeMap<String, String>,
     /// The single FnO catalog N-Triples text.
@@ -75,21 +108,14 @@ pub struct CorrespondenceArtifacts {
     /// lowerings CONSUME this materialized set's typed `(relation, morphism class, morphism
     /// kind)` for their overclaim gate / ledger path (via the by-natural-key lookup the
     /// transpiler builds alongside the program) instead of re-deriving the relation inline —
-    /// the materialized set is the single source of truth. The four rendered artifacts'
-    /// bytes are unchanged (the renderers emit the authored predicate/relation token).
+    /// the materialized set is the single source of truth. Required query artifacts render
+    /// natively from the same typed binding legs used for execution.
     pub correspondences: CorrespondenceProgram,
-    /// Per-binding get/put CONSTRUCT fragments, keyed by `(cell IRI, profile)` — the
-    /// single-cell slice of each per-profile query (get fragment) plus its inverse (`Some`
-    /// only when the binding emits a put leg). The mappings stage joins this against
-    /// [`correspondence_profiles`](Self::correspondence_profiles) + each correspondence's
-    /// `get_leg` (= its cell IRI) to discharge that ONE correspondence's lens law in
-    /// isolation. Pure strings (no engine ran in logic-compile — F2).
-    pub sparql_fragments: BTreeMap<(String, String), (String, Option<String>)>,
-    /// Correspondence IRI → profile for every `gmeow:ProjectionMapping` binding
-    /// correspondence (absent for native alignment cells, which are not
-    /// profile-scoped). The join key the mappings stage uses to find a correspondence's own
-    /// `(cell IRI, profile)` fragment pair in [`sparql_fragments`](Self::sparql_fragments).
-    pub correspondence_profiles: BTreeMap<String, String>,
+    /// Native per-binding get/put programs shared with required query emission.
+    /// Law execution consumes these exact legs, never a mixed profile union.
+    pub sparql_legs: BTreeMap<String, sparql::MappingLegs>,
+    /// Correspondence IRI to exact semantic binding key; alignment-only cells are absent.
+    pub correspondence_bindings: BTreeMap<String, String>,
 }
 
 /// Lower every alignment dialect from the sources under `root`, reading slice artifacts
@@ -111,19 +137,19 @@ pub fn lower_all(
     // Materialize the typed logic:Correspondence set + its by-natural-key lookup from the
     // DSL cells FIRST: the lookup is the single source of truth the four
     // dialect lowerings CONSUME for their overclaim gate / ledger path, so it
-    // must exist before they run. The four RENDERED artifacts are unchanged (they still
-    // emit the authored predicate/relation token verbatim).
-    let (correspondences, lookup) = transpile_correspondences_indexed(&dsl_view, &onto_view)
+    // must exist before they run. The dialects retain their authored relation token;
+    // required SPARQL is a native rendering of the same legs consumed by execution.
+    let (correspondences, lookup) = transpile_correspondences_indexed(&dsl_view)
         .map_err(|e| SliceError::Parse(e.to_string()))?;
 
     let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date, &lookup)
         .map_err(|e| SliceError::Parse(e.to_string()))?;
-    let fno =
-        fno::lower_fno(&dsl_view, &onto_view).map_err(|e| SliceError::Parse(e.to_string()))?;
-    let edoal = edoal::lower_edoal(&dsl_view, &onto_view, &lookup)
+    let fno = fno::lower_fno(&dsl_view, &onto_view, &lookup)
         .map_err(|e| SliceError::Parse(e.to_string()))?;
-    let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup)
-        .map_err(|e| SliceError::Parse(e.to_string()))?;
+    let edoal =
+        edoal::lower_edoal(&onto_view, &lookup).map_err(|e| SliceError::Parse(e.to_string()))?;
+    let sparql =
+        sparql::lower_sparql(&onto_view, &lookup).map_err(|e| SliceError::Parse(e.to_string()))?;
 
     // The EmotionML XML lowering enumerates the affect category (gmeow:EmotionType) and
     // dimension (gmeow:AppraisalDimension / gmeow:CoreAffectDimension) vocabularies straight
@@ -156,7 +182,11 @@ pub fn lower_all(
     loss.union(&sparql.loss);
     loss.union(&emotionml.loss);
 
+    let dsl_stats = statistics::emit(&dsl_view, &lookup, &gmeow_ns::gmeow_slice_vocab())
+        .map_err(|error| SliceError::Parse(error.to_string()))?;
+
     Ok(CorrespondenceArtifacts {
+        dsl_stats,
         sssom: sssom.sets,
         fno: fno.catalog,
         edoal: edoal.alignments,
@@ -169,11 +199,11 @@ pub fn lower_all(
         ledger,
         loss,
         correspondences,
-        // The per-binding get/put fragments + the corr→profile join key: the mappings stage
+        // The per-binding native get/put legs + the corr→profile join key: the mappings stage
         // discharges each correspondence's OWN lens law from these (never the per-profile
         // UNION, which is the wrong unit).
-        sparql_fragments: sparql.fragments,
-        correspondence_profiles: lookup.binding_profiles().clone(),
+        sparql_legs: sparql.legs,
+        correspondence_bindings: lookup.binding_keys().clone(),
     })
 }
 
@@ -181,8 +211,8 @@ pub fn lower_all(
 /// ontology N-Triples — the string-fed twin of the mappings stage's
 /// `discharge_correspondence_laws`
 /// (crate::stages::mappings). It reuses the SAME `transpile_correspondences_indexed` +
-/// [`sparql::lower_sparql`] + [`crate::correspondence_law::discharge_laws`] pipeline, so it yields
-/// the identical authorization set the bundle folds into `graph/correspondence-laws` — never a
+/// [`sparql::lower_sparql`] + [`crate::correspondence_law::discharge_algebra_laws`] pipeline, so it yields
+/// the identical bounded verdict set the bundle folds into `graph/correspondence-laws` — never a
 /// second copy of the discharge algorithm.
 ///
 /// This exists for callers that supply the projection cells and ontology, but not
@@ -209,26 +239,31 @@ pub fn discharged_section_cells_from_cells(
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
     let (correspondences, lookup) =
-        transpile_correspondences_indexed(&dsl_view, &onto_view).map_err(|e| up(e.to_string()))?;
-    let sparql =
-        sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(|e| up(e.to_string()))?;
-    let profiles = lookup.binding_profiles();
+        transpile_correspondences_indexed(&dsl_view).map_err(|e| up(e.to_string()))?;
+    let sparql = sparql::lower_sparql(&onto_view, &lookup).map_err(|e| up(e.to_string()))?;
+    let bindings = lookup.binding_keys();
 
     let mut cells = std::collections::BTreeSet::new();
     for corr in &correspondences.correspondences {
-        let (Some(profile), Some(cell_iri)) = (profiles.get(&corr.iri), corr.get_leg.as_deref())
+        let (Some(binding_key), Some(cell_iri)) =
+            (bindings.get(&corr.iri), corr.get_leg.as_deref())
         else {
             continue;
         };
-        let Some((get_rq, Some(put_rq))) = sparql
-            .fragments
-            .get(&(cell_iri.to_owned(), profile.clone()))
-            .map(|(g, p)| (g, p.as_ref()))
-        else {
+        let legs = sparql.legs.get(binding_key).ok_or_else(|| {
+            up(format!(
+                "correspondence <{}> is missing its native binding legs",
+                corr.iri
+            ))
+        })?;
+        let Some(put) = &legs.put else {
             continue;
         };
-        for claim in crate::correspondence_law::discharge_laws(get_rq, put_rq, corr.morphism_class)
-        {
+        for claim in crate::correspondence_law::discharge_algebra_laws(
+            legs.get.clone(),
+            put.clone(),
+            corr.morphism_class,
+        )? {
             if claim.law == CorrespondenceLaw::SectionLaw
                 && claim.verdict == DischargeVerdict::ObligationDischarged
             {
@@ -260,22 +295,13 @@ fn compute_worked_envelope(onto: &RdfDataset) -> gmeow_errors::Result<emotionml:
 
 /// The schadenfreude affect-intensity geometry, computed over the in-memory ontology carrier
 /// `onto` (the folded `ontology/gmeow.ttl` + every slice `module.ttl`, so it carries both the
-/// metric Gram and the shipped schadenfreude appraisal vector). The carrier is snapshotted
-/// through the same GTS path the `gmeow affect` CLI uses, so this compute is byte-identical to
-/// the shipped CLI's — and it reads NOTHING from disk (the projection is a true projection of
-/// the carrier, per PIPELINE_SPINE).
+/// metric Gram and the shipped schadenfreude appraisal vector). The native and GTS
+/// consumer entries share the exact-rational compute function; the producer needs no
+/// container serialization or parsing to access its already-admitted dataset.
 fn schadenfreude_geometry(onto: &RdfDataset) -> gmeow_errors::Result<gmeow_affect::Geometry> {
-    use purrdf::gts_compose::SnapshotBuilder;
-
     let transform =
         |message: String| gmeow_errors::Diag::of_kind(crate::error::Transform { message });
-    let mut builder = SnapshotBuilder::new();
-    builder
-        .add_dataset(onto)
-        .map_err(|e| transform(format!("add ontology carrier: {e}")))?;
-    let gts = gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
-        .map_err(|e| transform(format!("emit affect fixture gts: {e}")))?;
-    gmeow_affect::geometry_from_gts_bytes(&gts, Some(SF_INTENSITY_IRI))
+    gmeow_affect::geometry_from_dataset(onto, Some(SF_INTENSITY_IRI))
         .map_err(|e| transform(e.to_string()))?
         .into_iter()
         .next()
@@ -337,10 +363,7 @@ fn merge_slice_artifacts(
 /// The DSL source set (functions + cells): the sorted `dsl/mappings/**/*.ttl` tree,
 /// then the sorted slice `Mapping` artifacts — the same order the historical store
 /// loaded them, so collisions resolve identically.
-pub(crate) fn merge_dsl(
-    root: &Path,
-    catalog: Option<&SliceCatalog>,
-) -> Result<Arc<RdfDataset>, SliceError> {
+fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDataset>, SliceError> {
     let mut b = RdfDatasetBuilder::new();
     let mut files = Vec::new();
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
@@ -409,60 +432,6 @@ fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
     Ok((version, release_date))
 }
 
+#[path = "correspondence_lower.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .expect("canonicalize repo root")
-    }
-
-    /// The EmotionML worked-envelope pin: the emitter PROJECTS the SHIPPED schadenfreude worked
-    /// instance carried on the in-memory ontology dataset, so its intensity + per-dimension
-    /// values are COMPUTED — never fabricated and never re-read from disk. This drives the REAL
-    /// `compute_worked_envelope` over the REAL committed affect `module.ttl` (the carrier the
-    /// pipeline folds) and asserts the metric-tensor outputs: intensity √(79/100) = 0.888819,
-    /// valence 0.7 → 0.85, arousal 0.4 → 0.7. Retiring the shipped observation or perturbing its
-    /// appraisal vector reds this test — the drift gate the invariant demands.
-    #[test]
-    fn worked_envelope_projects_the_schadenfreude_example() {
-        let root = repo_root();
-        // Build the ontology carrier from the committed affect module (the metric Gram, axis
-        // indices, and the shipped schadenfreude A-Box all live there), mirroring the dataset
-        // `lower_all` folds and hands to `compute_worked_envelope`.
-        let module_ttl = root.join("slices/core/affect/module.ttl");
-        let bytes = std::fs::read(&module_ttl).expect("read affect module.ttl");
-        let onto = parse_dataset(&bytes, NativeRdfFormat::Turtle.media_type(), None)
-            .expect("parse affect module.ttl");
-
-        // The shipped observation IRI must resolve as a base-graph subject (retirement is a
-        // hard fail): it is authored in module.ttl, never an excluded example overlay.
-        assert!(
-            onto.term_id_by_value(&TermValue::Iri(SF_INTENSITY_IRI.to_owned()))
-                .is_some(),
-            "shipped schadenfreude intensity observation missing from the carrier: {SF_INTENSITY_IRI}"
-        );
-
-        let worked = compute_worked_envelope(&onto).expect("compute worked envelope");
-
-        assert_eq!(
-            worked.intensity, "0.888819",
-            "overall intensity is the computed metric-tensor norm √(79/100)"
-        );
-
-        let valence = "https://blackcatinformatics.ca/gmeow/dimensionValence";
-        let arousal = "https://blackcatinformatics.ca/gmeow/dimensionArousal";
-        assert_eq!(
-            worked.dimensions,
-            vec![
-                (valence.to_owned(), "0.85".to_owned()),
-                (arousal.to_owned(), "0.7".to_owned()),
-            ],
-            "per-dimension unit-clamp values are computed from the schadenfreude vector"
-        );
-    }
-}
+mod tests;

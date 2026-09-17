@@ -1541,14 +1541,14 @@ gmeow:claimSiteWorkspaceManifest
     a gmeow:ClaimSite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "workspace manifest claim site"@x-gmeow-english ;
-    skos:definition "The root Cargo.toml [workspace.dependencies] pin of the substrate — the git rev the workspace builds against."@x-gmeow-english ;
+    skos:definition "The root Cargo.toml [workspace.dependencies] compatibility requirement for the substrate. Cargo.lock records the exact selected release."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimSiteFuzzManifest
     a gmeow:ClaimSite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "fuzz manifest claim site"@x-gmeow-english ;
-    skos:definition "The fuzz/Cargo.toml duplicate pin of the substrate — a second manifest that must agree with the workspace pin."@x-gmeow-english ;
+    skos:definition "The fuzz/Cargo.toml compatibility requirement for the substrate. Its committed lockfile must select the same PurRDF package identities as the root lockfile."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimSiteLockfile
@@ -1593,6 +1593,13 @@ gmeow:ClaimDimension
         gmeow:boxTBox ;
     gmeow:howToUse "Reference a seeded gmeow:ClaimDimension individual via gmeow:claimDimension; the agreement law compares only claims sharing a dimension."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary behind gmeow:claimDimension — the open set of individuals naming which versioned fact a claim asserts."@x-gmeow-english .
+
+gmeow:dimensionVersionRequirement
+    a gmeow:ClaimDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "version requirement dimension"@x-gmeow-english ;
+    skos:definition "The manifest's normalized semantic-version compatibility requirement. It constrains the exact release selected by a lockfile but does not itself name that release."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:dimensionCrateVersion
     a gmeow:ClaimDimension ;

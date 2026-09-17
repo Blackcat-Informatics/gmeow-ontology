@@ -10,7 +10,16 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::provenance::mint_derivation_id;
+pub(crate) mod native;
+pub use native::{NativeModalEvidence, NativeModalSupport};
+
+mod evidence;
+pub(crate) use evidence::occurrence_id;
+pub use evidence::{ModalEvaluation, ModalFrontier, ModalPremise, ModalWorldEvidence};
+
+mod composite;
+pub mod contextual;
+pub mod journal;
 
 fn modal_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
@@ -54,7 +63,7 @@ pub(crate) trait ModalFact {
     fn graph(&self) -> &str;
     fn subject(&self) -> &str;
     fn predicate(&self) -> &str;
-    fn object(&self) -> &str;
+    fn object(&self) -> std::borrow::Cow<'_, str>;
 }
 
 impl<T: ModalFact + ?Sized> ModalFact for &T {
@@ -70,19 +79,22 @@ impl<T: ModalFact + ?Sized> ModalFact for &T {
         <T as ModalFact>::predicate(*self)
     }
 
-    fn object(&self) -> &str {
+    fn object(&self) -> std::borrow::Cow<'_, str> {
         <T as ModalFact>::object(*self)
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum ModalOp {
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
+pub enum ModalOp {
     Box,
     Diamond,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ModalFrame {
+    pub(crate) context: String,
     pub(crate) formula: String,
     pub(crate) op: ModalOp,
     pub(crate) body: String,
@@ -95,6 +107,7 @@ pub(crate) struct ModalFrame {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ModalVerdict {
+    pub(crate) evaluation: ModalEvaluation,
     pub(crate) graph: String,
     pub(crate) subject: String,
     pub(crate) predicate: String,
@@ -107,13 +120,13 @@ pub(crate) struct ModalVerdict {
 
 #[derive(Debug, Default)]
 struct ModalFrameIndexes {
-    nec_body: BTreeMap<String, BTreeSet<String>>,
-    pos_body: BTreeMap<String, BTreeSet<String>>,
-    over: BTreeMap<String, BTreeSet<String>>,
-    eval_world: BTreeMap<String, BTreeSet<String>>,
-    atom_s: BTreeMap<String, BTreeSet<String>>,
-    atom_p: BTreeMap<String, BTreeSet<String>>,
-    atom_o: BTreeMap<String, BTreeSet<String>>,
+    nec_body: BTreeMap<(String, String), BTreeSet<String>>,
+    pos_body: BTreeMap<(String, String), BTreeSet<String>>,
+    over: BTreeMap<(String, String), BTreeSet<String>>,
+    eval_world: BTreeMap<(String, String), BTreeSet<String>>,
+    atom_s: BTreeMap<(String, String), BTreeSet<String>>,
+    atom_p: BTreeMap<(String, String), BTreeSet<String>>,
+    atom_o: BTreeMap<(String, String), BTreeSet<String>>,
     typed_relations: BTreeSet<&'static str>,
 }
 
@@ -133,96 +146,42 @@ where
     I: Iterator<Item = T>,
     F: Fn() -> I,
 {
-    let mut frame_indexes = ModalFrameIndexes {
-        typed_relations: TYPED_ACCESSIBILITY.iter().copied().collect(),
-        ..ModalFrameIndexes::default()
-    };
-
-    for fact in facts() {
-        match fact.predicate() {
-            NECESSARILY => {
-                frame_indexes
-                    .nec_body
-                    .entry(fact.subject().to_owned())
-                    .or_default()
-                    .insert(normalize_object(fact.object()).to_owned());
-            }
-            POSSIBLY => {
-                frame_indexes
-                    .pos_body
-                    .entry(fact.subject().to_owned())
-                    .or_default()
-                    .insert(normalize_object(fact.object()).to_owned());
-            }
-            OVER_ACCESSIBILITY => {
-                frame_indexes
-                    .over
-                    .entry(fact.subject().to_owned())
-                    .or_default()
-                    .insert(normalize_object(fact.object()).to_owned());
-            }
-            MODAL_EVAL_WORLD => {
-                frame_indexes
-                    .eval_world
-                    .entry(fact.subject().to_owned())
-                    .or_default()
-                    .insert(normalize_object(fact.object()).to_owned());
-            }
-            ATOM_SUBJECT => {
-                frame_indexes
-                    .atom_s
-                    .entry(fact.subject().to_owned())
-                    .or_default()
-                    .insert(normalize_object(fact.object()).to_owned());
-            }
-            ATOM_PREDICATE => {
-                frame_indexes
-                    .atom_p
-                    .entry(fact.subject().to_owned())
-                    .or_default()
-                    .insert(normalize_object(fact.object()).to_owned());
-            }
-            ATOM_OBJECT => {
-                frame_indexes
-                    .atom_o
-                    .entry(fact.subject().to_owned())
-                    .or_default()
-                    .insert(normalize_object(fact.object()).to_owned());
-            }
-            _ => {}
-        }
-    }
-
-    let frames = resolve_frames(&frame_indexes)?;
+    let frames = prepare_frames(&facts)?;
     if frames.is_empty() {
         return Ok(Vec::new());
     }
 
     // A typed relation can also occur as ordinary domain data (notably
     // `gmeow:sharpens`). Validate only the edge rows selected by a resolved modal
-    // frame's exact `(evaluation world, relation)` pair. This keeps unrelated
+    // frame's exact `(asserting context, evaluation world, relation)` key. This keeps unrelated
     // literal/blank/triple-valued domain facts outside the modal seam while an
     // ill-typed endpoint on an edge that the frame actually evaluates remains an
     // atomic failure before any verdict is published.
-    let active_access: BTreeSet<(&str, &str)> = frames
+    let active_access: BTreeSet<(&str, &str, &str)> = frames
         .iter()
-        .map(|frame| (frame.w0.as_str(), frame.relation.as_str()))
+        .map(|frame| {
+            (
+                frame.context.as_str(),
+                frame.w0.as_str(),
+                frame.relation.as_str(),
+            )
+        })
         .collect();
-    let mut access: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut access: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
     for fact in facts() {
-        if !frame_indexes.typed_relations.contains(fact.predicate()) {
+        if !TYPED_ACCESSIBILITY.contains(&fact.predicate()) {
             continue;
         }
         let Ok(source) = iri_binding(fact.subject(), "typed accessibility edge source world")
         else {
             continue;
         };
-        if !active_access.contains(&(source.as_str(), fact.predicate())) {
+        if !active_access.contains(&(fact.graph(), source.as_str(), fact.predicate())) {
             continue;
         }
-        let target = iri_binding(fact.object(), "typed accessibility edge target world")?;
+        let target = iri_binding(&fact.object(), "typed accessibility edge target world")?;
         access
-            .entry((source, fact.predicate().to_owned()))
+            .entry((fact.graph().to_owned(), source, fact.predicate().to_owned()))
             .or_default()
             .insert(target);
     }
@@ -244,7 +203,8 @@ where
         .collect();
     let mut presence: BTreeSet<(String, String, String, String)> = BTreeSet::new();
     for fact in facts() {
-        let object = normalize_object(fact.object());
+        let value = fact.object();
+        let object = normalize_object(&value);
         if required_atoms.contains(&(fact.subject(), fact.predicate(), object)) {
             presence.insert((
                 fact.graph().to_owned(),
@@ -258,83 +218,207 @@ where
 
     let mut verdicts = Vec::new();
     for frame in frames {
-        let accessible: Vec<String> = access
-            .get(&(frame.w0.clone(), frame.relation.clone()))
-            .map(|worlds| worlds.iter().cloned().collect())
-            .unwrap_or_default();
-        let atom_present = |world: &str| {
-            presence.contains(&(
-                world.to_owned(),
-                frame.atom_s.clone(),
-                frame.atom_p.clone(),
-                frame.atom_o.clone(),
+        let worlds: Vec<ModalWorldEvidence> = access
+            .get(&(
+                frame.context.clone(),
+                frame.w0.clone(),
+                frame.relation.clone(),
             ))
-        };
-        let body_premise = (
-            frame.atom_s.clone(),
-            frame.atom_p.clone(),
-            n3(&frame.atom_o),
-        );
-        let body_reifier = triple_reifier(&body_premise.0, &body_premise.1, &frame.atom_o)?;
+            .into_iter()
+            .flatten()
+            .map(|world| ModalWorldEvidence {
+                world: world.clone(),
+                atom_present: presence.contains(&(
+                    world.clone(),
+                    frame.atom_s.clone(),
+                    frame.atom_p.clone(),
+                    frame.atom_o.clone(),
+                )),
+            })
+            .collect();
+        verdicts.extend(evaluate_frame(&frame, worlds)?);
+    }
+    Ok(verdicts)
+}
 
-        match frame.op {
-            ModalOp::Box => {
-                if accessible.is_empty() {
-                    let predicate = if frame.relation == DEONTICALLY_IDEAL {
-                        MODAL_NECESSITY_UNDETERMINED
-                    } else {
-                        MODAL_NECESSITY_HOLDS
-                    };
-                    verdicts.push(verdict(
-                        &frame,
-                        predicate,
-                        frame.body.clone(),
-                        vec![body_premise],
-                        vec![body_reifier],
-                    )?);
-                } else if let Some(witness) = accessible.iter().find(|world| !atom_present(world)) {
-                    verdicts.push(verdict(
-                        &frame,
-                        MODAL_NECESSITY_FAILS,
-                        frame.body.clone(),
-                        vec![body_premise.clone()],
-                        vec![body_reifier.clone()],
-                    )?);
-                    let access_premise = (frame.w0.clone(), frame.relation.clone(), n3(witness));
-                    let access_reifier =
-                        triple_reifier(&frame.w0, &frame.relation, witness.as_str())?;
-                    verdicts.push(verdict(
-                        &frame,
-                        MODAL_COUNTEREXAMPLE_WORLD,
-                        witness.clone(),
-                        vec![body_premise, access_premise],
-                        vec![body_reifier, access_reifier],
-                    )?);
-                } else {
-                    verdicts.push(verdict(
-                        &frame,
-                        MODAL_NECESSITY_HOLDS,
-                        frame.body.clone(),
-                        vec![body_premise],
-                        vec![body_reifier],
-                    )?);
-                }
+/// Admit original frame ownership once, before any producer can normalize or
+/// derive the definition it is being asked to execute.
+fn prepare_frames<T, I, F>(facts: &F) -> gmeow_errors::Result<Vec<ModalFrame>>
+where
+    T: ModalFact,
+    I: Iterator<Item = T>,
+    F: Fn() -> I,
+{
+    let mut frame_indexes = ModalFrameIndexes {
+        typed_relations: TYPED_ACCESSIBILITY.iter().copied().collect(),
+        ..ModalFrameIndexes::default()
+    };
+
+    let mut contextual_requests = BTreeSet::new();
+
+    for fact in facts() {
+        if fact.predicate() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+            && normalize_object(&fact.object())
+                == "https://blackcatinformatics.ca/logic/ContextualEvaluationRequest"
+        {
+            contextual_requests.insert((fact.graph().to_owned(), fact.subject().to_owned()));
+        }
+        match fact.predicate() {
+            NECESSARILY => {
+                frame_indexes
+                    .nec_body
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert(normalize_object(&fact.object()).to_owned());
             }
-            ModalOp::Diamond => {
-                let predicate = if accessible.iter().any(|world| atom_present(world)) {
-                    MODAL_POSSIBILITY_HOLDS
-                } else {
-                    MODAL_POSSIBILITY_FAILS
-                };
-                verdicts.push(verdict(
-                    &frame,
-                    predicate,
-                    frame.body.clone(),
-                    vec![body_premise],
-                    vec![body_reifier],
-                )?);
+            POSSIBLY => {
+                frame_indexes
+                    .pos_body
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert(normalize_object(&fact.object()).to_owned());
+            }
+            OVER_ACCESSIBILITY => {
+                frame_indexes
+                    .over
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert(normalize_object(&fact.object()).to_owned());
+            }
+            MODAL_EVAL_WORLD => {
+                frame_indexes
+                    .eval_world
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert(normalize_object(&fact.object()).to_owned());
+            }
+            ATOM_SUBJECT => {
+                frame_indexes
+                    .atom_s
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert(normalize_object(&fact.object()).to_owned());
+            }
+            ATOM_PREDICATE => {
+                frame_indexes
+                    .atom_p
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert(normalize_object(&fact.object()).to_owned());
+            }
+            ATOM_OBJECT => {
+                frame_indexes
+                    .atom_o
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert(normalize_object(&fact.object()).to_owned());
+            }
+            _ => {}
+        }
+    }
+
+    let mut contextual_roots: BTreeMap<(String, String), BTreeSet<(String, String)>> =
+        BTreeMap::new();
+    let mut formula_children: BTreeMap<(String, String), BTreeSet<(String, String)>> =
+        BTreeMap::new();
+    if !contextual_requests.is_empty() {
+        for fact in facts() {
+            if fact.predicate() == "https://blackcatinformatics.ca/logic/queryFormula"
+                && contextual_requests
+                    .contains(&(fact.graph().to_owned(), fact.subject().to_owned()))
+            {
+                contextual_roots
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert((
+                        fact.graph().to_owned(),
+                        normalize_object(&fact.object()).to_owned(),
+                    ));
+            }
+            if fact
+                .predicate()
+                .strip_prefix("https://blackcatinformatics.ca/logic/")
+                .is_some_and(|local| {
+                    gmeow_logic_compile::frontend::FORMULA_SUBLINKS.contains(&local)
+                })
+            {
+                formula_children
+                    .entry((fact.graph().to_owned(), fact.subject().to_owned()))
+                    .or_default()
+                    .insert((
+                        fact.graph().to_owned(),
+                        normalize_object(&fact.object()).to_owned(),
+                    ));
             }
         }
+    }
+
+    // Query-owned expressions are evaluated by the composite kernel. They are
+    // not independently requested flat frames, and their inner modal nodes must
+    // retain the enclosing context instead of acquiring an implicit root world.
+    let mut owned = BTreeSet::new();
+    let mut pending = contextual_requests
+        .iter()
+        .filter_map(|request| contextual_roots.get(request))
+        .flatten()
+        .cloned()
+        .collect::<Vec<_>>();
+    while let Some(formula) = pending.pop() {
+        if !owned.insert(formula.clone()) {
+            continue;
+        }
+        if let Some(children) = formula_children.get(&formula) {
+            pending.extend(children.iter().cloned());
+        }
+    }
+    for formula in owned {
+        if frame_indexes.eval_world.contains_key(&formula) {
+            return Err(modal_err(format!(
+                "formula {formula:?} is selected by both a contextual request and a flat modal evaluation world"
+            )));
+        }
+        frame_indexes.nec_body.remove(&formula);
+        frame_indexes.pos_body.remove(&formula);
+        frame_indexes.over.remove(&formula);
+        frame_indexes.eval_world.remove(&formula);
+    }
+    resolve_frames(&frame_indexes)
+}
+
+/// The single verdict calculus, shared by the native scheduled producer and
+/// explicit bounded evaluation of a caller-supplied completed frame.
+fn evaluate_frame(
+    frame: &ModalFrame,
+    worlds: Vec<ModalWorldEvidence>,
+) -> gmeow_errors::Result<Vec<ModalVerdict>> {
+    let mut verdicts = Vec::new();
+    let missing = worlds.iter().find(|world| !world.atom_present);
+    let predicate = match frame.op {
+        ModalOp::Box if worlds.is_empty() && frame.relation == DEONTICALLY_IDEAL => {
+            MODAL_NECESSITY_UNDETERMINED
+        }
+        ModalOp::Box if missing.is_some() => MODAL_NECESSITY_FAILS,
+        ModalOp::Box => MODAL_NECESSITY_HOLDS,
+        ModalOp::Diamond if worlds.iter().any(|world| world.atom_present) => {
+            MODAL_POSSIBILITY_HOLDS
+        }
+        ModalOp::Diamond => MODAL_POSSIBILITY_FAILS,
+    };
+    verdicts.push(verdict(
+        frame,
+        predicate,
+        frame.body.clone(),
+        worlds.clone(),
+    )?);
+    if frame.op == ModalOp::Box
+        && let Some(witness) = missing
+    {
+        verdicts.push(verdict(
+            frame,
+            MODAL_COUNTEREXAMPLE_WORLD,
+            witness.world.clone(),
+            worlds.clone(),
+        )?);
     }
     Ok(verdicts)
 }
@@ -350,14 +434,17 @@ fn resolve_frames(indexes: &ModalFrameIndexes) -> gmeow_errors::Result<Vec<Modal
         atom_o,
         typed_relations,
     } = indexes;
-    let mut formula_nodes: BTreeSet<String> = BTreeSet::new();
+    let mut formula_nodes: BTreeSet<(String, String)> = BTreeSet::new();
     formula_nodes.extend(nec_body.keys().cloned());
     formula_nodes.extend(pos_body.keys().cloned());
     formula_nodes.extend(over.keys().cloned());
     formula_nodes.extend(eval_world.keys().cloned());
 
-    for (formula, bodies) in nec_body.iter().chain(pos_body) {
-        if let Some(body) = bodies.iter().find(|body| formula_nodes.contains(*body)) {
+    for ((context, formula), bodies) in nec_body.iter().chain(pos_body) {
+        if let Some(body) = bodies
+            .iter()
+            .find(|body| formula_nodes.contains(&(context.clone(), (*body).clone())))
+        {
             return Err(modal_err(format!(
                 "modal body {body} of formula {formula} is itself a modal formula; the modal \
                  body is scoped to a single ground atom, not a nested modal"
@@ -366,10 +453,10 @@ fn resolve_frames(indexes: &ModalFrameIndexes) -> gmeow_errors::Result<Vec<Modal
     }
 
     let mut frames = Vec::new();
-    for formula in formula_nodes {
-        iri_binding(&formula, "modal formula")?;
-        let has_nec = nec_body.contains_key(&formula);
-        let has_pos = pos_body.contains_key(&formula);
+    for key @ (context, formula) in &formula_nodes {
+        iri_binding(formula, "modal formula")?;
+        let has_nec = nec_body.contains_key(key);
+        let has_pos = pos_body.contains_key(key);
         if has_nec && has_pos {
             return Err(modal_err(format!(
                 "modal formula {formula} carries both logic:necessarily (□) and \
@@ -383,9 +470,9 @@ fn resolve_frames(indexes: &ModalFrameIndexes) -> gmeow_errors::Result<Vec<Modal
             )));
         }
         let (op, bodies) = if has_nec {
-            (ModalOp::Box, &nec_body[&formula])
+            (ModalOp::Box, &nec_body[key])
         } else {
-            (ModalOp::Diamond, &pos_body[&formula])
+            (ModalOp::Diamond, &pos_body[key])
         };
         if bodies.len() != 1 {
             return Err(modal_err(format!(
@@ -400,11 +487,11 @@ fn resolve_frames(indexes: &ModalFrameIndexes) -> gmeow_errors::Result<Vec<Modal
         )?;
 
         let relation = iri_binding(
-            &exact_one(over.get(&formula), || {
+            &exact_one(over.get(key), || {
                 format!(
                     "modal formula {formula} must carry exactly one logic:overAccessibility \
                  relation (found {})",
-                    over.get(&formula).map_or(0, BTreeSet::len)
+                    over.get(key).map_or(0, BTreeSet::len)
                 )
             })?,
             "modal accessibility relation",
@@ -426,37 +513,42 @@ fn resolve_frames(indexes: &ModalFrameIndexes) -> gmeow_errors::Result<Vec<Modal
         }
 
         let w0 = iri_binding(
-            &exact_one(eval_world.get(&formula), || {
+            &exact_one(eval_world.get(key), || {
                 format!(
                     "modal formula {formula} must carry exactly one logic:modalEvalWorld \
                  evaluation world (found {})",
-                    eval_world.get(&formula).map_or(0, BTreeSet::len)
+                    eval_world.get(key).map_or(0, BTreeSet::len)
                 )
             })?,
             "modal evaluation world",
         )?;
 
         frames.push(ModalFrame {
+            context: context.clone(),
             formula: formula.clone(),
             op,
             body: body.clone(),
             relation,
             w0,
-            atom_s: single_atom_binding(atom_s, &body, ATOM_SUBJECT, &formula)?,
-            atom_p: single_atom_binding(atom_p, &body, ATOM_PREDICATE, &formula)?,
-            atom_o: single_atom_binding(atom_o, &body, ATOM_OBJECT, &formula)?,
+            atom_s: single_atom_binding(atom_s, context, &body, ATOM_SUBJECT, formula)?,
+            atom_p: single_atom_binding(atom_p, context, &body, ATOM_PREDICATE, formula)?,
+            atom_o: single_atom_binding(atom_o, context, &body, ATOM_OBJECT, formula)?,
         });
     }
     Ok(frames)
 }
 
 fn single_atom_binding(
-    index: &BTreeMap<String, BTreeSet<String>>,
+    index: &BTreeMap<(String, String), BTreeSet<String>>,
+    context: &str,
     body: &str,
     predicate: &str,
     formula: &str,
 ) -> gmeow_errors::Result<String> {
-    match index.get(body).map(|values| (values.len(), values)) {
+    match index
+        .get(&(context.to_owned(), body.to_owned()))
+        .map(|values| (values.len(), values))
+    {
         Some((1, values)) => iri_binding(
             values.iter().next().expect("one binding"),
             "modal ground-atom binding",
@@ -483,20 +575,26 @@ fn verdict(
     frame: &ModalFrame,
     predicate: &str,
     object: String,
-    premises: Vec<(String, String, String)>,
-    sources: Vec<String>,
+    worlds: Vec<ModalWorldEvidence>,
 ) -> gmeow_errors::Result<ModalVerdict> {
-    let refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-    let derivation_id = mint_derivation_id(MODAL_RULE_IRI, &refs);
+    let evaluation = ModalEvaluation::from_frame(frame, worlds, predicate, object.clone());
+    evaluation.validate()?;
+    let positives = evaluation.positive_premises();
+    let sources = positives.iter().map(ModalPremise::occurrence_id).collect();
+    let premises = positives
+        .into_iter()
+        .map(|p| (p.subject, p.predicate, p.object))
+        .collect();
     Ok(ModalVerdict {
-        graph: frame.w0.clone(),
+        derivation_id: evaluation.derivation_id(),
+        evaluation,
+        graph: frame.context.clone(),
         subject: frame.formula.clone(),
         predicate: predicate.to_owned(),
         object,
         rule_iri: MODAL_RULE_IRI.to_owned(),
         premises,
         source_quad_ids: sources,
-        derivation_id,
     })
 }
 
@@ -527,434 +625,6 @@ fn n3(iri: &str) -> String {
     format!("<{iri}>")
 }
 
-fn triple_reifier(subject: &str, predicate: &str, object: &str) -> gmeow_errors::Result<String> {
-    let subject = purrdf::TermValue::iri(subject);
-    let object = purrdf::TermValue::iri(object);
-    crate::provenance::mint_reifier(&subject, predicate, &object)
-}
-
+#[path = "modal.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[derive(Clone)]
-    struct Fact {
-        graph: String,
-        subject: String,
-        predicate: String,
-        object: String,
-    }
-
-    impl ModalFact for Fact {
-        fn graph(&self) -> &str {
-            &self.graph
-        }
-
-        fn subject(&self) -> &str {
-            &self.subject
-        }
-
-        fn predicate(&self) -> &str {
-            &self.predicate
-        }
-
-        fn object(&self) -> &str {
-            &self.object
-        }
-    }
-
-    fn fact(graph: &str, subject: &str, predicate: &str, object: &str) -> Fact {
-        Fact {
-            graph: graph.to_owned(),
-            subject: subject.to_owned(),
-            predicate: predicate.to_owned(),
-            object: object.to_owned(),
-        }
-    }
-
-    fn modal_frame_at(base: &str, op: &str, relation: &str, atom_worlds: &[&str]) -> Vec<Fact> {
-        let frame = format!("{base}/frame");
-        let mut facts = vec![
-            fact(
-                &frame,
-                &format!("{base}/F"),
-                &format!("https://blackcatinformatics.ca/logic/{op}"),
-                &format!("{base}/B"),
-            ),
-            fact(&frame, &format!("{base}/F"), OVER_ACCESSIBILITY, relation),
-            fact(
-                &frame,
-                &format!("{base}/F"),
-                MODAL_EVAL_WORLD,
-                &format!("{base}/w0"),
-            ),
-            fact(
-                &frame,
-                &format!("{base}/B"),
-                ATOM_SUBJECT,
-                &format!("{base}/a"),
-            ),
-            fact(
-                &frame,
-                &format!("{base}/B"),
-                ATOM_PREDICATE,
-                &format!("{base}/knows"),
-            ),
-            fact(
-                &frame,
-                &format!("{base}/B"),
-                ATOM_OBJECT,
-                &format!("{base}/b"),
-            ),
-            fact(
-                &frame,
-                &format!("{base}/w0"),
-                relation,
-                &format!("{base}/w1"),
-            ),
-            fact(
-                &frame,
-                &format!("{base}/w0"),
-                relation,
-                &format!("{base}/w2"),
-            ),
-        ];
-        for world in atom_worlds {
-            facts.push(fact(
-                &format!("{base}/{world}"),
-                &format!("{base}/a"),
-                &format!("{base}/knows"),
-                &format!("{base}/b"),
-            ));
-        }
-        facts
-    }
-
-    fn modal_frame(op: &str, relation: &str, atom_worlds: &[&str]) -> Vec<Fact> {
-        modal_frame_at("https://example.org/modal", op, relation, atom_worlds)
-    }
-
-    fn without_access_edges(mut facts: Vec<Fact>, relation: &str) -> Vec<Fact> {
-        facts.retain(|fact| {
-            fact.subject != "https://example.org/modal/w0" || fact.predicate != relation
-        });
-        facts
-    }
-
-    fn verdict_with<'a>(verdicts: &'a [ModalVerdict], predicate: &str) -> &'a ModalVerdict {
-        verdicts
-            .iter()
-            .find(|verdict| verdict.predicate == predicate)
-            .expect("expected modal verdict")
-    }
-
-    #[test]
-    fn all_six_typed_relations_drive_both_modal_operators() {
-        for relation in TYPED_ACCESSIBILITY {
-            let box_verdicts = evaluate(&modal_frame("necessarily", relation, &["w1", "w2"]))
-                .expect("typed necessity evaluation");
-            assert_eq!(
-                verdict_with(&box_verdicts, MODAL_NECESSITY_HOLDS).object,
-                "https://example.org/modal/B",
-                "necessity must use {relation}"
-            );
-
-            let diamond_verdicts = evaluate(&modal_frame("possibly", relation, &["w1"]))
-                .expect("typed possibility evaluation");
-            assert_eq!(
-                verdict_with(&diamond_verdicts, MODAL_POSSIBILITY_HOLDS).object,
-                "https://example.org/modal/B",
-                "possibility must use {relation}"
-            );
-        }
-    }
-
-    #[test]
-    fn box_holds_when_every_accessible_world_has_the_atom() {
-        let verdicts = evaluate(&modal_frame(
-            "necessarily",
-            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
-            &["w1", "w2"],
-        ))
-        .expect("modal evaluation");
-        assert!(verdicts.iter().any(|verdict| {
-            verdict.predicate == MODAL_NECESSITY_HOLDS
-                && verdict.graph == "https://example.org/modal/w0"
-                && verdict.object == "https://example.org/modal/B"
-        }));
-    }
-
-    #[test]
-    fn box_failure_emits_a_counterexample_world() {
-        let verdicts = evaluate(&modal_frame(
-            "necessarily",
-            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
-            &["w1"],
-        ))
-        .expect("modal evaluation");
-        assert!(
-            verdicts
-                .iter()
-                .any(|verdict| verdict.predicate == MODAL_NECESSITY_FAILS)
-        );
-        let counterexample = verdict_with(&verdicts, MODAL_COUNTEREXAMPLE_WORLD);
-        assert_eq!(counterexample.object, "https://example.org/modal/w2");
-        assert_eq!(counterexample.premises.len(), 2);
-        assert_eq!(counterexample.source_quad_ids.len(), 2);
-    }
-
-    #[test]
-    fn deontic_empty_accessible_set_is_undetermined() {
-        let facts = without_access_edges(
-            modal_frame("necessarily", DEONTICALLY_IDEAL, &[]),
-            DEONTICALLY_IDEAL,
-        );
-        let verdicts = evaluate(&facts).expect("modal evaluation");
-        assert!(
-            verdicts
-                .iter()
-                .any(|verdict| verdict.predicate == MODAL_NECESSITY_UNDETERMINED)
-        );
-    }
-
-    #[test]
-    fn non_deontic_empty_accessible_set_is_vacuously_true() {
-        let relation = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
-        let facts = without_access_edges(modal_frame("necessarily", relation, &[]), relation);
-        let verdicts = evaluate(&facts).expect("modal evaluation");
-        assert!(
-            verdicts
-                .iter()
-                .any(|verdict| verdict.predicate == MODAL_NECESSITY_HOLDS)
-        );
-    }
-
-    #[test]
-    fn diamond_fails_when_no_accessible_world_has_the_atom() {
-        let verdicts = evaluate(&modal_frame(
-            "possibly",
-            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
-            &[],
-        ))
-        .expect("modal evaluation");
-        assert!(
-            verdicts
-                .iter()
-                .any(|verdict| verdict.predicate == MODAL_POSSIBILITY_FAILS)
-        );
-    }
-
-    #[test]
-    fn verdict_identity_carries_the_exact_rule_and_ordered_reifier_recipe() {
-        let verdicts = evaluate(&modal_frame(
-            "necessarily",
-            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
-            &["w1"],
-        ))
-        .expect("modal evaluation");
-        let verdict = verdict_with(&verdicts, MODAL_COUNTEREXAMPLE_WORLD);
-        let body = triple_reifier(
-            "https://example.org/modal/a",
-            "https://example.org/modal/knows",
-            "https://example.org/modal/b",
-        )
-        .expect("body reifier");
-        let access = triple_reifier(
-            "https://example.org/modal/w0",
-            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
-            "https://example.org/modal/w2",
-        )
-        .expect("access reifier");
-        assert_eq!(verdict.rule_iri, MODAL_RULE_IRI);
-        assert_eq!(verdict.source_quad_ids, vec![body, access]);
-        let sources: Vec<&str> = verdict.source_quad_ids.iter().map(String::as_str).collect();
-        assert_eq!(
-            verdict.derivation_id,
-            mint_derivation_id(MODAL_RULE_IRI, &sources)
-        );
-        assert_eq!(verdict.graph, "https://example.org/modal/w0");
-        assert_eq!(verdict.subject, "https://example.org/modal/F");
-    }
-
-    #[test]
-    fn malformed_frame_hard_fails_on_bare_accessible_from() {
-        let err = evaluate(&modal_frame("necessarily", ACCESSIBLE_FROM, &[])).unwrap_err();
-        assert!(err.message().contains("prose-only"), "got: {err}");
-    }
-
-    #[test]
-    fn malformed_frame_hard_fails_on_claim_modal_force_relation() {
-        let err = evaluate(&modal_frame(
-            "necessarily",
-            "https://blackcatinformatics.ca/gmeow/modalForceNecessary",
-            &[],
-        ))
-        .unwrap_err();
-        assert!(err.message().contains("modal force"), "got: {err}");
-    }
-
-    #[test]
-    fn malformed_frame_hard_fails_on_missing_or_duplicate_slots() {
-        let relation = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
-        let base = modal_frame("necessarily", relation, &["w1", "w2"]);
-
-        for (missing_predicate, expected) in [
-            (OVER_ACCESSIBILITY, "overAccessibility"),
-            (MODAL_EVAL_WORLD, "modalEvalWorld"),
-            (ATOM_SUBJECT, ATOM_SUBJECT),
-            (ATOM_PREDICATE, ATOM_PREDICATE),
-            (ATOM_OBJECT, ATOM_OBJECT),
-        ] {
-            let mut facts = base.clone();
-            facts.retain(|fact| fact.predicate != missing_predicate);
-            let err = evaluate(&facts).unwrap_err();
-            assert!(err.message().contains(expected), "got: {err}");
-        }
-
-        let mut duplicate_body = base.clone();
-        duplicate_body.push(fact(
-            "https://example.org/modal/frame",
-            "https://example.org/modal/F",
-            NECESSARILY,
-            "https://example.org/modal/B2",
-        ));
-        let err = evaluate(&duplicate_body).unwrap_err();
-        assert!(err.message().contains("2 body"), "got: {err}");
-
-        let mut duplicate_relation = base;
-        duplicate_relation.push(fact(
-            "https://example.org/modal/frame",
-            "https://example.org/modal/F",
-            OVER_ACCESSIBILITY,
-            "https://blackcatinformatics.ca/logic/doxasticallyAccessible",
-        ));
-        let err = evaluate(&duplicate_relation).unwrap_err();
-        assert!(err.message().contains("found 2"), "got: {err}");
-    }
-
-    #[test]
-    fn malformed_frame_hard_fails_without_exactly_one_operator() {
-        let relation = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
-        let mut no_operator = modal_frame("necessarily", relation, &["w1", "w2"]);
-        no_operator.retain(|fact| fact.predicate != NECESSARILY);
-        let err = evaluate(&no_operator).unwrap_err();
-        assert!(err.message().contains("no logic:necessarily"), "got: {err}");
-
-        let mut both = modal_frame("necessarily", relation, &["w1", "w2"]);
-        both.push(fact(
-            "https://example.org/modal/frame",
-            "https://example.org/modal/F",
-            POSSIBLY,
-            "https://example.org/modal/B",
-        ));
-        let err = evaluate(&both).unwrap_err();
-        assert!(
-            err.message().contains("both logic:necessarily"),
-            "got: {err}"
-        );
-    }
-
-    #[test]
-    fn malformed_frame_hard_fails_on_non_iri_ground_atom_binding() {
-        let relation = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
-        let mut facts = modal_frame("necessarily", relation, &["w1", "w2"]);
-        facts.retain(|fact| fact.predicate != ATOM_OBJECT);
-        facts.push(fact(
-            "https://example.org/modal/frame",
-            "https://example.org/modal/B",
-            ATOM_OBJECT,
-            "\"not-an-iri\"",
-        ));
-        let err = evaluate(&facts).unwrap_err();
-        assert!(err.message().contains("must be an IRI"), "got: {err}");
-    }
-
-    #[test]
-    fn unrelated_non_iri_typed_edges_are_outside_modal_frame_validation() {
-        let sharpens = "https://blackcatinformatics.ca/gmeow/sharpens";
-        let unrelated = [
-            fact(
-                "https://example.org/domain",
-                "https://example.org/domain/source",
-                sharpens,
-                "\"literal target\"",
-            ),
-            fact(
-                "https://example.org/domain",
-                "_:blank-source",
-                sharpens,
-                "<<(<https://example.org/s> <https://example.org/p> <https://example.org/o>)>>",
-            ),
-        ];
-        assert!(
-            evaluate(&unrelated)
-                .expect("unrelated domain facts are not a modal frame")
-                .is_empty()
-        );
-
-        let relation = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
-        let mut framed = modal_frame("necessarily", relation, &["w1", "w2"]);
-        framed.extend(unrelated);
-        let verdicts = evaluate(&framed).expect("unrelated sharpens rows do not poison a frame");
-        assert!(
-            verdicts
-                .iter()
-                .any(|verdict| verdict.predicate == MODAL_NECESSITY_HOLDS)
-        );
-    }
-
-    #[test]
-    fn malformed_endpoint_on_an_active_frame_edge_aborts_atomically() {
-        let relation = "https://blackcatinformatics.ca/gmeow/sharpens";
-        let mut facts = without_access_edges(modal_frame("necessarily", relation, &[]), relation);
-        facts.push(fact(
-            "https://example.org/modal/frame",
-            "https://example.org/modal/w0",
-            relation,
-            "\"not-a-world-iri\"",
-        ));
-        let err = evaluate(&facts).unwrap_err();
-        assert!(
-            err.message()
-                .contains("typed accessibility edge target world must be an IRI"),
-            "got: {err}"
-        );
-    }
-
-    #[test]
-    fn one_malformed_frame_aborts_the_complete_evaluation() {
-        let relation = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
-        let mut facts = modal_frame_at(
-            "https://example.org/valid-modal",
-            "necessarily",
-            relation,
-            &["w1", "w2"],
-        );
-        let mut malformed = modal_frame_at(
-            "https://example.org/malformed-modal",
-            "possibly",
-            relation,
-            &["w1"],
-        );
-        malformed.retain(|fact| fact.predicate != ATOM_PREDICATE);
-        facts.extend(malformed);
-        assert!(evaluate(&facts).is_err());
-    }
-
-    #[test]
-    fn malformed_frame_hard_fails_on_nested_modal_body() {
-        let mut facts = modal_frame(
-            "necessarily",
-            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
-            &["w1"],
-        );
-        facts.push(fact(
-            "https://example.org/modal/frame",
-            "https://example.org/modal/B",
-            NECESSARILY,
-            "https://example.org/modal/C",
-        ));
-        let err = evaluate(&facts).unwrap_err();
-        assert!(err.message().contains("nested modal"), "got: {err}");
-    }
-}
+mod tests;

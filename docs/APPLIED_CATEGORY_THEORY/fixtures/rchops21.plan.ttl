@@ -78,6 +78,9 @@ gmeow:gfr         a gmeow:TrackedState ; logic:currency "P1D"^^xsd:duration .
     skos:prefLabel "manage patient reaction (exception pathway)"@en ;
     logic:effect [ logic:ins gmeow:reaction-managed ] .
 
+gmeow:add-rituximab a logic:ActionSchema .
+gmeow:add-methotrexate a logic:ActionSchema .
+
 <urn:gmeow:action:defer-cycle> a logic:ActionSchema ;
     skos:prefLabel "defer cycle until counts recover"@en ;
     logic:effect [ logic:ins gmeow:cycle-deferred ] .

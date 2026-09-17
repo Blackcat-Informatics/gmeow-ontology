@@ -210,33 +210,6 @@ pub fn register_all() -> Vec<Code> {
     ]
 }
 
+#[path = "error.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use gmeow_errors::intern_code;
-    use std::collections::HashSet;
-
-    #[test]
-    fn every_affect_code_interns_with_no_collision() {
-        let handles = register_all();
-        assert_eq!(
-            handles.len(),
-            AFFECT_DIAG_CODES.len(),
-            "register_all() and AFFECT_DIAG_CODES must enumerate the same kinds"
-        );
-        for code in AFFECT_DIAG_CODES {
-            assert!(
-                intern_code(code).is_ok(),
-                "affect code `{code}` did not intern after register_all()"
-            );
-        }
-        let distinct_strings: HashSet<&&str> = AFFECT_DIAG_CODES.iter().collect();
-        assert_eq!(
-            distinct_strings.len(),
-            AFFECT_DIAG_CODES.len(),
-            "duplicate affect diagnostic code string detected"
-        );
-        let distinct_handles: HashSet<Code> = handles.iter().copied().collect();
-        assert_eq!(distinct_handles.len(), handles.len());
-    }
-}
+mod tests;

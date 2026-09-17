@@ -13,9 +13,8 @@
 //!
 //! The candidate `φ` is tested inside a fresh, ISOLATED scenario world built as
 //! `KB ∪ assume_context` (the input KB is borrowed `&` and never mutated — isolation is
-//! inherent because [`crate::reason::reason_program`] / [`crate::reason::reason_all`] take
-//! `&RdfDataset` and load into their own store). Two closures are computed over the *same*
-//! scenario EDB, both carrying the fixed DL consistency calculus:
+//! inherent in the prepared native session). Both legs use the same admitted
+//! source theory and logical domain, carrying the complete native consistency calculus:
 //!
 //! * `base` — the closure with NO candidate.
 //! * `with_phi` — the closure WITH `φ` asserted (a ground fact added to the EDB, or the
@@ -63,10 +62,8 @@
 //! A cut returns a sound partial closure and `BudgetExhausted`, never a post-hoc fiction.
 //!
 //! A candidate that changes the rule program (a non-trivial formula) cannot reuse that
-//! fixed-contract session.  It remains on the complete native program evaluator and its
-//! declared ceiling is applied after closure construction until rule-program sessions are
-//! separately incrementalized.  The two cases are explicit in `conjecture_test`; neither
-//! is routed through a secondary reasoner.
+//! fixed-contract session. It reuses native ingress with the selected new program;
+//! the same joint governor enforces its ceiling at each committed derivation.
 //!
 //! # Lifecycle projection
 //!
@@ -78,12 +75,14 @@
 
 use std::collections::BTreeSet;
 
+use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
+use crate::reason::{NativeReasoningSession, PreparedReasoningInput};
+use crate::rule_ir::Fact;
 use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, LogicProgram, Term};
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+use purrdf::{DatasetView, RdfTerm, TermValue};
 
 use crate::query_ir::Budget;
 use crate::reason::InferredAxiom;
-use crate::reason::reason_all;
 use crate::relational_core::lower_formulas;
 use crate::result::{
     CompletenessStatus, ContradictionWitness, EvaluationStatus, InformationState, InputStatus,
@@ -273,12 +272,11 @@ fn discharge_of(info: InformationState) -> ConjectureDischarge {
 /// Test the candidate first-order formula `candidate` against `kb` in the ISOLATED
 /// scenario world `scenario_world`, scoped to `standpoint` (REQUIRED — Principle 9 refuses
 /// a global-false verdict), with `assume_context` ground `(subject, predicate, object)`
-/// IRI triples layered onto the scenario EDB, honoring `budget` inline for ground-fact
-/// candidates and as the declared post-hoc ceiling for rule-program-changing formulas
-/// (see the module doc's budget-seam note).
+/// IRI triples layered onto the scenario EDB, honoring `budget` at the native commit
+/// boundary for both ground-fact and rule-program-changing candidates.
 ///
-/// `kb` is borrowed `&` and NEVER mutated: the scenario EDB is a fresh dataset built from a
-/// copy of `kb` plus the assume-context and (for a ground candidate) `φ`.
+/// `kb` is borrowed and never mutated. Native ingress is prepared once; source
+/// assumptions and candidate facts are isolated transactions on that prepared theory.
 ///
 /// # Errors
 ///
@@ -288,7 +286,7 @@ fn discharge_of(info: InformationState) -> ConjectureDischarge {
 /// contradictory world), if the native chase fails, or if the assembled result violates a
 /// [`ReasoningResult::validate`] invariant.
 pub fn conjecture_test(
-    kb: &RdfDataset,
+    kb: &impl DatasetView,
     scenario_world: &str,
     candidate: &Formula,
     standpoint: &str,
@@ -303,38 +301,41 @@ pub fn conjecture_test(
         }));
     }
 
-    // (1) The scenario EDB = KB ∪ assume_context. The input KB is copied in, never mutated.
-    let base_edb = build_scenario_edb(kb, scenario_world, assume_context, None)?;
-
-    // (3a) `base` — the closure with NO candidate, carrying the DL consistency verdict. The
-    //      up-front consistency check is deferred until the two legs are computed: a base that
-    //      is inconsistent SPECIFICALLY about the candidate (it entails both `φ` and `¬φ`) is a
-    //      genuine, testable within-standpoint glut, whereas a base inconsistent for FOREIGN
-    //      reasons is a hard error (see the guard below).
-    let base = reason_all(&base_edb)?;
+    let input = prepare_scenario_input(kb, scenario_world, assume_context)?;
+    let domains = scenario_domains(scenario_world, standpoint)?;
+    let ground = as_ground_fact(candidate)?;
+    let potential = ground
+        .as_ref()
+        .map(
+            |(subject, predicate, object)| -> gmeow_errors::Result<(String, Fact)> {
+                Ok((
+                    scenario_world.to_owned(),
+                    Fact {
+                        subject: TermValue::iri(subject),
+                        predicate: predicate.clone(),
+                        object: crate::reason::ground_object_value(object)?,
+                    },
+                ))
+            },
+        )
+        .transpose()?
+        .into_iter()
+        .collect();
+    let session = NativeReasoningSession::new(input, &domains, potential)?;
+    let base = session.base();
 
     // (2) Route the candidate: a trivially-Horn ground atom is a fact in the EDB; every
     //     other formula is a program `P_phi` reason_program lowers and evaluates.
-    let (with_phi, semantics_available, inline_budget) = match as_ground_fact(candidate)? {
+    let (with_phi, semantics_available, inline_budget) = match ground {
         Some((subject, predicate, object)) => {
-            // The "asserted φ": a ground fact in the scenario world.
-            let phi_edb = build_scenario_edb(
-                kb,
-                scenario_world,
-                assume_context,
-                Some((subject.clone(), predicate.clone(), object.clone())),
-            )?;
-            let adjusted = crate::reason::reason_ground_fact_insert_incremental(
-                crate::reason::GroundFactIncrementalRequest {
-                    base_edb: &base_edb,
-                    with_candidate_edb: &phi_edb,
-                    base: &base,
-                    scenario_world,
-                    subject: &subject,
-                    predicate: &predicate,
-                    object: &object,
-                    max_steps: budget.max_steps,
+            let adjusted = session.insert(
+                LogicalGraph::Named(TermValue::iri(scenario_world)),
+                Fact {
+                    subject: TermValue::iri(subject),
+                    predicate,
+                    object: crate::reason::ground_object_value(&object)?,
                 },
+                budget.max_steps,
             )?;
             (
                 adjusted.result,
@@ -351,14 +352,18 @@ pub fn conjecture_test(
             // rule or n-ary head rule. A fully beyond-fragment candidate (empty lowering) was
             // never evaluated, so its "added nothing" is vacuous, not a proof.
             let lowering = lower_formulas(&p_phi);
-            let evaluable = !lowering.rules.is_empty() || !lowering.nary_head_rules.is_empty();
+            let evaluable = !lowering.rules.is_empty() || !lowering.existential_rules.is_empty();
             // The candidate program is evaluated through the GOVERNED forward chase
             // ([`reason_program_budgeted`]): `budget.max_steps` cuts the semi-naive fixpoint
             // mid-flight and reports a real `BudgetStatus` + committed step count, so a
             // step-exhausted rule-program candidate is chase-bounded exactly like the ground
             // path — never a full run relabeled after the fact.
-            let (result, status, consumed) =
-                crate::reason::reason_program_budgeted(&p_phi, &base_edb, budget.max_steps)?;
+            let (result, status, consumed) = crate::reason::reason_program_budgeted(
+                &p_phi,
+                session.input(),
+                session.domains(),
+                budget.max_steps,
+            )?;
             (result, evaluable, (status, consumed))
         }
     };
@@ -498,34 +503,42 @@ pub fn conjecture_test(
     })
 }
 
-/// Build the scenario EDB `KB ∪ assume_context` (∪ `φ` when `phi` is `Some`) as a FRESH
-/// [`RdfDataset`]: the input `kb` is copied in via [`RdfDatasetBuilder::push_dataset`] and
-/// never mutated. The assume-context facts and the ground `φ` fact are asserted in
-/// `scenario_world`, so the world-scoped DL calculus joins them with the KB facts a caller
-/// placed there.
-fn build_scenario_edb(
-    kb: &RdfDataset,
+/// Ingest the borrowed KB once and add explicit assumptions to its native source
+/// columns. Derived rows never enter this input and the caller's carrier is untouched.
+fn prepare_scenario_input(
+    kb: &impl DatasetView,
     scenario_world: &str,
     assume_context: &[(String, String, String)],
-    phi: Option<(String, String, RdfTerm)>,
-) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
-    let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(kb);
-    for (s, p, o) in assume_context {
-        let quad = RdfQuad::new(RdfTerm::iri(s.clone()), p.clone(), RdfTerm::iri(o.clone()))
-            .in_graph(RdfTerm::iri(scenario_world.to_owned()));
-        builder.push_owned_quad(&quad);
+) -> gmeow_errors::Result<PreparedReasoningInput> {
+    let mut input = crate::reason::prepare_reasoning_input(kb)?;
+    let graph = LogicalGraph::Named(TermValue::iri(scenario_world));
+    for (subject, predicate, object) in assume_context {
+        input.assert_fact(
+            graph.clone(),
+            Fact {
+                subject: TermValue::iri(subject),
+                predicate: predicate.clone(),
+                object: TermValue::iri(object),
+            },
+        )?;
     }
-    if let Some((s, p, object)) = phi {
-        let quad = RdfQuad::new(RdfTerm::iri(s), p, object)
-            .in_graph(RdfTerm::iri(scenario_world.to_owned()));
-        builder.push_owned_quad(&quad);
-    }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Reason {
-            detail: e.to_string(),
-        })
-    })
+    Ok(input)
+}
+
+/// Domain identity belongs to the selected scenario and standpoint. Changing a
+/// candidate must not mint a different intrinsic witness in the base theory.
+fn scenario_domains(
+    scenario_world: &str,
+    standpoint: &str,
+) -> gmeow_errors::Result<SelectedDomains> {
+    let authority = "gmeow.conjecture.scenario.v1";
+    let selection = crate::physical::metadata_identity(authority, &(scenario_world, standpoint));
+    SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Named(TermValue::iri(scenario_world)),
+        DomainProfile::NonemptyObjectDomainV1,
+        authority.to_owned(),
+        selection,
+    )?])
 }
 
 /// Route the candidate: `Some((subject, predicate, object))` when it is a trivially-Horn
@@ -564,13 +577,7 @@ fn as_ground_fact(candidate: &Formula) -> gmeow_errors::Result<Option<(String, S
     };
     let object = match &args[1] {
         Term::Iri(o) => RdfTerm::iri(o.clone()),
-        Term::Literal { lexical, datatype } => {
-            let literal = match datatype {
-                Some(dt) => RdfLiteral::typed(lexical.clone(), dt.clone()),
-                None => RdfLiteral::simple(lexical.clone()),
-            };
-            RdfTerm::literal(literal)
-        }
+        Term::Literal(literal) => RdfTerm::literal(literal.clone()),
         other => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
                 detail: format!(
@@ -612,7 +619,7 @@ fn kb_entails_negation(neg_phi: &Formula, with_phi: &ReasoningResult) -> bool {
 /// the IS-there-a-new-fact projection redundancy compares. Keyed on the triple SHAPE only
 /// (not the `is_edb` flag / firing rule / premises), so a fact that was DERIVED in `base`
 /// and ASSERTED in `with_phi` counts as the same triple (no false "new fact").
-fn triple_set(inferred: &[InferredAxiom]) -> BTreeSet<(String, String, String, String)> {
+fn triple_set(inferred: &[InferredAxiom]) -> BTreeSet<(String, String, purrdf::TermValue, String)> {
     inferred
         .iter()
         .map(|a| {

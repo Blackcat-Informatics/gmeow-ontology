@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The **lawful `put` leg, derived from the same node as `get`** (F4 — the up-lift that
-//! replaces the SSSOM-reading heuristic).
+//! Candidate `put` construction from the same canonical correspondence as `get`.
 //!
 //! A `logic:Correspondence` carries `get` (down-projection) and, for a mnemomorphic cell,
 //! a `put` (up-projection) obtained by **projecting along the retained witness** — *not*
-//! by re-deriving a plausible source. This module is that derivation: given a
-//! correspondence with a `get` leg and no authored `put`, [`derive_put`] mints the lawful
+//! by re-deriving a plausible source. Given a
+//! correspondence with a `get` leg and no authored `put`, [`derive_put`] mints a candidate
 //! `put` leg (or honestly declares the cell `unsupported`), and [`CorrespondenceProgram::with_derived_puts`]
 //! folds the result back so every up-lift leg is a projection of the *same* canonical
 //! object as its `get`.
@@ -17,11 +16,11 @@
 //! Lawful `put` comes from exactly two sources, never from naive backward-execution (the
 //! amnesic anti-pattern):
 //!
-//! 1. **a mnemomorphic witness** — `mnemomorphic = true` on an injective-enough rung
-//!    (≤ [`crate::ir::MorphismClass::WellBehavedLens`]). The witness recovers
-//!    `S`, so `put` is the projection along it: a `CompleteOver` up-lift carrying
-//!    a (provisional) discharged [`CorrespondenceLaw::SectionLaw`] — `put ∘ get
-//!    = id_S`.
+//! 1. **a declared mnemomorphic witness** — `mnemomorphic = true` on an injective-enough rung
+//!    (≤ [`crate::ir::MorphismClass::WellBehavedLens`]). The candidate requests recovery
+//!    of `S` along that witness: a `CompleteOver` preservation claim carrying
+//!    an unverified [`CorrespondenceLaw::SectionLaw`] obligation — `put ∘ get
+//!    = id_S`. Only the native executor can discharge it under its actual evidence class.
 //! 2. **a co-authored put-with-claim** — the author declares a law status (a non-empty
 //!    `law_claims`) without a retained witness. The `put` is *minted-with-claim*: a
 //!    candidate preimage, `ValidationOnly`, carrying an honest
@@ -47,25 +46,25 @@ use sha2::{Digest, Sha256};
 use gmeow_errors::Diag;
 
 use crate::ir::{
-    Correspondence, CorrespondenceLaw, DischargeCondition, DischargeVerdict, LawClaimIr,
-    MorphismClass, PreservationKind, TransactionProgramIr,
+    Correspondence, CorrespondenceLaw, DischargeVerdict, LawClaimIr, MorphismClass,
+    PreservationKind, TransactionProgramIr,
 };
 
 use super::correspondence::CorrespondenceProgram;
 
-/// A `put` leg derived from the same node as `get`: the minted leg IRI, whether it is a
-/// lawful recovery (vs a minted-with-claim candidate preimage), the law claim the
-/// derivation licenses, the up-lift preservation polarity, and the loss-ledger residue.
+/// A candidate `put` leg derived from the same node as `get`: its identity,
+/// requested recovery mode, unverified law obligation, declared preservation
+/// polarity and loss residue. Construction supplies no execution evidence.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DerivedPut {
     /// The minted `put` leg IRI (`<get_leg>/put#<sha8>`), content-addressed to the
     /// get-side identity so the Round-trip gate recomputes it decidably.
     pub put_leg: String,
-    /// `true` ⇒ a lawful recovery (projection along the witness); `false` ⇒ a
+    /// `true` ⇒ requested recovery along a declared witness; `false` ⇒ a
     /// minted-with-claim candidate preimage (co-authored put-with-claim).
     pub mnemomorphic_recovery: bool,
-    /// The law claim this derivation licenses — a (provisional) discharged `SectionLaw`
-    /// for a recovery, an honest `ObligationUnknown` `PutGet` for a minted-with-claim.
+    /// The unverified obligation: `SectionLaw` for requested recovery or `PutGet`
+    /// for a minted-with-claim candidate. Both require independent execution evidence.
     pub section_claim: LawClaimIr,
     /// The up-lift preservation polarity for the loss ledger: `CompleteOver` for an
     /// invertible recovery, `ValidationOnly` for minted-with-claim.
@@ -75,12 +74,12 @@ pub struct DerivedPut {
     pub residue: Vec<String>,
 }
 
-/// The outcome of deriving the `put` leg for one correspondence: either a lawful
+/// The outcome of deriving the `put` leg for one correspondence: either a candidate
 /// [`DerivedPut`], or `Unsupported` (no witness and no co-authored claim — the up-lift is
 /// carried and flagged in the loss ledger, never minted).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PutDerivation {
-    /// A lawful derived `put` leg.
+    /// A derived candidate whose recovery obligations still require execution.
     Derived(DerivedPut),
     /// The up-lift is unsupported for this cell: `get` is non-injective and no witness or
     /// co-authored claim exists. The residue is the carried-and-flagged disclosure.
@@ -111,12 +110,12 @@ pub fn derived_put_iri(get_leg: &str, c: &Correspondence) -> String {
     format!("{get_leg}/put#{short}")
 }
 
-/// The three lawful up-lift classes a cell can fall into — the single authority for the
+/// The three requested up-lift classes a cell can fall into — the single authority for the
 /// `put` polarity decision, keyed off exactly the three inputs the derivation reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum PutClass {
-    /// A lawful recovery: a mnemomorphic witness on an injective-enough rung projects the
-    /// `put` — a `CompleteOver` up-lift.
+    /// A recovery candidate under a declared mnemomorphic witness and injective rung.
+    /// The `CompleteOver` claim still requires the native recovery gate.
     CompleteOver,
     /// A minted-with-claim candidate preimage: no witness, but a co-authored law status —
     /// a `ValidationOnly` up-lift.
@@ -146,7 +145,7 @@ pub(crate) fn classify_put(
     }
 }
 
-/// Derive the lawful `put` leg for one correspondence (which must carry a `get` leg and no
+/// Derive a candidate `put` leg for one correspondence (which must carry a `get` leg and no
 /// authored `put` leg).
 ///
 /// # Errors
@@ -178,17 +177,16 @@ pub fn derive_put(c: &Correspondence) -> gmeow_errors::Result<PutDerivation> {
     let mint = derived_put_iri(get_leg, c);
 
     match classify_put(c.mnemomorphic, c.morphism_class, &c.law_claims) {
-        // Source (1): the mnemomorphic witness. put is the projection along it — a lawful
-        // recovery. The SectionLaw is discharged PROVISIONALLY (the conformance Round-trip
-        // / Law gate confirms it, or degrades it to ObligationUnknown — debugify/Alive2:
-        // validate the transform, don't trust it).
+        // Source (1): a declared mnemomorphic witness. Construct the recovery candidate,
+        // but do not invent a discharge or evidence class from its flag/path syntax.
+        // The native recovery executor supplies the independently checked verdict.
         PutClass::CompleteOver => Ok(PutDerivation::Derived(DerivedPut {
             put_leg: mint,
             mnemomorphic_recovery: true,
             section_claim: LawClaimIr {
                 law: CorrespondenceLaw::SectionLaw,
-                verdict: DischargeVerdict::ObligationDischarged,
-                condition: Some(DischargeCondition::DischargeFiniteClosure),
+                verdict: DischargeVerdict::ObligationUnknown,
+                condition: None,
             },
             preservation: PreservationKind::CompleteOver,
             residue: Vec::new(),
@@ -256,7 +254,7 @@ impl CorrespondenceProgram {
     pub fn with_derived_puts(self) -> gmeow_errors::Result<(Self, Vec<DerivedPutOutcome>)> {
         let CorrespondenceProgram {
             correspondences,
-            caveats,
+            compositions,
             preservation,
             leg_programs,
         } = self;
@@ -305,10 +303,10 @@ impl CorrespondenceProgram {
                         c.get_leg.clone(),
                         Some(dp.put_leg.clone()),
                         law_claims,
-                        c.confidence,
-                        c.evidence_strength,
-                        c.weight,
-                        c.probability,
+                        c.confidence.clone(),
+                        c.evidence_strength.clone(),
+                        c.weight.clone(),
+                        c.probability.clone(),
                         c.according_to.clone(),
                         // Preserve the authored per-correspondence preservation judgment so
                         // the derived program the gates run over still sees the rung.
@@ -323,6 +321,10 @@ impl CorrespondenceProgram {
                     }
                     rebuilt_correspondence =
                         rebuilt_correspondence.with_recovery_cases(c.recovery_cases.clone())?;
+                    rebuilt_correspondence = rebuilt_correspondence
+                        .with_caveats(c.caveats)?
+                        .with_loss_evidence(c.loss_evidence)?
+                        .with_axis_evidence(c.axis_evidence);
                     rebuilt.push(rebuilt_correspondence);
                 }
                 PutDerivation::Unsupported { .. } => {
@@ -337,7 +339,9 @@ impl CorrespondenceProgram {
         }
 
         Ok((
-            CorrespondenceProgram::new(rebuilt, caveats, preservation).with_leg_programs(legs),
+            CorrespondenceProgram::new(rebuilt, preservation)
+                .with_leg_programs(legs)
+                .with_compositions(compositions),
             outcomes,
         ))
     }

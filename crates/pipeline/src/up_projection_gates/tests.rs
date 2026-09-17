@@ -193,7 +193,7 @@ fn an_equivalence_overclaim_on_a_lossy_rung_reds() {
         None,
     )
     .expect("well-formed");
-    let program = CorrespondenceProgram::new(vec![corr], Vec::new(), PreservationKind::SoundUnder);
+    let program = CorrespondenceProgram::new(vec![corr], PreservationKind::SoundUnder);
     let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&program);
     let report = evaluate_gates(&program, &[], &verdicts);
     assert!(

@@ -21,9 +21,9 @@
 //!   canonical diagnostics `Report` serialized to JSON — the same shape the native
 //!   CLI and the SARIF bridge project from.
 //! - **GMN-1 conformance.** [`gmn_validate`] reads a GMN-1 document through the
-//!   production codec ([`gmeow_lang_bridge::gmn1_read`]) against a codebook EMBEDDED in
-//!   the wasm image (the authored `slices/grounding/lang/module.ttl`, pinned by
-//!   [`GMN_CODEBOOK_DIGEST`]), returning the typed `lang:LangConformanceFailure` verdict.
+//!   production codec ([`gmeow_lang_bridge::gmn1_read`]) against complete native tables
+//!   prepared from the authored language source and embedded in the wasm image, pinned
+//!   by [`GMN_CODEBOOK_DIGEST`], returning the typed `lang:LangConformanceFailure` verdict.
 //!   Embedding the codebook is what makes this a real validator rather than a syntax
 //!   check: an unbound glyph / uncovered term is rejected because it fails to RESOLVE.
 //!   This path is reasoner-free — it links only the codec + graph-derived dictionary +
@@ -40,75 +40,50 @@
 
 use std::sync::OnceLock;
 
-use gmeow_lang_bridge::{Gmn1Document, GmnDictionary, gmn1_read};
+use gmeow_lang_bridge::{
+    Gmn1Document, GmnDictionary,
+    gmn_validation::validate_gmn_document,
+    gmn1_codec::native::{self, NativeCodebook},
+};
 use wasm_bindgen::prelude::*;
 
 // ── GMN-1 validator: the embedded codebook ──────────────────────────────────────────
 
-/// The GMN-1 codebook carrier, embedded into the wasm image at build time.
-///
-/// This is the authored `slices/grounding/lang/module.ttl` verbatim — the SAME carrier the
-/// `gmeow gmn` CLI resolves `gmeow:gmnCodebookCurrent` / `gmeow:gmnDictV3` from when given a
-/// `--lang-module` override, and the SAME one every `gmeow-lang-bridge` codec test loads
-/// (`GmnDictionary::from_dataset(&lang_module_dataset())`). Embedding it — rather than
-/// requiring the caller to pass a bundle, or (worse) shipping a hand-trimmed subset that
-/// would be a second, drift-prone source of truth — is what makes [`gmn_validate`] a REAL
-/// validator: `gmn1_read` resolves every glyph / dictionary alias / prefix against this
-/// codebook, so a grammar-valid document naming an unbound term is REJECTED
-/// (`lang:GmnUncoveredTerm`), not waved through as a mere syntax check.
-///
-/// The full authored module (not a minimal extract) is embedded deliberately: it is the
-/// canonical source with zero drift risk, and `resolve_current_codebook` /
-/// `GmnDictionary::from_dataset` simply ignore the quads outside the codebook selection.
-const GMN_CODEBOOK_TTL: &[u8] = include_bytes!("../../../slices/grounding/lang/module.ttl");
+/// Full native codebook projected from the producer's shared source dictionary.
+/// No authored RDF is embedded or parsed by the browser or its Node tests.
+const NATIVE_CODEBOOK: &[u8] =
+    include_bytes!("../../../generated/projections/lang/gmn-codebook.cbor");
 
-/// The pinned blake3 content digest of [`GMN_CODEBOOK_TTL`] (`b3sum module.ttl`). Recording
-/// it here documents EXACTLY which codebook this wasm image validates against; the
-/// `gmn_codebook_digest_is_pinned` host test recomputes it over the embedded bytes and
-/// hard-fails if the two drift, so this constant can never silently fall out of date.
-///
-/// The full canonical `slices/grounding/lang/module.ttl` is embedded verbatim, and the GMN
-/// dictionary / glyph / prefix tables that [`GmnDictionary::from_dataset`] and [`gmn1_read`]
-/// resolve (`gmeow:gmnDictV3`, `gmeow:gmnCodebookCurrent`, and the grapheme/prefix inventories)
-/// retain their semantics. Any change to this digest is therefore a raw-carrier-byte change that
-/// the host test catches; when it does, re-pin this constant to the new blake3.
-pub const GMN_CODEBOOK_DIGEST: &str =
-    "3d89c98bb1bf9a59f1e5e815f57d6059d9b93f8c4a77063fa9b3fb9d42c5f9bb";
+/// Pinned original-source BLAKE3, shared by both browser codebook consumers.
+/// The native codec's pure source-byte test checks the pin without compiling RDF.
+pub const GMN_CODEBOOK_DIGEST: &str = native::SOURCE_BLAKE3;
 
-/// The graph-derived dictionary, built ONCE from the embedded codebook and memoized.
+/// Complete native codebook, hydrated once from the producer's compact projection.
 ///
-/// The embedded codebook ([`GMN_CODEBOOK_TTL`]) is a build-time constant — the real authored
-/// `module.ttl`, its exact bytes pinned by [`GMN_CODEBOOK_DIGEST`] and guarded by the
-/// `gmn_codebook_digest_is_pinned` host test — so a parse/resolve failure here is a
-/// build-integrity invariant violation, never a runtime condition. It therefore hard-fails
-/// (a panic / wasm trap), never silently degrading to a syntax-only check; the return type is
-/// infallible because the embedded carrier is known-good by construction.
-fn embedded_dictionary() -> &'static GmnDictionary {
-    static DICT: OnceLock<GmnDictionary> = OnceLock::new();
-    DICT.get_or_init(|| {
-        let dataset = purrdf::parse_dataset(GMN_CODEBOOK_TTL, "text/turtle", None)
-            .expect("embedded GMN codebook module.ttl must parse (build-integrity invariant)");
-        GmnDictionary::from_dataset(&dataset).expect(
-            "embedded GMN codebook must resolve gmeow:gmnDictV3 (build-integrity invariant)",
-        )
+/// The packet is source-pinned and authenticated before this crate builds. Invalid
+/// embedded bytes are a build-integrity violation and hard-fail as a panic/wasm trap.
+fn embedded_codebook() -> &'static NativeCodebook {
+    static CODEBOOK: OnceLock<NativeCodebook> = OnceLock::new();
+    CODEBOOK.get_or_init(|| {
+        native::decode(NATIVE_CODEBOOK, GMN_CODEBOOK_DIGEST)
+            .expect("embedded native GMN codebook must match its exact producer-selected source")
     })
 }
 
-/// The blake3 content digest of the embedded GMN-1 codebook (`module.ttl`), as lowercase
-/// hex. Lets a JS caller pin the EXACT codebook their document was validated against — the
-/// same content address the codec's codebook-digest layer and the `gmeow gmn digest` CLI
-/// report over the carrier bytes.
+/// The BLAKE3 digest of the original GMN-1 source document (`module.ttl`), as
+/// lowercase hex. The prepared native packet preserves this original-byte identity,
+/// so a JS caller can pin the source their document was validated against.
 #[wasm_bindgen]
 pub fn gmn_codebook_digest() -> String {
-    blake3::hash(GMN_CODEBOOK_TTL).to_hex().to_string()
+    embedded_codebook().source_blake3().to_owned()
 }
 
 /// Validate a GMN-1 document against the EMBEDDED codebook, returning a canonical JSON
 /// verdict.
 ///
 /// The `bytes` are the raw GMN-1 surface text (the `@gmn{…}` header plus one record per
-/// line). They are read through [`gmn1_read`] — the production codec's reader — against the
-/// dictionary/glyph registry resolved from the embedded [`GMN_CODEBOOK_TTL`]. Because the
+/// line). They are read through [`gmeow_lang_bridge::gmn1_read`] — the production codec's reader — against the
+/// dictionary/glyph registry hydrated from the embedded native packet. Because the
 /// codebook is embedded, glyphs, dictionary aliases, and prefixed terms are actually
 /// RESOLVED: a document whose grammar is well-formed but which names a term the codebook
 /// does not cover is rejected as `lang:GmnUncoveredTerm`, and every other codec-tier
@@ -126,24 +101,21 @@ pub fn gmn_codebook_digest() -> String {
 /// # Errors
 ///
 /// Throws a JS exception only if the document text is not valid UTF-8. A build-integrity
-/// failure of the EMBEDDED codebook (it fails to parse or to resolve `gmeow:gmnDictV3`) is not
-/// a runtime condition — the codebook is a pinned build constant (see [`embedded_dictionary`])
+/// failure of the embedded native codebook is not a runtime condition — its complete
+/// tables are a pinned build artifact (see [`embedded_codebook`])
 /// — so it hard-fails as a panic / wasm trap, never a document defect and never a silent
 /// degradation to a syntax-only check.
 #[wasm_bindgen]
 pub fn gmn_validate(bytes: &[u8]) -> Result<String, JsError> {
     let text = std::str::from_utf8(bytes)
         .map_err(|e| JsError::new(&format!("GMN-1 document is not valid UTF-8: {e}")))?;
-    let dict = embedded_dictionary();
-    let verdict = match gmn1_read(&Gmn1Document::from_text(text), dict) {
-        Ok(_model) => serde_json::json!({ "conformant": true }),
-        Err(error) => serde_json::json!({
-            "conformant": false,
-            "failureClass": error.failure_class(),
-            "detail": error.to_string(),
-        }),
-    };
-    Ok(verdict.to_string())
+    Ok(gmn_verdict_json(text, embedded_codebook().dictionary()))
+}
+
+/// Marshal the same typed verdict the producer observes over its native dictionary.
+fn gmn_verdict_json(text: &str, dictionary: &GmnDictionary) -> String {
+    let verdict = validate_gmn_document(&Gmn1Document::from_text(text), dictionary);
+    serde_json::to_string(&verdict).expect("GMN verdict contains only JSON scalars")
 }
 
 /// The validator version (the crate's SemVer), exposed to JS as `version()`.
@@ -210,9 +182,9 @@ pub fn bundle_dataset(gts: &[u8]) -> Result<String, JsError> {
 
 // ── GMN-1 validator host tests ──────────────────────────────────────────────────────
 //
-// The validation logic is target-independent (the `#[wasm_bindgen]` fns compile natively
-// too), so the load-bearing behaviour — accept a conformant vector, and REJECT a
-// grammar-valid document that names an unbound term — is exercised on the host gate here.
+// The shared target-independent verdict logic runs over the original source dictionary
+// before tests start. Host contracts consume those selected observations: accept a frozen
+// conformant vector and REJECT a grammar-valid document naming an unbound term.
 // The wasm+JS boundary is separately exercised as real wasm by the Node round-trip lane.
 #[cfg(test)]
 mod gmn_tests {
@@ -220,25 +192,36 @@ mod gmn_tests {
 
     /// A frozen positive conformance vector: a basic `@c{s p o}` claim over dictionary /
     /// prefix-covered terms.
-    const FROZEN_POSITIVE: &[u8] =
-        include_bytes!("../../../slices/grounding/lang/tests/gmn1-vectors/claim-basic.gmn");
+    const FROZEN_POSITIVE: &str = "slices/grounding/lang/tests/gmn1-vectors/claim-basic.gmn";
 
     /// A frozen codec-tier negative: grammar-valid (`@c{s p o q}`, a known sigil, known
     /// keys, a well-formed number) but every term (`zx9`, `quuxes`, `gate1`) is UNCOVERED
     /// by the codebook. The recorded class is `lang:GmnUncoveredTerm`
     /// (`negative-codec/expected.ttl`).
-    const FROZEN_UNKNOWN_GLYPH: &[u8] = include_bytes!(
-        "../../../slices/grounding/lang/tests/gmn1-vectors/negative-codec/neg-uncovered-term.gmn"
-    );
+    const FROZEN_UNKNOWN_GLYPH: &str =
+        "slices/grounding/lang/tests/gmn1-vectors/negative-codec/neg-uncovered-term.gmn";
 
-    fn parse(json: &str) -> serde_json::Value {
-        serde_json::from_str(json).expect("gmn_validate returns well-formed JSON")
+    fn verdict(path: &str) -> serde_json::Value {
+        static OBSERVATIONS: OnceLock<serde_json::Value> = OnceLock::new();
+        let observed = OBSERVATIONS.get_or_init(|| {
+            let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+            let bytes = gmeow_action_cache::selection::source_artifacts::load(
+                &root,
+                "stage-conformance",
+                "pipeline/wasm-gmn-verdicts.json",
+            )
+            .expect("browser GMN verdicts have an authenticated producer selection");
+            serde_json::from_slice(&bytes).expect("produced GMN verdict JSON")
+        });
+        observed
+            .get(path)
+            .expect("selected frozen vector has a verdict")
+            .clone()
     }
 
     #[test]
     fn gmn_wasm_accepts_a_frozen_vector() {
-        let verdict =
-            parse(&gmn_validate(FROZEN_POSITIVE).expect("valid UTF-8 + embedded codebook"));
+        let verdict = verdict(FROZEN_POSITIVE);
         assert_eq!(
             verdict["conformant"],
             serde_json::Value::Bool(true),
@@ -252,8 +235,7 @@ mod gmn_tests {
         // is syntactically well-formed, so a syntax-only checker would accept it. It is
         // rejected ONLY because `gmn1_read` resolves its terms against the embedded
         // dictionary/glyph registry and finds them uncovered.
-        let verdict =
-            parse(&gmn_validate(FROZEN_UNKNOWN_GLYPH).expect("valid UTF-8 + embedded codebook"));
+        let verdict = verdict(FROZEN_UNKNOWN_GLYPH);
         assert_eq!(
             verdict["conformant"],
             serde_json::Value::Bool(false),
@@ -269,15 +251,44 @@ mod gmn_tests {
         );
     }
 
+    /// Exercise the public JSON marshal with an explicit tiny dictionary and document.
+    /// Real-codebook resolution remains the independently produced vector observation.
+    #[test]
+    fn gmn_verdict_json_retains_success_and_typed_failure_fields() {
+        let dictionary = GmnDictionary::default();
+        let document = gmeow_lang_bridge::gmn1_write(
+            &gmeow_lang_bridge::Gmn0Model { quads: Vec::new() },
+            &dictionary,
+        )
+        .expect("explicit empty model encodes");
+        assert_eq!(
+            gmn_verdict_json(&document.text, &dictionary),
+            "{\"conformant\":true}"
+        );
+        let negative = gmn_verdict_json("@synthetic_unknown_sigil{}", &dictionary);
+        let verdict: serde_json::Value = serde_json::from_str(&negative).expect("verdict JSON");
+        assert_eq!(verdict["conformant"], false);
+        assert_eq!(
+            verdict["failureClass"],
+            "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar"
+        );
+        assert!(
+            !verdict["detail"]
+                .as_str()
+                .expect("failure detail")
+                .is_empty()
+        );
+        assert_eq!(verdict.as_object().expect("verdict object").len(), 3);
+    }
+
     #[test]
     fn gmn_codebook_digest_is_pinned() {
-        // The recorded `GMN_CODEBOOK_DIGEST` must equal the live blake3 of the embedded
-        // carrier — a drift guard so the documented codebook identity can never go stale.
+        // The hydrated packet must report its exact pinned original-source identity.
+        // The codec's separate pure hash test checks that pin against the source bytes.
         assert_eq!(
             gmn_codebook_digest(),
             GMN_CODEBOOK_DIGEST,
-            "the embedded module.ttl digest drifted from the pinned GMN_CODEBOOK_DIGEST — \
-             update the constant (and any docs quoting it) to the new blake3"
+            "the prepared codebook must report the pinned original module.ttl digest"
         );
     }
 }

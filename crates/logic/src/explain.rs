@@ -36,7 +36,7 @@
 //! repeated `(graph, reifier)` in the visited set is a hard error
 //! ([`ExplainError::Cycle`]). There is no silent skip and no degraded fallback.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::hash::{BuildHasher, Hash, Hasher};
 
 use foldhash::fast::FixedState;
@@ -80,8 +80,10 @@ pub(crate) fn decode_receipt_rule_identity(value: &str) -> Option<&str> {
 /// Mirrors the Python `DerivedQuad` fields the explanation engine reads:
 /// `graph`, `subject`, `predicate`, `obj` (object in canonical N3 form),
 /// `derivation_id`, `rule_iri`, and `source_quad_ids` (antecedent reifier IRIs).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Row {
+    /// Typed contextual evaluation, including observations that are not positive premises.
+    pub modal_evaluation: Option<crate::modal::ModalEvaluation>,
     /// World (named-graph) IRI this quad lives in.
     pub graph: String,
     /// Subject IRI.
@@ -103,6 +105,7 @@ pub struct Row {
 /// The raw identity is intentionally not part of the public [`Row`] API: consumers
 /// see a canonical rule IRI, while production RDF projections can retain the exact
 /// native firing bytes independently in a tagged `prov:value`.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub(crate) struct AxiomReceipt {
     pub(crate) row: Row,
     pub(crate) raw_rule_identity: String,
@@ -114,6 +117,8 @@ pub(crate) struct AxiomReceipt {
 /// `ExplainError` conditions exactly.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExplainError {
+    /// A transported modal row lost or contradicted its native evidence.
+    InvalidModalEvidence { detail: String },
     /// A reifier referenced in `source_quad_ids` (or the target reifier) has no
     /// corresponding quad in the result for the given world.
     UnresolvedReifier {
@@ -141,6 +146,9 @@ pub enum ExplainError {
 impl std::fmt::Display for ExplainError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            ExplainError::InvalidModalEvidence { detail } => {
+                write!(f, "Invalid contextual modal evidence: {detail}")
+            }
             ExplainError::UnresolvedReifier { reifier, graph } => write!(
                 f,
                 "Cannot resolve reifier IRI <{reifier}> in world <{graph}> to a quad. \
@@ -191,6 +199,8 @@ impl std::error::Error for FaithfulnessError {}
 /// Mirrors the Python `ExplanationStep` NamedTuple field-for-field.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExplanationStep {
+    /// The selected modal frontier remains evidence, never a fabricated premise.
+    pub modal_evaluation: Option<crate::modal::ModalEvaluation>,
     /// Stable derivation IRI for this step.
     pub derivation_id: String,
     /// The firing rule IRI (or the assert sentinel for asserted facts).
@@ -240,6 +250,9 @@ pub struct Explanation {
 ///
 /// Subject/predicate are IRIs (wrapped `<...>`); the object N3 string is used verbatim.
 pub fn reifier_from_row(row: &Row) -> String {
+    if row.modal_evaluation.is_some() {
+        return crate::modal::occurrence_id(&row.graph, &row.subject, &row.predicate, &row.obj);
+    }
     reifier_from_strings(&row.subject, &row.predicate, &row.obj)
 }
 
@@ -270,7 +283,11 @@ fn strip_iri_n3(n3: &str) -> Option<&str> {
 /// materialise them once into an owned `Vec` whose lifetime can then be tied to the
 /// borrow-based index.
 fn precompute_reifiers(rows: &[Row]) -> Vec<String> {
-    rows.iter().map(reifier_from_row).collect()
+    // The internal lookup pairs C with an RDF triple identity. Public modal
+    // occurrence identifiers additionally commit C; those need no duplicate index.
+    rows.iter()
+        .map(|row| reifier_from_strings(&row.subject, &row.predicate, &row.obj))
+        .collect()
 }
 
 fn reifier_key_hash(graph: &str, reifier: &str) -> u64 {
@@ -314,49 +331,54 @@ fn build_reifier_index(rows: &[Row], reifiers: &[String]) -> HashTable<usize> {
 /// resolution and the sorted/deduped antecedent ordering) and assembles the
 /// golden-pinned [`ExplanationStep`] skeleton from the returned tree.
 ///
-/// `graph_iri` is invariant through the whole recursion, so the walk keys on the
-/// reifier `&str` alone (the world is captured by the closures) — preserving the
-/// original zero-allocation visited set.
+/// The walk keys on borrowed `(context, reifier)` pairs. An ordinary firing
+/// stays in its world; a typed modal record names each selected premise world.
 fn reconstruct_tree<'a>(
     target_reifier: &'a str,
     graph_iri: &'a str,
     rows: &'a [Row],
     reifiers: &'a [String],
     index: &HashTable<usize>,
+    contextual: &BTreeMap<usize, Vec<(String, String)>>,
 ) -> Result<Vec<ExplanationStep>, ExplainError> {
     let tree = walk(
-        target_reifier,
-        // Resolve a reifier to its row index within this world.
-        |reifier: &&'a str| {
-            let hash = reifier_key_hash(graph_iri, reifier);
+        (graph_iri, target_reifier),
+        |(graph, reifier): &(&str, &str)| {
+            let hash = reifier_key_hash(graph, reifier);
             index
                 .find(hash, |&candidate| {
-                    rows[candidate].graph == graph_iri && reifiers[candidate] == *reifier
+                    rows[candidate].graph == *graph && reifiers[candidate] == *reifier
                 })
                 .copied()
         },
-        // Antecedent reifiers: sorted and deduped, excluding the self-reference
-        // asserted facts carry (a dual-witness listed twice must not double-cite).
-        |reifier: &&'a str, row_idx: &usize| {
-            let mut antecedents: Vec<&'a str> = rows[*row_idx]
-                .source_quad_ids
-                .iter()
-                .filter(|src| src.as_str() != *reifier)
-                .map(String::as_str)
-                .collect();
+        |key: &(&str, &str), row_idx: &usize| {
+            let mut antecedents: Vec<(&str, &str)> = if let Some(premises) = contextual.get(row_idx)
+            {
+                premises
+                    .iter()
+                    .map(|(graph, reifier)| (graph.as_str(), reifier.as_str()))
+                    .collect()
+            } else {
+                rows[*row_idx]
+                    .source_quad_ids
+                    .iter()
+                    .map(|source| (rows[*row_idx].graph.as_str(), source.as_str()))
+                    .collect()
+            };
+            antecedents.retain(|source| source != key);
             antecedents.sort();
             antecedents.dedup();
             antecedents
         },
     )
     .map_err(|err| match err {
-        DagError::Unresolved(reifier) => ExplainError::UnresolvedReifier {
+        DagError::Unresolved((graph, reifier)) => ExplainError::UnresolvedReifier {
             reifier: reifier.to_owned(),
-            graph: graph_iri.to_owned(),
+            graph: graph.to_owned(),
         },
-        DagError::Cycle(reifier) => ExplainError::Cycle {
+        DagError::Cycle((graph, reifier)) => ExplainError::Cycle {
             reifier: reifier.to_owned(),
-            graph: graph_iri.to_owned(),
+            graph: graph.to_owned(),
         },
     })?;
 
@@ -369,7 +391,11 @@ fn reconstruct_tree<'a>(
 /// original DFS order (current step, then each child subtree). Each step's
 /// `source_step_ids` are the sorted derivation IDs of its immediate children — the
 /// root step of each child subtree, exactly as before.
-fn assemble_steps(node: &DagNode<&str, usize>, rows: &[Row], out: &mut Vec<ExplanationStep>) {
+fn assemble_steps(
+    node: &DagNode<(&str, &str), usize>,
+    rows: &[Row],
+    out: &mut Vec<ExplanationStep>,
+) {
     let row = &rows[node.payload];
 
     let mut source_step_ids: Vec<String> = node
@@ -380,9 +406,14 @@ fn assemble_steps(node: &DagNode<&str, usize>, rows: &[Row], out: &mut Vec<Expla
     source_step_ids.sort();
 
     out.push(ExplanationStep {
+        modal_evaluation: row.modal_evaluation.clone(),
         derivation_id: row.derivation_id.clone(),
         rule_iri: row.rule_iri.clone(),
-        quad_reifier: node.key.to_owned(),
+        quad_reifier: if row.modal_evaluation.is_some() {
+            reifier_from_row(row)
+        } else {
+            node.key.1.to_owned()
+        },
         subject_iri: row.subject.clone(),
         predicate_iri: row.predicate.clone(),
         obj_n3: row.obj.clone(),
@@ -436,6 +467,7 @@ pub struct LazyExplanationIndex<'a> {
     rows: &'a [Row],
     reifiers: Vec<String>,
     index: HashTable<usize>,
+    contextual: BTreeMap<usize, Vec<(String, String)>>,
 }
 
 impl<'a> LazyExplanationIndex<'a> {
@@ -444,10 +476,32 @@ impl<'a> LazyExplanationIndex<'a> {
     pub fn new(rows: &'a [Row]) -> Self {
         let reifiers = precompute_reifiers(rows);
         let index = build_reifier_index(rows, &reifiers);
+        // Only a typed modal firing selects premises from a different world. Ordinary
+        // rules retain the same-world lookup; matching triple IRIs never create a bridge.
+        let contextual: BTreeMap<usize, Vec<(String, String)>> = rows
+            .iter()
+            .enumerate()
+            .filter_map(|(i, row)| {
+                row.modal_evaluation.as_ref().map(|evidence| {
+                    (
+                        i,
+                        evidence
+                            .positive_premises()
+                            .into_iter()
+                            .map(|p| {
+                                let reifier = p.triple_id();
+                                (p.context, reifier)
+                            })
+                            .collect(),
+                    )
+                })
+            })
+            .collect();
         Self {
             rows,
             reifiers,
             index,
+            contextual,
         }
     }
 
@@ -465,7 +519,13 @@ impl<'a> LazyExplanationIndex<'a> {
                 len: self.rows.len(),
             });
         }
-        explain_with_index(self.rows, &self.reifiers, target_index, &self.index)
+        explain_with_index(
+            self.rows,
+            &self.reifiers,
+            target_index,
+            &self.index,
+            &self.contextual,
+        )
     }
 
     /// Reconstruct every proof in input order while sharing the identity index.
@@ -512,16 +572,28 @@ fn explain_with_index(
     reifiers: &[String],
     target_index: usize,
     index: &HashTable<usize>,
+    contextual: &BTreeMap<usize, Vec<(String, String)>>,
 ) -> Result<Explanation, ExplainError> {
     let target = &rows[target_index];
     let target_reifier = &reifiers[target_index];
 
-    let steps = reconstruct_tree(target_reifier, &target.graph, rows, reifiers, index)?;
+    let steps = reconstruct_tree(
+        target_reifier,
+        &target.graph,
+        rows,
+        reifiers,
+        index,
+        contextual,
+    )?;
     let cited_iris = build_cited_iris(&steps, &target.graph);
 
     Ok(Explanation {
         target_derivation_id: target.derivation_id.clone(),
-        target_quad_reifier: target_reifier.clone(),
+        target_quad_reifier: if target.modal_evaluation.is_some() {
+            reifier_from_row(target)
+        } else {
+            target_reifier.clone()
+        },
         world_iri: target.graph.clone(),
         step_skeleton: steps,
         cited_iris,
@@ -537,7 +609,8 @@ fn explain_with_index(
 /// row set under missing premises; [`rows_for_result`] owns that explanation-tree
 /// concern.
 pub(crate) fn receipt_for_axiom(axiom: &crate::reason::InferredAxiom) -> AxiomReceipt {
-    let self_reifier = reifier_from_strings(&axiom.subject, &axiom.predicate, &axiom.object);
+    let object = crate::provenance::term_display(&axiom.object);
+    let self_reifier = reifier_from_strings(&axiom.subject, &axiom.predicate, &object);
     let receipt_rule_identity = match (axiom.is_edb, axiom.rule_name.as_deref()) {
         (true, _) => ASSERT_RULE_IRI.to_owned(),
         // The native chase hashes the rule identity exactly as carried by the firing
@@ -547,7 +620,13 @@ pub(crate) fn receipt_for_axiom(axiom: &crate::reason::InferredAxiom) -> AxiomRe
         (false, None) => ANONYMOUS_RULE_IRI.to_owned(),
     };
     let rule_iri = canonical_rule_iri(&receipt_rule_identity);
-    let source_quad_ids: Vec<String> = if axiom.is_edb {
+    let source_quad_ids: Vec<String> = if let Some(evidence) = &axiom.modal_evaluation {
+        evidence
+            .positive_premises()
+            .iter()
+            .map(crate::modal::ModalPremise::occurrence_id)
+            .collect()
+    } else if axiom.is_edb {
         vec![self_reifier]
     } else {
         axiom
@@ -561,11 +640,15 @@ pub(crate) fn receipt_for_axiom(axiom: &crate::reason::InferredAxiom) -> AxiomRe
     let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
     AxiomReceipt {
         row: Row {
+            modal_evaluation: axiom.modal_evaluation.as_deref().cloned(),
             graph: axiom.world.clone(),
             subject: axiom.subject.clone(),
             predicate: axiom.predicate.clone(),
-            obj: axiom.object.clone(),
-            derivation_id: mint_derivation_id(&receipt_rule_identity, &source_refs),
+            obj: object,
+            derivation_id: axiom.modal_evaluation.as_deref().map_or_else(
+                || mint_derivation_id(&receipt_rule_identity, &source_refs),
+                crate::modal::ModalEvaluation::derivation_id,
+            ),
             rule_iri,
             source_quad_ids,
         },
@@ -622,6 +705,21 @@ pub(crate) fn row_for_axiom(axiom: &crate::reason::InferredAxiom) -> Row {
 /// contract stays aligned with the explanation engine it feeds and can carry a
 /// future decode error without a signature break.
 pub fn rows_for_result(result: &crate::result::ReasoningResult) -> Result<Vec<Row>, ExplainError> {
+    for axiom in result.inferred() {
+        match &axiom.modal_evaluation {
+            Some(evidence) => evidence.validate_axiom(axiom).map_err(|error| {
+                ExplainError::InvalidModalEvidence {
+                    detail: error.to_string(),
+                }
+            })?,
+            None if axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI) => {
+                return Err(ExplainError::InvalidModalEvidence {
+                    detail: "native modal firing is missing contextual evaluation".to_owned(),
+                });
+            }
+            None => {}
+        }
+    }
     let assert_rule = ASSERT_RULE_IRI.to_owned();
     let mut rows: Vec<Row> = Vec::with_capacity(result.inferred().len());
     // The `(world, reifier)` identities already carried by a row, so a premise is
@@ -642,7 +740,7 @@ pub fn rows_for_result(result: &crate::result::ReasoningResult) -> Result<Vec<Ro
     //    borrow of `rows`), then appended.
     let mut synthesized: Vec<Row> = Vec::new();
     for axiom in result.inferred() {
-        if axiom.is_edb {
+        if axiom.is_edb || axiom.modal_evaluation.is_some() {
             continue;
         }
         for (s, p, o) in &axiom.premises {
@@ -656,6 +754,7 @@ pub fn rows_for_result(result: &crate::result::ReasoningResult) -> Result<Vec<Ro
             let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
             let derivation_id = mint_derivation_id(&assert_rule, &source_refs);
             synthesized.push(Row {
+                modal_evaluation: None,
                 graph: axiom.world.clone(),
                 subject: s.clone(),
                 predicate: p.clone(),
@@ -796,6 +895,22 @@ pub fn render_markdown(expl: &Explanation) -> String {
         out.push_str(" *(in `<");
         out.push_str(&step.graph_iri);
         out.push_str(">`)*\n");
+        if let Some(evidence) = &step.modal_evaluation {
+            out.push_str(&format!("{tind}Bounded modal evaluation in `<{}>` from `<{}>` over `<{}>`; completed finite predecessor only.\n", evidence.context, evidence.evaluation_world, evidence.accessibility_relation));
+            let crate::modal::ModalFrontier::CompletedFinitePredecessor { worlds } =
+                &evidence.frontier;
+            for world in worlds {
+                let status = if world.atom_present {
+                    "present (positive evidence)"
+                } else {
+                    "absent from the admitted frontier (not a positive premise)"
+                };
+                out.push_str(&format!(
+                    "{tind}Body `<{}>` at `<{}>`: {status}.\n",
+                    evidence.body, world.world
+                ));
+            }
+        }
     }
 
     out

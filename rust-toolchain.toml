@@ -10,8 +10,7 @@
 # follow the same floating channel. Old Rust versions are used only via
 # `rust-validate <ver> <cmd>` for validating specific external packages.
 #
-# Every `toolchain:` input in .github/workflows/ must name this exact channel;
-# `the_ci_toolchain_matches_the_pinned_channel` enforces that lockstep.
+# CI may select a dated nightly independently of this host policy.
 [toolchain]
 channel = "nightly"
 components = ["rustfmt", "clippy"]

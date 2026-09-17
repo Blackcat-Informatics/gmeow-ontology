@@ -14,6 +14,7 @@ fn prefix() -> Value {
         "closure_receipts": {"ancestor": "retained ancestor receipt"},
         "stages": {"stage": "retained stage receipt"},
         "docs": {"retained": "earlier documentation selection"},
+        "source_artifacts": {"stage": {"observation.json": "exact source selection"}},
     })
 }
 
@@ -70,6 +71,7 @@ fn all_selection_is_in_memory_until_one_complete_publication() {
     let mut stages = prefix();
     stages.as_object_mut().unwrap().remove("docs");
     stages["stages"]["stage"] = json!("new stage receipt");
+    stages["source_artifacts"]["stage"]["observation.json"] = json!("new source selection");
     let bundle = bundle();
     let docs = docs();
     let prepared = prepare_fixture_selector(
@@ -84,6 +86,7 @@ fn all_selection_is_in_memory_until_one_complete_publication() {
     let complete: Value = serde_json::from_slice(&expected).unwrap();
     assert_eq!(complete["stages"], stages["stages"]);
     assert_eq!(complete["closure_receipts"], stages["closure_receipts"]);
+    assert_eq!(complete["source_artifacts"], stages["source_artifacts"]);
     assert_eq!(
         complete["bundle_import"],
         serde_json::to_value(&bundle).unwrap()
@@ -139,6 +142,7 @@ fn prefix_completion_preserves_stage_closure_and_selected_documentation() {
         let selected: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
         assert_eq!(selected["stages"], prefix()["stages"]);
         assert_eq!(selected["closure_receipts"], prefix()["closure_receipts"]);
+        assert_eq!(selected["source_artifacts"], prefix()["source_artifacts"]);
         assert_eq!(
             selected["bundle_import"],
             serde_json::to_value(bundle).unwrap()
@@ -166,4 +170,27 @@ fn independent_prefix_publishes_without_bundle_and_missing_or_corrupt_prefix_fai
     std::fs::write(&finalized.path, b"corrupt selection").unwrap();
     assert!(prepare_fixture_selector(root.path(), None, Some(&bundle()), Some(&docs())).is_err());
     assert_eq!(std::fs::read(finalized.path).unwrap(), b"corrupt selection");
+}
+
+#[test]
+fn heavy_extension_preserves_all_selected_actions_until_publication() {
+    let root = tempfile::tempdir().unwrap();
+    let (path, old) = seed(root.path());
+    let selected = json!({"receipt": "new exhaustive conformance action"});
+    let prepared = prepare_fixture_selector_fields(
+        root.path(),
+        None,
+        BTreeMap::from([("conformance_heavy", selected.clone())]),
+    )
+    .unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), old);
+    let expected: Value = serde_json::from_slice(&prepared.bytes).unwrap();
+    assert_eq!(expected["conformance_heavy"], selected);
+    for field in ["stages", "closure_receipts", "source_artifacts", "docs"] {
+        assert_eq!(expected[field], prefix()[field]);
+    }
+    let finalized = prepared.publish().unwrap();
+    let bytes = std::fs::read(path).unwrap();
+    assert_eq!(finalized.sha256, ContentDigest::of(&bytes).to_hex());
+    assert_eq!(serde_json::from_slice::<Value>(&bytes).unwrap(), expected);
 }

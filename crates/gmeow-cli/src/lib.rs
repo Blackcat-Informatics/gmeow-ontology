@@ -72,6 +72,19 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
     }
 }
 
+/// External first-order prover selected by `gmeow prove`.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
+pub enum ProverChoice {
+    /// Select E when installed, otherwise Vampire. `GMEOW_PROVER_PATH` pins an
+    /// exact executable and its filename determines the protocol flavor.
+    #[default]
+    Auto,
+    /// The E theorem prover (`eprover`).
+    Eprover,
+    /// The Vampire theorem prover (`vampire`).
+    Vampire,
+}
+
 /// The output serialization every structured `gmeow logic` reader shares
 /// (`fragments`, `frontier`, `explain`, `refine`, `saga`).
 ///
@@ -153,7 +166,7 @@ pub enum Commands {
     /// Consumer verification of a signed release bundle.
     #[command(name = "verify-release-bundle")]
     VerifyReleaseBundle {
-        /// Signed release bundle to verify.
+        /// Signed release bundle; its adjacent .ingestion.cbor companion is required.
         #[arg(long = "bundle")]
         bundle: PathBuf,
         /// Optional out-of-band trusted Ed25519 OpenPGP PUBLIC certificate.
@@ -335,6 +348,12 @@ pub enum Commands {
         premise: PathBuf,
         /// The conclusion RDF graph `C`.
         conclusion: PathBuf,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+        /// Apply the typed gate-exit contract.
+        #[arg(long)]
+        gate: bool,
     },
     /// Decide whether an ontology has a model (OWL 2 Direct-Semantics consistency),
     /// natively over the purrdf DL reasoner. Prints the three-valued verdict
@@ -351,6 +370,48 @@ pub enum Commands {
         /// honest `unknown` verdict (exit 0) rather than a fabricated `true`/`false`.
         #[arg(long = "step-cap")]
         step_cap: Option<u64>,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+        /// Apply the typed gate-exit contract.
+        #[arg(long)]
+        gate: bool,
+    },
+    /// Compile an exact RDF source selection once, admit its complete classical
+    /// FOF profile, and ask a bounded external prover about axiom consistency.
+    /// The report binds source/program/problem and executable identities. Solver
+    /// output remains attestation until an independently checked proof/model raises
+    /// its evidence grade.
+    Prove {
+        /// RDF source documents to compose. Each file keeps an independent blank scope.
+        #[arg(required_unless_present = "dir")]
+        inputs: Vec<PathBuf>,
+        /// Recursively add `module.ttl` and `*.logic.ttl` below this corpus root.
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        /// External prover implementation.
+        #[arg(long, value_enum, default_value_t = ProverChoice::Auto)]
+        prover: ProverChoice,
+        /// Parent-enforced wall deadline in seconds for each selected prover pass.
+        #[arg(
+            long = "timeout-secs",
+            default_value_t = 60,
+            value_parser = clap::value_parser!(u64).range(1..=3600)
+        )]
+        timeout_secs: u64,
+        /// Keep the exact emitted TPTP problem at this path.
+        #[arg(long)]
+        out: Option<PathBuf>,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+        /// Apply the typed gate-exit contract. Certificate-grade consistent is 0,
+        /// certified negative is 1, and undecided/unsupported/attestation is 3.
+        #[arg(long)]
+        gate: bool,
+        /// Write the complete machine-readable receipt regardless of stdout format.
+        #[arg(long = "evidence-out")]
+        evidence_out: Option<PathBuf>,
     },
     /// Certify an ontology against the OWL 2 profiles (EL, QL, RL, DL, Full),
     /// natively over the purrdf profile checker. Prints every profile the ontology
@@ -370,6 +431,12 @@ pub enum Commands {
     Classify {
         /// The ontology RDF graph to classify.
         ontology: PathBuf,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+        /// Apply the typed gate-exit contract.
+        #[arg(long)]
+        gate: bool,
     },
     /// Realize an ontology: print the entailed types of its named individuals,
     /// natively over the purrdf DL reasoner. Emits every established type
@@ -378,6 +445,12 @@ pub enum Commands {
     Realize {
         /// The ontology RDF graph to realize.
         ontology: PathBuf,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+        /// Apply the typed gate-exit contract.
+        #[arg(long)]
+        gate: bool,
     },
     /// Extract the syntactic-locality module of an ontology for a seed signature,
     /// natively over the purrdf module extractor. Emits the method, the kept-axiom
@@ -400,6 +473,12 @@ pub enum Commands {
     Logic {
         #[command(subcommand)]
         command: LogicCommands,
+    },
+    /// Inspect and execute the canonical correspondence calculus from the embedded
+    /// bundle, or check a finite presentation merge from caller-owned logic source.
+    Correspondence {
+        #[command(subcommand)]
+        command: CorrespondenceCommands,
     },
     /// GMEOW slice-quality tools: score an external slice directory against the embedded bundle.
     Slice {
@@ -881,9 +960,118 @@ pub enum CandidateCommands {
     },
 }
 
+/// The `gmeow correspondence` repo-free calculus surface.
+#[derive(Debug, Subcommand)]
+pub enum CorrespondenceCommands {
+    /// Inspect the complete typed program and every certified physical plan.
+    Inspect {
+        /// Read the correspondence program from this GTS snapshot instead of the embedded one.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Select and independently verify one authored composition certificate.
+    Compose {
+        /// Exact `logic:CorrespondenceComposition` IRI.
+        composition: String,
+        /// Read the correspondence program from this GTS snapshot instead of the embedded one.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Execute one certified pure-read composition over caller-owned RDF data.
+    Execute {
+        /// Exact `logic:CorrespondenceComposition` IRI.
+        composition: String,
+        /// RDF input to process; syntax is inferred from its extension.
+        input: PathBuf,
+        /// Read the correspondence program from this GTS snapshot instead of the embedded one.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Explain one composition's logical stages, checks, caveats, loss and selected plan.
+    Explain {
+        /// Exact `logic:CorrespondenceComposition` IRI.
+        composition: String,
+        /// Read the correspondence program from this GTS snapshot instead of the embedded one.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Execute checked finite-presentation pushouts authored in caller-owned logic source.
+    Merge {
+        /// RDF source containing canonical presentation and merge declarations.
+        input: PathBuf,
+        /// Require and display this exact merge IRI; all declarations are still checked.
+        #[arg(long = "merge")]
+        merge: Option<String>,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Project a caller-owned canonical plan to a certified prescriptive skeleton.
+    ProjectPlan {
+        /// RDF source carrying the canonical `logic:Plan` and its action schemas.
+        input: PathBuf,
+        /// Exact `logic:Plan` IRI.
+        #[arg(long = "plan")]
+        plan: String,
+        /// Exact named graph containing the plan; omit only for a default-graph plan.
+        #[arg(long = "graph")]
+        graph: Option<String>,
+        /// Maximum admitted fixed loop count. A larger authored count hard-fails.
+        #[arg(long = "max-unroll", default_value_t = 1024)]
+        max_unroll: usize,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Recover a planned skeleton from occurrences carrying both in-band witnesses.
+    RecoverPlan {
+        /// RDF source carrying the canonical `logic:Plan` and its action schemas.
+        plan_source: PathBuf,
+        /// RDF record whose occurrences carry `instantiatesPlan` and `instantiatesSchema`.
+        observations: PathBuf,
+        /// Exact `logic:Plan` IRI.
+        #[arg(long = "plan")]
+        plan: String,
+        /// Exact named graph containing the plan; omit only for a default-graph plan.
+        #[arg(long = "graph")]
+        graph: Option<String>,
+        /// Maximum admitted fixed loop count. A larger authored count hard-fails.
+        #[arg(long = "max-unroll", default_value_t = 1024)]
+        max_unroll: usize,
+        /// Output serialization.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+}
+
 /// The `gmeow logic` nested subcommands (native `gmeow_logic` engine).
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
+    /// Evaluate an attributed modal request in supplied RDF and emit its complete
+    /// reasoning, proof, and diagnostic graphs as RDF 1.2 N-Quads. No checkout is required.
+    Evaluate {
+        /// RDF containing a typed request, its contexts, and attributed evidence.
+        input: PathBuf,
+        /// The IRI of the ContextualEvaluationRequest to assess.
+        #[arg(long)]
+        request: String,
+        /// Maximum committed formula/context judgments. An exhausted budget emits
+        /// an incomplete result and returns a nonzero exit status.
+        #[arg(long)]
+        max_steps: Option<u64>,
+    },
     /// Print the actionable frontier for an enactment: one row per entry, its label, the
     /// SOURCE of that label, and the lifecycle-axis tuple behind it.
     ///
@@ -1030,7 +1218,8 @@ pub enum LogicCommands {
     /// families the native refutation kernel natively DECIDES (each with the
     /// `logic:RefutationPattern` it closes under and its completeness bound), plus
     /// their dual — the retained `logic:expressivenessBoundary` records the kernel
-    /// deliberately WITHHOLDS, with their technical reasons. Reads the decidability
+    /// deliberately WITHHOLDS, with their technical reasons, and the separately named
+    /// source admission contracts and exact grammar requirements. Reads the decidability
     /// manifest (`logic:DecidedFragment` / `logic:RefutationPattern` /
     /// `logic:expressivenessBoundary`) straight from a graph source via graph queries:
     /// the embedded `gmeow.gts` bundle by default, or a `--bundle` override (a `.gts`
@@ -1039,7 +1228,8 @@ pub enum LogicCommands {
     Fragments {
         /// Query this graph source instead of the embedded bundle: a `.gts` snapshot,
         /// or an RDF file (`.ttl`/`.nt`/`.nq`/`.rdf`/`.owl`/`.xml`/`.trig`) carrying
-        /// the `logic:DecidedFragment` / `logic:expressivenessBoundary` manifest.
+        /// the `logic:DecidedFragment` / `logic:expressivenessBoundary` /
+        /// `logic:SourceAdmissionContract` manifest.
         #[arg(long = "bundle")]
         bundle: Option<PathBuf>,
         /// Output serialization: `text` (default) or `json`.
@@ -1550,19 +1740,119 @@ pub fn run() -> i32 {
         Commands::Entails {
             premise,
             conclusion,
-        } => commands::entails(reporter, &premise, &conclusion),
-        Commands::Consistency { ontology, step_cap } => {
-            commands::consistency(reporter, &ontology, step_cap)
-        }
+            format,
+            gate,
+        } => commands::entails(reporter, &premise, &conclusion, format, gate),
+        Commands::Consistency {
+            ontology,
+            step_cap,
+            format,
+            gate,
+        } => commands::consistency(reporter, &ontology, step_cap, format, gate),
+        Commands::Prove {
+            inputs,
+            dir,
+            prover,
+            timeout_secs,
+            out,
+            format,
+            gate,
+            evidence_out,
+        } => commands::prove(
+            reporter,
+            &inputs,
+            dir.as_deref(),
+            prover,
+            timeout_secs,
+            out.as_deref(),
+            format,
+            gate,
+            evidence_out.as_deref(),
+        ),
         Commands::Profile { ontology } => commands::profile(reporter, &ontology),
-        Commands::Classify { ontology } => commands::classify(reporter, &ontology),
-        Commands::Realize { ontology } => commands::realize(reporter, &ontology),
+        Commands::Classify {
+            ontology,
+            format,
+            gate,
+        } => commands::classify(reporter, &ontology, format, gate),
+        Commands::Realize {
+            ontology,
+            format,
+            gate,
+        } => commands::realize(reporter, &ontology, format, gate),
         Commands::Module {
             ontology,
             seed,
             method,
         } => commands::module(reporter, &ontology, &seed, &method),
+        Commands::Correspondence { command } => match command {
+            CorrespondenceCommands::Inspect { gts, format } => {
+                commands::correspondence_inspect(reporter, gts.as_deref(), format)
+            }
+            CorrespondenceCommands::Compose {
+                composition,
+                gts,
+                format,
+            } => commands::correspondence_compose(reporter, &composition, gts.as_deref(), format),
+            CorrespondenceCommands::Execute {
+                composition,
+                input,
+                gts,
+                format,
+            } => commands::correspondence_execute(
+                reporter,
+                &composition,
+                &input,
+                gts.as_deref(),
+                format,
+            ),
+            CorrespondenceCommands::Explain {
+                composition,
+                gts,
+                format,
+            } => commands::correspondence_explain(reporter, &composition, gts.as_deref(), format),
+            CorrespondenceCommands::Merge {
+                input,
+                merge,
+                format,
+            } => commands::correspondence_merge(reporter, &input, merge.as_deref(), format),
+            CorrespondenceCommands::ProjectPlan {
+                input,
+                plan,
+                graph,
+                max_unroll,
+                format,
+            } => commands::correspondence_project_plan(
+                reporter,
+                &input,
+                &plan,
+                graph.as_deref(),
+                max_unroll,
+                format,
+            ),
+            CorrespondenceCommands::RecoverPlan {
+                plan_source,
+                observations,
+                plan,
+                graph,
+                max_unroll,
+                format,
+            } => commands::correspondence_recover_plan(
+                reporter,
+                &plan_source,
+                &observations,
+                &plan,
+                graph.as_deref(),
+                max_unroll,
+                format,
+            ),
+        },
         Commands::Logic { command } => match command {
+            LogicCommands::Evaluate {
+                input,
+                request,
+                max_steps,
+            } => commands::logic_evaluate(reporter, &input, &request, max_steps),
             LogicCommands::Frontier {
                 input,
                 why_not,

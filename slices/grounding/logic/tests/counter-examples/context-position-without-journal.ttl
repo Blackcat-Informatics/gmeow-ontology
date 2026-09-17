@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/context-coordinates/> .
+
+# Every selected norm and protocol coordinate is complete. The sole defect is
+# the numeric observation position with no journal identity to interpret it.
+ex:observation a logic:AttributedContext ;
+    logic:contextWorld ex:world ;
+    logic:contextStandpoint ex:reviewer ;
+    logic:contextPosition "3"^^xsd:nonNegativeInteger ;
+    logic:contextNormScope ex:obligation ;
+    logic:contextProtocolScope ex:review ;
+    logic:evidenceClosure logic:ClosedWorldClosure .
+
+ex:world a logic:World .
+ex:reviewer a logic:Thing .
+ex:issuer a logic:Thing .
+ex:policy a logic:Thing .
+ex:protocol a logic:Thing .
+ex:role a logic:Thing .
+
+ex:obligation a logic:NormScope ;
+    logic:normIssuer ex:issuer ;
+    logic:normBearer ex:reviewer ;
+    logic:normPolicy ex:policy .
+
+ex:review a logic:ProtocolScope ;
+    logic:protocolIdentity ex:protocol ;
+    logic:protocolRole ex:role .

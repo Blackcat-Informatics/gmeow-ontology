@@ -16,7 +16,7 @@ use std::time::Instant;
 
 use gmeow_logic::reason::{native_contract_hash, reason_all};
 use gmeow_logic::result::ReasoningResult;
-use gmeow_logic::verify::verify_with_reasoning_result;
+use gmeow_logic::verify::{PreparedReasonedGates, PreparedVerification};
 
 use crate::dev_common::{
     elapsed_ms, emit_report, fail, note, project_root, snapshot_bytes, write_timings_json,
@@ -41,6 +41,30 @@ fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i
     snapshot_import(root).map(|outcome| outcome.dataset)
 }
 
+/// Read the dataset and native law preparation from the same captured bundle bytes.
+/// Native laws are producer outputs; verification never recompiles their authored RDF.
+fn snapshot_verification_input(
+    root: &Path,
+) -> Result<(gmeow_bundle_import::ImportOutcome, PreparedReasonedGates), i32> {
+    let bytes = snapshot_bytes(root)?;
+    let imported = gmeow_bundle_import::import_graph_preserving_cached(
+        &root.join(".cache/gmeow-bundle-import"),
+        &bytes,
+    )
+    .map_err(|error| fail(format!("cannot read snapshot: {error}")))?;
+    let bundle = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
+        .map_err(|error| fail(format!("cannot read snapshot native laws: {error}")))?;
+    let laws = bundle
+        .prepared_reasoned_gates()
+        .map_err(|error| fail(format!("cannot read snapshot native laws: {error}")))?;
+    let gates: PreparedReasonedGates = serde_json::from_slice(&laws)
+        .map_err(|error| fail(format!("cannot decode snapshot native laws: {error}")))?;
+    gates
+        .validate_source_identity()
+        .map_err(|error| fail(format!("cannot admit snapshot native laws: {error}")))?;
+    Ok((imported, gates))
+}
+
 /// Recover the exact object-level reasoning EDB from a full shipped snapshot. The
 /// shared pipeline projector is the authority for the graph boundary, keeping CLI
 /// fresh reasoning byte-for-byte aligned with `stage-reason` rather than reasoning
@@ -58,24 +82,13 @@ fn snapshot_reasoning_dataset(
 /// binary's engine: a stale bundle must be regenerated (or re-reasoned with
 /// `--fresh`), never re-reported as current.
 fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
-    let graph = dataset.project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING);
-    if graph.quad_count() == 0 {
-        return Err(error::reasoning(
-            "the snapshot carries no graph/reasoning verdict; run `make check` \
-             (or re-reason with --fresh)",
-        ));
-    }
-    // The projected sub-dataset is default-graph only, so its canonical N-Quads
-    // lines are `s p o .` — exactly the N-Triples shape the reverse parser reads.
-    let nt = purrdf::serialize_dataset(
-        &graph,
-        "application/n-quads",
-        purrdf::SerializeGraph::Dataset,
-    )
-    .map_err(|e| error::rdf(format!("serialize graph/reasoning: {e}")))?;
-    let nt = String::from_utf8(nt)
-        .map_err(|e| error::encoding(format!("graph/reasoning is not UTF-8: {e}")))?;
-    let result = gmeow_logic::result_rdf::parse_reasoning_graph(&nt).map_err(error::reasoning)?;
+    let graph = dataset.term_id_by_iri(gmeow_logic::result_rdf::GRAPH_REASONING)
+        .ok_or_else(|| error::reasoning(
+            "the snapshot carries no graph/reasoning verdict; run `make check` (or re-reason with --fresh)",
+        ))?;
+    let result =
+        gmeow_logic::result_rdf::parse_reasoning_dataset(dataset, purrdf::GraphMatch::Named(graph))
+            .map_err(error::reasoning)?;
     let current = native_contract_hash();
     if result.provenance.contract_hash != current {
         return Err(error::reasoning(format!(
@@ -121,7 +134,12 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
             Err(code) => return code,
         };
         let edb_quads = edb.quad_count();
-        match reason_all(edb.as_ref()) {
+        match gmeow_logic::reason::prepare_reasoning_input(edb.as_ref()).and_then(|input| {
+            reason_all(
+                input,
+                &gmeow_logic::reasoning_graphs::object_level_domains()?,
+            )
+        }) {
             Ok(r) => (r, "reason-native", Some(edb_quads)),
             Err(e) => return fail(format!("native reasoning failed: {e}")),
         }
@@ -208,8 +226,8 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
     let root = project_root();
     let started = Instant::now();
-    let imported = match snapshot_import(&root) {
-        Ok(imported) => imported,
+    let (imported, gates) = match snapshot_verification_input(&root) {
+        Ok(input) => input,
         Err(code) => return code,
     };
     let dataset = imported.dataset.clone();
@@ -219,7 +237,12 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     };
     let queries = gmeow_logic::verify::embedded_verify_queries();
     let result = if fresh {
-        match reason_all(edb.as_ref()) {
+        match gmeow_logic::reason::prepare_reasoning_input(edb.as_ref()).and_then(|input| {
+            reason_all(
+                input,
+                &gmeow_logic::reasoning_graphs::object_level_domains()?,
+            )
+        }) {
             Ok(result) => result,
             Err(e) => return fail(format!("native verify reasoning failed: {e}")),
         }
@@ -229,7 +252,11 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
         }
     };
-    let report = match verify_with_reasoning_result(edb.as_ref(), &result, &queries) {
+    let verification = match PreparedVerification::new(&queries, &gates) {
+        Ok(verification) => verification,
+        Err(error) => return fail(format!("native verify preparation failed: {error}")),
+    };
+    let report = match verification.verify_with_reasoning_result(edb.as_ref(), &result) {
         Ok(r) => r,
         Err(e) => return fail(format!("native verify failed: {e}")),
     };
@@ -299,7 +326,7 @@ struct ReasonVerifyEvaluation {
 /// the aggregate reason gate use this path.
 fn evaluate_reason_verify_once<F>(
     dataset: &purrdf::RdfDataset,
-    queries: &[(String, String)],
+    verification: &PreparedVerification<'_>,
     produce_result: F,
 ) -> gmeow_errors::Result<ReasonVerifyEvaluation>
 where
@@ -333,7 +360,8 @@ where
     }
 
     let verify_started = Instant::now();
-    let report = verify_with_reasoning_result(dataset, &result, queries)
+    let report = verification
+        .verify_with_reasoning_result(dataset, &result)
         .map_err(|e| error::reasoning(format!("native reason+verify failed: {e}")))?;
     let verify_ms = elapsed_ms(verify_started);
 
@@ -353,8 +381,8 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     let root = project_root();
     let started = Instant::now();
     let snapshot_started = Instant::now();
-    let imported = match snapshot_import(&root) {
-        Ok(imported) => imported,
+    let (imported, gates) = match snapshot_verification_input(&root) {
+        Ok(input) => input,
         Err(code) => return code,
     };
     let dataset = imported.dataset.clone();
@@ -364,17 +392,27 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     };
     let snapshot_ms = elapsed_ms(snapshot_started);
     let queries = gmeow_logic::verify::embedded_verify_queries();
+    let verification = match PreparedVerification::new(&queries, &gates) {
+        Ok(verification) => verification,
+        Err(error) => return fail(format!("native verify preparation failed: {error}")),
+    };
     let (evaluation, result_phase) = if fresh {
         (
-            evaluate_reason_verify_once(edb.as_ref(), &queries, || {
-                reason_all(edb.as_ref())
+            evaluate_reason_verify_once(edb.as_ref(), &verification, || {
+                gmeow_logic::reason::prepare_reasoning_input(edb.as_ref())
+                    .and_then(|input| {
+                        reason_all(
+                            input,
+                            &gmeow_logic::reasoning_graphs::object_level_domains()?,
+                        )
+                    })
                     .map_err(|e| error::reasoning(format!("native reason+verify failed: {e}")))
             }),
             "reason-native",
         )
     } else {
         (
-            evaluate_reason_verify_once(edb.as_ref(), &queries, || {
+            evaluate_reason_verify_once(edb.as_ref(), &verification, || {
                 shipped_reasoning_result(dataset.as_ref())
                     .map_err(|e| error::reasoning(format!("cannot reuse the shipped verdict: {e}")))
             }),
@@ -411,6 +449,7 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         &queries,
         &evaluation.report,
         &verify_record,
+        &gates,
     ) {
         Ok(attestation) => attestation,
         Err(error) => {
@@ -518,10 +557,16 @@ pub fn explain() -> i32 {
         Ok(edb) => edb,
         Err(code) => return code,
     };
-    let result = match reason_all(edb.as_ref()) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("explain failed: {e}")),
-    };
+    let result =
+        match gmeow_logic::reason::prepare_reasoning_input(edb.as_ref()).and_then(|input| {
+            reason_all(
+                input,
+                &gmeow_logic::reasoning_graphs::object_level_domains()?,
+            )
+        }) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("explain failed: {e}")),
+        };
     if result.is_consistent() {
         println!("no unsatisfiable classes");
         return 0;
@@ -640,28 +685,6 @@ fn resolve_profile(input_path: &Path, profile: Option<&str>) -> Result<String, i
     Ok("PositiveHornProfile".to_owned())
 }
 
+#[path = "dev_reason.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use std::cell::Cell;
-
-    use super::*;
-
-    #[test]
-    fn reason_verify_orchestration_invokes_the_result_producer_once() {
-        let dataset = purrdf::RdfDataset::union(&[]);
-        let calls = Cell::new(0usize);
-        let evaluation = evaluate_reason_verify_once(&dataset, &[], || {
-            calls.set(calls.get() + 1);
-            reason_all(&dataset)
-        })
-        .expect("empty dataset reasons and verifies");
-
-        assert_eq!(
-            calls.get(),
-            1,
-            "the complete closure is produced exactly once"
-        );
-        assert!(evaluation.result.is_decided_consistent());
-        assert!(evaluation.report.ok());
-    }
-}
+mod tests;

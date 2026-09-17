@@ -8,8 +8,8 @@
 //! Because the two dialects lower from this one in-memory model — not from two
 //! independent reads of the store — they cannot drift: the historical
 //! `mapping-compile.spec-drift` lint is moot by construction. Extraction runs over the
-//! oxigraph-free [`DslView`]; the model + the property-path / expression rendering are
-//! ported verbatim from the historical emitter (byte-parity-critical).
+//! native [`DslView`]. Expression constants retain PurRDF values through the shared
+//! model until the target renderer admits them or records unsupported residue.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -161,16 +161,9 @@ const GM_INGEST_RESIDUE: &str = "https://blackcatinformatics.ca/gmeow/ingestResi
 #[derive(Debug, Clone)]
 pub enum Expr {
     Var(String),
-    ConstIri(String),
-    /// A constant literal carrying its lexical form, datatype IRI, and optional
-    /// language tag — mirroring [`DslTerm::Literal`] so a typed/tagged FILTER or
-    /// BIND constant survives lowering as a proper SPARQL term rather than being
-    /// collapsed to a bare quoted string.
-    ConstLiteral {
-        lexical: String,
-        datatype: String,
-        language: Option<String>,
-    },
+    /// A complete native constant, retaining direction, scope and quoted terms
+    /// until the target's expression renderer admits it or reports typed residue.
+    ConstTerm(DslTerm),
     Op {
         op: String,
         args: Vec<Expr>,
@@ -183,11 +176,12 @@ pub struct Atom {
     pub subject_var: String,
     pub predicate: Option<String>,
     pub predicate_var: Option<String>,
-    pub path: Option<String>,
+    pub path: Option<purrdf::sparql::PropertyPathExpression>,
     pub path_alts: Vec<String>,
     pub object_var: Option<String>,
     pub object_value: Option<String>,
-    pub object_literal: Option<(String, Option<String>)>,
+    /// Complete native literal, including datatype, language and base direction.
+    pub object_literal: Option<DslTerm>,
     pub optional: bool,
 }
 
@@ -260,7 +254,7 @@ pub struct ProfileBinding {
     pub value_class_map: Vec<ValueClass>,
     pub relation: String,
     pub transform: Option<String>,
-    pub confidence: Option<f64>,
+    pub confidence: Option<crate::ir::UnitInterval>,
     pub lossy_drops: Vec<String>,
     pub edoal_target: Option<String>,
     pub edoal_target_kind: Option<String>,
@@ -371,6 +365,48 @@ pub struct ProjectionCell {
     /// correspondence. Grounding projection cells are deliberately restricted to one
     /// binding so their target endpoint is unambiguous.
     pub grounding: Option<GroundingAuthoring>,
+}
+
+/// Complete source-owned binding identity shared by report rows, typed relation
+/// admission and executable legs. Full native constants (including datatype,
+/// language, direction and source scope) participate; sibling bindings do not.
+/// The schema-tagged native Debug encoding is streamed directly into SHA-256:
+/// this is an identity commitment, never a rendered query or an execution input.
+pub fn binding_key(cell: &ProjectionCell, binding: &ProfileBinding) -> String {
+    use sha2::{Digest, Sha256};
+    use std::fmt::Write as _;
+
+    struct DigestWriter(Sha256);
+    impl std::fmt::Write for DigestWriter {
+        fn write_str(&mut self, value: &str) -> std::fmt::Result {
+            self.0.update(value.as_bytes());
+            Ok(())
+        }
+    }
+    let mut writer = DigestWriter(Sha256::new());
+    writer.0.update(b"gmeow.native-mapping-binding.v1\0");
+    write!(
+        &mut writer,
+        "{:?}",
+        (
+            &cell.iri,
+            &cell.label,
+            &cell.pattern,
+            &cell.grounding,
+            binding
+        )
+    )
+    .expect("digest writer cannot fail");
+    let digest: String = writer
+        .0
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    format!(
+        "cell={:?};profile={:?};binding={digest}",
+        cell.iri, binding.profile
+    )
 }
 
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
@@ -514,7 +550,7 @@ fn parse_atom(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Atom> {
     let predicate_var = view.object_literal_of_term(node, GM_PREDICATE_VAR);
     let path_node = view.first_object_of(node, GM_PATH);
     let path = match &path_node {
-        Some(p) => Some(render_path(view, p)?),
+        Some(p) => Some(parse_path(view, p, 0)?),
         None => None,
     };
     let path_alts = match &path_node {
@@ -527,7 +563,15 @@ fn parse_atom(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Atom> {
     let object_value = view
         .object_iri_of_term(node, GM_OBJECT_VALUE)
         .or_else(|| view.object_iri_of_term(node, GM_T_OBJ_VALUE));
-    let object_literal = view.literal_of_term(node, GM_OBJECT_LITERAL);
+    let object_literal = view.first_object_of(node, GM_OBJECT_LITERAL);
+    if object_literal
+        .as_ref()
+        .is_some_and(|term| !matches!(term, DslTerm::Literal { .. }))
+    {
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "mapping objectLiteral must be a literal".into(),
+        }));
+    }
     let optional = view.object_bool_of_term(node, GM_OPTIONAL);
     Ok(Atom {
         subject_var,
@@ -560,20 +604,8 @@ fn parse_bind(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Bind> {
 }
 
 fn parse_expr(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Expr> {
-    match node {
-        DslTerm::Iri(iri) => return Ok(Expr::ConstIri(iri.clone())),
-        DslTerm::Literal {
-            lexical,
-            datatype,
-            language,
-        } => {
-            return Ok(Expr::ConstLiteral {
-                lexical: lexical.clone(),
-                datatype: datatype.clone(),
-                language: language.clone(),
-            });
-        }
-        DslTerm::Blank { .. } => {}
+    if !node.is_blank() {
+        return Ok(Expr::ConstTerm(node.clone()));
     }
     if let Some(var) = view.object_literal_of_term(node, GM_EXPR_VAR) {
         return Ok(Expr::Var(var));
@@ -621,17 +653,26 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Profile
     let relation = view
         .object_literal_of_term(node, GM_RELATION)
         .unwrap_or_else(|| "=".to_owned());
-    let confidence = match view.object_literal_of_term(node, GM_CONFIDENCE) {
-        Some(text) => Some(text.parse::<f64>().map_err(|_| {
-            Diag::of_kind(crate::error::GetLeg {
-                detail: "profile binding has non-numeric confidence".to_owned(),
+    let confidence_values = view.objects_of_term(node, GM_CONFIDENCE);
+    if confidence_values.len() > 1 {
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "profile binding has multiple distinct confidence values".to_owned(),
+        }));
+    }
+    let confidence = confidence_values
+        .into_iter()
+        .next()
+        .map(|term| {
+            crate::ir::UnitInterval::try_from(term).map_err(|error| {
+                Diag::of_kind(crate::error::GetLeg {
+                    detail: format!("profile binding {node:?}, gmeow:confidence: {error}"),
+                })
             })
-        })?),
-        None => None,
-    };
+        })
+        .transpose()?;
     let mut lossy_drops = Vec::new();
     for d in view.objects_of_term(node, GM_LOSSY_DROP) {
-        if let Some(text) = d.as_literal() {
+        if let Some(text) = crate::ingest::literal_lexical(&d) {
             lossy_drops.push(text.to_owned());
         } else if let Some(iri) = d.as_iri() {
             lossy_drops.push(iri.to_owned());
@@ -656,7 +697,7 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Profile
     };
     // Whether the lens is authored memory-preserving (`gmeow:mnemomorphic`), an
     // `xsd:boolean` literal; accept its lexical forms (`true`/`1`, case-insensitive)
-    // consistent with `term_of`; default false when absent.
+    // Boolean authoring uses true/1, defaulting false only when absent.
     let mnemomorphic = view
         .object_literal_of_term(node, GM_MNEMOMORPHIC)
         .map(|text| {
@@ -723,7 +764,7 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Profile
             let residue = view
                 .objects_of_term(&claim_node, GM_INGEST_RESIDUE)
                 .into_iter()
-                .filter_map(|t| t.as_literal().map(str::to_owned))
+                .filter_map(|t| crate::ingest::literal_lexical(&t).map(str::to_owned))
                 .collect();
             (
                 Some(LawClaimIr {
@@ -758,79 +799,99 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Profile
     })
 }
 
-// ── Property-path rendering ────────────────────────────────────────────────────
+// ── Native property-path extraction ────────────────────────────────────────────────────
 
-fn render_path(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<String> {
+/// Retain the authored path as native algebra; text exists only at a target exit.
+fn parse_path(
+    view: &DslView,
+    node: &DslTerm,
+    depth: usize,
+) -> gmeow_errors::Result<purrdf::sparql::PropertyPathExpression> {
+    use purrdf::sparql::{NamedNode, NegatedPathElement, PropertyPathExpression as Path};
+    let fail = |detail: String| Diag::of_kind(crate::error::GetLeg { detail });
+    if depth >= 128 {
+        return Err(fail(
+            "mapping property path exceeds 128 nested edges".into(),
+        ));
+    }
     if let DslTerm::Iri(iri) = node {
-        if iri == RDF_TYPE {
-            return Ok("rdf:type".to_owned());
-        }
-        return Ok(curie(iri));
+        return NamedNode::new(iri.clone())
+            .map(Path::NamedNode)
+            .map_err(|error| fail(error.to_string()));
     }
     let types = view.types_of_term(node);
-    if types.iter().any(|t| t == GM_ALT_PATH) {
-        let head = view.first_object_of(node, GM_PATH_ALTS);
-        let mut parts = Vec::new();
-        for a in &view.rdf_list(head.as_ref()) {
-            parts.push(render_path(view, a)?);
-        }
-        return Ok(parts.join("|"));
-    }
-    if types.iter().any(|t| t == GM_SEQ_PATH) {
-        let head = view.first_object_of(node, GM_PATH_STEPS);
-        let mut parts = Vec::new();
-        for s in &view.rdf_list(head.as_ref()) {
-            parts.push(render_path(view, s)?);
-        }
-        return Ok(parts.join("/"));
-    }
-    if types.iter().any(|t| t == GM_INVERSE_PATH) {
-        let step = view.first_object_of(node, GM_PATH_STEP);
-        return Ok(format!("^{}", path_primary(view, step.as_ref())?));
-    }
-    if types.iter().any(|t| t == GM_ZERO_OR_MORE_PATH) {
-        let step = view.first_object_of(node, GM_PATH_STEP);
-        return Ok(format!("{}*", path_primary(view, step.as_ref())?));
-    }
-    if types.iter().any(|t| t == GM_ONE_OR_MORE_PATH) {
-        let step = view.first_object_of(node, GM_PATH_STEP);
-        return Ok(format!("{}+", path_primary(view, step.as_ref())?));
-    }
-    if types.iter().any(|t| t == GM_ZERO_OR_ONE_PATH) {
-        let step = view.first_object_of(node, GM_PATH_STEP);
-        return Ok(format!("{}?", path_primary(view, step.as_ref())?));
-    }
-    if types.iter().any(|t| t == GM_NEGATED_PROPERTY_SET) {
-        let head = view.first_object_of(node, GM_PATH_SET);
-        let members = view.rdf_list(head.as_ref());
-        let mut parts = Vec::new();
-        for m in &members {
-            parts.push(render_path(view, m)?);
-        }
-        let inner = parts.join("|");
-        return Ok(if members.len() > 1 {
-            format!("!({inner})")
-        } else {
-            format!("!{inner}")
-        });
-    }
-    Err(Diag::of_kind(crate::error::GetLeg {
-        detail: "unknown property-path node".to_owned(),
-    }))
-}
-
-fn path_primary(view: &DslView, node: Option<&DslTerm>) -> gmeow_errors::Result<String> {
-    let Some(node) = node else {
-        return Err(Diag::of_kind(crate::error::GetLeg {
-            detail: "property path missing a step".to_owned(),
-        }));
+    let has = |kind| types.iter().any(|value| value == kind);
+    let list = |predicate| -> gmeow_errors::Result<Vec<Path>> {
+        let head = view.first_object_of(node, predicate);
+        view.rdf_list(head.as_ref())
+            .iter()
+            .map(|member| parse_path(view, member, depth + 1))
+            .collect()
     };
-    let rendered = render_path(view, node)?;
-    if rendered.contains('/') || rendered.contains('|') {
-        Ok(format!("({rendered})"))
-    } else {
-        Ok(rendered)
+    if has(GM_ALT_PATH) || has(GM_SEQ_PATH) {
+        let mut members = list(if has(GM_ALT_PATH) {
+            GM_PATH_ALTS
+        } else {
+            GM_PATH_STEPS
+        })?
+        .into_iter();
+        let first = members
+            .next()
+            .ok_or_else(|| fail("mapping path requires at least one member".into()))?;
+        return Ok(members.fold(first, |left, right| {
+            if has(GM_ALT_PATH) {
+                Path::Alternative(Box::new(left), Box::new(right))
+            } else {
+                Path::Sequence(Box::new(left), Box::new(right))
+            }
+        }));
     }
+    if has(GM_NEGATED_PROPERTY_SET) {
+        let members = list(GM_PATH_SET)?;
+        if members.is_empty() {
+            return Err(fail(
+                "negated mapping path requires at least one member".into(),
+            ));
+        }
+        return members
+            .into_iter()
+            .map(|member| {
+                let (predicate, inverse) = match member {
+                    Path::NamedNode(predicate) => (predicate, false),
+                    Path::Reverse(inner) => match *inner {
+                        Path::NamedNode(predicate) => (predicate, true),
+                        _ => return Err(fail(
+                            "negated mapping path members must be predicates or inverse predicates"
+                                .into(),
+                        )),
+                    },
+                    _ => {
+                        return Err(fail(
+                            "negated mapping path members must be predicates or inverse predicates"
+                                .into(),
+                        ));
+                    }
+                };
+                Ok(NegatedPathElement { predicate, inverse })
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()
+            .map(Path::NegatedPropertySet);
+    }
+    let wrapper: fn(Box<Path>) -> Path = if has(GM_INVERSE_PATH) {
+        Path::Reverse
+    } else if has(GM_ZERO_OR_MORE_PATH) {
+        Path::ZeroOrMore
+    } else if has(GM_ONE_OR_MORE_PATH) {
+        Path::OneOrMore
+    } else if has(GM_ZERO_OR_ONE_PATH) {
+        Path::ZeroOrOne
+    } else {
+        return Err(fail("unknown property-path node".into()));
+    };
+    let step = view
+        .first_object_of(node, GM_PATH_STEP)
+        .ok_or_else(|| fail("property path missing a step".into()))?;
+    Ok(wrapper(Box::new(parse_path(view, &step, depth + 1)?)))
 }
 
 /// A top-level AltPath of plain predicates → them, else `()`.
@@ -853,137 +914,24 @@ fn alt_members(view: &DslView, node: &DslTerm) -> Vec<String> {
     alts
 }
 
-// ── Expression rendering ───────────────────────────────────────────────────────
-
-fn func_op(name: &str) -> Option<&'static str> {
-    Some(match name {
-        "opConcat" => "CONCAT",
-        "opCoalesce" => "COALESCE",
-        "opIf" => "IF",
-        "opBound" => "BOUND",
-        "opStr" => "STR",
-        "opIri" => "IRI",
-        "opStrDatatype" => "STRDT",
-        "opLang" => "LANG",
-        "opLangMatches" => "LANGMATCHES",
-        "opStrLang" => "STRLANG",
-        "opDatatype" => "DATATYPE",
-        "opSubstr" => "SUBSTR",
-        "opReplace" => "REPLACE",
-        "opUcase" => "UCASE",
-        "opLcase" => "LCASE",
-        "opStrBefore" => "STRBEFORE",
-        "opStrAfter" => "STRAFTER",
-        "opStrLen" => "STRLEN",
-        "opContains" => "CONTAINS",
-        "opStrStarts" => "STRSTARTS",
-        "opStrEnds" => "STRENDS",
-        "opEncodeForUri" => "ENCODE_FOR_URI",
-        "opDecimal" => "xsd:decimal",
-        _ => return None,
-    })
-}
-
-fn infix_op(name: &str) -> Option<&'static str> {
-    Some(match name {
-        "opAdd" => "+",
-        "opSub" => "-",
-        "opMul" => "*",
-        "opDiv" => "/",
-        "opEq" => "=",
-        "opNe" => "!=",
-        "opLt" => "<",
-        "opGt" => ">",
-        "opLe" => "<=",
-        "opGe" => ">=",
-        "opAnd" => "&&",
-        "opOr" => "||",
-        _ => return None,
-    })
-}
-
-/// Render one expression-algebra node to its legal SPARQL text.
-///
-/// Lowering is **legalization** (LOGIC-IR.md § IR commitments): a total function into
-/// `⟨ legal output ⊕ flagged residue ⟩`. An expression containing an operator the closed
-/// SPARQL algebra cannot express is NOT a legal output, so this returns `Err` carrying the
-/// unsupported construct rather than emitting a placeholder token (which would be illegal
-/// SPARQL). The lowering caller treats that `Err` as **residue**: it records the dropped
-/// construct in the correspondence's loss-ledger residue set and omits it from the legal
-/// output — never a malformed placeholder.
-pub fn render_expr(expr: &Expr) -> gmeow_errors::Result<String> {
-    match expr {
-        Expr::Var(v) => Ok(format!("?{v}")),
-        Expr::ConstIri(iri) => Ok(curie(iri)),
-        Expr::ConstLiteral {
-            lexical,
-            datatype,
-            language,
-        } => Ok(sparql_literal(lexical, datatype, language.as_deref())),
-        Expr::Op { op, args } => {
-            let name = op_local(op);
-            let rendered: Vec<String> = args
-                .iter()
-                .map(render_expr)
-                .collect::<Result<Vec<_>, _>>()?;
-            if name == "opRegex" {
-                return Ok(format!("regex({})", rendered.join(", ")));
-            }
-            if name == "opNot" {
-                if rendered.len() != 1 {
-                    return Err(Diag::of_kind(crate::error::GetLeg {
-                        detail: format!(
-                            "unsupported expression operator: opNot expects exactly 1 argument, \
-                             got {}",
-                            rendered.len()
-                        ),
-                    }));
-                }
-                return Ok(format!("(!{})", rendered[0]));
-            }
-            if name == "opIn" {
-                if rendered.is_empty() {
-                    return Err(Diag::of_kind(crate::error::GetLeg {
-                        detail:
-                            "unsupported expression operator: opIn requires at least 1 argument"
-                                .to_owned(),
-                    }));
-                }
-                return Ok(format!(
-                    "({} IN ({}))",
-                    rendered[0],
-                    rendered[1..].join(", ")
-                ));
-            }
-            if let Some(sym) = infix_op(&name) {
-                return Ok(format!("({})", rendered.join(&format!(" {sym} "))));
-            }
-            if let Some(fn_name) = func_op(&name) {
-                return Ok(format!("{fn_name}({})", rendered.join(", ")));
-            }
-            Err(Diag::of_kind(crate::error::GetLeg {
-                detail: format!("unsupported expression operator: {name}"),
-            }))
-        }
-    }
-}
-
 /// A TOTAL structural sort key for an expression — used ONLY for the deterministic
-/// filter order, never as output. Unlike [`render_expr`] it cannot fail, so an
+/// filter order, never as output. Unlike target legalization it cannot fail, so an
 /// unsupported operator still sorts deterministically (its legalization-as-residue is
 /// handled at render time by the lowering caller).
 fn expr_sort_key(expr: &Expr) -> String {
     match expr {
         Expr::Var(v) => format!("var:{v}"),
-        Expr::ConstIri(iri) => format!("iri:{iri}"),
-        Expr::ConstLiteral {
-            lexical,
+        Expr::ConstTerm(DslTerm::Iri(iri)) => format!("iri:{iri}"),
+        Expr::ConstTerm(DslTerm::Literal {
+            lexical_form,
             datatype,
             language,
-        } => format!(
-            "lit:{lexical}^^{datatype}@{}",
+            direction: None,
+        }) => format!(
+            "lit:{lexical_form}^^{datatype}@{}",
             language.as_deref().unwrap_or("")
         ),
+        Expr::ConstTerm(term) => format!("native:{term:?}"),
         Expr::Op { op, args } => {
             let inner: Vec<String> = args.iter().map(expr_sort_key).collect();
             format!("op:{}({})", op_local(op), inner.join(","))
@@ -1018,14 +966,17 @@ fn expr_vars(expr: &Expr, out: &mut BTreeSet<String>) {
 
 fn atom_key(atom: &Atom) -> Vec<String> {
     let obj_lit = match &atom.object_literal {
-        Some((lex, _)) => lex.clone(),
+        Some(term) => format!("{term:?}"),
         None => String::new(),
     };
     vec![
         atom.subject_var.clone(),
         atom.predicate.clone().unwrap_or_default(),
         atom.predicate_var.clone().unwrap_or_default(),
-        atom.path.clone().unwrap_or_default(),
+        atom.path
+            .as_ref()
+            .map(ToString::to_string)
+            .unwrap_or_default(),
         atom.path_alts.join("|"),
         atom.object_var.clone().unwrap_or_default(),
         atom.object_value.clone().unwrap_or_default(),
@@ -1104,92 +1055,6 @@ pub fn local(iri: &str) -> String {
     iri[cut..].to_owned()
 }
 
-/// Render a string as a single-line SPARQL string literal.
-pub fn sparql_string(text: &str) -> String {
-    let escaped = text
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t");
-    format!("\"{escaped}\"")
-}
-
-const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-
-/// Render a constant literal to its proper SPARQL term syntax:
-/// - a language tag yields `"lex"@lang`;
-/// - `xsd:string` or no datatype yields a plain `"lex"` (byte-identical to the
-///   historical [`sparql_string`] rendering);
-/// - the SPARQL-native numeric/boolean datatypes yield their bare lexical form;
-/// - any other datatype yields the explicit typed form `"lex"^^<curie-or-iri>`.
-pub fn sparql_literal(lexical: &str, datatype: &str, language: Option<&str>) -> String {
-    if let Some(lang) = language {
-        return format!("{}@{lang}", sparql_string(lexical));
-    }
-    if datatype.is_empty() || datatype == XSD_STRING {
-        return sparql_string(lexical);
-    }
-    if is_bare_sparql_datatype(datatype) {
-        return lexical.to_owned();
-    }
-    format!("{}^^{}", sparql_string(lexical), curie(datatype))
-}
-
-/// Whether a datatype IRI is one SPARQL renders bare (its lexical form is a literal
-/// token in the grammar): the integer/decimal/double tower and `xsd:boolean`.
-fn is_bare_sparql_datatype(datatype: &str) -> bool {
-    matches!(
-        datatype,
-        "http://www.w3.org/2001/XMLSchema#integer"
-            | "http://www.w3.org/2001/XMLSchema#decimal"
-            | "http://www.w3.org/2001/XMLSchema#double"
-            | "http://www.w3.org/2001/XMLSchema#boolean"
-    )
-}
-
+#[path = "get_leg.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn sparql_literal_plain_string_is_byte_identical() {
-        // No datatype and xsd:string both render as a bare quoted string, matching the
-        // historical sparql_string output (byte-parity for the committed corpus).
-        assert_eq!(sparql_literal("10.", "", None), "\"10.\"");
-        assert_eq!(sparql_literal("10.", XSD_STRING, None), "\"10.\"");
-        assert_eq!(sparql_literal("10.", "", None), sparql_string("10."));
-    }
-
-    #[test]
-    fn sparql_literal_language_tag() {
-        assert_eq!(
-            sparql_literal(
-                "hello",
-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
-                Some("en")
-            ),
-            "\"hello\"@en"
-        );
-    }
-
-    #[test]
-    fn sparql_literal_numeric_and_boolean_are_bare() {
-        assert_eq!(
-            sparql_literal("42", "http://www.w3.org/2001/XMLSchema#integer", None),
-            "42"
-        );
-        assert_eq!(
-            sparql_literal("false", "http://www.w3.org/2001/XMLSchema#boolean", None),
-            "false"
-        );
-    }
-
-    #[test]
-    fn sparql_literal_other_datatype_is_typed() {
-        assert_eq!(
-            sparql_literal("2026-06-28", "http://www.w3.org/2001/XMLSchema#date", None),
-            "\"2026-06-28\"^^xsd:date"
-        );
-    }
-}
+mod tests;

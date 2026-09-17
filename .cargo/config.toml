@@ -4,6 +4,11 @@
 [alias]
 xtask = "run --quiet --package xtask --"
 
+# Cargo configuration overrides Cargo.toml profiles. Keep a host development
+# setting from reintroducing symbols into this workspace's debugging builds.
+[profile.dev]
+debug = false
+
 [env]
 # Build vendored C deps (zstd-sys, ring) optimized and host-tuned for LOCAL
 # regenerate/reasoning paths by default. `force = true` overrides ambient CFLAGS —

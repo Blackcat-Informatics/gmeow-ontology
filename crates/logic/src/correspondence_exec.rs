@@ -5,9 +5,12 @@
 //!
 //! This module is the single behavioural authority for correspondence recovery.  Both the
 //! pipeline's mapping-cell laws and the compiler's five correspondence gates call the same
-//! graph executor: `get` and `put` are SPARQL `CONSTRUCT` programs, their intermediate carrier
-//! remains typed RDF, and a section discharges only when `put(get(source))` is exactly the
-//! original source atom set.
+//! native executors. Formula and mapping-query legs use prepared `CONSTRUCT`
+//! programs; atomic property legs use the stateful native focus/complement
+//! primitive in [`atomic_lens`]. Comparisons cover the complete RDF carrier.
+//! Canonical recovery formulas and resolved paths lower directly to native query
+//! algebra, admitted by PurRDF before execution. Only the explicit text-query entry
+//! points parse SPARQL; generated recovery legs have no serialization/parsing boundary.
 //!
 //! A first-class [`RecoveryCaseIr`](gmeow_logic_compile::ir::RecoveryCaseIr) supplies the complete query-class source pattern and its
 //! ordered source-to-view transform as canonical `logic:Formula`.  The supported execution
@@ -28,21 +31,31 @@
 //! passing because `put` was mechanically minted as `get.invert()`.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
+
+pub mod atomic_lens;
+pub mod axes;
+pub mod physical_plan;
+pub mod plan_projection;
+pub mod presentation;
+mod stable_digest;
 
 use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, DischargeCondition, DischargeVerdict, Formula, LawClaimIr,
-    LegPath, LogicProgram, MorphismClass, PreservationKind, RecoveryCaseIr, Term,
+    LegPath, MorphismClass, RecoveryCaseIr, Term,
 };
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
-use gmeow_logic_compile::projections::correspondence_gates::CorrespondenceVerdicts;
-use gmeow_logic_compile::projections::paths::leg_path_canonical;
+use gmeow_logic_compile::projections::correspondence_gates::{
+    CorrespondenceVerdicts, ExecutedCorrespondenceLaws,
+};
+use gmeow_logic_compile::projections::paths::lower_leg_path;
+use purrdf::ir::import::DatasetImporter;
 use purrdf::sparql::{
-    GraphPattern, NamedNodePattern, NativeSparqlEngine, Query, SparqlParser, TermPattern,
-    TriplePattern as SparqlTriplePattern,
+    GraphPattern, NamedNode, NamedNodePattern, NativeSparqlEngine, PreparedQuery, QuadPattern,
+    Query, QueryOptions, SparqlParser, TermPattern, TriplePattern as SparqlTriplePattern, Variable,
 };
 use purrdf::{
-    RdfQuad, RdfTerm, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult, TermValue,
-    canonicalize, parse_dataset, serialize_dataset,
+    RdfDataset, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SparqlResult, TermValue, canonical_relabel,
 };
 
 const VIEW_PREDICATE: &str = "https://blackcatinformatics.ca/logic/recovery#view";
@@ -66,25 +79,35 @@ fn is_reserved_recovery_iri(iri: &str) -> bool {
     iri.starts_with(RECOVERY_VIEW_NS) || iri.starts_with(RECOVERY_SEED_NS)
 }
 
-/// A comparable RDF atom: subject, predicate, object as canonical term keys.
-pub type Atom = (String, String, String);
+/// A comparable RDF assertion: subject, predicate, object and graph as canonical term keys.
+pub type Atom = (String, String, String, Option<String>);
 
 /// A deterministic source graph used to discharge a correspondence law.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SeedGraph {
     /// Stable case or branch label used by countermodels.
     pub label: String,
-    /// Source atoms.  Seed synthesis currently emits IRI terms in every position.
-    pub atoms: Vec<Atom>,
+    /// Typed source assertions, including literal identity, quoted terms and graph names.
+    pub quads: Vec<RdfQuad>,
 }
 
 impl SeedGraph {
-    fn to_ntriples(&self) -> String {
-        let mut out = String::new();
-        for (subject, predicate, object) in &self.atoms {
-            out.push_str(&format!("<{subject}> <{predicate}> <{object}> .\n"));
+    /// Construct an explicitly all-IRI default-graph seed.
+    pub fn from_iri_atoms(label: impl Into<String>, atoms: Vec<(String, String, String)>) -> Self {
+        Self {
+            label: label.into(),
+            quads: atoms
+                .into_iter()
+                .map(|(subject, predicate, object)| {
+                    RdfQuad::new(RdfTerm::iri(subject), predicate, RdfTerm::iri(object))
+                })
+                .collect(),
         }
-        out
+    }
+
+    fn dataset(&self) -> gmeow_errors::Result<Arc<RdfDataset>> {
+        purrdf::native_quads::flat_dataset_from_quads(&self.quads)
+            .map_err(|error| exec_error(format!("freeze correspondence seed: {error}")))
     }
 }
 
@@ -99,6 +122,10 @@ pub struct Countermodel {
     pub spurious: Vec<Atom>,
     /// Source atoms absent from the recovered graph.
     pub missing: Vec<Atom>,
+    /// Named graph declarations introduced by recovery, including empty graphs.
+    pub spurious_graphs: Vec<String>,
+    /// Named graph declarations discarded by recovery, including empty graphs.
+    pub missing_graphs: Vec<String>,
 }
 
 /// The three-valued result of executing a law over a seed corpus.
@@ -108,6 +135,8 @@ pub struct DischargeOutcome {
     pub verdict: DischargeVerdict,
     /// The first deterministic countermodel when violated.
     pub countermodel: Option<Countermodel>,
+    /// Why carrier comparison could not decide a law; this is not a countermodel.
+    pub comparison_refusal: Option<String>,
 }
 
 /// The executable lowering of one canonical recovery formula.
@@ -115,10 +144,10 @@ pub struct DischargeOutcome {
 pub struct RecoveryExecution {
     /// Deterministically instantiated complete source graph.
     pub seed: SeedGraph,
-    /// Source-to-view `CONSTRUCT`.
-    pub get_query: String,
-    /// View-to-source candidate inverse `CONSTRUCT`.
-    pub put_query: String,
+    /// Source-to-view native `CONSTRUCT` algebra.
+    pub get: Query,
+    /// View-to-source candidate inverse native `CONSTRUCT` algebra.
+    pub put: Query,
 }
 
 fn exec_error(detail: impl Into<String>) -> gmeow_errors::Diag {
@@ -144,7 +173,11 @@ pub fn term_key(term: &RdfTerm) -> String {
                 .as_deref()
                 .map(|tag| format!("@{tag}"))
                 .unwrap_or_default();
-            format!("\"{}\"{language}{datatype}", lit.lexical_form)
+            let direction = lit
+                .direction
+                .map(|direction| format!("--{}", direction.as_str()))
+                .unwrap_or_default();
+            format!("{:?}{language}{direction}{datatype}", lit.lexical_form)
         }
         RdfTerm::Triple(triple) => format!(
             "<< {} {} {} >>",
@@ -160,231 +193,390 @@ fn quad_atom(quad: &RdfQuad) -> Atom {
         term_key(&quad.subject),
         quad.predicate.clone(),
         term_key(&quad.object),
+        quad.graph_name.as_ref().map(term_key),
     )
 }
 
 fn run_construct(
     engine: &NativeSparqlEngine,
-    source_nt: &str,
-    query: &str,
-) -> gmeow_errors::Result<Vec<RdfQuad>> {
-    let dataset = parse_dataset(source_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|error| exec_error(format!("parse correspondence source graph: {error}")))?;
+    dataset: &Arc<RdfDataset>,
+    query: &PreparedQuery,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let result = engine
-        .query(
-            &dataset,
-            SparqlRequest {
-                query,
-                base_iri: None,
-                substitutions: &[],
-            },
-        )
+        .query_prepared(dataset, query, &[], QueryOptions::EMPTY)
         .map_err(|error| {
             exec_error(format!(
-                "correspondence CONSTRUCT evaluation failed: {error}\nquery: {query}"
+                "correspondence CONSTRUCT evaluation failed: {error}"
             ))
         })?;
     let SparqlResult::Graph(dataset) = result else {
-        return Err(exec_error(format!(
-            "correspondence CONSTRUCT did not return a graph\nquery: {query}"
-        )));
+        return Err(exec_error(
+            "correspondence CONSTRUCT did not return a graph",
+        ));
     };
-    Ok(purrdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
-        .into_iter()
-        .filter(|quad| quad.graph_name.is_none())
-        .collect())
+    Ok(dataset)
 }
 
-fn quads_to_ntriples(quads: &[RdfQuad]) -> gmeow_errors::Result<String> {
-    let dataset = purrdf::native_quads::flat_dataset_from_quads(quads)
-        .map_err(|error| exec_error(format!("freeze correspondence carrier: {error}")))?;
-    let bytes = serialize_dataset(&dataset, "application/n-triples", SerializeGraph::Dataset)
-        .map_err(|error| exec_error(format!("serialize correspondence carrier: {error}")))?;
-    String::from_utf8(bytes)
-        .map_err(|error| exec_error(format!("correspondence carrier is not UTF-8: {error}")))
+fn atom_set(dataset: &RdfDataset) -> BTreeSet<Atom> {
+    purrdf::native_quads::flat_rdf_quads(dataset)
+        .map(|quad| quad_atom(&quad))
+        .collect()
 }
 
-/// Canonical graph atom set for the uncommon raw-blank-label mismatch path.  The hot path
-/// compares atom sets directly; RDFC-1.0 runs only when those differ, so ordinary IRI/literal
-/// correspondence discharge pays no canonicalization cost while isomorphic fresh blank nodes
-/// still compare by RDF identity rather than allocator labels.
-fn canonical_atom_set(quads: &[RdfQuad]) -> gmeow_errors::Result<BTreeSet<Atom>> {
-    let dataset = purrdf::native_quads::flat_dataset_from_quads(quads)
-        .map_err(|error| exec_error(format!("freeze correspondence comparison graph: {error}")))?;
-    let canonical = canonicalize(&dataset);
-    let reparsed = parse_dataset(canonical.nquads.as_bytes(), "application/n-quads", None)
-        .map_err(|error| exec_error(format!("parse canonical correspondence graph: {error}")))?;
-    Ok(purrdf::native_quads::flat_rdf_quads_from_dataset(&reparsed)
-        .iter()
-        .filter(|quad| quad.graph_name.is_none())
-        .map(quad_atom)
-        .collect())
+/// Complete native carrier comparison, including declaration-only named graphs.
+#[derive(PartialEq, Eq)]
+struct CarrierAtoms {
+    assertions: BTreeSet<Atom>,
+    graphs: BTreeSet<String>,
+}
+
+impl CarrierAtoms {
+    fn read(dataset: &RdfDataset) -> Self {
+        Self {
+            assertions: atom_set(dataset),
+            graphs: dataset
+                .owned_named_graphs()
+                .map(|graph| term_key(&graph))
+                .collect(),
+        }
+    }
+
+    fn canonical(dataset: &RdfDataset, marker: &str) -> gmeow_errors::Result<Self> {
+        let canonical = if dataset.named_graphs().next().is_none() {
+            canonical_relabel(dataset)
+        } else {
+            // Empty graph declarations are not N-Quads statements. Make their
+            // incidence visible to the native canonicalizer, including when a
+            // graph name also occurs in an otherwise symmetric assertion graph.
+            let mut builder = purrdf::RdfDatasetBuilder::new();
+            let graphs = {
+                let mut importer = DatasetImporter::new(&mut builder, dataset);
+                importer.append();
+                dataset
+                    .named_graphs()
+                    .map(|graph| importer.term(graph))
+                    .collect::<Vec<_>>()
+            };
+            let marker_id = builder.intern_iri(marker);
+            for graph in graphs {
+                builder.push_quad(graph, marker_id, marker_id, Some(marker_id));
+            }
+            let augmented = builder.freeze().map_err(|error| {
+                exec_error(format!("index carrier graph declarations: {error}"))
+            })?;
+            canonical_relabel(&augmented)
+        }
+        .map_err(|error| exec_error(format!("canonicalize correspondence carrier: {error}")))?;
+        let mut atoms = Self::read(&canonical);
+        atoms
+            .assertions
+            .retain(|atom| atom.3.as_deref() != Some(marker));
+        atoms.graphs.remove(marker);
+        Ok(atoms)
+    }
+}
+
+/// Select a shared comparison-only IRI absent from both native term inventories.
+/// At most one more candidate than the combined term count is needed.
+fn comparison_marker(actual: &RdfDataset, expected: &RdfDataset) -> gmeow_errors::Result<String> {
+    (0..=actual.term_count().saturating_add(expected.term_count()))
+        .map(|index| format!("urn:gmeow:correspondence-carrier:{index}"))
+        .find(|iri| actual.term_id_by_iri(iri).is_none() && expected.term_id_by_iri(iri).is_none())
+        .ok_or_else(|| {
+            exec_error("no fresh carrier-comparison identity within the finite inventory bound")
+        })
 }
 
 fn violated(seed: &SeedGraph, reason: String) -> DischargeOutcome {
     DischargeOutcome {
         verdict: DischargeVerdict::ObligationViolated,
+        comparison_refusal: None,
         countermodel: Some(Countermodel {
             seed_label: seed.label.clone(),
             reason,
             spurious: Vec::new(),
             missing: Vec::new(),
+            spurious_graphs: Vec::new(),
+            missing_graphs: Vec::new(),
         }),
     }
 }
 
+fn discharged() -> DischargeOutcome {
+    DischargeOutcome {
+        verdict: DischargeVerdict::ObligationDischarged,
+        comparison_refusal: None,
+        countermodel: None,
+    }
+}
+
+fn compare_graphs(
+    seed: &SeedGraph,
+    law: &str,
+    actual: &RdfDataset,
+    expected: &RdfDataset,
+) -> DischargeOutcome {
+    if CarrierAtoms::read(actual) == CarrierAtoms::read(expected) {
+        return discharged();
+    }
+    let canonical = comparison_marker(actual, expected).and_then(|marker| {
+        CarrierAtoms::canonical(actual, &marker).and_then(|actual| {
+            CarrierAtoms::canonical(expected, &marker).map(|expected| (actual, expected))
+        })
+    });
+    let (actual, expected) = match canonical {
+        Ok(sets) => sets,
+        Err(error) => {
+            return DischargeOutcome {
+                verdict: DischargeVerdict::ObligationUnknown,
+                countermodel: None,
+                comparison_refusal: Some(format!("{law} comparison refused: {error}")),
+            };
+        }
+    };
+    if actual == expected {
+        return discharged();
+    }
+    let spurious: Vec<Atom> = actual
+        .assertions
+        .difference(&expected.assertions)
+        .cloned()
+        .collect();
+    let missing: Vec<Atom> = expected
+        .assertions
+        .difference(&actual.assertions)
+        .cloned()
+        .collect();
+    let spurious_graphs: Vec<String> = actual
+        .graphs
+        .difference(&expected.graphs)
+        .cloned()
+        .collect();
+    let missing_graphs: Vec<String> = expected
+        .graphs
+        .difference(&actual.graphs)
+        .cloned()
+        .collect();
+    DischargeOutcome {
+        verdict: DischargeVerdict::ObligationViolated,
+        comparison_refusal: None,
+        countermodel: Some(Countermodel {
+            seed_label: seed.label.clone(),
+            reason: format!(
+                "{law} failed on seed `{}`: {} spurious, {} missing assertions; {} spurious, {} missing graph declarations",
+                seed.label,
+                spurious.len(),
+                missing.len(),
+                spurious_graphs.len(),
+                missing_graphs.len()
+            ),
+            spurious,
+            missing,
+            spurious_graphs,
+            missing_graphs,
+        }),
+    }
+}
+
+/// One explicitly supplied law case, retaining the complete immutable RDF 1.2
+/// carrier, including declaration-only named graphs and statement metadata.
+#[derive(Debug, Clone)]
+pub struct LawInput {
+    /// Stable identity of the source or independently edited view case.
+    pub identity: String,
+    /// Native input; a law worker borrows this carrier without flattening it.
+    pub dataset: Arc<RdfDataset>,
+}
+
+enum LawCase<'a> {
+    Native(&'a LawInput),
+    Seed(&'a SeedGraph),
+}
+
+impl LawCase<'_> {
+    fn identity(&self) -> &str {
+        match self {
+            Self::Native(input) => &input.identity,
+            Self::Seed(seed) => &seed.label,
+        }
+    }
+
+    fn dataset(&self) -> gmeow_errors::Result<Arc<RdfDataset>> {
+        match self {
+            Self::Native(input) => Ok(Arc::clone(&input.dataset)),
+            Self::Seed(seed) => seed.dataset(),
+        }
+    }
+}
+
+/// Prepared native execution for the source-replacing CONSTRUCT fragment.
+///
+/// Both legs are compiled once and reused across separate source and view domains.
+/// This fragment does not implement a stateful lens update: its put replaces the
+/// source from the view. Its bounded verdicts establish neither GetPut/PutPut with
+/// prior state nor an unrestricted optimization certificate.
+pub struct PreparedLawExecution {
+    engine: NativeSparqlEngine,
+    get: Arc<PreparedQuery>,
+    put: Arc<PreparedQuery>,
+}
+
+fn unknown() -> DischargeOutcome {
+    DischargeOutcome {
+        verdict: DischargeVerdict::ObligationUnknown,
+        comparison_refusal: None,
+        countermodel: None,
+    }
+}
+
+impl PreparedLawExecution {
+    /// Prepare both required CONSTRUCT legs through the native engine.
+    ///
+    /// # Errors
+    /// Refuses malformed queries and query forms that do not produce a carrier.
+    pub fn new(get_query: &str, put_query: &str) -> gmeow_errors::Result<Self> {
+        let engine = NativeSparqlEngine::new();
+        let get = engine
+            .prepare_query(get_query, None)
+            .map_err(|error| exec_error(format!("prepare correspondence get: {error}")))?;
+        let put = engine
+            .prepare_query(put_query, None)
+            .map_err(|error| exec_error(format!("prepare correspondence put: {error}")))?;
+        Self::from_prepared(engine, get, put)
+    }
+
+    /// Admit compiler-produced legs directly, without a SPARQL text boundary.
+    /// Uses the native engine's algebra admission and the same carrier-form check
+    /// as the explicit text adapter. Inputs and verdicts remain operation-scoped.
+    ///
+    /// # Errors
+    /// Refuses query forms that cannot produce a carrier and native admission errors.
+    pub fn from_algebra(get: Query, put: Query) -> gmeow_errors::Result<Self> {
+        let engine = NativeSparqlEngine::new();
+        let prepare = |query| {
+            engine
+                .prepare_algebra(query, QueryOptions::EMPTY)
+                .map_err(|error| exec_error(format!("admit correspondence algebra: {error}")))
+        };
+        let get = prepare(get)?;
+        let put = prepare(put)?;
+        Self::from_prepared(engine, get, put)
+    }
+
+    fn from_prepared(
+        engine: NativeSparqlEngine,
+        get: Arc<PreparedQuery>,
+        put: Arc<PreparedQuery>,
+    ) -> gmeow_errors::Result<Self> {
+        if !matches!(get.query, Query::Construct { .. })
+            || !matches!(put.query, Query::Construct { .. })
+        {
+            return Err(exec_error("correspondence laws require two CONSTRUCT legs"));
+        }
+        Ok(Self { engine, get, put })
+    }
+
+    /// Check complete source recovery on exactly these native source inputs.
+    pub fn section(&self, sources: &[LawInput]) -> DischargeOutcome {
+        self.roundtrip(sources.iter().map(LawCase::Native), true)
+    }
+
+    /// Check update faithfulness on exactly these independently supplied views.
+    pub fn put_get(&self, views: &[LawInput]) -> DischargeOutcome {
+        self.roundtrip(views.iter().map(LawCase::Native), false)
+    }
+
+    fn roundtrip<'a>(
+        &self,
+        inputs: impl IntoIterator<Item = LawCase<'a>>,
+        source_domain: bool,
+    ) -> DischargeOutcome {
+        let mut ordered: Vec<LawCase<'_>> = inputs.into_iter().collect();
+        ordered.sort_by(|left, right| left.identity().cmp(right.identity()));
+        if ordered.is_empty() {
+            return unknown();
+        }
+        let (first, second, law) = if source_domain {
+            (&self.get, &self.put, "put∘get = id_source")
+        } else {
+            (&self.put, &self.get, "get∘put = id_independent_view")
+        };
+        // A refusal on one case must not conceal a concrete refutation on a later case.
+        let mut aggregate = discharged();
+        for input in ordered {
+            let seed = SeedGraph {
+                label: input.identity().to_owned(),
+                quads: Vec::new(),
+            };
+            let outcome = match input.dataset().and_then(|dataset| {
+                let intermediate = run_construct(&self.engine, &dataset, first)?;
+                let recovered = run_construct(&self.engine, &intermediate, second)?;
+                Ok((dataset, recovered))
+            }) {
+                Ok((dataset, recovered)) => compare_graphs(&seed, law, &recovered, &dataset),
+                Err(error) => violated(&seed, format!("correspondence execution failed: {error}")),
+            };
+            match outcome.verdict {
+                DischargeVerdict::ObligationViolated => return outcome,
+                DischargeVerdict::ObligationUnknown
+                    if aggregate.verdict == DischargeVerdict::ObligationDischarged =>
+                {
+                    aggregate = outcome;
+                }
+                _ => {}
+            }
+        }
+        aggregate
+    }
+}
+
+fn discharge_domain(
+    prepared: &gmeow_errors::Result<PreparedLawExecution>,
+    seeds: &[SeedGraph],
+    source_domain: bool,
+) -> DischargeOutcome {
+    match prepared {
+        Ok(legs) => legs.roundtrip(seeds.iter().map(LawCase::Seed), source_domain),
+        Err(error) => seeds
+            .iter()
+            .min_by(|left, right| left.label.cmp(&right.label))
+            .map_or_else(unknown, |seed| {
+                violated(
+                    seed,
+                    format!("correspondence leg is not executable: {error}"),
+                )
+            }),
+    }
+}
+
 /// Execute `put ∘ get = id_source` over a deterministic seed corpus.
+/// This is bounded evidence on these seeds, not universal rewrite authority.
 pub fn discharge_section_law(
     get_query: &str,
     put_query: &str,
     seeds: &[SeedGraph],
 ) -> DischargeOutcome {
-    if seeds.is_empty() {
-        return DischargeOutcome {
-            verdict: DischargeVerdict::ObligationUnknown,
-            countermodel: None,
-        };
-    }
-    let engine = NativeSparqlEngine::new();
-    let mut ordered: Vec<&SeedGraph> = seeds.iter().collect();
-    ordered.sort_by(|left, right| left.label.cmp(&right.label));
-
-    for seed in ordered {
-        let source: BTreeSet<Atom> = seed.atoms.iter().cloned().collect();
-        let forward = match run_construct(&engine, &seed.to_ntriples(), get_query) {
-            Ok(quads) => quads,
-            Err(error) => return violated(seed, format!("get leg is not executable: {error}")),
-        };
-        let forward_nt = match quads_to_ntriples(&forward) {
-            Ok(graph) => graph,
-            Err(error) => {
-                return violated(seed, format!("forward image is not serializable: {error}"));
-            }
-        };
-        let recovered: BTreeSet<Atom> = match run_construct(&engine, &forward_nt, put_query) {
-            Ok(quads) => quads.iter().map(quad_atom).collect(),
-            Err(error) => return violated(seed, format!("put leg is not executable: {error}")),
-        };
-        if recovered != source {
-            let spurious: Vec<Atom> = recovered.difference(&source).cloned().collect();
-            let missing: Vec<Atom> = source.difference(&recovered).cloned().collect();
-            return DischargeOutcome {
-                verdict: DischargeVerdict::ObligationViolated,
-                countermodel: Some(Countermodel {
-                    seed_label: seed.label.clone(),
-                    reason: format!(
-                        "put∘get did not recover the source on seed `{}`: {} spurious, {} missing",
-                        seed.label,
-                        spurious.len(),
-                        missing.len()
-                    ),
-                    spurious,
-                    missing,
-                }),
-            };
-        }
-    }
-    DischargeOutcome {
-        verdict: DischargeVerdict::ObligationDischarged,
-        countermodel: None,
-    }
+    discharge_domain(
+        &PreparedLawExecution::new(get_query, put_query),
+        seeds,
+        true,
+    )
 }
 
-/// Execute `get ∘ put = id_view` on each seed's forward image.
+/// Execute `get ∘ put = id_view` on independently supplied view seeds.
+/// The seeds belong to the view domain, not the source or its forward image.
+/// This is bounded evidence for the source-replacing CONSTRUCT fragment, not
+/// a claim about stateful put, arbitrary views, GetPut or PutPut.
 pub fn discharge_put_get_law(
     get_query: &str,
     put_query: &str,
-    seeds: &[SeedGraph],
+    views: &[SeedGraph],
 ) -> DischargeOutcome {
-    if seeds.is_empty() {
-        return DischargeOutcome {
-            verdict: DischargeVerdict::ObligationUnknown,
-            countermodel: None,
-        };
-    }
-    let engine = NativeSparqlEngine::new();
-    let mut ordered: Vec<&SeedGraph> = seeds.iter().collect();
-    ordered.sort_by(|left, right| left.label.cmp(&right.label));
-
-    for seed in ordered {
-        let view_quads = match run_construct(&engine, &seed.to_ntriples(), get_query) {
-            Ok(quads) => quads,
-            Err(error) => return violated(seed, format!("get leg is not executable: {error}")),
-        };
-        let view: BTreeSet<Atom> = view_quads.iter().map(quad_atom).collect();
-        let view_nt = match quads_to_ntriples(&view_quads) {
-            Ok(graph) => graph,
-            Err(error) => {
-                return violated(seed, format!("forward image is not serializable: {error}"));
-            }
-        };
-        let recovered_quads = match run_construct(&engine, &view_nt, put_query) {
-            Ok(quads) => quads,
-            Err(error) => return violated(seed, format!("put leg is not executable: {error}")),
-        };
-        let recovered_nt = match quads_to_ntriples(&recovered_quads) {
-            Ok(graph) => graph,
-            Err(error) => {
-                return violated(
-                    seed,
-                    format!("recovered graph is not serializable: {error}"),
-                );
-            }
-        };
-        let reprojected_quads = match run_construct(&engine, &recovered_nt, get_query) {
-            Ok(quads) => quads,
-            Err(error) => {
-                return violated(seed, format!("get leg is not executable: {error}"));
-            }
-        };
-        let reprojected: BTreeSet<Atom> = reprojected_quads.iter().map(quad_atom).collect();
-        if reprojected != view {
-            let canonical_view = match canonical_atom_set(&view_quads) {
-                Ok(atoms) => atoms,
-                Err(error) => {
-                    return violated(seed, format!("view graph is not canonicalizable: {error}"));
-                }
-            };
-            let canonical_reprojected = match canonical_atom_set(&reprojected_quads) {
-                Ok(atoms) => atoms,
-                Err(error) => {
-                    return violated(
-                        seed,
-                        format!("reprojected graph is not canonicalizable: {error}"),
-                    );
-                }
-            };
-            if canonical_reprojected == canonical_view {
-                continue;
-            }
-            let spurious: Vec<Atom> = canonical_reprojected
-                .difference(&canonical_view)
-                .cloned()
-                .collect();
-            let missing: Vec<Atom> = canonical_view
-                .difference(&canonical_reprojected)
-                .cloned()
-                .collect();
-            return DischargeOutcome {
-                verdict: DischargeVerdict::ObligationViolated,
-                countermodel: Some(Countermodel {
-                    seed_label: seed.label.clone(),
-                    reason: format!(
-                        "get∘put did not preserve the view on seed `{}`: {} spurious, {} missing",
-                        seed.label,
-                        spurious.len(),
-                        missing.len()
-                    ),
-                    spurious,
-                    missing,
-                }),
-            };
-        }
-    }
-    DischargeOutcome {
-        verdict: DischargeVerdict::ObligationDischarged,
-        countermodel: None,
-    }
+    discharge_domain(
+        &PreparedLawExecution::new(get_query, put_query),
+        views,
+        false,
+    )
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -407,7 +599,7 @@ fn pattern_term(term: &Term, position: &str) -> gmeow_errors::Result<PatternTerm
         Term::Var(variable) => Err(exec_error(format!(
             "{position} variable `{variable}` is not a valid SPARQL variable name"
         ))),
-        Term::Literal { .. } => Err(exec_error(format!(
+        Term::Literal(_) => Err(exec_error(format!(
             "{position} literals are outside the recovery-case RDF-atom fragment"
         ))),
         Term::SequenceMarker(_) => Err(exec_error(format!(
@@ -500,26 +692,57 @@ fn variables(patterns: &[TriplePattern]) -> BTreeSet<String> {
     out
 }
 
-fn sparql_term(term: &PatternTerm) -> String {
+/// Validate a compiler-produced IRI before handing algebra to the native engine.
+fn algebra_iri(iri: &str) -> gmeow_errors::Result<NamedNode> {
+    NamedNode::new(iri)
+        .map_err(|error| exec_error(format!("invalid recovery IRI <{iri}>: {error}")))
+}
+
+fn algebra_variable(variable: &str) -> gmeow_errors::Result<Variable> {
+    if !valid_variable(variable) {
+        return Err(exec_error(format!("invalid recovery variable {variable}")));
+    }
+    Ok(Variable::new(variable))
+}
+
+fn algebra_term(term: &PatternTerm) -> gmeow_errors::Result<TermPattern> {
     match term {
-        PatternTerm::Iri(iri) => format!("<{iri}>"),
-        PatternTerm::Var(variable) => format!("?{variable}"),
+        PatternTerm::Iri(iri) => algebra_iri(iri).map(TermPattern::NamedNode),
+        PatternTerm::Var(variable) => algebra_variable(variable).map(TermPattern::Variable),
     }
 }
 
-fn render_patterns(patterns: &[TriplePattern]) -> String {
+/// Lower the already-admitted binary formula patterns directly to native algebra.
+fn algebra_patterns(patterns: &[TriplePattern]) -> gmeow_errors::Result<Vec<SparqlTriplePattern>> {
     patterns
         .iter()
         .map(|pattern| {
-            format!(
-                "{} <{}> {} .",
-                sparql_term(&pattern.subject),
-                pattern.predicate,
-                sparql_term(&pattern.object)
-            )
+            Ok(SparqlTriplePattern {
+                subject: algebra_term(&pattern.subject)?,
+                predicate: NamedNodePattern::NamedNode(algebra_iri(&pattern.predicate)?),
+                object: algebra_term(&pattern.object)?,
+            })
         })
-        .collect::<Vec<_>>()
-        .join(" ")
+        .collect()
+}
+
+fn construct_algebra(
+    template: Vec<SparqlTriplePattern>,
+    patterns: Vec<SparqlTriplePattern>,
+) -> Query {
+    Query::Construct {
+        template: template
+            .into_iter()
+            .map(|triple| QuadPattern {
+                triple,
+                graph: None,
+            })
+            .collect(),
+        pattern: GraphPattern::Bgp { patterns },
+        dataset: Default::default(),
+        base_iri: None,
+        version: None,
+    }
 }
 
 fn instantiate_term(term: &PatternTerm, bindings: &BTreeMap<String, String>) -> String {
@@ -532,7 +755,7 @@ fn instantiate_term(term: &PatternTerm, bindings: &BTreeMap<String, String>) -> 
     }
 }
 
-/// Lower one canonical `logic:RecoveryCase` formula to executable get/put queries and a
+/// Lower one canonical `logic:RecoveryCase` formula to native get/put algebra and a
 /// deterministic complete source seed.
 pub fn lower_recovery_case(case: &RecoveryCaseIr) -> gmeow_errors::Result<RecoveryExecution> {
     let Formula::Forall { vars, body } = &case.transform else {
@@ -590,7 +813,7 @@ pub fn lower_recovery_case(case: &RecoveryCaseIr) -> gmeow_errors::Result<Recove
         .enumerate()
         .map(|(index, variable)| (variable.clone(), format!("{RECOVERY_SEED_BASE}{index:04}")))
         .collect();
-    let atoms: BTreeSet<Atom> = source_patterns
+    let atoms: Vec<(String, String, String)> = source_patterns
         .iter()
         .map(|pattern| {
             (
@@ -600,33 +823,53 @@ pub fn lower_recovery_case(case: &RecoveryCaseIr) -> gmeow_errors::Result<Recove
             )
         })
         .collect();
-    let seed = SeedGraph {
-        label: case.iri.clone(),
-        atoms: atoms.into_iter().collect(),
-    };
+    let seed = SeedGraph::from_iri_atoms(case.iri.clone(), atoms);
+    let source = algebra_patterns(&source_patterns)?;
+    let view = algebra_patterns(&view_patterns)?;
     Ok(RecoveryExecution {
         seed,
-        get_query: format!(
-            "CONSTRUCT {{ {} }} WHERE {{ {} }}",
-            render_patterns(&view_patterns),
-            render_patterns(&source_patterns)
-        ),
-        put_query: format!(
-            "CONSTRUCT {{ {} }} WHERE {{ {} }}",
-            render_patterns(&source_patterns),
-            render_patterns(&view_patterns)
-        ),
+        get: construct_algebra(view.clone(), source.clone()),
+        put: construct_algebra(source, view),
     })
 }
 
 type EndpointRelation = BTreeSet<(String, String)>;
 
-/// Render the normalized executable property path as an endpoint-selecting query.
-fn leg_relation_query(path: &LegPath) -> String {
-    format!(
-        "SELECT ?s ?o WHERE {{ ?s {} ?o . }}",
-        leg_path_canonical(path)
-    )
+/// Admit the same resolved path the text parser previously guarded, then use
+/// the shared compiler lowering. An empty composite is not an executable path.
+fn leg_relation_algebra(path: &LegPath) -> gmeow_errors::Result<Query> {
+    let mut pending = vec![path];
+    while let Some(part) = pending.pop() {
+        match part {
+            LegPath::Step(iri) => {
+                algebra_iri(iri)?;
+            }
+            LegPath::Inverse(inner) => pending.push(inner),
+            LegPath::Seq(parts) | LegPath::Alt(parts) => {
+                if parts.is_empty() {
+                    return Err(exec_error(
+                        "resolved recovery path has an empty sequence or alternative",
+                    ));
+                }
+                pending.extend(parts);
+            }
+        }
+    }
+    let subject = algebra_variable("s")?;
+    let object = algebra_variable("o")?;
+    Ok(Query::Select {
+        pattern: GraphPattern::Project {
+            inner: Box::new(GraphPattern::Path {
+                subject: TermPattern::Variable(subject.clone()),
+                path: lower_leg_path(path),
+                object: TermPattern::Variable(object.clone()),
+            }),
+            variables: vec![subject, object],
+        },
+        dataset: Default::default(),
+        base_iri: None,
+        version: None,
+    })
 }
 
 /// Convert a selected endpoint into the deterministic key used for relation comparison.
@@ -637,37 +880,26 @@ fn endpoint_key(term: &TermValue) -> gmeow_errors::Result<String> {
     }
 }
 
-/// Execute one resolved leg body against the complete recovery seed.
+/// Execute one prepared resolved leg body against the complete recovery seed.
 fn execute_leg_relation(
     engine: &NativeSparqlEngine,
-    seed: &SeedGraph,
-    path: &LegPath,
+    dataset: &Arc<RdfDataset>,
+    query: &PreparedQuery,
 ) -> gmeow_errors::Result<EndpointRelation> {
-    let query = leg_relation_query(path);
-    let source_nt = seed.to_ntriples();
-    let dataset = parse_dataset(source_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|error| exec_error(format!("parse correspondence source graph: {error}")))?;
     let result = engine
-        .query(
-            &dataset,
-            SparqlRequest {
-                query: &query,
-                base_iri: None,
-                substitutions: &[],
-            },
-        )
+        .query_prepared(dataset, query, &[], QueryOptions::EMPTY)
         .map_err(|error| {
             exec_error(format!(
-                "correspondence leg SELECT evaluation failed: {error}\nquery: {query}"
+                "correspondence leg SELECT evaluation failed: {error}"
             ))
         })?;
     let SparqlResult::Solutions {
         variables, rows, ..
     } = result
     else {
-        return Err(exec_error(format!(
-            "correspondence leg SELECT did not return solutions\nquery: {query}"
-        )));
+        return Err(exec_error(
+            "correspondence leg SELECT did not return solutions",
+        ));
     };
     let subject_index = variables
         .iter()
@@ -703,19 +935,169 @@ fn relation_mismatch(
     let as_atoms = |relation: &EndpointRelation| {
         relation
             .iter()
-            .map(|(subject, object)| (subject.clone(), VIEW_PREDICATE.to_owned(), object.clone()))
+            .map(|(subject, object)| {
+                (
+                    subject.clone(),
+                    VIEW_PREDICATE.to_owned(),
+                    object.clone(),
+                    None,
+                )
+            })
             .collect::<BTreeSet<_>>()
     };
     let actual = as_atoms(actual);
     let expected = as_atoms(expected);
     DischargeOutcome {
         verdict: DischargeVerdict::ObligationViolated,
+        comparison_refusal: None,
         countermodel: Some(Countermodel {
             seed_label: seed.label.clone(),
             reason,
             spurious: actual.difference(&expected).cloned().collect(),
             missing: expected.difference(&actual).cloned().collect(),
+            spurious_graphs: Vec::new(),
+            missing_graphs: Vec::new(),
         }),
+    }
+}
+
+/// The two resolved relations shared by every recovery case of one correspondence.
+/// The resolved paths use the shared compiler's native algebra lowering. This
+/// operation-scoped holder never retains case datasets or an earlier case's result.
+struct PreparedRecoveryLegs {
+    engine: NativeSparqlEngine,
+    get: Arc<PreparedQuery>,
+    put: Arc<PreparedQuery>,
+}
+
+impl PreparedRecoveryLegs {
+    fn new(get: &LegPath, put: &LegPath) -> gmeow_errors::Result<Self> {
+        let engine = NativeSparqlEngine::new();
+        let prepare = |path| {
+            engine
+                .prepare_algebra(leg_relation_algebra(path)?, QueryOptions::EMPTY)
+                .map_err(|error| exec_error(format!("prepare resolved recovery leg: {error}")))
+        };
+        let get = prepare(get)?;
+        let put = prepare(put)?;
+        Ok(Self { engine, get, put })
+    }
+
+    /// Run a complete formula recovery and both already-prepared resolved legs.
+    fn discharge(&self, case: &RecoveryCaseIr) -> DischargeOutcome {
+        let execution = match lower_recovery_case(case) {
+            Ok(execution) => execution,
+            Err(reason) => {
+                return violated(
+                    &SeedGraph {
+                        label: case.iri.clone(),
+                        quads: Vec::new(),
+                    },
+                    format!("recovery case is not executable: {reason}"),
+                );
+            }
+        };
+        let engine = &self.engine;
+        let graphs = execution.seed.dataset().and_then(|source| {
+            let get = engine
+                .prepare_algebra(execution.get, QueryOptions::EMPTY)
+                .map_err(|error| exec_error(format!("prepare recovery get: {error}")))?;
+            let put = engine
+                .prepare_algebra(execution.put, QueryOptions::EMPTY)
+                .map_err(|error| exec_error(format!("prepare recovery put: {error}")))?;
+            let view = run_construct(engine, &source, &get)?;
+            let recovered = run_construct(engine, &view, &put)?;
+            Ok((source, view, recovered))
+        });
+        let (source, formula_view, recovered) = match graphs {
+            Ok(graphs) => graphs,
+            Err(error) => {
+                return violated(
+                    &execution.seed,
+                    format!("recovery case execution failed: {error}"),
+                );
+            }
+        };
+        let formula_outcome =
+            compare_graphs(&execution.seed, "put∘get = id_source", &recovered, &source);
+        if formula_outcome.verdict != DischargeVerdict::ObligationDischarged {
+            return formula_outcome;
+        }
+
+        let get_relation = match execute_leg_relation(engine, &source, &self.get) {
+            Ok(relation) => relation,
+            Err(error) => {
+                return violated(
+                    &execution.seed,
+                    format!("resolved get leg body is not executable: {error}"),
+                );
+            }
+        };
+        if get_relation.is_empty() {
+            return violated(
+                &execution.seed,
+                "resolved get leg body produced no relation on the recovery seed".to_owned(),
+            );
+        }
+
+        let put_relation = match execute_leg_relation(engine, &source, &self.put) {
+            Ok(relation) => relation,
+            Err(error) => {
+                return violated(
+                    &execution.seed,
+                    format!("resolved put leg body is not executable: {error}"),
+                );
+            }
+        };
+        if put_relation.is_empty() {
+            return violated(
+                &execution.seed,
+                "resolved put leg body produced no relation on the recovery seed".to_owned(),
+            );
+        }
+        let recovered_get: EndpointRelation = put_relation
+            .into_iter()
+            .map(|(subject, object)| (object, subject))
+            .collect();
+        if recovered_get != get_relation {
+            return relation_mismatch(
+                &execution.seed,
+                "resolved get and put leg bodies disagree under inversion on the recovery seed"
+                    .to_owned(),
+                &get_relation,
+                &recovered_get,
+            );
+        }
+
+        let formula_view_terms: BTreeSet<String> =
+            purrdf::native_quads::flat_rdf_quads(&formula_view)
+                .flat_map(|quad| [term_key(&quad.subject), term_key(&quad.object)])
+                .collect();
+        let unwitnessed_bindings: BTreeSet<String> = get_relation
+            .iter()
+            .flat_map(|(subject, object)| [subject, object])
+            .filter(|term| term.starts_with(RECOVERY_SEED_BASE))
+            .filter(|term| !formula_view_terms.contains(*term))
+            .cloned()
+            .collect();
+        if !unwitnessed_bindings.is_empty() {
+            return violated(
+                &execution.seed,
+                format!(
+                    "resolved get leg binds recovery variables absent from the formula view: {}",
+                    unwitnessed_bindings
+                        .into_iter()
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+            );
+        }
+
+        DischargeOutcome {
+            verdict: DischargeVerdict::ObligationDischarged,
+            comparison_refusal: None,
+            countermodel: None,
+        }
     }
 }
 
@@ -728,110 +1110,15 @@ pub fn discharge_recovery_case(
     get: &LegPath,
     put: &LegPath,
 ) -> DischargeOutcome {
-    let execution = match lower_recovery_case(case) {
-        Ok(execution) => execution,
-        Err(reason) => {
-            return violated(
-                &SeedGraph {
-                    label: case.iri.clone(),
-                    atoms: Vec::new(),
-                },
-                format!("recovery case is not executable: {reason}"),
-            );
-        }
-    };
-    let formula_outcome = discharge_section_law(
-        &execution.get_query,
-        &execution.put_query,
-        std::slice::from_ref(&execution.seed),
-    );
-    if formula_outcome.verdict != DischargeVerdict::ObligationDischarged {
-        return formula_outcome;
-    }
-
-    let engine = NativeSparqlEngine::new();
-    let get_relation = match execute_leg_relation(&engine, &execution.seed, get) {
-        Ok(relation) => relation,
-        Err(error) => {
-            return violated(
-                &execution.seed,
-                format!("resolved get leg body is not executable: {error}"),
-            );
-        }
-    };
-    if get_relation.is_empty() {
-        return violated(
-            &execution.seed,
-            "resolved get leg body produced no relation on the recovery seed".to_owned(),
-        );
-    }
-
-    let put_relation = match execute_leg_relation(&engine, &execution.seed, put) {
-        Ok(relation) => relation,
-        Err(error) => {
-            return violated(
-                &execution.seed,
-                format!("resolved put leg body is not executable: {error}"),
-            );
-        }
-    };
-    if put_relation.is_empty() {
-        return violated(
-            &execution.seed,
-            "resolved put leg body produced no relation on the recovery seed".to_owned(),
-        );
-    }
-    let recovered_get: EndpointRelation = put_relation
-        .into_iter()
-        .map(|(subject, object)| (object, subject))
-        .collect();
-    if recovered_get != get_relation {
-        return relation_mismatch(
-            &execution.seed,
-            "resolved get and put leg bodies disagree under inversion on the recovery seed"
-                .to_owned(),
-            &get_relation,
-            &recovered_get,
-        );
-    }
-
-    let formula_view =
-        match run_construct(&engine, &execution.seed.to_ntriples(), &execution.get_query) {
-            Ok(quads) => quads,
-            Err(error) => {
-                return violated(
-                    &execution.seed,
-                    format!("recovery formula view is not executable: {error}"),
-                );
-            }
-        };
-    let formula_view_terms: BTreeSet<String> = formula_view
-        .iter()
-        .flat_map(|quad| [term_key(&quad.subject), term_key(&quad.object)])
-        .collect();
-    let unwitnessed_bindings: BTreeSet<String> = get_relation
-        .iter()
-        .flat_map(|(subject, object)| [subject, object])
-        .filter(|term| term.starts_with(RECOVERY_SEED_BASE))
-        .filter(|term| !formula_view_terms.contains(*term))
-        .cloned()
-        .collect();
-    if !unwitnessed_bindings.is_empty() {
-        return violated(
-            &execution.seed,
-            format!(
-                "resolved get leg binds recovery variables absent from the formula view: {}",
-                unwitnessed_bindings
-                    .into_iter()
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ),
-        );
-    }
-
-    DischargeOutcome {
-        verdict: DischargeVerdict::ObligationDischarged,
-        countermodel: None,
+    match PreparedRecoveryLegs::new(get, put) {
+        Ok(legs) => legs.discharge(case),
+        Err(error) => violated(
+            &SeedGraph {
+                label: case.iri.clone(),
+                quads: Vec::new(),
+            },
+            format!("resolved recovery legs are not executable: {error}"),
+        ),
     }
 }
 
@@ -841,22 +1128,35 @@ fn discharge_recovery_cases(
     get: &LegPath,
     put: &LegPath,
 ) -> DischargeOutcome {
-    if correspondence.recovery_cases.is_empty() {
-        return DischargeOutcome {
-            verdict: DischargeVerdict::ObligationUnknown,
-            countermodel: None,
-        };
-    }
+    let Some(first) = correspondence.recovery_cases.first() else {
+        return unknown();
+    };
+    let legs = match PreparedRecoveryLegs::new(get, put) {
+        Ok(legs) => legs,
+        Err(error) => {
+            return violated(
+                &SeedGraph {
+                    label: first.iri.clone(),
+                    quads: Vec::new(),
+                },
+                format!("resolved recovery legs are not executable: {error}"),
+            );
+        }
+    };
+    let mut aggregate = discharged();
     for case in &correspondence.recovery_cases {
-        let outcome = discharge_recovery_case(case, get, put);
-        if outcome.verdict != DischargeVerdict::ObligationDischarged {
-            return outcome;
+        let outcome = legs.discharge(case);
+        match outcome.verdict {
+            DischargeVerdict::ObligationViolated => return outcome,
+            DischargeVerdict::ObligationUnknown
+                if aggregate.verdict == DischargeVerdict::ObligationDischarged =>
+            {
+                aggregate = outcome;
+            }
+            _ => {}
         }
     }
-    DischargeOutcome {
-        verdict: DischargeVerdict::ObligationDischarged,
-        countermodel: None,
-    }
+    aggregate
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -874,14 +1174,6 @@ fn atomic_path(path: &LegPath) -> Option<AtomicPath<'_>> {
         }
     }
     walk(path, false)
-}
-
-fn atomic_pattern(path: AtomicPath<'_>, subject: &str, object: &str) -> String {
-    if path.inverse {
-        format!("{object} <{}> {subject} .", path.predicate)
-    } else {
-        format!("{subject} <{}> {object} .", path.predicate)
-    }
 }
 
 /// Execute the synthesized complete one-triple recovery case for a pure atomic rename.
@@ -919,19 +1211,45 @@ pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> DischargeVerdict {
             ATOMIC_SEED_OBJECT.to_owned(),
         )
     };
-    let seed = SeedGraph {
-        label: "synthesized-atomic-path".to_owned(),
-        atoms: vec![source_atom],
-    };
-    let get_query = format!(
-        "CONSTRUCT {{ ?s <{VIEW_PREDICATE}> ?o . }} WHERE {{ {} }}",
-        atomic_pattern(get_path, "?s", "?o")
-    );
-    let put_query = format!(
-        "CONSTRUCT {{ {} }} WHERE {{ ?s <{VIEW_PREDICATE}> ?o . }}",
-        atomic_pattern(recovered_path, "?s", "?o")
-    );
-    discharge_section_law(&get_query, &put_query, &[seed]).verdict
+    let seed = SeedGraph::from_iri_atoms("synthesized-atomic-path", vec![source_atom]);
+    let executed = (|| -> gmeow_errors::Result<DischargeOutcome> {
+        let get = atomic_lens::AtomicPropertyLens::new(
+            get_path.predicate,
+            VIEW_PREDICATE,
+            get_path.inverse,
+            purrdf::ViewLimits::default(),
+        )?;
+        let put = atomic_lens::AtomicPropertyLens::new(
+            recovered_path.predicate,
+            VIEW_PREDICATE,
+            recovered_path.inverse,
+            purrdf::ViewLimits::default(),
+        )?;
+        let source = seed.dataset()?;
+        let projected = get.acquire(Arc::clone(&source))?.get();
+        // Run the independently authored candidate put against an explicitly
+        // empty initial state. Reusing the forward leg's complement or inverse would
+        // conceal a wrong candidate predicate or direction.
+        let empty = SeedGraph::from_iri_atoms("atomic-initial-state", Vec::new()).dataset()?;
+        let recovered = put
+            .acquire(empty)?
+            .put_shared_scopes(Arc::clone(projected.dataset()))?;
+        let actual = recovered
+            .carrier()
+            .materialize()
+            .map_err(|error| exec_error(format!("compare atomic recovery: {error}")))?;
+        Ok(compare_graphs(
+            &seed,
+            "put∘get = id_source",
+            &actual,
+            &source,
+        ))
+    })();
+    executed
+        .unwrap_or_else(|error| {
+            violated(&seed, format!("atomic recovery execution failed: {error}"))
+        })
+        .verdict
 }
 
 /// Compute the executed recovery verdict for every correspondence.
@@ -960,27 +1278,12 @@ pub fn program_verdicts(program: &CorrespondenceProgram) -> CorrespondenceVerdic
             }
             (false, _, _) => DischargeVerdict::ObligationViolated,
         };
-        verdicts.insert(correspondence.iri.clone(), verdict);
+        verdicts.insert(
+            correspondence.iri.clone(),
+            ExecutedCorrespondenceLaws::section_only(verdict),
+        );
     }
     verdicts
-}
-
-/// Assemble the same derived correspondence program as the compiler, then execute every
-/// recovery obligation for the gate's total verdict map.
-pub fn logic_program_verdicts(
-    program: &LogicProgram,
-) -> gmeow_errors::Result<CorrespondenceVerdicts> {
-    if program.correspondences.is_empty() {
-        return Ok(CorrespondenceVerdicts::new());
-    }
-    let assembled = CorrespondenceProgram::new(
-        program.correspondences.clone(),
-        Vec::new(),
-        PreservationKind::SoundUnder,
-    )
-    .with_leg_programs(program.transaction_programs.clone());
-    let (derived, _) = assembled.with_derived_puts()?;
-    Ok(program_verdicts(&derived))
 }
 
 // Mapping-cell branch-covering seed derivation.  The `get` leg is a SPARQL `CONSTRUCT`; its
@@ -992,6 +1295,33 @@ pub fn logic_program_verdicts(
 /// scheme (`http://seed.example/v{n}`) so the branch-covering / determinism tests in
 /// `crates/pipeline/src/correspondence_law.rs` are unaffected by this rewrite.
 const BRANCH_SEED_BASE: &str = "http://seed.example/v";
+
+#[derive(Clone)]
+struct SeedPattern {
+    triple: SparqlTriplePattern,
+    graph: Option<NamedNodePattern>,
+}
+
+/// Admission envelope for the synthetic recovery corpus, independent of runtime
+/// query budgets. Check products BEFORE allocating their distributed branches.
+const MAX_SEED_BRANCHES: usize = 4096;
+const MAX_SEED_PATTERNS: usize = 65_536;
+const MAX_SEED_ALGEBRA_DEPTH: usize = 128;
+
+fn admit_seed_dimensions(branches: usize, patterns: usize) -> gmeow_errors::Result<()> {
+    if branches > MAX_SEED_BRANCHES || patterns > MAX_SEED_PATTERNS {
+        return Err(exec_error(format!(
+            "correspondence recovery corpus exceeds admission limits: \
+             {branches} branches / {MAX_SEED_BRANCHES}, \
+             {patterns} patterns / {MAX_SEED_PATTERNS}; no partial domain is admitted"
+        )));
+    }
+    Ok(())
+}
+
+fn seed_pattern_count(branches: &[Vec<SeedPattern>]) -> usize {
+    branches.iter().map(Vec::len).sum()
+}
 
 /// Recursively enumerate the `WHERE` algebra into disjunctive branches: one `Vec` of triple
 /// patterns per top-level `UNION` disjunct.  `Join`/`Lateral` distribute as a cartesian
@@ -1007,18 +1337,43 @@ const BRANCH_SEED_BASE: &str = "http://seed.example/v";
 /// `Values`, and a configured `PropertyFunction` call — a computed relation, not asserted
 /// triples the seed corpus could recover) yield no branches — deterministically dropped,
 /// never guessed at.
-fn dnf_branches(pattern: &GraphPattern) -> Vec<Vec<SparqlTriplePattern>> {
-    match pattern {
-        GraphPattern::Bgp { patterns } => vec![patterns.clone()],
+fn dnf_branches(
+    pattern: &GraphPattern,
+    depth: usize,
+) -> gmeow_errors::Result<Vec<Vec<SeedPattern>>> {
+    if depth > MAX_SEED_ALGEBRA_DEPTH {
+        return Err(exec_error(format!(
+            "correspondence recovery algebra exceeds depth {MAX_SEED_ALGEBRA_DEPTH}"
+        )));
+    }
+    let branches = match pattern {
+        GraphPattern::Bgp { patterns } => {
+            admit_seed_dimensions(1, patterns.len())?;
+            vec![
+                patterns
+                    .iter()
+                    .map(|triple| SeedPattern {
+                        triple: triple.clone(),
+                        graph: None,
+                    })
+                    .collect(),
+            ]
+        }
         GraphPattern::Join { left, right } | GraphPattern::Lateral { left, right } => {
-            let left_branches = dnf_branches(left);
-            let right_branches = dnf_branches(right);
+            let left_branches = dnf_branches(left, depth + 1)?;
+            let right_branches = dnf_branches(right, depth + 1)?;
             match (left_branches.is_empty(), right_branches.is_empty()) {
                 (true, true) => Vec::new(),
                 (true, false) => right_branches,
                 (false, true) => left_branches,
                 (false, false) => {
-                    let mut out = Vec::with_capacity(left_branches.len() * right_branches.len());
+                    // Both inputs were admitted, so these products fit usize on
+                    // supported targets. Bound the expanded corpus before cloning.
+                    let branch_count = left_branches.len() * right_branches.len();
+                    let pattern_count = seed_pattern_count(&left_branches) * right_branches.len()
+                        + seed_pattern_count(&right_branches) * left_branches.len();
+                    admit_seed_dimensions(branch_count, pattern_count)?;
+                    let mut out = Vec::with_capacity(branch_count);
                     for left_branch in &left_branches {
                         for right_branch in &right_branches {
                             let mut combined = left_branch.clone();
@@ -1031,28 +1386,42 @@ fn dnf_branches(pattern: &GraphPattern) -> Vec<Vec<SparqlTriplePattern>> {
             }
         }
         GraphPattern::Union { left, right } => {
-            let mut out = dnf_branches(left);
-            out.extend(dnf_branches(right));
+            let mut out = dnf_branches(left, depth + 1)?;
+            let right = dnf_branches(right, depth + 1)?;
+            admit_seed_dimensions(
+                out.len() + right.len(),
+                seed_pattern_count(&out) + seed_pattern_count(&right),
+            )?;
+            out.extend(right);
             out
         }
         GraphPattern::LeftJoin { left, .. } | GraphPattern::Minus { left, .. } => {
-            dnf_branches(left)
+            dnf_branches(left, depth + 1)?
+        }
+        GraphPattern::Graph { name, inner } => {
+            let mut branches = dnf_branches(inner, depth + 1)?;
+            for branch in &mut branches {
+                for pattern in branch {
+                    pattern.graph.get_or_insert_with(|| name.clone());
+                }
+            }
+            branches
         }
         GraphPattern::Filter { inner, .. }
         | GraphPattern::Extend { inner, .. }
         | GraphPattern::Unfold { inner, .. }
-        | GraphPattern::Graph { inner, .. }
         | GraphPattern::OrderBy { inner, .. }
         | GraphPattern::Project { inner, .. }
         | GraphPattern::Distinct { inner }
         | GraphPattern::Reduced { inner }
         | GraphPattern::Slice { inner, .. }
-        | GraphPattern::Group { inner, .. } => dnf_branches(inner),
+        | GraphPattern::Group { inner, .. } => dnf_branches(inner, depth + 1)?,
         GraphPattern::Path { .. }
         | GraphPattern::Service { .. }
         | GraphPattern::Values { .. }
         | GraphPattern::PropertyFunction(_) => Vec::new(),
-    }
+    };
+    Ok(branches)
 }
 
 /// Bind a fresh seed IRI to a first-seen variable/blank-node key (reused for repeat
@@ -1083,58 +1452,82 @@ fn resolve_named_node_pattern(
     }
 }
 
-/// Resolve one subject/object term to its concrete seed value.  IRIs and literals become
-/// their own resolved lexical form (no manual prefix expansion — the parser already resolved
-/// prefixed names to absolute IRIs); variables and blank nodes get a fresh deterministic seed
-/// IRI.  An RDF-star quoted-triple term is outside the positive binary-atom seed fragment, so
-/// it resolves to `None` and its containing triple pattern contributes no atom, rather than a
-/// mis-parsed guess.
+/// Instantiate an algebra term without losing literal or nested quoted-triple identity.
 fn resolve_term_pattern(
     term: &TermPattern,
     bindings: &mut BTreeMap<String, String>,
     counter: &mut usize,
-) -> Option<String> {
+) -> RdfTerm {
     match term {
-        TermPattern::NamedNode(iri) => Some(iri.as_str().to_owned()),
+        TermPattern::NamedNode(iri) => RdfTerm::iri(iri.as_str()),
         TermPattern::Variable(variable) => {
-            Some(fresh_binding(variable.as_str(), bindings, counter))
+            RdfTerm::iri(fresh_binding(variable.as_str(), bindings, counter))
         }
-        TermPattern::Literal(literal) => Some(literal.value().to_owned()),
-        TermPattern::BlankNode(blank) => Some(fresh_binding(
+        TermPattern::Literal(literal) => RdfTerm::literal(RdfLiteral {
+            lexical_form: literal.value().to_owned(),
+            datatype: Some(literal.datatype().as_str().to_owned()),
+            language: literal.language().map(str::to_owned),
+            direction: literal.direction().map(|direction| match direction {
+                purrdf::sparql::BaseDirection::Ltr => purrdf::RdfTextDirection::Ltr,
+                purrdf::sparql::BaseDirection::Rtl => purrdf::RdfTextDirection::Rtl,
+            }),
+        }),
+        TermPattern::BlankNode(blank) => RdfTerm::iri(fresh_binding(
             &format!("_:{}", blank.as_str()),
             bindings,
             counter,
         )),
-        TermPattern::Triple(_) => None,
+        TermPattern::Triple(triple) => RdfTerm::triple(RdfTriple::new(
+            resolve_term_pattern(&triple.subject, bindings, counter),
+            resolve_named_node_pattern(&triple.predicate, bindings, counter),
+            resolve_term_pattern(&triple.object, bindings, counter),
+        )),
     }
 }
 
-/// Instantiate one DNF branch into concrete seed atoms.  Variable/blank-node bindings are
-/// scoped to this branch (a fresh map per branch); the seed-IRI counter is shared across
-/// branches so every seed atom in the corpus carries a distinct fresh IRI.
-fn instantiate_branch(branch: &[SparqlTriplePattern], counter: &mut usize) -> Vec<Atom> {
+/// Instantiate a branch with branch-local bindings and a corpus-wide fresh IRI counter.
+fn instantiate_branch(branch: &[SeedPattern], counter: &mut usize) -> Vec<RdfQuad> {
     let mut bindings = BTreeMap::new();
-    let mut atoms = Vec::with_capacity(branch.len());
-    for pattern in branch {
-        let subject = resolve_term_pattern(&pattern.subject, &mut bindings, counter);
-        let predicate = resolve_named_node_pattern(&pattern.predicate, &mut bindings, counter);
-        let object = resolve_term_pattern(&pattern.object, &mut bindings, counter);
-        if let (Some(subject), Some(object)) = (subject, object) {
-            atoms.push((subject, predicate, object));
-        }
-    }
-    atoms
+    branch
+        .iter()
+        .map(|seed_pattern| {
+            let pattern = &seed_pattern.triple;
+            let mut quad = RdfQuad::new(
+                resolve_term_pattern(&pattern.subject, &mut bindings, counter),
+                resolve_named_node_pattern(&pattern.predicate, &mut bindings, counter),
+                resolve_term_pattern(&pattern.object, &mut bindings, counter),
+            );
+            quad.graph_name = seed_pattern.graph.as_ref().map(|graph| {
+                RdfTerm::iri(resolve_named_node_pattern(graph, &mut bindings, counter))
+            });
+            quad
+        })
+        .collect()
 }
 
 /// Derive one deterministic seed per top-level `UNION` branch of `get_query`'s `WHERE` algebra
 /// (a pattern joined outside a `UNION` is distributed into every branch) plus one combined
-/// seed unioning all branches.  Deterministically returns an empty corpus — never a panic or a
-/// guessed split — when `get_query` fails to parse or is not a `CONSTRUCT`.
-pub fn derive_seeds(get_query: &str) -> Vec<SeedGraph> {
-    let Ok(Query::Construct { pattern, .. }) = SparqlParser::new().parse_query(get_query) else {
-        return Vec::new();
+/// seed unioning all branches.
+///
+/// # Errors
+/// Refuses malformed/non-CONSTRUCT queries and excessive branch, pattern or depth
+/// expansion. A refusal never supplies an empty or truncated domain as evidence.
+pub fn derive_seeds(get_query: &str) -> gmeow_errors::Result<Vec<SeedGraph>> {
+    let query = SparqlParser::new()
+        .parse_query(get_query)
+        .map_err(|error| exec_error(format!("parse correspondence recovery query: {error}")))?;
+    derive_query_seeds(&query)
+}
+
+/// Reuse the exact prepared algebra for analysis; parsing is confined to the
+/// public text-input adapter above.
+fn derive_query_seeds(query: &Query) -> gmeow_errors::Result<Vec<SeedGraph>> {
+    let Query::Construct { pattern, .. } = query else {
+        return Err(exec_error(
+            "correspondence recovery cases require a CONSTRUCT query",
+        ));
     };
-    let branches = dnf_branches(&pattern);
+    let branches = dnf_branches(pattern, 0)?;
     let mut counter = 0usize;
     let mut seeds = Vec::new();
     let mut combined = Vec::new();
@@ -1146,20 +1539,16 @@ pub fn derive_seeds(get_query: &str) -> Vec<SeedGraph> {
         combined.extend(atoms.iter().cloned());
         seeds.push(SeedGraph {
             label: format!("branch-{index}"),
-            atoms,
+            quads: atoms,
         });
     }
     if !combined.is_empty() {
         seeds.push(SeedGraph {
             label: "combined".to_owned(),
-            atoms: combined
-                .into_iter()
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
+            quads: combined,
         });
     }
-    seeds
+    Ok(seeds)
 }
 
 fn claim_from(law: CorrespondenceLaw, outcome: &DischargeOutcome) -> LawClaimIr {
@@ -1171,474 +1560,54 @@ fn claim_from(law: CorrespondenceLaw, outcome: &DischargeOutcome) -> LawClaimIr 
     }
 }
 
-/// Discharge every law permitted by a mapping cell's rung through the shared native graph
-/// executor.
-pub fn discharge_laws(get_query: &str, put_query: &str, rung: MorphismClass) -> Vec<LawClaimIr> {
-    let seeds = derive_seeds(get_query);
-    let mut claims = Vec::new();
-    if rung.is_injective_rung() {
-        claims.push(claim_from(
-            CorrespondenceLaw::SectionLaw,
-            &discharge_section_law(get_query, put_query, &seeds),
-        ));
-        claims.push(claim_from(
-            CorrespondenceLaw::PutGet,
-            &discharge_put_get_law(get_query, put_query, &seeds),
-        ));
+/// Check source recovery and independent edited views in the source-replacing
+/// CONSTRUCT fragment for a mapping cell that requests round-trip checking.
+/// These bounded checks do not discharge stateful GetPut or PutPut obligations.
+///
+/// # Errors
+/// Refuses inadmissible legs or synthetic domains before publishing any claims.
+pub fn discharge_laws(
+    get_query: &str,
+    put_query: &str,
+    rung: MorphismClass,
+) -> gmeow_errors::Result<Vec<LawClaimIr>> {
+    if !rung.is_injective_rung() {
+        return Ok(Vec::new());
     }
-    claims
+    PreparedLawExecution::new(get_query, put_query)?.discharge_laws(rung)
 }
 
+/// Discharge compiler-produced mapping legs through native algebra admission.
+/// No text is rendered or parsed. Domains and evidence remain bounded exactly as
+/// for explicitly supplied queries; this is not a stateful-lens certificate.
+pub fn discharge_algebra_laws(
+    get: Query,
+    put: Query,
+    rung: MorphismClass,
+) -> gmeow_errors::Result<Vec<LawClaimIr>> {
+    if !rung.is_injective_rung() {
+        return Ok(Vec::new());
+    }
+    PreparedLawExecution::from_algebra(get, put)?.discharge_laws(rung)
+}
+
+impl PreparedLawExecution {
+    /// Execute each permitted law on its own independently synthesized domain.
+    pub fn discharge_laws(&self, rung: MorphismClass) -> gmeow_errors::Result<Vec<LawClaimIr>> {
+        if !rung.is_injective_rung() {
+            return Ok(Vec::new());
+        }
+        let sources = derive_query_seeds(&self.get.query)?;
+        let views = derive_query_seeds(&self.put.query)?;
+        let section = self.roundtrip(sources.iter().map(LawCase::Seed), true);
+        let put_get = self.roundtrip(views.iter().map(LawCase::Seed), false);
+        Ok(vec![
+            claim_from(CorrespondenceLaw::SectionLaw, &section),
+            claim_from(CorrespondenceLaw::PutGet, &put_get),
+        ])
+    }
+}
+
+#[path = "correspondence_exec.tests.rs"]
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use gmeow_logic_compile::ir::{CorrespondenceRelation, MorphismKind, TransactionProgramIr};
-
-    fn step(predicate: &str) -> LegPath {
-        LegPath::Step(predicate.to_owned())
-    }
-
-    fn atom(predicate: &str, subject: Term, object: Term) -> Formula {
-        Formula::atom(
-            Term::iri(predicate).expect("predicate IRI"),
-            vec![subject, object],
-        )
-        .expect("binary atom")
-    }
-
-    fn recovery_case(view_keeps_detail: bool) -> RecoveryCaseIr {
-        let subject = Term::var("subject").expect("subject variable");
-        let detail = Term::var("detail").expect("detail variable");
-        let source = Formula::And(vec![
-            atom(
-                "https://example.org/sourceKind",
-                subject.clone(),
-                Term::iri("https://example.org/Language").expect("class IRI"),
-            ),
-            atom(
-                "https://example.org/sourceDetail",
-                subject.clone(),
-                detail.clone(),
-            ),
-        ]);
-        let mut view = vec![atom(
-            "https://example.org/viewKind",
-            subject.clone(),
-            Term::iri("https://example.org/SignSystem").expect("class IRI"),
-        )];
-        if view_keeps_detail {
-            view.push(atom("https://example.org/viewDetail", subject, detail));
-        }
-        RecoveryCaseIr::new(
-            "https://example.org/recovery/case",
-            Formula::Forall {
-                vars: vec!["subject".to_owned(), "detail".to_owned()],
-                body: Box::new(Formula::Implies(
-                    Box::new(source),
-                    Box::new(Formula::And(view)),
-                )),
-            },
-        )
-        .expect("recovery case")
-    }
-
-    fn recovery_correspondence(case: RecoveryCaseIr) -> Correspondence {
-        Correspondence::new(
-            "https://example.org/correspondence",
-            CorrespondenceRelation::Subsumes,
-            MorphismClass::SectionRetraction,
-            MorphismKind::InstitutionMorphism,
-            true,
-            None,
-            Some("https://example.org/get".to_owned()),
-            Some("https://example.org/put".to_owned()),
-            Vec::new(),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-        .expect("correspondence")
-        .with_recovery_cases(vec![case])
-        .expect("case")
-    }
-
-    #[test]
-    fn atomic_inverse_recovers_the_real_source_predicate() {
-        let get = step("https://example.org/source");
-        assert_eq!(
-            leg_pair_verdict(&get, &get.invert()),
-            DischargeVerdict::ObligationDischarged
-        );
-    }
-
-    #[test]
-    fn wrong_atomic_put_yields_a_real_missing_and_spurious_difference() {
-        assert_eq!(
-            leg_pair_verdict(
-                &step("https://example.org/source"),
-                &step("https://example.org/wrong")
-            ),
-            DischargeVerdict::ObligationViolated
-        );
-    }
-
-    #[test]
-    fn composite_path_is_unknown_without_a_complete_recovery_case() {
-        let get = LegPath::Seq(vec![
-            step("https://example.org/a"),
-            step("https://example.org/b"),
-        ]);
-        assert_eq!(
-            leg_pair_verdict(&get, &get.invert()),
-            DischargeVerdict::ObligationUnknown
-        );
-    }
-
-    #[test]
-    fn recovery_formula_discharges_only_when_the_view_retains_every_source_variable() {
-        let get = step("https://example.org/sourceDetail");
-        let put = get.invert();
-        let good = discharge_recovery_case(&recovery_case(true), &get, &put);
-        assert_eq!(
-            good.verdict,
-            DischargeVerdict::ObligationDischarged,
-            "{good:#?}"
-        );
-
-        let bad = discharge_recovery_case(&recovery_case(false), &get, &put);
-        assert_eq!(
-            bad.verdict,
-            DischargeVerdict::ObligationViolated,
-            "{bad:#?}"
-        );
-        let countermodel = bad.countermodel.expect("loss has a countermodel");
-        assert_eq!(countermodel.missing.len(), 1, "{countermodel:#?}");
-        assert!(countermodel.spurious.is_empty(), "{countermodel:#?}");
-    }
-
-    #[test]
-    fn recovery_formula_literal_endpoints_fail_closed() {
-        let subject = Term::var("subject").expect("subject variable");
-        let source = atom(
-            "https://example.org/sourceValue",
-            subject.clone(),
-            Term::literal("source", None).expect("source literal"),
-        );
-        let view = atom(
-            "https://example.org/viewValue",
-            subject,
-            Term::literal("view", None).expect("view literal"),
-        );
-        let case = RecoveryCaseIr::new(
-            "https://example.org/recovery/literal-endpoint",
-            Formula::Forall {
-                vars: vec!["subject".to_owned()],
-                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
-            },
-        )
-        .expect("literal-endpoint recovery case");
-        let get = step("https://example.org/sourceValue");
-
-        let outcome = discharge_recovery_case(&case, &get, &get.invert());
-        assert_eq!(
-            outcome.verdict,
-            DischargeVerdict::ObligationViolated,
-            "literal constants are outside the declared recovery-case RDF-atom fragment and \
-             must fail closed: {outcome:#?}"
-        );
-    }
-
-    #[test]
-    fn recovery_case_colliding_with_the_reserved_recovery_namespace_never_discharges() {
-        // The view predicate is authored as the SAME IRI the executor generates internally
-        // (`VIEW_PREDICATE`).  Without the reserved-namespace guard this collision would make
-        // the mechanically synthesized view carrier indistinguishable from the authored view
-        // atom in the seed graph, and the atom-set comparison in `discharge_section_law` could
-        // FALSELY discharge a lossy correspondence.  The guard must reject it before any seed
-        // is built.
-        let subject = Term::var("subject").expect("subject variable");
-        let object = Term::var("object").expect("object variable");
-        let source = atom(
-            "https://example.org/sourceKind",
-            subject.clone(),
-            object.clone(),
-        );
-        let view = atom(VIEW_PREDICATE, subject, object);
-        let case = RecoveryCaseIr::new(
-            "https://example.org/recovery/reserved-namespace-collision",
-            Formula::Forall {
-                vars: vec!["subject".to_owned(), "object".to_owned()],
-                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
-            },
-        )
-        .expect("recovery case");
-
-        let get = step("https://example.org/sourceKind");
-        let outcome = discharge_recovery_case(&case, &get, &get.invert());
-        assert_eq!(
-            outcome.verdict,
-            DischargeVerdict::ObligationViolated,
-            "a recovery case whose view predicate collides with the generated VIEW_PREDICATE \
-             must never discharge: {outcome:#?}"
-        );
-    }
-
-    #[test]
-    fn canonical_recovery_vocabulary_outside_the_execution_namespaces_remains_usable() {
-        let subject = Term::var("subject").expect("subject variable");
-        let object = Term::var("object").expect("object variable");
-        let predicate = "https://blackcatinformatics.ca/logic/recoveryTransform";
-        let source = atom(predicate, subject.clone(), object.clone());
-        let view = atom("https://example.org/viewKind", subject, object);
-        let case = RecoveryCaseIr::new(
-            "https://example.org/recovery/canonical-vocabulary-prefix",
-            Formula::Forall {
-                vars: vec!["subject".to_owned(), "object".to_owned()],
-                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
-            },
-        )
-        .expect("recovery case");
-
-        let get = step(predicate);
-        let outcome = discharge_recovery_case(&case, &get, &get.invert());
-        assert_eq!(
-            outcome.verdict,
-            DischargeVerdict::ObligationDischarged,
-            "canonical logic:recovery* terms outside the generated execution namespaces must \
-             not be rejected by a raw string-prefix collision guard: {outcome:#?}"
-        );
-    }
-
-    #[test]
-    fn program_requires_both_recovery_evidence_and_the_resolved_leg_bodies() {
-        let correspondence = recovery_correspondence(recovery_case(false));
-        let program = CorrespondenceProgram::new(
-            vec![correspondence],
-            Vec::new(),
-            PreservationKind::SoundUnder,
-        )
-        .with_leg_programs(vec![
-            TransactionProgramIr {
-                iri: "https://example.org/get".to_owned(),
-                body: step("https://example.org/source"),
-            },
-            TransactionProgramIr {
-                iri: "https://example.org/put".to_owned(),
-                body: step("https://example.org/source").invert(),
-            },
-        ]);
-        assert_eq!(
-            program_verdicts(&program)["https://example.org/correspondence"],
-            DischargeVerdict::ObligationViolated,
-            "the mechanically perfect path pair must not override a refuting source case"
-        );
-    }
-
-    #[test]
-    fn mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case() {
-        let source_detail = step("https://example.org/sourceDetail");
-        let program = CorrespondenceProgram::new(
-            vec![recovery_correspondence(recovery_case(true))],
-            Vec::new(),
-            PreservationKind::SoundUnder,
-        )
-        .with_leg_programs(vec![
-            TransactionProgramIr {
-                iri: "https://example.org/get".to_owned(),
-                body: source_detail.clone(),
-            },
-            TransactionProgramIr {
-                iri: "https://example.org/put".to_owned(),
-                body: source_detail.invert(),
-            },
-        ]);
-        assert_eq!(
-            program_verdicts(&program)["https://example.org/correspondence"],
-            DischargeVerdict::ObligationDischarged
-        );
-
-        let mut mutated = program.clone();
-        mutated
-            .leg_programs
-            .iter_mut()
-            .find(|leg| leg.iri == "https://example.org/get")
-            .expect("get body")
-            .body = step("https://example.org/unrelatedSource");
-        assert_eq!(
-            program_verdicts(&mutated)["https://example.org/correspondence"],
-            DischargeVerdict::ObligationViolated,
-            "the unchanged recovery case cannot discharge after only the formerly inert get \
-             body changes"
-        );
-    }
-
-    #[test]
-    fn recovery_evidence_with_a_missing_resolved_leg_fails_closed() {
-        let program = CorrespondenceProgram::new(
-            vec![recovery_correspondence(recovery_case(true))],
-            Vec::new(),
-            PreservationKind::SoundUnder,
-        )
-        .with_leg_programs(vec![TransactionProgramIr {
-            iri: "https://example.org/get".to_owned(),
-            body: step("https://example.org/sourceDetail"),
-        }]);
-        assert_eq!(
-            program_verdicts(&program)["https://example.org/correspondence"],
-            DischargeVerdict::ObligationViolated
-        );
-    }
-
-    #[test]
-    fn malformed_recovery_formula_fails_closed_before_leg_execution() {
-        let subject = Term::var("subject").expect("subject variable");
-        let object = Term::var("object").expect("object variable");
-        let case = RecoveryCaseIr::new(
-            "https://example.org/recovery/malformed",
-            atom("https://example.org/sourceDetail", subject, object),
-        )
-        .expect("recovery case carrier");
-        let get = step("https://example.org/sourceDetail");
-        assert_eq!(
-            discharge_recovery_case(&case, &get, &get.invert()).verdict,
-            DischargeVerdict::ObligationViolated
-        );
-    }
-
-    #[test]
-    fn complete_composite_recovery_executes_the_resolved_path_bodies() {
-        let subject = Term::var("subject").expect("subject variable");
-        let middle = Term::var("middle").expect("middle variable");
-        let object = Term::var("object").expect("object variable");
-        let source = Formula::And(vec![
-            atom("https://example.org/a", subject.clone(), middle.clone()),
-            atom("https://example.org/b", middle.clone(), object.clone()),
-        ]);
-        let view = Formula::And(vec![
-            atom("https://example.org/viewEndpoint", subject.clone(), object),
-            atom("https://example.org/viewWitness", subject, middle),
-        ]);
-        let case = RecoveryCaseIr::new(
-            "https://example.org/recovery/composite",
-            Formula::Forall {
-                vars: vec![
-                    "subject".to_owned(),
-                    "middle".to_owned(),
-                    "object".to_owned(),
-                ],
-                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
-            },
-        )
-        .expect("composite recovery case");
-        let get = LegPath::Seq(vec![
-            step("https://example.org/a"),
-            step("https://example.org/b"),
-        ]);
-        let outcome = discharge_recovery_case(&case, &get, &get.invert());
-        assert_eq!(
-            outcome.verdict,
-            DischargeVerdict::ObligationDischarged,
-            "{outcome:#?}"
-        );
-    }
-
-    #[test]
-    fn branch_seed_derivation_covers_plain_and_union_queries() {
-        let plain = "CONSTRUCT { ?s <http://view/p> ?o } WHERE { ?s <http://source/p> ?o . }";
-        let seeds = derive_seeds(plain);
-        assert_eq!(seeds.len(), 2, "branch plus combined: {seeds:#?}");
-
-        let union = "CONSTRUCT { ?s <http://view/p> ?o } WHERE { { ?s <http://source/a> ?o . } UNION { ?s <http://source/b> ?o . } }";
-        let seeds = derive_seeds(union);
-        assert_eq!(
-            seeds
-                .iter()
-                .map(|seed| seed.label.as_str())
-                .collect::<Vec<_>>(),
-            vec!["branch-0", "branch-1", "combined"]
-        );
-    }
-
-    #[test]
-    fn derive_seeds_is_empty_for_a_query_that_is_not_a_construct() {
-        // A hard-fail, not a silent mis-parse: an unparsable or non-CONSTRUCT query
-        // deterministically yields no seeds rather than guessing at a split.
-        assert_eq!(derive_seeds("this is not valid SPARQL {{{"), Vec::new());
-        assert_eq!(
-            derive_seeds("SELECT ?s WHERE { ?s <http://ex.example/p> ?o }"),
-            Vec::new()
-        );
-    }
-
-    // The WHERE parser must treat a dot inside a full `<IRI>` as IRI content, not
-    // as a triple-pattern separator. A real
-    // SPARQL predicate IRI is atomic to the parser regardless of embedded dots, so it must
-    // survive into the seed as ONE triple pattern, not be chopped into garbage statements.
-    #[test]
-    fn full_dotted_iri_predicate_is_not_mis_split() {
-        let get = "CONSTRUCT { ?s <http://view.example/p> ?o } \
-                    WHERE { ?s <http://ex.example/p.q> ?o . }";
-        let seeds = derive_seeds(get);
-        let branch = seeds
-            .iter()
-            .find(|seed| seed.label == "branch-0")
-            .expect("one branch for the single BGP");
-        assert_eq!(
-            branch.atoms.len(),
-            1,
-            "the dotted-IRI predicate triple must survive as exactly one atom: {branch:#?}"
-        );
-        assert_eq!(branch.atoms[0].1, "http://ex.example/p.q");
-    }
-
-    // A triple pattern joined OUTSIDE a `UNION` (`?s a ex:C .` here) must be
-    // distributed into EVERY branch, not dropped. The branch normalizer
-    // extracted patterns found INSIDE `{...}` groups, silently losing this shared atom.
-    #[test]
-    fn triple_pattern_shared_outside_union_appears_in_every_branch() {
-        let get = "PREFIX ex: <http://ex.example/> \
-                    CONSTRUCT { ?s <http://view.example/p> ?o } \
-                    WHERE { ?s a ex:C . { ?s ex:r1 ?o } UNION { ?s ex:r2 ?o } }";
-        let seeds = derive_seeds(get);
-        let branch_labels: Vec<&str> = seeds
-            .iter()
-            .filter(|seed| seed.label.starts_with("branch-"))
-            .map(|seed| seed.label.as_str())
-            .collect();
-        assert_eq!(branch_labels, vec!["branch-0", "branch-1"], "{seeds:#?}");
-        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        for label in ["branch-0", "branch-1"] {
-            let branch = seeds
-                .iter()
-                .find(|seed| seed.label == label)
-                .unwrap_or_else(|| panic!("{label} present"));
-            assert_eq!(branch.atoms.len(), 2, "{branch:#?}");
-            assert!(
-                branch
-                    .atoms
-                    .iter()
-                    .any(|(_, predicate, object)| predicate == rdf_type
-                        && object == "http://ex.example/C"),
-                "the shared `?s a ex:C` atom must appear in {label}: {branch:#?}"
-            );
-        }
-    }
-
-    // A literal value containing a dot must not be split by any character-level pass; the
-    // real parser hands us the literal's lexical form as one atomic token.
-    #[test]
-    fn dotted_literal_object_is_not_mis_split() {
-        let get = "CONSTRUCT { ?s <http://view.example/p> ?o } \
-                    WHERE { ?s <http://src.example/value> \"3.14\" . }";
-        let seeds = derive_seeds(get);
-        let branch = seeds
-            .iter()
-            .find(|seed| seed.label == "branch-0")
-            .expect("one branch for the single BGP");
-        assert_eq!(branch.atoms.len(), 1, "{branch:#?}");
-        assert_eq!(branch.atoms[0].2, "3.14");
-    }
-}
+mod tests;

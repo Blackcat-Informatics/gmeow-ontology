@@ -10,7 +10,6 @@ use crate::annotation::{
     AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
 };
 use crate::dispatch::{QueryExecutionEvidence, QueryExecutionIdentity, ResidentViewEvidence};
-use crate::provenance::ASSERT_RULE_IRI;
 use crate::result::PreservationClaim;
 use crate::seam::{
     BudgetStatus, DerivationId, DerivedQuad, RdfViewFactSource, WorldFactPattern, WorldFactSource,
@@ -113,6 +112,7 @@ pub struct StructuredExistentialRule {
 impl From<&StructuredExistentialRule> for crate::physical::ExistentialRule {
     fn from(rule: &StructuredExistentialRule) -> Self {
         Self {
+            numeric: Vec::new(),
             rule_iri: rule.rule_iri.clone(),
             body: rule.body.iter().map(StructuredAtom::as_eval).collect(),
             head: rule.head.iter().map(StructuredAtom::as_eval).collect(),
@@ -130,6 +130,8 @@ pub struct Materialization {
     pub preservation: PreservationClaim,
     pub frontier: crate::query_ir::CompletionFrontier,
     pub chase_admission: Option<ChaseAdmission>,
+    /// Decomposable native witness recipes retained from this exact execution.
+    pub witness_derivations: Vec<crate::physical::WitnessDerivation>,
     pub nonmonotone_solve_runs: Vec<WorldNonmonotoneSolveRun>,
 }
 
@@ -287,7 +289,7 @@ pub(crate) fn selected_materialization_contract_hash(
 }
 
 fn selected_materialization_patterns(
-    program: &gmeow_logic_compile::ir::LogicProgram,
+    prepared: &crate::program_analysis::PreparedProgram,
 ) -> Result<Vec<WorldFactPattern>, MaterializeError> {
     fn source_term(term: &crate::rule_ir::EvalTerm) -> Option<TermValue> {
         match term {
@@ -310,17 +312,14 @@ fn selected_materialization_patterns(
         patterns.push(pattern);
     }
 
-    let lowering = crate::relational_core::lower_formulas(program);
-    let rules = crate::lower::lower_eval_rules(program)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
     let mut patterns = Vec::new();
-    for rule in rules.iter().chain(lowering.rules.iter()) {
+    for rule in &prepared.rules {
         insert_pattern(&mut patterns, &rule.head);
         for atom in &rule.body {
             insert_pattern(&mut patterns, atom);
         }
     }
-    for rule in &lowering.nary_head_rules {
+    for rule in &prepared.existential_rules {
         for atom in rule.head.iter().chain(rule.body.iter()) {
             insert_pattern(&mut patterns, atom);
         }
@@ -354,13 +353,25 @@ pub fn materialize_program_source(
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
 ) -> Result<Materialization, MaterializeError> {
-    let patterns = selected_materialization_patterns(program)?;
+    let prepared = crate::program_analysis::prepare_program(program)
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    admit_materialization(
+        &prepared,
+        match declared_profile {
+            Some(profile) => profile,
+            None => program_profile(program)?,
+        },
+    )?;
+    let patterns = selected_materialization_patterns(&prepared)?;
     let mut worlds = worlds.to_vec();
     worlds.sort();
     worlds.dedup();
     let store = crate::store::WorldStore::new();
     let mut source_provenance = std::collections::BTreeMap::new();
     for world in &worlds {
+        store
+            .select_world(world)
+            .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
         crate::physical::visit_edb_patterns(source, world, &patterns, &mut |quad| {
             source_provenance
                 .entry((
@@ -379,7 +390,8 @@ pub fn materialize_program_source(
         })
         .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
     }
-    let mut materialization = materialize_program_store(program, &store, limits, declared_profile)?;
+    let mut materialization =
+        materialize_program_store(program, &prepared, &store, limits, declared_profile)?;
     for quad in &mut materialization.quads {
         if let Some(source_quad) = source_provenance.get(&(
             quad.graph.clone(),
@@ -632,6 +644,7 @@ fn materialize_nonmonotone(
         preservation,
         frontier: crate::query_ir::CompletionFrontier::empty(),
         chase_admission: None,
+        witness_derivations: Vec::new(),
         nonmonotone_solve_runs: solve_runs,
     })
 }
@@ -642,15 +655,118 @@ pub fn materialize_program(
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
 ) -> Result<Materialization, MaterializeError> {
+    let prepared = crate::program_analysis::prepare_program(program)
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    admit_materialization(
+        &prepared,
+        match declared_profile {
+            Some(profile) => profile,
+            None => program_profile(program)?,
+        },
+    )?;
     let store = crate::store::WorldStore::new();
     store
         .load_dataset(input)
         .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
-    materialize_program_store(program, &store, limits, declared_profile)
+    materialize_program_store(program, &prepared, &store, limits, declared_profile)
+}
+
+/// Admit the retained source contract before any selected world or annotation runs.
+fn admit_materialization(
+    prepared: &crate::program_analysis::PreparedProgram,
+    profile: gmeow_logic_compile::ir::SemanticProfileId,
+) -> Result<(), MaterializeError> {
+    prepared
+        .admission
+        .admit_world_local_template()
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    if prepared.rules.iter().any(|rule| rule.reduction.is_some())
+        && profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf
+    {
+        return Err(MaterializeError::Chase(format!(
+            "aggregate-aware completion requires StratifiedNAFProfile, got {profile}",
+        )));
+    }
+    Ok(())
+}
+
+/// Resolve a shared preparation and retain every evidence component of its run.
+fn run_joint_program(
+    prepared: &crate::program_analysis::PreparedProgram,
+    store: &crate::store::WorldStore,
+    limits: MaterializationLimits,
+) -> Result<
+    (
+        std::sync::Arc<crate::physical::JointProgram>,
+        crate::physical::JointMaterialization,
+    ),
+    MaterializeError,
+> {
+    let program = match prepared
+        .joint_program()
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
+    {
+        crate::physical::NativeOutcome::Decided(program) => program,
+        crate::physical::NativeOutcome::Unsupported(kind) => {
+            return Err(MaterializeError::Chase(format!(
+                "native joint materialization refused {kind:?}"
+            )));
+        }
+    };
+    let materialized = match program
+        .materialize(store, limits.max_steps)
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
+    {
+        crate::physical::NativeOutcome::Decided(materialized) => materialized,
+        crate::physical::NativeOutcome::Unsupported(kind) => {
+            return Err(MaterializeError::Chase(format!(
+                "native joint materialization refused {kind:?}: {:?}",
+                program.admission.capability_gap_rows()
+            )));
+        }
+    };
+    Ok((program, materialized))
+}
+
+/// Execute both producer families before projecting the final native rows.
+fn materialize_joint_program(
+    prepared: &crate::program_analysis::PreparedProgram,
+    store: &crate::store::WorldStore,
+    limits: MaterializationLimits,
+) -> Result<Materialization, MaterializeError> {
+    let (program, materialized) = run_joint_program(prepared, store, limits)?;
+    let frontier = materialized.result.frontier();
+    let status = materialized.result.status;
+    let quads = materialized
+        .result
+        .rows
+        .into_iter()
+        .map(|row| {
+            let mut quad = derived_row_to_quad(row);
+            quad.budget_status = if status == BudgetStatus::Exhausted
+                && frontier.saturated_preds.contains(&quad.predicate)
+            {
+                BudgetStatus::Ok
+            } else {
+                status
+            };
+            quad
+        })
+        .collect();
+    Ok(Materialization {
+        quads,
+        non_quad_rows: Vec::new(),
+        preservation: prepared.preservation.clone(),
+        frontier,
+        chase_admission: Some(program.admission.clone()),
+        witness_derivations: materialized.witness_derivations,
+        nonmonotone_solve_runs: Vec::new(),
+    })
 }
 
 fn materialize_program_store(
     program: &gmeow_logic_compile::ir::LogicProgram,
+    prepared: &crate::program_analysis::PreparedProgram,
     store: &crate::store::WorldStore,
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
@@ -659,30 +775,62 @@ fn materialize_program_store(
         Some(profile) => profile,
         None => program_profile(program)?,
     };
-    let lowering = crate::relational_core::lower_formulas(program);
-    let mut rules = crate::lower::lower_eval_rules(program)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-    rules.extend(lowering.rules);
-    let mut preservation = lowering.preservation;
+    materialize_prepared_store(prepared, store, limits, profile)
+}
+
+/// Execute an explicitly admitted native preparation without parsing or lowering.
+pub(crate) fn materialize_prepared(
+    prepared: &crate::program_analysis::PreparedProgram,
+    input: &RdfDataset,
+    limits: MaterializationLimits,
+    profile: gmeow_logic_compile::ir::SemanticProfileId,
+) -> Result<Materialization, MaterializeError> {
+    admit_materialization(prepared, profile)?;
+    let store = crate::store::WorldStore::new();
+    store
+        .load_dataset(input)
+        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+    materialize_prepared_store(prepared, &store, limits, profile)
+}
+
+pub(crate) fn materialize_prepared_store(
+    prepared: &crate::program_analysis::PreparedProgram,
+    store: &crate::store::WorldStore,
+    limits: MaterializationLimits,
+    profile: gmeow_logic_compile::ir::SemanticProfileId,
+) -> Result<Materialization, MaterializeError> {
+    admit_materialization(prepared, profile)?;
+    let rules = &prepared.rules;
+    let mut preservation = prepared.preservation.clone();
 
     if matches!(
         profile,
         gmeow_logic_compile::ir::SemanticProfileId::WellFounded
             | gmeow_logic_compile::ir::SemanticProfileId::StableModel
     ) {
-        if limits.max_steps.is_some() || !lowering.nary_head_rules.is_empty() {
+        crate::rule_ir::admit_reduct_rules(rules)
+            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        if limits.max_steps.is_some() || !prepared.existential_rules.is_empty() {
             return Err(MaterializeError::Chase(
                 "non-monotone materialization does not support step budgets or existential formula heads"
                     .to_owned(),
             ));
         }
-        return materialize_nonmonotone(profile, &rules, store, preservation);
+        return materialize_nonmonotone(profile, rules, store, preservation);
+    }
+
+    if !prepared.existential_rules.is_empty()
+        || prepared.rules.iter().any(|rule| !rule.numeric.is_empty())
+    {
+        return materialize_joint_program(prepared, store, limits);
     }
 
     let contract_hash = format!("gmeow-materialize-structured-v2:{}", profile.as_str());
     let lookup = crate::physical::compile_cached(contract_hash, rules.clone());
     let Some(executable) = lookup.executable else {
-        if profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf {
+        if profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf
+            || rules.iter().any(|rule| rule.reduction.is_some())
+        {
             return Err(MaterializeError::Chase(
                 "native structured materialization refused a non-stratifiable program".to_owned(),
             ));
@@ -706,6 +854,7 @@ fn materialize_program_store(
             preservation,
             frontier: crate::query_ir::CompletionFrontier::empty(),
             chase_admission: None,
+            witness_derivations: Vec::new(),
             nonmonotone_solve_runs: Vec::new(),
         });
     };
@@ -737,45 +886,7 @@ fn materialize_program_store(
         };
     }
 
-    let mut chase_admission = None;
-    if !lowering.nary_head_rules.is_empty() {
-        if limits.max_steps.is_some() {
-            return Err(MaterializeError::Chase(
-                "one global step budget across ordinary and existential rules is not representable"
-                    .to_owned(),
-            ));
-        }
-        let chase_store = crate::store::WorldStore::new();
-        for quad in &quads {
-            chase_store
-                .insert_quad_terms(
-                    &quad.graph,
-                    quad.subject.clone(),
-                    TermValue::iri(&quad.predicate),
-                    quad.object.clone(),
-                )
-                .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-        }
-        let (admission, outcome) =
-            crate::physical::chase_materialize(&chase_store, &lowering.nary_head_rules, None)
-                .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-        chase_admission = Some(admission.clone());
-        let extra = match outcome {
-            crate::physical::NativeOutcome::Decided(result) => result.rows,
-            crate::physical::NativeOutcome::Unsupported(kind) => {
-                return Err(MaterializeError::Chase(format!(
-                    "native existential materialization refused {kind:?}: {:?}",
-                    admission.capability_gap_rows()
-                )));
-            }
-        };
-        quads.extend(
-            extra
-                .into_iter()
-                .filter(|row| row.rule_iri != ASSERT_RULE_IRI)
-                .map(derived_row_to_quad),
-        );
-    }
+    let chase_admission = None;
 
     quads.sort_by_cached_key(|quad| {
         (
@@ -791,6 +902,7 @@ fn materialize_program_store(
         preservation,
         frontier,
         chase_admission,
+        witness_derivations: Vec::new(),
         nonmonotone_solve_runs: Vec::new(),
     })
 }
@@ -808,9 +920,9 @@ fn public_annotation_derivations<E: Clone>(
                 .iter()
                 .map(|(subject, predicate, object)| AnnotatedFactKey {
                     graph: graph.to_owned(),
-                    subject: subject.clone(),
+                    subject: crate::provenance::term_display(subject),
                     predicate: predicate.clone(),
-                    object: object.clone(),
+                    object: crate::provenance::term_display(object),
                 })
                 .collect(),
             tuple_sources: Vec::new(),
@@ -821,7 +933,6 @@ fn public_annotation_derivations<E: Clone>(
 }
 
 struct MaterializedAnnotationWorld<E> {
-    facts: Vec<crate::rule_ir::Fact>,
     annotations: std::collections::BTreeMap<crate::rule_ir::FactKey, E>,
     derivations: std::collections::BTreeMap<
         crate::rule_ir::FactKey,
@@ -855,10 +966,16 @@ where
     A: TupleAnnotationAlgebra,
     F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
 {
-    let lowering = crate::relational_core::lower_formulas(program);
-    let mut rules = crate::lower::lower_eval_rules(program)
+    let prepared = crate::program_analysis::prepare_program(program)
         .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-    rules.extend(lowering.rules);
+    admit_materialization(
+        &prepared,
+        match declared_profile {
+            Some(profile) => profile,
+            None => program_profile(program)?,
+        },
+    )?;
+    let rules = &prepared.rules;
     let profile = match declared_profile {
         Some(profile) => profile,
         None => program_profile(program)?,
@@ -867,6 +984,17 @@ where
     store
         .load_dataset(input)
         .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+
+    if (!prepared.existential_rules.is_empty()
+        || prepared.rules.iter().any(|rule| !rule.numeric.is_empty()))
+        && !matches!(
+            profile,
+            gmeow_logic_compile::ir::SemanticProfileId::WellFounded
+                | gmeow_logic_compile::ir::SemanticProfileId::StableModel
+        )
+    {
+        return materialize_joint_annotated(&prepared, &store, limits, annotation);
+    }
 
     let seed_for = |world: &str, facts: &[crate::rule_ir::Fact]| {
         facts
@@ -887,8 +1015,8 @@ where
     let mut evaluations = std::collections::BTreeMap::new();
     let mut physical_rows = Vec::new();
     let mut solve_runs = Vec::new();
-    let mut chase_admission = None;
-    let mut preservation = lowering.preservation;
+    let chase_admission = None;
+    let mut preservation = prepared.preservation.clone();
     let mut frontier = crate::query_ir::CompletionFrontier::empty();
     let mut status = BudgetStatus::Ok;
 
@@ -897,7 +1025,9 @@ where
         gmeow_logic_compile::ir::SemanticProfileId::WellFounded
             | gmeow_logic_compile::ir::SemanticProfileId::StableModel
     ) {
-        if limits.max_steps.is_some() || !lowering.nary_head_rules.is_empty() {
+        crate::rule_ir::admit_reduct_rules(rules)
+            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        if limits.max_steps.is_some() || !prepared.existential_rules.is_empty() {
             return Err(MaterializeError::Chase(
                 "non-monotone materialization does not support step budgets or existential formula heads"
                     .to_owned(),
@@ -916,7 +1046,7 @@ where
                 crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
             )
             .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-        let rule_hash = crate::physical::canonical_rule_hash(&rules)
+        let rule_hash = crate::physical::canonical_rule_hash(rules)
             .iter()
             .map(|byte| format!("{byte:02x}"))
             .collect::<String>();
@@ -932,7 +1062,7 @@ where
                 &contract_hash,
                 &world,
                 edb.clone(),
-                &rules,
+                rules,
             )?;
             solve_runs.push(WorldNonmonotoneSolveRun {
                 world: world.clone(),
@@ -953,7 +1083,6 @@ where
             evaluations.insert(
                 world,
                 MaterializedAnnotationWorld {
-                    facts: evaluated.facts,
                     annotations: evaluated.annotations,
                     derivations: evaluated.derivations,
                 },
@@ -964,7 +1093,9 @@ where
         let contract_hash = format!("gmeow-materialize-annotated-v2:{}", profile.as_str());
         let lookup = crate::physical::compile_cached(contract_hash, rules.clone());
         let Some(executable) = lookup.executable else {
-            if profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf {
+            if profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf
+                || rules.iter().any(|rule| rule.reduction.is_some())
+            {
                 return Err(MaterializeError::Chase(
                     "native annotated materialization refused a non-stratifiable program"
                         .to_owned(),
@@ -993,7 +1124,6 @@ where
                 evaluations.insert(
                     world,
                     MaterializedAnnotationWorld {
-                        facts: evaluated.facts,
                         annotations: evaluated.annotations,
                         derivations: evaluated.derivations,
                     },
@@ -1010,8 +1140,8 @@ where
             );
         };
 
-        let certification = if lowering.nary_head_rules.is_empty() {
-            crate::physical::certify_query(&rules, annotation.contract)
+        let certification = if prepared.existential_rules.is_empty() {
+            crate::physical::certify_query(rules, annotation.contract)
         } else {
             annotation.contract.certify_physical_class(
                 crate::annotation::AnnotationQueryClass::ExistentialChase,
@@ -1060,7 +1190,6 @@ where
             evaluations.insert(
                 world,
                 MaterializedAnnotationWorld {
-                    facts: evaluated.facts,
                     annotations: evaluated.annotations,
                     derivations: evaluated.derivations,
                 },
@@ -1073,83 +1202,6 @@ where
             consumed_steps: consumed,
         };
 
-        if !lowering.nary_head_rules.is_empty() {
-            if limits.max_steps.is_some() {
-                return Err(MaterializeError::Chase(
-                    "one global step budget across ordinary and existential rules is not representable"
-                        .to_owned(),
-                ));
-            }
-            let chase_store = crate::store::WorldStore::new();
-            for row in &physical_rows {
-                chase_store
-                    .insert_quad_terms(
-                        &row.graph,
-                        row.subject.clone(),
-                        TermValue::iri(&row.predicate),
-                        row.object.clone(),
-                    )
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-            }
-            let (admission, outcome) =
-                crate::physical::chase_materialize(&chase_store, &lowering.nary_head_rules, None)
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-            chase_admission = Some(admission.clone());
-            let extra = match outcome {
-                crate::physical::NativeOutcome::Decided(result) => result
-                    .rows
-                    .into_iter()
-                    .filter(|row| row.rule_iri != ASSERT_RULE_IRI)
-                    .collect::<Vec<_>>(),
-                crate::physical::NativeOutcome::Unsupported(kind) => {
-                    return Err(MaterializeError::Chase(format!(
-                        "native existential materialization refused {kind:?}: {:?}",
-                        admission.capability_gap_rows()
-                    )));
-                }
-            };
-            for world in store.worlds() {
-                let world_extra = extra
-                    .iter()
-                    .filter(|row| row.graph == world)
-                    .cloned()
-                    .collect::<Vec<_>>();
-                let (prior_facts, prior_annotations, prior_derivations) = {
-                    let prior = evaluations
-                        .get(&world)
-                        .expect("positive world was evaluated");
-                    (
-                        prior.facts.clone(),
-                        prior.annotations.clone(),
-                        prior.derivations.clone(),
-                    )
-                };
-                let mut folded = annotation
-                    .contract
-                    .evaluate_selected_physical_lineage(
-                        &world_extra,
-                        &prior_facts,
-                        &prior_annotations,
-                        annotation.algebra,
-                    )
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-                // The chase fold uses the positive closure's annotations as its seed
-                // column, but those rows are not newly asserted. Preserve their direct
-                // physical lineage and only take new derivations from the chase rows.
-                for (key, derivations) in prior_derivations {
-                    folded.derivations.insert(key, derivations);
-                }
-                evaluations.insert(
-                    world,
-                    MaterializedAnnotationWorld {
-                        facts: folded.facts,
-                        annotations: folded.annotations,
-                        derivations: folded.derivations,
-                    },
-                );
-            }
-            physical_rows.extend(extra);
-        }
         certification
     };
 
@@ -1192,6 +1244,102 @@ where
     Ok(result)
 }
 
+/// Fold selected physical lineage after one joint execution; annotations do not
+/// rerun joins or promote the ordinary prefix to newly asserted seed facts.
+fn materialize_joint_annotated<A, F>(
+    prepared: &crate::program_analysis::PreparedProgram,
+    store: &crate::store::WorldStore,
+    limits: MaterializationLimits,
+    annotation: AnnotationRequest<'_, A, F>,
+) -> Result<AnnotatedMaterialization<A::Element>, MaterializeError>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    let certification = annotation
+        .contract
+        .certify_physical_class(
+            if prepared.rules.iter().any(|rule| rule.reduction.is_some()) {
+                crate::annotation::AnnotationQueryClass::StratifiedAggregateChase
+            } else {
+                crate::annotation::AnnotationQueryClass::ExistentialChase
+            },
+            crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
+        )
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    let (program, materialized) = run_joint_program(prepared, store, limits)?;
+    let frontier = materialized.result.frontier();
+    let status = materialized.result.status;
+    let mut evaluations = std::collections::BTreeMap::new();
+    for world in store.worlds() {
+        let edb = crate::rule_ir::world_edb_facts(store, &world)
+            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        let seeds = edb
+            .iter()
+            .map(|fact| {
+                let value = (annotation.annotation_for)(AnnotationFactRef {
+                    world: &world,
+                    subject: &fact.subject,
+                    predicate: &fact.predicate,
+                    object: &fact.object,
+                })
+                .unwrap_or_else(|| annotation.algebra.one());
+                (fact.key(), value)
+            })
+            .collect();
+        // Native output is sorted by world. Borrow its contiguous world slice;
+        // no second full row collection or cloned provenance is needed.
+        let start = materialized
+            .result
+            .rows
+            .partition_point(|row| row.graph < world);
+        let end = materialized
+            .result
+            .rows
+            .partition_point(|row| row.graph <= world);
+        let rows = &materialized.result.rows[start..end];
+        let folded = annotation
+            .contract
+            .evaluate_selected_physical_lineage(rows, &edb, &seeds, annotation.algebra)
+            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        evaluations.insert(
+            world,
+            MaterializedAnnotationWorld {
+                annotations: folded.annotations,
+                derivations: folded.derivations,
+            },
+        );
+    }
+    let mut result = finish_annotated_materialization(
+        materialized.result.rows,
+        evaluations,
+        prepared.preservation.clone(),
+        frontier,
+        Some(program.admission.clone()),
+        Vec::new(),
+        certification,
+    )?;
+    result.materialization.witness_derivations = materialized.witness_derivations;
+    for quad in &mut result.materialization.quads {
+        quad.budget_status = if status == BudgetStatus::Exhausted
+            && result
+                .materialization
+                .frontier
+                .saturated_preds
+                .contains(&quad.predicate)
+        {
+            BudgetStatus::Ok
+        } else {
+            status
+        };
+    }
+    // Both vectors are constructed from the same sorted physical rows.
+    for (annotated, quad) in result.quads.iter_mut().zip(&result.materialization.quads) {
+        annotated.quad.budget_status = quad.budget_status;
+    }
+    Ok(result)
+}
+
 fn finish_annotated_materialization<E: Clone>(
     mut rows: Vec<crate::rule_ir::DerivedRow>,
     evaluations: std::collections::BTreeMap<String, MaterializedAnnotationWorld<E>>,
@@ -1208,14 +1356,15 @@ fn finish_annotated_materialization<E: Clone>(
         preservation,
         frontier,
         chase_admission,
+        witness_derivations: Vec::new(),
         nonmonotone_solve_runs,
     };
     let mut quads = Vec::with_capacity(materialization.quads.len());
     for quad in &materialization.quads {
         let key = (
-            crate::provenance::term_display(&quad.subject),
+            quad.subject.clone(),
             quad.predicate.clone(),
-            crate::provenance::term_display(&quad.object),
+            quad.object.clone(),
         );
         let evaluation = evaluations.get(&quad.graph).ok_or_else(|| {
             MaterializeError::Chase(format!(
@@ -1268,9 +1417,20 @@ pub fn materialize_existential_rules(
         .iter()
         .map(crate::physical::ExistentialRule::from)
         .collect::<Vec<_>>();
-    let (admission, outcome) =
-        crate::physical::chase_materialize(&store, &physical, limits.max_steps)
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    let program = match crate::physical::JointProgram::prepare(&[], &physical)
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
+    {
+        crate::physical::NativeOutcome::Decided(program) => program,
+        crate::physical::NativeOutcome::Unsupported(kind) => {
+            return Err(MaterializeError::Chase(format!(
+                "native existential preparation refused {kind:?}"
+            )));
+        }
+    };
+    let admission = program.admission.clone();
+    let outcome = program
+        .materialize(&store, limits.max_steps)
+        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
     let budgeted = match outcome {
         crate::physical::NativeOutcome::Decided(result) => result,
         crate::physical::NativeOutcome::Unsupported(
@@ -1295,6 +1455,7 @@ pub fn materialize_existential_rules(
                 ),
                 frontier: crate::query_ir::CompletionFrontier::empty(),
                 chase_admission: Some(admission),
+                witness_derivations: Vec::new(),
                 nonmonotone_solve_runs: Vec::new(),
             });
         }
@@ -1305,6 +1466,8 @@ pub fn materialize_existential_rules(
             )));
         }
     };
+    let witness_derivations = budgeted.witness_derivations;
+    let budgeted = budgeted.result;
     let frontier = budgeted.frontier();
     Ok(Materialization {
         quads: budgeted.rows.into_iter().map(derived_row_to_quad).collect(),
@@ -1312,169 +1475,11 @@ pub fn materialize_existential_rules(
         preservation: PreservationClaim::exact(),
         frontier,
         chase_admission: Some(admission),
+        witness_derivations,
         nonmonotone_solve_runs: Vec::new(),
     })
 }
 
+#[path = "materialize.annotation_tests.rs"]
 #[cfg(test)]
-mod annotation_tests {
-    use super::*;
-    use crate::annotation::{
-        AnnotationFactRef, AnnotationLineageContract, AnnotationQueryClass, AnnotationRequest,
-    };
-    use crate::provenance::ZWeightSemiring;
-    use gmeow_logic_compile::ir::{
-        ContextualScope, Formula, LogicAxiom, LogicProgram, LogicRule, SemanticProfileId, Term,
-    };
-    use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
-
-    const WORLD: &str = "https://example.org/world";
-    const EDGE: &str = "https://example.org/edge";
-    const REACH: &str = "https://example.org/reach";
-    const X: &str = "https://example.org/x";
-    const Y: &str = "https://example.org/y";
-
-    fn dataset() -> std::sync::Arc<RdfDataset> {
-        let mut builder = RdfDatasetBuilder::new();
-        builder.push_owned_quad(
-            &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri(Y)).in_graph(RdfTerm::iri(WORLD)),
-        );
-        builder.freeze().expect("valid annotation test dataset")
-    }
-
-    fn binary_program() -> LogicProgram {
-        let head =
-            LogicAxiom::new("?x", REACH, "?y", false, false, ContextualScope::default()).unwrap();
-        let body =
-            LogicAxiom::new("?x", EDGE, "?y", false, false, ContextualScope::default()).unwrap();
-        let scope = ContextualScope {
-            provenance: Some("https://example.org/rule/reach".to_owned()),
-            ..ContextualScope::default()
-        };
-        LogicProgram::new(
-            vec![],
-            vec![LogicRule::new(head, vec![body], vec![], scope)],
-            vec![],
-            None,
-        )
-    }
-
-    #[test]
-    fn annotated_nonmonotone_profiles_fold_selected_lineage_without_a_second_solve() {
-        let input = dataset();
-        for (profile, expected) in [
-            (
-                SemanticProfileId::WellFounded,
-                AnnotationQueryClass::WellFounded,
-            ),
-            (
-                SemanticProfileId::StableModel,
-                AnnotationQueryClass::StableModel,
-            ),
-        ] {
-            let contract = crate::annotation::AnnotationContract::exact();
-            let annotated = materialize_program_annotated(
-                &binary_program(),
-                input.as_ref(),
-                MaterializationLimits::default(),
-                Some(profile),
-                AnnotationRequest::new(
-                    &ZWeightSemiring,
-                    &contract,
-                    |fact: AnnotationFactRef<'_>| (fact.predicate == EDGE).then_some(2),
-                ),
-            )
-            .expect("annotated non-monotone materialization");
-            assert_eq!(annotated.certification.query_class, expected);
-            assert_eq!(
-                annotated.certification.lineage_contract,
-                AnnotationLineageContract::SelectedPhysicalDerivation
-            );
-            assert_eq!(annotated.materialization.nonmonotone_solve_runs.len(), 1);
-            let derived = annotated
-                .quads
-                .iter()
-                .find(|row| row.quad.predicate == REACH)
-                .expect("selected solver proof derives reach");
-            assert_eq!(derived.annotation, 2);
-            assert!(derived.derivations.iter().any(|d| d.annotation == 2));
-        }
-    }
-
-    #[test]
-    fn annotated_existential_head_carries_body_product_onto_every_invented_tuple_row() {
-        let rel = "https://example.org/rel";
-        let constant = "https://example.org/constant";
-        let body = Formula::atom(
-            Term::iri(REACH).unwrap(),
-            vec![Term::var("x").unwrap(), Term::var("y").unwrap()],
-        )
-        .unwrap();
-        let head = Formula::atom(
-            Term::iri(rel).unwrap(),
-            vec![
-                Term::var("x").unwrap(),
-                Term::var("y").unwrap(),
-                Term::iri(constant).unwrap(),
-            ],
-        )
-        .unwrap();
-        let formula = Formula::Forall {
-            vars: vec!["x".to_owned(), "y".to_owned()],
-            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
-        };
-        let program = binary_program().with_formulas(vec![formula]);
-        let contract = crate::annotation::AnnotationContract::exact();
-        let annotated = materialize_program_annotated(
-            &program,
-            dataset().as_ref(),
-            MaterializationLimits::default(),
-            Some(SemanticProfileId::PositiveHorn),
-            AnnotationRequest::new(
-                &ZWeightSemiring,
-                &contract,
-                |fact: AnnotationFactRef<'_>| (fact.predicate == EDGE).then_some(3),
-            ),
-        )
-        .expect("annotated existential materialization");
-
-        assert_eq!(
-            annotated.certification.query_class,
-            AnnotationQueryClass::ExistentialChase
-        );
-        assert_eq!(
-            annotated.certification.lineage_contract,
-            AnnotationLineageContract::SelectedPhysicalDerivation
-        );
-        assert!(annotated.materialization.chase_admission.is_some());
-        let reach = annotated
-            .quads
-            .iter()
-            .find(|row| row.quad.predicate == REACH)
-            .expect("positive pre-chase closure derives reach");
-        assert_eq!(reach.annotation, 3);
-        assert!(reach.derivations.iter().any(|derivation| {
-            derivation.rule_iri != ASSERT_RULE_IRI
-                && derivation
-                    .sources
-                    .iter()
-                    .any(|source| source.predicate == EDGE)
-        }));
-        let invented = annotated
-            .quads
-            .iter()
-            .filter(|row| row.quad.rule_iri != ASSERT_RULE_IRI && row.quad.predicate != REACH)
-            .collect::<Vec<_>>();
-        assert_eq!(invented.len(), 4, "instanceOf plus three positional rows");
-        assert!(invented.iter().all(|row| row.annotation == 3));
-        assert!(invented.iter().all(|row| {
-            row.derivations.iter().any(|derivation| {
-                derivation.annotation == 3
-                    && derivation
-                        .sources
-                        .iter()
-                        .any(|source| source.predicate == REACH)
-            })
-        }));
-    }
-}
+mod annotation_tests;

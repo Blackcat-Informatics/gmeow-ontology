@@ -32,6 +32,10 @@
 //! `capabilities` / `consumes` / `resources` agree with its RDF declaration
 //! (single source of truth).
 
+// Fallible shared analyses retain only successful values and propagate the original
+// diagnostic on failure, without cloning or flattening its live source chain.
+#![feature(once_cell_try)]
+
 pub mod branch_base;
 pub mod bundle;
 // The bundle READ side lives in the leaf crate `gmeow-bundle-view` so a consumer
@@ -55,6 +59,7 @@ pub mod fixture;
 pub mod generator_registry;
 pub mod gmn_dialect;
 pub mod graph;
+mod handle_identity;
 pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;

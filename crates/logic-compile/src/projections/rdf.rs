@@ -8,6 +8,8 @@
 //! by **graph isomorphism** (not bytes), so the serialization need only reproduce
 //! the same triples.  This is the single source of truth for these projections.
 
+use crate::ir::AtomicTerm;
+
 use std::collections::HashSet;
 
 use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
@@ -15,9 +17,7 @@ use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 use std::collections::BTreeMap;
 
 use super::super::graphutil::sha256_12;
-use super::super::ir::{
-    Formula, LogicAxiom, LogicModality, LogicProgram, NodeKind, Term, X_GMEOW_ENGLISH_TAG,
-};
+use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, NodeKind, Term};
 use super::super::restriction;
 use super::{
     GMEOW_NS, LOGIC_NS, OWL_NS, OverclaimError, ProjectionResult, RDF_NS, RDF_TYPE, RDFS_NS,
@@ -168,13 +168,13 @@ fn dl_projectable_carrier_characteristics(
     let mut rec_prop: BTreeMap<String, String> = BTreeMap::new();
     let mut rec_sort: BTreeMap<String, String> = BTreeMap::new();
     for ax in &program.axioms {
-        if ax.obj_is_literal {
+        let Some(object) = ax.obj.as_iri() else {
             continue;
-        }
+        };
         if ax.predicate == characterizes {
-            rec_prop.insert(ax.subject.clone(), ax.obj.clone());
+            rec_prop.insert(ax.subject.clone(), object.to_owned());
         } else if ax.predicate == characteristic_sort
-            && let Some(local) = ax.obj.strip_prefix(LOGIC_NS)
+            && let Some(local) = object.strip_prefix(LOGIC_NS)
             && DL_PROJECTABLE_CHARACTERISTIC_SORTS.contains(&local)
         {
             rec_sort.insert(ax.subject.clone(), local.to_owned());
@@ -210,56 +210,63 @@ fn is_el_safe_restriction_constraint(local: &str) -> bool {
 // --------------------------------------------------------------------------- //
 
 /// Accumulates triples (default graph) and serializes them to deterministic
-/// Turtle.  Only IRI subjects/predicates and IRI/Literal objects are used by any
-/// projection; a well-formed program only ever supplies valid IRIs (the corpus is
-/// the parity anchor), so triples are interned directly into the wasm-clean
-/// [`RdfDatasetBuilder`].
+/// Turtle. Predicates are IRIs; subjects preserve the compact IR's resource kind
+/// (absolute IRI or canonical blank label); objects retain their native kind.
+/// Variables travel only through the explicit reified formula/rule paths.
 #[derive(Default)]
 pub(crate) struct TripleSink {
-    builder: RdfDatasetBuilder,
+    pub(super) builder: RdfDatasetBuilder,
 }
 
 impl TripleSink {
+    fn intern_subject(&mut self, subject: &str) -> purrdf::TermId {
+        assert!(
+            !subject.starts_with('?'),
+            "logical variables require a reified projection path"
+        );
+        if crate::ir::atomic::is_absolute_iri(subject) {
+            self.builder.intern_iri(subject)
+        } else {
+            self.builder.intern_blank(
+                subject.trim_start_matches("_:"),
+                purrdf::BlankScope::DEFAULT,
+            )
+        }
+    }
+
     pub(crate) fn add_iri(&mut self, s: &str, p: &str, o: &str) {
-        let s = self.builder.intern_iri(s);
+        let s = self.intern_subject(s);
         let p = self.builder.intern_iri(p);
         let o = self.builder.intern_iri(o);
         self.builder.push_quad(s, p, o, None);
     }
 
     pub(crate) fn add_lit(&mut self, s: &str, p: &str, lit: RdfLiteral) {
-        let s = self.builder.intern_iri(s);
+        let s = self.intern_subject(s);
         let p = self.builder.intern_iri(p);
         let o = self.builder.intern_literal(lit);
         self.builder.push_quad(s, p, o, None);
     }
 
-    /// Add a typed/plain object that may be an IRI or a literal.
-    pub(crate) fn add_obj(&mut self, s: &str, p: &str, obj: &str, obj_is_literal: bool) {
-        if obj_is_literal {
-            self.add_lit(s, p, RdfLiteral::simple(obj));
-        } else {
-            self.add_iri(s, p, obj);
-        }
+    /// Emit the exact native object. Variables use the explicit reified rule path.
+    fn add_atomic(&mut self, s: &str, p: &str, object: &AtomicTerm) {
+        let subject = self.intern_subject(s);
+        let predicate = self.builder.intern_iri(p);
+        let object = match object {
+            AtomicTerm::Var(value) => self.builder.intern_literal(RdfLiteral::simple(value)),
+            AtomicTerm::Iri(value) => self.builder.intern_iri(value),
+            AtomicTerm::Blank(value) => self
+                .builder
+                .intern_blank(value, purrdf::BlankScope::DEFAULT),
+            AtomicTerm::Literal(value) => self.builder.intern_literal(value.clone()),
+        };
+        self.builder.push_quad(subject, predicate, object, None);
     }
 
-    /// Emit a lifted RDFS/SKOS annotation triple, re-attaching the invariant
-    /// `x-gmeow-english` carrier language tag. This carrier re-attachment is a load-bearing
-    /// round-trip invariant (put ∘ get = id): routing through `add_obj` would emit an untyped
-    /// literal (`RdfLiteral::simple`), drop the tag, and break the round-trip on re-parse. All
-    /// three grounding projections (`project_owl_dl`, `project_owl_el`,
-    /// `project_canonical_rdf12`) share this one path so the invariant cannot drift between them.
+    /// Carry the native annotation literal, including its authored carrier tag.
     pub(crate) fn add_annotation(&mut self, axiom: &LogicAxiom) {
-        debug_assert!(
-            axiom.obj_is_literal,
-            "NodeKind::Annotation axiom on {} ({}) must be literal-valued",
-            axiom.subject, axiom.predicate
-        );
-        self.add_lit(
-            &axiom.subject,
-            &axiom.predicate,
-            RdfLiteral::language_tagged(axiom.obj.clone(), X_GMEOW_ENGLISH_TAG),
-        );
+        debug_assert!(axiom.obj.is_literal(), "annotation must be literal-valued");
+        self.add_atomic(&axiom.subject, &axiom.predicate, &axiom.obj);
     }
 
     /// Serialize to Turtle with a GENERATED banner.  The triple set is frozen into
@@ -308,26 +315,81 @@ impl TripleSink {
     }
 }
 
-/// Build the drop-less [`ProjectionResult`] for an RDF target, running the producer-side
-/// legalization gate over its per-run `actual_drops` first. The drops themselves are
-/// interned into the single loss store by the caller (via [`intern_rdf_drops`]) — an Exact
-/// target (canonical-rdf12) drops nothing and interns nothing.
+/// A typed RDF projection with its target judgment. The target's structural and
+/// actual drops are owned by the caller's single [`crate::loss_ledger::LossLedger`],
+/// exactly as for [`ProjectionResult`]. Keeping this dataset native does not
+/// strengthen the preservation claim or discharge correspondence laws.
+#[derive(Debug, Clone)]
+pub struct RdfProjectionResult {
+    /// Selected projection target.
+    pub target: String,
+    /// The admitted RDF projection, ready for another native stage.
+    pub dataset: std::sync::Arc<purrdf::RdfDataset>,
+    /// Declared preservation judgment checked against actual drops.
+    pub preservation: super::PreservationKind,
+    /// The target's declared complexity class.
+    pub complexity: String,
+    banner: String,
+}
+
+impl RdfProjectionResult {
+    /// Metadata-only row for the shared projection report. The native dataset
+    /// remains the content owner; the report never reads serialized payloads.
+    #[must_use]
+    pub fn report_row(&self) -> ProjectionResult {
+        ProjectionResult {
+            target: self.target.clone(),
+            content: String::new(),
+            is_rdf: true,
+            preservation: self.preservation,
+            complexity: self.complexity.clone(),
+        }
+    }
+
+    /// Render the terminal Turtle artifact. Native consumers use `dataset`
+    /// directly and never pay for serialization or a subsequent parse.
+    ///
+    /// # Panics
+    /// If the native codec cannot serialize the already-admitted projection.
+    #[must_use]
+    pub fn into_text(self) -> ProjectionResult {
+        let bytes = serialize_dataset(&self.dataset, "text/turtle", SerializeGraph::DefaultGraph)
+            .expect("admitted RDF projection must serialize as Turtle");
+        let body = String::from_utf8(bytes).expect("Turtle serialization is UTF-8");
+        let content = format!("{}{}\n", self.banner, body.trim_end_matches('\n'));
+        ProjectionResult {
+            target: self.target,
+            content,
+            is_rdf: true,
+            preservation: self.preservation,
+            complexity: self.complexity,
+        }
+    }
+}
+
+/// Admit a typed RDF target after checking its actual residue. The caller interns
+/// the drops once; neither native execution nor terminal serialization duplicates
+/// or weakens that ledger.
 fn rdf_result(
     target: &str,
     sink: TripleSink,
     banner_label: &str,
     actual_drops: &[String],
-) -> Result<ProjectionResult, OverclaimError> {
+) -> Result<RdfProjectionResult, OverclaimError> {
     let (kind, cx, _drops) = target_meta(target);
     let residue: Vec<&str> = actual_drops.iter().map(String::as_str).collect();
     assert_no_overclaim(target, kind, &residue)?;
-    let content = sink.serialize(&generated_banner(banner_label));
-    Ok(ProjectionResult {
+    let dataset = sink.builder.freeze().map_err(|error| {
+        OverclaimError(format!(
+            "{target} RDF projection failed native admission: {error}"
+        ))
+    })?;
+    Ok(RdfProjectionResult {
         target: target.to_owned(),
-        content,
-        is_rdf: true,
+        dataset,
         preservation: kind,
         complexity: cx.to_owned(),
+        banner: generated_banner(banner_label),
     })
 }
 
@@ -399,8 +461,8 @@ fn emit_holon_surface(g: &mut TripleSink) {
 #[derive(Default)]
 struct LiftedRestriction {
     on_property: Option<String>,
-    /// `(constraint local name, filler/value, is_literal)`, in axiom order.
-    constraints: Vec<(String, String, bool)>,
+    /// Constraint local name and complete native filler/value, in axiom order.
+    constraints: Vec<(String, AtomicTerm)>,
 }
 
 /// Collect every lifted restriction from the program's flat axioms, keyed by skolem
@@ -413,17 +475,18 @@ fn collect_lifted_restrictions(program: &LogicProgram) -> BTreeMap<String, Lifte
     let mut out: BTreeMap<String, LiftedRestriction> = BTreeMap::new();
     for axiom in &program.axioms {
         let pred = axiom.predicate.as_str();
-        if pred == RDF_TYPE && axiom.obj == restriction_ty {
+        if pred == RDF_TYPE && axiom.obj.as_iri() == Some(restriction_ty.as_str()) {
             out.entry(axiom.subject.clone()).or_default();
         } else if pred == on_property {
-            out.entry(axiom.subject.clone()).or_default().on_property = Some(axiom.obj.clone());
+            out.entry(axiom.subject.clone()).or_default().on_property =
+                axiom.obj.as_iri().map(str::to_owned);
         } else if let Some(local) = pred.strip_prefix(LOGIC_NS)
             && restriction::CONSTRAINT_LOCALS.contains(&local)
         {
             out.entry(axiom.subject.clone())
                 .or_default()
                 .constraints
-                .push((local.to_owned(), axiom.obj.clone(), axiom.obj_is_literal));
+                .push((local.to_owned(), axiom.obj.clone()));
         }
     }
     out
@@ -434,49 +497,84 @@ fn collect_lifted_restrictions(program: &LogicProgram) -> BTreeMap<String, Lifte
 /// node; the `C rdfs:subClassOf node` anchor is emitted by the main axiom loop from the
 /// `logic:subClassOf` axiom.  A restriction missing `onProperty` or constraints is
 /// structurally incomplete and is skipped (the lift never produces one).
-fn emit_restriction(g: &mut TripleSink, node: &str, r: &LiftedRestriction) {
+fn emit_restriction(
+    g: &mut TripleSink,
+    node: &str,
+    r: &LiftedRestriction,
+) -> Result<(), OverclaimError> {
     let Some(on_property) = &r.on_property else {
-        return;
+        return Ok(());
     };
     if r.constraints.is_empty() {
-        return;
+        return Ok(());
     }
     g.add_iri(node, RDF_TYPE, &owl("Restriction"));
     g.add_iri(node, &owl(restriction::ON_PROPERTY_LOCAL), on_property);
-    for (local, obj, is_lit) in &r.constraints {
-        if restriction::CARDINALITY_LOCALS.contains(&local.as_str()) {
-            // A cardinality count is an xsd:nonNegativeInteger in OWL 2 (the datatype is
-            // lost on the adapter read, which carries lexical form only, but is fixed by
-            // the predicate, so restore it faithfully here).
-            g.add_lit(
-                node,
-                &owl(local),
-                RdfLiteral::typed(obj, format!("{XSD_NS}nonNegativeInteger")),
-            );
+    for (local, object) in &r.constraints {
+        if matches!(
+            local.as_str(),
+            "cardinality"
+                | "minCardinality"
+                | "maxCardinality"
+                | "qualifiedCardinality"
+                | "minQualifiedCardinality"
+                | "maxQualifiedCardinality"
+        ) {
+            let literal = owl_cardinality_literal(object).ok_or_else(|| OverclaimError(
+                format!("OWL restriction <{node}> logic:{local} requires a non-negative integer count, found {}", object.key()),
+            ))?;
+            g.add_atomic(node, &owl(local), &AtomicTerm::Literal(literal));
         } else {
-            g.add_obj(node, &owl(local), obj, *is_lit);
+            g.add_atomic(node, &owl(local), object);
         }
     }
+    Ok(())
+}
+
+/// The OWL RDF mapping requires xsd:nonNegativeInteger at this target boundary.
+/// Preserve the authored value in the IR; validate its integer value with PurRDF.
+/// Plain strings are the explicit lexical-count convention of logic cardinalities.
+fn owl_cardinality_literal(object: &AtomicTerm) -> Option<RdfLiteral> {
+    let literal = object.as_literal()?;
+    if literal.language.is_some() || literal.direction.is_some() {
+        return None;
+    }
+    let datatype = if literal.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string" {
+        purrdf::xsd::XsdDatatype::NonNegativeInteger
+    } else {
+        purrdf::xsd::XsdDatatype::from_iri(literal.datatype_iri())?
+    };
+    let purrdf::xsd::XsdValue::Integer { value, .. } =
+        purrdf::xsd::parse(&literal.lexical_form, datatype).ok()?
+    else {
+        return None;
+    };
+    (value >= 0).then(|| {
+        RdfLiteral::typed(
+            value.to_string(),
+            "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+        )
+    })
 }
 
 /// Collect every lifted anonymous enumeration (`logic:enumeration/<hash>` typed
 /// `logic:Enumeration`, carrying `logic:oneOf` members), keyed by skolem node IRI.  The
-/// `(member, is_literal)` pairs arrive object-sorted because `program.axioms` is globally
+/// typed members arrive object-sorted because `program.axioms` is globally
 /// ordered by `LogicAxiom::sort_key` (see `LogicProgram::new` in `ir.rs`), but this
 /// collector also sorts+dedups each member list locally so the deterministic `owl:oneOf`
 /// list is guaranteed here rather than relying on that non-local ordering.
-fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<(String, bool)>> {
+fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<AtomicTerm>> {
     let enumeration_ty = logic(restriction::ENUMERATION_CLASS_LOCAL);
     let one_of = logic(restriction::ONE_OF_LOCAL);
-    let mut out: BTreeMap<String, Vec<(String, bool)>> = BTreeMap::new();
+    let mut out: BTreeMap<String, Vec<AtomicTerm>> = BTreeMap::new();
     for axiom in &program.axioms {
         let pred = axiom.predicate.as_str();
-        if pred == RDF_TYPE && axiom.obj == enumeration_ty {
+        if pred == RDF_TYPE && axiom.obj.as_iri() == Some(enumeration_ty.as_str()) {
             out.entry(axiom.subject.clone()).or_default();
         } else if pred == one_of {
             out.entry(axiom.subject.clone())
                 .or_default()
-                .push((axiom.obj.clone(), axiom.obj_is_literal));
+                .push(axiom.obj.clone());
         }
     }
     // Belt-and-braces determinism: program.axioms is already globally ordered by
@@ -494,11 +592,14 @@ fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<(
 /// skolem node typed `owl:Class` with an `owl:oneOf` `rdf:List` of the members (minted
 /// as deterministic list-cell IRIs, never blank nodes).  Literal members are not valid
 /// OWL individuals, so an enumeration is emitted only when all members are IRIs.
-fn emit_enumeration(g: &mut TripleSink, node: &str, members: &[(String, bool)]) {
-    if members.is_empty() || members.iter().any(|(_, is_lit)| *is_lit) {
+fn emit_enumeration(g: &mut TripleSink, node: &str, members: &[AtomicTerm]) {
+    if members.is_empty() || members.iter().any(|term| term.as_iri().is_none()) {
         return;
     }
-    let iris: Vec<String> = members.iter().map(|(m, _)| m.clone()).collect();
+    let iris: Vec<String> = members
+        .iter()
+        .filter_map(|term| term.as_iri().map(str::to_owned))
+        .collect();
     let list_head = emit_class_list(g, node, &iris);
     g.add_iri(node, RDF_TYPE, &owl("Class"));
     g.add_iri(node, &owl(restriction::ONE_OF_LOCAL), &list_head);
@@ -515,7 +616,7 @@ fn emit_enumeration(g: &mut TripleSink, node: &str, members: &[(String, bool)]) 
 struct LiftedDatarange {
     on_datatype: Option<String>,
     /// `(full xsd: facet IRI, facet value)`, sorted + deduped for a deterministic list.
-    facets: Vec<(String, String)>,
+    facets: Vec<(String, AtomicTerm)>,
 }
 
 /// Collect every lifted datarange from the program's flat axioms, keyed by skolem node
@@ -530,10 +631,11 @@ fn collect_lifted_dataranges(program: &LogicProgram) -> BTreeMap<String, LiftedD
     let mut out: BTreeMap<String, LiftedDatarange> = BTreeMap::new();
     for axiom in &program.axioms {
         let pred = axiom.predicate.as_str();
-        if pred == RDF_TYPE && axiom.obj == datarange_ty {
+        if pred == RDF_TYPE && axiom.obj.as_iri() == Some(datarange_ty.as_str()) {
             out.entry(axiom.subject.clone()).or_default();
         } else if pred == on_datatype {
-            out.entry(axiom.subject.clone()).or_default().on_datatype = Some(axiom.obj.clone());
+            out.entry(axiom.subject.clone()).or_default().on_datatype =
+                axiom.obj.as_iri().map(str::to_owned);
         } else if let Some(local) = pred.strip_prefix(XSD_NS)
             && restriction::FACET_LOCALS.contains(&local)
         {
@@ -554,14 +656,14 @@ fn collect_lifted_dataranges(program: &LogicProgram) -> BTreeMap<String, LiftedD
 /// facet node carrying its single `<facetIRI> <value>` triple (never a bare member).  The
 /// facet-cell and list-cell IRIs are minted deterministically off `base` (never blank
 /// nodes), adapting [`emit_class_list`].  Returns the list head IRI.
-fn emit_facet_list(g: &mut TripleSink, base: &str, facets: &[(String, String)]) -> String {
+fn emit_facet_list(g: &mut TripleSink, base: &str, facets: &[(String, AtomicTerm)]) -> String {
     let rdf_first = format!("{RDF_NS}first");
     let rdf_rest = format!("{RDF_NS}rest");
     let mut rest = format!("{RDF_NS}nil");
     for (i, (facet_iri, value)) in facets.iter().enumerate().rev() {
         // The facet node carries its one constraining-facet triple.
         let facet_node = format!("{base}/facet/{i:04}");
-        g.add_lit(&facet_node, facet_iri, RdfLiteral::simple(value));
+        g.add_atomic(&facet_node, facet_iri, value);
         // The list cell points at that facet node.
         let cell = format!("{base}/cell/{i:04}");
         g.add_iri(&cell, &rdf_first, &facet_node);
@@ -598,6 +700,14 @@ pub fn project_owl_dl(
     program: &LogicProgram,
     loss: &mut crate::loss_ledger::LossLedger,
 ) -> Result<ProjectionResult, OverclaimError> {
+    project_owl_dl_dataset(program, loss).map(RdfProjectionResult::into_text)
+}
+
+/// Produce the native OWL DL projection through the same lowering and loss ledger.
+pub fn project_owl_dl_dataset(
+    program: &LogicProgram,
+    loss: &mut crate::loss_ledger::LossLedger,
+) -> Result<RdfProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
     // Per-drop attribution to a DOCUMENTED gmeow: source term (by exact note string).
@@ -624,7 +734,7 @@ pub fn project_owl_dl(
     // internals in the axiom loop.
     let restrictions = collect_lifted_restrictions(program);
     for (node, r) in &restrictions {
-        emit_restriction(&mut g, node, r);
+        emit_restriction(&mut g, node, r)?;
     }
     let enumerations = collect_lifted_enumerations(program);
     for (node, members) in &enumerations {
@@ -646,18 +756,18 @@ pub fn project_owl_dl(
             continue;
         }
         // Lifted RDFS/SKOS annotations are valid OWL annotation assertions — carry them
-        // through the grounding view losslessly, with the carrier tag re-attached.
+        // through the grounding view losslessly, with its native carrier tag.
         if axiom.node_kind == NodeKind::Annotation {
             g.add_annotation(axiom);
             continue;
         }
         if pred == RDF_TYPE {
-            if let Some(gufo_type) = gufo_for_sort(obj) {
+            if let Some(gufo_type) = obj.as_iri().and_then(gufo_for_sort) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl("Class"));
                 continue;
             }
-            if let Some(owl_char) = owl_for_char(obj) {
+            if let Some(owl_char) = obj.as_iri().and_then(owl_for_char) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl_char);
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl("ObjectProperty"));
                 continue;
@@ -669,23 +779,26 @@ pub fn project_owl_dl(
             // only the structural edges + the gUFO sort, and each class earns its
             // `owl:Class` from that sort), so the canonical marker is dropped in lockstep
             // rather than leaking through as a `logic:`-namespaced type.
-            if crate::typing_vocab::is_logic_typing_marker(obj) {
+            if obj
+                .as_iri()
+                .is_some_and(crate::typing_vocab::is_logic_typing_marker)
+            {
                 continue;
             }
-            if !axiom.obj_is_literal {
-                g.add_iri(&axiom.subject, RDF_TYPE, obj);
+            if !axiom.obj.is_literal() {
+                g.add_atomic(&axiom.subject, RDF_TYPE, obj);
             }
             continue;
         }
         // properPartOf edges survive as object-property assertions.
         if pred == &logic("properPartOf") {
-            if !axiom.obj_is_literal {
-                g.add_iri(&axiom.subject, &logic("properPartOf"), obj);
+            if !axiom.obj.is_literal() {
+                g.add_atomic(&axiom.subject, &logic("properPartOf"), obj);
             }
             continue;
         }
         if let Some(owl_pred) = owl_for_pred(pred) {
-            g.add_obj(&axiom.subject, &owl_pred, obj, axiom.obj_is_literal);
+            g.add_atomic(&axiom.subject, &owl_pred, obj);
             continue;
         }
         if let Some(local) = pred.strip_prefix(LOGIC_NS) {
@@ -726,11 +839,11 @@ pub fn project_owl_dl(
         let head = &rule.head;
         if rule.body.len() == 1
             && owl_for_pred(&head.predicate).is_some()
-            && !head.obj_is_literal
+            && !head.obj.is_literal()
             && owl_for_pred(&rule.body[0].predicate).is_some()
         {
             let owl_head_pred = owl_for_pred(&head.predicate).unwrap();
-            g.add_iri(&head.subject, &owl_head_pred, &head.obj);
+            g.add_atomic(&head.subject, &owl_head_pred, &head.obj);
             continue;
         }
         let note = format!(
@@ -782,6 +895,14 @@ pub fn project_owl_el(
     program: &LogicProgram,
     loss: &mut crate::loss_ledger::LossLedger,
 ) -> Result<ProjectionResult, OverclaimError> {
+    project_owl_el_dataset(program, loss).map(RdfProjectionResult::into_text)
+}
+
+/// Produce the native OWL EL projection through the same lowering and loss ledger.
+pub fn project_owl_el_dataset(
+    program: &LogicProgram,
+    loss: &mut crate::loss_ledger::LossLedger,
+) -> Result<RdfProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
     let mut attributed: std::collections::BTreeMap<String, String> =
@@ -814,16 +935,16 @@ pub fn project_owl_el(
         let el_safe = well_formed
             && r.constraints
                 .iter()
-                .all(|(local, _, _)| is_el_safe_restriction_constraint(local));
+                .all(|(local, _)| is_el_safe_restriction_constraint(local));
         if el_safe {
-            emit_restriction(&mut g, node, r);
+            emit_restriction(&mut g, node, r)?;
         } else {
             dropped_class_exprs.insert(node.clone());
             if well_formed {
                 let kinds = r
                     .constraints
                     .iter()
-                    .map(|(local, _, _)| local.as_str())
+                    .map(|(local, _)| local.as_str())
                     .collect::<Vec<_>>()
                     .join(", ");
                 actual_drops.push(format!(
@@ -863,14 +984,16 @@ pub fn project_owl_el(
             continue;
         }
         // Lifted RDFS/SKOS annotations are valid OWL annotation assertions — EL-safe as plain
-        // annotation triples; carry them through losslessly with the carrier tag re-attached.
+        // annotation triples; carry them through losslessly with its native carrier tag.
         if axiom.node_kind == NodeKind::Annotation {
             g.add_annotation(axiom);
             continue;
         }
         // A subClassOf / equivalentClass edge into a dropped class expression must not
         // dangle in EL.
-        if dropped_class_exprs.contains(obj)
+        if obj
+            .as_iri()
+            .is_some_and(|iri| dropped_class_exprs.contains(iri))
             && matches!(
                 pred.strip_prefix(LOGIC_NS),
                 Some("subClassOf" | "equivalentClass")
@@ -879,19 +1002,19 @@ pub fn project_owl_el(
             continue;
         }
         if pred == RDF_TYPE {
-            if let Some(gufo_type) = gufo_for_sort(obj) {
+            if let Some(gufo_type) = obj.as_iri().and_then(gufo_for_sort) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl("Class"));
                 continue;
             }
-            if is_el_safe_char(obj) {
-                let owl_char = owl_for_char(obj).unwrap();
+            if obj.as_iri().is_some_and(is_el_safe_char) {
+                let owl_char = obj.as_iri().and_then(owl_for_char).unwrap();
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl_char);
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl("ObjectProperty"));
                 continue;
             }
-            if let Some(local) = obj.strip_prefix(LOGIC_NS)
-                && owl_for_char(obj).is_some()
+            if let Some(local) = obj.as_iri().and_then(|iri| iri.strip_prefix(LOGIC_NS))
+                && obj.as_iri().and_then(owl_for_char).is_some()
             {
                 actual_drops.push(format!(
                     "logic:{local} on <{}> is not EL-safe; dropped",
@@ -902,25 +1025,28 @@ pub fn project_owl_el(
             // A canonical `logic:` bare typing / header marker is OMITTED from the OWL 2 EL
             // grounding view exactly as its `owl:` spelling was (see the OWL-DL twin) — it is
             // dropped in lockstep rather than leaking through as a `logic:`-namespaced type.
-            if crate::typing_vocab::is_logic_typing_marker(obj) {
+            if obj
+                .as_iri()
+                .is_some_and(crate::typing_vocab::is_logic_typing_marker)
+            {
                 continue;
             }
-            if !axiom.obj_is_literal {
-                g.add_iri(&axiom.subject, RDF_TYPE, obj);
+            if !axiom.obj.is_literal() {
+                g.add_atomic(&axiom.subject, RDF_TYPE, obj);
             }
             continue;
         }
         // properPartOf edges survive as object-property assertions (transitivity
         // is EL-safe; asymmetric/irreflexive are the documented loss).
         if pred == &logic("properPartOf") {
-            if !axiom.obj_is_literal {
-                g.add_iri(&axiom.subject, &logic("properPartOf"), obj);
+            if !axiom.obj.is_literal() {
+                g.add_atomic(&axiom.subject, &logic("properPartOf"), obj);
             }
             continue;
         }
         if is_el_safe_pred(pred) {
             let owl_pred = owl_for_pred(pred).unwrap();
-            g.add_obj(&axiom.subject, &owl_pred, obj, axiom.obj_is_literal);
+            g.add_atomic(&axiom.subject, &owl_pred, obj);
             continue;
         }
         if let Some(local) = pred.strip_prefix(LOGIC_NS) {
@@ -1000,6 +1126,14 @@ pub fn project_gufo(
     program: &LogicProgram,
     loss: &mut crate::loss_ledger::LossLedger,
 ) -> Result<ProjectionResult, OverclaimError> {
+    project_gufo_dataset(program, loss).map(RdfProjectionResult::into_text)
+}
+
+/// Produce the native GUFO projection through the same lowering and loss ledger.
+pub fn project_gufo_dataset(
+    program: &LogicProgram,
+    loss: &mut crate::loss_ledger::LossLedger,
+) -> Result<RdfProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
     let mut attributed: std::collections::BTreeMap<String, String> =
@@ -1015,11 +1149,11 @@ pub fn project_gufo(
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
         if pred == RDF_TYPE {
-            if let Some(gufo_type) = gufo_for_sort(obj) {
+            if let Some(gufo_type) = obj.as_iri().and_then(gufo_for_sort) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
                 continue;
             }
-            if let Some(local) = obj.strip_prefix(LOGIC_NS) {
+            if let Some(local) = obj.as_iri().and_then(|iri| iri.strip_prefix(LOGIC_NS)) {
                 let note = format!(
                     "rdf:type logic:{local} on <{}> has no gUFO equivalent",
                     axiom.subject
@@ -1032,8 +1166,8 @@ pub fn project_gufo(
             continue;
         }
         if pred == &logic("subClassOf") {
-            if !axiom.obj_is_literal {
-                g.add_iri(&axiom.subject, &rdfs("subClassOf"), obj);
+            if !axiom.obj.is_literal() {
+                g.add_atomic(&axiom.subject, &rdfs("subClassOf"), obj);
             }
             continue;
         }
@@ -1071,6 +1205,16 @@ pub fn project_gufo(
 
 /// Project to canonical RDF 1.2 Turtle (`generated/logic/gmeow.logic.rdf12.ttl`).
 pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResult, OverclaimError> {
+    project_canonical_rdf12_dataset(program).map(RdfProjectionResult::into_text)
+}
+
+/// Produce the native canonical RDF 1.2 projection without rendering Turtle.
+pub fn project_canonical_rdf12_dataset(
+    program: &LogicProgram,
+) -> Result<RdfProjectionResult, OverclaimError> {
+    if let crate::ir::PresentationProgramIr::Refused { detail, .. } = &program.presentations {
+        return Err(OverclaimError(detail.clone()));
+    }
     let mut g = TripleSink::default();
 
     g.add_iri(
@@ -1091,56 +1235,38 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         if rule_struct_preds.contains(&axiom.predicate) {
             continue;
         }
-        // A lifted RDFS/SKOS annotation re-emits the surface triple with the invariant
-        // x-gmeow-english carrier tag re-attached (the ExactPreservation round-trip:
-        // put ∘ get = id). Routing through add_obj would emit an UNTYPED literal
-        // (RdfLiteral::simple), dropping the tag and breaking the round-trip on re-parse.
+        // The complete annotation value, including its native carrier tag, is preserved.
         if axiom.node_kind == NodeKind::Annotation {
             g.add_annotation(axiom);
             continue;
         }
-        // A cardinality count is an xsd:nonNegativeInteger, and the adapter read carries
-        // lexical form only — so the datatype has to be restored from the predicate here
-        // exactly as `emit_restriction` restores it on the OWL path below. Routing it
-        // through `add_obj` emits an untyped literal, which would leave the CANONICAL
-        // surface lossier than the lossy projection derived from it: `logic:` is the source
-        // and `owl:` is its Principle-17 view, so a round-trip through the canonical layer
-        // must not be the one that drops the type. Left unrestored, the bound comes back
-        // from a GTS round-trip as xsd:string and every reader has to special-case it.
-        if axiom.obj_is_literal
-            && restriction::CARDINALITY_LOCALS
-                .iter()
-                .any(|local| axiom.predicate == logic(local))
+        // Canonical output keeps the authored value. Target-specific datatype conversions
+        // belong at the corresponding projection boundary.
+        let direct_predicate = axiom.predicate.starts_with(LOGIC_NS)
+            || (axiom.predicate == RDF_TYPE
+                && axiom
+                    .obj
+                    .as_iri()
+                    .is_some_and(|iri| iri.starts_with(LOGIC_NS)));
+        if !is_modal_or_scoped(axiom)
+            && (!direct_predicate
+                || axiom.subject.starts_with('?')
+                || axiom.obj.as_variable().is_some())
         {
-            g.add_lit(
-                &axiom.subject,
-                &axiom.predicate,
-                RdfLiteral::typed(&axiom.obj, format!("{XSD_NS}nonNegativeInteger")),
-            );
+            emit_compact_formula(&mut g, axiom)?;
             continue;
         }
-        g.add_obj(
-            &axiom.subject,
-            &axiom.predicate,
-            &axiom.obj,
-            axiom.obj_is_literal,
-        );
-
         if is_modal_or_scoped(axiom) {
-            let key_hash = sha256_12(&axiom.sort_key());
+            let key_hash = sha256_12(&axiom.content_key());
             let reifier = format!("{LOGIC_NS}reifier/{key_hash}");
             g.add_iri(&reifier, RDF_TYPE, &format!("{RDF_NS}Statement"));
-            g.add_iri(&reifier, &format!("{RDF_NS}subject"), &axiom.subject);
+            g.add_atomic(
+                &reifier,
+                &format!("{RDF_NS}subject"),
+                &AtomicTerm::resource(&axiom.subject),
+            );
             g.add_iri(&reifier, &format!("{RDF_NS}predicate"), &axiom.predicate);
-            if axiom.obj_is_literal {
-                g.add_lit(
-                    &reifier,
-                    &format!("{RDF_NS}object"),
-                    RdfLiteral::simple(&axiom.obj),
-                );
-            } else {
-                g.add_iri(&reifier, &format!("{RDF_NS}object"), &axiom.obj);
-            }
+            g.add_atomic(&reifier, &format!("{RDF_NS}object"), &axiom.obj);
             let scope = &axiom.scope;
             if let Some(sp) = &scope.standpoint {
                 g.add_iri(&reifier, &logic("standpoint"), sp);
@@ -1164,6 +1290,8 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
             if let Some(m) = &scope.module {
                 g.add_iri(&reifier, &logic("inModule"), m);
             }
+        } else {
+            g.add_atomic(&axiom.subject, &axiom.predicate, &axiom.obj);
         }
     }
 
@@ -1174,9 +1302,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
     // (same `sort_key()`).  The values are emitted as plain `logic:<Value>` IRIs;
     // the parser routes them by the FACET PROPERTY (not the value's rdf:type), so
     // the projection need not (and does not) re-emit each value's facet-class type.
-    for (idx, contract) in program.contracts.iter().enumerate() {
-        project_contract(&mut g, idx, contract);
-    }
+    super::presentation::contracts(&mut g, program)?;
 
     // Rules as logic:Rule nodes with classic reification for head/body.
     for (idx, rule) in program.rules.iter().enumerate() {
@@ -1191,7 +1317,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         g.add_iri(&head_node, RDF_TYPE, &format!("{RDF_NS}Statement"));
         add_reified_term(&mut g, &head_node, "subject", &head.subject, false);
         g.add_iri(&head_node, &format!("{RDF_NS}predicate"), &head.predicate);
-        add_reified_term(&mut g, &head_node, "object", &head.obj, head.obj_is_literal);
+        add_reified_object(&mut g, &head_node, &head.obj);
 
         // Body (positive then negated), each polarity sorted independently.
         let positive: Vec<_> = rule.body.iter().filter(|a| !a.negated).collect();
@@ -1208,7 +1334,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
                 g.add_iri(&body_node, RDF_TYPE, &format!("{RDF_NS}Statement"));
                 add_reified_term(&mut g, &body_node, "subject", &ba.subject, false);
                 g.add_iri(&body_node, &format!("{RDF_NS}predicate"), &ba.predicate);
-                add_reified_term(&mut g, &body_node, "object", &ba.obj, ba.obj_is_literal);
+                add_reified_object(&mut g, &body_node, &ba.obj);
             }
         }
 
@@ -1311,7 +1437,38 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
     //
     // Exact target: drops nothing, so it interns nothing into the loss store (its
     // read-back is empty and its report/ledger rows carry no `gmeow:lossyDrop`).
+    super::presentation::emit(&mut g, &program.presentations)?;
     rdf_result("canonical-rdf12", g, "Canonical RDF 1.2", &[])
+}
+
+/// External predicates and logical variables need a declared formula envelope:
+/// an arbitrary RDF domain triple alone does not declare a logic assertion.
+fn emit_compact_formula(g: &mut TripleSink, axiom: &LogicAxiom) -> Result<(), OverclaimError> {
+    let node = format!("{LOGIC_NS}axiom-formula/{}", sha256_12(&axiom.sort_key()));
+    g.add_iri(&node, RDF_TYPE, &logic("Formula"));
+    g.add_iri(&node, &logic("relation"), &axiom.predicate);
+    let subject = AtomicTerm::resource(&axiom.subject);
+    for (index, term) in [&subject, &axiom.obj].into_iter().enumerate() {
+        let arg = format!("{node}/arg/{index:04}");
+        g.add_iri(&node, &logic("argument"), &arg);
+        emit_term_index(g, &arg, index);
+        match term {
+            AtomicTerm::Var(name) => g.add_lit(
+                &arg,
+                &logic("termVariable"),
+                RdfLiteral::simple(name.trim_start_matches('?')),
+            ),
+            AtomicTerm::Iri(iri) => g.add_iri(&arg, &logic("termIri"), iri),
+            AtomicTerm::Literal(value) => g.add_lit(&arg, &logic("termLiteral"), value.clone()),
+            AtomicTerm::Blank(_) => {
+                return Err(OverclaimError(format!(
+                    "compact axiom {} requires an explicit existential formula for its blank term",
+                    axiom.sort_key(),
+                )));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Emit a [`Formula`] as a reified `logic:Formula` tree rooted at `node`. Deterministic
@@ -1337,11 +1494,10 @@ pub(crate) fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
             g.add_iri(node, &logic("not"), &child);
             emit_formula(g, &child, f);
         }
-        Formula::And(fs) => emit_operands(g, node, "and", fs),
-        Formula::Or(fs) => emit_operands(g, node, "or", fs),
+        Formula::And(fs) => emit_operands(g, node, "and", fs.iter()),
+        Formula::Or(fs) => emit_operands(g, node, "or", fs.iter()),
         Formula::Iff(a, b) => {
-            let operands = [(**a).clone(), (**b).clone()];
-            emit_operands(g, node, "iff", &operands);
+            emit_operands(g, node, "iff", [a.as_ref(), b.as_ref()].into_iter());
         }
         Formula::Implies(a, b) => {
             let an = format!("{node}/antecedent");
@@ -1356,20 +1512,15 @@ pub(crate) fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
     }
 }
 
-/// Project one correspondence-owned [`Formula`] tree at the caller-supplied root IRI as
-/// deterministic N-Triples. This is the same emitter the canonical RDF 1.2 projection uses;
-/// formula ownership changes, never its serialized semantics.
-pub(crate) fn formula_ntriples(node: &str, formula: &Formula) -> String {
-    let mut sink = TripleSink::default();
-    emit_formula(&mut sink, node, formula);
-    sink.serialize_as("application/n-triples")
-        .unwrap_or_else(|e| panic!("constructed logic:Formula must serialize as N-Triples: {e}"))
-}
-
 /// Emit the operands of a commutative connective (`and`/`or`/`iff`), sorted by content
 /// key so the minted child IRIs are a deterministic function of the operand SET.
-fn emit_operands(g: &mut TripleSink, node: &str, link: &str, operands: &[Formula]) {
-    let mut indexed: Vec<&Formula> = operands.iter().collect();
+fn emit_operands<'a>(
+    g: &mut TripleSink,
+    node: &str,
+    link: &str,
+    operands: impl Iterator<Item = &'a Formula>,
+) {
+    let mut indexed: Vec<&Formula> = operands.collect();
     indexed.sort_by_cached_key(|f| f.content_key());
     for (i, f) in indexed.iter().enumerate() {
         let child = format!("{node}/{link}/{i:04}");
@@ -1405,15 +1556,8 @@ fn emit_term_value(g: &mut TripleSink, node: &str, term: &Term) {
     match term {
         Term::Iri(iri) => g.add_iri(node, &logic("termIri"), iri),
         Term::Var(name) => g.add_lit(node, &logic("termVariable"), RdfLiteral::simple(name)),
-        Term::Literal { lexical, datatype } => {
-            // The lexical rides on logic:termLiteral; the datatype IRI rides on a separate
-            // logic:termLiteralDatatype triple, because the front-end's literal reader
-            // keeps only a literal's lexical form. This keeps the typed-literal round-trip
-            // lossless without reaching into the byte-pinned rule-term parser.
-            g.add_lit(node, &logic("termLiteral"), RdfLiteral::simple(lexical));
-            if let Some(dt) = datatype {
-                g.add_iri(node, &logic("termLiteralDatatype"), dt);
-            }
+        Term::Literal(literal) => {
+            g.add_lit(node, &logic("termLiteral"), literal.clone());
         }
         Term::SequenceMarker(name) => {
             g.add_lit(node, &logic("termSequenceMarker"), RdfLiteral::simple(name))
@@ -1512,15 +1656,16 @@ fn disjoint_pair_index(axioms: &[LogicAxiom]) -> HashSet<(&str, &str)> {
     let disjoint_owl = owl("disjointWith");
     axioms
         .iter()
-        .filter(|ax| {
-            (ax.predicate == disjoint || ax.predicate == disjoint_owl) && !ax.obj_is_literal
-        })
-        .map(|ax| {
-            if ax.subject < ax.obj {
-                (ax.subject.as_str(), ax.obj.as_str())
-            } else {
-                (ax.obj.as_str(), ax.subject.as_str())
+        .filter_map(|ax| {
+            if ax.predicate != disjoint && ax.predicate != disjoint_owl {
+                return None;
             }
+            let object = ax.obj.as_iri()?;
+            Some(if ax.subject.as_str() < object {
+                (ax.subject.as_str(), object)
+            } else {
+                (object, ax.subject.as_str())
+            })
         })
         .collect()
 }
@@ -1607,7 +1752,7 @@ fn project_formulas_owl_dl(g: &mut TripleSink, program: &LogicProgram) {
 /// (`logic:closureKey` string + `logic:closureValue logic:<Value>`) plus the
 /// `logic:defaultClosure logic:<Value>` default; complexity →
 /// `logic:complexityClass`.
-fn project_contract(
+pub(super) fn project_contract(
     g: &mut TripleSink,
     idx: usize,
     contract: &super::super::ir::ReasoningContract,
@@ -1625,6 +1770,23 @@ fn project_contract(
         }
     };
 
+    project_named_contract(g, &node, contract);
+}
+
+pub(super) fn project_named_contract(
+    g: &mut TripleSink,
+    node: &str,
+    contract: &super::super::ir::ReasoningContract,
+) {
+    g.add_iri(
+        node,
+        RDF_TYPE,
+        &logic(if contract.preset.is_some() {
+            "ReasoningPreset"
+        } else {
+            "ReasoningContract"
+        }),
+    );
     // Single-valued facets: (property local name, value).
     let singletons: [(&str, &Option<String>); 10] = [
         ("formulaFragment", &contract.formula_fragment),
@@ -1640,7 +1802,7 @@ fn project_contract(
     ];
     for (prop, value) in singletons {
         if let Some(v) = value {
-            g.add_iri(&node, &logic(prop), &facet_value_iri(v));
+            g.add_iri(node, &logic(prop), &facet_value_iri(v));
         }
     }
 
@@ -1654,7 +1816,7 @@ fn project_contract(
     ];
     for (prop, members) in sets {
         for member in members {
-            g.add_iri(&node, &logic(prop), &facet_value_iri(member));
+            g.add_iri(node, &logic(prop), &facet_value_iri(member));
         }
     }
 
@@ -1662,7 +1824,7 @@ fn project_contract(
     // each carrying its key string + closure value individual.
     for (i, (key, val)) in contract.closure_entries.iter().enumerate() {
         let entry = format!("{node}/closureEntry/{i:04}");
-        g.add_iri(&node, &logic("closureEntry"), &entry);
+        g.add_iri(node, &logic("closureEntry"), &entry);
         g.add_iri(&entry, RDF_TYPE, &logic("ClosureEntry"));
         g.add_lit(&entry, &logic("closureKey"), RdfLiteral::simple(key));
         g.add_iri(&entry, &logic("closureValue"), &facet_value_iri(val));
@@ -1671,7 +1833,7 @@ fn project_contract(
     // Carried decidability data.
     if let Some(c) = &contract.complexity {
         g.add_lit(
-            &node,
+            node,
             &logic("complexityClass"),
             RdfLiteral::simple(c.label()),
         );
@@ -1688,6 +1850,23 @@ fn add_reified_term(g: &mut TripleSink, node: &str, role: &str, value: &str, is_
         g.add_lit(node, &pred, RdfLiteral::simple(value));
     } else {
         g.add_iri(node, &pred, value);
+    }
+}
+
+/// A plain question-mark literal needs an explicit literal carrier in a rule,
+/// since a direct plain string in that authored position denotes a variable.
+fn add_reified_object(g: &mut TripleSink, node: &str, object: &AtomicTerm) {
+    if let AtomicTerm::Literal(literal) = object
+        && literal.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string"
+        && literal.language.is_none()
+        && literal.direction.is_none()
+        && literal.lexical_form.starts_with('?')
+    {
+        let carrier = format!("{node}/object-literal");
+        g.add_iri(node, &format!("{RDF_NS}object"), &carrier);
+        g.add_lit(&carrier, &logic("termLiteral"), literal.clone());
+    } else {
+        g.add_atomic(node, &format!("{RDF_NS}object"), object);
     }
 }
 

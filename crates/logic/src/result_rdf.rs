@@ -60,7 +60,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
+use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 use sha2::{Digest, Sha256};
+
+mod native;
 
 use crate::conjecture::{ConjectureAnswer, ConjectureDischarge, ConjectureLifecycleState};
 use crate::explain::{
@@ -71,7 +74,7 @@ use crate::reason::el::InferredAxiom;
 use crate::result::{
     Assumption, BudgetLimit, CompletenessStatus, ContradictionWitness, DerivationRef, EngineId,
     EvaluationStatus, InformationState, InputStatus, PreservationClaim, ReasoningResult,
-    ResultContext, ResultPayload, ResultProvenance,
+    ResultClaim, ResultContext, ResultPayload, ResultProvenance,
 };
 
 /// Wrap a reasoning-result-projection condition message as a typed diagnostic on
@@ -113,6 +116,7 @@ const PROV_WAS_DERIVED_FROM: &str = "http://www.w3.org/ns/prov#wasDerivedFrom";
 const PROV_VALUE: &str = "http://www.w3.org/ns/prov#value";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+const XSD_NONNEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
 
 /// `logic:` IRI helper. All container/structure predicates this projection mints
@@ -125,9 +129,16 @@ fn logic(local: &str) -> String {
 /// A node term for N-Triples emission: an IRI, a blank node, or a typed literal.
 #[derive(Clone)]
 enum Node {
+    /// Generated self-reference, distinct from any identical authored IRI.
+    SelfReference(String),
     Iri(String),
     Blank(String),
-    Lit { lex: String, datatype: String },
+    /// An authored or inferred native RDF value, retained through the output boundary.
+    Value(purrdf::TermValue),
+    Lit {
+        lex: String,
+        datatype: String,
+    },
 }
 
 impl Node {
@@ -149,6 +160,12 @@ impl Node {
             datatype: XSD_INTEGER.to_owned(),
         }
     }
+    fn nonnegative_integer(n: u64) -> Self {
+        Node::Lit {
+            lex: n.to_string(),
+            datatype: XSD_NONNEGATIVE_INTEGER.to_owned(),
+        }
+    }
     /// An `xsd:anyURI` typed literal (the `logic:obligationForbiddenPredicate` datatype —
     /// a predicate IRI carried as a lexical URI, exactly as the authored obligations do).
     fn any_uri(s: impl Into<String>) -> Self {
@@ -160,8 +177,9 @@ impl Node {
     /// Render this node in canonical N-Triples term syntax.
     fn render(&self) -> String {
         match self {
-            Node::Iri(iri) => format!("<{iri}>"),
+            Node::Iri(iri) | Node::SelfReference(iri) => format!("<{iri}>"),
             Node::Blank(id) => format!("_:{id}"),
+            Node::Value(value) => crate::provenance::term_display(value),
             Node::Lit { lex, datatype } => {
                 format!("\"{}\"^^<{datatype}>", escape_literal(lex))
             }
@@ -223,10 +241,15 @@ impl Sink {
     /// Render the body as sorted, deduplicated N-Triples lines (no trailing newline
     /// per the join), with a placeholder substituted for the not-yet-known subject.
     fn render_lines(&self) -> Vec<String> {
+        self.render_lines_in_graph(None)
+    }
+
+    fn render_lines_in_graph(&self, graph: Option<&str>) -> Vec<String> {
         let mut lines: BTreeSet<String> = BTreeSet::new();
+        let graph = graph.map_or_else(String::new, |iri| format!(" <{iri}>"));
         for t in &self.triples {
             lines.insert(format!(
-                "{} <{}> {} .",
+                "{} <{}> {}{graph} .",
                 t.subject.render(),
                 t.predicate,
                 t.object.render()
@@ -240,15 +263,546 @@ impl Sink {
 /// node IRI is known. It is substituted for the real IRI in the final pass.
 const RESULT_PLACEHOLDER: &str = "urn:gmeow:reasoning-result:self";
 
+/// Project a contextual result and its evidence DAG using the same RDF result
+/// model as the native closure. Judgment anchors describe the assessed expression
+/// and context; they never assert the expression as an unconditional fact.
+pub fn project_contextual_assessment(
+    assessment: &crate::contextual::ContextualAssessment,
+) -> gmeow_errors::Result<String> {
+    Ok(contextual_assessment_sink(assessment)?
+        .0
+        .render_lines()
+        .join("\n")
+        + "\n")
+}
+
+/// Export the complete contextual assessment as RDF 1.2 N-Quads. Reasoning and
+/// proof records occupy `graph/reasoning`; the shared diagnostic renderer emits
+/// every ledger witness in `graph/diagnostics`, retaining its fingerprint and
+/// source anchor. The result and its selected attribution link those witnesses.
+pub fn project_contextual_dataset(
+    assessment: &crate::contextual::ContextualAssessment,
+) -> gmeow_errors::Result<String> {
+    let (mut sink, result_iri) = contextual_assessment_sink(assessment)?;
+    let mut report = gmeow_errors::Report::new("gmeow-logic.contextual");
+    for node in assessment.diagnostics.emit_sorted() {
+        let finding = node.to_finding("gmeow-logic.contextual");
+        let finding_iri = finding
+            .finding_iri
+            .as_ref()
+            .expect("ledger witnesses have fingerprints");
+        sink.push(
+            Node::iri(&result_iri),
+            PROV_WAS_DERIVED_FROM,
+            Node::iri(finding_iri),
+        );
+        if let Some(context) = &assessment.result.provenance.context.attributed {
+            sink.push(
+                Node::iri(finding_iri),
+                PROV_WAS_DERIVED_FROM,
+                Node::iri(context),
+            );
+        }
+        report.add_finding(finding);
+    }
+    let mut lines = sink
+        .render_lines_in_graph(Some(GRAPH_REASONING))
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    lines.extend(
+        gmeow_errors::render::to_gmeow_rdf(&report)
+            .lines()
+            .map(str::to_owned),
+    );
+    Ok(lines.into_iter().collect::<Vec<_>>().join("\n") + "\n")
+}
+
+fn emit_temporal_basis(sink: &mut Sink, result: &Node, basis: &crate::contextual::TemporalBasis) {
+    use crate::contextual::TemporalBasis;
+    let (identity, class, properties) = match basis {
+        TemporalBasis::Journal(prefix) => (
+            &prefix.identity,
+            "ObservedTemporalPrefix",
+            vec![
+                ("prefixJournal", Node::iri(&prefix.journal)),
+                ("prefixEnactment", Node::iri(&prefix.enactment)),
+                ("prefixHead", Node::iri(&prefix.head)),
+                (
+                    "prefixInitialHead",
+                    Node::string(format!("blake3:{}", prefix.initial_head)),
+                ),
+                (
+                    "prefixHeadHash",
+                    Node::string(format!("blake3:{}", prefix.head_hash)),
+                ),
+                (
+                    "journalBoundary",
+                    Node::iri(logic(if prefix.finalized {
+                        "FinalizedJournalBoundary"
+                    } else {
+                        "OpenJournalBoundary"
+                    })),
+                ),
+            ],
+        ),
+        TemporalBasis::Path(observation) => (
+            &observation.identity,
+            "ObservedPathPrefix",
+            vec![
+                ("observedPath", Node::iri(&observation.path)),
+                ("pathObservationWorld", Node::iri(&observation.world)),
+                (
+                    "pathObservationStandpoint",
+                    Node::iri(&observation.standpoint),
+                ),
+                (
+                    "pathObservationDigest",
+                    Node::string(&observation.source_digest),
+                ),
+                (
+                    "pathBoundary",
+                    Node::iri(logic(if observation.finalized {
+                        "FinalizedPathBoundary"
+                    } else {
+                        "OpenPathBoundary"
+                    })),
+                ),
+            ],
+        ),
+    };
+    let subject = Node::iri(identity);
+    sink.push(
+        result.clone(),
+        logic("observedTemporalPrefix"),
+        subject.clone(),
+    );
+    sink.push(subject.clone(), RDF_TYPE, Node::iri(logic(class)));
+    for (property, object) in properties {
+        sink.push(subject.clone(), logic(property), object);
+    }
+}
+
+fn contextual_assessment_sink(
+    assessment: &crate::contextual::ContextualAssessment,
+) -> gmeow_errors::Result<(Sink, String)> {
+    let projection = ResultProjection::reasoning(&assessment.result)?;
+    let result_iri = projection.node_iri;
+    let result = Node::iri(&result_iri);
+    let mut sink = Sink::default();
+    sink.push(
+        Node::iri(&assessment.request),
+        logic("contextualResult"),
+        result.clone(),
+    );
+    if let Some(cause) = assessment.interrupted {
+        sink.push(
+            result.clone(),
+            logic("incompleteCause"),
+            Node::iri(cause.iri()),
+        );
+    }
+    for basis in &assessment.temporal_prefixes {
+        emit_temporal_basis(&mut sink, &result, basis);
+    }
+    for anchor in &assessment.anchors {
+        let subject = Node::iri(&anchor.identity);
+        sink.push(
+            subject.clone(),
+            RDF_TYPE,
+            Node::iri(logic("ContextualJudgment")),
+        );
+        sink.push(
+            subject.clone(),
+            logic("judgmentContext"),
+            Node::iri(&anchor.context),
+        );
+        sink.push(
+            subject.clone(),
+            logic("judgmentFormulaKey"),
+            Node::string(&anchor.formula_key),
+        );
+        sink.push(
+            subject.clone(),
+            logic("judgmentInstruction"),
+            Node::nonnegative_integer(anchor.instruction as u64),
+        );
+        sink.push(
+            subject,
+            logic("judgmentContextHash"),
+            Node::string(&anchor.context_digest),
+        );
+    }
+    for inference in &assessment.inferences {
+        let subject = Node::iri(&inference.identity);
+        sink.push(
+            subject.clone(),
+            RDF_TYPE,
+            Node::iri(logic("ModalInference")),
+        );
+        sink.push(
+            subject.clone(),
+            logic("inferenceContext"),
+            Node::iri(&inference.context),
+        );
+        sink.push(
+            subject.clone(),
+            gmeow("viaRule"),
+            Node::iri(&inference.rule),
+        );
+        for antecedent in &inference.antecedents {
+            sink.push(
+                subject.clone(),
+                PROV_WAS_DERIVED_FROM,
+                Node::iri(antecedent),
+            );
+        }
+    }
+    for evidence in &assessment.native_evidence {
+        let subject = Node::iri(evidence.identity());
+        let row = evidence.row();
+        sink.push(
+            subject.clone(),
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
+            Node::Value(purrdf::TermValue::Triple {
+                s: Box::new(purrdf::TermValue::iri(&row.subject)),
+                p: Box::new(purrdf::TermValue::iri(&row.predicate)),
+                o: Box::new(purrdf::TermValue::iri(evidence.object())),
+            }),
+        );
+        sink.push(subject.clone(), gmeow("inWorld"), Node::iri(&row.graph));
+        sink.push(subject.clone(), gmeow("viaRule"), Node::iri(&row.rule_iri));
+        sink.push(
+            subject.clone(),
+            gmeow("inferenceKind"),
+            Node::iri(gmeow("Deduction")),
+        );
+        sink.push(
+            subject.clone(),
+            logic("derivationIdentifier"),
+            Node::string(&row.derivation_id),
+        );
+        sink.push(
+            subject.clone(),
+            PROV_VALUE,
+            Node::string(crate::explain::encode_receipt_rule_identity(
+                evidence.raw_rule_identity(),
+            )),
+        );
+        for antecedent in &row.source_quad_ids {
+            sink.push(
+                subject.clone(),
+                PROV_WAS_DERIVED_FROM,
+                Node::iri(antecedent),
+            );
+        }
+    }
+    // Scope generated components under this result's content address so that
+    // separate requests cannot merge local blank labels such as deriv0.
+    let scoped = |node: Node| match node {
+        Node::Blank(label) => Node::iri(format!("{result_iri}/component/{label}")),
+        other => other,
+    };
+    for triple in projection.sink.triples {
+        sink.push(
+            scoped(triple.subject),
+            triple.predicate,
+            scoped(triple.object),
+        );
+    }
+    Ok((sink, result_iri))
+}
+
 /// Project a [`ReasoningResult`] into the deterministic `graph/reasoning` N-Triples
 /// body (a `String`; one sorted canonical triple per line, trailing newline).
 ///
 /// The result node is content-addressed: its IRI is [`RESULT_IRI_BASE`] + the
 /// `sha256` (hex) of the placeholder-subjected body, so a structurally-equal result
 /// mints the same node and a single result is byte-reproducible.
-pub fn project_reasoning_result(result: &ReasoningResult) -> String {
+pub fn project_reasoning_result(result: &ReasoningResult) -> gmeow_errors::Result<String> {
+    Ok(ResultProjection::reasoning(result)?.to_ntriples())
+}
+
+/// One validated terminal projection, shared by its content address and output
+/// sinks. The producer retains the typed result through all intermediate stages.
+pub struct ResultProjection {
+    node_iri: String,
+    sink: Sink,
+}
+
+impl ResultProjection {
+    /// Prepare the complete selected result projection once.
+    ///
+    /// # Errors
+    /// Rejects invalid result evidence or an unrepresentable native receipt.
+    pub fn reasoning(result: &ReasoningResult) -> gmeow_errors::Result<Self> {
+        result.validate()?;
+        let sink = reasoning_sink(result)?;
+        let (mut sink, node_iri) =
+            content_addressed_sink(sink, RESULT_IRI_BASE, RESULT_PLACEHOLDER);
+        for axiom in result.inferred().iter().filter(|axiom| {
+            !axiom.is_edb
+                && axiom.world == GRAPH_REASONING
+                && axiom.rule_name.as_deref() == Some(crate::contextual::RULE_IRI)
+        }) {
+            sink.push(
+                Node::iri(&axiom.subject),
+                &axiom.predicate,
+                Node::Value(axiom.object.clone()),
+            );
+        }
+        Ok(Self { node_iri, sink })
+    }
+
+    /// Prepare one conjecture and its embedded reasoning evidence. The node
+    /// address and every terminal format share this single lowering.
+    ///
+    /// # Errors
+    /// Rejects invalid result evidence or an incomplete conjecture contract.
+    pub fn conjecture(input: &ConjectureVerdictInput) -> gmeow_errors::Result<Self> {
+        let (sink, node_iri) = conjecture_projection_sink(input)?;
+        Ok(Self { node_iri, sink })
+    }
+
+    /// Borrow the address minted during this exact projection.
+    pub fn node_iri(&self) -> &str {
+        &self.node_iri
+    }
+
+    /// Serialize only at the selected terminal text boundary.
+    pub fn to_ntriples(&self) -> String {
+        self.sink.render_lines().join("\n") + "\n"
+    }
+
+    /// Move the already-prepared native triples into the RDF sink.
+    ///
+    /// # Errors
+    /// Rejects malformed RDF terms or statement metadata.
+    pub fn into_dataset(self) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+        native_dataset(self.sink)
+    }
+}
+
+/// Project the governed reasoning summary directly into a native dataset.
+///
+/// This shares the typed emission and content-address calculation with
+/// [`project_reasoning_result`], without serializing and reparsing RDF. Binding
+/// and marginal rows remain in the native result; their exact kind and count
+/// are represented here alongside the axes, provenance, and derived receipts.
+///
+/// # Errors
+/// Rejects a summary that cannot form a valid native RDF dataset.
+pub fn project_reasoning_dataset(
+    result: &ReasoningResult,
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    ResultProjection::reasoning(result)?.into_dataset()
+}
+
+/// Retain a contextual assessment's result and evidence directly as native RDF.
+///
+/// # Errors
+/// Rejects an invalid result or malformed native statement metadata.
+pub fn project_contextual_assessment_dataset(
+    assessment: &crate::contextual::ContextualAssessment,
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    native_dataset(contextual_assessment_sink(assessment)?.0)
+}
+
+/// Publish the canonical contextual records directly into native execution.
+/// The terminal RDF writer and the native producer share the same projection;
+/// no dataset, parser, or lexical RDF round trip mediates these statements.
+pub(crate) fn contextual_assessment_facts(
+    assessment: &crate::contextual::ContextualAssessment,
+) -> gmeow_errors::Result<Vec<crate::rule_ir::Fact>> {
+    fn value(node: Node) -> gmeow_errors::Result<purrdf::TermValue> {
+        match node {
+            Node::Iri(iri) => Ok(purrdf::TermValue::iri(iri)),
+            Node::Value(value) => Ok(value),
+            Node::Lit { lex, datatype } => Ok(purrdf::TermValue::Literal {
+                lexical_form: lex,
+                datatype,
+                language: None,
+                direction: None,
+            }),
+            Node::Blank(_) | Node::SelfReference(_) => Err(result_err(
+                "native contextual projection contains an unresolved generated identity".into(),
+            )),
+        }
+    }
+    let (sink, _) = contextual_assessment_sink(assessment)?;
+    let mut facts = std::collections::BTreeMap::new();
+    let predicates = contextual_projection_predicates();
+    for row in sink.triples {
+        let fact = crate::rule_ir::Fact {
+            subject: value(row.subject)?,
+            predicate: row.predicate,
+            object: value(row.object)?,
+        };
+        if fact.subject.as_iri().is_none() {
+            return Err(result_err(
+                "native contextual projection requires IRI subjects".into(),
+            ));
+        }
+        let declared = if fact.predicate == RDF_TYPE {
+            fact.object
+                .as_iri()
+                .is_some_and(|class| CONTEXTUAL_CLASSES.iter().any(|local| class == logic(local)))
+        } else {
+            predicates.contains(&fact.predicate)
+        };
+        if !declared {
+            return Err(result_err(format!(
+                "contextual projection writes an undeclared native effect: {}",
+                fact.predicate
+            )));
+        }
+        facts.insert(fact.key(), fact);
+    }
+    Ok(facts.into_values().collect())
+}
+
+const CONTEXTUAL_CLASSES: &[&str] = &[
+    "ReasoningResult",
+    "ContextualJudgment",
+    "ModalInference",
+    "Derivation",
+    "ObservedTemporalPrefix",
+    "ObservedPathPrefix",
+];
+
+fn contextual_projection_predicates() -> std::collections::BTreeSet<String> {
+    [
+        "contextualResult",
+        "incompleteCause",
+        "observedTemporalPrefix",
+        "prefixJournal",
+        "prefixEnactment",
+        "prefixHead",
+        "prefixInitialHead",
+        "prefixHeadHash",
+        "journalBoundary",
+        "observedPath",
+        "pathObservationWorld",
+        "pathObservationStandpoint",
+        "pathObservationDigest",
+        "pathBoundary",
+        "judgmentContext",
+        "judgmentFormulaKey",
+        "judgmentInstruction",
+        "judgmentContextHash",
+        "inferenceContext",
+        "derivationIdentifier",
+        "resultInput",
+        "resultEvaluation",
+        "resultCompleteness",
+        "resultInformation",
+        "resultPreservationPolarity",
+        "resultUnsupportedConstruct",
+        "resultClaim",
+        "resultContractHash",
+        "resultQuery",
+        "resultConclusion",
+        "resultProof",
+        "resultCounterproof",
+        "derivationId",
+        "citesIri",
+        "resultWorld",
+        "resultStandpoint",
+        "resultAttributedContext",
+        "resultTime",
+        "resultPath",
+        "resultEngineName",
+        "resultEngineVersion",
+        "resultBudgetConsumed",
+        "resultBudgetAllowance",
+        "resultBudgetLimit",
+        "resultCertifiedFragment",
+        "resultAssumption",
+        "resultPayloadKind",
+        "resultPayloadCount",
+    ]
+    .into_iter()
+    .map(logic)
+    .chain([
+        PROV_WAS_DERIVED_FROM.to_owned(),
+        PROV_VALUE.to_owned(),
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies".to_owned(),
+        gmeow("inWorld"),
+        gmeow("viaRule"),
+        gmeow("inferenceKind"),
+    ])
+    .collect()
+}
+
+/// Complete typed write contract of the contextual projection. Emission checks
+/// every row against this same declaration before a native candidate is created.
+pub(crate) fn contextual_projection_effects() -> Vec<crate::physical::StatementPattern> {
+    contextual_projection_predicates()
+        .iter()
+        .map(|predicate| crate::physical::StatementPattern::relation(Some(predicate), None))
+        .chain(CONTEXTUAL_CLASSES.iter().map(|class| {
+            crate::physical::StatementPattern::relation(Some(RDF_TYPE), Some(&logic(class)))
+        }))
+        .collect()
+}
+
+/// The result vocabulary owns its statement layer. Reifier declarations and all
+/// their annotations are retained in the same graph as the ordinary records.
+fn native_dataset(sink: Sink) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    const REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+    let reifiers = sink
+        .triples
+        .iter()
+        .filter(|row| row.predicate == REIFIES)
+        .map(|row| match &row.subject {
+            Node::Iri(iri) => Ok(iri.clone()),
+            _ => Err(result_err(
+                "native contextual receipt requires an IRI identity".into(),
+            )),
+        })
+        .collect::<gmeow_errors::Result<BTreeSet<_>>>()?;
+    let native = |node: Node| -> gmeow_errors::Result<purrdf::RdfTerm> {
+        Ok(match node {
+            Node::Iri(iri) => purrdf::RdfTerm::Iri(iri),
+            Node::SelfReference(_) => {
+                unreachable!("finalization resolves every generated reference")
+            }
+            Node::Blank(id) => purrdf::RdfTerm::BlankNode(id),
+            Node::Value(value) => crate::reason::term_value_to_rdf_term(&value)?,
+            Node::Lit { lex, datatype } => {
+                purrdf::RdfTerm::Literal(purrdf::RdfLiteral::typed(lex, datatype))
+            }
+        })
+    };
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for triple in sink.triples {
+        let annotation = matches!(&triple.subject, Node::Iri(iri) if reifiers.contains(iri));
+        let subject = native(triple.subject)?;
+        let object = native(triple.object)?;
+        if triple.predicate == REIFIES {
+            let purrdf::RdfTerm::Triple(statement) = object else {
+                return Err(result_err(
+                    "native contextual reifier requires a quoted statement".into(),
+                ));
+            };
+            builder.push_owned_reifier(&purrdf::RdfReifier::new(subject, *statement));
+        } else if annotation {
+            builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
+                subject,
+                triple.predicate,
+                object,
+            ));
+        } else {
+            builder.push_owned_quad(&purrdf::RdfQuad::new(subject, triple.predicate, object));
+        }
+    }
+    builder
+        .freeze()
+        .map_err(|error| result_err(error.to_string()))
+}
+
+fn reasoning_sink(result: &ReasoningResult) -> gmeow_errors::Result<Sink> {
     let mut sink = Sink::default();
-    let subject = Node::iri(RESULT_PLACEHOLDER);
+    let subject = Node::SelfReference(RESULT_PLACEHOLDER.to_owned());
 
     sink.push(
         subject.clone(),
@@ -280,12 +834,12 @@ pub fn project_reasoning_result(result: &ReasoningResult) -> String {
     project_preservation(&mut sink, &subject, &result.preservation);
 
     // ── provenance ───────────────────────────────────────────────────────────────
-    project_provenance(&mut sink, &subject, &result.provenance);
+    project_provenance(&mut sink, &subject, &result.provenance)?;
 
     // ── payload summary ──────────────────────────────────────────────────────────
     project_payload(&mut sink, &subject, &result.payload);
 
-    finalize(sink)
+    Ok(sink)
 }
 
 /// Emit the preservation axis as a set of polarity links + unsupported-construct
@@ -308,7 +862,16 @@ fn project_preservation(sink: &mut Sink, subject: &Node, claim: &PreservationCla
 }
 
 /// Emit the full provenance bundle (every field, sorted where it is a set/list).
-fn project_provenance(sink: &mut Sink, subject: &Node, prov: &ResultProvenance) {
+fn project_provenance(
+    sink: &mut Sink,
+    subject: &Node,
+    prov: &ResultProvenance,
+) -> gmeow_errors::Result<()> {
+    sink.push(
+        subject.clone(),
+        logic("resultClaim"),
+        Node::iri(logic(prov.claim.local_name())),
+    );
     sink.push(
         subject.clone(),
         logic("resultContractHash"),
@@ -357,6 +920,17 @@ fn project_provenance(sink: &mut Sink, subject: &Node, prov: &ResultProvenance) 
     for witness in sorted_witnesses {
         project_witness(sink, subject, witness);
     }
+    if let Some(execution) = &prov.native_execution {
+        sink.push(
+            subject.clone(),
+            logic("resultNativeExecution"),
+            Node::Lit {
+                lex: native::encode(execution)?,
+                datatype: "http://www.w3.org/2001/XMLSchema#hexBinary".into(),
+            },
+        );
+    }
+    Ok(())
 }
 
 /// Emit a proof/counterproof derivation reference (id + sorted cited IRIs) as a
@@ -394,6 +968,13 @@ fn project_context(sink: &mut Sink, subject: &Node, ctx: &ResultContext) {
             subject.clone(),
             logic("resultStandpoint"),
             Node::iri(standpoint.clone()),
+        );
+    }
+    if let Some(context) = &ctx.attributed {
+        sink.push(
+            subject.clone(),
+            logic("resultAttributedContext"),
+            Node::iri(context.clone()),
         );
     }
     if let Some(time) = &ctx.time {
@@ -535,7 +1116,7 @@ fn project_derived_axioms(sink: &mut Sink, subject: &Node, axioms: &[InferredAxi
         sink.push(
             node.clone(),
             logic("axiomObject"),
-            axiom_term(&axiom.object),
+            Node::Value(axiom.object.clone()),
         );
         sink.push(node.clone(), logic("axiomWorld"), axiom_term(&axiom.world));
 
@@ -555,14 +1136,18 @@ fn project_derived_axioms(sink: &mut Sink, subject: &Node, axioms: &[InferredAxi
             PROV_VALUE,
             Node::string(encode_receipt_rule_identity(&receipt.raw_rule_identity)),
         );
-        for (index, (source, (premise_subject, premise_predicate, premise_object))) in receipt
-            .row
-            .source_quad_ids
-            .into_iter()
-            .zip(&axiom.premises)
-            .enumerate()
-        {
+        if let Some(evidence) = &axiom.modal_evaluation {
+            sink.push(node.clone(), PROV_VALUE, Node::string(evidence.to_wire()));
+        }
+        for source in receipt.row.source_quad_ids {
             sink.push(node.clone(), PROV_WAS_DERIVED_FROM, Node::iri(source));
+        }
+        // Keep the complete native premise list even when importing a malformed
+        // record for diagnostics. Zipping it with sources would silently discard
+        // an extra premise instead of letting receipt admission reject it.
+        for (index, (premise_subject, premise_predicate, premise_object)) in
+            axiom.premises.iter().enumerate()
+        {
             sink.push(
                 node.clone(),
                 PROV_VALUE,
@@ -587,6 +1172,11 @@ fn encode_premise(index: usize, subject: &str, predicate: &str, object: &str) ->
 /// Literals are carried as `xsd:string` (the projection records the answer *shape*,
 /// and the full closure with exact datatypes rides the reason stage's dataset).
 fn axiom_term(value: &str) -> Node {
+    // A receipt carries the exact source spelling as a lexical value, just as
+    // literal objects below do. Triple terms must never enter the IRI branch.
+    if value.starts_with("<<") {
+        return Node::string(value.to_owned());
+    }
     if let Some(inner) = value.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
         return Node::iri(inner.to_owned());
     }
@@ -601,37 +1191,22 @@ fn axiom_term(value: &str) -> Node {
     Node::iri(value.to_owned())
 }
 
-/// Substitute the content-addressed subject IRI into the placeholder-built body and
-/// emit the sorted, trailing-newline N-Triples document.
-fn finalize(sink: Sink) -> String {
-    finalize_with_base(sink, RESULT_IRI_BASE, RESULT_PLACEHOLDER)
-}
-
-/// Content-address a sink's placeholder-built body against `iri_base` (the node IRI is
-/// `iri_base + sha256(body)`), substitute `placeholder_urn` for the minted IRI, re-sort,
-/// and emit the trailing-newline N-Triples document. The generalization of [`finalize`]
-/// over the (base, placeholder) pair so a second projection (the conjecture verdict) can
-/// mint content-addressed nodes off its OWN base without colliding with the reasoning
-/// result base.
-fn finalize_with_base(sink: Sink, iri_base: &str, placeholder_urn: &str) -> String {
-    let lines = sink.render_lines();
-    let node_iri = format!("{iri_base}{}", digest_lines(&lines));
-    let placeholder = format!("<{placeholder_urn}>");
-    let real = format!("<{node_iri}>");
-
-    let mut out = String::new();
-    // Substitute then RE-SORT: the subject swap changes the leading term, so the
-    // pre-substitution sort no longer holds. Re-sorting keeps the bytes canonical.
-    let mut substituted: Vec<String> = lines
-        .iter()
-        .map(|l| l.replace(&placeholder, &real))
-        .collect();
-    substituted.sort();
-    for line in substituted {
-        out.push_str(&line);
-        out.push('\n');
+/// Resolve generated references without changing authored IRIs or literal data.
+/// Encoded proof premises retain exactly the bytes their receipts authenticate.
+fn content_addressed_sink(mut sink: Sink, iri_base: &str, placeholder_urn: &str) -> (Sink, String) {
+    let node_iri = format!("{iri_base}{}", digest_lines(&sink.render_lines()));
+    for triple in &mut sink.triples {
+        for node in [&mut triple.subject, &mut triple.object] {
+            if let Node::SelfReference(placeholder) = node {
+                assert_eq!(
+                    placeholder, placeholder_urn,
+                    "the generated reference belongs to this projection"
+                );
+                *node = Node::Iri(node_iri.clone());
+            }
+        }
     }
-    out
+    (sink, node_iri)
 }
 
 /// The `sha256` (lowercase hex) of the newline-joined body lines — the content-address
@@ -665,18 +1240,8 @@ fn sha256_hex(s: &str) -> String {
 
 /// The content-addressed result-node IRI for `result` (the subject the projection
 /// mints). Useful for a consumer that wants the node IRI without re-parsing.
-pub fn result_node_iri(result: &ReasoningResult) -> String {
-    let body = project_reasoning_result(result);
-    // The node IRI is the unique `RESULT_IRI_BASE`-prefixed subject in the body.
-    for line in body.lines() {
-        if let Some(rest) = line.strip_prefix(&format!("<{RESULT_IRI_BASE}"))
-            && let Some(end) = rest.find('>')
-        {
-            return format!("{RESULT_IRI_BASE}{}", &rest[..end]);
-        }
-    }
-    // Unreachable: the type triple always carries the node subject.
-    RESULT_IRI_BASE.to_owned()
+pub fn result_node_iri(result: &ReasoningResult) -> gmeow_errors::Result<String> {
+    Ok(ResultProjection::reasoning(result)?.node_iri)
 }
 
 // ── Assumption / budget-limit wire helpers (stable, projection-local) ────────────
@@ -737,26 +1302,67 @@ fn budget_limit_from_wire(wire: &str) -> Option<BudgetLimit> {
 /// Returns `Err` if the body is missing the result subject, an axis IRI is
 /// unrecognized, or a required scalar provenance field is absent (fail-closed).
 pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningResult> {
-    let triples = parse_nt(nt_body)?;
-    // The single subject typed logic:ReasoningResult.
-    let subject = triples
+    let dataset = parse_nt(nt_body)?;
+    parse_reasoning_dataset(&dataset, GraphMatch::Default)
+}
+
+/// Recover a reasoning handle directly from one selected graph in a native dataset.
+/// PurRDF's indexes and borrowed terms are reused; no graph copy, RDF text, or
+/// second triple index is constructed. Derived rows retain every receipt check.
+///
+/// # Errors
+/// Rejects malformed result projections and missing required provenance.
+pub fn parse_reasoning_dataset(
+    dataset: &RdfDataset,
+    graph: GraphMatch,
+) -> gmeow_errors::Result<ReasoningResult> {
+    read_reasoning_result(&ResultGraph::new(dataset, graph)?)
+}
+
+fn read_reasoning_result(triples: &ResultGraph<'_>) -> gmeow_errors::Result<ReasoningResult> {
+    let results = triples
         .iter()
-        .find(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("ReasoningResult")))
-        .map(|t| t.subject.clone())
-        .ok_or_else(|| {
-            result_err("graph/reasoning: no logic:ReasoningResult subject".to_owned())
-        })?;
+        .filter(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("ReasoningResult")))
+        .map(|t| t.subject)
+        .collect::<BTreeSet<_>>();
+    if results.is_empty() {
+        return Err(result_err(
+            "graph/reasoning: no logic:ReasoningResult subject".into(),
+        ));
+    }
+    // An aggregate can also carry contextual children. Their request links
+    // distinguish them from the aggregate handle; row order cannot choose it.
+    let candidates = if results.len() > 1 {
+        let contextual = triples
+            .iter()
+            .filter(|t| t.predicate == logic("contextualResult"))
+            .filter_map(|t| t.object_node())
+            .collect::<BTreeSet<_>>();
+        results
+            .difference(&contextual)
+            .copied()
+            .collect::<BTreeSet<_>>()
+    } else {
+        results
+    };
+    if candidates.len() != 1 {
+        return Err(result_err(format!(
+            "graph/reasoning: expected one aggregate logic:ReasoningResult subject, found {}",
+            candidates.len(),
+        )));
+    }
+    let subject = candidates.into_iter().next().expect("one result");
 
     let one_iri = |local: &str| -> Option<String> {
         triples
-            .iter()
-            .find(|t| t.subject == subject && t.predicate == logic(local))
+            .for_subject(subject)
+            .find(|t| t.predicate == logic(local))
             .and_then(|t| t.object_iri())
     };
     let one_str = |local: &str| -> Option<String> {
         triples
-            .iter()
-            .find(|t| t.subject == subject && t.predicate == logic(local))
+            .for_subject(subject)
+            .find(|t| t.predicate == logic(local))
             .and_then(|t| t.object_string())
     };
 
@@ -780,7 +1386,7 @@ pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningRes
 
     // preservation: the polarity set + unsupported constructs.
     let mut preservation = PreservationClaim::default();
-    for t in &triples {
+    for t in triples.for_subject(subject) {
         if t.subject == subject
             && t.predicate == logic("resultPreservationPolarity")
             && let Some(iri) = t.object_iri()
@@ -805,13 +1411,75 @@ pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningRes
         req(one_str("resultContractHash"), "resultContractHash")?,
         world.clone(),
     );
+    let claim_rows: Vec<_> = triples
+        .for_subject(subject)
+        .filter(|row| row.predicate == logic("resultClaim"))
+        .collect();
+    let [claim] = claim_rows.as_slice() else {
+        return Err(result_err(
+            "graph/reasoning: expected exactly one resultClaim".into(),
+        ));
+    };
+    let claim_iri = claim.object_iri().ok_or_else(|| {
+        result_err("graph/reasoning: resultClaim must name a proposition scope".into())
+    })?;
+    prov.claim = claim_iri
+        .strip_prefix(LOGIC_NAMESPACE)
+        .and_then(ResultClaim::from_local)
+        .ok_or_else(|| result_err("graph/reasoning: unknown resultClaim".into()))?;
+    let execution_rows = triples
+        .for_subject(subject)
+        .filter(|row| row.predicate == logic("resultNativeExecution"))
+        .collect::<Vec<_>>();
+    prov.native_execution = match execution_rows.as_slice() {
+        [] => None,
+        [row] => match row.object {
+            TermRef::Literal {
+                lexical,
+                datatype,
+                language: None,
+                direction: None,
+            } if matches!(
+                triples.dataset.resolve(datatype),
+                TermRef::Iri("http://www.w3.org/2001/XMLSchema#hexBinary")
+            ) =>
+            {
+                Some(native::decode(lexical)?)
+            }
+            _ => {
+                return Err(result_err(
+                    "graph/reasoning: resultNativeExecution requires hexBinary".into(),
+                ));
+            }
+        },
+        _ => {
+            return Err(result_err(
+                "graph/reasoning: duplicate resultNativeExecution".into(),
+            ));
+        }
+    };
     prov.query = req(one_str("resultQuery"), "resultQuery")?;
     prov.conclusion = req(one_str("resultConclusion"), "resultConclusion")?;
-    prov.proof = parse_derivation(&triples, &subject, "resultProof");
-    prov.counterproof = parse_derivation(&triples, &subject, "resultCounterproof");
+    prov.proof = parse_derivation(triples, subject, "resultProof")?;
+    prov.counterproof = parse_derivation(triples, subject, "resultCounterproof")?;
+    let attributed_contexts = triples
+        .for_subject(subject)
+        .filter(|triple| triple.predicate == logic("resultAttributedContext"))
+        .map(|triple| {
+            triple.object_iri().ok_or_else(|| {
+                result_err("graph/reasoning: resultAttributedContext must be an IRI".into())
+            })
+        })
+        .collect::<gmeow_errors::Result<BTreeSet<_>>>()?;
+    if attributed_contexts.len() > 1 {
+        return Err(result_err(
+            "graph/reasoning: resultAttributedContext must be single-valued".into(),
+        ));
+    }
     prov.context = ResultContext {
         world,
         standpoint: one_iri("resultStandpoint"),
+        attributed: attributed_contexts.into_iter().next(),
         time: one_str("resultTime"),
         path: one_iri("resultPath"),
     };
@@ -832,7 +1500,7 @@ pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningRes
     };
     prov.certified_fragment = one_iri("resultCertifiedFragment");
     prov.projection_class = preservation.clone();
-    for t in &triples {
+    for t in triples.for_subject(subject) {
         if t.subject == subject
             && t.predicate == logic("resultAssumption")
             && let Some(iri) = t.object_iri()
@@ -841,106 +1509,190 @@ pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningRes
             prov.assumptions.insert(a);
         }
     }
-    prov.contradiction_witnesses = parse_witnesses(&triples, &subject);
+    prov.contradiction_witnesses = parse_witnesses(triples, subject)?;
     prov.contradiction_witnesses.sort();
 
     // Payload discriminant — derived rows retain their complete receipts.
     let payload = match one_str("resultPayloadKind").as_deref() {
-        Some("inferred") => ResultPayload::Inferred(parse_derived_axioms(&triples, &subject)?),
+        Some("inferred") => ResultPayload::Inferred(parse_derived_axioms(triples, subject)?),
         Some("bindings") => ResultPayload::Bindings(Vec::new()),
         Some("marginals") => ResultPayload::Marginals(Vec::new()),
         _ => ResultPayload::Empty,
     };
 
-    Ok(ReasoningResult::new(
+    let result = ReasoningResult {
         input,
         evaluation,
         completeness,
         preservation,
         information,
-        prov,
+        provenance: prov,
         payload,
-    ))
+        row_schema: None,
+    };
+    result.validate()?;
+    Ok(result)
 }
 
-/// Parse a proof/counterproof derivation node linked by `predicate_local`.
-fn parse_derivation(
-    triples: &[ParsedTriple],
-    subject: &str,
+/// Admit a linked component by its RDF role in the selected graph. Ordinary
+/// results use blank resources; contextual results give the same components
+/// stable IRIs. Literal and quoted terms never become component addresses.
+fn component_node(
+    triples: &ResultGraph<'_>,
+    link: ParsedTriple<'_>,
+    class: &str,
+) -> gmeow_errors::Result<TermId> {
+    let node = link.object_resource().ok_or_else(|| {
+        result_err(format!(
+            "graph/reasoning: {} must link a {class} resource",
+            link.predicate
+        ))
+    })?;
+    let expected = logic(class);
+    if !triples.for_subject(node).any(|field| {
+        field.predicate == RDF_TYPE
+            && matches!(field.object, TermRef::Iri(iri) if iri == expected.as_str())
+    }) {
+        return Err(result_err(format!(
+            "graph/reasoning: {} component must be typed logic:{class} in the selected graph",
+            link.predicate
+        )));
+    }
+    Ok(node)
+}
+
+/// Resolve a single selected component link, distinguishing genuine absence
+/// from multiple or malformed links instead of silently discarding evidence.
+fn optional_component(
+    triples: &ResultGraph<'_>,
+    subject: TermId,
     predicate_local: &str,
-) -> Option<DerivationRef> {
-    let node = triples
-        .iter()
-        .find(|t| t.subject == subject && t.predicate == logic(predicate_local))
-        .and_then(|t| t.object_blank())?;
-    let derivation_id = triples
-        .iter()
-        .find(|t| t.subject == node && t.predicate == logic("derivationId"))
-        .and_then(|t| t.object_string())?;
+    class: &str,
+) -> gmeow_errors::Result<Option<TermId>> {
+    let predicate = logic(predicate_local);
+    let mut links = triples
+        .for_subject(subject)
+        .filter(|field| field.predicate == predicate);
+    let Some(link) = links.next() else {
+        return Ok(None);
+    };
+    if links.next().is_some() {
+        return Err(result_err(format!(
+            "graph/reasoning: {predicate_local} must be single-valued"
+        )));
+    }
+    component_node(triples, link, class).map(Some)
+}
+
+/// Borrow one required component field without choosing among competing values.
+fn component_field<'a>(
+    triples: &ResultGraph<'a>,
+    node: TermId,
+    local: &str,
+) -> gmeow_errors::Result<ParsedTriple<'a>> {
+    let predicate = logic(local);
+    let mut fields = triples
+        .for_subject(node)
+        .filter(|field| field.predicate == predicate);
+    let field = fields.next().ok_or_else(|| {
+        result_err(format!(
+            "graph/reasoning: component {node:?} is missing {local}"
+        ))
+    })?;
+    if fields.next().is_some() {
+        return Err(result_err(format!(
+            "graph/reasoning: component {node:?} requires one {local}"
+        )));
+    }
+    Ok(field)
+}
+
+/// Component identifiers and encoded premises are authored as xsd:string. A
+/// language, direction or different datatype cannot be erased into that role.
+fn component_text(
+    triples: &ResultGraph<'_>,
+    field: ParsedTriple<'_>,
+) -> gmeow_errors::Result<String> {
+    match field.object {
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language: None,
+            direction: None,
+        } if matches!(triples.dataset.resolve(datatype), TermRef::Iri(XSD_STRING)) => {
+            Ok(lexical.to_owned())
+        }
+        _ => Err(result_err(format!(
+            "graph/reasoning: {} must be an xsd:string literal",
+            field.predicate
+        ))),
+    }
+}
+
+/// Parse the complete proof/counterproof component reached from this result.
+fn parse_derivation(
+    triples: &ResultGraph<'_>,
+    subject: TermId,
+    predicate_local: &str,
+) -> gmeow_errors::Result<Option<DerivationRef>> {
+    let Some(node) = optional_component(triples, subject, predicate_local, "Derivation")? else {
+        return Ok(None);
+    };
+    let derivation_id = component_text(triples, component_field(triples, node, "derivationId")?)?;
     let cited_iris: BTreeSet<String> = triples
-        .iter()
-        .filter(|t| t.subject == node && t.predicate == logic("citesIri"))
-        .filter_map(|t| t.object_iri())
-        .collect();
-    Some(DerivationRef {
+        .for_subject(node)
+        .filter(|t| t.predicate == logic("citesIri"))
+        .map(|t| {
+            t.object_iri()
+                .ok_or_else(|| result_err("graph/reasoning: citesIri must be an IRI".into()))
+        })
+        .collect::<gmeow_errors::Result<_>>()?;
+    Ok(Some(DerivationRef {
         derivation_id,
         cited_iris,
-    })
+    }))
 }
 
 /// Parse the contradiction witnesses (the premises are recovered as opaque
 /// `s p o` strings split back into a 3-tuple).
-fn parse_witnesses(triples: &[ParsedTriple], subject: &str) -> Vec<ContradictionWitness> {
+fn parse_witnesses(
+    triples: &ResultGraph<'_>,
+    subject: TermId,
+) -> gmeow_errors::Result<Vec<ContradictionWitness>> {
     let mut out = Vec::new();
     for link in triples
-        .iter()
-        .filter(|t| t.subject == subject && t.predicate == logic("resultContradiction"))
+        .for_subject(subject)
+        .filter(|t| t.predicate == logic("resultContradiction"))
     {
-        let Some(node) = link.object_blank() else {
-            continue;
-        };
-        out.push(parse_witness_body(triples, &node));
+        let node = component_node(triples, link, "ContradictionWitness")?;
+        out.push(parse_witness_body(triples, node)?);
     }
-    out
+    Ok(out)
 }
 
 /// Parse derived-axiom rows and verify each complete derivation receipt.
 fn parse_derived_axioms(
-    triples: &[ParsedTriple],
-    subject: &str,
+    triples: &ResultGraph<'_>,
+    subject: TermId,
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     let mut out = Vec::new();
     for link in triples
-        .iter()
-        .filter(|t| t.subject == subject && t.predicate == logic("resultDerivedAxiom"))
+        .for_subject(subject)
+        .filter(|t| t.predicate == logic("resultDerivedAxiom"))
     {
-        let Some(node) = link.object_blank() else {
-            continue;
-        };
-        // axiom_term() can emit IRIs, blank nodes (_:b), or string literals.
-        // The original code only called object_iri(), so blank-node and literal
-        // axiom terms were silently lost (empty-string fallback).  Reconstruct
-        // all three shapes so every emitted axiom term round-trips.
-        //
-        // IRI: object_iri() returns the bare IRI value (no angle brackets),
-        //   which matches both the bare-IRI stored form (the test fixture) and
-        //   the bracketed <iri> form from the native chase (both normalise to
-        //   the same IRI node on emission, and the bare value round-trips).
-        // Blank: object_blank() returns the label without "_:"; re-add it so
-        //   axiom_term() on the next projection recognises the blank form.
-        // Literal: object_string() returns the unescaped lex, which IS the
-        //   original value stored in InferredAxiom (axiom_term kept the whole
-        //   `"lit"` form as the lex, so it survives escape→unescape intact).
+        let node = component_node(triples, link, "DerivedAxiom")?;
+        // Subject, predicate and context retain their resource surfaces. The
+        // object below is recovered directly from the native term dictionary.
         let field = |local: &str| -> String {
             let t = triples
-                .iter()
-                .find(|t| t.subject == node && t.predicate == logic(local));
+                .for_subject(node)
+                .find(|t| t.predicate == logic(local));
             match t {
                 Some(t) => {
                     if let Some(iri) = t.object_iri() {
                         iri
                     } else if let Some(b) = t.object_blank() {
-                        format!("_:{b}")
+                        format!("_:{}", triples.blank_label(b))
                     } else {
                         t.object_string().unwrap_or_default()
                     }
@@ -949,63 +1701,70 @@ fn parse_derived_axioms(
             }
         };
         let object = triples
-            .iter()
-            .find(|triple| triple.subject == node && triple.predicate == logic("axiomObject"))
-            .map(|triple| match &triple.object {
-                ParsedObject::Iri(iri) => format!("<{iri}>"),
-                ParsedObject::Blank(blank) => format!("_:{blank}"),
-                ParsedObject::Lit(literal) => literal.clone(),
-            })
-            .unwrap_or_default();
-        let rule_name = triples
-            .iter()
-            .find(|triple| triple.subject == node && triple.predicate == gmeow("viaRule"))
-            .and_then(ParsedTriple::object_iri)
+            .for_subject(node)
+            .find(|triple| triple.predicate == logic("axiomObject"))
+            .map(|triple| triples.dataset.term_value(triple.object_id))
             .ok_or_else(|| {
                 result_err(format!(
-                    "graph/reasoning: derived axiom {node} is missing its full gmeow:viaRule IRI"
+                    "graph/reasoning: derived axiom {node:?} is missing its native object"
+                ))
+            })?;
+        let rule_name = triples
+            .for_subject(node)
+            .find(|triple| triple.predicate == gmeow("viaRule"))
+            .and_then(|t| t.object_iri())
+            .ok_or_else(|| {
+                result_err(format!(
+                    "graph/reasoning: derived axiom {node:?} is missing its full gmeow:viaRule IRI"
                 ))
             })?;
         let derivation_id = triples
-            .iter()
-            .find(|triple| {
-                triple.subject == node && triple.predicate == logic("derivationIdentifier")
-            })
-            .and_then(ParsedTriple::object_string)
+            .for_subject(node)
+            .find(|triple| triple.predicate == logic("derivationIdentifier"))
+            .and_then(|t| t.object_string())
             .ok_or_else(|| {
                 result_err(format!(
-                    "graph/reasoning: derived axiom {node} is missing logic:derivationIdentifier"
+                    "graph/reasoning: derived axiom {node:?} is missing logic:derivationIdentifier"
                 ))
             })?;
         let emitted_sources: BTreeSet<String> = triples
-            .iter()
-            .filter(|triple| triple.subject == node && triple.predicate == PROV_WAS_DERIVED_FROM)
+            .for_subject(node)
+            .filter(|triple| triple.predicate == PROV_WAS_DERIVED_FROM)
             .map(|triple| {
                 triple.object_iri().ok_or_else(|| {
                     result_err(format!(
-                        "graph/reasoning: derived axiom {node} has a non-IRI source reifier"
+                        "graph/reasoning: derived axiom {node:?} has a non-IRI source reifier"
                     ))
                 })
             })
             .collect::<gmeow_errors::Result<_>>()?;
         let mut premises_by_index = BTreeMap::new();
         let mut receipt_rule_identity = None;
+        let mut modal_evaluation = None;
         for wire in triples
-            .iter()
-            .filter(|triple| triple.subject == node && triple.predicate == PROV_VALUE)
+            .for_subject(node)
+            .filter(|triple| triple.predicate == PROV_VALUE)
         {
             let wire = wire.object_string().ok_or_else(|| {
                 result_err(format!(
-                    "graph/reasoning: derived axiom {node} has a non-literal receipt value"
+                    "graph/reasoning: derived axiom {node:?} has a non-literal receipt value"
                 ))
             })?;
+            if let Some(evidence) = crate::modal::ModalEvaluation::from_wire(&wire) {
+                if modal_evaluation.replace(evidence?).is_some() {
+                    return Err(result_err(
+                        "graph/reasoning: repeated contextual modal evaluation".to_owned(),
+                    ));
+                }
+                continue;
+            }
             if let Some(raw_rule_identity) = decode_receipt_rule_identity(&wire) {
                 if receipt_rule_identity
                     .replace(raw_rule_identity.to_owned())
                     .is_some()
                 {
                     return Err(result_err(format!(
-                        "graph/reasoning: derived axiom {node} repeats its raw receipt rule identity"
+                        "graph/reasoning: derived axiom {node:?} repeats its raw receipt rule identity"
                     )));
                 }
                 continue;
@@ -1013,7 +1772,7 @@ fn parse_derived_axioms(
             let (index, premise) = decode_premise(&wire)?;
             if premises_by_index.insert(index, premise).is_some() {
                 return Err(result_err(format!(
-                    "graph/reasoning: derived axiom {node} repeats premise index {index}"
+                    "graph/reasoning: derived axiom {node:?} repeats premise index {index}"
                 )));
             }
         }
@@ -1023,21 +1782,22 @@ fn parse_derived_axioms(
             .ne(0..premises_by_index.len())
         {
             return Err(result_err(format!(
-                "graph/reasoning: derived axiom {node} premise indexes are not contiguous from zero"
+                "graph/reasoning: derived axiom {node:?} premise indexes are not contiguous from zero"
             )));
         }
         let receipt_rule_identity = receipt_rule_identity.ok_or_else(|| {
             result_err(format!(
-                "graph/reasoning: derived axiom {node} is missing its raw receipt rule identity"
+                "graph/reasoning: derived axiom {node:?} is missing its raw receipt rule identity"
             ))
         })?;
         if canonical_rule_iri(&receipt_rule_identity) != rule_name {
             return Err(result_err(format!(
-                "graph/reasoning: derived axiom {node} public gmeow:viaRule does not canonicalize its raw receipt rule identity"
+                "graph/reasoning: derived axiom {node:?} public gmeow:viaRule does not canonicalize its raw receipt rule identity"
             )));
         }
         let premises: Vec<(String, String, String)> = premises_by_index.into_values().collect();
         let axiom = InferredAxiom {
+            modal_evaluation: modal_evaluation.map(Box::new),
             subject: field("axiomSubject"),
             predicate: field("axiomPredicate"),
             object,
@@ -1046,21 +1806,30 @@ fn parse_derived_axioms(
             rule_name: Some(receipt_rule_identity),
             premises,
         };
+        match &axiom.modal_evaluation {
+            Some(evidence) => evidence.validate_axiom(&axiom)?,
+            None if axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI) => {
+                return Err(result_err(
+                    "graph/reasoning: missing contextual modal evidence".to_owned(),
+                ));
+            }
+            None => {}
+        }
         let receipt = receipt_for_axiom(&axiom);
         if receipt.row.rule_iri != rule_name {
             return Err(result_err(format!(
-                "graph/reasoning: derived axiom {node} public firing-rule identity does not match its receipt"
+                "graph/reasoning: derived axiom {node:?} public firing-rule identity does not match its receipt"
             )));
         }
         let expected_sources: BTreeSet<String> = receipt.row.source_quad_ids.into_iter().collect();
         if emitted_sources != expected_sources {
             return Err(result_err(format!(
-                "graph/reasoning: derived axiom {node} source reifiers do not match its source premises"
+                "graph/reasoning: derived axiom {node:?} source reifiers do not match its source premises"
             )));
         }
         if receipt.row.derivation_id != derivation_id {
             return Err(result_err(format!(
-                "graph/reasoning: derived axiom {node} derivation identity does not match its rule and source premises"
+                "graph/reasoning: derived axiom {node:?} derivation identity does not match its rule and source premises"
             )));
         }
         out.push(axiom);
@@ -1119,81 +1888,155 @@ fn req<T>(v: Option<T>, what: &str) -> gmeow_errors::Result<T> {
     v.ok_or_else(|| result_err(format!("graph/reasoning: missing required field {what}")))
 }
 
-// ── graph/reasoning N-Triples → ParsedTriple (parsed by purrdf) ─────────────
+// ── Indexed native graph reader; text parsing only at the external boundary ──
 
-/// A parsed triple with resolved term shapes for the projection's closed vocabulary.
-struct ParsedTriple {
-    subject: String,
-    predicate: String,
-    object: ParsedObject,
+/// A borrowed row in the projection's closed vocabulary. Topology keeps native
+/// IDs, including blank scopes; only values entering a result become owned.
+#[derive(Clone, Copy)]
+struct ParsedTriple<'a> {
+    subject: TermId,
+    predicate: &'a str,
+    object_id: TermId,
+    object: TermRef<'a>,
 }
 
-enum ParsedObject {
-    Iri(String),
-    Blank(String),
-    Lit(String),
-}
-
-impl ParsedTriple {
+impl ParsedTriple<'_> {
     fn object_iri(&self) -> Option<String> {
-        match &self.object {
-            ParsedObject::Iri(i) => Some(i.clone()),
+        match self.object {
+            TermRef::Iri(iri) => Some(iri.to_owned()),
             _ => None,
         }
     }
-    fn object_blank(&self) -> Option<String> {
-        match &self.object {
-            ParsedObject::Blank(b) => Some(b.clone()),
-            _ => None,
-        }
+    fn object_blank(&self) -> Option<TermId> {
+        matches!(self.object, TermRef::Blank { .. }).then_some(self.object_id)
+    }
+    /// A component's resource address retains either its IRI or exact blank scope.
+    fn object_resource(&self) -> Option<TermId> {
+        matches!(self.object, TermRef::Iri(_) | TermRef::Blank { .. }).then_some(self.object_id)
+    }
+    fn object_node(&self) -> Option<TermId> {
+        matches!(self.object, TermRef::Iri(_)).then_some(self.object_id)
     }
     fn object_string(&self) -> Option<String> {
-        match &self.object {
-            ParsedObject::Lit(s) => Some(s.clone()),
+        match self.object {
+            TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
             _ => None,
         }
     }
 }
 
-/// Parse the projection's own `graph/reasoning` N-Triples body (the closed subset
-/// this module emits: `<iri>`/`_:b` subjects, `<iri>` predicates, and
-/// `<iri>`/`_:b`/`"lex"^^<dt>` objects) by delegating to purrdf's N-Triples parser
-/// and mapping onto this module's closed `ParsedTriple` vocabulary.
-///
-/// The projection records term SHAPES, not full fidelity: a literal object keeps
-/// only its lexical form (its datatype/language tag are intentionally dropped — the
-/// full-fidelity closure with exact datatypes rides the reason stage's dataset).
-/// Blank-node labels are carried bare (no `_:`), exactly as `purrdf::RdfTerm::BlankNode`
-/// yields them, so a subject blank compares equal to the object blank that links to it.
-fn parse_nt(body: &str) -> gmeow_errors::Result<Vec<ParsedTriple>> {
-    let dataset = purrdf::parse_dataset(body.as_bytes(), "application/n-triples", None)
-        .map_err(|e| result_err(format!("graph/reasoning: N-Triples parse: {e}")))?;
-    let mut out = Vec::new();
-    for quad in dataset.owned_quads() {
-        let subject = match quad.subject {
-            purrdf::RdfTerm::Iri(iri) => iri,
-            purrdf::RdfTerm::BlankNode(label) => label,
-            purrdf::RdfTerm::Literal(_) | purrdf::RdfTerm::Triple(_) => {
-                return Err(result_err("graph/reasoning: non-node subject".to_owned()));
-            }
+struct ResultGraph<'a> {
+    dataset: &'a RdfDataset,
+    graph: GraphMatch,
+    // Only the RDF 1.2 side tables need an auxiliary subject index. Ordinary
+    // verdict and axiom rows reuse the native dataset's existing index.
+    side_rows: BTreeMap<TermId, Vec<ParsedTriple<'a>>>,
+}
+
+impl<'a> ResultGraph<'a> {
+    fn new(dataset: &'a RdfDataset, graph: GraphMatch) -> gmeow_errors::Result<Self> {
+        let mut reader = Self {
+            dataset,
+            graph,
+            side_rows: BTreeMap::new(),
         };
-        let object = match quad.object {
-            purrdf::RdfTerm::Iri(iri) => ParsedObject::Iri(iri),
-            purrdf::RdfTerm::BlankNode(label) => ParsedObject::Blank(label),
-            purrdf::RdfTerm::Literal(lit) => ParsedObject::Lit(lit.lexical_form),
-            purrdf::RdfTerm::Triple(_) => {
-                return Err(result_err(
-                    "graph/reasoning: unexpected quoted-triple object".to_owned(),
-                ));
+        for (s, p, o, g) in dataset
+            .annotations_with_graph()
+            .filter(|row| graph.matches(row.3))
+        {
+            if dataset
+                .quads_for_pattern(Some(s), Some(p), Some(o), graph)
+                .next()
+                .is_none()
+            {
+                let row = reader.resolve(QuadIds { s, p, o, g });
+                reader.side_rows.entry(s).or_default().push(row);
             }
-        };
-        out.push(ParsedTriple {
-            subject,
-            predicate: quad.predicate,
-            object,
-        });
+        }
+        for (s, o, _) in dataset
+            .reifiers_with_graph()
+            .filter(|row| graph.matches(row.2))
+        {
+            const REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+            let ordinary = dataset.term_id_by_iri(REIFIES).is_some_and(|p| {
+                dataset
+                    .quads_for_pattern(Some(s), Some(p), Some(o), graph)
+                    .next()
+                    .is_some()
+            });
+            if !ordinary {
+                reader.side_rows.entry(s).or_default().push(ParsedTriple {
+                    subject: s,
+                    predicate: REIFIES,
+                    object_id: o,
+                    object: dataset.resolve(o),
+                });
+            }
+        }
+        for triple in reader.iter() {
+            if !matches!(
+                dataset.resolve(triple.subject),
+                TermRef::Iri(_) | TermRef::Blank { .. }
+            ) {
+                return Err(result_err("graph/reasoning: non-node subject".into()));
+            }
+        }
+        Ok(reader)
     }
-    Ok(out)
+
+    fn resolve(&self, quad: QuadIds) -> ParsedTriple<'a> {
+        let TermRef::Iri(predicate) = self.dataset.resolve(quad.p) else {
+            unreachable!("frozen RDF predicates are IRIs")
+        };
+        ParsedTriple {
+            subject: quad.s,
+            predicate,
+            object_id: quad.o,
+            object: self.dataset.resolve(quad.o),
+        }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = ParsedTriple<'a>> + '_ {
+        self.dataset
+            .quads_for_pattern(None, None, None, self.graph)
+            .map(|quad| self.resolve(quad))
+            .chain(
+                self.side_rows
+                    .values()
+                    .flat_map(|rows| rows.iter().copied()),
+            )
+    }
+
+    fn for_subject(&self, subject: TermId) -> impl Iterator<Item = ParsedTriple<'a>> + '_ {
+        self.dataset
+            .quads_for_pattern(Some(subject), None, None, self.graph)
+            .map(|quad| self.resolve(quad))
+            .chain(
+                self.side_rows
+                    .get(&subject)
+                    .into_iter()
+                    .flat_map(|rows| rows.iter().copied()),
+            )
+    }
+
+    fn blank_label(&self, id: TermId) -> &str {
+        let TermRef::Blank { label, .. } = self.dataset.resolve(id) else {
+            unreachable!("blank link checked")
+        };
+        label
+    }
+
+    fn node_iri(&self, id: TermId) -> String {
+        let TermRef::Iri(iri) = self.dataset.resolve(id) else {
+            unreachable!("IRI link checked")
+        };
+        iri.to_owned()
+    }
+}
+
+fn parse_nt(body: &str) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    purrdf::parse_dataset(body.as_bytes(), "application/n-triples", None)
+        .map_err(|e| result_err(format!("graph/reasoning: N-Triples parse: {e}")))
 }
 
 // ── The conjecture verdict → attributed RDF projection ──────────────────────────
@@ -1254,16 +2097,19 @@ pub struct ConjectureVerdictInput<'a> {
 /// node, linked via `logic:conjectureVerdict`), the refutation witness (when present), the
 /// provenance edges, the always-present `math:conjectureUnderTest` twin bridge (when a math
 /// statement is named), and the refutation-only `math:hasCounterexample` twin edge.
-pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
-    let answer = input.answer;
+pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> gmeow_errors::Result<String> {
+    Ok(ResultProjection::conjecture(input)?.to_ntriples())
+}
 
-    // The embedded reasoning-result graph keeps its OWN content-addressed node IRI; the
-    // conjecture node links to it rather than re-subjecting it.
-    let result_body = project_reasoning_result(&answer.verdict);
-    let result_iri = result_node_iri(&answer.verdict);
+fn conjecture_projection_sink(
+    input: &ConjectureVerdictInput,
+) -> gmeow_errors::Result<(Sink, String)> {
+    let answer = input.answer;
+    let result_projection = ResultProjection::reasoning(&answer.verdict)?;
+    let result_iri = result_projection.node_iri;
 
     let mut sink = Sink::default();
-    let subject = Node::iri(CONJECTURE_PLACEHOLDER);
+    let subject = Node::SelfReference(CONJECTURE_PLACEHOLDER.to_owned());
 
     sink.push(subject.clone(), RDF_TYPE, Node::iri(logic("Conjecture")));
     sink.push(
@@ -1355,7 +2201,7 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
         sink.push(
             subject.clone(),
             gmeow("wasDerivedFrom"),
-            Node::iri(result_iri),
+            Node::iri(&result_iri),
         );
     }
 
@@ -1383,10 +2229,9 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
             // The caller (`run_conjecture_test`) guarantees this is `Some` for a refuted
             // answer whose formula names a single predicate, and hard-fails otherwise — so a
             // missing predicate here is a broken caller contract, never a fabricated node.
-            let forbidden = input.forbidden_predicate.expect(
-                "caller contract: a refuted conjecture must carry its formula's principal \
-                 predicate as the anti-conjecture obligation's forbidden predicate",
-            );
+            let forbidden = input.forbidden_predicate.ok_or_else(|| {
+                result_err("a refuted conjecture requires its formula's principal predicate".into())
+            })?;
             let node = Node::iri(obligation_candidate_iri(input));
             sink.push(
                 subject.clone(),
@@ -1398,24 +2243,26 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
         ConjectureLifecycleState::Open | ConjectureLifecycleState::Withdrawn => {}
     }
 
-    let conjecture_body = finalize_with_base(sink, CONJECTURE_IRI_BASE, CONJECTURE_PLACEHOLDER);
-
-    // Merge the conjecture node graph with the embedded reasoning-result graph into one
-    // sorted, deduplicated N-Triples document (both are already canonical; the union is
-    // re-sorted so the whole graph round-trips).
-    let mut lines: BTreeSet<String> = BTreeSet::new();
-    for line in result_body.lines() {
-        lines.insert(line.to_owned());
+    let (mut sink, node_iri) =
+        content_addressed_sink(sink, CONJECTURE_IRI_BASE, CONJECTURE_PLACEHOLDER);
+    // Component scopes belong to their own result. Combining projections must
+    // never merge local blank labels from two independently minted records.
+    let scoped = |node: Node, owner: &str| match node {
+        Node::Blank(label) => Node::iri(format!("{owner}/component/{label}")),
+        other => other,
+    };
+    for triple in &mut sink.triples {
+        triple.subject = scoped(triple.subject.clone(), &node_iri);
+        triple.object = scoped(triple.object.clone(), &node_iri);
     }
-    for line in conjecture_body.lines() {
-        lines.insert(line.to_owned());
+    for triple in result_projection.sink.triples {
+        sink.push(
+            scoped(triple.subject, &result_iri),
+            triple.predicate,
+            scoped(triple.object, &result_iri),
+        );
     }
-    let mut out = String::new();
-    for line in lines {
-        out.push_str(&line);
-        out.push('\n');
-    }
-    out
+    Ok((sink, node_iri))
 }
 
 /// Project an AUTHOR-driven conjecture WITHDRAWAL onto an EXISTING library node.
@@ -1585,17 +2432,8 @@ fn emit_obligation_candidate_body(sink: &mut Sink, node: &Node, forbidden_predic
 
 /// The content-addressed conjecture-node IRI for `input` — the subject the projection
 /// mints (useful for a consumer that wants the node IRI without re-parsing the body).
-pub fn conjecture_node_iri(input: &ConjectureVerdictInput) -> String {
-    let body = project_conjecture_verdict(input);
-    for line in body.lines() {
-        if let Some(rest) = line.strip_prefix(&format!("<{CONJECTURE_IRI_BASE}"))
-            && let Some(end) = rest.find('>')
-        {
-            return format!("{CONJECTURE_IRI_BASE}{}", &rest[..end]);
-        }
-    }
-    // Unreachable: the rdf:type triple always carries the node subject.
-    CONJECTURE_IRI_BASE.to_owned()
+pub fn conjecture_node_iri(input: &ConjectureVerdictInput) -> gmeow_errors::Result<String> {
+    Ok(ResultProjection::conjecture(input)?.node_iri)
 }
 
 /// The faithful re-read of a `project_conjecture_verdict` body: the conjecture's identity
@@ -1675,11 +2513,12 @@ pub struct ObligationCandidateRecord {
 /// (formula / standpoint / KB-world hash) is absent, a lifecycle / discharge IRI is
 /// unrecognized, or the embedded reasoning-result graph does not parse (fail-closed).
 pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<ConjectureVerdictRecord> {
-    let triples = parse_nt(nt_body)?;
+    let dataset = parse_nt(nt_body)?;
+    let triples = ResultGraph::new(&dataset, GraphMatch::Default)?;
     let subject = triples
         .iter()
         .find(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("Conjecture")))
-        .map(|t| t.subject.clone())
+        .map(|t| t.subject)
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::Result {
                 detail: "graph/conjecture: no logic:Conjecture subject".to_owned(),
@@ -1688,14 +2527,14 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
 
     let one_iri = |local: &str| -> Option<String> {
         triples
-            .iter()
-            .find(|t| t.subject == subject && t.predicate == logic(local))
+            .for_subject(subject)
+            .find(|t| t.predicate == logic(local))
             .and_then(|t| t.object_iri())
     };
     let one_str = |local: &str| -> Option<String> {
         triples
-            .iter()
-            .find(|t| t.subject == subject && t.predicate == logic(local))
+            .for_subject(subject)
+            .find(|t| t.predicate == logic(local))
             .and_then(|t| t.object_string())
     };
 
@@ -1723,27 +2562,34 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
 
     // The embedded reasoning-result graph re-derives via the existing reader (it keys off
     // the logic:ReasoningResult subject, so the conjecture node's triples do not interfere).
-    let verdict = parse_reasoning_graph(nt_body)?;
+    let verdict = read_reasoning_result(&triples)?;
 
     // The refutation witness (linked via conjectureRefutationWitness, not resultContradiction).
-    let witness = triples
-        .iter()
-        .find(|t| t.subject == subject && t.predicate == logic("conjectureRefutationWitness"))
-        .and_then(|t| t.object_blank())
-        .map(|node| parse_witness_body(&triples, &node));
+    let witness = optional_component(
+        &triples,
+        subject,
+        "conjectureRefutationWitness",
+        "ContradictionWitness",
+    )?
+    .map(|node| parse_witness_body(&triples, node))
+    .transpose()?;
 
     // The always-present structural twin bridge: the `math:Conjecture` whose
     // `math:conjectureUnderTest` edge names THIS `logic:Conjecture` node as its object.
     let math_conjecture = triples
         .iter()
-        .find(|t| {
-            t.predicate == math("conjectureUnderTest") && t.object_iri() == Some(subject.clone())
+        .find(|t| t.predicate == math("conjectureUnderTest") && t.object_node() == Some(subject))
+        .map(|t| match dataset.resolve(t.subject) {
+            TermRef::Iri(iri) => Ok(iri.to_owned()),
+            _ => Err(result_err(
+                "graph/conjecture: math:conjectureUnderTest subject must be an IRI".to_owned(),
+            )),
         })
-        .map(|t| t.subject.clone());
+        .transpose()?;
 
     // The two symmetric promotion legs (present exactly on their lifecycle).
-    let promotion_candidate = parse_promotion_candidate(&triples, &subject);
-    let obligation_candidate = parse_obligation_candidate(&triples, &subject);
+    let promotion_candidate = parse_promotion_candidate(&triples, subject);
+    let obligation_candidate = parse_obligation_candidate(&triples, subject);
 
     Ok(ConjectureVerdictRecord {
         content_key,
@@ -1763,24 +2609,24 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
 /// linked from `subject` via `logic:conjecturePromotionCandidate`, together with its eight
 /// universal candidate carriers. `None` when no such edge is present.
 fn parse_promotion_candidate(
-    triples: &[ParsedTriple],
-    subject: &str,
+    triples: &ResultGraph<'_>,
+    subject: TermId,
 ) -> Option<PromotionCandidateRecord> {
     let node = triples
-        .iter()
-        .find(|t| t.subject == *subject && t.predicate == logic("conjecturePromotionCandidate"))
-        .and_then(|t| t.object_iri())?;
+        .for_subject(subject)
+        .find(|t| t.predicate == logic("conjecturePromotionCandidate"))
+        .and_then(|t| t.object_node())?;
     let carrier_iri = |local: &str| -> String {
         triples
-            .iter()
-            .find(|t| t.subject == node && t.predicate == logic(local))
+            .for_subject(node)
+            .find(|t| t.predicate == logic(local))
             .and_then(|t| t.object_iri())
             .unwrap_or_default()
     };
     let carrier_str = |local: &str| -> String {
         triples
-            .iter()
-            .find(|t| t.subject == node && t.predicate == logic(local))
+            .for_subject(node)
+            .find(|t| t.predicate == logic(local))
             .and_then(|t| t.object_string())
             .unwrap_or_default()
     };
@@ -1793,7 +2639,7 @@ fn parse_promotion_candidate(
         lifecycle: carrier_iri("candidateLifecycle"),
         projection_behavior: carrier_iri("candidateProjectionBehavior"),
         semantic_risk: carrier_iri("candidateSemanticRisk"),
-        node,
+        node: triples.node_iri(node),
     })
 }
 
@@ -1802,28 +2648,26 @@ fn parse_promotion_candidate(
 /// `logic:antiConjectureObligationCandidate`, with its forbidden predicate and (sorted)
 /// discharge conditions. `None` when no such edge is present.
 fn parse_obligation_candidate(
-    triples: &[ParsedTriple],
-    subject: &str,
+    triples: &ResultGraph<'_>,
+    subject: TermId,
 ) -> Option<ObligationCandidateRecord> {
     let node = triples
-        .iter()
-        .find(|t| {
-            t.subject == *subject && t.predicate == logic("antiConjectureObligationCandidate")
-        })
-        .and_then(|t| t.object_iri())?;
+        .for_subject(subject)
+        .find(|t| t.predicate == logic("antiConjectureObligationCandidate"))
+        .and_then(|t| t.object_node())?;
     let forbidden_predicate = triples
-        .iter()
-        .find(|t| t.subject == node && t.predicate == logic("obligationForbiddenPredicate"))
+        .for_subject(node)
+        .find(|t| t.predicate == logic("obligationForbiddenPredicate"))
         .and_then(|t| t.object_string())
         .unwrap_or_default();
     let mut discharge_conditions: Vec<String> = triples
-        .iter()
-        .filter(|t| t.subject == node && t.predicate == logic("obligationDischargeCondition"))
+        .for_subject(node)
+        .filter(|t| t.predicate == logic("obligationDischargeCondition"))
         .filter_map(|t| t.object_iri())
         .collect();
     discharge_conditions.sort();
     Some(ObligationCandidateRecord {
-        node,
+        node: triples.node_iri(node),
         forbidden_predicate,
         discharge_conditions,
     })
@@ -1832,35 +2676,41 @@ fn parse_obligation_candidate(
 /// Parse the internal triples of a `logic:ContradictionWitness` node (its
 /// `witnessIndividual` / `witnessWorld` / `witnessPremise` set) into a
 /// [`ContradictionWitness`]. Shared inverse of [`emit_witness_body`].
-fn parse_witness_body(triples: &[ParsedTriple], node: &str) -> ContradictionWitness {
-    let individual = triples
-        .iter()
-        .find(|t| t.subject == node && t.predicate == logic("witnessIndividual"))
-        .and_then(|t| t.object_iri())
-        .unwrap_or_default();
-    let world = triples
-        .iter()
-        .find(|t| t.subject == node && t.predicate == logic("witnessWorld"))
-        .and_then(|t| t.object_iri())
-        .unwrap_or_default();
+fn parse_witness_body(
+    triples: &ResultGraph<'_>,
+    node: TermId,
+) -> gmeow_errors::Result<ContradictionWitness> {
+    let individual = component_field(triples, node, "witnessIndividual")?
+        .object_iri()
+        .ok_or_else(|| result_err("graph/reasoning: witnessIndividual must be an IRI".into()))?;
+    let world = component_field(triples, node, "witnessWorld")?
+        .object_iri()
+        .ok_or_else(|| result_err("graph/reasoning: witnessWorld must be an IRI".into()))?;
     let mut premises = Vec::new();
     for t in triples
-        .iter()
-        .filter(|t| t.subject == node && t.predicate == logic("witnessPremise"))
+        .for_subject(node)
+        .filter(|t| t.predicate == logic("witnessPremise"))
     {
-        if let Some(s) = t.object_string() {
-            let parts: Vec<&str> = s.splitn(3, ' ').collect();
-            if let [a, b, c] = parts[..] {
-                premises.push((a.to_owned(), b.to_owned(), c.to_owned()));
-            }
-        }
+        let value = component_text(triples, t)?;
+        let mut parts = value.splitn(3, ' ');
+        let (Some(subject), Some(predicate), Some(object)) =
+            (parts.next(), parts.next(), parts.next())
+        else {
+            return Err(result_err(
+                "graph/reasoning: witnessPremise must retain its three source components".into(),
+            ));
+        };
+        premises.push((subject.to_owned(), predicate.to_owned(), object.to_owned()));
     }
-    ContradictionWitness {
+    Ok(ContradictionWitness {
         individual,
         world,
         premises,
-    }
+    })
 }
+
+#[cfg(test)]
+mod resource_tests;
 
 #[cfg(test)]
 mod tests;

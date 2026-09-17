@@ -150,7 +150,7 @@ impl UnsupportedFragment {
     /// | [`crate::physical::UnsupportedFragmentReason`] | [`UnsupportedFragment`] |
     /// |---|---|
     /// | `Negation`            | `NonStratifiable` (unsupported negation in the circuit) |
-    /// | `Builtins`            | `Arithmetic`                                            |
+    /// | `Builtins` / `Aggregation` | `Arithmetic`                                            |
     /// | `UnsafeHeadVar`       | `Floundering` (unsafe, unbound head variable)           |
     /// | `UnsafeInequalityVar` | `Floundering` (unsafe, unbound inequality variable)     |
     /// | `Bodyless`            | `NonBinaryAtom` (a bodyless clause is not an admissible rule) |
@@ -161,7 +161,7 @@ impl UnsupportedFragment {
         use crate::physical::UnsupportedFragmentReason as R;
         match reason {
             R::Negation => Self::NonStratifiable,
-            R::Builtins => Self::Arithmetic,
+            R::Builtins | R::Aggregation => Self::Arithmetic,
             R::UnsafeHeadVar | R::UnsafeInequalityVar => Self::Floundering,
             R::Bodyless => Self::NonBinaryAtom,
         }
@@ -204,6 +204,20 @@ pub enum IncompleteCause {
     Deadline,
     /// A paged/demand world-source exhausted its page/byte budget.
     SourceBudgetExhausted,
+}
+
+impl IncompleteCause {
+    /// The canonical grounding individual identifying this operational cause.
+    pub fn iri(self) -> &'static str {
+        match self {
+            Self::StepBudget => "https://blackcatinformatics.ca/logic/IncompleteStepBudget",
+            Self::Cancelled => "https://blackcatinformatics.ca/logic/IncompleteCancellation",
+            Self::Deadline => "https://blackcatinformatics.ca/logic/IncompleteDeadline",
+            Self::SourceBudgetExhausted => {
+                "https://blackcatinformatics.ca/logic/IncompletePageBudget"
+            }
+        }
+    }
 }
 
 /// A precondition or integrity fault that refuses an operation.

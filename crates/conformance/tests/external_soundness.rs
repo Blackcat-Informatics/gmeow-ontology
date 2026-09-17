@@ -273,11 +273,9 @@ fn external_corpus_verdicts_match_their_third_party_source() {
         // The dedicated divergence gate (`el_divergence_gate`) pins those cases
         // exactly; this soundness check (committed == declared) must skip them.
         //
-        // The `decided` lane is deliberately NOT skipped: its committed golden IS
-        // the decided native token, which by construction EQUALS the W3C published
-        // (== source-declared) verdict, so `committed == declared` holds and this
-        // gate proves that third-party agreement statically (the dedicated
-        // `full_decided_gate` proves it live).
+        // The `native-profiled` lane is accounted per declared operation below:
+        // semantic cases compare the published verdict; source admission retains
+        // external attribution without pretending to evaluate its semantics.
         if meta.lane == gmeow_conformance::vendored::Lane::Divergence {
             continue;
         }
@@ -301,6 +299,28 @@ fn external_corpus_verdicts_match_their_third_party_source() {
             }
 
             let declared = declared_outcome(&case_dir).verdict_status().as_str();
+            let profile: serde_json::Value = serde_json::from_slice(
+                &std::fs::read(case_dir.join("profile.json")).expect("case profile"),
+            )
+            .expect("profile JSON");
+            if parse_profile(&case_dir.display().to_string(), &profile)
+                .expect("admitted profile")
+                .verdict_mode
+                == gmeow_conformance::profile::VerdictMode::ClassSourceAdmission
+            {
+                assert_eq!(meta.lane, gmeow_conformance::vendored::Lane::NativeProfiled);
+                assert_eq!(
+                    profile["w3c_published_verdict"], declared,
+                    "source admission retains the actual external published verdict"
+                );
+                assert!(
+                    profile.get("native_verdict").is_none(),
+                    "source admission must not claim semantic consistency"
+                );
+                assert_eq!(profile["source_admission_status"], "outside-selection");
+                checked += 1;
+                continue;
+            }
             let committed = committed_statuses(&case_dir);
             checked += 1;
 
@@ -328,7 +348,7 @@ fn external_corpus_verdicts_match_their_third_party_source() {
         "expected ≥{MIN_CHECKED_TOTAL} external cases (entailment-mini ×{MIN_ENTAILMENT_MINI}, \
          szs-mini ×{MIN_SZS_MINI}, w3c-mini ×{MIN_W3C_MINI}, w3c-owl2-el ×{MIN_W3C_OWL2_EL}, \
          tptp-mini ×{MIN_TPTP_MINI}, ontouml-mini ×{MIN_ONTOUML_MINI}, \
-         w3c-owl2-full ×{MIN_W3C_OWL2_FULL}, w3c-owl2-full-decided ×{MIN_W3C_OWL2_FULL_DECIDED}; \
+         w3c-owl2-full ×{MIN_W3C_OWL2_FULL}, w3c-owl2-full-native ×{MIN_W3C_OWL2_FULL_DECIDED}; \
          the *-divergence lanes are excluded above, but the `decided` lane is NOT — its committed \
          verdict == the W3C-declared verdict by construction), found {checked}"
     );

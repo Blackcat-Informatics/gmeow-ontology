@@ -55,6 +55,69 @@ fn facts_of(nq: &str) -> WorldFacts {
     WorldFacts::read(&store, W)
 }
 
+#[test]
+fn native_world_facts_preserve_claim_identity_and_scope() {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    let world = builder.intern_iri(W);
+    let other_world = builder.intern_iri(&format!("{W}/other"));
+    let claim = builder.intern_iri(&format!("{W}/claim"));
+    let state = builder.intern_iri(&format!("{W}/state"));
+    let obtains = builder.intern_iri(&format!("{LOGIC_NS}situationObtains"));
+    let situation = builder.intern_iri(&format!("{W}/situation"));
+    let according_to = builder.intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo");
+    let reviewer = builder.intern_iri(&format!("{W}/reviewer"));
+    let note = builder.intern_iri(&format!("{W}/note"));
+    let text = builder.intern_literal(purrdf::RdfLiteral {
+        lexical_form: "مراجعة".to_owned(),
+        datatype: None,
+        language: Some("ar".to_owned()),
+        direction: Some(purrdf::RdfTextDirection::Rtl),
+    });
+    let proposition = builder.intern_triple(state, obtains, situation);
+    builder.push_quad(state, obtains, situation, Some(world));
+    builder.push_reifier_in_graph(claim, proposition, Some(world));
+    builder.push_annotation_in_graph(claim, according_to, reviewer, Some(world));
+    builder.push_annotation_in_graph(claim, note, text, Some(world));
+    builder.push_quad(state, obtains, reviewer, Some(other_world));
+    let dataset = builder.freeze().expect("attributed world");
+    let facts = WorldFacts::read_dataset(&dataset, W);
+    assert_eq!(facts.triples.len(), 4);
+    assert!(facts.has(
+        &format!("{W}/state"),
+        &format!("{LOGIC_NS}situationObtains"),
+        &format!("{W}/situation")
+    ));
+    assert!(!facts.has(
+        &format!("{W}/state"),
+        &format!("{LOGIC_NS}situationObtains"),
+        &format!("{W}/reviewer")
+    ));
+    assert!(facts.has(
+        &format!("{W}/claim"),
+        "https://blackcatinformatics.ca/gmeow/accordingTo",
+        &format!("{W}/reviewer")
+    ));
+    assert_eq!(
+        facts.object_n3(&format!("{W}/claim"), &format!("{W}/note")),
+        Some(crate::provenance::term_display(&dataset.term_value(text)).as_str())
+    );
+    assert_eq!(
+        facts.object_n3(
+            &format!("{W}/claim"),
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
+        ),
+        Some(crate::provenance::term_display(&dataset.term_value(proposition)).as_str())
+    );
+
+    let store = WorldStore::from_dataset(&dataset).expect("mutable world adapter");
+    assert_eq!(facts.triples, WorldFacts::read(&store, W).triples);
+    assert!(
+        WorldFacts::read_dataset(&dataset, &format!("{W}/absent"))
+            .triples
+            .is_empty()
+    );
+}
+
 fn goal_expr_nq(local: &str, kind: &str, extra: &str) -> String {
     let g = format!("<{W}#{local}>");
     format!(

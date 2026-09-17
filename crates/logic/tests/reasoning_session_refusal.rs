@@ -56,8 +56,7 @@ fn atom_ax(subject: &str, predicate: &str, object: &str, negated: bool) -> Logic
     LogicAxiom::new(
         subject.to_owned(),
         predicate.to_owned(),
-        object.to_owned(),
-        false,
+        gmeow_logic_compile::ir::AtomicTerm::resource(object.to_owned()),
         negated,
         ContextualScope::default(),
     )
@@ -215,7 +214,7 @@ fn stratified_naf_program() -> LogicProgram {
 fn open_over(program: &LogicProgram) -> ReasoningSession {
     let contract = ReasoningContract::new();
     let annotation = gmeow_logic::annotation::AnnotationContract::exact();
-    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let edb = edge_arc(&[("a", "b"), ("b", "c")]);
     ReasoningSession::open(&edb, program, &contract, &annotation).expect("open non-incremental")
 }
 

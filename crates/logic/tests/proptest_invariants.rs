@@ -72,8 +72,11 @@ fn arb_axiom() -> impl Strategy<Value = LogicAxiom> {
             LogicAxiom::new(
                 subject,
                 predicate,
-                obj,
-                obj_is_literal,
+                if obj_is_literal {
+                    gmeow_logic_compile::ir::AtomicTerm::Literal(purrdf::RdfLiteral::simple(obj))
+                } else {
+                    gmeow_logic_compile::ir::AtomicTerm::resource(obj)
+                },
                 negated,
                 ContextualScope::default(),
             )
