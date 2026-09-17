@@ -31,6 +31,19 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
 
+ex:ecContextCoordinatesComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/context-coordinates-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A journal-indexed observation identifies its world, standpoint, journal and numeric position, with separately complete issuer/bearer/policy and protocol/role scopes. Coordinate admission must accept this record without inferring a policy grant, journal finalization or an execution outcome." .
+
+ex:ecContextPositionWithoutJournal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/context-position-without-journal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:ContextPositionJournalConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "Position three has no meaning without the identity of its journal. Removing only contextJournal from the complete coordinate record must raise the projection of ContextPositionJournalConstraint. Complete norm and protocol records cannot supply the missing journal or disguise the invalid temporal coordinate." .
+
 # --- Conforming: a well-formed FormalizationCandidate -------------------------
 ex:ecCandidateWellformed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/candidate-wellformed.ttl" ;
