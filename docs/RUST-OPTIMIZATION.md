@@ -90,8 +90,9 @@ projection and shape preparation from each example's parse, canonical projection
 view binding and complete validation. Durations use microseconds; parallel example
 durations overlap, while the enclosing phase's `elapsed_ms` measures wall time.
 An authenticated verdict hit has `execution: null`: observations from the original
-execution are never replayed as current work. A partial miss reports only the
-examples actually evaluated, in deterministic source-path order.
+execution are never replayed as current work. A partial miss still lists every
+selected example, in deterministic source-path order, and carries `execution`
+only for the examples evaluated in the current run.
 
 Each completed example reports PurRDF's composite copy, freeze and materialization
 counters, retained payload and adapter bookkeeping charges. These counters cover
