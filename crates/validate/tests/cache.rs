@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Integration tests for the `.cache/validate` content-addressed cache.
+//! GMEOW validation verdict binding through the shared action cache.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fs;
@@ -43,149 +43,178 @@ fn write_file(dir: &Path, name: &str, content: &str) -> PathBuf {
     path
 }
 
+fn implementation(label: &str) -> gmeow_action_cache::ProducerIdentity {
+    gmeow_action_cache::ProducerIdentity::new(gmeow_action_cache::bytes_digest(label.as_bytes()))
+}
+
+fn cache_for(root: &Path) -> ValidationCache {
+    ValidationCache::new(root, implementation("validation-fixture-v1")).unwrap()
+}
+
 #[test]
-fn cache_key_matches_python_vector() {
-    // Python `_cache_key(["a", "b"])` joins parts with NUL and truncates to
-    // 16 hex chars.
+fn validation_keys_preserve_input_boundaries_and_selected_files() {
+    assert_ne!(
+        ValidationCache::cache_key(&[b"a\0b", b"c"]),
+        ValidationCache::cache_key(&[b"a", b"b\0c"])
+    );
+    assert_eq!(ValidationCache::cache_key(&[b"hello"]).len(), 64);
+    let (_dir, root) = temp_project_root();
+    let file = write_file(&root, "input.ttl", "source");
+    let cache = cache_for(&root);
+    let before = cache.files_cache_key(std::slice::from_ref(&file)).unwrap();
     assert_eq!(
-        ValidationCache::cache_key(&[b"a", b"b"]),
-        "8fb20ef63ced4145"
+        before,
+        cache
+            .files_cache_key(&[file.canonicalize().unwrap()])
+            .unwrap()
+    );
+    fs::write(&file, "changed").unwrap();
+    assert_ne!(
+        before,
+        cache.files_cache_key(std::slice::from_ref(&file)).unwrap()
+    );
+    assert!(
+        cache
+            .files_cache_key(&[file, root.join("missing.ttl")])
+            .is_err()
     );
 }
 
 #[test]
-fn cache_key_is_stable_and_hex_truncated() {
-    let key1 = ValidationCache::cache_key(&[b"hello", b"world"]);
-    let key2 = ValidationCache::cache_key(&[b"hello", b"world"]);
-    assert_eq!(key1, key2);
-    assert_eq!(key1.len(), 16);
-    assert!(key1.chars().all(|c| c.is_ascii_hexdigit()));
+fn complete_findings_are_bound_to_implementation_kind_and_input_context() {
+    let (_dir, root) = temp_project_root();
+    let cache = cache_for(&root);
+    let expected = cached(&[
+        (Severity::Error, "shacl.policy", "policy violation"),
+        (Severity::Warning, "shacl.context", "scoped evidence"),
+    ]);
+    cache
+        .write_cached_result("dsl-shacl/mapping", "inputs-v1", &expected)
+        .unwrap();
+    assert_eq!(
+        cache
+            .read_cached_result("dsl-shacl/mapping", "inputs-v1")
+            .unwrap(),
+        Some(expected)
+    );
+    assert!(
+        cache
+            .read_cached_result("dsl-shacl-mapping", "inputs-v1")
+            .unwrap()
+            .is_none()
+    );
+    assert!(
+        cache
+            .read_cached_result("dsl-shacl/mapping", "inputs-v2")
+            .unwrap()
+            .is_none()
+    );
+    let changed = ValidationCache::new(&root, implementation("validation-fixture-v2")).unwrap();
+    assert!(
+        changed
+            .read_cached_result("dsl-shacl/mapping", "inputs-v1")
+            .unwrap()
+            .is_none()
+    );
 }
 
 #[test]
-fn cache_key_changes_with_parts() {
-    let key1 = ValidationCache::cache_key(&[b"a", b"b"]);
-    let key2 = ValidationCache::cache_key(&[b"a", b"c"]);
-    assert_ne!(key1, key2);
+fn corrupt_cached_findings_fail_instead_of_becoming_an_empty_verdict() {
+    let (_dir, root) = temp_project_root();
+    let cache = cache_for(&root);
+    cache
+        .write_cached_result(
+            "merged-shacl",
+            "input",
+            &cached(&[(Severity::Error, "shacl.error", "violation")]),
+        )
+        .unwrap();
+    let blobs: Vec<_> = fs::read_dir(cache.cache_dir().join("blobs"))
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .collect();
+    assert_eq!(blobs.len(), 1);
+    fs::write(&blobs[0], br#"{"findings":[]}"#).unwrap();
+    assert!(cache.read_cached_result("merged-shacl", "input").is_err());
 }
 
 #[test]
-fn files_cache_key_matches_python_source_hash() {
-    // Python `generator.source_hash` for a single file named "hello.txt" of
-    // size 5 containing "hello" under the project root.
-    let (_root, root) = temp_project_root();
-    let path = write_file(&root, "hello.txt", "hello");
-    let cache = ValidationCache::new(&root);
-    assert_eq!(cache.files_cache_key(&[path]).unwrap(), "9e34842845368e92");
+fn dsl_verdict_reuse_preserves_first_source_and_typed_failure_attribution() {
+    let (_dir, root) = temp_project_root();
+    let source = "<https://example.org/claim> <https://example.org/needsEvidence> true .";
+    let a = write_file(&root, "first.ttl", source);
+    let b = write_file(&root, "second.ttl", source);
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <https://example.org/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        ex:EvidenceShape a sh:NodeShape ; sh:targetNode ex:claim ;
+            gmeow:enforcesFailureClass ex:MissingEvidence ;
+            sh:sparql [ sh:select "SELECT $this WHERE { $this ex:needsEvidence true . FILTER NOT EXISTS { $this ex:evidence ?e } }" ] .
+    "#;
+    let cache = cache_for(&root);
+    let first = [a.clone(), b.clone()];
+    let second = [b.clone(), a.clone()];
+    let first_key = cache.files_cache_key(&first).unwrap();
+    let second_key = cache.files_cache_key(&second).unwrap();
+    assert_ne!(first_key, second_key);
+    let findings = gmeow_validate::dsl_shacl::validate_dsl(&first, shapes, "statement").unwrap();
+    assert_eq!(findings.len(), 1);
+    assert_eq!(
+        findings[0].failure_class.as_deref(),
+        Some("https://example.org/MissingEvidence")
+    );
+    assert_eq!(findings[0].locations[0].path.as_deref(), a.to_str());
+    cache
+        .write_cached_result(
+            "dsl-shacl/statement",
+            &first_key,
+            &CachedResult::from_findings(findings.clone()),
+        )
+        .unwrap();
+    assert_eq!(
+        cache
+            .read_cached_result("dsl-shacl/statement", &first_key)
+            .unwrap()
+            .unwrap()
+            .findings,
+        findings
+    );
+    assert!(
+        cache
+            .read_cached_result("dsl-shacl/statement", &second_key)
+            .unwrap()
+            .is_none()
+    );
+    let reordered = gmeow_validate::dsl_shacl::validate_dsl(&second, shapes, "statement").unwrap();
+    assert_eq!(reordered[0].locations[0].path.as_deref(), b.to_str());
+    assert_eq!(reordered[0].failure_class, findings[0].failure_class);
 }
 
 #[test]
-fn files_cache_key_is_content_addressed() {
-    let (_root, root) = temp_project_root();
-    let path = write_file(
+fn repository_cache_selection_requires_an_exact_implementation() {
+    let (_dir, root) = temp_project_root();
+    let source = write_file(
         &root,
         "input.ttl",
-        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
+        "<https://example.org/a> <https://example.org/p> <https://example.org/b> .",
     );
-    let cache = ValidationCache::new(&root);
-    let key1 = cache.files_cache_key(std::slice::from_ref(&path)).unwrap();
-    let key2 = cache.files_cache_key(std::slice::from_ref(&path)).unwrap();
-    assert_eq!(key1, key2);
-
-    fs::write(
-        &path,
-        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:c .\n",
-    )
-    .unwrap();
-    let key3 = cache.files_cache_key(&[path]).unwrap();
-    assert_ne!(key1, key3);
-}
-
-#[test]
-fn files_cache_key_uses_relative_path_when_possible() {
-    // A file inside the project root and the same file reached via an absolute
-    // path must hash to the same key (relative path normalization).
-    let (_root, root) = temp_project_root();
-    let rel = write_file(&root, "nested/file.ttl", "<a> <b> <c> .\n");
-    let cache = ValidationCache::new(&root);
-    let key_rel = cache.files_cache_key(std::slice::from_ref(&rel)).unwrap();
-    let key_abs = cache
-        .files_cache_key(&[rel.canonicalize().unwrap()])
-        .unwrap();
-    assert_eq!(key_rel, key_abs);
-}
-
-#[test]
-fn read_write_roundtrip() {
-    let (_root, root) = temp_project_root();
-    let cache = ValidationCache::new(&root);
-    let result = cached(&[
-        (Severity::Error, "shacl.x", "error one"),
-        (Severity::Error, "shacl.y", "error two"),
-        (Severity::Warning, "shacl.z", "warning one"),
-    ]);
-
-    cache
-        .write_cached_result("merged-shacl", "abc123", &result)
-        .unwrap();
-    let read = cache
-        .read_cached_result("merged-shacl", "abc123")
-        .expect("cached result must be readable");
-    assert_eq!(read, result);
-}
-
-#[test]
-fn atomic_write_leaves_no_temp_file() {
-    let (_root, root) = temp_project_root();
-    let cache = ValidationCache::new(&root);
-    let result = cached(&[(Severity::Error, "shacl.e", "e")]);
-
-    cache
-        .write_cached_result("example-shacl", "deadbeef", &result)
-        .unwrap();
-
-    let cache_dir = cache.cache_dir().join("example-shacl");
-    let mut entries: Vec<String> = fs::read_dir(&cache_dir)
-        .unwrap()
-        .filter_map(|e| e.ok())
-        .map(|e| e.file_name().to_string_lossy().into_owned())
-        .collect();
-    entries.sort();
-    assert_eq!(entries, vec!["deadbeef.json"]);
-}
-
-#[test]
-fn corrupted_cache_file_is_ignored() {
-    let (_root, root) = temp_project_root();
-    let cache = ValidationCache::new(&root);
-    let kind_dir = cache.cache_dir().join("merged-shacl");
-    fs::create_dir_all(&kind_dir).unwrap();
-    fs::write(kind_dir.join("bad.json"), "not json").unwrap();
-    assert!(cache.read_cached_result("merged-shacl", "bad").is_none());
-}
-
-#[test]
-fn cache_hit_skips_computation() {
-    let (_root, root) = temp_project_root();
-    let cache = ValidationCache::new(&root);
-    let result = cached(&[(Severity::Error, "shacl.cached", "cached error")]);
-    cache
-        .write_cached_result("dsl-shacl/mapping", "hitkey", &result)
-        .unwrap();
-
-    // A fresh read returns the cached value without any compute function.
-    let hit = cache
-        .read_cached_result("dsl-shacl/mapping", "hitkey")
-        .expect("cache hit must return the stored result");
-    assert_eq!(hit, result);
-}
-
-#[test]
-fn toolchain_salt_is_stable() {
-    let salt1 = ValidationCache::toolchain_salt();
-    let salt2 = ValidationCache::toolchain_salt();
-    assert_eq!(salt1, salt2);
-    assert_eq!(salt1.len(), 16);
+    let options = ValidateOptions {
+        project_root: Some(root.clone()),
+        ..ValidateOptions::default()
+    };
+    let result = ValidationRun::run(
+        &[source.display().to_string()],
+        &mini_shapes_ttl(),
+        "",
+        "",
+        &lint_config(),
+        &options,
+    );
+    assert!(result.is_err());
+    assert!(
+        ValidationCache::new(root, gmeow_action_cache::ProducerIdentity::new("0.2.0")).is_err()
+    );
 }
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -318,6 +347,7 @@ fn validate_all_uses_cache_when_configured() {
     let options = ValidateOptions {
         timings: true,
         project_root: Some(root.clone()),
+        cache_implementation: Some(implementation("validation-fixture-v1")),
         ..ValidateOptions::default()
     };
 
@@ -358,279 +388,126 @@ fn validate_all_uses_cache_when_configured() {
     assert_eq!(merged_meta2, Some("cache-hit"));
 
     // The cache directory must contain the merged-shacl entry.
-    let cache = ValidationCache::new(&root);
-    let entries: Vec<_> = fs::read_dir(cache.cache_dir().join("merged-shacl"))
+    let cache = cache_for(&root);
+    let entries: Vec<_> = fs::read_dir(cache.cache_dir().join("receipts"))
         .unwrap()
         .filter_map(|e| e.ok())
         .collect();
     assert!(
         !entries.is_empty(),
-        "merged-shacl cache directory must contain entries"
+        "shared action store must contain the validation receipt"
     );
 }
 
 #[test]
-fn gts_cache_key_is_stable_across_serializations() {
-    let graph = build_gts_graph_with_triples(&[(
-        "https://example.org/a",
-        "https://example.org/p",
-        "https://example.org/b",
+fn bundle_verdict_reuse_tracks_semantic_inputs_and_retains_failure_evidence() {
+    let instance = build_gts_graph_with_triples(&[(
+        "https://example.org/claim",
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "https://example.org/Claim",
     )]);
-
-    let deterministic_bytes = write_gts_bundle(&graph, true);
-    let non_deterministic_bytes = write_gts_bundle(&graph, false);
-
-    assert_ne!(
-        deterministic_bytes, non_deterministic_bytes,
-        "deterministic and non-deterministic serializations must differ on the wire"
-    );
-
-    let graph1 =
-        store::read_gts_graph(&deterministic_bytes).expect("deterministic bundle must parse");
-    let graph2 = store::read_gts_graph(&non_deterministic_bytes)
-        .expect("non-deterministic bundle must parse");
-
-    assert!(
-        !graph1.segment_heads.is_empty(),
-        "parsed GTS graph must expose wire segment_heads"
-    );
-    assert!(
-        !graph2.segment_heads.is_empty(),
-        "parsed GTS graph must expose wire segment_heads"
-    );
-
-    let key1 = ValidationCache::cache_key(
-        &graph1
-            .segment_heads
-            .iter()
-            .map(|h| h.as_slice())
-            .collect::<Vec<_>>(),
-    );
-    let key2 = ValidationCache::cache_key(
-        &graph2
-            .segment_heads
-            .iter()
-            .map(|h| h.as_slice())
-            .collect::<Vec<_>>(),
-    );
-    assert_eq!(
-        key1, key2,
-        "different GTS serializations of the same graph must yield the same cache key"
-    );
-}
-
-#[test]
-fn gts_cache_key_changes_with_content() {
-    let g1 = build_gts_graph_with_triples(&[(
-        "https://example.org/a",
-        "https://example.org/p",
-        "https://example.org/b",
+    let evidence = build_gts_graph_with_triples(&[(
+        "https://example.org/claim",
+        "https://example.org/evidence",
+        "https://example.org/source",
     )]);
-    let g2 = build_gts_graph_with_triples(&[(
-        "https://example.org/a",
-        "https://example.org/p",
-        "https://example.org/c",
-    )]);
-
-    let b1 = write_gts_bundle(&g1, true);
-    let b2 = write_gts_bundle(&g2, true);
-
-    let graph1 = gmeow_validate::store::read_gts_graph(&b1).expect("first bundle must parse");
-    let graph2 = gmeow_validate::store::read_gts_graph(&b2).expect("second bundle must parse");
-
-    let k1 = ValidationCache::cache_key(
-        &graph1
-            .segment_heads
-            .iter()
-            .map(|h| h.as_slice())
-            .collect::<Vec<_>>(),
+    let instance_bytes = write_gts_bundle(&instance, true);
+    let evidence_bytes = write_gts_bundle(&evidence, true);
+    let alternate_evidence = write_gts_bundle(&evidence, false);
+    let original = [instance_bytes.as_slice(), evidence_bytes.as_slice()].concat();
+    let reordered = [alternate_evidence.as_slice(), instance_bytes.as_slice()].concat();
+    assert_ne!(original, reordered);
+    // Exercise GMEOW's actual projection and finding attribution together. The
+    // violated property shape is a generated blank node, distinct from its parent.
+    use gmeow_logic_compile::ir::{
+        ConstraintProvenance, PropertyConstraintIr, ShapeTarget, ValidationShapeIr,
+    };
+    let evidence_shape = ValidationShapeIr::new(
+        "https://example.org/ClaimShape",
+        ShapeTarget::Class("https://example.org/Claim".into()),
+        vec![
+            PropertyConstraintIr::new(
+                "https://example.org/evidence",
+                Some(1),
+                None,
+                Some(ConstraintProvenance::OwlRestriction),
+                vec![],
+            )
+            .unwrap(),
+        ],
+        None,
+    )
+    .unwrap()
+    .with_failure_class("https://example.org/MissingEvidence")
+    .unwrap();
+    let shapes = format!(
+        "@prefix sh: <http://www.w3.org/ns/shacl#> .\n{}",
+        gmeow_logic_compile::projections::shapes::project_validation_shape_shacl(&evidence_shape),
     );
-    let k2 = ValidationCache::cache_key(
-        &graph2
-            .segment_heads
-            .iter()
-            .map(|h| h.as_slice())
-            .collect::<Vec<_>>(),
-    );
-    assert_ne!(
-        k1, k2,
-        "different GTS content must yield different segment-head-based keys"
-    );
-}
-
-#[test]
-fn gts_cache_key_is_stable_across_segment_orders() {
-    // Build two distinct single-segment graphs and serialize each
-    // deterministically so their wire bytes are stable.
-    let alpha = build_gts_graph_with_triples(&[(
-        "https://example.org/a",
-        "https://example.org/p",
-        "https://example.org/b",
-    )]);
-    let beta = build_gts_graph_with_triples(&[(
-        "https://example.org/c",
-        "https://example.org/q",
-        "https://example.org/d",
-    )]);
-
-    let alpha_bytes = write_gts_bundle(&alpha, true);
-    let beta_bytes = write_gts_bundle(&beta, true);
-
-    // Concatenate the same two segments in opposite orders.  The resulting
-    // multi-segment bundles have identical semantic content but different
-    // on-the-wire segment order.
-    let mut original = alpha_bytes.clone();
-    original.extend_from_slice(&beta_bytes);
-    let mut reversed = beta_bytes.clone();
-    reversed.extend_from_slice(&alpha_bytes);
-
-    assert_ne!(
-        original, reversed,
-        "multi-segment bundles with reordered segments must differ on the wire"
-    );
-
-    let graph_original =
-        store::read_gts_graph(&original).expect("original multi-segment bundle must parse");
-    let graph_reversed =
-        store::read_gts_graph(&reversed).expect("reversed multi-segment bundle must parse");
-
-    assert_eq!(
-        graph_original.segment_heads.len(),
-        2,
-        "original bundle must expose two segment heads"
-    );
-    assert_eq!(
-        graph_reversed.segment_heads.len(),
-        2,
-        "reversed bundle must expose two segment heads"
-    );
-
-    // The merged-shacl source key sorts segment heads before hashing so that
-    // segment order on the wire does not affect cache identity.
-    let mut heads_original: Vec<&[u8]> = graph_original
-        .segment_heads
-        .iter()
-        .map(|h| h.as_slice())
-        .collect();
-    heads_original.sort();
-    let key_original = ValidationCache::cache_key(&heads_original);
-
-    let mut heads_reversed: Vec<&[u8]> = graph_reversed
-        .segment_heads
-        .iter()
-        .map(|h| h.as_slice())
-        .collect();
-    heads_reversed.sort();
-    let key_reversed = ValidationCache::cache_key(&heads_reversed);
-
-    assert_eq!(
-        key_original, key_reversed,
-        "multi-segment bundles with the same segments in different order must yield the same cache key"
-    );
-}
-
-#[test]
-fn gts_validate_uses_cache_when_configured() {
-    use purrdf::gts::model::{Term, TermKind};
-
-    // Build a minimal GTS graph that mirrors the ontology used in
-    // `validate_all_uses_cache_when_configured`, with the required annotations
-    // for the structural lint.
-    let mut graph = purrdf::gts::model::Graph::default();
-    let ns = "https://blackcatinformatics.ca/gmeow/";
-    let thing_iri = format!("{ns}Thing");
-
-    let iris = [
-        thing_iri.clone(),
-        "http://www.w3.org/2002/07/owl#Class".to_string(),
-        "http://purl.org/nemo/gufo#Kind".to_string(),
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string(),
-        "http://www.w3.org/2000/01/rdf-schema#label".to_string(),
-        "http://www.w3.org/2004/02/skos/core#definition".to_string(),
-        "http://www.w3.org/2000/01/rdf-schema#isDefinedBy".to_string(),
-        ns.to_string(),
-    ];
-    for iri in &iris {
-        graph.terms.push(Term {
-            kind: TermKind::Iri,
-            value: Some(iri.clone()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-            triple: None,
-        });
-    }
-
-    fn literal(graph: &mut purrdf::gts::model::Graph, value: &str) -> usize {
-        let id = graph.terms.len();
-        graph.terms.push(Term {
-            kind: TermKind::Literal,
-            value: Some(value.to_string()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-            triple: None,
-        });
-        id
-    }
-
-    let thing = 0;
-    let owl_class = 1;
-    let gufo_kind = 2;
-    let rdf_type = 3;
-    let rdfs_label = 4;
-    let skos_def = 5;
-    let rdfs_defined_by = 6;
-    let ns_term = 7;
-    let label = literal(&mut graph, "Thing");
-    let definition = literal(&mut graph, "A thing.");
-
-    graph.quads.push((thing, rdfs_label, label, None));
-    graph.quads.push((thing, skos_def, definition, None));
-    graph.quads.push((thing, rdfs_defined_by, ns_term, None));
-    graph.quads.push((thing, rdf_type, owl_class, None));
-    graph.quads.push((thing, rdf_type, gufo_kind, None));
-
-    let bytes = write_gts_bundle(&graph, true);
-    let (_root, root) = temp_project_root();
-    let options = ValidateOptions {
+    let (_dir, root) = temp_project_root();
+    let mut options = ValidateOptions {
         timings: true,
-        project_root: Some(root.clone()),
-        gts_bytes: Some(bytes.clone()),
+        project_root: Some(root),
+        cache_implementation: Some(implementation("validation-fixture-v1")),
         ..ValidateOptions::default()
     };
-
-    let run1 = ValidationRun::run(&[], &mini_shapes_ttl(), "", "", &lint_config(), &options)
-        .expect("first run must complete");
-    let merged_meta1 = run1
-        .timings
-        .iter()
-        .find(|t| t.phase == "merged-shacl")
-        .expect("merged-shacl timing must exist")
-        .metadata
-        .as_deref();
-    assert_eq!(merged_meta1, Some("cache-miss"));
-
-    let run2 = ValidationRun::run(&[], &mini_shapes_ttl(), "", "", &lint_config(), &options)
-        .expect("second run must complete");
-    let merged_meta2 = run2
-        .timings
-        .iter()
-        .find(|t| t.phase == "merged-shacl")
-        .expect("merged-shacl timing must exist")
-        .metadata
-        .as_deref();
-    assert_eq!(merged_meta2, Some("cache-hit"));
-
-    let cache = ValidationCache::new(&root);
-    let entries: Vec<_> = fs::read_dir(cache.cache_dir().join("merged-shacl"))
-        .unwrap()
-        .filter_map(|e| e.ok())
-        .collect();
-    assert!(
-        !entries.is_empty(),
-        "merged-shacl cache directory must contain entries"
-    );
+    let mut original_findings = None;
+    for (bytes, cache_state) in [(original, "cache-miss"), (reordered, "cache-hit")] {
+        options.gts_bytes = Some(bytes);
+        let run = ValidationRun::run(&[], &shapes, "", "", &lint_config(), &options).unwrap();
+        assert_eq!(
+            run.timings
+                .iter()
+                .find(|t| t.phase == "merged-shacl")
+                .unwrap()
+                .metadata
+                .as_deref(),
+            Some(cache_state),
+        );
+        assert!(
+            run.report
+                .findings
+                .iter()
+                .all(|f| f.severity != Severity::Error)
+        );
+        if let Some(expected) = &original_findings {
+            assert_eq!(&run.report.findings, expected);
+        } else {
+            original_findings = Some(run.report.findings);
+        }
+    }
+    // Removing evidence changes the selected semantic input. The old conforming
+    // verdict must not survive, and a subsequent hit must retain the typed failure.
+    options.gts_bytes = Some(instance_bytes);
+    let mut violation = None;
+    for cache_state in ["cache-miss", "cache-hit"] {
+        let run = ValidationRun::run(&[], &shapes, "", "", &lint_config(), &options).unwrap();
+        assert_eq!(
+            run.timings
+                .iter()
+                .find(|t| t.phase == "merged-shacl")
+                .unwrap()
+                .metadata
+                .as_deref(),
+            Some(cache_state),
+        );
+        let findings: Vec<_> = run
+            .report
+            .findings
+            .iter()
+            .filter(|f| f.failure_class.as_deref() == Some("https://example.org/MissingEvidence"))
+            .cloned()
+            .collect();
+        assert_eq!(findings.len(), 1, "all findings: {:?}", run.report.findings);
+        assert_eq!(findings[0].severity, Severity::Error);
+        assert_eq!(
+            findings[0].documented_terms,
+            ["https://example.org/evidence"]
+        );
+        if let Some(expected) = &violation {
+            assert_eq!(&findings, expected);
+        } else {
+            violation = Some(findings);
+        }
+    }
 }

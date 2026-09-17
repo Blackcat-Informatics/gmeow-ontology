@@ -114,23 +114,21 @@ fn example_validation_rechecks_remote_constraint_dependencies() {
         .unwrap();
         let shapes = purrdf::shapes::engine::PreparedShapes::new(Arc::new(shapes));
         let (_control, control) = write_tmp("control.ttl", "");
-        assert!(
-            run_example_shacl(
-                &base,
-                &shapes,
-                &FailureClassIndex::empty(),
-                &control,
-                "control"
-            )
-            .unwrap()
-            .is_empty()
-        );
+        let (control_findings, _) = run_example_shacl(
+            &base,
+            &shapes,
+            &FailureClassIndex::empty(),
+            &control,
+            "control",
+        )
+        .unwrap();
+        assert!(control_findings.is_empty());
         let (_changed, changed) = write_tmp(
             "changed.ttl",
             "@prefix ex: <https://example.org/> . \
                  ex:policy ex:requiresReview true . ex:part ex:reviewer ex:alice, ex:bob .",
         );
-        let findings = run_example_shacl(
+        let (findings, _) = run_example_shacl(
             &base,
             &shapes,
             &FailureClassIndex::empty(),
@@ -146,6 +144,138 @@ fn example_validation_rechecks_remote_constraint_dependencies() {
         assert_eq!(findings[0].severity, Severity::Error);
         assert_eq!(findings[0].locations[0].path.as_deref(), Some("changed"));
     }
+}
+
+#[test]
+fn complete_example_verdict_reuse_retains_remote_findings_and_rejects_old_policy() {
+    let root = tempfile::tempdir().unwrap();
+    let slices = root.path().join("slices");
+    let slice = slices.join("core/agreement");
+    let examples = slice.join("examples");
+    std::fs::create_dir_all(&examples).unwrap();
+    std::fs::write(slice.join("manifest.ttl"), "").unwrap();
+    let example = examples.join("policy.ttl");
+    std::fs::write(
+        &example,
+        "<https://example.org/policy> <https://example.org/requiresReview> true .",
+    )
+    .unwrap();
+    let base = parse_dataset(b"", "text/turtle", None).unwrap();
+    let shapes = purrdf::shapes::engine::parse_shapes(
+        r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
+           @prefix ex: <https://example.org/> .
+           ex:AgreementShape a sh:NodeShape ; sh:targetNode ex:agreement ;
+               sh:sparql [ sh:select '''
+                   SELECT $this WHERE {
+                       ex:policy ex:requiresReview true .
+                       FILTER NOT EXISTS { $this ex:reviewedBy ?reviewer }
+                   }
+               ''' ; sh:prefixes [ sh:declare [
+                   sh:prefix "ex" ; sh:namespace "https://example.org/"^^<http://www.w3.org/2001/XMLSchema#anyURI>
+               ] ] ] ."#,
+        None,
+    )
+    .unwrap();
+    let cache = ValidationCache::new(
+        root.path(),
+        gmeow_action_cache::ProducerIdentity::new(gmeow_action_cache::bytes_digest(
+            b"complete-example-validation-test",
+        )),
+    )
+    .unwrap();
+    // Model an earlier false pass produced by the touched-node policy.
+    let base_key = "selected-base-and-shapes";
+    let old_key = example_shacl_key(&cache, base_key, &example).unwrap();
+    cache
+        .write_cached_result(
+            "example-shacl",
+            &old_key,
+            &CachedResult::from_findings(vec![]),
+        )
+        .unwrap();
+    let evaluate = || {
+        check_examples(
+            &base,
+            &shapes,
+            &FailureClassIndex::empty(),
+            slices.to_str().unwrap(),
+            Some(&cache),
+            base_key,
+        )
+        .unwrap()
+    };
+    let (cold, status, work) = evaluate();
+    assert_eq!(status.as_deref(), Some("cache-hit:0;cache-miss:1"));
+    assert_eq!(work.examples.len(), 1);
+    assert_eq!(
+        work.examples[0].example,
+        "core/agreement/examples/policy.ttl"
+    );
+    let views = work.examples[0]
+        .execution
+        .as_ref()
+        .unwrap()
+        .views
+        .as_ref()
+        .unwrap();
+    assert!(views.retained_payload_bytes > 0);
+    assert_eq!(
+        views.copied_rows, 0,
+        "example validation must not replay the base"
+    );
+    assert_eq!(
+        views.copied_text_bytes, 0,
+        "the composite borrows input dictionaries"
+    );
+    assert_eq!(views.freezes, 0);
+    assert_eq!(views.composite_materializations, 0);
+    assert_eq!(views.core_materializations, 0);
+    assert_eq!(views.query_materializations, 0);
+    assert_eq!(
+        cold.len(),
+        1,
+        "an unmentioned agreement still requires review"
+    );
+    assert_eq!(cold[0].severity, Severity::Error);
+    assert_eq!(
+        cold[0].locations[0].path.as_deref(),
+        Some("core/agreement/examples/policy.ttl")
+    );
+    let (warm, status, work) = evaluate();
+    assert_eq!(status.as_deref(), Some("cache-hit:1;cache-miss:0"));
+    assert_eq!(work.base_projection_us, 0);
+    assert_eq!(work.shape_preparation_us, 0);
+    assert_eq!(work.examples.len(), 1);
+    assert!(
+        work.examples[0].execution.is_none(),
+        "a cache hit cannot replay old work evidence"
+    );
+    let expected = CachedResult::from_findings(cold);
+    assert_eq!(CachedResult::from_findings(warm), expected);
+    std::fs::write(examples.join("unchanged.ttl"), "").unwrap();
+    let (partial, status, work) = evaluate();
+    assert_eq!(status.as_deref(), Some("cache-hit:1;cache-miss:1"));
+    assert_eq!(CachedResult::from_findings(partial), expected);
+    assert_eq!(work.examples.len(), 2);
+    assert_eq!(
+        work.examples[0].example,
+        "core/agreement/examples/policy.ttl"
+    );
+    assert!(work.examples[0].execution.is_none());
+    assert_eq!(
+        work.examples[1].example,
+        "core/agreement/examples/unchanged.ttl"
+    );
+    assert!(work.examples[1].execution.as_ref().unwrap().views.is_some());
+    std::fs::write(&example, "").unwrap();
+    let (changed, status, work) = evaluate();
+    assert_eq!(status.as_deref(), Some("cache-hit:1;cache-miss:1"));
+    assert!(work.examples[0].execution.as_ref().unwrap().views.is_some());
+    assert!(work.examples[1].execution.is_none());
+    assert!(
+        changed.is_empty(),
+        "removing the remote policy removes this violation"
+    );
 }
 
 #[test]
@@ -172,7 +302,7 @@ fn example_validation_includes_targets_added_by_canonical_subsumption() {
              @prefix logic: <https://blackcatinformatics.ca/logic/> . \
              ex:Child logic:subClassOf ex:Parent .",
     );
-    let findings = run_example_shacl(
+    let (findings, _) = run_example_shacl(
         &base,
         &shapes,
         &FailureClassIndex::empty(),

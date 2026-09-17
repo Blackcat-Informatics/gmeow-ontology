@@ -7,9 +7,7 @@ use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
 use gmeow_validate::lint::LintConfig;
-use gmeow_validate::store::{dataset_from_paths, parse_file_dataset};
 use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
-use purrdf::{DatasetView, GraphMatch, RdfDatasetBuilder};
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -108,41 +106,6 @@ fn store_is_reused_across_phases() {
         run.dataset.quad_count(),
         9,
         "base dataset size must be unchanged after phases"
-    );
-}
-
-#[test]
-fn example_merge_unions_base_and_example_without_leaking() {
-    // Base graph with one triple.
-    let (_base_tmp, base_path) = write_tmp(
-        "gmeow_validate_all_base.ttl",
-        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
-    );
-    let base = build_store(&[base_path.to_string_lossy().to_string()]);
-    assert_eq!(base.quad_count(), 1, "base dataset starts with one triple");
-
-    // Example carrying one duplicate of the base triple plus one new triple.
-    let (_example_tmp, example_path) = write_tmp(
-        "gmeow_validate_all_example.ttl",
-        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
-    );
-    let example = parse_file_dataset(&example_path).expect("example must parse");
-
-    // The per-example merge re-interns the base quads + the example quads into a fresh
-    // dataset; duplicates dedup and the base is untouched (no shared mutable store).
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in base.owned_quads() {
-        builder.push_owned_quad(&quad);
-    }
-    builder.push_dataset(&example);
-    let merged = builder.freeze().expect("merge must freeze");
-    assert_eq!(merged.quad_count(), 2, "the duplicate base triple dedups");
-    assert_eq!(base.quad_count(), 1, "the base dataset is untouched");
-    assert_eq!(
-        merged
-            .quads_for_pattern(None, None, None, GraphMatch::Default)
-            .count(),
-        2
     );
 }
 
@@ -733,10 +696,4 @@ fn statement_dsl_shacl_runs_in_orchestration() {
         "statement DSL SHACL phase must flag the missing ex:subject violation: {:?}",
         run.errors()
     );
-}
-
-/// Helper: build a frozen native dataset from a list of Turtle file paths.
-fn build_store(paths: &[String]) -> std::sync::Arc<purrdf::RdfDataset> {
-    let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
-    dataset_from_paths(&path_bufs).expect("dataset must build")
 }

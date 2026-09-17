@@ -36,14 +36,8 @@ pub fn validate_dsl(
     label: &str,
 ) -> gmeow_errors::Result<Vec<Finding>> {
     let merge = dsl::merge_with_provenance(paths)?;
-    let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("SHACL shapes failed to parse: {e}"),
-        })
-    })?;
-    // Read typed failure annotations from the retained dataset: property-shape
-    // blank identities must be the same ones reported by the engine.
-    let classes = FailureClassIndex::from_shapes_dataset(shapes.dataset());
+    let (shapes_dataset, shapes) = store::parse_validation_shapes(shapes_ttl)?;
+    let classes = FailureClassIndex::from_shapes_dataset(&shapes_dataset);
     let report = store::shacl_validate_dataset(&merge.dataset, &shapes);
     let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
     Ok(dsl_findings(&report, &focus_to_file, label, &classes))

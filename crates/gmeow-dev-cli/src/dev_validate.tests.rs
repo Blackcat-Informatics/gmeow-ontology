@@ -28,8 +28,16 @@ fn authored_source_invocation_wires_every_dsl_surface() {
     let root = repo_root();
     // `MergedShacl::Live` is a stand-in so the assembly does not touch
     // `generated/`; the DSL wiring under test is independent of it.
-    let inv = authored_source_invocation(&root, false, false, MergedShacl::Live)
-        .expect("authored-source invocation must assemble on the real repo");
+    let inv = authored_source_invocation(
+        &root,
+        false,
+        false,
+        MergedShacl::Live,
+        gmeow_action_cache::ProducerIdentity::new(gmeow_action_cache::bytes_digest(
+            b"invocation-wiring-fixture",
+        )),
+    )
+    .expect("authored-source invocation must assemble on the real repo");
 
     assert!(
         !inv.source_paths.is_empty(),

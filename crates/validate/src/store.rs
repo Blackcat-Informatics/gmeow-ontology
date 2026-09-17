@@ -227,12 +227,32 @@ pub fn dataset_from_nt(data_nt: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
 /// # Errors
 /// Returns `Err` for malformed native input or an invalid flat projection.
 pub fn dataset_from_gts(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    let imported = purrdf::import_gts_events(bytes).map_err(|error| {
+    dataset_from_gts_graph(&read_gts_graph(bytes)?)
+}
+
+/// Fold an already-read bundle into the complete flattened validation view.
+/// The caller can inspect segment identities without decoding the bundle again.
+pub fn dataset_from_gts_graph(
+    graph: &purrdf::gts::model::Graph,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    purrdf::gts::flattened_dataset_from_gts_graph(graph).map_err(|error| {
         Diag::of_kind(crate::error::Dataset {
             detail: error.to_string(),
         })
-    })?;
-    crate::data_validate::flatten_to_default_graph(&imported.dataset)
+    })
+}
+
+/// Parse one shape document for both execution and typed failure attribution.
+pub fn parse_validation_shapes(
+    text: &str,
+) -> gmeow_errors::Result<(Arc<RdfDataset>, purrdf::shapes::shapes::Shapes)> {
+    let fail = |detail| Diag::of_kind(crate::error::Parse { detail });
+    let dataset = purrdf::shapes::text_ingest::parse_turtle_to_dataset(text, None)
+        .map_err(|errors| fail(errors.join("\n")))?;
+    let prefixes = purrdf::shapes::text_ingest::extract_prefixes(text);
+    let shapes =
+        purrdf::shapes::shapes::from_dataset_with_prefixes(&dataset, &prefixes).map_err(fail)?;
+    Ok((dataset, shapes))
 }
 
 /// Project a full `gmeow.gts` bundle into a **core browser bundle** — graph-preserving
