@@ -20,7 +20,7 @@ use super::{
 pub const SOURCE_PATH: &str = "slices/grounding/lang/module.ttl";
 /// Immutable original-byte BLAKE3 pin shared by both browser consumers.
 /// The pure host identity contract requires updating this when the authored source changes.
-pub const SOURCE_BLAKE3: &str = "3d89c98bb1bf9a59f1e5e815f57d6059d9b93f8c4a77063fa9b3fb9d42c5f9bb";
+pub const SOURCE_BLAKE3: &str = "7572ef1ea3b7e7403c0770bd825c181d54a651e23663a4f206dceefa7569ccbe";
 /// Generated projection embedded by browser binaries after explicit production.
 pub const GENERATED_PATH: &str = "generated/projections/lang/gmn-codebook.cbor";
 /// Maximum encoded packet size, including its fixed integrity header.

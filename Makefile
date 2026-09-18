@@ -207,7 +207,7 @@ print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exa
 	@echo "$(MDBOOK_VERSION)"
 
 .PHONY: help print-binaryen-ver print-mdbook-ver \
-	install producer-build producer-verify producer-recipe producer-contract-test fmt lint check-lint lint-issue-refs i18n-lint \
+	install producer-build producer-verify producer-recipe producer-contract-test consumer-cli-build-materialized fmt lint check-lint lint-issue-refs i18n-lint \
 	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-prebuild rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
@@ -241,7 +241,7 @@ help: ## Show the task plan.
 install: ## Bootstrap a clean clone source-first: build ONLY the producer, materialize generated/ via sync, then build the consumer CLIs that embed the bundle.
 	$(MAKE) producer-build
 	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
-	$(MAKE) cli-build
+	$(MAKE) consumer-cli-build-materialized
 	$(MAKE) lsp-release
 
 fmt: ## Rewrite Rust formatting with cargo fmt.
@@ -358,10 +358,19 @@ producer-source-extraction-apply: ## Apply the reviewed producer test-extraction
 producer-source-extraction-verify-format: ## Verify formatted producer test moves against the exact reviewed extraction plan.
 	cargo run --locked -p gmeow-build-inputs --bin extract-tests -- verify-format . .cache/integration/producer-extraction-plan.json .cache/integration/producer-extraction-format-preservation.json
 
-cli-build: producer-build ## Build the consumer CLI against the materialized bundle and retain the authenticated producer.
+cli-build: ## Build the self-contained consumer CLI from a clean source checkout.
+	$(MAKE) producer-build
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=generated
+	$(MAKE) consumer-cli-build-materialized
+
+# Internal edge for workflows that already completed the one producer run. It
+# deliberately has no fallback: both embedded assets must exist and build.rs
+# fails closed if either is absent or empty.
+consumer-cli-build-materialized:
 	cargo build -p gmeow-cli --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
+	./scripts/test-one-file-prover.sh dist/bin/gmeow
 	@echo "gmeow consumer and optimized gmeow-dev producer staged at dist/bin/"
 
 lsp-sarif: lsp-release ## Emit SARIF from all .ttl files in the workspace root (report-only).
@@ -502,7 +511,8 @@ release: ## Materialize from source (update mode), native-reason, build, report,
 	# materialized: a release ships the docs fanout and the runtime dist/ projections.
 	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
 	$(GMEOW_DEV) reason --mode native --merge
-	$(MAKE) build
+	$(MAKE) consumer-cli-build-materialized
+	$(GMEOW_DEV) build
 	$(MAKE) lsp-release
 	$(MAKE) maint-compliance-report-full
 	$(MAKE) crossref

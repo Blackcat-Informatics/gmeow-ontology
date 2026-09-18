@@ -187,17 +187,22 @@ slice's model *and* how it aligns/projects.
 
 ```bash
 # Build the CLI from source (or download the release binary from GitHub):
-make cli-build       # produces dist/bin/gmeow
+make cli-build       # source-first: produces one self-contained dist/bin/gmeow
 
 dist/bin/gmeow info
 dist/bin/gmeow describe gmeow:StandpointClaim
 dist/bin/gmeow transpile source.ttl --profiles all -o out/
+dist/bin/gmeow prove request.logic.ttl --prover eprover --format json
 dist/bin/gmeow mcp
 ```
 
 The public `gmeow` CLI is a native Rust binary backed by the bundled
 `generated/dist/gmeow.gts` snapshot, so description, verification, transpile,
-projection, export, CrossRef metadata, and GTS conversion run from the binary alone.
+projection, proof, export, CrossRef metadata, and GTS conversion run from the binary alone.
+The executable embeds the complete bundle and native GMN codebook; it needs no adjacent
+runtime asset directory. `gmeow prove` compiles the supplied semantic source in memory,
+and only the selected external prover executable remains a host dependency. Its JSON
+report identifies every caller source and emitted problem by content digest.
 Documentation projections are regenerated from canonical sources with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`;
 they are intentionally not embedded in the logical bundle.
 Repository maintenance stays on `gmeow-dev`:

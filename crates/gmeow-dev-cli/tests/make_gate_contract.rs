@@ -312,6 +312,39 @@ fn browser_codebook_builds_require_exact_read_only_producer_selection() {
     }
 }
 
+/// The public entry point owns clean-checkout production, while callers that
+/// already materialized the corpus use the strict post-producer edge exactly once.
+#[test]
+fn consumer_cli_build_is_source_first_without_repeating_an_existing_producer_run() {
+    let makefile = makefile();
+    let public = target_recipe(&makefile, "cli-build");
+    assert!(
+        public.contains("$(MAKE) producer-build")
+            && public.contains("$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=generated")
+            && public.contains("$(MAKE) consumer-cli-build-materialized"),
+        "the public consumer build must materialize both embedded assets before compilation"
+    );
+
+    let materialized = target_recipe(&makefile, "consumer-cli-build-materialized");
+    assert!(
+        materialized.contains("cargo build -p gmeow-cli --release")
+            && materialized.contains("dist/bin/gmeow")
+            && materialized.contains("scripts/test-one-file-prover.sh dist/bin/gmeow")
+            && !materialized.contains("check-sync")
+            && !materialized.contains("producer-build"),
+        "the internal post-producer edge must only compile and stage the one-file consumer"
+    );
+
+    for target in ["install", "release"] {
+        let recipe = target_recipe(&makefile, target);
+        assert!(
+            recipe.contains("$(MAKE) consumer-cli-build-materialized")
+                && !recipe.contains("$(MAKE) cli-build"),
+            "{target} already owns materialization and must not launch a second producer run"
+        );
+    }
+}
+
 #[test]
 fn every_check_dag_target_is_exercised_by_ci() {
     let xtask_source = xtask();

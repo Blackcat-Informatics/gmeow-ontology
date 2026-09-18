@@ -103,7 +103,9 @@ jobs:
           rm -f /tmp/gpg/signing-key.asc
 
       - name: Build the gmeow CLI
-        run: make cli-build
+        env:
+          GMEOW_BUNDLE_PATH: ${{ github.workspace }}/dist/gmeow.gts
+        run: make consumer-cli-build-materialized
 
       - name: Verify signed gmeow.gts
         run: dist/bin/gmeow verify dist/gmeow.gts
