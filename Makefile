@@ -207,7 +207,7 @@ print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exa
 	@echo "$(MDBOOK_VERSION)"
 
 .PHONY: help print-binaryen-ver print-mdbook-ver \
-	install producer-build producer-verify producer-recipe producer-contract-test consumer-cli-build-materialized fmt lint check-lint lint-issue-refs i18n-lint \
+	install producer-build producer-verify producer-recipe producer-contract-test cli-build consumer-cli-build-materialized fmt lint check-lint lint-issue-refs i18n-lint \
 	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-prebuild rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \

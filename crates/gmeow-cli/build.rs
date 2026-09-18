@@ -57,10 +57,13 @@ fn expose_asset(env_name: &str, default: PathBuf, label: &str) {
             .join(&raw)
     };
 
-    let len = std::fs::metadata(&absolute).map(|m| m.len()).unwrap_or(0);
-    if len == 0 {
+    let valid = std::fs::metadata(&absolute)
+        .map(|metadata| metadata.is_file() && metadata.len() > 0)
+        .unwrap_or(false);
+    if !valid {
         panic!(
-            "gmeow: staged {label} {} is missing or empty — run `make cli-build` (or \
+            "gmeow: staged {label} {} is missing, empty, or not a regular file — run \
+             `make cli-build` (or \
              `make install`) to materialize every embedded producer asset before building this \
              consumer. It is a git-ignored local/release product, not a committed input.",
             absolute.display()

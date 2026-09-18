@@ -38,6 +38,10 @@ chmod 755 "$scratch/eprover"
 # both consumer operations; the EXIT trap restores the directory on every
 # ordinary success or failure path.
 chmod 000 "$repo_root"
+if cat "$repo_root/Makefile" >/dev/null 2>&1; then
+  echo "checkout denial failed: $repo_root remains readable" >&2
+  exit 1
+fi
 
 (
   cd "$scratch/blind"

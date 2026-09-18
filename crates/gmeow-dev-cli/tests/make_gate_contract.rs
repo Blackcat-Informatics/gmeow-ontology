@@ -318,11 +318,24 @@ fn browser_codebook_builds_require_exact_read_only_producer_selection() {
 fn consumer_cli_build_is_source_first_without_repeating_an_existing_producer_run() {
     let makefile = makefile();
     let public = target_recipe(&makefile, "cli-build");
+    let producer = "$(MAKE) producer-build";
+    let sync = "$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=generated";
+    let consumer = "$(MAKE) consumer-cli-build-materialized";
     assert!(
-        public.contains("$(MAKE) producer-build")
-            && public.contains("$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=generated")
-            && public.contains("$(MAKE) consumer-cli-build-materialized"),
+        public.contains(producer) && public.contains(sync) && public.contains(consumer),
         "the public consumer build must materialize both embedded assets before compilation"
+    );
+    assert_eq!(
+        public.matches(producer).count(),
+        1,
+        "cli-build must invoke the producer exactly once"
+    );
+    let producer_at = public.find(producer).expect("producer command is present");
+    let sync_at = public.find(sync).expect("sync command is present");
+    let consumer_at = public.find(consumer).expect("consumer command is present");
+    assert!(
+        producer_at < sync_at && sync_at < consumer_at,
+        "cli-build must produce, synchronize, then compile the consumer"
     );
 
     let materialized = target_recipe(&makefile, "consumer-cli-build-materialized");
