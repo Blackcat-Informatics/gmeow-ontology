@@ -6,6 +6,9 @@
 Corpus production uses the authenticated O3/full-LTO producer. Test compilation
 starts independently and cannot produce corpus fixtures. CI preserves two cold
 generations on every pull request; neither generation restores an action cache.
+Each independent `generation` job has a 120-minute whole-job budget. The
+`fixture-prefix` job has a 180-minute budget because it owns the cold 30-action
+producer-independent prefix before it can publish reusable receipts.
 
 | Job | Required inputs | Responsibility |
 | --- | --- | --- |
