@@ -265,11 +265,24 @@ pub struct StoreLimits {
     pub max_total_bytes: u64,
 }
 
+/// Shared per-action product bound. The complete typed compile-logic publication is
+/// 369,597,157 bytes; retaining it avoids projection reparsing and repeated lowering.
+/// Keep one authority because every producer and conformance sub-DAG opens the same
+/// content-addressed store and must admit the same receipts.
+pub const DEFAULT_MAX_ENTRY_BYTES: u64 = 512 * 1024 * 1024;
+
+/// Shared receipt bound for the one action-store namespace. Pipeline receipts retain
+/// the exact path and digest of every declared raw input; the conformance producer's
+/// broad corpus census can exceed 4 MiB without carrying product bytes. Sixteen MiB
+/// keeps that complete action identity bounded and remains small beside the independent
+/// 512 MiB product ceiling.
+pub const DEFAULT_MAX_RECEIPT_BYTES: u64 = 16 * 1024 * 1024;
+
 impl Default for StoreLimits {
     fn default() -> Self {
         Self {
-            max_entry_bytes: 256 * 1024 * 1024,
-            max_receipt_bytes: 4 * 1024 * 1024,
+            max_entry_bytes: DEFAULT_MAX_ENTRY_BYTES,
+            max_receipt_bytes: DEFAULT_MAX_RECEIPT_BYTES,
             // The producer DAG carries one independently reusable receipt per slice
             // specification in addition to pipeline stages. Retain several source
             // generations under the unchanged byte ceiling so a one-slice edit does
@@ -596,9 +609,10 @@ impl ActionStore {
         let receipt_bytes = serde_json::to_vec_pretty(&envelope)?;
         let receipt_byte_count = u64::try_from(receipt_bytes.len()).unwrap_or(u64::MAX);
         if receipt_byte_count > self.limits.max_receipt_bytes {
-            return Err(ActionCacheError::message(
-                "action receipt exceeds its structural bound",
-            ));
+            return Err(ActionCacheError::message(format!(
+                "action receipt for {} is {receipt_byte_count} bytes, above its {}-byte structural bound",
+                receipt.action_key, self.limits.max_receipt_bytes
+            )));
         }
         if receipt_byte_count.saturating_add(byte_count) > self.limits.max_total_bytes {
             return Err(ActionCacheError::message(

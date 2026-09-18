@@ -20,15 +20,22 @@ const RDFS_SUBPROPERTY: &str = "http://www.w3.org/2000/01/rdf-schema#subProperty
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+const OWL_DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 const OWL_UNION: &str = "http://www.w3.org/2002/07/owl#unionOf";
 const OWL_DISJOINT_UNION: &str = "http://www.w3.org/2002/07/owl#disjointUnionOf";
 const OWL_INTERSECTION: &str = "http://www.w3.org/2002/07/owl#intersectionOf";
 const OWL_ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
+const OWL_COMPLEMENT: &str = "http://www.w3.org/2002/07/owl#complementOf";
+const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
+const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
 const OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
 const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
 const OWL_INVERSE: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_PROPERTY_CHAIN: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
+const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
 #[derive(Clone)]
 struct Edge {
@@ -105,6 +112,7 @@ pub(super) struct BatchAnalysis {
     subclass: Reachability,
     subproperty: Reachability,
     triples: Vec<SourceTriple>,
+    list_triples: Vec<SourceTermTriple>,
     predicates: BTreeSet<String>,
 }
 
@@ -117,23 +125,42 @@ struct SourceTriple {
     raw_object: String,
 }
 
+struct SourceTermTriple {
+    world: String,
+    subject: TermValue,
+    predicate: String,
+    object: TermValue,
+}
+
 impl BatchAnalysis {
     pub(super) fn new(input: &PreparedReasoningInput) -> Self {
         let mut out = Self {
             subclass: Reachability::default(),
             subproperty: Reachability::default(),
             triples: Vec::new(),
+            list_triples: Vec::new(),
             predicates: BTreeSet::new(),
         };
         for (world, facts) in &input.facts {
             for fact in facts {
+                let predicate = calculus_term(&fact.predicate);
+                if matches!(
+                    predicate,
+                    RDF_FIRST | RDF_REST | RDF_TYPE | OWL_MEMBERS | OWL_DISJOINT_UNION
+                ) {
+                    out.list_triples.push(SourceTermTriple {
+                        world: world.clone(),
+                        subject: fact.subject.clone(),
+                        predicate: predicate.to_owned(),
+                        object: fact.object.clone(),
+                    });
+                }
                 let (TermValue::Iri(subject), TermValue::Iri(object)) =
                     (&fact.subject, &fact.object)
                 else {
                     continue;
                 };
                 let normalized_subject = calculus_term(subject);
-                let predicate = calculus_term(&fact.predicate);
                 let normalized_object = calculus_term(object);
                 out.predicates.insert(predicate.to_owned());
                 out.triples.push(SourceTriple {
@@ -202,8 +229,17 @@ impl BatchAnalysis {
         })
     }
 
-    fn subclass_exact(&self) -> bool {
-        !self.has_predicate(OWL_UNION)
+    fn subclass_exact(&self, axiom: &LeaveOneOutAxiom) -> bool {
+        let subject = calculus_term(&axiom.subject);
+        let object = calculus_term(&axiom.object);
+        // The two fixed list laws that mint subClassOf are local: a union produces
+        // `member subClassOf union-class`, while an intersection produces
+        // `intersection-class subClassOf member`. An unrelated constructor elsewhere
+        // in a large vocabulary cannot possibly rederive this probe. The former global
+        // predicate test routed every taxonomy probe in the logic slice through a full
+        // native transaction because that slice also happens to define one union.
+        !self.has_pattern(Some(object), OWL_UNION, None)
+            && !self.has_pattern(Some(subject), OWL_INTERSECTION, None)
             && !self.has_predicate(OWL_DISJOINT_UNION)
             && !self.may_generate(OWL_UNION)
             && !self.may_generate(OWL_DISJOINT_UNION)
@@ -225,6 +261,64 @@ impl BatchAnalysis {
                 && (triple.raw_subject != axiom.subject
                     || triple.raw_predicate != axiom.predicate
                     || triple.raw_object != axiom.object)
+        })
+    }
+
+    fn term_object(&self, world: &str, subject: &TermValue, predicate: &str) -> Option<&TermValue> {
+        self.list_triples.iter().find_map(|triple| {
+            (triple.world == world && &triple.subject == subject && triple.predicate == predicate)
+                .then_some(&triple.object)
+        })
+    }
+
+    fn list_contains_pair(&self, world: &str, head: &TermValue, left: &str, right: &str) -> bool {
+        let mut node = head.clone();
+        let mut seen = Vec::new();
+        let mut has_left = false;
+        let mut has_right = false;
+        while !matches!(&node, TermValue::Iri(iri) if iri == RDF_NIL) && !seen.contains(&node) {
+            seen.push(node.clone());
+            let Some(member) = self.term_object(world, &node, RDF_FIRST) else {
+                return false;
+            };
+            has_left |= matches!(member, TermValue::Iri(iri) if calculus_term(iri) == left);
+            has_right |= matches!(member, TermValue::Iri(iri) if calculus_term(iri) == right);
+            let Some(rest) = self.term_object(world, &node, RDF_REST) else {
+                return false;
+            };
+            node = rest.clone();
+        }
+        matches!(&node, TermValue::Iri(iri) if iri == RDF_NIL) && has_left && has_right
+    }
+
+    fn disjoint_rederived_without(&self, axiom: &LeaveOneOutAxiom) -> bool {
+        let left = calculus_term(&axiom.subject);
+        let right = calculus_term(&axiom.object);
+        if self.direct_alternate_support(axiom, OWL_DISJOINT) {
+            return true;
+        }
+        if self.triples.iter().any(|triple| {
+            if triple.predicate == OWL_COMPLEMENT
+                && ((triple.subject == left && triple.object == right)
+                    || (triple.subject == right && triple.object == left))
+            {
+                return true;
+            }
+            false
+        }) {
+            return true;
+        }
+        self.list_triples.iter().any(|triple| {
+            if triple.predicate == OWL_DISJOINT_UNION {
+                return self.list_contains_pair(&triple.world, &triple.object, left, right);
+            }
+            if triple.predicate != RDF_TYPE
+                || !matches!(&triple.object, TermValue::Iri(iri) if calculus_term(iri) == OWL_ALL_DISJOINT_CLASSES)
+            {
+                return false;
+            }
+            self.term_object(&triple.world, &triple.subject, OWL_MEMBERS)
+                .is_some_and(|head| self.list_contains_pair(&triple.world, head, left, right))
         })
     }
 
@@ -267,7 +361,7 @@ impl BatchAnalysis {
     /// remains necessary.
     pub(super) fn answer(&self, axiom: &LeaveOneOutAxiom) -> Option<bool> {
         let predicate = calculus_term(&axiom.predicate);
-        if predicate == RDFS_SUBCLASS && axiom.object != OWL_NOTHING && self.subclass_exact() {
+        if predicate == RDFS_SUBCLASS && axiom.object != OWL_NOTHING && self.subclass_exact(axiom) {
             return Some(self.subclass.rederived_without(axiom));
         }
         if predicate == RDFS_SUBPROPERTY && self.subproperty_exact() {
@@ -282,6 +376,14 @@ impl BatchAnalysis {
         ) && !self.may_generate(predicate)
         {
             return Some(self.direct_alternate_support(axiom, predicate));
+        }
+
+        // The fixed calculus mints class disjointness only from complement pairs,
+        // disjoint-union lists, and owl:AllDisjointClasses lists. Inspect those exact
+        // witnesses in their own logical world; unrelated constructors cannot force a
+        // complete source-retraction transaction.
+        if predicate == OWL_DISJOINT && !self.may_generate(predicate) {
+            return Some(self.disjoint_rederived_without(axiom));
         }
 
         if self.characteristic_has_no_alternative_producer(axiom) {

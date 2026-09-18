@@ -87,7 +87,7 @@ pub struct EquivalenceCell {
     /// constructs this by-reference lowering does not carry (e.g. a loop unrolls, a
     /// concurrent composition serializes, a per-outcome compensation is omitted). Folded
     /// into the report's per-correspondence residue, distinct from the human `comment`.
-    lossy_drops: Vec<String>,
+    pub(crate) lossy_drops: Vec<purrdf::RdfLiteral>,
     pub sssom_file: String,
     subject_label: String,
     pub object_label: String,
@@ -244,7 +244,11 @@ fn build_rows_and_ledger(
         if cell.confidence.is_some() {
             residue.push("get-leg: confidence is projected as binary64; original RDF datatype and lexical identity are not carried by SSSOM".to_owned());
         }
-        residue.extend(cell.lossy_drops.iter().cloned());
+        residue.extend(
+            cell.lossy_drops
+                .iter()
+                .map(|literal| literal.lexical_form.clone()),
+        );
         // A correspondence is the (subject, predicate, object) triple, not just the
         // subject (one subject may align to several objects), so the per-correspondence
         // key folds all three for a stable, collision-free target name.
@@ -635,11 +639,7 @@ fn extract_native_equivalences(
                 .annotation_literal(GM_COMMENT)?
                 .unwrap_or_default()
                 .to_owned(),
-            lossy_drops: stmt
-                .annotation_literals(GM_LOSSY_DROP)?
-                .into_iter()
-                .map(str::to_owned)
-                .collect(),
+            lossy_drops: stmt.annotation_rdf_literals(GM_LOSSY_DROP)?,
             sssom_file: sssom_file.to_owned(),
             subject_label: stmt
                 .annotation_literal(GM_SUBJECT_LABEL)?

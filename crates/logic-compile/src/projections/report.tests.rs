@@ -15,6 +15,18 @@ fn header(correspondence_count: usize, lawful_uplift_count: usize) -> ReportHead
     }
 }
 
+#[test]
+fn projection_target_segment_encodes_embedded_fragment_delimiters() {
+    let key =
+        "sssom:http://rdfs.org/sioc/ns#UserAccount|http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    let encoded = iri_safe_segment(key);
+    assert!(
+        !encoded.contains('#'),
+        "fragment delimiter leaked: {encoded}"
+    );
+    assert_eq!(encoded.matches("%23").count(), 2, "{encoded}");
+}
+
 /// Borrowed joins preserve source-attributed residue and the exact legacy fold,
 /// including overlapping witnesses that the native ledger union deduplicates.
 #[test]

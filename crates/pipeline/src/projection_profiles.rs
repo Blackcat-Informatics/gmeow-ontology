@@ -57,6 +57,17 @@ fn inventory_err(message: String) -> gmeow_errors::Diag {
     })
 }
 
+fn authored_dataset(
+    root: &Path,
+    relative_path: &str,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    let path = root.join(relative_path);
+    let bytes =
+        std::fs::read(&path).map_err(|e| inventory_err(format!("read {}: {e}", path.display())))?;
+    purrdf::parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|e| inventory_err(format!("parse {}: {e}", path.display())))
+}
+
 /// Lower the original projection-profile document without reparsing its authored bytes.
 fn projection_profiles_from_dataset(
     dataset: &purrdf::RdfDataset,
@@ -212,13 +223,18 @@ pub(crate) const CHANNEL: &str = "pipeline/projection-profile-inventory.json";
 /// Observe original native source documents and grade the complete selected inventory.
 pub(crate) fn record_projection_profile_inventory(
     root: &Path,
-    catalog: &crate::stages::parse_sources::SourceCatalog,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let declared = projection_profiles_from_dataset(catalog.document(PROJECTION_PROFILES_PATH)?)?;
+    // These mapping-DSL documents are deliberately outside the object-level
+    // SourceCatalog: admitting them there would contaminate the authored default graph
+    // and logic compilation. Parse each selected mapping source exactly once in this
+    // owning stage instead of pretending the object-level catalog contains it.
+    let declared_dataset = authored_dataset(root, PROJECTION_PROFILES_PATH)?;
+    let declared = projection_profiles_from_dataset(&declared_dataset)?;
     let measured = on_disk_profiles(root)?
         .into_iter()
         .map(|path| {
-            let count = authored_cell_count(catalog.document(&path)?);
+            let dataset = authored_dataset(root, &path)?;
+            let count = authored_cell_count(&dataset);
             Ok((path, count))
         })
         .collect::<Result<_, gmeow_errors::Diag>>()?;

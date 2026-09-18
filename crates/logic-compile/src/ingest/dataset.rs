@@ -134,6 +134,58 @@ impl<'a> ReifiedStatement<'a> {
         Ok(values)
     }
 
+    /// All native RDF literal values of a multivalued coordinate.
+    ///
+    /// Unlike [`Self::annotation_literals`], this preserves datatype, language, and RDF 1.2
+    /// base direction for typed IR fields whose literal identity is semantically relevant.
+    ///
+    /// # Errors
+    /// Rejects any non-literal member or malformed internal datatype reference.
+    pub fn annotation_rdf_literals(
+        &self,
+        predicate: &str,
+    ) -> gmeow_errors::Result<Vec<purrdf::RdfLiteral>> {
+        let mut values = self
+            .annotation_objects(predicate)
+            .map(|term| match term {
+                TermRef::Literal {
+                    lexical,
+                    datatype,
+                    language,
+                    direction,
+                } => {
+                    let TermRef::Iri(datatype) = self.dataset.resolve(datatype) else {
+                        return Err(
+                            self.field_error(predicate, "literal datatype must resolve to an IRI")
+                        );
+                    };
+                    Ok(purrdf::RdfLiteral {
+                        lexical_form: lexical.to_owned(),
+                        datatype: Some(datatype.to_owned()),
+                        language: language.map(str::to_owned),
+                        direction,
+                    })
+                }
+                _ => Err(self.field_error(predicate, "requires literal values")),
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+        values.sort_by(|a, b| {
+            (
+                &a.lexical_form,
+                &a.datatype,
+                &a.language,
+                a.direction.map(|direction| direction.as_str()),
+            )
+                .cmp(&(
+                    &b.lexical_form,
+                    &b.datatype,
+                    &b.language,
+                    b.direction.map(|direction| direction.as_str()),
+                ))
+        });
+        Ok(values)
+    }
+
     /// Structural annotation typing is multivalued and never a first-winner field.
     pub fn annotation_has_type(&self, class: &str) -> bool {
         self.annotation_objects(RDF_TYPE)

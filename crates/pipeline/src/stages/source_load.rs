@@ -564,12 +564,19 @@ impl Stage for SourceLoadStage {
             "slice-quality",
             started.elapsed().as_millis(),
         ));
-        timings.extend(quality.slice_timings.iter().map(|timing| {
-            crate::node::StageRunTiming::new(
-                format!("slice-quality/{}", timing.slice),
-                timing.elapsed_ms,
-            )
-        }));
+        timings.extend(
+            quality
+                .slice_timings
+                .iter()
+                .map(|timing| crate::node::StageRunTiming {
+                    phase: format!("slice-quality/{}", timing.slice),
+                    elapsed_ms: timing.elapsed_ms,
+                    metadata: Some(format!(
+                        "certified_probes={} native_probes={}",
+                        timing.certified_probes, timing.native_probes
+                    )),
+                }),
+        );
         // Attach the self-description named graphs alongside the base default graph — the
         // load + canonicalize the presenter used to do on the serial snapshot node, done
         // ONCE here at the parallel DAG root.

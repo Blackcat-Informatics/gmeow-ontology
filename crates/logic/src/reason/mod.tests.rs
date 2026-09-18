@@ -353,6 +353,62 @@ fn incremental_leave_one_out_preserves_finite_dl_union_derivation() {
 }
 
 #[test]
+fn unrelated_union_does_not_force_a_native_taxonomy_transaction() {
+    const U: &str = "http://gmeow.example/U";
+    const X: &str = "http://gmeow.example/X";
+    const UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
+    const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+    let list = RdfTerm::blank_node("unrelated-union-list");
+    let store = dataset(vec![
+        quad(A, SUBCLASS, C),
+        RdfQuad::new(RdfTerm::iri(U), UNION_OF, list.clone()).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(list.clone(), RDF_FIRST, RdfTerm::iri(X)).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(list, RDF_REST, RdfTerm::iri(RDF_NIL)).in_graph(RdfTerm::iri(W)),
+    ]);
+    let observed = leave_one_out_rederived_observed(
+        prepare_reasoning_input(&store).unwrap(),
+        &SelectedDomains::new([]).unwrap(),
+        &[LeaveOneOutAxiom::new(A, SUBCLASS, C)],
+    )
+    .expect("unrelated union leaves taxonomy probe in the certified batch");
+    assert_eq!(observed.rederived, vec![false]);
+    assert_eq!(observed.certified_probes, 1);
+    assert_eq!(observed.native_probes, 0);
+}
+
+#[test]
+fn disjoint_union_pair_is_certified_without_a_native_transaction() {
+    const U: &str = "http://gmeow.example/U";
+    const DISJOINT_UNION_OF: &str = "http://www.w3.org/2002/07/owl#disjointUnionOf";
+    const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+    let head = RdfTerm::blank_node("disjoint-head");
+    let tail = RdfTerm::blank_node("disjoint-tail");
+    let store = dataset(vec![
+        quad(A, DISJOINT, B),
+        RdfQuad::new(RdfTerm::iri(U), DISJOINT_UNION_OF, head.clone()).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(head.clone(), RDF_FIRST, RdfTerm::iri(A)).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(head, RDF_REST, tail.clone()).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(tail.clone(), RDF_FIRST, RdfTerm::iri(B)).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(tail, RDF_REST, RdfTerm::iri(RDF_NIL)).in_graph(RdfTerm::iri(W)),
+    ]);
+    let observed = leave_one_out_rederived_observed(
+        prepare_reasoning_input(&store).unwrap(),
+        &SelectedDomains::new([]).unwrap(),
+        &[LeaveOneOutAxiom::new(A, DISJOINT, B)],
+    )
+    .expect("disjoint-union witness is answered by the certified batch");
+    assert_eq!(observed.rederived, vec![true]);
+    assert_eq!(observed.certified_probes, 1);
+    assert_eq!(observed.native_probes, 0);
+}
+
+#[test]
 fn batched_leave_one_out_matches_scratch_for_every_fast_tbox_family() {
     const SUBPROPERTY: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
     const DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
@@ -412,12 +468,13 @@ fn batched_leave_one_out_matches_scratch_for_every_fast_tbox_family() {
         LeaveOneOutAxiom::new(Q, TYPE, FUNCTIONAL),
     ];
 
-    let batched = leave_one_out_rederived(
+    let observed = leave_one_out_rederived_observed(
         prepare_reasoning_input(&store).unwrap(),
         &SelectedDomains::new([]).unwrap(),
         &probes,
     )
     .expect("batch reasons");
+    let batched = observed.rederived.clone();
     let scratch = probes
         .iter()
         .map(|probe| scratch_leave_one_out(&store, probe))
@@ -429,6 +486,8 @@ fn batched_leave_one_out_matches_scratch_for_every_fast_tbox_family() {
             true, false, false, false, false, false, true, false, false, false, true, false, true
         ]
     );
+    assert_eq!(observed.certified_probes, 10);
+    assert_eq!(observed.native_probes, 3);
 }
 
 #[test]

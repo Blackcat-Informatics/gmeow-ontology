@@ -22,6 +22,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use gmeow_errors::{Finding, Severity, Standpoint};
 use gmeow_lang_bridge::GmnDictionary;
@@ -105,6 +106,22 @@ pub struct ScoreContext<'a> {
     pub terms: Vec<String>,
     /// Where the two repo-anchored axes source their wide-scope inputs.
     pub env: ScoringEnv,
+    reasoner_probes: ReasonerProbeTelemetry,
+}
+
+/// Observed leave-one-out work for one slice-quality score.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ReasonerProbeCounts {
+    /// Probes answered by the immutable certified batch analysis.
+    pub certified: usize,
+    /// Probes routed through complete native source retraction.
+    pub native: usize,
+}
+
+#[derive(Debug, Default)]
+struct ReasonerProbeTelemetry {
+    certified: AtomicUsize,
+    native: AtomicUsize,
 }
 
 impl<'a> ScoreContext<'a> {
@@ -125,6 +142,21 @@ impl<'a> ScoreContext<'a> {
             graph,
             terms,
             env,
+            reasoner_probes: ReasonerProbeTelemetry::default(),
+        }
+    }
+
+    pub(crate) fn record_reasoner_probes(&self, certified: usize, native: usize) {
+        self.reasoner_probes
+            .certified
+            .store(certified, Ordering::Relaxed);
+        self.reasoner_probes.native.store(native, Ordering::Relaxed);
+    }
+
+    pub(crate) fn reasoner_probe_counts(&self) -> ReasonerProbeCounts {
+        ReasonerProbeCounts {
+            certified: self.reasoner_probes.certified.load(Ordering::Relaxed),
+            native: self.reasoner_probes.native.load(Ordering::Relaxed),
         }
     }
 

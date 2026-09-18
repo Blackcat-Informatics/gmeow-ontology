@@ -362,8 +362,12 @@ pub fn transpile_correspondences_indexed(
         let iri = correspondence_iri("term-equivalence", &key);
         // Fail closed on a semantically divergent duplicate; collapse a redundant restatement.
         let signature = format!(
-            "conf={:?}|just={:?}|src={:?}|tgt={:?}",
-            cell.confidence, cell.justification, cell.source_endpoint, cell.target_endpoint,
+            "conf={:?}|just={:?}|src={:?}|tgt={:?}|loss={:?}",
+            cell.confidence,
+            cell.justification,
+            cell.source_endpoint,
+            cell.target_endpoint,
+            cell.lossy_drops,
         );
         // Every admitted source spelling needs its typed relation, including
         // restatements whose program node is already present in another set.
@@ -433,6 +437,7 @@ pub fn transpile_correspondences_indexed(
             None,
             None,
         )?);
+        corr = corr.with_loss_evidence(cell.lossy_drops.clone())?;
         if cell.grounding {
             corr = corr.as_grounding();
         }

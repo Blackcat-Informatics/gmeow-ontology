@@ -481,13 +481,33 @@ fn native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries() {
             score
         );
         assert_eq!(cell.sssom_file, format!("{name}.sssom.tsv"));
-        assert_eq!(cell.lossy_drops, vec![format!("loss-of-{name}")]);
+        assert_eq!(
+            cell.lossy_drops,
+            vec![RdfLiteral::typed(
+                format!("loss-of-{name}"),
+                "http://www.w3.org/2001/XMLSchema#string"
+            )]
+        );
     }
     // The full typed correspondence reader consumes these same admitted cells.
     let (program, _) =
         crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)
             .unwrap();
     assert_eq!(program.correspondences.len(), 2);
+    assert_eq!(
+        program.correspondences[0].loss_evidence,
+        vec![RdfLiteral::typed(
+            "loss-of-Alpha",
+            "http://www.w3.org/2001/XMLSchema#string"
+        )]
+    );
+    assert_eq!(
+        program.correspondences[1].loss_evidence,
+        vec![RdfLiteral::typed(
+            "loss-of-Bravo",
+            "http://www.w3.org/2001/XMLSchema#string"
+        )]
+    );
 }
 
 #[test]
