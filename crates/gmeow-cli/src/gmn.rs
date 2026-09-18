@@ -138,10 +138,7 @@ fn load_codebook_and_dict(
         }
         None => {
             use gmeow_lang_bridge::gmn1_codec::native;
-            const PREPARED: &[u8] = include_bytes!(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../../generated/projections/lang/gmn-codebook.cbor"
-            ));
+            const PREPARED: &[u8] = include_bytes!(env!("GMEOW_CODEBOOK_PATH"));
             native::decode(PREPARED, native::SOURCE_BLAKE3)
                 .map(native::NativeCodebook::into_parts)
                 .map_err(|error| fail(reporter, "gmeow-cli.gmn.codebook", error.to_string()))
