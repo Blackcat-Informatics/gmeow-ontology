@@ -75,6 +75,10 @@ pub struct SliceScoreTiming {
     pub slice: String,
     /// Wall time spent scoring that slice, including its reasoner probes.
     pub elapsed_ms: u128,
+    /// Leave-one-out probes answered by the certified immutable analysis.
+    pub certified_probes: usize,
+    /// Leave-one-out probes that required complete native source retraction.
+    pub native_probes: usize,
 }
 
 /// Parse one or more Turtle files into a single merged dataset.
@@ -870,6 +874,10 @@ fn score_slices_with_rubric_timed(
                 slice_dir: dir.clone(),
             },
         );
+        let probes = result.as_ref().map_or_else(
+            |_| score::ReasonerProbeCounts::default(),
+            |report| report.reasoner_probe_counts(),
+        );
         let slice = dir
             .strip_prefix(repo_root)
             .unwrap_or(dir)
@@ -880,6 +888,8 @@ fn score_slices_with_rubric_timed(
             SliceScoreTiming {
                 slice,
                 elapsed_ms: started.elapsed().as_millis(),
+                certified_probes: probes.certified,
+                native_probes: probes.native,
             },
         )
     };

@@ -65,17 +65,17 @@ fn emit_abox_annotations(
 
 /// Percent-encode a projection-target name into a legal IRI path segment.
 ///
-/// The unreserved set + the IRI-path-legal punctuation that the whole-program logic
-/// target names already use (`:` `/` `#` `.` `-` `_` `~`) pass through unchanged — so the
-/// seven logic rows (and any `property-path:<iri>` row) serialize byte-identically. Every
-/// other byte (space, `|`, the `://` scheme separators are covered by `:`/`/`, etc.) is
-/// percent-encoded, yielding a deterministic, collision-free, legal segment for the
-/// correspondence rows (whose names embed full IRIs and `|`/`::`/space separators).
+/// The unreserved set + IRI-path punctuation used by whole-program target names (`:` `/`
+/// `.` `-` `_` `~`) pass through unchanged. `#` is always encoded: an embedded vocabulary
+/// IRI may contain one fragment delimiter, and a correspondence key may contain several;
+/// leaving any of them in this outer IRI would turn the remainder into a fragment and make
+/// a later `#` illegal. Every other byte is percent-encoded, yielding a deterministic,
+/// collision-free, legal target identity.
 fn iri_safe_segment(name: &str) -> String {
     let mut out = String::with_capacity(name.len());
     for b in name.bytes() {
-        let keep = b.is_ascii_alphanumeric()
-            || matches!(b, b':' | b'/' | b'#' | b'.' | b'-' | b'_' | b'~');
+        let keep =
+            b.is_ascii_alphanumeric() || matches!(b, b':' | b'/' | b'.' | b'-' | b'_' | b'~');
         if keep {
             out.push(b as char);
         } else {

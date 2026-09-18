@@ -161,7 +161,10 @@ jobs:
       matrix:
         generation: [a, b]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Cold generation A reached stage-reason at 3m and was still correctly
+    # executing when the former 60-minute job budget sent SIGTERM. Preserve both
+    # independent cold authorities and budget the measured tail explicitly.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -425,7 +428,10 @@ jobs:
     env:
       GMEOW_DEV: ./dist/bin/gmeow-dev
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # This job owns the cold 30-action producer-independent fixture prefix after
+    # producer/toolchain admission. Its former 90-minute whole-job budget killed
+    # the active pipeline before it could publish any reusable exact receipts.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

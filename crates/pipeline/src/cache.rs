@@ -102,18 +102,20 @@ pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
 /// it authenticates without knowing its storage path.
 pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor1+receipt-json-2";
 
-/// No independently reusable contribution may serialize above 256 MiB. The measured
-/// useful persistent units are at most ~138 MiB; whole-document leaves at 1.5--2.5 GiB
-/// and cumulative carriers are explicitly recomputed. This ratchet forces a future
-/// growing stage through a fresh size/hydration census instead of silently turning the
-/// cache into another multi-gigabyte carrier store. It is deliberately much stricter
-/// than the repository's separate 16 GiB peak-build-memory contract.
-pub const MAX_ENTRY_BYTES: u64 = 256 * 1024 * 1024;
+/// No independently reusable contribution may serialize above 512 MiB. The measured
+/// complete `stage-compile-logic` publication is 369,597,157 bytes after typed
+/// correspondence integration; its typed program and report fields are intentionally
+/// retained so a hit does not reparse projections or repeat lowering. Whole-document
+/// leaves at 1.5--2.5 GiB and cumulative carriers remain explicitly recomputed. This
+/// ratchet forces a future growing stage through a fresh size/hydration census instead
+/// of silently turning the cache into another multi-gigabyte carrier store. It remains
+/// much stricter than the repository's separate 16 GiB peak-build-memory contract.
+pub const MAX_ENTRY_BYTES: u64 = gmeow_action_cache::DEFAULT_MAX_ENTRY_BYTES;
 
-/// Receipts are a compact census, never a payload lane. Bound them separately so a
-/// forged root cannot make a reader allocate an attacker-sized JSON buffer before
-/// structural validation runs.
-const MAX_RECEIPT_BYTES: u64 = 4 * 1024 * 1024;
+/// Receipts are a bounded census, never a payload lane. The conformance action retains
+/// every exact corpus path and digest in its identity, so use the shared-store bound;
+/// every writer and reader of the namespace must admit the same receipt set.
+const MAX_RECEIPT_BYTES: u64 = gmeow_action_cache::DEFAULT_MAX_RECEIPT_BYTES;
 
 /// Default bounded-store quotas. They are storage economics, never correctness
 /// switches: eviction turns a future lookup into ordinary recomputation.
@@ -903,8 +905,12 @@ fn validate_handle_projection(
             let projected =
                 gmeow_logic_compile::projections::correspondence::parse_correspondence(graph)
                     .map_err(|e| error(e.to_string()))?;
-            crate::handle_identity::typed_digest(program.as_ref())
-                == crate::handle_identity::typed_digest(&projected)
+            // The correspondence IR owns a versioned, exhaustive semantic key whose
+            // collections are canonicalized by construction. Compare that identity
+            // across the RDF inverse instead of the serializer's incidental struct
+            // framing: parsing can normalize representation details while preserving
+            // every governed correspondence, composition, leg and loss witness.
+            program.content_key() == projected.content_key()
         }
     };
     if !agrees {

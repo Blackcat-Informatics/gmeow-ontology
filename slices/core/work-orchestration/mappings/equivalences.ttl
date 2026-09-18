@@ -63,7 +63,8 @@ gmeow:branchConditionIf skos:relatedMatch logic:Choice {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:comment "An if-then guard on a logic:ControlFlowEdge edge realizes the canonical binary choice combinator logic:Choice (the guarded then-arm vs. the alternative). Structural, not equivalent: the guard VALUE marks which combinator the reified edge realizes, it is not the combinator class. The implicit else / default arm corresponds to logic:Fallback (try the guarded arm, else the default)." ;
-    gmeow:lossyDrop "implicit else/default arm → logic:Fallback: the default branch is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value"
+    gmeow:lossyDrop "implicit else/default arm → logic:Fallback: the default branch is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" ;
+    logic:preservationKind logic:ValidationOnly
 |} .
 
 gmeow:branchConditionLoop skos:relatedMatch logic:Iteration {|
@@ -71,7 +72,8 @@ gmeow:branchConditionLoop skos:relatedMatch logic:Iteration {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:comment "A loop-back guard on a logic:ControlFlowEdge edge realizes the canonical iteration combinator logic:Iteration (logic:iterationBody gated by logic:iterationCondition). Structural, not equivalent. A loop is a back-edge in the flow graph, so a plan carrying a loop guard is outside the acyclic DAG fragment the certifier accepts." ;
-    gmeow:lossyDrop "loop body / loop condition split (logic:iterationBody, logic:iterationCondition) is not carried by the flat guard value; the back-edge places the plan outside the DAG fragment"
+    gmeow:lossyDrop "loop body / loop condition split (logic:iterationBody, logic:iterationCondition) is not carried by the flat guard value; the back-edge places the plan outside the DAG fragment" ;
+    logic:preservationKind logic:ValidationOnly
 |} .
 
 gmeow:branchConditionParallel skos:relatedMatch logic:ConcurrentComposition {|
@@ -79,7 +81,8 @@ gmeow:branchConditionParallel skos:relatedMatch logic:ConcurrentComposition {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:comment "A parallel split/join guard on a logic:ControlFlowEdge edge realizes the canonical concurrent-composition combinator logic:ConcurrentComposition (two co-equal legs run concurrently). Structural, not equivalent." ;
-    gmeow:lossyDrop "the conflict-serializability surface of a concurrent run (logic:ConcurrentHistory, logic:serializabilityCriterion) is derived by the native evaluator, not carried by the flat parallel guard value"
+    gmeow:lossyDrop "the conflict-serializability surface of a concurrent run (logic:ConcurrentHistory, logic:serializabilityCriterion) is derived by the native evaluator, not carried by the flat parallel guard value" ;
+    logic:preservationKind logic:ValidationOnly
 |} .
 
 gmeow:branchConditionSwitch skos:relatedMatch logic:Choice {|
@@ -88,5 +91,6 @@ gmeow:branchConditionSwitch skos:relatedMatch logic:Choice {|
     gmeow:confidence 0.6 ;
     gmeow:comment "An n-way switch guard on a logic:ControlFlowEdge edge realizes the canonical choice combinator logic:Choice. logic:Choice is BINARY (logic:leftOperand / logic:rightOperand), so an n-way switch corresponds to a right-nested cascade of binary logic:Choice nodes; the single canonical combinator target is logic:Choice. Structural, not equivalent. The implicit default case corresponds to logic:Fallback." ;
     gmeow:lossyDrop "implicit default case → logic:Fallback: the default arm is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" ;
-    gmeow:lossyDrop "n-ary switch arity → right-nested binary logic:Choice cascade: the flat switch arity is not preserved by the binary combinator"
+    gmeow:lossyDrop "n-ary switch arity → right-nested binary logic:Choice cascade: the flat switch arity is not preserved by the binary combinator" ;
+    logic:preservationKind logic:ValidationOnly
 |} .
