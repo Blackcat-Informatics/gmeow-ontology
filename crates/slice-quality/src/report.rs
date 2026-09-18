@@ -12,7 +12,7 @@ use gmeow_validate::rule_catalog::help_uri_for;
 
 use crate::graph::{self, instances_of};
 use crate::model::{Axis, AxisGrade, MeasurementStandard, SliceAssessment};
-use crate::score::{ScoreContext, ScoringEnv, advisory};
+use crate::score::{ReasonerProbeCounts, ScoreContext, ScoringEnv, advisory};
 use crate::{axes, lattice};
 
 /// Advice-ranking KIND: an axis-level advice template (the rubric's
@@ -135,6 +135,7 @@ pub struct SliceReport {
     /// Paths are portable, forward-slash paths rooted at the supplied slice
     /// directory (or slice-relative for an in-memory file map).
     source_files: SliceSourceFiles,
+    reasoner_probes: ReasonerProbeCounts,
 }
 
 #[derive(Debug, Clone)]
@@ -528,10 +529,17 @@ fn score_with_context(
         advisory_axes,
         axis_weight,
         source_files,
+        reasoner_probes: ctx.reasoner_probe_counts(),
     })
 }
 
 impl SliceReport {
+    /// Observed certified/native leave-one-out work for this score.
+    #[must_use]
+    pub fn reasoner_probe_counts(&self) -> ReasonerProbeCounts {
+        self.reasoner_probes
+    }
+
     /// The real slice-owned file that can honestly anchor a lint finding when no
     /// parser span exists. Term-specific findings belong to `module.ttl` when the
     /// slice carries it; slice-level policy and tier findings belong to the

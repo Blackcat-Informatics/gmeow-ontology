@@ -35,6 +35,7 @@ impl SliceReport {
                 manifest: MANIFEST_KEY.to_owned(),
                 module: Some(MODULE_KEY.to_owned()),
             },
+            reasoner_probes: ReasonerProbeCounts::default(),
         }
     }
 

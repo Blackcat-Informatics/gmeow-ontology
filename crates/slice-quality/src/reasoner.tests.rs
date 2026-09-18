@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::ScoringEnv;
+use crate::score::ReasonerProbeCounts;
+use std::collections::BTreeMap;
 
 fn parse(ttl: &str) -> Arc<RdfDataset> {
     let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse ttl");
@@ -143,9 +146,25 @@ fn parallel_redundancy_probes_match_serial_findings_and_order() {
         .build()
         .expect("four-worker pool");
     for _ in 0..8 {
+        let files = BTreeMap::new();
+        let ctx = ScoreContext::new(
+            "https://example.org/slice".to_owned(),
+            &files,
+            &ds,
+            ScoringEnv::Repo {
+                slice_dir: std::path::PathBuf::from("/tmp/example-slice"),
+            },
+        );
         let parallel = pool
-            .install(|| redundancy_probes(&ds, &axioms))
+            .install(|| redundancy_probes(&ctx, &ds, &axioms))
             .expect("incremental leave-one-out succeeds");
+        assert_eq!(
+            ctx.reasoner_probe_counts(),
+            ReasonerProbeCounts {
+                certified: axioms.len(),
+                native: 0,
+            }
+        );
         let summary = |findings: &[Option<Finding>]| {
             findings
                 .iter()

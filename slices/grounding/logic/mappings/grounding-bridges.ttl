@@ -615,6 +615,7 @@ logic:Fluent skos:relatedMatch gufo:QualityValueAttributionSituation {|
     logic:targetEndpoint gufo:QualityValueAttributionSituation ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "the gUFO quality-value attribution situation subtype and its reifier structure are not emitted; logic:Fluent plus RDF 1.2 statement metadata retain the canonical content" ;
     logic:preservationKind logic:Unsupported
 |} .
 
@@ -628,6 +629,7 @@ logic:Fluent skos:relatedMatch gufo:TemporaryConstitutionSituation {|
     logic:targetEndpoint gufo:TemporaryConstitutionSituation ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "the gUFO temporary-constitution situation subtype and its reifier structure are not emitted; logic:Fluent plus RDF 1.2 statement metadata retain the canonical content" ;
     logic:preservationKind logic:Unsupported
 |} .
 
@@ -641,6 +643,7 @@ logic:Fluent skos:relatedMatch gufo:TemporaryInstantiationSituation {|
     logic:targetEndpoint gufo:TemporaryInstantiationSituation ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "the gUFO temporary-instantiation situation subtype and its reifier structure are not emitted; logic:Fluent plus RDF 1.2 statement metadata retain the canonical content" ;
     logic:preservationKind logic:Unsupported
 |} .
 
@@ -654,6 +657,7 @@ logic:Fluent skos:relatedMatch gufo:TemporaryParthoodSituation {|
     logic:targetEndpoint gufo:TemporaryParthoodSituation ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "the gUFO temporary-parthood situation subtype and its reifier structure are not emitted; logic:Fluent plus RDF 1.2 statement metadata retain the canonical content" ;
     logic:preservationKind logic:Unsupported
 |} .
 
@@ -667,6 +671,7 @@ logic:Fluent skos:relatedMatch gufo:TemporaryRelationshipSituation {|
     logic:targetEndpoint gufo:TemporaryRelationshipSituation ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "the gUFO temporary-relationship situation subtype and its reifier structure are not emitted; logic:Fluent plus RDF 1.2 statement metadata retain the canonical content" ;
     logic:preservationKind logic:Unsupported
 |} .
 
@@ -682,6 +687,7 @@ logic:Disposition skos:closeMatch gufo:IntrinsicMode {|
     logic:targetEndpoint gufo:IntrinsicMode ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "stock gUFO has no direct class for logic:Disposition; the generated gUFO view emits neither a gufo:IntrinsicMode replacement nor logic:'s first-class dispositional semantics" ;
     logic:preservationKind logic:Unsupported
 |} .
 

@@ -24,7 +24,9 @@ use std::sync::Arc;
 use gmeow_errors::Finding;
 #[cfg(test)]
 use gmeow_logic::reason::InferredAxiom;
-use gmeow_logic::reason::{LeaveOneOutAxiom, dl_consistency, leave_one_out_rederived};
+use gmeow_logic::reason::{
+    LeaveOneOutAxiom, dl_consistency, leave_one_out_rederived, leave_one_out_rederived_observed,
+};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 #[cfg(test)]
 use purrdf::{RdfDatasetBuilder, RdfTerm};
@@ -158,6 +160,7 @@ fn redundancy_finding(
 }
 
 fn redundancy_probes(
+    ctx: &ScoreContext,
     ds: &RdfDataset,
     axioms: &[(String, String, String)],
 ) -> gmeow_errors::Result<Vec<Option<Finding>>> {
@@ -167,10 +170,11 @@ fn redundancy_probes(
         .collect::<Vec<_>>();
     let input = prepare_reasoning_input(ds)?;
     let domains = slice_theory_domains()?;
-    let rederived = leave_one_out_rederived(input, &domains, &probes)?;
+    let observed = leave_one_out_rederived_observed(input, &domains, &probes)?;
+    ctx.record_reasoner_probes(observed.certified_probes, observed.native_probes);
     Ok(axioms
         .iter()
-        .zip(rederived)
+        .zip(observed.rederived)
         .map(|(axiom, redundant)| redundancy_finding(axiom, redundant))
         .collect())
 }
@@ -209,7 +213,7 @@ pub fn reasoner_axis(ctx: &ScoreContext) -> AxisScore {
     // The probe reads only the closure's one target IRI-object triple, never the DL
     // verdict, so it takes the verdict-free closure entry point and performs a borrowed
     // early-exit scan instead of indexing the complete closure.
-    let probe_findings = match redundancy_probes(ds, &axioms[..cap]) {
+    let probe_findings = match redundancy_probes(ctx, ds, &axioms[..cap]) {
         Ok(findings) => findings,
         Err(error) => {
             return AxisScore {

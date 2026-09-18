@@ -374,9 +374,40 @@ pub fn leave_one_out_rederived(
     domains: &SelectedDomains,
     axioms: &[LeaveOneOutAxiom],
 ) -> gmeow_errors::Result<Vec<bool>> {
+    Ok(leave_one_out_rederived_observed(input, domains, axioms)?.rederived)
+}
+
+/// Exact answers and work classification for one leave-one-out batch.
+///
+/// The counts are observational only. They disclose how many probes the immutable
+/// certified analysis closed and how many retained the complete native transaction;
+/// they never participate in a reasoning result or cache identity.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LeaveOneOutBatch {
+    /// One exact re-derivation answer per input axiom, in input order.
+    pub rederived: Vec<bool>,
+    /// Probes decided by the proof-backed immutable batch analysis.
+    pub certified_probes: usize,
+    /// Probes executed through complete native source retraction.
+    pub native_probes: usize,
+}
+
+/// Execute [`leave_one_out_rederived`] and retain its certified/native work counts.
+///
+/// # Errors
+/// Returns native source admission, execution, or evidence failures.
+pub fn leave_one_out_rederived_observed(
+    input: PreparedReasoningInput,
+    domains: &SelectedDomains,
+    axioms: &[LeaveOneOutAxiom],
+) -> gmeow_errors::Result<LeaveOneOutBatch> {
     use rayon::prelude::*;
     if axioms.is_empty() {
-        return Ok(Vec::new());
+        return Ok(LeaveOneOutBatch {
+            rederived: Vec::new(),
+            certified_probes: 0,
+            native_probes: 0,
+        });
     }
     let analysis = leave_one_out::BatchAnalysis::new(&input);
     let mut answers = vec![false; axioms.len()];
@@ -392,7 +423,11 @@ pub fn leave_one_out_rederived(
         })
         .collect::<Vec<_>>();
     if slow.is_empty() {
-        return Ok(answers);
+        return Ok(LeaveOneOutBatch {
+            rederived: answers,
+            certified_probes: axioms.len(),
+            native_probes: 0,
+        });
     }
     let potential = input
         .facts
@@ -417,7 +452,11 @@ pub fn leave_one_out_rederived(
     for (index, answer) in resolved {
         answers[index] = answer;
     }
-    Ok(answers)
+    Ok(LeaveOneOutBatch {
+        rederived: answers,
+        certified_probes: axioms.len() - slow.len(),
+        native_probes: slow.len(),
+    })
 }
 
 /// Execute the complete selected native calculus over the caller's logical worlds.

@@ -241,7 +241,7 @@ fn compile_mappings_with_sources(
     // second source can. Hard-fail before any artifact is emitted (no-optionality).
     artifacts.insert(
         crate::projection_profiles::CHANNEL.to_owned(),
-        crate::projection_profiles::record_projection_profile_inventory(root, sources)?,
+        crate::projection_profiles::record_projection_profile_inventory(root)?,
     );
 
     // The four alignment dialects are now produced by the oxigraph-free
