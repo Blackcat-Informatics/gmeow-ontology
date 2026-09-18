@@ -409,6 +409,38 @@ fn disjoint_union_pair_is_certified_without_a_native_transaction() {
 }
 
 #[test]
+fn property_chain_with_blank_list_keeps_disjointness_on_the_native_path() {
+    const PROPERTY_CHAIN: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
+    const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    const P: &str = "http://gmeow.example/p";
+    const Q: &str = "http://gmeow.example/q";
+    const X: &str = "http://gmeow.example/x";
+
+    let head = RdfTerm::blank_node("chain-head");
+    let tail = RdfTerm::blank_node("chain-tail");
+    let store = dataset(vec![
+        quad(A, DISJOINT, B),
+        RdfQuad::new(RdfTerm::iri(DISJOINT), PROPERTY_CHAIN, head.clone())
+            .in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(head.clone(), RDF_FIRST, RdfTerm::iri(P)).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(head, RDF_REST, tail.clone()).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(tail.clone(), RDF_FIRST, RdfTerm::iri(Q)).in_graph(RdfTerm::iri(W)),
+        RdfQuad::new(tail, RDF_REST, RdfTerm::iri(RDF_NIL)).in_graph(RdfTerm::iri(W)),
+        quad(A, P, X),
+        quad(X, Q, B),
+    ]);
+    let input = prepare_reasoning_input(&store).unwrap();
+    let analysis = super::leave_one_out::BatchAnalysis::new(&input);
+    assert_eq!(
+        analysis.answer(&LeaveOneOutAxiom::new(A, DISJOINT, B)),
+        None,
+        "a blank-list property-chain producer must route the probe to the complete native transaction"
+    );
+}
+
+#[test]
 fn batched_leave_one_out_matches_scratch_for_every_fast_tbox_family() {
     const SUBPROPERTY: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
     const DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";

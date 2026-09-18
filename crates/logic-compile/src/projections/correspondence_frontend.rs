@@ -384,7 +384,8 @@ pub fn transpile_correspondences_indexed(
                 return Err(Diag::of_kind(crate::error::Correspondence {
                     detail: format!(
                         "divergent duplicate alignment cell: ({}, {}, {}) is authored more than \
-                         once with conflicting metadata (confidence/justification/endpoints) — \
+                         once with conflicting metadata \
+                         (confidence/justification/endpoints/loss evidence) — \
                          first in '{}', again in '{}'. Both mint the same content-addressed \
                          correspondence identity, so one would be silently dropped; reconcile \
                          them to a single canonical value.",

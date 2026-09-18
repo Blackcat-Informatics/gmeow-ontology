@@ -146,7 +146,12 @@ impl BatchAnalysis {
                 let predicate = calculus_term(&fact.predicate);
                 if matches!(
                     predicate,
-                    RDF_FIRST | RDF_REST | RDF_TYPE | OWL_MEMBERS | OWL_DISJOINT_UNION
+                    RDF_FIRST
+                        | RDF_REST
+                        | RDF_TYPE
+                        | OWL_MEMBERS
+                        | OWL_DISJOINT_UNION
+                        | OWL_PROPERTY_CHAIN
                 ) {
                     out.list_triples.push(SourceTermTriple {
                         world: world.clone(),
@@ -226,6 +231,9 @@ impl BatchAnalysis {
                     || triple.predicate == OWL_EQUIVALENT_PROPERTY)
                     && (triple.subject == target || triple.object == target))
                 || (triple.predicate == OWL_PROPERTY_CHAIN && triple.subject == target)
+        }) || self.list_triples.iter().any(|triple| {
+            triple.predicate == OWL_PROPERTY_CHAIN
+                && matches!(&triple.subject, TermValue::Iri(subject) if calculus_term(subject) == target)
         })
     }
 
