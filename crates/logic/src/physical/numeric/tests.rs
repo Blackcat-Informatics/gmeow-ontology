@@ -416,3 +416,146 @@ fn invalid_numeric_instructions_fail_before_empty_world_execution() {
     rule.numeric[0].left = RcTerm::Literal(RdfLiteral::simple("1"));
     assert!(JointProgram::prepare(&[rule], &[]).is_err());
 }
+
+#[test]
+fn numeric_decode_failures_retain_typed_datatype_and_lexical_evidence() {
+    for (lexical, datatype, expected_detail) in [
+        ("not-a-number", DECIMAL, ""),
+        (
+            "1",
+            "urn:unsupported-number",
+            "unsupported numeric datatype",
+        ),
+        (
+            "INF",
+            "http://www.w3.org/2001/XMLSchema#double",
+            "finite RDF numeric value",
+        ),
+    ] {
+        let diagnostic = decode(lexical, datatype).unwrap_err();
+        assert_eq!(diagnostic.code(), crate::error::Physical::register());
+        assert_eq!(diagnostic.grade().severity, gmeow_errors::Severity::Error);
+        let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
+        assert_eq!(payload.datatype, datatype);
+        assert!(!payload.operands.is_empty());
+        assert!(!payload.detail.is_empty());
+        assert!(payload.detail.contains(expected_detail));
+        assert_eq!(payload.operands, lexical);
+    }
+}
+
+#[test]
+fn numeric_execution_diagnostics_keep_operator_rule_and_operand_evidence() {
+    let plan = Plan::prepare(&[call(
+        NumericOperator::Divide,
+        value("1"),
+        var("?weight"),
+        Some(var("?result")),
+    )])
+    .unwrap();
+    for mut candidate in [
+        Solution {
+            bindings: vec![],
+            source_facts: vec![],
+        },
+        Solution {
+            bindings: vec![("?weight".into(), TermValue::iri("urn:not-numeric"))],
+            source_facts: vec![],
+        },
+        solution("0"),
+    ] {
+        let diagnostic = plan
+            .apply("urn:diagnostic-rule", &mut candidate)
+            .unwrap_err();
+        let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
+        assert_eq!(diagnostic.code(), crate::error::Physical::register());
+        assert_eq!(payload.operation, NumericOperator::Divide.iri());
+        assert_eq!(payload.rule, "urn:diagnostic-rule");
+        assert!(!payload.operands.is_empty());
+        assert!(!payload.detail.is_empty());
+    }
+}
+
+#[test]
+fn cached_numeric_preparation_failure_mints_independent_complete_diagnostics() {
+    let mut rule = EvalRule::positive(
+        "urn:cached-invalid-numeric",
+        EvalAtom::positive(
+            EvalTerm::ConstNamed("urn:s".into()),
+            "urn:p",
+            EvalTerm::ConstNamed("urn:o".into()),
+        ),
+        vec![],
+    );
+    rule.numeric = vec![call(
+        NumericOperator::Add,
+        RcTerm::Literal(RdfLiteral::typed("broken", DECIMAL)),
+        value("1"),
+        Some(var("?result")),
+    )];
+    let mut cache = crate::physical::plan::PlanCache::new(2);
+    let cold = cache.get_or_compile("numeric-diagnostic", vec![rule.clone()]);
+    assert!(!cold.cache_hit);
+    let warm = cache.get_or_compile("numeric-diagnostic", vec![rule]);
+    assert!(warm.cache_hit);
+    let cold = cold.executable.unwrap();
+    let warm = warm.executable.unwrap();
+    assert!(std::sync::Arc::ptr_eq(&cold, &warm));
+    let (rule, cold_plan) = cold.rule_entry(0);
+    let (_, warm_plan) = warm.rule_entry(0);
+    let first_line = line!() + 1;
+    let first = cold_plan.numeric(&rule.rule_iri).unwrap_err();
+    let second_line = line!() + 1;
+    let second = warm_plan.numeric(&rule.rule_iri).unwrap_err();
+    assert!(!std::ptr::eq(first.inner(), second.inner()));
+    assert_eq!(first.code(), crate::error::Physical::register());
+    assert_eq!(first.code(), second.code());
+    assert_eq!(first.grade(), second.grade());
+    assert_eq!(first.message(), second.message());
+    assert_eq!(first.emitted_at().line(), first_line);
+    assert_eq!(second.emitted_at().line(), second_line);
+    for diagnostic in [&first, &second] {
+        let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
+        assert_eq!(payload.rule, rule.rule_iri);
+        assert_eq!(payload.operation, NumericOperator::Add.iri());
+        assert_eq!(payload.datatype, DECIMAL);
+        assert_eq!(payload.operands, "broken");
+        assert!(!payload.detail.is_empty());
+    }
+}
+
+#[test]
+fn numeric_binding_schedule_failure_is_a_registered_diagnostic() {
+    let diagnostic = Plan::for_body(
+        &[call(
+            NumericOperator::Add,
+            var("?missing"),
+            value("1"),
+            Some(var("?result")),
+        )],
+        &[],
+    )
+    .unwrap_err();
+    assert_eq!(diagnostic.code(), crate::error::Physical::register());
+    let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
+    assert_eq!(payload.operation, "binding schedule");
+    assert!(payload.operands.contains("?missing"));
+    assert!(payload.operands.contains(DECIMAL));
+    assert!(!payload.detail.is_empty());
+}
+
+#[test]
+fn numeric_operand_and_language_refusals_keep_native_term_evidence() {
+    let diagnostic = Operand::prepare(&RcTerm::Iri("urn:not-a-number".into())).unwrap_err();
+    let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
+    assert!(payload.operands.contains("urn:not-a-number"));
+    assert!(payload.detail.contains("finite numeric literal"));
+
+    let literal = RdfLiteral::language_tagged("one", "en");
+    let diagnostic = decode_literal(&literal).unwrap_err();
+    let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
+    assert_eq!(payload.datatype, literal.datatype_iri());
+    assert!(payload.operands.contains("one"));
+    assert!(payload.operands.contains("en"));
+    assert!(payload.detail.contains("language or direction"));
+}

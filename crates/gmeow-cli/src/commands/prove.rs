@@ -9,9 +9,11 @@ use std::io::{Read, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use gmeow_cli_core::Reporter;
+use gmeow_errors::Diag;
 use gmeow_logic::external_evidence::{
     ArtifactCheck, ArtifactCheckDisposition, SzsArtifact, check_external_artifact,
     extract_szs_artifacts,
@@ -74,6 +76,7 @@ impl From<&FofProjection> for ProjectionReceipt {
 
 #[derive(Debug, Clone, Serialize)]
 struct CapturedStream {
+    retained: Vec<u8>,
     digest: String,
     total_bytes: u64,
     retained_bytes: usize,
@@ -84,6 +87,7 @@ struct CapturedStream {
 
 #[derive(Debug, Clone, Serialize)]
 struct ProcessReceipt {
+    selection: ProcessSelection,
     pass: String,
     arguments: Vec<String>,
     elapsed_ms: u64,
@@ -123,8 +127,19 @@ struct ProveReport {
 }
 
 impl ProveReport {
-    fn blank(decision: DecisionClass, code: &str, detail: impl Into<String>) -> Self {
-        let detail = detail.into();
+    fn blank(decision: DecisionClass, diagnostic: Diag) -> Self {
+        let inputs = diagnostic
+            .inner()
+            .observed
+            .as_ref()
+            .filter(|slot| {
+                slot.datatype.as_deref()
+                    == Some("https://blackcatinformatics.ca/gmeow/SelectedInputIdentitiesJson")
+            })
+            .map(|slot| {
+                serde_json::from_str(&slot.lexical).expect("internally serialized input identities")
+            })
+            .unwrap_or_default();
         Self {
             common: ReasoningReportCore::refused(
                 ReasoningOperation::AxiomConsistency,
@@ -135,13 +150,10 @@ impl ProveReport {
                 } else {
                     "valid"
                 },
-                Vec::new(),
+                inputs,
                 ProgramIdentity::selected(FOF_PROFILE, &["source-admission-pending"]),
                 EngineIdentity::external_host(),
-                ReportDiagnostic {
-                    code: code.to_owned(),
-                    detail,
-                },
+                ReportDiagnostic::from_diag(&diagnostic),
             ),
             task: FofTask::AxiomConsistency,
             admission: None,
@@ -150,7 +162,7 @@ impl ProveReport {
         }
     }
 
-    fn execution_failure(&mut self, code: &str, detail: impl Into<String>) {
+    fn execution_failure(&mut self, diagnostic: Diag) {
         self.common.verdict = "execution-failure".to_owned();
         self.common.decision = DecisionClass::ExecutionFailure;
         self.common.evaluation_status = "failed".to_owned();
@@ -158,11 +170,89 @@ impl ProveReport {
         self.common.information_state = "not-evaluated".to_owned();
         self.common.evidence_grade = EvidenceGrade::Refused;
         self.common.gate_admission = GateAdmission::Refused;
-        self.common.diagnostics.push(ReportDiagnostic {
-            code: code.to_owned(),
-            detail: detail.into(),
-        });
+        self.common
+            .diagnostics
+            .push(ReportDiagnostic::from_diag(&diagnostic));
     }
+}
+
+fn failure(reason: &str, detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::ProverFailed {
+        reason: reason.to_owned(),
+        detail: detail.into(),
+        evidence: serde_json::Value::Null,
+        cause: None,
+    })
+}
+
+fn caused_failure(
+    reason: &'static str,
+    error: impl std::error::Error + Send + Sync + 'static,
+    context: impl Into<String>,
+) -> Diag {
+    let context = context.into();
+    Diag::of_kind(crate::error::ProverFailed {
+        reason: reason.to_owned(),
+        detail: format!("{context}: {error}"),
+        evidence: serde_json::Value::Null,
+        cause: Some(Box::new(error)),
+    })
+    .with_context(context)
+}
+
+fn diagnostic_snapshot(diagnostic: &Diag) -> serde_json::Value {
+    serde_json::json!({
+        "code": gmeow_errors::code::code_str(diagnostic.code()),
+        "grade": diagnostic.grade(),
+        "message": diagnostic.message(),
+        "source_context": diagnostic.inner().source_ctx,
+        "context": diagnostic.inner().context.iter().map(|frame| frame.label.as_str()).collect::<Vec<_>>(),
+        "emitted_at": {
+            "file": diagnostic.emitted_at().file(),
+            "line": diagnostic.emitted_at().line(),
+            "column": diagnostic.emitted_at().column(),
+        },
+        "observed": diagnostic.inner().observed,
+        "expected": diagnostic.inner().expected,
+    })
+}
+
+fn caused_diagnostic(
+    reason: &'static str,
+    diagnostic: Diag,
+    context: impl Into<String>,
+    mut evidence: serde_json::Value,
+) -> Diag {
+    let context = context.into();
+    let source = diagnostic_snapshot(&diagnostic);
+    if let Some(object) = evidence.as_object_mut() {
+        object.insert("cause_diagnostic".to_owned(), source);
+    } else {
+        evidence = serde_json::json!({"value": evidence, "cause_diagnostic": source});
+    }
+    let detail = format!("{context}: {diagnostic:#}");
+    Diag::of_kind(crate::error::ProverFailed {
+        reason: reason.to_owned(),
+        detail,
+        evidence,
+        cause: Some(Box::new(crate::error::PreservedDiagnostic(diagnostic))),
+    })
+    .with_context(context)
+}
+
+fn with_process(diagnostic: Diag, receipt: &ProcessReceipt) -> Diag {
+    diagnostic.with_observed(gmeow_errors::Slot::typed(
+        serde_json::to_string(receipt).expect("process receipt serializes"),
+        "https://blackcatinformatics.ca/gmeow/ProverProcessReceiptJson",
+    ))
+}
+
+fn with_inputs(mut diagnostic: Diag, inputs: &[InputIdentity]) -> Diag {
+    diagnostic.inner_mut().observed = Some(gmeow_errors::Slot::typed(
+        serde_json::to_string(inputs).expect("input identities serialize"),
+        "https://blackcatinformatics.ca/gmeow/SelectedInputIdentitiesJson",
+    ));
+    diagnostic
 }
 
 struct LoadedTheory {
@@ -194,6 +284,7 @@ struct ResolvedProver {
     digest: String,
 }
 
+#[derive(Debug, Clone, Serialize)]
 struct StreamBytes {
     digest: String,
     total_bytes: u64,
@@ -212,11 +303,14 @@ impl StreamBytes {
             truncated: self.truncated,
             utf8_valid,
             text,
+            retained: self.retained,
         }
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
 struct RawProcessReceipt {
+    selection: ProcessSelection,
     elapsed_ms: u64,
     exit_code: Option<i32>,
     signal: Option<i32>,
@@ -240,10 +334,10 @@ pub(crate) fn prove(
 ) -> i32 {
     let paths = match source_paths(inputs, dir) {
         Ok(paths) => paths,
-        Err((code, detail)) => {
+        Err(diagnostic) => {
             return publish_failure(
                 reporter,
-                ProveReport::blank(DecisionClass::Malformed, code, detail),
+                ProveReport::blank(DecisionClass::Malformed, diagnostic),
                 format,
                 gate,
                 evidence_out,
@@ -252,9 +346,8 @@ pub(crate) fn prove(
     };
     let loaded = match load_theory(&paths) {
         Ok(loaded) => loaded,
-        Err((code, detail, identities)) => {
-            let mut report = ProveReport::blank(DecisionClass::Malformed, code, detail);
-            report.common.inputs = identities;
+        Err(diagnostic) => {
+            let report = ProveReport::blank(DecisionClass::Malformed, diagnostic);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
     };
@@ -308,6 +401,7 @@ pub(crate) fn prove(
             .extend(projection.blockers.iter().map(|blocker| ReportDiagnostic {
                 code: blocker.code.clone(),
                 detail: blocker.reason.clone(),
+                diagnostic: None,
             }));
         emit_warning(
             reporter,
@@ -333,21 +427,21 @@ pub(crate) fn prove(
     let (problem_path, temp_guard) = match write_problem(problem, problem_digest, out) {
         Ok(result) => result,
         Err(detail) => {
-            report.execution_failure("PROBLEM_WRITE_FAILED", detail);
+            report.execution_failure(detail);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
     };
     let resolved = match resolve_prover(prover) {
         Ok(resolved) => resolved,
         Err(detail) => {
-            report.execution_failure("PROVER_NOT_AVAILABLE", detail);
+            report.execution_failure(detail);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
     };
     let version = match prover_version(&resolved) {
         Ok(version) => version,
         Err(detail) => {
-            report.execution_failure("PROVER_VERSION_UNAVAILABLE", detail);
+            report.execution_failure(detail);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
     };
@@ -384,7 +478,7 @@ pub(crate) fn prove(
         ) {
             Ok(raw) => raw,
             Err(detail) => {
-                report.execution_failure("PROVER_SPAWN_FAILED", detail);
+                report.execution_failure(detail);
                 report.execution = Some(execution);
                 return publish_failure(reporter, report, format, gate, evidence_out);
             }
@@ -392,6 +486,7 @@ pub(crate) fn prove(
         let stdout = raw.stdout.into_report();
         let stderr = raw.stderr.into_report();
         let mut receipt = ProcessReceipt {
+            selection: raw.selection,
             pass: pass_name,
             arguments,
             elapsed_ms: raw.elapsed_ms,
@@ -404,39 +499,48 @@ pub(crate) fn prove(
             artifacts: Vec::new(),
         };
         if receipt.timed_out {
-            report.execution_failure(
-                "PROVER_PARENT_DEADLINE",
-                format!(
-                    "{} exceeded the parent wall deadline of {timeout_secs}s and was reaped",
-                    resolved.path.display()
+            report.execution_failure(with_process(
+                failure(
+                    "PROVER_PARENT_DEADLINE",
+                    format!(
+                        "{} exceeded the parent wall deadline of {timeout_secs}s and was reaped",
+                        resolved.path.display()
+                    ),
                 ),
-            );
+                &receipt,
+            ));
             execution.passes.push(receipt);
             report.execution = Some(execution);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
         if receipt.exit_code != Some(0) || receipt.signal.is_some() {
-            report.execution_failure(
-                "PROVER_CHILD_FAILED",
-                format!(
-                    "{} exited with code {:?} and signal {:?}",
-                    resolved.path.display(),
-                    receipt.exit_code,
-                    receipt.signal
+            report.execution_failure(with_process(
+                failure(
+                    "PROVER_CHILD_FAILED",
+                    format!(
+                        "{} exited with code {:?} and signal {:?}",
+                        resolved.path.display(),
+                        receipt.exit_code,
+                        receipt.signal
+                    ),
                 ),
-            );
+                &receipt,
+            ));
             execution.passes.push(receipt);
             report.execution = Some(execution);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
         if receipt.stdout.truncated || receipt.stderr.truncated {
-            report.execution_failure(
-                "PROVER_OUTPUT_LIMIT",
-                format!(
-                    "prover output exceeded the {}-byte per-stream evidence bound",
-                    MAX_PROVER_OUTPUT_BYTES
+            report.execution_failure(with_process(
+                failure(
+                    "PROVER_OUTPUT_LIMIT",
+                    format!(
+                        "prover output exceeded the {}-byte per-stream evidence bound",
+                        MAX_PROVER_OUTPUT_BYTES
+                    ),
                 ),
-            );
+                &receipt,
+            ));
             execution.passes.push(receipt);
             report.execution = Some(execution);
             return publish_failure(reporter, report, format, gate, evidence_out);
@@ -449,7 +553,7 @@ pub(crate) fn prove(
         ) {
             Ok(szs) => szs,
             Err(error) => {
-                report.execution_failure(&error.code, error.detail);
+                report.execution_failure(with_process(error.into(), &receipt));
                 execution.passes.push(receipt);
                 report.execution = Some(execution);
                 return publish_failure(reporter, report, format, gate, evidence_out);
@@ -461,7 +565,7 @@ pub(crate) fn prove(
             match extract_szs_artifacts(&receipt.stdout.text, &receipt.stderr.text, &aliases) {
                 Ok(artifacts) => artifacts,
                 Err(error) => {
-                    report.execution_failure(&error.code, error.detail);
+                    report.execution_failure(with_process(error, &receipt));
                     execution.passes.push(receipt);
                     report.execution = Some(execution);
                     return publish_failure(reporter, report, format, gate, evidence_out);
@@ -479,7 +583,10 @@ pub(crate) fn prove(
             .iter()
             .find(|artifact| artifact.check.disposition == ArtifactCheckDisposition::Invalid)
         {
-            report.execution_failure(&invalid.check.code, invalid.check.detail.clone());
+            report.execution_failure(with_process(
+                failure(&invalid.check.code, invalid.check.detail.clone()),
+                &receipt,
+            ));
             execution.passes.push(receipt);
             report.execution = Some(execution);
             return publish_failure(reporter, report, format, gate, evidence_out);
@@ -488,13 +595,16 @@ pub(crate) fn prove(
             artifact_concludes_outcome(&artifact.artifact.kind)
                 && !artifact_matches_outcome(&artifact.artifact.kind, outcome)
         }) {
-            report.execution_failure(
-                "SZS_ARTIFACT_OUTCOME_MISMATCH",
-                format!(
-                    "SZS status {} is incompatible with the captured {} artifact",
-                    szs.status, mismatched.artifact.kind
+            report.execution_failure(with_process(
+                failure(
+                    "SZS_ARTIFACT_OUTCOME_MISMATCH",
+                    format!(
+                        "SZS status {} is incompatible with the captured {} artifact",
+                        szs.status, mismatched.artifact.kind
+                    ),
                 ),
-            );
+                &receipt,
+            ));
             execution.passes.push(receipt);
             report.execution = Some(execution);
             return publish_failure(reporter, report, format, gate, evidence_out);
@@ -503,13 +613,16 @@ pub(crate) fn prove(
             if let Some(previous) = decisive_szs.as_ref()
                 && previous.outcome != outcome
             {
-                report.execution_failure(
-                    "CONFLICTING_PROVER_PASS_OUTCOME",
-                    format!(
-                        "separate prover passes reported incompatible outcomes {:?} and {:?}",
-                        previous.outcome, outcome
+                report.execution_failure(with_process(
+                    failure(
+                        "CONFLICTING_PROVER_PASS_OUTCOME",
+                        format!(
+                            "separate prover passes reported incompatible outcomes {:?} and {:?}",
+                            previous.outcome, outcome
+                        ),
                     ),
-                );
+                    &receipt,
+                ));
                 execution.passes.push(receipt);
                 report.execution = Some(execution);
                 return publish_failure(reporter, report, format, gate, evidence_out);
@@ -536,18 +649,23 @@ pub(crate) fn prove(
     match digest_file(&resolved.path) {
         Ok(after) if after == resolved.digest => {}
         Ok(after) => {
-            report.execution_failure(
+            report.execution_failure(failure(
                 "PROVER_EXECUTABLE_CHANGED",
                 format!(
                     "selected executable changed during the run ({} -> {after})",
                     resolved.digest
                 ),
-            );
+            ));
             report.execution = Some(execution);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
         Err(detail) => {
-            report.execution_failure("PROVER_EXECUTABLE_RECHECK_FAILED", detail);
+            report.execution_failure(caused_diagnostic(
+                "PROVER_EXECUTABLE_RECHECK_FAILED",
+                detail,
+                "recheck prover executable",
+                serde_json::Value::Null,
+            ));
             report.execution = Some(execution);
             return publish_failure(reporter, report, format, gate, evidence_out);
         }
@@ -597,6 +715,7 @@ pub(crate) fn prove(
         report.common.diagnostics.push(ReportDiagnostic {
             code: checked.check.code.clone(),
             detail: checked.check.detail.clone(),
+            diagnostic: None,
         });
         if checked.check.disposition == ArtifactCheckDisposition::Certificate {
             report.common.evidence_grade = EvidenceGrade::Certificate;
@@ -611,6 +730,7 @@ pub(crate) fn prove(
         report.common.gate_admission = GateAdmission::Attestation;
         report.common.diagnostics.push(ReportDiagnostic {
             code: "MISSING_CHECKABLE_EXTERNAL_ARTIFACT".to_owned(),
+            diagnostic: None,
             detail: match final_szs.outcome {
                 SzsOutcome::Consistent => {
                     "the satisfiable status carries no admitted finite-model artifact"
@@ -651,16 +771,13 @@ fn artifact_disposition_rank(disposition: ArtifactCheckDisposition) -> u8 {
     }
 }
 
-fn source_paths(
-    inputs: &[PathBuf],
-    dir: Option<&Path>,
-) -> Result<Vec<PathBuf>, (&'static str, String)> {
+fn source_paths(inputs: &[PathBuf], dir: Option<&Path>) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut candidates = inputs.to_vec();
     if let Some(root) = dir {
         candidates.extend(collect_semantic_sources(root)?);
     }
     if candidates.is_empty() {
-        return Err((
+        return Err(failure(
             "NO_SOURCE_INPUT",
             "pass one or more RDF files and/or --dir <corpus-root>".to_owned(),
         ));
@@ -669,13 +786,14 @@ fn source_paths(
     let mut paths = Vec::new();
     for path in candidates {
         let canonical = std::fs::canonicalize(&path).map_err(|error| {
-            (
+            caused_failure(
                 "SOURCE_PATH_UNAVAILABLE",
-                format!("cannot resolve {}: {error}", path.display()),
+                error,
+                format!("cannot resolve {}", path.display()),
             )
         })?;
         if !canonical.is_file() {
-            return Err((
+            return Err(failure(
                 "SOURCE_NOT_FILE",
                 format!("{} is not a regular file", canonical.display()),
             ));
@@ -685,7 +803,7 @@ fn source_paths(
         }
     }
     if paths.len() > MAX_SOURCE_DOCUMENTS {
-        return Err((
+        return Err(failure(
             "SOURCE_COUNT_LIMIT",
             format!(
                 "selected {} documents; the bounded limit is {MAX_SOURCE_DOCUMENTS}",
@@ -697,15 +815,16 @@ fn source_paths(
     Ok(paths)
 }
 
-fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str, String)> {
+fn collect_semantic_sources(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let root = std::fs::canonicalize(root).map_err(|error| {
-        (
+        caused_failure(
             "SOURCE_ROOT_UNAVAILABLE",
-            format!("cannot resolve {}: {error}", root.display()),
+            error,
+            format!("cannot resolve {}", root.display()),
         )
     })?;
     if !root.is_dir() {
-        return Err((
+        return Err(failure(
             "SOURCE_ROOT_NOT_DIRECTORY",
             format!("{} is not a directory", root.display()),
         ));
@@ -715,22 +834,25 @@ fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str, 
     let mut sources = Vec::new();
     while let Some(directory) = pending.pop() {
         let entries = std::fs::read_dir(&directory).map_err(|error| {
-            (
+            caused_failure(
                 "SOURCE_ROOT_READ_FAILED",
-                format!("cannot inspect {}: {error}", directory.display()),
+                error,
+                format!("cannot inspect {}", directory.display()),
             )
         })?;
         for entry in entries {
             let entry = entry.map_err(|error| {
-                (
+                caused_failure(
                     "SOURCE_ROOT_READ_FAILED",
-                    format!("cannot inspect {}: {error}", directory.display()),
+                    error,
+                    format!("cannot inspect {}", directory.display()),
                 )
             })?;
             let file_type = entry.file_type().map_err(|error| {
-                (
+                caused_failure(
                     "SOURCE_ROOT_READ_FAILED",
-                    format!("cannot inspect {}: {error}", entry.path().display()),
+                    error,
+                    format!("cannot inspect {}", entry.path().display()),
                 )
             })?;
             let path = entry.path();
@@ -739,7 +861,7 @@ fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str, 
             } else if file_type.is_file() && is_semantic_source(&path) {
                 sources.push(path);
                 if sources.len() > MAX_SOURCE_DOCUMENTS {
-                    return Err((
+                    return Err(failure(
                         "SOURCE_COUNT_LIMIT",
                         format!(
                             "corpus contains more than {MAX_SOURCE_DOCUMENTS} semantic documents"
@@ -751,7 +873,7 @@ fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str, 
     }
     sources.sort();
     if sources.is_empty() {
-        return Err((
+        return Err(failure(
             "EMPTY_SOURCE_ROOT",
             format!("no module.ttl or *.logic.ttl source exists below {root_display}"),
         ));
@@ -765,18 +887,19 @@ fn is_semantic_source(path: &Path) -> bool {
         .is_some_and(|name| name == "module.ttl" || name.ends_with(".logic.ttl"))
 }
 
-fn load_theory(
-    paths: &[PathBuf],
-) -> Result<LoadedTheory, (&'static str, String, Vec<InputIdentity>)> {
+fn load_theory(paths: &[PathBuf]) -> gmeow_errors::Result<LoadedTheory> {
     let mut receipts = Vec::with_capacity(paths.len());
     let mut identities = Vec::with_capacity(paths.len());
     let mut documents = Vec::with_capacity(paths.len());
     for path in paths {
         let bytes = std::fs::read(path).map_err(|error| {
-            (
-                "SOURCE_READ_FAILED",
-                format!("cannot read {}: {error}", path.display()),
-                identities.clone(),
+            with_inputs(
+                caused_failure(
+                    "SOURCE_READ_FAILED",
+                    error,
+                    format!("cannot read {}", path.display()),
+                ),
+                &identities,
             )
         })?;
         let base = format!("file://{}", path.display());
@@ -788,14 +911,13 @@ fn load_theory(
                 Some(base.clone()),
                 &bytes,
             ));
-            (
+            with_inputs(failure(
                 "SOURCE_SYNTAX_UNKNOWN",
                 format!(
                     "cannot infer RDF syntax for {}; expected .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
                     path.display()
                 ),
-                identities.clone(),
-            )
+            ), &identities)
         })?;
         identities.push(InputIdentity::from_bytes(
             path,
@@ -805,10 +927,13 @@ fn load_theory(
             &bytes,
         ));
         let dataset = purrdf::parse_dataset(&bytes, media, Some(&base)).map_err(|error| {
-            (
-                "SOURCE_PARSE_FAILED",
-                format!("cannot parse {} as {media}: {error}", path.display()),
-                identities.clone(),
+            with_inputs(
+                caused_failure(
+                    "SOURCE_PARSE_FAILED",
+                    error,
+                    format!("cannot parse {} as {media}", path.display()),
+                ),
+                &identities,
             )
         })?;
         receipts.push(SourceDocument {
@@ -830,21 +955,35 @@ fn load_theory(
         },
     )
     .map_err(|error| {
-        (
-            "SOURCE_COMPOSITION_REFUSED",
-            format!("cannot compose selected documents: {error}"),
-            identities.clone(),
+        with_inputs(
+            caused_failure(
+                "SOURCE_COMPOSITION_REFUSED",
+                error,
+                "compose selected documents",
+            ),
+            &identities,
         )
     })?;
     let materialized = composite.materialize().map_err(|error| {
-        (
-            "SOURCE_MATERIALIZATION_REFUSED",
-            format!("cannot materialize selected documents: {error}"),
-            identities.clone(),
+        with_inputs(
+            caused_failure(
+                "SOURCE_MATERIALIZATION_REFUSED",
+                error,
+                "materialize selected documents",
+            ),
+            &identities,
         )
     })?;
-    let mut prepared = PreparedLogicSource::new(&materialized)
-        .map_err(|error| ("SOURCE_PREPARATION_FAILED", error.0, identities.clone()))?;
+    let mut prepared = PreparedLogicSource::new(&materialized).map_err(|error| {
+        with_inputs(
+            caused_failure(
+                "SOURCE_PREPARATION_FAILED",
+                error,
+                "compile selected theory",
+            ),
+            &identities,
+        )
+    })?;
     for (index, (receipt, original)) in receipts.iter().zip(&documents).enumerate() {
         prepared
             .record_document(receipt.clone(), original, |term| {
@@ -862,11 +1001,23 @@ fn load_theory(
                     ))
                 })
             })
-            .map_err(|error| ("SOURCE_BINDING_FAILED", error.0, identities.clone()))?;
+            .map_err(|error| {
+                with_inputs(
+                    caused_failure("SOURCE_BINDING_FAILED", error, "compile selected theory"),
+                    &identities,
+                )
+            })?;
     }
-    let theory = prepared
-        .into_compiled(None)
-        .map_err(|error| ("SOURCE_COMPILATION_FAILED", error.0, identities.clone()))?;
+    let theory = prepared.into_compiled(None).map_err(|error| {
+        with_inputs(
+            caused_failure(
+                "SOURCE_COMPILATION_FAILED",
+                error,
+                "compile selected theory",
+            ),
+            &identities,
+        )
+    })?;
     Ok(LoadedTheory {
         identities,
         _documents: documents,
@@ -889,16 +1040,29 @@ fn write_problem(
     problem: &str,
     digest: &str,
     out: Option<&Path>,
-) -> Result<(PathBuf, Option<tempfile::TempPath>), String> {
+) -> gmeow_errors::Result<(PathBuf, Option<tempfile::TempPath>)> {
     if let Some(path) = out {
-        std::fs::write(path, problem)
-            .map_err(|error| format!("cannot write {}: {error}", path.display()))?;
-        let read_back = std::fs::read(path)
-            .map_err(|error| format!("cannot verify {}: {error}", path.display()))?;
+        std::fs::write(path, problem).map_err(|error| {
+            caused_failure(
+                "PROBLEM_WRITE_FAILED",
+                error,
+                format!("write problem {}", path.display()),
+            )
+        })?;
+        let read_back = std::fs::read(path).map_err(|error| {
+            caused_failure(
+                "PROBLEM_VERIFY_READ_FAILED",
+                error,
+                format!("verify problem {}", path.display()),
+            )
+        })?;
         if read_back != problem.as_bytes() {
-            return Err(format!(
-                "problem file {} does not contain the emitted bytes",
-                path.display()
+            return Err(failure(
+                "PROBLEM_CONTENT_CHANGED",
+                format!(
+                    "problem file {} does not contain the emitted bytes",
+                    path.display()
+                ),
             ));
         }
         return Ok((path.to_path_buf(), None));
@@ -908,16 +1072,32 @@ fn write_problem(
         .prefix(&prefix)
         .suffix(".p")
         .tempfile()
-        .map_err(|error| format!("cannot create managed problem file: {error}"))?;
-    file.write_all(problem.as_bytes())
-        .map_err(|error| format!("cannot write managed problem file: {error}"))?;
-    file.flush()
-        .map_err(|error| format!("cannot flush managed problem file: {error}"))?;
+        .map_err(|error| {
+            caused_failure(
+                "PROBLEM_TEMPFILE_CREATE_FAILED",
+                error,
+                "create managed problem file",
+            )
+        })?;
+    file.write_all(problem.as_bytes()).map_err(|error| {
+        caused_failure(
+            "PROBLEM_TEMPFILE_WRITE_FAILED",
+            error,
+            "write managed problem file",
+        )
+    })?;
+    file.flush().map_err(|error| {
+        caused_failure(
+            "PROBLEM_TEMPFILE_FLUSH_FAILED",
+            error,
+            "flush managed problem file",
+        )
+    })?;
     let temp = file.into_temp_path();
     Ok((temp.to_path_buf(), Some(temp)))
 }
 
-fn resolve_prover(choice: ProverChoice) -> Result<ResolvedProver, String> {
+fn resolve_prover(choice: ProverChoice) -> gmeow_errors::Result<ResolvedProver> {
     let (flavor, path) = if let Some(path) = std::env::var_os("GMEOW_PROVER_PATH") {
         let path = PathBuf::from(path);
         let flavor = match choice {
@@ -934,24 +1114,41 @@ fn resolve_prover(choice: ProverChoice) -> Result<ResolvedProver, String> {
         match choice {
             ProverChoice::Eprover => (
                 ProverFlavor::EProver,
-                find_on_path("eprover").ok_or_else(|| "no eprover on PATH".to_owned())?,
+                find_on_path("eprover")
+                    .ok_or_else(|| failure("PROVER_NOT_AVAILABLE", "no eprover on PATH"))?,
             ),
             ProverChoice::Vampire => (
                 ProverFlavor::Vampire,
-                find_on_path("vampire").ok_or_else(|| "no vampire on PATH".to_owned())?,
+                find_on_path("vampire")
+                    .ok_or_else(|| failure("PROVER_NOT_AVAILABLE", "no vampire on PATH"))?,
             ),
             ProverChoice::Auto => find_on_path("eprover")
                 .map(|path| (ProverFlavor::EProver, path))
                 .or_else(|| find_on_path("vampire").map(|path| (ProverFlavor::Vampire, path)))
-                .ok_or_else(|| "no eprover or vampire on PATH".to_owned())?,
+                .ok_or_else(|| failure("PROVER_NOT_AVAILABLE", "no eprover or vampire on PATH"))?,
         }
     };
-    let path = std::fs::canonicalize(&path)
-        .map_err(|error| format!("cannot resolve prover {}: {error}", path.display()))?;
+    let path = std::fs::canonicalize(&path).map_err(|error| {
+        caused_failure(
+            "PROVER_PATH_UNAVAILABLE",
+            error,
+            format!("resolve prover {}", path.display()),
+        )
+    })?;
     if !path.is_file() {
-        return Err(format!("prover {} is not a regular file", path.display()));
+        return Err(failure(
+            "PROVER_NOT_FILE",
+            format!("prover {} is not a regular file", path.display()),
+        ));
     }
-    let digest = digest_file(&path)?;
+    let digest = digest_file(&path).map_err(|diagnostic| {
+        caused_diagnostic(
+            "PROVER_EXECUTABLE_IDENTITY_FAILED",
+            diagnostic,
+            format!("hash prover {}", path.display()),
+            serde_json::Value::Null,
+        )
+    })?;
     Ok(ResolvedProver {
         flavor,
         path,
@@ -967,7 +1164,7 @@ fn find_on_path(name: &str) -> Option<PathBuf> {
     })
 }
 
-fn prover_version(prover: &ResolvedProver) -> Result<String, String> {
+fn prover_version(prover: &ResolvedProver) -> gmeow_errors::Result<String> {
     let arguments = vec!["--version".to_owned()];
     let raw = run_bounded_process(
         &prover.path,
@@ -976,28 +1173,33 @@ fn prover_version(prover: &ResolvedProver) -> Result<String, String> {
         VERSION_DEADLINE,
         MAX_VERSION_OUTPUT_BYTES,
     )?;
-    if raw.timed_out {
-        return Err(format!(
-            "{} --version exceeded {VERSION_DEADLINE:?}",
-            prover.path.display()
+    let reason = if raw.timed_out {
+        Some("PROVER_VERSION_DEADLINE")
+    } else if raw.exit_code != Some(0) || raw.signal.is_some() {
+        Some("PROVER_VERSION_CHILD_FAILED")
+    } else if raw.stdout.truncated || raw.stderr.truncated {
+        Some("PROVER_VERSION_OUTPUT_LIMIT")
+    } else {
+        None
+    };
+    if let Some(reason) = reason {
+        return Err(process_failure(
+            reason,
+            "prover version discovery failed",
+            &raw,
+            None,
         ));
-    }
-    if raw.exit_code != Some(0) || raw.signal.is_some() {
-        return Err(format!(
-            "{} --version exited with code {:?} and signal {:?}",
-            prover.path.display(),
-            raw.exit_code,
-            raw.signal
-        ));
-    }
-    if raw.stdout.truncated || raw.stderr.truncated {
-        return Err("prover version output exceeded its evidence bound".to_owned());
     }
     let stdout = String::from_utf8_lossy(&raw.stdout.retained);
     let stderr = String::from_utf8_lossy(&raw.stderr.retained);
     let version = format!("{stdout}\n{stderr}").trim().to_owned();
     if version.is_empty() {
-        return Err("prover --version produced no identity text".to_owned());
+        return Err(process_failure(
+            "PROVER_VERSION_EMPTY",
+            "prover --version produced no identity text",
+            &raw,
+            None,
+        ));
     }
     Ok(version)
 }
@@ -1062,13 +1264,101 @@ fn problem_aliases(path: &Path, digest: &str) -> BTreeSet<String> {
     aliases
 }
 
+/// Exact selected subprocess inputs, including the final problem argument.
+#[derive(Debug, Clone, Serialize)]
+struct ProcessSelection {
+    executable: String,
+    executable_digest: Option<String>,
+    arguments: Vec<String>,
+    problem: Option<String>,
+    problem_digest: Option<String>,
+    deadline_ms: u64,
+    output_limit: usize,
+}
+
+fn process_failure(
+    reason: &'static str,
+    detail: impl Into<String>,
+    receipt: &RawProcessReceipt,
+    cause: Option<Box<dyn std::error::Error + Send + Sync>>,
+) -> Diag {
+    Diag::of_kind(crate::error::ProverFailed {
+        reason: reason.to_owned(),
+        detail: detail.into(),
+        evidence: serde_json::to_value(receipt).expect("process receipt serializes"),
+        cause,
+    })
+}
+
+fn process_diagnostic_failure(
+    reason: &'static str,
+    detail: impl Into<String>,
+    receipt: &RawProcessReceipt,
+    diagnostic: Diag,
+) -> Diag {
+    caused_diagnostic(
+        reason,
+        diagnostic,
+        detail,
+        serde_json::to_value(receipt).expect("process receipt serializes"),
+    )
+}
+
+fn empty_stream() -> StreamBytes {
+    StreamBytes {
+        digest: blake3::hash(&[]).to_hex().to_string(),
+        total_bytes: 0,
+        retained: Vec::new(),
+        truncated: false,
+    }
+}
+
 fn run_bounded_process(
     binary: &Path,
     arguments: &[String],
     problem: Option<&Path>,
     deadline: Duration,
     output_limit: usize,
-) -> Result<RawProcessReceipt, String> {
+) -> gmeow_errors::Result<RawProcessReceipt> {
+    let mut argv = arguments.to_vec();
+    if let Some(problem) = problem {
+        argv.push(problem.display().to_string());
+    }
+    let mut receipt = RawProcessReceipt {
+        selection: ProcessSelection {
+            executable: binary.display().to_string(),
+            executable_digest: None,
+            arguments: argv,
+            problem: problem.map(|path| path.display().to_string()),
+            problem_digest: None,
+            deadline_ms: u64::try_from(deadline.as_millis()).unwrap_or(u64::MAX),
+            output_limit,
+        },
+        elapsed_ms: 0,
+        exit_code: None,
+        signal: None,
+        timed_out: false,
+        stdout: empty_stream(),
+        stderr: empty_stream(),
+    };
+    receipt.selection.executable_digest = Some(digest_file(binary).map_err(|diagnostic| {
+        process_diagnostic_failure(
+            "PROVER_EXECUTABLE_IDENTITY_FAILED",
+            "cannot hash selected prover",
+            &receipt,
+            diagnostic,
+        )
+    })?);
+    if let Some(problem) = problem {
+        receipt.selection.problem_digest = Some(digest_file(problem).map_err(|diagnostic| {
+            process_diagnostic_failure(
+                "PROVER_PROBLEM_IDENTITY_FAILED",
+                "cannot hash selected problem",
+                &receipt,
+                diagnostic,
+            )
+        })?);
+    }
     let mut command = Command::new(binary);
     command
         .args(arguments)
@@ -1084,88 +1374,197 @@ fn run_bounded_process(
         command.process_group(0);
     }
     let started = Instant::now();
-    let mut child = command
-        .spawn()
-        .map_err(|error| format!("cannot run {}: {error}", binary.display()))?;
-    let Some(stdout) = child.stdout.take() else {
+    let mut child = command.spawn().map_err(|error| {
+        process_failure(
+            "PROVER_SPAWN_FAILED",
+            "cannot spawn selected prover",
+            &receipt,
+            Some(Box::new(error)),
+        )
+    })?;
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+    let (Some(stdout), Some(stderr)) = (stdout, stderr) else {
         kill_process_tree(&mut child);
-        let _ = child.wait();
-        return Err("selected child has no stdout pipe".to_owned());
+        let status = child.wait();
+        if let Ok(status) = status {
+            record_status(&mut receipt, status);
+        }
+        return Err(process_failure(
+            "PROVER_PIPE_MISSING",
+            "selected child has a missing output pipe",
+            &receipt,
+            None,
+        ));
     };
-    let Some(stderr) = child.stderr.take() else {
+    #[cfg(unix)]
+    if let Err(error) = set_nonblocking(&stdout).and_then(|()| set_nonblocking(&stderr)) {
         kill_process_tree(&mut child);
-        let _ = child.wait();
-        return Err("selected child has no stderr pipe".to_owned());
-    };
-    let stdout_reader = std::thread::spawn(move || drain_stream(stdout, output_limit));
-    let stderr_reader = std::thread::spawn(move || drain_stream(stderr, output_limit));
-    let expires = started + deadline;
-    let mut timed_out = false;
-    let status = loop {
+        if let Ok(status) = child.wait() {
+            record_status(&mut receipt, status);
+        }
+        receipt.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+        return Err(process_failure(
+            "PROVER_PIPE_NONBLOCK_FAILED",
+            "cannot make selected prover output pipes deadline-aware",
+            &receipt,
+            Some(Box::new(error)),
+        ));
+    }
+    let stdout_capture = Arc::new(std::sync::Mutex::new(empty_stream()));
+    let stderr_capture = Arc::new(std::sync::Mutex::new(empty_stream()));
+    let stdout_shared = Arc::clone(&stdout_capture);
+    let stderr_shared = Arc::clone(&stderr_capture);
+    let stop_readers = Arc::new(AtomicBool::new(false));
+    let stdout_stop = Arc::clone(&stop_readers);
+    let stderr_stop = Arc::clone(&stop_readers);
+    let stdout_reader = std::thread::spawn(move || {
+        drain_stream_until_stopped(stdout, output_limit, &stdout_shared, &stdout_stop)
+    });
+    let stderr_reader = std::thread::spawn(move || {
+        drain_stream_until_stopped(stderr, output_limit, &stderr_shared, &stderr_stop)
+    });
+    let mut failures: Vec<(&'static str, std::io::Error)> = Vec::new();
+    loop {
         match child.try_wait() {
-            Ok(Some(status)) => break status,
-            Ok(None) if Instant::now() < expires => std::thread::sleep(PROCESS_POLL_INTERVAL),
+            Ok(Some(status)) => {
+                record_status(&mut receipt, status);
+                break;
+            }
+            Ok(None) if started.elapsed() < deadline => std::thread::sleep(PROCESS_POLL_INTERVAL),
             Ok(None) => {
-                timed_out = true;
-                kill_process_tree(&mut child);
-                break child.wait().map_err(|error| {
-                    format!("cannot reap timed-out child {}: {error}", binary.display())
-                })?;
+                receipt.timed_out = true;
+                break;
             }
             Err(error) => {
-                kill_process_tree(&mut child);
-                let _ = child.wait();
-                return Err(format!(
-                    "cannot poll selected child {}: {error}",
-                    binary.display()
-                ));
+                failures.push(("PROVER_POLL_FAILED", error));
+                break;
             }
         }
-    };
-    let stdout = stdout_reader
-        .join()
-        .map_err(|_| "selected child stdout reader panicked".to_owned())?
-        .map_err(|error| format!("cannot read selected child stdout: {error}"))?;
-    let stderr = stderr_reader
-        .join()
-        .map_err(|_| "selected child stderr reader panicked".to_owned())?
-        .map_err(|error| format!("cannot read selected child stderr: {error}"))?;
-    #[cfg(unix)]
-    use std::os::unix::process::ExitStatusExt as _;
-    Ok(RawProcessReceipt {
-        elapsed_ms: u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
-        exit_code: status.code(),
-        #[cfg(unix)]
-        signal: status.signal(),
-        #[cfg(not(unix))]
-        signal: None,
-        timed_out,
-        stdout,
-        stderr,
-    })
+    }
+    // Also close descendant-held pipes after the direct child exits. Only this
+    // invocation's process group is selected; unrelated processes are untouched.
+    kill_process_tree(&mut child);
+    stop_readers.store(true, Ordering::Release);
+    match child.wait() {
+        Ok(status) => record_status(&mut receipt, status),
+        Err(error) => failures.push(("PROVER_REAP_FAILED", error)),
+    }
+    // Join BOTH readers even when the first fails. Shared incremental captures
+    // preserve every observed byte through a read error or a reader panic.
+    for (name, reader) in [
+        ("PROVER_STDOUT_READ_FAILED", stdout_reader),
+        ("PROVER_STDERR_READ_FAILED", stderr_reader),
+    ] {
+        match reader.join() {
+            Ok(Ok(())) => {}
+            Ok(Err(error)) => failures.push((name, error)),
+            Err(_) => failures.push((name, std::io::Error::other("prover stream reader panicked"))),
+        }
+    }
+    receipt.stdout = stdout_capture
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .clone();
+    receipt.stderr = stderr_capture
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .clone();
+    receipt.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+    if !failures.is_empty() {
+        let (reason, cause) = failures.remove(0);
+        let mut diagnostic = process_failure(
+            reason,
+            "selected prover process did not complete cleanly",
+            &receipt,
+            Some(Box::new(cause)),
+        );
+        for (operation, error) in failures {
+            diagnostic = diagnostic.with_context(format!("{operation}: {error}"));
+        }
+        return Err(diagnostic);
+    }
+    Ok(receipt)
 }
 
-fn drain_stream(mut stream: impl Read, limit: usize) -> std::io::Result<StreamBytes> {
+fn record_status(receipt: &mut RawProcessReceipt, status: std::process::ExitStatus) {
+    receipt.exit_code = status.code();
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::ExitStatusExt as _;
+        receipt.signal = status.signal();
+    }
+}
+
+#[cfg(test)]
+fn drain_stream(
+    mut stream: impl Read,
+    limit: usize,
+    capture: &std::sync::Mutex<StreamBytes>,
+) -> std::io::Result<()> {
+    drain_stream_inner(&mut stream, limit, capture, None)
+}
+
+fn drain_stream_until_stopped(
+    mut stream: impl Read,
+    limit: usize,
+    capture: &std::sync::Mutex<StreamBytes>,
+    stop: &AtomicBool,
+) -> std::io::Result<()> {
+    drain_stream_inner(&mut stream, limit, capture, Some(stop))
+}
+
+fn drain_stream_inner(
+    stream: &mut impl Read,
+    limit: usize,
+    capture: &std::sync::Mutex<StreamBytes>,
+    stop: Option<&AtomicBool>,
+) -> std::io::Result<()> {
     let mut hasher = blake3::Hasher::new();
-    let mut retained = Vec::with_capacity(limit.min(64 * 1024));
-    let mut total = 0_u64;
     let mut buffer = [0_u8; 16 * 1024];
     loop {
-        let read = stream.read(&mut buffer)?;
+        let read = match stream.read(&mut buffer) {
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                if stop.is_some_and(|stop| stop.load(Ordering::Acquire)) {
+                    return Ok(());
+                }
+                std::thread::sleep(PROCESS_POLL_INTERVAL);
+                continue;
+            }
+            value => value?,
+        };
         if read == 0 {
-            break;
+            return Ok(());
         }
         hasher.update(&buffer[..read]);
-        total = total.saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
-        let available = limit.saturating_sub(retained.len());
-        retained.extend_from_slice(&buffer[..read.min(available)]);
+        let mut bytes = capture
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        bytes.total_bytes = bytes
+            .total_bytes
+            .saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
+        let available = limit.saturating_sub(bytes.retained.len());
+        bytes
+            .retained
+            .extend_from_slice(&buffer[..read.min(available)]);
+        bytes.digest = hasher.finalize().to_hex().to_string();
+        bytes.truncated =
+            bytes.total_bytes > u64::try_from(bytes.retained.len()).unwrap_or(u64::MAX);
     }
-    Ok(StreamBytes {
-        digest: hasher.finalize().to_hex().to_string(),
-        total_bytes: total,
-        truncated: total > u64::try_from(retained.len()).unwrap_or(u64::MAX),
-        retained,
-    })
+}
+
+#[cfg(unix)]
+fn set_nonblocking(stream: &impl std::os::fd::AsRawFd) -> std::io::Result<()> {
+    let descriptor = stream.as_raw_fd();
+    let flags = unsafe { libc::fcntl(descriptor, libc::F_GETFL) };
+    if flags < 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    if unsafe { libc::fcntl(descriptor, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    Ok(())
 }
 
 fn kill_process_tree(child: &mut std::process::Child) {
@@ -1190,11 +1589,7 @@ fn publish_failure(
     evidence_out: Option<&Path>,
 ) -> i32 {
     if let Some(diagnostic) = report.common.diagnostics.last() {
-        emit_error(
-            reporter,
-            &format!("gmeow-cli.prove.{}", diagnostic.code.to_ascii_lowercase()),
-            diagnostic.detail.clone(),
-        );
+        emit_error(reporter, &diagnostic.code, diagnostic.detail.clone());
     }
     publish_report(report, format, gate, evidence_out, reporter)
 }
@@ -1211,15 +1606,14 @@ fn publish_report(
     if let Some(path) = evidence_out
         && let Err(error) = std::fs::write(path, json.as_bytes())
     {
-        report.execution_failure(
+        let diagnostic = caused_failure(
             "EVIDENCE_WRITE_FAILED",
-            format!("cannot write {}: {error}", path.display()),
+            error,
+            format!("write evidence report {}", path.display()),
         );
-        emit_error(
-            reporter,
-            "gmeow-cli.prove.evidence-write-failed",
-            format!("cannot write {}: {error}", path.display()),
-        );
+        let detail = diagnostic.message().to_owned();
+        report.execution_failure(diagnostic);
+        emit_error(reporter, "gmeow-cli.prove.evidence-write-failed", detail);
         json = serde_json::to_string_pretty(&report)
             .expect("typed prove report serialization is infallible");
     }

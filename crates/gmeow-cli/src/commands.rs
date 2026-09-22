@@ -2520,10 +2520,7 @@ fn publish_reasoning_failure(
             inputs,
             native_program(operation, fragment),
             reasoning_engine(operation),
-            ReportDiagnostic {
-                code: code.to_owned(),
-                detail,
-            },
+            ReportDiagnostic::message(code, detail),
         ),
         result: ReasoningPayload::Empty,
     }
@@ -2574,10 +2571,7 @@ fn dl_service_failure_report(
                     engine: reasoning_engine(operation),
                     metrics: ReasoningMetrics::default(),
                     boundaries: Vec::new(),
-                    diagnostics: vec![ReportDiagnostic {
-                        code: "ONTOLOGY_HAS_NO_MODEL".to_owned(),
-                        detail,
-                    }],
+                    diagnostics: vec![ReportDiagnostic::message("ONTOLOGY_HAS_NO_MODEL", detail)],
                 },
                 result: if operation == ReasoningOperation::Consistency {
                     ReasoningPayload::Consistency {
@@ -3358,9 +3352,8 @@ fn fragments_graph_source(
 /// sorted by id (deterministic).
 fn extract_decidability_surface(
     dataset: &purrdf::RdfDataset,
-) -> Result<DecidabilitySurface, String> {
-    let registry = gmeow_logic::reason::NativeFragmentRegistry::observe(dataset)
-        .map_err(|error| error.to_string())?;
+) -> gmeow_errors::Result<DecidabilitySurface> {
+    let registry = gmeow_logic::reason::NativeFragmentRegistry::observe(dataset)?;
     let mut labels = BTreeMap::new();
     for quad in dataset.owned_quads() {
         if quad.predicate != RDFS_LABEL_IRI {
@@ -3379,7 +3372,11 @@ fn extract_decidability_surface(
             let label = labels
                 .get(id)
                 .filter(|label| !label.trim().is_empty())
-                .ok_or_else(|| format!("source admission {id} has no label"))?
+                .ok_or_else(|| {
+                    Diag::of_kind(crate::error::RdfPipelineFailed {
+                        detail: format!("source admission {id} has no label"),
+                    })
+                })?
                 .clone();
             Ok(SourceAdmissionRow {
                 id: id.clone(),
@@ -3387,7 +3384,7 @@ fn extract_decidability_surface(
                 requirement: registry.source_admission_requirements[id].clone(),
             })
         })
-        .collect::<Result<Vec<_>, String>>()?;
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
     let decided = registry
         .decided_ids
         .iter()
@@ -3511,11 +3508,11 @@ pub fn logic_fragments(
     };
     let surface = match extract_decidability_surface(dataset.as_ref()) {
         Ok(surface) => surface,
-        Err(message) => {
+        Err(diagnostic) => {
             return fail(
                 reporter,
                 "gmeow-cli.logic-fragments.invalid-surface",
-                message,
+                diagnostic.to_string(),
             );
         }
     };

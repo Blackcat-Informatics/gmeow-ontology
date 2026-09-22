@@ -74,12 +74,81 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+/// A selected consumer-prover operation failed. The structured payload is the
+/// operation's exact evidence, never inferred from the human-readable message.
+#[derive(Debug)]
+pub(crate) struct ProverFailed {
+    pub(crate) reason: String,
+    pub(crate) detail: String,
+    pub(crate) evidence: serde_json::Value,
+    pub(crate) cause: Option<Box<dyn std::error::Error + Send + Sync>>,
+}
+
+/// Keep a shared diagnostic live inside a prover diagnostic's standard error
+/// chain when a lower typed boundary fails. This wrapper preserves the original
+/// code, grade, context and downcastable source rather than flattening the
+/// diagnostic to its display text.
+#[derive(Debug)]
+pub(crate) struct PreservedDiagnostic(pub(crate) gmeow_errors::Diag);
+
+impl std::fmt::Display for PreservedDiagnostic {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "{:#}", self.0)
+    }
+}
+
+impl std::error::Error for PreservedDiagnostic {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.0
+            .inner()
+            .source
+            .as_deref()
+            .map(|source| source as &dyn std::error::Error)
+    }
+}
+
+impl std::fmt::Display for ProverFailed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.detail)
+    }
+}
+
+impl std::error::Error for ProverFailed {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.cause
+            .as_deref()
+            .map(|cause| cause as &dyn std::error::Error)
+    }
+}
+
+impl ProverFailed {
+    pub(crate) const CODE: &'static str = "gmeow-cli.prove.failed";
+
+    pub(crate) fn register() -> Code {
+        gmeow_errors::register_code(Self::CODE)
+    }
+}
+
+impl gmeow_errors::DiagKind for ProverFailed {
+    fn code(&self) -> Code {
+        Self::register()
+    }
+    fn grade(&self) -> Grade {
+        Grade::new(
+            Severity::Error,
+            FindingCategory::IncompleteCheck,
+            Standpoint::Binding,
+        )
+    }
+}
+
 /// The complete shippable-CLI diagnostic-code catalog, in registration order —
 /// the kinds minted here plus the `explain`-command kinds defined beside their
 /// use site. (Consumed by the collision test; the running CLI reaches its kinds
 /// directly.)
 #[allow(dead_code)]
 pub const GMEOW_CLI_DIAG_CODES: &[&str] = &[
+    ProverFailed::CODE,
     RdfPipelineFailed::CODE,
     BundleReadFailed::CODE,
     SourceReadFailed::CODE,
@@ -96,6 +165,7 @@ pub const GMEOW_CLI_DIAG_CODES: &[&str] = &[
 #[allow(dead_code)]
 pub fn register_all() -> Vec<Code> {
     vec![
+        ProverFailed::register(),
         RdfPipelineFailed::register(),
         BundleReadFailed::register(),
         SourceReadFailed::register(),

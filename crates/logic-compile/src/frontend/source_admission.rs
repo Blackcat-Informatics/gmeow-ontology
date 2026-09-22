@@ -514,14 +514,14 @@ impl<'a> AdmissionBuilder<'a> {
                         documents,
                         SemanticUnitDisposition::Blocked {
                             code: "UNSUPPORTED_QUOTED_TERM_ARGUMENT".into(),
-                            reason,
+                            reason: reason.to_string(),
                         },
                     ),
                 Err(reason) => self.push(
                     SemanticUnitKind::Assertion,
                     anchor,
                     documents,
-                    malformed("MALFORMED_SELECTED_ASSERTION", reason),
+                    malformed("MALFORMED_SELECTED_ASSERTION", reason.to_string()),
                 ),
             }
         }
@@ -1182,10 +1182,15 @@ fn single_iri_object(
     }
 }
 
-fn assertion_from_quad(dataset: &RdfDataset, quad: QuadIds) -> Result<SourceAssertion, String> {
+fn assertion_from_quad(
+    dataset: &RdfDataset,
+    quad: QuadIds,
+) -> gmeow_errors::Result<SourceAssertion> {
     let subject = atomic_term(dataset, quad.s, false)?;
     let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
-        return Err("RDF predicate is not an IRI".into());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "RDF predicate is not an IRI".into(),
+        }));
     };
     let object = atomic_term(dataset, quad.o, true)?;
     Ok(SourceAssertion {
@@ -1199,7 +1204,7 @@ fn atomic_term(
     dataset: &RdfDataset,
     id: TermId,
     literal_allowed: bool,
-) -> Result<AtomicTerm, String> {
+) -> gmeow_errors::Result<AtomicTerm> {
     match dataset.resolve(id) {
         TermRef::Iri(iri) => Ok(AtomicTerm::Iri(iri.to_owned())),
         TermRef::Blank { label, scope } => Ok(AtomicTerm::Blank(
@@ -1212,7 +1217,9 @@ fn atomic_term(
             direction,
         } if literal_allowed => {
             let TermRef::Iri(datatype) = dataset.resolve(datatype) else {
-                return Err("literal datatype is not an IRI".into());
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+                    detail: "literal datatype is not an IRI".into(),
+                }));
             };
             let language = language.map(str::to_owned);
             Ok(AtomicTerm::Literal(purrdf::RdfLiteral {
@@ -1226,11 +1233,13 @@ fn atomic_term(
                 direction,
             }))
         }
-        TermRef::Literal { .. } => Err("literal cannot occur in assertion subject position".into()),
-        TermRef::Triple { .. } => Err(
-            "quoted triple term requires an explicit proposition-term translation and remains unasserted"
+        TermRef::Literal { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "literal cannot occur in assertion subject position".into(),
+        })),
+        TermRef::Triple { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "quoted triple term requires an explicit proposition-term translation and remains unasserted"
                 .into(),
-        ),
+        })),
     }
 }
 

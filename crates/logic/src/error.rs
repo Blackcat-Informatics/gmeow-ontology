@@ -117,6 +117,33 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+/// Typed evidence for a numeric physical-execution failure.
+///
+/// This value is the downcastable source payload of the existing
+/// [`Physical`] diagnostic kind. It is never used as a function error type:
+/// every failing boundary returns [`gmeow_errors::Diag`], while cached plan
+/// preparation retains a clone solely to mint a fresh diagnostic per caller.
+#[derive(Debug, Clone)]
+pub struct Numeric {
+    pub rule: String,
+    pub operation: String,
+    pub operands: String,
+    pub datatype: String,
+    pub detail: String,
+}
+
+impl std::fmt::Display for Numeric {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "numeric rule {} operation {} operands {} datatype {}: {}; selected operation is incomplete",
+            self.rule, self.operation, self.operands, self.datatype, self.detail
+        )
+    }
+}
+
+impl std::error::Error for Numeric {}
+
 define_diag_kind! {
     /// A teleology derivation precondition does not hold: a goal, plan, outcome,
     /// action-schema, gate-probe, or deontic node missing a required property, an

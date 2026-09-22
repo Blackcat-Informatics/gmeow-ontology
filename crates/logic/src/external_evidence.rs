@@ -18,6 +18,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::{Diag, DiagKind, Grade};
 use gmeow_logic_compile::tptp::FofSentence;
 use gmeow_logic_compile::tptp::problem_name_matches;
 use gmeow_math_lift::proof::{
@@ -69,10 +70,330 @@ pub struct SzsArtifact {
 /// Stable refusal emitted by strict SZS artifact framing.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ArtifactProtocolError {
+    /// Transcript channel which supplied the rejected framing.
+    pub channel: Option<ArtifactChannel>,
+    /// One-based offending framing line, when identified.
+    pub line: Option<usize>,
+    /// Exact rejected marker or transcript.
+    pub source_text: Option<String>,
+    /// Admitted problem names against which the marker was checked.
+    pub expected_problems: BTreeSet<String>,
     /// Stable machine code.
     pub code: String,
     /// Human-readable explanation.
     pub detail: String,
+}
+
+/// The checker operation which refused the supplied evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum EvidenceOperation {
+    /// Reparse the exact emitted problem.
+    ProblemParsing,
+    /// Parse an external finite-model document.
+    ModelParsing,
+    /// Parse and validate an external refutation.
+    RefutationParsing,
+    /// Recover the problem's function and predicate signature.
+    Signature,
+    /// Validate the finite interpretation tables.
+    ModelTable,
+    /// Validate the finite domain and its distinctness.
+    Domain,
+    /// Evaluate the problem against the supplied interpretation.
+    Evaluation,
+}
+
+/// Why the selected evidence operation cannot certify its input.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum EvidenceFailureClass {
+    /// Malformed or semantically false evidence.
+    Invalid,
+    /// Well-formed evidence outside the admitted checker fragment.
+    Unsupported,
+    /// A declared finite resource bound was reached.
+    Resource,
+}
+
+/// Machine-readable evidence retained through diagnostic report projection.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct EvidenceFailure {
+    /// Selected checker operation.
+    pub operation: EvidenceOperation,
+    /// Typed refusal category, independent of prose.
+    pub classification: EvidenceFailureClass,
+    /// Original refusal detail.
+    pub detail: String,
+    /// The input unit, symbol, or semantic locus when known.
+    pub locus: Option<String>,
+    /// Exact source document available at the checker boundary.
+    pub source_text: Option<String>,
+    /// Exact transformed text supplied to the parser when it differs from the
+    /// retained source document.
+    pub parsed_text: Option<String>,
+    /// Resource usage or inventory size observed at refusal.
+    pub observed: Option<u64>,
+    /// Selected resource ceiling.
+    pub limit: Option<u64>,
+}
+
+/// A serialized view of a shared diagnostic at the artifact-report boundary.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ArtifactDiagnostic {
+    /// Stable shared diagnostic code.
+    pub code: String,
+    /// The diagnostic's complete grade.
+    pub grade: Grade,
+    /// Typed checker evidence.
+    pub evidence: EvidenceFailure,
+    /// Ordered causal error descriptions, preserved at serialization.
+    pub causes: Vec<String>,
+    /// Original parser diagnostic code, before checker context was attached.
+    pub source_code: Option<String>,
+    /// Original parser diagnostic grade.
+    pub source_grade: Option<Grade>,
+    /// Original parser source coordinates and focus.
+    pub source_context: Option<gmeow_errors::SourceContext>,
+    /// Ordered propagation contexts.
+    pub context: Vec<String>,
+    /// Rust source location at which the failure was observed.
+    pub emitted_file: String,
+    /// One-based Rust source line.
+    pub emitted_line: u32,
+}
+
+#[derive(Debug)]
+struct ExternalEvidenceFailure {
+    evidence: EvidenceFailure,
+    cause: Option<Diag>,
+}
+
+impl std::fmt::Display for ExternalEvidenceFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.evidence.detail)
+    }
+}
+
+impl std::error::Error for ExternalEvidenceFailure {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.cause
+            .as_ref()
+            .and_then(|cause| cause.inner().source.as_deref().map(|source| source as _))
+    }
+}
+
+impl DiagKind for ExternalEvidenceFailure {
+    fn code(&self) -> gmeow_errors::Code {
+        let code = match self.evidence.classification {
+            EvidenceFailureClass::Unsupported => "logic.external-evidence.unsupported",
+            EvidenceFailureClass::Resource => "logic.external-evidence.resource",
+            EvidenceFailureClass::Invalid => match self.evidence.operation {
+                EvidenceOperation::ProblemParsing => "logic.external-evidence.problem-parse",
+                EvidenceOperation::ModelParsing => "logic.external-evidence.model-parse",
+                EvidenceOperation::RefutationParsing => "logic.external-evidence.refutation-parse",
+                EvidenceOperation::Signature => "logic.external-evidence.signature",
+                EvidenceOperation::ModelTable => "logic.external-evidence.model-table",
+                EvidenceOperation::Domain => "logic.external-evidence.domain",
+                EvidenceOperation::Evaluation => "logic.external-evidence.evaluation",
+            },
+        };
+        gmeow_errors::register_code(code)
+    }
+}
+
+impl std::fmt::Display for ArtifactProtocolError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.detail)
+    }
+}
+
+impl std::error::Error for ArtifactProtocolError {}
+
+impl DiagKind for ArtifactProtocolError {
+    fn code(&self) -> gmeow_errors::Code {
+        gmeow_errors::register_code(&self.code)
+    }
+}
+
+#[track_caller]
+fn failure(operation: EvidenceOperation, detail: impl Into<String>) -> Diag {
+    Diag::of_kind(ExternalEvidenceFailure {
+        evidence: EvidenceFailure {
+            operation,
+            classification: EvidenceFailureClass::Invalid,
+            detail: detail.into(),
+            locus: None,
+            source_text: None,
+            parsed_text: None,
+            observed: None,
+            limit: None,
+        },
+        cause: None,
+    })
+}
+
+#[track_caller]
+fn unsupported(operation: EvidenceOperation, detail: impl Into<String>) -> Diag {
+    let mut diagnostic = failure(operation, detail);
+    let source = diagnostic
+        .inner_mut()
+        .source
+        .as_mut()
+        .expect("typed failure");
+    let payload = source
+        .downcast_mut::<ExternalEvidenceFailure>()
+        .expect("typed failure");
+    payload.evidence.classification = EvidenceFailureClass::Unsupported;
+    let code = payload.code();
+    diagnostic.inner_mut().code = code;
+    diagnostic
+}
+
+#[track_caller]
+fn resource_failure(
+    operation: EvidenceOperation,
+    detail: impl Into<String>,
+    observed: u64,
+    limit: u64,
+) -> Diag {
+    let mut diagnostic = failure(operation, detail);
+    let source = diagnostic
+        .inner_mut()
+        .source
+        .as_mut()
+        .expect("typed failure");
+    let payload = source
+        .downcast_mut::<ExternalEvidenceFailure>()
+        .expect("typed failure");
+    payload.evidence.classification = EvidenceFailureClass::Resource;
+    payload.evidence.observed = Some(observed);
+    payload.evidence.limit = Some(limit);
+    let code = payload.code();
+    diagnostic.inner_mut().code = code;
+    diagnostic
+}
+
+fn at_locus(mut diagnostic: Diag, locus: &str) -> Diag {
+    if let Some(payload) = diagnostic
+        .inner_mut()
+        .source
+        .as_mut()
+        .and_then(|source| source.downcast_mut::<ExternalEvidenceFailure>())
+    {
+        payload.evidence.locus = Some(locus.to_owned());
+    }
+    diagnostic.with_context(format!("external evidence unit {locus}"))
+}
+
+#[track_caller]
+fn evaluation_failure(detail: impl Into<String>) -> Diag {
+    failure(EvidenceOperation::Evaluation, detail)
+}
+
+#[track_caller]
+fn parser_failure(
+    operation: EvidenceOperation,
+    source: &str,
+    parsed: Option<&str>,
+    cause: Diag,
+) -> Diag {
+    Diag::of_kind(ExternalEvidenceFailure {
+        evidence: EvidenceFailure {
+            operation,
+            classification: EvidenceFailureClass::Invalid,
+            detail: cause.to_string(),
+            locus: None,
+            source_text: Some(source.to_owned()),
+            parsed_text: parsed.map(str::to_owned),
+            observed: None,
+            limit: None,
+        },
+        cause: Some(cause),
+    })
+}
+
+fn failed_check(
+    artifact: &SzsArtifact,
+    problem_digest: &str,
+    code: &str,
+    diagnostic: Diag,
+    units: u64,
+    evaluations: u64,
+    budget: Option<u64>,
+) -> ArtifactCheck {
+    let failure = diagnostic
+        .downcast_ref::<ExternalEvidenceFailure>()
+        .expect("checker failure is typed");
+    let mut evidence = failure.evidence.clone();
+    if evidence.source_text.is_none()
+        && matches!(
+            evidence.operation,
+            EvidenceOperation::ModelParsing
+                | EvidenceOperation::RefutationParsing
+                | EvidenceOperation::ModelTable
+                | EvidenceOperation::Domain
+                | EvidenceOperation::Evaluation
+        )
+    {
+        evidence.source_text = Some(artifact.text.clone());
+    }
+    let disposition = match evidence.classification {
+        EvidenceFailureClass::Invalid => ArtifactCheckDisposition::Invalid,
+        EvidenceFailureClass::Unsupported | EvidenceFailureClass::Resource => {
+            ArtifactCheckDisposition::Unsupported
+        }
+    };
+    let mut causes = failure
+        .cause
+        .as_ref()
+        .map(|cause| vec![cause.message().to_owned()])
+        .unwrap_or_default();
+    let mut cause = std::error::Error::source(failure);
+    while let Some(value) = cause {
+        causes.push(value.to_string());
+        cause = value.source();
+    }
+    let code = match (evidence.classification, evidence.operation) {
+        (EvidenceFailureClass::Unsupported, _) => "UNSUPPORTED_FINITE_MODEL",
+        (EvidenceFailureClass::Resource, EvidenceOperation::Domain) => "FINITE_MODEL_DOMAIN_LIMIT",
+        _ => code,
+    };
+    let mut result = check(
+        disposition,
+        artifact,
+        problem_digest,
+        units,
+        evaluations,
+        budget,
+        code,
+        diagnostic.message(),
+    );
+    result.diagnostic = Some(ArtifactDiagnostic {
+        code: gmeow_errors::code::code_str(diagnostic.code()).to_owned(),
+        grade: diagnostic.grade(),
+        evidence,
+        causes,
+        source_code: failure
+            .cause
+            .as_ref()
+            .map(|cause| gmeow_errors::code::code_str(cause.code()).to_owned()),
+        source_grade: failure.cause.as_ref().map(Diag::grade),
+        source_context: failure
+            .cause
+            .as_ref()
+            .map(|cause| cause.inner().source_ctx.clone()),
+        context: failure
+            .cause
+            .iter()
+            .flat_map(|cause| cause.inner().context.iter())
+            .chain(diagnostic.inner().context.iter())
+            .map(|frame| frame.label.clone())
+            .collect(),
+        emitted_file: diagnostic.emitted_at().file().to_owned(),
+        emitted_line: diagnostic.emitted_at().line(),
+    });
+    result
 }
 
 /// Strength established by the independent artifact checker.
@@ -111,6 +432,9 @@ pub struct ArtifactCheck {
     pub code: String,
     /// Human-readable explanation.
     pub detail: String,
+    /// Full typed failure evidence retained at the report boundary.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diagnostic: Option<ArtifactDiagnostic>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -140,20 +464,40 @@ pub fn extract_szs_artifacts(
     stdout: &str,
     stderr: &str,
     expected_problem_names: &BTreeSet<String>,
-) -> Result<Vec<SzsArtifact>, ArtifactProtocolError> {
+) -> gmeow_errors::Result<Vec<SzsArtifact>> {
     let mut artifacts = Vec::new();
     scan_artifact_channel(
         stdout,
         ArtifactChannel::Stdout,
         expected_problem_names,
         &mut artifacts,
-    )?;
+    )
+    .map_err(|mut diagnostic| {
+        let payload = diagnostic
+            .inner_mut()
+            .source
+            .as_mut()
+            .and_then(|source| source.downcast_mut::<ArtifactProtocolError>())
+            .expect("protocol diagnostic");
+        payload.expected_problems = expected_problem_names.clone();
+        diagnostic
+    })?;
     scan_artifact_channel(
         stderr,
         ArtifactChannel::Stderr,
         expected_problem_names,
         &mut artifacts,
-    )?;
+    )
+    .map_err(|mut diagnostic| {
+        let payload = diagnostic
+            .inner_mut()
+            .source
+            .as_mut()
+            .and_then(|source| source.downcast_mut::<ArtifactProtocolError>())
+            .expect("protocol diagnostic");
+        payload.expected_problems = expected_problem_names.clone();
+        diagnostic
+    })?;
     Ok(artifacts)
 }
 
@@ -187,16 +531,18 @@ fn scan_artifact_channel(
     channel: ArtifactChannel,
     expected_problem_names: &BTreeSet<String>,
     output: &mut Vec<SzsArtifact>,
-) -> Result<(), ArtifactProtocolError> {
+) -> gmeow_errors::Result<()> {
     let mut open: Option<OpenArtifact> = None;
     for (index, line) in transcript.split_inclusive('\n').enumerate() {
         let line_number = index + 1;
-        let marker = parse_marker(line)?;
+        let marker =
+            parse_marker(line).map_err(|error| protocol_at(error, channel, line_number, line))?;
         match (marker, open.as_mut()) {
             (None, Some(active)) => active.text.push_str(line),
             (None, None) => {}
             (Some(marker), None) if marker.start => {
-                validate_marker_problem(&marker, expected_problem_names)?;
+                validate_marker_problem(&marker, expected_problem_names)
+                    .map_err(|error| protocol_at(error, channel, line_number, line))?;
                 open = Some(OpenArtifact {
                     marker,
                     start_line: line_number,
@@ -204,7 +550,10 @@ fn scan_artifact_channel(
                 });
             }
             (Some(marker), None) => {
-                return Err(protocol_error(
+                return Err(protocol_error_at(
+                    channel,
+                    line_number,
+                    line,
                     "UNMATCHED_SZS_ARTIFACT_END",
                     format!(
                         "{:?} line {line_number} ends `{}` without a matching start marker",
@@ -213,7 +562,10 @@ fn scan_artifact_channel(
                 ));
             }
             (Some(marker), Some(active)) if marker.start => {
-                return Err(protocol_error(
+                return Err(protocol_error_at(
+                    channel,
+                    line_number,
+                    line,
                     "NESTED_SZS_ARTIFACT",
                     format!(
                         "{:?} line {line_number} starts `{}` before `{}` from line {} ended",
@@ -222,10 +574,14 @@ fn scan_artifact_channel(
                 ));
             }
             (Some(marker), Some(_)) => {
-                validate_marker_problem(&marker, expected_problem_names)?;
+                validate_marker_problem(&marker, expected_problem_names)
+                    .map_err(|error| protocol_at(error, channel, line_number, line))?;
                 let active = open.take().expect("matched open artifact");
                 if marker.kind != active.marker.kind {
-                    return Err(protocol_error(
+                    return Err(protocol_error_at(
+                        channel,
+                        line_number,
+                        line,
                         "MISMATCHED_SZS_ARTIFACT_KIND",
                         format!(
                             "{:?} line {line_number} ends `{}` but line {} started `{}`",
@@ -237,7 +593,10 @@ fn scan_artifact_channel(
                     && active.marker.problem.is_some()
                     && marker.problem != active.marker.problem
                 {
-                    return Err(protocol_error(
+                    return Err(protocol_error_at(
+                        channel,
+                        line_number,
+                        line,
                         "MISMATCHED_SZS_ARTIFACT_PROBLEM",
                         format!(
                             "{:?} artifact start/end markers name different problems",
@@ -260,7 +619,10 @@ fn scan_artifact_channel(
         }
     }
     if let Some(active) = open {
-        return Err(protocol_error(
+        return Err(protocol_error_at(
+            channel,
+            active.start_line,
+            transcript,
             "UNTERMINATED_SZS_ARTIFACT",
             format!(
                 "{:?} line {} starts `{}` without a matching end marker",
@@ -271,7 +633,7 @@ fn scan_artifact_channel(
     Ok(())
 }
 
-fn parse_marker(line: &str) -> Result<Option<Marker>, ArtifactProtocolError> {
+fn parse_marker(line: &str) -> gmeow_errors::Result<Option<Marker>> {
     let mut body = line.trim();
     let Some(first) = body.chars().next() else {
         return Ok(None);
@@ -327,7 +689,7 @@ fn parse_marker(line: &str) -> Result<Option<Marker>, ArtifactProtocolError> {
 fn validate_marker_problem(
     marker: &Marker,
     expected_problem_names: &BTreeSet<String>,
-) -> Result<(), ArtifactProtocolError> {
+) -> gmeow_errors::Result<()> {
     if let Some(problem) = marker.problem.as_deref()
         && !problem_name_matches(problem, expected_problem_names)
     {
@@ -339,11 +701,40 @@ fn validate_marker_problem(
     Ok(())
 }
 
-fn protocol_error(code: &str, detail: impl Into<String>) -> ArtifactProtocolError {
-    ArtifactProtocolError {
+fn protocol_at(mut diagnostic: Diag, channel: ArtifactChannel, line: usize, source: &str) -> Diag {
+    let payload = diagnostic
+        .inner_mut()
+        .source
+        .as_mut()
+        .and_then(|source| source.downcast_mut::<ArtifactProtocolError>())
+        .expect("protocol diagnostic");
+    payload.channel = Some(channel);
+    payload.line = Some(line);
+    payload.source_text = Some(source.to_owned());
+    diagnostic.with_context(format!("{channel:?} line {line}"))
+}
+
+#[track_caller]
+fn protocol_error_at(
+    channel: ArtifactChannel,
+    line: usize,
+    source: &str,
+    code: &str,
+    detail: impl Into<String>,
+) -> Diag {
+    protocol_at(protocol_error(code, detail), channel, line, source)
+}
+
+#[track_caller]
+fn protocol_error(code: &str, detail: impl Into<String>) -> Diag {
+    Diag::of_kind(ArtifactProtocolError {
+        channel: None,
+        line: None,
+        source_text: None,
+        expected_problems: BTreeSet::new(),
         code: code.to_owned(),
         detail: detail.into(),
-    }
+    })
 }
 
 fn check_refutation(
@@ -354,11 +745,19 @@ fn check_refutation(
     let derivation = match parse_derivation(artifact.text.as_bytes()) {
         Ok(derivation) => derivation,
         Err(error) => {
-            return invalid(
+            return failed_check(
                 artifact,
                 problem_digest,
                 "MALFORMED_TSTP_REFUTATION",
-                error.to_string(),
+                parser_failure(
+                    EvidenceOperation::RefutationParsing,
+                    &artifact.text,
+                    None,
+                    error,
+                ),
+                0,
+                0,
+                None,
             );
         }
     };
@@ -367,17 +766,22 @@ fn check_refutation(
             artifact,
             problem_digest,
             "TSTP_REFUTATION_NOT_FALSE",
+            EvidenceOperation::RefutationParsing,
+            None,
             "the unique terminal step does not conclude `$false`",
         );
     }
     let problem = match parsed_problem(sentences) {
         Ok(problem) => problem,
         Err(detail) => {
-            return invalid(
+            return failed_check(
                 artifact,
                 problem_digest,
                 "EMITTED_PROBLEM_REPARSE_FAILED",
                 detail,
+                0,
+                0,
+                None,
             );
         }
     };
@@ -389,6 +793,8 @@ fn check_refutation(
                 artifact,
                 problem_digest,
                 "FOREIGN_TSTP_LEAF_ROLE",
+                EvidenceOperation::RefutationParsing,
+                Some(&step.name),
                 format!(
                     "leaf `{}` has role `{}` rather than an admitted problem-premise role",
                     step.name,
@@ -401,6 +807,8 @@ fn check_refutation(
                 artifact,
                 problem_digest,
                 "UNBOUND_TSTP_LEAF",
+                EvidenceOperation::RefutationParsing,
+                Some(&step.name),
                 format!(
                     "leaf `{}` is not bound to an external problem source",
                     step.name
@@ -416,6 +824,8 @@ fn check_refutation(
                 artifact,
                 problem_digest,
                 "FOREIGN_TSTP_LEAF_FORMULA",
+                EvidenceOperation::RefutationParsing,
+                Some(&step.name),
                 format!(
                     "leaf `{}` is not one of the exact emitted problem formulae",
                     step.name
@@ -428,6 +838,8 @@ fn check_refutation(
             artifact,
             problem_digest,
             "TSTP_REFUTATION_HAS_NO_INPUT_LEAF",
+            EvidenceOperation::RefutationParsing,
+            None,
             "the refutation contains no exact emitted problem premise",
         );
     }
@@ -577,83 +989,108 @@ fn check_finite_model(
     sentences: &[FofSentence],
     problem_digest: &str,
 ) -> ArtifactCheck {
+    check_finite_model_with_budget(artifact, sentences, problem_digest, MODEL_EVALUATION_BUDGET)
+}
+
+fn check_finite_model_with_budget(
+    artifact: &SzsArtifact,
+    sentences: &[FofSentence],
+    problem_digest: &str,
+    evaluation_limit: u64,
+) -> ArtifactCheck {
     let problem = match parsed_problem(sentences) {
         Ok(problem) => problem,
         Err(detail) => {
-            return invalid(
+            return failed_check(
                 artifact,
                 problem_digest,
                 "EMITTED_PROBLEM_REPARSE_FAILED",
                 detail,
+                0,
+                0,
+                None,
             );
         }
     };
     let model_document = match parse_model_document(&artifact.text) {
         Ok(document) => document,
         Err(detail) => {
-            return invalid(artifact, problem_digest, "MALFORMED_FINITE_MODEL", detail);
+            return failed_check(
+                artifact,
+                problem_digest,
+                "MALFORMED_FINITE_MODEL",
+                detail,
+                0,
+                0,
+                None,
+            );
         }
     };
     let model = match FiniteModel::from_document(&model_document, &problem) {
         Ok(model) => model,
         Err(detail) => {
-            return invalid(
+            return failed_check(
                 artifact,
                 problem_digest,
                 "INVALID_FINITE_MODEL_TABLE",
                 detail,
+                0,
+                0,
+                None,
             );
         }
     };
-    let mut budget = EvaluationBudget::new(MODEL_EVALUATION_BUDGET);
+    let mut budget = EvaluationBudget::new(evaluation_limit);
     for step in problem.steps() {
         let Conclusion::Formula(formula) = &step.conclusion else {
             return invalid(
                 artifact,
                 problem_digest,
                 "NON_FOF_EMITTED_SENTENCE",
+                EvidenceOperation::ProblemParsing,
+                Some(&step.name),
                 format!("emitted sentence `{}` is not FOF", step.name),
             );
         };
-        match model.evaluate(formula, &mut budget) {
+        match model
+            .evaluate(formula, &mut budget)
+            .map_err(|error| at_locus(error, &step.name))
+        {
             Ok(true) => {}
             Ok(false) => {
-                return check(
-                    ArtifactCheckDisposition::Invalid,
+                let detail = format!(
+                    "finite interpretation makes emitted sentence `{}` false",
+                    step.name
+                );
+                return failed_check(
                     artifact,
                     problem_digest,
-                    u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
-                    budget.used(),
-                    Some(MODEL_EVALUATION_BUDGET),
                     "FINITE_MODEL_FALSIFIES_PROBLEM",
-                    format!(
-                        "finite interpretation makes emitted sentence `{}` false",
-                        step.name
-                    ),
-                );
-            }
-            Err(EvalError::Budget) => {
-                return check(
-                    ArtifactCheckDisposition::Unsupported,
-                    artifact,
-                    problem_digest,
+                    at_locus(evaluation_failure(detail), &step.name),
                     u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
                     budget.used(),
-                    Some(MODEL_EVALUATION_BUDGET),
-                    "FINITE_MODEL_CHECK_BUDGET_EXHAUSTED",
-                    "finite interpretation exceeds the bounded semantic checker budget",
+                    Some(evaluation_limit),
                 );
             }
-            Err(EvalError::Invalid(detail)) => {
-                return check(
-                    ArtifactCheckDisposition::Invalid,
+            Err(error) => {
+                let resource =
+                    error
+                        .downcast_ref::<ExternalEvidenceFailure>()
+                        .is_some_and(|failure| {
+                            failure.evidence.classification == EvidenceFailureClass::Resource
+                        });
+                return failed_check(
                     artifact,
                     problem_digest,
+                    if resource {
+                        "FINITE_MODEL_CHECK_BUDGET_EXHAUSTED"
+                    } else {
+                        "FINITE_MODEL_EVALUATION_FAILED"
+                    },
+                    error,
                     u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
                     budget.used(),
-                    Some(MODEL_EVALUATION_BUDGET),
-                    "FINITE_MODEL_EVALUATION_FAILED",
-                    detail,
+                    Some(evaluation_limit),
                 );
             }
         }
@@ -664,15 +1101,18 @@ fn check_finite_model(
         problem_digest,
         u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
         budget.used(),
-        Some(MODEL_EVALUATION_BUDGET),
+        Some(evaluation_limit),
         "FINITE_MODEL_CHECKED",
         "the total single-sorted finite interpretation satisfies every exact emitted FOF sentence",
     )
 }
 
-fn parsed_problem(sentences: &[FofSentence]) -> Result<Document, String> {
+fn parsed_problem(sentences: &[FofSentence]) -> gmeow_errors::Result<Document> {
     if sentences.is_empty() {
-        return Err("the emitted problem sentence inventory is empty".to_owned());
+        return Err(failure(
+            EvidenceOperation::ProblemParsing,
+            "the emitted problem sentence inventory is empty",
+        ));
     }
     let mut source = String::new();
     for sentence in sentences {
@@ -682,7 +1122,8 @@ fn parsed_problem(sentences: &[FofSentence]) -> Result<Document, String> {
         source.push_str(&sentence.body);
         source.push_str(").\n");
     }
-    parse_document(source.as_bytes()).map_err(|error| error.to_string())
+    parse_document(source.as_bytes())
+        .map_err(|error| parser_failure(EvidenceOperation::ProblemParsing, &source, None, error))
 }
 
 fn check(
@@ -705,6 +1146,7 @@ fn check(
         budget,
         code: code.to_owned(),
         detail: detail.into(),
+        diagnostic: None,
     }
 }
 
@@ -712,18 +1154,16 @@ fn invalid(
     artifact: &SzsArtifact,
     problem_digest: &str,
     code: &str,
+    operation: EvidenceOperation,
+    locus: Option<&str>,
     detail: impl Into<String>,
 ) -> ArtifactCheck {
-    check(
-        ArtifactCheckDisposition::Invalid,
-        artifact,
-        problem_digest,
-        0,
-        0,
-        None,
-        code,
-        detail,
-    )
+    let diagnostic = failure(operation, detail);
+    let diagnostic = match locus {
+        Some(locus) => at_locus(diagnostic, locus),
+        None => diagnostic,
+    };
+    failed_check(artifact, problem_digest, code, diagnostic, 0, 0, None)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -739,31 +1179,41 @@ struct Signature {
 }
 
 impl Signature {
-    fn from_problem(problem: &Document) -> Result<Self, String> {
+    fn from_problem(problem: &Document) -> gmeow_errors::Result<Self> {
         let mut signature = Self {
             functions: BTreeMap::new(),
             predicates: BTreeMap::new(),
         };
         for step in problem.steps() {
             let Conclusion::Formula(formula) = &step.conclusion else {
-                return Err(format!("problem sentence `{}` is not FOF", step.name));
+                return Err(failure(
+                    EvidenceOperation::Signature,
+                    format!("problem sentence `{}` is not FOF", step.name),
+                ));
             };
-            signature.formula(formula)?;
+            signature
+                .formula(formula)
+                .map_err(|error| at_locus(error, &step.name))?;
         }
         Ok(signature)
     }
 
-    fn formula(&mut self, formula: &Formula) -> Result<(), String> {
+    fn formula(&mut self, formula: &Formula) -> gmeow_errors::Result<()> {
         match formula {
             Formula::Atom(term) => {
                 let Term::Apply { functor, args } = term else {
-                    return Err("a predicate position contains a variable".to_owned());
+                    return Err(failure(
+                        EvidenceOperation::Signature,
+                        "a predicate position contains a variable",
+                    ));
                 };
                 if !matches!(functor.as_str(), "$true" | "$false") {
-                    insert_arity(&mut self.predicates, functor, args.len(), "predicate")?;
+                    insert_arity(&mut self.predicates, functor, args.len(), "predicate")
+                        .map_err(|error| at_locus(error, functor))?;
                     if self.functions.contains_key(functor) {
-                        return Err(format!(
-                            "symbol `{functor}` is used as both function and predicate"
+                        return Err(failure(
+                            EvidenceOperation::Signature,
+                            format!("symbol `{functor}` is used as both function and predicate"),
                         ));
                     }
                 }
@@ -785,14 +1235,16 @@ impl Signature {
         Ok(())
     }
 
-    fn term(&mut self, term: &Term) -> Result<(), String> {
+    fn term(&mut self, term: &Term) -> gmeow_errors::Result<()> {
         let Term::Apply { functor, args } = term else {
             return Ok(());
         };
-        insert_arity(&mut self.functions, functor, args.len(), "function")?;
+        insert_arity(&mut self.functions, functor, args.len(), "function")
+            .map_err(|error| at_locus(error, functor))?;
         if self.predicates.contains_key(functor) {
-            return Err(format!(
-                "symbol `{functor}` is used as both predicate and function"
+            return Err(failure(
+                EvidenceOperation::Signature,
+                format!("symbol `{functor}` is used as both predicate and function"),
             ));
         }
         for argument in args {
@@ -807,12 +1259,13 @@ fn insert_arity(
     symbol: &str,
     arity: usize,
     kind: &str,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
     if let Some(previous) = arities.insert(symbol.to_owned(), arity)
         && previous != arity
     {
-        return Err(format!(
-            "{kind} `{symbol}` occurs at arities {previous} and {arity}"
+        return Err(failure(
+            EvidenceOperation::Signature,
+            format!("{kind} `{symbol}` occurs at arities {previous} and {arity}"),
         ));
     }
     Ok(())
@@ -826,24 +1279,33 @@ struct FiniteModel {
 }
 
 impl FiniteModel {
-    fn from_document(model: &Document, problem: &Document) -> Result<Self, String> {
+    fn from_document(model: &Document, problem: &Document) -> gmeow_errors::Result<Self> {
         let signature = Signature::from_problem(problem)?;
         let mut domain_formula: Option<&Formula> = None;
         let mut distinct = Vec::new();
         let mut definitions = Vec::new();
         for step in model.steps() {
             if !matches!(step.source, Source::Asserted) {
-                return Err(format!(
-                    "model unit `{}` carries proof provenance rather than a direct table entry",
-                    step.name
+                return Err(failure(
+                    EvidenceOperation::ModelTable,
+                    format!(
+                        "model unit `{}` carries proof provenance rather than a direct table entry",
+                        step.name
+                    ),
                 ));
             }
             let Conclusion::Formula(formula) = &step.conclusion else {
-                return Err(format!("model unit `{}` is not FOF", step.name));
+                return Err(failure(
+                    EvidenceOperation::ModelTable,
+                    format!("model unit `{}` is not FOF", step.name),
+                ));
             };
             if step.role == Role::FiDomain || step.name.starts_with("finite_domain") {
                 if domain_formula.replace(formula).is_some() {
-                    return Err("finite model has more than one domain formula".to_owned());
+                    return Err(failure(
+                        EvidenceOperation::ModelTable,
+                        "finite model has more than one domain formula",
+                    ));
                 }
             } else if step.name.starts_with("distinct_domain") {
                 distinct.push(formula);
@@ -853,20 +1315,31 @@ impl FiniteModel {
             ) {
                 flatten_and(formula, &mut definitions);
             } else {
-                return Err(format!(
-                    "model unit `{}` has unsupported role `{}`",
-                    step.name,
-                    step.role.as_str()
+                return Err(unsupported(
+                    EvidenceOperation::ModelTable,
+                    format!(
+                        "model unit `{}` has unsupported role `{}`",
+                        step.name,
+                        step.role.as_str()
+                    ),
                 ));
             }
         }
-        let domain = extract_domain(
-            domain_formula.ok_or_else(|| "finite model has no domain formula".to_owned())?,
-        )?;
+        let domain = extract_domain(domain_formula.ok_or_else(|| {
+            failure(
+                EvidenceOperation::ModelTable,
+                "finite model has no domain formula",
+            )
+        })?)?;
         if domain.len() > MAX_MODEL_DOMAIN {
-            return Err(format!(
-                "finite model domain has {} elements; checker limit is {MAX_MODEL_DOMAIN}",
-                domain.len()
+            return Err(resource_failure(
+                EvidenceOperation::Domain,
+                format!(
+                    "finite model domain has {} elements; checker limit is {MAX_MODEL_DOMAIN}",
+                    domain.len()
+                ),
+                u64::try_from(domain.len()).unwrap_or(u64::MAX),
+                u64::try_from(MAX_MODEL_DOMAIN).unwrap_or(u64::MAX),
             ));
         }
         verify_distinctness(&domain, &distinct)?;
@@ -885,17 +1358,16 @@ impl FiniteModel {
                 }
                 Formula::Not(inner) => {
                     let Formula::Atom(atom) = inner.as_ref() else {
-                        return Err(
-                            "a negated model table entry must be a predicate atom".to_owned()
-                        );
+                        return Err(failure(
+                            EvidenceOperation::ModelTable,
+                            "a negated model table entry must be a predicate atom",
+                        ));
                     };
                     insert_predicate_definition(atom, false, &domain_set, &mut predicates)?;
                 }
                 _ => {
-                    return Err(
-                        "finite-model tables admit only ground function equations and signed predicate atoms"
-                            .to_owned(),
-                    );
+                    return Err(failure(EvidenceOperation::ModelTable, "finite-model tables admit only ground function equations and signed predicate atoms"
+                            .to_owned()));
                 }
             }
         }
@@ -908,10 +1380,12 @@ impl FiniteModel {
                     })
                     .or_insert_with(|| symbol.clone());
             }
-            verify_total_table(symbol, *arity, domain.len(), functions.keys())?;
+            verify_total_table(symbol, *arity, domain.len(), functions.keys())
+                .map_err(|error| at_locus(error, symbol))?;
         }
         for (symbol, arity) in &signature.predicates {
-            verify_total_table(symbol, *arity, domain.len(), predicates.keys())?;
+            verify_total_table(symbol, *arity, domain.len(), predicates.keys())
+                .map_err(|error| at_locus(error, symbol))?;
         }
         Ok(Self {
             domain,
@@ -924,7 +1398,7 @@ impl FiniteModel {
         &self,
         formula: &Formula,
         budget: &mut EvaluationBudget,
-    ) -> Result<bool, EvalError> {
+    ) -> gmeow_errors::Result<bool> {
         let mut bindings = BTreeMap::new();
         self.eval_formula(formula, &mut bindings, budget)
     }
@@ -934,7 +1408,7 @@ impl FiniteModel {
         formula: &Formula,
         bindings: &mut BTreeMap<String, String>,
         budget: &mut EvaluationBudget,
-    ) -> Result<bool, EvalError> {
+    ) -> gmeow_errors::Result<bool> {
         budget.charge()?;
         match formula {
             Formula::Atom(Term::Apply { functor, args })
@@ -956,12 +1430,12 @@ impl FiniteModel {
                     })
                     .copied()
                     .ok_or_else(|| {
-                        EvalError::Invalid(format!(
+                        evaluation_failure(format!(
                             "finite model has no predicate value for `{functor}`"
                         ))
                     })
             }
-            Formula::Atom(Term::Variable(variable)) => Err(EvalError::Invalid(format!(
+            Formula::Atom(Term::Variable(variable)) => Err(evaluation_failure(format!(
                 "variable `{variable}` appears in predicate position"
             ))),
             Formula::Equation {
@@ -1007,7 +1481,7 @@ impl FiniteModel {
         body: &Formula,
         bindings: &mut BTreeMap<String, String>,
         budget: &mut EvaluationBudget,
-    ) -> Result<bool, EvalError> {
+    ) -> gmeow_errors::Result<bool> {
         fn visit(
             model: &FiniteModel,
             quantifier: Quantifier,
@@ -1016,7 +1490,7 @@ impl FiniteModel {
             bindings: &mut BTreeMap<String, String>,
             budget: &mut EvaluationBudget,
             cursor: usize,
-        ) -> Result<bool, EvalError> {
+        ) -> gmeow_errors::Result<bool> {
             if cursor == variables.len() {
                 return model.eval_formula(body, bindings, budget);
             }
@@ -1061,7 +1535,7 @@ impl FiniteModel {
         terms: &[Term],
         bindings: &BTreeMap<String, String>,
         budget: &mut EvaluationBudget,
-    ) -> Result<Vec<String>, EvalError> {
+    ) -> gmeow_errors::Result<Vec<String>> {
         terms
             .iter()
             .map(|term| self.eval_term(term, bindings, budget))
@@ -1073,11 +1547,11 @@ impl FiniteModel {
         term: &Term,
         bindings: &BTreeMap<String, String>,
         budget: &mut EvaluationBudget,
-    ) -> Result<String, EvalError> {
+    ) -> gmeow_errors::Result<String> {
         budget.charge()?;
         match term {
             Term::Variable(variable) => bindings.get(variable).cloned().ok_or_else(|| {
-                EvalError::Invalid(format!("free variable `{variable}` in emitted problem"))
+                evaluation_failure(format!("free variable `{variable}` in emitted problem"))
             }),
             Term::Apply { functor, args } => {
                 let arguments = self.eval_terms(args, bindings, budget)?;
@@ -1088,7 +1562,7 @@ impl FiniteModel {
                     })
                     .cloned()
                     .ok_or_else(|| {
-                        EvalError::Invalid(format!(
+                        evaluation_failure(format!(
                             "finite model has no function value for `{functor}`"
                         ))
                     })
@@ -1102,39 +1576,70 @@ fn verify_total_table<'a>(
     arity: usize,
     domain_size: usize,
     keys: impl Iterator<Item = &'a TableKey>,
-) -> Result<(), String> {
-    let expected = domain_size
-        .checked_pow(u32::try_from(arity).map_err(|_| "symbol arity does not fit u32")?)
-        .ok_or_else(|| format!("table size for `{symbol}/{arity}` overflows"))?;
+) -> gmeow_errors::Result<()> {
+    let exponent = u32::try_from(arity).map_err(|_| {
+        at_locus(
+            resource_failure(
+                EvidenceOperation::ModelTable,
+                format!("symbol `{symbol}` arity {arity} does not fit u32"),
+                u64::try_from(arity).unwrap_or(u64::MAX),
+                u64::from(u32::MAX),
+            ),
+            symbol,
+        )
+    })?;
+    let expected = domain_size.checked_pow(exponent).ok_or_else(|| {
+        at_locus(
+            resource_failure(
+                EvidenceOperation::ModelTable,
+                format!("table size for `{symbol}/{arity}` over {domain_size} elements overflows"),
+                u64::try_from(domain_size).unwrap_or(u64::MAX),
+                u64::try_from(usize::MAX).unwrap_or(u64::MAX),
+            ),
+            symbol,
+        )
+    })?;
     let mut actual = 0_usize;
     for key in keys.filter(|key| key.symbol == symbol) {
         if key.arguments.len() != arity {
-            return Err(format!(
-                "model defines `{symbol}` at arity {} but the problem uses arity {arity}",
-                key.arguments.len()
+            return Err(failure(
+                EvidenceOperation::ModelTable,
+                format!(
+                    "model defines `{symbol}` at arity {} but the problem uses arity {arity}",
+                    key.arguments.len()
+                ),
             ));
         }
         actual = actual.saturating_add(1);
     }
     if actual != expected {
-        return Err(format!(
-            "model table for `{symbol}/{arity}` has {actual} entries; a total interpretation over {domain_size} elements requires {expected}"
+        return Err(failure(
+            EvidenceOperation::ModelTable,
+            format!(
+                "model table for `{symbol}/{arity}` has {actual} entries; a total interpretation over {domain_size} elements requires {expected}"
+            ),
         ));
     }
     Ok(())
 }
 
-fn extract_domain(formula: &Formula) -> Result<Vec<String>, String> {
+fn extract_domain(formula: &Formula) -> gmeow_errors::Result<Vec<String>> {
     let Formula::Quantified {
         quantifier: Quantifier::ForAll,
         variables,
         body,
     } = formula
     else {
-        return Err("domain formula must universally quantify one variable".to_owned());
+        return Err(failure(
+            EvidenceOperation::Domain,
+            "domain formula must universally quantify one variable",
+        ));
     };
     let [variable] = variables.as_slice() else {
-        return Err("domain formula must bind exactly one variable".to_owned());
+        return Err(failure(
+            EvidenceOperation::Domain,
+            "domain formula must bind exactly one variable",
+        ));
     };
     let mut alternatives = Vec::new();
     flatten_or(body, &mut alternatives);
@@ -1147,37 +1652,50 @@ fn extract_domain(formula: &Formula) -> Result<Vec<String>, String> {
             right,
         } = alternative
         else {
-            return Err("domain alternatives must be positive equalities".to_owned());
+            return Err(failure(
+                EvidenceOperation::Domain,
+                "domain alternatives must be positive equalities",
+            ));
         };
         let element = match (left, right) {
             (Term::Variable(name), term) | (term, Term::Variable(name)) if name == variable => {
                 domain_constant(term)?
             }
             _ => {
-                return Err(
+                return Err(failure(
+                    EvidenceOperation::Domain,
                     "every domain equality must compare the bound variable with a ground constant"
                         .to_owned(),
-                );
+                ));
             }
         };
         if !seen.insert(element.clone()) {
-            return Err(format!("domain element `{element}` appears more than once"));
+            return Err(failure(
+                EvidenceOperation::Domain,
+                format!("domain element `{element}` appears more than once"),
+            ));
         }
         domain.push(element);
     }
     if domain.is_empty() {
-        return Err("finite model domain is empty".to_owned());
+        return Err(failure(
+            EvidenceOperation::Domain,
+            "finite model domain is empty",
+        ));
     }
     Ok(domain)
 }
 
-fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), String> {
+fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> gmeow_errors::Result<()> {
     if domain.len() == 1 {
         if formulas.is_empty() {
             return Ok(());
         }
     } else if formulas.is_empty() {
-        return Err("multi-element model has no distinct-domain formula".to_owned());
+        return Err(failure(
+            EvidenceOperation::Domain,
+            "multi-element model has no distinct-domain formula",
+        ));
     }
     let domain_set: BTreeSet<_> = domain.iter().cloned().collect();
     let mut actual = BTreeSet::new();
@@ -1191,12 +1709,18 @@ fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), S
                 right,
             } = conjunct
             else {
-                return Err("distinct-domain formula must contain only disequalities".to_owned());
+                return Err(failure(
+                    EvidenceOperation::Domain,
+                    "distinct-domain formula must contain only disequalities",
+                ));
             };
             let left = domain_constant(left)?;
             let right = domain_constant(right)?;
             if left == right || !domain_set.contains(&left) || !domain_set.contains(&right) {
-                return Err("distinct-domain formula names an invalid pair".to_owned());
+                return Err(failure(
+                    EvidenceOperation::Domain,
+                    "distinct-domain formula names an invalid pair",
+                ));
             }
             let pair = if left < right {
                 (left, right)
@@ -1204,7 +1728,10 @@ fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), S
                 (right, left)
             };
             if !actual.insert(pair) {
-                return Err("distinct-domain formula repeats a pair".to_owned());
+                return Err(failure(
+                    EvidenceOperation::Domain,
+                    "distinct-domain formula repeats a pair",
+                ));
             }
         }
     }
@@ -1220,9 +1747,10 @@ fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), S
         }
     }
     if actual != expected {
-        return Err(
-            "distinct-domain formula does not cover every domain pair exactly once".to_owned(),
-        );
+        return Err(failure(
+            EvidenceOperation::Domain,
+            "distinct-domain formula does not cover every domain pair exactly once",
+        ));
     }
     Ok(())
 }
@@ -1232,27 +1760,35 @@ fn insert_function_definition(
     right: &Term,
     domain: &BTreeSet<String>,
     functions: &mut BTreeMap<TableKey, String>,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
     let left_domain = domain_term(left, domain);
     let right_domain = domain_term(right, domain);
     let (application, result) = match (left_domain, right_domain) {
         (None, Some(result)) => (left, result),
         (Some(result), None) => (right, result),
         _ => {
-            return Err(
+            return Err(failure(
+                EvidenceOperation::ModelTable,
                 "function definition must equate one application with one domain element"
                     .to_owned(),
-            );
+            ));
         }
     };
     let Term::Apply { functor, args } = application else {
-        return Err("function-definition left side must be an application".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelTable,
+            "function-definition left side must be an application",
+        ));
     };
     let arguments = args
         .iter()
         .map(|argument| {
-            domain_term(argument, domain)
-                .ok_or_else(|| "function table argument is not a domain element".to_owned())
+            domain_term(argument, domain).ok_or_else(|| {
+                failure(
+                    EvidenceOperation::ModelTable,
+                    "function table argument is not a domain element",
+                )
+            })
         })
         .collect::<Result<Vec<_>, _>>()?;
     let key = TableKey {
@@ -1260,7 +1796,10 @@ fn insert_function_definition(
         arguments,
     };
     if functions.insert(key, result).is_some() {
-        return Err(format!("function `{functor}` has a duplicate table entry"));
+        return Err(failure(
+            EvidenceOperation::ModelTable,
+            format!("function `{functor}` has a duplicate table entry"),
+        ));
     }
     Ok(())
 }
@@ -1270,18 +1809,28 @@ fn insert_predicate_definition(
     value: bool,
     domain: &BTreeSet<String>,
     predicates: &mut BTreeMap<TableKey, bool>,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
     let Term::Apply { functor, args } = atom else {
-        return Err("predicate table entry has a variable in predicate position".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelTable,
+            "predicate table entry has a variable in predicate position",
+        ));
     };
     if matches!(functor.as_str(), "$true" | "$false") {
-        return Err("predicate table may not redefine a TPTP truth constant".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelTable,
+            "predicate table may not redefine a TPTP truth constant",
+        ));
     }
     let arguments = args
         .iter()
         .map(|argument| {
-            domain_term(argument, domain)
-                .ok_or_else(|| "predicate table argument is not a domain element".to_owned())
+            domain_term(argument, domain).ok_or_else(|| {
+                failure(
+                    EvidenceOperation::ModelTable,
+                    "predicate table argument is not a domain element",
+                )
+            })
         })
         .collect::<Result<Vec<_>, _>>()?;
     let key = TableKey {
@@ -1289,17 +1838,26 @@ fn insert_predicate_definition(
         arguments,
     };
     if predicates.insert(key, value).is_some() {
-        return Err(format!("predicate `{functor}` has a duplicate table entry"));
+        return Err(failure(
+            EvidenceOperation::ModelTable,
+            format!("predicate `{functor}` has a duplicate table entry"),
+        ));
     }
     Ok(())
 }
 
-fn domain_constant(term: &Term) -> Result<String, String> {
+fn domain_constant(term: &Term) -> gmeow_errors::Result<String> {
     let Term::Apply { functor, args } = term else {
-        return Err("domain element is a variable".to_owned());
+        return Err(failure(
+            EvidenceOperation::Domain,
+            "domain element is a variable",
+        ));
     };
     if !args.is_empty() {
-        return Err("domain element is not a constant".to_owned());
+        return Err(failure(
+            EvidenceOperation::Domain,
+            "domain element is not a constant",
+        ));
     }
     Ok(functor.clone())
 }
@@ -1340,12 +1898,6 @@ fn flatten_or<'a>(formula: &'a Formula, output: &mut Vec<&'a Formula>) {
 }
 
 #[derive(Debug)]
-enum EvalError {
-    Budget,
-    Invalid(String),
-}
-
-#[derive(Debug)]
 struct EvaluationBudget {
     remaining: u64,
     used: u64,
@@ -1359,9 +1911,14 @@ impl EvaluationBudget {
         }
     }
 
-    fn charge(&mut self) -> Result<(), EvalError> {
+    fn charge(&mut self) -> gmeow_errors::Result<()> {
         if self.remaining == 0 {
-            return Err(EvalError::Budget);
+            return Err(resource_failure(
+                EvidenceOperation::Evaluation,
+                "finite interpretation exceeds the bounded semantic checker budget",
+                self.used,
+                self.used,
+            ));
         }
         self.remaining -= 1;
         self.used += 1;
@@ -1373,7 +1930,21 @@ impl EvaluationBudget {
     }
 }
 
-fn parse_model_document(source: &str) -> Result<Document, String> {
+fn parse_model_document(source: &str) -> gmeow_errors::Result<Document> {
+    parse_model_document_inner(source).map_err(|mut diagnostic| {
+        if let Some(payload) = diagnostic
+            .inner_mut()
+            .source
+            .as_mut()
+            .and_then(|source| source.downcast_mut::<ExternalEvidenceFailure>())
+        {
+            payload.evidence.source_text = Some(source.to_owned());
+        }
+        diagnostic
+    })
+}
+
+fn parse_model_document_inner(source: &str) -> gmeow_errors::Result<Document> {
     let clean = strip_comments(source)?;
     let units = split_annotated_units(&clean)?;
     let mut normalized = String::new();
@@ -1386,15 +1957,21 @@ fn parse_model_document(source: &str) -> Result<Document, String> {
             }
             "tff" => {
                 if fields.len() < 3 {
-                    return Err("typed model unit has fewer than three fields".to_owned());
+                    return Err(failure(
+                        EvidenceOperation::ModelParsing,
+                        "typed model unit has fewer than three fields",
+                    ));
                 }
                 let role = fields[1].trim();
                 if role == "type" {
                     continue;
                 }
                 if role != "axiom" || fields.len() != 3 {
-                    return Err(format!(
-                        "typed model unit has unsupported role or annotation shape `{role}`"
+                    return Err(unsupported(
+                        EvidenceOperation::ModelParsing,
+                        format!(
+                            "typed model unit has unsupported role or annotation shape `{role}`"
+                        ),
                     ));
                 }
                 normalized.push_str("fof(");
@@ -1404,16 +1981,24 @@ fn parse_model_document(source: &str) -> Result<Document, String> {
                 normalized.push_str(").\n");
             }
             other => {
-                return Err(format!(
-                    "finite-model artifact uses unsupported TPTP dialect `{other}`"
+                return Err(unsupported(
+                    EvidenceOperation::ModelParsing,
+                    format!("finite-model artifact uses unsupported TPTP dialect `{other}`"),
                 ));
             }
         }
     }
-    parse_document(normalized.as_bytes()).map_err(|error| error.to_string())
+    parse_document(normalized.as_bytes()).map_err(|error| {
+        parser_failure(
+            EvidenceOperation::ModelParsing,
+            source,
+            Some(&normalized),
+            error,
+        )
+    })
 }
 
-fn strip_comments(source: &str) -> Result<String, String> {
+fn strip_comments(source: &str) -> gmeow_errors::Result<String> {
     let chars: Vec<char> = source.chars().collect();
     let mut output = String::with_capacity(source.len());
     let mut index = 0;
@@ -1463,7 +2048,10 @@ fn strip_comments(source: &str) -> Result<String, String> {
                 index += 1;
             }
             if !closed {
-                return Err("finite-model artifact has an unterminated block comment".to_owned());
+                return Err(failure(
+                    EvidenceOperation::ModelParsing,
+                    "finite-model artifact has an unterminated block comment",
+                ));
             }
             continue;
         }
@@ -1471,12 +2059,15 @@ fn strip_comments(source: &str) -> Result<String, String> {
         index += 1;
     }
     if quote.is_some() {
-        return Err("finite-model artifact has an unterminated quoted atom".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelParsing,
+            "finite-model artifact has an unterminated quoted atom",
+        ));
     }
     Ok(output)
 }
 
-fn split_annotated_units(source: &str) -> Result<Vec<&str>, String> {
+fn split_annotated_units(source: &str) -> gmeow_errors::Result<Vec<&str>> {
     let mut units = Vec::new();
     let mut start = None;
     let mut depth = 0_i64;
@@ -1508,9 +2099,10 @@ fn split_annotated_units(source: &str) -> Result<Vec<&str>, String> {
             ')' | ']' | '}' => {
                 depth -= 1;
                 if depth < 0 {
-                    return Err(
-                        "finite-model artifact has an unmatched closing delimiter".to_owned()
-                    );
+                    return Err(failure(
+                        EvidenceOperation::ModelParsing,
+                        "finite-model artifact has an unmatched closing delimiter",
+                    ));
                 }
             }
             '.' if depth == 0 => {
@@ -1521,31 +2113,46 @@ fn split_annotated_units(source: &str) -> Result<Vec<&str>, String> {
         }
     }
     if depth != 0 || start.is_some() || quote.is_some() {
-        return Err("finite-model artifact ends inside an annotated unit".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelParsing,
+            "finite-model artifact ends inside an annotated unit",
+        ));
     }
     if units.is_empty() {
-        return Err("finite-model artifact contains no annotated formula".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelParsing,
+            "finite-model artifact contains no annotated formula",
+        ));
     }
     Ok(units)
 }
 
-fn annotated_fields(unit: &str) -> Result<(&str, Vec<&str>), String> {
+fn annotated_fields(unit: &str) -> gmeow_errors::Result<(&str, Vec<&str>)> {
     let unit = unit.trim();
-    let open = unit
-        .find('(')
-        .ok_or_else(|| "annotated model unit has no opening parenthesis".to_owned())?;
+    let open = unit.find('(').ok_or_else(|| {
+        failure(
+            EvidenceOperation::ModelParsing,
+            "annotated model unit has no opening parenthesis",
+        )
+    })?;
     if !unit.ends_with(".)") && !unit.ends_with(").") {
-        return Err("annotated model unit has no `).` terminator".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelParsing,
+            "annotated model unit has no `).` terminator",
+        ));
     }
     let dialect = unit[..open].trim();
-    let close = unit
-        .rfind(')')
-        .ok_or_else(|| "annotated model unit has no closing parenthesis".to_owned())?;
+    let close = unit.rfind(')').ok_or_else(|| {
+        failure(
+            EvidenceOperation::ModelParsing,
+            "annotated model unit has no closing parenthesis",
+        )
+    })?;
     let inner = &unit[open + 1..close];
     Ok((dialect, split_top_level(inner)?))
 }
 
-fn split_top_level(source: &str) -> Result<Vec<&str>, String> {
+fn split_top_level(source: &str) -> gmeow_errors::Result<Vec<&str>> {
     let mut fields = Vec::new();
     let mut start = 0;
     let mut depth = 0_i64;
@@ -1576,17 +2183,23 @@ fn split_top_level(source: &str) -> Result<Vec<&str>, String> {
             _ => {}
         }
         if depth < 0 {
-            return Err("annotated model fields have unmatched delimiters".to_owned());
+            return Err(failure(
+                EvidenceOperation::ModelParsing,
+                "annotated model fields have unmatched delimiters",
+            ));
         }
     }
     if depth != 0 || quote.is_some() {
-        return Err("annotated model fields end inside a delimiter".to_owned());
+        return Err(failure(
+            EvidenceOperation::ModelParsing,
+            "annotated model fields end inside a delimiter",
+        ));
     }
     fields.push(&source[start..]);
     Ok(fields)
 }
 
-fn strip_default_sort_annotations(formula: &str) -> Result<String, String> {
+fn strip_default_sort_annotations(formula: &str) -> gmeow_errors::Result<String> {
     let chars: Vec<char> = formula.chars().collect();
     let mut output = String::with_capacity(formula.len());
     let mut index = 0;
@@ -1629,11 +2242,17 @@ fn strip_default_sort_annotations(formula: &str) -> Result<String, String> {
                 while chars.get(index).is_some_and(|c| c.is_whitespace()) {
                     index += 1;
                 }
-                if chars.get(index) != Some(&'$') || chars.get(index + 1) != Some(&'i') {
-                    return Err(
+                if chars.get(index) != Some(&'$')
+                    || chars.get(index + 1) != Some(&'i')
+                    || chars
+                        .get(index + 2)
+                        .is_some_and(|character| character.is_alphanumeric() || *character == '_')
+                {
+                    return Err(unsupported(
+                        EvidenceOperation::ModelParsing,
                         "Vampire finite-model checker admits only the single default `$i` sort"
                             .to_owned(),
-                    );
+                    ));
                 }
                 index += 2;
             }

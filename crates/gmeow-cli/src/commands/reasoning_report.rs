@@ -10,7 +10,7 @@
 
 use std::path::{Path, PathBuf};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::OutputFormat;
 
@@ -107,7 +107,7 @@ impl GateAdmission {
 }
 
 /// Exact identity of one selected input document.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct InputIdentity {
     pub(crate) path: String,
     pub(crate) role: String,
@@ -254,6 +254,131 @@ pub(crate) struct ReasoningBoundary {
 pub(crate) struct ReportDiagnostic {
     pub(crate) code: String,
     pub(crate) detail: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) diagnostic: Option<DiagnosticEvidence>,
+}
+
+/// Deterministic wire projection of a live diagnostic at the report boundary.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct DiagnosticEvidence {
+    pub(crate) code: String,
+    pub(crate) grade: gmeow_errors::Grade,
+    pub(crate) source_context: gmeow_errors::SourceContext,
+    pub(crate) context: Vec<String>,
+    pub(crate) causes: Vec<String>,
+    pub(crate) cause_details: Vec<serde_json::Value>,
+    pub(crate) emitted_at: DiagnosticSite,
+    pub(crate) context_sites: Vec<DiagnosticSite>,
+    pub(crate) fields: serde_json::Value,
+    pub(crate) process: Option<serde_json::Value>,
+    pub(crate) observed: Option<gmeow_errors::Slot>,
+    pub(crate) expected: Option<gmeow_errors::Slot>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct DiagnosticSite {
+    file: String,
+    line: u32,
+    column: u32,
+}
+
+impl DiagnosticSite {
+    fn from_location(location: &std::panic::Location<'_>) -> Self {
+        Self {
+            file: location.file().to_owned(),
+            line: location.line(),
+            column: location.column(),
+        }
+    }
+}
+
+impl ReportDiagnostic {
+    pub(crate) fn message(code: impl Into<String>, detail: impl Into<String>) -> Self {
+        Self {
+            code: code.into(),
+            detail: detail.into(),
+            diagnostic: None,
+        }
+    }
+
+    pub(crate) fn from_diag(diag: &gmeow_errors::Diag) -> Self {
+        let inner = diag.inner();
+        let mut causes = Vec::new();
+        let mut cause_details = Vec::new();
+        let mut source = inner
+            .source
+            .as_deref()
+            .map(|source| source as &dyn std::error::Error);
+        while let Some(cause) = source {
+            causes.push(cause.to_string());
+            cause_details.push(cause.downcast_ref::<std::io::Error>().map(|error|
+                serde_json::json!({"io_kind": format!("{:?}", error.kind()), "raw_os_error": error.raw_os_error()})
+            ).unwrap_or(serde_json::Value::Null));
+            source = cause.source();
+        }
+        let fields = if let Some(failure) = diag.downcast_ref::<crate::error::ProverFailed>() {
+            serde_json::json!({"reason": failure.reason, "evidence": failure.evidence})
+        } else if let Some(error) =
+            diag.downcast_ref::<gmeow_logic_compile::tptp::SzsProtocolError>()
+        {
+            serde_json::to_value(error).expect("SZS protocol error serializes")
+        } else if let Some(error) =
+            diag.downcast_ref::<gmeow_logic::external_evidence::ArtifactProtocolError>()
+        {
+            serde_json::to_value(error).expect("artifact protocol error serializes")
+        } else if let Some(error) = diag.downcast_ref::<std::io::Error>() {
+            serde_json::json!({"io_kind": format!("{:?}", error.kind()), "raw_os_error": error.raw_os_error()})
+        } else {
+            serde_json::Value::Null
+        };
+        Self {
+            code: diag
+                .downcast_ref::<crate::error::ProverFailed>()
+                .map(|error| error.reason.to_owned())
+                .or_else(|| {
+                    diag.downcast_ref::<gmeow_logic_compile::tptp::SzsProtocolError>()
+                        .map(|error| error.code.clone())
+                })
+                .or_else(|| {
+                    diag.downcast_ref::<gmeow_logic::external_evidence::ArtifactProtocolError>()
+                        .map(|error| error.code.clone())
+                })
+                .unwrap_or_else(|| gmeow_errors::code::code_str(diag.code()).to_owned()),
+            detail: diag.message().to_owned(),
+            diagnostic: Some(DiagnosticEvidence {
+                code: gmeow_errors::code::code_str(diag.code()).to_owned(),
+                grade: diag.grade(),
+                source_context: inner.source_ctx.clone(),
+                context: inner
+                    .context
+                    .iter()
+                    .map(|frame| frame.label.clone())
+                    .collect(),
+                causes,
+                cause_details,
+                emitted_at: DiagnosticSite::from_location(diag.emitted_at()),
+                context_sites: inner
+                    .context
+                    .iter()
+                    .map(|frame| DiagnosticSite::from_location(frame.at))
+                    .collect(),
+                fields,
+                process: inner
+                    .observed
+                    .as_ref()
+                    .filter(|slot| {
+                        slot.datatype.as_deref()
+                            == Some("https://blackcatinformatics.ca/gmeow/ProverProcessReceiptJson")
+                    })
+                    .map(|slot| {
+                        serde_json::from_str(&slot.lexical)
+                            .expect("internally serialized process receipt")
+                    }),
+                observed: inner.observed.clone(),
+                expected: inner.expected.clone(),
+            }),
+        }
+    }
 }
 
 /// The fields every reasoning-family report carries.
@@ -472,9 +597,11 @@ impl ReasoningReportCore {
     }
 }
 
-pub(crate) fn digest_file(path: &Path) -> Result<String, String> {
-    let bytes = std::fs::read(path)
-        .map_err(|error| format!("cannot read {} for identity: {error}", path.display()))?;
+pub(crate) fn digest_file(path: &Path) -> gmeow_errors::Result<String> {
+    let bytes = std::fs::read(path).map_err(|error| {
+        gmeow_errors::Diag::from(error)
+            .with_context(format!("read {} for identity", path.display()))
+    })?;
     Ok(blake3::hash(&bytes).to_hex().to_string())
 }
 
@@ -510,10 +637,7 @@ mod tests {
             Vec::new(),
             ProgramIdentity::selected("test-profile", &["test-engine"]),
             EngineIdentity::gmeow_native(),
-            ReportDiagnostic {
-                code: "TEST".to_owned(),
-                detail: "synthetic".to_owned(),
-            },
+            ReportDiagnostic::message("TEST", "synthetic"),
         );
         report.evidence_grade = evidence;
         report.gate_admission = gate;
@@ -575,6 +699,16 @@ mod tests {
             )
             .exit_code(false),
             EXIT_EXECUTION
+        );
+    }
+
+    #[test]
+    fn message_diagnostic_preserves_the_existing_wire_shape() {
+        let value = serde_json::to_value(ReportDiagnostic::message("TEST", "synthetic"))
+            .expect("report diagnostic serializes");
+        assert_eq!(
+            value,
+            serde_json::json!({"code": "TEST", "detail": "synthetic"})
         );
     }
 }

@@ -12,10 +12,10 @@ fn repo_root() -> std::path::PathBuf {
 }
 
 fn observations() -> &'static RegistryObservations {
-    static OBSERVED: std::sync::OnceLock<Result<RegistryObservations, String>> =
+    static OBSERVED: std::sync::OnceLock<Result<RegistryObservations, gmeow_errors::Diag>> =
         std::sync::OnceLock::new();
     OBSERVED
-        .get_or_init(|| authenticated_registry(&repo_root()).map_err(|error| error.to_string()))
+        .get_or_init(|| authenticated_registry(&repo_root()))
         .as_ref()
         .unwrap_or_else(|error| panic!("authenticated catalog registry: {error}"))
 }

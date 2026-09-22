@@ -492,7 +492,7 @@ pub(crate) fn canonical_rule_hash(rules: &[EvalRule]) -> [u8; 32] {
 /// decided here once.
 pub(crate) struct RulePlan {
     /// Decoded numeric constants and typed operator dispatch, shared across rounds.
-    numeric: Result<super::numeric::Plan, String>,
+    numeric: super::numeric::Prepared,
     /// Body indices of the POSITIVE atoms, in body order (the join drivers).
     positive: Box<[usize]>,
     /// Body indices of the NEGATED atoms, in body order (the NAF filters).
@@ -679,7 +679,7 @@ impl RulePlan {
             let operators = lower_operators(rule, &positive, &execution_order, &slots);
             let operator_source_order_swaps = restore_body_order_swaps(&execution_order);
             return Self {
-                numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body),
+                numeric: super::numeric::Prepared::for_body(&rule.numeric, &rule.body),
                 positive: positive.into_boxed_slice(),
                 negated: negated.into_boxed_slice(),
                 variables: variables.into_boxed_slice(),
@@ -728,7 +728,7 @@ impl RulePlan {
         let operators = lower_operators(rule, &positive, &execution_source_order, &slots);
         let operator_source_order_swaps = restore_body_order_swaps(&execution_source_order);
         Self {
-            numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body),
+            numeric: super::numeric::Prepared::for_body(&rule.numeric, &rule.body),
             positive: positive.into_boxed_slice(),
             negated: negated.into_boxed_slice(),
             variables: variables.into_boxed_slice(),
@@ -741,10 +741,9 @@ impl RulePlan {
         }
     }
 
+    #[track_caller]
     pub(super) fn numeric(&self, rule: &str) -> gmeow_errors::Result<&super::numeric::Plan> {
-        self.numeric
-            .as_ref()
-            .map_err(|detail| super::numeric::error(rule, detail))
+        self.numeric.get(rule)
     }
 
     /// The positive body-atom indices, in body order.

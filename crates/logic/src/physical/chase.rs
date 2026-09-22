@@ -296,7 +296,7 @@ impl PreparedChaseRule {
     pub(super) fn new(rule: ExistentialRule) -> gmeow_errors::Result<Self> {
         Ok(Self {
             numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body)
-                .map_err(|detail| super::numeric::error(&rule.rule_iri, &detail))?,
+                .map_err(|diagnostic| super::numeric::with_rule(&rule.rule_iri, diagnostic))?,
             existentials: rule.existentials(),
             frontier_vars: rule.frontier_vars(),
             reifier_groups: reified_nary_head_groups(&rule)?,
