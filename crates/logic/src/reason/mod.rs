@@ -361,6 +361,23 @@ impl LeaveOneOutAxiom {
     }
 }
 
+fn inferred_matches_axiom(row: &InferredAxiom, axiom: &LeaveOneOutAxiom) -> bool {
+    const OWL_DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+
+    let predicate = calculus_term(&row.predicate);
+    if predicate != calculus_term(&axiom.predicate) {
+        return false;
+    }
+    let Some(object) = row.object.as_iri().map(calculus_term) else {
+        return false;
+    };
+    let subject = calculus_term(&row.subject);
+    let wanted_subject = calculus_term(&axiom.subject);
+    let wanted_object = calculus_term(&axiom.object);
+    (subject == wanted_subject && object == wanted_object)
+        || (predicate == OWL_DISJOINT && subject == wanted_object && object == wanted_subject)
+}
+
 /// Determine which authored axioms remain derivable after exact source retraction.
 /// One native theory is prepared and settled for the batch. Every isolated probe
 /// shares that preparation and the immutable base proof state; affected completed
@@ -435,20 +452,17 @@ pub fn leave_one_out_rederived_observed(
         .flat_map(|(world, facts)| facts.iter().cloned().map(|fact| (world.clone(), fact)))
         .collect();
     let session = NativeReasoningSession::new(input, domains, potential)?;
-    let resolved =
-        slow.par_iter()
-            .map(|(index, axiom)| {
-                let result = session.retract(axiom)?;
-                let answer = result.inferred().iter().any(|row| {
-                    calculus_term(&row.subject) == calculus_term(&axiom.subject)
-                        && calculus_term(&row.predicate) == calculus_term(&axiom.predicate)
-                        && row.object.as_iri().is_some_and(|object| {
-                            calculus_term(object) == calculus_term(&axiom.object)
-                        })
-                });
-                Ok((*index, answer))
-            })
-            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let resolved = slow
+        .par_iter()
+        .map(|(index, axiom)| {
+            let result = session.retract(axiom)?;
+            let answer = result
+                .inferred()
+                .iter()
+                .any(|row| inferred_matches_axiom(row, axiom));
+            Ok((*index, answer))
+        })
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
     for (index, answer) in resolved {
         answers[index] = answer;
     }

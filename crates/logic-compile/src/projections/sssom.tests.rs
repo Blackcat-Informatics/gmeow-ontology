@@ -494,19 +494,16 @@ fn native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries() {
         crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)
             .unwrap();
     assert_eq!(program.correspondences.len(), 2);
+    assert!(program.correspondences.iter().all(|correspondence| {
+        correspondence.preservation == Some(crate::ir::PreservationKind::SoundUnder)
+    }));
     assert_eq!(
         program.correspondences[0].loss_evidence,
-        vec![RdfLiteral::typed(
-            "loss-of-Alpha",
-            "http://www.w3.org/2001/XMLSchema#string"
-        )]
+        vec![RdfLiteral::simple("loss-of-Alpha")]
     );
     assert_eq!(
         program.correspondences[1].loss_evidence,
-        vec![RdfLiteral::typed(
-            "loss-of-Bravo",
-            "http://www.w3.org/2001/XMLSchema#string"
-        )]
+        vec![RdfLiteral::simple("loss-of-Bravo")]
     );
 }
 

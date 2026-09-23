@@ -2027,9 +2027,9 @@ impl Correspondence {
     /// Attach the cell's concrete loss evidence as an unordered RDF literal set.
     ///
     /// # Errors
-    /// Rejects malformed or blank evidence and evidence without an authored
+    /// Rejects malformed or blank evidence and evidence without an effective
     /// preservation judgment. Projection admission separately checks that the
-    /// declared judgment agrees with the actual residue.
+    /// declared or inherited judgment agrees with the actual residue.
     pub fn with_loss_evidence(
         mut self,
         mut evidence: Vec<purrdf::RdfLiteral>,

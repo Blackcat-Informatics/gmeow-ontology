@@ -272,6 +272,23 @@ impl BatchAnalysis {
         })
     }
 
+    fn symmetric_direct_alternate_support(
+        &self,
+        axiom: &LeaveOneOutAxiom,
+        predicate: &str,
+    ) -> bool {
+        let subject = calculus_term(&axiom.subject);
+        let object = calculus_term(&axiom.object);
+        self.triples.iter().any(|triple| {
+            triple.predicate == predicate
+                && ((triple.subject == subject && triple.object == object)
+                    || (triple.subject == object && triple.object == subject))
+                && (triple.raw_subject != axiom.subject
+                    || triple.raw_predicate != axiom.predicate
+                    || triple.raw_object != axiom.object)
+        })
+    }
+
     fn term_object(&self, world: &str, subject: &TermValue, predicate: &str) -> Option<&TermValue> {
         self.list_triples.iter().find_map(|triple| {
             (triple.world == world && &triple.subject == subject && triple.predicate == predicate)
@@ -302,7 +319,7 @@ impl BatchAnalysis {
     fn disjoint_rederived_without(&self, axiom: &LeaveOneOutAxiom) -> bool {
         let left = calculus_term(&axiom.subject);
         let right = calculus_term(&axiom.object);
-        if self.direct_alternate_support(axiom, OWL_DISJOINT) {
+        if self.symmetric_direct_alternate_support(axiom, OWL_DISJOINT) {
             return true;
         }
         if self.triples.iter().any(|triple| {
