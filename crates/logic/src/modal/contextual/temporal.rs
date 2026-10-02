@@ -14,23 +14,24 @@ use crate::modal::journal::{
     ObservedEntry,
 };
 use crate::runtime::{OutcomeTag, TransitionEntry};
+use purrdf::dataset_view::TermGuard;
 use purrdf::{DatasetView, GraphMatch, TermRef};
 use std::collections::BTreeSet;
 
-fn digest<D: DatasetView + ?Sized>(
+fn digest<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     metadata: &Metadata<'_, D>,
     subject: D::Id,
     property: &str,
 ) -> Result<String, AdmissionError> {
     let term = required(metadata, subject, property)?;
-    match metadata.resolve(term) {
+    match crate::seam::resident(metadata.resolve(term)).term() {
         TermRef::Literal {
             lexical,
             datatype,
             language: None,
             direction: None,
         } if matches!(
-            metadata.resolve(datatype),
+            crate::seam::resident(metadata.resolve(datatype)).term(),
             TermRef::Iri("http://www.w3.org/2001/XMLSchema#string")
         ) =>
         {
@@ -45,7 +46,7 @@ fn digest<D: DatasetView + ?Sized>(
     }
 }
 
-fn outcome<D: DatasetView + ?Sized>(
+fn outcome<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     metadata: &Metadata<'_, D>,
     subject: D::Id,
 ) -> Result<OutcomeTag, AdmissionError> {
@@ -62,7 +63,7 @@ fn outcome<D: DatasetView + ?Sized>(
     }
 }
 
-fn admit<D: DatasetView + ?Sized>(
+fn admit<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     metadata: &Metadata<'_, D>,
     identity: &str,
     enactment: &str,
@@ -143,7 +144,7 @@ fn admit<D: DatasetView + ?Sized>(
     })
 }
 
-impl<D: DatasetView + ?Sized> RdfFrame<'_, D> {
+impl<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame<'_, D> {
     fn metadata(&self) -> Metadata<'_, D> {
         Metadata {
             dataset: self.dataset,

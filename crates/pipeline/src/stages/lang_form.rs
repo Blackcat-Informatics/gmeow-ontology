@@ -301,7 +301,7 @@ fn collect_english_literals(
                     lexical,
                     language: Some(lang),
                     ..
-                } = ds.resolve(q.o)
+                } = ds.as_ref().resolve(q.o)
                     && lang == ENGLISH_TAG
                 {
                     texts.insert(lexical.to_owned());
@@ -434,7 +434,7 @@ fn build_carrier_bindings(
                 })
             })?;
             for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-                let TermRef::Iri(pred) = ds.resolve(q.p) else {
+                let TermRef::Iri(pred) = ds.as_ref().resolve(q.p) else {
                     continue;
                 };
                 if pred == p_carrier_tag {
@@ -445,19 +445,19 @@ fn build_carrier_bindings(
                             language: None,
                             ..
                         },
-                    ) = (ds.resolve(q.s), ds.resolve(q.o))
+                    ) = (ds.as_ref().resolve(q.s), ds.as_ref().resolve(q.o))
                     {
                         carrier_tag.insert(subj.to_owned(), lexical.to_owned());
                     }
                 } else if pred == p_orthography_for {
                     if let (TermRef::Iri(subj), TermRef::Iri(obj)) =
-                        (ds.resolve(q.s), ds.resolve(q.o))
+                        (ds.as_ref().resolve(q.s), ds.as_ref().resolve(q.o))
                     {
                         orthography_for.insert(subj.to_owned(), obj.to_owned());
                     }
                 } else if pred == p_uses_script
                     && let (TermRef::Iri(subj), TermRef::Iri(obj)) =
-                        (ds.resolve(q.s), ds.resolve(q.o))
+                        (ds.as_ref().resolve(q.s), ds.as_ref().resolve(q.o))
                 {
                     uses_script.insert(subj.to_owned(), obj.to_owned());
                 }

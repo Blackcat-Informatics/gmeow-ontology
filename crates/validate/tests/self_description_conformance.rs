@@ -298,11 +298,11 @@ fn canonical_abstract_is_standardized() {
     // CITATION.cff abstract == canonical (the human-citation copy).
     let cff_text =
         std::fs::read_to_string(repo_root().join("CITATION.cff")).expect("CITATION.cff readable");
-    let cff: serde_yaml::Value =
-        serde_yaml::from_str(&cff_text).expect("CITATION.cff parses as YAML");
+    let cff: purrdf_lex::json::Value =
+        purrdf_lex::yaml::read(&cff_text).expect("CITATION.cff parses as YAML");
     let cff_abstract = cff
         .get("abstract")
-        .and_then(serde_yaml::Value::as_str)
+        .and_then(purrdf_lex::json::Value::as_str)
         .expect("CITATION.cff carries an `abstract`");
     assert_eq!(
         cff_abstract, canonical,

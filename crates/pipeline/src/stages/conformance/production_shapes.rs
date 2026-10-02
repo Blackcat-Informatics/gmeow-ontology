@@ -11,7 +11,7 @@ use gmeow_validate::findings::FailureClassIndex;
 use purrdf::RdfDataset;
 use purrdf::shapes::engine::PreparedShapes;
 use purrdf::shapes::shapes::from_dataset_with_prefixes;
-use purrdf::shapes::text_ingest::extract_prefixes;
+use purrdf::shapes::text_ingest::parse_turtle_document;
 
 /// Both original controls select these exact archived bytes and document prefixes.
 pub const PROFILE: &str = "archived-production-shapes:declared-prefixes-v1";
@@ -28,10 +28,11 @@ pub struct PreparedProductionShapes {
 impl PreparedProductionShapes {
     /// Parse and prepare the source profile once at the explicit producer boundary.
     pub fn new(production_shapes: &str) -> gmeow_errors::Result<Self> {
-        let dataset = purrdf::parse_dataset(production_shapes.as_bytes(), "text/turtle", None)
-            .map_err(fail)?;
-        let shapes = from_dataset_with_prefixes(&dataset, &extract_prefixes(production_shapes))
-            .map_err(fail)?;
+        // One parse yields the dataset and the document prefix map the shapes resolve against.
+        let document = parse_turtle_document(production_shapes, None)
+            .map_err(|errors| fail(errors.join("\n")))?;
+        let dataset = document.dataset;
+        let shapes = from_dataset_with_prefixes(&dataset, &document.prefixes).map_err(fail)?;
         let classes = FailureClassIndex::from_shapes_dataset(&dataset);
         Ok(Self {
             dataset,

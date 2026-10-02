@@ -186,9 +186,9 @@ pub(crate) fn qterm_to_value(t: &QTerm) -> Result<TermValue, UnsupportedKind> {
             crate::physical::XSD_INTEGER,
         )),
         QTerm::Triple { s, p, o } => Ok(TermValue::Triple {
-            s: Box::new(qterm_to_value(s)?),
-            p: Box::new(qterm_to_value(p)?),
-            o: Box::new(qterm_to_value(o)?),
+            s: (qterm_to_value(s)?).into(),
+            p: (qterm_to_value(p)?).into(),
+            o: (qterm_to_value(o)?).into(),
         }),
         QTerm::Var(_) | QTerm::Struct(_) => Err(UnsupportedKind::NonBinaryAtom),
     }

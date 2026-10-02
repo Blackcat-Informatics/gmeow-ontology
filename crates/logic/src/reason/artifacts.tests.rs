@@ -459,12 +459,13 @@ fn native_closure_keeps_duplicate_proofs_separate_from_quoted_data_blanks() {
         Some("projection:test-rule"),
     );
     derived.object = TermValue::Triple {
-        s: Box::new(TermValue::Blank {
+        s: (TermValue::Blank {
             label: "proof0".to_owned(),
             scope: BlankScope(1),
-        }),
-        p: Box::new(TermValue::iri("urn:projection:quoted")),
-        o: Box::new(TermValue::simple_literal("quoted native value")),
+        })
+        .into(),
+        p: TermValue::iri("urn:projection:quoted").into(),
+        o: TermValue::simple_literal("quoted native value").into(),
     };
     let result = result_with(vec![derived.clone(), derived], true);
     let (_, native) = paired_closure(&result, &[]);

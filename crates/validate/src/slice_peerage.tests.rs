@@ -225,7 +225,7 @@ fn covered_peer_seam_crossing_is_suppressed() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             LANG,
             LOGIC,
@@ -257,7 +257,7 @@ fn peered_crossing_with_an_off_seam_term_fires_error() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             LANG,
             LOGIC,
@@ -296,7 +296,7 @@ fn reverse_direction_of_a_registered_seam_is_not_covered() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             MATH,
             LANG,
@@ -324,7 +324,7 @@ fn uncovered_non_peer_undeclared_dependency_stays_an_error() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             CORE,
             EXT,
@@ -349,7 +349,7 @@ fn a_semantic_undeclared_diagnostic_with_no_matching_edge_hard_fails() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: Vec::new(),
         diagnostics: vec![undeclared_diag(LANG, LOGIC, EdgeKind::Ontology)],
     };
@@ -366,7 +366,7 @@ fn a_non_semantic_edge_kind_diagnostic_is_ignored_even_with_no_matching_edge() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: Vec::new(),
         diagnostics: vec![undeclared_diag(LANG, LOGIC, EdgeKind::Test)],
     };
@@ -663,7 +663,7 @@ fn class_a_slice_iri_as_data_crossing_is_suppressed() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             QUALITY,
             WIDGETS,
@@ -745,7 +745,7 @@ fn class_b_annotation_property_crossing_is_suppressed() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             LOGIC,
             WIDGETS,
@@ -781,7 +781,7 @@ fn a_reasoned_rbox_object_property_is_no_longer_exempt() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             LOGIC,
             WIDGETS,
@@ -819,7 +819,7 @@ fn genuine_term_use_from_a_grounding_slice_still_fires() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             LOGIC,
             WIDGETS,
@@ -863,7 +863,7 @@ fn a_term_named_via_both_a_meta_predicate_and_a_real_use_is_never_excluded() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             LOGIC,
             WIDGETS,
@@ -902,7 +902,7 @@ fn class_b_open_range_uses_term_crossing_is_suppressed_from_any_slice() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             GUIDES,
             WIDGETS,
@@ -938,7 +938,7 @@ fn a_term_named_via_both_uses_term_and_a_real_use_is_never_excluded() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             GUIDES,
             WIDGETS,
@@ -975,7 +975,7 @@ fn a_competency_query_crossing_now_surfaces() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge_with_evidence(
             QUALITY,
             WIDGETS,
@@ -1018,7 +1018,7 @@ fn a_verify_query_crossing_surfaces_identically_to_a_competency_query() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let build = |role: ArtifactRole, path: &str| OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge_with_evidence(
             QUALITY,
             WIDGETS,
@@ -1063,7 +1063,7 @@ fn an_internal_related_match_crossing_now_surfaces() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge_with_evidence(
             QUALITY,
             WIDGETS,
@@ -1110,7 +1110,7 @@ fn a_term_named_via_related_match_and_a_structural_use_is_never_excluded() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = class_filter_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge_with_evidence(
             QUALITY,
             WIDGETS,
@@ -1193,7 +1193,7 @@ fn core_depending_on_extension_is_forbidden() {
     let catalog = tier_catalog(tmp.path());
     // A MATCHED (authored) edge — declaring it does not license it.
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             TIER_CORE_SLICE,
             TIER_EXT_A,
@@ -1220,7 +1220,7 @@ fn extension_depending_on_another_extension_is_forbidden() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = tier_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             TIER_EXT_A,
             TIER_EXT_B,
@@ -1253,7 +1253,7 @@ fn extension_depending_on_core_is_not_forbidden() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = tier_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             TIER_EXT_A,
             TIER_CORE_SLICE,
@@ -1308,7 +1308,7 @@ fn a_declared_forbidden_crossing_fires_with_no_evidence_at_all() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = declared_forbidden_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: Vec::new(),
         diagnostics: Vec::new(),
     };
@@ -1347,7 +1347,7 @@ fn a_declared_forbidden_crossing_fires_even_when_all_evidence_is_exempt() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = declared_forbidden_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         // The only evidence is the target slice's own IRI — Class A, fully
         // exempt, so the computed leg contributes nothing.
         edges: vec![edge(
@@ -1459,7 +1459,7 @@ fn a_grounding_to_marked_concept_crossing_is_tier_legal_but_breaks_the_grounding
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_doctrine_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             GROUNDING_LOGIC,
             DOMAIN_COGNITION,
@@ -1519,7 +1519,7 @@ fn a_grounding_slice_consuming_ordinary_domain_vocabulary_never_fires_the_doctri
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_doctrine_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             GROUNDING_LOGIC,
             DOMAIN_COGNITION,
@@ -1554,7 +1554,7 @@ fn one_edge_naming_both_a_marked_and_an_unmarked_term_fires_once_on_the_marked_o
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_doctrine_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             GROUNDING_LOGIC,
             DOMAIN_COGNITION,
@@ -1624,7 +1624,7 @@ fn a_declared_grounding_to_domain_dependency_alone_is_not_a_doctrine_breach() {
     );
     let catalog = SliceCatalog::discover(&root.join("slices"), vocab()).unwrap();
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: Vec::new(),
         diagnostics: Vec::new(),
     };
@@ -1646,7 +1646,7 @@ fn a_grounding_to_grounding_peer_crossing_never_fires_the_doctrine_gate() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_doctrine_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             GROUNDING_LOGIC,
             GROUNDING_MATH,
@@ -1679,7 +1679,7 @@ fn a_domain_to_grounding_crossing_never_fires_the_doctrine_gate() {
     let tmp = tempfile::tempdir().unwrap();
     let catalog = grounding_doctrine_catalog(tmp.path());
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             DOMAIN_COGNITION,
             GROUNDING_MATH,
@@ -1743,7 +1743,7 @@ fn a_marker_naming_an_undeclared_grounding_domain_does_not_fire() {
     );
     let catalog = SliceCatalog::discover(&root.join("slices"), vocab()).unwrap();
     let report = OwnershipReport {
-        ownership: std::collections::HashMap::new(),
+        ownership: std::collections::HashMap::default(),
         edges: vec![edge(
             GROUNDING_LOGIC,
             DOMAIN_COGNITION,

@@ -49,15 +49,16 @@ fn open_value_use_result(severity: ShaclSeverity) -> ValidationResult {
             "{GMEOW_NS}ProfileOpenValueUseConstraintProceduralConstraintShape"
         ))),
         severity,
-        message: Some(
+        messages: vec![purrdf::shapes::term::Literal::new_simple_literal(
             "Open value individuals must be referenced by at least one profile \
-             descriptor — extensibility-by-construction guard."
-                .to_owned(),
-        ),
+             descriptor — extensibility-by-construction guard.",
+        )],
         source_box_roles: Vec::new(),
         path_box_roles: Vec::new(),
         result_box_roles: Vec::new(),
         attributions: vec![],
+        details: Vec::new(),
+        annotations: Vec::new(),
     }
 }
 

@@ -27,12 +27,11 @@ gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 # SPARQL property-path algebra: the projection target for logic:PathShape.
 # A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.
-# roxmltree: the read-only XML DOM parser for the XCL dialect reader. A pure-Rust,
-# wasm-clean leaf (already in the workspace as purrdf's native RDF/XML parser), so
-# it keeps this crate oxigraph-free and wasm-buildable. The XCL reader parses through
-# it rather than a hand-rolled scanner so the meta carrier decodes losslessly (the
-# Exact round-trip guarantee); the writer emits XML directly (roxmltree is parse-only).
-roxmltree.workspace = true
+# purrdf-lex: the substrate's read-only XML DOM (`purrdf_lex::xml`) for the XCL dialect
+# reader — the same wasm-clean XML 1.0 + Namespaces reader purrdf's RDF/XML codec uses.
+# The XCL reader parses through it rather than a hand-rolled scanner so the meta carrier
+# decodes losslessly (the Exact round-trip guarantee); the writer emits XML directly.
+purrdf-lex.workspace = true
 # gmeow-errors: the diagnostics substrate. Loss unification (Phase 4) grades
 # PreservationKind as a BoundedLattice (worst-preservation-wins) and collapses the
 # projection-loss accumulators onto one DiagLedger of FindingCategory::ProjectionLoss

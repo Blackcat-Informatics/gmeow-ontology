@@ -48,11 +48,11 @@ fn rdf_location_lossy(location: &Location) -> RdfLocation {
         line: None,
         column: None,
         logical: None,
-        gts_term_id: location.gts_term_id.map(|v| v as usize),
-        gts_quad_index: location.gts_quad_index.map(|v| v as usize),
-        gts_reifier_id: location.gts_reifier_id.map(|v| v as usize),
-        gts_frame_index: location.gts_frame_index.map(|v| v as usize),
-        gts_segment_index: location.gts_segment_index.map(|v| v as usize),
+        gts_term_id: location.gts_term_id,
+        gts_quad_index: location.gts_quad_index,
+        gts_reifier_id: location.gts_reifier_id,
+        gts_frame_index: location.gts_frame_index,
+        gts_segment_index: location.gts_segment_index,
         subject: None,
     }
 }

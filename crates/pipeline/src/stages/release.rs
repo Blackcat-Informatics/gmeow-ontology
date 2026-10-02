@@ -614,7 +614,7 @@ fn existing_blobs(graph: &Graph) -> gmeow_errors::Result<Vec<BlobRow>> {
 /// drift-gated snapshot always carries this metadata; its absence means a
 /// corrupt snapshot, which must stop the release fold, not be papered over.
 fn blob_meta_for(graph: &Graph, digest: &str) -> gmeow_errors::Result<(String, String)> {
-    use ciborium::value::Value;
+    use purrdf_lex::cbor::Value;
     let Some(Value::Map(entries)) = graph
         .blob_meta
         .iter()

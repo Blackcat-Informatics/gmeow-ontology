@@ -1069,14 +1069,14 @@ fn collect_ontology_terms(root: &Path) -> gmeow_errors::Result<OntologyTerms> {
     let paths = slice_module_files(root)?;
     let ds = store::dataset_from_paths(&paths)?;
     let mut terms = OntologyTerms::default();
-    let Some(type_id) = ds.term_id_by_value(&TermValue::iri(rdf::TYPE)) else {
+    let Some(type_id) = ds.as_ref().term_id_by_value(&TermValue::iri(rdf::TYPE)) else {
         return Ok(terms);
     };
     for q in ds.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
-        let TermRef::Iri(subject) = ds.resolve(q.s) else {
+        let TermRef::Iri(subject) = ds.as_ref().resolve(q.s) else {
             continue;
         };
-        let TermRef::Iri(object) = ds.resolve(q.o) else {
+        let TermRef::Iri(object) = ds.as_ref().resolve(q.o) else {
             continue;
         };
         let iri = subject.to_owned();

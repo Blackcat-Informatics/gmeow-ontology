@@ -8,7 +8,8 @@
 use super::{LoweredLeg, native};
 use crate::projections::get_leg::{Atom, Expr, Item, ProfileBinding, ProjectionCell};
 use purrdf::sparql::{
-    BlankNode, Expression, GraphPattern, NamedNodePattern, TermPattern, TriplePattern, Variable,
+    BlankNode, Child, Expression, GraphPattern, NamedNodePattern, TermPattern, TriplePattern,
+    Variable,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -150,18 +151,23 @@ impl Scope {
         use Expression as E;
         match expression {
             E::Variable(value) | E::Bound(value) => self.variable(value),
-            E::Or(a, b)
-            | E::And(a, b)
-            | E::Equal(a, b)
+            E::Or(operands) | E::And(operands) => {
+                for operand in operands {
+                    self.expression(operand)?;
+                }
+            }
+            E::Arithmetic(first, steps) => {
+                self.expression(first)?;
+                for (_, operand) in steps.iter_mut() {
+                    self.expression(operand)?;
+                }
+            }
+            E::Equal(a, b)
             | E::SameTerm(a, b)
             | E::Greater(a, b)
             | E::GreaterOrEqual(a, b)
             | E::Less(a, b)
-            | E::LessOrEqual(a, b)
-            | E::Add(a, b)
-            | E::Subtract(a, b)
-            | E::Multiply(a, b)
-            | E::Divide(a, b) => {
+            | E::LessOrEqual(a, b) => {
                 self.expression(a)?;
                 self.expression(b)?;
             }
@@ -202,9 +208,14 @@ impl Scope {
                 self.term(subject, false);
                 self.term(object, false);
             }
-            P::Join { left, right } | P::Union { left, right } => {
+            P::Join { left, right } => {
                 self.pattern(left)?;
                 self.pattern(right)?;
+            }
+            P::Union { arms } => {
+                for arm in arms {
+                    self.pattern(arm)?;
+                }
             }
             P::LeftJoin {
                 left,
@@ -293,7 +304,7 @@ pub(super) fn admit(mut leg: LoweredLeg, key: &str) -> gmeow_errors::Result<Lowe
     }
     for (_, (predicate, variable)) in guards {
         leg.pattern = GraphPattern::Extend {
-            inner: Box::new(leg.pattern),
+            inner: Child::new(leg.pattern),
             variable,
             expression: Expression::NamedNode(predicate),
         };

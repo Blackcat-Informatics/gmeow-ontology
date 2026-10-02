@@ -207,7 +207,8 @@ impl<'a> CompleteFocus<'a> {
             .carrier
             .named_graphs()
             .map(|id| state.carrier.term_value(id))
-            .collect();
+            .collect::<Result<std::collections::BTreeSet<_>, _>>()
+            .map_err(|error| exec_error(format!("resolve published graph: {error}")))?;
         if !published_focus || state.augmented.complement.graphs != published_graphs {
             return Err(exec_error(
                 "intermediate focus is not its bound complete publication",

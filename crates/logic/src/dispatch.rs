@@ -59,7 +59,7 @@ pub struct QueryExecutionEvidence<BackendEvidence> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ResidentViewEvidence {
     /// View-reported quad cardinality, when known without enumeration.
-    pub len_hint: Option<usize>,
+    pub len_hint: Option<u64>,
     /// View-reported deterministic statistics discriminator.
     pub stats_fingerprint: u64,
 }

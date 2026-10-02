@@ -39,8 +39,9 @@ use gmeow_logic_compile::projections::reified_claim::{
     ClaimAnnotation, ClaimObject, ReifiedClaim, reified_claim_template,
 };
 use purrdf::sparql::{
-    Expression, Function, GraphPattern, Literal, NamedNode, NamedNodePattern, NativeSparqlEngine,
-    PreparedQuery, QuadPattern, Query, QueryOptions, TermPattern, TriplePattern, Variable,
+    Child, Expression, Function, GraphPattern, Literal, NamedNode, NamedNodePattern,
+    NativeSparqlEngine, PreparedQuery, QuadPattern, Query, QueryOptions, TermPattern,
+    TriplePattern, Variable,
 };
 use purrdf::{RdfDataset, RdfQuad, RdfTerm, SparqlResult};
 
@@ -401,12 +402,12 @@ fn fact_queries(lawful: &LawfulRules) -> gmeow_errors::Result<Vec<Query>> {
             GraphPattern::Bgp {
                 patterns: vec![passthrough],
             },
-            Expression::And(
-                Box::new(gmeow_iri("p")),
-                Box::new(Expression::Not(Box::new(Expression::Equal(
-                    Box::new(Expression::Variable(Variable::new("p"))),
-                    Box::new(Expression::NamedNode(iri(RDF_TYPE)?)),
-                )))),
+            Expression::and(
+                gmeow_iri("p"),
+                Expression::Not(Child::new(Expression::Equal(
+                    Child::new(Expression::Variable(Variable::new("p"))),
+                    Child::new(Expression::NamedNode(iri(RDF_TYPE)?)),
+                ))),
             ),
         ),
     ));
@@ -475,19 +476,13 @@ fn claim_query(ext: &str, gmeow: &str, conf: &str, slot: ClaimSlot) -> gmeow_err
             gmeow.to_owned(),
             ClaimObject::Iri(var("o")),
             triple(var("s"), ext, var("o"))?,
-            Expression::And(
-                Box::new(call(Function::IsIri, "s")),
-                Box::new(call(Function::IsIri, "o")),
-            ),
+            Expression::and(call(Function::IsIri, "s"), call(Function::IsIri, "o")),
         ),
         ClaimSlot::PredicateLiteral => (
             gmeow.to_owned(),
             ClaimObject::Literal(var("o")),
             triple(var("s"), ext, var("o"))?,
-            Expression::And(
-                Box::new(call(Function::IsIri, "s")),
-                Box::new(call(Function::IsLiteral, "o")),
-            ),
+            Expression::and(call(Function::IsIri, "s"), call(Function::IsLiteral, "o")),
         ),
         ClaimSlot::TypeObject => (
             RDF_TYPE.to_owned(),
@@ -582,34 +577,32 @@ fn construct(template: Vec<TriplePattern>, pattern: GraphPattern) -> Query {
 fn filtered(inner: GraphPattern, expr: Expression) -> GraphPattern {
     GraphPattern::Filter {
         expr,
-        inner: Box::new(inner),
+        inner: Child::new(inner),
     }
 }
 
 fn call(function: Function, variable: &str) -> Expression {
     Expression::FunctionCall(
         function,
-        vec![Expression::Variable(Variable::new(variable))],
+        [Expression::Variable(Variable::new(variable))].into(),
     )
 }
 
 fn resource_object() -> Expression {
-    Expression::Or(
-        Box::new(call(Function::IsIri, "o")),
-        Box::new(call(Function::IsBlank, "o")),
-    )
+    Expression::or(call(Function::IsIri, "o"), call(Function::IsBlank, "o"))
 }
 
 fn gmeow_iri(variable: &str) -> Expression {
-    Expression::And(
-        Box::new(call(Function::IsIri, variable)),
-        Box::new(Expression::FunctionCall(
+    Expression::and(
+        call(Function::IsIri, variable),
+        Expression::FunctionCall(
             Function::StrStarts,
-            vec![
+            [
                 call(Function::Str, variable),
                 Expression::Literal(Literal::new_simple(crate::up_projection_corpus::GM)),
-            ],
-        )),
+            ]
+            .into(),
+        ),
     )
 }
 
@@ -625,14 +618,14 @@ fn run_construct(
         .with_ctx(|| {
             format!(
                 "put-leg CONSTRUCT evaluation failed\nquery: {:?}",
-                query.query
+                query.query()
             )
         })?;
     let SparqlResult::Graph(ds) = result else {
         return Err(Diag::of_kind(Put {
             message: format!(
                 "put-leg CONSTRUCT did not return a graph\nquery: {:?}",
-                query.query
+                query.query()
             ),
         }));
     };

@@ -128,7 +128,7 @@
 //!   writer, whose default catalog states no zstd level and would leave the frame
 //!   profile unverifiable on the artifact. It also resolves a runtime store's priming
 //!   bytes out of the loaded bundle's in-band map (`store_medium`).
-//! * `ed25519-dalek` — the store COMPACTION lane's mandatory packaging signature:
+//! * `purrdf-ed25519` — the store COMPACTION lane's mandatory packaging signature:
 //!   purrdf's `compact_streamable` takes the ordering-commitment signer as a plain tuple
 //!   rather than an `Option`, so an unsigned repack is unrepresentable and the lane has
 //!   to name the key type.
@@ -8220,31 +8220,39 @@ struct ConjectureSegmentRows {
 #[cfg(feature = "reasoning")]
 impl ConjectureSegments {
     /// The rows for `index`, growing the segment vector so an out-of-order or sparse
-    /// segment index still lands in its own slot.
-    fn seg(&mut self, index: usize) -> &mut ConjectureSegmentRows {
+    /// segment index still lands in its own slot. A stream-global index this host cannot
+    /// address is recorded as the read's diagnostic — a HARD failure — never wrapped.
+    fn seg(&mut self, index: u64) -> Option<&mut ConjectureSegmentRows> {
+        let Ok(index) = usize::try_from(index) else {
+            self.diagnostic
+                .get_or_insert_with(|| format!("segment index {index} exceeds addressable memory"));
+            return None;
+        };
         if index >= self.segments.len() {
             self.segments
                 .resize_with(index + 1, ConjectureSegmentRows::default);
         }
-        &mut self.segments[index]
+        Some(&mut self.segments[index])
     }
 }
 
 #[cfg(feature = "reasoning")]
 impl purrdf::gts::reader::StreamingSink for ConjectureSegments {
-    fn term(&mut self, segment_index: usize, term_id: usize, term: &GtsTerm) {
-        let rows = self.seg(segment_index);
+    fn term(&mut self, segment_index: u64, term_id: usize, term: &GtsTerm) {
+        let Some(rows) = self.seg(segment_index) else {
+            return;
+        };
         if term_id >= rows.terms.len() {
             rows.terms.resize(term_id + 1, None);
         }
         rows.terms[term_id] = Some(term.clone());
     }
 
-    fn quad(&mut self, segment_index: usize, quad: purrdf::gts::model::Quad) {
+    fn quad(&mut self, segment_index: u64, quad: purrdf::gts::model::Quad) {
         let (subject, predicate, object, _graph) = quad;
-        self.seg(segment_index)
-            .quads
-            .push((subject, predicate, object));
+        if let Some(rows) = self.seg(segment_index) {
+            rows.quads.push((subject, predicate, object));
+        }
     }
 
     fn diagnostic(&mut self, diagnostic: &purrdf::gts::model::Diagnostic) {
@@ -8834,7 +8842,7 @@ pub fn compact_store(
     path: &std::path::Path,
     timestamp: &str,
     medium: &StoreMedium,
-    packaging_signer: (ed25519_dalek::SigningKey, String),
+    packaging_signer: (purrdf_ed25519::SigningKey, String),
 ) -> gmeow_errors::Result<()> {
     // The branch's lock is LIBRARY-scoped rather than path-scoped: a store is reached
     // through its `SegmentLibrary`, so the compaction lane takes the same lock every

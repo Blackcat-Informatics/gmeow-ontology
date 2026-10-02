@@ -51,8 +51,12 @@ fn check(shapes: &str, data: &str, component: Option<&str>) {
             "{report:#?}"
         );
         assert_eq!(
-            report.results[0].message.as_deref(),
-            Some("the qualified requirement must hold")
+            report.results[0]
+                .messages
+                .iter()
+                .map(purrdf::shapes::term::Literal::value)
+                .collect::<Vec<_>>(),
+            ["the qualified requirement must hold"]
         );
     }
 }

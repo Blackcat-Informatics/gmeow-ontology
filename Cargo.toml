@@ -193,11 +193,19 @@ cargo-config2 = "0.1.45"
 # Compatible PurRDF releases. Cargo.lock is the exact version/source/checksum
 # authority; fuzz/Cargo.lock must select the same substrate, and every shipped
 # wasm engine must attest that resolved version. `make maint-bump-purrdf VERSION=...`
-# updates both resolutions and rebuilds all browser engines without changing this
-# compatibility requirement.
-purrdf = "2"
+# selects a release WITHIN these requirements and rebuilds all browser engines; a
+# major bump edits every requirement here and in fuzz/Cargo.toml first. Every
+# declared `purrdf*` requirement must agree and admit nothing below major 3
+# (`gmeow_validate::substrate::PURRDF_MAJOR_FLOOR`).
+purrdf = "3"
 # Diagnostics and gate orchestration use the RDF kernel without parser/query/shape engines.
-purrdf-core = "2"
+purrdf-core = "3"
+# The substrate's one JSON/YAML/CBOR/XML home; the facade does not re-export it.
+purrdf-lex = "3"
+# The substrate's one Ed25519 implementation (GTS signing and verification keys).
+purrdf-ed25519 = "3"
+# The substrate's one BLAKE3/hex home.
+purrdf-hash = "3"
 
 # Harness-scoped allocation accounting. Keeping the path here makes the workspace
 # the single dependency authority while individual crates retain dev-only scope.
@@ -243,9 +251,6 @@ pretty_assertions = "1"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 # Regular expressions for the text-shaped lints and renderers.
 regex = "1"
-# Read-only XML DOM parser shared by ontology inputs and the report-only JUnit
-# inventory authenticator.
-roxmltree = "0.20"
 # Derive-based (de)serialization. `derive` is in the shared fact because every
 # consumer here uses `#[derive(Serialize/Deserialize)]` rather than hand impls.
 serde = { version = "1", features = ["derive"] }
@@ -255,9 +260,6 @@ serde_json = "1"
 # Semantic release identities: the term changelog's tracked previous-release
 # authority must be ordered against the ontology release, never compared as text.
 semver = "1"
-# SHA-1 — legacy-interop digests only (git object names and the like), never a
-# content-integrity or security digest; blake3/sha2 above cover those.
-sha1 = "0.10"
 # SHA-256 content addressing for append-only segment commits and claim fingerprints.
 sha2 = "0.10"
 # Atomic, self-cleaning temp files: write a sibling temp file, fsync, rename over

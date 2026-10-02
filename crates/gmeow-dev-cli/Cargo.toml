@@ -18,6 +18,8 @@ name = "gmeow-dev"
 path = "src/main.rs"
 
 [dependencies]
+# The substrate's one lowercase-hex spelling for digests.
+purrdf-hash.workspace = true
 gmeow-action-cache = { path = "../action-cache" }
 gmeow-lang-bridge = { path = "../lang-bridge" }
 gmeow-cli-core = { path = "../cli-core" }
@@ -72,8 +74,8 @@ gmeow-license = { path = "../license" }
 toml = "0.8"
 # The repo HTTP client for the `refresh-target-axioms` re-vendor lane.
 ureq = "3"
-# CBOR public-metadata extraction for the feedback-bundle blob reader.
-ciborium.workspace = true
+# The substrate CBOR value a GTS blob's public metadata is read as (feedback-bundle reader).
+purrdf-lex.workspace = true
 
 [dev-dependencies]
 gmeow-music = { path = "../music" }

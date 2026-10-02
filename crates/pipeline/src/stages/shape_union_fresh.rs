@@ -22,18 +22,20 @@
 //! The merge semantics replicate `purrdf::shapes::shape_union::load_shapes` EXACTLY:
 //! the ordered `shape_files` file list, per-file Turtle parse via
 //! [`parse_dataset`], per-file blank-label scoping via [`RdfDataset::union`], document
-//! `@prefix` recovery via [`extract_prefixes`] with last-declaration-wins over the
-//! sorted file order, and the final [`from_dataset_with_prefixes`] typing. Only the
-//! BYTE SOURCE of the generated members differs.
+//! `@prefix` map from that same parse with last-declaration-wins over the sorted file
+//! order, each member parsed against its RFC-8089 `file://` retrieval IRI and declared
+//! as a loaded import, and the final [`from_dataset_with_base`] typing. Only the BYTE
+//! SOURCE of the generated members differs; their retrieval IRI is the published path.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
+use purrdf::shapes::ShapesImports;
 use purrdf::shapes::shape_union::EXCLUDED;
-use purrdf::shapes::shapes::{Shapes, from_dataset_with_prefixes};
-use purrdf::shapes::text_ingest::extract_prefixes;
-use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
+use purrdf::shapes::shapes::{Shapes, from_dataset_with_base};
+use purrdf::slice::{file_iri_for_absolute_path, retrieval_base_iri};
+use purrdf::{ParseOptions, RdfDataset, RdfDatasetBuilder, parse_dataset_with};
 
 use crate::node::StageProduct;
 use crate::stages::validate::ShaclInputMember;
@@ -283,10 +285,10 @@ pub fn effective_union_members<'a>(
 /// authored member read from disk as the registry loader does.
 ///
 /// Exact-semantics twin of `purrdf::shapes::shape_union::load_shapes`: same ordered
-/// file list, same per-file parse, same per-file blank scoping ([`RdfDataset::union`]
-/// standardizes each input's blanks apart), same document-prefix recovery
-/// (last declaration wins over the merge order), same
-/// [`from_dataset_with_prefixes`] typing. The generated section is exactly the sorted
+/// file list, same per-file parse against each member's `file://` retrieval IRI, same
+/// per-file blank scoping ([`RdfDataset::union`] standardizes each input's blanks apart),
+/// same document-prefix recovery (last declaration wins over the merge order), same
+/// loaded-document import declarations and [`from_dataset_with_base`] typing. The generated section is exactly the sorted
 /// `fresh` product keys — never a disk enumeration of `generated/shapes/*.ttl`, which
 /// is absent on a clean clone and the previous run's bytes on a warm one. On a fixed
 /// point the fresh keys equal the on-disk listing, so the union order is byte-identical
@@ -338,12 +340,21 @@ pub fn load_shapes_fresh(
     }
     ordered.extend(slices.into_iter().map(Member::Disk));
 
+    // A fresh member's retrieval IRI is the path it is published at under the canonical
+    // repository root, so it agrees with `load_shapes` once the member is on disk.
+    let canonical_root = std::fs::canonicalize(root)
+        .map_err(|e| union_err(format!("canonicalize {}: {e}", root.display())))?;
     let mut prefix_map: BTreeMap<String, String> = BTreeMap::new();
     let mut per_file: Vec<Arc<RdfDataset>> = Vec::with_capacity(ordered.len());
+    let mut imports = ShapesImports::new();
     for member in &ordered {
-        let (label, bytes): (String, std::borrow::Cow<'_, [u8]>) = match member {
+        let (label, base, bytes): (String, String, std::borrow::Cow<'_, [u8]>) = match member {
             Member::Disk(path) => (
                 path.display().to_string(),
+                retrieval_base_iri(path)
+                    .map_err(|e| union_err(format!("shape file {}: {e}", path.display())))?
+                    .as_str()
+                    .to_owned(),
                 std::borrow::Cow::Owned(std::fs::read(path).map_err(|e| {
                     union_err(format!("failed to read shape file {}: {e}", path.display()))
                 })?),
@@ -357,18 +368,30 @@ pub fn load_shapes_fresh(
                          from the fresh product map but has no bytes"
                     ))
                 })?;
-                ((*rel).to_string(), std::borrow::Cow::Borrowed(bytes))
+                let published = canonical_root.join(rel);
+                let published = published.to_str().ok_or_else(|| {
+                    union_err(format!(
+                        "{}: the path is not valid UTF-8",
+                        published.display()
+                    ))
+                })?;
+                (
+                    (*rel).to_string(),
+                    file_iri_for_absolute_path(published),
+                    std::borrow::Cow::Borrowed(bytes),
+                )
             }
         };
-        let text = std::str::from_utf8(&bytes)
-            .map_err(|e| union_err(format!("shape file {label} is not UTF-8: {e}")))?;
-        // Parse via the native codecs. The native codec drops document prefixes once
-        // it folds to the IR, so the per-file `@prefix` map is recovered by scanning
-        // the source text (mirrors load_shapes).
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| union_err(format!("failed to parse Turtle shape file {label}: {e}")))?;
-        per_file.push(dataset);
-        for (prefix, namespace) in extract_prefixes(text) {
+        imports.declare_loaded(base.as_str());
+        // Parse via the native codecs against the retrieval IRI; the per-file `@prefix`
+        // map comes back from the same parse (mirrors load_shapes).
+        let outcome =
+            parse_dataset_with(&bytes, "text/turtle", Some(&base), &ParseOptions::default())
+                .map_err(|e| {
+                    union_err(format!("failed to parse Turtle shape file {label}: {e}"))
+                })?;
+        per_file.push(outcome.dataset);
+        for (prefix, namespace) in outcome.document_prefixes {
             prefix_map.insert(prefix, namespace);
         }
     }
@@ -383,7 +406,8 @@ pub fn load_shapes_fresh(
         Arc::new(RdfDataset::union(&refs))
     };
     let doc_prefixes: Vec<(String, String)> = prefix_map.into_iter().collect();
-    let shapes = from_dataset_with_prefixes(&merged, &doc_prefixes).map_err(union_err)?;
+    let shapes = from_dataset_with_base(&merged, None, &doc_prefixes, None, None, &imports)
+        .map_err(|e| union_err(e.to_string()))?;
     Ok((merged, shapes))
 }
 

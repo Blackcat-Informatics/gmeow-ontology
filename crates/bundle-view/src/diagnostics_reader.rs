@@ -121,7 +121,7 @@ fn cell_u32(sol: &Solutions, row: &[Option<TermValue>], var: &str) -> Option<u32
 fn location_from_row(sol: &Solutions, row: &[Option<TermValue>]) -> Location {
     let mut loc = Location::new(
         cell_str(sol, row, "path"),
-        cell_u32(sol, row, "line"),
+        cell_u64(sol, row, "line"),
         cell_u32(sol, row, "col"),
         None,
     );

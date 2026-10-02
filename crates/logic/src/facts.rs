@@ -38,7 +38,7 @@ use std::hash::{BuildHasher, Hash, Hasher};
 
 use hashbrown::HashTable;
 use purrdf::TermValue;
-use sha1::{Digest, Sha1};
+use purrdf_hash::sha1::Sha1;
 
 /// The shared arena's per-set atomic-term dictionary: display surface → dense
 /// [`TermId`]. ONE definition lives in [`gmeow_term_arena::engine`]; this is the
@@ -93,7 +93,7 @@ pub(crate) const SKOLEM_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/sko
 pub(crate) fn sha1_hex(s: &str) -> String {
     let mut hasher = Sha1::new();
     hasher.update(s.as_bytes());
-    format!("{:x}", hasher.finalize())
+    purrdf_hash::hex::encode(&hasher.finalize())
 }
 
 /// Skolemize a blank-node identifier to a stable IRI string.

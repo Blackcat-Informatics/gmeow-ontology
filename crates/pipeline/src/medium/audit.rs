@@ -55,8 +55,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use ciborium::value::Value;
 use purrdf::gts::wire::{SELF_DESCRIBE_TAG, iter_items, map_get, unwrap_header};
+use purrdf_lex::cbor::Value;
 
 use super::registry::{DictSelection, MediumDef, MediumRegistry, MediumSourceKind};
 use super::{

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
-use ed25519_dalek::SigningKey;
+use purrdf_ed25519::SigningKey;
 
 /// Ingest RDF text of `media_type` into a fresh builder via the native carrier
 /// path (`parse_dataset` → `add_dataset`) — the single-exit ingestion these
@@ -479,7 +479,7 @@ struct BlobFrameCounter {
     counts: std::collections::HashMap<String, usize>,
 }
 impl purrdf::gts::reader::StreamingSink for BlobFrameCounter {
-    fn blob(&mut self, _seg: usize, digest: &str, _meta: Option<&ciborium::value::Value>) {
+    fn blob(&mut self, _seg: u64, digest: &str, _meta: Option<&purrdf_lex::cbor::Value>) {
         *self.counts.entry(digest.to_string()).or_insert(0) += 1;
     }
 }

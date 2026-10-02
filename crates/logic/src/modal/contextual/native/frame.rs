@@ -42,7 +42,7 @@ pub(super) struct NativeFrame<'a> {
 }
 
 impl PreparedFrame {
-    pub(super) fn new<D: DatasetView + ?Sized>(
+    pub(super) fn new<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
         source: &RdfFrame<'_, D>,
     ) -> gmeow_errors::Result<Self> {
         let dataset = source.dataset;
@@ -75,7 +75,9 @@ impl PreparedFrame {
                 .ok_or_else(|| diagnostic(malformed("a claim predicate must be an IRI")))?
                 .to_owned();
             let values = |property: &str| -> gmeow_errors::Result<BTreeSet<String>> {
-                let Some(predicate) = dataset.term_id_by_value(&TermValue::iri(property)) else {
+                let Some(predicate) =
+                    crate::seam::resident(dataset.term_id_by_value(&TermValue::iri(property)))
+                else {
                     return Ok(BTreeSet::new());
                 };
                 gmeow_logic_compile::frontend::selected_source_statements(
@@ -91,7 +93,7 @@ impl PreparedFrame {
             claims.push(Claim {
                 world,
                 reifier,
-                statement: (*s, predicate, *o),
+                statement: (s.into_inner(), predicate, o.into_inner()),
                 owners: values(OWNER)?,
                 statuses: values(STATUS)?,
             });
@@ -230,9 +232,9 @@ impl PreparedFrame {
                     subject: TermValue::iri(&claim.reifier),
                     predicate: REIFIES.into(),
                     object: TermValue::Triple {
-                        s: Box::new(claim.statement.0.clone()),
-                        p: Box::new(TermValue::iri(&claim.statement.1)),
-                        o: Box::new(claim.statement.2.clone()),
+                        s: claim.statement.0.clone().into(),
+                        p: TermValue::iri(&claim.statement.1).into(),
+                        o: claim.statement.2.clone().into(),
                     },
                 },
             ));

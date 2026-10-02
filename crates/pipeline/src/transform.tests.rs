@@ -79,6 +79,7 @@ fn prepared_transform_preserves_projected_provenance_across_independent_inputs()
         );
         let name_id = result
             .dataset
+            .as_ref()
             .term_id_by_value(&TermValue::lang_literal(name, "en"))
             .expect("the published name has the public language tag");
         assert!(result.dataset.quads().all(|quad| quad.o == name_id));

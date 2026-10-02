@@ -116,7 +116,7 @@ impl DescribeGraph {
 
     /// Resolve an IRI to its dataset-local term id, if interned.
     fn iri_id(&self, iri: &str) -> Option<TermId> {
-        self.ds.term_id_by_value(&TermValue::iri(iri))
+        self.ds.as_ref().term_id_by_value(&TermValue::iri(iri))
     }
 
     /// Every default-graph object term of `<subject> <pred> ?o`, resolved into an
@@ -163,7 +163,7 @@ impl DescribeGraph {
         };
         self.ds
             .quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default)
-            .filter_map(|q| match self.ds.resolve(q.s) {
+            .filter_map(|q| match self.ds.as_ref().resolve(q.s) {
                 TermRef::Iri(iri) => Some(iri.to_owned()),
                 _ => None,
             })
@@ -177,7 +177,7 @@ impl DescribeGraph {
         };
         self.ds
             .quads_for_pattern(None, Some(p), None, GraphMatch::Default)
-            .filter_map(|q| match self.ds.resolve(q.s) {
+            .filter_map(|q| match self.ds.as_ref().resolve(q.s) {
                 TermRef::Iri(iri) => Some(iri.to_owned()),
                 _ => None,
             })
@@ -202,7 +202,7 @@ impl DescribeGraph {
         let candidates: Vec<String> = self
             .ds
             .quads_for_pattern(None, Some(p), Some(o), GraphMatch::Any)
-            .filter_map(|q| match self.ds.resolve(q.s) {
+            .filter_map(|q| match self.ds.as_ref().resolve(q.s) {
                 TermRef::Iri(iri) if iri.starts_with(&term_prefix) => {
                     Some(iri[term_prefix.len()..].to_owned())
                 }
@@ -222,7 +222,7 @@ impl DescribeGraph {
 
     /// Resolve an object term id into an owned object value.
     fn owned_object(&self, id: TermId) -> OwnedObject {
-        match self.ds.resolve(id) {
+        match self.ds.as_ref().resolve(id) {
             TermRef::Iri(iri) => OwnedObject::Named(iri.to_owned()),
             TermRef::Literal {
                 lexical, language, ..

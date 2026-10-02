@@ -215,9 +215,12 @@ fn concept_doi(root: &Path) -> Result<String, gmeow_errors::Diag> {
             message: format!("syntax error in self-desc: {e}"),
         })
     })?;
-    if let Some(pred) = ds.term_id_by_value(&TermValue::iri(DCTERMS_IDENTIFIER)) {
+    if let Some(pred) = ds
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(DCTERMS_IDENTIFIER))
+    {
         for q in ds.quads_for_pattern(None, Some(pred), None, GraphMatch::Default) {
-            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o)
+            if let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(q.o)
                 && lexical.starts_with("10.")
                 && lexical.contains('/')
             {

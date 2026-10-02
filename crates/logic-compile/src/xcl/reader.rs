@@ -9,7 +9,7 @@
 //! RDF frontend ([`parse_logic_dataset`]), so the
 //! reconstructed IR — axioms, rules, formulas, contracts, correspondences — is exactly the Exact
 //! `canonical-rdf12` round-trip's. The idiomatic XCL2 sentences are a human-readable VIEW: the
-//! document is parsed by a real XML parser (`roxmltree`, never a hand-rolled scanner) so
+//! document is parsed by a real XML parser (`purrdf_lex::xml`, never a hand-rolled scanner) so
 //! well-formedness is enforced, but the IR is never reconstructed from the sentences.
 
 use gmeow_errors::Diag;
@@ -42,7 +42,7 @@ pub fn parse_xcl_str(
 
     // A real XML parse enforces well-formedness. A parse failure means we can reconstruct
     // nothing (the meta carrier lives in the same document), so fail closed.
-    let doc = roxmltree::Document::parse(xcl)
+    let doc = purrdf_lex::xml::Document::parse(xcl)
         .map_err(|e| LogicParseError(format!("XCL is not well-formed XML: {e}")))?;
 
     let root = doc.root_element();
@@ -66,13 +66,13 @@ pub fn parse_xcl_str(
     let sentence_children: Vec<_> = root
         .children()
         .filter(|n| n.is_element() && n.has_tag_name(SENTENCES_ELEMENT))
-        .flat_map(|s| s.children().filter(roxmltree::Node::is_element))
+        .flat_map(|s| s.children().filter(purrdf_lex::xml::Node::is_element))
         .collect();
 
     let meta_text: String = match meta_node {
         Some(node) => node
             .descendants()
-            .filter(roxmltree::Node::is_text)
+            .filter(purrdf_lex::xml::Node::is_text)
             .filter_map(|n| n.text())
             .collect(),
         None => {
@@ -131,7 +131,7 @@ const KNOWN_SENTENCE_TAGS: [&str; 8] = [
 /// Validate that a top-level sentence-channel element is a recognizable XCL2 sentence shape.
 /// `Ok(())` = well-formed; `Err(msg)` = an `XCL_MALFORMED_SENTENCE` diagnostic. The sentences are
 /// a view only — the meta carrier is the round-trip authority.
-fn validate_sentence(node: &roxmltree::Node<'_, '_>) -> gmeow_errors::Result<()> {
+fn validate_sentence(node: &purrdf_lex::xml::Node<'_, '_>) -> gmeow_errors::Result<()> {
     let tag = node.tag_name().name();
     // `exists` is a valid top-level sentence too; accept it alongside the writer's set.
     if KNOWN_SENTENCE_TAGS.contains(&tag) || tag == "exists" {

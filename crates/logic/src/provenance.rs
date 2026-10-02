@@ -41,7 +41,7 @@
 //! hashing. Sources are sorted for order-independence.
 
 use purrdf::TermValue;
-use sha1::{Digest, Sha1};
+use purrdf_hash::sha1::Sha1;
 use std::num::NonZeroU32;
 
 /// The canonical `TermValue` surface renderer. ONE definition, and it lives with the
@@ -367,7 +367,7 @@ impl ProvenanceRing for ZWeightSemiring {
 pub fn sha1_hex(s: &str) -> String {
     let mut hasher = Sha1::new();
     hasher.update(s.as_bytes());
-    format!("{:x}", hasher.finalize())
+    purrdf_hash::hex::encode(&hasher.finalize())
 }
 
 // ── N3 serialization ─────────────────────────────────────────────────────────

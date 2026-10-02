@@ -75,7 +75,7 @@ impl Module {
     }
 
     fn term(&self, iri: &str) -> Option<purrdf::TermId> {
-        self.ds.term_id_by_value(&TermValue::iri(iri))
+        self.ds.as_ref().term_id_by_value(&TermValue::iri(iri))
     }
 
     fn assert_triple(&self, subject: &str, predicate: &str, object: &str, why: &str) {

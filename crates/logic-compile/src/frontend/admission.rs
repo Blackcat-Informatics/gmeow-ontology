@@ -7,10 +7,11 @@
 use std::collections::{HashMap, HashSet};
 
 use gmeow_errors::Diag;
+use purrdf::dataset_view::TermGuard;
 use purrdf::{DatasetView, TermRef, TermValue};
 
 use super::{FORMULA_SUBLINKS, FormulaSource, Subject, logic_iri, subject_str};
-use crate::graphutil::subject_id;
+use crate::graphutil::{resident, subject_id};
 
 /// Named operational source envelope checked before constructing the shared IR.
 pub const FORMULA_SOURCE_ADMISSION_FRAGMENT: &str =
@@ -65,7 +66,7 @@ fn pending<S: FormulaSource>(
             source.source_graph(),
         ) {
             if matches!(
-                dataset.resolve(quad.o),
+                resident(dataset.resolve(quad.o)).term(),
                 TermRef::Iri(_) | TermRef::Blank { .. }
             ) {
                 children.push(quad.o);
@@ -100,7 +101,7 @@ pub(super) fn admit(source: &impl FormulaSource, root: &Subject) -> gmeow_errors
         .iter()
         .copied()
         .chain(["argument", "quantifiedVariable", "termApplication"])
-        .filter_map(|local| dataset.term_id_by_value(&TermValue::Iri(logic_iri(local))))
+        .filter_map(|local| resident(dataset.term_id_by_value(&TermValue::Iri(logic_iri(local)))))
         .collect::<Vec<_>>();
     let mut sizes: HashMap<_, Size> = HashMap::new();
     let mut active = HashSet::from([root_id]);

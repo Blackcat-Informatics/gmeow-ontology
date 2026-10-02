@@ -53,8 +53,8 @@ fn default_standpoint(severity: Severity) -> Standpoint {
 
 impl Location {
     /// Project an [`RdfLocation`] into a [`Location`], preserving every GTS wire
-    /// coordinate (`usize` on the RDF side becomes the portable `u64` the
-    /// diagnostics model serializes). Subsumes `validate::findings::location_from_rdf`.
+    /// coordinate (both sides use the portable `u64` logical
+    /// anchors). Subsumes `validate::findings::location_from_rdf`.
     pub fn from_rdf(location: &RdfLocation) -> Location {
         let mut out = Location::new(
             location.path.clone(),
@@ -63,19 +63,19 @@ impl Location {
             location.logical.clone(),
         );
         if let Some(term_id) = location.gts_term_id {
-            out = out.with_gts_term(term_id as u64);
+            out = out.with_gts_term(term_id);
         }
         if let Some(quad_index) = location.gts_quad_index {
-            out = out.with_gts_quad(quad_index as u64);
+            out = out.with_gts_quad(quad_index);
         }
         if let Some(reifier_id) = location.gts_reifier_id {
-            out = out.with_gts_reifier(reifier_id as u64);
+            out = out.with_gts_reifier(reifier_id);
         }
         if let Some(frame_index) = location.gts_frame_index {
-            out = out.with_gts_frame(frame_index as u64);
+            out = out.with_gts_frame(frame_index);
         }
         if let Some(segment_index) = location.gts_segment_index {
-            out = out.with_gts_segment(segment_index as u64);
+            out = out.with_gts_segment(segment_index);
         }
         out
     }

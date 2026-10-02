@@ -9,7 +9,9 @@ use super::*;
 pub(super) const SEARCH_BUDGET: u64 = 400_000;
 
 /// Synthetic tests observe the same class algorithm without production execution.
-pub(crate) fn decide(edb: &impl DatasetView) -> Option<RefutationCertificate> {
+pub(crate) fn decide(
+    edb: &impl DatasetView<ReadError = std::convert::Infallible>,
+) -> Option<RefutationCertificate> {
     decide_scan(&Scan::of(edb))
 }
 
@@ -109,7 +111,7 @@ pub(super) fn decide_scan(scan: &Scan) -> Option<RefutationCertificate> {
 }
 
 /// Synthetic completion assertion; never used by production coverage selection.
-pub(crate) fn decides(edb: &impl DatasetView) -> bool {
+pub(crate) fn decides(edb: &impl DatasetView<ReadError = std::convert::Infallible>) -> bool {
     matches!(decide(edb), Some(RefutationCertificate::InFragment { witness, .. }) if witness.evidence.source_boundaries.is_empty())
 }
 

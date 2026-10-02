@@ -65,13 +65,15 @@ fn native_mapping_branch_domain_catches_fabricated_guard_with_deterministic_coun
         native_test_triple("a", "urn:view1", variable("b")),
         native_test_triple("c", "urn:view2", variable("d")),
     ];
-    let union = |patterns: &[SparqlTriplePattern; 2]| GraphPattern::Union {
-        left: Box::new(GraphPattern::Bgp {
-            patterns: vec![patterns[0].clone()],
-        }),
-        right: Box::new(GraphPattern::Bgp {
-            patterns: vec![patterns[1].clone()],
-        }),
+    let union = |patterns: &[SparqlTriplePattern; 2]| {
+        GraphPattern::union(
+            GraphPattern::Bgp {
+                patterns: vec![patterns[0].clone()],
+            },
+            GraphPattern::Bgp {
+                patterns: vec![patterns[1].clone()],
+            },
+        )
     };
     let query = |template: Vec<SparqlTriplePattern>, pattern| {
         let mut query = construct_algebra(template, Vec::new());
@@ -90,7 +92,7 @@ fn native_mapping_branch_domain_catches_fabricated_guard_with_deterministic_coun
     ));
     let put = query(fabricated, union(&view));
     let prepared = PreparedLawExecution::from_algebra(get.clone(), put.clone()).unwrap();
-    let sources = derive_query_seeds(&prepared.get.query).unwrap();
+    let sources = derive_query_seeds(prepared.get.query()).unwrap();
     assert_eq!(sources.len(), 3);
     let first = prepared.roundtrip(sources.iter().map(LawCase::Seed), true);
     assert_eq!(first.verdict, DischargeVerdict::ObligationViolated);
@@ -107,7 +109,7 @@ fn native_mapping_branch_domain_catches_fabricated_guard_with_deterministic_coun
         prepared.roundtrip(sources.iter().map(LawCase::Seed), true)
     );
     let again = PreparedLawExecution::from_algebra(get, put).unwrap();
-    let sources = derive_query_seeds(&again.get.query).unwrap();
+    let sources = derive_query_seeds(again.get.query()).unwrap();
     assert_eq!(
         first,
         again.roundtrip(sources.iter().map(LawCase::Seed), true)
@@ -900,13 +902,13 @@ fn recovery_admission_bounds_repeated_patterns_before_distribution() {
         };
         MAX_SEED_PATTERNS / 2 + 1
     ];
-    let choices = GraphPattern::Union {
-        left: Box::new(GraphPattern::Bgp { patterns: vec![] }),
-        right: Box::new(GraphPattern::Bgp { patterns: vec![] }),
-    };
+    let choices = GraphPattern::union(
+        GraphPattern::Bgp { patterns: vec![] },
+        GraphPattern::Bgp { patterns: vec![] },
+    );
     let pattern = GraphPattern::Join {
-        left: Box::new(GraphPattern::Bgp { patterns }),
-        right: Box::new(choices),
+        left: Child::new(GraphPattern::Bgp { patterns }),
+        right: Child::new(choices),
     };
     let error = match dnf_branches(&pattern, 0) {
         Ok(_) => panic!("duplicated pattern inventory must exceed admission"),
@@ -920,7 +922,7 @@ fn recovery_admission_bounds_nested_algebra_without_truncating_it() {
     let mut pattern = GraphPattern::Bgp { patterns: vec![] };
     for _ in 0..=MAX_SEED_ALGEBRA_DEPTH {
         pattern = GraphPattern::Distinct {
-            inner: Box::new(pattern),
+            inner: Child::new(pattern),
         };
     }
     let error = match dnf_branches(&pattern, 0) {

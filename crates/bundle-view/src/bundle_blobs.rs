@@ -772,8 +772,8 @@ impl Bundle {
 
 /// Extract the `rep` text from a blob's folded `pub` metadata map (CBOR). Mirrors
 /// the release-fold recovery: a blob frame's `pub` map carries `mt` + `rep`.
-fn blob_meta_rep(meta: &ciborium::value::Value) -> Option<String> {
-    use ciborium::value::Value;
+fn blob_meta_rep(meta: &purrdf_lex::cbor::Value) -> Option<String> {
+    use purrdf_lex::cbor::Value;
     let Value::Map(entries) = meta else {
         return None;
     };

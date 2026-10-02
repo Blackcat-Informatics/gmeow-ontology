@@ -587,7 +587,7 @@ fn declined_correspondence_shape_has_teeth() {
         ledger_report
             .results
             .iter()
-            .map(|r| r.message.clone())
+            .map(gmeow_validate::findings::shacl_message)
             .collect::<Vec<_>>()
     );
 

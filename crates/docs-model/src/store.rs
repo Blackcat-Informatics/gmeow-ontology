@@ -119,7 +119,7 @@ impl Store {
 
     /// Resolve an IRI to its dataset-local term id, if interned.
     fn iri_id(&self, iri: &str) -> Option<TermId> {
-        self.ds.term_id_by_value(&TermValue::iri(iri))
+        self.ds.as_ref().term_id_by_value(&TermValue::iri(iri))
     }
 
     /// Resolve a (named or blank) node to its dataset-local term id, if interned.
@@ -128,13 +128,13 @@ impl Store {
             Node::Named(iri) => TermValue::iri(iri.clone()),
             Node::Blank(label) => TermValue::blank(label.clone()),
         };
-        self.ds.term_id_by_value(&value)
+        self.ds.as_ref().term_id_by_value(&value)
     }
 
     /// Resolve a quad slot to a [`Node`] (named or blank); `None` for a literal /
     /// triple (which never stand in subject position in well-formed RDF).
     fn node_of(&self, id: TermId) -> Option<Node> {
-        match self.ds.resolve(id) {
+        match self.ds.as_ref().resolve(id) {
             TermRef::Iri(iri) => Some(Node::Named(iri.to_owned())),
             TermRef::Blank { label, scope } => {
                 Some(Node::Blank(scope.qualify_label(label).into_owned()))
@@ -145,7 +145,7 @@ impl Store {
 
     /// Resolve a quad object slot to an owned [`Object`].
     fn object_of(&self, id: TermId) -> Object {
-        match self.ds.resolve(id) {
+        match self.ds.as_ref().resolve(id) {
             TermRef::Iri(iri) => Object::Named(iri.to_owned()),
             TermRef::Blank { label, scope } => {
                 Object::Blank(scope.qualify_label(label).into_owned())
@@ -436,7 +436,7 @@ impl Store {
         self.ds
             .quads_for_pattern(Some(s), None, None, GraphMatch::Default)
             .filter_map(|q| {
-                let TermRef::Iri(p) = self.ds.resolve(q.p) else {
+                let TermRef::Iri(p) = self.ds.as_ref().resolve(q.p) else {
                     return None;
                 };
                 Some((p.to_owned(), self.object_of(q.o)))
@@ -453,7 +453,7 @@ impl Store {
             let Some(s) = self.node_of(q.s) else {
                 continue;
             };
-            let TermRef::Iri(p) = self.ds.resolve(q.p) else {
+            let TermRef::Iri(p) = self.ds.as_ref().resolve(q.p) else {
                 continue;
             };
             let p = p.to_owned();

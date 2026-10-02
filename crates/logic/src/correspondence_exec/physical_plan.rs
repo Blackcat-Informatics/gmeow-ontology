@@ -17,7 +17,7 @@ use gmeow_logic_compile::ir::{Correspondence, CorrespondenceComposition, LegPath
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::paths::{leg_path_canonical, lower_leg_path};
 use purrdf::sparql::{
-    GraphPattern, NativeSparqlEngine, PreparedQuery, Query, QueryOptions, SparqlResult,
+    Child, GraphPattern, NativeSparqlEngine, PreparedQuery, Query, QueryOptions, SparqlResult,
     TermPattern, Variable,
 };
 use purrdf::{CanonHash, RdfDataset};
@@ -683,9 +683,9 @@ fn fused_relation_algebra(first: &LegPath, second: &LegPath) -> Query {
     };
     Query::Select {
         pattern: GraphPattern::Project {
-            inner: Box::new(GraphPattern::Join {
-                left: Box::new(left),
-                right: Box::new(right),
+            inner: Child::new(GraphPattern::Join {
+                left: Child::new(left),
+                right: Child::new(right),
             }),
             variables: vec![source, middle, target],
         },

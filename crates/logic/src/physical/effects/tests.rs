@@ -114,9 +114,9 @@ fn native_constants_distinguish_blank_scope_literals_and_nested_statements() {
                 i == j
             );
             let quote = |value: &TermValue| TermValue::Triple {
-                s: Box::new(TermValue::iri("urn:claim")),
-                p: Box::new(TermValue::iri(TYPE)),
-                o: Box::new(value.clone()),
+                s: TermValue::iri("urn:claim").into(),
+                p: TermValue::iri(TYPE).into(),
+                o: value.clone().into(),
             };
             assert_eq!(
                 pattern(&quote(read))

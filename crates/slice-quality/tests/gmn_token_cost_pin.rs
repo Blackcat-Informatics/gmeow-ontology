@@ -54,11 +54,14 @@ fn live_audit_tokens() -> BTreeSet<String> {
             panic!("governance module {} does not parse: {e}", module.display())
         });
         for predicate in [CANDIDATE_GLYPH, ASCII_FALLBACK] {
-            let Some(pid) = dataset.term_id_by_value(&TermValue::iri(predicate)) else {
+            let Some(pid) = dataset
+                .as_ref()
+                .term_id_by_value(&TermValue::iri(predicate))
+            else {
                 continue;
             };
             for quad in dataset.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
-                if let TermRef::Literal { lexical, .. } = dataset.resolve(quad.o) {
+                if let TermRef::Literal { lexical, .. } = dataset.as_ref().resolve(quad.o) {
                     tokens.insert(lexical.to_owned());
                 }
             }

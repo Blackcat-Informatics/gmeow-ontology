@@ -415,6 +415,7 @@ fn property_failure_identity_and_retained_shapes_reach_the_consumer() {
     let retained_index = crate::findings::FailureClassIndex::from_shapes_dataset(retained);
     assert_eq!(tier1.failure_classes, retained_index);
     let enforces = retained
+        .as_ref()
         .term_id_by_value(&TermValue::iri(
             crate::findings::GMEOW_ENFORCES_FAILURE_CLASS,
         ))

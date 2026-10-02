@@ -13,7 +13,7 @@ fn nn(iri: &str) -> NamedNode {
 #[test]
 fn diagnostics_map_to_the_gate_severity_split() {
     let report = OwnershipReport {
-        ownership: HashMap::new(),
+        ownership: HashMap::default(),
         edges: Vec::new(),
         diagnostics: vec![
             OwnershipDiagnostic::Conflict {
@@ -56,7 +56,7 @@ fn diagnostics_map_to_the_gate_severity_split() {
 #[test]
 fn unowned_table_status_becomes_one_error_finding() {
     let term = nn("https://blackcatinformatics.ca/gmeow/Orphan");
-    let mut ownership = HashMap::new();
+    let mut ownership = HashMap::default();
     ownership.insert(
         term.clone(),
         purrdf::slice::TermOwnership {

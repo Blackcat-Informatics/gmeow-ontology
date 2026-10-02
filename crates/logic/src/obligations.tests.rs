@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use std::fmt::Write as _;
 
 fn obligation(iri: &str, pred: &str, conds: &[&str]) -> Obligation {
     Obligation {

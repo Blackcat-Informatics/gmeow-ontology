@@ -26,9 +26,8 @@
 // feed it — and fixed the playground, whose own default query returned nothing because that
 // substrate put every statement in a named graph. See `mcp-transport.mjs`'s `queryBundle`.
 //
-// The purrdf package is still SHIPPED at `assets/purrdf/`, and this file deliberately never
-// imports it: it is there for a page that embeds the tree and wants an offline RDF/JS store
-// over its own dataset, which is not a question any widget below asks.
+// No PurRDF browser package is shipped; every widget below runs on the GMEOW-owned MCP
+// wasm segments.
 
 import {
   callTool,

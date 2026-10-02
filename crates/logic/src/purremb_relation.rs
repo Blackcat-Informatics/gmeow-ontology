@@ -56,6 +56,7 @@ use purrdf::{
     TlvWireType, VectorDtype, VectorSpaceId, canonical_tlv, reopen_prevalidated, verify_embedding,
     verify_embedding_source,
 };
+use purrdf_core::distance::{Arithmetic, Exact, Resolved};
 
 use crate::external_relation::{
     ExternalRelationProvider, RelationAnnotationDimension, RelationBatch, RelationCall,
@@ -737,9 +738,9 @@ fn reconstruct_rdf_term(
             let object = reconstruct_target(view, fields.target(4)?, depth + 1)?;
             require_iri_predicate(&predicate)?;
             Ok(TermValue::Triple {
-                s: Box::new(subject),
-                p: Box::new(predicate),
-                o: Box::new(object),
+                s: subject.into(),
+                p: predicate.into(),
+                o: object.into(),
             })
         }
         other => Err(PurrembMapError::MalformedIdentity(format!(
@@ -763,9 +764,9 @@ fn reconstruct_rdf_statement(
     let object = reconstruct_target(view, fields.target(4)?, depth + 1)?;
     require_iri_predicate(&predicate)?;
     Ok(TermValue::Triple {
-        s: Box::new(subject),
-        p: Box::new(predicate),
-        o: Box::new(object),
+        s: subject.into(),
+        p: predicate.into(),
+        o: object.into(),
     })
 }
 
@@ -1164,8 +1165,13 @@ impl PurrembScanner {
             .target_set(selection.target_set)
             .ok_or_else(|| ScanError::Rejected("selected target set absent".to_owned()))?;
 
+        // The projection fold is binary64 arithmetic: prove this thread's float
+        // environment once per scan; a non-IEEE environment refuses the scan.
+        let arithmetic =
+            Exact::resolve().map_err(|error| ScanError::Rejected(error.to_string()))?;
         // Coarse pass over the deterministically-projected leading prefix.
-        let query_prefix = collect_effective_row(effective, query_row as u64, selection.dtype)?;
+        let query_prefix =
+            collect_effective_row(effective, query_row as u64, selection.dtype, arithmetic)?;
         let pool_capacity = limit.saturating_mul(MATRYOSHKA_RERANK_FACTOR);
         let mut coarse = BoundedTopK::new(pool_capacity, direction);
         let row_count = matrix.row_count();
@@ -1173,7 +1179,7 @@ impl PurrembScanner {
             if (row as usize).is_multiple_of(CANCEL_POLL_BLOCK) && cancellation.is_cancelled() {
                 return Err(ScanError::Cancelled);
             }
-            let candidate = collect_effective_row(effective, row, selection.dtype)?;
+            let candidate = collect_effective_row(effective, row, selection.dtype, arithmetic)?;
             let distance = score_f64(&query_prefix, &candidate, &selection.metric)?;
             coarse.offer(scanned(&target_set, row, distance)?);
         }
@@ -1309,13 +1315,14 @@ fn collect_effective_row(
     effective: purrdf::EffectiveMatrixView<'_>,
     row: u64,
     dtype: VectorDtype,
+    arithmetic: Resolved<Exact>,
 ) -> Result<Vec<f64>, EmbeddingError> {
     match dtype {
         VectorDtype::F32 => effective
-            .f32_row(row)?
+            .f32_row(row, arithmetic)?
             .map(|value| value.map(f64::from))
             .collect(),
-        VectorDtype::F64 => effective.f64_row(row)?.collect(),
+        VectorDtype::F64 => effective.f64_row(row, arithmetic)?.collect(),
     }
 }
 

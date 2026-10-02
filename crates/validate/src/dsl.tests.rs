@@ -57,7 +57,7 @@ fn merge_to_ntriples_unions_all_triples() {
     let ds = crate::store::dataset_from_nt(&nt).unwrap();
     assert_eq!(ds.quad_count(), 2);
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        let ok = matches!(ds.resolve(q.o), TermRef::Iri(n)
+        let ok = matches!(ds.as_ref().resolve(q.o), TermRef::Iri(n)
                 if n == "https://example.org/b" || n == "https://example.org/d");
         assert!(ok);
     }
