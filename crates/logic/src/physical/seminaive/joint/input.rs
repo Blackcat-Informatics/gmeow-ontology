@@ -773,8 +773,10 @@ impl JointTemplate {
             // immutable-predicate check. Source absence alone proves nothing;
             // an external envelope either participates in the finite bound or
             // prevents the source-concrete certificate.
-            .filter(|_| self.cacheable())
-            .and_then(|termination| {
+            .map(|termination| {
+                if !self.cacheable() {
+                    return Err(admission::EvidenceGap::uncacheable(self.metadata_bytes));
+                }
                 termination.observe(
                     facts,
                     &possible,
@@ -790,7 +792,11 @@ impl JointTemplate {
                 phase = "observe-native-termination",
                 event = "end",
                 elapsed_ms = termination_started.elapsed().as_millis(),
-                has_evidence = evidence.is_some(),
+                has_evidence = matches!(evidence, Some(Ok(_))),
+                gap = evidence
+                    .as_ref()
+                    .and_then(|evidence| evidence.as_ref().err())
+                    .map(ToString::to_string),
                 "large native reasoning input",
             );
         }
@@ -799,7 +805,7 @@ impl JointTemplate {
             "gmeow-native-world-input-shape-v1",
             &(shape, world_shapes, contextual_effects),
         );
-        if let Some(evidence) = &evidence {
+        if let Some(Ok(evidence)) = &evidence {
             let mut digest = blake3::Hasher::new();
             digest.update(b"gmeow-native-source-admission-v1\0");
             digest.update(&identity);
@@ -871,7 +877,7 @@ pub(crate) struct JointInput<'a> {
     flow: Arc<ValueFlow>,
     effects: Arc<Vec<ProducerEffect>>,
     world_effects: BTreeMap<String, Arc<Vec<ProducerEffect>>>,
-    evidence: Option<admission::Evidence<'a>>,
+    evidence: Option<Result<admission::Evidence<'a>, admission::EvidenceGap>>,
     identity: [u8; 32],
 }
 
@@ -1156,18 +1162,44 @@ impl JointInput<'_> {
             .map_err(|_| seminaive_err("empty relational operation has cyclic native effects"))?
         };
         let mut admission = template.admission.clone();
-        if let (Some(termination), Some(evidence)) = (&template.termination, &self.evidence)
-            && let Some(refined) = termination.certify(
-                evidence,
-                &self.certificate_flow,
-                self.facts,
-                &self.possible,
-                &self.contextual_effects,
-                template.semantics,
-            )?
-            && refined.admits_native()
-        {
-            admission = refined;
+        if let Some(termination) = &template.termination {
+            // The input-specific certificate decides whenever it is attempted. When
+            // it is not, the template certificate decides alone and its refusal
+            // names why, never passing off the template ledger as the input's.
+            let refinement = match &self.evidence {
+                Some(Ok(evidence)) => termination
+                    .certify(
+                        evidence,
+                        &self.certificate_flow,
+                        self.facts,
+                        &self.possible,
+                        &self.contextual_effects,
+                        template.semantics,
+                    )?
+                    .ok_or_else(|| {
+                        format!(
+                            "the input-specific analysis exhausted its bound of {} specialized \
+                             statements",
+                            admission::ANALYSIS_BOUND
+                        )
+                    }),
+                Some(Err(gap)) => Err(gap.to_string()),
+                None => Err("no input-specific evidence was observed".to_owned()),
+            };
+            match refinement {
+                Ok(refined) if refined.admits_native() || !admission.admits_native() => {
+                    admission = refined;
+                }
+                Ok(_) => {}
+                Err(reason) => {
+                    if let ChaseAdmission::Uncertified { violations } = &mut admission {
+                        violations.insert(
+                            0,
+                            format!("input-specific termination certificate not decided: {reason}"),
+                        );
+                    }
+                }
+            }
         }
         let mut program = JointProgram::from_schedule(
             &template.rules,

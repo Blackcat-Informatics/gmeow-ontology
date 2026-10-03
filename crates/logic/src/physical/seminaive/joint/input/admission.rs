@@ -86,7 +86,7 @@ impl Template {
         effects: &[ProducerEffect],
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
-    ) -> Option<Evidence<'a>> {
+    ) -> Result<Evidence<'a>, EvidenceGap> {
         let predicates: BTreeSet<_> = self
             .predicates
             .iter()
@@ -102,15 +102,11 @@ impl Template {
             })
             .map(|predicate| semantics.predicate(predicate).to_owned())
             .collect();
-        let selectors: BTreeSet<_> = self
-            .predicates
-            .iter()
-            .map(|predicate| semantics.predicate(predicate))
-            .collect();
         let mut selected = Vec::new();
+        let mut retained = 0usize;
         let mut bytes = 0usize;
         let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
-        digest.0.update(b"gmeow-native-selector-bindings-v2\0");
+        digest.0.update(b"gmeow-native-selector-bindings-v3\0");
         write!(digest, "{predicates:?}:{possible:?}:{external:?}").expect("digest-only formatter");
         for (world, rows) in facts {
             write!(digest, "{world:?}").expect("digest-only formatter");
@@ -119,19 +115,29 @@ impl Template {
                 // anywhere in the input. Bind EVERY fact, including dynamic
                 // predicate rows, without retaining or serializing the dataset.
                 write!(digest, "{fact:?}").expect("digest-only formatter");
-                if !selectors.contains(semantics.predicate(&fact.predicate)) {
+                // The certificate's join reads only proved-immutable relations, so
+                // only their rows are retained, all of them. A mutable selector row
+                // can never match that join; dropping it from the source-constant
+                // enrichment only coarsens value cells, which stays sound.
+                if !predicates.contains(semantics.predicate(&fact.predicate)) {
                     continue;
                 }
                 let mut size = MetadataDigest(blake3::Hasher::new(), 0);
                 write!(size, "{world:?}:{fact:?}").expect("digest-only formatter");
                 bytes = bytes.saturating_add(size.1);
-                if selected.len() == MAX_BINDINGS || bytes > MAX_BYTES {
-                    return None;
+                retained += 1;
+                if retained <= MAX_BINDINGS && bytes <= MAX_BYTES {
+                    selected.push(fact);
                 }
-                selected.push(fact);
             }
         }
-        Some(Evidence {
+        if retained > MAX_BINDINGS || bytes > MAX_BYTES {
+            return Err(EvidenceGap::Bound {
+                facts: retained,
+                bytes,
+            });
+        }
+        Ok(Evidence {
             predicates,
             facts: selected,
             identity: *digest.0.finalize().as_bytes(),
@@ -310,6 +316,43 @@ fn push_analysis(
     analysis.push(specialized);
     true
 }
+
+/// Why an input's specific termination certificate was not attempted. The
+/// source-independent template certificate then decides alone, and a refusal
+/// names this gap rather than presenting the template's ledger as the input's.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) enum EvidenceGap {
+    /// The retained rule metadata exceeds the cacheable bound.
+    Uncacheable { metadata_bytes: usize },
+    /// The proved-immutable selector rows exceed the analysis bound.
+    Bound { facts: usize, bytes: usize },
+}
+
+impl std::fmt::Display for EvidenceGap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Uncacheable { metadata_bytes } => write!(
+                f,
+                "the joint template's rule metadata ({metadata_bytes} bytes) exceeds the \
+                 {MAX_BYTES}-byte cacheable bound"
+            ),
+            Self::Bound { facts, bytes } => write!(
+                f,
+                "{facts} proved-immutable selector rows ({bytes} bytes) exceed the \
+                 {MAX_BINDINGS}-row / {MAX_BYTES}-byte analysis bound"
+            ),
+        }
+    }
+}
+
+impl EvidenceGap {
+    pub(super) fn uncacheable(metadata_bytes: usize) -> Self {
+        Self::Uncacheable { metadata_bytes }
+    }
+}
+
+/// The bound a specialized statement analysis exhausted.
+pub(super) const ANALYSIS_BOUND: usize = MAX_BINDINGS;
 
 pub(super) struct Evidence<'a> {
     predicates: BTreeSet<String>,
