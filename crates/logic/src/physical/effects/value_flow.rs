@@ -259,7 +259,10 @@ struct SupportContent<'a>(&'a AdaptiveDomain);
 
 impl PartialEq for SupportContent<'_> {
     fn eq(&self, other: &Self) -> bool {
-        self.0.indices().eq(other.0.indices())
+        match (self.0, other.0) {
+            (AdaptiveDomain::Dense(left), AdaptiveDomain::Dense(right)) => left == right,
+            (left, right) => left.nonzero_words().eq(right.nonzero_words()),
+        }
     }
 }
 
@@ -267,8 +270,9 @@ impl Eq for SupportContent<'_> {}
 
 impl std::hash::Hash for SupportContent<'_> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        for value in self.0.indices() {
-            value.hash(state);
+        for (index, word) in self.0.nonzero_words() {
+            state.write_usize(index);
+            state.write_u64(word);
         }
     }
 }
@@ -939,6 +943,33 @@ impl AdaptiveDomain {
         match self {
             Self::Dense(domain) => Box::new(domain.indices()),
             Self::Sparse { values, .. } => Box::new(values.iter().copied()),
+        }
+    }
+
+    /// The set's nonzero bitset words in index order, whichever representation
+    /// stores it: one word per 64 dense cells, never one step per member.
+    fn nonzero_words(&self) -> Box<dyn Iterator<Item = (usize, u64)> + '_> {
+        match self {
+            Self::Dense(domain) => Box::new(
+                domain
+                    .0
+                    .iter()
+                    .copied()
+                    .enumerate()
+                    .filter(|(_, word)| *word != 0),
+            ),
+            Self::Sparse { values, .. } => {
+                let mut values = values.iter().copied().peekable();
+                Box::new(std::iter::from_fn(move || {
+                    let first = values.next()?;
+                    let index = first / 64;
+                    let mut word = 1u64 << (first % 64);
+                    while let Some(value) = values.next_if(|value| value / 64 == index) {
+                        word |= 1 << (value % 64);
+                    }
+                    Some((index, word))
+                }))
+            }
         }
     }
 }

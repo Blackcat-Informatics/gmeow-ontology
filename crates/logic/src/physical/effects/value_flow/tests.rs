@@ -1772,3 +1772,33 @@ fn published_member_support_is_the_representative_support_transposed() {
         }
     }
 }
+
+#[test]
+fn support_content_identifies_equal_sets_across_representations() {
+    use std::hash::{BuildHasher, BuildHasherDefault};
+    type Hashing = BuildHasherDefault<std::collections::hash_map::DefaultHasher>;
+    let size = 300;
+    let members = [0, 3, 63, 64, 130, 299];
+    let mut dense = Domain::empty(size);
+    for member in members {
+        dense.insert(member);
+    }
+    let sparse = AdaptiveDomain::Sparse {
+        size,
+        values: members.to_vec(),
+    };
+    let dense = AdaptiveDomain::Dense(dense);
+    let mut other = Domain::empty(size);
+    for member in [0, 3, 63, 64, 131, 299] {
+        other.insert(member);
+    }
+    let other = AdaptiveDomain::Dense(other);
+    let hash = |set: &AdaptiveDomain| Hashing::default().hash_one(SupportContent(set));
+    assert!(SupportContent(&dense) == SupportContent(&sparse));
+    assert_eq!(hash(&dense), hash(&sparse));
+    assert!(SupportContent(&dense) != SupportContent(&other));
+    assert!(SupportContent(&sparse) != SupportContent(&other));
+    let words: Vec<_> = sparse.nonzero_words().collect();
+    assert_eq!(words, dense.nonzero_words().collect::<Vec<_>>());
+    assert_eq!(words.len(), 4, "members share words 0, 1, 2 and 4");
+}
