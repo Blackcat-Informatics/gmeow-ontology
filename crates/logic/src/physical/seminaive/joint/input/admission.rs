@@ -9,7 +9,9 @@ use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
 use super::{BTreeMap, MetadataDigest, PreparedPropertyRule, SemanticVocabulary};
-use crate::physical::chase::{ChaseAdmission, ExistentialRule, StatementRule, join};
+use crate::physical::chase::{
+    ChaseAdmission, ExistentialRule, Ladder, StatementRule, firing_statements, join,
+};
 use crate::physical::effects::{ProducerEffect, WorldProducerEffect, value_flow::ValueFlow};
 use crate::physical::store::RelationStore;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
@@ -145,6 +147,8 @@ impl Template {
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
     ) -> gmeow_errors::Result<Option<ChaseAdmission>> {
+        // Only producers that can fire on this admitted input bear on its termination.
+        let seeds = firing_seeds(facts, possible, external, semantics);
         let mut rel = RelationStore::with_semantics(semantics);
         for fact in &evidence.facts {
             rel.insert(&fact.predicate, &fact.subject, &fact.object);
@@ -184,7 +188,8 @@ impl Template {
         // A union across worlds only introduces extra bindings. Constant
         // substitution retains all mutable body atoms and every witness frontier
         // dependency. A finite abstract closure therefore bounds every world.
-        let admission = ChaseAdmission::certify_statements(&analysis, semantics);
+        let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
+        let admission = ChaseAdmission::certify_statements(&firing, semantics, Ladder::Complete);
         if admission.admits_native() {
             return Ok(Some(admission));
         }
@@ -248,10 +253,37 @@ impl Template {
                 }
             }
         }
+        let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
         Ok(Some(ChaseAdmission::certify_statements(
-            &analysis, semantics,
+            &firing,
+            semantics,
+            Ladder::Complete,
         )))
     }
+}
+
+/// The canonical predicates this input can present: every world fact, every possible
+/// fact and every external producer write. `None` when an external write may carry any
+/// predicate, so no producer can be shown not to fire.
+fn firing_seeds(
+    facts: &BTreeMap<String, Vec<Fact>>,
+    possible: &[(String, Fact)],
+    external: &[WorldProducerEffect],
+    semantics: SemanticVocabulary,
+) -> Option<BTreeSet<String>> {
+    let mut seeds: BTreeSet<String> = facts
+        .values()
+        .flatten()
+        .chain(possible.iter().map(|(_, fact)| fact))
+        .map(|fact| semantics.predicate(&fact.predicate).to_owned())
+        .collect();
+    for write in external
+        .iter()
+        .flat_map(|effect| effect.effect.writes.iter())
+    {
+        seeds.insert(semantics.predicate(write.predicate()?).to_owned());
+    }
+    Some(seeds)
 }
 
 fn push_analysis(

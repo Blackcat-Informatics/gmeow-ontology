@@ -1285,6 +1285,77 @@ impl StatementRule {
     }
 }
 
+/// Which rungs of the termination-class ladder a certification may climb.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Ladder {
+    /// Weak, joint and super-weak acyclicity: the polynomial structural rungs. A
+    /// source-independent template uses these and defers model-summarizing
+    /// acyclicity to its input-specific certification, which sees only the
+    /// producers that can fire.
+    Polynomial,
+    /// Every rung, including the EXPTIME model-summarizing check.
+    Complete,
+}
+
+/// The producers of `rules` that can fire on one admitted input.
+///
+/// `seeds` are the canonical predicates the input's present and possible statements
+/// carry; `None` means some statement may carry any predicate, which keeps every
+/// producer. A producer fires only once each fixed body predicate is present or
+/// written by another firing producer (a variable body predicate needs any statement
+/// at all), so this least fixpoint over-approximates the firing set. A producer
+/// outside it never fires on this input, mints no witness, and cannot affect chase
+/// termination here; a firing producer whose head predicate is a variable may write
+/// any predicate and keeps every producer.
+pub(crate) fn firing_statements(
+    rules: &[StatementRule],
+    seeds: Option<&BTreeSet<String>>,
+    semantics: crate::native_semantics::SemanticVocabulary,
+) -> Vec<StatementRule> {
+    let Some(seeds) = seeds else {
+        return rules.to_vec();
+    };
+    let fixed = |term: &EvalTerm| match term {
+        EvalTerm::ConstNamed(iri) | EvalTerm::ConstLit(purrdf::TermValue::Iri(iri)) => {
+            Some(semantics.predicate(iri).to_owned())
+        }
+        _ => None,
+    };
+    let mut reachable = seeds.clone();
+    let mut fires = vec![false; rules.len()];
+    loop {
+        let mut changed = false;
+        for (rule, fired) in rules.iter().zip(&mut fires) {
+            if *fired {
+                continue;
+            }
+            let ready = rule.body.iter().all(|atom| match fixed(&atom[1]) {
+                Some(predicate) => reachable.contains(&predicate),
+                None => !reachable.is_empty(),
+            });
+            if !ready {
+                continue;
+            }
+            *fired = true;
+            changed = true;
+            for head in &rule.heads {
+                let Some(predicate) = fixed(&head[1]) else {
+                    return rules.to_vec();
+                };
+                reachable.insert(predicate);
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    rules
+        .iter()
+        .zip(fires)
+        .filter_map(|(rule, fired)| fired.then(|| rule.clone()))
+        .collect()
+}
+
 impl ChaseAdmission {
     /// Certify the combined ordinary, existential and native schema producers.
     ///
@@ -1314,7 +1385,7 @@ impl ChaseAdmission {
             .map(StatementRule::from_binary)
             .chain(properties.iter().map(StatementRule::from_property))
             .collect();
-        Self::certify_statements(&analysis, semantics)
+        Self::certify_statements(&analysis, semantics, Ladder::Complete)
     }
 
     /// Certify a complete over-approximation of native producers. Source-bound
@@ -1323,6 +1394,7 @@ impl ChaseAdmission {
     pub(crate) fn certify_statements(
         rules: &[StatementRule],
         semantics: crate::native_semantics::SemanticVocabulary,
+        ladder: Ladder,
     ) -> Self {
         let fixed_relations = rules
             .iter()
@@ -1391,7 +1463,7 @@ impl ChaseAdmission {
             Self::certify_weakly_acyclic(&analysis)
                 .unwrap_or_else(|violations| Self::Uncertified { violations })
         } else {
-            Self::certify(&analysis)
+            Self::certify_on(&analysis, ladder)
         };
         let context = format!(
             "joint statement value-flow abstraction of {} native producer(s)",
@@ -1418,6 +1490,11 @@ impl ChaseAdmission {
     /// rungs all refuse. When no class certifies, return `Uncertified` carrying the
     /// weak-acyclicity position-graph violations (the canonical diagnostic).
     pub(crate) fn certify(rules: &[ExistentialRule]) -> Self {
+        Self::certify_on(rules, Ladder::Complete)
+    }
+
+    /// [`Self::certify`] over the selected rungs of the ladder.
+    pub(crate) fn certify_on(rules: &[ExistentialRule], ladder: Ladder) -> Self {
         if rules.iter().any(|rule| !rule.numeric.is_empty()) {
             // Arithmetic can collapse or reuse values. Only the conservative
             // position proof applies; critical-instance tuple proofs do not.
@@ -1439,7 +1516,10 @@ impl ChaseAdmission {
             Ok(admission) => admission,
             Err(violations) => Self::certify_joint_acyclic(rules)
                 .or_else(|| Self::certify_super_weak_acyclic(rules))
-                .or_else(|| Self::certify_model_summarizing(rules))
+                .or_else(|| match ladder {
+                    Ladder::Complete => Self::certify_model_summarizing(rules),
+                    Ladder::Polynomial => None,
+                })
                 .unwrap_or(Self::Uncertified { violations }),
         }
     }

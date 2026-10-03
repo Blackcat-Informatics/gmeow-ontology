@@ -758,4 +758,3 @@ fn empty_intersection_admits_active_resource_terms_without_inventing_literal_sub
         );
     }
 }
-

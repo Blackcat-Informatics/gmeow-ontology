@@ -142,7 +142,15 @@ impl JointProgram {
         ) else {
             return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
         };
-        let admission = producer_admission(rules, producers, properties, &families, semantics);
+        // No input-specific certification follows this entry: climb every rung here.
+        let admission = producer_admission(
+            rules,
+            producers,
+            properties,
+            &families,
+            semantics,
+            crate::physical::chase::Ladder::Complete,
+        );
         let layouts = RuleLayouts::new(rules)?;
         let producers = prepare_producers(producers)?;
         Ok(NativeOutcome::Decided(Self::from_schedule(
@@ -1116,6 +1124,7 @@ fn producer_admission(
     properties: &[PreparedPropertyRule],
     families: &[families::Arm],
     semantics: crate::native_semantics::SemanticVocabulary,
+    ladder: crate::physical::chase::Ladder,
 ) -> ChaseAdmission {
     // Dropping filters/NAF is a conservative producer over-approximation for
     // termination. Arithmetic generation requires its own range certificate.
@@ -1155,7 +1164,7 @@ fn producer_admission(
             )
             .chain(families.iter().map(|arm| arm.statement.clone()))
             .collect();
-        ChaseAdmission::certify_statements(&statements, semantics)
+        ChaseAdmission::certify_statements(&statements, semantics, ladder)
     } else {
         ChaseAdmission::Uncertified {
             violations: arithmetic,

@@ -38,6 +38,11 @@ impl StatementPattern {
         }
     }
 
+    /// The fixed predicate this pattern writes or reads; `None` when any predicate matches.
+    pub(crate) fn predicate(&self) -> Option<&str> {
+        self.predicate.as_deref()
+    }
+
     /// Schema predicates can be data-selected, unlike ordinary relational atoms.
     pub(crate) fn statement(terms: &[EvalTerm; 3]) -> Self {
         Self {

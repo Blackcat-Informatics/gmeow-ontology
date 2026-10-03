@@ -467,8 +467,17 @@ impl JointTemplate {
             &observed_definitions,
             &protected_definitions,
         ));
-        let admission =
-            super::producer_admission(rules, producers, properties, &families, semantics);
+        // The source-independent proof climbs only the polynomial rungs. Model-summarizing
+        // acyclicity runs in the input-specific `admission::Template` below, over the
+        // producers that can fire on each admitted input.
+        let admission = super::producer_admission(
+            rules,
+            producers,
+            properties,
+            &families,
+            semantics,
+            crate::physical::chase::Ladder::Polynomial,
+        );
         let termination = if admission.admits_native() {
             None
         } else {
