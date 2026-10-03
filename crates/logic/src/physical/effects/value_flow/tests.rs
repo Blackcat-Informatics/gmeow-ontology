@@ -1395,6 +1395,11 @@ fn source_constant_enrichment_preserves_unbounded_native_generation_and_known_al
     );
 }
 
+/// A head support as plain sorted indices, whichever representation holds it.
+fn support_indices(support: HeadSupport) -> (Vec<usize>, Vec<usize>) {
+    (support.predicates, support.opposite.indices().collect())
+}
+
 #[test]
 fn value_classes_transpose_each_member_onto_its_exact_representative_support() {
     let rule = EvalRule::positive(
@@ -1453,23 +1458,22 @@ fn value_classes_transpose_each_member_onto_its_exact_representative_support() {
     let support = |slot: usize, member: usize| {
         let refinement =
             analysis.bindings_for_head_value(lowered, head, slot, member, &state, &upper);
-        analysis.head_value_support(head, slot, refinement)
+        analysis
+            .head_value_support(head, slot, refinement)
+            .map(support_indices)
     };
-    let transposed = |support: Option<HeadSupport>, from: usize, to: usize| {
-        support.map(|support| {
+    let transposed = |support: Option<(Vec<usize>, Vec<usize>)>, from: usize, to: usize| {
+        support.map(|(predicates, opposite)| {
             let swap = |index: usize| match index {
                 index if index == from => to,
                 index if index == to => from,
                 index => index,
             };
-            let mut predicates: Vec<_> = support.predicates.into_iter().map(swap).collect();
-            let mut opposite: Vec<_> = support.opposite.into_iter().map(swap).collect();
+            let mut predicates: Vec<_> = predicates.into_iter().map(swap).collect();
+            let mut opposite: Vec<_> = opposite.into_iter().map(swap).collect();
             predicates.sort_unstable();
             opposite.sort_unstable();
-            HeadSupport {
-                predicates,
-                opposite,
-            }
+            (predicates, opposite)
         })
     };
 
@@ -1567,7 +1571,9 @@ fn value_classes_separate_values_named_only_by_a_one_sided_published_support() {
         .collect();
     let support = |member: usize| {
         let refinement = analysis.bindings_for_head_value(lowered, head, 0, member, &state, &upper);
-        analysis.head_value_support(head, 0, refinement)
+        analysis
+            .head_value_support(head, 0, refinement)
+            .map(support_indices)
     };
     assert_ne!(support(value(0)), support(value(6)));
 
@@ -1583,4 +1589,72 @@ fn value_classes_separate_values_named_only_by_a_one_sided_published_support() {
         class_of(value(8)),
         "plain fan-in still shares a class"
     );
+}
+
+#[test]
+fn candidate_partition_matches_brute_force_membership_equivalence() {
+    let mut seed = 0x9e37_79b9_7f4a_7c15_u64;
+    let mut next = move || {
+        seed ^= seed << 13;
+        seed ^= seed >> 7;
+        seed ^= seed << 17;
+        seed
+    };
+    for _ in 0..64 {
+        let len = 1 + (next() % 48) as usize;
+        let singletons: Vec<bool> = (0..len).map(|_| next() % 11 == 0).collect();
+        let mut partition = CandidatePartition::new(&singletons);
+        // Each position's observed history: singleton identity, then one entry per split.
+        let mut history: Vec<Vec<u64>> = (0..len)
+            .map(|position| {
+                vec![if singletons[position] {
+                    position as u64 + 1
+                } else {
+                    0
+                }]
+            })
+            .collect();
+        for _ in 0..(next() % 6) {
+            if next() % 2 == 0 {
+                let members: Vec<usize> = (0..len).filter(|_| next() % 3 == 0).collect();
+                for (position, entry) in history.iter_mut().enumerate() {
+                    entry.push(u64::from(members.contains(&position)));
+                }
+                partition.split(members);
+            } else {
+                let labelled: Vec<(usize, u64)> = (0..len)
+                    .filter_map(|position| {
+                        let draw = next();
+                        (draw % 2 == 0).then_some((position, (draw >> 8) % 3))
+                    })
+                    .collect();
+                for (position, entry) in history.iter_mut().enumerate() {
+                    let label = labelled.iter().find(|(member, _)| *member == position);
+                    entry.push(label.map_or(u64::MAX, |(_, label)| *label));
+                }
+                partition.split_labelled(labelled);
+            }
+        }
+        let candidates: Vec<usize> = (0..len).collect();
+        let classes = partition.classes(&candidates);
+        let class_of: Vec<usize> = {
+            let mut class_of = vec![0; len];
+            for (class, members) in classes.iter().enumerate() {
+                for &member in members {
+                    class_of[member] = class;
+                }
+            }
+            class_of
+        };
+        for left in 0..len {
+            for right in 0..len {
+                assert_eq!(
+                    class_of[left] == class_of[right],
+                    history[left] == history[right],
+                    "positions {left} and {right}",
+                );
+            }
+        }
+        assert!(classes.windows(2).all(|pair| pair[0][0] < pair[1][0]));
+    }
 }

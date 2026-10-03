@@ -241,13 +241,164 @@ struct RuleRefinement {
     heads: Vec<[Domain; 3]>,
 }
 
-/// One nonempty seeded head join, reduced to what publication reads. Sorted
-/// indices keep a whole refinement's results resident without one
-/// universe-width domain per class.
-#[derive(Debug, Default, PartialEq, Eq)]
+/// One nonempty seeded head join, reduced to what publication reads. The
+/// opposite column stays sparse until it would outgrow its bitset, so a whole
+/// refinement's results stay resident at no more than one domain per class.
+#[derive(Debug)]
 struct HeadSupport {
     predicates: Vec<usize>,
-    opposite: Vec<usize>,
+    opposite: AdaptiveDomain,
+}
+
+/// A support row compared by the value set it denotes, whichever
+/// representation stores it.
+struct SupportContent<'a>(&'a AdaptiveDomain);
+
+impl PartialEq for SupportContent<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.indices().eq(other.0.indices())
+    }
+}
+
+impl Eq for SupportContent<'_> {}
+
+impl std::hash::Hash for SupportContent<'_> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        for value in self.0.indices() {
+            value.hash(state);
+        }
+    }
+}
+
+/// Exact partition refinement over candidate positions. Each split separates,
+/// inside every class it touches, the members it names from the rest, in time
+/// linear in the members named.
+struct CandidatePartition {
+    class: Vec<usize>,
+    sizes: Vec<usize>,
+    touched: Vec<usize>,
+    fresh: Vec<usize>,
+    touched_classes: Vec<usize>,
+    members: Vec<usize>,
+}
+
+impl CandidatePartition {
+    /// One class of every unmarked position, and a singleton per marked one.
+    fn new(singletons: &[bool]) -> Self {
+        let shared = usize::from(singletons.iter().any(|single| !single));
+        let mut sizes = vec![0; shared];
+        let class = singletons
+            .iter()
+            .map(|&single| {
+                if single {
+                    sizes.push(1);
+                    sizes.len() - 1
+                } else {
+                    sizes[0] += 1;
+                    0
+                }
+            })
+            .collect();
+        let classes = sizes.len();
+        Self {
+            class,
+            sizes,
+            touched: vec![0; classes],
+            fresh: vec![usize::MAX; classes],
+            touched_classes: Vec::new(),
+            members: Vec::new(),
+        }
+    }
+
+    fn is_discrete(&self) -> bool {
+        self.sizes.len() == self.class.len()
+    }
+
+    /// Split every class by membership in a set of distinct positions.
+    fn split(&mut self, members: impl IntoIterator<Item = usize>) {
+        if self.is_discrete() {
+            return;
+        }
+        self.members.clear();
+        self.members.extend(members);
+        for &member in &self.members {
+            let class = self.class[member];
+            if self.touched[class] == 0 {
+                self.touched_classes.push(class);
+            }
+            self.touched[class] += 1;
+        }
+        for &class in &self.touched_classes {
+            let named = self.touched[class];
+            if named < self.sizes[class] {
+                self.fresh[class] = self.sizes.len();
+                self.sizes[class] -= named;
+                self.sizes.push(named);
+                self.touched.push(0);
+                self.fresh.push(usize::MAX);
+            }
+        }
+        for &member in &self.members {
+            let fresh = self.fresh[self.class[member]];
+            if fresh != usize::MAX {
+                self.class[member] = fresh;
+            }
+        }
+        for &class in &self.touched_classes {
+            self.touched[class] = 0;
+            self.fresh[class] = usize::MAX;
+        }
+        self.touched_classes.clear();
+    }
+
+    /// Split every class by an exact label; unlabelled positions stay together.
+    fn split_labelled(&mut self, mut labelled: Vec<(usize, u64)>) {
+        if self.is_discrete() || labelled.is_empty() {
+            return;
+        }
+        labelled.sort_unstable_by_key(|&(member, label)| (self.class[member], label));
+        let mut start = 0;
+        while start < labelled.len() {
+            let class = self.class[labelled[start].0];
+            let end = start
+                + labelled[start..]
+                    .iter()
+                    .take_while(|(member, _)| self.class[*member] == class)
+                    .count();
+            let mut groups: Vec<&[(usize, u64)]> = labelled[start..end]
+                .chunk_by(|left, right| left.1 == right.1)
+                .collect();
+            // A class wholly covered by one label keeps its id for that group.
+            if end - start == self.sizes[class] {
+                groups.remove(0);
+            }
+            for group in groups {
+                let fresh = self.sizes.len();
+                self.sizes[class] -= group.len();
+                self.sizes.push(group.len());
+                self.touched.push(0);
+                self.fresh.push(usize::MAX);
+                for &(member, _) in group {
+                    self.class[member] = fresh;
+                }
+            }
+            start = end;
+        }
+    }
+
+    /// Classes as candidate values, ordered by their first candidate.
+    fn classes(self, candidates: &[usize]) -> Vec<Vec<usize>> {
+        let mut output = vec![usize::MAX; self.sizes.len()];
+        let mut classes: Vec<Vec<usize>> = Vec::with_capacity(self.sizes.len());
+        for (&class, &value) in self.class.iter().zip(candidates) {
+            if output[class] == usize::MAX {
+                output[class] = classes.len();
+                classes.push(Vec::with_capacity(self.sizes[class]));
+            }
+            classes[output[class]].push(value);
+        }
+        classes
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -1825,7 +1976,7 @@ impl ValueFlow {
 
     /// The part of one seeded head join that publication consumes: `None` when
     /// the join is empty, otherwise the head predicates and the opposite value
-    /// column as sorted indices. A predicate-slot candidate publishes nothing.
+    /// column. A predicate-slot candidate publishes nothing.
     fn head_value_support(
         &self,
         head: &[Slot; 3],
@@ -1833,8 +1984,12 @@ impl ValueFlow {
         value_bindings: Option<Vec<Domain>>,
     ) -> Option<HeadSupport> {
         let value_bindings = value_bindings?;
+        let mut compact = AdaptiveDomain::empty(self.universe.size());
         if !matches!(slot, 0 | 2) {
-            return Some(HeadSupport::default());
+            return Some(HeadSupport {
+                predicates: Vec::new(),
+                opposite: compact,
+            });
         }
         let constrained = self.universe.domains(head, &value_bindings, false);
         let opposite = if slot == 0 {
@@ -1842,13 +1997,14 @@ impl ValueFlow {
         } else {
             &constrained[0]
         };
+        compact.union(opposite);
         Some(HeadSupport {
             predicates: self
                 .universe
                 .iri_values(&constrained[1])
                 .indices()
                 .collect(),
-            opposite: opposite.indices().collect(),
+            opposite: compact,
         })
     }
 
@@ -1885,7 +2041,7 @@ impl ValueFlow {
                 index
             }
         };
-        for &index in &support.opposite {
+        for index in support.opposite.indices() {
             scratch.insert(transpose(index));
         }
         for predicate in support.predicates.iter().map(|&index| transpose(index)) {
@@ -1899,7 +2055,7 @@ impl ValueFlow {
                 changed_predicates.insert(predicate);
             }
         }
-        for &index in &support.opposite {
+        for index in support.opposite.indices() {
             scratch.remove(transpose(index));
         }
     }
@@ -1910,13 +2066,17 @@ impl ValueFlow {
     /// input of the seeded join `stabilize_bindings` evaluates: the stable upper
     /// bound, each read relation's columns, rectangles, exact supports keyed by
     /// either value, membership in every other key's support, the singleton
-    /// predicate index, and the IRI kind that selects head predicates. Membership
-    /// tokens carry the support key, so self and mutual edges among members compare
-    /// exactly. Rule constants, their semantic alternates, alternate-bearing
-    /// predicates and predicate-keyed values stay singletons. The join is a
-    /// deterministic function of those inputs, so it commutes with the
-    /// transposition: one representative per class yields the exact support of
-    /// every member. Classes are ordered by their first candidate.
+    /// predicate index, and the IRI kind that selects head predicates. Splitting by
+    /// every support row separates two values unless each row names both or
+    /// neither, so self and mutual edges among members compare exactly. Rule
+    /// constants, their semantic alternates, alternate-bearing predicates and
+    /// predicate-keyed values stay singletons. The join is a deterministic function
+    /// of those inputs, so it commutes with the transposition: one representative
+    /// per class yields the exact support of every member.
+    ///
+    /// Partition refinement keeps this linear in the summary: each distinct set
+    /// splits the classes it touches, and no per-value signature is materialized.
+    /// Classes are ordered by their first candidate.
     fn value_classes(
         &self,
         rule: &Rule,
@@ -1924,16 +2084,13 @@ impl ValueFlow {
         upper: &[Domain],
         candidates: &[usize],
     ) -> Vec<Vec<usize>> {
-        const UNSET: u32 = u32::MAX;
-        let token = |value: usize| u32::try_from(value).expect("value-flow index fits u32");
         let size = self.universe.size();
-        let mut position = vec![UNSET; size];
+        let mut position = vec![usize::MAX; size];
         for (index, &value) in candidates.iter().enumerate() {
-            position[value] = token(index);
+            position[value] = index;
         }
-        let candidate = |value: usize| (position[value] != UNSET).then(|| position[value] as usize);
-        let mut distinguished = vec![false; candidates.len()];
-        let mut signatures: Vec<Vec<[u32; 3]>> = vec![Vec::new(); candidates.len()];
+        let candidate = |value: usize| (position[value] != usize::MAX).then(|| position[value]);
+        let mut singletons = vec![false; candidates.len()];
 
         let mut scope = Domain::empty(size);
         for atom in &rule.body {
@@ -1941,7 +2098,7 @@ impl ValueFlow {
             for (slot, values) in atom.iter().zip(&required) {
                 if matches!(slot, Slot::Constant(_)) {
                     for value in values.indices().filter_map(candidate) {
-                        distinguished[value] = true;
+                        singletons[value] = true;
                     }
                 }
             }
@@ -1956,7 +2113,7 @@ impl ValueFlow {
             if let Slot::Constant(value) = slot
                 && let Some(index) = candidate(*value)
             {
-                distinguished[index] = true;
+                singletons[index] = true;
             }
         }
         for predicate in scope.indices() {
@@ -1965,106 +2122,82 @@ impl ValueFlow {
             {
                 for value in [predicate, self.universe.iri(alternate)] {
                     if let Some(index) = candidate(value) {
-                        distinguished[index] = true;
+                        singletons[index] = true;
                     }
                 }
             }
         }
+        let mut iris = Vec::new();
         for (index, &value) in candidates.iter().enumerate() {
             match self.universe.values.get(value) {
-                None => distinguished[index] = true,
+                None => singletons[index] = true,
                 Some(TermValue::Iri(iri)) => {
                     if state.relations.contains_key(&value)
                         || self.universe.semantics.alternate_predicate(iri).is_some()
                     {
-                        distinguished[index] = true;
+                        singletons[index] = true;
                     }
-                    signatures[index].push([0, 0, 0]);
+                    iris.push(index);
                 }
                 Some(_) => {}
             }
         }
-        for (variable, domain) in upper.iter().enumerate() {
-            for index in domain.indices().filter_map(candidate) {
-                signatures[index].push([1, token(variable), 0]);
+
+        let mut partition = CandidatePartition::new(&singletons);
+        partition.split(iris);
+        for domain in upper {
+            if partition.is_discrete() {
+                break;
             }
+            partition.split(domain.indices().filter_map(candidate));
         }
-        let mut interned: HashMap<Vec<usize>, u32> = HashMap::new();
+        let mut content_ids: HashMap<SupportContent<'_>, u64> = HashMap::new();
         for (&predicate, relation) in &state.relations {
-            if !scope.contains(predicate) {
+            if !scope.contains(predicate) || partition.is_discrete() {
                 continue;
             }
-            let predicate_token = token(predicate);
-            for (column, values) in relation.columns.iter().enumerate() {
-                for index in values.indices().filter_map(candidate) {
-                    signatures[index].push([2 + token(column), predicate_token, 0]);
+            for column in &relation.columns {
+                partition.split(column.indices().filter_map(candidate));
+            }
+            for rectangle in &relation.rectangles {
+                for side in rectangle {
+                    partition.split(side.indices().filter_map(candidate));
                 }
             }
-            // Own supports first, then memberships, so every candidate's tokens
-            // arrive in one global order and equal signatures compare equal.
-            for (side, supports) in [&relation.by_subject, &relation.by_object]
-                .into_iter()
-                .enumerate()
-            {
+            for supports in [&relation.by_subject, &relation.by_object] {
+                let mut labelled = Vec::new();
+                let mut rows = Vec::new();
                 for (&key, support) in supports {
+                    let next = content_ids.len() as u64;
+                    let id = *content_ids.entry(SupportContent(support)).or_insert(next);
                     if let Some(index) = candidate(key) {
-                        let next = token(interned.len());
-                        let id = *interned.entry(support.indices().collect()).or_insert(next);
-                        signatures[index].push([4 + token(side), predicate_token, id]);
+                        labelled.push((index, id));
+                    }
+                    // An identical row splits identically wherever it recurs.
+                    if id == next {
+                        rows.push(support);
                     }
                 }
-            }
-            for (side, supports) in [&relation.by_subject, &relation.by_object]
-                .into_iter()
-                .enumerate()
-            {
-                for (&key, support) in supports {
-                    for index in support.indices().filter_map(candidate) {
-                        signatures[index].push([6 + token(side), predicate_token, token(key)]);
-                    }
-                }
-            }
-            for (rectangle_index, rectangle) in relation.rectangles.iter().enumerate() {
-                for (side, values) in rectangle.iter().enumerate() {
-                    for index in values.indices().filter_map(candidate) {
-                        signatures[index].push([
-                            8 + token(side),
-                            predicate_token,
-                            token(rectangle_index),
-                        ]);
-                    }
+                partition.split_labelled(labelled);
+                for support in rows {
+                    partition.split(support.indices().filter_map(candidate));
                 }
             }
         }
-        for (side, index_by_value) in [&state.predicates_by_subject, &state.predicates_by_object]
-            .into_iter()
-            .enumerate()
-        {
+        for index_by_value in [&state.predicates_by_subject, &state.predicates_by_object] {
+            let mut by_predicate: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
             for (&value, predicates) in index_by_value {
                 if let Some(index) = candidate(value) {
                     for predicate in predicates.indices().filter(|p| scope.contains(*p)) {
-                        signatures[index].push([10 + token(side), token(predicate), 0]);
+                        by_predicate.entry(predicate).or_default().push(index);
                     }
                 }
             }
-        }
-
-        let mut classes: Vec<Vec<usize>> = Vec::new();
-        let mut by_signature: HashMap<&[[u32; 3]], usize> = HashMap::new();
-        for (index, &value) in candidates.iter().enumerate() {
-            let class = if distinguished[index] {
-                classes.len()
-            } else {
-                *by_signature
-                    .entry(signatures[index].as_slice())
-                    .or_insert(classes.len())
-            };
-            if class == classes.len() {
-                classes.push(Vec::new());
+            for members in by_predicate.into_values() {
+                partition.split(members);
             }
-            classes[class].push(value);
         }
-        classes
+        partition.classes(candidates)
     }
 
     /// Remove only a conditioned value whose constrained abstract join is empty,
