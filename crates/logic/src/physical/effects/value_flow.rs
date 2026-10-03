@@ -1076,6 +1076,67 @@ pub(crate) struct FlowSummary {
 }
 
 impl FlowSummary {
+    /// Trace the resident footprint of a large closed summary: support rows by
+    /// representation, how many hold distinct content, and the heaviest relation.
+    fn trace_footprint(&self, rules: usize) {
+        const TRACE_BYTES: usize = 256 << 20;
+        let row_bytes = |row: &AdaptiveDomain| match row {
+            AdaptiveDomain::Dense(domain) => domain.0.len() * 8,
+            AdaptiveDomain::Sparse { values, .. } => values.len() * 8,
+        };
+        let mut total = 0;
+        let (mut dense, mut sparse) = (0usize, 0usize);
+        let mut heaviest = (0usize, 0usize);
+        for (&predicate, relation) in &self.relations {
+            let rows = relation.by_subject.values().chain(relation.by_object.values());
+            let bytes: usize = rows
+                .clone()
+                .map(|row| {
+                    match row {
+                        AdaptiveDomain::Dense(_) => dense += 1,
+                        AdaptiveDomain::Sparse { .. } => sparse += 1,
+                    }
+                    row_bytes(row)
+                })
+                .sum::<usize>()
+                + relation
+                    .rectangles
+                    .iter()
+                    .map(|[left, right]| (left.0.len() + right.0.len()) * 8)
+                    .sum::<usize>();
+            total += bytes;
+            if bytes > heaviest.1 {
+                heaviest = (predicate, bytes);
+            }
+        }
+        if total < TRACE_BYTES {
+            return;
+        }
+        let mut distinct: HashMap<SupportContent<'_>, ()> = HashMap::new();
+        let mut distinct_bytes = 0;
+        for relation in self.relations.values() {
+            for row in relation.by_subject.values().chain(relation.by_object.values()) {
+                if distinct.insert(SupportContent(row), ()).is_none() {
+                    distinct_bytes += row_bytes(row);
+                }
+            }
+        }
+        tracing::info!(
+            target: "pipeline_reasoning_detail",
+            phase = "refine-closure-footprint",
+            rules,
+            relations = self.relations.len(),
+            dense_rows = dense,
+            sparse_rows = sparse,
+            distinct_rows = distinct.len(),
+            support_mb = total >> 20,
+            distinct_support_mb = distinct_bytes >> 20,
+            heaviest_predicate = heaviest.0,
+            heaviest_mb = heaviest.1 >> 20,
+            "value-flow closure footprint",
+        );
+    }
+
     fn index_condition(&mut self, predicate: usize, side: usize, value: usize, size: usize) {
         let predicates = if side == 0 {
             &mut self.predicates_by_subject
@@ -2843,6 +2904,7 @@ impl ValueFlow {
                 }
             }
         }
+        state.trace_footprint(active.len());
         (state, refinements)
     }
 
