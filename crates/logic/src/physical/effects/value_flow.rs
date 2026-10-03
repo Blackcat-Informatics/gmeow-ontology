@@ -2166,55 +2166,106 @@ impl ValueFlow {
                 }
             }
         }
-        // A FIFO worklist keeps the transfer order deterministic while putting a
-        // self-rescheduled rule behind peers that were already pending. Ordered
-        // minimum extraction can starve those peers during recursive closure.
-        let mut pending: VecDeque<_> = enabled
+        // The monotone closure is the same under any fair schedule, so visit writers
+        // before their readers: strongly connected components of the publish graph in
+        // topological order, each closed before the next starts. A producer outside a
+        // recursive component runs once, after every input it reads is final. The edges
+        // are exactly those the worklist below schedules along: a head publishes its
+        // own predicate (any predicate when its predicate is a variable) and every
+        // dynamic reader reads all of them.
+        let active: Vec<usize> = enabled
             .iter()
             .enumerate()
             .filter_map(|(index, enabled)| enabled.then_some(index))
             .collect();
-        let mut queued = enabled.to_vec();
+        let mut graph = petgraph::graph::DiGraph::<usize, ()>::new();
+        let nodes: BTreeMap<usize, petgraph::graph::NodeIndex> = active
+            .iter()
+            .map(|&index| (index, graph.add_node(index)))
+            .collect();
+        for &writer in &active {
+            let mut dependents = BTreeSet::new();
+            for head in &self.rules[writer].heads {
+                match head[1] {
+                    Slot::Constant(predicate) => {
+                        dependents.extend(readers.get(&predicate).into_iter().flatten());
+                        dependents.extend(&dynamic_readers);
+                    }
+                    Slot::Variable(_) => dependents.extend(&active),
+                }
+            }
+            for dependent in dependents {
+                graph.add_edge(nodes[&writer], nodes[&dependent], ());
+            }
+        }
+        // Tarjan yields components in reverse topological order.
+        let mut components = petgraph::algo::tarjan_scc(&graph);
+        components.reverse();
+        let mut component_of = vec![usize::MAX; self.rules.len()];
+        for (component, members) in components.iter().enumerate() {
+            for node in members {
+                component_of[graph[*node]] = component;
+            }
+        }
+        let mut queued = vec![false; self.rules.len()];
         let mut visits = vec![0usize; self.rules.len()];
         let mut refinements = vec![None; self.rules.len()];
-        while let Some(index) = pending.pop_front() {
-            queued[index] = false;
-            visits[index] += 1;
-            let rule = &self.rules[index];
-            let Some(bindings) = self.bindings(rule, &state) else {
-                refinements[index] = None;
-                continue;
-            };
-            let mut changed_predicates = BTreeSet::new();
-            let mut heads = Vec::with_capacity(rule.heads.len());
-            for head in &rule.heads {
-                let domains = self.refine_head(
-                    &mut state,
-                    index,
-                    visits[index],
-                    rule,
-                    head,
-                    &bindings,
-                    &mut changed_predicates,
-                );
-                state.publish_columns_tracking(&domains, &self.universe, &mut changed_predicates);
-                heads.push(domains);
+        for (component, members) in components.iter().enumerate() {
+            let mut members: Vec<usize> = members.iter().map(|node| graph[*node]).collect();
+            members.sort_unstable();
+            // A FIFO worklist keeps the transfer order deterministic while putting a
+            // self-rescheduled rule behind peers that were already pending. Ordered
+            // minimum extraction can starve those peers during recursive closure.
+            let mut pending: VecDeque<_> = members.into_iter().collect();
+            for &index in &pending {
+                queued[index] = true;
             }
-            refinements[index] = Some(RuleRefinement { bindings, heads });
-            if !changed_predicates.is_empty() {
-                let mut schedule = |dependent: usize| {
-                    if !queued[dependent] {
-                        queued[dependent] = true;
-                        pending.push_back(dependent);
-                    }
+            while let Some(index) = pending.pop_front() {
+                queued[index] = false;
+                visits[index] += 1;
+                let rule = &self.rules[index];
+                let Some(bindings) = self.bindings(rule, &state) else {
+                    refinements[index] = None;
+                    continue;
                 };
-                for dependent in &dynamic_readers {
-                    schedule(*dependent);
+                let mut changed_predicates = BTreeSet::new();
+                let mut heads = Vec::with_capacity(rule.heads.len());
+                for head in &rule.heads {
+                    let domains = self.refine_head(
+                        &mut state,
+                        index,
+                        visits[index],
+                        rule,
+                        head,
+                        &bindings,
+                        &mut changed_predicates,
+                    );
+                    state.publish_columns_tracking(
+                        &domains,
+                        &self.universe,
+                        &mut changed_predicates,
+                    );
+                    heads.push(domains);
                 }
-                for predicate in changed_predicates {
-                    if let Some(dependents) = readers.get(&predicate) {
-                        for dependent in dependents {
-                            schedule(*dependent);
+                refinements[index] = Some(RuleRefinement { bindings, heads });
+                if !changed_predicates.is_empty() {
+                    // A later component runs every member once its inputs are final; an
+                    // earlier one cannot read this publication (it would share a cycle).
+                    let mut schedule = |dependent: usize| {
+                        debug_assert!(component_of[dependent] >= component);
+                        if component_of[dependent] == component && !queued[dependent] {
+                            queued[dependent] = true;
+                            pending.push_back(dependent);
+                        }
+                    };
+                    for dependent in &dynamic_readers {
+                        schedule(*dependent);
+                    }
+                    for predicate in changed_predicates {
+                        if let Some(dependents) = readers.get(&predicate) {
+                            for dependent in dependents {
+                                schedule(*dependent);
+                            }
                         }
                     }
                 }
