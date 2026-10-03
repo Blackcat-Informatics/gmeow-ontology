@@ -1600,10 +1600,14 @@ fn candidate_partition_matches_brute_force_membership_equivalence() {
         seed ^= seed << 17;
         seed
     };
-    for _ in 0..64 {
+    for trial in 0..64 {
         let len = 1 + (next() % 48) as usize;
         let singletons: Vec<bool> = (0..len).map(|_| next() % 11 == 0).collect();
-        let mut partition = CandidatePartition::new(&singletons);
+        // Candidates are spread over a larger universe, with non-candidate values
+        // between them, so positions and values never coincide.
+        let size = 3 * len + 70;
+        let candidates: Vec<usize> = (0..len).map(|position| 3 * position + 1).collect();
+        let mut partition = CandidatePartition::new(&singletons, &candidates, size);
         // Each position's observed history: singleton identity, then one entry per split.
         let mut history: Vec<Vec<u64>> = (0..len)
             .map(|position| {
@@ -1614,7 +1618,17 @@ fn candidate_partition_matches_brute_force_membership_equivalence() {
                 }]
             })
             .collect();
-        for _ in 0..(next() % 6) {
+        // Some trials run past the live-mask refresh interval.
+        let splits = if trial % 8 == 0 {
+            LIVE_REFRESH_SPLITS as u64 + 44
+        } else {
+            next() % 6
+        };
+        for _ in 0..splits {
+            // A refresh is valid at any point; between refreshes the mask is stale.
+            if next() % 3 == 0 {
+                partition.refresh_live();
+            }
             if next() % 2 == 0 {
                 // Dense draws exercise the omitted-side walk of `split_dense`.
                 let dense = next() % 2 == 0;
@@ -1633,24 +1647,18 @@ fn candidate_partition_matches_brute_force_membership_equivalence() {
                 if next() % 2 == 0 {
                     partition.split(members);
                 } else {
-                    // Values past the candidates are never positions; the mask drops them.
-                    let size = len + 70;
+                    // Non-candidate values in the set are never positions; the live
+                    // mask drops them.
                     let mut set = Domain::empty(size);
-                    let mut candidates = Domain::empty(size);
                     for &member in &members {
-                        set.insert(member);
+                        set.insert(candidates[member]);
                     }
-                    for value in len..size {
+                    for value in (0..size).filter(|value| value % 3 != 1 || *value >= 3 * len) {
                         if next() % 2 == 0 {
                             set.insert(value);
                         }
                     }
-                    let mut position = vec![usize::MAX; size];
-                    for value in 0..len {
-                        candidates.insert(value);
-                        position[value] = value;
-                    }
-                    partition.split_dense(&set, &candidates, &position);
+                    partition.split_dense(&set);
                 }
             } else {
                 let labelled: Vec<(usize, u64)> = (0..len)
@@ -1666,8 +1674,7 @@ fn candidate_partition_matches_brute_force_membership_equivalence() {
                 partition.split_labelled(labelled);
             }
         }
-        let candidates: Vec<usize> = (0..len).collect();
-        let classes = partition.classes(&candidates);
+        let classes = partition.classes(&(0..len).collect::<Vec<_>>());
         let class_of: Vec<usize> = {
             let mut class_of = vec![0; len];
             for (class, members) in classes.iter().enumerate() {

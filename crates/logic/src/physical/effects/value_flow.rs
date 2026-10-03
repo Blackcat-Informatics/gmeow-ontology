@@ -276,6 +276,10 @@ impl std::hash::Hash for SupportContent<'_> {
 /// Exact partition refinement over candidate positions. Each split separates,
 /// inside every class it touches, the members it names from the rest, in time
 /// linear in the members named.
+///
+/// A singleton class can never split again, so set splits read only the live
+/// values: candidates still sharing a class. The live mask is refreshed as
+/// classes collapse; a stale mask only names extra values, never too few.
 struct CandidatePartition {
     class: Vec<usize>,
     sizes: Vec<usize>,
@@ -283,11 +287,21 @@ struct CandidatePartition {
     fresh: Vec<usize>,
     touched_classes: Vec<usize>,
     members: Vec<usize>,
+    values: Vec<usize>,
+    position: Vec<usize>,
+    live: Domain,
+    live_count: usize,
+    splits_since_refresh: usize,
 }
 
+/// Set splits between live-mask refreshes. A refresh is linear in the
+/// candidates; a set split already reads every word of the universe.
+const LIVE_REFRESH_SPLITS: usize = 256;
+
 impl CandidatePartition {
-    /// One class of every unmarked position, and a singleton per marked one.
-    fn new(singletons: &[bool]) -> Self {
+    /// One class of every unmarked candidate, and a singleton per marked one.
+    /// `candidates` are distinct values of a universe of `size` cells.
+    fn new(singletons: &[bool], candidates: &[usize], size: usize) -> Self {
         let shared = usize::from(singletons.iter().any(|single| !single));
         let mut sizes = vec![0; shared];
         let class = singletons
@@ -303,14 +317,37 @@ impl CandidatePartition {
             })
             .collect();
         let classes = sizes.len();
-        Self {
+        let mut position = vec![usize::MAX; size];
+        for (index, &value) in candidates.iter().enumerate() {
+            position[value] = index;
+        }
+        let mut partition = Self {
             class,
             sizes,
             touched: vec![0; classes],
             fresh: vec![usize::MAX; classes],
             touched_classes: Vec::new(),
             members: Vec::new(),
+            values: candidates.to_vec(),
+            position,
+            live: Domain::empty(size),
+            live_count: 0,
+            splits_since_refresh: 0,
+        };
+        partition.refresh_live();
+        partition
+    }
+
+    fn refresh_live(&mut self) {
+        self.live.0.fill(0);
+        self.live_count = 0;
+        for (&class, &value) in self.class.iter().zip(&self.values) {
+            if self.sizes[class] > 1 {
+                self.live.insert(value);
+                self.live_count += 1;
+            }
         }
+        self.splits_since_refresh = 0;
     }
 
     fn is_discrete(&self) -> bool {
@@ -354,43 +391,72 @@ impl CandidatePartition {
         self.touched_classes.clear();
     }
 
-    /// Split by the candidates a dense set names. Splitting by the candidates it
-    /// omits induces the same partition, so walk whichever side is smaller.
-    fn split_dense(&mut self, set: &Domain, candidates: &Domain, position: &[usize]) {
+    /// Split by the live candidates a set of values names. Splitting by the live
+    /// candidates it omits induces the same partition, so a dense set walks
+    /// whichever side is smaller.
+    fn split_dense(&mut self, set: &Domain) {
         if self.is_discrete() {
             return;
         }
         let named: usize = set
             .0
             .iter()
-            .zip(&candidates.0)
-            .map(|(set, candidate)| (set & candidate).count_ones() as usize)
+            .zip(&self.live.0)
+            .map(|(set, live)| (set & live).count_ones() as usize)
             .sum();
-        let omitted = named * 2 > self.class.len();
-        let words = set.0.iter().zip(&candidates.0).enumerate();
-        self.split(words.flat_map(|(word, (&set, &candidate))| {
-            let mut remaining = if omitted { !set } else { set } & candidate;
-            std::iter::from_fn(move || {
-                if remaining == 0 {
-                    return None;
-                }
-                let bit = remaining.trailing_zeros() as usize;
-                remaining &= remaining - 1;
-                Some(position[word * 64 + bit])
-            })
-        }));
+        let omitted = named * 2 > self.live_count;
+        let live = std::mem::replace(&mut self.live, Domain(Vec::new()));
+        let position = std::mem::take(&mut self.position);
+        self.split(
+            set.0
+                .iter()
+                .zip(&live.0)
+                .enumerate()
+                .flat_map(|(word, (&set, &live))| {
+                    let mut remaining = if omitted { !set } else { set } & live;
+                    let position = &position;
+                    std::iter::from_fn(move || {
+                        if remaining == 0 {
+                            return None;
+                        }
+                        let bit = remaining.trailing_zeros() as usize;
+                        remaining &= remaining - 1;
+                        Some(position[word * 64 + bit])
+                    })
+                }),
+        );
+        self.live = live;
+        self.position = position;
+        self.after_set_split();
     }
 
     /// Split by an adaptive set: sparse members directly, dense words by side.
-    fn split_adaptive(&mut self, set: &AdaptiveDomain, candidates: &Domain, position: &[usize]) {
+    fn split_adaptive(&mut self, set: &AdaptiveDomain) {
         match set {
-            AdaptiveDomain::Dense(domain) => self.split_dense(domain, candidates, position),
-            AdaptiveDomain::Sparse { values, .. } => self.split(
-                values
-                    .iter()
-                    .filter(|value| candidates.contains(**value))
-                    .map(|value| position[*value]),
-            ),
+            AdaptiveDomain::Dense(domain) => self.split_dense(domain),
+            AdaptiveDomain::Sparse { values, .. } => {
+                if self.is_discrete() {
+                    return;
+                }
+                let live = std::mem::replace(&mut self.live, Domain(Vec::new()));
+                let position = std::mem::take(&mut self.position);
+                self.split(
+                    values
+                        .iter()
+                        .filter(|value| live.contains(**value))
+                        .map(|value| position[*value]),
+                );
+                self.live = live;
+                self.position = position;
+                self.after_set_split();
+            }
+        }
+    }
+
+    fn after_set_split(&mut self) {
+        self.splits_since_refresh += 1;
+        if self.splits_since_refresh >= LIVE_REFRESH_SPLITS {
+            self.refresh_live();
         }
     }
 
@@ -2151,10 +2217,8 @@ impl ValueFlow {
     ) -> Vec<Vec<usize>> {
         let size = self.universe.size();
         let mut position = vec![usize::MAX; size];
-        let mut candidate_set = Domain::empty(size);
         for (index, &value) in candidates.iter().enumerate() {
             position[value] = index;
-            candidate_set.insert(value);
         }
         let candidate = |value: usize| (position[value] != usize::MAX).then(|| position[value]);
         let mut singletons = vec![false; candidates.len()];
@@ -2210,30 +2274,22 @@ impl ValueFlow {
             }
         }
 
-        let mut partition = CandidatePartition::new(&singletons);
+        let mut partition = CandidatePartition::new(&singletons, candidates, size);
         partition.split(iris);
-        for domain in upper {
-            if partition.is_discrete() {
-                break;
-            }
-            partition.split_dense(domain, &candidate_set, &position);
-        }
+        // Refinement reaches one partition in any split order. Cheap, selective
+        // splits run first so that support rows, the dense and numerous splits,
+        // meet mostly singleton classes and walk only the values still live.
+        let relations: Vec<_> = state
+            .relations
+            .iter()
+            .filter(|(predicate, _)| scope.contains(**predicate))
+            .map(|(_, relation)| relation)
+            .collect();
         let mut content_ids: HashMap<SupportContent<'_>, u64> = HashMap::new();
-        for (&predicate, relation) in &state.relations {
-            if !scope.contains(predicate) || partition.is_discrete() {
-                continue;
-            }
-            for column in &relation.columns {
-                partition.split_adaptive(column, &candidate_set, &position);
-            }
-            for rectangle in &relation.rectangles {
-                for side in rectangle {
-                    partition.split_dense(side, &candidate_set, &position);
-                }
-            }
+        let mut rows = Vec::new();
+        for relation in &relations {
             for supports in [&relation.by_subject, &relation.by_object] {
                 let mut labelled = Vec::new();
-                let mut rows = Vec::new();
                 for (&key, support) in supports {
                     let next = content_ids.len() as u64;
                     let id = *content_ids.entry(SupportContent(support)).or_insert(next);
@@ -2246,9 +2302,6 @@ impl ValueFlow {
                     }
                 }
                 partition.split_labelled(labelled);
-                for support in rows {
-                    partition.split_adaptive(support, &candidate_set, &position);
-                }
             }
         }
         for index_by_value in [&state.predicates_by_subject, &state.predicates_by_object] {
@@ -2263,6 +2316,23 @@ impl ValueFlow {
             for members in by_predicate.into_values() {
                 partition.split(members);
             }
+        }
+        partition.refresh_live();
+        for domain in upper {
+            partition.split_dense(domain);
+        }
+        for relation in &relations {
+            for column in &relation.columns {
+                partition.split_adaptive(column);
+            }
+            for rectangle in &relation.rectangles {
+                for side in rectangle {
+                    partition.split_dense(side);
+                }
+            }
+        }
+        for support in rows {
+            partition.split_adaptive(support);
         }
         partition.classes(candidates)
     }
