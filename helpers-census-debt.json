@@ -1,0 +1,2837 @@
+{
+ "groups": [
+  {
+   "kind": "body",
+   "members": [
+    "docs_print::doc_render::atx_heading",
+    "gmeow_docs_model::source_map::atx_heading"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "docs_print::doc_render::fence_marker",
+    "gmeow_docs_model::source_map::fence_open"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "docs_print::doc_render::find_backtick_run",
+    "gmeow_docs::render::find_backtick_run"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "docs_print::doc_render::sanitize",
+    "gmeow_docs::render::slugify",
+    "gmeow_docs_model::rdf::iri_slug",
+    "gmeow_docs_model::slug::slugify",
+    "gmeow_docs_model::source_map::slugify",
+    "gmeow_validate::authoring_integrity::slugify"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "docs_print::render::category_label",
+    "gmeow_docs::render::category_dir",
+    "gmeow_docs::render::category_plural",
+    "gmeow_docs::render::category_singular",
+    "gmeow_docs::render::category_slug",
+    "gmeow_docs::test_crate::model_golden::category_name",
+    "gmeow_docs_model::slug::category_slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "docs_print::render::stage_local_name",
+    "gmeow_bundle_view::export::slice_local_name",
+    "gmeow_docs::render::local_name",
+    "gmeow_docs_model::coverage::local_name",
+    "gmeow_docs_model::model::local_name",
+    "gmeow_docs_model::rdf::local_name",
+    "gmeow_docs_model::slug::local_name",
+    "gmeow_docs_model::svg::local_name",
+    "gmeow_logic_compile::projections::fno::local",
+    "gmeow_logic_compile::projections::get_leg::local",
+    "gmeow_validate::authoring_integrity::iri_local_name"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "docs_print::test_crate::render::demo_documents",
+    "docs_print::test_crate::render::synthetic_rich_documents"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "extract_tests::extract::item_attributes",
+    "gmeow_build_inputs::modules::item_attributes"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_action_cache::ActionContext::with_dimension",
+    "gmeow_pipeline::cache::StageKeyContext::with_dimension"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_affect::test_crate::crosscheck_definiteness::repo_root",
+    "gmeow_cli::test_crate::medium_cli::repo_root",
+    "gmeow_conformance::paths::repo_root",
+    "gmeow_dev_cli::test_crate::docs_links_resolve::repo_root",
+    "gmeow_dev_cli::test_crate::medium_gate::repo_root",
+    "gmeow_docs::test_crate::describe_bundle_language::repo_root",
+    "gmeow_pipeline::test_crate::bundle_integrity::authenticated_bundle::repo_root",
+    "gmeow_pipeline::test_crate::medium_docs_contract::repo_root",
+    "gmeow_pipeline::test_crate::medium_effect::repo_root",
+    "gmeow_pipeline::test_crate::model_facing_invariance::repo_root",
+    "gmeow_pipeline::test_crate::whole_artifact_media::repo_root",
+    "gmeow_validate::bench_crate::conformance_union_cost_alloc::cost_common::repo_root",
+    "gmeow_validate::test_crate::conformance_suite::conformance_support::repo_root",
+    "gmeow_validate::test_crate::dsl_shacl_live::repo_root"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_affect_ingest::Sink::boolean",
+    "gmeow_math_lift::sink::Sink::boolean"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_affect_ingest::Sink::decimal",
+    "gmeow_math_lift::sink::Sink::decimal"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_affect_ingest::Sink::iri",
+    "gmeow_math_lift::sink::Sink::iri"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_affect_ingest::Sink::lit",
+    "gmeow_math_lift::sink::Sink::lit"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_affect_ingest::Sink::serialize",
+    "gmeow_math_lift::sink::Sink::serialize"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_affect_ingest::format_decimal",
+    "gmeow_math_lift::sink::format_decimal"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_build_inputs::relative",
+    "xtask::producer::workspace_relative"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_bundle_import::is_digest",
+    "gmeow_lang_bridge::gmn1_codec::native::hex_digest"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_bundle_view::export::curie",
+    "gmeow_pipeline::stages::metadata::curie"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_bundle_view::export::registry_local",
+    "gmeow_docs_model::describe::local_name"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_bundle_view::export::report_projection_losses",
+    "gmeow_pipeline::stages::research_objects::report_projection_losses",
+    "gmeow_pipeline::stages::schemas::report_losses"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_bundle_view::native_query::dataset_from_turtle",
+    "gmeow_pipeline::stages::source_load::parse_base_graph"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::commands::error_diag",
+    "gmeow_dev_cli::dev_common::error_diag",
+    "perf_gate_merge::error_diag"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::commands::purremb_hex32",
+    "gmeow_logic::purremb_relation::hex32"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::commands::reasoning_report::EvidenceGrade::as_str",
+    "gmeow_cli::commands::reasoning_report::GateAdmission::as_str"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::test_crate::cli::scratch",
+    "gmeow_cli::test_crate::math_lift_cli::scratch"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::test_crate::logic_session_checkpoint_retract_cli::head_line",
+    "gmeow_cli::test_crate::logic_session_checkpoint_retract_cli::journal_head_line"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::test_crate::math_lift_cli::lift_fixture",
+    "gmeow_cli::test_crate::self_sufficiency::fixture"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::test_crate::purremb_hybrid_query::artifact",
+    "gmeow_logic::bench_crate::purremb_retrieval::support::artifact_identity"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::test_crate::slice_lint_cli::copy_tree",
+    "gmeow_cli::test_crate::slice_quality_bundle::copy_tree"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli::test_crate::slice_lint_cli::staged_fixture",
+    "gmeow_cli::test_crate::slice_quality_bundle::staged_fixture"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_cli_core::ConsoleMode::parse_env",
+    "gmeow_dev_cli::parse_console"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_conformance::bench_corpus::read_to_string",
+    "gmeow_conformance::compare::read_text"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_conformance::divergence::nq_escape",
+    "gmeow_docs_model::rdf::nq_escape",
+    "gmeow_errors::render::nq_escape",
+    "gmeow_logic::certificate::nq_escape",
+    "gmeow_slice_quality::report::nq_escape"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_conformance::profile::parse_documented_antipattern_field",
+    "gmeow_conformance::profile::parse_szs_status_field"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::dev_project::namespace_for",
+    "gmeow_lang_bridge::conllu::ud_deprel"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::dev_shapes::already_functional",
+    "gmeow_dev_cli::dev_shapes::object_property_iris"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::dev_shapes::enclosing_slice_dir",
+    "gmeow_validate::repo_static::enclosing_slice_dir"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::dev_shapes::value_desc",
+    "gmeow_validate::shape_oracle::shape_value_term"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::dev_slice_quality::scan_rs",
+    "gmeow_slice_quality::test_crate::gates::scan_rs"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::dev_sync::open_lock_rw",
+    "xtask::open_rw"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::dev_sync::record_pid",
+    "xtask::record_pid"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::test_crate::cli_parity::dev_cmd",
+    "gmeow_dev_cli::test_crate::console_assemble::dev_cmd"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::test_crate::cli_parity::repo_root",
+    "gmeow_dev_cli::test_crate::console_assemble::repo_root",
+    "gmeow_validate::test_crate::witness_parity::repo_root"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::test_crate::docs_distribution_contract::repo_root",
+    "gmeow_dev_cli::test_crate::loss_bearing_domain::repo_root",
+    "gmeow_dev_cli::test_crate::make_gate_contract::repo_root"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::test_crate::docs_distribution_contract::target_recipe",
+    "gmeow_dev_cli::test_crate::make_gate_contract::target_recipe"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_dev_cli::test_crate::nextest_override_contract::repo_root",
+    "gmeow_dev_cli::test_crate::npm_packaging_contract::repo_root"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::console::sw_relative",
+    "gmeow_docs::test_crate::console_producer::sw_relative"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::fixture::action_store",
+    "gmeow_docs_model::fixture::action_store"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::fixture::render_cache_path",
+    "gmeow_docs_model::fixture::cache_path_for_context"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::lint::broken_anchor",
+    "gmeow_docs::lint::dangling_link"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::lint::resolve",
+    "gmeow_docs::test_crate::render_golden::resolve"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::mdbook::resolve_site_path",
+    "gmeow_docs::test_crate::mdbook_render::resolve_rel"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::mdbook::toml_escape",
+    "gmeow_logic_compile::projections::lift::esc",
+    "gmeow_validate::shape_grounding::esc"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::render::align_tag",
+    "gmeow_docs_model::slug::align_tag"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::render::precompute_alignment_facets",
+    "gmeow_docs_model::slug::precompute_alignment_facets"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::render::provenance_chain",
+    "gmeow_docs_model::slug::provenance_chain"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::render::pydantic_class_name",
+    "gmeow_docs_model::slug::pydantic_class_name"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::render::pydantic_module_slug",
+    "gmeow_docs_model::slug::pydantic_module_slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::render::resolve_term_slugs",
+    "gmeow_docs_model::slug::resolve_term_slugs"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::render::term_advice_facet",
+    "gmeow_docs_model::slug::term_advice_facet"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::test_crate::competency::common::repo_root",
+    "gmeow_validate::test_crate::label_completeness::repo_root"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::test_crate::doc_evidence::evidence_rich_model",
+    "gmeow_docs::test_crate::vocabulary_ownership::evidence_rich_model"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs::test_crate::gmn1_primer_teachability::repair_card_curie",
+    "gmeow_slice_quality::gate::exemption_producer_for"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs_catalog::identity::nt_literal",
+    "gmeow_docs_model::model::turtle_string_literal",
+    "gmeow_lang_bridge::bcp47::nt_literal",
+    "gmeow_lang_bridge::nif::nt_literal",
+    "gmeow_lang_bridge::registry::nt_literal",
+    "gmeow_pipeline::stages::docs_format_rendering::nt_literal",
+    "gmeow_pipeline::stages::lang_docs_rendering::nt_literal",
+    "gmeow_pipeline::stages::lang_form::nt_literal",
+    "gmeow_pipeline::stages::lang_glossary::nt_literal",
+    "gmeow_pipeline::stages::lang_projection::nt_literal",
+    "gmeow_pipeline::stages::lang_translation::nt_literal"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs_model::badge::xml_escape",
+    "gmeow_docs_model::svg::xml_escape",
+    "gmeow_lang_bridge::engine::escape_literal",
+    "gmeow_lang_bridge::grammar::escape_literal",
+    "gmeow_lang_bridge::lower::escape_literal",
+    "gmeow_lang_bridge::ontolex::escape_literal",
+    "gmeow_lang_bridge::tei::xml_escape",
+    "gmeow_logic::goal_directed::escape_literal",
+    "gmeow_pipeline::scoreboards::escape_literal",
+    "gmeow_pipeline::stages::carrier::escape_turtle_literal",
+    "gmeow_pipeline::stages::carrier::nquads_escape",
+    "gmeow_pipeline::stages::constraint_catalog::escape_literal",
+    "gmeow_pipeline::stages::statements::escape_literal",
+    "gmeow_pipeline::stages::term_manifest::escape_literal",
+    "gmeow_slicetest::native_query::escape_literal"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs_model::formats::DocFormat::label",
+    "gmeow_docs_model::formats::DocFormat::slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs_model::i18n_compile::po_escape",
+    "gmeow_docs_model::i18n_compile::turtle_escape_single",
+    "gmeow_docs_model::i18n_compile::xml_escape",
+    "gmeow_errors::render::escape_html",
+    "gmeow_logic_compile::projections::emotionml::xml_escape",
+    "gmeow_logic_compile::projections::shapes::esc_str"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs_model::model::curie_objects",
+    "gmeow_docs_model::model::sorted_curie_objects"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs_model::rdf::set_slug",
+    "gmeow_slice_quality::report::local_slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_docs_model::store::Store::parse_nquads",
+    "gmeow_docs_model::store::Store::parse_turtle"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_errors::ledger::feed",
+    "gmeow_logic::physical::lower::feed_structural",
+    "gmeow_logic::runtime::frame",
+    "gmeow_pipeline::stages::meta_findings::feed"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_errors::model::FindingCategory::as_str",
+    "gmeow_errors::model::FindingCategory::iri_local"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_errors::rdf::default_standpoint",
+    "gmeow_validate::findings::standpoint_from_shacl"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_gmn_wasm::test_crate::npm_package_version::manifest_version",
+    "gmeow_mcp_core_wasm::test_crate::npm_package_version::manifest_version",
+    "gmeow_mcp_wasm::test_crate::npm_package_version::manifest_version",
+    "gmeow_reason_wasm::test_crate::npm_package_version::manifest_version",
+    "gmeow_validate_wasm::test_crate::npm_package_version::manifest_version"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_gmn_wasm::test_crate::witness_gmn::attestation_path",
+    "gmeow_reason_wasm::test_crate::witness_conjecture::attestation_path",
+    "gmeow_reason_wasm::test_crate::witness_reason::attestation_path"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_gts_profile::is_segment_header",
+    "gmeow_pipeline::medium::audit::is_segment_header"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_lang_bridge::conllu::conllu_leg_pair",
+    "gmeow_lang_bridge::grammar::grammar_leg_pair"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_lang_bridge::emit::digest16",
+    "gmeow_pipeline::stages::docs_format_rendering::digest16",
+    "gmeow_pipeline::stages::lang_docs_rendering::digest16",
+    "gmeow_pipeline::stages::lang_glossary::digest16",
+    "gmeow_pipeline::stages::lang_translation::digest16"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_lang_bridge::nif::NifBridge::emit",
+    "gmeow_lang_bridge::semaf::SemafBridge::emit",
+    "gmeow_lang_bridge::tei::TeiBridge::emit"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_lang_bridge::ontolex::literal_of",
+    "gmeow_lang_bridge::rdf_scan::literal_of"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_lang_bridge::ontolex::objects",
+    "gmeow_lang_bridge::rdf_scan::objects"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_lang_bridge::ontolex::term_label",
+    "gmeow_lang_bridge::rdf_scan::term_label"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::coherence_observations::admitted_reasoning_graph",
+    "gmeow_logic::reasoning_graphs::admitted_graph"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::conjecture::ConjectureLifecycleState::from_local",
+    "gmeow_logic::conjecture::ConjectureLifecycleState::from_wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::conjecture::ConjectureLifecycleState::local_name",
+    "gmeow_logic::conjecture::ConjectureLifecycleState::wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::conjecture_eval::sha256_hex",
+    "gmeow_mcp::sha256_hex"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::correspondence_exec::atomic_lens::AtomicLensState::check_get_put",
+    "gmeow_logic::correspondence_exec::atomic_lens::composition::AtomicCompositionState::check_get_put"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::correspondence_exec::atomic_lens::AtomicLensState::check_put_put",
+    "gmeow_logic::correspondence_exec::atomic_lens::composition::AtomicCompositionState::check_put_put"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::entail::CapabilityGapShape::as_token",
+    "gmeow_logic::entail::CapabilityGapShape::ontology_individual_local"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::entail::Minter::complement",
+    "gmeow_logic::entail::Minter::witness"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::explain::reifier_key_hash",
+    "gmeow_logic::physical::generic::generic_key_hash"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::external_relation::term_conforms_to_column",
+    "gmeow_logic::purremb_relation::term_conforms"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::facts::sha1_hex",
+    "gmeow_logic::provenance::sha1_hex"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::foundation::triple_reifier",
+    "gmeow_logic::teleology::triple_reifier"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::goal_directed::local_name",
+    "gmeow_validate::findings::iri_local"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::math_dimension::error",
+    "gmeow_logic::math_expression::error"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::math_dimension::subjects_of_type",
+    "gmeow_logic::math_expression::subjects_of_type"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::obligations::check_finite_closure",
+    "gmeow_logic::obligations::check_reachability"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::physical::chase::collect_var",
+    "gmeow_logic::physical::incremental_grounding::collect_vars"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::physical::chase::msa_null_reaches_self",
+    "gmeow_logic::physical::chase::node_reaches_self"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::physical::effects::constant",
+    "gmeow_logic::physical::magic::source_term"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::physical::plan::frame",
+    "gmeow_logic::versioning::feed",
+    "gmeow_pipeline::stages::carrier::hash_receipt_field"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::physical::store::RelationStore::values_object",
+    "gmeow_logic::physical::store::RelationStore::values_subject"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::reason::is_absolute_iri",
+    "gmeow_logic_compile::ir::atomic::is_absolute_iri"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::reason::refute::casesplit::execution::source_fact",
+    "gmeow_logic::reason::source_existentials::execution_fact"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::reason::refute::counting::reads",
+    "gmeow_logic::reason::refute::datatype::reads"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::result::CompletenessStatus::from_local",
+    "gmeow_logic::result::CompletenessStatus::from_wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::result::EvaluationStatus::from_local",
+    "gmeow_logic::result::EvaluationStatus::from_wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::result::InformationState::from_local",
+    "gmeow_logic::result::InformationState::from_wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::result::InformationState::local_name",
+    "gmeow_logic::result::InformationState::wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::runtime::lit",
+    "gmeow_logic::runtime::session::identity::lit",
+    "gmeow_pipeline::stages::provenance_graph::escape_literal",
+    "gmeow_validate::constitution::py_repr"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::datatype_value_space_decides_w3c_divergence::build",
+    "gmeow_pipeline::test_crate::svo_lowering_reasoner::dataset"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::datatype_value_space_decides_w3c_divergence::iri_quad",
+    "gmeow_pipeline::test_crate::svo_lowering_reasoner::quad"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::dimension_gate::run_verify",
+    "gmeow_logic::test_crate::enactment_gate::run_verify"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::enactment_observed_not_derived::scene",
+    "gmeow_logic::test_crate::paged_dispatch::page"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::paged_dispatch::graph_pages",
+    "gmeow_logic::test_crate::paged_dispatch::ground_selective_pages"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::proptest_invariants::config",
+    "gmeow_logic::test_crate::reasoning_session_parity::config"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::purremb_perf::anchor_store",
+    "gmeow_logic::test_crate::purremb_relations::anchor_store"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::reasoning_session_annotation_parity::assert_provenance_parity",
+    "gmeow_logic::test_crate::reasoning_session_parity::assert_provenance_parity"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::reasoning_session_annotation_parity::session_common::atom",
+    "gmeow_logic::test_crate::reasoning_session_refusal::atom_ax",
+    "gmeow_logic::test_crate::reasoning_session_smoke::atom"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::test_crate::reasoning_session_annotation_parity::session_common::rule",
+    "gmeow_logic::test_crate::reasoning_session_refusal::rule_of"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::escape_string",
+    "gmeow_logic_compile::clif::escape_name",
+    "gmeow_logic_compile::clif::escape_string"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::parse_forms",
+    "gmeow_logic_compile::clif::parse_sexprs"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::reader::LitTerm::to_ntriples",
+    "gmeow_logic_compile::clif::reader::LitTerm::to_ntriples"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::split_on_sentinel",
+    "gmeow_logic_compile::clif::split_on_sentinel"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::writer::axiom_relation",
+    "gmeow_logic_compile::clif::writer::axiom_atom"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::writer::emit_leg_list",
+    "gmeow_logic_compile::clif::writer::emit_leg_list"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::writer::emit_leg_path",
+    "gmeow_logic_compile::clif::writer::emit_leg_path"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::writer::horn_term",
+    "gmeow_logic_compile::clif::writer::horn_term"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::cgif::writer::var_token",
+    "gmeow_logic_compile::clif::writer::var_token"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::frontend::source_admission::digest_bytes",
+    "gmeow_logic_compile::tptp::writer::digest_bytes"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::openehr_opt::cardinality_from_existence",
+    "gmeow_logic_compile::openehr_opt::cardinality_from_occurrences"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::projections::correspondence_soundness::info_not_checkable",
+    "gmeow_logic_compile::projections::correspondence_soundness::info_unavailable"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::projections::correspondence_soundness::py_list_repr",
+    "gmeow_pipeline::stages::constraint_shapes::filter_in"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::projections::edoal::build_tag_map",
+    "gmeow_logic_compile::projections::fno::build_tag_map"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::projections::edoal::edoal_kind",
+    "gmeow_logic_compile::projections::edoal::valid_kind"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::projections::rdf::format_decimal",
+    "gmeow_pipeline::stages::governance_floors::fmt_floor"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::projections::report::ProjectionReportRowRef::from",
+    "gmeow_logic_compile::projections::report::ProjectionReportRowRef::from"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::restriction::content_key",
+    "gmeow_logic_compile::restriction::datarange_content_key"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::result_shape::ColumnKind::term_kind",
+    "gmeow_logic_compile::result_shape::ObservedTerm::term_kind"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::result_shape::RowCardinality::local_name",
+    "gmeow_logic_compile::result_shape::RowCardinality::wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::result_shape::TermKind::from_local",
+    "gmeow_logic_compile::result_shape::TermKind::from_wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic_compile::result_shape::TermKind::local_name",
+    "gmeow_logic_compile::result_shape::TermKind::wire"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math::node_id",
+    "gmeow_music::term_id"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math_lift::ns::fnv1a_hex",
+    "gmeow_math_lift::onnx::model::digest_of"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math_lift::onnx::lift::Lift::app",
+    "gmeow_math_lift::r::lift::Lift::app"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math_lift::onnx::lift::Lift::expression_iri",
+    "gmeow_math_lift::r::lift::Lift::expression_iri"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math_lift::onnx::lift::Lift::mint",
+    "gmeow_math_lift::proof::lift::Lift::mint",
+    "gmeow_math_lift::r::lift::Lift::mint"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math_lift::proof::tstp::Connective::as_str",
+    "gmeow_math_lift::proof::tstp::Connective::label",
+    "gmeow_math_lift::proof::tstp::Connective::slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math_lift::r::lift::Estimator::label",
+    "gmeow_math_lift::r::lift::Estimator::slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_math_lift::r::lift::Lift::emit_relation",
+    "gmeow_math_lift::r::lift::Lift::emit_symbol"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_mcp::extension::ResourceRegistration::mime",
+    "gmeow_mcp::extension::ResourceRegistration::uri",
+    "gmeow_mcp::extension::ToolRegistration::name"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_mcp::storage::native::FsClaimStore::store_bytes",
+    "gmeow_mcp::storage::native::FsSegmentLibrary::read_bytes"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_mcp::test_crate::documented_dependencies::workspace_root",
+    "gmeow_query_wasm::test_crate::witness_query::repo_root",
+    "gmeow_validate::test_crate::conformance_suite::conformance_vocabulary_surface::repo_root"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_perf_evidence::junit::sha256",
+    "gmeow_perf_evidence::sample::sha256_bytes"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::canonical_abstract::error",
+    "gmeow_pipeline::stages::reason::stage_failure"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::catalog_families::registry_err",
+    "gmeow_pipeline::projection_profiles::inventory_err"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::cli_ops::okf_import::stage_err",
+    "gmeow_pipeline::cli_ops::quality::stage_err",
+    "gmeow_pipeline::fixture::fixture_manifest_error",
+    "gmeow_pipeline::stages::compile_logic::stage_err",
+    "gmeow_pipeline::stages::gmn_training_corpus::stage_err",
+    "gmeow_pipeline::stages::goal_directed::stage_err",
+    "gmeow_pipeline::stages::lang_lowering::stage_err",
+    "gmeow_pipeline::stages::lang_projection::stage_err",
+    "gmeow_pipeline::stages::verify_attestation::stage_err"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::cli_ops::okf_import::subject_key",
+    "gmeow_pipeline::stages::metadata::subject_key",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_analysis::node_key"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::medium::corpus::iri",
+    "gmeow_pipeline::medium::registry::require_iri"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::agreement::stage_err",
+    "gmeow_pipeline::stages::carrier::stage_err",
+    "gmeow_pipeline::stages::conformance::stage_err",
+    "gmeow_pipeline::stages::gmn1_gate::stage_err",
+    "gmeow_pipeline::stages::slice_brief::stage_err",
+    "gmeow_pipeline::stages::substrate_graph::stage_err",
+    "gmeow_pipeline::stages::superset::stage_err"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::compile_logic::record_failure",
+    "gmeow_pipeline::stages::conformance::record_failure"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::conformance::operator_scenes::objects",
+    "gmeow_pipeline::stages::conformance::wellfounded_plan::named_objects"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::constraint_catalog::load_authored_no_imports",
+    "gmeow_pipeline::stages::term_manifest::load_authored_no_imports"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::constraint_shapes::ConstraintShapesStage::input_files",
+    "gmeow_pipeline::stages::frame_shapes::FrameShapesStage::input_files",
+    "gmeow_pipeline::stages::skos_surface::SkosSurfaceStage::input_files"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::correspondence_lower::collect_ttl_files",
+    "gmeow_pipeline::stages::correspondence_soundness::collect_ttl_files"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::correspondence_lower::parse_turtle",
+    "gmeow_pipeline::stages::correspondence_soundness::parse_turtle"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::distribution_catalog::SerializationDist::consumer",
+    "gmeow_pipeline::stages::distribution_catalog::SerializationDist::media_type",
+    "gmeow_pipeline::stages::distribution_catalog::SerializationDist::slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::distribution_catalog::SiteSubAsset::canonical_path_prefix",
+    "gmeow_pipeline::stages::distribution_catalog::SiteSubAsset::label",
+    "gmeow_pipeline::stages::distribution_catalog::SiteSubAsset::slug"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::evals::json_str",
+    "gmeow_pipeline::stages::references::json_ascii_str"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::gate_verdict::push_triple",
+    "gmeow_pipeline::stages::meta_findings::push_world"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::gmn_training_corpus::GmnTrainingCorpusStage::new",
+    "gmeow_pipeline::stages::mappings::MappingsStage::new"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::json_schema::JsonSchemaStage::input_files",
+    "gmeow_pipeline::stages::schemas::SchemasStage::input_files"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::json_schema::report_losses",
+    "gmeow_pipeline::stages::pydantic::report_losses"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::lang_docs_rendering::rendering_ledger_row",
+    "gmeow_pipeline::stages::lang_docs_rendering::translation_ledger_row"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::lpg::err",
+    "gmeow_pipeline::stages::pydantic::err",
+    "gmeow_pipeline::stages::schemas::schema_error",
+    "gmeow_pipeline::stages::value_vocab::err"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::matrix::parse_store",
+    "gmeow_pipeline::stages::references::parse_store"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::provenance_graph::annotate_abox",
+    "gmeow_pipeline::stages::substrate_graph::annotate"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::result_shapes::value_prop",
+    "gmeow_pipeline::stages::result_shapes::wrong_value_prop"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::source_load::all_manifest_files",
+    "gmeow_pipeline::stages::source_load::module_files"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::stages::superset::check_header_dict_bijection",
+    "gmeow_pipeline::stages::superset::check_opaque_bijection"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::test_crate::correspondence_laws_bundle::objects_of",
+    "gmeow_pipeline::test_crate::goal_directed_bundle::objects_of",
+    "gmeow_pipeline::test_crate::norm_claims_bundle::objects_of"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::test_crate::goal_directed_bundle::answers_of",
+    "gmeow_pipeline::test_crate::goal_directed_bundle::bindings_of"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::test_crate::model_facing_invariance::first_string_literal",
+    "gmeow_pipeline::test_crate::model_facing_invariance::llms_shape::first_string_literal"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::test_crate::model_facing_invariance::llms_shape::match_brace",
+    "gmeow_pipeline::test_crate::model_facing_invariance::llms_shape::match_paren"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_pipeline::transform::curie",
+    "gmeow_pipeline::up_projection_corpus::canon_qname"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_slice_quality::test_crate::migrated_ceilings::golden_rows",
+    "gmeow_slice_quality::test_crate::migrated_floors::golden_rows"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_slice_quality::test_crate::rdf_projection::score",
+    "gmeow_slice_quality::test_crate::render_goldens::score"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::abductive::code_local",
+    "gmeow_validate::advisory::code_local"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::authoring_integrity::all_manifests",
+    "gmeow_validate::authoring_integrity::slice_module_files"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::authoring_integrity::finding",
+    "gmeow_validate::slice_ownership::finding"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::bench_crate::conformance_union_cost_alloc::cost_common::flatten_to_default_graph",
+    "gmeow_validate::test_crate::conformance_suite::conformance_support::flatten_to_default_graph"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::bench_crate::lint::cfg",
+    "gmeow_validate::bench_crate::validate_all::lint_config"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::crossref::build_publisher",
+    "gmeow_validate::crossref::build_version_info"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::cache::lint_config",
+    "gmeow_validate::test_crate::label_completeness::lint_config",
+    "gmeow_validate::test_crate::validate_all::lint_config"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::closed_world::gmeow_namespaces",
+    "gmeow_validate::test_crate::open_world_projection::gmeow_namespaces"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::compliance::repo_root",
+    "gmeow_validate::test_crate::gts_medium_axis::repo_root",
+    "gmeow_validate::test_crate::self_description_conformance::repo_root"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_affect_producer_union::twin_affect_decision_missing_decided_label_fires",
+    "gmeow_validate::test_crate::conformance_suite::conformance_affect_producer_union::twin_affect_decision_two_decided_labels_fires"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_affect_producer_union::twin_affect_decision_over_multilabel_set_fires",
+    "gmeow_validate::test_crate::conformance_suite::conformance_affect_producer_union::twin_softmax_over_multilabel_set_fires",
+    "gmeow_validate::test_crate::conformance_suite::conformance_affect_producer_union::twin_two_exclusive_claims_over_one_target_fires"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_ai_claims_tbox::no_duplicate_provenance_properties",
+    "gmeow_validate::test_crate::conformance_suite::conformance_ai_claims_tbox::no_winner_machinery_anywhere"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_archaeological_evidence::no_primary_or_preferred_archaeological_terms",
+    "gmeow_validate::test_crate::conformance_suite::conformance_determinacy::no_preferred_or_primary_term_is_declared",
+    "gmeow_validate::test_crate::conformance_suite::conformance_quality::no_preferred_or_primary_term_is_declared"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_dreaming::dream_element_links",
+    "gmeow_validate::test_crate::conformance_suite::conformance_dreaming::dream_experience_composition",
+    "gmeow_validate::test_crate::conformance_suite::conformance_dreaming::dream_report_composition"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_employment::contested_employment_coexists",
+    "gmeow_validate::test_crate::conformance_suite::conformance_genealogy::contested_parentage_coexists"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_employment::no_preferred_or_primary_employment_term",
+    "gmeow_validate::test_crate::conformance_suite::conformance_genealogy::no_preferred_or_primary_genealogy_term"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_employment::withdrawn_employment_suppressed_not_deleted",
+    "gmeow_validate::test_crate::conformance_suite::conformance_genealogy::withdrawn_parentage_suppressed_not_deleted"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_evidence::infoworld_citation_passes",
+    "gmeow_validate::test_crate::conformance_suite::conformance_evidence::orgbook_citation_passes"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_inference::acceptance_status_individuals_typed",
+    "gmeow_validate::test_crate::conformance_suite::conformance_inference::attack_kind_individuals_typed"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_instruments::module",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_performance::module",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_performance_events::module",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_structure::module",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::module"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_instruments::playing_technique_seeds_exist",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_structure::segment_kind_values_exist"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_structure::interpolation_kinds_exist",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::meter_sequence_fixtures_exist"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_structure::musical_segment_subclass_of_content_segment",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_structure::tone_event_subclass_of_musical_segment",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::musical_time_frame_is_reference_frame",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::tempo_map_is_time_mapping"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_structure::placeholder_voices_retyped",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::polymeter_assignments_exist",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::tuplet_fixtures_exist"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::common_musical_time_frame_exists",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::polymeter_pattern_exists",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::tempo_map_common_exists"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_myth::myth_el_restriction_on_has_myth_telling",
+    "gmeow_validate::test_crate::conformance_suite::conformance_standpoint::standpoint_tenure_generates_claim_restriction"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_narrative::reading_order_subclasses_standpoint",
+    "gmeow_validate::test_crate::conformance_suite::conformance_notes::evidence_span_is_information_object",
+    "gmeow_validate::test_crate::conformance_suite::conformance_notes::selector_sub_class_of_evidence_span"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_notes::notes_as_projection_executable",
+    "gmeow_validate::test_crate::conformance_suite::conformance_notes::notes_markdown_projection_executable",
+    "gmeow_validate::test_crate::conformance_suite::conformance_notes::notes_oa_projection_executable",
+    "gmeow_validate::test_crate::conformance_suite::conformance_notes::notes_schema_projection_executable"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::contested_capacity_claims_coexist",
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::coordinate_observations_coexist"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::contested_jurisdiction_tenures_coexist",
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::contested_regulatory_overlays_coexist"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::contested_place_names_coexist",
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::contested_sovereignty_coexists"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::has_coordinates_property_chain",
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::has_geometry_property_chain"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_capacity_suppressed",
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_coordinate_observation_suppressed",
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_historical_name_suppressed",
+    "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_network_address_suppressed"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_registers::no_primary_persona_machinery",
+    "gmeow_validate::test_crate::conformance_suite::conformance_teleology::no_preferred_or_primary_goal_terms"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_sensory_environment::psychological_mappings_loaded",
+    "gmeow_validate::test_crate::conformance_suite::conformance_sensory_environment::sosa_alignments_loaded"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_software::fixture_contribution_reifies_role_and_degree",
+    "gmeow_validate::test_crate::conformance_suite::conformance_software::fixture_has_commit_ancestor_closure"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_software::fixture_has_code_review_event",
+    "gmeow_validate::test_crate::conformance_suite::conformance_verifiable_release_chain::fixture_signed_commit",
+    "gmeow_validate::test_crate::conformance_suite::conformance_verifiable_release_chain::fixture_signed_tag"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_software::fixture_has_diff",
+    "gmeow_validate::test_crate::conformance_suite::conformance_software::fixture_has_push_event"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_software::fixture_has_merge_event",
+    "gmeow_validate::test_crate::conformance_suite::conformance_verifiable_release_chain::fixture_slsa_attestation"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_support::generated_mappings",
+    "gmeow_validate::test_crate::conformance_suite::conformance_support::generated_queries"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_verifiable_release_chain::build_activity_is_activity",
+    "gmeow_validate::test_crate::conformance_suite::conformance_verifiable_release_chain::builder_is_software_agent"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_validate::test_crate::lints::write_tmp",
+    "gmeow_validate::test_crate::validate_all::write_tmp"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_action_cache::bytes_digest",
+    "gmeow_build_inputs::digest",
+    "gmeow_pipeline::fixture::sha256"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_affect_ingest::local_name",
+    "gmeow_dev_cli::dev_shapes::local_name",
+    "gmeow_dev_cli::dev_slice_quality::axis_local_name",
+    "gmeow_logic_compile::projections::emotionml::local_name",
+    "gmeow_logic_compile::projections::shapes::local_name",
+    "gmeow_pipeline::stages::constraint_catalog::local_name",
+    "gmeow_pipeline::stages::governance_floors::local",
+    "gmeow_pipeline::stages::projection_ceilings::local",
+    "gmeow_slice_quality::gate::local_name",
+    "gmeow_slice_quality::test_crate::migrated_ceilings::local_name",
+    "gmeow_slice_quality::test_crate::migrated_floors::local_name"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_build_inputs::build_script::hex_digest",
+    "gmeow_dev_cli::dev_sync::is_sha256"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::commands::short",
+    "gmeow_logic::obligations::logic_local",
+    "gmeow_pipeline::stages::result_shape_composition::logic_local",
+    "gmeow_slicetest::dsl::logic_local"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::gmn::local_name",
+    "gmeow_pipeline::stages::conformance::wellfounded_plan::local_name",
+    "gmeow_slice_quality::prioritize::local_name"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::test_crate::bundle_smoke::fixture",
+    "gmeow_cli::test_crate::cli::fixture"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::test_crate::bundle_smoke::gmeow",
+    "gmeow_cli::test_crate::candidate_cli::gmeow",
+    "gmeow_cli::test_crate::cli::gmeow",
+    "gmeow_cli::test_crate::consistency_profile::gmeow",
+    "gmeow_cli::test_crate::gmn_conformance::gmeow",
+    "gmeow_cli::test_crate::logic_frontier_cli::gmeow",
+    "gmeow_cli::test_crate::logic_session_checkpoint_retract_cli::gmeow",
+    "gmeow_cli::test_crate::logic_session_facts_retract_cli::gmeow",
+    "gmeow_cli::test_crate::logic_session_paged_cli::gmeow",
+    "gmeow_cli::test_crate::math_lift_cli::gmeow",
+    "gmeow_cli::test_crate::purremb_hybrid_query::gmeow",
+    "gmeow_cli::test_crate::slice_brief_cli::gmeow",
+    "gmeow_cli::test_crate::slice_lint_cli::gmeow",
+    "gmeow_cli::test_crate::verify_deep::gmeow",
+    "gmeow_cli::test_crate::verify_enrichment::gmeow"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::test_crate::bundle_smoke::gmeow_bin",
+    "gmeow_cli::test_crate::self_sufficiency::gmeow_bin"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::test_crate::logic_session_checkpoint_retract_cli::fixture",
+    "gmeow_cli::test_crate::logic_session_facts_retract_cli::fixture",
+    "gmeow_cli::test_crate::logic_session_paged_cli::fixture"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::test_crate::medium_cli::materialized_bundle",
+    "gmeow_dev_cli::test_crate::medium_gate::materialized_bundle"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_cli::test_crate::slice_lint_cli::fixture_root",
+    "gmeow_cli::test_crate::slice_quality_bundle::fixture_root"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_conformance::compare::truncate_chars",
+    "gmeow_foundation_corpus::slug::char_prefix"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_conformance::consistency::fail",
+    "gmeow_conformance::native_observation::fail"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_dev_cli::dev_sync::pid_alive",
+    "xtask::pid_alive"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_dev_cli::test_crate::loss_bearing_domain::read",
+    "gmeow_dev_cli::test_crate::npm_packaging_contract::read"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_dev_cli::test_crate::make_gate_contract::normalized_whitespace",
+    "gmeow_logic_compile::projections::sssom::collapse_whitespace",
+    "gmeow_pipeline::test_crate::model_facing_invariance::llms_shape::collapse"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::console::covers",
+    "gmeow_pipeline::medium::corpus::logical_path_selected"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::example_crate::refresh_reviewed_coverage_golden::reviewed_coverage::fail",
+    "gmeow_mcp::example_crate::refresh_witness_describe::explorer_describe::fail",
+    "gmeow_mcp::example_crate::refresh_witness_describe::fail",
+    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail",
+    "gmeow_reason_wasm::example_crate::refresh_witness_conjecture::conjecture_witness::fail"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::render::concern_display",
+    "gmeow_docs_model::slug::concern_display"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::render::concern_slug",
+    "gmeow_docs_model::slug::concern_slug"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::render::short_iri_digest",
+    "gmeow_docs_model::slug::short_iri_digest"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::render::slice_display",
+    "gmeow_docs_model::slug::slice_display"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::render::slice_slug",
+    "gmeow_docs_model::slug::slice_slug"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::render::slice_slug_of_iri",
+    "gmeow_docs_model::slug::slice_slug_of_iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::render::term_slug",
+    "gmeow_docs_model::slug::term_slug"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs::test_crate::attestation_gate::repo_root",
+    "gmeow_docs::test_crate::gmn_asset::repo_root",
+    "gmeow_docs::test_crate::mcp_asset::repo_root",
+    "gmeow_docs::test_crate::query_asset::repo_root",
+    "gmeow_docs::test_crate::reason_asset::repo_root",
+    "gmeow_docs::test_crate::validate_asset::repo_root"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs_catalog::identity::local_name",
+    "gmeow_pipeline::stages::profiles::profile_slug",
+    "gmeow_slicetest::example_crate::obligation_probe::short"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs_catalog::identity::triple_lit",
+    "gmeow_pipeline::stages::docs_format_rendering::triple_lit",
+    "gmeow_pipeline::stages::lang_docs_rendering::triple_lit",
+    "gmeow_pipeline::stages::lang_form::triple_lit",
+    "gmeow_pipeline::stages::lang_glossary::triple_lit",
+    "gmeow_pipeline::stages::lang_projection::triple_lit",
+    "gmeow_pipeline::stages::lang_translation::triple_lit"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs_catalog::identity::triple_typed",
+    "gmeow_pipeline::stages::docs_format_rendering::triple_typed",
+    "gmeow_pipeline::stages::lang_docs_rendering::triple_typed",
+    "gmeow_pipeline::stages::lang_form::triple_typed",
+    "gmeow_pipeline::stages::lang_projection::triple_typed",
+    "gmeow_pipeline::stages::lang_translation::triple_typed"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs_model::describe::short",
+    "gmeow_docs_model::gmn1_primer::curie",
+    "gmeow_logic_compile::projections::correspondence_soundness::shorten_iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs_model::fixture::ModelCacheError::from",
+    "gmeow_pipeline::cache::FixtureCoordinateError::from"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_docs_model::model::is_external_iri",
+    "gmeow_pipeline::stages::research_objects::is_http_iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_errors::code::CodeRegistry::new",
+    "gmeow_errors::ledger::DiagLedger::new",
+    "gmeow_foundation_corpus::budget::BudgetReport::new",
+    "gmeow_lang_bridge::engine::EngineRegistry::new",
+    "gmeow_lang_form::intern::Interner::new",
+    "gmeow_logic::counterfactual::CfCache::new",
+    "gmeow_logic::dense::DenseInterner::new",
+    "gmeow_logic::facts::PredInterner::new",
+    "gmeow_logic::facts::TypedFactSet::new",
+    "gmeow_logic::physical::arena::RowArena::new",
+    "gmeow_logic::physical::bitset::DenseBitset::new",
+    "gmeow_logic::physical::store::witness::SkolemRegistry::new",
+    "gmeow_logic::physical::unify::Subst::new",
+    "gmeow_logic::query_ir::CompletionFrontier::empty",
+    "gmeow_logic_compile::ir::ReasoningContract::new",
+    "gmeow_math::clifford::Multivector::zero",
+    "gmeow_math_lift::sink::Sink::new",
+    "gmeow_mcp::extension::Extension::new",
+    "gmeow_pipeline::ingest::SpanIndex::new",
+    "gmeow_term_arena::TermArena::new",
+    "gmeow_term_arena::interner::TermInterner::new",
+    "gmeow_term_arena::term_dag::TermDag::new",
+    "gmeow_validate::findings::FailureClassIndex::empty"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_errors::render::strip_angle",
+    "gmeow_logic::modal::normalize_object",
+    "gmeow_logic::verify::bare_iri",
+    "gmeow_validate::findings::strip_angle"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_foundation_corpus::importer::FoundationImporter::default",
+    "gmeow_logic::store::WorldStore::default",
+    "gmeow_logic::transaction::StepCounter::default",
+    "gmeow_mcp::storage::InMemoryStorage::default",
+    "gmeow_pipeline::stages::agreement::AgreementMatrixStage::default",
+    "gmeow_pipeline::stages::archive_blobs::ArchiveBlobsStage::default",
+    "gmeow_pipeline::stages::carrier::SnapshotStage::default",
+    "gmeow_pipeline::stages::compile_logic::CompileLogicStage::default",
+    "gmeow_pipeline::stages::constraint_catalog::ConstraintCatalogStage::default",
+    "gmeow_pipeline::stages::docs_render::DocsRenderStage::default",
+    "gmeow_pipeline::stages::export::ExportStage::default",
+    "gmeow_pipeline::stages::gmn_training_corpus::GmnTrainingCorpusStage::default",
+    "gmeow_pipeline::stages::goal_directed::GoalDirectedStage::default",
+    "gmeow_pipeline::stages::gts_compose::GtsComposeStage::default",
+    "gmeow_pipeline::stages::gts_sink::GtsSinkStage::default",
+    "gmeow_pipeline::stages::json_schema::JsonSchemaStage::default",
+    "gmeow_pipeline::stages::lpg::LpgStage::default",
+    "gmeow_pipeline::stages::mappings::MappingsStage::default",
+    "gmeow_pipeline::stages::math_producers::MathProducersStage::default",
+    "gmeow_pipeline::stages::medium_dictionaries::MediumDictionariesStage::default",
+    "gmeow_pipeline::stages::metadata::MetadataStage::default",
+    "gmeow_pipeline::stages::okf::OkfStage::default",
+    "gmeow_pipeline::stages::pydantic::PydanticStage::default",
+    "gmeow_pipeline::stages::reason::ReasonStage::default",
+    "gmeow_pipeline::stages::research_objects::ResearchObjectsStage::default",
+    "gmeow_pipeline::stages::schemas::SchemasStage::default",
+    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::default",
+    "gmeow_pipeline::stages::source_load::SourceLoadStage::default",
+    "gmeow_pipeline::stages::term_manifest::TermManifestStage::default",
+    "gmeow_pipeline::stages::validate::ValidateStage::default",
+    "gmeow_pipeline::stages::verify_attestation::VerifyAttestationStage::default",
+    "gmeow_pipeline::stages::yaml_ld::YamlLdStage::default"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_gmn_wasm::version",
+    "gmeow_mcp_core_wasm::version",
+    "gmeow_mcp_wasm::version",
+    "gmeow_query_wasm::version",
+    "gmeow_reason_wasm::version",
+    "gmeow_validate_wasm::version"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_lang_bridge::conllu::spec_violation",
+    "gmeow_lang_bridge::grammar::unmodeled",
+    "gmeow_lang_bridge::ontolex::unrepresentable",
+    "gmeow_lang_bridge::rdf_scan::unrepresentable"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_lang_bridge::gmn1_digest::view_leaf",
+    "gmeow_query_wasm::blake3_hex"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_lang_bridge::gmn_consume::estimate_tokens",
+    "gmeow_lang_bridge::gmn_metrics::estimate_tokens"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_lang_bridge::grammar::AbnfBridge::emit",
+    "gmeow_lang_bridge::grammar::EbnfBridge::emit",
+    "gmeow_lang_bridge::plain_text::PlainTextBridge::emit"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_lang_bridge::ontolex::iri_id",
+    "gmeow_lang_bridge::rdf_scan::iri_id",
+    "gmeow_pipeline::medium::registry::iri_id",
+    "gmeow_pipeline::scoreboards::iri_id",
+    "gmeow_pipeline::stages::matrix::id",
+    "gmeow_slice_quality::graph::id",
+    "gmeow_validate::constitution::iri_id",
+    "gmeow_validate::gufo::iri_id",
+    "gmeow_validate::repo_static::iri_id_static",
+    "gmeow_validate::self_desc::iri_id",
+    "gmeow_validate::statement::ds_iri_id",
+    "gmeow_validate::test_crate::compliance::term_id"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_lang_bridge::ontolex::iri_of",
+    "gmeow_lang_bridge::rdf_scan::iri_of"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_lang_bridge::ontolex::local_name",
+    "gmeow_lang_bridge::rdf_scan::local_name",
+    "gmeow_pipeline::scoreboards::local_name",
+    "gmeow_pipeline::stages::schema_ident::local_name",
+    "gmeow_slice_brief::ns::local_name"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::bench_crate::purremb_retrieval::provider_for",
+    "gmeow_logic::test_crate::purremb_perf::provider_for"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::bench_crate::purremb_retrieval::support::annotate",
+    "gmeow_logic::test_crate::purremb_relations::annotate"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::coherence_observations::failure",
+    "gmeow_logic::correspondence_exec::exec_error",
+    "gmeow_logic::physical::incremental::incremental_err",
+    "gmeow_logic::physical::incremental_grounding::grounding_err",
+    "gmeow_logic::reason::dl::invalid",
+    "gmeow_logic::reason::refute::native::invalid",
+    "gmeow_logic::seam::source_error"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::cost::cost_err",
+    "gmeow_logic::nary::nary_err",
+    "gmeow_logic::runtime::session::delta::payload_error"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::derivation_graph::provenance_err",
+    "gmeow_logic::physical::proof::proof_err",
+    "gmeow_logic::provenance::provenance_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::entrenchment::entrenchment_err",
+    "gmeow_logic::obligations::obligation_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::entrenchment::named_iri",
+    "gmeow_logic::entrenchment::term_iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::explain::strip_iri_n3",
+    "gmeow_logic::foundation::strip_angle_opt"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::external_relation::TableRelationProvider::new",
+    "gmeow_logic_compile::result_shape::ObservedBinding::new"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::external_relation::provider_batch_contract_violation",
+    "gmeow_logic::physical::annotation::annotation_err",
+    "gmeow_logic::physical::domain::failure",
+    "gmeow_logic::physical::seminaive::seminaive_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::goal_directed::oracle_term_bare",
+    "gmeow_logic::physical::resolve_fol::render_atom"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::goal_directed::reasoning_program_err",
+    "gmeow_logic::rule_ir::ir_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::math_expression::failure_class_local_name",
+    "gmeow_pipeline::gmn_dialect::base_name",
+    "gmeow_pipeline::stages::constraint_shapes::local",
+    "gmeow_pipeline::stages::meta_findings::short_finding"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::modal::modal_err",
+    "gmeow_logic::reason::artifacts::reason_err",
+    "gmeow_logic::reason::el::reason_err",
+    "gmeow_logic::reason::enactment::enactment_gate_err",
+    "gmeow_logic::reason::enactment::refine::refine_err",
+    "gmeow_logic::reason::math_gate::math_gate_err",
+    "gmeow_logic::reason::reason_err",
+    "gmeow_logic::reason::rl::reason_err",
+    "gmeow_logic::stablemodel::reason_err",
+    "gmeow_logic::wellfounded::reason_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::physical::chase::physical_err",
+    "gmeow_logic::physical::generic::physical_err",
+    "gmeow_logic::physical::magic::physical_err",
+    "gmeow_logic::proof_tree::tree_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::purremb_relation::ScanError::from",
+    "gmeow_logic::purremb_relation::ScanError::from"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::purremb_relation::space_algebra_error",
+    "gmeow_logic::reason::refute::registry_error"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::reason::artifacts::bare_iri",
+    "gmeow_logic::reason::dl::unwrap_iri",
+    "gmeow_pipeline::stages::goal_directed::bare_iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::reason::dl::DlGap::new",
+    "gmeow_logic::seam::WorldSourceIdentity::new"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::reason::refute::casesplit::admission::fail",
+    "gmeow_logic::reason::refute::casesplit::execution::failure",
+    "gmeow_logic::reason::refute::diagnostic::fail",
+    "gmeow_logic::reason::refute::proof::proof_error"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::result::result_err",
+    "gmeow_logic::result_rdf::result_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::result_rdf::Node::iri",
+    "gmeow_logic_compile::graphutil::Node::iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::seam::WorldFactSnapshot::contradiction_witness",
+    "gmeow_logic::seam::WorldFactSource::contradiction_witness"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::test_crate::coherence_gate::repo_root",
+    "gmeow_validate::test_crate::data_validate::repo_root"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::test_crate::dimension_gate::parse",
+    "gmeow_logic::test_crate::enactment_gate::parse"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::test_crate::ontology_entailments::iri_quad",
+    "gmeow_pipeline::stages::conformance::epistemics::iri_quad"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::test_crate::ontology_entailments::unwrap_iri",
+    "gmeow_slicetest::exec::strip_angle"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::test_crate::purremb_perf::snapshot_of",
+    "gmeow_logic::test_crate::purremb_relations::snapshot"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::transaction::trajectory::trajectory_err",
+    "gmeow_logic::transaction::transaction_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::cgif::writer::name_term",
+    "gmeow_logic_compile::cgif::writer::quote_string",
+    "gmeow_logic_compile::clif::writer::quote_string"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::frontend::formula_err",
+    "gmeow_logic_compile::frontend::formula_reader::formula_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::ir::constraint::key_field",
+    "gmeow_logic_compile::ir::validation::key_field",
+    "gmeow_logic_compile::projections::subsumption::key_field",
+    "gmeow_math_lift::r::parser::escape_key"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::projections::presentation::integer",
+    "gmeow_logic_compile::projections::report::int_literal"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::projections::sparql::native::filter",
+    "gmeow_pipeline::put_executor::filtered"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::projections::sparql::native::named",
+    "gmeow_pipeline::put_executor::iri_term"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::projections::sparql::native::triple",
+    "gmeow_pipeline::put_executor::triple"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic_compile::projections::sparql::native::var",
+    "gmeow_pipeline::put_executor::var"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_math_lift::proof::lift::unliftable",
+    "gmeow_math_lift::proof::tstp::unliftable"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_mcp::extension::ResourceRegistration::new",
+    "gmeow_mcp::extension::ToolRegistration::new"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_mcp::storage::InMemoryClaimStore::store_bytes",
+    "gmeow_pipeline::node::Stage::input_files"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_mcp_core_wasm::ready",
+    "gmeow_mcp_wasm::ready"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_mcp_core_wasm::test_crate::witness_core::repo_root",
+    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::repo_root",
+    "gmeow_mcp_wasm::test_crate::witness_mcp::repo_root"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_mcp_core_wasm::test_crate::witness_core::snapshot",
+    "gmeow_mcp_wasm::test_crate::witness_mcp::snapshot"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_music::first_f64",
+    "gmeow_music::first_i64"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_perf_evidence::sample::display_path",
+    "gmeow_validate::authoring_integrity::rel"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::docs_distribution::blake3_of",
+    "gmeow_pipeline::medium::blake3_digest",
+    "gmeow_pipeline::test_crate::medium_bundle::blake3"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::loader::local_name",
+    "gmeow_pipeline::stages::lang_glossary::localname"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::medium::measure::non_negative_integer",
+    "gmeow_pipeline::medium::rdf::non_negative_integer"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::run::is_rdf_artifact",
+    "gmeow_pipeline::stages::carrier::is_rdf_member"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::catalog::CatalogStage::input_files",
+    "gmeow_pipeline::stages::profiles::ProfilesStage::input_files"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::conformance::advice_wing::fail",
+    "gmeow_pipeline::stages::conformance::execution::fail",
+    "gmeow_pipeline::stages::conformance::expression_substrate::fail",
+    "gmeow_pipeline::stages::conformance::flagship_unwired::fail",
+    "gmeow_pipeline::stages::conformance::gmn_vectors::fail",
+    "gmeow_pipeline::stages::conformance::grounding_catalogs::fail",
+    "gmeow_pipeline::stages::conformance::heavy::fail",
+    "gmeow_pipeline::stages::conformance::inference_validation::fail",
+    "gmeow_pipeline::stages::conformance::logic_module_contracts::fail",
+    "gmeow_pipeline::stages::conformance::medium_axis::fail",
+    "gmeow_pipeline::stages::conformance::operator_scenes::fail",
+    "gmeow_pipeline::stages::conformance::production_shapes::fail",
+    "gmeow_pipeline::stages::conformance::source_lint::fail",
+    "gmeow_pipeline::stages::conformance::supplemental::fail",
+    "gmeow_pipeline::stages::conformance::verify_gates::fail"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::conformance::diagnostics::raw",
+    "gmeow_pipeline::stages::conformance::gmn_grounding::raw",
+    "gmeow_pipeline::stages::conformance::gmn_signatures::raw",
+    "gmeow_pipeline::stages::conformance::gmn_vectors::raw",
+    "gmeow_pipeline::stages::conformance::operator_scenes::raw",
+    "gmeow_pipeline::stages::conformance::verify_gates::raw"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::conformance::logic_module_contracts::input_files",
+    "gmeow_pipeline::stages::conformance::medium_axis::input_files",
+    "gmeow_pipeline::stages::conformance::wellfounded_plan::input_files",
+    "gmeow_pipeline::stages::superset::source_contracts::input_files"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::constraint_catalog::ConstraintCatalogStage::new",
+    "gmeow_pipeline::stages::term_manifest::TermManifestStage::new"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::frame_shapes::local_name",
+    "gmeow_slicetest::dsl::local_name"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::gate_verdict::GateProgram::from_compiled_theory",
+    "gmeow_pipeline::stages::meta_findings::MetaProgram::from_compiled_theory"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::gate_verdict::iri_of",
+    "gmeow_pipeline::stages::meta_findings::iri_of"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::governance_floors::GovernanceFloorsStage::input_files",
+    "gmeow_pipeline::stages::projection_ceilings::ProjectionCeilingsStage::input_files"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::json_schema::JsonSchemaStage::new",
+    "gmeow_pipeline::stages::pydantic::PydanticStage::new",
+    "gmeow_pipeline::stages::schemas::SchemasStage::new",
+    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::lpg::LpgStage::new",
+    "gmeow_pipeline::stages::metadata::MetadataStage::new",
+    "gmeow_pipeline::stages::okf::OkfStage::new"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::provenance_graph::triple_iri",
+    "gmeow_pipeline::stages::substrate_graph::triple_iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::references::reference_validation_error",
+    "gmeow_pipeline::stages::term_manifest::manifest_error"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::research_objects::ro_err",
+    "gmeow_pipeline::stages::shape_union_fresh::parse_err",
+    "gmeow_pipeline::stages::skos_surface::parse_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::test_crate::correspondence_laws_bundle::graph_triples",
+    "gmeow_pipeline::test_crate::goal_directed_bundle::graph_triples",
+    "gmeow_pipeline::test_crate::norm_claims_bundle::graph_triples"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::test_crate::correspondence_laws_bundle::repo_root",
+    "gmeow_pipeline::test_crate::dag_dogfood::repo_root",
+    "gmeow_pipeline::test_crate::substrate_drift_finding::repo_root"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::test_crate::ml_schema_put_roundtrip::repo_root",
+    "gmeow_slice_quality::test_crate::gmn_token_cost_pin::repo_root",
+    "gmeow_slice_quality::test_crate::load_real_rubric::repo_root",
+    "gmeow_slice_quality::test_crate::migrated_ceilings::repo_root",
+    "gmeow_slice_quality::test_crate::migrated_floors::repo_root"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::transform::is_subject_term",
+    "gmeow_pipeline::up_projection_corpus::subject_addressable"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_slice_quality::load_repo_ceilings",
+    "gmeow_slice_quality::load_repo_floors"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_slice_quality::test_crate::gates::repo_root",
+    "gmeow_slice_quality::test_crate::rdf_projection::repo_root",
+    "gmeow_slice_quality::test_crate::render_goldens::repo_root",
+    "gmeow_slice_quality::test_crate::score_flagship_counterexample::repo_root",
+    "gmeow_slice_quality::test_crate::score_group_a::repo_root",
+    "gmeow_slice_quality::test_crate::score_group_c::repo_root"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_slice_quality::test_crate::migrated_ceilings::is_retired",
+    "gmeow_slice_quality::test_crate::migrated_floors::is_retired"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_slice_quality::test_crate::score_group_a::slice_dir",
+    "gmeow_slice_quality::test_crate::score_group_c::slice_dir"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_term_arena::test_crate::facade::iri",
+    "gmeow_validate::test_crate::conformance_suite::conformance_support::iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_validate::abductive::term_id",
+    "gmeow_validate::advisory::graph_id",
+    "gmeow_validate::lint::ds_iri_id"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_validate::authoring_integrity::parse_err",
+    "gmeow_validate::slice_peerage::parse_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_validate::bench_crate::conformance_union_cost_instructions::validate_fixture_only",
+    "gmeow_validate::bench_crate::conformance_union_cost_instructions::validate_ontology_only"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_validate::shape_grounding::grounding_err",
+    "gmeow_validate::shape_oracle::parse_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_validate::test_crate::conformance_suite::conformance_aboutness::aboutness",
+    "gmeow_validate::test_crate::conformance_suite::conformance_affect::conforms",
+    "gmeow_validate::test_crate::conformance_suite::conformance_affect::hard_fails",
+    "gmeow_validate::test_crate::conformance_suite::conformance_agentic::agentic",
+    "gmeow_validate::test_crate::conformance_suite::conformance_ai_claims::ai_claims",
+    "gmeow_validate::test_crate::conformance_suite::conformance_citations::citations",
+    "gmeow_validate::test_crate::conformance_suite::conformance_cognition::cognition",
+    "gmeow_validate::test_crate::conformance_suite::conformance_creative_works::creative_works",
+    "gmeow_validate::test_crate::conformance_suite::conformance_deception::deception",
+    "gmeow_validate::test_crate::conformance_suite::conformance_disclosure::disclosure",
+    "gmeow_validate::test_crate::conformance_suite::conformance_employment::employment",
+    "gmeow_validate::test_crate::conformance_suite::conformance_events::events",
+    "gmeow_validate::test_crate::conformance_suite::conformance_evidence::evidence",
+    "gmeow_validate::test_crate::conformance_suite::conformance_finance::finance",
+    "gmeow_validate::test_crate::conformance_suite::conformance_genealogy::genealogy",
+    "gmeow_validate::test_crate::conformance_suite::conformance_images::images",
+    "gmeow_validate::test_crate::conformance_suite::conformance_interior::interior",
+    "gmeow_validate::test_crate::conformance_suite::conformance_lifecycle::lifecycle",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_analysis::music_analysis",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_collections::music_collections",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_instruments::instrument_shacl",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_performance::performance_shacl",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_performance_events::performance_events_shacl",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_pitch::music_pitch",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_structure::music_structure_shacl",
+    "gmeow_validate::test_crate::conformance_suite::conformance_music_time::music_time_shacl",
+    "gmeow_validate::test_crate::conformance_suite::conformance_myth::myth",
+    "gmeow_validate::test_crate::conformance_suite::conformance_narration::narration",
+    "gmeow_validate::test_crate::conformance_suite::conformance_narrative::narrative",
+    "gmeow_validate::test_crate::conformance_suite::conformance_narrative_time::narrative_time",
+    "gmeow_validate::test_crate::conformance_suite::conformance_norms::norms",
+    "gmeow_validate::test_crate::conformance_suite::conformance_notes::notes",
+    "gmeow_validate::test_crate::conformance_suite::conformance_organization::organization",
+    "gmeow_validate::test_crate::conformance_suite::conformance_privacy::privacy",
+    "gmeow_validate::test_crate::conformance_suite::conformance_profiles::profiles",
+    "gmeow_validate::test_crate::conformance_suite::conformance_reference_frames::reference_frames",
+    "gmeow_validate::test_crate::conformance_suite::conformance_registers::registers",
+    "gmeow_validate::test_crate::conformance_suite::conformance_rights::rights",
+    "gmeow_validate::test_crate::conformance_suite::conformance_risk::risk",
+    "gmeow_validate::test_crate::conformance_suite::conformance_rubrics::rubrics",
+    "gmeow_validate::test_crate::conformance_suite::conformance_software::software",
+    "gmeow_validate::test_crate::conformance_suite::conformance_standpoint::standpoint",
+    "gmeow_validate::test_crate::conformance_suite::conformance_teleology::teleology",
+    "gmeow_validate::test_crate::conformance_suite::conformance_verifiable_release_chain::verifiable_release_chain",
+    "gmeow_validate::test_crate::conformance_suite::ontology_conformance::ontology_conformance"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "xtask::test_crate::commit_generated::repo_root",
+    "xtask::test_crate::issue_refs_lint::repo_root"
+   ]
+  }
+ ],
+ "job_copies": {
+  "bigint": 1,
+  "blake3": 1,
+  "calendar": 3,
+  "cli-import-pairs": 1,
+  "cli-shared-stdin": 1,
+  "counting-allocator": 2,
+  "escape-decode": 8,
+  "fixed-hasher-everywhere": 705,
+  "fnv1a64": 5,
+  "frame-le": 52,
+  "grammar-ws": 14,
+  "hash-domain": 45,
+  "hex": 53,
+  "json-pointer": 2,
+  "literal-and-iri-escape": 14,
+  "media-type-by-extension": 3,
+  "percent-encoding": 2,
+  "rdf-collection": 19,
+  "reifier-rows": 3,
+  "term-nesting-depth": 1,
+  "term-syntax": 1,
+  "text-direction": 1,
+  "w3c-vocab": 1
+ }
+}

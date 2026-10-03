@@ -1617,7 +1617,11 @@ fn musicxml_duration(
     Fraction::from_f64(duration_divs / divisions.max(1.0), 64)
 }
 
-fn musicxml_part_label(doc: &purrdf_lex::xml::Document<'_>, part_id: &str, fallback: &str) -> String {
+fn musicxml_part_label(
+    doc: &purrdf_lex::xml::Document<'_>,
+    part_id: &str,
+    fallback: &str,
+) -> String {
     doc.descendants()
         .find(|node| {
             node.is_element()

@@ -135,7 +135,10 @@ pub(super) fn emit(observations: &[GradedAdmission]) -> gmeow_errors::Result<Str
         );
         row(
             &format!("{logic}sourceAdmissionInputDigest"),
-            literal(&purrdf_hash::hex::encode(&record.observation.input_blake3), "hexBinary"),
+            literal(
+                &purrdf_hash::hex::encode(&record.observation.input_blake3),
+                "hexBinary",
+            ),
         );
         row(
             &format!("{logic}sourceAdmissionPublishedToken"),
