@@ -1616,11 +1616,42 @@ fn candidate_partition_matches_brute_force_membership_equivalence() {
             .collect();
         for _ in 0..(next() % 6) {
             if next() % 2 == 0 {
-                let members: Vec<usize> = (0..len).filter(|_| next() % 3 == 0).collect();
+                // Dense draws exercise the omitted-side walk of `split_dense`.
+                let dense = next() % 2 == 0;
+                let members: Vec<usize> = (0..len)
+                    .filter(|_| {
+                        if dense {
+                            next() % 4 != 0
+                        } else {
+                            next() % 3 == 0
+                        }
+                    })
+                    .collect();
                 for (position, entry) in history.iter_mut().enumerate() {
                     entry.push(u64::from(members.contains(&position)));
                 }
-                partition.split(members);
+                if next() % 2 == 0 {
+                    partition.split(members);
+                } else {
+                    // Values past the candidates are never positions; the mask drops them.
+                    let size = len + 70;
+                    let mut set = Domain::empty(size);
+                    let mut candidates = Domain::empty(size);
+                    for &member in &members {
+                        set.insert(member);
+                    }
+                    for value in len..size {
+                        if next() % 2 == 0 {
+                            set.insert(value);
+                        }
+                    }
+                    let mut position = vec![usize::MAX; size];
+                    for value in 0..len {
+                        candidates.insert(value);
+                        position[value] = value;
+                    }
+                    partition.split_dense(&set, &candidates, &position);
+                }
             } else {
                 let labelled: Vec<(usize, u64)> = (0..len)
                     .filter_map(|position| {
@@ -1656,5 +1687,81 @@ fn candidate_partition_matches_brute_force_membership_equivalence() {
             }
         }
         assert!(classes.windows(2).all(|pair| pair[0][0] < pair[1][0]));
+    }
+}
+
+#[test]
+fn published_member_support_is_the_representative_support_transposed() {
+    let rule = EvalRule::positive(
+        "urn:copy",
+        atom("?s", "urn:result", "?o"),
+        vec![atom("?s", "urn:left", "?o")],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let observations: Vec<_> = (0..8)
+        .map(|index| StatementPattern::subject(TermValue::iri(&format!("urn:node:{index}"))))
+        .collect();
+    let analysis = ValueFlow::with_observations(
+        &[flow(&rule)],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    );
+    let size = analysis.universe.size();
+    let node = |index: usize| {
+        analysis
+            .universe
+            .value(&TermValue::iri(&format!("urn:node:{index}")))
+    };
+    let result = analysis.universe.iri("urn:result");
+    let (representative, member) = (node(0), node(1));
+    // Opposite columns holding neither, both, or exactly one of the exchanged pair.
+    for opposite in [
+        vec![node(4), node(5)],
+        vec![representative, member, node(4)],
+        vec![representative, node(4)],
+        vec![member, node(5)],
+    ] {
+        let mut expected: Vec<_> = opposite
+            .iter()
+            .map(|&index| match index {
+                index if index == representative => member,
+                index if index == member => representative,
+                index => index,
+            })
+            .collect();
+        expected.sort_unstable();
+        let mut dense = Domain::empty(size);
+        for &index in &opposite {
+            dense.insert(index);
+        }
+        let sparse = AdaptiveDomain::Sparse {
+            size,
+            values: dense.indices().collect(),
+        };
+        for stored in [AdaptiveDomain::Dense(dense.clone()), sparse] {
+            let support = HeadSupport {
+                predicates: vec![result],
+                opposite: stored,
+            };
+            let mut state = analysis.summarize(std::iter::empty());
+            let mut scratch = Domain::empty(size);
+            let mut domains = std::array::from_fn(|_| Domain::all(size));
+            analysis.publish_head_support(
+                &mut state,
+                0,
+                member,
+                Some(&support),
+                representative,
+                &mut scratch,
+                &mut domains,
+                false,
+                &mut BTreeSet::new(),
+            );
+            let published: Vec<_> = state.relations[&result].by_subject[&member]
+                .indices()
+                .collect();
+            assert_eq!(published, expected, "opposite {opposite:?}");
+        }
     }
 }

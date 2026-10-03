@@ -104,6 +104,9 @@ impl Domain {
     fn is_empty(&self) -> bool {
         self.0.iter().all(|word| *word == 0)
     }
+    fn len(&self) -> usize {
+        self.0.iter().map(|word| word.count_ones() as usize).sum()
+    }
     fn is_subset_of(&self, other: &Self) -> bool {
         self.0
             .iter()
@@ -349,6 +352,46 @@ impl CandidatePartition {
             self.fresh[class] = usize::MAX;
         }
         self.touched_classes.clear();
+    }
+
+    /// Split by the candidates a dense set names. Splitting by the candidates it
+    /// omits induces the same partition, so walk whichever side is smaller.
+    fn split_dense(&mut self, set: &Domain, candidates: &Domain, position: &[usize]) {
+        if self.is_discrete() {
+            return;
+        }
+        let named: usize = set
+            .0
+            .iter()
+            .zip(&candidates.0)
+            .map(|(set, candidate)| (set & candidate).count_ones() as usize)
+            .sum();
+        let omitted = named * 2 > self.class.len();
+        let words = set.0.iter().zip(&candidates.0).enumerate();
+        self.split(words.flat_map(|(word, (&set, &candidate))| {
+            let mut remaining = if omitted { !set } else { set } & candidate;
+            std::iter::from_fn(move || {
+                if remaining == 0 {
+                    return None;
+                }
+                let bit = remaining.trailing_zeros() as usize;
+                remaining &= remaining - 1;
+                Some(position[word * 64 + bit])
+            })
+        }));
+    }
+
+    /// Split by an adaptive set: sparse members directly, dense words by side.
+    fn split_adaptive(&mut self, set: &AdaptiveDomain, candidates: &Domain, position: &[usize]) {
+        match set {
+            AdaptiveDomain::Dense(domain) => self.split_dense(domain, candidates, position),
+            AdaptiveDomain::Sparse { values, .. } => self.split(
+                values
+                    .iter()
+                    .filter(|value| candidates.contains(**value))
+                    .map(|value| position[*value]),
+            ),
+        }
     }
 
     /// Split every class by an exact label; unlabelled positions stay together.
@@ -705,7 +748,7 @@ impl AdaptiveDomain {
             Self::Dense(domain) => domain.union(other),
             Self::Sparse { size, values } => {
                 let dense_words = size.div_ceil(64);
-                let incoming = other.indices().count();
+                let incoming = other.len();
                 if values.len().saturating_add(incoming) >= dense_words {
                     let mut domain = Domain::empty(*size);
                     for &value in values.iter() {
@@ -2041,22 +2084,44 @@ impl ValueFlow {
                 index
             }
         };
-        for index in support.opposite.indices() {
-            scratch.insert(transpose(index));
-        }
+        // A dense column is transposed in place of a per-member walk: it holds
+        // both or neither of the pair (the set is unchanged) or exactly one
+        // (that one bit moves to the other value).
+        let opposite: &Domain = match &support.opposite {
+            AdaptiveDomain::Dense(domain)
+                if domain.contains(exchange) == domain.contains(value) =>
+            {
+                domain
+            }
+            AdaptiveDomain::Dense(domain) => {
+                scratch.0.copy_from_slice(&domain.0);
+                let (present, absent) = if domain.contains(exchange) {
+                    (exchange, value)
+                } else {
+                    (value, exchange)
+                };
+                scratch.remove(present);
+                scratch.insert(absent);
+                scratch
+            }
+            AdaptiveDomain::Sparse { values, .. } => {
+                scratch.0.fill(0);
+                for &index in values {
+                    scratch.insert(transpose(index));
+                }
+                scratch
+            }
+        };
         for predicate in support.predicates.iter().map(|&index| transpose(index)) {
-            if state.publish_condition(predicate, slot / 2, value, scratch, self.universe.size()) {
+            if state.publish_condition(predicate, slot / 2, value, opposite, self.universe.size()) {
                 changed_predicates.insert(predicate);
             }
             if slot == 0
                 && symmetric_value_sides
-                && state.publish_condition(predicate, 1, value, scratch, self.universe.size())
+                && state.publish_condition(predicate, 1, value, opposite, self.universe.size())
             {
                 changed_predicates.insert(predicate);
             }
-        }
-        for index in support.opposite.indices() {
-            scratch.remove(transpose(index));
         }
     }
 
@@ -2086,8 +2151,10 @@ impl ValueFlow {
     ) -> Vec<Vec<usize>> {
         let size = self.universe.size();
         let mut position = vec![usize::MAX; size];
+        let mut candidate_set = Domain::empty(size);
         for (index, &value) in candidates.iter().enumerate() {
             position[value] = index;
+            candidate_set.insert(value);
         }
         let candidate = |value: usize| (position[value] != usize::MAX).then(|| position[value]);
         let mut singletons = vec![false; candidates.len()];
@@ -2149,7 +2216,7 @@ impl ValueFlow {
             if partition.is_discrete() {
                 break;
             }
-            partition.split(domain.indices().filter_map(candidate));
+            partition.split_dense(domain, &candidate_set, &position);
         }
         let mut content_ids: HashMap<SupportContent<'_>, u64> = HashMap::new();
         for (&predicate, relation) in &state.relations {
@@ -2157,11 +2224,11 @@ impl ValueFlow {
                 continue;
             }
             for column in &relation.columns {
-                partition.split(column.indices().filter_map(candidate));
+                partition.split_adaptive(column, &candidate_set, &position);
             }
             for rectangle in &relation.rectangles {
                 for side in rectangle {
-                    partition.split(side.indices().filter_map(candidate));
+                    partition.split_dense(side, &candidate_set, &position);
                 }
             }
             for supports in [&relation.by_subject, &relation.by_object] {
@@ -2180,7 +2247,7 @@ impl ValueFlow {
                 }
                 partition.split_labelled(labelled);
                 for support in rows {
-                    partition.split(support.indices().filter_map(candidate));
+                    partition.split_adaptive(support, &candidate_set, &position);
                 }
             }
         }
@@ -2291,6 +2358,7 @@ impl ValueFlow {
             }
             let mut scratch = Domain::empty(self.universe.size());
             let mut classes_evaluated = candidates.len();
+            let mut timings = [0u128; 3];
             if candidates.len() >= PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES
                 && matches!(head[slot], Slot::Variable(_))
             {
@@ -2299,8 +2367,11 @@ impl ValueFlow {
                 // reschedules every affected reader, including recursive and
                 // dynamic readers, so a later fixed-point visit sees support added
                 // by sibling candidates.
+                let partitioned = std::time::Instant::now();
                 let classes = self.value_classes(rule, state, bindings, &candidates);
                 classes_evaluated = classes.len();
+                timings[0] = partitioned.elapsed().as_millis();
+                let evaluated = std::time::Instant::now();
                 let mut supports = Vec::with_capacity(classes.len());
                 for batch in classes.chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE) {
                     supports.par_extend(batch.par_iter().map(|members| {
@@ -2309,6 +2380,8 @@ impl ValueFlow {
                         self.head_value_support(head, slot, refinement)
                     }));
                 }
+                timings[1] = evaluated.elapsed().as_millis();
+                let published = std::time::Instant::now();
                 let mut publications: Vec<(usize, usize)> = classes
                     .iter()
                     .enumerate()
@@ -2328,6 +2401,7 @@ impl ValueFlow {
                         changed_predicates,
                     );
                 }
+                timings[2] = published.elapsed().as_millis();
             } else {
                 for value in candidates.iter().copied() {
                     let refinement =
@@ -2354,6 +2428,9 @@ impl ValueFlow {
                     slot,
                     candidates = candidates.len(),
                     classes = classes_evaluated,
+                    classes_ms = timings[0],
+                    evaluate_ms = timings[1],
+                    publish_ms = timings[2],
                     rule_index,
                     visit,
                     producer = rule.name.as_str(),
