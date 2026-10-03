@@ -43,7 +43,7 @@ pub struct SourceSpan {
     /// The repo-relative source path, interned once per file.
     pub path: Arc<str>,
     /// 1-based source line.
-    pub line: u32,
+    pub line: u64,
     /// 1-based source column (Unicode scalar values from line start).
     pub column: u32,
     /// Byte offset into the source document.
@@ -52,7 +52,7 @@ pub struct SourceSpan {
 
 impl SourceSpan {
     /// Construct a span over an already-interned `path`.
-    pub fn new(path: Arc<str>, line: u32, column: u32, byte_offset: u64) -> Self {
+    pub fn new(path: Arc<str>, line: u64, column: u32, byte_offset: u64) -> Self {
         Self {
             path,
             line,
@@ -172,7 +172,7 @@ impl SpanIndex {
 struct SpanEntryWire {
     subject: String,
     path_id: u32,
-    line: u32,
+    line: u64,
     column: u32,
     byte_offset: u64,
 }
@@ -302,6 +302,8 @@ impl SourceAdapter for PurrdfAdapter {
             dataset,
             spans: table,
             document_base,
+            // Prefixes are surface spelling, not source identity; receipts never read them.
+            document_prefixes: _,
         } = parse_dataset_with(
             bytes,
             media_type,

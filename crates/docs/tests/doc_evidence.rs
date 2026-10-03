@@ -170,12 +170,15 @@ fn every_doc_evidence_node_is_grounded() {
         .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
 
     let type_id = ds
+        .as_ref()
         .term_id_by_value(&TermValue::iri(RDF_TYPE))
         .expect("rdf:type interned");
     let docevidence_id = ds
+        .as_ref()
         .term_id_by_value(&TermValue::iri(format!("{GMEOW}DocEvidence")))
         .expect("gmeow:DocEvidence interned");
     let grounded_id = ds
+        .as_ref()
         .term_id_by_value(&TermValue::iri(format!("{GMEOW}docGroundedBy")))
         .expect("gmeow:docGroundedBy interned");
 
@@ -248,15 +251,21 @@ fn grounding_tally(nq: &str) -> (usize, usize) {
 
     // On a projection with zero evidence nodes the type/predicate IRIs may never
     // be interned; treat an absent id as "no such nodes" rather than panicking.
-    let type_id = match ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) {
+    let type_id = match ds.as_ref().term_id_by_value(&TermValue::iri(RDF_TYPE)) {
         Some(id) => id,
         None => return (0, 0),
     };
-    let docevidence_id = match ds.term_id_by_value(&TermValue::iri(format!("{GMEOW}DocEvidence"))) {
+    let docevidence_id = match ds
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(format!("{GMEOW}DocEvidence")))
+    {
         Some(id) => id,
         None => return (0, 0),
     };
-    let grounded_id = match ds.term_id_by_value(&TermValue::iri(format!("{GMEOW}docGroundedBy"))) {
+    let grounded_id = match ds
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(format!("{GMEOW}docGroundedBy")))
+    {
         Some(id) => id,
         None => {
             // The predicate is never interned ⇒ no node is grounded. Count the

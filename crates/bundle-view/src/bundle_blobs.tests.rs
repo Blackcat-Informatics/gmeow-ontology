@@ -324,7 +324,7 @@ fn integrity_report_flags_a_dangling_blob_reference() {
 /// things (frame authenticity vs. declared-key-vs-bytes agreement) — which is
 /// why this construction, unlike raw-byte tampering of the committed bundle,
 /// is never intercepted upstream before `integrity_report()` runs.
-fn hand_authored_blob_snapshot(data: Vec<u8>, pub_meta: ciborium::value::Value) -> Vec<u8> {
+fn hand_authored_blob_snapshot(data: Vec<u8>, pub_meta: purrdf_lex::cbor::Value) -> Vec<u8> {
     use purrdf::gts::writer::{FrameOptions, Writer};
 
     let nq = "<https://e/s> <https://e/p> <https://e/o> .\n"; // no *Blob predicate at all
@@ -358,8 +358,8 @@ fn hand_authored_blob_snapshot(data: Vec<u8>, pub_meta: ciborium::value::Value) 
 /// and land in `report.orphan_blobs`. The digest IS correctly keyed (so this
 /// test isolates orphan-ness from the hash-mismatch law below).
 fn integrity_report_flags_an_orphan_blob() {
-    use ciborium::value::Value;
     use purrdf::gts::writer::digest_string;
+    use purrdf_lex::cbor::Value;
 
     let data = b"{\"orphan\":true}".to_vec();
     let digest = digest_string(&data);
@@ -390,8 +390,8 @@ fn integrity_report_flags_an_orphan_blob() {
 /// isolates the mismatch from the orphan law above — a rep-labeled blob must
 /// never also be flagged as an orphan, per the existing regression pin).
 fn integrity_report_flags_a_hash_mismatch() {
-    use ciborium::value::Value;
     use purrdf::gts::writer::digest_string;
+    use purrdf_lex::cbor::Value;
 
     let data = b"{\"real\":\"bytes\"}".to_vec();
     let real_digest = digest_string(&data);

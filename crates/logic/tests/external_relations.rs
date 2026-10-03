@@ -860,9 +860,9 @@ fn provider_head_collision_wrong_algebra_and_rdf12_triple_terms_are_explicit() {
         }
     }
     let triple = TermValue::Triple {
-        s: Box::new(TermValue::iri(ex("alice"))),
-        p: Box::new(TermValue::iri(ex("knows"))),
-        o: Box::new(TermValue::iri(ex("bob"))),
+        s: TermValue::iri(ex("alice")).into(),
+        p: TermValue::iri(ex("knows")).into(),
+        o: TermValue::iri(ex("bob")).into(),
     };
     let triple_provider = TripleProvider(triple.clone());
     let triple_descriptor = descriptor(

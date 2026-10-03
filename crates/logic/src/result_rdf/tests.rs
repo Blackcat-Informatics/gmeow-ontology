@@ -269,9 +269,9 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
     let mut object = purrdf::TermValue::iri("urn:gmeow:test:deep-receipt-value");
     for _ in 0..80 {
         object = purrdf::TermValue::Triple {
-            s: Box::new(purrdf::TermValue::iri("urn:gmeow:test:receipt-subject")),
-            p: Box::new(purrdf::TermValue::iri("urn:gmeow:test:receipt-predicate")),
-            o: Box::new(object),
+            s: purrdf::TermValue::iri("urn:gmeow:test:receipt-subject").into(),
+            p: purrdf::TermValue::iri("urn:gmeow:test:receipt-predicate").into(),
+            o: object.into(),
         };
     }
     execution.families[0].proofs[0].statement.object = object;
@@ -342,7 +342,7 @@ fn native_reasoning_summary_matches_the_wire_projection() {
 
 #[test]
 fn typed_inferred_objects_survive_closure_and_receipt_projections() {
-    use purrdf::{BlankScope, RdfTextDirection, TermValue};
+    use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
 
     let directional = TermValue::Literal {
         lexical_form: "quoted \"claim\"\n<urn:not-an-iri>".to_owned(),
@@ -351,19 +351,21 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
         direction: Some(RdfTextDirection::Rtl),
     };
     let quoted = TermValue::Triple {
-        s: Box::new(TermValue::Blank {
+        s: (TermValue::Blank {
             label: "source".into(),
             scope: BlankScope(17),
-        }),
-        p: Box::new(TermValue::iri("urn:states")),
-        o: Box::new(TermValue::Triple {
-            s: Box::new(TermValue::Blank {
+        })
+        .into(),
+        p: TermValue::iri("urn:states").into(),
+        o: (TermValue::Triple {
+            s: TermBox::new(TermValue::Blank {
                 label: "source".into(),
                 scope: BlankScope(19),
             }),
-            p: Box::new(TermValue::iri("urn:quotes")),
-            o: Box::new(directional.clone()),
-        }),
+            p: TermBox::new(TermValue::iri("urn:quotes")),
+            o: TermBox::new(directional.clone()),
+        })
+        .into(),
     };
     let mut result = rich_result();
     let template = result.inferred()[0].clone();
@@ -392,9 +394,9 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
     let closure = crate::reason::inferred_axioms_to_dataset(&rows).unwrap();
     for row in &rows {
         assert!(closure.quads().any(|quad| {
-            matches!(closure.resolve(quad.p), purrdf::TermRef::Iri(iri) if iri == row.predicate)
-                && closure.term_value(quad.o) == row.object
-                && quad.g.is_some_and(|world| matches!(closure.resolve(world), purrdf::TermRef::Iri(iri) if iri == row.world))
+            matches!(closure.as_ref().resolve(quad.p), purrdf::TermRef::Iri(iri) if iri == row.predicate)
+                && closure.as_ref().term_value(quad.o) == row.object
+                && quad.g.is_some_and(|world| matches!(closure.as_ref().resolve(world), purrdf::TermRef::Iri(iri) if iri == row.world))
         }), "the closure must retain the value in its original world");
     }
     let native = project_reasoning_dataset(&result).unwrap();
@@ -413,8 +415,8 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
     let artifact = purrdf::parse_dataset(artifact.as_bytes(), "text/turtle", None).unwrap();
     for row in &rows {
         assert!(artifact.quads().any(|quad| {
-            matches!(artifact.resolve(quad.p), purrdf::TermRef::Iri(iri) if iri == row.predicate)
-                && artifact.term_value(quad.o) == row.object
+            matches!(artifact.as_ref().resolve(quad.p), purrdf::TermRef::Iri(iri) if iri == row.predicate)
+                && artifact.as_ref().term_value(quad.o) == row.object
         }), "the closure artifact must not reinterpret an inferred object as an IRI");
     }
 }

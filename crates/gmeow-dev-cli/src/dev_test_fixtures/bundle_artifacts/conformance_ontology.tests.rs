@@ -70,6 +70,7 @@ fn conformance_view_preserves_default_claims_and_excludes_other_worlds() {
     );
     assert!(
         reader
+            .as_ref()
             .term_id_by_value(&TermValue::iri("urn:other-claim"))
             .is_none()
     );

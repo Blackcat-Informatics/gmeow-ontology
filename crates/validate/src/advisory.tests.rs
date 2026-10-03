@@ -106,11 +106,13 @@ fn result(severity: ShaclSeverity, shape: &str, focus: &str, message: &str) -> V
         ),
         source_shape: Term::NamedNode(NamedNode::new_unchecked(shape)),
         severity,
-        message: Some(message.to_owned()),
+        messages: vec![purrdf::shapes::term::Literal::new_simple_literal(message)],
         source_box_roles: Vec::new(),
         path_box_roles: Vec::new(),
         result_box_roles: Vec::new(),
         attributions: Vec::new(),
+        details: Vec::new(),
+        annotations: Vec::new(),
     }
 }
 
@@ -154,6 +156,10 @@ fn split_advisory_lifts_info_results_and_retains_violations() {
                 "a required value is missing",
             ),
         ],
+        ..purrdf::shapes::report::ValidationReport::from_results(
+            Vec::new(),
+            purrdf::shapes::report::ConformanceDisallows::default(),
+        )
     };
 
     let (retained, advisories) = split_advisory_results(report, &shapes, &ontology);
@@ -256,6 +262,10 @@ fn split_advisory_distinct_foci_get_distinct_codes() {
                 "advice",
             ),
         ],
+        ..purrdf::shapes::report::ValidationReport::from_results(
+            Vec::new(),
+            purrdf::shapes::report::ConformanceDisallows::default(),
+        )
     };
     let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
     assert_eq!(advisories.len(), 2);
@@ -296,6 +306,10 @@ fn split_advisory_dedups_duplicate_shape_focus_matches() {
                 "advice",
             ),
         ],
+        ..purrdf::shapes::report::ValidationReport::from_results(
+            Vec::new(),
+            purrdf::shapes::report::ConformanceDisallows::default(),
+        )
     };
     let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
     assert_eq!(

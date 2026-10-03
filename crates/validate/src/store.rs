@@ -66,7 +66,7 @@ fn result_identity(result: &purrdf::shapes::report::ValidationResult) -> String 
     field(&result.source_constraint_component.as_str(), &mut key);
     field(&result.source_shape.to_string(), &mut key);
     field(&result.severity, &mut key);
-    field(&result.message, &mut key);
+    field(&result.messages, &mut key);
     field(&result.source_box_roles, &mut key);
     field(&result.path_box_roles, &mut key);
     field(&result.result_box_roles, &mut key);
@@ -247,12 +247,13 @@ pub fn parse_validation_shapes(
     text: &str,
 ) -> gmeow_errors::Result<(Arc<RdfDataset>, purrdf::shapes::shapes::Shapes)> {
     let fail = |detail| Diag::of_kind(crate::error::Parse { detail });
-    let dataset = purrdf::shapes::text_ingest::parse_turtle_to_dataset(text, None)
+    // One parse yields the dataset and the document prefix map the shapes resolve against.
+    let document = purrdf::shapes::text_ingest::parse_turtle_document(text, None)
         .map_err(|errors| fail(errors.join("\n")))?;
-    let prefixes = purrdf::shapes::text_ingest::extract_prefixes(text);
     let shapes =
-        purrdf::shapes::shapes::from_dataset_with_prefixes(&dataset, &prefixes).map_err(fail)?;
-    Ok((dataset, shapes))
+        purrdf::shapes::shapes::from_dataset_with_prefixes(&document.dataset, &document.prefixes)
+            .map_err(|error| fail(error.to_string()))?;
+    Ok((document.dataset, shapes))
 }
 
 /// Project a full `gmeow.gts` bundle into a **core browser bundle** — graph-preserving

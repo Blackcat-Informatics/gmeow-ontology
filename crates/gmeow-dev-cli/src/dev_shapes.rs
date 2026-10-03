@@ -468,8 +468,8 @@ fn declares_node_shape(path: &Path) -> bool {
         return true;
     };
     let (Some(ty), Some(ns)) = (
-        ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-        ds.term_id_by_value(&TermValue::iri(SH_NODESHAPE)),
+        ds.as_ref().term_id_by_value(&TermValue::iri(RDF_TYPE)),
+        ds.as_ref().term_id_by_value(&TermValue::iri(SH_NODESHAPE)),
     ) else {
         return false;
     };
@@ -518,19 +518,26 @@ fn registered_fail_witnesses(slice_dir: &Path) -> std::collections::BTreeSet<Pat
         let Ok(ds) = parse_dataset(&bytes, "text/turtle", None) else {
             continue;
         };
-        if let Some(p) = ds.term_id_by_value(&TermValue::iri(GMEOW_SA_FAIL_WITNESS)) {
+        if let Some(p) = ds
+            .as_ref()
+            .term_id_by_value(&TermValue::iri(GMEOW_SA_FAIL_WITNESS))
+        {
             for q in ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any) {
-                if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                if let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(q.o) {
                     out.insert(slice_dir.join(lexical));
                 }
             }
         }
         let (Some(ty), Some(cls), Some(outcome), Some(violates), Some(file)) = (
-            ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-            ds.term_id_by_value(&TermValue::iri(GMEOW_EXAMPLE_CONFORMANCE)),
-            ds.term_id_by_value(&TermValue::iri(GMEOW_EXPECTED_OUTCOME)),
-            ds.term_id_by_value(&TermValue::iri(GMEOW_VIOLATES)),
-            ds.term_id_by_value(&TermValue::iri(GMEOW_EXAMPLE_FILE)),
+            ds.as_ref().term_id_by_value(&TermValue::iri(RDF_TYPE)),
+            ds.as_ref()
+                .term_id_by_value(&TermValue::iri(GMEOW_EXAMPLE_CONFORMANCE)),
+            ds.as_ref()
+                .term_id_by_value(&TermValue::iri(GMEOW_EXPECTED_OUTCOME)),
+            ds.as_ref()
+                .term_id_by_value(&TermValue::iri(GMEOW_VIOLATES)),
+            ds.as_ref()
+                .term_id_by_value(&TermValue::iri(GMEOW_EXAMPLE_FILE)),
         ) else {
             continue;
         };
@@ -548,7 +555,7 @@ fn registered_fail_witnesses(slice_dir: &Path) -> std::collections::BTreeSet<Pat
                 continue;
             }
             for q in ds.quads_for_pattern(Some(cell_quad.s), Some(file), None, GraphMatch::Any) {
-                if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                if let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(q.o) {
                     out.insert(slice_dir.join(lexical));
                 }
             }
@@ -763,15 +770,18 @@ impl OracleCtx {
         let legacy_ttl = shape_subgraph_ttl(legacy_ds, &[iri.to_owned()], "l");
         let mut record_ttl = String::new();
         for (i, ds) in self.constraint_surfaces.iter().enumerate() {
-            let Some(formalizes) = ds.term_id_by_value(&TermValue::iri(LOGIC_FORMALIZES)) else {
+            let Some(formalizes) = ds
+                .as_ref()
+                .term_id_by_value(&TermValue::iri(LOGIC_FORMALIZES))
+            else {
                 continue;
             };
-            let Some(legacy_id) = ds.term_id_by_value(&TermValue::iri(iri)) else {
+            let Some(legacy_id) = ds.as_ref().term_id_by_value(&TermValue::iri(iri)) else {
                 continue;
             };
             let roots: Vec<String> = ds
                 .quads_for_pattern(None, Some(formalizes), Some(legacy_id), GraphMatch::Any)
-                .filter_map(|q| match ds.resolve(q.s) {
+                .filter_map(|q| match ds.as_ref().resolve(q.s) {
                     TermRef::Iri(s) => Some(s.to_owned()),
                     _ => None,
                 })
@@ -1456,11 +1466,13 @@ impl ClassHierarchy {
         for m in modules {
             let Ok(ds) = parse_ttl_file(&m) else { continue };
             for predicate in gmeow_ns::SUB_CLASS_OF {
-                let Some(sco) = ds.term_id_by_value(&TermValue::iri(predicate)) else {
+                let Some(sco) = ds.as_ref().term_id_by_value(&TermValue::iri(predicate)) else {
                     continue;
                 };
                 for q in ds.quads_for_pattern(None, Some(sco), None, GraphMatch::Any) {
-                    if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+                    if let (TermRef::Iri(s), TermRef::Iri(o)) =
+                        (ds.as_ref().resolve(q.s), ds.as_ref().resolve(q.o))
+                    {
                         direct.entry(s.to_owned()).or_default().insert(o.to_owned());
                     }
                 }
@@ -2305,10 +2317,12 @@ impl InstanceData {
         for f in &files {
             let Ok(ds) = parse_ttl_file(f) else { continue };
             for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-                let (TermRef::Iri(s), TermRef::Iri(p)) = (ds.resolve(q.s), ds.resolve(q.p)) else {
+                let (TermRef::Iri(s), TermRef::Iri(p)) =
+                    (ds.as_ref().resolve(q.s), ds.as_ref().resolve(q.p))
+                else {
                     continue;
                 };
-                match ds.resolve(q.o) {
+                match ds.as_ref().resolve(q.o) {
                     TermRef::Iri(o) if p == rdf_type => {
                         types.entry(s.to_owned()).or_default().insert(o.to_owned());
                     }
@@ -2372,20 +2386,20 @@ fn object_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
     let op = "http://www.w3.org/2002/07/owl#ObjectProperty";
     for m in modules {
         let Ok(ds) = parse_ttl_file(&m) else { continue };
-        let Some(ty) = ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
+        let Some(ty) = ds.as_ref().term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
             continue;
         };
         // A slice types an object property in the canonical `logic:` spelling
         // (`logic:ObjectProperty`); lower each `rdf:type` object to its `owl:`
         // view so both authorings count.
         for q in ds.quads_for_pattern(None, Some(ty), None, GraphMatch::Any) {
-            let TermRef::Iri(o) = ds.resolve(q.o) else {
+            let TermRef::Iri(o) = ds.as_ref().resolve(q.o) else {
                 continue;
             };
             if gmeow_ns::to_owl_view(o) != op {
                 continue;
             }
-            if let TermRef::Iri(s) = ds.resolve(q.s) {
+            if let TermRef::Iri(s) = ds.as_ref().resolve(q.s) {
                 out.insert(s.to_owned());
             }
         }
@@ -2410,11 +2424,13 @@ fn object_range_iris(root: &Path) -> BTreeMap<String, String> {
     let range = "http://www.w3.org/2000/01/rdf-schema#range";
     for m in modules {
         let Ok(ds) = parse_ttl_file(&m) else { continue };
-        let Some(rp) = ds.term_id_by_value(&TermValue::iri(range)) else {
+        let Some(rp) = ds.as_ref().term_id_by_value(&TermValue::iri(range)) else {
             continue;
         };
         for q in ds.quads_for_pattern(None, Some(rp), None, GraphMatch::Any) {
-            if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+            if let (TermRef::Iri(s), TermRef::Iri(o)) =
+                (ds.as_ref().resolve(q.s), ds.as_ref().resolve(q.o))
+            {
                 match out.get(s) {
                     Some(prev) if prev != o => {
                         ambiguous.insert(s.to_owned());
@@ -2538,20 +2554,20 @@ fn already_functional(root: &Path) -> std::collections::BTreeSet<String> {
     let fp = "http://www.w3.org/2002/07/owl#FunctionalProperty";
     for m in modules {
         let Ok(ds) = parse_ttl_file(&m) else { continue };
-        let Some(ty) = ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
+        let Some(ty) = ds.as_ref().term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
             continue;
         };
         // A slice types a functional property in the canonical `logic:` spelling
         // (`logic:functionalProperty`); lower each `rdf:type` object to its
         // `owl:` view so an already-declared characteristic is never re-emitted.
         for q in ds.quads_for_pattern(None, Some(ty), None, GraphMatch::Any) {
-            let TermRef::Iri(o) = ds.resolve(q.o) else {
+            let TermRef::Iri(o) = ds.as_ref().resolve(q.o) else {
                 continue;
             };
             if gmeow_ns::to_owl_view(o) != fp {
                 continue;
             }
-            if let TermRef::Iri(s) = ds.resolve(q.s) {
+            if let TermRef::Iri(s) = ds.as_ref().resolve(q.s) {
                 out.insert(s.to_owned());
             }
         }

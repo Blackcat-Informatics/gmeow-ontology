@@ -135,12 +135,15 @@ pub fn audit_box_roles(
     let mut builder = RdfDatasetBuilder::new();
     for path in paths {
         let dataset = store::parse_file_dataset(path)?;
-        if let Some(type_id) = dataset.term_id_by_value(&TermValue::iri(rdf::TYPE)) {
+        if let Some(type_id) = dataset
+            .as_ref()
+            .term_id_by_value(&TermValue::iri(rdf::TYPE))
+        {
             for q in dataset.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
-                let TermRef::Iri(term) = dataset.resolve(q.s) else {
+                let TermRef::Iri(term) = dataset.as_ref().resolve(q.s) else {
                     continue;
                 };
-                let TermRef::Iri(rdf_type) = dataset.resolve(q.o) else {
+                let TermRef::Iri(rdf_type) = dataset.as_ref().resolve(q.o) else {
                     continue;
                 };
                 if !is_gmeow_term(term, ontology_iri, namespace) {
@@ -167,9 +170,13 @@ pub fn audit_box_roles(
             detail: format!("dataset freeze failed: {e}"),
         })
     })?;
-    let role_pred_id = merged.term_id_by_value(&TermValue::iri(&graph_box_role));
-    let role_class_id = merged.term_id_by_value(&TermValue::iri(&graph_box_role_class));
-    let type_id = merged.term_id_by_value(&TermValue::iri(rdf::TYPE));
+    let role_pred_id = merged
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(&graph_box_role));
+    let role_class_id = merged
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(&graph_box_role_class));
+    let type_id = merged.as_ref().term_id_by_value(&TermValue::iri(rdf::TYPE));
 
     let mut report = BoxRoleAudit {
         term_count: types_by_term.len(),

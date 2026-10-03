@@ -9,6 +9,38 @@ use std::path::Path;
 
 use gmeow_errors::{Diag, Result};
 
+/// The lowest PurRDF major release any declared requirement or locked package may name.
+///
+/// Every `purrdf` and `purrdf-*` crate moved to the 3.x substrate together; a 2.x
+/// component anywhere in either committed lockfile, or a requirement that could admit
+/// one, would reintroduce the retired serde/ciborium/ed25519-dalek boundary types.
+pub const PURRDF_MAJOR_FLOOR: u64 = 3;
+
+fn is_purrdf_package(name: &str) -> bool {
+    name == "purrdf" || name.starts_with("purrdf-")
+}
+
+/// Whether some comparator of `requirement` excludes every release below the floor.
+///
+/// Cargo intersects comparators, so one lower bound at or above `FLOOR.0.0` suffices;
+/// `<`/`<=` comparators carry no lower bound and never satisfy it.
+fn excludes_below_floor(requirement: &semver::VersionReq) -> bool {
+    requirement.comparators.iter().any(|comparator| {
+        use semver::Op;
+        match comparator.op {
+            Op::Exact | Op::GreaterEq | Op::Tilde | Op::Caret | Op::Wildcard => {
+                comparator.major >= PURRDF_MAJOR_FLOOR
+            }
+            // `>N` with no minor excludes all of N.x.y; `>N.m[.p]` only part of it.
+            Op::Greater => {
+                comparator.major >= PURRDF_MAJOR_FLOOR
+                    || (comparator.major + 1 == PURRDF_MAJOR_FLOOR && comparator.minor.is_none())
+            }
+            _ => false,
+        }
+    })
+}
+
 /// A registry requirement and the concrete release selected by its lockfile.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PurrdfResolution {
@@ -55,7 +87,7 @@ fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PackageIdentit
             .get("name")
             .and_then(toml::Value::as_str)
             .ok_or_else(|| invalid(format!("{}: package has no name", path.display())))?;
-        if name != "purrdf" && !name.starts_with("purrdf-") {
+        if !is_purrdf_package(name) {
             continue;
         }
         let field = |key| {
@@ -77,12 +109,19 @@ fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PackageIdentit
                 path.display()
             )));
         }
-        semver::Version::parse(&identity.version).map_err(|error| {
+        let parsed = semver::Version::parse(&identity.version).map_err(|error| {
             invalid(format!(
                 "{}: invalid {name} version: {error}",
                 path.display()
             ))
         })?;
+        if parsed.major < PURRDF_MAJOR_FLOOR {
+            return Err(invalid(format!(
+                "{}: {name} {} is below the PurRDF {PURRDF_MAJOR_FLOOR}.x floor",
+                path.display(),
+                identity.version
+            )));
+        }
         if identity.checksum.len() != 64
             || !identity
                 .checksum
@@ -174,10 +213,11 @@ fn registry_requirement(
 ///
 /// # Errors
 /// Rejects missing inputs, non-registry declarations, ambiguous resolutions, and a
-/// locked release outside the declared requirement. The workspace's direct core
-/// dependency must declare the same compatibility requirement. Every locked PurRDF
-/// component must select that release and retain its own checksum. This never
-/// updates a lockfile.
+/// locked release outside the declared requirement. The workspace must declare the
+/// direct core dependency, and every declared `purrdf-*` component must state the same
+/// compatibility requirement as `purrdf`, which must admit nothing below
+/// [`PURRDF_MAJOR_FLOOR`]. Every locked PurRDF component must select that release, sit
+/// at or above the floor, and retain its own checksum. This never updates a lockfile.
 pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfResolution> {
     let manifest = read_toml(manifest_path)?;
     let workspace_dependencies = manifest
@@ -192,11 +232,25 @@ pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfRe
             ))
         })?;
     let requirement = registry_requirement(dependencies, "purrdf", manifest_path)?;
-    if workspace_dependencies.is_some() || dependencies.get("purrdf-core").is_some() {
-        let core = registry_requirement(dependencies, "purrdf-core", manifest_path)?;
-        if core != requirement {
+    if !excludes_below_floor(&requirement) {
+        return Err(invalid(format!(
+            "{}: purrdf requirement {requirement} admits releases below the PurRDF \
+             {PURRDF_MAJOR_FLOOR}.x floor",
+            manifest_path.display()
+        )));
+    }
+    if workspace_dependencies.is_some() {
+        registry_requirement(dependencies, "purrdf-core", manifest_path)?;
+    }
+    let components = dependencies
+        .as_table()
+        .into_iter()
+        .flat_map(|table| table.keys())
+        .filter(|name| name.as_str() != "purrdf" && is_purrdf_package(name));
+    for name in components {
+        if registry_requirement(dependencies, name, manifest_path)? != requirement {
             return Err(invalid(format!(
-                "{}: purrdf and purrdf-core requirements disagree",
+                "{}: purrdf and {name} requirements disagree",
                 manifest_path.display()
             )));
         }

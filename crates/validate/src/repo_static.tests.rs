@@ -1643,7 +1643,7 @@ fn pin_gate_errors(root: &Path) -> Vec<String> {
     report.errors
 }
 
-const PURRDF_RELEASE: &str = r#"purrdf = "2""#;
+const PURRDF_RELEASE: &str = r#"purrdf = "3""#;
 
 fn write_root_and_fuzz_purrdf(root: &Path, root_dep: &str, fuzz_dep: &str) {
     write(
@@ -1667,7 +1667,7 @@ fn write_lock_with_structured_zstd(root: &Path, version: &str) {
     );
     for name in ["purrdf", "purrdf-core"] {
         lock.push_str(&format!(
-                "\n[[package]]\nname = '{name}'\nversion = '2.0.0'\nsource = 'registry+https://github.com/rust-lang/crates.io-index'\nchecksum = '{}'\n",
+                "\n[[package]]\nname = '{name}'\nversion = '3.0.0'\nsource = 'registry+https://github.com/rust-lang/crates.io-index'\nchecksum = '{}'\n",
                 "a".repeat(64),
             ));
     }
@@ -1702,7 +1702,7 @@ fn pin_gate_rejects_same_version_checksum_drift_and_asset_key_tracks_release() {
     write(&lock_path, &lock);
     write(&root.join("Makefile"), "BINARYEN_VER := version_130\n");
     let original = workspace_substrate_key(root).unwrap();
-    assert!(original.contains("purrdf 2.0.0;"), "{original}");
+    assert!(original.contains("purrdf 3.0.0;"), "{original}");
     write(&lock_path, &lock.replace(&"a".repeat(64), &"b".repeat(64)));
     let errors = pin_gate_errors(root);
     assert!(
@@ -1711,7 +1711,7 @@ fn pin_gate_rejects_same_version_checksum_drift_and_asset_key_tracks_release() {
             .any(|err| err.contains("differs from Cargo.lock")),
         "{errors:?}"
     );
-    let upgraded = lock.replace("2.0.0", "2.0.1");
+    let upgraded = lock.replace("3.0.0", "3.0.1");
     write(&lock_path, &upgraded);
     write(&root.join("fuzz/Cargo.lock"), &upgraded);
     assert_ne!(original, workspace_substrate_key(root).unwrap());
@@ -2945,4 +2945,20 @@ fn raii_tempdir_usage_passes() {
 fn temp_dir_gate_skips_a_repo_without_crates() {
     let temp = tempfile::tempdir().unwrap();
     assert!(temp_dir_errors(temp.path()).is_empty());
+}
+
+#[test]
+fn pin_gate_flags_a_purrdf_release_below_the_major_floor() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    write_root_and_fuzz_purrdf(root, r#"purrdf = "2""#, r#"purrdf = "2""#);
+    write_lock_with_structured_zstd(root, "0.0.49");
+    let lock_path = root.join("Cargo.lock");
+    let downgraded = fs::read_to_string(&lock_path)
+        .unwrap()
+        .replace("version = '3.0.0'", "version = '2.0.0'");
+    write(&lock_path, &downgraded);
+    write(&root.join("fuzz/Cargo.lock"), &downgraded);
+    let errs = pin_gate_errors(root);
+    assert!(errs.iter().any(|e| e.contains("floor")), "{errs:?}");
 }

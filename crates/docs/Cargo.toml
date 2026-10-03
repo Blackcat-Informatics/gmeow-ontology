@@ -20,7 +20,6 @@ gmeow-action-cache = { path = "../action-cache" }
 serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true
-sha1.workspace = true
 # The project's canonical content-digest. Two uses: the committed query wasm
 # anti-rot gate recomputes the BLAKE3 of each vendored file against the committed
 # manifest, and the uniform `gmeow:DocEvidence` projection fingerprints each

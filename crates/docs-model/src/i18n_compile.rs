@@ -15,7 +15,7 @@ use gmeow_errors::{Diag, Result};
 use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use regex::Regex;
-use sha1::{Digest, Sha1};
+use purrdf_hash::sha1::Sha1;
 
 use crate::error::{
     CatalogInconsistent, FileIo, PoParse, RdfFormat, RdfParse, TurtleUnescape, UnsupportedSource,
@@ -116,15 +116,15 @@ fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>> 
     })?;
     let mut rows = Vec::new();
     for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        let TermRef::Iri(subject) = dataset.resolve(quad.s) else {
+        let TermRef::Iri(subject) = dataset.as_ref().resolve(quad.s) else {
             continue;
         };
-        let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
+        let TermRef::Iri(predicate) = dataset.as_ref().resolve(quad.p) else {
             continue;
         };
         let TermRef::Literal {
             lexical, language, ..
-        } = dataset.resolve(quad.o)
+        } = dataset.as_ref().resolve(quad.o)
         else {
             continue;
         };
@@ -459,12 +459,7 @@ fn write_po_like_text(entries: &[PoEntry], lang: Option<&str>) -> String {
 }
 
 fn anchor_hash(text: &str) -> String {
-    let digest = Sha1::digest(text.as_bytes());
-    digest
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect::<String>()[..12]
-        .to_owned()
+    purrdf_hash::hex::encode(&Sha1::digest(text.as_bytes()))[..12].to_owned()
 }
 
 #[derive(Debug, Clone)]

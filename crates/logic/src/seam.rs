@@ -10,6 +10,7 @@
 
 use std::cell::Cell;
 
+use purrdf::dataset_view::TermGuard;
 use purrdf::{DatasetView, GraphMatch, QuadIds, TermRef, TermValue};
 
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
@@ -288,7 +289,7 @@ pub trait WorldFactSource {
         &self,
         _world: &str,
         _pattern: &WorldFactPattern,
-    ) -> gmeow_errors::Result<Option<usize>> {
+    ) -> gmeow_errors::Result<Option<u64>> {
         Ok(None)
     }
 
@@ -384,7 +385,7 @@ impl<'view, V: DatasetView> RdfViewFactSource<'view, V> {
         kind: VirtualQuadKind,
         visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
     ) -> gmeow_errors::Result<()> {
-        let predicate = match self.view.resolve(quad.p) {
+        let predicate = match self.view.resolve(quad.p).map_err(view_error)?.term() {
             TermRef::Iri(iri) => iri.to_owned(),
             _ => {
                 return Err(source_error(
@@ -411,7 +412,7 @@ impl<'view, V: DatasetView> RdfViewFactSource<'view, V> {
         let Some(graph) = quad.g else {
             return Ok(None);
         };
-        let world = match self.view.resolve(graph) {
+        let world = match self.view.resolve(graph).map_err(view_error)?.term() {
             TermRef::Iri(iri) => iri.to_owned(),
             _ => {
                 return Err(source_error(
@@ -419,7 +420,7 @@ impl<'view, V: DatasetView> RdfViewFactSource<'view, V> {
                 ));
             }
         };
-        let predicate = match self.view.resolve(quad.p) {
+        let predicate = match self.view.resolve(quad.p).map_err(view_error)?.term() {
             TermRef::Iri(iri) => iri.to_owned(),
             _ => {
                 return Err(source_error(
@@ -448,125 +449,153 @@ impl<V: DatasetView> WorldFactSource for RdfViewFactSource<'_, V> {
         pattern: &WorldFactPattern,
         visitor: &mut dyn FnMut(&DerivedQuad) -> gmeow_errors::Result<()>,
     ) -> gmeow_errors::Result<()> {
-        let mut metrics = self.metrics.get();
-        metrics.pattern_probes += 1;
-        self.metrics.set(metrics);
+        self.view
+            .checked_read(|_| -> gmeow_errors::Result<()> {
+                let mut metrics = self.metrics.get();
+                metrics.pattern_probes += 1;
+                self.metrics.set(metrics);
 
-        let Some(graph) = self.view.term_id_by_value(&TermValue::iri(world)) else {
-            return Ok(());
-        };
-        let subject = match &pattern.subject {
-            Some(value) => match self.view.term_id_by_value(value) {
-                Some(id) => Some(id),
-                None => return Ok(()),
-            },
-            None => None,
-        };
-        let predicate = match &pattern.predicate {
-            Some(value) => match self.view.term_id_by_value(&TermValue::iri(value)) {
-                Some(id) => Some(id),
-                None => return Ok(()),
-            },
-            None => None,
-        };
-        let object = match &pattern.object {
-            Some(value) => match self.view.term_id_by_value(value) {
-                Some(id) => Some(id),
-                None => return Ok(()),
-            },
-            None => None,
-        };
+                let Some(graph) = self
+                    .view
+                    .term_id_by_value(&TermValue::iri(world))
+                    .map_err(view_error)?
+                else {
+                    return Ok(());
+                };
+                let subject = match &pattern.subject {
+                    Some(value) => match self.view.term_id_by_value(value).map_err(view_error)? {
+                        Some(id) => Some(id),
+                        None => return Ok(()),
+                    },
+                    None => None,
+                };
+                let predicate = match &pattern.predicate {
+                    Some(value) => match self
+                        .view
+                        .term_id_by_value(&TermValue::iri(value))
+                        .map_err(view_error)?
+                    {
+                        Some(id) => Some(id),
+                        None => return Ok(()),
+                    },
+                    None => None,
+                };
+                let object = match &pattern.object {
+                    Some(value) => match self.view.term_id_by_value(value).map_err(view_error)? {
+                        Some(id) => Some(id),
+                        None => return Ok(()),
+                    },
+                    None => None,
+                };
 
-        for quad in
-            self.view
-                .quads_for_pattern(subject, predicate, object, GraphMatch::Named(graph))
-        {
-            self.deliver(world, quad, VirtualQuadKind::Primary, visitor)?;
-        }
+                for quad in self.view.quads_for_pattern(
+                    subject,
+                    predicate,
+                    object,
+                    GraphMatch::Named(graph),
+                ) {
+                    self.deliver(world, quad, VirtualQuadKind::Primary, visitor)?;
+                }
 
-        let matches = |quad: &QuadIds<V::Id>| {
-            quad.g == Some(graph)
-                && subject.is_none_or(|id| quad.s == id)
-                && predicate.is_none_or(|id| quad.p == id)
-                && object.is_none_or(|id| quad.o == id)
-        };
-        let object_can_be_triple = pattern
-            .object
-            .as_ref()
-            .is_none_or(|value| matches!(value, TermValue::Triple { .. }));
-        if object_can_be_triple
-            && pattern
-                .predicate
-                .as_deref()
-                .is_none_or(|value| value == RDF_REIFIES)
-        {
-            for quad in self.view.reifier_quads().filter(|quad| matches(quad)) {
-                self.deliver(world, quad, VirtualQuadKind::Reifier, visitor)?;
-            }
-        }
-        if self.view.capabilities().annotations {
-            if let Some(reifier) = subject {
-                for (annotation_predicate, annotation_object, annotation_graph) in
-                    self.view.annotations_of_with_graph(reifier)
+                let matches = |quad: &QuadIds<V::Id>| {
+                    quad.g == Some(graph)
+                        && subject.is_none_or(|id| quad.s == id)
+                        && predicate.is_none_or(|id| quad.p == id)
+                        && object.is_none_or(|id| quad.o == id)
+                };
+                let object_can_be_triple = pattern
+                    .object
+                    .as_ref()
+                    .is_none_or(|value| matches!(value, TermValue::Triple { .. }));
+                if object_can_be_triple
+                    && pattern
+                        .predicate
+                        .as_deref()
+                        .is_none_or(|value| value == RDF_REIFIES)
                 {
-                    let quad = QuadIds {
-                        s: reifier,
-                        p: annotation_predicate,
-                        o: annotation_object,
-                        g: annotation_graph,
-                    };
-                    if matches(&quad) {
-                        self.deliver(world, quad, VirtualQuadKind::Annotation, visitor)?;
+                    for quad in self.view.reifier_quads().filter(|quad| matches(quad)) {
+                        self.deliver(world, quad, VirtualQuadKind::Reifier, visitor)?;
                     }
                 }
-            } else {
-                for quad in self.view.annotation_quads().filter(|quad| matches(quad)) {
-                    self.deliver(world, quad, VirtualQuadKind::Annotation, visitor)?;
+                if self.view.capabilities().annotations {
+                    if let Some(reifier) = subject {
+                        for (annotation_predicate, annotation_object, annotation_graph) in
+                            self.view.annotations_of_with_graph(reifier)
+                        {
+                            let quad = QuadIds {
+                                s: reifier,
+                                p: annotation_predicate,
+                                o: annotation_object,
+                                g: annotation_graph,
+                            };
+                            if matches(&quad) {
+                                self.deliver(world, quad, VirtualQuadKind::Annotation, visitor)?;
+                            }
+                        }
+                    } else {
+                        for quad in self.view.annotation_quads().filter(|quad| matches(quad)) {
+                            self.deliver(world, quad, VirtualQuadKind::Annotation, visitor)?;
+                        }
+                    }
                 }
-            }
-        }
-        Ok(())
+                Ok(())
+            })
+            .map_err(view_error)?
     }
 
     fn estimate_world(
         &self,
         world: &str,
         pattern: &WorldFactPattern,
-    ) -> gmeow_errors::Result<Option<usize>> {
-        let Some(graph) = self.view.term_id_by_value(&TermValue::iri(world)) else {
-            return Ok(Some(0));
-        };
-        let subject = match &pattern.subject {
-            Some(value) => match self.view.term_id_by_value(value) {
-                Some(id) => Some(id),
-                None => return Ok(Some(0)),
-            },
-            None => None,
-        };
-        let predicate = match &pattern.predicate {
-            Some(value) => match self.view.term_id_by_value(&TermValue::iri(value)) {
-                Some(id) => Some(id),
-                None => return Ok(Some(0)),
-            },
-            None => None,
-        };
-        let object = match &pattern.object {
-            Some(value) => match self.view.term_id_by_value(value) {
-                Some(id) => Some(id),
-                None => return Ok(Some(0)),
-            },
-            None => None,
-        };
-        let estimate =
-            self.view
-                .cardinality_estimate(subject, predicate, object, GraphMatch::Named(graph));
-        let mut metrics = self.metrics.get();
-        metrics.cardinality_probes += 1;
-        metrics.estimated_primary_quads = metrics
-            .estimated_primary_quads
-            .saturating_add(u64::try_from(estimate).unwrap_or(u64::MAX));
-        self.metrics.set(metrics);
-        Ok(Some(estimate))
+    ) -> gmeow_errors::Result<Option<u64>> {
+        self.view
+            .checked_read(|_| -> gmeow_errors::Result<Option<u64>> {
+                let Some(graph) = self
+                    .view
+                    .term_id_by_value(&TermValue::iri(world))
+                    .map_err(view_error)?
+                else {
+                    return Ok(Some(0));
+                };
+                let subject = match &pattern.subject {
+                    Some(value) => match self.view.term_id_by_value(value).map_err(view_error)? {
+                        Some(id) => Some(id),
+                        None => return Ok(Some(0)),
+                    },
+                    None => None,
+                };
+                let predicate = match &pattern.predicate {
+                    Some(value) => match self
+                        .view
+                        .term_id_by_value(&TermValue::iri(value))
+                        .map_err(view_error)?
+                    {
+                        Some(id) => Some(id),
+                        None => return Ok(Some(0)),
+                    },
+                    None => None,
+                };
+                let object = match &pattern.object {
+                    Some(value) => match self.view.term_id_by_value(value).map_err(view_error)? {
+                        Some(id) => Some(id),
+                        None => return Ok(Some(0)),
+                    },
+                    None => None,
+                };
+                let estimate = self.view.cardinality_estimate(
+                    subject,
+                    predicate,
+                    object,
+                    GraphMatch::Named(graph),
+                );
+                let mut metrics = self.metrics.get();
+                metrics.cardinality_probes += 1;
+                metrics.estimated_primary_quads =
+                    metrics.estimated_primary_quads.saturating_add(estimate);
+                self.metrics.set(metrics);
+                Ok(Some(estimate))
+            })
+            .map_err(view_error)?
     }
 
     fn metrics(&self) -> WorldSourceMetrics {
@@ -579,36 +608,40 @@ impl<V: DatasetView> WorldFactSource for RdfViewFactSource<'_, V> {
         rule: Option<&str>,
         sources: Option<&[String]>,
     ) -> gmeow_errors::Result<Vec<DerivationRecord>> {
-        let mut rows = Vec::new();
-        let mut admit = |quad| -> gmeow_errors::Result<()> {
-            let Some(derived) = self.provenance_row(quad)? else {
-                return Ok(());
-            };
-            if quad_id.is_some_and(|candidate| candidate != &derived.derivation_id)
-                || rule.is_some_and(|candidate| candidate != derived.rule_iri)
-                || sources.is_some_and(|candidate| candidate != derived.source_quad_ids)
-            {
-                return Ok(());
-            }
-            rows.push((
-                derived.derivation_id,
-                derived.rule_iri,
-                derived.source_quad_ids,
-            ));
-            Ok(())
-        };
-        for quad in self.view.quads() {
-            admit(quad)?;
-        }
-        for quad in self.view.reifier_quads() {
-            admit(quad)?;
-        }
-        if self.view.capabilities().annotations {
-            for quad in self.view.annotation_quads() {
-                admit(quad)?;
-            }
-        }
-        Ok(rows)
+        self.view
+            .checked_read(|_| -> gmeow_errors::Result<Vec<DerivationRecord>> {
+                let mut rows = Vec::new();
+                let mut admit = |quad| -> gmeow_errors::Result<()> {
+                    let Some(derived) = self.provenance_row(quad)? else {
+                        return Ok(());
+                    };
+                    if quad_id.is_some_and(|candidate| candidate != &derived.derivation_id)
+                        || rule.is_some_and(|candidate| candidate != derived.rule_iri)
+                        || sources.is_some_and(|candidate| candidate != derived.source_quad_ids)
+                    {
+                        return Ok(());
+                    }
+                    rows.push((
+                        derived.derivation_id,
+                        derived.rule_iri,
+                        derived.source_quad_ids,
+                    ));
+                    Ok(())
+                };
+                for quad in self.view.quads() {
+                    admit(quad)?;
+                }
+                for quad in self.view.reifier_quads() {
+                    admit(quad)?;
+                }
+                if self.view.capabilities().annotations {
+                    for quad in self.view.annotation_quads() {
+                        admit(quad)?;
+                    }
+                }
+                Ok(rows)
+            })
+            .map_err(view_error)?
     }
 }
 
@@ -625,8 +658,21 @@ fn source_error(detail: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+/// Take the value of a read from a resident view. Its `Infallible` read error proves
+/// at compile time that the read cannot fail, so nothing is discarded here.
+pub(crate) fn resident<T>(read: Result<T, std::convert::Infallible>) -> T {
+    let Ok(value) = read;
+    value
+}
+
+/// A typed RDF view read failure. It is a hard source error, never confused with
+/// semantic absence or a short stream.
+fn view_error(error: impl std::fmt::Display) -> gmeow_errors::Diag {
+    source_error(format!("RDF view read failed: {error}"))
+}
+
 fn term_value<V: DatasetView>(view: &V, id: V::Id) -> gmeow_errors::Result<TermValue> {
-    match view.resolve(id) {
+    match view.resolve(id).map_err(view_error)?.term() {
         TermRef::Iri(iri) => Ok(TermValue::iri(iri)),
         TermRef::Blank { label, scope } => Ok(TermValue::Blank {
             label: label.to_owned(),
@@ -638,7 +684,8 @@ fn term_value<V: DatasetView>(view: &V, id: V::Id) -> gmeow_errors::Result<TermV
             language,
             direction,
         } => {
-            let TermRef::Iri(datatype) = view.resolve(datatype) else {
+            let datatype = view.resolve(datatype).map_err(view_error)?;
+            let TermRef::Iri(datatype) = datatype.term() else {
                 return Err(source_error(
                     "RDF view yielded a literal whose datatype is not an IRI",
                 ));
@@ -651,9 +698,9 @@ fn term_value<V: DatasetView>(view: &V, id: V::Id) -> gmeow_errors::Result<TermV
             })
         }
         TermRef::Triple { s, p, o } => Ok(TermValue::Triple {
-            s: Box::new(term_value(view, s)?),
-            p: Box::new(term_value(view, p)?),
-            o: Box::new(term_value(view, o)?),
+            s: (term_value(view, s)?).into(),
+            p: (term_value(view, p)?).into(),
+            o: (term_value(view, o)?).into(),
         }),
     }
 }
@@ -803,7 +850,7 @@ impl WorldFactSource for WorldFactSnapshot {
         &self,
         world: &str,
         pattern: &WorldFactPattern,
-    ) -> gmeow_errors::Result<Option<usize>> {
+    ) -> gmeow_errors::Result<Option<u64>> {
         let estimate = self
             .quads
             .iter()
@@ -823,11 +870,10 @@ impl WorldFactSource for WorldFactSnapshot {
                         .is_none_or(|object| &quad.object == object)
             })
             .count();
+        let estimate = u64::try_from(estimate).unwrap_or(u64::MAX);
         let mut metrics = self.metrics.get();
         metrics.cardinality_probes += 1;
-        metrics.estimated_primary_quads = metrics
-            .estimated_primary_quads
-            .saturating_add(u64::try_from(estimate).unwrap_or(u64::MAX));
+        metrics.estimated_primary_quads = metrics.estimated_primary_quads.saturating_add(estimate);
         self.metrics.set(metrics);
         Ok(Some(estimate))
     }

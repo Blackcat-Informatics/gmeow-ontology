@@ -22,6 +22,75 @@ use purrdf::slice::{
 use crate::i18n::{self, Translations, UiCatalog};
 use crate::store::{Node, Object, Store};
 
+/// serde adapters for purrdf slice records. They carry their own JSON form
+/// (`to_json`/`from_json`) and no serde implementation, so a docs-model field
+/// crosses through that form's JSON text: the shape stays purrdf's, never a second
+/// gmeow spelling of it.
+mod purrdf_json {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser};
+
+    fn emit<S: Serializer>(
+        value: &purrdf_lex::json::Value,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        let bridged: serde_json::Value =
+            serde_json::from_str(&value.to_string()).map_err(ser::Error::custom)?;
+        bridged.serialize(serializer)
+    }
+
+    fn accept<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<purrdf_lex::json::Value, D::Error> {
+        let bridged = serde_json::Value::deserialize(deserializer)?;
+        purrdf_lex::json::read(&bridged.to_string()).map_err(de::Error::custom)
+    }
+
+    pub(super) mod role {
+        use super::super::ArtifactRole;
+        use serde::{Deserializer, Serializer, de};
+
+        pub fn serialize<S: Serializer>(
+            role: &ArtifactRole,
+            serializer: S,
+        ) -> Result<S::Ok, S::Error> {
+            super::emit(&role.to_json(), serializer)
+        }
+
+        pub fn deserialize<'de, D: Deserializer<'de>>(
+            deserializer: D,
+        ) -> Result<ArtifactRole, D::Error> {
+            ArtifactRole::from_json(&super::accept(deserializer)?).map_err(de::Error::custom)
+        }
+    }
+
+    pub(super) mod optional_tier {
+        use super::super::SliceTier;
+        use serde::{Deserializer, Serializer, de};
+
+        pub fn serialize<S: Serializer>(
+            tier: &Option<SliceTier>,
+            serializer: S,
+        ) -> Result<S::Ok, S::Error> {
+            match tier {
+                Some(tier) => super::emit(&tier.to_json(), serializer),
+                None => serializer.serialize_none(),
+            }
+        }
+
+        pub fn deserialize<'de, D: Deserializer<'de>>(
+            deserializer: D,
+        ) -> Result<Option<SliceTier>, D::Error> {
+            let value = super::accept(deserializer)?;
+            if value.is_null() {
+                return Ok(None);
+            }
+            SliceTier::from_json(&value)
+                .map(Some)
+                .map_err(de::Error::custom)
+        }
+    }
+}
+
 // ── Namespace constants ───────────────────────────────────────────────────────
 
 /// The GMEOW vocabulary namespace; IRIs under it get the `gmeow:` CURIE prefix.
@@ -436,6 +505,7 @@ pub enum DocTermCategory {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocArtifact {
     /// The artifact role (module, shapes, query, …).
+    #[serde(with = "purrdf_json::role")]
     pub role: ArtifactRole,
     /// Normalized logical path within the slice directory.
     pub logical_path: String,
@@ -612,6 +682,7 @@ pub struct DocSlice {
     /// `dcterms:title`.
     pub title: Option<String>,
     /// `gmeow:sliceTier`.
+    #[serde(default, with = "purrdf_json::optional_tier")]
     pub tier: Option<SliceTier>,
     /// `dcterms:identifier` (e.g. DOI).
     pub identifier: Option<String>,

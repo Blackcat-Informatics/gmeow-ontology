@@ -121,12 +121,7 @@ impl DiagFingerprint {
 
     /// Lowercase hex spelling, for the stable finding IRI.
     pub fn hex(&self) -> String {
-        use std::fmt::Write;
-        let mut out = String::with_capacity(32);
-        for byte in self.0 {
-            let _ = write!(out, "{byte:02x}");
-        }
-        out
+        purrdf_hash::hex::encode(&self.0)
     }
 }
 

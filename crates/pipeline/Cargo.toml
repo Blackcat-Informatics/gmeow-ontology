@@ -29,6 +29,8 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+# The substrate's one lowercase-hex spelling for digests.
+purrdf-hash.workspace = true
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
 purrdf.workspace = true
@@ -148,9 +150,6 @@ gmeow-lang-form = { path = "../lang-form" }
 # concurrently; only Reason stages serialize under the process-wide ENGINE_LOCK.
 rayon = "1"
 sha2.workspace = true
-# SHA-1 only for the content-addressed statement reifier mint (mirrors the
-# Python `mint_reifier`); never for security.
-sha1.workspace = true
 # blake3 for the eval span verifier's current-content digest (mirrors the
 # Python `_current_digest`); the corpus digests pin the scored source version.
 blake3.workspace = true
@@ -167,11 +166,11 @@ semver.workspace = true
 # wave pages before the next whole-carrier serialization. Non-glibc targets compile
 # that reclamation hint as a no-op.
 libc.workspace = true
-# YAML-LD-star emission: deterministic, anchor-free YAML from the JSON-LD-star lead.
-serde_yaml = "0.9"
-# The release-as-evidence fold reads the committed snapshot's blob `pub`
-# metadata maps (CBOR `Value`) to recover each blob's declared media-type + rep
-# when replaying them; same ciborium the gts_compose author links.
+# The release-as-evidence fold and the medium audit read GTS frames and the snapshot's
+# blob `pub` metadata maps as the substrate's CBOR `Value` the gts_compose author wrote.
+purrdf-lex.workspace = true
+# GMEOW-owned typed records (stage cache publications, handle identities) are serde-encoded
+# CBOR; they are not a PurRDF boundary.
 ciborium.workspace = true
 # Live target-vocabulary fetch for the correspondence-soundness pass: the
 # `allow_network=true` leg fetches a canonical target source document and filters it to the
@@ -188,11 +187,6 @@ tempfile.workspace = true
 # and never a gate — the events surface only when a subscriber (e.g. the CLI's
 # `init_tracing`) is installed and the level is enabled.
 tracing.workspace = true
-# The store COMPACTION lane's mandatory packaging signature: purrdf's
-# `compact_streamable` takes the ordering-commitment signer as a plain tuple (never an
-# `Option`), so an unsigned repack is unrepresentable — which means the store lane has
-# to name the key type.
-ed25519-dalek = "2"
 
 [build-dependencies]
 gmeow-build-inputs = { path = "../build-inputs" }
@@ -200,6 +194,8 @@ gmeow-build-inputs = { path = "../build-inputs" }
 # GMEOW_BUILD_FINGERPRINT so unrelated workspace edits retain stage receipts.
 
 [dev-dependencies]
+# Deterministic Ed25519 key material for the signed release-fold tests: the substrate's key type.
+purrdf-ed25519.workspace = true
 # Independent confusable-glyph audit over producer-selected source observations.
 unicode-security = "0.1.2"
 # Dedicated integration-test allocation accounting for the GTS sink's stratum

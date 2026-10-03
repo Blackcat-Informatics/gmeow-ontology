@@ -28,7 +28,7 @@
 //! with `p` in the namespace) before the depth closure runs.  That step is declared
 //! in the ledger and in the emitted Datalog header, never hidden.
 
-use purrdf::sparql::{NamedNode as SparqlNamedNode, PropertyPathExpression};
+use purrdf::sparql::{Chain, Child, NamedNode as SparqlNamedNode, PropertyPathExpression};
 
 use super::super::ir::{LegPath, LogicProgram, PathBase, PathShapeIr};
 use super::{LedgerEntry, target_meta};
@@ -42,30 +42,27 @@ pub fn lower_leg_path(path: &LegPath) -> PropertyPathExpression {
         LegPath::Step(p) => {
             PropertyPathExpression::NamedNode(SparqlNamedNode::new_unchecked(p.clone()))
         }
-        LegPath::Inverse(inner) => PropertyPathExpression::Reverse(Box::new(lower_leg_path(inner))),
-        LegPath::Seq(parts) => fold_binary(parts, |a, b| {
-            PropertyPathExpression::Sequence(Box::new(a), Box::new(b))
-        }),
-        LegPath::Alt(parts) => fold_binary(parts, |a, b| {
-            PropertyPathExpression::Alternative(Box::new(a), Box::new(b))
-        }),
+        LegPath::Inverse(inner) => {
+            PropertyPathExpression::Reverse(Child::new(lower_leg_path(inner)))
+        }
+        LegPath::Seq(parts) => chain(parts, PropertyPathExpression::Sequence),
+        LegPath::Alt(parts) => chain(parts, PropertyPathExpression::Alternative),
     }
 }
 
-/// Fold a non-empty list of leg sub-paths into a right-nested binary property-path with
-/// `combine`. An empty `Seq`/`Alt` is malformed upstream (the frontend rejects it); we
-/// lower it to an empty negated-property-set so the canonical text is still total and
-/// stable rather than panicking.
-fn fold_binary(
+/// Lower a leg sub-path list into one n-ary property-path `Sequence`/`Alternative`
+/// chain; a single part is that part itself. An empty `Seq`/`Alt` is malformed
+/// upstream (the frontend rejects it); we lower it to an empty negated-property-set so
+/// the canonical text is still total and stable rather than panicking.
+fn chain(
     parts: &[LegPath],
-    combine: impl Fn(PropertyPathExpression, PropertyPathExpression) -> PropertyPathExpression,
+    combine: fn(Chain<PropertyPathExpression>) -> PropertyPathExpression,
 ) -> PropertyPathExpression {
-    let mut iter = parts.iter().rev();
-    match iter.next() {
-        None => PropertyPathExpression::NegatedPropertySet(Vec::new()),
-        Some(last) => iter.fold(lower_leg_path(last), |acc, p| {
-            combine(lower_leg_path(p), acc)
-        }),
+    match Chain::try_from(parts.iter().map(lower_leg_path).collect::<Vec<_>>()) {
+        Ok(elements) => combine(elements),
+        Err(mut short) => short
+            .pop()
+            .unwrap_or_else(|| PropertyPathExpression::NegatedPropertySet(Vec::new())),
     }
 }
 
@@ -99,9 +96,9 @@ pub fn lower_to_property_path(shape: &PathShapeIr) -> PropertyPathExpression {
     };
     match (shape.min_depth, shape.max_depth) {
         (1, Some(1)) => inner,
-        (1, None) => PropertyPathExpression::OneOrMore(Box::new(inner)),
+        (1, None) => PropertyPathExpression::OneOrMore(Child::new(inner)),
         (min, max) => PropertyPathExpression::Range {
-            inner: Box::new(inner),
+            inner: Child::new(inner),
             min,
             max,
         },

@@ -135,7 +135,7 @@ fn run(output: &Path, inputs: &[PathBuf]) -> InventoryResult<()> {
 }
 
 fn parse_junit(text: &str, path: &Path) -> InventoryResult<Vec<Testcase>> {
-    let document = roxmltree::Document::parse(text)
+    let document = purrdf_lex::xml::Document::parse(text)
         .map_err(|error| format!("parse {} as JUnit XML: {error}", path.display()))?;
     let mut testcases = Vec::new();
     for node in document

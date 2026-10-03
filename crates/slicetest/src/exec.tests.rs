@@ -571,7 +571,7 @@ fn the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration() {
         .results
         .iter()
         .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
-        .filter_map(|r| r.message.clone())
+        .filter_map(gmeow_validate::findings::shacl_message)
         .collect();
     assert!(
         unpinned
@@ -590,7 +590,7 @@ fn the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration() {
         .results
         .iter()
         .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
-        .filter_map(|r| r.message.clone())
+        .filter_map(gmeow_validate::findings::shacl_message)
         .collect();
     assert!(
         remaining.is_empty(),

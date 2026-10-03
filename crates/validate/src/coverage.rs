@@ -109,9 +109,9 @@ pub fn coverage_analyze(
 
     // Used classes: the distinct named-node objects of rdf:type.
     let mut classes: BTreeSet<String> = BTreeSet::new();
-    if let Some(type_id) = ds.term_id_by_value(&TermValue::iri(rdf::TYPE)) {
+    if let Some(type_id) = ds.as_ref().term_id_by_value(&TermValue::iri(rdf::TYPE)) {
         for q in ds.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
-            if let TermRef::Iri(n) = ds.resolve(q.o) {
+            if let TermRef::Iri(n) = ds.as_ref().resolve(q.o) {
                 classes.insert(n.to_owned());
             }
         }
@@ -130,7 +130,7 @@ pub fn coverage_analyze(
     // Used predicates: every distinct predicate IRI in the merged graph.
     let mut predicates: BTreeSet<String> = BTreeSet::new();
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        if let TermRef::Iri(p) = ds.resolve(q.p) {
+        if let TermRef::Iri(p) = ds.as_ref().resolve(q.p) {
             predicates.insert(p.to_owned());
         }
     }

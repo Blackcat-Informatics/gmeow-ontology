@@ -32,7 +32,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
-use sha1::{Digest as Sha1Digest, Sha1};
+use purrdf_hash::sha1::Sha1;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::turtle_bytes_to_dataset;
@@ -438,7 +438,7 @@ fn mint_reifier(triple: &QuotedTriple) -> Result<Iri, gmeow_errors::Diag> {
     let p = triple.predicate.to_string();
     let o = term_n3(&triple.object);
     let canonical = format!("{s} {p} {o}");
-    let digest = hex_lower(&Sha1::digest(canonical.as_bytes()));
+    let digest = purrdf_hash::hex::encode(&Sha1::digest(canonical.as_bytes()));
     Ok(Iri(format!("{GMEOW}reifier/{digest}")))
 }
 
@@ -564,14 +564,6 @@ fn cell_err(cell: &Iri, msg: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Parse {
         message: format!("statement {cell} {msg}"),
     })
-}
-
-fn hex_lower(bytes: &[u8]) -> String {
-    let mut s = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        s.push_str(&format!("{b:02x}"));
-    }
-    s
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────

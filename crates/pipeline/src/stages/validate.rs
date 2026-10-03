@@ -309,8 +309,11 @@ fn validate_parsed_source_graph(
     fresh: &BTreeMap<String, impl AsRef<[u8]>>,
 ) -> Result<(Report, Vec<gmeow_validate::advisory::Advisory>), gmeow_errors::Diag> {
     let (shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
-    let mut report = purrdf::shapes::engine::validate_dataset(dataset, &shapes)
-        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
+    let mut report = purrdf::shapes::engine::validate_dataset(dataset, &shapes).map_err(|m| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: m.to_string(),
+        })
+    })?;
     // The stage calls the engine directly (it needs the shape store for the advisory
     // split), so it applies the same result-set collapse
     // `gmeow_validate::store::shacl_validate_dataset` does: a violation the engine

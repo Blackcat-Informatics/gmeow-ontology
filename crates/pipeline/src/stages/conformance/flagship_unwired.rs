@@ -82,7 +82,7 @@ pub fn observe(prepared: &PreparedProductionShapes) -> gmeow_errors::Result<Obse
                 source_shape: result.source_shape.to_string(),
                 severity: result.severity.iri().to_owned(),
                 failure_class: prepared.classes.for_result(result).map(str::to_owned),
-                message: result.message.clone(),
+                message: gmeow_validate::findings::shacl_message(result),
             })
             .collect(),
     })

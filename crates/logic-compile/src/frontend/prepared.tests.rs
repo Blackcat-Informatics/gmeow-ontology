@@ -18,6 +18,7 @@ fn prepared_source_preserves_restriction_anchors_and_standard_compilation() {
     .unwrap();
     let prepared = PreparedLogicSource::new(&source).unwrap();
     let on_property = source
+        .as_ref()
         .term_id_by_value(&TermValue::iri(
             "https://blackcatinformatics.ca/logic/onProperty",
         ))
@@ -27,7 +28,10 @@ fn prepared_source_preserves_restriction_anchors_and_standard_compilation() {
         .next()
         .unwrap()
         .s;
-    assert!(matches!(source.resolve(original), TermRef::Blank { .. }));
+    assert!(matches!(
+        source.as_ref().resolve(original),
+        TermRef::Blank { .. }
+    ));
     let mapped = prepared
         .source_term(original)
         .expect("the restriction remains addressable before lowering");

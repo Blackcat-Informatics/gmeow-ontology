@@ -9,7 +9,7 @@ use super::{InputFacts, PreparedReasoningInput, WorldGraphs, prepare_reasoning_i
 
 /// Read every native statement once, retaining the exact source graph bindings.
 pub(in crate::reason) fn input_facts(
-    edb: &impl purrdf::DatasetView,
+    edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
 ) -> gmeow_errors::Result<(InputFacts, WorldGraphs)> {
     let PreparedReasoningInput { facts, graphs, .. } = prepare_reasoning_input(edb)?;
     Ok((facts, graphs))

@@ -807,7 +807,7 @@ fn parse_path(
     node: &DslTerm,
     depth: usize,
 ) -> gmeow_errors::Result<purrdf::sparql::PropertyPathExpression> {
-    use purrdf::sparql::{NamedNode, NegatedPathElement, PropertyPathExpression as Path};
+    use purrdf::sparql::{Child, NamedNode, NegatedPathElement, PropertyPathExpression as Path};
     let fail = |detail: String| Diag::of_kind(crate::error::GetLeg { detail });
     if depth >= 128 {
         return Err(fail(
@@ -840,9 +840,9 @@ fn parse_path(
             .ok_or_else(|| fail("mapping path requires at least one member".into()))?;
         return Ok(members.fold(first, |left, right| {
             if has(GM_ALT_PATH) {
-                Path::Alternative(Box::new(left), Box::new(right))
+                Path::alternative(left, right)
             } else {
-                Path::Sequence(Box::new(left), Box::new(right))
+                Path::sequence(left, right)
             }
         }));
     }
@@ -858,7 +858,7 @@ fn parse_path(
             .map(|member| {
                 let (predicate, inverse) = match member {
                     Path::NamedNode(predicate) => (predicate, false),
-                    Path::Reverse(inner) => match *inner {
+                    Path::Reverse(inner) => match inner.into_inner() {
                         Path::NamedNode(predicate) => (predicate, true),
                         _ => return Err(fail(
                             "negated mapping path members must be predicates or inverse predicates"
@@ -877,7 +877,7 @@ fn parse_path(
             .collect::<gmeow_errors::Result<Vec<_>>>()
             .map(Path::NegatedPropertySet);
     }
-    let wrapper: fn(Box<Path>) -> Path = if has(GM_INVERSE_PATH) {
+    let wrapper: fn(Child<Path>) -> Path = if has(GM_INVERSE_PATH) {
         Path::Reverse
     } else if has(GM_ZERO_OR_MORE_PATH) {
         Path::ZeroOrMore
@@ -891,7 +891,7 @@ fn parse_path(
     let step = view
         .first_object_of(node, GM_PATH_STEP)
         .ok_or_else(|| fail("property path missing a step".into()))?;
-    Ok(wrapper(Box::new(parse_path(view, &step, depth + 1)?)))
+    Ok(wrapper(Child::new(parse_path(view, &step, depth + 1)?)))
 }
 
 /// A top-level AltPath of plain predicates → them, else `()`.

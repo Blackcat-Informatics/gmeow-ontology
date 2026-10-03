@@ -9,8 +9,8 @@ use std::sync::Arc;
 use purrdf::gts_compose::IngestCheckpoint;
 use purrdf::{
     CompositeDatasetView, CompositeSource, DatasetView, FallibleDatasetView, GraphMatch, QuadIds,
-    QuadRef, RdfDataset, RdfDatasetBuilder, RdfStoreCapabilities, TermId, TermRef, TermValue,
-    ViewLimits, ViewOperationStatus,
+    RdfDataset, RdfDatasetBuilder, RdfStoreCapabilities, TermId, TermRef, TermValue, ViewLimits,
+    ViewOperationStatus,
 };
 
 use super::*;
@@ -117,13 +117,13 @@ fn companion_receipt_refuses_wrong_output_trailing_and_malformed_fields() {
     let mut trailing = receipt.clone();
     trailing.push(0);
     assert!(read_ingestion_receipt(&emission.bytes, &trailing).is_err());
-    let mut record: Value = ciborium::de::from_reader(receipt.as_slice()).expect("receipt CBOR");
+    let mut record = purrdf_lex::cbor::decode(&receipt, purrdf_lex::cbor::Limits::DEFAULT)
+        .expect("receipt CBOR");
     let Value::Array(fields) = &mut record else {
         panic!("fixed receipt record")
     };
     fields[5] = Value::Array(vec![Value::Integer(1.into())]);
-    let mut malformed = Vec::new();
-    ciborium::ser::into_writer(&record, &mut malformed).expect("synthetic mutation");
+    let malformed = purrdf_lex::cbor::encode(&record);
     assert!(GmeowGtsSourceReceipt::admit(&emission.bytes, &malformed).is_err());
     assert!(GmeowGtsSourceReceipt::admit(&emission.bytes, &[]).is_err());
 }
@@ -266,7 +266,7 @@ fn signed_owned_exit_preserves_transport_key_and_frame_signatures() {
     assert_eq!(quad.3, None);
     assert!(graph.reifiers.is_empty());
     assert!(graph.annotations.is_empty());
-    let verifying_key = ed25519_dalek::SigningKey::from_bytes(&[7; 32]).verifying_key();
+    let verifying_key = purrdf_ed25519::SigningKey::from_bytes(&[7; 32]).verifying_key();
     let keyring =
         std::collections::HashMap::from([("gmeow-profile-test".to_owned(), verifying_key)]);
     let verification = purrdf::gts::verify::verify_file_with_keyring(&emission.bytes, &keyring);
@@ -311,7 +311,7 @@ fn signed_owned_exit_preserves_transport_key_and_frame_signatures() {
     )]);
     let mut uncompressed = Vec::new();
     for (_, frame) in frames {
-        ciborium::ser::into_writer(&frame, &mut uncompressed).expect("tiny synthetic CBOR");
+        purrdf_lex::cbor::encode_into(&frame, &mut uncompressed);
     }
     let error = validate_mandated_frames(&uncompressed)
         .expect_err("transport metadata cannot bypass the payload compression contract");
@@ -362,6 +362,8 @@ impl std::error::Error for MissingFindingPartition {}
 
 impl DatasetView for IncompleteFinding {
     type Id = TermId;
+    type ReadError = MissingFindingPartition;
+    type TermGuard<'a> = TermRef<'a, TermId>;
     type ProbePlan = ();
 
     fn quads(&self) -> impl Iterator<Item = QuadIds<TermId>> + '_ {
@@ -370,16 +372,15 @@ impl DatasetView for IncompleteFinding {
             .filter(move |_| self.checkpoints.get() < 2)
     }
 
-    fn quad_refs(&self) -> impl Iterator<Item = QuadRef<'_, TermId>> + '_ {
-        DatasetView::quad_refs(self.dataset.as_ref()).filter(move |_| self.checkpoints.get() < 2)
+    fn resolve(&self, id: TermId) -> Result<TermRef<'_>, MissingFindingPartition> {
+        Ok(self.dataset.as_ref().resolve(id))
     }
 
-    fn resolve(&self, id: TermId) -> TermRef<'_> {
-        self.dataset.resolve(id)
-    }
-
-    fn term_id_by_value(&self, value: &TermValue) -> Option<TermId> {
-        self.dataset.term_id_by_value(value)
+    fn term_id_by_value(
+        &self,
+        value: &TermValue,
+    ) -> Result<Option<TermId>, MissingFindingPartition> {
+        Ok(self.dataset.as_ref().term_id_by_value(value))
     }
 
     fn capabilities(&self) -> RdfStoreCapabilities {
@@ -399,8 +400,8 @@ impl DatasetView for IncompleteFinding {
         self.quads_for_pattern(subject, predicate, object, graph)
     }
 
-    fn term_count(&self) -> usize {
-        self.dataset.term_count()
+    fn term_count(&self) -> u64 {
+        DatasetView::term_count(self.dataset.as_ref())
     }
 }
 

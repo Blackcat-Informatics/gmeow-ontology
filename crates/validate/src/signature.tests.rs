@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
-use ed25519_dalek::SigningKey;
 use purrdf::gts::model::{Term, TermKind};
+use purrdf_ed25519::SigningKey;
 
 fn minimal_unsigned_gts_bytes() -> Vec<u8> {
     let mut graph = purrdf::gts::model::Graph::default();

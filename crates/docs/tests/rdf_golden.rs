@@ -267,6 +267,7 @@ fn gmeow_rdf_reparses_through_native_codec() {
 
     // Every parsed quad is in the documentation named graph.
     let graph_id = dataset
+        .as_ref()
         .term_id_by_value(&TermValue::iri(DOCUMENTATION_GRAPH))
         .expect("documentation graph IRI interned");
     let in_graph = dataset
@@ -287,7 +288,7 @@ fn gmeow_rdf_reparses_through_native_codec() {
     );
     // Sanity: the documentation graph IRI resolves back to the same IRI.
     assert!(matches!(
-        dataset.resolve(graph_id),
+        dataset.as_ref().resolve(graph_id),
         TermRef::Iri(iri) if iri == DOCUMENTATION_GRAPH
     ));
 }

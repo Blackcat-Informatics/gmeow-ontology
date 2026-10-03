@@ -27,20 +27,20 @@ fn refresh_hashes_the_new_substrate_stamp() {
     std::fs::write(root.join("Makefile"), "BINARYEN_VER := version_130\n").unwrap();
     std::fs::write(
         root.join("Cargo.toml"),
-        "[workspace.dependencies]\npurrdf = '2'\npurrdf-core = '2'\n",
+        "[workspace.dependencies]\npurrdf = '3'\npurrdf-core = '3'\n",
     )
     .unwrap();
     let mut lock =
         "version = 4\n[[package]]\nname = 'wasm-bindgen'\nversion = '0.2.125'\n".to_owned();
     for name in ["purrdf", "purrdf-core"] {
-        lock.push_str(&format!("[[package]]\nname = '{name}'\nversion = '2.0.0'\nsource = 'registry+https://github.com/rust-lang/crates.io-index'\nchecksum = '{}'\n", "a".repeat(64)));
+        lock.push_str(&format!("[[package]]\nname = '{name}'\nversion = '3.0.0'\nsource = 'registry+https://github.com/rust-lang/crates.io-index'\nchecksum = '{}'\n", "a".repeat(64)));
     }
     std::fs::write(root.join("Cargo.lock"), lock).unwrap();
     // gmeow-test-input: synthetic-only
     asset.refresh_manifest(root);
     assert_eq!(
         std::fs::read_to_string(dir.join(SUBSTRATE_RECORD)).unwrap(),
-        "purrdf 2.0.0; wasm-bindgen 0.2.125; binaryen version_130\n"
+        "purrdf 3.0.0; wasm-bindgen 0.2.125; binaryen version_130\n"
     );
     let manifest = std::fs::read(dir.join(DIGEST_MANIFEST)).unwrap();
     // Read-only verification cannot rewrite the final publication.

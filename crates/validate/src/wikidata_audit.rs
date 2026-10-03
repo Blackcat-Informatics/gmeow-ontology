@@ -110,13 +110,13 @@ pub fn audit_file(path: &Path) -> Vec<AuditFinding> {
     let mut findings: Vec<AuditFinding> = Vec::new();
     for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
         // Only IRI objects (mirrors the Python `isinstance(o, URIRef)` guard).
-        let TermRef::Iri(obj) = dataset.resolve(quad.o) else {
+        let TermRef::Iri(obj) = dataset.as_ref().resolve(quad.o) else {
             continue;
         };
-        let TermRef::Iri(pred) = dataset.resolve(quad.p) else {
+        let TermRef::Iri(pred) = dataset.as_ref().resolve(quad.p) else {
             continue;
         };
-        let subject = store::subject_display(dataset.resolve(quad.s));
+        let subject = store::subject_display(dataset.as_ref().resolve(quad.s));
 
         // Invalid or misused Wikidata IRIs.
         if obj.starts_with(WD_NS)

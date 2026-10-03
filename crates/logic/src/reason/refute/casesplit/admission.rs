@@ -166,7 +166,9 @@ pub struct PreparedClassAnalysis {
 impl PreparedClassAnalysis {
     /// Admit one standalone source view. Joint execution supplies its already
     /// retained ingress occurrences instead of rebuilding an RDF dataset.
-    pub fn new(source: &impl DatasetView) -> gmeow_errors::Result<Self> {
+    pub fn new(
+        source: &impl DatasetView<ReadError = std::convert::Infallible>,
+    ) -> gmeow_errors::Result<Self> {
         let scan = Scan::of(source);
         if scan.source_alias {
             return Err(fail(

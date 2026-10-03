@@ -75,8 +75,8 @@ fn citation_projection_ignores_field_text_inside_the_abstract_value() {
     let value = "Canonical prose may literally discuss an abstract: field.";
     let input = "title: kept\nabstract: stale\ntype: dataset\n";
     let rendered = replace_citation_abstract(input, value).expect("projection succeeds");
-    let reparsed: serde_yaml::Value =
-        serde_yaml::from_str(&rendered).expect("projected CFF remains YAML");
+    let reparsed: purrdf_lex::json::Value =
+        purrdf_lex::yaml::read(&rendered).expect("projected CFF remains YAML");
 
     assert_eq!(reparsed["abstract"].as_str(), Some(value));
     assert_eq!(

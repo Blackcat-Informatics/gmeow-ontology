@@ -120,12 +120,12 @@ fn requirements_and_resolutions_are_separate_claim_dimensions() {
             "^2",
         ),
         claim("purrdf", SITE_FUZZ_MANIFEST, DIM_VERSION_REQUIREMENT, "^2"),
-        claim("purrdf", SITE_LOCKFILE, DIM_CRATE_VERSION, "2.0.0"),
-        claim("purrdf", SITE_SHIPPED_ARTIFACT, DIM_CRATE_VERSION, "2.0.0"),
+        claim("purrdf", SITE_LOCKFILE, DIM_CRATE_VERSION, "3.0.0"),
+        claim("purrdf", SITE_SHIPPED_ARTIFACT, DIM_CRATE_VERSION, "3.0.0"),
     ];
     let reconciled = reconcile(&claims);
     assert!(reconciled.contains(&("purrdf".into(), DIM_VERSION_REQUIREMENT, "^2".into())));
-    assert!(reconciled.contains(&("purrdf".into(), DIM_CRATE_VERSION, "2.0.0".into())));
+    assert!(reconciled.contains(&("purrdf".into(), DIM_CRATE_VERSION, "3.0.0".into())));
     let mut drift = claims;
     drift.push(claim(
         "purrdf",

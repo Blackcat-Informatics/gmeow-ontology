@@ -113,7 +113,7 @@ fn profile_validator_rejects_a_payload_without_a_transform_chain() {
 
     let mut malformed = Vec::new();
     for (_, item) in items {
-        ciborium::ser::into_writer(&item, &mut malformed).expect("serialize fixture item");
+        purrdf_lex::cbor::encode_into(&item, &mut malformed);
     }
     let error = validate_mandated_frames(&malformed).expect_err("missing transform must fail");
     assert!(

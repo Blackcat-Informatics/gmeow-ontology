@@ -167,9 +167,9 @@ fn term_n3_literal_string() {
 #[test]
 fn term_n3_and_reifier_preserve_recursive_rdf12_triple_terms() {
     let triple = TermValue::Triple {
-        s: Box::new(TermValue::iri("http://example.org/s")),
-        p: Box::new(TermValue::iri("http://example.org/p")),
-        o: Box::new(TermValue::iri("http://example.org/o")),
+        s: TermValue::iri("http://example.org/s").into(),
+        p: TermValue::iri("http://example.org/p").into(),
+        o: TermValue::iri("http://example.org/o").into(),
     };
     assert_eq!(
         term_n3(&triple).unwrap(),
@@ -196,9 +196,9 @@ fn deeply_nested_rdf12_triple_terms_render_without_call_stack_recursion() {
     let mut nested = TermValue::iri("http://example.org/leaf");
     for _ in 0..DEPTH {
         nested = TermValue::Triple {
-            s: Box::new(TermValue::iri("http://example.org/s")),
-            p: Box::new(TermValue::iri("http://example.org/p")),
-            o: Box::new(nested),
+            s: TermValue::iri("http://example.org/s").into(),
+            p: TermValue::iri("http://example.org/p").into(),
+            o: nested.into(),
         };
     }
 
@@ -215,18 +215,18 @@ fn deeply_nested_rdf12_triple_terms_render_without_call_stack_recursion() {
 #[test]
 fn term_n3_rejects_non_iri_predicates_at_every_nesting_depth() {
     let invalid = TermValue::Triple {
-        s: Box::new(TermValue::iri("http://example.org/s")),
-        p: Box::new(TermValue::simple_literal("not-an-iri")),
-        o: Box::new(TermValue::iri("http://example.org/o")),
+        s: TermValue::iri("http://example.org/s").into(),
+        p: TermValue::simple_literal("not-an-iri").into(),
+        o: TermValue::iri("http://example.org/o").into(),
     };
     assert!(
         term_n3(&invalid).is_err(),
         "direct non-IRI predicate must fail closed"
     );
     let nested = TermValue::Triple {
-        s: Box::new(TermValue::iri("http://example.org/outer-s")),
-        p: Box::new(TermValue::iri("http://example.org/outer-p")),
-        o: Box::new(invalid),
+        s: TermValue::iri("http://example.org/outer-s").into(),
+        p: TermValue::iri("http://example.org/outer-p").into(),
+        o: invalid.into(),
     };
 
     let error = term_n3(&nested).expect_err("nested non-IRI predicate must fail closed");

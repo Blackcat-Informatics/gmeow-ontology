@@ -793,8 +793,8 @@ fn non_negative_integer(value: u64) -> RdfTerm {
 /// # Errors
 /// The store is a torn CBOR sequence, or a header pins the dictionary with no bytes.
 pub fn in_band_dictionary_bytes(store: &[u8], dictionary: &str) -> Result<u64, gmeow_errors::Diag> {
-    use ciborium::value::Value;
     use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
+    use purrdf_lex::cbor::Value;
 
     let (items, torn) = iter_items(store);
     if torn.is_some() {

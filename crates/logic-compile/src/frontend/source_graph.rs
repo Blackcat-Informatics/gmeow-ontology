@@ -19,7 +19,7 @@ use crate::ir::LOGIC_NAMESPACE;
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum SourceBaseOrigin {
     Caller,
-    Directive { line: u32, column: u32 },
+    Directive { line: u64, column: u32 },
     Enclosing,
 }
 

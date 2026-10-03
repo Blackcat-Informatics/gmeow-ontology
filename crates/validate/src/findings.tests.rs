@@ -17,11 +17,15 @@ fn shacl_result_carries_focus_node_and_component() {
         ),
         source_shape: Term::NamedNode(NamedNode::new_unchecked("https://ex/shape")),
         severity: ShaclSeverity::Violation,
-        message: Some("missing required property".to_owned()),
+        messages: vec![purrdf::shapes::term::Literal::new_simple_literal(
+            "missing required property",
+        )],
         source_box_roles: Vec::new(),
         path_box_roles: Vec::new(),
         result_box_roles: Vec::new(),
         attributions: vec![],
+        details: Vec::new(),
+        annotations: Vec::new(),
     };
 
     let finding = finding_from_shacl(&result, &FailureClassIndex::empty());
@@ -85,11 +89,15 @@ fn min_count_result(focus: &str) -> ValidationResult {
         ),
         source_shape: Term::NamedNode(NamedNode::new_unchecked("https://ex/shape")),
         severity: ShaclSeverity::Violation,
-        message: Some("missing required property".to_owned()),
+        messages: vec![purrdf::shapes::term::Literal::new_simple_literal(
+            "missing required property",
+        )],
         source_box_roles: Vec::new(),
         path_box_roles: Vec::new(),
         result_box_roles: Vec::new(),
         attributions: vec![],
+        details: Vec::new(),
+        annotations: Vec::new(),
     }
 }
 
