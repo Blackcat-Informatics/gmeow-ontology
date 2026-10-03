@@ -40,7 +40,7 @@ use gmeow_action_cache::{
     ProducerIdentity, STORE_FORMAT_VERSION, StoreLimits,
 };
 use serde::{Deserialize, Serialize};
-use sha1::{Digest, Sha1};
+use purrdf_hash::sha1::Sha1;
 
 use crate::i18n::{Translations, UiCatalog};
 use crate::model::{COMPETENCY_QUERY_ROOTS, DocsError, DocsModel};
@@ -415,7 +415,7 @@ pub fn payload_digest<T: Serialize>(label: &str, payload: &T) -> String {
     hasher.update(label.as_bytes());
     hasher.update(b"\x1e");
     hasher.update(&bytes);
-    hex(&hasher.finalize())
+    purrdf_hash::hex::encode(&hasher.finalize())
 }
 
 /// Hard-fail unless `payload` folds to the `declared` digest its envelope carries.
@@ -562,12 +562,12 @@ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
         hasher.update(b"\x1f");
         let bytes = fs::read(path)
             .unwrap_or_else(|e| panic!("hashing fixture input {}: {e}", path.display()));
-        hasher.update((bytes.len() as u64).to_le_bytes());
+        hasher.update(&(bytes.len() as u64).to_le_bytes());
         hasher.update(&bytes);
         hasher.update(b"\x1e");
     }
 
-    hex(&hasher.finalize())
+    purrdf_hash::hex::encode(&hasher.finalize())
 }
 
 /// Recursively collect every regular file under `dir` (absent dir → no files).
@@ -596,17 +596,6 @@ fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) {
             );
         }
     }
-}
-
-/// Lowercase hex of a digest.
-fn hex(bytes: &[u8]) -> String {
-    use std::fmt::Write as _;
-    let mut s = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        // Writing into a `String` is infallible — no per-byte allocation.
-        let _ = write!(s, "{b:02x}");
-    }
-    s
 }
 
 #[path = "fixture.tests.rs"]

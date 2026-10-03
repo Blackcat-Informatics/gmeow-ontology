@@ -64,7 +64,8 @@ fn compile_schema(shapes_ttl: &str) -> (Vec<u8>, serde_json::Value) {
 fn project_instance(data_ttl: &str) -> Vec<u8> {
     let store = parse_dataset(data_ttl.as_bytes(), "text/turtle", None).expect("parse data graph");
     let value = instance::project_graph(&store, &gmeow_namespaces());
-    serde_json::to_vec(&value).expect("serialize projected instance")
+    // The substrate JSON value writes itself; `Display` is its compact form.
+    value.to_string().into_bytes()
 }
 
 /// Whether `data_ttl` conforms to `shapes_ttl` per the native SHACL engine.

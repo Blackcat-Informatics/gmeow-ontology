@@ -814,7 +814,7 @@ fn catalog_uri_names(repo_root: &Path) -> Result<std::collections::BTreeSet<Stri
 /// Matched by local element name so the catalog's default namespace does not hide
 /// the entries; a real DOM parse handles comments/CDATA/entities.
 fn parse_catalog_names(text: &str, path: &Path) -> Result<std::collections::BTreeSet<String>> {
-    let doc = roxmltree::Document::parse(text)
+    let doc = purrdf_lex::xml::Document::parse(text)
         .map_err(|e| parse_err(path, &format!("catalog XML: {e}")))?;
     let mut names = std::collections::BTreeSet::new();
     for node in doc.descendants() {

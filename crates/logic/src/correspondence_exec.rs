@@ -51,8 +51,9 @@ use gmeow_logic_compile::projections::correspondence_gates::{
 use gmeow_logic_compile::projections::paths::lower_leg_path;
 use purrdf::ir::import::DatasetImporter;
 use purrdf::sparql::{
-    GraphPattern, NamedNode, NamedNodePattern, NativeSparqlEngine, PreparedQuery, QuadPattern,
-    Query, QueryOptions, SparqlParser, TermPattern, TriplePattern as SparqlTriplePattern, Variable,
+    Child, GraphPattern, NamedNode, NamedNodePattern, NativeSparqlEngine, PreparedQuery,
+    QuadPattern, Query, QueryOptions, SparqlParser, TermPattern,
+    TriplePattern as SparqlTriplePattern, Variable,
 };
 use purrdf::{
     RdfDataset, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SparqlResult, TermValue, canonical_relabel,
@@ -468,8 +469,8 @@ impl PreparedLawExecution {
         get: Arc<PreparedQuery>,
         put: Arc<PreparedQuery>,
     ) -> gmeow_errors::Result<Self> {
-        if !matches!(get.query, Query::Construct { .. })
-            || !matches!(put.query, Query::Construct { .. })
+        if !matches!(get.query(), Query::Construct { .. })
+            || !matches!(put.query(), Query::Construct { .. })
         {
             return Err(exec_error("correspondence laws require two CONSTRUCT legs"));
         }
@@ -859,7 +860,7 @@ fn leg_relation_algebra(path: &LegPath) -> gmeow_errors::Result<Query> {
     let object = algebra_variable("o")?;
     Ok(Query::Select {
         pattern: GraphPattern::Project {
-            inner: Box::new(GraphPattern::Path {
+            inner: Child::new(GraphPattern::Path {
                 subject: TermPattern::Variable(subject.clone()),
                 path: lower_leg_path(path),
                 object: TermPattern::Variable(object.clone()),
@@ -1385,14 +1386,16 @@ fn dnf_branches(
                 }
             }
         }
-        GraphPattern::Union { left, right } => {
-            let mut out = dnf_branches(left, depth + 1)?;
-            let right = dnf_branches(right, depth + 1)?;
-            admit_seed_dimensions(
-                out.len() + right.len(),
-                seed_pattern_count(&out) + seed_pattern_count(&right),
-            )?;
-            out.extend(right);
+        GraphPattern::Union { arms } => {
+            let mut out = Vec::new();
+            for arm in arms {
+                let branches = dnf_branches(arm, depth + 1)?;
+                admit_seed_dimensions(
+                    out.len() + branches.len(),
+                    seed_pattern_count(&out) + seed_pattern_count(&branches),
+                )?;
+                out.extend(branches);
+            }
             out
         }
         GraphPattern::LeftJoin { left, .. } | GraphPattern::Minus { left, .. } => {
@@ -1597,8 +1600,8 @@ impl PreparedLawExecution {
         if !rung.is_injective_rung() {
             return Ok(Vec::new());
         }
-        let sources = derive_query_seeds(&self.get.query)?;
-        let views = derive_query_seeds(&self.put.query)?;
+        let sources = derive_query_seeds(self.get.query())?;
+        let views = derive_query_seeds(self.put.query())?;
         let section = self.roundtrip(sources.iter().map(LawCase::Seed), true);
         let put_get = self.roundtrip(views.iter().map(LawCase::Seed), false);
         Ok(vec![

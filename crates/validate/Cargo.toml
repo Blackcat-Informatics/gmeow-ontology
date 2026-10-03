@@ -36,9 +36,6 @@ gmeow-errors = { path = "../errors" }
 # profile crate is the single production door, and the Turtle-exit tests prove
 # the bytes it authors actually pass the audit.
 gmeow-gts-profile = { path = "../gts-profile" }
-# CBOR metadata for GMEOW's typed bundle/profile checks. Selected validation
-# archives and the scoped dataset share PurRDF's wasm-clean native importer.
-ciborium.workspace = true
 # SHA-256: content-addressed validation cache keys (parity with Python hashlib) AND
 # the advisory/abductive tiers' claim fingerprints. Compiled on EVERY target because
 # the advisory + abductive producers are wasm-clean (pure `gmeow_errors` + `purrdf`
@@ -74,9 +71,6 @@ semver.workspace = true
 # schemas. No optional resolver feature is enabled — a capability cfg would be
 # optionality, not compliance.
 jsonschema.workspace = true
-# YAML instance parsing: serde_yaml deserializes straight into serde_json::Value,
-# so a YAML instance validates identically to its JSON twin.
-serde_yaml = "0.9"
 # Data parallelism: the per-example SHACL pass (the dominant cost of `validate`) is
 # embarrassingly parallel across the ~100 slice examples, and the three DSL SHACL
 # phases are independent — both fan out over rayon against the shared read-only store.
@@ -95,10 +89,10 @@ gmeow-logic = { path = "../logic" }
 # type), and the math:Norm conformance gate computes a norm/distance THROUGH its
 # `InnerProductSpace`. Native-only: the lint module is `cfg(not(wasm32))`.
 gmeow-math = { path = "../math" }
-# Read-only XML DOM parser for the authoring-integrity catalog gate: the generated
-# OASIS `catalog-v001.xml` is parsed properly (comments/CDATA/entities handled),
-# never by a naive substring scan. Pure-Rust, parse-only (pin matches logic-compile).
-roxmltree.workspace = true
+# The substrate's read-only XML DOM (`purrdf_lex::xml`) for the authoring-integrity
+# catalog gate: the generated OASIS `catalog-v001.xml` is parsed properly
+# (comments/CDATA/entities handled), never by a naive substring scan.
+purrdf-lex.workspace = true
 
 [dev-dependencies]
 # Compact, producer-selected native observations; consumers never rebuild sources.
@@ -116,8 +110,10 @@ purrdf.workspace = true
 gmeow-affect-ingest = { path = "../affect-ingest" }
 # JSON deserialization of the captured classifier fixtures the producer ingests.
 serde_json.workspace = true
-# Ed25519 signing material for deterministic GTS signature tests.
-ed25519-dalek = "2"
+# Ed25519 signing material for deterministic GTS signature tests: the substrate's key type.
+purrdf-ed25519.workspace = true
+# Hex spelling of synthetic segment heads in cache-key tests.
+purrdf-hash.workspace = true
 # Acceleration-program baselines (Phase 0); light feature set, see crates/logic.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 # Hermetic temp slices trees for the S6a merged-SHACL Merkle key integration test.

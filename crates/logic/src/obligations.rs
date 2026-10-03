@@ -41,7 +41,6 @@
 //! builds — Rust authority, surfaced through the already-wired `make verify` gate.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt::Write as _;
 use std::sync::Arc;
 
 use purrdf::dataset_view::{DatasetView, GraphMatch};
@@ -210,7 +209,7 @@ fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obliga
                  logic:obligationForbiddenPredicate values"
             )));
         }
-        let forbidden_predicate = match store.resolve(forbidden) {
+        let forbidden_predicate = match store.as_ref().resolve(forbidden) {
             TermRef::Iri(predicate) => predicate.to_owned(),
             TermRef::Literal {
                 lexical,
@@ -218,7 +217,7 @@ fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obliga
                 language: None,
                 ..
             } if matches!(
-                store.resolve(datatype),
+                store.as_ref().resolve(datatype),
                 TermRef::Iri("http://www.w3.org/2001/XMLSchema#anyURI")
             ) && !lexical.is_empty() =>
             {
@@ -242,7 +241,7 @@ fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obliga
         }
         let mut discharge_conditions = BTreeSet::new();
         for condition in governance_values(store, subject, "obligationDischargeCondition") {
-            let TermRef::Iri(condition) = store.resolve(condition) else {
+            let TermRef::Iri(condition) = store.as_ref().resolve(condition) else {
                 return Err(obligation_err(format!(
                     "non-entailment obligation {iri} has a non-IRI discharge condition"
                 )));
@@ -662,11 +661,7 @@ pub fn formalization_coverage(store: &Arc<RdfDataset>) -> gmeow_errors::Result<V
 /// (no normalization) they read from the RDF.
 pub fn candidate_source_hash(prose: &str) -> String {
     let digest = Sha256::digest(prose.as_bytes());
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for b in digest {
-        let _ = write!(hex, "{b:02x}");
-    }
-    format!("sha256:{hex}")
+    format!("sha256:{}", purrdf_hash::hex::encode(&digest))
 }
 
 /// A harvested candidate's declared hash and the distinct source-language prose literals

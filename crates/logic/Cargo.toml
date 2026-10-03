@@ -16,6 +16,8 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+# The substrate's one lowercase-hex spelling for digests.
+purrdf-hash.workspace = true
 # Shared RDF 1.2 adapter boundary for loading GTS/sidecar-aware datasets into
 # world-indexed logic stores. The world-store now holds the native
 # `MutableDataset`/`RdfDataset` IR directly — oxigraph-free.
@@ -113,7 +115,6 @@ rayon = "1"
 # Structured phase boundaries for the native reasoner's production critical path.
 # The events carry deterministic row/count metadata only; they do not enter results.
 tracing.workspace = true
-sha1.workspace = true
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the Python compiler byte-for-byte.
 sha2.workspace = true

@@ -11,7 +11,7 @@ use gmeow_logic_compile::frontend::{
     CompiledTheory, LogicParseError, PreparedLogicSource, SourceBase, SourceBaseOrigin,
     SourceDocument,
 };
-use purrdf::{CompositeDatasetView, DatasetView, RdfDataset, TermId, ViewLimits};
+use purrdf::{CompositeDatasetView, RdfDataset, TermId, ViewLimits};
 
 use crate::bundle::PipelineHandle;
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
@@ -327,12 +327,12 @@ impl SourceCatalog {
     fn materialized_term_at(&self, index: usize, original: TermId) -> gmeow_errors::Result<TermId> {
         let source = &self.sources.sources()[index];
         let relative_path = &source.relative_path;
-        if original.index() >= source.ingested.dataset.term_count() {
+        if original.index() >= source.ingested.dataset.as_ref().term_count() {
             return Err(stage_error(format!(
                 "source term is outside {relative_path:?}"
             )));
         }
-        let mapped = match source.ingested.dataset.resolve(original) {
+        let mapped = match source.ingested.dataset.as_ref().resolve(original) {
             // IRIs retain their identity across composition. Borrow the native
             // spelling instead of allocating an owned term on every cache miss.
             purrdf::TermRef::Iri(iri) => self.materialized.term_id_by_iri(iri),
@@ -340,7 +340,7 @@ impl SourceCatalog {
                 let value = self
                     .composite
                     .term_value(self.composite.source_id(index, original));
-                self.materialized.term_id_by_value(&value)
+                self.materialized.as_ref().term_id_by_value(&value)
             }
         };
         mapped.ok_or_else(|| {

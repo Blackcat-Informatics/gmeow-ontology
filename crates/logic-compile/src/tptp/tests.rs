@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use purrdf::{CompositeDatasetView, DatasetView, ViewLimits, parse_dataset};
+use purrdf::{CompositeDatasetView, ViewLimits, parse_dataset};
 
 use super::{FofProjectionStatus, project_tptp_fof};
 use crate::frontend::{
@@ -53,12 +53,15 @@ fn compile_documents(
         prepared
             .record_document(receipt.clone(), source, |term| {
                 let value = composite.term_value(composite.source_id(index, term));
-                materialized.term_id_by_value(&value).ok_or_else(|| {
-                    LogicParseError(format!(
-                        "source term in {:?} has no materialized binding",
-                        receipt.path
-                    ))
-                })
+                materialized
+                    .as_ref()
+                    .term_id_by_value(&value)
+                    .ok_or_else(|| {
+                        LogicParseError(format!(
+                            "source term in {:?} has no materialized binding",
+                            receipt.path
+                        ))
+                    })
             })
             .expect("document receipt");
     }

@@ -16,12 +16,12 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
-use ciborium::value::Value;
 use gmeow_pipeline::medium::MEDIUM_REGISTRY_GRAPH;
 use gmeow_pipeline::medium::registry::MediumRegistry;
 use gmeow_pipeline::stages::medium_dictionaries::frame_iri;
 use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
 use purrdf::{RdfLookaside, RdfQuad, RdfTerm};
+use purrdf_lex::cbor::Value;
 
 #[path = "support/authenticated_bundle.rs"]
 mod authenticated_bundle;

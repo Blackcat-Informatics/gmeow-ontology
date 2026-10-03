@@ -36,11 +36,15 @@ fn sparql_result(focus: &str) -> purrdf::shapes::report::ValidationResult {
         ),
         source_shape: Term::NamedNode(NamedNode::new_unchecked("https://ex/ContiguityShape")),
         severity: ShaclSeverity::Violation,
-        message: Some("slot indexes must be contiguous".to_owned()),
+        messages: vec![purrdf::shapes::term::Literal::new_simple_literal(
+            "slot indexes must be contiguous",
+        )],
         source_box_roles: Vec::new(),
         path_box_roles: Vec::new(),
         result_box_roles: Vec::new(),
         attributions: Vec::new(),
+        details: Vec::new(),
+        annotations: Vec::new(),
     }
 }
 
@@ -50,6 +54,10 @@ fn report_of(
     purrdf::shapes::report::ValidationReport {
         conforms: results.is_empty(),
         results,
+        ..purrdf::shapes::report::ValidationReport::from_results(
+            Vec::new(),
+            purrdf::shapes::report::ConformanceDisallows::default(),
+        )
     }
 }
 
@@ -87,7 +95,9 @@ fn distinguishable_results_all_survive_the_collapse() {
         purrdf::shapes::term::NamedNode::new_unchecked("https://ex/UniquenessShape"),
     );
     let mut other_message = sparql_result("https://ex/badBinder");
-    other_message.message = Some("a different law speaking".to_owned());
+    other_message.messages = vec![purrdf::shapes::term::Literal::new_simple_literal(
+        "a different law speaking",
+    )];
     let mut report = report_of(vec![
         sparql_result("https://ex/badBinder"),
         other_focus,
@@ -325,7 +335,7 @@ fn dataset_from_gts_accepts_private_lang_tag_and_flattens_named_graph() {
         .quads_for_pattern(None, None, None, GraphMatch::Default)
         .next()
         .expect("one default-graph quad");
-    match ds.resolve(q.o) {
+    match ds.as_ref().resolve(q.o) {
         purrdf::TermRef::Literal { language, .. } => {
             assert_eq!(language, Some("x-gmeow-afrikaans"), "lang tag preserved");
         }

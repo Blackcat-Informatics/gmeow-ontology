@@ -773,8 +773,9 @@ impl ConformanceShapes {
         let dataset = shapes.dataset();
         let failure_classes = FailureClassIndex::from_shapes_dataset(dataset);
         let mut owners: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-        if let Some(property) =
-            dataset.term_id_by_value(&TermValue::iri("http://www.w3.org/ns/shacl#property"))
+        if let Some(property) = dataset
+            .as_ref()
+            .term_id_by_value(&TermValue::iri("http://www.w3.org/ns/shacl#property"))
         {
             for quad in dataset.quads_for_pattern(None, Some(property), None, GraphMatch::Any) {
                 let resource = |id| {

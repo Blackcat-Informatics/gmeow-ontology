@@ -5,6 +5,7 @@
 //! Only the row being inspected is owned; the input dictionaries and indexes stay
 //! with PurRDF. Statement-layer rows retain their own graph and term identity.
 
+use purrdf::dataset_view::TermGuard;
 use purrdf::{DatasetView, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermRef, TermValue};
 
 /// Recover native term identity from the owned RDF model without a text round trip.
@@ -20,17 +21,20 @@ pub(super) fn value(term: &RdfTerm) -> TermValue {
         }
         RdfTerm::Literal(literal) => crate::rule_ir::literal_value(literal),
         RdfTerm::Triple(triple) => TermValue::Triple {
-            s: Box::new(value(&triple.subject)),
-            p: Box::new(TermValue::iri(&triple.predicate)),
-            o: Box::new(value(&triple.object)),
+            s: value(&triple.subject).into(),
+            p: TermValue::iri(&triple.predicate).into(),
+            o: value(&triple.object).into(),
         },
     }
 }
 
 /// Own one native term from any admitted view, retaining its exact blank scope,
 /// literal attributes and nested RDF 1.2 structure without an RDF text round trip.
-pub(crate) fn native<V: DatasetView + ?Sized>(view: &V, id: V::Id) -> TermValue {
-    match view.resolve(id) {
+pub(crate) fn native<V: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
+    view: &V,
+    id: V::Id,
+) -> TermValue {
+    match crate::seam::resident(view.resolve(id)).term() {
         TermRef::Iri(value) => TermValue::iri(value),
         TermRef::Blank { label, scope } => TermValue::Blank {
             label: label.to_owned(),
@@ -48,22 +52,25 @@ pub(crate) fn native<V: DatasetView + ?Sized>(view: &V, id: V::Id) -> TermValue 
             direction,
         },
         TermRef::Triple { s, p, o } => TermValue::Triple {
-            s: Box::new(native(view, s)),
-            p: Box::new(native(view, p)),
-            o: Box::new(native(view, o)),
+            s: native(view, s).into(),
+            p: native(view, p).into(),
+            o: native(view, o).into(),
         },
     }
 }
 
-fn iri<V: DatasetView + ?Sized>(view: &V, id: V::Id) -> String {
-    match view.resolve(id) {
+fn iri<V: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
+    view: &V,
+    id: V::Id,
+) -> String {
+    match crate::seam::resident(view.resolve(id)).term() {
         TermRef::Iri(value) => value.to_owned(),
         other => unreachable!("admitted RDF predicate/datatype must be an IRI, got {other:?}"),
     }
 }
 
-fn term<V: DatasetView>(view: &V, id: V::Id) -> RdfTerm {
-    match view.resolve(id) {
+fn term<V: DatasetView<ReadError = std::convert::Infallible>>(view: &V, id: V::Id) -> RdfTerm {
+    match crate::seam::resident(view.resolve(id)).term() {
         TermRef::Iri(value) => RdfTerm::iri(value),
         TermRef::Blank { label, scope } => RdfTerm::blank_node(scope.qualify_label(label)),
         TermRef::Literal {
@@ -84,7 +91,9 @@ fn term<V: DatasetView>(view: &V, id: V::Id) -> RdfTerm {
 }
 
 /// Visit every admitted RDF statement without materializing the input view.
-pub(super) fn owned_quads<V: DatasetView>(view: &V) -> impl Iterator<Item = RdfQuad> + '_ {
+pub(super) fn owned_quads<V: DatasetView<ReadError = std::convert::Infallible>>(
+    view: &V,
+) -> impl Iterator<Item = RdfQuad> + '_ {
     view.quads()
         .chain(view.reifier_quads())
         .chain(view.annotation_quads())

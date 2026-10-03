@@ -45,7 +45,9 @@ fn has_message_for_node(
     report.results.iter().any(|r| {
         r.severity == severity
             && r.focus_node.to_string().contains(node_iri)
-            && r.message.as_deref().unwrap_or_default().contains(substring)
+            && gmeow_validate::findings::shacl_message(r)
+                .unwrap_or_default()
+                .contains(substring)
     })
 }
 

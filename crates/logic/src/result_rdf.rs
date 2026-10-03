@@ -57,7 +57,6 @@
 //! (axes/provenance), faithful-subset where the payload rows are carried elsewhere.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt::Write as _;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
@@ -464,9 +463,9 @@ fn contextual_assessment_sink(
             subject.clone(),
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
             Node::Value(purrdf::TermValue::Triple {
-                s: Box::new(purrdf::TermValue::iri(&row.subject)),
-                p: Box::new(purrdf::TermValue::iri(&row.predicate)),
-                o: Box::new(purrdf::TermValue::iri(evidence.object())),
+                s: purrdf::TermValue::iri(&row.subject).into(),
+                p: purrdf::TermValue::iri(&row.predicate).into(),
+                o: purrdf::TermValue::iri(evidence.object()).into(),
             }),
         );
         sink.push(subject.clone(), gmeow("inWorld"), Node::iri(&row.graph));
@@ -1218,11 +1217,7 @@ fn digest_lines(lines: &[String]) -> String {
         hasher.update(b"\n");
     }
     let digest = hasher.finalize();
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for b in digest {
-        let _ = write!(hex, "{b:02x}");
-    }
-    hex
+    purrdf_hash::hex::encode(&digest)
 }
 
 /// The `sha256` (lowercase hex) of an arbitrary string — the KB-world hash the conjecture
@@ -1231,11 +1226,7 @@ fn sha256_hex(s: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(s.as_bytes());
     let digest = hasher.finalize();
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for b in digest {
-        let _ = write!(hex, "{b:02x}");
-    }
-    hex
+    purrdf_hash::hex::encode(&digest)
 }
 
 /// The content-addressed result-node IRI for `result` (the subject the projection
@@ -2579,7 +2570,7 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
     let math_conjecture = triples
         .iter()
         .find(|t| t.predicate == math("conjectureUnderTest") && t.object_node() == Some(subject))
-        .map(|t| match dataset.resolve(t.subject) {
+        .map(|t| match dataset.as_ref().resolve(t.subject) {
             TermRef::Iri(iri) => Ok(iri.to_owned()),
             _ => Err(result_err(
                 "graph/conjecture: math:conjectureUnderTest subject must be an IRI".to_owned(),

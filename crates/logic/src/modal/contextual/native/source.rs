@@ -6,14 +6,13 @@
 //! constructing or freezing a second RDF dataset.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::convert::Infallible;
 use std::sync::Arc;
 
 use crate::reason::refute::RefutationPremise;
 use foldhash::fast::FixedState;
 use hashbrown::HashMap;
-use purrdf::{
-    DatasetView, GraphMatch, QuadIds, QuadRef, RdfStoreCapabilities, TermId, TermRef, TermValue,
-};
+use purrdf::{DatasetView, GraphMatch, QuadIds, RdfStoreCapabilities, TermId, TermRef, TermValue};
 
 const REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 
@@ -146,21 +145,19 @@ impl SourceView {
 
 impl DatasetView for SourceView {
     type Id = TermId;
+    // Every term and row is resident in this view; a read cannot fail.
+    type ReadError = Infallible;
+    type TermGuard<'a>
+        = TermRef<'a>
+    where
+        Self: 'a;
     type ProbePlan = ();
 
     fn quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
         self.rows.iter().copied()
     }
-    fn quad_refs(&self) -> impl Iterator<Item = QuadRef<'_>> + '_ {
-        self.quads().map(|quad| QuadRef {
-            s: self.resolve(quad.s),
-            p: self.resolve(quad.p),
-            o: self.resolve(quad.o),
-            g: quad.g.map(|graph| self.resolve(graph)),
-        })
-    }
-    fn resolve(&self, id: TermId) -> TermRef<'_> {
-        match &self.values[id.index()] {
+    fn resolve(&self, id: TermId) -> Result<TermRef<'_>, Infallible> {
+        Ok(match &self.values[id.index()] {
             TermValue::Iri(iri) => TermRef::Iri(iri),
             TermValue::Blank { label, scope } => TermRef::Blank {
                 label,
@@ -182,10 +179,10 @@ impl DatasetView for SourceView {
                 p: self.id(p),
                 o: self.id(o),
             },
-        }
+        })
     }
-    fn term_id_by_value(&self, value: &TermValue) -> Option<TermId> {
-        self.ids.get(value).copied()
+    fn term_id_by_value(&self, value: &TermValue) -> Result<Option<TermId>, Infallible> {
+        Ok(self.ids.get(value).copied())
     }
     fn capabilities(&self) -> RdfStoreCapabilities {
         RdfStoreCapabilities {
@@ -220,8 +217,8 @@ impl DatasetView for SourceView {
     ) -> impl Iterator<Item = QuadIds> + '_ {
         self.quads_for_pattern(s, p, o, g)
     }
-    fn term_count(&self) -> usize {
-        self.values.len()
+    fn term_count(&self) -> u64 {
+        self.values.len() as u64
     }
     fn reifier_quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
         self.reifier_rows.iter().copied()

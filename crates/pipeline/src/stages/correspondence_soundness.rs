@@ -458,16 +458,16 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, SliceError> {
     // namespace (the historical filter), rebuilt as a fresh dataset.
     let mut b = RdfDatasetBuilder::new();
     for q in parsed.quads_for_pattern(None, None, None, GraphMatch::Default) {
-        let TermRef::Iri(subj) = parsed.resolve(q.s) else {
+        let TermRef::Iri(subj) = parsed.as_ref().resolve(q.s) else {
             continue;
         };
         if !subj.starts_with(namespace) {
             continue;
         }
-        let TermRef::Iri(pred) = parsed.resolve(q.p) else {
+        let TermRef::Iri(pred) = parsed.as_ref().resolve(q.p) else {
             continue;
         };
-        if !is_axiom_or_property_type(pred, &parsed.resolve(q.o)) {
+        if !is_axiom_or_property_type(pred, &parsed.as_ref().resolve(q.o)) {
             continue;
         }
         // Re-intern this quad into the filtered dataset (subject is an IRI; predicate an

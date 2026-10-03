@@ -7,7 +7,7 @@ use purrdf::DatasetView;
 
 use super::{AdmissionError, RdfFrame};
 
-impl<'a, D: DatasetView + ?Sized> RdfFrame<'a, D> {
+impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame<'a, D> {
     pub(in crate::modal) fn load(dataset: &'a D) -> Result<Self, AdmissionError> {
         Self::load_with_closure(dataset, &[])
     }

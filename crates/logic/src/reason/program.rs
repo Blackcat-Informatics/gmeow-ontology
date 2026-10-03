@@ -225,7 +225,7 @@ impl PreparedReasoningInput {
 
 /// Visit the native assertion tables once without parsing or flattening contexts.
 pub fn prepare_reasoning_input(
-    edb: &impl purrdf::DatasetView,
+    edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
 ) -> gmeow_errors::Result<PreparedReasoningInput> {
     let mut sources = super::source_existentials::Collector::default();
     let mut partitions = BTreeMap::<String, BTreeMap<FactKey, Fact>>::new();

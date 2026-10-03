@@ -41,7 +41,7 @@
 //! every IRI/literal character losslessly (the proven kernel codec), and the surrounding XML
 //! text node adds one further total escape layer (`&`, `<`, `>`). Two composable, standard
 //! escaping layers keep the Exact claim honest across arbitrary IRIs without a bespoke
-//! character model. Reading uses a real XML parser (`roxmltree`), never a hand-rolled scanner.
+//! character model. Reading uses a real XML parser (`purrdf_lex::xml`), never a hand-rolled scanner.
 
 pub mod reader;
 pub mod writer;
@@ -67,7 +67,7 @@ pub(crate) const ROOT_ELEMENT: &str = "gmeow-xcl";
 pub(crate) const RDF_META_ELEMENT: &str = "gmeow-rdf-meta";
 
 // --------------------------------------------------------------------------- //
-// XML escaping (writer side; the reader decodes via roxmltree)
+// XML escaping (writer side; the reader decodes via `purrdf_lex::xml`)
 // --------------------------------------------------------------------------- //
 
 /// Whether `c` is an XML 1.0 `Char` production code point — i.e. representable at all in a

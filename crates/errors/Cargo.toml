@@ -16,6 +16,8 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+# The substrate's one lowercase-hex spelling for digests.
+purrdf-hash.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 purrdf-core.workspace = true

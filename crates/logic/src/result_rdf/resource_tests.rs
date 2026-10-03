@@ -50,9 +50,9 @@ fn component_assessment() -> crate::contextual::ContextualAssessment {
         direction: Some(RdfTextDirection::Rtl),
     };
     let quoted = TermValue::Triple {
-        s: Box::new(TermValue::iri("urn:statement-subject")),
-        p: Box::new(TermValue::iri("urn:statement-predicate")),
-        o: Box::new(directional.clone()),
+        s: TermValue::iri("urn:statement-subject").into(),
+        p: TermValue::iri("urn:statement-predicate").into(),
+        o: directional.clone().into(),
     };
     let axioms = [directional, quoted]
         .into_iter()
@@ -120,6 +120,7 @@ fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
     let output = project_contextual_dataset(&assessment).expect("admitted contextual projection");
     let named = purrdf::parse_dataset(output.as_bytes(), "application/n-quads", None).unwrap();
     let graph = named
+        .as_ref()
         .term_id_by_value(&TermValue::iri(GRAPH_REASONING))
         .unwrap();
     let restored = parse_reasoning_dataset(&named, GraphMatch::Named(graph)).unwrap();
@@ -146,9 +147,9 @@ fn contextual_resource_components_refuse_nonresources_and_untyped_targets() {
         for replacement in [
             Node::string("not a component address"),
             Node::Value(TermValue::Triple {
-                s: Box::new(TermValue::iri("urn:s")),
-                p: Box::new(TermValue::iri("urn:p")),
-                o: Box::new(TermValue::iri("urn:o")),
+                s: TermValue::iri("urn:s").into(),
+                p: TermValue::iri("urn:p").into(),
+                o: TermValue::iri("urn:o").into(),
             }),
             Node::iri("urn:untyped-component"),
         ] {
@@ -194,6 +195,7 @@ fn contextual_resource_components_do_not_borrow_a_role_from_another_graph() {
     let dataset =
         purrdf::parse_dataset(lines.join("\n").as_bytes(), "application/n-quads", None).unwrap();
     let graph = dataset
+        .as_ref()
         .term_id_by_value(&TermValue::iri(GRAPH_REASONING))
         .unwrap();
     let error = parse_reasoning_dataset(&dataset, GraphMatch::Named(graph)).unwrap_err();

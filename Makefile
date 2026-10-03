@@ -918,7 +918,7 @@ maint-refresh-wasm-assets: ## Prepare all browser assets, produce and gate once,
 	@echo "OK: all six browser assets passed the full gate and Node parity."
 
 maint-bump-purrdf: ## Select VERSION within the declared PurRDF requirements, update both locks, and gate every wasm engine.
-	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=2.0.0"; exit 1; }
+	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=3.0.0"; exit 1; }
 	@# Requirements stay authored in the manifests. Both committed lockfiles select
 	@# exact releases; every statically linked browser engine must be rebuilt too.
 	cargo update -p purrdf --precise $(VERSION)

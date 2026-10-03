@@ -350,7 +350,7 @@ struct CachedBlobRecord {
     digest: String,
     media_type: Option<String>,
     representation: Option<String>,
-    decoded_len: Option<usize>,
+    decoded_len: Option<u64>,
     origin_segments: Option<Vec<String>>,
 }
 
@@ -482,7 +482,7 @@ impl StageReceipt {
                 identity: representation.to_string(),
                 digest: record.digest.clone(),
                 structural_count: 1,
-                decoded_bytes: u64::try_from(record.decoded_len.unwrap_or(0)).unwrap_or(u64::MAX),
+                decoded_bytes: record.decoded_len.unwrap_or(0),
             });
         }
         blob_representations.sort_by(|left, right| {
@@ -774,7 +774,7 @@ pub(crate) fn content_store_keys(
         })?;
         if record
             .decoded_len
-            .is_some_and(|declared| declared != bytes.len())
+            .is_some_and(|declared| declared != bytes.len() as u64)
         {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: product.stage_id.clone(),

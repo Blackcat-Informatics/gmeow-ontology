@@ -4,7 +4,7 @@
 //! Shared value-only codec for retained native reasoning terms and presentation
 //! metadata. No dataset-local term IDs and no execution certificates.
 
-use purrdf::{BlankScope, RdfTextDirection, TermValue};
+use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Serialize, Deserialize)]
@@ -87,9 +87,9 @@ impl From<Value> for TermValue {
                 }),
             },
             Value::Triple { s, p, o } => Self::Triple {
-                s: Box::new((*s).into()),
-                p: Box::new((*p).into()),
-                o: Box::new((*o).into()),
+                s: TermBox::new((*s).into()),
+                p: TermBox::new((*p).into()),
+                o: TermBox::new((*o).into()),
             },
         }
     }

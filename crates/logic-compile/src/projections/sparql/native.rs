@@ -6,8 +6,9 @@
 use std::collections::BTreeMap;
 
 use purrdf::sparql::{
-    BaseDirection, Expression, Function, GraphPattern, GraphUpdateOperation, Literal, NamedNode,
-    NamedNodePattern, QuadPattern, Query, QueryDataset, TermPattern, TriplePattern, Variable,
+    ArithmeticOperator, BaseDirection, Chain, Child, Expression, Function, GraphPattern,
+    GraphUpdateOperation, Literal, NamedNode, NamedNodePattern, QuadPattern, Query, QueryDataset,
+    TermPattern, TriplePattern, Variable,
 };
 
 use crate::ingest::DslTerm;
@@ -60,8 +61,8 @@ pub(crate) fn join(left: GraphPattern, right: GraphPattern) -> GraphPattern {
         (GraphPattern::Bgp { patterns }, right) if patterns.is_empty() => right,
         (left, GraphPattern::Bgp { patterns }) if patterns.is_empty() => left,
         (left, right) => GraphPattern::Join {
-            left: Box::new(left),
-            right: Box::new(right),
+            left: Child::new(left),
+            right: Child::new(right),
         },
     }
 }
@@ -69,13 +70,13 @@ pub(crate) fn join(left: GraphPattern, right: GraphPattern) -> GraphPattern {
 pub(crate) fn filter(inner: GraphPattern, expr: Expression) -> GraphPattern {
     GraphPattern::Filter {
         expr,
-        inner: Box::new(inner),
+        inner: Child::new(inner),
     }
 }
 
 pub(crate) fn extend(inner: GraphPattern, variable: &str, expression: Expression) -> GraphPattern {
     GraphPattern::Extend {
-        inner: Box::new(inner),
+        inner: Child::new(inner),
         variable: Variable::new(variable),
         expression,
     }
@@ -87,8 +88,8 @@ pub(crate) fn optional(
     expression: Option<Expression>,
 ) -> GraphPattern {
     GraphPattern::LeftJoin {
-        left: Box::new(left),
-        right: Box::new(right),
+        left: Child::new(left),
+        right: Child::new(right),
         expression,
     }
 }
@@ -196,7 +197,7 @@ fn constant(term: &DslTerm) -> gmeow_errors::Result<Expression> {
         DslTerm::Triple { s, p, o } if s.as_iri().is_some() && p.as_iri().is_some() => {
             Ok(Expression::FunctionCall(
                 Function::Triple,
-                vec![constant(s)?, constant(p)?, constant(o)?],
+                [constant(s)?, constant(p)?, constant(o)?].into(),
             ))
         }
         DslTerm::Blank { .. } | DslTerm::Triple { .. } => Err(error(
@@ -242,18 +243,18 @@ pub(crate) fn expression(source: &Expr) -> gmeow_errors::Result<Expression> {
             )))
         }
     };
-    let binary: Option<fn(Box<E>, Box<E>) -> E> = match name {
-        "opAdd" => Some(E::Add),
-        "opSub" => Some(E::Subtract),
-        "opMul" => Some(E::Multiply),
-        "opDiv" => Some(E::Divide),
-        "opEq" => Some(E::Equal),
-        "opLt" => Some(E::Less),
-        "opGt" => Some(E::Greater),
-        "opLe" => Some(E::LessOrEqual),
-        "opGe" => Some(E::GreaterOrEqual),
-        "opAnd" => Some(E::And),
-        "opOr" => Some(E::Or),
+    let binary: Option<fn(E, E) -> E> = match name {
+        "opAdd" => Some(|l, r| E::arithmetic(l, ArithmeticOperator::Add, r)),
+        "opSub" => Some(|l, r| E::arithmetic(l, ArithmeticOperator::Subtract, r)),
+        "opMul" => Some(|l, r| E::arithmetic(l, ArithmeticOperator::Multiply, r)),
+        "opDiv" => Some(|l, r| E::arithmetic(l, ArithmeticOperator::Divide, r)),
+        "opEq" => Some(|l, r| E::Equal(Child::new(l), Child::new(r))),
+        "opLt" => Some(|l, r| E::Less(Child::new(l), Child::new(r))),
+        "opGt" => Some(|l, r| E::Greater(Child::new(l), Child::new(r))),
+        "opLe" => Some(|l, r| E::LessOrEqual(Child::new(l), Child::new(r))),
+        "opGe" => Some(|l, r| E::GreaterOrEqual(Child::new(l), Child::new(r))),
+        "opAnd" => Some(E::and),
+        "opOr" => Some(E::or),
         _ => None,
     };
     if let Some(binary) = binary {
@@ -261,32 +262,32 @@ pub(crate) fn expression(source: &Expr) -> gmeow_errors::Result<Expression> {
         let first = values
             .next()
             .ok_or_else(|| error(format!("empty expression operator: {name}")))?;
-        return Ok(values.fold(first, |left, right| binary(Box::new(left), Box::new(right))));
+        return Ok(values.fold(first, binary));
     }
     match name {
         "opNe" => {
             arity(2)?;
-            Ok(E::Not(Box::new(E::Equal(
-                Box::new(args.remove(0)),
-                Box::new(args.remove(0)),
+            Ok(E::Not(Child::new(E::Equal(
+                Child::new(args.remove(0)),
+                Child::new(args.remove(0)),
             ))))
         }
         "opNot" => {
             arity(1)?;
-            Ok(E::Not(Box::new(args.remove(0))))
+            Ok(E::Not(Child::new(args.remove(0))))
         }
         "opIn" => {
             if args.is_empty() {
                 return Err(error("opIn requires at least one argument"));
             }
-            Ok(E::In(Box::new(args.remove(0)), args))
+            Ok(E::In(Child::new(args.remove(0)), args.into()))
         }
         "opIf" => {
             arity(3)?;
             Ok(E::If(
-                Box::new(args.remove(0)),
-                Box::new(args.remove(0)),
-                Box::new(args.remove(0)),
+                Child::new(args.remove(0)),
+                Child::new(args.remove(0)),
+                Child::new(args.remove(0)),
             ))
         }
         "opBound" => {
@@ -296,7 +297,7 @@ pub(crate) fn expression(source: &Expr) -> gmeow_errors::Result<Expression> {
                 _ => Err(error("BOUND requires a variable")),
             }
         }
-        "opCoalesce" => Ok(E::Coalesce(args)),
+        "opCoalesce" => Ok(E::Coalesce(args.into())),
         _ => {
             let function = match name {
                 "opConcat" => Function::Concat,
@@ -322,7 +323,7 @@ pub(crate) fn expression(source: &Expr) -> gmeow_errors::Result<Expression> {
                 "opDecimal" => Function::Custom(iri("http://www.w3.org/2001/XMLSchema#decimal")?),
                 _ => return Err(error(format!("unsupported expression operator: {name}"))),
             };
-            Ok(E::FunctionCall(function, args))
+            Ok(E::FunctionCall(function, args.into()))
         }
     }
 }
@@ -350,16 +351,11 @@ impl LegBuilder {
         if self.branches.is_empty() {
             return None;
         }
-        fn balanced(mut values: Vec<GraphPattern>) -> GraphPattern {
-            if values.len() == 1 {
-                return values.remove(0);
-            }
-            let right = values.split_off(values.len() / 2);
-            GraphPattern::Union {
-                left: Box::new(balanced(values)),
-                right: Box::new(balanced(right)),
-            }
-        }
+        // One branch is the pattern itself; two or more are the arms of one n-ary UNION.
+        let pattern = match Chain::try_from(self.branches) {
+            Ok(arms) => GraphPattern::Union { arms },
+            Err(mut single) => single.remove(0),
+        };
         Some(Query::Construct {
             template: self
                 .template
@@ -369,7 +365,7 @@ impl LegBuilder {
                     graph: None,
                 })
                 .collect(),
-            pattern: balanced(self.branches),
+            pattern,
             dataset: QueryDataset::default(),
             base_iri: None,
             version: None,

@@ -214,15 +214,9 @@ Playwright manifest that declares itself `private`, and `editors/vscode/` is a V
 Marketplace extension published by `vsce`, on that registry's cadence and metadata contract,
 not to npm.
 
-A third vendored tree, `crates/docs/assets/purrdf/`, sits alongside those two and is
-published by nobody here: it is the upstream `@blackcatinformatics/purrdf` package
-(`MIT OR Apache-2.0`), unpacked verbatim so the shipped site carries an importable offline
-RDF/JS engine. It is emitted into the site, never republished from it — this repository
-does not own those bytes, and re-publishing an upstream package under a second name is not
-a distribution this project makes. It is also not a second engine behind the site's own
-surfaces: the SPARQL playground and the bundle explorer query the shipped bundle through
-the MCP segments above, and the vendored engine is there for a page that embeds the tree
-and wants to query a dataset of its own. See `crates/docs/assets/purrdf/PROVENANCE.md`.
+No upstream PurRDF browser package is vendored beside those two: the SPARQL playground and
+the bundle explorer query the shipped bundle through the MCP segments above, which link
+PurRDF statically at the workspace pin.
 
 The package set is **discovered from the shipped bytes** — every `package.json` that is
 neither `"private": true` nor a VS Code extension manifest — by

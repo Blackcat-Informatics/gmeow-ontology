@@ -516,7 +516,7 @@ impl SwitchingProvider {
 }
 
 impl PageProvider for SwitchingProvider {
-    fn page_count(&self) -> usize {
+    fn page_count(&self) -> u64 {
         1
     }
 

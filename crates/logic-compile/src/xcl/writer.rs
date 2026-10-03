@@ -68,7 +68,7 @@ pub fn project_xcl(program: &LogicProgram) -> gmeow_errors::Result<ProjectionRes
     if meta_nt.is_empty() {
         lines.push(format!("  <{RDF_META_ELEMENT}></{RDF_META_ELEMENT}>"));
     } else {
-        // A leading newline keeps the payload visually distinct; roxmltree preserves it and the
+        // A leading newline keeps the payload visually distinct; the XML reader preserves it and the
         // reader parses N-Triples line-by-line, so it is round-trip-neutral.
         let body = meta_nt.join("\n");
         lines.push(format!(

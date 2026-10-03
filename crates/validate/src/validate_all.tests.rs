@@ -30,8 +30,8 @@ fn native_validation_cache_key_preserves_sorted_decoded_segment_heads() {
     let mut lookaside = purrdf::RdfLookaside::default();
     for (index, head) in [high, low].into_iter().enumerate() {
         lookaside.segments.push(purrdf::RdfSegmentRecord {
-            index,
-            head: Some(purrdf::gts::wire::hex(&head)),
+            index: u64::try_from(index).expect("two segments"),
+            head: Some(purrdf_hash::hex::encode(&head)),
             profile: None,
             claimed_streamable: false,
             covered: 0,
@@ -789,9 +789,15 @@ fn run_with_gts_bytes_succeeds_with_empty_source_paths() {
 
     // The single triple (s,p,o) is present in the shared dataset.
     let ds = &run.dataset;
-    let s = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/a"));
-    let p = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/p"));
-    let o = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/b"));
+    let s = ds
+        .as_ref()
+        .term_id_by_value(&purrdf::TermValue::iri("https://example.org/a"));
+    let p = ds
+        .as_ref()
+        .term_id_by_value(&purrdf::TermValue::iri("https://example.org/p"));
+    let o = ds
+        .as_ref()
+        .term_id_by_value(&purrdf::TermValue::iri("https://example.org/b"));
     assert!(
         ds.quads_for_pattern(s, p, o, GraphMatch::Any)
             .next()
@@ -909,16 +915,24 @@ fn shacl_violation_is_categorized_data_shape_violation() {
         ),
         source_shape: Term::NamedNode(NamedNode::new_unchecked("https://example.org/ShapeA")),
         severity: purrdf::shapes::report::Severity::Violation,
-        message: Some("must have at least one value".to_owned()),
+        messages: vec![purrdf::shapes::term::Literal::new_simple_literal(
+            "must have at least one value",
+        )],
         source_box_roles: vec![],
         path_box_roles: vec![],
         result_box_roles: vec![],
         attributions: vec![],
+        details: Vec::new(),
+        annotations: Vec::new(),
     };
     let _ = Literal::new_simple_literal("unused");
     let report = ValidationReport {
         conforms: false,
         results: vec![result],
+        ..purrdf::shapes::report::ValidationReport::from_results(
+            Vec::new(),
+            purrdf::shapes::report::ConformanceDisallows::default(),
+        )
     };
 
     let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
@@ -946,6 +960,10 @@ fn shacl_nonconforming_guard_is_categorized_data_shape_violation() {
     let report = ValidationReport {
         conforms: false,
         results: vec![],
+        ..purrdf::shapes::report::ValidationReport::from_results(
+            Vec::new(),
+            purrdf::shapes::report::ConformanceDisallows::default(),
+        )
     };
 
     let findings = shacl_findings_from_report(&report, None, &FailureClassIndex::empty());
@@ -1325,7 +1343,7 @@ fn distinct_lines_of_same_constraint_do_not_hash_cons_merge() {
     // location, differing only by `line`. Because line/column are part of the
     // message-independent structural identity, these are genuinely different
     // witnesses and must NOT hash-cons-merge — both line numbers must survive.
-    let make = |line: u32| {
+    let make = |line: u64| {
         let mut finding = Finding::new(
             Severity::Error,
             "shacl.MinCountConstraintComponent",
@@ -1343,7 +1361,7 @@ fn distinct_lines_of_same_constraint_do_not_hash_cons_merge() {
     };
 
     let mut ledger = DiagLedger::new();
-    for line in [10u32, 40u32] {
+    for line in [10u64, 40u64] {
         intern_finding(
             &mut ledger,
             StageId::new("validate.shacl"),
@@ -1353,7 +1371,7 @@ fn distinct_lines_of_same_constraint_do_not_hash_cons_merge() {
     }
     let report = ledger.project_report("validate");
 
-    let lines: std::collections::BTreeSet<u32> = report
+    let lines: std::collections::BTreeSet<u64> = report
         .findings
         .iter()
         .filter(|f| f.code == "shacl.MinCountConstraintComponent")

@@ -41,7 +41,7 @@ trait Sink {
         }
         for (local, value) in [
             ("findingLocationLine", location.line),
-            ("findingLocationColumn", location.column),
+            ("findingLocationColumn", location.column.map(u64::from)),
         ] {
             if let Some(value) = value {
                 self.literal(

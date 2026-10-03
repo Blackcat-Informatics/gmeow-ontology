@@ -24,8 +24,9 @@
 #![allow(dead_code)]
 
 use gmeow_errors::Diag;
-use purrdf::dataset_view::{DatasetView, GraphMatch};
+use purrdf::dataset_view::{DatasetView, GraphMatch, TermGuard};
 use purrdf::{BlankScope, QuadIds, RdfDataset, TermId, TermRef, TermValue, canonical_relabel};
+use std::convert::Infallible;
 use std::sync::Arc;
 
 // Well-known RDF IRIs (string constants — avoids per-call interning at the source).
@@ -189,9 +190,16 @@ pub(crate) fn nn(iri: &str) -> Iri {
 // Resolution: TermId → pure term model
 // --------------------------------------------------------------------------- //
 
+/// Take the value of a read from a resident view. Its `Infallible` read error proves
+/// at compile time that the read cannot fail, so nothing is discarded here.
+pub(crate) fn resident<T>(read: Result<T, Infallible>) -> T {
+    let Ok(value) = read;
+    value
+}
+
 /// Resolve a predicate (always an IRI) to its string.
-pub(crate) fn iri_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Iri {
-    match ds.resolve(id) {
+pub(crate) fn iri_of<D: DatasetView<ReadError = Infallible> + ?Sized>(ds: &D, id: D::Id) -> Iri {
+    match resident(ds.resolve(id)).term() {
         TermRef::Iri(s) => Iri(s.to_owned()),
         // A predicate is always an IRI; the remaining cases are unreachable for a
         // well-formed dataset. Render them losslessly rather than panic (the
@@ -201,8 +209,11 @@ pub(crate) fn iri_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Iri {
 }
 
 /// Resolve a subject position to the pure [`Subject`] model.
-pub(crate) fn subject_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Subject {
-    match ds.resolve(id) {
+pub(crate) fn subject_of<D: DatasetView<ReadError = Infallible> + ?Sized>(
+    ds: &D,
+    id: D::Id,
+) -> Subject {
+    match resident(ds.resolve(id)).term() {
         TermRef::Iri(s) => Subject::Iri(s.to_owned()),
         TermRef::Blank { label, scope } => Subject::Blank {
             label: label.to_owned(),
@@ -216,8 +227,8 @@ pub(crate) fn subject_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Subject 
 }
 
 /// Resolve an object position to the pure [`Node`] model.
-pub(crate) fn node_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Node {
-    match ds.resolve(id) {
+pub(crate) fn node_of<D: DatasetView<ReadError = Infallible> + ?Sized>(ds: &D, id: D::Id) -> Node {
+    match resident(ds.resolve(id)).term() {
         TermRef::Iri(s) => Node::Iri(s.to_owned()),
         TermRef::Blank { label, scope } => Node::Blank {
             label: label.to_owned(),
@@ -236,7 +247,7 @@ pub(crate) fn node_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Node {
             let datatype = if lang.is_some() {
                 None
             } else {
-                match ds.resolve(datatype) {
+                match resident(ds.resolve(datatype)).term() {
                     TermRef::Iri(dt) if dt != XSD_STRING => Some(dt.to_owned()),
                     _ => None,
                 }
@@ -258,16 +269,19 @@ pub(crate) fn node_of<D: DatasetView + ?Sized>(ds: &D, id: D::Id) -> Node {
 
 /// Best-effort lexical rendering of any term (used only for the unreachable
 /// non-IRI predicate / non-node subject fallbacks above).
-fn render_term<D: DatasetView + ?Sized>(ds: &D, term: TermRef<'_, D::Id>) -> String {
+fn render_term<D: DatasetView<ReadError = Infallible> + ?Sized>(
+    ds: &D,
+    term: TermRef<'_, D::Id>,
+) -> String {
     match term {
         TermRef::Iri(s) => s.to_owned(),
         TermRef::Blank { label, .. } => label.to_owned(),
         TermRef::Literal { lexical, .. } => lexical.to_owned(),
         TermRef::Triple { s, p, o } => format!(
             "<<{} {} {}>>",
-            render_term(ds, ds.resolve(s)),
-            render_term(ds, ds.resolve(p)),
-            render_term(ds, ds.resolve(o)),
+            render_term(ds, resident(ds.resolve(s)).term()),
+            render_term(ds, resident(ds.resolve(p)).term()),
+            render_term(ds, resident(ds.resolve(o)).term()),
         ),
     }
 }
@@ -278,36 +292,45 @@ fn render_term<D: DatasetView + ?Sized>(ds: &D, term: TermRef<'_, D::Id>) -> Str
 
 /// Intern a subject node to its dataset [`TermId`], or `None` if the dataset does
 /// not contain it (the wasm-clean analogue of an oxigraph pattern miss).
-pub(crate) fn subject_id<D: DatasetView + ?Sized>(ds: &D, subject: &Subject) -> Option<D::Id> {
+pub(crate) fn subject_id<D: DatasetView<ReadError = Infallible> + ?Sized>(
+    ds: &D,
+    subject: &Subject,
+) -> Option<D::Id> {
     let value = match subject {
-        Subject::Iri(iri) => return ds.term_id_by_value(&TermValue::iri(iri)),
+        Subject::Iri(iri) => return resident(ds.term_id_by_value(&TermValue::iri(iri))),
         Subject::Blank { label, scope } => TermValue::Blank {
             label: label.clone(),
             scope: *scope,
         },
     };
-    ds.term_id_by_value(&value)
+    resident(ds.term_id_by_value(&value))
 }
 
 /// Intern a predicate IRI to its dataset [`TermId`].
-fn predicate_id<D: DatasetView + ?Sized>(ds: &D, predicate: &Iri) -> Option<D::Id> {
-    ds.term_id_by_value(&TermValue::iri(predicate.as_str()))
+fn predicate_id<D: DatasetView<ReadError = Infallible> + ?Sized>(
+    ds: &D,
+    predicate: &Iri,
+) -> Option<D::Id> {
+    resident(ds.term_id_by_value(&TermValue::iri(predicate.as_str())))
 }
 
 /// Intern an object term to its dataset [`TermId`]. Only IRI/blank objects are
 /// interned as query keys here — the compiler only ever matches on IRI objects
 /// (`rdf:type` class terms); a literal/triple object key cannot be reconstructed
 /// without datatype/language and never occurs as a query key, so it yields `None`.
-fn object_id<D: DatasetView + ?Sized>(ds: &D, object: &Node) -> Option<D::Id> {
+fn object_id<D: DatasetView<ReadError = Infallible> + ?Sized>(
+    ds: &D,
+    object: &Node,
+) -> Option<D::Id> {
     let value = match object {
-        Node::Iri(iri) => return ds.term_id_by_value(&TermValue::iri(iri)),
+        Node::Iri(iri) => return resident(ds.term_id_by_value(&TermValue::iri(iri))),
         Node::Blank { label, scope } => TermValue::Blank {
             label: label.clone(),
             scope: *scope,
         },
         Node::Lit(purrdf::RdfLiteral { .. }) | Node::Triple(_) => return None,
     };
-    ds.term_id_by_value(&value)
+    resident(ds.term_id_by_value(&value))
 }
 
 // --------------------------------------------------------------------------- //
@@ -363,14 +386,14 @@ pub fn default_graph_pattern(
 /// carriers retain their original graph and exact term identity; quoted triples
 /// are never promoted into assertions. Duplicate carriers collapse only within
 /// their identical source graph.
-pub fn source_graph_pattern<D: DatasetView + ?Sized>(
+pub fn source_graph_pattern<D: DatasetView<ReadError = Infallible> + ?Sized>(
     ds: &D,
     s: Option<D::Id>,
     p: Option<D::Id>,
     o: Option<D::Id>,
     graph: GraphMatch<D::Id>,
 ) -> impl Iterator<Item = QuadIds<D::Id>> + '_ {
-    let reifies = ds.term_id_by_value(&TermValue::iri(RDF_REIFIES));
+    let reifies = resident(ds.term_id_by_value(&TermValue::iri(RDF_REIFIES)));
     let in_graph = move |g: Option<D::Id>| match graph {
         GraphMatch::Default => g.is_none(),
         GraphMatch::Named(selected) => g == Some(selected),
@@ -473,7 +496,7 @@ pub(crate) fn objects(ds: &RdfDataset, subject: &Subject, predicate: &Iri) -> Ve
 }
 
 /// Objects in one selected source graph, preserving all native assertion tables.
-pub(crate) fn objects_in_graph<D: DatasetView + ?Sized>(
+pub(crate) fn objects_in_graph<D: DatasetView<ReadError = Infallible> + ?Sized>(
     ds: &D,
     subject: &Subject,
     predicate: &Iri,

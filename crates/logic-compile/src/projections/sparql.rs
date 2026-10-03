@@ -18,8 +18,8 @@ use crate::projections::get_leg::{
 use crate::projections::{ProjectionResult, correspondence_result};
 use native::{bgp, error, expr_var, extend, filter, iri, join, named, optional, triple, var};
 use purrdf::sparql::{
-    BlankNode, Expression, Function, GraphPattern, GroundTerm, Literal, PropertyPathExpression,
-    Query, TermPattern, TriplePattern, Variable,
+    BlankNode, Child, Expression, Function, GraphPattern, GroundTerm, Literal,
+    PropertyPathExpression, Query, TermPattern, TriplePattern, Variable,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -296,7 +296,7 @@ fn lower_get(
     }
     let mut filters = Vec::new();
     for atom in source.suppress_when.iter().chain(&source.exclude_when) {
-        filters.push(Expression::Not(Box::new(Expression::Exists(Box::new(
+        filters.push(Expression::Not(Child::new(Expression::Exists(Child::new(
             native::atom_pattern(atom)?,
         )))));
     }
@@ -306,7 +306,7 @@ fn lower_get(
         }
     }
     for atom in &source.project_when {
-        filters.push(Expression::Exists(Box::new(native::atom_pattern(atom)?)));
+        filters.push(Expression::Exists(Child::new(native::atom_pattern(atom)?)));
     }
     for expression in &source.filters {
         match native::expression(expression) {
@@ -357,7 +357,7 @@ fn injected_guards(
             TermPattern::Literal(Literal::new_typed("false", iri(XSD_BOOLEAN)?)),
         )
     };
-    let negative = |pattern| Expression::Not(Box::new(Expression::Exists(Box::new(pattern))));
+    let negative = |pattern| Expression::Not(Child::new(Expression::Exists(Child::new(pattern))));
     let authored = required
         .iter()
         .copied()
@@ -430,10 +430,7 @@ fn injected_guards(
                 .map(|value| iri(value).map(PropertyPathExpression::NamedNode));
             if let Some(first) = paths.next() {
                 let path = paths.try_fold(first?, |left, right| {
-                    Ok::<_, gmeow_errors::Diag>(PropertyPathExpression::Alternative(
-                        Box::new(left),
-                        Box::new(right?),
-                    ))
+                    Ok::<_, gmeow_errors::Diag>(PropertyPathExpression::alternative(left, right?))
                 })?;
                 guards.push(negative(join(
                     GraphPattern::Path {
@@ -567,19 +564,20 @@ fn apply_retag(
             None,
         );
     }
-    let call = |function, values| Expression::FunctionCall(function, values);
-    let condition = Expression::And(
-        Box::new(call(Function::IsLiteral, vec![expr_var(value)])),
-        Box::new(Expression::Equal(
-            Box::new(call(Function::Lang, vec![expr_var(value)])),
-            Box::new(expr_var(&names.internal_tag)),
-        )),
+    let call =
+        |function, values: Vec<Expression>| Expression::FunctionCall(function, values.into());
+    let condition = Expression::and(
+        call(Function::IsLiteral, vec![expr_var(value)]),
+        Expression::Equal(
+            Child::new(call(Function::Lang, vec![expr_var(value)])),
+            Child::new(expr_var(&names.internal_tag)),
+        ),
     );
     let external = call(Function::Str, vec![expr_var(&names.external_tag)]);
     let language = if source.parent.is_some() {
         Expression::If(
-            Box::new(Expression::Bound(Variable::new(&names.script))),
-            Box::new(call(
+            Child::new(Expression::Bound(Variable::new(&names.script))),
+            Child::new(call(
                 Function::Concat,
                 vec![
                     external.clone(),
@@ -587,18 +585,18 @@ fn apply_retag(
                     expr_var(&names.script),
                 ],
             )),
-            Box::new(external),
+            Child::new(external),
         )
     } else {
         external
     };
     let expression = Expression::If(
-        Box::new(Expression::Bound(Variable::new(&names.external_tag))),
-        Box::new(call(
+        Child::new(Expression::Bound(Variable::new(&names.external_tag))),
+        Child::new(call(
             Function::StrLang,
             vec![call(Function::Str, vec![expr_var(value)]), language],
         )),
-        Box::new(expr_var(value)),
+        Child::new(expr_var(value)),
     );
     Ok(extend(
         optional(pattern, right, Some(condition)),

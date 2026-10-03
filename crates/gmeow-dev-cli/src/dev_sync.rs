@@ -888,7 +888,7 @@ fn managed_output_root(files: &[FileWitness]) -> String {
         hasher.update(digest.as_bytes());
         hasher.update(b"\x1e");
     }
-    hex(&hasher.finalize())
+    purrdf_hash::hex::encode(&hasher.finalize())
 }
 
 fn is_sha256(value: &str) -> bool {
@@ -958,7 +958,7 @@ fn sync_input_digest(root: &Path, output: SyncOutput) -> std::io::Result<String>
         hasher.update(&bytes);
         hasher.update(b"\x1e");
     }
-    Ok(hex(&hasher.finalize()))
+    Ok(purrdf_hash::hex::encode(&hasher.finalize()))
 }
 
 /// Resolve the exact source closure selected by synchronization.
@@ -1057,16 +1057,7 @@ fn write_manifest(path: &Path, manifest: &SyncManifest) -> std::io::Result<()> {
 }
 
 fn sha256(bytes: &[u8]) -> String {
-    hex(&Sha256::digest(bytes))
-}
-
-fn hex(bytes: &[u8]) -> String {
-    use std::fmt::Write as _;
-    let mut out = String::with_capacity(bytes.len() * 2);
-    for byte in bytes {
-        let _ = write!(out, "{byte:02x}");
-    }
-    out
+    purrdf_hash::hex::encode(&Sha256::digest(bytes))
 }
 
 #[path = "dev_sync.tests.rs"]

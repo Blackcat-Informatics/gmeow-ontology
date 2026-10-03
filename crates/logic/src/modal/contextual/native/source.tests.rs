@@ -38,7 +38,7 @@ fn indexed_rows_preserve_statement_layer_partitions() {
         .quads_for_pattern(None, Some(selected), None, GraphMatch::Named(graph))
         .collect();
     assert_eq!(rows.len(), 1);
-    assert_eq!(view.resolve(rows[0].s), TermRef::Iri("urn:first"));
+    assert_eq!(view.resolve(rows[0].s), Ok(TermRef::Iri("urn:first")));
     assert_eq!(view.quads().count(), 2);
     assert_eq!(view.reifier_quads().count(), 1);
     assert_eq!(view.annotation_quads().count(), 1);

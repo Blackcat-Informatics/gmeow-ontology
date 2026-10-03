@@ -45,14 +45,15 @@ fn frame_min_count_result(severity: ShaclSeverity) -> ValidationResult {
             "{GMEOW_NS}ExpressionFrameRequirementShape"
         ))),
         severity,
-        message: Some(
-            "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame)."
-                .to_owned(),
-        ),
+        messages: vec![purrdf::shapes::term::Literal::new_simple_literal(
+            "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame).",
+        )],
         source_box_roles: Vec::new(),
         path_box_roles: Vec::new(),
         result_box_roles: Vec::new(),
         attributions: vec![],
+        details: Vec::new(),
+        annotations: Vec::new(),
     }
 }
 

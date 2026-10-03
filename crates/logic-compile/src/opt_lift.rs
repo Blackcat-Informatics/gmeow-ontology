@@ -3,7 +3,7 @@
 
 //! openEHR OPT constraint IR and its **pure** lift to the canonical [`ValidationShapeIr`].
 //!
-//! This is the XML-free half of the ADL2/OPT constraints axis. The `roxmltree` reader
+//! This is the XML-free half of the ADL2/OPT constraints axis. The `purrdf_lex::xml` reader
 //! ([`crate::openehr_opt`]) parses an Operational Template into [`OptConstraintIr`] values; this
 //! module lifts each to a `logic:` validation shape, from which the SHACL Core and ShEx
 //! surfaces are projected ([`crate::projections::shapes`]). Keeping the lift here — with no

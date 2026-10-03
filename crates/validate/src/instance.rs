@@ -67,13 +67,18 @@ pub fn validate_instance(
                 detail: format!("could not parse JSON instance: {e}"),
             })
         })?,
-        // serde_yaml deserializes directly into serde_json::Value, so the YAML
-        // and JSON paths converge on one validation surface.
-        InstanceFormat::Yaml => serde_yaml::from_slice(instance).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("could not parse YAML instance: {e}"),
-            })
-        })?,
+        // The substrate YAML reader yields the JSON data model, so the YAML and JSON
+        // paths converge on one validation surface (crossing as JSON text).
+        InstanceFormat::Yaml => {
+            let parse_error = |detail: String| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    detail: format!("could not parse YAML instance: {detail}"),
+                })
+            };
+            let text = std::str::from_utf8(instance).map_err(|e| parse_error(e.to_string()))?;
+            let value = purrdf_lex::yaml::read(text).map_err(|e| parse_error(e.to_string()))?;
+            serde_json::from_str(&value.to_string()).map_err(|e| parse_error(e.to_string()))?
+        }
     };
 
     let mut messages: Vec<String> = validator

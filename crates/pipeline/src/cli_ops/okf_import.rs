@@ -170,7 +170,7 @@ pub struct OkfTranspileReport {
 /// Returns a diagnostic on any filesystem error, non-UTF-8 document, or an
 /// invalid/unsafe bundle path (delegated to [`OkfBundle::insert`]).
 fn read_okf_bundle_dir(okf_dir: &Path) -> Result<OkfBundle, gmeow_errors::Diag> {
-    let mut bundle = OkfBundle::new();
+    let mut bundle = OkfBundle::default();
     let mut stack = vec![okf_dir.to_path_buf()];
     while let Some(dir) = stack.pop() {
         let entries = std::fs::read_dir(&dir).map_err(|e| {

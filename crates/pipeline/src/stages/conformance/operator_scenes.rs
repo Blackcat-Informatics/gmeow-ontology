@@ -212,7 +212,9 @@ pub(super) fn observe(
     let refinement = task.map(|task| {
         RefinementRecord::from(&gmeow_logic::refine(dataset, task, FRAGMENT, 1000, rules))
     });
-    let attempt = dataset.term_id_by_value(&TermValue::iri(format!("{LOGIC}attemptOfIntent")));
+    let attempt = dataset
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(format!("{LOGIC}attemptOfIntent")));
     let has_attempt_of_intent = attempt.is_some_and(|predicate| {
         dataset
             .quads_for_pattern(None, Some(predicate), None, GraphMatch::Any)

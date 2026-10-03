@@ -560,7 +560,7 @@ fn candidate_key(candidate: &Candidate) -> String {
         sha2::Digest::update(&mut hasher, b"\x1e");
     }
     let digest = sha2::Digest::finalize(hasher);
-    hex_lower(&digest[..8])
+    purrdf_hash::hex::encode(&digest[..8])
 }
 
 /// A term's stable string form for the candidate key (an IRI by itself; a blank node with a
@@ -571,14 +571,6 @@ fn term_bytes(t: &RdfTerm) -> String {
         RdfTerm::BlankNode(b) => format!("_:{b}"),
         other => format!("{other:?}"),
     }
-}
-
-fn hex_lower(bytes: &[u8]) -> String {
-    let mut s = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        s.push_str(&format!("{b:02x}"));
-    }
-    s
 }
 
 // ── Corpus assembly (the certificate graph) ────────────────────────────────────────────

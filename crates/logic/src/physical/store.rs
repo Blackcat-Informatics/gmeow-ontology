@@ -793,9 +793,7 @@ pub(crate) fn visit_edb_patterns(
         .iter()
         .map(|pattern| {
             Ok((
-                foreign
-                    .estimate_world(world, pattern)?
-                    .unwrap_or(usize::MAX),
+                foreign.estimate_world(world, pattern)?.unwrap_or(u64::MAX),
                 pattern,
             ))
         })

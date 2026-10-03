@@ -317,7 +317,12 @@ fn ac3_mapsioctopic_carries_no_discharged_section_law_and_no_put_atom() {
     fn body_atoms<'a>(pattern: &'a GraphPattern, output: &mut Vec<&'a TriplePattern>) {
         match pattern {
             GraphPattern::Bgp { patterns } => output.extend(patterns),
-            GraphPattern::Union { left, right } | GraphPattern::Join { left, right } => {
+            GraphPattern::Union { arms } => {
+                for arm in arms {
+                    body_atoms(arm, output);
+                }
+            }
+            GraphPattern::Join { left, right } => {
                 body_atoms(left, output);
                 body_atoms(right, output);
             }
@@ -386,7 +391,8 @@ fn ac3_mapsioctopic_carries_no_discharged_section_law_and_no_put_atom() {
         match pattern {
             GraphPattern::Bgp { patterns } => patterns.iter().any(|pattern|
                 matches!(&pattern.predicate, NamedNodePattern::NamedNode(iri) if iri.as_str() == predicate)),
-            GraphPattern::Union { left, right } | GraphPattern::Join { left, right } =>
+            GraphPattern::Union { arms } => arms.iter().any(|arm| has_predicate(arm, predicate)),
+            GraphPattern::Join { left, right } =>
                 has_predicate(left, predicate) || has_predicate(right, predicate),
             _ => false,
         }

@@ -3,13 +3,13 @@
 
 //! The validation-only substrate role, borrowed before one native import.
 
+use std::convert::Infallible;
 use std::sync::Arc;
 
 use purrdf::RdfStoreCapabilities;
 use purrdf::ir::import::DatasetImporter;
 use purrdf::{
-    DatasetView, GraphMatch, QuadIds, QuadRef, RdfDataset, RdfDatasetBuilder, TermId, TermRef,
-    TermValue,
+    DatasetView, GraphMatch, QuadIds, RdfDataset, RdfDatasetBuilder, TermId, TermRef, TermValue,
 };
 
 use super::SUBSTRATE_IRI_PREFIX;
@@ -36,6 +36,12 @@ impl SubstrateView<'_> {
 
 impl DatasetView for SubstrateView<'_> {
     type Id = TermId;
+    // A resident selection over a frozen dataset: no read can fail.
+    type ReadError = Infallible;
+    type TermGuard<'a>
+        = TermRef<'a>
+    where
+        Self: 'a;
     type ProbePlan = <RdfDataset as DatasetView>::ProbePlan;
 
     fn quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
@@ -45,17 +51,8 @@ impl DatasetView for SubstrateView<'_> {
         }))
     }
 
-    fn quad_refs(&self) -> impl Iterator<Item = QuadRef<'_>> + '_ {
-        self.quads().map(|quad| QuadRef {
-            s: self.source.resolve(quad.s),
-            p: self.source.resolve(quad.p),
-            o: self.source.resolve(quad.o),
-            g: None,
-        })
-    }
-
-    fn resolve(&self, id: TermId) -> TermRef<'_> {
-        self.source.resolve(id)
+    fn resolve(&self, id: TermId) -> Result<TermRef<'_>, Infallible> {
+        Ok(self.source.resolve(id))
     }
 
     fn quads_for_pattern(
@@ -110,16 +107,16 @@ impl DatasetView for SubstrateView<'_> {
         )
     }
 
-    fn term_id_by_value(&self, value: &TermValue) -> Option<TermId> {
-        self.source.term_id_by_value(value)
+    fn term_id_by_value(&self, value: &TermValue) -> Result<Option<TermId>, Infallible> {
+        Ok(self.source.term_id_by_value(value))
     }
 
     fn capabilities(&self) -> RdfStoreCapabilities {
         self.source.capabilities()
     }
 
-    fn term_count(&self) -> usize {
-        self.source.term_count()
+    fn term_count(&self) -> u64 {
+        DatasetView::term_count(self.source)
     }
 
     fn reifier_quads(&self) -> impl Iterator<Item = QuadIds> + '_ {

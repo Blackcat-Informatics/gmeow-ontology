@@ -25,7 +25,8 @@
 //!
 //! [`validate_mandated_frames`] is the wire-level audit that proves any of them.
 //!
-//! It is deliberately a LEAF crate — `purrdf` + `gmeow-errors` + `ciborium`, nothing
+//! It is deliberately a LEAF crate — `purrdf` (with its `purrdf-lex` and `purrdf-ed25519`
+//! substrate crates) + `gmeow-errors`, nothing
 //! else — precisely so that every bundle author can depend on it. The profile
 //! previously lived inside `gmeow-pipeline`, which put it out of reach of
 //! `gmeow-math` (which `gmeow-pipeline` itself depends on, so the edge cannot be
@@ -46,13 +47,13 @@ pub use ingestion_receipt::{
     read_ingestion_receipt, write_ingestion_receipt,
 };
 
-use ciborium::value::Value;
 use purrdf::gts::model::{Quad, Term};
 use purrdf::gts::wire::{SELF_DESCRIBE_TAG, iter_items, map_get, unwrap_header};
 use purrdf::gts::writer::{FrameOptions, Writer, term_to_wire};
 use purrdf::gts_compose::{
     BlobRow, DictSelection, FrameSlot, GtsIngestError, IngestReport, MediumPlan, SnapshotBuilder,
 };
+use purrdf_lex::cbor::Value;
 
 /// Required transform on every payload-bearing GMEOW GTS frame.
 pub const GMEOW_GTS_FRAME_TRANSFORM: &str = "zstd-rsyncable";
@@ -397,7 +398,7 @@ fn emit_snapshot_payload_with_medium(
         .map_err(|err| profile_error(format!("snapshot header: {err}")))?;
     if let Some(signing) = signing {
         writer.sign_with(
-            ed25519_dalek::SigningKey::from_bytes(&signing.secret),
+            purrdf_ed25519::SigningKey::from_bytes(&signing.secret),
             &signing.key_id,
         );
         // Transport-key metadata is a real `d` payload, so it uses the same
@@ -818,7 +819,7 @@ pub fn compact_gmeow_gts(
     timestamp: &str,
     dictionary: &str,
     strategy: purrdf::gts::compact::DictStrategy,
-    packaging_signer: (ed25519_dalek::SigningKey, String),
+    packaging_signer: (purrdf_ed25519::SigningKey, String),
 ) -> gmeow_errors::Result<Vec<u8>> {
     purrdf::gts::compact::compact_streamable(
         data,

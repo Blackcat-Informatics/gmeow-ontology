@@ -3,7 +3,7 @@
 
 use crate::query_ir::{QBuiltin, QTerm};
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
-use purrdf::{BlankScope, RdfTextDirection, TermValue};
+use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
 
 #[test]
 fn retained_native_rule_keeps_polarity_builtin_tags_and_complete_value_identity() {
@@ -25,19 +25,21 @@ fn retained_native_rule_keeps_polarity_builtin_tags_and_complete_value_identity(
             predicate: "urn:evidence".to_owned(),
             negated: true,
             object: EvalTerm::ConstLit(TermValue::Triple {
-                s: Box::new(TermValue::Blank {
+                s: (TermValue::Blank {
                     label: "same-label".to_owned(),
                     scope: BlankScope(17),
-                }),
-                p: Box::new(TermValue::iri("urn:states")),
-                o: Box::new(TermValue::Triple {
-                    s: Box::new(TermValue::Blank {
+                })
+                .into(),
+                p: TermValue::iri("urn:states").into(),
+                o: (TermValue::Triple {
+                    s: TermBox::new(TermValue::Blank {
                         label: "same-label".to_owned(),
                         scope: BlankScope(19),
                     }),
-                    p: Box::new(TermValue::iri("urn:quote")),
-                    o: Box::new(literal),
-                }),
+                    p: TermBox::new(TermValue::iri("urn:quote")),
+                    o: TermBox::new(literal),
+                })
+                .into(),
             }),
         }],
         rule_iri: "urn:law-rule".to_owned(),

@@ -287,9 +287,9 @@ fn reify_matches_mint_nary_reifier_and_guards_non_iri_triple_predicate() {
     // triple terms recursively in RDF 1.2 non-asserting form (`<<( s p o )>>`), keeping
     // distinct nested statements distinct, so the reifier is well-defined.
     let iri_pred_triple = TermValue::Triple {
-        s: Box::new(iri(A)),
-        p: Box::new(iri(P)),
-        o: Box::new(iri(B)),
+        s: iri(A).into(),
+        p: iri(P).into(),
+        o: iri(B).into(),
     };
     let ok_leaf = dag.intern_leaf(iri_pred_triple);
     let with_ok_triple = dag.intern_app(op, vec![ok_leaf]);
@@ -301,12 +301,9 @@ fn reify_matches_mint_nary_reifier_and_guards_non_iri_triple_predicate() {
     // A NON-IRI triple-term predicate is the remaining hard fail
     // (`validate_triple_term_predicates` rejects a literal/blank/triple predicate).
     let non_iri_pred_triple = TermValue::Triple {
-        s: Box::new(iri(A)),
-        p: Box::new(TermValue::typed_literal(
-            "not-an-iri".to_string(),
-            crate::physical::XSD_INTEGER,
-        )),
-        o: Box::new(iri(B)),
+        s: iri(A).into(),
+        p: TermValue::typed_literal("not-an-iri".to_string(), crate::physical::XSD_INTEGER).into(),
+        o: iri(B).into(),
     };
     let bad_leaf = dag.intern_leaf(non_iri_pred_triple);
     let with_bad_triple = dag.intern_app(op, vec![bad_leaf]);

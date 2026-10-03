@@ -599,7 +599,7 @@ pub(crate) fn lower_reasoning_program(
     // day a second `EvaluationMode` variant lands without this dispatch being extended.
     let EvaluationMode::Backward = program.mode;
 
-    let mut dag = TermDag::new();
+    let mut dag = TermDag::default();
     let mut meta_sorts: BTreeMap<MetaId, NodeId> = BTreeMap::new();
     // Per-SCOPE variable-sort lookup: `program.variable_sorts` carries the owning scope with
     // every `(name → sort)` declaration, because each clause / the query is a FRESH variable

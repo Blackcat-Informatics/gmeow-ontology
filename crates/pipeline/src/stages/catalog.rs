@@ -92,11 +92,11 @@ fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), gmeow_errors::Di
     })?;
     let mut iri: Option<String> = None;
     if let (Some(p), Some(o)) = (
-        ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-        ds.term_id_by_value(&TermValue::iri(SLICE_CLASS)),
+        ds.as_ref().term_id_by_value(&TermValue::iri(RDF_TYPE)),
+        ds.as_ref().term_id_by_value(&TermValue::iri(SLICE_CLASS)),
     ) {
         for q in ds.quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default) {
-            if let TermRef::Iri(nn) = ds.resolve(q.s) {
+            if let TermRef::Iri(nn) = ds.as_ref().resolve(q.s) {
                 iri = Some(nn.to_owned());
             }
         }
@@ -108,11 +108,11 @@ fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), gmeow_errors::Di
     })?;
     let mut profiles = Vec::new();
     if let (Some(s), Some(p)) = (
-        ds.term_id_by_value(&TermValue::iri(&iri)),
-        ds.term_id_by_value(&TermValue::iri(SLICE_PROFILE)),
+        ds.as_ref().term_id_by_value(&TermValue::iri(&iri)),
+        ds.as_ref().term_id_by_value(&TermValue::iri(SLICE_PROFILE)),
     ) {
         for q in ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default) {
-            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+            if let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(q.o) {
                 profiles.push(lexical.to_owned());
             }
         }

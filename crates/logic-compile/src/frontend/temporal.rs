@@ -22,7 +22,7 @@ fn atom(node: &Subject, relation: &str, args: Vec<Term>) -> ReadResult<Formula> 
     Formula::atom(relation, args).map_err(|error| formula_err(node, error.message()))
 }
 
-pub(super) fn expand<D: purrdf::DatasetView + ?Sized>(
+pub(super) fn expand<D: purrdf::DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     reader: &mut FormulaReader<'_, D>,
     node: &Subject,
     constructor: &str,

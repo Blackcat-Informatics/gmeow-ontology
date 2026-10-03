@@ -127,7 +127,7 @@ fn projection_is_well_formed_single_root_xml() {
     // with exactly one root element, so any conformant XML/XCL consumer can read it.
     let p = shape_program();
     let out = project_xcl(&p).expect("project_xcl").content;
-    let doc = roxmltree::Document::parse(&out).expect("XCL projection must be well-formed XML");
+    let doc = purrdf_lex::xml::Document::parse(&out).expect("XCL projection must be well-formed XML");
     assert_eq!(
         doc.root_element().tag_name().name(),
         "gmeow-xcl",
@@ -137,7 +137,7 @@ fn projection_is_well_formed_single_root_xml() {
     let root_elems = doc
         .root()
         .children()
-        .filter(roxmltree::Node::is_element)
+        .filter(purrdf_lex::xml::Node::is_element)
         .count();
     assert_eq!(
         root_elems, 1,
@@ -387,7 +387,7 @@ fn xml_escape_renders_del_and_c1_as_char_refs_not_replacement() {
     assert_eq!(&text[text.len() - 15..], "d\t&amp;&lt;&gt;");
     // The whole escaped text node must be legal inside a well-formed XML document.
     let doc = format!("<r>{text}</r>");
-    roxmltree::Document::parse(&doc).expect("escaped text must be well-formed XML");
+    purrdf_lex::xml::Document::parse(&doc).expect("escaped text must be well-formed XML");
 
     // Attribute escaping shares the rule and additionally escapes the double quote.
     let attr = xml_escape_attr("q\"\u{85}\u{01}");

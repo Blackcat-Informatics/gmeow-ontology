@@ -125,9 +125,30 @@ fn severity_from_shacl(severity: &ShaclSeverity) -> Severity {
         ShaclSeverity::Violation => Severity::Error,
         ShaclSeverity::Warning => Severity::Warning,
         ShaclSeverity::Info => Severity::Info,
+        // SHACL 1.2 `sh:Debug`/`sh:Trace` are messages "that [are] not a constraint
+        // violation"; `note` is the least severe level a diagnostic (and SARIF) carries.
+        ShaclSeverity::Debug | ShaclSeverity::Trace => Severity::Note,
         // A custom `sh:severity` IRI purrdf preserves verbatim. gmeow's gate
         // treats an unrecognized severity as gate-failing (fail-closed).
         ShaclSeverity::Other(_) => Severity::Error,
+    }
+}
+
+/// The text of every `sh:resultMessage` a result carries, in purrdf's canonical order.
+///
+/// One message reads as its lexical form. Several are each spelled as their RDF
+/// literal — language tag and base direction kept — and joined, so no message is
+/// chosen over another. `None` when the result carries no message.
+pub fn shacl_message(result: &ValidationResult) -> Option<String> {
+    match result.messages.as_slice() {
+        [] => None,
+        [only] => Some(only.value().to_owned()),
+        all => Some(
+            all.iter()
+                .map(|message| Term::Literal(message.clone()).to_string())
+                .collect::<Vec<_>>()
+                .join("; "),
+        ),
     }
 }
 
@@ -190,10 +211,7 @@ pub fn finding_from_shacl(result: &ValidationResult, classes: &FailureClassIndex
         crate::codes::SHACL_FAMILY,
         iri_local(result.source_constraint_component.as_str())
     );
-    let message = result
-        .message
-        .clone()
-        .unwrap_or_else(|| "SHACL constraint violated".to_owned());
+    let message = shacl_message(result).unwrap_or_else(|| "SHACL constraint violated".to_owned());
     let mut finding =
         Finding::new(severity_from_shacl(&result.severity), code, message).with_tool("shacl");
 
@@ -280,10 +298,7 @@ pub fn diag_from_shacl(result: &ValidationResult, classes: &FailureClassIndex) -
         crate::codes::SHACL_FAMILY,
         iri_local(result.source_constraint_component.as_str())
     );
-    let message = result
-        .message
-        .clone()
-        .unwrap_or_else(|| "SHACL constraint violated".to_owned());
+    let message = shacl_message(result).unwrap_or_else(|| "SHACL constraint violated".to_owned());
     let severity = severity_from_shacl(&result.severity);
     let grade = Grade::new(
         severity,

@@ -116,7 +116,7 @@ impl AtomicPropertyLens {
         if let Some(predicate) = source.term_id_by_iri(RDF_REIFIES)
             && source
                 .quads_for_pattern(None, Some(predicate), None, GraphMatch::Any)
-                .any(|quad| matches!(source.resolve(quad.o), TermRef::Triple { .. }))
+                .any(|quad| matches!(source.as_ref().resolve(quad.o), TermRef::Triple { .. }))
         {
             return Err(exec_error(
                 "atomic acquisition requires native statement bindings, not an unfolded wire carrier",
@@ -126,10 +126,10 @@ impl AtomicPropertyLens {
         if let Some(predicate) = source.term_id_by_iri(&self.source_predicate) {
             for quad in source.quads_for_pattern(None, Some(predicate), None, GraphMatch::Any) {
                 residual.remove(&QuadValues {
-                    s: source.term_value(quad.s),
-                    p: source.term_value(quad.p),
-                    o: source.term_value(quad.o),
-                    g: quad.g.map(|graph| source.term_value(graph)),
+                    s: source.as_ref().term_value(quad.s),
+                    p: source.as_ref().term_value(quad.p),
+                    o: source.as_ref().term_value(quad.o),
+                    g: quad.g.map(|graph| source.as_ref().term_value(graph)),
                 });
             }
         }
@@ -321,16 +321,16 @@ impl AugmentedAtomicView {
         // An edit cannot move this ordinary-assertion focus into a residual
         // reifier's annotation table: that would change the selected operation.
         for quad in focus.quads() {
-            let residual = &self.complement.residual;
-            if let Some(subject) = residual.term_id_by_value(&focus.term_value(quad.s)) {
-                let graph = quad.g.map(|id| focus.term_value(id));
-                if residual
-                    .reifier_quads_of(subject)
-                    .any(|binding| binding.g.map(|id| residual.term_value(id)) == graph)
-                {
-                    return Err(exec_error(
-                        "atomic edit would change a residual statement annotation",
-                    ));
+            let residual = self.complement.residual.as_ref();
+            let focused = focus.as_ref().term_value(quad.s);
+            if let Some(subject) = crate::seam::resident(residual.term_id_by_value(&focused)) {
+                let graph = quad.g.map(|id| focus.as_ref().term_value(id));
+                for binding in residual.reifier_quads_of(subject) {
+                    if binding.g.map(|id| residual.term_value(id)) == graph {
+                        return Err(exec_error(
+                            "atomic edit would change a residual statement annotation",
+                        ));
+                    }
                 }
             }
         }

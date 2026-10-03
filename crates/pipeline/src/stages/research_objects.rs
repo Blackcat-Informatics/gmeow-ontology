@@ -585,7 +585,7 @@ fn croissant_config(
     let vocabulary = purrdf::CroissantVocabulary::new(vocabulary_map)
         .map_err(|e| ro_err(format!("CroissantVocabulary: {e}")))?;
     let context = purrdf::OfflineJsonLdContext::new(
-        serde_json::Value::String(CROISSANT_CONFORMS_TO.to_string()),
+        purrdf_lex::json::Value::from(CROISSANT_CONFORMS_TO),
         definitions,
     )
     .map_err(|e| ro_err(format!("Croissant OfflineJsonLdContext: {e}")))?;
@@ -708,7 +708,7 @@ fn ro_crate_config(
     let vocabulary = purrdf::RoCrateVocabulary::new(vocabulary_map)
         .map_err(|e| ro_err(format!("RoCrateVocabulary: {e}")))?;
     let context = purrdf::OfflineJsonLdContext::new(
-        serde_json::Value::String(RO_CRATE_CONTEXT.to_string()),
+        purrdf_lex::json::Value::from(RO_CRATE_CONTEXT),
         definitions,
     )
     .map_err(|e| ro_err(format!("RO-Crate OfflineJsonLdContext: {e}")))?;

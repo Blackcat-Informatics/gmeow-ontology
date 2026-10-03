@@ -44,6 +44,6 @@ valid and near-valid inputs. The live working corpus `fuzz/corpus/` and crash
 and the underlying panic must be fixed at its source.**
 
 The scheduled lane in `.github/workflows/fuzz.yml` runs every GMEOW target with a
-longer bounded budget. The manifests retain `purrdf = "2"`; the committed root
+longer bounded budget. The manifests retain `purrdf = "3"`; the committed root
 and fuzz lockfiles must select identical PurRDF package identities.
 `make fuzz-smoke` verifies that identity before running any target.

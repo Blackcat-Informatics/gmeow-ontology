@@ -158,10 +158,10 @@ fn complete_input_summary_is_order_independent_and_keeps_native_constant_facets(
         label: "x".to_owned(),
         scope: purrdf::BlankScope(scope),
     };
-    let quoted = |value| TermValue::Triple {
-        s: Box::new(TermValue::iri("urn:claim")),
-        p: Box::new(TermValue::iri("urn:states")),
-        o: Box::new(value),
+    let quoted = |value: TermValue| TermValue::Triple {
+        s: TermValue::iri("urn:claim").into(),
+        p: TermValue::iri("urn:states").into(),
+        o: value.into(),
     };
     let values = [
         blank(1),

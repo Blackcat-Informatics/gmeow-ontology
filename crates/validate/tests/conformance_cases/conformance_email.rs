@@ -156,8 +156,8 @@ fn read_receipt_request() {
 #[gmeow_test_batch_macros::batch_test]
 fn resent_properties_are_multivalued_in_linkml_schema() {
     let text = authenticated_corpus_text("validate-linkml.yaml");
-    let schema: serde_yaml::Value =
-        serde_yaml::from_str(&text).expect("gmeow.linkml.yaml must parse as YAML");
+    let schema: purrdf_lex::json::Value =
+        purrdf_lex::yaml::read(&text).expect("gmeow.linkml.yaml must parse as YAML");
     let classes = schema
         .get("classes")
         .expect("LinkML schema must carry a top-level `classes` map");
@@ -171,7 +171,7 @@ fn resent_properties_are_multivalued_in_linkml_schema() {
         .get(prop)
         .unwrap_or_else(|| panic!("attribute {prop:?} must exist on class {class_name:?}"))
         .get("multivalued")
-        .and_then(serde_yaml::Value::as_bool);
+        .and_then(purrdf_lex::json::Value::as_bool);
     assert_eq!(
         multivalued,
         Some(true),

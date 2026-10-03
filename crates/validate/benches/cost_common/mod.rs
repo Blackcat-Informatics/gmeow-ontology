@@ -137,12 +137,11 @@ fn load_shape_files(files: &[PathBuf]) -> Shapes {
             .unwrap_or_else(|e| panic!("read shape file {}: {e}", file.display()));
         let text = std::str::from_utf8(&bytes)
             .unwrap_or_else(|e| panic!("shape file {} is not UTF-8: {e}", file.display()));
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .unwrap_or_else(|e| panic!("parse shape file {}: {e}", file.display()));
-        datasets.push(dataset);
-        for (prefix, namespace) in purrdf::shapes::text_ingest::extract_prefixes(text) {
-            prefixes.insert(prefix, namespace);
-        }
+        // One parse yields the dataset and the document prefix map.
+        let document = purrdf::shapes::text_ingest::parse_turtle_document(text, None)
+            .unwrap_or_else(|e| panic!("parse shape file {}: {e:?}", file.display()));
+        datasets.push(document.dataset);
+        prefixes.extend(document.prefixes);
     }
     let refs: Vec<&RdfDataset> = datasets.iter().map(AsRef::as_ref).collect();
     let merged = Arc::new(RdfDataset::union(&refs));

@@ -615,7 +615,7 @@ struct Scan {
 }
 
 impl Scan {
-    fn of(edb: &impl DatasetView) -> Self {
+    fn of(edb: &impl DatasetView<ReadError = std::convert::Infallible>) -> Self {
         let graphs = edb
             .named_graphs()
             .map(|id| crate::reason::dataset::native(edb, id));

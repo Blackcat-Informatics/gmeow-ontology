@@ -313,11 +313,11 @@ fn inverse_focus_updates_source_direction_and_preserves_residual() {
         .collect();
     assert_eq!(rows.len(), 1);
     assert_eq!(
-        actual.term_value(rows[0].s),
+        actual.as_ref().term_value(rows[0].s),
         TermValue::Iri(SUBJECT.to_owned())
     );
     assert_eq!(
-        actual.term_value(rows[0].o),
+        actual.as_ref().term_value(rows[0].o),
         TermValue::Iri("urn:gmeow:example:new-object".to_owned())
     );
     assert_eq!(
