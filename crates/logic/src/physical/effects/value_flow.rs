@@ -689,24 +689,43 @@ impl RelationSummary {
         })
     }
 
-    fn support_into(
+    /// Union into `output` the `filter`ed opposite-column support of every value in
+    /// `values` on `side`, and return the values that have any such support.
+    ///
+    /// A rectangle contributes the same `rectangle[1 - side] ∩ filter` to each of its
+    /// values, so that intersection is formed once per rectangle rather than once per
+    /// value: the result is identical to probing each value separately.
+    fn supports_into(
         &self,
         side: usize,
-        value: usize,
+        values: &Domain,
         filter: &Domain,
         output: &mut Domain,
-    ) -> bool {
+        size: usize,
+    ) -> Domain {
         let supports = if side == 0 {
             &self.by_subject
         } else {
             &self.by_object
         };
-        let mut present = supports
-            .get(&value)
-            .is_some_and(|support| support.intersect_union_into(filter, output));
+        let mut present = Domain::empty(size);
+        for value in values.indices() {
+            if supports
+                .get(&value)
+                .is_some_and(|support| support.intersect_union_into(filter, output))
+            {
+                present.insert(value);
+            }
+        }
         for rectangle in &self.rectangles {
-            if rectangle[side].contains(value) {
-                present |= output.union_intersection(&rectangle[1 - side], filter);
+            if !rectangle[side].overlaps(values) {
+                continue;
+            }
+            let mut contribution = rectangle[1 - side].clone();
+            contribution.intersect(filter);
+            if !contribution.is_empty() {
+                output.union(&contribution);
+                present.union_intersection(&rectangle[side], values);
             }
         }
         present
@@ -1666,24 +1685,16 @@ impl ValueFlow {
                         values.intersect(wanted);
                     }
                     if !row[0].is_empty() && row[0].is_subset_of(&self.conditioned) {
-                        let mut subjects = Domain::empty(size);
                         let mut objects = Domain::empty(size);
-                        for subject in row[0].indices() {
-                            if relation.support_into(0, subject, &row[2], &mut objects) {
-                                subjects.insert(subject);
-                            }
-                        }
+                        let subjects =
+                            relation.supports_into(0, &row[0], &row[2], &mut objects, size);
                         row[0] = subjects;
                         row[2] = objects;
                     }
                     if !row[2].is_empty() && row[2].is_subset_of(&self.conditioned) {
                         let mut subjects = Domain::empty(size);
-                        let mut objects = Domain::empty(size);
-                        for object in row[2].indices() {
-                            if relation.support_into(1, object, &row[0], &mut subjects) {
-                                objects.insert(object);
-                            }
-                        }
+                        let objects =
+                            relation.supports_into(1, &row[2], &row[0], &mut subjects, size);
                         row[0] = subjects;
                         row[2] = objects;
                     }
