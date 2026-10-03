@@ -151,6 +151,9 @@ fn producer_arm(
             heads,
             native_witnesses: Vec::new(),
             reads: flow_reads,
+            cardinality_guards: Vec::new(),
+            list_reads: Vec::new(),
+            selected_reads: Vec::new(),
         },
     }
 }
@@ -403,6 +406,9 @@ pub(super) fn admission_arms(
                         heads: Vec::new(),
                         native_witnesses: Vec::new(),
                         reads: flow_reads,
+                        cardinality_guards: Vec::new(),
+                        list_reads: Vec::new(),
+                        selected_reads: Vec::new(),
                     },
                 });
             }

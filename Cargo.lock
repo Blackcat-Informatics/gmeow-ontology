@@ -1853,6 +1853,7 @@ dependencies = [
  "sha2",
  "smallvec",
  "tempfile",
+ "tracing",
 ]
 
 [[package]]

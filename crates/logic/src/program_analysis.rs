@@ -189,6 +189,8 @@ impl PreparedProgram {
         possible: Arc<[(String, crate::rule_ir::Fact)]>,
         contextual_effects: &[crate::physical::WorldProducerEffect],
     ) -> gmeow_errors::Result<JointInput<'a>> {
+        let input_facts = facts.values().map(Vec::len).sum::<usize>();
+        let trace_large_input = input_facts >= 100_000;
         self.admission.admit_world_local_template()?;
         let key = crate::physical::metadata_identity(
             "gmeow-schema-source-domain-selection-v2",
@@ -204,7 +206,27 @@ impl PreparedProgram {
             })
         };
         if let Some(template) = self.schema_templates.lock().map_err(lock_error)?.get(&key) {
+            if trace_large_input {
+                tracing::info!(
+                    target: "pipeline_reasoning_detail",
+                    phase = "reuse-native-reasoning-template",
+                    input_facts,
+                    "large native reasoning input",
+                );
+            }
             return template.input(facts, possible, contextual_effects);
+        }
+        let template_started = std::time::Instant::now();
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "build-native-reasoning-template",
+                event = "start",
+                input_facts,
+                properties = properties.len(),
+                source_rules = sources.rules.len(),
+                "large native reasoning input",
+            );
         }
         let template = Arc::new(
             JointTemplate::with_sources(
@@ -218,6 +240,15 @@ impl PreparedProgram {
             )?
             .with_witness_source(&self.admission),
         );
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "build-native-reasoning-template",
+                event = "end",
+                elapsed_ms = template_started.elapsed().as_millis(),
+                "large native reasoning input",
+            );
+        }
         let cacheable = self.cacheable() && template.cacheable();
         let template = if cacheable {
             self.schema_templates

@@ -110,6 +110,9 @@ petgraph = { version = "0.8", default-features = false }
 # Vec<FoundationQuad> with no shared mutable state.  Only invoked when
 # store.worlds().len() > 1 to avoid thread-pool overhead for single-world inputs.
 rayon = "1"
+# Structured phase boundaries for the native reasoner's production critical path.
+# The events carry deterministic row/count metadata only; they do not enter results.
+tracing.workspace = true
 sha1.workspace = true
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the Python compiler byte-for-byte.

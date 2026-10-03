@@ -248,10 +248,7 @@ impl NativeValues {
     /// Native cardinality fields share the projection's explicit lexical-count
     /// convention for strings. Other literals must inhabit an integer datatype;
     /// fractional values, language tags and invalid subtype values are refused.
-    pub(crate) fn cardinality(&mut self, source: &TermValue) -> Option<u128> {
-        if let Some(count) = self.counts.get(source) {
-            return Some(*count);
-        }
+    pub(crate) fn parse_cardinality(source: &TermValue) -> Option<u128> {
         let TermValue::Literal {
             lexical_form,
             datatype,
@@ -271,10 +268,23 @@ impl NativeValues {
         else {
             return None;
         };
-        let count = u128::try_from(value).ok()?;
-        if self.counts.len() < 128
-            && lexical_form.len().saturating_add(datatype.iri().len()) <= 8 * 1024
-        {
+        u128::try_from(value).ok()
+    }
+
+    pub(crate) fn cardinality(&mut self, source: &TermValue) -> Option<u128> {
+        if let Some(count) = self.counts.get(source) {
+            return Some(*count);
+        }
+        let count = Self::parse_cardinality(source)?;
+        let cacheable = matches!(
+            source,
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                ..
+            } if lexical_form.len().saturating_add(datatype.len()) <= 8 * 1024
+        );
+        if self.counts.len() < 128 && cacheable {
             self.counts.insert(source.clone(), count);
         }
         Some(count)

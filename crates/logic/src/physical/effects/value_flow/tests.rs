@@ -34,6 +34,9 @@ fn flow(rule: &EvalRule) -> FlowRule {
         heads: vec![statement(&rule.head)],
         native_witnesses: Vec::new(),
         reads: rule.body.iter().map(|a| Some(statement(a))).collect(),
+        cardinality_guards: Vec::new(),
+        list_reads: Vec::new(),
+        selected_reads: Vec::new(),
     }
 }
 
@@ -102,6 +105,54 @@ fn column_fixed_point_covers_every_concrete_positive_derivation() {
 }
 
 #[test]
+fn seeded_refinement_reuses_unseeded_fixed_point_without_changing_result() {
+    let rule = EvalRule::positive(
+        "urn:two-hop",
+        atom("?s", "urn:result", "?o"),
+        vec![
+            atom("?s", "urn:left", "?middle"),
+            atom("?middle", "urn:right", "?o"),
+        ],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let facts = vec![
+        Fact {
+            subject: TermValue::iri("urn:a"),
+            predicate: "urn:left".to_owned(),
+            object: TermValue::iri("urn:b"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:d"),
+            predicate: "urn:left".to_owned(),
+            object: TermValue::iri("urn:e"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:b"),
+            predicate: "urn:right".to_owned(),
+            object: TermValue::iri("urn:c"),
+        },
+    ];
+    let analysis = ValueFlow::new(
+        &[flow(&rule)],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+    )
+    .with_source_constants(facts.iter(), 128)
+    .unwrap();
+    let state = analysis.summarize(facts.iter());
+    let lowered = &analysis.rules[0];
+    let upper = analysis.bindings(lowered, &state).unwrap();
+    let subject = *lowered.names.get("?s").unwrap();
+
+    for value in 0..analysis.universe.size() {
+        let from_universe = analysis.bindings_seeded(lowered, &state, &[(subject, value)]);
+        let from_upper =
+            analysis.bindings_seeded_from(lowered, &state, &upper, &[(subject, value)]);
+        assert_eq!(from_upper, from_universe, "seed cell {value}");
+    }
+}
+
+#[test]
 fn complete_input_summary_is_order_independent_and_keeps_native_constant_facets() {
     let blank = |scope| TermValue::Blank {
         label: "x".to_owned(),
@@ -163,6 +214,306 @@ fn complete_input_summary_is_order_independent_and_keeps_native_constant_facets(
     }
 }
 
+#[test]
+fn conditional_supports_preserve_dense_identity_without_dense_storage() {
+    let size = 4096;
+    let mut values = Domain::empty(size);
+    for value in [1, 65, 4095] {
+        values.insert(value);
+    }
+    let mut support = AdaptiveDomain::empty(size);
+    assert!(support.union(&values));
+    assert!(matches!(support, AdaptiveDomain::Sparse { .. }));
+
+    let digest = |support: &AdaptiveDomain| {
+        let mut hash = blake3::Hasher::new();
+        support.hash_nonzero_words(&mut hash);
+        *hash.finalize().as_bytes()
+    };
+    assert_eq!(digest(&support), digest(&AdaptiveDomain::Dense(values)));
+}
+
+#[test]
+fn dense_domain_word_initialization_masks_the_unused_tail() {
+    for size in [0, 1, 63, 64, 65, 127, 128, 129] {
+        let mut domain = Domain::all(size);
+        assert_eq!(
+            domain.indices().collect::<Vec<_>>(),
+            (0..size).collect::<Vec<_>>()
+        );
+        if size > 0 {
+            let retained = size / 2;
+            domain.intersect_singleton(retained);
+            assert_eq!(domain.indices().collect::<Vec<_>>(), vec![retained]);
+        }
+    }
+}
+
+#[test]
+fn parallel_head_refinement_matches_the_serial_recursive_fixed_point() {
+    let rule = EvalRule::positive(
+        "urn:transitive",
+        atom("?left", "urn:reach", "?right"),
+        vec![
+            atom("?left", "urn:reach", "?middle"),
+            atom("?middle", "urn:reach", "?right"),
+        ],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let mut observations = Vec::new();
+    let mut facts = Vec::new();
+    for index in 0..PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES {
+        let node = format!("urn:node:{index}");
+        observations.push(StatementPattern::subject(TermValue::iri(&node)));
+        for (subject, object) in [(node.as_str(), "urn:hub"), ("urn:hub", node.as_str())] {
+            facts.push(Fact {
+                subject: TermValue::iri(subject),
+                predicate: "urn:reach".to_owned(),
+                object: TermValue::iri(object),
+            });
+        }
+    }
+    observations.push(StatementPattern::subject(TermValue::iri("urn:hub")));
+    let analysis = ValueFlow::with_observations(
+        &[flow(&rule)],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    );
+    let input = analysis.summarize(facts.iter());
+    let template = [0x5a; 32];
+    let run = |threads| {
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build()
+            .unwrap()
+            .install(|| analysis.closure(&input).identity(&template))
+    };
+
+    assert_eq!(run(1), run(4));
+}
+
+#[test]
+fn symmetric_nonrecursive_head_mirrors_exact_value_supports() {
+    let rule = EvalRule::positive(
+        "urn:symmetric",
+        atom("?left", "urn:same", "?right"),
+        vec![
+            atom("?group", "urn:member", "?left"),
+            atom("?group", "urn:member", "?right"),
+        ],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let observations: Vec<_> = ["urn:a", "urn:b", "urn:x", "urn:y"]
+        .into_iter()
+        .map(|value| StatementPattern::subject(TermValue::iri(value)))
+        .collect();
+    let analysis = ValueFlow::with_observations(
+        &[flow(&rule)],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    );
+    assert!(analysis.has_symmetric_value_sides(&analysis.rules[0], &analysis.rules[0].heads[0]));
+
+    let facts = [
+        Fact {
+            subject: TermValue::iri("urn:x"),
+            predicate: "urn:member".to_owned(),
+            object: TermValue::iri("urn:a"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:y"),
+            predicate: "urn:member".to_owned(),
+            object: TermValue::iri("urn:b"),
+        },
+    ];
+    let closure = analysis.closure(&analysis.summarize(facts.iter()));
+    let relation = closure
+        .relations
+        .get(&analysis.universe.iri("urn:same"))
+        .expect("symmetric rule is reachable");
+    let a = analysis.universe.iri("urn:a");
+    let b = analysis.universe.iri("urn:b");
+    for supports in [&relation.by_subject, &relation.by_object] {
+        let a_support = supports.get(&a).expect("a has exact support").to_domain();
+        assert!(a_support.contains(a));
+        assert!(!a_support.contains(b));
+        let b_support = supports.get(&b).expect("b has exact support").to_domain();
+        assert!(b_support.contains(b));
+        assert!(!b_support.contains(a));
+    }
+}
+
+#[test]
+fn asymmetric_head_is_not_mirrored() {
+    let rule = EvalRule::positive(
+        "urn:asymmetric",
+        atom("?left", "urn:same", "?right"),
+        vec![
+            atom("?group", "urn:left-member", "?left"),
+            atom("?group", "urn:right-member", "?right"),
+        ],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let analysis = ValueFlow::new(&[flow(&rule)], &[effect], SemanticVocabulary::Exact);
+    assert!(!analysis.has_symmetric_value_sides(&analysis.rules[0], &analysis.rules[0].heads[0]));
+}
+
+#[test]
+fn asymmetric_cardinality_guard_is_not_mirrored() {
+    let rule = EvalRule::positive(
+        "urn:guarded-symmetric-body",
+        atom("?left", "urn:same", "?right"),
+        vec![
+            atom("?group", "urn:member", "?left"),
+            atom("?group", "urn:member", "?right"),
+        ],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let mut flow = flow(&rule);
+    flow.cardinality_guards.push(FlowCardinalityGuard {
+        term: EvalTerm::var("?left"),
+        count: 1,
+    });
+    let analysis = ValueFlow::new(&[flow], &[effect], SemanticVocabulary::Exact);
+
+    assert!(!analysis.has_symmetric_value_sides(&analysis.rules[0], &analysis.rules[0].heads[0]));
+}
+
+#[test]
+fn dynamic_predicate_symmetric_head_is_mirrored() {
+    let rule = FlowRule {
+        body: vec![
+            [
+                EvalTerm::var("?group"),
+                EvalTerm::var("?predicate"),
+                EvalTerm::var("?left"),
+            ],
+            [
+                EvalTerm::var("?group"),
+                EvalTerm::var("?predicate"),
+                EvalTerm::var("?right"),
+            ],
+        ],
+        heads: vec![[
+            EvalTerm::var("?left"),
+            EvalTerm::named("urn:same"),
+            EvalTerm::var("?right"),
+        ]],
+        native_witnesses: Vec::new(),
+        reads: Vec::new(),
+        cardinality_guards: Vec::new(),
+        list_reads: Vec::new(),
+        selected_reads: Vec::new(),
+    };
+    let effect = ProducerEffect::new(
+        "urn:dynamic-symmetric".to_owned(),
+        vec![StatementPattern::relation(Some("urn:same"), None)],
+        Vec::new(),
+    );
+    let analysis = ValueFlow::new(&[rule], &[effect], SemanticVocabulary::Exact);
+    assert!(analysis.has_symmetric_value_sides(&analysis.rules[0], &analysis.rules[0].heads[0]));
+}
+
+#[test]
+fn cardinality_guard_narrows_source_rows_without_collapsing_lexical_forms() {
+    const COUNT: &str = "urn:count";
+    const VALUE: &str = "urn:value";
+    const RESULT: &str = "urn:result";
+    const INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+    let body = vec![
+        [
+            EvalTerm::var("?restriction"),
+            EvalTerm::named(COUNT),
+            EvalTerm::var("?count"),
+        ],
+        [
+            EvalTerm::var("?restriction"),
+            EvalTerm::named(VALUE),
+            EvalTerm::var("?output"),
+        ],
+    ];
+    let head = [
+        EvalTerm::var("?output"),
+        EvalTerm::named(RESULT),
+        EvalTerm::named("urn:yes"),
+    ];
+    let rule = FlowRule {
+        body: body.clone(),
+        heads: vec![head.clone()],
+        native_witnesses: Vec::new(),
+        reads: body.iter().cloned().map(Some).collect(),
+        cardinality_guards: vec![FlowCardinalityGuard {
+            term: EvalTerm::var("?count"),
+            count: 1,
+        }],
+        list_reads: Vec::new(),
+        selected_reads: Vec::new(),
+    };
+    let effect = ProducerEffect::new(
+        "urn:guarded".to_owned(),
+        vec![StatementPattern::statement(&head)],
+        body.iter()
+            .map(|atom| {
+                (
+                    StatementPattern::statement(atom),
+                    crate::physical::dependency::ReadDependency::Positive,
+                )
+            })
+            .collect(),
+    );
+    let observations: Vec<_> = ["urn:r1", "urn:r2", "urn:a", "urn:b"]
+        .into_iter()
+        .map(|value| StatementPattern::subject(TermValue::iri(value)))
+        .collect();
+    let literal = |lexical_form: &str| TermValue::Literal {
+        lexical_form: lexical_form.to_owned(),
+        datatype: INTEGER.to_owned(),
+        language: None,
+        direction: None,
+    };
+    let facts = [
+        Fact {
+            subject: TermValue::iri("urn:r1"),
+            predicate: COUNT.to_owned(),
+            object: literal("01"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:r1"),
+            predicate: VALUE.to_owned(),
+            object: TermValue::iri("urn:a"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:r2"),
+            predicate: COUNT.to_owned(),
+            object: literal("2"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:r2"),
+            predicate: VALUE.to_owned(),
+            object: TermValue::iri("urn:b"),
+        },
+    ];
+    let analysis = ValueFlow::with_observations(
+        &[rule],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    )
+    .with_source_operators(facts.iter());
+    let refined = analysis.refine(
+        std::slice::from_ref(&effect),
+        &analysis.summarize(facts.iter()),
+    );
+    let subjects = &refined[0].writes[0]
+        .ranges
+        .as_ref()
+        .expect("guarded producer is reachable")[0];
+    assert!(subjects.contains(analysis.universe.iri("urn:a")));
+    assert!(!subjects.contains(analysis.universe.iri("urn:b")));
+}
+
 const GENERATED_WORLD: &str = "urn:generated-domain:world";
 const GENERATED_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const GENERATED_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
@@ -193,6 +544,9 @@ fn subproperty_flow() -> (FlowRule, ProducerEffect) {
             .iter()
             .map(|atom| Some(atom.0.clone()))
             .collect(),
+        cardinality_guards: Vec::new(),
+        list_reads: Vec::new(),
+        selected_reads: Vec::new(),
     };
     let effect = ProducerEffect::new(
         law.source.rule_iri.clone(),
@@ -237,6 +591,9 @@ fn schema_flow() -> (Vec<FlowRule>, Vec<ProducerEffect>) {
                         .iter()
                         .map(|atom| Some(atom.0.clone()))
                         .collect(),
+                    cardinality_guards: Vec::new(),
+                    list_reads: Vec::new(),
+                    selected_reads: Vec::new(),
                 },
                 ProducerEffect::new(
                     law.source.rule_iri.clone(),
@@ -258,6 +615,21 @@ fn schema_flow() -> (Vec<FlowRule>, Vec<ProducerEffect>) {
             )
         })
         .unzip()
+}
+
+#[test]
+fn maximum_one_equality_uses_symmetric_value_refinement() {
+    let (rules, effects) = schema_flow();
+    let analysis = ValueFlow::new(&rules, &effects, SemanticVocabulary::GroundedLogicV1);
+    let maximum_rules: Vec<_> = analysis
+        .rules
+        .iter()
+        .filter(|rule| rule.name == "dl:maximum-one-equality")
+        .collect();
+    assert!(!maximum_rules.is_empty());
+    for rule in maximum_rules {
+        assert!(analysis.has_symmetric_value_sides(rule, &rule.heads[0]));
+    }
 }
 
 fn generated_source() -> BTreeMap<String, Vec<Fact>> {
@@ -357,6 +729,121 @@ fn unreachable_subproperty_target_cannot_mutate_protected_source_grammar() {
             &refined,
         ),
         None
+    );
+}
+
+#[test]
+fn predicate_identity_alone_does_not_request_tuple_conditioning() {
+    let (rule, effect) = subproperty_flow();
+    let facts = [
+        Fact {
+            subject: TermValue::iri("urn:selected-property"),
+            predicate: SUBPROPERTY.to_owned(),
+            object: TermValue::iri("urn:selected-superproperty"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:subject"),
+            predicate: "urn:unrelated-predicate".to_owned(),
+            object: TermValue::iri("urn:object"),
+        },
+    ];
+    let analysis = ValueFlow::with_observations(
+        &[rule],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::GroundedLogicV1,
+        &[StatementPattern::relation(Some(PROTECTED_BODY), None)],
+    )
+    .with_source_operators(facts.iter());
+    let selected = analysis.universe.iri("urn:selected-property");
+    let unrelated = analysis.universe.iri("urn:unrelated-predicate");
+
+    assert_ne!(selected, analysis.universe.other());
+    assert_ne!(unrelated, analysis.universe.other());
+    assert!(analysis.conditioned.contains(selected));
+    assert!(
+        !analysis.conditioned.contains(unrelated),
+        "an IRI used only as an RDF predicate needs an exact predicate cell, not subject/object correlation"
+    );
+}
+
+#[test]
+fn large_operator_universe_keeps_unreachable_protected_target_excluded() {
+    let (rule, effect) = subproperty_flow();
+    let mut facts: Vec<_> = (0..4096)
+        .map(|index| Fact {
+            subject: TermValue::iri(format!("urn:property:{index}")),
+            predicate: SUBPROPERTY.to_owned(),
+            object: TermValue::iri(format!("urn:superproperty:{index}")),
+        })
+        .collect();
+    facts.push(Fact {
+        subject: TermValue::iri("urn:inactive-property"),
+        predicate: SUBPROPERTY.to_owned(),
+        object: TermValue::iri(PROTECTED_BODY),
+    });
+    facts.push(Fact {
+        subject: TermValue::iri("urn:subject"),
+        predicate: "urn:property:0".to_owned(),
+        object: TermValue::iri("urn:object"),
+    });
+    let analysis = ValueFlow::with_observations(
+        &[rule],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::GroundedLogicV1,
+        &[StatementPattern::relation(Some(PROTECTED_BODY), None)],
+    )
+    .with_source_operators(facts.iter());
+    let refined = analysis.refine(
+        std::slice::from_ref(&effect),
+        &analysis.summarize(facts.iter()),
+    );
+    assert_eq!(
+        analysis.overlapping_writer(
+            &StatementPattern::relation(Some(PROTECTED_BODY), None),
+            &refined,
+        ),
+        None
+    );
+}
+
+#[test]
+fn dynamic_predicate_join_ignores_unrelated_relations_without_losing_reachability() {
+    let (rule, effect) = subproperty_flow();
+    let mut facts = Vec::new();
+    for index in 0..4096 {
+        let property = format!("urn:property:{index}");
+        facts.push(Fact {
+            subject: TermValue::iri(&property),
+            predicate: property.clone(),
+            object: TermValue::iri(format!("urn:object:{index}")),
+        });
+        facts.push(Fact {
+            subject: TermValue::iri(&property),
+            predicate: SUBPROPERTY.to_owned(),
+            object: TermValue::iri(if index == 0 {
+                PROTECTED_BODY.to_owned()
+            } else {
+                format!("urn:superproperty:{index}")
+            }),
+        });
+    }
+    let analysis = ValueFlow::with_observations(
+        &[rule],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::GroundedLogicV1,
+        &[StatementPattern::relation(Some(PROTECTED_BODY), None)],
+    )
+    .with_source_operators(facts.iter());
+    let refined = analysis.refine(
+        std::slice::from_ref(&effect),
+        &analysis.summarize(facts.iter()),
+    );
+    assert_eq!(
+        analysis.overlapping_writer(
+            &StatementPattern::relation(Some(PROTECTED_BODY), None),
+            &refined,
+        ),
+        Some("dl:subPropertyOf-propagation")
     );
 }
 
@@ -488,6 +975,107 @@ fn contextual_result_envelopes_do_not_invent_protected_schema_predicates() {
         ),
         None
     );
+}
+
+#[test]
+fn wildcard_output_envelope_retains_one_cartesian_rectangle() {
+    let output = StatementPattern::relation(Some("urn:output"), None);
+    let mut observations = vec![output.clone()];
+    observations.extend(
+        (0..4096)
+            .map(|index| StatementPattern::subject(TermValue::iri(format!("urn:value:{index}")))),
+    );
+    let analysis = ValueFlow::with_conditioned_observations(
+        &[],
+        &[],
+        SemanticVocabulary::Exact,
+        &observations,
+        &observations,
+    );
+    let mut summary = analysis.summarize(std::iter::empty());
+    analysis.seed_patterns(&mut summary, std::iter::once(&output));
+
+    let relation = summary
+        .relations
+        .get(&analysis.universe.iri("urn:output"))
+        .expect("output envelope relation");
+    assert!(relation.by_subject.is_empty());
+    assert!(relation.by_object.is_empty());
+    assert_eq!(relation.rectangles.len(), 1);
+    assert!(relation.rectangles[0][0].contains(analysis.universe.other()));
+    assert!(relation.rectangles[0][1].contains(analysis.universe.other()));
+}
+
+#[test]
+fn native_witness_head_retains_one_exact_rectangle() {
+    let body = [[
+        EvalTerm::var("?subject"),
+        EvalTerm::named("urn:seed"),
+        EvalTerm::named("urn:yes"),
+    ]];
+    let head = [[
+        EvalTerm::var("?subject"),
+        EvalTerm::named("urn:generated"),
+        EvalTerm::var("?witness"),
+    ]];
+    let rule = FlowRule {
+        body: body.to_vec(),
+        heads: head.to_vec(),
+        native_witnesses: vec!["?witness".to_owned()],
+        reads: body.iter().cloned().map(Some).collect(),
+        cardinality_guards: Vec::new(),
+        list_reads: Vec::new(),
+        selected_reads: Vec::new(),
+    };
+    let effect = ProducerEffect::new(
+        "urn:native-witness".to_owned(),
+        vec![StatementPattern::statement(&head[0])],
+        Vec::new(),
+    );
+    let mut observations: Vec<_> = (0..4096)
+        .map(|index| {
+            StatementPattern::subject(TermValue::iri(format!(
+                "{}{index}",
+                crate::facts::SKOLEM_PREFIX
+            )))
+        })
+        .collect();
+    observations.extend([
+        StatementPattern::subject(TermValue::iri("urn:subject")),
+        StatementPattern::subject(TermValue::iri("urn:excluded")),
+    ]);
+    let analysis = ValueFlow::with_observations(
+        &[rule],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    );
+    let facts = [Fact {
+        subject: TermValue::iri("urn:subject"),
+        predicate: "urn:seed".to_owned(),
+        object: TermValue::iri("urn:yes"),
+    }];
+    let closure = analysis.closure(&analysis.summarize(facts.iter()));
+    let relation = closure
+        .relations
+        .get(&analysis.universe.iri("urn:generated"))
+        .expect("native witness head is reachable");
+
+    assert!(relation.by_subject.is_empty());
+    assert!(relation.by_object.is_empty());
+    assert_eq!(relation.rectangles.len(), 1);
+    assert!(
+        relation.rectangles[0][0].contains(analysis.universe.iri("urn:subject")),
+        "the supported body binding reaches the generated head"
+    );
+    assert!(
+        !relation.rectangles[0][0].contains(analysis.universe.iri("urn:excluded")),
+        "the compact rectangle must not invent unsupported known subjects"
+    );
+    for observation in &observations[..4096] {
+        let witness = observation.subject.as_ref().expect("witness observation");
+        assert!(relation.rectangles[0][1].contains(analysis.universe.value(witness)));
+    }
 }
 
 fn generated_list_rule() -> crate::physical::ExistentialRule {
@@ -767,6 +1355,9 @@ fn source_constant_enrichment_preserves_unbounded_native_generation_and_known_al
         heads: rule.head.iter().map(statement).collect(),
         native_witnesses: rule.existentials(),
         reads: rule.body.iter().map(|atom| Some(statement(atom))).collect(),
+        cardinality_guards: Vec::new(),
+        list_reads: Vec::new(),
+        selected_reads: Vec::new(),
     };
     let effect = ProducerEffect::new(
         rule.rule_iri.clone(),

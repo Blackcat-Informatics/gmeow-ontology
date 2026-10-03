@@ -7,9 +7,11 @@
 //! cached schedule is reusable only for the same complete abstract input shape;
 //! neither a predicate-only key nor a caller-supplied digest can authorize it.
 
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex};
+
+use purrdf::TermValue;
 
 use super::{
     JointMaterialization, JointProgram, NativeOutcome, PreparedPropertyRule, producer_effects,
@@ -17,7 +19,9 @@ use super::{
 };
 use crate::native_semantics::SemanticVocabulary;
 use crate::physical::chase::{ChaseAdmission, ExistentialRule, PreparedChaseRule};
-use crate::physical::effects::value_flow::{FlowRule, FlowSummary, ValueFlow};
+use crate::physical::effects::value_flow::{
+    FlowCardinalityGuard, FlowListRead, FlowRule, FlowSelectedRead, FlowSummary, ValueFlow,
+};
 use crate::physical::effects::{ProducerEffect, StatementPattern, WorldProducerEffect};
 use crate::physical::plan::RuleLayouts;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
@@ -27,6 +31,168 @@ mod admission;
 /// A digest-only formatter for immutable native rule metadata. No serialized RDF
 /// or temporary text buffer is produced; the executable source remains native IR.
 struct MetadataDigest(blake3::Hasher, usize);
+
+fn flow_cardinality_guards(rule: &PreparedPropertyRule) -> Vec<FlowCardinalityGuard> {
+    let count = |term: &EvalTerm| match term {
+        EvalTerm::ConstLit(value) => crate::reason::value::NativeValues::parse_cardinality(value),
+        _ => None,
+    };
+    rule.source
+        .guards
+        .iter()
+        .filter_map(|guard| {
+            if !matches!(
+                guard.comparison,
+                crate::physical::ValueComparison::CardinalityEqual
+            ) {
+                return None;
+            }
+            count(&guard.right)
+                .map(|count| FlowCardinalityGuard {
+                    term: guard.left.clone(),
+                    count,
+                })
+                .or_else(|| {
+                    count(&guard.left).map(|count| FlowCardinalityGuard {
+                        term: guard.right.clone(),
+                        count,
+                    })
+                })
+        })
+        .collect()
+}
+
+fn flow_native_witnesses(rule: &PreparedPropertyRule) -> Vec<String> {
+    if rule.witness_frontier.is_none() {
+        return Vec::new();
+    }
+    let body_variables: BTreeSet<_> = rule
+        .analysis_body
+        .iter()
+        .flat_map(|atom| &atom.0)
+        .filter_map(|term| match term {
+            EvalTerm::Var(name) => Some(name.as_str()),
+            _ => None,
+        })
+        .collect();
+    rule.analysis_heads
+        .iter()
+        .flat_map(|atom| &atom.0)
+        .filter_map(|term| match term {
+            EvalTerm::Var(name) if !body_variables.contains(name.as_str()) => Some(name.clone()),
+            _ => None,
+        })
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+fn flow_list_reads(rule: &PreparedPropertyRule) -> Vec<FlowListRead> {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let Some(crate::physical::PropertyOperation::List(list)) = &rule.source.operation else {
+        return Vec::new();
+    };
+    let (read_predicate, read_column) = match list.operation {
+        crate::physical::ListOperation::Chain(..)
+        | crate::physical::ListOperation::KeyValues(..) => (None, 1),
+        crate::physical::ListOperation::AllTypes(_) => (Some(RDF_TYPE), 2),
+        crate::physical::ListOperation::Member(_)
+        | crate::physical::ListOperation::Pair(..)
+        | crate::physical::ListOperation::DistinctFromAll(_)
+        | crate::physical::ListOperation::KeyRecordValues(..) => return Vec::new(),
+    };
+    let selector_predicate = rule.source.body.iter().find_map(|atom| {
+        if atom.0[2] != list.head {
+            return None;
+        }
+        match &atom.0[1] {
+            EvalTerm::ConstNamed(predicate) => Some(predicate.clone()),
+            EvalTerm::ConstLit(TermValue::Iri(predicate)) => Some(predicate.clone()),
+            EvalTerm::Var(_) | EvalTerm::ConstLit(_) => None,
+        }
+    });
+    let Some(selector_predicate) = selector_predicate else {
+        return Vec::new();
+    };
+    let read_index = rule
+        .reads()
+        .enumerate()
+        .skip(rule.source.body.len())
+        .find_map(|(index, (predicate, _))| (predicate == read_predicate).then_some(index));
+    read_index
+        .map(|read_index| FlowListRead {
+            selector_predicate,
+            read_index,
+            read_column,
+        })
+        .into_iter()
+        .collect()
+}
+
+fn flow_selected_reads(rule: &PreparedPropertyRule) -> Vec<FlowSelectedRead> {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let (property, class) = match &rule.source.operation {
+        Some(crate::physical::PropertyOperation::Cardinality(pattern)) => (
+            &pattern.property,
+            match &pattern.set {
+                crate::physical::CardinalitySet::Class(class) => Some(class),
+                crate::physical::CardinalitySet::AllValues
+                | crate::physical::CardinalitySet::Resources
+                | crate::physical::CardinalitySet::Datatype(_) => None,
+            },
+        ),
+        Some(crate::physical::PropertyOperation::Minimum(pattern)) => {
+            (&pattern.property, pattern.class.as_ref())
+        }
+        Some(
+            crate::physical::PropertyOperation::List(_)
+            | crate::physical::PropertyOperation::Datatype(_),
+        )
+        | None => return Vec::new(),
+    };
+    let selector = |term: &EvalTerm| {
+        rule.source.body.iter().find_map(|atom| {
+            if &atom.0[2] != term {
+                return None;
+            }
+            match &atom.0[1] {
+                EvalTerm::ConstNamed(predicate) => Some(predicate.clone()),
+                EvalTerm::ConstLit(TermValue::Iri(predicate)) => Some(predicate.clone()),
+                EvalTerm::Var(_) | EvalTerm::ConstLit(_) => None,
+            }
+        })
+    };
+    let reads: Vec<_> = rule.reads().collect();
+    let mut selected = Vec::new();
+    if let Some(selector_predicate) = selector(property)
+        && let Some(read_index) = reads
+            .iter()
+            .enumerate()
+            .skip(rule.source.body.len())
+            .find_map(|(index, (predicate, _))| predicate.is_none().then_some(index))
+    {
+        selected.push(FlowSelectedRead {
+            selector_predicate,
+            read_index,
+            read_column: 1,
+        });
+    }
+    if let Some(class) = class
+        && let Some(selector_predicate) = selector(class)
+        && let Some(read_index) = reads
+            .iter()
+            .enumerate()
+            .skip(rule.source.body.len())
+            .find_map(|(index, (predicate, _))| (*predicate == Some(RDF_TYPE)).then_some(index))
+    {
+        selected.push(FlowSelectedRead {
+            selector_predicate,
+            read_index,
+            read_column: 2,
+        });
+    }
+    selected
+}
 
 impl std::fmt::Write for MetadataDigest {
     fn write_str(&mut self, text: &str) -> std::fmt::Result {
@@ -245,6 +411,9 @@ impl JointTemplate {
                     heads: vec![statement(&rule.head)],
                     native_witnesses: Vec::new(),
                     reads,
+                    cardinality_guards: Vec::new(),
+                    list_reads: Vec::new(),
+                    selected_reads: Vec::new(),
                 }
             })
             .collect();
@@ -253,6 +422,9 @@ impl JointTemplate {
             heads: rule.head.iter().map(statement).collect(),
             native_witnesses: rule.existentials(),
             reads: rule.body.iter().map(|atom| Some(statement(atom))).collect(),
+            cardinality_guards: Vec::new(),
+            list_reads: Vec::new(),
+            selected_reads: Vec::new(),
         }));
         flows.extend(properties.iter().map(|rule| {
             let mut reads: Vec<_> = rule
@@ -274,8 +446,11 @@ impl JointTemplate {
                     .iter()
                     .map(|head| head.0.clone())
                     .collect(),
-                native_witnesses: Vec::new(),
+                native_witnesses: flow_native_witnesses(rule),
                 reads,
+                cardinality_guards: flow_cardinality_guards(rule),
+                list_reads: flow_list_reads(rule),
+                selected_reads: flow_selected_reads(rule),
             }
         }));
         flows.extend(families.iter().map(|arm| arm.flow.clone()));
@@ -367,6 +542,8 @@ impl JointTemplate {
         possible: Arc<[(String, Fact)]>,
         contextual_effects: &[WorldProducerEffect],
     ) -> gmeow_errors::Result<JointInput<'a>> {
+        let input_facts = facts.values().map(Vec::len).sum::<usize>();
+        let trace_large_input = input_facts >= 100_000;
         for domain in self.domains.worlds() {
             if !facts.contains_key(&domain.world()?) {
                 return Err(seminaive_err(
@@ -382,6 +559,18 @@ impl JointTemplate {
                 "contextual output envelope has no admitted owner world",
             ));
         }
+        let flow_started = std::time::Instant::now();
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "extend-native-value-flow",
+                event = "start",
+                input_facts,
+                possible_facts = possible.len(),
+                contextual_effects = contextual_effects.len(),
+                "large native reasoning input",
+            );
+        }
         let flow = if contextual_effects.is_empty() {
             self.flow.as_ref().clone()
         } else {
@@ -391,7 +580,32 @@ impl JointTemplate {
                     .flat_map(|effect| effect.effect.writes.iter()),
             )
         };
-        let certificate_flow = Arc::new(flow.clone());
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "extend-native-value-flow",
+                event = "end",
+                elapsed_ms = flow_started.elapsed().as_millis(),
+                "large native reasoning input",
+            );
+        }
+        let certificate_flow = Arc::new(
+            flow.with_source_selections(
+                facts
+                    .values()
+                    .flatten()
+                    .chain(possible.iter().map(|(_, fact)| fact)),
+            ),
+        );
+        let operators_started = std::time::Instant::now();
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "admit-native-source-operators",
+                event = "start",
+                "large native reasoning input",
+            );
+        }
         let flow = flow.with_source_operators(
             facts
                 .values()
@@ -399,6 +613,15 @@ impl JointTemplate {
                 .chain(possible.iter().map(|(_, fact)| fact)),
         );
         let flow = Arc::new(flow);
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "admit-native-source-operators",
+                event = "end",
+                elapsed_ms = operators_started.elapsed().as_millis(),
+                "large native reasoning input",
+            );
+        }
         let flow_contract = crate::physical::metadata_identity(
             "gmeow-native-flow-observations-v1",
             &(
@@ -407,6 +630,15 @@ impl JointTemplate {
                 flow.vocabulary_identity(),
             ),
         );
+        let summary_started = std::time::Instant::now();
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "summarize-native-source-flow",
+                event = "start",
+                "large native reasoning input",
+            );
+        }
         let mut summary = flow.summarize(
             facts
                 .values()
@@ -419,11 +651,51 @@ impl JointTemplate {
                 .iter()
                 .flat_map(|effect| &effect.effect.writes),
         );
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "summarize-native-source-flow",
+                event = "end",
+                elapsed_ms = summary_started.elapsed().as_millis(),
+                "large native reasoning input",
+            );
+        }
         let shape = summary.identity(&flow_contract);
+        let effects_started = std::time::Instant::now();
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "refine-native-global-effects",
+                event = "start",
+                effects = self.effects.len(),
+                "large native reasoning input",
+            );
+        }
         let effects = self.effects(&flow, &summary, shape)?;
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "refine-native-global-effects",
+                event = "end",
+                elapsed_ms = effects_started.elapsed().as_millis(),
+                refined_effects = effects.len(),
+                "large native reasoning input",
+            );
+        }
         let mut world_effects = BTreeMap::new();
         let mut world_shapes = Vec::new();
         for (world, local) in facts {
+            let world_started = std::time::Instant::now();
+            if trace_large_input {
+                tracing::info!(
+                    target: "pipeline_reasoning_detail",
+                    phase = "refine-native-world-effects",
+                    event = "start",
+                    world,
+                    world_facts = local.len(),
+                    "large native reasoning input",
+                );
+            }
             let mut summary = flow.summarize(
                 local.iter().chain(
                     possible
@@ -465,6 +737,25 @@ impl JointTemplate {
             }
             world_shapes.push((summary.identity(&flow_contract), enabled));
             world_effects.insert(world.clone(), Arc::new(scoped));
+            if trace_large_input {
+                tracing::info!(
+                    target: "pipeline_reasoning_detail",
+                    phase = "refine-native-world-effects",
+                    event = "end",
+                    world,
+                    elapsed_ms = world_started.elapsed().as_millis(),
+                    "large native reasoning input",
+                );
+            }
+        }
+        let termination_started = std::time::Instant::now();
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "observe-native-termination",
+                event = "start",
+                "large native reasoning input",
+            );
         }
         let evidence = self
             .termination
@@ -484,6 +775,16 @@ impl JointTemplate {
                     self.semantics,
                 )
             });
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "observe-native-termination",
+                event = "end",
+                elapsed_ms = termination_started.elapsed().as_millis(),
+                has_evidence = evidence.is_some(),
+                "large native reasoning input",
+            );
+        }
         world_shapes.sort();
         let mut identity = crate::physical::metadata_identity(
             "gmeow-native-world-input-shape-v1",
@@ -802,15 +1103,26 @@ impl JointInput<'_> {
                 )
             })
             .collect();
-        let Ok(world_schedule) = crate::physical::effects::schedule_worlds(
+        let world_schedule = match crate::physical::effects::schedule_worlds(
             &scoped,
             template.semantics,
             &predicates,
             &observations,
-        ) else {
-            return Ok(NativeOutcome::Unsupported(
-                super::UnsupportedKind::NonStratifiable,
-            ));
+        ) {
+            Ok(schedule) => schedule,
+            Err(cycle) => {
+                tracing::warn!(
+                    target: "pipeline_reasoning",
+                    head = cycle.head,
+                    read = cycle.read,
+                    return_path = ?cycle.return_path,
+                    members = ?cycle.members,
+                    "native program preparation refused a non-stratifiable producer cycle",
+                );
+                return Ok(NativeOutcome::Unsupported(
+                    super::UnsupportedKind::NonStratifiable,
+                ));
+            }
         };
         let schedule = if let Some(world) = self.facts.keys().next() {
             world_schedule.local(world, 0..self.effects.len(), 0..template.family_reads.len())

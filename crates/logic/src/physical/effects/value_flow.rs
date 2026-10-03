@@ -12,13 +12,20 @@
 //! concrete reachable statement, including effects of later strata. No input row,
 //! rendered RDF or cumulative concrete closure is retained here.
 
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 
 use purrdf::TermValue;
+use rayon::prelude::*;
 
 use super::{ProducerEffect, StatementPattern, constant};
 use crate::native_semantics::SemanticVocabulary;
 use crate::rule_ir::{EvalTerm, Fact};
+
+/// Avoid Rayon coordination for the small refinements that dominate ordinary
+/// rules. Large conditioned domains are evaluated in bounded batches so each
+/// worker retains only one batch of temporary variable bitsets.
+const PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES: usize = 1_024;
+const PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE: usize = 256;
 
 /// A finite set of abstract values. These are value-domain bits, not row IDs.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -29,11 +36,13 @@ impl Domain {
         Self(vec![0; size.div_ceil(64)])
     }
     fn all(size: usize) -> Self {
-        let mut result = Self::empty(size);
-        for index in 0..size {
-            result.insert(index);
+        let mut words = vec![u64::MAX; size.div_ceil(64)];
+        if let Some(last) = words.last_mut()
+            && size % 64 != 0
+        {
+            *last = (1u64 << (size % 64)) - 1;
         }
-        result
+        Self(words)
     }
     fn one(size: usize, index: usize) -> Self {
         let mut result = Self::empty(size);
@@ -55,6 +64,18 @@ impl Domain {
     }
     fn contains(&self, index: usize) -> bool {
         self.0[index / 64] & (1 << (index % 64)) != 0
+    }
+    fn intersect_singleton(&mut self, index: usize) -> bool {
+        let present = self.contains(index);
+        let word = index / 64;
+        let bit = 1u64 << (index % 64);
+        let mut changed = false;
+        for (position, value) in self.0.iter_mut().enumerate() {
+            let next = if present && position == word { bit } else { 0 };
+            changed |= *value != next;
+            *value = next;
+        }
+        changed
     }
     fn union(&mut self, other: &Self) -> bool {
         let mut changed = false;
@@ -89,6 +110,28 @@ impl Domain {
             .zip(&other.0)
             .all(|(left, right)| left & !right == 0)
     }
+    fn singleton(&self) -> Option<usize> {
+        let mut values = self.indices();
+        let value = values.next()?;
+        values.next().is_none().then_some(value)
+    }
+    fn union_intersection(&mut self, left: &Self, right: &Self) -> bool {
+        let mut present = false;
+        for ((output, left), right) in self.0.iter_mut().zip(&left.0).zip(&right.0) {
+            let intersection = left & right;
+            present |= intersection != 0;
+            *output |= intersection;
+        }
+        present
+    }
+    fn hash_nonzero_words(&self, hash: &mut blake3::Hasher) {
+        hash.update(&(self.0.len() as u64).to_le_bytes());
+        hash.update(&(self.0.iter().filter(|word| **word != 0).count() as u64).to_le_bytes());
+        for (index, word) in self.0.iter().enumerate().filter(|(_, word)| **word != 0) {
+            hash.update(&(index as u64).to_le_bytes());
+            hash.update(&word.to_le_bytes());
+        }
+    }
     fn indices(&self) -> impl Iterator<Item = usize> + '_ {
         self.0.iter().enumerate().flat_map(|(word, &bits)| {
             let mut remaining = bits;
@@ -115,9 +158,39 @@ pub(crate) struct FlowRule {
     /// Explicit reads parallel to ProducerEffect::reads; None denotes an implicit
     /// structural read whose conservative pattern is already declared by the engine.
     pub(crate) reads: Vec<Option<[EvalTerm; 3]>>,
+    /// Pure native cardinality equalities with one statically interpreted side.
+    /// These restrict values without adding a statement dependency.
+    pub(crate) cardinality_guards: Vec<FlowCardinalityGuard>,
+    /// Wildcard reads whose predicate is selected from one RDF list. The read is
+    /// narrowed only after the selected source lists are known and their selector
+    /// and cell predicates are proven immutable for this input shape.
+    pub(crate) list_reads: Vec<FlowListRead>,
+    /// Wildcard reads whose predicate is the object of one source selector.
+    /// These cover native cardinality probes and restricted witness checks.
+    pub(crate) selected_reads: Vec<FlowSelectedRead>,
 }
 
 #[derive(Debug, Clone)]
+pub(crate) struct FlowCardinalityGuard {
+    pub(crate) term: EvalTerm,
+    pub(crate) count: u128,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct FlowListRead {
+    pub(crate) selector_predicate: String,
+    pub(crate) read_index: usize,
+    pub(crate) read_column: usize,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct FlowSelectedRead {
+    pub(crate) selector_predicate: String,
+    pub(crate) read_index: usize,
+    pub(crate) read_column: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Slot {
     Constant(usize),
     Variable(usize),
@@ -134,12 +207,38 @@ impl Slot {
 
 #[derive(Debug, Clone)]
 struct Rule {
+    name: String,
     body: Vec<[Slot; 3]>,
     heads: Vec<[Slot; 3]>,
     reads: Vec<Option<[Slot; 3]>>,
     variables: usize,
     native_witnesses: Vec<usize>,
+    cardinality_guards: Vec<(Slot, u128)>,
+    list_reads: Vec<ListRead>,
+    selected_reads: Vec<SelectedRead>,
     names: BTreeMap<String, usize>,
+}
+
+#[derive(Debug, Clone)]
+struct ListRead {
+    selector_predicate: String,
+    read_index: usize,
+    read_column: usize,
+    selected_members: Option<Domain>,
+}
+
+#[derive(Debug, Clone)]
+struct SelectedRead {
+    selector_predicate: String,
+    read_index: usize,
+    read_column: usize,
+    selected_values: Option<Domain>,
+}
+
+#[derive(Debug, Clone)]
+struct RuleRefinement {
+    bindings: Vec<Domain>,
+    heads: Vec<[Domain; 3]>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -242,6 +341,28 @@ fn operator_inputs(
         }
     }
     (inputs.into_iter().collect(), conditions)
+}
+
+fn cardinality_inputs(rules: &[FlowRule], semantics: SemanticVocabulary) -> Vec<OperatorInput> {
+    let mut inputs = BTreeSet::new();
+    for rule in rules {
+        for guard in &rule.cardinality_guards {
+            let Some(name) = variable(&guard.term) else {
+                continue;
+            };
+            for atom in &rule.body {
+                for column in [0usize, 2] {
+                    if variable(&atom[column]) == Some(name) {
+                        inputs.insert(OperatorInput {
+                            predicate: atom_predicate(atom, semantics),
+                            column,
+                        });
+                    }
+                }
+            }
+        }
+    }
+    inputs.into_iter().collect()
 }
 
 #[derive(Debug, Clone)]
@@ -369,22 +490,245 @@ impl Universe {
     }
 }
 
+fn cardinality_domains(universe: &Universe, rules: &[Rule]) -> BTreeMap<u128, Domain> {
+    let counts: BTreeSet<_> = rules
+        .iter()
+        .flat_map(|rule| rule.cardinality_guards.iter().map(|(_, count)| *count))
+        .collect();
+    counts
+        .into_iter()
+        .map(|count| {
+            let mut domain = Domain::one(universe.size(), universe.other());
+            for (index, value) in universe.values.iter().enumerate() {
+                if crate::reason::value::NativeValues::parse_cardinality(value) == Some(count) {
+                    domain.insert(index);
+                }
+            }
+            (count, domain)
+        })
+        .collect()
+}
+
 #[derive(Debug, Clone)]
 struct RelationSummary {
-    columns: [Domain; 2],
+    columns: [AdaptiveDomain; 2],
     /// Opposite-column supports keyed only by conditioned constants. This is a
     /// bounded grammar relation, not retained source rows.
-    by_subject: BTreeMap<usize, Domain>,
-    by_object: BTreeMap<usize, Domain>,
+    by_subject: BTreeMap<usize, AdaptiveDomain>,
+    by_object: BTreeMap<usize, AdaptiveDomain>,
+    /// Producer and native-witness supports can be Cartesian products. Retaining
+    /// each product once avoids expanding a wildcard or generated-value side into
+    /// one universe-width support per conditioned value.
+    rectangles: Vec<[Domain; 2]>,
+}
+
+/// An input column normally contains only a small fraction of the selected value
+/// universe. Keep that case sparse; promote to the fixed-width domain once the
+/// sorted indices would occupy at least as much memory as its bitset. Both
+/// representations denote the same abstract value set.
+#[derive(Debug, Clone)]
+enum AdaptiveDomain {
+    Sparse { size: usize, values: Vec<usize> },
+    Dense(Domain),
+}
+
+impl AdaptiveDomain {
+    fn empty(size: usize) -> Self {
+        Self::Sparse {
+            size,
+            values: Vec::new(),
+        }
+    }
+
+    fn union(&mut self, other: &Domain) -> bool {
+        match self {
+            Self::Dense(domain) => domain.union(other),
+            Self::Sparse { size, values } => {
+                let dense_words = size.div_ceil(64);
+                let incoming = other.indices().count();
+                if values.len().saturating_add(incoming) >= dense_words {
+                    let mut domain = Domain::empty(*size);
+                    for &value in values.iter() {
+                        domain.insert(value);
+                    }
+                    let changed = domain.union(other);
+                    *self = Self::Dense(domain);
+                    return changed;
+                }
+                let mut changed = false;
+                for value in other.indices() {
+                    if let Err(index) = values.binary_search(&value) {
+                        values.insert(index, value);
+                        changed = true;
+                    }
+                }
+                changed
+            }
+        }
+    }
+
+    fn insert(&mut self, value: usize) -> bool {
+        match self {
+            Self::Dense(domain) => {
+                if domain.contains(value) {
+                    return false;
+                }
+                domain.insert(value);
+                true
+            }
+            Self::Sparse { size, values } => {
+                let Err(index) = values.binary_search(&value) else {
+                    return false;
+                };
+                values.insert(index, value);
+                if values.len() >= size.div_ceil(64) {
+                    let mut domain = Domain::empty(*size);
+                    for &value in values.iter() {
+                        domain.insert(value);
+                    }
+                    *self = Self::Dense(domain);
+                }
+                true
+            }
+        }
+    }
+
+    fn to_domain(&self) -> Domain {
+        match self {
+            Self::Dense(domain) => domain.clone(),
+            Self::Sparse { size, values } => {
+                let mut domain = Domain::empty(*size);
+                for &value in values {
+                    domain.insert(value);
+                }
+                domain
+            }
+        }
+    }
+
+    fn intersect_union_into(&self, filter: &Domain, output: &mut Domain) -> bool {
+        match self {
+            Self::Dense(domain) => {
+                let mut intersection = domain.clone();
+                intersection.intersect(filter);
+                let present = !intersection.is_empty();
+                output.union(&intersection);
+                present
+            }
+            Self::Sparse { values, .. } => {
+                let mut present = false;
+                for &value in values {
+                    if filter.contains(value) {
+                        output.insert(value);
+                        present = true;
+                    }
+                }
+                present
+            }
+        }
+    }
+
+    fn hash_nonzero_words(&self, hash: &mut blake3::Hasher) {
+        match self {
+            Self::Dense(domain) => domain.hash_nonzero_words(hash),
+            Self::Sparse { size, values } => {
+                hash.update(&(size.div_ceil(64) as u64).to_le_bytes());
+                let groups = values
+                    .iter()
+                    .map(|value| value / 64)
+                    .scan(None, |previous, word| {
+                        let distinct = previous.is_none_or(|last| last != word);
+                        *previous = Some(word);
+                        Some(distinct)
+                    })
+                    .filter(|distinct| *distinct)
+                    .count();
+                hash.update(&(groups as u64).to_le_bytes());
+                let mut values = values.iter().copied().peekable();
+                while let Some(value) = values.next() {
+                    let word_index = value / 64;
+                    let mut word = 1u64 << (value % 64);
+                    while values.peek().is_some_and(|value| *value / 64 == word_index) {
+                        let value = values.next().expect("peeked support value");
+                        word |= 1 << (value % 64);
+                    }
+                    hash.update(&(word_index as u64).to_le_bytes());
+                    hash.update(&word.to_le_bytes());
+                }
+            }
+        }
+    }
+
+    fn is_subset_of(&self, other: &Domain) -> bool {
+        match self {
+            Self::Dense(domain) => domain.is_subset_of(other),
+            Self::Sparse { values, .. } => values.iter().all(|value| other.contains(*value)),
+        }
+    }
 }
 
 impl RelationSummary {
     fn empty(size: usize) -> Self {
         Self {
-            columns: std::array::from_fn(|_| Domain::empty(size)),
+            columns: std::array::from_fn(|_| AdaptiveDomain::empty(size)),
             by_subject: BTreeMap::new(),
             by_object: BTreeMap::new(),
+            rectangles: Vec::new(),
         }
+    }
+
+    fn rectangle_covers_pair(&self, subject: usize, object: usize) -> bool {
+        self.rectangles
+            .iter()
+            .any(|rectangle| rectangle[0].contains(subject) && rectangle[1].contains(object))
+    }
+
+    fn rectangle_covers(&self, side: usize, value: usize, opposite: &Domain) -> bool {
+        self.rectangles.iter().any(|rectangle| {
+            rectangle[side].contains(value) && opposite.is_subset_of(&rectangle[1 - side])
+        })
+    }
+
+    fn support_into(
+        &self,
+        side: usize,
+        value: usize,
+        filter: &Domain,
+        output: &mut Domain,
+    ) -> bool {
+        let supports = if side == 0 {
+            &self.by_subject
+        } else {
+            &self.by_object
+        };
+        let mut present = supports
+            .get(&value)
+            .is_some_and(|support| support.intersect_union_into(filter, output));
+        for rectangle in &self.rectangles {
+            if rectangle[side].contains(value) {
+                present |= output.union_intersection(&rectangle[1 - side], filter);
+            }
+        }
+        present
+    }
+
+    fn publish_rectangle(&mut self, rectangle: [Domain; 2]) -> bool {
+        if self.rectangles.iter().any(|existing| {
+            rectangle[0].is_subset_of(&existing[0]) && rectangle[1].is_subset_of(&existing[1])
+        }) {
+            return false;
+        }
+        self.rectangles.retain(|existing| {
+            !(existing[0].is_subset_of(&rectangle[0]) && existing[1].is_subset_of(&rectangle[1]))
+        });
+        self.by_subject.retain(|subject, support| {
+            !rectangle[0].contains(*subject) || !support.is_subset_of(&rectangle[1])
+        });
+        self.by_object.retain(|object, support| {
+            !rectangle[1].contains(*object) || !support.is_subset_of(&rectangle[0])
+        });
+        self.rectangles.push(rectangle);
+        true
     }
 }
 
@@ -394,35 +738,110 @@ impl RelationSummary {
 #[derive(Debug, Clone)]
 pub(crate) struct FlowSummary {
     relations: BTreeMap<usize, RelationSummary>,
+    /// Monotone candidate lookup for exact conditioned supports. A
+    /// singleton-constrained dynamic predicate join can use this instead of
+    /// scanning every predicate; rectangle subsumption may leave harmless stale
+    /// candidates that the ordinary relation support check rejects.
+    predicates_by_subject: BTreeMap<usize, AdaptiveDomain>,
+    predicates_by_object: BTreeMap<usize, AdaptiveDomain>,
+    /// Rectangles deliberately remain compact, so their predicates are checked
+    /// separately rather than expanding a wildcard side into this exact index.
+    rectangle_relations: BTreeSet<usize>,
 }
 
 impl FlowSummary {
+    fn index_condition(&mut self, predicate: usize, side: usize, value: usize, size: usize) {
+        let predicates = if side == 0 {
+            &mut self.predicates_by_subject
+        } else {
+            &mut self.predicates_by_object
+        };
+        predicates
+            .entry(value)
+            .or_insert_with(|| AdaptiveDomain::empty(size))
+            .insert(predicate);
+    }
+
+    /// Restrict a dynamic predicate search when a conditioned value column is a
+    /// singleton. Exact supports use the derived reverse index; compact producer
+    /// rectangles are consulted without materializing their Cartesian products.
+    fn predicates_for_singleton(
+        &self,
+        required: &[Domain; 3],
+        conditioned: &Domain,
+        size: usize,
+    ) -> Option<Domain> {
+        let mut selected: Option<Domain> = None;
+        for (side, column) in [(0usize, 0usize), (1, 2)] {
+            if !required[column].is_subset_of(conditioned) {
+                continue;
+            }
+            let Some(value) = required[column].singleton() else {
+                continue;
+            };
+            let index = if side == 0 {
+                &self.predicates_by_subject
+            } else {
+                &self.predicates_by_object
+            };
+            let mut predicates = index
+                .get(&value)
+                .map_or_else(|| Domain::empty(size), AdaptiveDomain::to_domain);
+            for predicate in &self.rectangle_relations {
+                let relation = self
+                    .relations
+                    .get(predicate)
+                    .expect("rectangle relation index remains synchronized");
+                if relation
+                    .rectangles
+                    .iter()
+                    .any(|rectangle| rectangle[side].contains(value))
+                {
+                    predicates.insert(*predicate);
+                }
+            }
+            predicates.intersect(&required[1]);
+            if let Some(existing) = &mut selected {
+                existing.intersect(&predicates);
+            } else {
+                selected = Some(predicates);
+            }
+        }
+        selected
+    }
+
     pub(crate) fn identity(&self, template: &[u8; 32]) -> [u8; 32] {
         let mut hash = blake3::Hasher::new();
-        hash.update(b"gmeow-native-input-columns-v2\0");
+        hash.update(b"gmeow-native-input-columns-v3\0");
         hash.update(template);
         hash.update(&(self.relations.len() as u64).to_le_bytes());
         for (predicate, relation) in &self.relations {
             hash.update(&(*predicate as u64).to_le_bytes());
             for column in &relation.columns {
-                hash.update(&(column.0.len() as u64).to_le_bytes());
-                for word in &column.0 {
-                    hash.update(&word.to_le_bytes());
-                }
+                column.hash_nonzero_words(&mut hash);
             }
             for supports in [&relation.by_subject, &relation.by_object] {
                 hash.update(&(supports.len() as u64).to_le_bytes());
                 for (value, domain) in supports {
                     hash.update(&(*value as u64).to_le_bytes());
-                    for word in &domain.0 {
-                        hash.update(&word.to_le_bytes());
-                    }
+                    domain.hash_nonzero_words(&mut hash);
+                }
+            }
+            hash.update(&(relation.rectangles.len() as u64).to_le_bytes());
+            for rectangle in &relation.rectangles {
+                for domain in rectangle {
+                    domain.hash_nonzero_words(&mut hash);
                 }
             }
         }
         *hash.finalize().as_bytes()
     }
-    fn publish_columns(&mut self, head: &[Domain; 3], universe: &Universe) -> bool {
+    fn publish_columns_tracking(
+        &mut self,
+        head: &[Domain; 3],
+        universe: &Universe,
+        changed_predicates: &mut BTreeSet<usize>,
+    ) -> bool {
         if head.iter().any(Domain::is_empty) {
             return false;
         }
@@ -432,49 +851,97 @@ impl FlowSummary {
                 .relations
                 .entry(predicate)
                 .or_insert_with(|| RelationSummary::empty(universe.size()));
-            changed |= relation.columns[0].union(&head[0]);
-            changed |= relation.columns[1].union(&head[2]);
+            let subject_changed = relation.columns[0].union(&head[0]);
+            let object_changed = relation.columns[1].union(&head[2]);
+            let relation_changed = subject_changed || object_changed;
+            if relation_changed {
+                changed_predicates.insert(predicate);
+                changed = true;
+            }
         }
         changed
     }
 
-    fn publish_rectangle(
+    fn publish_columns(&mut self, head: &[Domain; 3], universe: &Universe) -> bool {
+        self.publish_columns_tracking(head, universe, &mut BTreeSet::new())
+    }
+
+    fn publish_rectangle(&mut self, head: &[Domain; 3], universe: &Universe) -> bool {
+        let mut changed = self.publish_columns(head, universe);
+        changed |= self.publish_support_rectangle(head, universe, &mut BTreeSet::new());
+        changed
+    }
+
+    /// Retain an exact Cartesian support without eagerly expanding either side
+    /// into one conditional domain per value. Columns may be published by the
+    /// caller after all head refinements, preserving the existing transfer order.
+    fn publish_support_rectangle(
         &mut self,
         head: &[Domain; 3],
         universe: &Universe,
-        conditioned: &Domain,
+        changed_predicates: &mut BTreeSet<usize>,
     ) -> bool {
-        let mut changed = self.publish_columns(head, universe);
         if head.iter().any(Domain::is_empty) {
-            return changed;
+            return false;
         }
+        let mut changed = false;
         for predicate in universe.iri_values(&head[1]).indices() {
             let relation = self
                 .relations
-                .get_mut(&predicate)
-                .expect("columns were published first");
-            for subject in head[0]
-                .indices()
-                .filter(|index| conditioned.contains(*index))
-            {
-                changed |= relation
-                    .by_subject
-                    .entry(subject)
-                    .or_insert_with(|| Domain::empty(universe.size()))
-                    .union(&head[2]);
-            }
-            for object in head[2]
-                .indices()
-                .filter(|index| conditioned.contains(*index))
-            {
-                changed |= relation
-                    .by_object
-                    .entry(object)
-                    .or_insert_with(|| Domain::empty(universe.size()))
-                    .union(&head[0]);
+                .entry(predicate)
+                .or_insert_with(|| RelationSummary::empty(universe.size()));
+            if relation.publish_rectangle([head[0].clone(), head[2].clone()]) {
+                self.rectangle_relations.insert(predicate);
+                changed_predicates.insert(predicate);
+                changed = true;
             }
         }
         changed
+    }
+
+    /// Publish one exact source row without allocating three universe-width
+    /// temporary domains. This is equivalent to a rectangle whose subject,
+    /// predicate and object columns are singletons.
+    fn publish_fact(
+        &mut self,
+        subject: usize,
+        predicate: usize,
+        object: usize,
+        universe_size: usize,
+        conditioned: &Domain,
+    ) {
+        let (indexed_subject, indexed_object) = {
+            let relation = self
+                .relations
+                .entry(predicate)
+                .or_insert_with(|| RelationSummary::empty(universe_size));
+            relation.columns[0].insert(subject);
+            relation.columns[1].insert(object);
+            let covered = relation.rectangle_covers_pair(subject, object);
+            let indexed_subject = conditioned.contains(subject) && !covered;
+            let indexed_object = conditioned.contains(object) && !covered;
+            if indexed_subject {
+                relation
+                    .by_subject
+                    .entry(subject)
+                    .or_insert_with(|| AdaptiveDomain::empty(universe_size))
+                    .insert(object);
+            }
+            if indexed_object {
+                relation
+                    .by_object
+                    .entry(object)
+                    .or_insert_with(|| AdaptiveDomain::empty(universe_size))
+                    .insert(subject);
+            }
+            (indexed_subject, indexed_object)
+        };
+        if indexed_subject {
+            self.index_condition(predicate, 0, subject, universe_size);
+        }
+        if indexed_object {
+            self.index_condition(predicate, 1, object, universe_size);
+        }
     }
 
     fn publish_condition(
@@ -489,15 +956,22 @@ impl FlowSummary {
             .relations
             .entry(predicate)
             .or_insert_with(|| RelationSummary::empty(size));
+        if relation.rectangle_covers(side, value, opposite) {
+            return false;
+        }
         let supports = if side == 0 {
             &mut relation.by_subject
         } else {
             &mut relation.by_object
         };
-        supports
+        let changed = supports
             .entry(value)
-            .or_insert_with(|| Domain::empty(size))
-            .union(opposite)
+            .or_insert_with(|| AdaptiveDomain::empty(size))
+            .union(opposite);
+        if changed {
+            self.index_condition(predicate, side, value, size);
+        }
+        changed
     }
 }
 
@@ -509,6 +983,11 @@ pub(crate) struct ValueFlow {
     native_witness_domain: Domain,
     conditioned: Domain,
     operator_inputs: Vec<OperatorInput>,
+    cardinality_inputs: Vec<OperatorInput>,
+    cardinality_domains: BTreeMap<u128, Domain>,
+    /// External output envelopes participate in list-structure immutability.
+    /// They remain compact patterns and are never expanded into synthetic facts.
+    possible_writes: Vec<StatementPattern>,
 }
 
 impl ValueFlow {
@@ -540,8 +1019,10 @@ impl ValueFlow {
         observed: &[StatementPattern],
         conditioned_patterns: &[StatementPattern],
     ) -> Self {
+        assert_eq!(rules.len(), effects.len());
         let mut universe = Universe::new(semantics);
         let (operator_inputs, operator_conditions) = operator_inputs(rules, semantics);
+        let cardinality_inputs = cardinality_inputs(rules, semantics);
         for pattern in observed {
             for value in [&pattern.subject, &pattern.object].into_iter().flatten() {
                 universe.observe(&EvalTerm::ConstLit(value.clone()));
@@ -560,6 +1041,9 @@ impl ValueFlow {
             {
                 universe.observe(term);
             }
+            for guard in &rule.cardinality_guards {
+                universe.observe(&guard.term);
+            }
         }
         for effect in effects {
             for pattern in effect
@@ -575,9 +1059,10 @@ impl ValueFlow {
                 }
             }
         }
-        let rules = rules
+        let rules: Vec<_> = rules
             .iter()
-            .map(|source| {
+            .zip(effects)
+            .map(|(source, effect)| {
                 let mut variables = BTreeMap::new();
                 let mut lower = |atom: &[EvalTerm; 3]| {
                     atom.each_ref().map(|term| match term {
@@ -611,17 +1096,76 @@ impl ValueFlow {
                         index
                     })
                     .collect();
+                let cardinality_guards = source
+                    .cardinality_guards
+                    .iter()
+                    .map(|guard| {
+                        let slot = match &guard.term {
+                            EvalTerm::Var(name) => {
+                                let next = variables.len();
+                                Slot::Variable(*variables.entry(name.clone()).or_insert(next))
+                            }
+                            term => Slot::Constant(
+                                universe.value(&constant(term).expect("constant guard term")),
+                            ),
+                        };
+                        (slot, guard.count)
+                    })
+                    .collect();
+                let list_reads = source
+                    .list_reads
+                    .iter()
+                    .map(|read| {
+                        assert!(
+                            read.read_index < source.reads.len(),
+                            "list-selected read index must name a declared producer read"
+                        );
+                        assert!(read.read_column < 3, "statement read columns are ternary");
+                        ListRead {
+                            selector_predicate: semantics
+                                .predicate(&read.selector_predicate)
+                                .to_owned(),
+                            read_index: read.read_index,
+                            read_column: read.read_column,
+                            selected_members: None,
+                        }
+                    })
+                    .collect();
+                let selected_reads = source
+                    .selected_reads
+                    .iter()
+                    .map(|read| {
+                        assert!(
+                            read.read_index < source.reads.len(),
+                            "source-selected read index must name a declared producer read"
+                        );
+                        assert!(read.read_column < 3, "statement read columns are ternary");
+                        SelectedRead {
+                            selector_predicate: semantics
+                                .predicate(&read.selector_predicate)
+                                .to_owned(),
+                            read_index: read.read_index,
+                            read_column: read.read_column,
+                            selected_values: None,
+                        }
+                    })
+                    .collect();
                 Rule {
+                    name: effect.name().to_owned(),
                     body,
                     heads,
                     reads,
                     variables: variables.len(),
                     native_witnesses,
+                    cardinality_guards,
+                    list_reads,
+                    selected_reads,
                     names: variables,
                 }
             })
             .collect();
         let native_witness_domain = universe.native_witness_domain();
+        let cardinality_domains = cardinality_domains(&universe, &rules);
         let mut conditioned = Domain::empty(universe.size());
         for pattern in conditioned_patterns.iter().chain(&operator_conditions) {
             if let Some(subject) = &pattern.subject {
@@ -648,6 +1192,9 @@ impl ValueFlow {
             native_witness_domain,
             conditioned,
             operator_inputs,
+            cardinality_inputs,
+            cardinality_domains,
+            possible_writes: Vec::new(),
         }
     }
 
@@ -659,8 +1206,17 @@ impl ValueFlow {
         &self,
         observed: impl Iterator<Item = &'a StatementPattern>,
     ) -> Self {
+        let observed: Vec<_> = observed
+            .cloned()
+            .map(|mut pattern| {
+                // A caller's ranges belong to its own value universe. The output
+                // envelope is deliberately conservative in this enriched one.
+                pattern.ranges = None;
+                pattern
+            })
+            .collect();
         let mut universe = self.universe.clone();
-        for pattern in observed {
+        for pattern in &observed {
             for value in [&pattern.subject, &pattern.object].into_iter().flatten() {
                 universe.observe(&EvalTerm::ConstLit(value.clone()));
             }
@@ -669,13 +1225,19 @@ impl ValueFlow {
             }
         }
         let native_witness_domain = universe.native_witness_domain();
+        let cardinality_domains = cardinality_domains(&universe, &self.rules);
         let conditioned = self.conditioned.resized(universe.size());
+        let mut possible_writes = self.possible_writes.clone();
+        possible_writes.extend(observed);
         Self {
             universe,
             rules: self.rules.clone(),
             native_witness_domain,
             conditioned,
             operator_inputs: self.operator_inputs.clone(),
+            cardinality_inputs: self.cardinality_inputs.clone(),
+            cardinality_domains,
+            possible_writes,
         }
     }
 
@@ -685,13 +1247,83 @@ impl ValueFlow {
     /// IRIs into `Other` would splice unrelated property rows at a variable-predicate
     /// join; ordinary resources, literals and blank nodes stay in the conservative
     /// cell rather than widening every relation bitset to the whole corpus.
-    pub(crate) fn with_source_operators<'a>(&self, facts: impl Iterator<Item = &'a Fact>) -> Self {
+    pub(crate) fn with_source_operators<'a, I>(&self, facts: I) -> Self
+    where
+        I: Iterator<Item = &'a Fact> + Clone,
+    {
+        self.with_source_metadata(facts, true)
+    }
+
+    /// Retain only source-selected metadata cells needed by finite termination
+    /// specialization. Unlike execution scheduling, this does not intern every
+    /// observed predicate or unrelated operator operand from the corpus.
+    pub(crate) fn with_source_selections<'a, I>(&self, facts: I) -> Self
+    where
+        I: Iterator<Item = &'a Fact> + Clone,
+    {
+        self.with_source_metadata(facts, false)
+    }
+
+    fn with_source_metadata<'a, I>(&self, facts: I, all_operator_values: bool) -> Self
+    where
+        I: Iterator<Item = &'a Fact> + Clone,
+    {
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
         let mut universe = self.universe.clone();
         let mut values = BTreeSet::new();
-        for fact in facts {
-            values.insert(TermValue::iri(&fact.predicate));
+        let mut conditioned_values = BTreeSet::new();
+        let selectors: BTreeSet<_> = self
+            .rules
+            .iter()
+            .flat_map(|rule| {
+                rule.list_reads
+                    .iter()
+                    .map(|read| read.selector_predicate.as_str())
+                    .chain(
+                        rule.selected_reads
+                            .iter()
+                            .map(|read| read.selector_predicate.as_str()),
+                    )
+            })
+            .map(str::to_owned)
+            .collect();
+        let mut roots: BTreeMap<String, BTreeSet<TermValue>> = BTreeMap::new();
+        let mut selector_owners: BTreeMap<String, BTreeSet<TermValue>> = BTreeMap::new();
+        let mut first: BTreeMap<TermValue, BTreeSet<TermValue>> = BTreeMap::new();
+        let mut rest: BTreeMap<TermValue, BTreeSet<TermValue>> = BTreeMap::new();
+        for fact in facts.clone() {
+            if all_operator_values {
+                values.insert(TermValue::iri(&fact.predicate));
+            }
             let predicate = self.universe.semantics.predicate(&fact.predicate);
-            for input in &self.operator_inputs {
+            if selectors.contains(predicate) {
+                selector_owners
+                    .entry(predicate.to_owned())
+                    .or_default()
+                    .insert(fact.subject.clone());
+                roots
+                    .entry(predicate.to_owned())
+                    .or_default()
+                    .insert(fact.object.clone());
+            }
+            match predicate {
+                RDF_FIRST => {
+                    first
+                        .entry(fact.subject.clone())
+                        .or_default()
+                        .insert(fact.object.clone());
+                }
+                RDF_REST => {
+                    rest.entry(fact.subject.clone())
+                        .or_default()
+                        .insert(fact.object.clone());
+                }
+                _ => {}
+            }
+            for input in self.operator_inputs.iter().filter(|_| all_operator_values) {
                 if input
                     .predicate
                     .as_deref()
@@ -704,6 +1336,154 @@ impl ValueFlow {
                     };
                     if matches!(value, TermValue::Iri(_)) {
                         values.insert(value.clone());
+                        conditioned_values.insert(value.clone());
+                        if input
+                            .predicate
+                            .as_deref()
+                            .is_some_and(|predicate| !matches!(predicate, RDF_FIRST | RDF_REST))
+                        {
+                            let carrier = if input.column == 0 {
+                                &fact.object
+                            } else {
+                                &fact.subject
+                            };
+                            values.insert(carrier.clone());
+                            conditioned_values.insert(carrier.clone());
+                        }
+                    }
+                }
+            }
+            for input in self
+                .cardinality_inputs
+                .iter()
+                .filter(|_| all_operator_values)
+            {
+                if input
+                    .predicate
+                    .as_deref()
+                    .is_none_or(|required| required == predicate)
+                {
+                    let value = if input.column == 0 {
+                        fact.subject.clone()
+                    } else {
+                        fact.object.clone()
+                    };
+                    values.insert(value.clone());
+                    conditioned_values.insert(value);
+                }
+            }
+        }
+        let nil = TermValue::iri(RDF_NIL);
+        let selected_members: BTreeMap<_, _> = selectors
+            .into_iter()
+            .map(|selector| {
+                let mut members = BTreeSet::new();
+                let mut pending: VecDeque<_> = roots
+                    .get(&selector)
+                    .into_iter()
+                    .flat_map(|roots| roots.iter().cloned())
+                    .collect();
+                let mut visited = BTreeSet::new();
+                while let Some(node) = pending.pop_front() {
+                    if node == nil || !visited.insert(node.clone()) {
+                        continue;
+                    }
+                    if let Some(values) = first.get(&node) {
+                        members.extend(values.iter().cloned());
+                    }
+                    if let Some(tails) = rest.get(&node) {
+                        pending.extend(tails.iter().cloned());
+                    }
+                }
+                (selector, members)
+            })
+            .collect();
+        for members in selected_members.values() {
+            for value in members {
+                values.insert(value.clone());
+                conditioned_values.insert(value.clone());
+            }
+        }
+        for rule in &self.rules {
+            for read in &rule.list_reads {
+                if let Some(owners) = selector_owners.get(&read.selector_predicate) {
+                    for value in owners {
+                        values.insert(value.clone());
+                        conditioned_values.insert(value.clone());
+                    }
+                }
+            }
+            for read in &rule.selected_reads {
+                if let Some(owners) = selector_owners.get(&read.selector_predicate) {
+                    for value in owners {
+                        values.insert(value.clone());
+                        conditioned_values.insert(value.clone());
+                    }
+                }
+                if let Some(selected) = roots.get(&read.selector_predicate) {
+                    for value in selected {
+                        if read.read_column != 1 || matches!(value, TermValue::Iri(_)) {
+                            values.insert(value.clone());
+                            conditioned_values.insert(value.clone());
+                        }
+                    }
+                }
+            }
+        }
+        if !all_operator_values {
+            let anchors = conditioned_values.clone();
+            for fact in facts {
+                let predicate = self.universe.semantics.predicate(&fact.predicate);
+                for input in &self.operator_inputs {
+                    if !input
+                        .predicate
+                        .as_deref()
+                        .is_some_and(|required| required == predicate)
+                    {
+                        continue;
+                    }
+                    let value = if input.column == 0 {
+                        &fact.subject
+                    } else {
+                        &fact.object
+                    };
+                    let carrier = if input.column == 0 {
+                        &fact.object
+                    } else {
+                        &fact.subject
+                    };
+                    if matches!(value, TermValue::Iri(_))
+                        && (anchors.contains(value) || anchors.contains(carrier))
+                    {
+                        values.insert(value.clone());
+                        values.insert(carrier.clone());
+                        conditioned_values.insert(value.clone());
+                        conditioned_values.insert(carrier.clone());
+                    }
+                }
+                for input in &self.cardinality_inputs {
+                    if !input
+                        .predicate
+                        .as_deref()
+                        .is_some_and(|required| required == predicate)
+                    {
+                        continue;
+                    }
+                    let value = if input.column == 0 {
+                        &fact.subject
+                    } else {
+                        &fact.object
+                    };
+                    let carrier = if input.column == 0 {
+                        &fact.object
+                    } else {
+                        &fact.subject
+                    };
+                    if anchors.contains(value) || anchors.contains(carrier) {
+                        values.insert(value.clone());
+                        values.insert(carrier.clone());
+                        conditioned_values.insert(value.clone());
+                        conditioned_values.insert(carrier.clone());
                     }
                 }
             }
@@ -712,16 +1492,45 @@ impl ValueFlow {
             universe.register(value.clone());
         }
         let native_witness_domain = universe.native_witness_domain();
+        let cardinality_domains = cardinality_domains(&universe, &self.rules);
         let mut conditioned = self.conditioned.resized(universe.size());
-        for value in values {
+        for value in conditioned_values {
             conditioned.insert(universe.value(&value));
+        }
+        let mut rules = self.rules.clone();
+        for rule in &mut rules {
+            for read in &mut rule.list_reads {
+                let mut members = Domain::empty(universe.size());
+                if let Some(values) = selected_members.get(&read.selector_predicate) {
+                    for value in values {
+                        if read.read_column != 1 || matches!(value, TermValue::Iri(_)) {
+                            members.insert(universe.value(value));
+                        }
+                    }
+                }
+                read.selected_members = Some(members);
+            }
+            for read in &mut rule.selected_reads {
+                let mut selected = Domain::empty(universe.size());
+                if let Some(values) = roots.get(&read.selector_predicate) {
+                    for value in values {
+                        if read.read_column != 1 || matches!(value, TermValue::Iri(_)) {
+                            selected.insert(universe.value(value));
+                        }
+                    }
+                }
+                read.selected_values = Some(selected);
+            }
         }
         Self {
             conditioned,
             universe,
-            rules: self.rules.clone(),
+            rules,
             native_witness_domain,
             operator_inputs: self.operator_inputs.clone(),
+            cardinality_inputs: self.cardinality_inputs.clone(),
+            cardinality_domains,
+            possible_writes: self.possible_writes.clone(),
         }
     }
 
@@ -732,15 +1541,16 @@ impl ValueFlow {
     pub(crate) fn summarize<'a>(&self, facts: impl Iterator<Item = &'a Fact>) -> FlowSummary {
         let mut result = FlowSummary {
             relations: BTreeMap::new(),
+            predicates_by_subject: BTreeMap::new(),
+            predicates_by_object: BTreeMap::new(),
+            rectangle_relations: BTreeSet::new(),
         };
         for fact in facts {
-            result.publish_rectangle(
-                &[
-                    Domain::one(self.universe.size(), self.universe.value(&fact.subject)),
-                    Domain::one(self.universe.size(), self.universe.iri(&fact.predicate)),
-                    Domain::one(self.universe.size(), self.universe.value(&fact.object)),
-                ],
-                &self.universe,
+            result.publish_fact(
+                self.universe.value(&fact.subject),
+                self.universe.iri(&fact.predicate),
+                self.universe.value(&fact.object),
+                self.universe.size(),
                 &self.conditioned,
             );
         }
@@ -757,11 +1567,7 @@ impl ValueFlow {
         patterns: impl Iterator<Item = &'a StatementPattern>,
     ) {
         for pattern in patterns {
-            summary.publish_rectangle(
-                &self.pattern_domains(pattern),
-                &self.universe,
-                &self.conditioned,
-            );
+            summary.publish_rectangle(&self.pattern_domains(pattern), &self.universe);
         }
     }
 
@@ -785,57 +1591,96 @@ impl ValueFlow {
                 bindings[variable] = self.native_witness_domain.clone();
             }
         }
+        for (slot, count) in &rule.cardinality_guards {
+            let allowed = self
+                .cardinality_domains
+                .get(count)
+                .expect("cardinality guard domain was prepared");
+            match slot {
+                Slot::Variable(variable) => {
+                    bindings[*variable].intersect(allowed);
+                }
+                Slot::Constant(value) if !allowed.contains(*value) => return None,
+                Slot::Constant(_) => {}
+            }
+        }
         for &(variable, value) in seeds {
-            bindings[variable].intersect(&Domain::one(size, value));
+            bindings[variable].intersect_singleton(value);
         }
         if bindings.iter().any(Domain::is_empty) {
             return None;
         }
+        self.stabilize_bindings(rule, state, bindings)
+    }
+
+    /// Refine a seeded join from the rule's already-stable unseeded upper bound.
+    ///
+    /// Constraint propagation only removes values. The greatest fixed point under
+    /// an additional singleton seed is therefore contained in the unseeded fixed
+    /// point, so restarting every candidate from the full universe repeats broad
+    /// scans without changing the answer. Recursive support published during this
+    /// visit still reschedules the rule; that later visit supplies a new upper
+    /// bound from the enlarged state.
+    fn bindings_seeded_from(
+        &self,
+        rule: &Rule,
+        state: &FlowSummary,
+        upper: &[Domain],
+        seeds: &[(usize, usize)],
+    ) -> Option<Vec<Domain>> {
+        let mut bindings = upper.to_vec();
+        for &(variable, value) in seeds {
+            bindings[variable].intersect_singleton(value);
+        }
+        if bindings.iter().any(Domain::is_empty) {
+            return None;
+        }
+        self.stabilize_bindings(rule, state, bindings)
+    }
+
+    fn stabilize_bindings(
+        &self,
+        rule: &Rule,
+        state: &FlowSummary,
+        mut bindings: Vec<Domain>,
+    ) -> Option<Vec<Domain>> {
+        let size = self.universe.size();
         loop {
             let mut changed = false;
             for atom in &rule.body {
                 let required = self.universe.domains(atom, &bindings, true);
                 let mut possible: [Domain; 3] = std::array::from_fn(|_| Domain::empty(size));
-                for predicate in required[1].indices() {
+                let indexed_predicates =
+                    state.predicates_for_singleton(&required, &self.conditioned, size);
+                let predicates = indexed_predicates.as_ref().unwrap_or(&required[1]);
+                for predicate in predicates.indices() {
                     let Some(relation) = state.relations.get(&predicate) else {
                         continue;
                     };
                     let mut row = [
-                        relation.columns[0].clone(),
+                        relation.columns[0].to_domain(),
                         self.universe.predicates(&Domain::one(size, predicate)),
-                        relation.columns[1].clone(),
+                        relation.columns[1].to_domain(),
                     ];
                     for (values, wanted) in row.iter_mut().zip(&required) {
                         values.intersect(wanted);
                     }
-                    if !row[0].is_empty() && required[0].is_subset_of(&self.conditioned) {
+                    if !row[0].is_empty() && row[0].is_subset_of(&self.conditioned) {
                         let mut subjects = Domain::empty(size);
                         let mut objects = Domain::empty(size);
                         for subject in row[0].indices() {
-                            let Some(support) = relation.by_subject.get(&subject) else {
-                                continue;
-                            };
-                            let mut support = support.clone();
-                            support.intersect(&row[2]);
-                            if !support.is_empty() {
+                            if relation.support_into(0, subject, &row[2], &mut objects) {
                                 subjects.insert(subject);
-                                objects.union(&support);
                             }
                         }
                         row[0] = subjects;
                         row[2] = objects;
                     }
-                    if !row[2].is_empty() && required[2].is_subset_of(&self.conditioned) {
+                    if !row[2].is_empty() && row[2].is_subset_of(&self.conditioned) {
                         let mut subjects = Domain::empty(size);
                         let mut objects = Domain::empty(size);
                         for object in row[2].indices() {
-                            let Some(support) = relation.by_object.get(&object) else {
-                                continue;
-                            };
-                            let mut support = support.clone();
-                            support.intersect(&row[0]);
-                            if !support.is_empty() {
-                                subjects.union(&support);
+                            if relation.support_into(1, object, &row[0], &mut subjects) {
                                 objects.insert(object);
                             }
                         }
@@ -888,78 +1733,257 @@ impl ValueFlow {
         slot: usize,
         value: usize,
         state: &FlowSummary,
+        upper: &[Domain],
     ) -> Option<Vec<Domain>> {
         match head[slot] {
-            Slot::Constant(constant) => (constant == value)
-                .then(|| self.bindings(rule, state))
-                .flatten(),
-            Slot::Variable(variable) => self.bindings_seeded(rule, state, &[(variable, value)]),
+            Slot::Constant(constant) => (constant == value).then(|| upper.to_vec()),
+            Slot::Variable(variable) => {
+                self.bindings_seeded_from(rule, state, upper, &[(variable, value)])
+            }
         }
     }
 
-    /// Remove only a conditioned value whose constrained abstract join is empty.
-    /// Every unconditioned value keeps the ordinary conservative column bound.
-    fn head_domains(
+    /// Whether exchanging this head's subject and object variables is an
+    /// automorphism of the positive body. The constrained support computed for
+    /// one side is then exactly the support needed for the same value on the
+    /// other side. Recursive and dynamic-predicate reads remain safe: publishing
+    /// a changed head schedules every affected reader for another fixed-point
+    /// visit, including the current rule.
+    fn has_symmetric_value_sides(&self, rule: &Rule, head: &[Slot; 3]) -> bool {
+        let [
+            Slot::Variable(subject),
+            Slot::Constant(_),
+            Slot::Variable(object),
+        ] = head
+        else {
+            return false;
+        };
+        if subject == object
+            || rule.native_witnesses.contains(subject) != rule.native_witnesses.contains(object)
+        {
+            return false;
+        }
+        let exchange = |slot: &Slot| match slot {
+            Slot::Variable(variable) if variable == subject => Slot::Variable(*object),
+            Slot::Variable(variable) if variable == object => Slot::Variable(*subject),
+            slot => slot.clone(),
+        };
+        let mut unmatched_guards = rule.cardinality_guards.clone();
+        for (slot, count) in &rule.cardinality_guards {
+            let exchanged = (exchange(slot), *count);
+            let Some(index) = unmatched_guards
+                .iter()
+                .position(|candidate| candidate == &exchanged)
+            else {
+                return false;
+            };
+            unmatched_guards.swap_remove(index);
+        }
+        if !unmatched_guards.is_empty() {
+            return false;
+        }
+        let mut unmatched = rule.body.clone();
+        for atom in &rule.body {
+            let exchanged = atom.each_ref().map(exchange);
+            let Some(index) = unmatched
+                .iter()
+                .position(|candidate| candidate == &exchanged)
+            else {
+                return false;
+            };
+            unmatched.swap_remove(index);
+        }
+        unmatched.is_empty()
+    }
+
+    fn publish_head_value_refinement(
         &self,
+        state: &mut FlowSummary,
+        head: &[Slot; 3],
+        slot: usize,
+        value: usize,
+        value_bindings: Option<Vec<Domain>>,
+        domains: &mut [Domain; 3],
+        symmetric_value_sides: bool,
+        changed_predicates: &mut BTreeSet<usize>,
+    ) {
+        let Some(value_bindings) = value_bindings else {
+            domains[slot].remove(value);
+            if slot == 0 && symmetric_value_sides {
+                domains[2].remove(value);
+            }
+            return;
+        };
+        if !matches!(slot, 0 | 2) {
+            return;
+        }
+        let constrained = self.universe.domains(head, &value_bindings, false);
+        let opposite = if slot == 0 {
+            &constrained[2]
+        } else {
+            &constrained[0]
+        };
+        for predicate in self.universe.iri_values(&constrained[1]).indices() {
+            if state.publish_condition(predicate, slot / 2, value, opposite, self.universe.size()) {
+                changed_predicates.insert(predicate);
+            }
+            if slot == 0
+                && symmetric_value_sides
+                && state.publish_condition(predicate, 1, value, opposite, self.universe.size())
+            {
+                changed_predicates.insert(predicate);
+            }
+        }
+    }
+
+    /// Remove only a conditioned value whose constrained abstract join is empty,
+    /// and publish that same join's opposite-column support without recomputing
+    /// it. Every unconditioned value keeps the ordinary conservative column bound.
+    fn refine_head(
+        &self,
+        state: &mut FlowSummary,
+        rule_index: usize,
+        visit: usize,
         rule: &Rule,
         head: &[Slot; 3],
         bindings: &[Domain],
-        state: &FlowSummary,
+        changed_predicates: &mut BTreeSet<usize>,
     ) -> [Domain; 3] {
         let mut domains = self.universe.domains(head, bindings, false);
+        let symmetric_value_sides =
+            domains[0] == domains[2] && self.has_symmetric_value_sides(rule, head);
+        let mut native_witness_rectangle_published = false;
         for slot in 0..3 {
+            if slot == 2 && symmetric_value_sides {
+                continue;
+            }
+            let native_witness_slot = matches!(head[slot], Slot::Variable(variable) if rule.native_witnesses.contains(&variable));
+            if native_witness_slot {
+                // A native witness is forbidden from the body when the Rule is
+                // lowered. Its seeded join is therefore identical for every
+                // candidate witness: the exact head support is one Cartesian
+                // rectangle, not one universe-width domain per candidate. Count
+                // the selected cells for diagnostics without retaining them.
+                let candidates = domains[slot]
+                    .indices()
+                    .filter(|value| self.conditioned.contains(*value))
+                    .count();
+                let started = std::time::Instant::now();
+                if candidates >= 1_000 {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-publish-native-head",
+                        event = "start",
+                        slot,
+                        candidates,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        variables = rule.variables,
+                        body_atoms = rule.body.len(),
+                        "large native value-flow refinement",
+                    );
+                }
+                if !native_witness_rectangle_published {
+                    state.publish_support_rectangle(&domains, &self.universe, changed_predicates);
+                    native_witness_rectangle_published = true;
+                }
+                if candidates >= 1_000 {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-publish-native-head",
+                        event = "end",
+                        slot,
+                        candidates,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        elapsed_ms = started.elapsed().as_millis(),
+                        representation = "native-witness-rectangle",
+                        "large native value-flow refinement",
+                    );
+                }
+                continue;
+            }
             let candidates: Vec<_> = domains[slot]
                 .indices()
                 .filter(|value| self.conditioned.contains(*value))
                 .collect();
-            for value in candidates {
-                if self
-                    .bindings_for_head_value(rule, head, slot, value, state)
-                    .is_none()
-                {
-                    domains[slot].remove(value);
-                }
+            let started = std::time::Instant::now();
+            if candidates.len() >= 1_000 {
+                tracing::info!(
+                    target: "pipeline_reasoning_detail",
+                    phase = "refine-publish-native-head",
+                    event = "start",
+                    slot,
+                    candidates = candidates.len(),
+                    rule_index,
+                    visit,
+                    producer = rule.name.as_str(),
+                    variables = rule.variables,
+                    body_atoms = rule.body.len(),
+                    "large native value-flow refinement",
+                );
             }
-        }
-        domains
-    }
-
-    fn publish_head_conditions(
-        &self,
-        state: &mut FlowSummary,
-        rule: &Rule,
-        head: &[Slot; 3],
-        domains: &[Domain; 3],
-    ) -> bool {
-        let mut changed = false;
-        for side in [0usize, 2] {
-            let candidates: Vec<_> = domains[side]
-                .indices()
-                .filter(|value| self.conditioned.contains(*value))
-                .collect();
-            for value in candidates {
-                let Some(bindings) = self.bindings_for_head_value(rule, head, side, value, state)
-                else {
-                    continue;
-                };
-                let constrained = self.universe.domains(head, &bindings, false);
-                let opposite = if side == 0 {
-                    &constrained[2]
-                } else {
-                    &constrained[0]
-                };
-                for predicate in self.universe.iri_values(&constrained[1]).indices() {
-                    changed |= state.publish_condition(
-                        predicate,
-                        side / 2,
+            if candidates.len() >= PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES
+                && rayon::current_num_threads() > 1
+            {
+                // Each batch observes one immutable monotone snapshot, then
+                // publishes in candidate order. A publication reschedules every
+                // affected reader, including recursive and dynamic readers, so a
+                // later fixed-point visit sees support added by sibling candidates.
+                for candidates in candidates.chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE) {
+                    let refinements: Vec<_> = candidates
+                        .par_iter()
+                        .map(|&value| {
+                            self.bindings_for_head_value(rule, head, slot, value, state, bindings)
+                        })
+                        .collect();
+                    for (&value, refinement) in candidates.iter().zip(refinements) {
+                        self.publish_head_value_refinement(
+                            state,
+                            head,
+                            slot,
+                            value,
+                            refinement,
+                            &mut domains,
+                            symmetric_value_sides,
+                            changed_predicates,
+                        );
+                    }
+                }
+            } else {
+                for value in candidates.iter().copied() {
+                    let refinement =
+                        self.bindings_for_head_value(rule, head, slot, value, state, bindings);
+                    self.publish_head_value_refinement(
+                        state,
+                        head,
+                        slot,
                         value,
-                        opposite,
-                        self.universe.size(),
+                        refinement,
+                        &mut domains,
+                        symmetric_value_sides,
+                        changed_predicates,
                     );
                 }
             }
+            if candidates.len() >= 1_000 {
+                tracing::info!(
+                    target: "pipeline_reasoning_detail",
+                    phase = "refine-publish-native-head",
+                    event = "end",
+                    slot,
+                    candidates = candidates.len(),
+                    rule_index,
+                    visit,
+                    producer = rule.name.as_str(),
+                    elapsed_ms = started.elapsed().as_millis(),
+                    "large native value-flow refinement",
+                );
+            }
         }
-        changed
+        domains
     }
 
     pub(crate) fn refine(
@@ -978,26 +2002,30 @@ impl ValueFlow {
         input: &FlowSummary,
         enabled: &[bool],
     ) -> Vec<ProducerEffect> {
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+
         assert_eq!(enabled.len(), self.rules.len());
-        let state = self.closure_enabled(input, enabled);
-        effects
+        let (_, refinements) = self.closure_enabled(input, enabled);
+        let mut refined: Vec<_> = effects
             .iter()
             .zip(&self.rules)
             .zip(enabled)
-            .map(|((effect, rule), enabled)| {
+            .zip(refinements)
+            .map(|(((effect, rule), enabled), refinement)| {
                 let mut effect = effect.clone();
-                let Some(bindings) = enabled.then(|| self.bindings(rule, &state)).flatten() else {
+                let Some(refinement) = enabled.then_some(refinement).flatten() else {
                     effect.writes.clear();
                     effect.completion_for.clear();
                     effect.reads.clear();
                     return effect;
                 };
-                for (pattern, head) in effect.writes.iter_mut().zip(&rule.heads) {
-                    self.restrict(pattern, self.head_domains(rule, head, &bindings, &state));
+                for (pattern, domains) in effect.writes.iter_mut().zip(refinement.heads) {
+                    self.restrict(pattern, domains);
                 }
                 for ((pattern, _), read) in effect.reads.iter_mut().zip(&rule.reads) {
                     let domains = if let Some(read) = read {
-                        self.universe.domains(read, &bindings, true)
+                        self.universe.domains(read, &refinement.bindings, true)
                     } else {
                         self.pattern_domains(pattern)
                     };
@@ -1005,34 +2033,183 @@ impl ValueFlow {
                 }
                 effect
             })
-            .collect()
+            .collect();
+        for (index, rule) in self.rules.iter().enumerate() {
+            if !enabled[index] {
+                continue;
+            }
+            for list_read in &rule.list_reads {
+                let Some(members) = &list_read.selected_members else {
+                    continue;
+                };
+                let structure_is_mutable =
+                    [list_read.selector_predicate.as_str(), RDF_FIRST, RDF_REST]
+                        .into_iter()
+                        .any(|predicate| {
+                            let read = self
+                                .ranged_pattern(StatementPattern::relation(Some(predicate), None));
+                            refined
+                                .iter()
+                                .flat_map(|effect| &effect.writes)
+                                .chain(&self.possible_writes)
+                                .any(|write| read.reads_write(write, self.universe.semantics))
+                        });
+                if structure_is_mutable {
+                    continue;
+                }
+                let Some((pattern, _)) = refined[index].reads.get_mut(list_read.read_index) else {
+                    // An unreachable producer has every read erased above.
+                    continue;
+                };
+                let mut domains = pattern
+                    .ranges
+                    .clone()
+                    .unwrap_or_else(|| self.pattern_domains(pattern));
+                let allowed = match list_read.read_column {
+                    0 => members.clone(),
+                    1 => self.universe.predicates(members),
+                    2 => {
+                        let mut markers = Domain::empty(self.universe.size());
+                        for value in members.indices() {
+                            markers.union(&self.universe.marker(value, &domains[1]));
+                        }
+                        markers
+                    }
+                    _ => unreachable!("validated statement read column"),
+                };
+                domains[list_read.read_column].intersect(&allowed);
+                self.restrict(pattern, domains);
+            }
+            for selected_read in &rule.selected_reads {
+                let Some(values) = &selected_read.selected_values else {
+                    continue;
+                };
+                let selector = self.ranged_pattern(StatementPattern::relation(
+                    Some(&selected_read.selector_predicate),
+                    None,
+                ));
+                let selector_is_mutable = refined
+                    .iter()
+                    .flat_map(|effect| &effect.writes)
+                    .chain(&self.possible_writes)
+                    .any(|write| selector.reads_write(write, self.universe.semantics));
+                if selector_is_mutable {
+                    continue;
+                }
+                let Some((pattern, _)) = refined[index].reads.get_mut(selected_read.read_index)
+                else {
+                    continue;
+                };
+                let mut domains = pattern
+                    .ranges
+                    .clone()
+                    .unwrap_or_else(|| self.pattern_domains(pattern));
+                let allowed = match selected_read.read_column {
+                    0 => values.clone(),
+                    1 => self.universe.predicates(values),
+                    2 => {
+                        let mut markers = Domain::empty(self.universe.size());
+                        for value in values.indices() {
+                            markers.union(&self.universe.marker(value, &domains[1]));
+                        }
+                        markers
+                    }
+                    _ => unreachable!("validated statement read column"),
+                };
+                domains[selected_read.read_column].intersect(&allowed);
+                self.restrict(pattern, domains);
+            }
+        }
+        refined
     }
 
     fn closure(&self, input: &FlowSummary) -> FlowSummary {
-        self.closure_enabled(input, &vec![true; self.rules.len()])
+        self.closure_enabled(input, &vec![true; self.rules.len()]).0
     }
 
-    fn closure_enabled(&self, input: &FlowSummary, enabled: &[bool]) -> FlowSummary {
+    fn closure_enabled(
+        &self,
+        input: &FlowSummary,
+        enabled: &[bool],
+    ) -> (FlowSummary, Vec<Option<RuleRefinement>>) {
         let mut state = input.clone();
-        loop {
-            let mut changed = false;
-            for (rule, enabled) in self.rules.iter().zip(enabled) {
-                if !enabled {
-                    continue;
-                }
-                if let Some(bindings) = self.bindings(rule, &state) {
-                    for head in &rule.heads {
-                        let domains = self.head_domains(rule, head, &bindings, &state);
-                        changed |= state.publish_columns(&domains, &self.universe);
-                        changed |= self.publish_head_conditions(&mut state, rule, head, &domains);
+        let mut readers: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
+        let mut dynamic_readers = BTreeSet::new();
+        for (index, (rule, enabled)) in self.rules.iter().zip(enabled).enumerate() {
+            if !enabled {
+                continue;
+            }
+            for atom in &rule.body {
+                match atom[1] {
+                    Slot::Constant(predicate) => {
+                        let predicates = self
+                            .universe
+                            .predicates(&Domain::one(self.universe.size(), predicate));
+                        for predicate in predicates.indices() {
+                            readers.entry(predicate).or_default().insert(index);
+                        }
+                    }
+                    Slot::Variable(_) => {
+                        dynamic_readers.insert(index);
                     }
                 }
             }
-            if !changed {
-                break;
+        }
+        // A FIFO worklist keeps the transfer order deterministic while putting a
+        // self-rescheduled rule behind peers that were already pending. Ordered
+        // minimum extraction can starve those peers during recursive closure.
+        let mut pending: VecDeque<_> = enabled
+            .iter()
+            .enumerate()
+            .filter_map(|(index, enabled)| enabled.then_some(index))
+            .collect();
+        let mut queued = enabled.to_vec();
+        let mut visits = vec![0usize; self.rules.len()];
+        let mut refinements = vec![None; self.rules.len()];
+        while let Some(index) = pending.pop_front() {
+            queued[index] = false;
+            visits[index] += 1;
+            let rule = &self.rules[index];
+            let Some(bindings) = self.bindings(rule, &state) else {
+                refinements[index] = None;
+                continue;
+            };
+            let mut changed_predicates = BTreeSet::new();
+            let mut heads = Vec::with_capacity(rule.heads.len());
+            for head in &rule.heads {
+                let domains = self.refine_head(
+                    &mut state,
+                    index,
+                    visits[index],
+                    rule,
+                    head,
+                    &bindings,
+                    &mut changed_predicates,
+                );
+                state.publish_columns_tracking(&domains, &self.universe, &mut changed_predicates);
+                heads.push(domains);
+            }
+            refinements[index] = Some(RuleRefinement { bindings, heads });
+            if !changed_predicates.is_empty() {
+                let mut schedule = |dependent: usize| {
+                    if !queued[dependent] {
+                        queued[dependent] = true;
+                        pending.push_back(dependent);
+                    }
+                };
+                for dependent in &dynamic_readers {
+                    schedule(*dependent);
+                }
+                for predicate in changed_predicates {
+                    if let Some(dependents) = readers.get(&predicate) {
+                        for dependent in dependents {
+                            schedule(*dependent);
+                        }
+                    }
+                }
             }
         }
-        state
+        (state, refinements)
     }
 
     /// Add bounded exact selector cells without re-lowering a native rule. The
@@ -1059,12 +2236,28 @@ impl ValueFlow {
                 }
             }
         }
+        let mut rules = self.rules.clone();
+        for rule in &mut rules {
+            for read in &mut rule.list_reads {
+                if let Some(members) = &mut read.selected_members {
+                    *members = members.resized(universe.size());
+                }
+            }
+            for read in &mut rule.selected_reads {
+                if let Some(values) = &mut read.selected_values {
+                    *values = values.resized(universe.size());
+                }
+            }
+        }
         Some(Self {
             native_witness_domain: universe.native_witness_domain(),
+            cardinality_domains: cardinality_domains(&universe, &rules),
             conditioned: self.conditioned.resized(universe.size()),
             universe,
-            rules: self.rules.clone(),
+            rules,
             operator_inputs: self.operator_inputs.clone(),
+            cardinality_inputs: self.cardinality_inputs.clone(),
+            possible_writes: self.possible_writes.clone(),
         })
     }
 

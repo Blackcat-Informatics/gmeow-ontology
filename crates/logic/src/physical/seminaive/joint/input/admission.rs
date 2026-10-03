@@ -191,16 +191,17 @@ impl Template {
         // Derived selector edges need not be immutable to have a finite value
         // domain. Reuse the same abstract interpreter, with at most 512 exact
         // value cells. This never executes a concrete closure or lowers a rule.
-        let Some(enriched) = flow.with_source_constants(
+        let enriched = flow.with_source_constants(
             evidence
                 .facts
                 .iter()
                 .copied()
                 .chain(possible.iter().map(|(_, fact)| fact)),
             512,
-        ) else {
-            return Ok(Some(admission));
-        };
+        );
+        // The source-selected metadata flow remains a sound finite refinement
+        // when interning every other source value would exceed the analysis cap.
+        let enriched = enriched.as_ref().unwrap_or(flow);
         let bindings = enriched.finite_bindings_with_patterns(
             facts
                 .values()
