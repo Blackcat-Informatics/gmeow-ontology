@@ -2380,6 +2380,7 @@ impl ValueFlow {
         head: &[Slot; 3],
         bindings: &[Domain],
         changed_predicates: &mut BTreeSet<usize>,
+        partition_min_candidates: usize,
     ) -> [Domain; 3] {
         let mut domains = self.universe.domains(head, bindings, false);
         let symmetric_value_sides =
@@ -2460,7 +2461,7 @@ impl ValueFlow {
             let mut scratch = Domain::empty(self.universe.size());
             let mut classes_evaluated = candidates.len();
             let mut timings = [0u128; 3];
-            if candidates.len() >= PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES
+            if candidates.len() >= partition_min_candidates
                 && matches!(head[slot], Slot::Variable(_))
             {
                 // Every class representative observes one immutable monotone
@@ -2689,6 +2690,17 @@ impl ValueFlow {
         input: &FlowSummary,
         enabled: &[bool],
     ) -> (FlowSummary, Vec<Option<RuleRefinement>>) {
+        self.closure_partitioned(input, enabled, PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES)
+    }
+
+    /// The closure with an explicit class-partition threshold: a head with at
+    /// least this many candidates evaluates one representative per value class.
+    fn closure_partitioned(
+        &self,
+        input: &FlowSummary,
+        enabled: &[bool],
+        partition_min_candidates: usize,
+    ) -> (FlowSummary, Vec<Option<RuleRefinement>>) {
         let mut state = input.clone();
         let mut readers: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
         let mut dynamic_readers = BTreeSet::new();
@@ -2798,6 +2810,7 @@ impl ValueFlow {
                         head,
                         &bindings,
                         &mut changed_predicates,
+                        partition_min_candidates,
                     );
                     state.publish_columns_tracking(
                         &domains,

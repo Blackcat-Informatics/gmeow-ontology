@@ -1802,3 +1802,120 @@ fn support_content_identifies_equal_sets_across_representations() {
     assert_eq!(words, dense.nonzero_words().collect::<Vec<_>>());
     assert_eq!(words.len(), 4, "members share words 0, 1, 2 and 4");
 }
+
+#[test]
+fn class_partitioned_closure_equals_the_per_candidate_closure() {
+    const SAME: &str = "http://www.w3.org/2002/07/owl#sameAs";
+    const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    let rules = [
+        EvalRule::positive(
+            "urn:same-symmetry",
+            atom("?y", SAME, "?x"),
+            vec![atom("?x", SAME, "?y")],
+        ),
+        EvalRule::positive(
+            "urn:same-transitive",
+            atom("?x", SAME, "?z"),
+            vec![atom("?x", SAME, "?y"), atom("?y", SAME, "?z")],
+        ),
+        EvalRule::positive(
+            "urn:type-propagation",
+            atom("?s", "urn:type", "?d"),
+            vec![atom("?s", "urn:type", "?c"), atom("?c", "urn:sub", "?d")],
+        ),
+        EvalRule::positive(
+            "urn:type-same",
+            atom("?y", "urn:type", "?c"),
+            vec![atom("?x", SAME, "?y"), atom("?x", "urn:type", "?c")],
+        ),
+        EvalRule::positive(
+            "urn:list-rest",
+            atom("?x", REST, "?y"),
+            vec![atom("?x", "urn:link", "?y")],
+        ),
+        EvalRule::positive(
+            "urn:list-first",
+            atom("?x", FIRST, "?v"),
+            vec![
+                atom("?x", "urn:value", "?v"),
+                atom("?x", "urn:type", "urn:class:0"),
+            ],
+        ),
+    ];
+    let flows: Vec<_> = rules.iter().map(flow).collect();
+    let effects: Vec<_> = rules.iter().map(ProducerEffect::rule).collect();
+    let nodes = PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES + 80;
+    let node = |index: usize| format!("urn:node:{index}");
+    let class = |index: usize| format!("urn:class:{index}");
+    for seed in [0x51u64, 0x1757, 0xdead_beef, 0x0123_4567_89ab] {
+        let mut state = seed;
+        let mut next = move || {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            state
+        };
+        let fact = |subject: String, predicate: &str, object: String| Fact {
+            subject: TermValue::iri(&subject),
+            predicate: predicate.to_owned(),
+            object: TermValue::iri(&object),
+        };
+        let mut facts = Vec::new();
+        let mut observations = Vec::new();
+        for index in 0..nodes {
+            observations.push(StatementPattern::subject(TermValue::iri(&node(index))));
+            facts.push(fact(node(index), "urn:type", class((next() % 6) as usize)));
+            if next() % 9 == 0 {
+                let other = (next() % 60) as usize;
+                facts.push(fact(node(index % 60), SAME, node(other)));
+            }
+            if next() % 7 == 0 {
+                facts.push(fact(
+                    node(index),
+                    "urn:link",
+                    node((next() % nodes as u64) as usize),
+                ));
+                facts.push(fact(node(index), "urn:value", class((next() % 6) as usize)));
+            }
+        }
+        for index in 0..6 {
+            observations.push(StatementPattern::subject(TermValue::iri(&class(index))));
+            if index + 1 < 6 && next() % 2 == 0 {
+                facts.push(fact(class(index), "urn:sub", class(index + 1)));
+            }
+        }
+        let analysis = ValueFlow::with_observations(
+            &flows,
+            &effects,
+            SemanticVocabulary::Exact,
+            &observations,
+        );
+        let input = analysis.summarize(facts.iter());
+        let enabled = vec![true; analysis.rules.len()];
+        let (plain, plain_refinements) = analysis.closure_partitioned(&input, &enabled, usize::MAX);
+        let template = [0x17; 32];
+        // Low thresholds put every multi-candidate head, recursive ones included,
+        // through one representative per class.
+        for threshold in [1, 2, 64, PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES] {
+            let (classed, classed_refinements) =
+                analysis.closure_partitioned(&input, &enabled, threshold);
+            assert_eq!(
+                classed.identity(&template),
+                plain.identity(&template),
+                "seed {seed:#x}, threshold {threshold}: closure state",
+            );
+            for (index, (left, right)) in classed_refinements
+                .iter()
+                .zip(&plain_refinements)
+                .enumerate()
+            {
+                assert_eq!(
+                    left.as_ref().map(|refinement| &refinement.heads),
+                    right.as_ref().map(|refinement| &refinement.heads),
+                    "seed {seed:#x}, threshold {threshold}: rule {index} heads",
+                );
+            }
+        }
+    }
+}
