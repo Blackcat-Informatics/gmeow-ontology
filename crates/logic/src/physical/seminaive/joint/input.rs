@@ -1021,7 +1021,18 @@ impl JointInput<'_> {
                         )
                         .is_some()
                 });
-                hard_source_refusal(refusal, has_list_writer)
+                let refused = hard_source_refusal(refusal, has_list_writer);
+                if refused {
+                    tracing::warn!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "native-source-refusal",
+                        world = %world,
+                        has_list_writer,
+                        boundary = ?refusal,
+                        "selected native source refused",
+                    );
+                }
+                refused
             });
         if !source_refused {
             for (world, facts) in self.facts {
