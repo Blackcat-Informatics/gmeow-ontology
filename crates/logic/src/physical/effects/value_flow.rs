@@ -1078,6 +1078,27 @@ pub(crate) struct FlowSummary {
 impl FlowSummary {
     /// Trace the resident footprint of a large closed summary: support rows by
     /// representation, how many hold distinct content, and the heaviest relation.
+    /// Resident support bytes (rows and rectangles) and the number of dense rows.
+    fn support_bytes(&self) -> (usize, usize) {
+        let mut bytes = 0;
+        let mut dense = 0;
+        for relation in self.relations.values() {
+            for row in relation.by_subject.values().chain(relation.by_object.values()) {
+                bytes += match row {
+                    AdaptiveDomain::Dense(domain) => {
+                        dense += 1;
+                        domain.0.len() * 8
+                    }
+                    AdaptiveDomain::Sparse { values, .. } => values.len() * 8,
+                };
+            }
+            for [left, right] in &relation.rectangles {
+                bytes += (left.0.len() + right.0.len()) * 8;
+            }
+        }
+        (bytes, dense)
+    }
+
     fn trace_footprint(&self, rules: usize) {
         const TRACE_BYTES: usize = 256 << 20;
         let row_bytes = |row: &AdaptiveDomain| match row {
@@ -2522,6 +2543,7 @@ impl ValueFlow {
             let mut scratch = Domain::empty(self.universe.size());
             let mut classes_evaluated = candidates.len();
             let mut timings = [0u128; 3];
+            let mut transposed_dense_bytes = 0usize;
             if candidates.len() >= partition_min_candidates
                 && matches!(head[slot], Slot::Variable(_))
             {
@@ -2552,6 +2574,14 @@ impl ValueFlow {
                     .collect();
                 publications.sort_unstable();
                 for (value, class) in publications {
+                    if value != classes[class][0]
+                        && let Some(HeadSupport {
+                            predicates,
+                            opposite: AdaptiveDomain::Dense(domain),
+                        }) = &supports[class]
+                    {
+                        transposed_dense_bytes += domain.0.len() * 8 * predicates.len();
+                    }
                     self.publish_head_support(
                         state,
                         slot,
@@ -2584,6 +2614,7 @@ impl ValueFlow {
                 }
             }
             if candidates.len() >= 1_000 {
+                let support = state.support_bytes();
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",
@@ -2594,6 +2625,9 @@ impl ValueFlow {
                     classes_ms = timings[0],
                     evaluate_ms = timings[1],
                     publish_ms = timings[2],
+                    support_mb = support.0 >> 20,
+                    dense_rows = support.1,
+                    transposed_dense_mb = transposed_dense_bytes >> 20,
                     rule_index,
                     visit,
                     producer = rule.name.as_str(),
