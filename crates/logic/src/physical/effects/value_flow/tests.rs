@@ -1919,3 +1919,78 @@ fn class_partitioned_closure_equals_the_per_candidate_closure() {
         }
     }
 }
+
+#[test]
+fn interned_support_rows_share_equal_content_and_grow_without_aliasing() {
+    let rule = EvalRule::positive(
+        "urn:copy",
+        atom("?s", "urn:result", "?o"),
+        vec![atom("?s", "urn:left", "?o")],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let observations: Vec<_> = (0..6)
+        .map(|index| StatementPattern::subject(TermValue::iri(&format!("urn:node:{index}"))))
+        .collect();
+    let analysis = ValueFlow::with_observations(
+        &[flow(&rule)],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    );
+    let size = analysis.universe.size();
+    let node = |index: usize| {
+        analysis
+            .universe
+            .value(&TermValue::iri(&format!("urn:node:{index}")))
+    };
+    let left = analysis.universe.iri("urn:left");
+    // Two source facts give nodes 0 and 1 the same subject-side content.
+    let facts: Vec<_> = [0, 1]
+        .into_iter()
+        .map(|index| Fact {
+            subject: TermValue::iri(&format!("urn:node:{index}")),
+            predicate: "urn:left".to_owned(),
+            object: TermValue::iri("urn:node:5"),
+        })
+        .collect();
+    let mut state = analysis.summarize(facts.iter());
+    let row = |state: &FlowSummary, index: usize| {
+        Row::clone(&state.relations[&left].by_subject[&node(index)])
+    };
+    assert!(
+        Row::ptr_eq(&row(&state, 0), &row(&state, 1)),
+        "source rows intern"
+    );
+
+    let mut opposite = Domain::empty(size);
+    opposite.insert(node(3));
+    assert!(state.publish_condition(left, 0, node(2), &opposite, size));
+    assert!(state.publish_condition(left, 0, node(4), &opposite, size));
+    assert!(
+        Row::ptr_eq(&row(&state, 2), &row(&state, 4)),
+        "published rows intern"
+    );
+    assert!(
+        !state.publish_condition(left, 0, node(2), &opposite, size),
+        "a contained support is no change",
+    );
+
+    // Growing one sharer leaves the other's content untouched.
+    let indices =
+        |state: &FlowSummary, index: usize| row(state, index).indices().collect::<Vec<_>>();
+    assert_eq!(indices(&state, 1), vec![node(5)], "sharers start equal");
+    assert_eq!(indices(&state, 0), vec![node(5)]);
+    assert!(state.publish_condition(left, 0, node(0), &opposite, size));
+    assert_eq!(indices(&state, 0), {
+        let mut expected = vec![node(3), node(5)];
+        expected.sort_unstable();
+        expected
+    });
+    assert_eq!(
+        indices(&state, 1),
+        vec![node(5)],
+        "the former sharer is unchanged"
+    );
+    assert_eq!(indices(&state, 2), vec![node(3)]);
+    assert!(!Row::ptr_eq(&row(&state, 0), &row(&state, 1)));
+}

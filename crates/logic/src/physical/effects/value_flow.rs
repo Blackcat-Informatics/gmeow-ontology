@@ -253,6 +253,56 @@ struct HeadSupport {
     opposite: AdaptiveDomain,
 }
 
+/// One support row, shared by every key whose row holds the same content.
+type Row = std::sync::Arc<AdaptiveDomain>;
+
+/// Hash-consing for support rows. Published supports repeat a few contents
+/// under many keys (the corpus closure holds 2.7M rows of 126,740 distinct
+/// contents), so each distinct content is resident once. A row is never
+/// mutated in place once shared: growth interns the grown content.
+#[derive(Debug, Clone, Default)]
+struct RowTable {
+    rows: std::collections::HashSet<InternedRow>,
+    live_at_sweep: usize,
+}
+
+/// A table entry keyed by the content its row denotes.
+#[derive(Debug, Clone)]
+struct InternedRow(Row);
+
+impl PartialEq for InternedRow {
+    fn eq(&self, other: &Self) -> bool {
+        SupportContent(&self.0) == SupportContent(&other.0)
+    }
+}
+
+impl Eq for InternedRow {}
+
+impl std::hash::Hash for InternedRow {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        SupportContent(&self.0).hash(state);
+    }
+}
+
+impl RowTable {
+    /// The resident row for this content, adopting `row` when it is new.
+    fn intern(&mut self, row: AdaptiveDomain) -> Row {
+        let entry = InternedRow(Row::new(row));
+        if let Some(existing) = self.rows.get(&entry) {
+            return Row::clone(&existing.0);
+        }
+        let shared = Row::clone(&entry.0);
+        self.rows.insert(entry);
+        // Superseded contents linger only until the table doubles past its last
+        // live size; a sweep keeps what some row still holds.
+        if self.rows.len() > 2 * self.live_at_sweep.max(1 << 12) {
+            self.rows.retain(|row| Row::strong_count(&row.0) > 1);
+            self.live_at_sweep = self.rows.len();
+        }
+        shared
+    }
+}
+
 /// A support row compared by the value set it denotes, whichever
 /// representation stores it.
 struct SupportContent<'a>(&'a AdaptiveDomain);
@@ -787,8 +837,8 @@ struct RelationSummary {
     columns: [AdaptiveDomain; 2],
     /// Opposite-column supports keyed only by conditioned constants. This is a
     /// bounded grammar relation, not retained source rows.
-    by_subject: BTreeMap<usize, AdaptiveDomain>,
-    by_object: BTreeMap<usize, AdaptiveDomain>,
+    by_subject: BTreeMap<usize, Row>,
+    by_object: BTreeMap<usize, Row>,
     /// Producer and native-witness supports can be Cartesian products. Retaining
     /// each product once avoids expanding a wildcard or generated-value side into
     /// one universe-width support per conditioned value.
@@ -939,6 +989,19 @@ impl AdaptiveDomain {
         }
     }
 
+    /// Whether `other` adds nothing to this set, without building the union.
+    fn contains_all(&self, other: &Domain) -> bool {
+        match self {
+            Self::Dense(domain) => other.is_subset_of(domain),
+            Self::Sparse { values, .. } => {
+                other.len() <= values.len()
+                    && other
+                        .indices()
+                        .all(|value| values.binary_search(&value).is_ok())
+            }
+        }
+    }
+
     fn indices(&self) -> Box<dyn Iterator<Item = usize> + '_> {
         match self {
             Self::Dense(domain) => Box::new(domain.indices()),
@@ -1073,87 +1136,95 @@ pub(crate) struct FlowSummary {
     /// Rectangles deliberately remain compact, so their predicates are checked
     /// separately rather than expanding a wildcard side into this exact index.
     rectangle_relations: BTreeSet<usize>,
+    /// The one resident copy of every distinct support row content.
+    rows: RowTable,
 }
 
 impl FlowSummary {
     /// Trace the resident footprint of a large closed summary: support rows by
     /// representation, how many hold distinct content, and the heaviest relation.
-    /// Resident support bytes (rows and rectangles) and the number of dense rows.
-    fn support_bytes(&self) -> (usize, usize) {
-        let mut bytes = 0;
-        let mut dense = 0;
-        for relation in self.relations.values() {
-            for row in relation.by_subject.values().chain(relation.by_object.values()) {
-                bytes += match row {
-                    AdaptiveDomain::Dense(domain) => {
-                        dense += 1;
-                        domain.0.len() * 8
-                    }
-                    AdaptiveDomain::Sparse { values, .. } => values.len() * 8,
-                };
-            }
-            for [left, right] in &relation.rectangles {
-                bytes += (left.0.len() + right.0.len()) * 8;
+    /// Share every row with each other row of equal content. Source rows are
+    /// built privately by `publish_fact`; publication interns as it grows.
+    fn intern_rows(&mut self) {
+        let rows = &mut self.rows;
+        for relation in self.relations.values_mut() {
+            for supports in [&mut relation.by_subject, &mut relation.by_object] {
+                *supports = std::mem::take(supports)
+                    .into_iter()
+                    .map(|(key, row)| (key, rows.intern(Row::unwrap_or_clone(row))))
+                    .collect();
             }
         }
-        (bytes, dense)
     }
 
-    fn trace_footprint(&self, rules: usize) {
-        const TRACE_BYTES: usize = 256 << 20;
+    /// Support bytes: `(logical, resident, dense rows)`. Logical bytes count every
+    /// keyed row; resident bytes count each shared row once, plus rectangles.
+    fn support_bytes(&self) -> (usize, usize, usize) {
         let row_bytes = |row: &AdaptiveDomain| match row {
             AdaptiveDomain::Dense(domain) => domain.0.len() * 8,
             AdaptiveDomain::Sparse { values, .. } => values.len() * 8,
         };
-        let mut total = 0;
-        let (mut dense, mut sparse) = (0usize, 0usize);
-        let mut heaviest = (0usize, 0usize);
-        for (&predicate, relation) in &self.relations {
-            let rows = relation.by_subject.values().chain(relation.by_object.values());
-            let bytes: usize = rows
-                .clone()
-                .map(|row| {
-                    match row {
-                        AdaptiveDomain::Dense(_) => dense += 1,
-                        AdaptiveDomain::Sparse { .. } => sparse += 1,
-                    }
-                    row_bytes(row)
-                })
-                .sum::<usize>()
-                + relation
-                    .rectangles
-                    .iter()
-                    .map(|[left, right]| (left.0.len() + right.0.len()) * 8)
-                    .sum::<usize>();
-            total += bytes;
-            if bytes > heaviest.1 {
-                heaviest = (predicate, bytes);
-            }
-        }
-        if total < TRACE_BYTES {
-            return;
-        }
-        let mut distinct: HashMap<SupportContent<'_>, ()> = HashMap::new();
-        let mut distinct_bytes = 0;
+        let mut logical = 0;
+        let mut resident = 0;
+        let mut dense = 0;
+        let mut seen = std::collections::HashSet::new();
         for relation in self.relations.values() {
-            for row in relation.by_subject.values().chain(relation.by_object.values()) {
-                if distinct.insert(SupportContent(row), ()).is_none() {
-                    distinct_bytes += row_bytes(row);
+            for row in relation
+                .by_subject
+                .values()
+                .chain(relation.by_object.values())
+            {
+                let bytes = row_bytes(row);
+                logical += bytes;
+                if seen.insert(Row::as_ptr(row)) {
+                    resident += bytes;
+                    dense += usize::from(matches!(**row, AdaptiveDomain::Dense(_)));
                 }
             }
+            for [left, right] in &relation.rectangles {
+                let bytes = (left.0.len() + right.0.len()) * 8;
+                logical += bytes;
+                resident += bytes;
+            }
         }
+        (logical, resident, dense)
+    }
+
+    /// Trace the footprint of a large closed summary: keyed rows, the shared
+    /// rows actually resident, and the distinct contents they hold.
+    fn trace_footprint(&self, rules: usize) {
+        const TRACE_BYTES: usize = 256 << 20;
+        let (logical, resident, dense) = self.support_bytes();
+        if logical < TRACE_BYTES {
+            return;
+        }
+        let keyed: usize = self
+            .relations
+            .values()
+            .map(|relation| relation.by_subject.len() + relation.by_object.len())
+            .sum();
+        let distinct: std::collections::HashSet<SupportContent<'_>> = self
+            .relations
+            .values()
+            .flat_map(|relation| {
+                relation
+                    .by_subject
+                    .values()
+                    .chain(relation.by_object.values())
+            })
+            .map(|row| SupportContent(row))
+            .collect();
         tracing::info!(
             target: "pipeline_reasoning_detail",
             phase = "refine-closure-footprint",
             rules,
             relations = self.relations.len(),
-            dense_rows = dense,
-            sparse_rows = sparse,
+            keyed_rows = keyed,
+            resident_dense_rows = dense,
             distinct_rows = distinct.len(),
-            support_mb = total >> 20,
-            distinct_support_mb = distinct_bytes >> 20,
-            heaviest_predicate = heaviest.0,
-            heaviest_mb = heaviest.1 >> 20,
+            interned_rows = self.rows.rows.len(),
+            logical_support_mb = logical >> 20,
+            resident_support_mb = resident >> 20,
             "value-flow closure footprint",
         );
     }
@@ -1328,19 +1399,25 @@ impl FlowSummary {
             let covered = relation.rectangle_covers_pair(subject, object);
             let indexed_subject = conditioned.contains(subject) && !covered;
             let indexed_object = conditioned.contains(object) && !covered;
+            // Source rows grow in place while still private; `summarize` interns
+            // every row once the input is complete.
             if indexed_subject {
-                relation
-                    .by_subject
-                    .entry(subject)
-                    .or_insert_with(|| AdaptiveDomain::empty(universe_size))
-                    .insert(object);
+                Row::make_mut(
+                    relation
+                        .by_subject
+                        .entry(subject)
+                        .or_insert_with(|| Row::new(AdaptiveDomain::empty(universe_size))),
+                )
+                .insert(object);
             }
             if indexed_object {
-                relation
-                    .by_object
-                    .entry(object)
-                    .or_insert_with(|| AdaptiveDomain::empty(universe_size))
-                    .insert(subject);
+                Row::make_mut(
+                    relation
+                        .by_object
+                        .entry(object)
+                        .or_insert_with(|| Row::new(AdaptiveDomain::empty(universe_size))),
+                )
+                .insert(subject);
             }
             (indexed_subject, indexed_object)
         };
@@ -1372,10 +1449,26 @@ impl FlowSummary {
         } else {
             &mut relation.by_object
         };
-        let changed = supports
-            .entry(value)
-            .or_insert_with(|| AdaptiveDomain::empty(size))
-            .union(opposite);
+        let row = supports.entry(value);
+        if let std::collections::btree_map::Entry::Occupied(row) = &row
+            && row.get().contains_all(opposite)
+        {
+            return false;
+        }
+        let mut grown = match &row {
+            std::collections::btree_map::Entry::Occupied(row) => AdaptiveDomain::clone(row.get()),
+            std::collections::btree_map::Entry::Vacant(_) => AdaptiveDomain::empty(size),
+        };
+        let changed = grown.union(opposite);
+        let shared = self.rows.intern(grown);
+        match row {
+            std::collections::btree_map::Entry::Occupied(mut row) => {
+                row.insert(shared);
+            }
+            std::collections::btree_map::Entry::Vacant(row) => {
+                row.insert(shared);
+            }
+        }
         if changed {
             self.index_condition(predicate, side, value, size);
         }
@@ -1952,6 +2045,7 @@ impl ValueFlow {
             predicates_by_subject: BTreeMap::new(),
             predicates_by_object: BTreeMap::new(),
             rectangle_relations: BTreeSet::new(),
+            rows: RowTable::default(),
         };
         for fact in facts {
             result.publish_fact(
@@ -1962,6 +2056,7 @@ impl ValueFlow {
                 &self.conditioned,
             );
         }
+        result.intern_rows();
         result
     }
 
@@ -2398,14 +2493,17 @@ impl ValueFlow {
             .filter(|(predicate, _)| scope.contains(**predicate))
             .map(|(_, relation)| relation)
             .collect();
-        let mut content_ids: HashMap<SupportContent<'_>, u64> = HashMap::new();
+        // Interned rows of equal content are one shared row, so identity is the
+        // pointer. A row of equal content under another pointer would only label
+        // apart values that could have shared a class: finer, never wrong.
+        let mut content_ids: HashMap<*const AdaptiveDomain, u64> = HashMap::new();
         let mut rows = Vec::new();
         for relation in &relations {
             for supports in [&relation.by_subject, &relation.by_object] {
                 let mut labelled = Vec::new();
                 for (&key, support) in supports {
                     let next = content_ids.len() as u64;
-                    let id = *content_ids.entry(SupportContent(support)).or_insert(next);
+                    let id = *content_ids.entry(Row::as_ptr(support)).or_insert(next);
                     if let Some(index) = candidate(key) {
                         labelled.push((index, id));
                     }
@@ -2625,8 +2723,9 @@ impl ValueFlow {
                     classes_ms = timings[0],
                     evaluate_ms = timings[1],
                     publish_ms = timings[2],
-                    support_mb = support.0 >> 20,
-                    dense_rows = support.1,
+                    logical_support_mb = support.0 >> 20,
+                    resident_support_mb = support.1 >> 20,
+                    resident_dense_rows = support.2,
                     transposed_dense_mb = transposed_dense_bytes >> 20,
                     rule_index,
                     visit,
