@@ -338,7 +338,7 @@ fn entangled_cardinality_and_existential_share_native_proofs_and_budget() {
     // This explicit synthetic operation selects each authored source context as
     // a logical world. The prepared ingress commitment binds that test authority.
     fn prepare(
-        source: &impl DatasetView,
+        source: &impl DatasetView<ReadError = std::convert::Infallible>,
     ) -> (
         crate::reason::PreparedReasoningInput,
         crate::physical::SelectedDomains,
@@ -556,9 +556,9 @@ fn source_issue_classification_distinguishes_invalid_and_unsupported() {
         },
         UnsupportedExpressionOwner {
             owner: purrdf::TermValue::Triple {
-                s: Box::new(purrdf::TermValue::iri("urn:quoted:s")),
-                p: Box::new(purrdf::TermValue::iri("urn:quoted:p")),
-                o: Box::new(purrdf::TermValue::iri("urn:quoted:o")),
+                s: purrdf::TermValue::iri("urn:quoted:s").into(),
+                p: purrdf::TermValue::iri("urn:quoted:p").into(),
+                o: purrdf::TermValue::iri("urn:quoted:o").into(),
             },
             predicate: "urn:class:complement".to_owned(),
         },

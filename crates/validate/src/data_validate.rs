@@ -942,12 +942,15 @@ fn inject_subclass_shortcuts(
     dataset: Arc<RdfDataset>,
     ontology: &RdfDataset,
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    let Some(type_id) = dataset.term_id_by_value(&TermValue::iri(crate::model::rdf::TYPE)) else {
+    let Some(type_id) = dataset
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(crate::model::rdf::TYPE))
+    else {
         return Ok(dataset);
     };
     let mut used_types: BTreeSet<String> = BTreeSet::new();
     for quad in dataset.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
-        if let TermRef::Iri(class_iri) = dataset.resolve(quad.o) {
+        if let TermRef::Iri(class_iri) = dataset.as_ref().resolve(quad.o) {
             used_types.insert(class_iri.to_owned());
         }
     }

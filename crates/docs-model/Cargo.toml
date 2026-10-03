@@ -20,7 +20,12 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+# The substrate's one lowercase-hex spelling for digests.
+purrdf-hash.workspace = true
 purrdf.workspace = true
+# The substrate JSON value its slice records (`ArtifactRole`, `SliceTier`) write themselves
+# as; the docs model's serde fields cross into that form rather than re-spelling it.
+purrdf-lex.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 # `describe`, `i18n_compile` and `model` bind the slice vocabulary through it.
 gmeow-ns = { path = "../ns" }
@@ -38,7 +43,6 @@ gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true
-sha1.workspace = true
 blake3.workspace = true
 
 # The fixture is a native on-disk action cache. Browser/Wasm consumers use the

@@ -3,7 +3,7 @@
 
 //! Native rule binding, witness and retraction contracts over synthetic GMEOW rules.
 
-use purrdf::{BlankScope, RdfTextDirection, TermValue};
+use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
 
 use super::chase::{ExistentialRule, WitnessPolicy, chase_world_explained};
 use super::incremental::SignedFact;
@@ -33,13 +33,14 @@ fn values() -> Vec<TermValue> {
         TermValue::simple_literal("<urn:value>"),
         directional.clone(),
         TermValue::Triple {
-            s: Box::new(blank(17)),
-            p: Box::new(TermValue::iri("urn:quotes")),
-            o: Box::new(TermValue::Triple {
-                s: Box::new(blank(19)),
-                p: Box::new(TermValue::iri("urn:states")),
-                o: Box::new(directional),
-            }),
+            s: blank(17).into(),
+            p: TermValue::iri("urn:quotes").into(),
+            o: (TermValue::Triple {
+                s: TermBox::new(blank(19)),
+                p: TermBox::new(TermValue::iri("urn:states")),
+                o: TermBox::new(directional),
+            })
+            .into(),
         },
     ]
 }

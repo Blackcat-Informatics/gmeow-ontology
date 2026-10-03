@@ -268,7 +268,7 @@ pub struct Location {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub line: Option<u32>,
+    pub line: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub column: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -288,7 +288,7 @@ pub struct Location {
 impl Location {
     pub fn new(
         path: Option<String>,
-        line: Option<u32>,
+        line: Option<u64>,
         column: Option<u32>,
         logical: Option<String>,
     ) -> Self {

@@ -42,7 +42,7 @@ fn validation_substrate_keeps_native_evidence_inside_its_exact_role() {
     assert!(
         projected
             .quads()
-            .all(|quad| matches!(projected.resolve(quad.s),
+            .all(|quad| matches!(projected.as_ref().resolve(quad.s),
             TermRef::Iri(iri) if iri.starts_with(SUBSTRATE_IRI_PREFIX)))
     );
 }

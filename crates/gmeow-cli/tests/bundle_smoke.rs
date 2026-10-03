@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command as StdCommand;
 
 use assert_cmd::Command;
-use ed25519_dalek::SigningKey;
+use purrdf_ed25519::SigningKey;
 use predicates::prelude::*;
 use purrdf::gts::model::{Term, TermKind};
 

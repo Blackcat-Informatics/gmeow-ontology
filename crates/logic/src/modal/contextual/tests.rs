@@ -617,7 +617,7 @@ fn result_components_remain_disjoint_when_multiple_requests_share_one_reasoning_
         let graph = purrdf::parse_dataset(rdf.as_bytes(), "application/n-triples", None).unwrap();
         let components = graph
             .quads()
-            .filter_map(|quad| match graph.resolve(quad.s) {
+            .filter_map(|quad| match graph.as_ref().resolve(quad.s) {
                 TermRef::Iri(iri) if iri.contains("/component/") => Some(iri.to_owned()),
                 TermRef::Blank { .. } => {
                     panic!("contextual projection must scope all generated components")
@@ -694,7 +694,7 @@ fn native_derived_attribution_preserves_world_scopes_and_exact_receipts() {
         .expect("project the valid native contextual result");
     let graph =
         purrdf::parse_dataset(projection.as_bytes(), "application/n-triples", None).unwrap();
-    assert!(graph.reifiers_with_graph().any(|(reifier, _, _)| matches!(graph.resolve(reifier), TermRef::Iri(identity) if identity == native.identity())));
+    assert!(graph.reifiers_with_graph().any(|(reifier, _, _)| matches!(graph.as_ref().resolve(reifier), TermRef::Iri(identity) if identity == native.identity())));
     assert!(projection.contains("receipt-rule-identity"));
     assert_eq!(
         crate::result_rdf::parse_reasoning_graph(&projection)
@@ -803,7 +803,7 @@ fn unsupported_queries_export_the_shared_source_anchored_diagnostic_ledger() {
     assert!(exported.contains("urn:example:request"));
     let named_graphs = graph
         .named_graphs()
-        .map(|graph_id| match graph.resolve(graph_id) {
+        .map(|graph_id| match graph.as_ref().resolve(graph_id) {
             TermRef::Iri(iri) => iri.to_owned(),
             _ => panic!("named output graphs are IRIs"),
         })

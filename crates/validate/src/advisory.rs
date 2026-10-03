@@ -534,9 +534,7 @@ fn advisory_from_result(
     shapes: &purrdf::RdfDataset,
     ontology: &purrdf::RdfDataset,
 ) -> Advisory {
-    let message = r
-        .message
-        .clone()
+    let message = crate::findings::shacl_message(r)
         .unwrap_or_else(|| "advisory constraint matched".to_owned());
     build_advisory(
         shacl_iri(&r.source_shape).as_deref(),
@@ -638,21 +636,16 @@ pub fn split_advisory_results(
         advisories.windows(2).all(|w| w[0].code != w[1].code),
         "advisory codes must be unique per (constraint, focus) match after dedup"
     );
-    // Recompute conformance for the RETAINED set: advisory Info matches were the reason
-    // the run was non-conforming iff they were the only results, but they never gate — so
-    // once they are lifted out, the retained report conforms unless a real Violation
-    // remains. (Without this, suppressing the only result leaves conforms=false with an
-    // empty result set, which the diagnostics fallback wrongly reports as a hard error.)
-    let conforms = !retained
-        .iter()
-        .any(|r| matches!(r.severity, ShaclSeverity::Violation));
-    (
-        ValidationReport {
-            conforms,
-            results: retained,
-        },
-        advisories,
-    )
+    // Recompute conformance for the RETAINED set against the run's own
+    // conformance-disallow set: advisory Info matches never gate, so once they are
+    // lifted out the retained report is judged on what remains. (Without this,
+    // suppressing the only result leaves conforms=false with an empty result set, which
+    // the diagnostics fallback wrongly reports as a hard error.) The shapes-graph verdict
+    // and mandatory diagnostics describe the whole run and carry over unchanged.
+    let mut retained = ValidationReport::from_results(retained, report.conformance_disallows);
+    retained.shapes_graph_well_formed = report.shapes_graph_well_formed;
+    retained.diagnostics = report.diagnostics;
+    (retained, advisories)
 }
 
 // ── ComplianceAssessment RDF emitter (D4) ───────────────────────────────────

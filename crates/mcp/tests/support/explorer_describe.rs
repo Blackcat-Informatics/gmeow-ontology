@@ -103,7 +103,7 @@ pub fn verified_describe(
     let namespace = "https://blackcatinformatics.ca/gmeow/";
     let subject = core
         .quads_for_pattern(None, None, None, GraphMatch::Default)
-        .filter_map(|quad| match core.resolve(quad.s) {
+        .filter_map(|quad| match core.as_ref().resolve(quad.s) {
             TermRef::Iri(iri) if iri.starts_with(namespace) => Some(iri.to_owned()),
             _ => None,
         })

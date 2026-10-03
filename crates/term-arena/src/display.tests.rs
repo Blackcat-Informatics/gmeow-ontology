@@ -41,14 +41,14 @@ fn display_elides_xsd_string_and_langless_lang_string_alike() {
 #[test]
 fn display_renders_nested_triple_terms() {
     let inner = TermValue::Triple {
-        s: Box::new(TermValue::iri("http://ex/a")),
-        p: Box::new(TermValue::iri("http://ex/p")),
-        o: Box::new(TermValue::iri("http://ex/b")),
+        s: TermValue::iri("http://ex/a").into(),
+        p: TermValue::iri("http://ex/p").into(),
+        o: TermValue::iri("http://ex/b").into(),
     };
     let outer = TermValue::Triple {
-        s: Box::new(inner),
-        p: Box::new(TermValue::iri("http://ex/q")),
-        o: Box::new(TermValue::simple_literal("v")),
+        s: inner.into(),
+        p: TermValue::iri("http://ex/q").into(),
+        o: TermValue::simple_literal("v").into(),
     };
     assert_eq!(
         term_display(&outer),

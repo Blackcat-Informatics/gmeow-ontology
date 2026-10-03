@@ -81,14 +81,6 @@ fn literal(value: &str, datatype: &str) -> String {
     })
 }
 
-fn hex(bytes: &[u8]) -> String {
-    let mut out = String::with_capacity(bytes.len() * 2);
-    for byte in bytes {
-        write!(&mut out, "{byte:02x}").expect("String writes are infallible");
-    }
-    out
-}
-
 /// Terminal RDF projection carries complete bounded native evidence once per
 /// source case, plus queryable operation/provenance fields. No semantic verdict
 /// or agreement finding is fabricated for an admission observation.
@@ -143,7 +135,7 @@ pub(super) fn emit(observations: &[GradedAdmission]) -> gmeow_errors::Result<Str
         );
         row(
             &format!("{logic}sourceAdmissionInputDigest"),
-            literal(&hex(&record.observation.input_blake3), "hexBinary"),
+            literal(&purrdf_hash::hex::encode(&record.observation.input_blake3), "hexBinary"),
         );
         row(
             &format!("{logic}sourceAdmissionPublishedToken"),
@@ -168,7 +160,7 @@ pub(super) fn emit(observations: &[GradedAdmission]) -> gmeow_errors::Result<Str
         }
         row(
             &format!("{logic}sourceAdmissionEvidence"),
-            literal(&hex(&receipt.0), "hexBinary"),
+            literal(&purrdf_hash::hex::encode(&receipt.0), "hexBinary"),
         );
     }
     Ok(out)

@@ -10,6 +10,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::mem::size_of;
 
+use purrdf::dataset_view::TermGuard;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
 use super::{
@@ -17,7 +18,8 @@ use super::{
     formula_objects, logic_iri,
 };
 use crate::graphutil::{
-    Node, Subject, subject_id, subject_of, subject_str, term_as_subject, term_is_literal, term_str,
+    Node, Subject, resident, subject_id, subject_of, subject_str, term_as_subject, term_is_literal,
+    term_str,
 };
 use crate::ir::{Formula, Term};
 
@@ -73,7 +75,10 @@ struct MemoEntry {
 /// Successful expansions may be reused at any depth. A failed root is reused
 /// only at another root: cycle diagnostics depend on the active source path and
 /// must never be transplanted into a different recursive walk.
-pub(crate) struct FormulaReader<'a, D: DatasetView + ?Sized = RdfDataset> {
+pub(crate) struct FormulaReader<
+    'a,
+    D: DatasetView<ReadError = std::convert::Infallible> + ?Sized = RdfDataset,
+> {
     dataset: &'a D,
     graph: GraphMatch<D::Id>,
     world_prefix: String,
@@ -88,7 +93,7 @@ pub(crate) struct FormulaReader<'a, D: DatasetView + ?Sized = RdfDataset> {
     observer: reconstruction::Observer,
 }
 
-impl<'a, D: DatasetView + ?Sized> FormulaReader<'a, D> {
+impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaReader<'a, D> {
     pub(crate) fn new(dataset: &'a D) -> Self {
         Self::in_graph(dataset, GraphMatch::Default)
     }
@@ -520,7 +525,9 @@ fn fresh_variable_prefixes(source: &impl FormulaSource) -> [String; 3] {
     const ROLES: [&str; 3] = ["w", "tw", "ti"];
     let dataset = source.dataset();
     let mut widths = [2_usize; 3];
-    if let Some(predicate) = dataset.term_id_by_value(&TermValue::Iri(logic_iri("termVariable"))) {
+    if let Some(predicate) =
+        resident(dataset.term_id_by_value(&TermValue::Iri(logic_iri("termVariable"))))
+    {
         for quad in crate::graphutil::source_graph_pattern(
             dataset,
             None,
@@ -528,7 +535,7 @@ fn fresh_variable_prefixes(source: &impl FormulaSource) -> [String; 3] {
             None,
             source.source_graph(),
         ) {
-            if let TermRef::Literal { lexical, .. } = dataset.resolve(quad.o) {
+            if let TermRef::Literal { lexical, .. } = resident(dataset.resolve(quad.o)).term() {
                 let underscores = lexical.bytes().take_while(|byte| *byte == b'_').count();
                 for (role, width) in ROLES.iter().zip(&mut widths) {
                     if let Some(suffix) = lexical[underscores..].strip_prefix(*role)

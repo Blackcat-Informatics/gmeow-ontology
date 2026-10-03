@@ -146,9 +146,9 @@ fn neither_spelling_of_the_empty_class_is_reported_as_an_authored_unsatisfiable_
 #[test]
 fn empty_class_names_in_data_literals_or_quotations_do_not_become_clashes() {
     let quoted = TermValue::Triple {
-        s: Box::new(TermValue::iri("urn:verdict:quoted-subject")),
-        p: Box::new(TermValue::iri(INSTANCE)),
-        o: Box::new(TermValue::iri(NOTHING)),
+        s: TermValue::iri("urn:verdict:quoted-subject").into(),
+        p: TermValue::iri(INSTANCE).into(),
+        o: TermValue::iri(NOTHING).into(),
     };
     let literal = TermValue::Literal {
         lexical_form: NOTHING.to_owned(),
@@ -264,9 +264,9 @@ fn native_construct_selection_ignores_data_mentions_and_retains_exact_operator_s
 fn vocabulary_in_literals_and_quoted_statements_does_not_select_constructs() {
     let marker = TermValue::iri("http://www.w3.org/2002/07/owl#FunctionalProperty");
     let quoted = TermValue::Triple {
-        s: Box::new(TermValue::iri("urn:coverage:p")),
-        p: Box::new(TermValue::iri(RDF_TYPE)),
-        o: Box::new(marker.clone()),
+        s: TermValue::iri("urn:coverage:p").into(),
+        p: TermValue::iri(RDF_TYPE).into(),
+        o: marker.clone().into(),
     };
     for object in [quoted, TermValue::simple_literal(marker.as_iri().unwrap())] {
         assert!(

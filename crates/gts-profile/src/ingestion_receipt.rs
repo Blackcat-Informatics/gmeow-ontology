@@ -5,8 +5,8 @@
 
 use std::path::{Path, PathBuf};
 
-use ciborium::value::Value;
 use purrdf::gts_compose::IngestReport;
+use purrdf_lex::cbor::{self, Limits, Value};
 
 use crate::{GmeowGtsEmission, profile_error};
 
@@ -98,9 +98,7 @@ fn encode_receipt(
                 .collect(),
         ),
     ]);
-    let mut encoded = Vec::new();
-    ciborium::ser::into_writer(&record, &mut encoded)
-        .map_err(|e| profile_error(format!("encode native ingestion receipt: {e}")))?;
+    let encoded = cbor::encode(&record);
     // Bound the complete inherited decoding workload before publishing a receipt
     // that a consumer could not admit. This reads only compact receipt metadata.
     let mut budget = crate::archive::MAX_SELECTED_ARCHIVE_BYTES;
@@ -140,13 +138,12 @@ fn decode_receipt(
             "native ingestion receipt exceeds the selected chain-depth bound",
         ));
     }
-    let mut cursor = std::io::Cursor::new(receipt);
-    let value: Value = ciborium::de::from_reader(&mut cursor)
+    let (value, used) = cbor::decode_prefix(receipt, Limits::DEFAULT)
         .map_err(|e| profile_error(format!("decode native ingestion receipt: {e}")))?;
-    if cursor.position() != receipt.len() as u64 {
+    if used != receipt.len() {
         return Err(profile_error("native ingestion receipt has trailing bytes"));
     }
-    let Value::Array(fields) = value else {
+    let Ok(fields) = value.into_array() else {
         return Err(profile_error(
             "native ingestion receipt is not a fixed record",
         ));

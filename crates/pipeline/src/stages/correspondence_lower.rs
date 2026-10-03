@@ -401,6 +401,7 @@ fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
         std::fs::read(root.join("metadata").join("gmeow-self.ttl")).map_err(SliceError::Io)?;
     let ds = parse_turtle(&bytes, "metadata/gmeow-self.ttl")?;
     let vfp = ds
+        .as_ref()
         .term_id_by_value(&TermValue::Iri(GM_VERSION_FINGERPRINT.to_owned()))
         .ok_or_else(|| {
             SliceError::Parse("gmeow-self.ttl: no gmeow:versionFingerprint predicate".to_owned())
@@ -412,7 +413,7 @@ fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
             SliceError::Parse("gmeow-self.ttl: no manifestation with versionFingerprint".to_owned())
         })?
         .s;
-    let subject_iri = match ds.resolve(manifestation) {
+    let subject_iri = match ds.as_ref().resolve(manifestation) {
         TermRef::Iri(iri) => iri.to_owned(),
         _ => {
             return Err(SliceError::Parse(

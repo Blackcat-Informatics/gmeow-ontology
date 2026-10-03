@@ -22,6 +22,7 @@ use std::sync::OnceLock;
 
 use gmeow_errors::{DiagLedger, StageId};
 use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term};
+use purrdf::dataset_view::TermGuard;
 use purrdf::sparql::StopSignal;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
@@ -210,7 +211,7 @@ struct PreparedRequest {
     provenance: ResultProvenance,
 }
 
-fn prepare_request<D: DatasetView + ?Sized>(
+fn prepare_request<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     frame: &RdfFrame<'_, D>,
     request: D::Id,
     max_steps: Option<u64>,
@@ -256,7 +257,7 @@ fn prepare_request<D: DatasetView + ?Sized>(
     })
 }
 
-fn request_coordinates<D: DatasetView + ?Sized>(
+fn request_coordinates<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     frame: &RdfFrame<'_, D>,
     request: D::Id,
 ) -> gmeow_errors::Result<(String, String)> {
@@ -272,7 +273,7 @@ fn request_coordinates<D: DatasetView + ?Sized>(
     Ok((formula, selected))
 }
 
-fn assess<D: DatasetView + ?Sized>(
+fn assess<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     frame: &RdfFrame<'_, D>,
     request: D::Id,
     identity: String,
@@ -329,7 +330,9 @@ trait AssessmentEvidence {
     fn native_evidence(&self) -> &BTreeMap<String, NativeEvidence>;
 }
 
-impl<D: DatasetView + ?Sized> AssessmentEvidence for RdfFrame<'_, D> {
+impl<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> AssessmentEvidence
+    for RdfFrame<'_, D>
+{
     fn attribution_inferences(&self) -> &BTreeMap<String, ContextualInference> {
         &self.attribution_inferences
     }
@@ -461,24 +464,32 @@ fn malformed(message: impl Into<String>) -> AdmissionError {
     AdmissionError::Malformed(message.into())
 }
 
-fn iri_id<D: DatasetView + ?Sized>(dataset: &D, iri: &str) -> Option<D::Id> {
-    dataset.term_id_by_value(&TermValue::iri(iri))
+fn iri_id<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
+    dataset: &D,
+    iri: &str,
+) -> Option<D::Id> {
+    crate::seam::resident(dataset.term_id_by_value(&TermValue::iri(iri)))
 }
 
-fn iri<D: DatasetView + ?Sized>(dataset: &D, term: D::Id) -> Result<String, AdmissionError> {
-    match dataset.resolve(term) {
+fn iri<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
+    dataset: &D,
+    term: D::Id,
+) -> Result<String, AdmissionError> {
+    match crate::seam::resident(dataset.resolve(term)).term() {
         TermRef::Iri(value) => Ok(value.to_owned()),
         _ => Err(malformed("a contextual identity or binding must be an IRI")),
     }
 }
 
 /// Borrow one metadata graph without merging the evidence worlds it describes.
-struct Metadata<'a, D: DatasetView + ?Sized = RdfDataset> {
+struct Metadata<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized = RdfDataset> {
     dataset: &'a D,
     graph: GraphMatch<D::Id>,
 }
 
-impl<D: DatasetView + ?Sized> std::ops::Deref for Metadata<'_, D> {
+impl<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> std::ops::Deref
+    for Metadata<'_, D>
+{
     type Target = D;
     fn deref(&self) -> &Self::Target {
         self.dataset
@@ -487,7 +498,7 @@ impl<D: DatasetView + ?Sized> std::ops::Deref for Metadata<'_, D> {
 
 /// Request identity selects one graph. Repeating an identity in another graph
 /// is ambiguous and cannot silently choose whichever graph happens to sort first.
-fn request_sources<D: DatasetView + ?Sized>(
+fn request_sources<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &D,
     selected: Option<&str>,
 ) -> Result<BTreeMap<String, (D::Id, Option<D::Id>)>, AdmissionError> {
@@ -531,7 +542,7 @@ fn request_sources<D: DatasetView + ?Sized>(
     Ok(requests)
 }
 
-fn objects<D: DatasetView + ?Sized>(
+fn objects<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
     predicate: &str,
@@ -550,7 +561,7 @@ fn objects<D: DatasetView + ?Sized>(
     .collect()
 }
 
-fn optional<D: DatasetView + ?Sized>(
+fn optional<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
     property: &str,
@@ -562,7 +573,7 @@ fn optional<D: DatasetView + ?Sized>(
     Ok(values.first().copied())
 }
 
-fn required<D: DatasetView + ?Sized>(
+fn required<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
     property: &str,
@@ -571,7 +582,7 @@ fn required<D: DatasetView + ?Sized>(
         .ok_or_else(|| malformed(format!("missing required logic:{property}")))
 }
 
-fn required_iri<D: DatasetView + ?Sized>(
+fn required_iri<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
     property: &str,
@@ -579,7 +590,7 @@ fn required_iri<D: DatasetView + ?Sized>(
     iri(dataset.dataset, required(dataset, subject, property)?)
 }
 
-fn optional_iri<D: DatasetView + ?Sized>(
+fn optional_iri<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
     property: &str,
@@ -589,7 +600,10 @@ fn optional_iri<D: DatasetView + ?Sized>(
         .transpose()
 }
 
-fn instances<D: DatasetView + ?Sized>(dataset: &Metadata<'_, D>, class: &str) -> BTreeSet<D::Id> {
+fn instances<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
+    dataset: &Metadata<'_, D>,
+    class: &str,
+) -> BTreeSet<D::Id> {
     let (Some(predicate), Some(class)) = (
         iri_id(dataset.dataset, RDF_TYPE),
         iri_id(dataset.dataset, &format!("{LOGIC_NAMESPACE}{class}")),
@@ -607,7 +621,7 @@ fn instances<D: DatasetView + ?Sized>(dataset: &Metadata<'_, D>, class: &str) ->
     .collect()
 }
 
-fn require_type<D: DatasetView + ?Sized>(
+fn require_type<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
     class: &str,
@@ -624,7 +638,7 @@ fn require_type<D: DatasetView + ?Sized>(
     Ok(())
 }
 
-fn closure_value<D: DatasetView + ?Sized>(
+fn closure_value<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
     property: &str,
@@ -638,15 +652,18 @@ fn closure_value<D: DatasetView + ?Sized>(
     }
 }
 
-fn position<D: DatasetView + ?Sized>(dataset: &D, term: D::Id) -> Result<u64, AdmissionError> {
-    match dataset.resolve(term) {
+fn position<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
+    dataset: &D,
+    term: D::Id,
+) -> Result<u64, AdmissionError> {
+    match crate::seam::resident(dataset.resolve(term)).term() {
         TermRef::Literal {
             lexical,
             datatype,
             language: None,
             direction: None,
         } if matches!(
-            dataset.resolve(datatype),
+            crate::seam::resident(dataset.resolve(datatype)).term(),
             TermRef::Iri("http://www.w3.org/2001/XMLSchema#nonNegativeInteger")
         ) =>
         {
@@ -660,7 +677,7 @@ fn position<D: DatasetView + ?Sized>(dataset: &D, term: D::Id) -> Result<u64, Ad
     }
 }
 
-fn context<D: DatasetView + ?Sized>(
+fn context<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &Metadata<'_, D>,
     subject: D::Id,
 ) -> Result<Context, AdmissionError> {
@@ -710,7 +727,10 @@ fn context<D: DatasetView + ?Sized>(
 
 /// The indexed input is borrowed. Only selected context metadata and attributed
 /// evidence handles are retained; no cumulative closure is copied or regenerated.
-pub(super) struct RdfFrame<'a, D: DatasetView + ?Sized = RdfDataset> {
+pub(super) struct RdfFrame<
+    'a,
+    D: DatasetView<ReadError = std::convert::Infallible> + ?Sized = RdfDataset,
+> {
     dataset: &'a D,
     source_graph: Option<D::Id>,
     contexts: BTreeMap<String, Context>,
@@ -722,7 +742,7 @@ pub(super) struct RdfFrame<'a, D: DatasetView + ?Sized = RdfDataset> {
     journals: BTreeMap<String, OnceLock<Result<super::journal::FiniteJournal, AdmissionError>>>,
 }
 
-impl<'a, D: DatasetView + ?Sized> RdfFrame<'a, D> {
+impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame<'a, D> {
     /// Identity of the admitted evidence basis, using resolved RDF values and
     /// canonical set order. Dataset-local IDs never cross this boundary.
     fn basis_digest(&self) -> String {
@@ -1024,7 +1044,9 @@ impl<'a, D: DatasetView + ?Sized> RdfFrame<'a, D> {
                 _ => return Err(malformed("unrecognized attributed support status")),
             };
             let witness = iri(dataset, reifier)?;
-            let TermRef::Triple { s, p, o } = dataset.resolve(statement) else {
+            let TermRef::Triple { s, p, o } =
+                crate::seam::resident(dataset.resolve(statement)).term()
+            else {
                 return Err(malformed("rdf:reifies must bind an RDF 1.2 triple term"));
             };
             for &(identity, standpoint) in contexts {
@@ -1091,7 +1113,7 @@ fn atom_term(term: &Term) -> Result<TermValue, AdmissionError> {
     }
 }
 
-impl<D: DatasetView + ?Sized> Frame for RdfFrame<'_, D> {
+impl<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> Frame for RdfFrame<'_, D> {
     fn temporal(&self, context: &str) -> Result<TemporalTrace, AdmissionError> {
         self.temporal_trace(context)
     }
@@ -1111,9 +1133,9 @@ impl<D: DatasetView + ?Sized> Frame for RdfFrame<'_, D> {
     ) -> Result<Evidence, AdmissionError> {
         self.context(context)?;
         let mut evidence = if let (Some(subject), Some(predicate), Some(object)) = (
-            self.dataset.term_id_by_value(&atom_term(subject)?),
+            crate::seam::resident(self.dataset.term_id_by_value(&atom_term(subject)?)),
             iri_id(self.dataset, relation),
-            self.dataset.term_id_by_value(&atom_term(object)?),
+            crate::seam::resident(self.dataset.term_id_by_value(&atom_term(object)?)),
         ) {
             self.claims
                 .get(&(context.to_owned(), subject, predicate, object))

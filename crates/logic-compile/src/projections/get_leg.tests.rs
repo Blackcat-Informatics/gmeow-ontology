@@ -3,6 +3,7 @@
 
 use super::*;
 use crate::projections::sparql::native;
+use purrdf::TermBox;
 use purrdf::sparql::{BaseDirection, Expression, Function, Literal, NamedNode};
 
 fn native_literal() -> Expression {
@@ -12,11 +13,12 @@ fn native_literal() -> Expression {
 fn quoted(subject: &str, predicate: &str, object: Expression) -> Expression {
     Expression::FunctionCall(
         Function::Triple,
-        vec![
+        [
             Expression::NamedNode(NamedNode::new(subject).unwrap()),
             Expression::NamedNode(NamedNode::new(predicate).unwrap()),
             object,
-        ],
+        ]
+        .into(),
     )
 }
 
@@ -69,14 +71,14 @@ fn native_expression_constants_preserve_direction_and_nested_propositions() {
         direction: Some(purrdf::RdfTextDirection::Rtl),
     };
     let inner = DslTerm::Triple {
-        s: Box::new(DslTerm::iri("urn:subject")),
-        p: Box::new(DslTerm::iri("urn:predicate")),
-        o: Box::new(literal.clone()),
+        s: TermBox::new(DslTerm::iri("urn:subject")),
+        p: TermBox::new(DslTerm::iri("urn:predicate")),
+        o: TermBox::new(literal.clone()),
     };
     let outer = DslTerm::Triple {
-        s: Box::new(DslTerm::iri("urn:observer")),
-        p: Box::new(DslTerm::iri("urn:reports")),
-        o: Box::new(inner),
+        s: TermBox::new(DslTerm::iri("urn:observer")),
+        p: TermBox::new(DslTerm::iri("urn:reports")),
+        o: TermBox::new(inner),
     };
     let expression = parse_expr(&DslView::new(&dataset), &outer).unwrap();
     assert!(matches!(&expression, Expr::ConstTerm(term) if term == &outer));
@@ -99,12 +101,12 @@ fn native_expression_constants_preserve_direction_and_nested_propositions() {
 fn source_scoped_proposition_constant_requires_explicit_binding() {
     let dataset = purrdf::RdfDatasetBuilder::new().freeze().unwrap();
     let quoted = DslTerm::Triple {
-        s: Box::new(DslTerm::Blank {
+        s: TermBox::new(DslTerm::Blank {
             label: "witness".into(),
             scope: purrdf::BlankScope(17),
         }),
-        p: Box::new(DslTerm::iri("urn:predicate")),
-        o: Box::new(DslTerm::iri("urn:value")),
+        p: TermBox::new(DslTerm::iri("urn:predicate")),
+        o: TermBox::new(DslTerm::iri("urn:value")),
     };
     let expression = parse_expr(&DslView::new(&dataset), &quoted).unwrap();
     assert!(matches!(&expression, Expr::ConstTerm(term) if term == &quoted));

@@ -1577,13 +1577,13 @@ fn render_graphic(piece: &Piece, profile: &NotationProfile) -> String {
     )
 }
 
-fn child_text<'a>(node: roxmltree::Node<'a, 'a>, name: &str) -> Option<&'a str> {
+fn child_text<'a>(node: purrdf_lex::xml::Node<'a, 'a>, name: &str) -> Option<&'a str> {
     node.children()
         .find(|child| child.is_element() && child.tag_name().name() == name)
         .and_then(|child| child.text())
 }
 
-fn musicxml_pitch(note: roxmltree::Node<'_, '_>) -> Option<PitchValue> {
+fn musicxml_pitch(note: purrdf_lex::xml::Node<'_, '_>) -> Option<PitchValue> {
     let pitch = note
         .children()
         .find(|child| child.is_element() && child.tag_name().name() == "pitch")?;
@@ -1608,7 +1608,7 @@ fn musicxml_pitch(note: roxmltree::Node<'_, '_>) -> Option<PitchValue> {
 }
 
 fn musicxml_duration(
-    note: roxmltree::Node<'_, '_>,
+    note: purrdf_lex::xml::Node<'_, '_>,
     divisions: f64,
 ) -> gmeow_errors::Result<Fraction> {
     let duration_divs = child_text(note, "duration")
@@ -1617,7 +1617,7 @@ fn musicxml_duration(
     Fraction::from_f64(duration_divs / divisions.max(1.0), 64)
 }
 
-fn musicxml_part_label(doc: &roxmltree::Document<'_>, part_id: &str, fallback: &str) -> String {
+fn musicxml_part_label(doc: &purrdf_lex::xml::Document<'_>, part_id: &str, fallback: &str) -> String {
     doc.descendants()
         .find(|node| {
             node.is_element()
@@ -1629,7 +1629,7 @@ fn musicxml_part_label(doc: &roxmltree::Document<'_>, part_id: &str, fallback: &
         .to_string()
 }
 
-fn musicxml_voice_id(note: roxmltree::Node<'_, '_>) -> String {
+fn musicxml_voice_id(note: purrdf_lex::xml::Node<'_, '_>) -> String {
     child_text(note, "voice")
         .map(str::trim)
         .filter(|voice| !voice.is_empty())
@@ -1638,7 +1638,7 @@ fn musicxml_voice_id(note: roxmltree::Node<'_, '_>) -> String {
 }
 
 pub fn piece_from_musicxml_text(text: &str) -> gmeow_errors::Result<Piece> {
-    let doc = roxmltree::Document::parse(text).map_err(|e| {
+    let doc = purrdf_lex::xml::Document::parse(text).map_err(|e| {
         Diag::of_kind(error::MusicXmlParse {
             detail: format!("MusicXML parse error: {e}"),
         })

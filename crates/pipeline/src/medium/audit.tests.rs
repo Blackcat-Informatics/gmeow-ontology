@@ -315,26 +315,28 @@ fn every_universal_rejection_is_still_a_rejection_under_the_stronger_check() {
     }));
     // A payload frame with its transform chain removed.
     cases.push(("a payload frame with no transform chain", {
-        rewrite_items(&baseline_bundle(), |item| match item {
-            Value::Map(mut entries) if map_get(&entries, "d").is_some() => {
+        rewrite_items(&baseline_bundle(), |mut item| {
+            if let Some(entries) = item.as_map_mut()
+                && map_get(entries, "d").is_some()
+            {
                 entries.retain(|(key, _)| !matches!(key, Value::Text(k) if k == "x"));
-                Value::Map(entries)
             }
-            other => other,
+            item
         })
     }));
     // NEW under the medium axis: a frame naming a codec id nothing declares.
     cases.push(("a frame naming an undeclared codec id", {
-        rewrite_items(&baseline_bundle(), |item| match item {
-            Value::Map(mut entries) if map_get(&entries, "d").is_some() => {
-                for (key, value) in &mut entries {
+        rewrite_items(&baseline_bundle(), |mut item| {
+            if let Some(entries) = item.as_map_mut()
+                && map_get(entries, "d").is_some()
+            {
+                for (key, value) in entries.iter_mut() {
                     if matches!(key, Value::Text(k) if k == "x") {
                         *value = Value::Array(vec![Value::Integer(9_999.into())]);
                     }
                 }
-                Value::Map(entries)
             }
-            other => other,
+            item
         })
     }));
     // NEW: a catalog whose zstd-rsyncable entry omits the mandated level.
@@ -374,7 +376,7 @@ fn rewrite_items(bytes: &[u8], mut edit: impl FnMut(Value) -> Value) -> Vec<u8> 
     assert!(torn.is_none());
     let mut out = Vec::new();
     for (_, item) in items {
-        ciborium::ser::into_writer(&edit(item), &mut out).expect("re-serialize");
+        purrdf_lex::cbor::encode_into(&edit(item), &mut out);
     }
     out
 }
@@ -395,19 +397,21 @@ fn strip_catalog_levels(item: Value) -> Value {
             }
         }
     }
+    let mut item = item;
+    if let Some(entries) = header_entries(&mut item) {
+        strip(entries);
+    }
+    item
+}
+
+/// The header map of a GTS header item — the self-describe-tagged map or the bare
+/// `"gts"`-magic map — borrowed in place, since the substrate `Value` is never
+/// destructured by move.
+fn header_entries(item: &mut Value) -> Option<&mut Vec<(Value, Value)>> {
     match item {
-        Value::Tag(tag, inner) if tag == SELF_DESCRIBE_TAG => {
-            let Value::Map(mut entries) = *inner else {
-                return Value::Tag(tag, inner);
-            };
-            strip(&mut entries);
-            Value::Tag(tag, Box::new(Value::Map(entries)))
-        }
-        Value::Map(mut entries) if map_get(&entries, "gts").is_some() => {
-            strip(&mut entries);
-            Value::Map(entries)
-        }
-        other => other,
+        Value::Tag(tag, inner) if *tag == SELF_DESCRIBE_TAG => inner.as_map_mut(),
+        Value::Map(entries) if map_get(entries, "gts").is_some() => Some(entries),
+        _ => None,
     }
 }
 
@@ -418,21 +422,15 @@ fn strip_header_dct(bytes: &mut Vec<u8>) {
     assert!(torn.is_none());
     let mut rewritten = Vec::new();
     for (_, item) in items {
-        let item = match item {
-            Value::Tag(tag, inner) if tag == SELF_DESCRIBE_TAG => {
-                let Value::Map(mut entries) = *inner else {
-                    panic!("a tagged header wraps a map");
-                };
-                entries.retain(|(key, _)| !matches!(key, Value::Text(k) if k == "dct"));
-                Value::Tag(tag, Box::new(Value::Map(entries)))
+        let mut item = item;
+        let tagged = matches!(&item, Value::Tag(tag, _) if *tag == SELF_DESCRIBE_TAG);
+        match header_entries(&mut item) {
+            Some(entries) => {
+                entries.retain(|(key, _)| !matches!(key, Value::Text(k) if k == "dct"))
             }
-            Value::Map(mut entries) if map_get(&entries, "gts").is_some() => {
-                entries.retain(|(key, _)| !matches!(key, Value::Text(k) if k == "dct"));
-                Value::Map(entries)
-            }
-            other => other,
-        };
-        ciborium::ser::into_writer(&item, &mut rewritten).expect("re-serialize");
+            None => assert!(!tagged, "a tagged header wraps a map"),
+        }
+        purrdf_lex::cbor::encode_into(&item, &mut rewritten);
     }
     *bytes = rewritten;
 }

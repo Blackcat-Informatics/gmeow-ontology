@@ -600,8 +600,8 @@ fn yaml_ld_roundtrips_through_carrier() {
     let dataset = synth_to_dataset(&graph);
     let yaml = serialize_graph_yaml(dataset.as_ref(), None).expect("serialize YAML-LD");
     // The test parser works over JSON-LD-star; convert YAML back to JSON first.
-    let yaml_value: serde_yaml::Value = serde_yaml::from_str(&yaml).expect("parse emitted YAML-LD");
-    let json = serde_json::to_string(&yaml_value).expect("YAML -> JSON");
+    let yaml_value: purrdf_lex::json::Value = purrdf_lex::yaml::read(&yaml).expect("parse emitted YAML-LD");
+    let json = yaml_value.to_string();
 
     let expected = dataset;
     let actual =

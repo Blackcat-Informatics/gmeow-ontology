@@ -308,13 +308,17 @@ where
                 .as_ref()
                 .map(ToString::to_string)
                 .unwrap_or_default(),
-            r.message.clone().unwrap_or_default(),
+            gmeow_validate::findings::shacl_message(r).unwrap_or_default(),
             r.severity.clone(),
         )
     });
     ValidationReport {
         conforms: results.is_empty(),
         results,
+        ..purrdf::shapes::report::ValidationReport::from_results(
+            Vec::new(),
+            purrdf::shapes::report::ConformanceDisallows::default(),
+        )
     }
 }
 
@@ -496,7 +500,7 @@ pub fn violations(report: &ValidationReport) -> Vec<String> {
         .results
         .iter()
         .filter(|r| r.severity == Severity::Violation)
-        .map(|r| r.message.clone().unwrap_or_default())
+        .map(|r| gmeow_validate::findings::shacl_message(r).unwrap_or_default())
         .collect()
 }
 
@@ -508,7 +512,7 @@ pub fn warnings(report: &ValidationReport) -> Vec<String> {
         .results
         .iter()
         .filter(|r| r.severity == Severity::Warning)
-        .map(|r| r.message.clone().unwrap_or_default())
+        .map(|r| gmeow_validate::findings::shacl_message(r).unwrap_or_default())
         .collect()
 }
 
@@ -659,7 +663,7 @@ impl GraphStore {
     }
 
     fn term_id(&self, value: &TermValue) -> Option<purrdf::TermId> {
-        self.ds.term_id_by_value(value)
+        self.ds.as_ref().term_id_by_value(value)
     }
 
     fn iri_id(&self, iri: &str) -> Option<purrdf::TermId> {
@@ -743,7 +747,7 @@ impl GraphStore {
             (Some(s), Some(p)) => self
                 .ds
                 .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
-                .filter_map(|q| match self.ds.resolve(q.o) {
+                .filter_map(|q| match self.ds.as_ref().resolve(q.o) {
                     purrdf::TermRef::Iri(iri) => Some(iri.to_owned()),
                     purrdf::TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
                     _ => None,
@@ -2423,7 +2427,7 @@ fn shard_parity_key(
         r.source_constraint_component.to_string(),
         r.source_shape.to_string(),
         format!("{:?}", r.severity),
-        r.message.clone(),
+        gmeow_validate::findings::shacl_message(r),
     )
 }
 

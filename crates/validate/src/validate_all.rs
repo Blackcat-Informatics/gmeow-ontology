@@ -553,8 +553,11 @@ impl ValidationRun {
                 Some(root) => purrdf::shapes::shape_union::load_shapes(root)
                     .map(|(_, shapes)| shapes)
                     .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
-                None => purrdf::shapes::engine::parse_shapes(shapes_ttl, None)
-                    .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+                None => purrdf::shapes::engine::parse_shapes(shapes_ttl, None).map_err(|e| {
+                    Diag::of_kind(crate::error::Parse {
+                        detail: e.to_string(),
+                    })
+                }),
             },
         )?;
 

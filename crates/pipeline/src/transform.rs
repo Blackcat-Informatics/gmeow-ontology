@@ -224,7 +224,7 @@ impl Graph {
     }
 
     fn id(&self, value: &TermValue) -> Option<TermId> {
-        self.ds.term_id_by_value(value)
+        self.ds.as_ref().term_id_by_value(value)
     }
 
     fn iri_id(&self, iri: &str) -> Option<TermId> {
@@ -1207,9 +1207,9 @@ fn term_value(term: &RdfTerm) -> TermValue {
         RdfTerm::BlankNode(label) => TermValue::blank(label.clone()),
         RdfTerm::Literal(lit) => literal_value(lit),
         RdfTerm::Triple(triple) => TermValue::Triple {
-            s: Box::new(term_value(&triple.subject)),
-            p: Box::new(TermValue::iri(triple.predicate.clone())),
-            o: Box::new(term_value(&triple.object)),
+            s: term_value(&triple.subject).into(),
+            p: TermValue::iri(triple.predicate.clone()).into(),
+            o: term_value(&triple.object).into(),
         },
     }
 }

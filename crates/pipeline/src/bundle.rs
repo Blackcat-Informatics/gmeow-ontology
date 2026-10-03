@@ -279,7 +279,7 @@ pub fn bundle_from_artifacts_over_with_rep_blob(
                 .with_digest(digest.to_hex()),
         );
     }
-    let decoded_len = blob_bytes.len();
+    let decoded_len = blob_bytes.len() as u64;
     let digest = blobs.insert(blob_bytes);
     lookaside.blobs.push(RdfBlobRecord {
         digest: digest.to_hex(),
@@ -314,7 +314,7 @@ pub fn attach_rep_blob(
         })?;
     }
     let mut lookaside = bundle.lookaside().clone();
-    let decoded_len = blob_bytes.len();
+    let decoded_len = blob_bytes.len() as u64;
     let digest = blobs.insert(blob_bytes);
     lookaside.blobs.push(RdfBlobRecord {
         digest: digest.to_hex(),

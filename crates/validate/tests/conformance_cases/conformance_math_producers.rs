@@ -47,7 +47,7 @@ fn bundled_producer_violations(graph_iri: &str) -> Vec<String> {
                 "focus={:?} shape-component={} msg={}",
                 result.focus_node,
                 result.source_constraint_component.as_str(),
-                result.message.clone().unwrap_or_default()
+                gmeow_validate::findings::shacl_message(result).unwrap_or_default()
             )
         })
         .collect()

@@ -3,8 +3,8 @@
 
 //! Bounded access to required native artifacts in an already imported GMEOW bundle.
 
-use ciborium::Value;
 use purrdf::gts::model::Graph;
+use purrdf_lex::cbor::Value;
 use std::borrow::Cow;
 use std::sync::Arc;
 

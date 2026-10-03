@@ -16,12 +16,7 @@ use crate::model::{CoveredTerm, GroundingCell, GroundingMargins, ObjTerm};
 fn hex(body: &str) -> String {
     let mut h = Sha256::new();
     h.update(body.as_bytes());
-    let out = h.finalize();
-    let mut s = String::with_capacity(out.len() * 2);
-    for b in out {
-        s.push_str(&format!("{b:02x}"));
-    }
-    s
+    purrdf_hash::hex::encode(&h.finalize())
 }
 
 /// The canonical rendering of an object term for a digest — blank identity is

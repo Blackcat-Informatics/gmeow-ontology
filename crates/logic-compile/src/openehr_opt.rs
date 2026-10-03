@@ -72,20 +72,21 @@ fn opt_err(msg: impl Into<String>) -> OptError {
 /// Finds the first element child named `name` (namespace-agnostic on the
 /// local name, matching how the OPT's default+xsi namespaces are declared).
 fn child_element<'a, 'input>(
-    node: roxmltree::Node<'a, 'input>,
+    node: purrdf_lex::xml::Node<'a, 'input>,
     name: &str,
-) -> Option<roxmltree::Node<'a, 'input>> {
+) -> Option<purrdf_lex::xml::Node<'a, 'input>> {
     node.children()
         .find(|c| c.is_element() && c.tag_name().name() == name)
 }
 
-fn xsi_type<'a>(node: roxmltree::Node<'a, '_>) -> Option<&'a str> {
+fn xsi_type<'a>(node: purrdf_lex::xml::Node<'a, '_>) -> Option<&'a str> {
     node.attributes()
+        .iter()
         .find(|a| a.name() == "type")
         .map(|a| a.value())
 }
 
-fn element_text_f64(node: roxmltree::Node, name: &str) -> Result<f64, OptError> {
+fn element_text_f64(node: purrdf_lex::xml::Node, name: &str) -> Result<f64, OptError> {
     let child = child_element(node, name).ok_or_else(|| {
         opt_err(format!(
             "missing <{name}> under <{}>",
@@ -100,7 +101,7 @@ fn element_text_f64(node: roxmltree::Node, name: &str) -> Result<f64, OptError> 
         .map_err(|e| opt_err(format!("<{name}> value {text:?} is not a number: {e}")))
 }
 
-fn element_text_u32(node: roxmltree::Node, name: &str) -> Result<u32, OptError> {
+fn element_text_u32(node: purrdf_lex::xml::Node, name: &str) -> Result<u32, OptError> {
     let child = child_element(node, name).ok_or_else(|| {
         opt_err(format!(
             "missing <{name}> under <{}>",
@@ -117,7 +118,7 @@ fn element_text_u32(node: roxmltree::Node, name: &str) -> Result<u32, OptError> 
     })
 }
 
-fn element_text_bool(node: roxmltree::Node, name: &str) -> Result<bool, OptError> {
+fn element_text_bool(node: purrdf_lex::xml::Node, name: &str) -> Result<bool, OptError> {
     let child = child_element(node, name).ok_or_else(|| {
         opt_err(format!(
             "missing <{name}> under <{}>",
@@ -156,7 +157,7 @@ pub fn read_magnitude_interval(
     opt_xml: &str,
     node_id: &str,
 ) -> Result<MagnitudeInterval, OptError> {
-    let doc = roxmltree::Document::parse(opt_xml)
+    let doc = purrdf_lex::xml::Document::parse(opt_xml)
         .map_err(|e| opt_err(format!("XML parse failure: {e}")))?;
 
     let candidate_elements = doc.descendants().filter(|n| {
@@ -239,7 +240,7 @@ pub fn read_all_opt_constraints(
     base_iri: &str,
     naming: &std::collections::BTreeMap<String, String>,
 ) -> Result<Vec<OptConstraintIr>, OptError> {
-    let doc = roxmltree::Document::parse(opt_xml)
+    let doc = purrdf_lex::xml::Document::parse(opt_xml)
         .map_err(|e| opt_err(format!("XML parse failure: {e}")))?;
     let archetype_tag = archetype_or_template_tag(&doc);
     let mut used_locals: std::collections::BTreeMap<String, u32> =
@@ -328,7 +329,7 @@ pub fn read_all_opt_constraints(
 /// The at-code (`<node_id>` text) of the nearest ancestor of `node` — possibly `node` itself —
 /// that carries a non-empty `<node_id>` child. Returns `None` when no ancestor up to the
 /// document root carries one (a genuinely at-code-free constraint, e.g. a root `term_bindings`).
-fn enclosing_at_code(node: roxmltree::Node) -> Option<String> {
+fn enclosing_at_code(node: purrdf_lex::xml::Node) -> Option<String> {
     node.ancestors().find_map(|n| {
         child_element(n, "node_id")
             .and_then(|nid| nid.text())
@@ -341,7 +342,7 @@ fn enclosing_at_code(node: roxmltree::Node) -> Option<String> {
 /// A stable tag for an OPT document: the root `<template_id>/<value>`, falling back to the
 /// `<definition>`'s `<archetype_id>/<value>`, falling back to a fixed `"root"` tag. Used to
 /// name at-code-free constraints (e.g. a root-level `<term_bindings>`).
-fn archetype_or_template_tag(doc: &roxmltree::Document) -> String {
+fn archetype_or_template_tag(doc: &purrdf_lex::xml::Document) -> String {
     let root = doc.root_element();
     if let Some(v) = child_element(root, "template_id")
         .and_then(|t| child_element(t, "value"))
@@ -399,7 +400,7 @@ fn dedupe_local(candidate: String, used: &mut std::collections::BTreeMap<String,
 /// outright. The sibling `<precision>` interval (a `DV_QUANTITY.precision` decimal-place count,
 /// same interval structure as `<magnitude>`) is OPTIONAL — `Ok(None)` when the `<list>` omits it.
 fn magnitude_from_quantity(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     label: &str,
 ) -> Result<(OptInterval, String, Option<OptInterval>), OptError> {
     let list = child_element(node, "list")
@@ -441,7 +442,7 @@ fn magnitude_from_quantity(
 /// element is a malformed OPT and hard-fails — never silently widened to open (which would accept
 /// magnitudes the constraint rejects).
 fn optional_bound(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     name: &str,
     unbounded_name: &str,
 ) -> Result<Option<f64>, OptError> {
@@ -482,7 +483,7 @@ fn optional_bound(
 /// when a `<code_list>` is present but its `<terminology_id>` qualifier is absent (a malformed
 /// OPT — never mint a bogus `unknown` terminology).
 fn code_phrase_value_set(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     base_iri: &str,
 ) -> Result<Option<OptConstraintKind>, OptError> {
     let raw_codes: Vec<&str> = node
@@ -518,7 +519,7 @@ fn code_phrase_value_set(
 /// `Ok(None)` when the node has no `<list>`; hard-fails on a `<list>` missing its integer value
 /// or its terminology-qualified code (a malformed OPT — never mint a bogus code).
 fn ordinal_value_set(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     base_iri: &str,
 ) -> Result<Option<OptConstraintKind>, OptError> {
     let mut ordinals: Vec<(i64, String)> = Vec::new();
@@ -560,7 +561,7 @@ fn ordinal_value_set(
 /// `Ok(None)` when the node carries no `<pattern>` (an unconstrained datetime has nothing to
 /// lift).
 fn datetime_pattern(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     base_iri: &str,
 ) -> Result<Option<OptConstraintKind>, OptError> {
     let Some(pattern) = child_element(node, "pattern").and_then(|p| p.text()) else {
@@ -577,7 +578,7 @@ fn datetime_pattern(
 /// `None` when the node has no `<occurrences>` child. An unbounded end (`*_unbounded = true`)
 /// maps to an open count (`None`); a bounded end reads its non-negative-integer value.
 fn cardinality_from_occurrences(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     base_iri: &str,
     label: &str,
 ) -> Result<Option<OptConstraintKind>, OptError> {
@@ -609,7 +610,7 @@ fn cardinality_from_occurrences(
 /// `existence/{label}` (distinct from occurrences' `occurrences/{label}`) so the two families'
 /// shapes never collide on a shared enclosing at-code.
 fn cardinality_from_existence(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     base_iri: &str,
     label: &str,
 ) -> Result<Option<OptConstraintKind>, OptError> {
@@ -640,7 +641,7 @@ fn cardinality_from_existence(
 /// carries no (or an empty) `terminology` id — a malformed OPT, never mint a bogus `unknown`
 /// terminology (mirroring [`code_phrase_value_set`]).
 fn terminology_from_bindings(
-    node: roxmltree::Node,
+    node: purrdf_lex::xml::Node,
     base_iri: &str,
 ) -> Result<Option<OptConstraintKind>, OptError> {
     let mut codes: Vec<String> = node
@@ -654,6 +655,7 @@ fn terminology_from_bindings(
     }
     let terminology_id = node
         .attributes()
+        .iter()
         .find(|a| a.name() == "terminology")
         .map(|a| a.value().trim().to_owned())
         .filter(|s| !s.is_empty())

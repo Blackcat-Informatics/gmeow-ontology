@@ -3,8 +3,8 @@
 
 use std::sync::Mutex;
 
-use ciborium::Value;
 use purrdf::gts_view::GtsFoldView;
+use purrdf_lex::cbor::Value;
 
 use super::*;
 use crate::bundle_blobs::REP_REASONING;

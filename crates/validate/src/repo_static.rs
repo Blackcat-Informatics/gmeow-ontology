@@ -16,7 +16,8 @@ use std::sync::LazyLock;
 use gmeow_errors::{Finding, Report, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
-use serde_yaml::Value as Yaml;
+// YAML is read as the substrate JSON data model (`purrdf_lex::yaml`).
+use purrdf_lex::json::{Object as YamlMap, Value as Yaml};
 
 use crate::model::rdf;
 
@@ -443,7 +444,7 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
             continue;
         };
         for q in ds.quads_for_pattern(None, Some(sel_id), None, GraphMatch::Any) {
-            let TermRef::Literal { lexical, .. } = ds.resolve(q.o) else {
+            let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(q.o) else {
                 continue;
             };
             // The sh:select lexical with ALL whitespace removed. The seal is a lexical
@@ -952,7 +953,7 @@ pub fn registered_fail_witnesses(slice_dir: &Path) -> BTreeSet<PathBuf> {
             continue;
         };
         for q in ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any) {
-            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+            if let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(q.o) {
                 out.insert(slice_dir.join(lexical));
             }
         }
@@ -1077,7 +1078,7 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
     let Some(ci) = parse_yaml(rel, &text, report) else {
         return;
     };
-    let Some(jobs) = yaml_get(&ci, "jobs").and_then(Yaml::as_mapping) else {
+    let Some(jobs) = yaml_get(&ci, "jobs").and_then(Yaml::as_object) else {
         report.error(format!("{rel}: missing jobs mapping"));
         return;
     };
@@ -1086,7 +1087,7 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
         return;
     };
     let needs = match yaml_get(quality, "needs") {
-        Some(Yaml::Sequence(items)) => items
+        Some(Yaml::Array(items)) => items
             .iter()
             .filter_map(Yaml::as_str)
             .map(str::to_owned)
@@ -1194,7 +1195,7 @@ fn read_required(root: &Path, rel: &str, report: &mut RepoStaticReport) -> Optio
 }
 
 fn parse_yaml(rel: &str, text: &str, report: &mut RepoStaticReport) -> Option<Yaml> {
-    match serde_yaml::from_str::<Yaml>(text) {
+    match purrdf_lex::yaml::read(text) {
         Ok(value) => Some(value),
         Err(err) => {
             report.error(format!("{rel}: cannot parse YAML: {err}"));
@@ -1204,13 +1205,11 @@ fn parse_yaml(rel: &str, text: &str, report: &mut RepoStaticReport) -> Option<Ya
 }
 
 fn yaml_get<'a>(value: &'a Yaml, key: &str) -> Option<&'a Yaml> {
-    value
-        .as_mapping()
-        .and_then(|mapping| yaml_map_get(mapping, key))
+    value.as_object().and_then(|mapping| yaml_map_get(mapping, key))
 }
 
-fn yaml_map_get<'a>(mapping: &'a serde_yaml::Mapping, key: &str) -> Option<&'a Yaml> {
-    mapping.get(Yaml::String(key.to_owned()))
+fn yaml_map_get<'a>(mapping: &'a YamlMap, key: &str) -> Option<&'a Yaml> {
+    mapping.get(key)
 }
 
 fn recursive_yaml_text(value: &Yaml) -> String {
@@ -1218,17 +1217,17 @@ fn recursive_yaml_text(value: &Yaml) -> String {
         Yaml::String(s) => s.clone(),
         Yaml::Number(n) => n.to_string(),
         Yaml::Bool(b) => b.to_string(),
-        Yaml::Sequence(items) => items
+        Yaml::Array(items) => items
             .iter()
             .map(recursive_yaml_text)
             .collect::<Vec<_>>()
             .join("\n"),
-        Yaml::Mapping(map) => map
+        Yaml::Object(map) => map
             .iter()
-            .flat_map(|(k, v)| [recursive_yaml_text(k), recursive_yaml_text(v)])
+            .flat_map(|(k, v)| [k.clone(), recursive_yaml_text(v)])
             .collect::<Vec<_>>()
             .join("\n"),
-        Yaml::Null | Yaml::Tagged(_) => String::new(),
+        Yaml::Null => String::new(),
     }
 }
 
@@ -3265,7 +3264,7 @@ fn declared_gts_producers(
         };
         // subject -> the media it declares, and each medium -> its source kinds.
         for quad in ds.quads_for_pattern(None, Some(call_site), None, GraphMatch::Any) {
-            let TermRef::Literal { lexical, .. } = ds.resolve(quad.o) else {
+            let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(quad.o) else {
                 report.error(format!(
                     "{rel}: a gmeow:producerCallSite object is not a literal source path"
                 ));
@@ -3275,7 +3274,7 @@ fn declared_gts_producers(
             for medium_quad in
                 ds.quads_for_pattern(Some(quad.s), Some(producer_medium), None, GraphMatch::Any)
             {
-                let TermRef::Iri(medium) = ds.resolve(medium_quad.o) else {
+                let TermRef::Iri(medium) = ds.as_ref().resolve(medium_quad.o) else {
                     continue;
                 };
                 entry.media.insert(medium.to_string());
@@ -3285,7 +3284,7 @@ fn declared_gts_producers(
                     None,
                     GraphMatch::Any,
                 ) {
-                    if let TermRef::Iri(kind) = ds.resolve(kind_quad.o) {
+                    if let TermRef::Iri(kind) = ds.as_ref().resolve(kind_quad.o) {
                         entry.source_kinds.insert(kind.to_string());
                     }
                 }
@@ -3596,7 +3595,7 @@ fn ontology_failure_classes(root: &Path, report: &mut RepoStaticReport) -> BTree
             continue;
         };
         for quad in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
-            if let TermRef::Iri(iri) = ds.resolve(quad.o) {
+            if let TermRef::Iri(iri) = ds.as_ref().resolve(quad.o) {
                 classes.insert(iri.to_string());
             }
         }

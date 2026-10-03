@@ -1018,14 +1018,20 @@ fn run_claim_shacl(
 
     let phase_started = Instant::now();
     let shapes = retain_claim_audit_shapes(
-        purrdf::shapes::engine::parse_shapes(&shapes_ttl, None)
-            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?,
+        purrdf::shapes::engine::parse_shapes(&shapes_ttl, None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                message: e.to_string(),
+            })
+        })?,
     )?;
     trace_claim_audit_phase(trace, "shacl.parse-shapes", phase_started);
 
     let phase_started = Instant::now();
-    let shacl = purrdf::shapes::engine::validate_dataset(store.as_ref(), &shapes)
-        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
+    let shacl = purrdf::shapes::engine::validate_dataset(store.as_ref(), &shapes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: e.to_string(),
+        })
+    })?;
     trace_claim_audit_phase(trace, "shacl.validate", phase_started);
     if shacl.conforms {
         return Ok((Vec::new(), Vec::new()));
@@ -1038,6 +1044,8 @@ fn run_claim_shacl(
             purrdf::shapes::report::Severity::Violation => violations.push(line),
             purrdf::shapes::report::Severity::Warning
             | purrdf::shapes::report::Severity::Info
+            | purrdf::shapes::report::Severity::Debug
+            | purrdf::shapes::report::Severity::Trace
             | purrdf::shapes::report::Severity::Other(_) => {
                 warnings.push(line);
             }
@@ -1148,7 +1156,7 @@ fn shapes_turtle(root: &Path) -> gmeow_errors::Result<String> {
 
 fn shacl_line(result: &purrdf::shapes::report::ValidationResult) -> String {
     let focus = result.focus_value();
-    match &result.message {
+    match gmeow_validate::findings::shacl_message(result) {
         Some(message) => format!("{focus}: {message}"),
         None => focus,
     }
@@ -1944,10 +1952,16 @@ fn run_range_shacl(
         let Some(shapes_ttl) = generate_range_shapes(root, prefix)? else {
             continue;
         };
-        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl, None)
-            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
-        let report = purrdf::shapes::engine::validate_dataset(output, &shapes)
-            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
+        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl, None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                message: e.to_string(),
+            })
+        })?;
+        let report = purrdf::shapes::engine::validate_dataset(output, &shapes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                message: e.to_string(),
+            })
+        })?;
         if report.conforms {
             continue;
         }
@@ -1979,10 +1993,10 @@ fn generate_range_shapes(root: &Path, prefix: &str) -> gmeow_errors::Result<Opti
     let range_id = iri_id(&store, RDFS_RANGE);
     if let Some(range_id) = range_id {
         for quad in store.quads_for_pattern(None, Some(range_id), None, GraphMatch::Any) {
-            let TermRef::Iri(prop) = store.resolve(quad.s) else {
+            let TermRef::Iri(prop) = store.as_ref().resolve(quad.s) else {
                 continue;
             };
-            let TermRef::Iri(range) = store.resolve(quad.o) else {
+            let TermRef::Iri(range) = store.as_ref().resolve(quad.o) else {
                 continue;
             };
             if !range.starts_with(namespace) {

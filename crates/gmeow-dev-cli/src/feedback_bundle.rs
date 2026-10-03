@@ -14,12 +14,12 @@
 
 use std::collections::BTreeMap;
 
-use ciborium::value::Value as CborValue;
 use gmeow_errors::{Report, render};
 use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::reader::read;
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
 use purrdf::parse_dataset;
+use purrdf_lex::cbor::Value as CborValue;
 use serde_json::Value;
 
 /// Blob representation label for the embedded SARIF 2.1.0 projection.

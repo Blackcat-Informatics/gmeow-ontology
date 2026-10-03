@@ -5,7 +5,10 @@
 use super::*;
 use purrdf::DatasetView;
 
-pub(crate) fn fixtures(edb: &impl DatasetView, schema: bool) -> Vec<NativeFamilyLedger> {
+pub(crate) fn fixtures(
+    edb: &impl DatasetView<ReadError = std::convert::Infallible>,
+    schema: bool,
+) -> Vec<NativeFamilyLedger> {
     let native = crate::reason::program::prepare_reasoning_input(edb).unwrap();
     let domains = crate::physical::SelectedDomains::new([]).unwrap();
     if schema {

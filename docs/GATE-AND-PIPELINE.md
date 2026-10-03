@@ -41,7 +41,9 @@
 separate regeneration step to perform first; performing one runs the whole
 pipeline twice and queues the machine behind you.
 
-The PurRDF manifests declare the compatible major release (`purrdf = "2"`).
+The PurRDF manifests declare the compatible major release (`purrdf = "3"`), and no
+`purrdf*` requirement or locked package may admit a release below major 3
+(`PURRDF_MAJOR_FLOOR`).
 `Cargo.lock` selects the concrete version, registry source, and package checksum.
 The standalone fuzz workspace commits its own lockfile and must resolve every
 PurRDF package to the same identity; `make fuzz-substrate-check` verifies that

@@ -4205,12 +4205,12 @@ fn extract_formulas(
 
 /// Borrowed source coordinate shared by formula admission and reconstruction.
 trait FormulaSource {
-    type Dataset: purrdf::DatasetView + ?Sized;
+    type Dataset: purrdf::DatasetView<ReadError = std::convert::Infallible> + ?Sized;
     fn dataset(&self) -> &Self::Dataset;
     fn source_graph(&self) -> GraphMatch<<Self::Dataset as DatasetView>::Id>;
 }
 
-impl<D: purrdf::DatasetView + ?Sized> FormulaSource for D {
+impl<D: purrdf::DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaSource for D {
     type Dataset = D;
     fn dataset(&self) -> &D {
         self
@@ -4221,12 +4221,17 @@ impl<D: purrdf::DatasetView + ?Sized> FormulaSource for D {
 }
 
 #[derive(Clone, Copy)]
-struct SelectedFormulaGraph<'a, D: purrdf::DatasetView + ?Sized = RdfDataset> {
+struct SelectedFormulaGraph<
+    'a,
+    D: purrdf::DatasetView<ReadError = std::convert::Infallible> + ?Sized = RdfDataset,
+> {
     dataset: &'a D,
     graph: GraphMatch<D::Id>,
 }
 
-impl<D: purrdf::DatasetView + ?Sized> FormulaSource for SelectedFormulaGraph<'_, D> {
+impl<D: purrdf::DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaSource
+    for SelectedFormulaGraph<'_, D>
+{
     type Dataset = D;
     fn dataset(&self) -> &D {
         self.dataset
@@ -4283,7 +4288,7 @@ pub fn reconstruct_formula(store: &RdfDataset, root_iri: &str) -> gmeow_errors::
 /// selected context scopes every connective; nested context selectors and modal
 /// binders retain their own scope. Reading a query asserts no formula.
 pub fn reconstruct_formula_in_context(
-    store: &(impl purrdf::DatasetView + ?Sized),
+    store: &(impl purrdf::DatasetView<ReadError = std::convert::Infallible> + ?Sized),
     root_iri: &str,
     context_iri: &str,
 ) -> gmeow_errors::Result<Formula> {
@@ -4294,19 +4299,20 @@ pub fn reconstruct_formula_in_context(
 /// Reconstruct and admit a contextual query from exactly one named source graph.
 /// Missing formula fields cannot be supplied by default or foreign graphs.
 pub fn reconstruct_formula_in_named_context(
-    dataset: &(impl purrdf::DatasetView + ?Sized),
+    dataset: &(impl purrdf::DatasetView<ReadError = std::convert::Infallible> + ?Sized),
     source_graph_iri: &str,
     root_iri: &str,
     context_iri: &str,
 ) -> gmeow_errors::Result<Formula> {
-    let graph = dataset
-        .term_id_by_value(&TermValue::Iri(source_graph_iri.to_owned()))
-        .ok_or_else(|| {
-            formula_err_for(
-                root_iri,
-                format!("selected formula source graph {source_graph_iri} is absent"),
-            )
-        })?;
+    let graph = crate::graphutil::resident(
+        dataset.term_id_by_value(&TermValue::Iri(source_graph_iri.to_owned())),
+    )
+    .ok_or_else(|| {
+        formula_err_for(
+            root_iri,
+            format!("selected formula source graph {source_graph_iri} is absent"),
+        )
+    })?;
     FormulaReader::in_graph(dataset, GraphMatch::Named(graph))
         .read_in_context(&Subject::Iri(root_iri.to_owned()), Term::iri(context_iri)?)
 }

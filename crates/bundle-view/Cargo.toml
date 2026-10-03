@@ -56,10 +56,9 @@ serde_json.workspace = true
 # `blake3:<hex>` digest and compares it against the stored key, so a silently
 # corrupted blob is caught on read.
 blake3.workspace = true
-# The snapshot's per-blob `pub` metadata maps are CBOR `Value`s; recovering a blob's
-# declared rep + media type means reading them with the same codec the gts composer
-# wrote them with.
-ciborium.workspace = true
+# The snapshot's per-blob `pub` metadata maps are the substrate's CBOR `Value`s;
+# recovering a blob's declared rep + media type reads them as the gts composer wrote them.
+purrdf-lex.workspace = true
 # Subscriber-controlled sink for the lossy-projection notices the export tiers
 # raise (a term an encoding cannot carry). Never product data and never a gate —
 # the events surface only when the host CLI has installed a subscriber.

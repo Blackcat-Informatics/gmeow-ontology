@@ -286,7 +286,7 @@ fn discharge_of(info: InformationState) -> ConjectureDischarge {
 /// contradictory world), if the native chase fails, or if the assembled result violates a
 /// [`ReasoningResult::validate`] invariant.
 pub fn conjecture_test(
-    kb: &impl DatasetView,
+    kb: &impl DatasetView<ReadError = std::convert::Infallible>,
     scenario_world: &str,
     candidate: &Formula,
     standpoint: &str,
@@ -506,7 +506,7 @@ pub fn conjecture_test(
 /// Ingest the borrowed KB once and add explicit assumptions to its native source
 /// columns. Derived rows never enter this input and the caller's carrier is untouched.
 fn prepare_scenario_input(
-    kb: &impl DatasetView,
+    kb: &impl DatasetView<ReadError = std::convert::Infallible>,
     scenario_world: &str,
     assume_context: &[(String, String, String)],
 ) -> gmeow_errors::Result<PreparedReasoningInput> {

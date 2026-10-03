@@ -96,7 +96,7 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> gmeow_errors::Result<DslMerge
         // Record the first source file for each named-IRI subject, in document order
         // (the parsed per-file dataset preserves source order in its quad table).
         for q in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
-            if let TermRef::Iri(iri) = dataset.resolve(q.s)
+            if let TermRef::Iri(iri) = dataset.as_ref().resolve(q.s)
                 && seen.insert(iri.to_owned())
             {
                 focus_to_file.push((iri.to_owned(), path_str.clone()));
