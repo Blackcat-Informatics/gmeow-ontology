@@ -1394,3 +1394,193 @@ fn source_constant_enrichment_preserves_unbounded_native_generation_and_known_al
         "the new range must not turn an unbounded witness family into finite constants"
     );
 }
+
+#[test]
+fn value_classes_transpose_each_member_onto_its_exact_representative_support() {
+    let rule = EvalRule::positive(
+        "urn:two-hop",
+        atom("?s", "urn:result", "?o"),
+        vec![
+            atom("?s", "urn:left", "?middle"),
+            atom("?middle", "urn:right", "?o"),
+        ],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let node = |index: usize| format!("urn:node:{index}");
+    let fact = |subject: &str, predicate: &str, object: &str| Fact {
+        subject: TermValue::iri(subject),
+        predicate: predicate.to_owned(),
+        object: TermValue::iri(object),
+    };
+    let count = PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES + 76;
+    let mut facts = vec![
+        fact("urn:hubA", "urn:right", "urn:c1"),
+        fact("urn:hubB", "urn:right", "urn:c2"),
+        // A self edge and a mutual edge each give their values a distinct signature.
+        fact(&node(7), "urn:left", &node(7)),
+        fact(&node(5), "urn:left", &node(9)),
+        fact(&node(9), "urn:left", &node(5)),
+        fact(&node(11), "urn:right", "urn:c1"),
+    ];
+    // A clique with self edges is a genuine exchange: both members share a class.
+    for (subject, object) in [(20, 20), (20, 22), (22, 20), (22, 22)] {
+        facts.push(fact(&node(subject), "urn:left", &node(object)));
+    }
+    let mut observations: Vec<_> = ["urn:hubA", "urn:hubB", "urn:c1", "urn:c2"]
+        .into_iter()
+        .map(|value| StatementPattern::subject(TermValue::iri(value)))
+        .collect();
+    for index in 0..count {
+        let hub = if index % 2 == 0 {
+            "urn:hubA"
+        } else {
+            "urn:hubB"
+        };
+        facts.push(fact(&node(index), "urn:left", hub));
+        observations.push(StatementPattern::subject(TermValue::iri(&node(index))));
+    }
+    let analysis = ValueFlow::with_observations(
+        &[flow(&rule)],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    );
+    let state = analysis.summarize(facts.iter());
+    let lowered = &analysis.rules[0];
+    let upper = analysis.bindings(lowered, &state).unwrap();
+    let head = &lowered.heads[0];
+    let value = |iri: &str| analysis.universe.value(&TermValue::iri(iri));
+    let support = |slot: usize, member: usize| {
+        let refinement =
+            analysis.bindings_for_head_value(lowered, head, slot, member, &state, &upper);
+        analysis.head_value_support(head, slot, refinement)
+    };
+    let transposed = |support: Option<HeadSupport>, from: usize, to: usize| {
+        support.map(|support| {
+            let swap = |index: usize| match index {
+                index if index == from => to,
+                index if index == to => from,
+                index => index,
+            };
+            let mut predicates: Vec<_> = support.predicates.into_iter().map(swap).collect();
+            let mut opposite: Vec<_> = support.opposite.into_iter().map(swap).collect();
+            predicates.sort_unstable();
+            opposite.sort_unstable();
+            HeadSupport {
+                predicates,
+                opposite,
+            }
+        })
+    };
+
+    for slot in [0, 2] {
+        let candidates: Vec<_> = analysis.universe.domains(head, &upper, false)[slot]
+            .indices()
+            .filter(|value| analysis.conditioned.contains(*value))
+            .collect();
+        let classes = analysis.value_classes(lowered, &state, &upper, &candidates);
+        let mut members: Vec<_> = classes.iter().flatten().copied().collect();
+        members.sort_unstable();
+        assert_eq!(
+            members, candidates,
+            "slot {slot} partitions every candidate"
+        );
+        for class in &classes {
+            let representative = class[0];
+            for &member in class {
+                assert_eq!(
+                    support(slot, member),
+                    transposed(support(slot, representative), representative, member),
+                    "slot {slot}: {member} is exchangeable with {representative}",
+                );
+            }
+        }
+        if slot == 0 {
+            assert!(
+                classes.len() < 16,
+                "symmetric fan-in collapses: {}",
+                classes.len()
+            );
+            for broken in [node(7), node(5), node(9), node(11)] {
+                assert!(
+                    classes.contains(&vec![value(&broken)]),
+                    "{broken} has its own class",
+                );
+            }
+            assert!(
+                classes.contains(&vec![value(&node(20)), value(&node(22))]),
+                "an exchangeable clique shares one class",
+            );
+        }
+    }
+}
+
+#[test]
+fn value_classes_separate_values_named_only_by_a_one_sided_published_support() {
+    let rule = EvalRule::positive(
+        "urn:copy",
+        atom("?s", "urn:result", "?o"),
+        vec![atom("?s", "urn:left", "?o")],
+    );
+    let effect = ProducerEffect::rule(&rule);
+    let node = |index: usize| format!("urn:node:{index}");
+    let mut facts = Vec::new();
+    let mut observations = vec![StatementPattern::subject(TermValue::iri("urn:hub"))];
+    for index in 0..10 {
+        facts.push(Fact {
+            subject: TermValue::iri(&node(index)),
+            predicate: "urn:left".to_owned(),
+            object: TermValue::iri("urn:hub"),
+        });
+        observations.push(StatementPattern::subject(TermValue::iri(&node(index))));
+    }
+    let analysis = ValueFlow::with_observations(
+        &[flow(&rule)],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+        &observations,
+    );
+    let size = analysis.universe.size();
+    let value = |index: usize| analysis.universe.value(&TermValue::iri(&node(index)));
+    let left = analysis.universe.iri("urn:left");
+    let mut state = analysis.summarize(facts.iter());
+    // Head refinements publish one side at a time. Nodes 0 and 6 carry the same
+    // subject-side support, but only node 0 is named by node 2's object side.
+    let two = Domain::one(size, value(2));
+    state.publish_columns(
+        &[
+            Domain::one(size, value(0)),
+            Domain::one(size, left),
+            two.clone(),
+        ],
+        &analysis.universe,
+    );
+    assert!(state.publish_condition(left, 0, value(0), &two, size));
+    assert!(state.publish_condition(left, 0, value(6), &two, size));
+    assert!(state.publish_condition(left, 1, value(2), &Domain::one(size, value(0)), size));
+    let lowered = &analysis.rules[0];
+    let upper = analysis.bindings(lowered, &state).unwrap();
+    let head = &lowered.heads[0];
+    let candidates: Vec<_> = analysis.universe.domains(head, &upper, false)[0]
+        .indices()
+        .filter(|value| analysis.conditioned.contains(*value))
+        .collect();
+    let support = |member: usize| {
+        let refinement = analysis.bindings_for_head_value(lowered, head, 0, member, &state, &upper);
+        analysis.head_value_support(head, 0, refinement)
+    };
+    assert_ne!(support(value(0)), support(value(6)));
+
+    let classes = analysis.value_classes(lowered, &state, &upper, &candidates);
+    let class_of = |member: usize| classes.iter().position(|class| class.contains(&member));
+    assert_ne!(
+        class_of(value(0)),
+        class_of(value(6)),
+        "membership in another key's support distinguishes otherwise equal values",
+    );
+    assert_eq!(
+        class_of(value(4)),
+        class_of(value(8)),
+        "plain fan-in still shares a class"
+    );
+}

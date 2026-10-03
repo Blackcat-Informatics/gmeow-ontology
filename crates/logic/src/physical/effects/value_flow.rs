@@ -241,6 +241,15 @@ struct RuleRefinement {
     heads: Vec<[Domain; 3]>,
 }
 
+/// One nonempty seeded head join, reduced to what publication reads. Sorted
+/// indices keep a whole refinement's results resident without one
+/// universe-width domain per class.
+#[derive(Debug, Default, PartialEq, Eq)]
+struct HeadSupport {
+    predicates: Vec<usize>,
+    opposite: Vec<usize>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct OperatorInput {
     predicate: Option<String>,
@@ -663,6 +672,13 @@ impl AdaptiveDomain {
         match self {
             Self::Dense(domain) => domain.is_subset_of(other),
             Self::Sparse { values, .. } => values.iter().all(|value| other.contains(*value)),
+        }
+    }
+
+    fn indices(&self) -> Box<dyn Iterator<Item = usize> + '_> {
+        match self {
+            Self::Dense(domain) => Box::new(domain.indices()),
+            Self::Sparse { values, .. } => Box::new(values.iter().copied()),
         }
     }
 }
@@ -1807,26 +1823,18 @@ impl ValueFlow {
         unmatched.is_empty()
     }
 
-    fn publish_head_value_refinement(
+    /// The part of one seeded head join that publication consumes: `None` when
+    /// the join is empty, otherwise the head predicates and the opposite value
+    /// column as sorted indices. A predicate-slot candidate publishes nothing.
+    fn head_value_support(
         &self,
-        state: &mut FlowSummary,
         head: &[Slot; 3],
         slot: usize,
-        value: usize,
         value_bindings: Option<Vec<Domain>>,
-        domains: &mut [Domain; 3],
-        symmetric_value_sides: bool,
-        changed_predicates: &mut BTreeSet<usize>,
-    ) {
-        let Some(value_bindings) = value_bindings else {
-            domains[slot].remove(value);
-            if slot == 0 && symmetric_value_sides {
-                domains[2].remove(value);
-            }
-            return;
-        };
+    ) -> Option<HeadSupport> {
+        let value_bindings = value_bindings?;
         if !matches!(slot, 0 | 2) {
-            return;
+            return Some(HeadSupport::default());
         }
         let constrained = self.universe.domains(head, &value_bindings, false);
         let opposite = if slot == 0 {
@@ -1834,17 +1842,229 @@ impl ValueFlow {
         } else {
             &constrained[0]
         };
-        for predicate in self.universe.iri_values(&constrained[1]).indices() {
-            if state.publish_condition(predicate, slot / 2, value, opposite, self.universe.size()) {
+        Some(HeadSupport {
+            predicates: self
+                .universe
+                .iri_values(&constrained[1])
+                .indices()
+                .collect(),
+            opposite: opposite.indices().collect(),
+        })
+    }
+
+    /// Publish one candidate's support. `exchange` names the class
+    /// representative whose support was computed; exchanging the two values is an
+    /// automorphism of every input of that join, so the member's exact support is
+    /// the representative's with the pair transposed.
+    #[allow(clippy::too_many_arguments)]
+    fn publish_head_support(
+        &self,
+        state: &mut FlowSummary,
+        slot: usize,
+        value: usize,
+        support: Option<&HeadSupport>,
+        exchange: usize,
+        scratch: &mut Domain,
+        domains: &mut [Domain; 3],
+        symmetric_value_sides: bool,
+        changed_predicates: &mut BTreeSet<usize>,
+    ) {
+        let Some(support) = support else {
+            domains[slot].remove(value);
+            if slot == 0 && symmetric_value_sides {
+                domains[2].remove(value);
+            }
+            return;
+        };
+        let transpose = |index: usize| {
+            if index == exchange {
+                value
+            } else if index == value {
+                exchange
+            } else {
+                index
+            }
+        };
+        for &index in &support.opposite {
+            scratch.insert(transpose(index));
+        }
+        for predicate in support.predicates.iter().map(|&index| transpose(index)) {
+            if state.publish_condition(predicate, slot / 2, value, scratch, self.universe.size()) {
                 changed_predicates.insert(predicate);
             }
             if slot == 0
                 && symmetric_value_sides
-                && state.publish_condition(predicate, 1, value, opposite, self.universe.size())
+                && state.publish_condition(predicate, 1, value, scratch, self.universe.size())
             {
                 changed_predicates.insert(predicate);
             }
         }
+        for &index in &support.opposite {
+            scratch.remove(transpose(index));
+        }
+    }
+
+    /// Partition head candidates into classes of mutually exchangeable values.
+    ///
+    /// Two candidates share a class only when transposing them preserves every
+    /// input of the seeded join `stabilize_bindings` evaluates: the stable upper
+    /// bound, each read relation's columns, rectangles, exact supports keyed by
+    /// either value, membership in every other key's support, the singleton
+    /// predicate index, and the IRI kind that selects head predicates. Membership
+    /// tokens carry the support key, so self and mutual edges among members compare
+    /// exactly. Rule constants, their semantic alternates, alternate-bearing
+    /// predicates and predicate-keyed values stay singletons. The join is a
+    /// deterministic function of those inputs, so it commutes with the
+    /// transposition: one representative per class yields the exact support of
+    /// every member. Classes are ordered by their first candidate.
+    fn value_classes(
+        &self,
+        rule: &Rule,
+        state: &FlowSummary,
+        upper: &[Domain],
+        candidates: &[usize],
+    ) -> Vec<Vec<usize>> {
+        const UNSET: u32 = u32::MAX;
+        let token = |value: usize| u32::try_from(value).expect("value-flow index fits u32");
+        let size = self.universe.size();
+        let mut position = vec![UNSET; size];
+        for (index, &value) in candidates.iter().enumerate() {
+            position[value] = token(index);
+        }
+        let candidate = |value: usize| (position[value] != UNSET).then(|| position[value] as usize);
+        let mut distinguished = vec![false; candidates.len()];
+        let mut signatures: Vec<Vec<[u32; 3]>> = vec![Vec::new(); candidates.len()];
+
+        let mut scope = Domain::empty(size);
+        for atom in &rule.body {
+            let required = self.universe.domains(atom, upper, true);
+            for (slot, values) in atom.iter().zip(&required) {
+                if matches!(slot, Slot::Constant(_)) {
+                    for value in values.indices().filter_map(candidate) {
+                        distinguished[value] = true;
+                    }
+                }
+            }
+            scope.union(&required[1]);
+        }
+        for slot in rule
+            .heads
+            .iter()
+            .flatten()
+            .chain(rule.cardinality_guards.iter().map(|(slot, _)| slot))
+        {
+            if let Slot::Constant(value) = slot
+                && let Some(index) = candidate(*value)
+            {
+                distinguished[index] = true;
+            }
+        }
+        for predicate in scope.indices() {
+            if let Some(TermValue::Iri(iri)) = self.universe.values.get(predicate)
+                && let Some(alternate) = self.universe.semantics.alternate_predicate(iri)
+            {
+                for value in [predicate, self.universe.iri(alternate)] {
+                    if let Some(index) = candidate(value) {
+                        distinguished[index] = true;
+                    }
+                }
+            }
+        }
+        for (index, &value) in candidates.iter().enumerate() {
+            match self.universe.values.get(value) {
+                None => distinguished[index] = true,
+                Some(TermValue::Iri(iri)) => {
+                    if state.relations.contains_key(&value)
+                        || self.universe.semantics.alternate_predicate(iri).is_some()
+                    {
+                        distinguished[index] = true;
+                    }
+                    signatures[index].push([0, 0, 0]);
+                }
+                Some(_) => {}
+            }
+        }
+        for (variable, domain) in upper.iter().enumerate() {
+            for index in domain.indices().filter_map(candidate) {
+                signatures[index].push([1, token(variable), 0]);
+            }
+        }
+        let mut interned: HashMap<Vec<usize>, u32> = HashMap::new();
+        for (&predicate, relation) in &state.relations {
+            if !scope.contains(predicate) {
+                continue;
+            }
+            let predicate_token = token(predicate);
+            for (column, values) in relation.columns.iter().enumerate() {
+                for index in values.indices().filter_map(candidate) {
+                    signatures[index].push([2 + token(column), predicate_token, 0]);
+                }
+            }
+            // Own supports first, then memberships, so every candidate's tokens
+            // arrive in one global order and equal signatures compare equal.
+            for (side, supports) in [&relation.by_subject, &relation.by_object]
+                .into_iter()
+                .enumerate()
+            {
+                for (&key, support) in supports {
+                    if let Some(index) = candidate(key) {
+                        let next = token(interned.len());
+                        let id = *interned.entry(support.indices().collect()).or_insert(next);
+                        signatures[index].push([4 + token(side), predicate_token, id]);
+                    }
+                }
+            }
+            for (side, supports) in [&relation.by_subject, &relation.by_object]
+                .into_iter()
+                .enumerate()
+            {
+                for (&key, support) in supports {
+                    for index in support.indices().filter_map(candidate) {
+                        signatures[index].push([6 + token(side), predicate_token, token(key)]);
+                    }
+                }
+            }
+            for (rectangle_index, rectangle) in relation.rectangles.iter().enumerate() {
+                for (side, values) in rectangle.iter().enumerate() {
+                    for index in values.indices().filter_map(candidate) {
+                        signatures[index].push([
+                            8 + token(side),
+                            predicate_token,
+                            token(rectangle_index),
+                        ]);
+                    }
+                }
+            }
+        }
+        for (side, index_by_value) in [&state.predicates_by_subject, &state.predicates_by_object]
+            .into_iter()
+            .enumerate()
+        {
+            for (&value, predicates) in index_by_value {
+                if let Some(index) = candidate(value) {
+                    for predicate in predicates.indices().filter(|p| scope.contains(*p)) {
+                        signatures[index].push([10 + token(side), token(predicate), 0]);
+                    }
+                }
+            }
+        }
+
+        let mut classes: Vec<Vec<usize>> = Vec::new();
+        let mut by_signature: HashMap<&[[u32; 3]], usize> = HashMap::new();
+        for (index, &value) in candidates.iter().enumerate() {
+            let class = if distinguished[index] {
+                classes.len()
+            } else {
+                *by_signature
+                    .entry(signatures[index].as_slice())
+                    .or_insert(classes.len())
+            };
+            if class == classes.len() {
+                classes.push(Vec::new());
+            }
+            classes[class].push(value);
+        }
+        classes
     }
 
     /// Remove only a conditioned value whose constrained abstract join is empty,
@@ -1936,43 +2156,57 @@ impl ValueFlow {
                     "large native value-flow refinement",
                 );
             }
+            let mut scratch = Domain::empty(self.universe.size());
+            let mut classes_evaluated = candidates.len();
             if candidates.len() >= PARALLEL_HEAD_REFINEMENT_MIN_CANDIDATES
-                && rayon::current_num_threads() > 1
+                && matches!(head[slot], Slot::Variable(_))
             {
-                // Each batch observes one immutable monotone snapshot, then
-                // publishes in candidate order. A publication reschedules every
-                // affected reader, including recursive and dynamic readers, so a
-                // later fixed-point visit sees support added by sibling candidates.
-                for candidates in candidates.chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE) {
-                    let refinements: Vec<_> = candidates
-                        .par_iter()
-                        .map(|&value| {
-                            self.bindings_for_head_value(rule, head, slot, value, state, bindings)
-                        })
-                        .collect();
-                    for (&value, refinement) in candidates.iter().zip(refinements) {
-                        self.publish_head_value_refinement(
-                            state,
-                            head,
-                            slot,
-                            value,
-                            refinement,
-                            &mut domains,
-                            symmetric_value_sides,
-                            changed_predicates,
-                        );
-                    }
+                // Every class representative observes one immutable monotone
+                // snapshot; members then publish in candidate order. A publication
+                // reschedules every affected reader, including recursive and
+                // dynamic readers, so a later fixed-point visit sees support added
+                // by sibling candidates.
+                let classes = self.value_classes(rule, state, bindings, &candidates);
+                classes_evaluated = classes.len();
+                let mut supports = Vec::with_capacity(classes.len());
+                for batch in classes.chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE) {
+                    supports.par_extend(batch.par_iter().map(|members| {
+                        let refinement = self
+                            .bindings_for_head_value(rule, head, slot, members[0], state, bindings);
+                        self.head_value_support(head, slot, refinement)
+                    }));
+                }
+                let mut publications: Vec<(usize, usize)> = classes
+                    .iter()
+                    .enumerate()
+                    .flat_map(|(class, members)| members.iter().map(move |&value| (value, class)))
+                    .collect();
+                publications.sort_unstable();
+                for (value, class) in publications {
+                    self.publish_head_support(
+                        state,
+                        slot,
+                        value,
+                        supports[class].as_ref(),
+                        classes[class][0],
+                        &mut scratch,
+                        &mut domains,
+                        symmetric_value_sides,
+                        changed_predicates,
+                    );
                 }
             } else {
                 for value in candidates.iter().copied() {
                     let refinement =
                         self.bindings_for_head_value(rule, head, slot, value, state, bindings);
-                    self.publish_head_value_refinement(
+                    let support = self.head_value_support(head, slot, refinement);
+                    self.publish_head_support(
                         state,
-                        head,
                         slot,
                         value,
-                        refinement,
+                        support.as_ref(),
+                        value,
+                        &mut scratch,
                         &mut domains,
                         symmetric_value_sides,
                         changed_predicates,
@@ -1986,6 +2220,7 @@ impl ValueFlow {
                     event = "end",
                     slot,
                     candidates = candidates.len(),
+                    classes = classes_evaluated,
                     rule_index,
                     visit,
                     producer = rule.name.as_str(),
@@ -2178,41 +2413,54 @@ impl ValueFlow {
             .enumerate()
             .filter_map(|(index, enabled)| enabled.then_some(index))
             .collect();
-        let mut graph = petgraph::graph::DiGraph::<usize, ()>::new();
-        let nodes: BTreeMap<usize, petgraph::graph::NodeIndex> = active
-            .iter()
-            .map(|&index| (index, graph.add_node(index)))
-            .collect();
-        for &writer in &active {
-            let mut dependents = BTreeSet::new();
-            for head in &self.rules[writer].heads {
-                match head[1] {
-                    Slot::Constant(predicate) => {
-                        dependents.extend(readers.get(&predicate).into_iter().flatten());
-                        dependents.extend(&dynamic_readers);
-                    }
-                    Slot::Variable(_) => dependents.extend(&active),
-                }
-            }
-            for dependent in dependents {
-                graph.add_edge(nodes[&writer], nodes[&dependent], ());
-            }
+        let mut node_of = vec![usize::MAX; self.rules.len()];
+        for (node, &index) in active.iter().enumerate() {
+            node_of[index] = node;
         }
+        let adjacency: Vec<Vec<usize>> = active
+            .iter()
+            .map(|&writer| {
+                let mut dependents = BTreeSet::<usize>::new();
+                for head in &self.rules[writer].heads {
+                    match head[1] {
+                        Slot::Constant(predicate) => {
+                            dependents.extend(readers.get(&predicate).into_iter().flatten());
+                            dependents.extend(&dynamic_readers);
+                        }
+                        Slot::Variable(_) => dependents.extend(&active),
+                    }
+                }
+                dependents
+                    .into_iter()
+                    .map(|dependent| node_of[dependent])
+                    .collect()
+            })
+            .collect();
         // Tarjan yields components in reverse topological order.
-        let mut components = petgraph::algo::tarjan_scc(&graph);
+        let mut components = purrdf_core::graph::tarjan_scc(&adjacency);
         components.reverse();
         let mut component_of = vec![usize::MAX; self.rules.len()];
-        for (component, members) in components.iter().enumerate() {
-            for node in members {
-                component_of[graph[*node]] = component;
+        for (component, members) in components.iter_mut().enumerate() {
+            for node in members.iter_mut() {
+                *node = active[*node];
+                component_of[*node] = component;
             }
+            members.sort_unstable();
         }
+        let largest = components.iter().map(Vec::len).max().unwrap_or(0);
+        tracing::info!(
+            target: "pipeline_reasoning_detail",
+            phase = "refine-closure-components",
+            rules = active.len(),
+            components = components.len(),
+            recursive = components.iter().filter(|members| members.len() > 1).count(),
+            largest,
+            "value-flow closure schedule",
+        );
         let mut queued = vec![false; self.rules.len()];
         let mut visits = vec![0usize; self.rules.len()];
         let mut refinements = vec![None; self.rules.len()];
-        for (component, members) in components.iter().enumerate() {
-            let mut members: Vec<usize> = members.iter().map(|node| graph[*node]).collect();
-            members.sort_unstable();
+        for (component, members) in components.into_iter().enumerate() {
             // A FIFO worklist keeps the transfer order deterministic while putting a
             // self-rescheduled rule behind peers that were already pending. Ordered
             // minimum extraction can starve those peers during recursive closure.
