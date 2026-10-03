@@ -1474,6 +1474,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
  "purrdf",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1528,6 +1529,7 @@ dependencies = [
  "predicates",
  "purrdf",
  "purrdf-ed25519",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "tempfile",
@@ -1630,6 +1632,7 @@ dependencies = [
  "pretty_assertions",
  "pulldown-cmark",
  "purrdf",
+ "purrdf-hash",
  "regex",
  "serde",
  "serde_json",
@@ -1739,6 +1742,7 @@ dependencies = [
  "insta",
  "proptest",
  "purrdf",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1753,6 +1757,7 @@ version = "0.3.0"
 dependencies = [
  "insta",
  "proptest",
+ "purrdf-hash",
  "sha2 0.10.9",
 ]
 
@@ -1810,6 +1815,7 @@ dependencies = [
  "gmeow-term-arena",
  "insta",
  "purrdf",
+ "purrdf-hash",
  "purrdf-lex",
  "serde",
  "serde_json",
@@ -1851,6 +1857,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-term-arena",
  "purrdf",
+ "purrdf-hash",
 ]
 
 [[package]]
@@ -1876,6 +1883,7 @@ dependencies = [
  "jsonschema",
  "purrdf",
  "purrdf-ed25519",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1922,6 +1930,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
  "purrdf",
+ "purrdf-hash",
  "purrdf-lex",
 ]
 
@@ -2081,6 +2090,7 @@ dependencies = [
  "foldhash 0.1.5",
  "hashbrown 0.15.5",
  "purrdf",
+ "purrdf-hash",
  "serde",
  "smallvec",
 ]

@@ -196,13 +196,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_cli::commands::purremb_hex32",
-    "gmeow_logic::purremb_relation::hex32"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_cli::commands::reasoning_report::EvidenceGrade::as_str",
     "gmeow_cli::commands::reasoning_report::GateAdmission::as_str"
    ]
@@ -674,13 +667,6 @@
    "members": [
     "gmeow_logic::conjecture::ConjectureLifecycleState::local_name",
     "gmeow_logic::conjecture::ConjectureLifecycleState::wire"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_logic::conjecture_eval::sha256_hex",
-    "gmeow_mcp::sha256_hex"
    ]
   },
   {
@@ -1865,6 +1851,14 @@
   {
    "kind": "shim",
    "members": [
+    "gmeow_dev_cli::dev_sync::sha256",
+    "gmeow_logic::conjecture_eval::sha256_hex",
+    "gmeow_mcp::sha256_hex"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
     "gmeow_dev_cli::test_crate::loss_bearing_domain::read",
     "gmeow_dev_cli::test_crate::npm_packaging_contract::read"
    ]
@@ -2822,13 +2816,13 @@
   "frame-le": 52,
   "grammar-ws": 14,
   "hash-domain": 45,
-  "hex": 53,
+  "hex": 1,
   "json-pointer": 2,
   "literal-and-iri-escape": 14,
   "media-type-by-extension": 3,
   "percent-encoding": 2,
   "rdf-collection": 19,
-  "reifier-rows": 3,
+  "reifier-rows": 2,
   "term-nesting-depth": 1,
   "term-syntax": 1,
   "text-direction": 1,

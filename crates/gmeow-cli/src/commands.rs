@@ -1885,17 +1885,8 @@ fn parse_identity_hex(label: &str, hex: &str) -> gmeow_errors::Result<[u8; 32]> 
             hex.len()
         )));
     }
-    let mut out = [0u8; 32];
-    for (index, byte) in out.iter_mut().enumerate() {
-        let start = index * 2;
-        let pair = hex
-            .get(start..start + 2)
-            .ok_or_else(|| purremb_selection_err(format!("{label} identity is truncated")))?;
-        *byte = u8::from_str_radix(pair, 16).map_err(|_| {
-            purremb_selection_err(format!("{label} identity has a non-hex character"))
-        })?;
-    }
-    Ok(out)
+    purrdf_hash::hex::decode_32(hex)
+        .ok_or_else(|| purremb_selection_err(format!("{label} identity has a non-hex character")))
 }
 
 /// Parse the declared distance metric, rejecting anything the retrieval scan has
@@ -1968,16 +1959,6 @@ fn parse_term_kind(value: &str) -> gmeow_errors::Result<ColumnKind> {
             "unknown term kind '{other}' (expected iri, triple-term, or literal)"
         ))),
     }
-}
-
-/// Lowercase hex of a 32-byte identity, for annotation/space rendering.
-fn purremb_hex32(bytes: &[u8; 32]) -> String {
-    use std::fmt::Write as _;
-    let mut out = String::with_capacity(64);
-    for byte in bytes {
-        let _ = write!(out, "{byte:02x}");
-    }
-    out
 }
 
 /// Build the fully validated [`PurrembSelection`] from the declared hex/enum
@@ -2272,7 +2253,11 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
                     .map(|(k, v)| format!("{k}={v}"))
                     .collect();
                 let annotation = &answer.annotation;
-                let spaces: Vec<String> = annotation.spaces.iter().map(purremb_hex32).collect();
+                let spaces: Vec<String> = annotation
+                    .spaces
+                    .iter()
+                    .map(|space| purrdf_hash::hex::encode(space))
+                    .collect();
                 println!(
                     "answer {} annotation-distance={} metric-code={} spaces={}",
                     if rendered.is_empty() {
@@ -5628,12 +5613,7 @@ pub fn convert(
                     Ok(bytes) => bytes,
                     Err(e) => return fail(reporter, "gmeow-cli.convert.loss", e.to_string()),
                 };
-                let mut encoded = String::with_capacity(receipt.len() * 2);
-                let hex = b"0123456789abcdef";
-                for byte in receipt {
-                    encoded.push(char::from(hex[usize::from(byte >> 4)]));
-                    encoded.push(char::from(hex[usize::from(byte & 15)]));
-                }
+                let encoded = purrdf_hash::hex::encode(&receipt);
                 gmeow_cli_core::note(
                     reporter,
                     "gmeow",

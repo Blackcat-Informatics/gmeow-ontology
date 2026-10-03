@@ -21,7 +21,7 @@ use sha2::{Digest, Sha256};
 /// producer resolves to the same short IRI segment.
 pub fn digest16(domain: &str, key: &str) -> String {
     let digest = Sha256::digest(format!("{domain}\u{1f}{key}").as_bytes());
-    digest.iter().take(8).map(|b| format!("{b:02x}")).collect()
+    purrdf_hash::hex::encode(&digest[..8])
 }
 
 /// Canonicalize a set of N-Triples lines into a deterministic byte stream: sort, dedup,

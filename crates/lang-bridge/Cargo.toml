@@ -26,6 +26,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
+purrdf-hash.workspace = true
 serde.workspace = true
 sha2.workspace = true
 # The plain-text bridge declares each lifted surface's Unicode normalization form

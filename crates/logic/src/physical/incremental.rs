@@ -65,10 +65,9 @@ pub(crate) struct IncrementalIdentity {
 
 impl IncrementalIdentity {
     fn new(contract_hash: impl Into<String>, rules: &[EvalRule]) -> Self {
-        let rule_hash = super::plan::canonical_rule_hash(rules);
         Self {
             contract_hash: contract_hash.into(),
-            rule_hash: rule_hash.iter().map(|byte| format!("{byte:02x}")).collect(),
+            rule_hash: purrdf_hash::hex::encode(&super::plan::canonical_rule_hash(rules)),
             solver_version: INCREMENTAL_SOLVER_VERSION,
         }
     }

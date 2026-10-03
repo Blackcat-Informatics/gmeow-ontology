@@ -420,13 +420,7 @@ fn code_local(iri: &str) -> String {
 /// match's advisory code unique (so [`project_compliance_assessment`] never sees a
 /// duplicate code) and deterministic across runs (SHA-256, not a process hasher).
 fn focus_digest(focus: &str) -> String {
-    let digest = Sha256::digest(focus.as_bytes());
-    let mut hex = String::with_capacity(12);
-    for b in digest.iter().take(6) {
-        use std::fmt::Write;
-        let _ = write!(hex, "{b:02x}");
-    }
-    hex
+    purrdf_hash::hex::encode(&Sha256::digest(focus.as_bytes())[..6])
 }
 
 /// The gmeow-domain term the derived `shape_iri` `logic:formalizes` (its advice

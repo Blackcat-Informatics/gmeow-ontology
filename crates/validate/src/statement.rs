@@ -174,8 +174,9 @@ fn py_str_repr(s: &str) -> String {
             }
             c if c.is_control() => {
                 let cp = c as u32;
-                if cp <= 0xff {
-                    out.push_str(&format!("\\x{cp:02x}"));
+                if let Ok(byte) = u8::try_from(cp) {
+                    out.push_str("\\x");
+                    purrdf_hash::hex::encode_into(&[byte], &mut out);
                 } else if cp <= 0xffff {
                     out.push_str(&format!("\\u{cp:04x}"));
                 } else {

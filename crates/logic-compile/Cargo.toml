@@ -25,6 +25,7 @@ path = "src/lib.rs"
 # compiler's RDF parse/serialize path builds for wasm32 with no Store dependency.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
+purrdf-hash.workspace = true
 # SPARQL property-path algebra: the projection target for logic:PathShape.
 # A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.
 # purrdf-lex: the substrate's read-only XML DOM (`purrdf_lex::xml`) for the XCL dialect

@@ -297,11 +297,7 @@ fn fold_linksets(store: &RdfDataset) -> Result<Vec<Linkset>, gmeow_errors::Diag>
                 last.to_string()
             }
         };
-        let ns_hash: String = Sha256::digest(target_ns.as_bytes())
-            .iter()
-            .take(3)
-            .map(|b| format!("{b:02x}"))
-            .collect();
+        let ns_hash = purrdf_hash::hex::encode(&Sha256::digest(target_ns.as_bytes())[..3]);
         let iri = format!("{VOID_DATASET_IRI}-linkset-{target_slug}-{ns_hash}-{slug}");
         let label = format!("GMEOW {predicate_id} links to {target_ns} ({count})");
         out.push(Linkset {

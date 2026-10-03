@@ -106,7 +106,7 @@ pub fn derived_put_iri(get_leg: &str, c: &Correspondence) -> String {
         get_leg,
     );
     let digest = Sha256::digest(key.as_bytes());
-    let short: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
+    let short = purrdf_hash::hex::encode(&digest[..8]);
     format!("{get_leg}/put#{short}")
 }
 

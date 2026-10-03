@@ -1244,12 +1244,7 @@ fn record_id(kind: &str, seq: u64, parts: &[&str]) -> String {
         hasher.update([0u8]);
         hasher.update(part.as_bytes());
     }
-    let digest = hasher.finalize();
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for byte in digest {
-        use std::fmt::Write as _;
-        let _ = write!(hex, "{byte:02x}");
-    }
+    let hex = purrdf_hash::hex::encode(&hasher.finalize());
     format!("urn:gmeow:mcp:{kind}:sha256:{hex}")
 }
 

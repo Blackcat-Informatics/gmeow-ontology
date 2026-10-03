@@ -1851,14 +1851,19 @@ pub fn manifest_turtle(
 }
 
 fn percent_encode_path(path: &str) -> String {
-    path.bytes()
-        .map(|b| match b {
+    let mut out = String::with_capacity(path.len());
+    for b in path.bytes() {
+        match b {
             b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'/' | b':' | b'-' | b'.' | b'_' | b'~' => {
-                (b as char).to_string()
+                out.push(b as char);
             }
-            other => format!("%{other:02X}"),
-        })
-        .collect()
+            other => {
+                out.push('%');
+                purrdf_hash::hex::encode_upper_into(&[other], &mut out);
+            }
+        }
+    }
+    out
 }
 
 fn file_uri(path: &Path) -> gmeow_errors::Result<String> {
