@@ -1619,22 +1619,33 @@ impl ChaseAdmission {
             .collect();
         // Two symbolic ordinals preserve position dependencies for arbitrary
         // finite counts. They do NOT preserve every nonlinear tuple join (e.g.
-        // a triangle requiring three distinct siblings). Only the position proof
-        // may certify this abstraction; MSA requires a complete rule expansion.
+        // a triangle requiring three distinct siblings). Only the position
+        // rungs may read this abstraction: weak and joint acyclicity, whose
+        // graphs are identical over a summary and its real expansion, and
+        // restricted joint acyclicity, which never blocks a summary's trigger.
         // Exact count-1 families are complete rules, but their critical instance
         // grows with every family, so they climb only the polynomial rungs.
-        let mut admission = if !rules.iter().all(StatementRule::exact) {
-            Self::certify_weakly_acyclic(&analysis)
-                .unwrap_or_else(|violations| Self::Uncertified { violations })
-        } else {
+        let mut bridged = analysis.clone();
+        bridged.extend(statement_bridges(&analysis));
+        let summarized: BTreeSet<&str> = rules
+            .iter()
+            .filter(|rule| !rule.exact())
+            .map(|rule| rule.name.as_str())
+            .collect();
+        let mut admission = if summarized.is_empty() {
             let ladder = if rules.iter().any(|rule| rule.position_only) {
                 Ladder::Polynomial
             } else {
                 ladder
             };
-            let mut bridged = analysis.clone();
-            bridged.extend(statement_bridges(&analysis));
             Self::certify_ladder(&analysis, &bridged, ladder)
+        } else {
+            match Self::certify_weakly_acyclic(&analysis) {
+                Ok(admission) => admission,
+                Err(violations) => Self::certify_joint_acyclic(&bridged)
+                    .or_else(|| Self::certify_restricted_joint_acyclic(&bridged, &summarized))
+                    .unwrap_or(Self::Uncertified { violations }),
+            }
         };
         let context = format!(
             "joint statement value-flow abstraction of {} native producer(s)",
@@ -1718,7 +1729,7 @@ impl ChaseAdmission {
                     }
                     Ladder::Polynomial => None,
                 })
-                .or_else(|| Self::certify_restricted_joint_acyclic(tuples))
+                .or_else(|| Self::certify_restricted_joint_acyclic(tuples, &BTreeSet::new()))
                 .unwrap_or(Self::Uncertified { violations }),
         }
     }
@@ -1919,7 +1930,15 @@ impl ChaseAdmission {
     /// The closure uses only exact positive Datalog rules ([`rja_exact_datalog`]); every
     /// other rule is left out, so the closure under-approximates and can never block an
     /// edge the chase could fire.
-    fn certify_restricted_joint_acyclic(rules: &[ExistentialRule]) -> Option<Self> {
+    ///
+    /// A consumer named in `summarized` is a two-ordinal summary of a witness family
+    /// whose trigger check needs more fillers than its head states, so none of its
+    /// triggers is ever blocked. As a producer, a summary's head is a subset of the
+    /// facts its real expansion emits, so a closure over it still under-approximates.
+    fn certify_restricted_joint_acyclic(
+        rules: &[ExistentialRule],
+        summarized: &BTreeSet<&str>,
+    ) -> Option<Self> {
         let universe = all_program_positions(rules);
         let mut existentials: Vec<(usize, String)> = Vec::new();
         for (i, r) in rules.iter().enumerate() {
@@ -1961,6 +1980,7 @@ impl ChaseAdmission {
                 if !consumer.is_existential() {
                     continue;
                 }
+                let blockable = !summarized.contains(consumer.rule_iri.as_str());
                 let mut triggers = false;
                 for frontier in consumer.frontier_vars() {
                     let body = refined_positions(&consumer.body, &frontier);
@@ -1969,7 +1989,15 @@ impl ChaseAdmission {
                     {
                         continue;
                     }
-                    if rja_trigger_blocked(&rules[*producer], null, consumer, &frontier, &datalog) {
+                    if blockable
+                        && rja_trigger_blocked(
+                            &rules[*producer],
+                            null,
+                            consumer,
+                            &frontier,
+                            &datalog,
+                        )
+                    {
                         blocked += 1;
                         continue;
                     }

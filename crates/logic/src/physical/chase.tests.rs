@@ -1805,3 +1805,36 @@ fn multi_witness_inverse_families_stay_uncertified() {
         "no back-edge supplies a second filler: {admission:?}"
     );
 }
+
+#[test]
+fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
+    // The same inverse pair certifies when its families are exact rules. Named as
+    // summaries, their trigger checks need more fillers than their heads state, so the
+    // back-edge blocks nothing and the cycle stays.
+    let rules = inverse_pair(true);
+    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &BTreeSet::new()).is_some());
+    let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
+    assert!(
+        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &summarized).is_none(),
+        "a summarized consumer's trigger is never blocked"
+    );
+}
+
+#[test]
+fn an_unrelated_summarized_family_leaves_the_inverse_pair_certified() {
+    // One count-2 family elsewhere in the program no longer forces the whole joint
+    // program onto weak acyclicity: the exact inverse pair still blocks its back-edge.
+    let mut rules = inverse_minimum_pair("1");
+    rules.push(minimum_family(
+        "http://ex/rule/unrelated",
+        "http://ex/Ledger",
+        "http://ex/line",
+        "http://ex/Line",
+        "2",
+    ));
+    let admission = certify_exact(&rules);
+    assert!(
+        matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
+        "an unrelated summary must not demote the program: {admission:?}"
+    );
+}
