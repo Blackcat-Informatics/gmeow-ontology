@@ -1611,3 +1611,118 @@ fn a_two_witness_family_keeps_its_inequality_cycle() {
         "a count of two relates its witnesses: {admission:?}"
     );
 }
+
+/// `Entry ⊑ ∃post.Posting`, `post(x, y) → back(y, x)` and `Posting ⊑ ∃back.Entry`,
+/// optionally without the inverse rule.
+fn inverse_pair(with_inverse: bool) -> Vec<ExistentialRule> {
+    let class = |iri: &str| EvalTerm::ConstNamed(iri.to_owned());
+    let invent = |iri: &str, from: &str, relation: &str, to: &str| ExistentialRule {
+        numeric: Vec::new(),
+        rule_iri: iri.to_owned(),
+        body: vec![atom(var("?x"), TYPE, class(from))],
+        head: vec![
+            atom(var("?x"), relation, var("?z")),
+            atom(var("?z"), TYPE, class(to)),
+        ],
+        distinct: vec![],
+        witness_frontier: None,
+        witness_policy: WitnessPolicy::FrontierSkolem,
+    };
+    let mut rules = vec![
+        invent(
+            "http://ex/rule/entry",
+            "http://ex/Entry",
+            "http://ex/post",
+            "http://ex/Posting",
+        ),
+        invent(
+            "http://ex/rule/posting",
+            "http://ex/Posting",
+            "http://ex/back",
+            "http://ex/Entry",
+        ),
+    ];
+    if with_inverse {
+        rules.push(ExistentialRule {
+            numeric: Vec::new(),
+            rule_iri: "http://ex/rule/inverse".to_owned(),
+            body: vec![atom(var("?x"), "http://ex/post", var("?y"))],
+            head: vec![atom(var("?y"), "http://ex/back", var("?x"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        });
+    }
+    rules
+}
+
+#[test]
+fn an_inverse_back_edge_certifies_restricted_joint_acyclicity() {
+    // The posting minted for an entry already has its back edge to that entry once the
+    // inverse rule closes, so the reverse restriction never fires on it: the only
+    // dependency edge is blocked. The skolem-chase rungs cannot see that.
+    let admission = ChaseAdmission::certify(&inverse_pair(true));
+    match &admission {
+        ChaseAdmission::RestrictedJointlyAcyclic { evidence } => {
+            assert!(admission.admits_native());
+            assert!(evidence.contains("blocked"), "{evidence}");
+        }
+        other => panic!("the inverse pair is restricted jointly acyclic, got {other:?}"),
+    }
+    assert_eq!(
+        admission.to_finding().code,
+        "chase.certificate.restricted-jointly-acyclic"
+    );
+}
+
+#[test]
+fn without_the_inverse_rule_the_pair_stays_uncertified() {
+    // Nothing derives the back edge, so every minted entry mints a posting that mints
+    // a fresh entry: the restricted chase genuinely does not terminate.
+    assert!(!ChaseAdmission::certify(&inverse_pair(false)).admits_native());
+}
+
+#[test]
+fn restricted_joint_acyclicity_meets_incomparable_classes_to_their_glb() {
+    let rja = || ChaseAdmission::RestrictedJointlyAcyclic {
+        evidence: "rja".to_owned(),
+    };
+    let swa = ChaseAdmission::SuperWeaklyAcyclic {
+        evidence: "swa".to_owned(),
+    };
+    let msa = ChaseAdmission::ModelSummarizingAcyclic {
+        evidence: "msa".to_owned(),
+    };
+    let ja = ChaseAdmission::JointlyAcyclic {
+        evidence: "ja".to_owned(),
+    };
+    assert!(matches!(
+        rja().combine(swa),
+        ChaseAdmission::WeaklyAcyclic { .. }
+    ));
+    assert!(matches!(
+        rja().combine(msa),
+        ChaseAdmission::JointlyAcyclic { .. }
+    ));
+    assert!(matches!(
+        rja().combine(ja),
+        ChaseAdmission::JointlyAcyclic { .. }
+    ));
+}
+
+#[test]
+fn a_guarded_rule_never_blocks_a_restricted_trigger() {
+    // The inverse rule here carries an inequality guard. Evaluating it without the guard
+    // could fabricate the back edge, so the closure leaves it out entirely and the edge it
+    // would have blocked stays: the pair is not certified by restricted joint acyclicity.
+    let mut rules = inverse_pair(true);
+    rules
+        .last_mut()
+        .expect("the inverse rule")
+        .distinct
+        .push(("?x".to_owned(), "?y".to_owned()));
+    assert!(!matches!(
+        ChaseAdmission::certify(&rules),
+        ChaseAdmission::RestrictedJointlyAcyclic { .. }
+    ));
+}

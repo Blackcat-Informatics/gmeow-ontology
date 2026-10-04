@@ -697,6 +697,11 @@ impl JointProgram {
             // stratum can still publish through successive frozen rounds. This
             // never advances a completed-read frontier or exposes a later stratum.
             let mut draining_retained = false;
+            // Datalog-first restricted chase: witness-minting producers fire only in a
+            // round that follows a Datalog-only round with nothing left to add, so every
+            // trigger is checked against the Datalog closure of what already exists.
+            // A witness obligation that derived facts already satisfy is never minted.
+            let mut generative = false;
             let mut round_index = 0usize;
             loop {
                 let current_round = round_index;
@@ -729,6 +734,7 @@ impl JointProgram {
                         registry,
                         world,
                         self.witness_contract,
+                        generative,
                     )?;
                     truncated |= round.truncated;
                     inference_cut |= round.inference_cut;
@@ -832,6 +838,14 @@ impl JointProgram {
                 };
                 let any =
                     contextual_rows != 0 || rounds.values().any(|round| !round.entries.is_empty());
+                // Blocked reads wait on completion, not on witnesses: a stratum concludes
+                // blocked only after its witness producers have had their round as well.
+                if !any && !generative && !truncated && !draining_retained {
+                    // Datalog has reached its fixpoint: let the witness producers fire.
+                    generative = true;
+                    continue;
+                }
+                generative = false;
                 if !any {
                     if let Some(reuse) = &mut reuse {
                         reuse.install_ready_introductions(index, &runtimes, registry)?;
@@ -886,6 +900,9 @@ impl JointProgram {
                             .map(|row| row.predicate.clone())
                             .collect(),
                     );
+                    if let Some(pending) = &mut runtime.generative_changed {
+                        pending.extend(runtime.changed.iter().flatten().cloned());
+                    }
                     runtime.delta = Delta {
                         lo,
                         hi: runtime.rel.row_count(),
@@ -1286,6 +1303,12 @@ pub(crate) struct WorldRuntime {
     progress: StrataProgress,
     delta: Delta,
     changed: Option<BTreeSet<String>>,
+    /// Rows the witness-minting producers have not yet read: they run only in a
+    /// generative round, so their semi-naive span starts where they last gathered.
+    generative_lo: usize,
+    /// Predicates changed since the witness-minting producers last gathered;
+    /// `None` reads every predicate.
+    generative_changed: Option<BTreeSet<String>>,
     completed_reads: BTreeSet<crate::reason::refute::native::NativeRead>,
 }
 impl WorldRuntime {
@@ -1320,6 +1343,8 @@ impl WorldRuntime {
             },
             delta: Delta::all(0),
             changed: None,
+            generative_lo: 0,
+            generative_changed: None,
             completed_reads: BTreeSet::new(),
         })
     }
@@ -1335,6 +1360,8 @@ impl WorldRuntime {
     fn start_stratum(&mut self, plan: &JointProgram, index: usize) {
         self.delta = Delta::all(self.rel.row_count());
         self.changed = None;
+        self.generative_lo = 0;
+        self.generative_changed = None;
         self.completed_reads = plan
             .read_completion
             .iter()
@@ -1452,6 +1479,7 @@ impl JointStratum {
         registry: &mut SkolemRegistry,
         world: &str,
         contract: WitnessContract,
+        generative: bool,
     ) -> gmeow_errors::Result<WorldRound> {
         let snapshot = RoundSnapshot {
             store: &state.store,
@@ -1536,12 +1564,27 @@ impl JointStratum {
             candidate_rows = round.entries.len(),
             "reason phase boundary",
         );
+        // Witness-minting producers read every row committed since they last gathered,
+        // however many Datalog-only rounds ran in between.
+        let generative_delta = Delta {
+            lo: state.generative_lo,
+            hi: state.rel.row_count(),
+        };
+        let generative_changed = state.generative_changed.clone();
         let mut property_truncated = false;
         let mut property_blocked = false;
         for property in &self.properties {
+            let minting = property.witness_frontier.is_some();
+            if minting && !generative {
+                continue;
+            }
             let visit = property.visit(
                 &state.rel,
-                state.delta,
+                if minting {
+                    generative_delta
+                } else {
+                    state.delta
+                },
                 &mut state.lists,
                 &mut state.values,
                 super::property::NativeWitnesses {
@@ -1591,24 +1634,50 @@ impl JointStratum {
             candidate_rows = round.entries.len(),
             "reason phase boundary",
         );
-        let chase_truncated = chase_round(
-            self.producers.iter().map(Arc::as_ref),
-            &state.rel,
-            governor.solution_cap(),
-            registry,
-            (world, contract),
-            state.changed.as_ref(),
-            |head, premises| {
-                if !state.store.contains_key(&head.key()) {
-                    round.insert(
-                        head.key(),
-                        record_candidate(premises.rule_iri, head, premises.source_facts, snapshot)?,
-                        ProvenanceMode::Record,
-                    )?;
-                }
-                Ok(())
-            },
-        )?;
+        // Non-minting producers run every round against this round's delta; minting
+        // producers run only in a generative round, against every change since they
+        // last gathered. Datalog-first needs the whole non-generating closure in place
+        // before any trigger is checked.
+        let mut chase_truncated = false;
+        for (minting, changed) in [
+            (false, state.changed.clone()),
+            (true, generative_changed.clone()),
+        ] {
+            if minting && !generative {
+                continue;
+            }
+            chase_truncated |= chase_round(
+                self.producers
+                    .iter()
+                    .map(Arc::as_ref)
+                    .filter(|producer| producer.mints() == minting),
+                &state.rel,
+                governor.solution_cap(),
+                registry,
+                (world, contract),
+                changed.as_ref(),
+                |head, premises| {
+                    if !state.store.contains_key(&head.key()) {
+                        round.insert(
+                            head.key(),
+                            record_candidate(
+                                premises.rule_iri,
+                                head,
+                                premises.source_facts,
+                                snapshot,
+                            )?,
+                            ProvenanceMode::Record,
+                        )?;
+                    }
+                    Ok(())
+                },
+            )?;
+        }
+        if generative {
+            // The minting producers have now read every row up to this snapshot.
+            state.generative_lo = generative_delta.hi;
+            state.generative_changed = Some(BTreeSet::new());
+        }
         tracing::info!(
             target: "pipeline_phase",
             stage = "stage-reason",

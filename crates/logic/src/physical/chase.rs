@@ -288,6 +288,12 @@ pub(super) struct PreparedChaseRule {
 }
 
 impl PreparedChaseRule {
+    /// Whether firing this rule mints a value: an existential witness or an n-ary
+    /// reifier node. Datalog-first scheduling defers exactly these rules.
+    pub(super) fn mints(&self) -> bool {
+        !self.existentials.is_empty() || !self.reifier_groups.is_empty()
+    }
+
     /// Exact execution ownership also governs source/effect admission.
     pub(super) fn owns_world(&self, world: &str) -> gmeow_errors::Result<bool> {
         self.ownership.owns_world(world)
@@ -624,6 +630,10 @@ fn chase_world_into(
     // the restricted-satisfaction check skips already-witnessed obligations, and the
     // SkolemRegistry collapses repeat firings — so a weakly-acyclic program converges.
     // (Incrementality is out of scope: the perf ledger flags the chase non-incremental.)
+    // Datalog-first: minting rules fire only in a round that follows a Datalog-only
+    // round with nothing left to add, so every trigger sees the Datalog closure of
+    // what exists (the order restricted-chase certificates assume).
+    let mut generative = false;
     'fixpoint: loop {
         // The restricted chase commits one breadth layer per round. The first
         // appearance of a fact is therefore its minimal proof-height layer.
@@ -635,7 +645,7 @@ fn chase_world_into(
         // becomes a sound `Exhausted` withhold instead of an OOM. Unbudgeted ⇒ `usize::MAX`.
         let mut round = BTreeMap::new();
         let round_truncated = chase_round(
-            &prepared,
+            prepared.iter().filter(|rule| generative || !rule.mints()),
             &store,
             governor.solution_cap(),
             registry,
@@ -706,8 +716,14 @@ fn chase_world_into(
             break 'fixpoint;
         }
         if !progressed {
+            if !generative {
+                // Datalog has reached its fixpoint: let the minting rules fire.
+                generative = true;
+                continue;
+            }
             break; // natural fixpoint — the chase terminated
         }
+        generative = false;
         prior_round_height = round_height;
     }
 
@@ -1232,6 +1248,7 @@ fn class_key(other: &EvalTerm) -> ClassKey {
 ///
 /// ```text
 /// Uncertified ⊏ WeaklyAcyclic ⊏ JointlyAcyclic ⊏ SuperWeaklyAcyclic ⊏ ModelSummarizingAcyclic
+///             ⊏ RestrictedJointlyAcyclic
 /// ```
 ///
 /// This `⊏` is the escalation order [`Self::certify`] tries cheapest-first, NOT a subset
@@ -1249,6 +1266,12 @@ fn class_key(other: &EvalTerm) -> ClassKey {
 /// restricted-chase termination), so the witness-addressing [`WitnessPolicy`] is
 /// unchanged: the certificate selects the proof variant, the runtime keeps its
 /// restricted chase.
+///
+/// [`Self::RestrictedJointlyAcyclic`] is the exception: it proves termination of the
+/// restricted chase itself under a **Datalog-first** schedule (witness-minting rules fire
+/// only once the non-generating rules reach a fixpoint), which every native executor
+/// runs. It strictly contains joint acyclicity and is incomparable with super-weak and
+/// model-summarizing acyclicity.
 ///
 /// The order is implemented explicitly ([`Self::rank`]), never derived: a derived `Ord`
 /// would order by declaration, not by the certified-strength meaning.
@@ -1270,6 +1293,14 @@ pub enum ChaseAdmission {
     /// Certified terminating by **super-weak acyclicity** (strictly broader than
     /// joint): the place/trigger moving relation over existentials is acyclic.
     SuperWeaklyAcyclic {
+        /// Human-readable proof summary folded into the divergence ledger.
+        evidence: String,
+    },
+    /// Certified terminating by **restricted joint acyclicity** (Carral, Dragoste &
+    /// Krötzsch 2017): joint acyclicity's dependency graph without the edges whose
+    /// trigger the Datalog-closed premise already satisfies. Valid for the Datalog-first
+    /// restricted chase.
+    RestrictedJointlyAcyclic {
         /// Human-readable proof summary folded into the divergence ledger.
         evidence: String,
     },
@@ -1588,6 +1619,7 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { evidence }
             | Self::JointlyAcyclic { evidence }
             | Self::SuperWeaklyAcyclic { evidence }
+            | Self::RestrictedJointlyAcyclic { evidence }
             | Self::ModelSummarizingAcyclic { evidence } => {
                 *evidence = format!("{context}; {evidence}");
             }
@@ -1599,10 +1631,12 @@ impl ChaseAdmission {
     }
 
     /// Certify `rules` by the termination-class ladder: escalate cheapest-first
-    /// (weak → joint → super-weak → model-summarizing acyclicity) and report the
-    /// **least-cost sufficient** certificate. The polynomial rungs run before the
+    /// (weak → joint → super-weak → model-summarizing → restricted joint acyclicity) and
+    /// report the **least-cost sufficient** certificate. The polynomial rungs run before the
     /// EXPTIME model-summarizing check, which is reached only when the structural
-    /// rungs all refuse. When no class certifies, return `Uncertified` carrying the
+    /// rungs all refuse. Restricted joint acyclicity runs last: it certifies only programs
+    /// whose skolem chase may not terminate but whose Datalog-first restricted chase does,
+    /// so every program the skolem-chase rungs certify keeps its class. When no class certifies, return `Uncertified` carrying the
     /// weak-acyclicity position-graph violations (the canonical diagnostic).
     pub(crate) fn certify(rules: &[ExistentialRule]) -> Self {
         Self::certify_on(rules, Ladder::Complete)
@@ -1659,6 +1693,7 @@ impl ChaseAdmission {
                     }
                     Ladder::Polynomial => None,
                 })
+                .or_else(|| Self::certify_restricted_joint_acyclic(tuples))
                 .unwrap_or(Self::Uncertified { violations }),
         }
     }
@@ -1837,6 +1872,104 @@ impl ChaseAdmission {
                 "jointly acyclic: {} existential variable(s), {} dependency edge(s), no existential depends on itself",
                 existentials.len(),
                 edge_count
+            ),
+        })
+    }
+
+    /// **Restricted joint acyclicity** (Carral, Dragoste & Krötzsch, IJCAI 2017,
+    /// Definition 4 as corrected in the authors' extended version): joint acyclicity's
+    /// existential-dependency graph, keeping an edge `v → w` only when the trigger it
+    /// models can actually fire under the restricted chase.
+    ///
+    /// For a frontier variable `x` of `ρ_w` whose body positions all lie in `Ω_v` (joint
+    /// acyclicity's move set), the edge is **blocked** when the Datalog closure of
+    /// `F = (B_w σ′ ∪ H_v[v/σ′(x)] ∪ B_v)σ` already entails `(∃w.H_w)σ′σ`: `σ′` renames
+    /// `ρ_w` apart, `σ` freezes every variable to a distinct constant, and the null `v` is
+    /// identified with `ρ_w`'s frontier. A null introduced by `ρ_v` then never triggers
+    /// `ρ_w`, because by the time witness-minting rules fire the Datalog-first schedule has
+    /// already derived the facts satisfying `ρ_w`'s head (an inverse property's back edge,
+    /// for instance). The graph acyclic means the Datalog-first restricted chase
+    /// terminates on every instance.
+    ///
+    /// The closure uses only exact positive Datalog rules ([`rja_exact_datalog`]); every
+    /// other rule is left out, so the closure under-approximates and can never block an
+    /// edge the chase could fire.
+    fn certify_restricted_joint_acyclic(rules: &[ExistentialRule]) -> Option<Self> {
+        let universe = all_program_positions(rules);
+        let mut existentials: Vec<(usize, String)> = Vec::new();
+        for (i, r) in rules.iter().enumerate() {
+            for e in r.existentials() {
+                existentials.push((i, e));
+            }
+        }
+        if existentials.is_empty() {
+            return None;
+        }
+        let flows: Vec<Vec<(BTreeSet<Position>, Vec<Position>)>> = rules
+            .iter()
+            .map(|r| {
+                r.copied_vars()
+                    .into_iter()
+                    .map(|v| {
+                        (
+                            refined_positions(&r.body, &v).into_iter().collect(),
+                            refined_positions(&r.head, &v),
+                        )
+                    })
+                    .collect()
+            })
+            .collect();
+        let moves: Vec<BTreeSet<Position>> = existentials
+            .iter()
+            .map(|(i, e)| move_set(&flows, &rules[*i], e, &universe))
+            .collect();
+        let datalog: Vec<&ExistentialRule> = rules
+            .iter()
+            .filter(|rule| rja_exact_datalog(rule))
+            .collect();
+
+        let mut edges: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
+        let mut edge_count = 0usize;
+        let mut blocked = 0usize;
+        for (a, (producer, null)) in existentials.iter().enumerate() {
+            for (j, consumer) in rules.iter().enumerate() {
+                if !consumer.is_existential() {
+                    continue;
+                }
+                let mut triggers = false;
+                for frontier in consumer.frontier_vars() {
+                    let body = refined_positions(&consumer.body, &frontier);
+                    if body.is_empty()
+                        || !body.iter().all(|p| move_contains(&moves[a], p, &universe))
+                    {
+                        continue;
+                    }
+                    if rja_trigger_blocked(&rules[*producer], null, consumer, &frontier, &datalog) {
+                        blocked += 1;
+                        continue;
+                    }
+                    triggers = true;
+                    break;
+                }
+                if !triggers {
+                    continue;
+                }
+                for (b, (owner, _)) in existentials.iter().enumerate() {
+                    if *owner == j && edges.entry(a).or_default().insert(b) {
+                        edge_count += 1;
+                    }
+                }
+            }
+        }
+        let acyclic = (0..existentials.len()).all(|n| !node_reaches_self(&edges, n));
+        acyclic.then(|| Self::RestrictedJointlyAcyclic {
+            evidence: format!(
+                "restricted jointly acyclic: {} existential variable(s), {} dependency \
+                 edge(s), {} trigger(s) blocked by the Datalog-closed premise, no \
+                 existential depends on itself",
+                existentials.len(),
+                edge_count,
+                blocked
             ),
         })
     }
@@ -2098,6 +2231,7 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { .. }
                 | Self::JointlyAcyclic { .. }
                 | Self::SuperWeaklyAcyclic { .. }
+                | Self::RestrictedJointlyAcyclic { .. }
                 | Self::ModelSummarizingAcyclic { .. }
         )
     }
@@ -2120,6 +2254,7 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { .. }
             | Self::JointlyAcyclic { .. }
             | Self::SuperWeaklyAcyclic { .. }
+            | Self::RestrictedJointlyAcyclic { .. }
             | Self::ModelSummarizingAcyclic { .. } => Vec::new(),
         }
     }
@@ -2148,6 +2283,12 @@ impl ChaseAdmission {
             Self::SuperWeaklyAcyclic { evidence } => Finding::new(
                 Severity::Info,
                 "chase.certificate.super-weakly-acyclic".to_owned(),
+                evidence.clone(),
+            )
+            .with_tool("chase"),
+            Self::RestrictedJointlyAcyclic { evidence } => Finding::new(
+                Severity::Info,
+                "chase.certificate.restricted-jointly-acyclic".to_owned(),
                 evidence.clone(),
             )
             .with_tool("chase"),
@@ -2180,6 +2321,7 @@ impl ChaseAdmission {
             Self::JointlyAcyclic { .. } => 2,
             Self::SuperWeaklyAcyclic { .. } => 3,
             Self::ModelSummarizingAcyclic { .. } => 4,
+            Self::RestrictedJointlyAcyclic { .. } => 5,
         }
     }
 
@@ -2190,24 +2332,39 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { evidence }
             | Self::JointlyAcyclic { evidence }
             | Self::SuperWeaklyAcyclic { evidence }
+            | Self::RestrictedJointlyAcyclic { evidence }
             | Self::ModelSummarizingAcyclic { evidence } => Some(evidence),
             Self::Uncertified { .. } => None,
         }
     }
 
     /// The greatest lower bound of two **certified** classes in the certificate-strength
-    /// poset `WA ⊏ {JA ∥ SWA} ⊏ MSA`. The incomparable siblings JA and SWA meet to their
-    /// glb, `WeaklyAcyclic` — never a linearization to whichever the escalation probed
-    /// first; every other pair is comparable and meets to the lower (more conservative)
-    /// class by escalation rank.
+    /// poset with `WA ⊏ JA ⊏ RJA`, `WA ⊏ SWA ⊏ MSA` and `JA ⊏ MSA`. Incomparable pairs meet
+    /// to their glb: JA with SWA and RJA with SWA to `WeaklyAcyclic`, RJA with MSA to
+    /// `JointlyAcyclic` (the greatest class below both) — never a linearization to whichever
+    /// the escalation probed first. Every other pair is comparable and meets to the lower
+    /// (more conservative) class by escalation rank.
     fn meet_certified(lhs: Self, rhs: Self) -> Self {
         match (&lhs, &rhs) {
             (Self::JointlyAcyclic { .. }, Self::SuperWeaklyAcyclic { .. })
-            | (Self::SuperWeaklyAcyclic { .. }, Self::JointlyAcyclic { .. }) => {
+            | (Self::SuperWeaklyAcyclic { .. }, Self::JointlyAcyclic { .. })
+            | (Self::RestrictedJointlyAcyclic { .. }, Self::SuperWeaklyAcyclic { .. })
+            | (Self::SuperWeaklyAcyclic { .. }, Self::RestrictedJointlyAcyclic { .. }) => {
                 Self::WeaklyAcyclic {
                     evidence: format!(
                         "meet of incomparable certificates [{}] and [{}] → greatest lower bound \
                      weakly-acyclic",
+                        lhs.evidence().unwrap_or_default(),
+                        rhs.evidence().unwrap_or_default()
+                    ),
+                }
+            }
+            (Self::RestrictedJointlyAcyclic { .. }, Self::ModelSummarizingAcyclic { .. })
+            | (Self::ModelSummarizingAcyclic { .. }, Self::RestrictedJointlyAcyclic { .. }) => {
+                Self::JointlyAcyclic {
+                    evidence: format!(
+                        "meet of incomparable certificates [{}] and [{}] → greatest lower bound \
+                     jointly-acyclic",
                         lhs.evidence().unwrap_or_default(),
                         rhs.evidence().unwrap_or_default()
                     ),
@@ -2959,3 +3116,155 @@ fn build_swa_place_graph(
 #[path = "chase.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+/// Whether `rule` is an exact positive Datalog rule for the restricted-joint-acyclicity
+/// closure: it mints nothing (no existential witness, no n-ary reifier node), and carries
+/// no inequality guard, numeric constraint or negated atom. Dropping such a condition
+/// would over-derive and could block an edge the chase fires, so those rules are left
+/// out of the closure entirely instead.
+fn rja_exact_datalog(rule: &ExistentialRule) -> bool {
+    !rule.is_existential()
+        && rule.numeric.is_empty()
+        && rule.distinct.is_empty()
+        && rule.body.iter().all(|atom| !atom.negated)
+        && PreparedChaseRule::new(rule.clone()).is_ok_and(|prepared| !prepared.mints())
+}
+
+/// Condition (b) of restricted joint acyclicity: whether the Datalog closure of
+/// `ρ_w`'s body (renamed apart), `ρ_v`'s head with `null` identified with `ρ_w`'s
+/// `frontier`, and `ρ_v`'s body, all frozen to distinct constants, already satisfies
+/// `ρ_w`'s head with its existentials free. Any evaluation failure answers `false`
+/// (not blocked), which keeps the edge.
+fn rja_trigger_blocked(
+    producer: &ExistentialRule,
+    null: &str,
+    consumer: &ExistentialRule,
+    frontier: &str,
+    datalog: &[&ExistentialRule],
+) -> bool {
+    const FROZEN: &str = "https://blackcatinformatics.ca/gmeow/termination/rja";
+    let frozen = |side: &str, name: &str| {
+        purrdf::TermValue::iri(format!("{FROZEN}/{side}/{}", name.trim_start_matches('?')))
+    };
+    let value = |term: &EvalTerm,
+                 side: &str,
+                 rename: &dyn Fn(&str) -> Option<purrdf::TermValue>| {
+        match term {
+            EvalTerm::Var(name) => rename(name).unwrap_or_else(|| frozen(side, name)),
+            EvalTerm::ConstNamed(iri) => purrdf::TermValue::iri(iri),
+            EvalTerm::ConstLit(literal) => literal.clone(),
+        }
+    };
+    let none = |_: &str| None;
+    let identify = |name: &str| (name == null).then(|| frozen("w", frontier));
+    let mut facts: Vec<Fact> = Vec::new();
+    let mut push =
+        |atom: &EvalAtom, side: &str, rename: &dyn Fn(&str) -> Option<purrdf::TermValue>| {
+            if !atom.negated {
+                facts.push(Fact {
+                    subject: value(&atom.subject, side, rename),
+                    predicate: atom.predicate.clone(),
+                    object: value(&atom.object, side, rename),
+                });
+            }
+        };
+    for atom in &consumer.body {
+        push(atom, "w", &none);
+    }
+    for atom in &producer.head {
+        push(atom, "v", &identify);
+    }
+    for atom in &producer.body {
+        push(atom, "v", &none);
+    }
+    let mut rel = RelationStore::new();
+    let mut seen: BTreeSet<FactKey> = BTreeSet::new();
+    for fact in facts {
+        if seen.insert(fact.key()) {
+            rel.insert(&fact.predicate, &fact.subject, &fact.object);
+        }
+    }
+    let empty = Solution {
+        bindings: Vec::new(),
+        source_facts: Vec::new(),
+    };
+    // The frozen premise is finite and the rules invent nothing, so this terminates.
+    loop {
+        let mut derived = Vec::new();
+        for rule in datalog {
+            let walked = join::walk(
+                &rule.body,
+                &rel,
+                &empty,
+                join::Policy {
+                    max_matches: usize::MAX,
+                    distinct: &[],
+                    retain_sources: false,
+                },
+                |solution| {
+                    for head in &rule.head {
+                        let ground = |term: &EvalTerm| match term {
+                            EvalTerm::Var(name) => solution.get(name).cloned(),
+                            EvalTerm::ConstNamed(iri) => Some(purrdf::TermValue::iri(iri)),
+                            EvalTerm::ConstLit(literal) => Some(literal.clone()),
+                        };
+                        if let (Some(subject), Some(object)) =
+                            (ground(&head.subject), ground(&head.object))
+                        {
+                            derived.push(Fact {
+                                subject,
+                                predicate: head.predicate.clone(),
+                                object,
+                            });
+                        }
+                    }
+                    Ok(true)
+                },
+            );
+            if walked.is_err() {
+                return false;
+            }
+        }
+        let mut grew = false;
+        for fact in derived {
+            if seen.insert(fact.key()) {
+                rel.insert(&fact.predicate, &fact.subject, &fact.object);
+                grew = true;
+            }
+        }
+        if !grew {
+            break;
+        }
+    }
+    let existential: BTreeSet<String> = consumer.existentials().into_iter().collect();
+    let freeze_universal = |term: &EvalTerm| match term {
+        EvalTerm::Var(name) if !existential.contains(name) => EvalTerm::ConstLit(frozen("w", name)),
+        term => term.clone(),
+    };
+    let head: Vec<EvalAtom> = consumer
+        .head
+        .iter()
+        .map(|atom| EvalAtom {
+            subject: freeze_universal(&atom.subject),
+            predicate: atom.predicate.clone(),
+            object: freeze_universal(&atom.object),
+            negated: false,
+        })
+        .collect();
+    let mut satisfied = false;
+    let walked = join::walk(
+        &head,
+        &rel,
+        &empty,
+        join::Policy {
+            max_matches: usize::MAX,
+            distinct: &[],
+            retain_sources: false,
+        },
+        |_| {
+            satisfied = true;
+            Ok(false)
+        },
+    );
+    walked.is_ok() && satisfied
+}
