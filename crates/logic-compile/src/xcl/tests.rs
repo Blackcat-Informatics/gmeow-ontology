@@ -127,7 +127,8 @@ fn projection_is_well_formed_single_root_xml() {
     // with exactly one root element, so any conformant XML/XCL consumer can read it.
     let p = shape_program();
     let out = project_xcl(&p).expect("project_xcl").content;
-    let doc = purrdf_lex::xml::Document::parse(&out).expect("XCL projection must be well-formed XML");
+    let doc =
+        purrdf_lex::xml::Document::parse(&out).expect("XCL projection must be well-formed XML");
     assert_eq!(
         doc.root_element().tag_name().name(),
         "gmeow-xcl",

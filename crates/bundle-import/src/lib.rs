@@ -1735,10 +1735,7 @@ fn digest(fields: &[&[u8]]) -> String {
         hash.update(field);
         hash.update([0x1f]);
     }
-    hash.finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
+    purrdf_hash::hex::encode(&hash.finalize())
 }
 
 fn io_diag(error: std::io::Error) -> gmeow_errors::Diag {

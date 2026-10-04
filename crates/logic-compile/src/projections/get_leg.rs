@@ -397,12 +397,7 @@ pub fn binding_key(cell: &ProjectionCell, binding: &ProfileBinding) -> String {
         )
     )
     .expect("digest writer cannot fail");
-    let digest: String = writer
-        .0
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let digest = purrdf_hash::hex::encode(&writer.0.finalize());
     format!(
         "cell={:?};profile={:?};binding={digest}",
         cell.iri, binding.profile

@@ -8,6 +8,7 @@
 members = [
     # Worktree-local DAG runner for the full developer gate.
     "crates/xtask",
+    "crates/helper-census",
     # Shared CLI foundation (console modes, reporters, tracing, exit codes) both
     # the consumer `gmeow` and the maintenance `gmeow-dev` binaries build on.
     "crates/cli-core",
@@ -251,6 +252,10 @@ pretty_assertions = "1"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 # Regular expressions for the text-shaped lints and renderers.
 regex = "1"
+# Rust source parsing for the build-input closure, the test-batch macros and the
+# dev-only helper census.
+syn = { version = "2", features = ["full", "visit", "extra-traits"] }
+proc-macro2 = { version = "1", features = ["span-locations"] }
 # Derive-based (de)serialization. `derive` is in the shared fact because every
 # consumer here uses `#[derive(Serialize/Deserialize)]` rather than hand impls.
 serde = { version = "1", features = ["derive"] }

@@ -188,14 +188,11 @@ mod blake2s {
         block[..rem.len()].copy_from_slice(rem);
         t = t.wrapping_add(rem.len() as u64);
         compress(&mut h, &block, t, true);
-        let mut out = String::new();
-        for word in &h {
-            for byte in word.to_le_bytes() {
-                out.push_str(&format!("{byte:02x}"));
-            }
+        let mut digest = [0u8; 32];
+        for (bytes, word) in digest.as_chunks_mut::<4>().0.iter_mut().zip(&h) {
+            *bytes = word.to_le_bytes();
         }
-        out.truncate(out_len * 2);
-        out
+        purrdf_hash::hex::encode(&digest[..out_len])
     }
 }
 

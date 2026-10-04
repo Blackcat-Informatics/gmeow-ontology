@@ -54,7 +54,7 @@ fn correspondence_iri(tag: &str, key: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(key.as_bytes());
     let digest = hasher.finalize();
-    let hex: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
+    let hex = purrdf_hash::hex::encode(&digest[..8]);
     format!("{LOGIC_NAMESPACE}correspondence/{tag}/{hex}")
 }
 

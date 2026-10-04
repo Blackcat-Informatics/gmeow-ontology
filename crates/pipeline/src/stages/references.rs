@@ -185,8 +185,7 @@ fn slug(value: &str) -> String {
 }
 
 fn hash8(value: &str) -> String {
-    let d = Sha256::digest(value.as_bytes());
-    d.iter().take(4).map(|b| format!("{b:02x}")).collect()
+    purrdf_hash::hex::encode(&Sha256::digest(value.as_bytes())[..4])
 }
 
 /// `_reference_id`: doi.org → `doi-<slug(path)>`; else `<slug(tail|netloc)>-<hash8>`.

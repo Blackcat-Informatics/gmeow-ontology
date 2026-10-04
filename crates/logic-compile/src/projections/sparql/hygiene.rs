@@ -106,21 +106,17 @@ impl HelperNames {
     }
 }
 
-fn encoded(value: &str) -> String {
-    value
-        .as_bytes()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
-}
-
 struct Scope {
     prefix: String,
 }
 
 impl Scope {
     fn variable(&self, value: &mut Variable) {
-        *value = Variable::new(format!("{}_v_{}", self.prefix, encoded(value.as_str())));
+        *value = Variable::new(format!(
+            "{}_v_{}",
+            self.prefix,
+            purrdf_hash::hex::encode(value.as_str().as_bytes())
+        ));
     }
 
     fn term(&self, value: &mut TermPattern, template: bool) {
@@ -131,7 +127,7 @@ impl Scope {
                 *value = BlankNode::new(format!(
                     "{}_{role}_{}",
                     self.prefix,
-                    encoded(value.as_str())
+                    purrdf_hash::hex::encode(value.as_str().as_bytes())
                 ));
             }
             TermPattern::Triple(value) => self.triple(value, template),
@@ -275,10 +271,7 @@ fn triple_has_variable(triple: &TriplePattern) -> bool {
 /// blanks remain templates; a fresh branch-bound predicate guards ground rows.
 pub(super) fn admit(mut leg: LoweredLeg, key: &str) -> gmeow_errors::Result<LoweredLeg> {
     use sha2::{Digest, Sha256};
-    let digest: String = Sha256::digest(key.as_bytes())
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let digest = purrdf_hash::hex::encode(&Sha256::digest(key.as_bytes()));
     let scope = Scope {
         prefix: format!("m{digest}"),
     };

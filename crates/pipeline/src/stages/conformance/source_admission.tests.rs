@@ -54,11 +54,7 @@ fn shipped_admission_keeps_native_graph_receipt_and_external_status_without_sema
         .split('"')
         .nth(1)
         .unwrap();
-    let bytes: Vec<_> = encoded
-        .as_bytes()
-        .chunks_exact(2)
-        .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
-        .collect();
+    let bytes = purrdf_hash::hex::decode(encoded).unwrap();
     let (schema, corpus, case, published, restored): (
         String,
         String,

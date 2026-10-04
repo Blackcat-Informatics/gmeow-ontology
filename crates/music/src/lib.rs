@@ -1617,7 +1617,11 @@ fn musicxml_duration(
     Fraction::from_f64(duration_divs / divisions.max(1.0), 64)
 }
 
-fn musicxml_part_label(doc: &purrdf_lex::xml::Document<'_>, part_id: &str, fallback: &str) -> String {
+fn musicxml_part_label(
+    doc: &purrdf_lex::xml::Document<'_>,
+    part_id: &str,
+    fallback: &str,
+) -> String {
     doc.descendants()
         .find(|node| {
             node.is_element()
@@ -1847,14 +1851,19 @@ pub fn manifest_turtle(
 }
 
 fn percent_encode_path(path: &str) -> String {
-    path.bytes()
-        .map(|b| match b {
+    let mut out = String::with_capacity(path.len());
+    for b in path.bytes() {
+        match b {
             b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'/' | b':' | b'-' | b'.' | b'_' | b'~' => {
-                (b as char).to_string()
+                out.push(b as char);
             }
-            other => format!("%{other:02X}"),
-        })
-        .collect()
+            other => {
+                out.push('%');
+                purrdf_hash::hex::encode_upper_into(&[other], &mut out);
+            }
+        }
+    }
+    out
 }
 
 fn file_uri(path: &Path) -> gmeow_errors::Result<String> {

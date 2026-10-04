@@ -1205,7 +1205,9 @@ fn parse_yaml(rel: &str, text: &str, report: &mut RepoStaticReport) -> Option<Ya
 }
 
 fn yaml_get<'a>(value: &'a Yaml, key: &str) -> Option<&'a Yaml> {
-    value.as_object().and_then(|mapping| yaml_map_get(mapping, key))
+    value
+        .as_object()
+        .and_then(|mapping| yaml_map_get(mapping, key))
 }
 
 fn yaml_map_get<'a>(mapping: &'a YamlMap, key: &str) -> Option<&'a Yaml> {
