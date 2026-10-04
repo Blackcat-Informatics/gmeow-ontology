@@ -1090,6 +1090,21 @@ fn fact_rule_iri(_sources: &[String]) -> String {
 // slot stays the wildcard `*`, and where both a wildcard and constants occur for one
 // `(predicate, slot)` they are conservatively connected (over-approximating reachability,
 // never under — so a non-terminating program is never wrongly certified).
+//
+// # Fresh-null refinement (why a witness's partner slot is not a wildcard)
+//
+// A head atom whose OTHER slot is an existential of the same rule writes a fact whose
+// other slot is a freshly minted null. That null never equals any constant: the chase
+// mints Skolem terms that are distinct from every source/program constant, and no
+// engine path rewrites a stored null (there is no `sameAs` substitution — the
+// equality laws only DERIVE `sameAs` facts, symmetric/transitive closure and clashes,
+// and the refutation families write only `instanceOf Nothing` heads). Such a fact can
+// therefore only ever match a body atom whose other slot is a variable. Its position
+// is keyed [`ClassKey::Null`], which feeds wildcard reads and never a constant read.
+// A DL-blocked firing reuses an ancestor witness instead of minting, which is still a
+// null, never a constant. Like every rung of the ladder, this models a minted witness
+// IRI (a content address in the Skolem namespace) as fresh; an input that copies a
+// minted witness IRI as a constant is outside that model for every rung, not just here.
 
 /// The class refinement of a position: the constant co-occurring in the atom's other
 /// slot, or the wildcard when that slot is a variable.
@@ -1099,6 +1114,23 @@ enum ClassKey {
     Const(String),
     /// The other slot is a variable — matches any class.
     Wildcard,
+    /// Written only: the other slot is a fresh null of the writing rule, so the fact
+    /// can be read only through a wildcard, never through a constant refinement.
+    Null,
+}
+
+impl ClassKey {
+    /// Whether a fact written at refinement `self` can match a body atom read at
+    /// refinement `read` of the same `(relation, slot)`. Exact: a written variable
+    /// may hold any constant, a written constant matches only itself, and a written
+    /// fresh null matches only a variable.
+    fn feeds(&self, read: &ClassKey) -> bool {
+        match (self, read) {
+            (_, ClassKey::Wildcard) | (ClassKey::Wildcard, _) => true,
+            (ClassKey::Const(written), ClassKey::Const(read)) => written == read,
+            (ClassKey::Null, _) | (_, ClassKey::Null) => false,
+        }
+    }
 }
 
 /// Which column of a binary atom a variable occupies.
@@ -1126,6 +1158,7 @@ impl Position {
         let class = match &self.class {
             ClassKey::Const(k) => k.as_str(),
             ClassKey::Wildcard => "*",
+            ClassKey::Null => "null",
         };
         format!("{}[{slot}|{class}]", self.predicate)
     }
@@ -1147,6 +1180,38 @@ fn refined_positions(atoms: &[EvalAtom], var: &str) -> Vec<Position> {
                 predicate: atom.predicate.clone(),
                 slot: Slot::Object,
                 class: class_key(&atom.subject),
+            });
+        }
+    }
+    out
+}
+
+/// The refined positions at which `var` occurs across the HEAD `atoms` of a rule whose
+/// existential variables are `existentials`: a position whose other slot is one of
+/// those existentials is keyed [`ClassKey::Null`] (see "Fresh-null refinement").
+fn refined_head_positions(
+    atoms: &[EvalAtom],
+    var: &str,
+    existentials: &BTreeSet<String>,
+) -> Vec<Position> {
+    let key = |other: &EvalTerm| match other {
+        EvalTerm::Var(name) if existentials.contains(name) => ClassKey::Null,
+        other => class_key(other),
+    };
+    let mut out = Vec::new();
+    for atom in atoms {
+        if matches!(&atom.subject, EvalTerm::Var(v) if v == var) {
+            out.push(Position {
+                predicate: atom.predicate.clone(),
+                slot: Slot::Subject,
+                class: key(&atom.object),
+            });
+        }
+        if matches!(&atom.object, EvalTerm::Var(v) if v == var) {
+            out.push(Position {
+                predicate: atom.predicate.clone(),
+                slot: Slot::Object,
+                class: key(&atom.subject),
             });
         }
     }
@@ -1237,9 +1302,41 @@ pub(crate) struct StatementRule {
     pub(crate) position_only: bool,
     /// `(list head, cell)` pairs: each body cell reads a member of that list.
     pub(crate) list_cells: Vec<(EvalTerm, EvalTerm)>,
+    /// The minimum count of a witness family, when `heads` are its two-ordinal
+    /// position summary. Specialization substitutes the count like any head term.
+    pub(crate) witness_family: Option<WitnessFamily>,
+}
+
+/// The count of a native minimum-witness family and the layout of its analysis heads.
+#[derive(Debug, Clone)]
+pub(crate) struct WitnessFamily {
+    /// The family's minimum count term, possibly bound by specialization.
+    pub(crate) count: EvalTerm,
+    /// `heads[..single]` are exactly the heads ONE witness emits.
+    pub(crate) single: usize,
 }
 
 impl StatementRule {
+    /// The heads the termination proof analyses.
+    ///
+    /// A witness family is summarized by two symbolic ordinals and their
+    /// `differentFrom` edge, which covers every finite count. When the count is the
+    /// constant 1 — as execution parses it — execution mints exactly one witness,
+    /// emits its property/type heads and NO inequality (it relates distinct witnesses
+    /// only). The analysis then uses exactly those heads. The rule stays a witness
+    /// family for the ladder: like every family, only the position proof certifies it.
+    fn analysed_heads(&self) -> &[[EvalTerm; 3]] {
+        match &self.witness_family {
+            Some(WitnessFamily {
+                count: EvalTerm::ConstLit(count),
+                single,
+            }) if crate::reason::value::NativeValues::parse_cardinality(count) == Some(1) => {
+                &self.heads[..*single]
+            }
+            _ => &self.heads,
+        }
+    }
+
     pub(crate) fn from_binary(rule: &ExistentialRule) -> Self {
         let statement = |atom: &EvalAtom| {
             [
@@ -1263,10 +1360,15 @@ impl StatementRule {
             },
             position_only: !rule.numeric.is_empty(),
             list_cells: Vec::new(),
+            witness_family: None,
         }
     }
 
     pub(crate) fn from_property(property: &crate::physical::PreparedPropertyRule) -> Self {
+        let minimum = match property.source.operation.as_ref() {
+            Some(crate::physical::PropertyOperation::Minimum(pattern)) => Some(pattern),
+            _ => None,
+        };
         Self {
             name: property.source.rule_iri.clone(),
             body: property
@@ -1280,11 +1382,12 @@ impl StatementRule {
                 .map(|atom| atom.0.clone())
                 .collect(),
             frontier: property.witness_frontier.clone(),
-            position_only: matches!(
-                property.source.operation.as_ref(),
-                Some(crate::physical::PropertyOperation::Minimum(_))
-            ),
+            position_only: minimum.is_some(),
             list_cells: property.analysis_list_cells.clone(),
+            witness_family: minimum.map(|pattern| WitnessFamily {
+                count: pattern.minimum.clone(),
+                single: pattern.single_witness_heads(),
+            }),
         }
     }
 }
@@ -1369,14 +1472,25 @@ pub(crate) fn firing_statements(
 impl ChaseAdmission {
     /// Certify the combined ordinary, existential and native schema producers.
     ///
-    /// The binary certifier sees each statement `(s, p, o)` through three fixed
-    /// relations: `(s, p)`, `(s, o)` and `(p, o)`. Predicate variables therefore
-    /// participate in the SAME value-flow proof as subject/object variables.
-    /// This is a conservative analysis abstraction, never an execution rewrite:
-    /// projecting every concrete fact maps each concrete Skolem firing to a firing
-    /// of the abstract rule with identical variables and witness frontier. Pair
-    /// joins may admit additional combinations, but cannot remove a concrete firing.
-    /// A finite abstract Skolem closure consequently bounds the concrete closure.
+    /// Each statement atom `(s, p, o)` is encoded by ITS OWN predicate. A constant
+    /// predicate `P` keeps the binary relation `P(s, o)` and its class-refined
+    /// positions. A variable predicate is projected into three fixed relations,
+    /// `(s, p)`, `(s, o)` and `(p, o)`, so the predicate variable participates in the
+    /// SAME value-flow proof as subject/object variables. This is a conservative
+    /// analysis abstraction, never an execution rewrite: each concrete fact
+    /// `(s, P, o)` is represented in BOTH encodings, so each concrete Skolem firing
+    /// maps to a firing of the abstract rule with identical variables and witness
+    /// frontier. Pair joins may admit additional combinations, but cannot remove a
+    /// concrete firing. A finite abstract Skolem closure consequently bounds the
+    /// concrete closure.
+    ///
+    /// The two encodings meet only along real flows. Weak acyclicity joins their
+    /// positions directly ([`add_statement_links`]); the tuple rungs instead receive
+    /// Datalog bridge rules that restate each concrete fact in the other encoding
+    /// ([`statement_bridges`]). Choosing per atom matters: one variable-predicate
+    /// statement used to project the WHOLE program into pairs, where every typed
+    /// witness `?w instanceOf C` shares `subject-predicate[S|instanceOf]` with every
+    /// typed trigger and so lies on a spurious cycle.
     ///
     /// Each head remains one conjunction and no reifier or fresh variable is added.
     /// Constants retain their typed identity. Abstract relation names cannot collide
@@ -1406,50 +1520,35 @@ impl ChaseAdmission {
         semantics: crate::native_semantics::SemanticVocabulary,
         ladder: Ladder,
     ) -> Self {
-        let fixed_relations = rules
-            .iter()
-            .flat_map(|rule| rule.body.iter().chain(&rule.heads))
-            .all(|atom| {
-                matches!(
-                    &atom[1],
-                    EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(purrdf::TermValue::Iri(_))
-                )
-            });
-        let project = |terms: [&EvalTerm; 3]| {
-            [
-                (0, 1, "urn:gmeow:termination:subject-predicate"),
-                (0, 2, "urn:gmeow:termination:subject-object"),
-                (1, 2, "urn:gmeow:termination:predicate-object"),
-            ]
-            .map(|(left, right, relation)| {
-                EvalAtom::positive(terms[left].clone(), relation, terms[right].clone())
-            })
-        };
         // Abstract only the terms entering the termination proof. The executable
         // property layouts remain shared and retain their exact native spellings.
-        let property_atom = |terms: &[EvalTerm; 3]| {
+        let statement_atom = |terms: &[EvalTerm; 3]| {
             let terms = terms.each_ref().map(|term| {
                 let mut term = term.clone();
                 semantics.abstract_term(&mut term);
                 term
             });
-            // When metadata fixes every operator, retain the original binary
-            // relations and their class-refined positions. Dropping predicate
-            // correlation into statement pairs would create spurious cycles.
-            if fixed_relations {
-                let predicate = match &terms[1] {
-                    EvalTerm::ConstNamed(iri) | EvalTerm::ConstLit(purrdf::TermValue::Iri(iri)) => {
-                        iri
-                    }
-                    _ => unreachable!("fixed native predicate"),
-                };
-                vec![EvalAtom::positive(
-                    terms[0].clone(),
-                    predicate,
-                    terms[2].clone(),
-                )]
-            } else {
-                project(terms.each_ref()).to_vec()
+            match &terms[1] {
+                // A fixed operator keeps its binary relation and class-refined
+                // positions. Dropping its predicate correlation into statement
+                // pairs would create spurious cycles.
+                EvalTerm::ConstNamed(predicate)
+                | EvalTerm::ConstLit(purrdf::TermValue::Iri(predicate)) => {
+                    vec![EvalAtom::positive(
+                        terms[0].clone(),
+                        predicate,
+                        terms[2].clone(),
+                    )]
+                }
+                _ => [
+                    (0, 1, SUBJECT_PREDICATE),
+                    (0, 2, SUBJECT_OBJECT),
+                    (1, 2, PREDICATE_OBJECT),
+                ]
+                .map(|(left, right, relation)| {
+                    EvalAtom::positive(terms[left].clone(), relation, terms[right].clone())
+                })
+                .to_vec(),
             }
         };
         let analysis: Vec<_> = rules
@@ -1457,8 +1556,12 @@ impl ChaseAdmission {
             .map(|rule| ExistentialRule {
                 numeric: Vec::new(),
                 rule_iri: rule.name.clone(),
-                body: rule.body.iter().flat_map(property_atom).collect(),
-                head: rule.heads.iter().flat_map(property_atom).collect(),
+                body: rule.body.iter().flat_map(statement_atom).collect(),
+                head: rule
+                    .analysed_heads()
+                    .iter()
+                    .flat_map(statement_atom)
+                    .collect(),
                 // Dropping inequality guards only adds possible firings.
                 distinct: Vec::new(),
                 witness_frontier: rule.frontier.clone(),
@@ -1473,7 +1576,9 @@ impl ChaseAdmission {
             Self::certify_weakly_acyclic(&analysis)
                 .unwrap_or_else(|violations| Self::Uncertified { violations })
         } else {
-            Self::certify_on(&analysis, ladder)
+            let mut bridged = analysis.clone();
+            bridged.extend(statement_bridges(&analysis));
+            Self::certify_ladder(&analysis, &bridged, ladder)
         };
         let context = format!(
             "joint statement value-flow abstraction of {} native producer(s)",
@@ -1522,13 +1627,24 @@ impl ChaseAdmission {
             return Self::certify_weakly_acyclic(&abstraction)
                 .unwrap_or_else(|violations| Self::Uncertified { violations });
         }
-        match Self::certify_weakly_acyclic(rules) {
+        Self::certify_ladder(rules, rules, ladder)
+    }
+
+    /// The ladder over one program in two equivalent presentations: weak acyclicity
+    /// reads `weak`, whose position graph joins statement encodings itself; the tuple
+    /// rungs read `tuples`, the same program closed under its encoding bridges.
+    fn certify_ladder(
+        weak: &[ExistentialRule],
+        tuples: &[ExistentialRule],
+        ladder: Ladder,
+    ) -> Self {
+        match Self::certify_weakly_acyclic(weak) {
             Ok(admission) => admission,
-            Err(mut violations) => Self::certify_joint_acyclic(rules)
-                .or_else(|| Self::certify_super_weak_acyclic(rules))
+            Err(mut violations) => Self::certify_joint_acyclic(tuples)
+                .or_else(|| Self::certify_super_weak_acyclic(tuples))
                 .or_else(|| match ladder {
-                    Ladder::Complete if rules.len() <= MODEL_SUMMARIZING_MAX_RULES => {
-                        Self::certify_model_summarizing(rules)
+                    Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
+                        Self::certify_model_summarizing(tuples)
                     }
                     Ladder::Complete => {
                         violations.insert(
@@ -1536,7 +1652,7 @@ impl ChaseAdmission {
                             format!(
                                 "model-summarizing acyclicity not attempted: {} rules exceed its \
                                  {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
-                                rules.len()
+                                tuples.len()
                             ),
                         );
                         None
@@ -1571,7 +1687,7 @@ impl ChaseAdmission {
                     continue;
                 }
                 let bpos = refined_positions(&rule.body, &hv);
-                let hpos = refined_positions(&rule.head, &hv);
+                let hpos = refined_head_positions(&rule.head, &hv, &existentials);
                 for b in &bpos {
                     for h in &hpos {
                         all_nodes.insert(b.clone());
@@ -1591,7 +1707,7 @@ impl ChaseAdmission {
                     frontier_bpos.extend(refined_positions(&rule.body, &fv));
                 }
                 for e in &existentials {
-                    for h in refined_positions(&rule.head, e) {
+                    for h in refined_head_positions(&rule.head, e, &existentials) {
                         for b in &frontier_bpos {
                             all_nodes.insert(b.clone());
                             all_nodes.insert(h.clone());
@@ -1606,6 +1722,7 @@ impl ChaseAdmission {
         }
 
         add_wildcard_subsumption(&mut adj, &written, &read);
+        add_statement_links(&mut adj, &written, &read);
 
         // A special edge (u → v) violates weak acyclicity iff v can reach u (the edge
         // lies in a cycle → the chase may not terminate). The edge itself is in the
@@ -2248,6 +2365,163 @@ fn add_wildcard_subsumption(
             adj.entry(constant.clone()).or_default().insert(target);
         }
     }
+}
+
+/// The statement-pair relations a variable-predicate statement is projected into.
+/// `(s, p, o)` becomes `subject-predicate(s, p)`, `subject-object(s, o)` and
+/// `predicate-object(p, o)`; a constant-predicate statement keeps its binary relation.
+const SUBJECT_PREDICATE: &str = "urn:gmeow:termination:subject-predicate";
+const SUBJECT_OBJECT: &str = "urn:gmeow:termination:subject-object";
+const PREDICATE_OBJECT: &str = "urn:gmeow:termination:predicate-object";
+
+fn is_statement_pair(relation: &str) -> bool {
+    matches!(
+        relation,
+        SUBJECT_PREDICATE | SUBJECT_OBJECT | PREDICATE_OBJECT
+    )
+}
+
+/// Join the two statement encodings along the flows a concrete fact can take.
+///
+/// [`ChaseAdmission::certify_statements`] encodes each atom by its own predicate: a
+/// constant predicate `P` keeps the binary relation `P(s, o)`; a variable predicate is
+/// projected into the three statement-pair relations. One concrete fact `(s, P, o)` is
+/// seen by BOTH encodings, so a value written by one can be read by the other:
+///
+/// * a value written at `P[S|k]` (a binary head) can bind the subject of every
+///   variable-predicate body atom `(?s ?p X)`, whose subject reads
+///   `subject-object[S|key(X)]` — joined when `k` feeds `key(X)`. Objects likewise
+///   through `subject-object[O|·]`, whose key is the subject's, as in `P[O|·]`;
+/// * a value written at `subject-object[S|k]` (a variable-predicate head) can be read
+///   by every binary body atom `P(?s, X)` — at `P[S|key(X)]`, joined when `k` feeds
+///   `key(X)`, for every `P`, since the head may write any predicate. Objects likewise.
+///
+/// Exactness: a subject/object value of a variable-predicate atom always occupies its
+/// `subject-object` position (with the same refinement as the binary atom), so these
+/// edges carry every subject/object flow. The `subject-predicate`/`predicate-object`
+/// positions also hold the predicate VALUE; a binary atom has no predicate position to
+/// read or write — its predicate is a constant and never a null — so no edge links
+/// them. Keys follow [`ClassKey::feeds`]: a fresh null joins only a wildcard read.
+fn add_statement_links(
+    adj: &mut std::collections::BTreeMap<Position, BTreeSet<Position>>,
+    written: &BTreeSet<Position>,
+    read: &BTreeSet<Position>,
+) {
+    type Index<'a> = std::collections::BTreeMap<(Slot, &'a ClassKey), Vec<&'a Position>>;
+    let mut binary_reads: Index<'_> = Index::new();
+    let mut pair_reads: Index<'_> = Index::new();
+    for position in read {
+        let index = if position.predicate == SUBJECT_OBJECT {
+            &mut pair_reads
+        } else if !is_statement_pair(&position.predicate) {
+            &mut binary_reads
+        } else {
+            continue;
+        };
+        index
+            .entry((position.slot, &position.class))
+            .or_default()
+            .push(position);
+    }
+    for source in written {
+        let reads = if source.predicate == SUBJECT_OBJECT {
+            &binary_reads
+        } else if !is_statement_pair(&source.predicate) {
+            &pair_reads
+        } else {
+            continue;
+        };
+        // The read refinements this written refinement feeds: a written variable
+        // feeds every refinement, a constant itself and the wildcard, a null only
+        // the wildcard.
+        let targets: Vec<&Position> = match &source.class {
+            ClassKey::Wildcard => reads
+                .iter()
+                .filter(|((slot, _), _)| *slot == source.slot)
+                .flat_map(|(_, positions)| positions.iter().copied())
+                .collect(),
+            class => [class, &ClassKey::Wildcard]
+                .into_iter()
+                .filter(|read| source.class.feeds(read))
+                .flat_map(|read| reads.get(&(source.slot, read)).into_iter().flatten())
+                .copied()
+                .collect(),
+        };
+        if targets.is_empty() {
+            continue;
+        }
+        adj.entry(source.clone())
+            .or_default()
+            .extend(targets.into_iter().cloned());
+    }
+}
+
+/// Datalog rules restating each fact in the other statement encoding, for the tuple
+/// rungs (joint, super-weak and model-summarizing acyclicity), which read the analysis
+/// as a program rather than as a position graph.
+///
+/// A fact written in binary form `P(s, o)` is also the statement pairs `(s, P)`,
+/// `(s, o)` and `(P, o)`; three pairs agreeing on `s`, `P` and `o` may be the fact
+/// `P(s, o)`. A bridge invents nothing (no existential, so no special edge and no
+/// Skolem term) and only adds facts a concrete statement already denotes in the other
+/// encoding, so the bridged program's Skolem closure still contains the image of every
+/// concrete firing. Empty when the program uses only the binary encoding.
+fn statement_bridges(rules: &[ExistentialRule]) -> Vec<ExistentialRule> {
+    let mut written = BTreeSet::new();
+    let mut read = BTreeSet::new();
+    let mut pairs = false;
+    for rule in rules {
+        for (atoms, binary) in [(&rule.head, &mut written), (&rule.body, &mut read)] {
+            for atom in atoms {
+                if is_statement_pair(&atom.predicate) {
+                    pairs = true;
+                } else {
+                    binary.insert(atom.predicate.as_str());
+                }
+            }
+        }
+    }
+    if !pairs {
+        return Vec::new();
+    }
+    let subject = EvalTerm::var("?statement_subject");
+    let object = EvalTerm::var("?statement_object");
+    let binary = |predicate: &str| EvalAtom::positive(subject.clone(), predicate, object.clone());
+    let projected = |predicate: &str| {
+        vec![
+            EvalAtom::positive(
+                subject.clone(),
+                SUBJECT_PREDICATE,
+                EvalTerm::named(predicate),
+            ),
+            EvalAtom::positive(subject.clone(), SUBJECT_OBJECT, object.clone()),
+            EvalAtom::positive(EvalTerm::named(predicate), PREDICATE_OBJECT, object.clone()),
+        ]
+    };
+    let bridge = |name: String, body: Vec<EvalAtom>, head: Vec<EvalAtom>| ExistentialRule {
+        numeric: Vec::new(),
+        rule_iri: name,
+        body,
+        head,
+        distinct: Vec::new(),
+        witness_frontier: None,
+        witness_policy: WitnessPolicy::FrontierSkolem,
+    };
+    let to_pairs = written.iter().map(|predicate| {
+        bridge(
+            format!("urn:gmeow:termination:bridge:pairs:{predicate}"),
+            vec![binary(predicate)],
+            projected(predicate),
+        )
+    });
+    let to_binary = read.iter().map(|predicate| {
+        bridge(
+            format!("urn:gmeow:termination:bridge:binary:{predicate}"),
+            projected(predicate),
+            vec![binary(predicate)],
+        )
+    });
+    to_pairs.chain(to_binary).collect()
 }
 
 /// The strongly connected component of every position in `adj`, by position.

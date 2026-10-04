@@ -79,6 +79,7 @@ impl Template {
                 }),
                 position_only: !rule.numeric.is_empty(),
                 list_cells: Vec::new(),
+                witness_family: None,
             });
         let rules: Vec<_> = ordinary
             .chain(producers.iter().map(StatementRule::from_binary))
@@ -279,6 +280,10 @@ impl Template {
                 .map(|(atom, _)| atom)
                 .chain(&rule.heads)
                 .flatten()
+                // A witness family's count selects how many witnesses it analyses
+                // (one exactly, or the two-ordinal summary), so solutions that
+                // differ only in the count are distinct specializations.
+                .chain(rule.witness_family.as_ref().map(|family| &family.count))
                 .filter_map(|term| match term {
                     EvalTerm::Var(name) => Some(name.as_str()),
                     _ => None,
@@ -529,16 +534,15 @@ fn specialize(
     ordinal: usize,
     discharged: &[bool],
 ) -> StatementRule {
-    let substitute = |atom: &[EvalTerm; 3]| {
-        atom.each_ref().map(|term| {
-            if let EvalTerm::Var(name) = term
-                && let Some(value) = solution.get(name)
-            {
-                return EvalTerm::ConstLit(value.clone());
-            }
-            term.clone()
-        })
+    let substitute_term = |term: &EvalTerm| {
+        if let EvalTerm::Var(name) = term
+            && let Some(value) = solution.get(name)
+        {
+            return EvalTerm::ConstLit(value.clone());
+        }
+        term.clone()
     };
+    let substitute = |atom: &[EvalTerm; 3]| atom.each_ref().map(substitute_term);
     StatementRule {
         name: format!("{}:immutable-binding:{ordinal}", rule.name),
         body: rule
@@ -558,6 +562,12 @@ fn specialize(
         }),
         position_only: rule.position_only,
         list_cells: Vec::new(),
+        witness_family: rule.witness_family.as_ref().map(|family| {
+            crate::physical::chase::WitnessFamily {
+                count: substitute_term(&family.count),
+                single: family.single,
+            }
+        }),
     }
 }
 
