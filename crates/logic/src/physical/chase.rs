@@ -1632,6 +1632,7 @@ impl ChaseAdmission {
             .filter(|rule| !rule.exact())
             .map(|rule| rule.name.as_str())
             .collect();
+        let started = std::time::Instant::now();
         let mut admission = if summarized.is_empty() {
             let ladder = if rules.iter().any(|rule| rule.position_only) {
                 Ladder::Polynomial
@@ -1647,6 +1648,15 @@ impl ChaseAdmission {
                     .unwrap_or(Self::Uncertified { violations }),
             }
         };
+        tracing::info!(
+            target: "termination_certificate",
+            producers = rules.len(),
+            summarized = summarized.len(),
+            analysed_rules = bridged.len(),
+            class = admission.to_finding().code,
+            elapsed_ms = started.elapsed().as_millis(),
+            "certified a joint statement program"
+        );
         let context = format!(
             "joint statement value-flow abstraction of {} native producer(s)",
             rules.len()
@@ -1893,41 +1903,60 @@ impl ChaseAdmission {
         summarized: &BTreeSet<&str>,
     ) -> Option<Self> {
         let graph = JointGraph::new(rules)?;
+        // Joint acyclicity's edges, each with the frontiers that carry it. Every
+        // restricted edge is one of these, so a restricted cycle lies inside one
+        // strongly connected component of this graph: only an edge within a component
+        // can close a cycle, and only those are worth a Datalog closure.
+        let mut candidates: Vec<(usize, usize, Vec<&String>)> = Vec::new();
+        let mut joint: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
+        for (a, covered) in graph.moves.iter().enumerate() {
+            for (j, frontiers) in &graph.consumers {
+                let carried: Vec<&String> = frontiers
+                    .iter()
+                    .filter(|(_, body)| body.iter().all(|p| covered.contains(p)))
+                    .map(|(frontier, _)| frontier)
+                    .collect();
+                if !carried.is_empty() {
+                    joint[a].extend(graph.owned(*j));
+                    candidates.push((a, *j, carried));
+                }
+            }
+        }
+        let component = strongly_connected_components(&joint);
         let datalog = RjaDatalog::new(rules);
+        let started = std::time::Instant::now();
+        let mut closures = 0usize;
         let mut edges: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
         let mut blocked = 0usize;
-        for (a, (producer, null)) in graph.existentials.iter().enumerate() {
-            let covered = &graph.moves[a];
-            for (j, frontiers) in &graph.consumers {
-                let consumer = &rules[*j];
-                let blockable = !summarized.contains(consumer.rule_iri.as_str());
-                let mut triggers = false;
-                for (frontier, body) in frontiers {
-                    if !body.iter().all(|p| covered.contains(p)) {
-                        continue;
-                    }
-                    if blockable
-                        && rja_trigger_blocked(
-                            &rules[*producer],
-                            null,
-                            consumer,
-                            frontier,
-                            &datalog,
-                        )
-                    {
-                        blocked += 1;
-                        continue;
-                    }
-                    triggers = true;
-                    break;
-                }
-                if triggers {
-                    edges[a].extend(graph.owned(*j));
-                }
+        for (a, j, carried) in candidates {
+            let (producer, null) = &graph.existentials[a];
+            let consumer = &rules[j];
+            let cyclic = graph.owned(j).any(|b| component[b] == component[a]);
+            let blockable = cyclic && !summarized.contains(consumer.rule_iri.as_str());
+            let triggers = !blockable
+                || carried.into_iter().any(|frontier| {
+                    closures += 1;
+                    let held =
+                        rja_trigger_blocked(&rules[*producer], null, consumer, frontier, &datalog);
+                    blocked += usize::from(held);
+                    !held
+                });
+            if triggers {
+                edges[a].extend(graph.owned(j));
             }
         }
         let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
         let acyclic = acyclic(&edges);
+        tracing::info!(
+            target: "termination_certificate",
+            existentials = graph.existentials.len(),
+            datalog_rules = datalog.rules.len(),
+            closures,
+            blocked,
+            elapsed_ms = started.elapsed().as_millis(),
+            acyclic,
+            "checked restricted joint acyclicity"
+        );
         acyclic.then(|| Self::RestrictedJointlyAcyclic {
             evidence: format!(
                 "restricted jointly acyclic: {} existential variable(s), {} dependency \
@@ -2866,6 +2895,63 @@ impl MoveIndex {
         }
         covered
     }
+}
+
+/// The strongly connected component of every node (Tarjan, 1972), iteratively, in
+/// time linear in the graph. Two nodes share a component iff each reaches the other.
+fn strongly_connected_components(edges: &[BTreeSet<usize>]) -> Vec<usize> {
+    const UNVISITED: usize = usize::MAX;
+    let n = edges.len();
+    let mut index = vec![UNVISITED; n];
+    let mut low = vec![0usize; n];
+    let mut on_stack = vec![false; n];
+    let mut component = vec![UNVISITED; n];
+    let mut stack = Vec::new();
+    let mut next = 0usize;
+    let mut components = 0usize;
+    for root in 0..n {
+        if index[root] != UNVISITED {
+            continue;
+        }
+        let mut frames: Vec<(usize, Vec<usize>)> =
+            vec![(root, edges[root].iter().copied().collect())];
+        index[root] = next;
+        low[root] = next;
+        next += 1;
+        stack.push(root);
+        on_stack[root] = true;
+        while let Some((node, successors)) = frames.last_mut() {
+            let node = *node;
+            if let Some(successor) = successors.pop() {
+                if index[successor] == UNVISITED {
+                    index[successor] = next;
+                    low[successor] = next;
+                    next += 1;
+                    stack.push(successor);
+                    on_stack[successor] = true;
+                    frames.push((successor, edges[successor].iter().copied().collect()));
+                } else if on_stack[successor] {
+                    low[node] = low[node].min(index[successor]);
+                }
+                continue;
+            }
+            frames.pop();
+            if let Some((parent, _)) = frames.last() {
+                low[*parent] = low[*parent].min(low[node]);
+            }
+            if low[node] == index[node] {
+                while let Some(member) = stack.pop() {
+                    on_stack[member] = false;
+                    component[member] = components;
+                    if member == node {
+                        break;
+                    }
+                }
+                components += 1;
+            }
+        }
+    }
+    component
 }
 
 /// Whether a dependency graph over `edges.len()` nodes is acyclic (a self-edge is a

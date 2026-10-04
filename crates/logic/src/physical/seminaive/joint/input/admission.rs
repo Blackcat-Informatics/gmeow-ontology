@@ -381,6 +381,11 @@ impl Template {
                 }
             }
         }
+        tracing::info!(
+            target: "termination_certificate",
+            specialized = analysis.len(),
+            "enumerated source-selected bindings"
+        );
         let seeds = firing_seeds(facts, possible, external, semantics);
         let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
         Ok(Ok(refused(ChaseAdmission::certify_statements(
@@ -408,6 +413,7 @@ impl Template {
         // variables exactly like an immutable relation. When that cannot complete
         // within its bound, join immutable relations only, and say so on refusal.
         let mut notes = Vec::new();
+        let started = std::time::Instant::now();
         let closed = match &evidence.closable {
             Ok(closable) => self.close(evidence, closable, semantics)?,
             Err(reason) => Err(reason.clone()),
@@ -442,6 +448,13 @@ impl Template {
             }
             Err(reason) => return Ok(Err(reason)),
         };
+        tracing::info!(
+            target: "termination_certificate",
+            closed = !closure.is_empty(),
+            specialized = analysis.len(),
+            elapsed_ms = started.elapsed().as_millis(),
+            "specialized producers on settled relations"
+        );
         // A union across worlds only introduces extra bindings. Constant
         // substitution retains all mutable body atoms and every witness frontier
         // dependency. A finite abstract closure therefore bounds every world.
