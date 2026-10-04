@@ -139,10 +139,16 @@ fn analyze_ttl_substrate(bytes: &[u8], virtual_path: &str) -> Report {
     }
 }
 
+/// The 0-based LSP line of a 1-based diagnostic line. The protocol carries
+/// `u32` lines, so a line past that range is pinned to the last addressable one.
+fn protocol_line(line: Option<u64>) -> u32 {
+    u32::try_from(line.unwrap_or(1).saturating_sub(1)).unwrap_or(u32::MAX)
+}
+
 /// Extract a (1-based line, 1-based column, message) triple from a native
 /// [`RdfDiagnostic`]. Uses the structured [`RdfLocation`](purrdf::RdfLocation)
 /// line/column when the parser supplies them; falls back to `(1, 1)` otherwise.
-fn extract_rdf_error(err: &RdfDiagnostic) -> (u32, u32, String) {
+fn extract_rdf_error(err: &RdfDiagnostic) -> (u64, u32, String) {
     let (line, col) = err
         .location
         .as_ref()
@@ -232,7 +238,7 @@ fn related_information(
         .iter()
         .filter(|label| !label.message.is_empty())
         .map(|label| {
-            let line = label.location.line.unwrap_or(1).saturating_sub(1);
+            let line = protocol_line(label.location.line);
             let character = label.location.column.unwrap_or(1).saturating_sub(1);
             let start = Position { line, character };
             DiagnosticRelatedInformation {
@@ -272,7 +278,7 @@ pub fn report_to_diagnostics(report: &Report, doc_uri: &Uri) -> Vec<Diagnostic> 
             // Build the LSP range.  LSP positions are 0-based; our Location
             // uses 1-based line/column so we subtract 1 with saturating_sub.
             let range = if let Some(loc) = finding.primary_location() {
-                let line = loc.line.unwrap_or(1).saturating_sub(1);
+                let line = protocol_line(loc.line);
                 let character = loc.column.unwrap_or(1).saturating_sub(1);
                 let start = Position { line, character };
                 Range { start, end: start }
@@ -318,6 +324,15 @@ pub fn report_to_diagnostics(report: &Report, doc_uri: &Uri) -> Vec<Diagnostic> 
 mod tests {
     use super::*;
     use gmeow_errors::model::RelatedLabel;
+
+    #[test]
+    fn protocol_line_is_zero_based_and_pins_lines_past_the_protocol_range() {
+        assert_eq!(protocol_line(None), 0);
+        assert_eq!(protocol_line(Some(0)), 0);
+        assert_eq!(protocol_line(Some(7)), 6);
+        assert_eq!(protocol_line(Some(u64::from(u32::MAX) + 1)), u32::MAX);
+        assert_eq!(protocol_line(Some(u64::MAX)), u32::MAX);
+    }
 
     /// A stable primary-document URI for the projection tests.
     fn doc_uri() -> Uri {
@@ -376,7 +391,7 @@ mod tests {
             .primary_location()
             .and_then(|l| l.line)
             .unwrap_or(1);
-        assert_eq!(d.range.start.line, finding_line - 1);
+        assert_eq!(u64::from(d.range.start.line), finding_line - 1);
     }
 
     #[test]
