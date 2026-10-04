@@ -1967,10 +1967,7 @@ impl ChaseAdmission {
             .iter()
             .map(|(i, e)| move_set(&flows, &rules[*i], e, &universe))
             .collect();
-        let datalog: Vec<&ExistentialRule> = rules
-            .iter()
-            .filter(|rule| rja_exact_datalog(rule))
-            .collect();
+        let datalog = RjaDatalog::new(rules);
 
         let mut edges: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
         let mut edge_count = 0usize;
@@ -3183,6 +3180,66 @@ fn rja_exact_datalog(rule: &ExistentialRule) -> bool {
         && PreparedChaseRule::new(rule.clone()).is_ok_and(|prepared| !prepared.mints())
 }
 
+/// The exact Datalog rules ([`rja_exact_datalog`]) of a program, indexed by the
+/// predicates their bodies read, so a closure over a small premise visits only the
+/// rules it can fire.
+struct RjaDatalog<'a> {
+    rules: Vec<&'a ExistentialRule>,
+    reads: Vec<BTreeSet<&'a str>>,
+    by_predicate: BTreeMap<&'a str, Vec<usize>>,
+}
+
+impl<'a> RjaDatalog<'a> {
+    fn new(rules: &'a [ExistentialRule]) -> Self {
+        let rules: Vec<_> = rules
+            .iter()
+            .filter(|rule| rja_exact_datalog(rule))
+            .collect();
+        let reads: Vec<BTreeSet<&str>> = rules
+            .iter()
+            .map(|rule| {
+                rule.body
+                    .iter()
+                    .map(|atom| atom.predicate.as_str())
+                    .collect()
+            })
+            .collect();
+        let mut by_predicate: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
+        for (index, predicates) in reads.iter().enumerate() {
+            for predicate in predicates {
+                by_predicate.entry(predicate).or_default().push(index);
+            }
+        }
+        Self {
+            rules,
+            reads,
+            by_predicate,
+        }
+    }
+
+    /// The rules whose every body predicate is `present`. After the first round
+    /// (`fresh` is `None`), only those reading a predicate in `fresh` can derive
+    /// anything new.
+    fn candidates(
+        &self,
+        present: &BTreeSet<String>,
+        fresh: Option<&BTreeSet<String>>,
+    ) -> Vec<&'a ExistentialRule> {
+        let ready = |index: &usize| self.reads[*index].iter().all(|p| present.contains(*p));
+        let indices: BTreeSet<usize> = match fresh {
+            None => (0..self.rules.len()).filter(ready).collect(),
+            Some(fresh) => fresh
+                .iter()
+                .filter_map(|predicate| self.by_predicate.get(predicate.as_str()))
+                .flatten()
+                .copied()
+                .filter(ready)
+                .collect(),
+        };
+        indices.into_iter().map(|index| self.rules[index]).collect()
+    }
+}
+
 /// Condition (b) of restricted joint acyclicity: whether the Datalog closure of
 /// `ρ_w`'s body (renamed apart), `ρ_v`'s head with `null` identified with `ρ_w`'s
 /// `frontier`, and `ρ_v`'s body, all frozen to distinct constants, already satisfies
@@ -3193,7 +3250,7 @@ fn rja_trigger_blocked(
     null: &str,
     consumer: &ExistentialRule,
     frontier: &str,
-    datalog: &[&ExistentialRule],
+    datalog: &RjaDatalog<'_>,
 ) -> bool {
     const FROZEN: &str = "https://blackcatinformatics.ca/gmeow/termination/rja";
     let frozen = |side: &str, name: &str| {
@@ -3232,9 +3289,11 @@ fn rja_trigger_blocked(
     }
     let mut rel = RelationStore::new();
     let mut seen: BTreeSet<FactKey> = BTreeSet::new();
+    let mut present: BTreeSet<String> = BTreeSet::new();
     for fact in facts {
         if seen.insert(fact.key()) {
             rel.insert(&fact.predicate, &fact.subject, &fact.object);
+            present.insert(fact.predicate);
         }
     }
     let empty = Solution {
@@ -3242,9 +3301,13 @@ fn rja_trigger_blocked(
         source_facts: Vec::new(),
     };
     // The frozen premise is finite and the rules invent nothing, so this terminates.
+    // A rule re-runs only when one of its body predicates gained facts, and only once
+    // every body predicate is present: the premise is a handful of facts, so almost
+    // no rule of a large program can ever match it.
+    let mut fresh = None;
     loop {
         let mut derived = Vec::new();
-        for rule in datalog {
+        for rule in datalog.candidates(&present, fresh.as_ref()) {
             let walked = join::walk(
                 &rule.body,
                 &rel,
@@ -3278,16 +3341,18 @@ fn rja_trigger_blocked(
                 return false;
             }
         }
-        let mut grew = false;
+        let mut grown = BTreeSet::new();
         for fact in derived {
             if seen.insert(fact.key()) {
                 rel.insert(&fact.predicate, &fact.subject, &fact.object);
-                grew = true;
+                grown.insert(fact.predicate);
             }
         }
-        if !grew {
+        if grown.is_empty() {
             break;
         }
+        present.extend(grown.iter().cloned());
+        fresh = Some(grown);
     }
     let existential: BTreeSet<String> = consumer.existentials().into_iter().collect();
     let freeze_universal = |term: &EvalTerm| match term {
