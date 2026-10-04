@@ -1892,51 +1892,18 @@ impl ChaseAdmission {
         rules: &[ExistentialRule],
         summarized: &BTreeSet<&str>,
     ) -> Option<Self> {
-        let universe = all_program_positions(rules);
-        let mut existentials: Vec<(usize, String)> = Vec::new();
-        for (i, r) in rules.iter().enumerate() {
-            for e in r.existentials() {
-                existentials.push((i, e));
-            }
-        }
-        if existentials.is_empty() {
-            return None;
-        }
-        let flows: Vec<Vec<(BTreeSet<Position>, Vec<Position>)>> = rules
-            .iter()
-            .map(|r| {
-                r.copied_vars()
-                    .into_iter()
-                    .map(|v| {
-                        (
-                            refined_positions(&r.body, &v).into_iter().collect(),
-                            refined_positions(&r.head, &v),
-                        )
-                    })
-                    .collect()
-            })
-            .collect();
-        let moves: Vec<BTreeSet<Position>> = existentials
-            .iter()
-            .map(|(i, e)| move_set(&flows, &rules[*i], e, &universe))
-            .collect();
+        let graph = JointGraph::new(rules)?;
         let datalog = RjaDatalog::new(rules);
-
-        let mut edges: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
-        let mut edge_count = 0usize;
+        let mut edges: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
         let mut blocked = 0usize;
-        for (a, (producer, null)) in existentials.iter().enumerate() {
-            for (j, consumer) in rules.iter().enumerate() {
-                if !consumer.is_existential() {
-                    continue;
-                }
+        for (a, (producer, null)) in graph.existentials.iter().enumerate() {
+            let covered = &graph.moves[a];
+            for (j, frontiers) in &graph.consumers {
+                let consumer = &rules[*j];
                 let blockable = !summarized.contains(consumer.rule_iri.as_str());
                 let mut triggers = false;
-                for frontier in consumer.frontier_vars() {
-                    let body = refined_positions(&consumer.body, &frontier);
-                    if body.is_empty()
-                        || !body.iter().all(|p| move_contains(&moves[a], p, &universe))
-                    {
+                for (frontier, body) in frontiers {
+                    if !body.iter().all(|p| covered.contains(p)) {
                         continue;
                     }
                     if blockable
@@ -1944,7 +1911,7 @@ impl ChaseAdmission {
                             &rules[*producer],
                             null,
                             consumer,
-                            &frontier,
+                            frontier,
                             &datalog,
                         )
                     {
@@ -1954,23 +1921,19 @@ impl ChaseAdmission {
                     triggers = true;
                     break;
                 }
-                if !triggers {
-                    continue;
-                }
-                for (b, (owner, _)) in existentials.iter().enumerate() {
-                    if *owner == j && edges.entry(a).or_default().insert(b) {
-                        edge_count += 1;
-                    }
+                if triggers {
+                    edges[a].extend(graph.owned(*j));
                 }
             }
         }
-        let acyclic = (0..existentials.len()).all(|n| !node_reaches_self(&edges, n));
+        let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
+        let acyclic = acyclic(&edges);
         acyclic.then(|| Self::RestrictedJointlyAcyclic {
             evidence: format!(
                 "restricted jointly acyclic: {} existential variable(s), {} dependency \
                  edge(s), {} trigger(s) blocked by the Datalog-closed premise, no \
                  existential depends on itself",
-                existentials.len(),
+                graph.existentials.len(),
                 edge_count,
                 blocked
             ),
