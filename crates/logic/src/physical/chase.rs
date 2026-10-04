@@ -1984,6 +1984,37 @@ impl ChaseAdmission {
         }
         let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
         let acyclic = acyclic(&edges);
+        if !acyclic {
+            let remaining = strongly_connected_components(&edges);
+            let mut members: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+            for (node, &c) in remaining.iter().enumerate() {
+                members.entry(c).or_default().push(node);
+            }
+            for nodes in members.values() {
+                let looped = nodes.len() > 1 || edges[nodes[0]].contains(&nodes[0]);
+                if !looped {
+                    continue;
+                }
+                let names: Vec<String> = nodes
+                    .iter()
+                    .map(|&node| {
+                        let (rule, null) = &graph.existentials[node];
+                        let iri = rules[*rule].rule_iri.as_str();
+                        let mark = if summarized.contains(iri) {
+                            " (summarized)"
+                        } else {
+                            ""
+                        };
+                        format!("{iri} {null}{mark}")
+                    })
+                    .collect();
+                tracing::info!(
+                    target: "termination_certificate",
+                    members = ?names,
+                    "restricted joint acyclicity cycle"
+                );
+            }
+        }
         tracing::info!(
             target: "termination_certificate",
             existentials = graph.existentials.len(),
