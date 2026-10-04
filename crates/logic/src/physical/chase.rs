@@ -1534,6 +1534,10 @@ impl ChaseAdmission {
             std::collections::BTreeMap::new();
         let mut special: Vec<(Position, Position)> = Vec::new();
         let mut all_nodes: BTreeSet<Position> = BTreeSet::new();
+        // Positions a head writes and a body reads: cross-rule flow joins a written
+        // position to every read position its values can match.
+        let mut written: BTreeSet<Position> = BTreeSet::new();
+        let mut read: BTreeSet<Position> = BTreeSet::new();
 
         for rule in rules {
             let body_vars = rule.body_vars();
@@ -1550,6 +1554,8 @@ impl ChaseAdmission {
                     for h in &hpos {
                         all_nodes.insert(b.clone());
                         all_nodes.insert(h.clone());
+                        read.insert(b.clone());
+                        written.insert(h.clone());
                         adj.entry(b.clone()).or_default().insert(h.clone());
                     }
                 }
@@ -1567,6 +1573,8 @@ impl ChaseAdmission {
                         for b in &frontier_bpos {
                             all_nodes.insert(b.clone());
                             all_nodes.insert(h.clone());
+                            read.insert(b.clone());
+                            written.insert(h.clone());
                             adj.entry(b.clone()).or_default().insert(h.clone());
                             special.push((b.clone(), h.clone()));
                         }
@@ -1575,7 +1583,7 @@ impl ChaseAdmission {
             }
         }
 
-        add_wildcard_subsumption(&mut adj, &all_nodes);
+        add_wildcard_subsumption(&mut adj, &written, &read);
 
         // A special edge (u → v) violates weak acyclicity iff v can reach u (the edge
         // lies in a cycle → the chase may not terminate).
@@ -2187,36 +2195,32 @@ pub(crate) fn route_chase_with_registry_backstopped(
     Ok((admission, outcome))
 }
 
-/// Connect wildcard and constant refinements of the same `(predicate, slot)` when BOTH
-/// occur — a conservative over-approximation (a wildcard-typed null could be any class,
-/// and a wildcard consumer reads any class), so reachability is never under-counted.
+/// Join wildcard and constant refinements of the same `(predicate, slot)` along the
+/// flows a matching fact can actually take. A value written at the wildcard (any class)
+/// can be read at every constant refinement, and a value written at a constant
+/// refinement can be read at the wildcard. Shared nodes already carry same-class flow.
+/// A wildcard that is only read never feeds a constant, so no edge leaves it toward
+/// one: that edge would join two consumers and close cycles no chase can follow.
 fn add_wildcard_subsumption(
     adj: &mut std::collections::BTreeMap<Position, BTreeSet<Position>>,
-    nodes: &BTreeSet<Position>,
+    written: &BTreeSet<Position>,
+    read: &BTreeSet<Position>,
 ) {
-    use std::collections::BTreeMap;
-    // Group nodes by (predicate, slot).
-    let mut groups: BTreeMap<(String, Slot), (Vec<Position>, bool)> = BTreeMap::new();
-    for n in nodes {
-        let entry = groups.entry((n.predicate.clone(), n.slot)).or_default();
-        if n.class == ClassKey::Wildcard {
-            entry.1 = true;
-        } else {
-            entry.0.push(n.clone());
+    let wildcard = |position: &Position| Position {
+        predicate: position.predicate.clone(),
+        slot: position.slot,
+        class: ClassKey::Wildcard,
+    };
+    for constant in read.iter().filter(|p| p.class != ClassKey::Wildcard) {
+        let source = wildcard(constant);
+        if written.contains(&source) {
+            adj.entry(source).or_default().insert(constant.clone());
         }
     }
-    for ((predicate, slot), (consts, has_wildcard)) in groups {
-        if !has_wildcard || consts.is_empty() {
-            continue; // refinement stays precise unless both a wildcard and consts occur
-        }
-        let wildcard = Position {
-            predicate,
-            slot,
-            class: ClassKey::Wildcard,
-        };
-        for c in consts {
-            adj.entry(c.clone()).or_default().insert(wildcard.clone());
-            adj.entry(wildcard.clone()).or_default().insert(c);
+    for constant in written.iter().filter(|p| p.class != ClassKey::Wildcard) {
+        let target = wildcard(constant);
+        if read.contains(&target) {
+            adj.entry(constant.clone()).or_default().insert(target);
         }
     }
 }

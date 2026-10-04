@@ -1304,3 +1304,73 @@ fn certificate_finding_carries_evidence_or_violations() {
         bad_finding.message
     );
 }
+
+/// `type(x, SK) → ∃w. p(x, w) ∧ type(w, Thing)`: a restriction whose witness is
+/// only ever `Thing`, never re-entering `SK`.
+fn thing_witness_rule() -> ExistentialRule {
+    restriction_rule(
+        "http://ex/rule/thing-witness",
+        "http://ex/SK",
+        P,
+        "http://ex/Thing",
+    )
+}
+
+#[test]
+fn a_wildcard_class_that_is_only_read_does_not_close_a_cycle() {
+    // A consumer of `type(x, ?c)` reads every class; it feeds only its own head.
+    // Its wildcard position never writes `SK`, so the witness cannot re-trigger
+    // the restriction and the program is weakly acyclic.
+    let consumer = ExistentialRule {
+        numeric: Vec::new(),
+        rule_iri: "http://ex/rule/any-class-consumer".to_owned(),
+        body: vec![atom(var("?x"), TYPE, var("?c"))],
+        head: vec![atom(
+            var("?x"),
+            TYPE,
+            EvalTerm::ConstNamed("http://ex/Nothing".to_owned()),
+        )],
+        distinct: vec![],
+        witness_frontier: None,
+        witness_policy: WitnessPolicy::FrontierSkolem,
+    };
+    let admission =
+        ChaseAdmission::certify_on(&[thing_witness_rule(), consumer], Ladder::Polynomial);
+    assert!(
+        matches!(admission, ChaseAdmission::WeaklyAcyclic { .. }),
+        "a read-only wildcard must not close the witness cycle: {admission:?}"
+    );
+}
+
+#[test]
+fn a_wildcard_class_that_is_written_still_closes_a_genuine_cycle() {
+    // `type(x, Thing) ∧ q(x, c) → type(x, c)` can type a `Thing` witness as `SK`
+    // whenever a `q` row names `SK`, re-triggering the restriction forever. The
+    // written wildcard must still reach the constant `SK` it may produce.
+    let promoter = ExistentialRule {
+        numeric: Vec::new(),
+        rule_iri: "http://ex/rule/any-class-promoter".to_owned(),
+        body: vec![
+            atom(
+                var("?x"),
+                TYPE,
+                EvalTerm::ConstNamed("http://ex/Thing".to_owned()),
+            ),
+            atom(var("?x"), "http://ex/q", var("?c")),
+        ],
+        head: vec![atom(var("?x"), TYPE, var("?c"))],
+        distinct: vec![],
+        witness_frontier: None,
+        witness_policy: WitnessPolicy::FrontierSkolem,
+    };
+    let rules = [thing_witness_rule(), promoter];
+    let Err(violations) = ChaseAdmission::certify_weakly_acyclic(&rules) else {
+        panic!("a written wildcard can re-enter SK and must be refused");
+    };
+    assert!(
+        violations
+            .iter()
+            .any(|violation| violation.contains("http://ex/SK")),
+        "{violations:?}"
+    );
+}
