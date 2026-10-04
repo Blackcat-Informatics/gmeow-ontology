@@ -104,6 +104,7 @@ impl Template {
             .collect();
         let mut selected = Vec::new();
         let mut retained = 0usize;
+        let mut per_predicate: BTreeMap<&str, usize> = BTreeMap::new();
         let mut bytes = 0usize;
         let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
         digest.0.update(b"gmeow-native-selector-bindings-v3\0");
@@ -126,15 +127,25 @@ impl Template {
                 write!(size, "{world:?}:{fact:?}").expect("digest-only formatter");
                 bytes = bytes.saturating_add(size.1);
                 retained += 1;
+                *per_predicate
+                    .entry(semantics.predicate(&fact.predicate))
+                    .or_default() += 1;
                 if retained <= MAX_BINDINGS && bytes <= MAX_BYTES {
                     selected.push(fact);
                 }
             }
         }
         if retained > MAX_BINDINGS || bytes > MAX_BYTES {
+            let mut heaviest: Vec<_> = per_predicate
+                .into_iter()
+                .map(|(predicate, rows)| (predicate.to_owned(), rows))
+                .collect();
+            heaviest.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
+            heaviest.truncate(8);
             return Err(EvidenceGap::Bound {
                 facts: retained,
                 bytes,
+                heaviest,
             });
         }
         Ok(Evidence {
@@ -325,7 +336,12 @@ pub(super) enum EvidenceGap {
     /// The retained rule metadata exceeds the cacheable bound.
     Uncacheable { metadata_bytes: usize },
     /// The proved-immutable selector rows exceed the analysis bound.
-    Bound { facts: usize, bytes: usize },
+    Bound {
+        facts: usize,
+        bytes: usize,
+        /// The predicates retaining the most rows, heaviest first.
+        heaviest: Vec<(String, usize)>,
+    },
 }
 
 impl std::fmt::Display for EvidenceGap {
@@ -336,11 +352,21 @@ impl std::fmt::Display for EvidenceGap {
                 "the joint template's rule metadata ({metadata_bytes} bytes) exceeds the \
                  {MAX_BYTES}-byte cacheable bound"
             ),
-            Self::Bound { facts, bytes } => write!(
-                f,
-                "{facts} proved-immutable selector rows ({bytes} bytes) exceed the \
-                 {MAX_BINDINGS}-row / {MAX_BYTES}-byte analysis bound"
-            ),
+            Self::Bound {
+                facts,
+                bytes,
+                heaviest,
+            } => {
+                write!(
+                    f,
+                    "{facts} proved-immutable selector rows ({bytes} bytes) exceed the \
+                     {MAX_BINDINGS}-row / {MAX_BYTES}-byte analysis bound; heaviest:"
+                )?;
+                for (predicate, rows) in heaviest {
+                    write!(f, " {predicate}={rows}")?;
+                }
+                Ok(())
+            }
         }
     }
 }

@@ -489,4 +489,8 @@ fn immutable_selector_rows_past_the_analysis_bound_name_the_undecided_certificat
     );
     assert!(error.contains("proved-immutable selector rows"), "{error}");
     assert!(error.contains("4096"), "{error}");
+    assert!(
+        error.contains(&format!("heaviest: {ON_PROPERTY}=4201")),
+        "the refusal names the heaviest immutable predicate: {error}"
+    );
 }
