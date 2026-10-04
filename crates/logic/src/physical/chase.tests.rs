@@ -1812,10 +1812,13 @@ fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
     // summaries, their trigger checks need more fillers than their heads state, so the
     // back-edge blocks nothing and the cycle stays.
     let rules = inverse_pair(true);
-    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &BTreeSet::new()).is_some());
+    assert!(
+        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &rules, &BTreeSet::new())
+            .is_some()
+    );
     let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
     assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &summarized).is_none(),
+        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &rules, &summarized).is_none(),
         "a summarized consumer's trigger is never blocked"
     );
 }

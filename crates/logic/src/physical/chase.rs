@@ -1651,7 +1651,7 @@ impl ChaseAdmission {
             match weak {
                 Ok(admission) => admission,
                 Err(violations) => {
-                    let joint = Self::certify_joint_acyclic(&bridged);
+                    let joint = Self::certify_joint_acyclic(&analysis);
                     tracing::info!(
                         target: "termination_certificate",
                         certified = joint.is_some(),
@@ -1659,7 +1659,9 @@ impl ChaseAdmission {
                         "checked joint acyclicity"
                     );
                     joint
-                        .or_else(|| Self::certify_restricted_joint_acyclic(&bridged, &summarized))
+                        .or_else(|| {
+                            Self::certify_restricted_joint_acyclic(&analysis, &bridged, &summarized)
+                        })
                         .unwrap_or(Self::Uncertified { violations })
                 }
             }
@@ -1726,9 +1728,11 @@ impl ChaseAdmission {
         Self::certify_ladder(rules, rules, ladder)
     }
 
-    /// The ladder over one program in two equivalent presentations: weak acyclicity
-    /// reads `weak`, whose position graph joins statement encodings itself; the tuple
-    /// rungs read `tuples`, the same program closed under its encoding bridges.
+    /// The ladder over one program in two equivalent presentations. The position
+    /// rungs — weak, joint and restricted joint acyclicity — read `weak`, whose
+    /// position graph joins the statement encodings itself along class-matched flows;
+    /// the tuple rungs read `tuples`, the same program closed under its encoding
+    /// bridges, as does restricted joint acyclicity's Datalog closure.
     fn certify_ladder(
         weak: &[ExistentialRule],
         tuples: &[ExistentialRule],
@@ -1736,7 +1740,7 @@ impl ChaseAdmission {
     ) -> Self {
         match Self::certify_weakly_acyclic(weak) {
             Ok(admission) => admission,
-            Err(mut violations) => Self::certify_joint_acyclic(tuples)
+            Err(mut violations) => Self::certify_joint_acyclic(weak)
                 .or_else(|| Self::certify_super_weak_acyclic(tuples))
                 .or_else(|| match ladder {
                     Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
@@ -1755,7 +1759,7 @@ impl ChaseAdmission {
                     }
                     Ladder::Polynomial => None,
                 })
-                .or_else(|| Self::certify_restricted_joint_acyclic(tuples, &BTreeSet::new()))
+                .or_else(|| Self::certify_restricted_joint_acyclic(weak, tuples, &BTreeSet::new()))
                 .unwrap_or(Self::Uncertified { violations }),
         }
     }
@@ -1916,6 +1920,7 @@ impl ChaseAdmission {
     /// facts its real expansion emits, so a closure over it still under-approximates.
     fn certify_restricted_joint_acyclic(
         rules: &[ExistentialRule],
+        closure: &[ExistentialRule],
         summarized: &BTreeSet<&str>,
     ) -> Option<Self> {
         let graph = JointGraph::new(rules)?;
@@ -1939,7 +1944,7 @@ impl ChaseAdmission {
             }
         }
         let component = strongly_connected_components(&joint);
-        let datalog = RjaDatalog::new(rules);
+        let datalog = RjaDatalog::new(closure);
         let mut sizes: BTreeMap<usize, usize> = BTreeMap::new();
         for &c in &component {
             *sizes.entry(c).or_default() += 1;
@@ -2762,8 +2767,8 @@ type Frontier = (String, Vec<Position>);
 struct JointGraph {
     /// Existential nodes: (rule index, existential variable).
     existentials: Vec<(usize, String)>,
-    /// Per existential node, every refined position its null can occupy, plus every
-    /// body position conservative membership admits (see [`MoveIndex`]).
+    /// Per existential node, every refined position its null can occupy or be read
+    /// at (see [`MoveIndex`]).
     moves: Vec<BTreeSet<Position>>,
     /// Per existential rule, each frontier variable with its non-empty refined body
     /// positions.
@@ -2787,7 +2792,10 @@ impl JointGraph {
         let index = MoveIndex::new(rules);
         let moves = existentials
             .iter()
-            .map(|(i, e)| index.reach(refined_positions(&rules[*i].head, e)))
+            .map(|(i, e)| {
+                let fresh: BTreeSet<String> = rules[*i].existentials().into_iter().collect();
+                index.reach(refined_head_positions(&rules[*i].head, e, &fresh))
+            })
             .collect();
         let consumers = rules
             .iter()
@@ -2832,17 +2840,18 @@ impl JointGraph {
 /// covering a position decrements the flows that read it, and a flow whose count
 /// reaches zero fires once.
 ///
-/// Membership is conservative: a body position is covered when it is in `Move`, OR
-/// when its `(predicate, slot)` carries BOTH a wildcard and a constant refinement in
-/// the program and `Move` holds any position at that slot. This over-approximates a
-/// null's reach (wildcard nulls could be any class, constant consumers read any
-/// class), never under — so a real existential cycle is never hidden.
+/// Across rules a written value reaches the read positions weak acyclicity joins it
+/// to: the same position, the wildcard/constant subsumption of its `(predicate, slot)`
+/// ([`add_wildcard_subsumption`]) and the statement-encoding links
+/// ([`add_statement_links`]). Head positions carry [`ClassKey::Null`] where their
+/// partner is a fresh null, so a null-keyed write feeds only wildcard reads. `Move` thus
+/// over-approximates a null's reach exactly as far as the weak-acyclicity graph does,
+/// never under — so a real existential cycle is never hidden.
 struct MoveIndex {
     heads: Vec<Vec<Position>>,
     need: Vec<usize>,
     watch: BTreeMap<Position, Vec<usize>>,
-    /// Body positions of every ambiguous `(predicate, slot)`.
-    siblings: BTreeMap<(String, Slot), Vec<Position>>,
+    links: BTreeMap<Position, BTreeSet<Position>>,
 }
 
 impl MoveIndex {
@@ -2850,8 +2859,16 @@ impl MoveIndex {
         let mut heads = Vec::new();
         let mut need = Vec::new();
         let mut watch: BTreeMap<Position, Vec<usize>> = BTreeMap::new();
-        let mut body_positions: BTreeSet<Position> = BTreeSet::new();
+        let mut written: BTreeSet<Position> = BTreeSet::new();
+        let mut read: BTreeSet<Position> = BTreeSet::new();
         for rule in rules {
+            let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
+            for v in rule.head_vars() {
+                written.extend(refined_head_positions(&rule.head, &v, &existentials));
+            }
+            for v in rule.body_vars() {
+                read.extend(refined_positions(&rule.body, &v));
+            }
             for v in rule.copied_vars() {
                 let body: BTreeSet<Position> =
                     refined_positions(&rule.body, &v).into_iter().collect();
@@ -2863,69 +2880,60 @@ impl MoveIndex {
                     watch.entry(position.clone()).or_default().push(flow);
                 }
                 need.push(body.len());
-                heads.push(refined_positions(&rule.head, &v));
-                body_positions.extend(body);
-            }
-            for v in rule.body_vars() {
-                body_positions.extend(refined_positions(&rule.body, &v));
+                heads.push(refined_head_positions(&rule.head, &v, &existentials));
             }
         }
-        let mut kinds: BTreeMap<(String, Slot), (bool, bool)> = BTreeMap::new();
-        for position in all_program_positions(rules) {
-            let kind = kinds
-                .entry((position.predicate.clone(), position.slot))
-                .or_default();
-            kind.0 |= matches!(position.class, ClassKey::Wildcard);
-            kind.1 |= matches!(position.class, ClassKey::Const(_));
-        }
-        let mut siblings: BTreeMap<(String, Slot), Vec<Position>> = BTreeMap::new();
-        for position in body_positions {
-            let slot = (position.predicate.clone(), position.slot);
-            if kinds.get(&slot) == Some(&(true, true)) {
-                siblings.entry(slot).or_default().push(position);
+        let mut links = BTreeMap::new();
+        add_wildcard_subsumption(&mut links, &written, &read);
+        add_statement_links(&mut links, &written, &read);
+        // A flow here needs ALL of a variable's body positions, and a variable-predicate
+        // atom also holds its subject in `subject-predicate[S|·]` and its object in
+        // `predicate-object[O|·]`. Weak acyclicity needs one position per edge and
+        // links only `subject-object`; a binary write reaches these too, at every
+        // refinement.
+        for source in written.iter().filter(|p| !is_statement_pair(&p.predicate)) {
+            let pair = match source.slot {
+                Slot::Subject => SUBJECT_PREDICATE,
+                Slot::Object => PREDICATE_OBJECT,
+            };
+            let targets: Vec<Position> = read
+                .iter()
+                .filter(|r| r.predicate == pair && r.slot == source.slot)
+                .cloned()
+                .collect();
+            if !targets.is_empty() {
+                links
+                    .entry(source.clone())
+                    .or_insert_with(BTreeSet::new)
+                    .extend(targets);
             }
         }
         Self {
             heads,
             need,
             watch,
-            siblings,
+            links,
         }
     }
 
-    /// The covered positions reachable from a null first written at `start`.
+    /// Every position a null first written at `start` can occupy or be read at.
     fn reach(&self, start: Vec<Position>) -> BTreeSet<Position> {
         let mut need = self.need.clone();
-        let mut covered: BTreeSet<Position> = BTreeSet::new();
         let mut moved: BTreeSet<Position> = BTreeSet::new();
-        let mut occupied: BTreeSet<(String, Slot)> = BTreeSet::new();
         let mut queue = start;
-        let mut cover =
-            |position: &Position, covered: &mut BTreeSet<Position>, queue: &mut Vec<Position>| {
-                if covered.insert(position.clone()) {
-                    for &flow in self.watch.get(position).into_iter().flatten() {
-                        need[flow] -= 1;
-                        if need[flow] == 0 {
-                            queue.extend(self.heads[flow].iter().cloned());
-                        }
-                    }
-                }
-            };
         while let Some(position) = queue.pop() {
             if !moved.insert(position.clone()) {
                 continue;
             }
-            cover(&position, &mut covered, &mut queue);
-            let slot = (position.predicate.clone(), position.slot);
-            if let Some(siblings) = self.siblings.get(&slot)
-                && occupied.insert(slot)
-            {
-                for sibling in siblings {
-                    cover(sibling, &mut covered, &mut queue);
+            for &flow in self.watch.get(&position).into_iter().flatten() {
+                need[flow] -= 1;
+                if need[flow] == 0 {
+                    queue.extend(self.heads[flow].iter().cloned());
                 }
             }
+            queue.extend(self.links.get(&position).into_iter().flatten().cloned());
         }
-        covered
+        moved
     }
 }
 
