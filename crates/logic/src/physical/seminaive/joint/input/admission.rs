@@ -19,6 +19,11 @@ use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
 /// The proved-immutable selector rows, specialized statements and per-rule join
 /// matches one input-specific certificate may analyse. Weak acyclicity, the rung a
 /// position-only cardinality program uses, is linear in the specialized program.
+const LIST_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const LIST_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+/// Admission-only relation `(list head, cell)`: the cell is reachable from the head
+/// through `rdf:rest`. It never enters a source, effect or value-flow read.
+const LIST_CELL: &str = "https://blackcatinformatics.ca/gmeow/termination/list-cell";
 const MAX_BINDINGS: usize = 1 << 18;
 const MAX_BYTES: usize = 128 << 20;
 /// The selector rows feeding source-constant enrichment. Its interning stops at 512
@@ -73,6 +78,7 @@ impl Template {
                         .collect()
                 }),
                 position_only: !rule.numeric.is_empty(),
+                list_cells: Vec::new(),
             });
         let rules: Vec<_> = ordinary
             .chain(producers.iter().map(StatementRule::from_binary))
@@ -201,6 +207,13 @@ impl Template {
         for fact in &evidence.facts {
             rel.insert(&fact.predicate, &fact.subject, &fact.object);
         }
+        // A list operator reads members of ITS list. When list structure is proved
+        // immutable, bind each member cell to the cells reachable from that list
+        // head, instead of to every cell of every list.
+        let list_cells_bound = [LIST_FIRST, LIST_REST]
+            .iter()
+            .all(|predicate| evidence.predicates.contains(semantics.predicate(predicate)))
+            && bind_list_cells(&mut rel, &evidence.facts, semantics);
         let mut analysis = Vec::new();
         let mut bytes = 0usize;
         for rule in &self.rules {
@@ -216,7 +229,7 @@ impl Template {
                     })
                 })
                 .collect();
-            let immutable: Vec<_> = rule
+            let discharged_atoms: Vec<_> = rule
                 .body
                 .iter()
                 .zip(&discharged)
@@ -230,6 +243,34 @@ impl Template {
                     ))
                 })
                 .collect();
+            // The join evaluates atoms in order. Bind each list head first, then
+            // restrict its member cells to that list, and only then read the cells:
+            // reading cells first would enumerate every cell of every list.
+            let cells: Vec<_> = rule
+                .list_cells
+                .iter()
+                .filter(|_| list_cells_bound)
+                .collect();
+            let reads_cell = |atom: &EvalAtom| {
+                cells
+                    .iter()
+                    .any(|(_, cell)| atom.subject == *cell || atom.object == *cell)
+            };
+            let immutable: Vec<_> =
+                discharged_atoms
+                    .iter()
+                    .filter(|atom| !reads_cell(atom))
+                    .cloned()
+                    .chain(cells.iter().map(|(list, cell)| {
+                        EvalAtom::positive(list.clone(), LIST_CELL, cell.clone())
+                    }))
+                    .chain(
+                        discharged_atoms
+                            .iter()
+                            .filter(|atom| reads_cell(atom))
+                            .cloned(),
+                    )
+                    .collect();
             let relevant: BTreeSet<&str> = rule
                 .body
                 .iter()
@@ -243,6 +284,15 @@ impl Template {
                     _ => None,
                 })
                 .collect();
+            // When every still-read variable is bound by the discharged atoms, each
+            // specialization is ground: it holds no position a null can reach and
+            // fires on the same predicates. One witnesses them all.
+            let ground = relevant.iter().all(|name| {
+                immutable
+                    .iter()
+                    .flat_map(|atom| [&atom.subject, &atom.object])
+                    .any(|term| matches!(term, EvalTerm::Var(var) if var == name))
+            });
             let mut projections = std::collections::HashSet::new();
             let mut matches = 0usize;
             let outcome = join::walk(
@@ -266,16 +316,13 @@ impl Template {
                     if !projections.insert(projection) {
                         return Ok(true);
                     }
-                    Ok(push_analysis(
-                        &mut analysis,
-                        &mut bytes,
-                        rule,
-                        &solution,
-                        &discharged,
-                    ))
+                    let pushed =
+                        push_analysis(&mut analysis, &mut bytes, rule, &solution, &discharged);
+                    Ok(pushed && !ground)
                 },
             )?;
-            if outcome != join::Outcome::Complete {
+            let witnessed = ground && outcome == join::Outcome::Stopped && projections.len() == 1;
+            if outcome != join::Outcome::Complete && !witnessed {
                 return Ok(Err(format!(
                     "the input-specific analysis exhausted its bound of {MAX_BINDINGS} \
                      specialized statements at {} ({matches} immutable matches, {} distinct \
@@ -510,5 +557,52 @@ fn specialize(
                 .collect()
         }),
         position_only: rule.position_only,
+        list_cells: Vec::new(),
     }
+}
+
+/// Add `(head, cell)` admission rows for every cell reachable through `rdf:rest`
+/// from every cell, so a list operator bound to any head (shared tails included)
+/// reads exactly its own cells. Returns `false`, adding nothing, when the rows would
+/// exceed the analysis bound; member cells then stay unconstrained, which is coarser
+/// but still covers every firing.
+fn bind_list_cells(
+    rel: &mut RelationStore,
+    facts: &[&Fact],
+    semantics: SemanticVocabulary,
+) -> bool {
+    let first = semantics.predicate(LIST_FIRST);
+    let rest = semantics.predicate(LIST_REST);
+    let mut cells = BTreeSet::new();
+    let mut next: BTreeMap<&purrdf::TermValue, Vec<&purrdf::TermValue>> = BTreeMap::new();
+    for fact in facts {
+        let predicate = semantics.predicate(&fact.predicate);
+        if predicate == first {
+            cells.insert(&fact.subject);
+        } else if predicate == rest {
+            next.entry(&fact.subject).or_default().push(&fact.object);
+        }
+    }
+    let mut rows = Vec::new();
+    for &head in &cells {
+        let mut seen = BTreeSet::from([head]);
+        let mut pending = vec![head];
+        while let Some(cell) = pending.pop() {
+            if cells.contains(cell) {
+                rows.push((head, cell));
+                if rows.len() > MAX_BINDINGS {
+                    return false;
+                }
+            }
+            for &tail in next.get(cell).into_iter().flatten() {
+                if seen.insert(tail) {
+                    pending.push(tail);
+                }
+            }
+        }
+    }
+    for (head, cell) in rows {
+        rel.insert(LIST_CELL, head, cell);
+    }
+    true
 }

@@ -1235,6 +1235,8 @@ pub(crate) struct StatementRule {
     /// The head represents positions of an arbitrary finite witness family,
     /// rather than a complete tuple-generating rule with fixed multiplicity.
     pub(crate) position_only: bool,
+    /// `(list head, cell)` pairs: each body cell reads a member of that list.
+    pub(crate) list_cells: Vec<(EvalTerm, EvalTerm)>,
 }
 
 impl StatementRule {
@@ -1260,6 +1262,7 @@ impl StatementRule {
                 )
             },
             position_only: !rule.numeric.is_empty(),
+            list_cells: Vec::new(),
         }
     }
 
@@ -1281,6 +1284,7 @@ impl StatementRule {
                 property.source.operation.as_ref(),
                 Some(crate::physical::PropertyOperation::Minimum(_))
             ),
+            list_cells: property.analysis_list_cells.clone(),
         }
     }
 }
