@@ -245,6 +245,7 @@ fn reason_prepared_input(
         )
         .with_tool("reason"),
     );
+    require_demonstrator_classes(&native.chase_certificates)?;
     for certificate in &native.chase_certificates {
         let world = certificate.world.clone();
         let mut finding = certificate.to_finding();
@@ -911,3 +912,32 @@ pub(crate) use test_support::reason_artifacts;
 pub(crate) use test_support::reason_product;
 #[cfg(test)]
 pub(crate) use test_support::reason_test_dataset;
+
+/// Each termination-ladder demonstrator world present in this reasoning input must
+/// publish its declared class: the shipped bundle carries that certification power only
+/// if the reasoner proves it. The producer always roots the demonstrators into the
+/// object-level EDB, and the shipped-bundle golden test requires their findings.
+fn require_demonstrator_classes(
+    certificates: &[gmeow_logic::reason::ChaseCertificate],
+) -> Result<(), gmeow_errors::Diag> {
+    for (world, code) in
+        gmeow_logic::termination_demonstrators::termination_ladder_certificate_codes()
+    {
+        let Some(certificate) = certificates
+            .iter()
+            .find(|certificate| certificate.world == world)
+        else {
+            continue;
+        };
+        let published = certificate.to_finding().code;
+        if published != code {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_string(),
+                message: format!(
+                    "termination demonstrator {world} must certify as {code}, got {published}"
+                ),
+            }));
+        }
+    }
+    Ok(())
+}

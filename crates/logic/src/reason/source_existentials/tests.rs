@@ -925,3 +925,30 @@ fn source_owned_effects_do_not_create_a_foreign_negative_cycle() {
             .any(|row| row.graph == B && row.predicate == SEED)
     );
 }
+
+#[test]
+fn each_demonstrator_world_publishes_its_own_certificate_class() {
+    // Rooted into their own worlds as the producer roots them, the demonstrators
+    // run under one joint execution admission, yet each world's published
+    // certificate is its own program's class, never a copy of the joint one.
+    let mut builder = RdfDatasetBuilder::new();
+    for (graph, ttl) in termination_ladder_demonstrators() {
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        for mut quad in dataset.owned_quads() {
+            quad.graph_name = Some(RdfTerm::iri(graph));
+            builder.push_owned_quad(&quad);
+        }
+    }
+    let input = super::super::program::prepare_reasoning_input(&builder.freeze().unwrap()).unwrap();
+    let result =
+        crate::reason::reason_all(input, &crate::physical::SelectedDomains::new([]).unwrap())
+            .unwrap();
+    let certificates = &result.native_execution().unwrap().chase_certificates;
+    for (world, code) in crate::termination_demonstrators::termination_ladder_certificate_codes() {
+        let published = certificates
+            .iter()
+            .find(|certificate| certificate.world == world)
+            .map(|certificate| certificate.to_finding().code);
+        assert_eq!(published.as_deref(), Some(code), "{world}");
+    }
+}
