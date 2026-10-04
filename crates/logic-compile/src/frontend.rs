@@ -744,38 +744,95 @@ fn extract_annotation_axioms(
     axioms
 }
 
-/// Collect the blank-node labels of anonymous boolean class expressions — a blank node
-/// carrying a `logic:` boolean class constructor (`unionOf` / `intersectionOf` /
-/// `disjointUnionOf` / `complementOf`). These are anonymous OWL-style class expressions
-/// consumed directly off the store by the shape-derivation / OWL grounding readers (which
-/// read both the `owl:` and `logic:` spellings), never domain facts. Like the restriction /
-/// enumeration / datarange skolemizer nodes, their internal constructor triple and their
-/// `rdf:type logic:Class` typing must be kept OUT of the flat axiom set: their blank
-/// subject / object would otherwise leak into the canonical RDF 1.2 projection as an invalid
-/// relative IRI (`<c14n…>`), breaking the round-trip (the projection's triple sink only
-/// carries IRIs — anonymous class expressions reach it only after skolemization to stable
-/// IRIs). `logic:oneOf` is deliberately excluded: it is a first-class `logic:Enumeration`
-/// skolemized into stable list-cell IRIs by `skolemize_enumerations`, not a bare leak.
-fn anonymous_boolean_class_expr_labels(store: &RdfDataset) -> BTreeSet<String> {
-    const BOOLEAN_CLASS_CONSTRUCTORS: [&str; 4] = [
-        "unionOf",
-        "intersectionOf",
-        "disjointUnionOf",
-        "complementOf",
-    ];
-    let ctor_iris: Vec<String> = BOOLEAN_CLASS_CONSTRUCTORS
-        .iter()
-        .map(|local| logic_iri(local))
-        .collect();
-    let mut labels = BTreeSet::new();
-    for quad in default_graph_quads(store) {
-        if subject_is_blank(&quad.subject)
-            && ctor_iris.iter().any(|iri| quad.predicate.as_str() == iri)
-        {
-            labels.insert(subject_str(&quad.subject));
+/// Lower one authored `owner <predicate> list` statement into the single IR list
+/// encoding: the constructor edge to the head cell (sourced from the authored statement)
+/// plus the `rdf:first`/`rdf:rest` cells (sourced from the list head). Blank members name
+/// their lifted anonymous expression through `skolems`; a cell already asserted for
+/// another owner of the same list is not repeated.
+///
+/// A list that cannot be lowered drops the whole statement with a diagnostic — an error
+/// for a named owner, a warning for an anonymous one — never a partial or dangling list.
+#[allow(clippy::too_many_arguments)]
+fn lift_list_statement(
+    store: &RdfDataset,
+    source_quad: purrdf::QuadIds,
+    owner: &Subject,
+    predicate: &str,
+    ctor: &crate::lists::ListConstructor,
+    head: &Node,
+    skolems: &BTreeMap<String, String>,
+    emitted_cells: &mut BTreeSet<(String, String, crate::ir::AtomicTerm)>,
+    axioms: &mut Vec<AxiomEmission>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let owner_label = subject_str(owner);
+    let list =
+        match crate::lists::lower(store, ctor, head, &mut crate::lists::resolve_known(skolems)) {
+            Ok(list) => list,
+            Err(defect) => {
+                let enumeration = ctor.local == restriction::ONE_OF_LOCAL;
+                let code = match (&defect, enumeration) {
+                    (crate::lists::ListDefect::Malformed(_), true) => "MALFORMED_ENUMERATION",
+                    (crate::lists::ListDefect::Malformed(_), false) => "MALFORMED_LIST",
+                    (crate::lists::ListDefect::UnresolvedMember(_), true) => {
+                        "UNSUPPORTED_NESTED_ENUMERATION"
+                    }
+                    (crate::lists::ListDefect::UnresolvedMember(_), false) => {
+                        "UNSUPPORTED_NESTED_CLASS_EXPRESSION"
+                    }
+                };
+                let message = format!(
+                    "{owner_label:?} <{predicate}> has an unusable RDF list ({}); not lifted",
+                    defect.reason()
+                );
+                diagnostics.push(if subject_is_blank(owner) {
+                    Diagnostic::warning(code, message, Some(owner_label))
+                } else {
+                    Diagnostic::error(code, message, Some(owner_label))
+                });
+                return;
+            }
+        };
+    match LogicAxiom::new(
+        owner_label.clone(),
+        predicate,
+        crate::ir::AtomicTerm::Iri(list.head),
+        false,
+        ContextualScope::default(),
+    ) {
+        Ok(ax) => axioms.push(AxiomEmission::new(ax, AxiomSource::statement(source_quad))),
+        Err(exc) => {
+            diagnostics.push(Diagnostic::warning(
+                "MALFORMED_AXIOM",
+                exc.message().to_owned(),
+                Some(owner_label),
+            ));
+            return;
         }
     }
-    labels
+    let cell_source = AxiomSource::ClassExpression(SourceNode {
+        term: source_quad.o,
+        graph: source_quad.g,
+    });
+    for (subject, cell_predicate, obj) in list.cells {
+        if !emitted_cells.insert((subject.clone(), cell_predicate.to_owned(), obj.clone())) {
+            continue;
+        }
+        match LogicAxiom::new(
+            subject.clone(),
+            cell_predicate,
+            obj,
+            false,
+            ContextualScope::default(),
+        ) {
+            Ok(ax) => axioms.push(AxiomEmission::new(ax, cell_source)),
+            Err(exc) => diagnostics.push(Diagnostic::error(
+                "MALFORMED_LIST",
+                exc.message().to_owned(),
+                Some(subject),
+            )),
+        }
+    }
 }
 
 fn extract_axioms(
@@ -830,24 +887,55 @@ fn extract_axioms(
     // isomorphism gate).  The node set drives the skip filter below so the blank
     // restriction node's internals never leak as blank-labelled axioms — the load-
     // bearing ordering: skolemize FIRST, then skip restriction-internal triples.
+    //
+    // `anchored` holds the nodes whose skolemizer re-emits their own `subClassOf` /
+    // `equivalentClass` anchor edges. `skolems` maps every lifted blank node to its
+    // content-addressed IRI: anonymous boolean class expressions and n-ary axiom
+    // resources (`[ logic:unionOf ( … ) ]`, `[ a logic:AllDisjointClasses ; logic:members
+    // ( … ) ]`) are lifted after the restriction/datarange/enumeration nodes they may
+    // contain, and every edge or list member naming an anonymous node is redirected to it.
     let logic_vocab = restriction::RestrictionVocab::logic();
-    let mut rnodes = restriction::restriction_node_labels(store, &logic_vocab);
-    rnodes.extend(restriction::enumeration_node_labels(store, &logic_vocab));
-    rnodes.extend(restriction::datarange_node_labels(store, &logic_vocab));
-    rnodes.extend(anonymous_boolean_class_expr_labels(store));
+    let mut anchored = restriction::restriction_node_labels(store, &logic_vocab);
+    anchored.extend(restriction::enumeration_node_labels(store, &logic_vocab));
+    anchored.extend(restriction::datarange_node_labels(store, &logic_vocab));
+    let mut skolems: BTreeMap<String, String> = BTreeMap::new();
     let mut lifted_class_exprs =
-        restriction::skolemize_restrictions(store, &logic_vocab, diagnostics);
+        restriction::skolemize_restrictions(store, &logic_vocab, diagnostics, &mut skolems);
     lifted_class_exprs.extend(restriction::skolemize_enumerations(
         store,
         &logic_vocab,
         diagnostics,
+        &mut skolems,
     ));
     lifted_class_exprs.extend(restriction::skolemize_dataranges(
         store,
         &logic_vocab,
         diagnostics,
+        &mut skolems,
     ));
+    let anonymous_owners = crate::lists::anonymous_owner_nodes(store, &anchored);
+    lifted_class_exprs.extend(crate::lists::skolemize_anonymous_owners(
+        store,
+        &anonymous_owners,
+        &mut skolems,
+        diagnostics,
+    ));
+    let mut rnodes = anchored.clone();
+    rnodes.extend(anonymous_owners.keys().cloned());
+    // A content-addressed list cell is shared by every owner of the same list; it is
+    // asserted once.
+    let mut emitted_cells: BTreeSet<(String, String, crate::ir::AtomicTerm)> = BTreeSet::new();
     for lifted in lifted_class_exprs {
+        if matches!(
+            lifted.predicate.as_str(),
+            crate::lists::RDF_FIRST | crate::lists::RDF_REST
+        ) && !emitted_cells.insert((
+            lifted.subject.clone(),
+            lifted.predicate.clone(),
+            lifted.obj.clone(),
+        )) {
+            continue;
+        }
         if let Ok(ax) = LogicAxiom::new(
             lifted.subject,
             lifted.predicate,
@@ -885,10 +973,10 @@ fn extract_axioms(
         {
             continue;
         }
-        // Restriction internals + anchor edges are owned by the skolemizer above.
-        // Skip a triple whose subject is a restriction node, and a subClassOf /
-        // equivalentClass edge whose object is a restriction node (re-emitted
-        // redirected to the skolem node).
+        // Class-expression internals + anchor edges are owned by the skolemizers above.
+        // Skip a triple whose subject is an anonymous class-expression node, and a
+        // subClassOf / equivalentClass edge whose object is a restriction, enumeration or
+        // datarange node (re-emitted redirected to the skolem node).
         if rnodes.contains(&subject_str(&quad.subject)) {
             continue;
         }
@@ -919,7 +1007,7 @@ fn extract_axioms(
             continue;
         }
         if matches!(p_local, "subClassOf" | "equivalentClass")
-            && rnodes.contains(&term_str(&quad.object))
+            && anchored.contains(&term_str(&quad.object))
         {
             continue;
         }
@@ -960,10 +1048,42 @@ fn extract_axioms(
         if is_abductive_schema_structural_predicate(p_local) {
             continue;
         }
+        // Any other edge naming an anonymous class expression names its lifted identity.
+        // One that could not be lifted was disclosed by its skolemizer and is not
+        // referenced through a dangling blank node.
+        let object = match &quad.object {
+            Node::Blank { label, .. } => match skolems.get(label) {
+                Some(iri) => Node::Iri(iri.clone()),
+                None if rnodes.contains(label) => continue,
+                None => quad.object.clone(),
+            },
+            other => other.clone(),
+        };
+        // A list-valued constructor, or any other edge whose object is an RDF list,
+        // carries its list in the single IR encoding (see `crate::lists`).
+        let list_ctor = crate::lists::constructor(p_str);
+        if list_ctor.is_some()
+            || (crate::lists::is_list_head(store, &object)
+                && !matches!(&object, Node::Iri(iri) if iri == crate::lists::RDF_NIL))
+        {
+            lift_list_statement(
+                store,
+                source_quad,
+                &quad.subject,
+                p_str,
+                list_ctor.unwrap_or(&crate::lists::UNREGISTERED_LIST),
+                &object,
+                &skolems,
+                &mut emitted_cells,
+                &mut axioms,
+                diagnostics,
+            );
+            continue;
+        }
         match native_axiom(
             subject_str(&quad.subject),
             p_str,
-            &quad.object,
+            &object,
             false,
             ContextualScope::default(),
         ) {
@@ -1057,7 +1177,13 @@ fn extract_axioms(
         if is_constraint_sugar_class(o_local) {
             continue;
         }
-        if type_predicate == RDF_TYPE && subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE) {
+        // A compiler-minted anonymous class expression / n-ary axiom keeps its typing: it is
+        // part of the node's content (re-read from the canonical projection), not `logic:`
+        // vocabulary self-description.
+        if type_predicate == RDF_TYPE
+            && subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE)
+            && !crate::lists::is_minted_owner(&subject_str(&quad.subject))
+        {
             continue;
         }
         match LogicAxiom::new(

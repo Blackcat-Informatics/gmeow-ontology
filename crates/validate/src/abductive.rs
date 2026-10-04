@@ -1125,14 +1125,7 @@ fn candidate_key(candidate: &Candidate) -> String {
 /// The first `hex_len` hex chars of `SHA-256(input)`.
 fn hex_digest(input: &str, hex_len: usize) -> String {
     let digest = Sha256::digest(input.as_bytes());
-    let mut hex = String::with_capacity(hex_len);
-    for byte in digest {
-        use std::fmt::Write;
-        if hex.len() >= hex_len {
-            break;
-        }
-        let _ = write!(hex, "{byte:02x}");
-    }
+    let mut hex = purrdf_hash::hex::encode(&digest[..hex_len.div_ceil(2)]);
     hex.truncate(hex_len);
     hex
 }

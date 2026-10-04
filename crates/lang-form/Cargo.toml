@@ -13,6 +13,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+purrdf-hash.workspace = true
 sha2.workspace = true
 
 [dev-dependencies]

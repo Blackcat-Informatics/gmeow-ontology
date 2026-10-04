@@ -339,7 +339,7 @@ fn example(segment: &str, id: &str) -> String {
 /// A stable 16-hex-char content address over a domain-separated key.
 fn digest16(domain: &str, key: &str) -> String {
     let digest = Sha256::digest(format!("{domain}\u{1f}{key}").as_bytes());
-    digest.iter().take(8).map(|b| format!("{b:02x}")).collect()
+    purrdf_hash::hex::encode(&digest[..8])
 }
 
 fn triple(subject: &str, predicate: &str, object: &str) -> String {

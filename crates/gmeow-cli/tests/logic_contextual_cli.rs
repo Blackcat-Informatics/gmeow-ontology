@@ -43,6 +43,7 @@ fn run(cwd: &Path, arguments: &[&str]) -> Output {
 fn assert_assessment(output: &Output, evaluation: &str, information: &str) {
     let dataset = purrdf::parse_dataset(&output.stdout, "application/n-quads", None)
         .expect("stdout contains the complete RDF assessment");
+    let dataset = dataset.as_ref();
     let id = |iri: &str| {
         dataset
             .term_id_by_value(&TermValue::iri(iri))
@@ -146,6 +147,7 @@ fn installed_evaluator_exports_fragment_refusal_as_diagnostics_and_a_non_result(
     assert_assessment(&output, "EvaluationUnsupported", "InfoNotEvaluated");
     let dataset = purrdf::parse_dataset(&output.stdout, "application/n-quads", None)
         .expect("structured fragment refusal");
+    let dataset = dataset.as_ref();
     let diagnostics = dataset
         .term_id_by_value(&TermValue::iri(
             "https://blackcatinformatics.ca/gmeow/graph/diagnostics",

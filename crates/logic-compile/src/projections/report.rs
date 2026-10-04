@@ -79,7 +79,8 @@ fn iri_safe_segment(name: &str) -> String {
         if keep {
             out.push(b as char);
         } else {
-            out.push_str(&format!("%{b:02X}"));
+            out.push('%');
+            purrdf_hash::hex::encode_upper_into(&[b], &mut out);
         }
     }
     out

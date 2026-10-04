@@ -14,8 +14,8 @@ use std::sync::OnceLock;
 use gmeow_errors::{Diag, Result};
 use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
-use regex::Regex;
 use purrdf_hash::sha1::Sha1;
+use regex::Regex;
 
 use crate::error::{
     CatalogInconsistent, FileIo, PoParse, RdfFormat, RdfParse, TurtleUnescape, UnsupportedSource,

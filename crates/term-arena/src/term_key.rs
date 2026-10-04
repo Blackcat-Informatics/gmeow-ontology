@@ -50,13 +50,10 @@ use crate::term_dag::{NodeData, TermDag};
 /// This encoding is used only for content keys, never for relation lookup. It
 /// includes every native field; RDF presentation text is deliberately excluded.
 pub fn native_term_key(term: &TermValue) -> String {
-    use std::fmt::Write as _;
     let bytes = term.to_canonical_bytes();
     let mut key = String::with_capacity(3 + 2 * bytes.len());
     key.push_str("T2:");
-    for byte in bytes {
-        let _ = write!(key, "{byte:02x}");
-    }
+    purrdf_hash::hex::encode_into(&bytes, &mut key);
     key
 }
 

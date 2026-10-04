@@ -863,8 +863,7 @@ fn cache_key(identifiers: &[String]) -> String {
     sorted.sort();
     let mut hasher = Sha256::new();
     hasher.update(sorted.join("|").as_bytes());
-    let digest = hasher.finalize();
-    digest.iter().map(|byte| format!("{byte:02x}")).collect()
+    purrdf_hash::hex::encode(&hasher.finalize())
 }
 
 fn cache_path(project_root: &Path, key: &str) -> PathBuf {

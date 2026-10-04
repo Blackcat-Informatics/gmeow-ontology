@@ -7998,13 +7998,7 @@ fn candidate_library() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>> {
 /// A deterministic lowercase-hex SHA-256 of `bytes` (the KB-world content address seed).
 #[cfg(feature = "reasoning")]
 fn sha256_hex(bytes: &[u8]) -> String {
-    let digest = Sha256::digest(bytes);
-    let mut out = String::with_capacity(digest.len() * 2);
-    for byte in digest {
-        use std::fmt::Write as _;
-        let _ = write!(out, "{byte:02x}");
-    }
-    out
+    purrdf_hash::hex::encode(&Sha256::digest(bytes))
 }
 
 /// Intern one IRI into the GTS term table, deduplicated by value. Shared by the subject /

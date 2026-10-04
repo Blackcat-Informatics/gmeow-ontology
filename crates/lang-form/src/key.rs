@@ -180,13 +180,7 @@ impl Form {
     #[must_use]
     pub fn stable_id(&self) -> String {
         let digest = Sha256::digest(self.content_key().as_bytes());
-        digest[..12]
-            .iter()
-            .fold(String::with_capacity(24), |mut acc, b| {
-                use std::fmt::Write as _;
-                let _ = write!(acc, "{b:02x}");
-                acc
-            })
+        purrdf_hash::hex::encode(&digest[..12])
     }
 }
 

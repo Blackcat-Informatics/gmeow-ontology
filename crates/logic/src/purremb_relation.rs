@@ -456,7 +456,7 @@ impl<'a> PurrembBinding<'a> {
         PurrembRetrievalReceipt {
             artifact_root: self.artifact_root_hex.clone(),
             source_exact_digest: source.source_exact_digest().to_hex(),
-            certified_rdf_digest: hex32(&source.certified_rdf_digest()),
+            certified_rdf_digest: purrdf_hash::hex::encode(&source.certified_rdf_digest()),
             source_verification_mode: source_mode_wire(self.source_mode).to_owned(),
             target_set: self.selection.target_set.to_hex(),
             matrix: self.selection.matrix.to_hex(),
@@ -1473,7 +1473,7 @@ impl crate::annotation::TupleAnnotationAlgebra for VectorSpaceScopedAlgebra {
     fn canonical_element(&self, element: &Self::Element) -> String {
         let mut out = format!("{:016x}:", element.score.0);
         for space in &element.spaces {
-            out.push_str(&hex32(space));
+            purrdf_hash::hex::encode_into(space, &mut out);
             out.push(',');
         }
         out.push(':');
@@ -1994,16 +1994,6 @@ pub fn purremb_descriptor(
 // --------------------------------------------------------------------------- //
 // Shared small helpers.
 // --------------------------------------------------------------------------- //
-
-/// Lowercase hex of a 32-byte digest.
-fn hex32(bytes: &[u8; 32]) -> String {
-    use std::fmt::Write as _;
-    let mut out = String::with_capacity(64);
-    for byte in bytes {
-        let _ = write!(out, "{byte:02x}");
-    }
-    out
-}
 
 /// Stable wire name of a distance metric.
 fn metric_wire(metric: &DistanceMetric) -> &'static str {

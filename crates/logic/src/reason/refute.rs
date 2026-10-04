@@ -198,13 +198,10 @@ impl FragmentBoundary {
                 issue,
             } => format!(
                 "source-admission\u{1f}{}",
-                crate::physical::metadata_identity(
+                purrdf_hash::hex::encode(&crate::physical::metadata_identity(
                     "gmeow-refutation-source-boundary-v1",
                     &(world, issue, premises)
-                )
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect::<String>()
+                ))
             ),
             Self::Uncertified {
                 family,

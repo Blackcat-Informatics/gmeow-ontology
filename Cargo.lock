@@ -1474,6 +1474,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
  "purrdf",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1528,6 +1529,7 @@ dependencies = [
  "predicates",
  "purrdf",
  "purrdf-ed25519",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "tempfile",
@@ -1630,6 +1632,7 @@ dependencies = [
  "pretty_assertions",
  "pulldown-cmark",
  "purrdf",
+ "purrdf-hash",
  "regex",
  "serde",
  "serde_json",
@@ -1739,6 +1742,7 @@ dependencies = [
  "insta",
  "proptest",
  "purrdf",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1753,6 +1757,7 @@ version = "0.3.0"
 dependencies = [
  "insta",
  "proptest",
+ "purrdf-hash",
  "sha2 0.10.9",
 ]
 
@@ -1811,6 +1816,7 @@ dependencies = [
  "gmeow-term-arena",
  "insta",
  "purrdf",
+ "purrdf-hash",
  "purrdf-lex",
  "serde",
  "serde_json",
@@ -1852,6 +1858,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-term-arena",
  "purrdf",
+ "purrdf-hash",
 ]
 
 [[package]]
@@ -1877,6 +1884,7 @@ dependencies = [
  "jsonschema",
  "purrdf",
  "purrdf-ed25519",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1923,6 +1931,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
  "purrdf",
+ "purrdf-hash",
  "purrdf-lex",
 ]
 
@@ -2082,6 +2091,7 @@ dependencies = [
  "foldhash 0.1.5",
  "hashbrown 0.15.5",
  "purrdf",
+ "purrdf-hash",
  "serde",
  "smallvec",
 ]
@@ -2258,6 +2268,17 @@ name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
+name = "helper-census"
+version = "0.3.0"
+dependencies = [
+ "proc-macro2",
+ "purrdf-hash",
+ "purrdf-lex",
+ "regex",
+ "syn 2.0.119",
+]
 
 [[package]]
 name = "hermit-abi"

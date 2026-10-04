@@ -185,13 +185,7 @@ fn stable_fingerprint(finding: &Finding) -> String {
         hasher.update(&[0x1d]);
     }
 
-    let digest = hasher.finalize();
-    let mut out = String::with_capacity(16);
-    use std::fmt::Write;
-    for byte in &digest.as_bytes()[..8] {
-        let _ = write!(out, "{byte:02x}");
-    }
-    out
+    purrdf_hash::hex::encode(&hasher.finalize().as_bytes()[..8])
 }
 
 /// The GMEOW namespace IRI prefix.

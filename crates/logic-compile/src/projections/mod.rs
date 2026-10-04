@@ -536,7 +536,7 @@ fn correspondence_preservation_result(
         return Ok(None);
     };
     let digest = Sha256::digest(correspondence.content_key().as_bytes());
-    let hash: String = digest.iter().map(|byte| format!("{byte:02x}")).collect();
+    let hash = purrdf_hash::hex::encode(&digest);
     let target = format!("correspondence:{}:{hash}", correspondence.iri);
     ledger.record_correspondence_drops(&target, correspondence, preservation);
     Ok(Some(ProjectionResult {
@@ -567,11 +567,7 @@ pub(crate) fn correspondence_result(
         hasher.update((field.len() as u64).to_be_bytes());
         hasher.update(field.as_bytes());
     }
-    let hash: String = hasher
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let hash = purrdf_hash::hex::encode(&hasher.finalize());
     let target = format!("{dialect}:{key}:{hash}");
     let structural: Vec<String> = structural.into_iter().map(str::to_owned).collect();
     // Attribute this correspondence cell's residue to its DOCUMENTED source term (the GMEOW
@@ -1232,7 +1228,8 @@ pub(crate) fn python_repr(s: &str) -> String {
                 out.push(c);
             }
             c if (c as u32) < 0x20 || (c as u32) == 0x7f => {
-                out.push_str(&format!("\\x{:02x}", c as u32));
+                out.push_str("\\x");
+                purrdf_hash::hex::encode_into(&[c as u8], &mut out);
             }
             c => out.push(c),
         }
