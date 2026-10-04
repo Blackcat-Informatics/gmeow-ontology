@@ -640,10 +640,5 @@ pub(crate) fn has_predicate_object(ds: &RdfDataset, predicate: &Iri, object: &No
 /// (`restriction`); both must mint the SAME id from the SAME content key.
 pub(crate) fn sha256_12(s: &str) -> String {
     use sha2::{Digest, Sha256};
-    let digest = Sha256::digest(s.as_bytes());
-    let mut out = String::with_capacity(12);
-    for b in digest.iter().take(6) {
-        out.push_str(&format!("{b:02x}"));
-    }
-    out
+    purrdf_hash::hex::encode(&Sha256::digest(s.as_bytes())[..6])
 }

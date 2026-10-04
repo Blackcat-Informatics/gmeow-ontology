@@ -24,7 +24,7 @@ use gmeow_logic_compile::tptp::{
     FofProjection, FofProjectionBlocker, FofProjectionStatus, FofSentence, FofTask, SzsAdmission,
     SzsOutcome, admit_szs_transcript, project_tptp_fof,
 };
-use purrdf::{CompositeDatasetView, DatasetView, RdfDataset, TermRef, ViewLimits};
+use purrdf::{CompositeDatasetView, RdfDataset, TermRef, ViewLimits};
 use serde::Serialize;
 
 use super::reasoning_report::{
@@ -848,11 +848,11 @@ fn load_theory(
     for (index, (receipt, original)) in receipts.iter().zip(&documents).enumerate() {
         prepared
             .record_document(receipt.clone(), original, |term| {
-                let mapped = match original.resolve(term) {
+                let mapped = match original.as_ref().resolve(term) {
                     TermRef::Iri(iri) => materialized.term_id_by_iri(iri),
                     _ => {
                         let value = composite.term_value(composite.source_id(index, term));
-                        materialized.term_id_by_value(&value)
+                        materialized.as_ref().term_id_by_value(&value)
                     }
                 };
                 mapped.ok_or_else(|| {

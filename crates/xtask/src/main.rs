@@ -100,6 +100,7 @@ const AFTER_TEST_FIXTURES: &[&str] = &["rust-build", "test-fixtures"];
 const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "crate-check",
+    "helpers-hygiene",
     "i18n-lint",
     "rust-build",
     "test-fixtures",
@@ -146,6 +147,15 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "crate-check",
         target: "crate-check",
+        dependencies: ROOT,
+    },
+    // The helpers census and its companions: one home per job (PurRDF's where one
+    // exists), the down-only duplication debt, and the replaced-dependency ban. They
+    // read authored Rust, `helpers-ledger.toml`, `helpers-census-debt.json`, Cargo
+    // manifests and committed lockfiles only. No `generated/` read.
+    Task {
+        name: "helpers-hygiene",
+        target: "helpers-hygiene",
         dependencies: ROOT,
     },
     // `i18n_compile::lint_po_files` walks `slices/**/*.po` plus authored TTL only.

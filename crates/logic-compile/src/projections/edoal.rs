@@ -204,7 +204,8 @@ impl Nt {
             if byte.is_ascii_alphanumeric() {
                 safe.push(byte as char);
             } else {
-                safe.push_str(&format!("_{byte:02x}"));
+                safe.push('_');
+                purrdf_hash::hex::encode_into(&[byte], &mut safe);
             }
         }
         format!("_:n{safe}")

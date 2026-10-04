@@ -701,10 +701,7 @@ fn iri_constant(iri: &str) -> String {
 
 fn variable_token(name: &str) -> String {
     let mut out = String::from("V_");
-    for byte in name.as_bytes() {
-        use std::fmt::Write as _;
-        let _ = write!(out, "{byte:02x}");
-    }
+    purrdf_hash::hex::encode_into(name.as_bytes(), &mut out);
     if name.is_empty() {
         out.push_str("00");
     }

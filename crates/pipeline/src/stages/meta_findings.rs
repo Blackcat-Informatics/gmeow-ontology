@@ -521,12 +521,7 @@ fn glut_witness_iri(a: &str, b: &str) -> String {
     feed(&mut hasher, b"predicate", CROSS_NODE_GLUT_WITH.as_bytes());
     feed(&mut hasher, b"finding", lo.as_bytes());
     feed(&mut hasher, b"finding", hi.as_bytes());
-    let digest = hasher.finalize();
-    let mut hex = String::with_capacity(32);
-    use std::fmt::Write;
-    for byte in &digest.as_bytes()[..16] {
-        let _ = write!(hex, "{byte:02x}");
-    }
+    let hex = purrdf_hash::hex::encode(&hasher.finalize().as_bytes()[..16]);
     format!("{GMEOW_NS}diagnostics/glut-witness/{hex}")
 }
 

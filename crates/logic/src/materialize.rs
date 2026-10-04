@@ -612,10 +612,7 @@ fn materialize_nonmonotone(
     store: &crate::store::WorldStore,
     preservation: PreservationClaim,
 ) -> Result<Materialization, MaterializeError> {
-    let rule_hash = crate::physical::canonical_rule_hash(rules)
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>();
+    let rule_hash = purrdf_hash::hex::encode(&crate::physical::canonical_rule_hash(rules));
     let contract_hash = format!(
         "gmeow-native-nonmonotone-materialize-v2:{}:{rule_hash}",
         profile.as_str()
@@ -1046,10 +1043,7 @@ where
                 crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
             )
             .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-        let rule_hash = crate::physical::canonical_rule_hash(rules)
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>();
+        let rule_hash = purrdf_hash::hex::encode(&crate::physical::canonical_rule_hash(rules));
         let contract_hash = format!(
             "gmeow-native-nonmonotone-materialize-v2:{}:{rule_hash}",
             profile.as_str()

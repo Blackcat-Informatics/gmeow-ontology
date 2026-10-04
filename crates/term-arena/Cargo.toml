@@ -24,6 +24,8 @@ path = "src/lib.rs"
 # `gmeow-logic-compile` pins (oxigraph OFF, python OFF), so the arena stays reasoner-free
 # and wasm-buildable — it is an RDF value-space dependency, never a reasoning one.
 purrdf.workspace = true
+# purrdf-hash: the base16 rendering of a native term key's canonical bytes.
+purrdf-hash.workspace = true
 # serde: `ContentKey` is the process-independent identity explicitly designed to
 # cross cache/receipt boundaries. Dense arena handles remain non-serializable.
 serde.workspace = true
