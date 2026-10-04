@@ -1648,73 +1648,26 @@ impl ChaseAdmission {
     /// reports a spurious cycle whenever a null merely *touches* a position on a
     /// position-graph cycle; JA is exact about which frontier a null can actually bind.
     fn certify_joint_acyclic(rules: &[ExistentialRule]) -> Option<Self> {
-        let universe = all_program_positions(rules);
-        // Existential nodes: (rule index, existential var name).
-        let mut existentials: Vec<(usize, String)> = Vec::new();
-        for (i, r) in rules.iter().enumerate() {
-            for e in r.existentials() {
-                existentials.push((i, e));
-            }
-        }
-        if existentials.is_empty() {
-            // No existential to certify — weak acyclicity already handled this shape.
-            return None;
-        }
-        // Precompute each rule's frontier flows — (refined body positions, refined head
-        // positions) per frontier var — ONCE, instead of re-deriving them on every
-        // iteration of every existential's `move_set` fixpoint.
-        let precomputed_flows: Vec<Vec<(BTreeSet<Position>, Vec<Position>)>> = rules
-            .iter()
-            .map(|r| {
-                r.copied_vars()
-                    .into_iter()
-                    .map(|v| {
-                        (
-                            refined_positions(&r.body, &v).into_iter().collect(),
-                            refined_positions(&r.head, &v),
-                        )
-                    })
-                    .collect()
-            })
-            .collect();
-        let moves: Vec<BTreeSet<Position>> = existentials
-            .iter()
-            .map(|(i, e)| move_set(&precomputed_flows, &rules[*i], e, &universe))
-            .collect();
-
-        // Existential-dependency graph.
-        let mut edges: std::collections::BTreeMap<usize, BTreeSet<usize>> =
-            std::collections::BTreeMap::new();
-        let mut edge_count = 0usize;
-        for (a, _) in existentials.iter().enumerate() {
-            let mv = &moves[a];
-            for (j, r_j) in rules.iter().enumerate() {
-                if !r_j.is_existential() {
-                    continue;
-                }
-                // Can a1's null bind a frontier of r_j (all that frontier's body
-                // positions lie within Move)? Then it can trigger r_j's invention.
-                let triggers = r_j.frontier_vars().into_iter().any(|v| {
-                    let bpos = refined_positions(&r_j.body, &v);
-                    !bpos.is_empty() && bpos.iter().all(|p| move_contains(mv, p, &universe))
-                });
-                if !triggers {
-                    continue;
-                }
-                for (b, (bi, _)) in existentials.iter().enumerate() {
-                    if *bi == j && edges.entry(a).or_default().insert(b) {
-                        edge_count += 1;
-                    }
+        let graph = JointGraph::new(rules)?;
+        let mut edges: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
+        for (a, covered) in graph.moves.iter().enumerate() {
+            for (consumer, frontiers) in &graph.consumers {
+                // Can a's null bind a frontier of the consumer (all that frontier's
+                // body positions lie within Move)? Then it can trigger its invention.
+                if frontiers
+                    .iter()
+                    .any(|(_, body)| body.iter().all(|p| covered.contains(p)))
+                {
+                    edges[a].extend(graph.owned(*consumer));
                 }
             }
         }
-
+        let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
         // JA holds iff no existential node lies on a cycle (reaches itself).
-        let acyclic = (0..existentials.len()).all(|n| !node_reaches_self(&edges, n));
-        acyclic.then(|| Self::JointlyAcyclic {
+        acyclic(&edges).then(|| Self::JointlyAcyclic {
             evidence: format!(
                 "jointly acyclic: {} existential variable(s), {} dependency edge(s), no existential depends on itself",
-                existentials.len(),
+                graph.existentials.len(),
                 edge_count
             ),
         })
@@ -2292,51 +2245,199 @@ fn all_program_positions(rules: &[ExistentialRule]) -> BTreeSet<Position> {
     universe
 }
 
-/// Conservative Move membership: `p ∈ mv`, OR — when the program has BOTH a wildcard and
-/// a constant refinement for `p`'s `(predicate, slot)` — any sibling of `p` at that
-/// `(predicate, slot)` is in `mv`.  This over-approximates a null's reach (wildcard nulls
-/// could be any class, constant consumers read any class), never under — so a real
-/// existential cycle is never hidden (soundness: JA never wrongly certifies).
-fn move_contains(mv: &BTreeSet<Position>, p: &Position, universe: &BTreeSet<Position>) -> bool {
-    if mv.contains(p) {
-        return true;
-    }
-    let same_slot = |q: &Position| q.predicate == p.predicate && q.slot == p.slot;
-    let has_wildcard = universe
-        .iter()
-        .any(|q| same_slot(q) && q.class == ClassKey::Wildcard);
-    let has_const = universe
-        .iter()
-        .any(|q| same_slot(q) && matches!(q.class, ClassKey::Const(_)));
-    has_wildcard && has_const && mv.iter().any(same_slot)
+/// The joint-acyclicity dependency structure of one program, built once: every
+/// existential's `Move` set and every existential rule's frontier body positions.
+struct JointGraph {
+    /// Existential nodes: (rule index, existential variable).
+    existentials: Vec<(usize, String)>,
+    /// Per existential node, every refined position its null can occupy, plus every
+    /// body position conservative membership admits (see [`MoveIndex`]).
+    moves: Vec<BTreeSet<Position>>,
+    /// Per existential rule, each frontier variable with its non-empty refined body
+    /// positions.
+    consumers: Vec<(usize, Vec<(String, Vec<Position>)>)>,
+    /// Rule index → its existential node indices.
+    owners: BTreeMap<usize, Vec<usize>>,
 }
 
-/// The `Move` set of existential `e` (of `rule_i`): the least set of refined positions a
-/// null minted for `e` can occupy, closing null-flow through every rule's frontier
-/// variables (a frontier `v` whose refined body positions all lie within Move carries the
-/// null to `v`'s head positions).  Grows monotonically within the finite position
-/// universe, so the fixpoint terminates.
-fn move_set(
-    precomputed_flows: &[Vec<(BTreeSet<Position>, Vec<Position>)>],
-    rule_i: &ExistentialRule,
-    e: &str,
-    universe: &BTreeSet<Position>,
-) -> BTreeSet<Position> {
-    let mut mv: BTreeSet<Position> = refined_positions(&rule_i.head, e).into_iter().collect();
-    loop {
-        let before = mv.len();
-        for rule_flow in precomputed_flows {
-            for (bpos, hpos) in rule_flow {
-                if !bpos.is_empty() && bpos.iter().all(|p| move_contains(&mv, p, universe)) {
-                    mv.extend(hpos.iter().cloned());
+impl JointGraph {
+    /// `None` when the program has no existential to certify.
+    fn new(rules: &[ExistentialRule]) -> Option<Self> {
+        let mut existentials: Vec<(usize, String)> = Vec::new();
+        for (i, r) in rules.iter().enumerate() {
+            for e in r.existentials() {
+                existentials.push((i, e));
+            }
+        }
+        if existentials.is_empty() {
+            return None;
+        }
+        let index = MoveIndex::new(rules);
+        let moves = existentials
+            .iter()
+            .map(|(i, e)| index.reach(refined_positions(&rules[*i].head, e)))
+            .collect();
+        let consumers = rules
+            .iter()
+            .enumerate()
+            .filter(|(_, rule)| rule.is_existential())
+            .map(|(j, rule)| {
+                let frontiers = rule
+                    .frontier_vars()
+                    .into_iter()
+                    .map(|v| {
+                        let body = refined_positions(&rule.body, &v);
+                        (v, body)
+                    })
+                    .filter(|(_, body)| !body.is_empty())
+                    .collect();
+                (j, frontiers)
+            })
+            .collect();
+        let mut owners: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+        for (node, (rule, _)) in existentials.iter().enumerate() {
+            owners.entry(*rule).or_default().push(node);
+        }
+        Some(Self {
+            existentials,
+            moves,
+            consumers,
+            owners,
+        })
+    }
+
+    fn owned(&self, rule: usize) -> impl Iterator<Item = usize> + '_ {
+        self.owners.get(&rule).into_iter().flatten().copied()
+    }
+}
+
+/// The null-flow closure of a program as a Horn propagation network, so each `Move`
+/// set is computed in time linear in the program (Dowling & Gallier, 1984) rather than
+/// by re-scanning every flow until a fixpoint.
+///
+/// A flow — one copied variable of one rule — carries a null from all of its refined
+/// body positions to its head positions. Each flow counts its uncovered body positions;
+/// covering a position decrements the flows that read it, and a flow whose count
+/// reaches zero fires once.
+///
+/// Membership is conservative: a body position is covered when it is in `Move`, OR
+/// when its `(predicate, slot)` carries BOTH a wildcard and a constant refinement in
+/// the program and `Move` holds any position at that slot. This over-approximates a
+/// null's reach (wildcard nulls could be any class, constant consumers read any
+/// class), never under — so a real existential cycle is never hidden.
+struct MoveIndex {
+    heads: Vec<Vec<Position>>,
+    need: Vec<usize>,
+    watch: BTreeMap<Position, Vec<usize>>,
+    /// Body positions of every ambiguous `(predicate, slot)`.
+    siblings: BTreeMap<(String, Slot), Vec<Position>>,
+}
+
+impl MoveIndex {
+    fn new(rules: &[ExistentialRule]) -> Self {
+        let mut heads = Vec::new();
+        let mut need = Vec::new();
+        let mut watch: BTreeMap<Position, Vec<usize>> = BTreeMap::new();
+        let mut body_positions: BTreeSet<Position> = BTreeSet::new();
+        for rule in rules {
+            for v in rule.copied_vars() {
+                let body: BTreeSet<Position> =
+                    refined_positions(&rule.body, &v).into_iter().collect();
+                if body.is_empty() {
+                    continue;
+                }
+                let flow = heads.len();
+                for position in &body {
+                    watch.entry(position.clone()).or_default().push(flow);
+                }
+                need.push(body.len());
+                heads.push(refined_positions(&rule.head, &v));
+                body_positions.extend(body);
+            }
+            for v in rule.body_vars() {
+                body_positions.extend(refined_positions(&rule.body, &v));
+            }
+        }
+        let mut kinds: BTreeMap<(String, Slot), (bool, bool)> = BTreeMap::new();
+        for position in all_program_positions(rules) {
+            let kind = kinds
+                .entry((position.predicate.clone(), position.slot))
+                .or_default();
+            kind.0 |= matches!(position.class, ClassKey::Wildcard);
+            kind.1 |= matches!(position.class, ClassKey::Const(_));
+        }
+        let mut siblings: BTreeMap<(String, Slot), Vec<Position>> = BTreeMap::new();
+        for position in body_positions {
+            let slot = (position.predicate.clone(), position.slot);
+            if kinds.get(&slot) == Some(&(true, true)) {
+                siblings.entry(slot).or_default().push(position);
+            }
+        }
+        Self {
+            heads,
+            need,
+            watch,
+            siblings,
+        }
+    }
+
+    /// The covered positions reachable from a null first written at `start`.
+    fn reach(&self, start: Vec<Position>) -> BTreeSet<Position> {
+        let mut need = self.need.clone();
+        let mut covered: BTreeSet<Position> = BTreeSet::new();
+        let mut moved: BTreeSet<Position> = BTreeSet::new();
+        let mut occupied: BTreeSet<(String, Slot)> = BTreeSet::new();
+        let mut queue = start;
+        let mut cover =
+            |position: &Position, covered: &mut BTreeSet<Position>, queue: &mut Vec<Position>| {
+                if covered.insert(position.clone()) {
+                    for &flow in self.watch.get(position).into_iter().flatten() {
+                        need[flow] -= 1;
+                        if need[flow] == 0 {
+                            queue.extend(self.heads[flow].iter().cloned());
+                        }
+                    }
+                }
+            };
+        while let Some(position) = queue.pop() {
+            if !moved.insert(position.clone()) {
+                continue;
+            }
+            cover(&position, &mut covered, &mut queue);
+            let slot = (position.predicate.clone(), position.slot);
+            if let Some(siblings) = self.siblings.get(&slot)
+                && occupied.insert(slot)
+            {
+                for sibling in siblings {
+                    cover(sibling, &mut covered, &mut queue);
                 }
             }
         }
-        if mv.len() == before {
-            break;
+        covered
+    }
+}
+
+/// Whether a dependency graph over `edges.len()` nodes is acyclic (a self-edge is a
+/// cycle): Kahn's topological elimination, linear in the graph.
+fn acyclic(edges: &[BTreeSet<usize>]) -> bool {
+    let mut indegree = vec![0usize; edges.len()];
+    for targets in edges {
+        for &target in targets {
+            indegree[target] += 1;
         }
     }
-    mv
+    let mut ready: Vec<usize> = (0..edges.len()).filter(|&n| indegree[n] == 0).collect();
+    let mut removed = 0usize;
+    while let Some(node) = ready.pop() {
+        removed += 1;
+        for &target in &edges[node] {
+            indegree[target] -= 1;
+            if indegree[target] == 0 {
+                ready.push(target);
+            }
+        }
+    }
+    removed == edges.len()
 }
 
 /// Whether `node` lies on a cycle in the existential-dependency graph (reaches itself
