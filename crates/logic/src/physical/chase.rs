@@ -288,6 +288,12 @@ pub(super) struct PreparedChaseRule {
 }
 
 impl PreparedChaseRule {
+    /// Whether firing this rule mints a value: an existential witness or an n-ary
+    /// reifier node. Datalog-first scheduling defers exactly these rules.
+    pub(super) fn mints(&self) -> bool {
+        !self.existentials.is_empty() || !self.reifier_groups.is_empty()
+    }
+
     /// Exact execution ownership also governs source/effect admission.
     pub(super) fn owns_world(&self, world: &str) -> gmeow_errors::Result<bool> {
         self.ownership.owns_world(world)
@@ -624,6 +630,10 @@ fn chase_world_into(
     // the restricted-satisfaction check skips already-witnessed obligations, and the
     // SkolemRegistry collapses repeat firings — so a weakly-acyclic program converges.
     // (Incrementality is out of scope: the perf ledger flags the chase non-incremental.)
+    // Datalog-first: minting rules fire only in a round that follows a Datalog-only
+    // round with nothing left to add, so every trigger sees the Datalog closure of
+    // what exists (the order restricted-chase certificates assume).
+    let mut generative = false;
     'fixpoint: loop {
         // The restricted chase commits one breadth layer per round. The first
         // appearance of a fact is therefore its minimal proof-height layer.
@@ -635,7 +645,7 @@ fn chase_world_into(
         // becomes a sound `Exhausted` withhold instead of an OOM. Unbudgeted ⇒ `usize::MAX`.
         let mut round = BTreeMap::new();
         let round_truncated = chase_round(
-            &prepared,
+            prepared.iter().filter(|rule| generative || !rule.mints()),
             &store,
             governor.solution_cap(),
             registry,
@@ -706,8 +716,14 @@ fn chase_world_into(
             break 'fixpoint;
         }
         if !progressed {
+            if !generative {
+                // Datalog has reached its fixpoint: let the minting rules fire.
+                generative = true;
+                continue;
+            }
             break; // natural fixpoint — the chase terminated
         }
+        generative = false;
         prior_round_height = round_height;
     }
 

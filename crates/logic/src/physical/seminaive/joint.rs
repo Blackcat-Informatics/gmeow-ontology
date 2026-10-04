@@ -1634,14 +1634,28 @@ impl JointStratum {
             candidate_rows = round.entries.len(),
             "reason phase boundary",
         );
-        let chase_truncated = generative
-            && chase_round(
-                self.producers.iter().map(Arc::as_ref),
+        // Non-minting producers run every round against this round's delta; minting
+        // producers run only in a generative round, against every change since they
+        // last gathered. Datalog-first needs the whole non-generating closure in place
+        // before any trigger is checked.
+        let mut chase_truncated = false;
+        for (minting, changed) in [
+            (false, state.changed.clone()),
+            (true, generative_changed.clone()),
+        ] {
+            if minting && !generative {
+                continue;
+            }
+            chase_truncated |= chase_round(
+                self.producers
+                    .iter()
+                    .map(Arc::as_ref)
+                    .filter(|producer| producer.mints() == minting),
                 &state.rel,
                 governor.solution_cap(),
                 registry,
                 (world, contract),
-                generative_changed.as_ref(),
+                changed.as_ref(),
                 |head, premises| {
                     if !state.store.contains_key(&head.key()) {
                         round.insert(
@@ -1658,6 +1672,7 @@ impl JointStratum {
                     Ok(())
                 },
             )?;
+        }
         if generative {
             // The minting producers have now read every row up to this snapshot.
             state.generative_lo = generative_delta.hi;
