@@ -38,7 +38,7 @@ impl Domain {
     fn all(size: usize) -> Self {
         let mut words = vec![u64::MAX; size.div_ceil(64)];
         if let Some(last) = words.last_mut()
-            && size % 64 != 0
+            && !size.is_multiple_of(64)
         {
             *last = (1u64 << (size % 64)) - 1;
         }
@@ -242,6 +242,15 @@ struct SelectedRead {
 struct RuleRefinement {
     bindings: Vec<Domain>,
     heads: Vec<[Domain; 3]>,
+}
+
+/// Which visit of which rule a head refinement serves, and the candidate count
+/// from which it evaluates one representative per value class.
+#[derive(Debug, Clone, Copy)]
+struct HeadVisit {
+    rule_index: usize,
+    visit: usize,
+    partition_min_candidates: usize,
 }
 
 /// One nonempty seeded head join, reduced to what publication reads. The
@@ -2554,14 +2563,17 @@ impl ValueFlow {
     fn refine_head(
         &self,
         state: &mut FlowSummary,
-        rule_index: usize,
-        visit: usize,
+        at: HeadVisit,
         rule: &Rule,
         head: &[Slot; 3],
         bindings: &[Domain],
         changed_predicates: &mut BTreeSet<usize>,
-        partition_min_candidates: usize,
     ) -> [Domain; 3] {
+        let HeadVisit {
+            rule_index,
+            visit,
+            partition_min_candidates,
+        } = at;
         let mut domains = self.universe.domains(head, bindings, false);
         let symmetric_value_sides =
             domains[0] == domains[2] && self.has_symmetric_value_sides(rule, head);
@@ -2998,13 +3010,15 @@ impl ValueFlow {
                 for head in &rule.heads {
                     let domains = self.refine_head(
                         &mut state,
-                        index,
-                        visits[index],
+                        HeadVisit {
+                            rule_index: index,
+                            visit: visits[index],
+                            partition_min_candidates,
+                        },
                         rule,
                         head,
                         &bindings,
                         &mut changed_predicates,
-                        partition_min_candidates,
                     );
                     state.publish_columns_tracking(
                         &domains,

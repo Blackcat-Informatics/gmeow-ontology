@@ -115,7 +115,7 @@ fn seeded_refinement_reuses_unseeded_fixed_point_without_changing_result() {
         ],
     );
     let effect = ProducerEffect::rule(&rule);
-    let facts = vec![
+    let facts = [
         Fact {
             subject: TermValue::iri("urn:a"),
             predicate: "urn:left".to_owned(),
@@ -1442,7 +1442,7 @@ fn value_classes_transpose_each_member_onto_its_exact_representative_support() {
             "urn:hubB"
         };
         facts.push(fact(&node(index), "urn:left", hub));
-        observations.push(StatementPattern::subject(TermValue::iri(&node(index))));
+        observations.push(StatementPattern::subject(TermValue::iri(node(index))));
     }
     let analysis = ValueFlow::with_observations(
         &[flow(&rule)],
@@ -1532,11 +1532,11 @@ fn value_classes_separate_values_named_only_by_a_one_sided_published_support() {
     let mut observations = vec![StatementPattern::subject(TermValue::iri("urn:hub"))];
     for index in 0..10 {
         facts.push(Fact {
-            subject: TermValue::iri(&node(index)),
+            subject: TermValue::iri(node(index)),
             predicate: "urn:left".to_owned(),
             object: TermValue::iri("urn:hub"),
         });
-        observations.push(StatementPattern::subject(TermValue::iri(&node(index))));
+        observations.push(StatementPattern::subject(TermValue::iri(node(index))));
     }
     let analysis = ValueFlow::with_observations(
         &[flow(&rule)],
@@ -1545,7 +1545,7 @@ fn value_classes_separate_values_named_only_by_a_one_sided_published_support() {
         &observations,
     );
     let size = analysis.universe.size();
-    let value = |index: usize| analysis.universe.value(&TermValue::iri(&node(index)));
+    let value = |index: usize| analysis.universe.value(&TermValue::iri(node(index)));
     let left = analysis.universe.iri("urn:left");
     let mut state = analysis.summarize(facts.iter());
     // Head refinements publish one side at a time. Nodes 0 and 6 carry the same
@@ -1706,7 +1706,7 @@ fn published_member_support_is_the_representative_support_transposed() {
     );
     let effect = ProducerEffect::rule(&rule);
     let observations: Vec<_> = (0..8)
-        .map(|index| StatementPattern::subject(TermValue::iri(&format!("urn:node:{index}"))))
+        .map(|index| StatementPattern::subject(TermValue::iri(format!("urn:node:{index}"))))
         .collect();
     let analysis = ValueFlow::with_observations(
         &[flow(&rule)],
@@ -1718,7 +1718,7 @@ fn published_member_support_is_the_representative_support_transposed() {
     let node = |index: usize| {
         analysis
             .universe
-            .value(&TermValue::iri(&format!("urn:node:{index}")))
+            .value(&TermValue::iri(format!("urn:node:{index}")))
     };
     let result = analysis.universe.iri("urn:result");
     let (representative, member) = (node(0), node(1));
@@ -1864,7 +1864,7 @@ fn class_partitioned_closure_equals_the_per_candidate_closure() {
         let mut facts = Vec::new();
         let mut observations = Vec::new();
         for index in 0..nodes {
-            observations.push(StatementPattern::subject(TermValue::iri(&node(index))));
+            observations.push(StatementPattern::subject(TermValue::iri(node(index))));
             facts.push(fact(node(index), "urn:type", class((next() % 6) as usize)));
             if next() % 9 == 0 {
                 let other = (next() % 60) as usize;
@@ -1880,7 +1880,7 @@ fn class_partitioned_closure_equals_the_per_candidate_closure() {
             }
         }
         for index in 0..6 {
-            observations.push(StatementPattern::subject(TermValue::iri(&class(index))));
+            observations.push(StatementPattern::subject(TermValue::iri(class(index))));
             if index + 1 < 6 && next() % 2 == 0 {
                 facts.push(fact(class(index), "urn:sub", class(index + 1)));
             }
@@ -1929,7 +1929,7 @@ fn interned_support_rows_share_equal_content_and_grow_without_aliasing() {
     );
     let effect = ProducerEffect::rule(&rule);
     let observations: Vec<_> = (0..6)
-        .map(|index| StatementPattern::subject(TermValue::iri(&format!("urn:node:{index}"))))
+        .map(|index| StatementPattern::subject(TermValue::iri(format!("urn:node:{index}"))))
         .collect();
     let analysis = ValueFlow::with_observations(
         &[flow(&rule)],
@@ -1941,14 +1941,14 @@ fn interned_support_rows_share_equal_content_and_grow_without_aliasing() {
     let node = |index: usize| {
         analysis
             .universe
-            .value(&TermValue::iri(&format!("urn:node:{index}")))
+            .value(&TermValue::iri(format!("urn:node:{index}")))
     };
     let left = analysis.universe.iri("urn:left");
     // Two source facts give nodes 0 and 1 the same subject-side content.
     let facts: Vec<_> = [0, 1]
         .into_iter()
         .map(|index| Fact {
-            subject: TermValue::iri(&format!("urn:node:{index}")),
+            subject: TermValue::iri(format!("urn:node:{index}")),
             predicate: "urn:left".to_owned(),
             object: TermValue::iri("urn:node:5"),
         })

@@ -1352,7 +1352,8 @@ pub(crate) fn firing_statements(
     rules
         .iter()
         .zip(fires)
-        .filter_map(|(rule, fired)| fired.then(|| rule.clone()))
+        .filter(|(_, fired)| *fired)
+        .map(|(rule, _)| rule.clone())
         .collect()
 }
 
