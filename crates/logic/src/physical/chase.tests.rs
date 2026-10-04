@@ -1726,3 +1726,82 @@ fn a_guarded_rule_never_blocks_a_restricted_trigger() {
         ChaseAdmission::RestrictedJointlyAcyclic { .. }
     ));
 }
+
+/// `subject ⊑ ≥count property.filler` as a native two-ordinal witness family.
+fn minimum_family(
+    name: &str,
+    subject: &str,
+    property: &str,
+    filler: &str,
+    count: &str,
+) -> StatementRule {
+    StatementRule {
+        position_only: true,
+        witness_family: Some(WitnessFamily {
+            count: EvalTerm::ConstLit(TermValue::simple_literal(count)),
+            single: 2,
+        }),
+        ..statement_rule(
+            name,
+            vec![statement("?s", TYPE, subject)],
+            vec![
+                statement("?s", property, "?w"),
+                statement("?w", TYPE, filler),
+                statement("?s", property, "?w2"),
+                statement("?w2", TYPE, filler),
+                statement("?w", "http://www.w3.org/2002/07/owl#differentFrom", "?w2"),
+            ],
+            Some(&["?s"]),
+        )
+    }
+}
+
+/// `Entry ⊑ ≥count post.Posting`, `post(x, y) → back(y, x)` and
+/// `Posting ⊑ ≥count back.Entry`: the production journal-entry shape.
+fn inverse_minimum_pair(count: &str) -> Vec<StatementRule> {
+    vec![
+        minimum_family(
+            "http://ex/rule/entry",
+            "http://ex/Entry",
+            "http://ex/post",
+            "http://ex/Posting",
+            count,
+        ),
+        statement_rule(
+            "http://ex/rule/inverse",
+            vec![statement("?x", "http://ex/post", "?y")],
+            vec![statement("?y", "http://ex/back", "?x")],
+            None,
+        ),
+        minimum_family(
+            "http://ex/rule/posting",
+            "http://ex/Posting",
+            "http://ex/back",
+            "http://ex/Entry",
+            count,
+        ),
+    ]
+}
+
+#[test]
+fn single_witness_inverse_families_certify_restricted_joint_acyclicity() {
+    // A count-1 family is the exact rule `Entry(s) → ∃w. post(s, w) ∧ Posting(w)`: its
+    // existing-witness probe is the restricted trigger check. The back-edge `back(w, s)`
+    // with `Entry(s)` satisfies the second family, so the tuple rungs may read it.
+    let admission = certify_exact(&inverse_minimum_pair("1"));
+    assert!(
+        matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
+        "a count-1 inverse pair is an exact restricted-chase program: {admission:?}"
+    );
+}
+
+#[test]
+fn multi_witness_inverse_families_stay_uncertified() {
+    // Two symbolic ordinals summarize every count above one: their trigger check
+    // needs `count` fillers, which no back-edge supplies, so the cycle refuses.
+    let admission = certify_exact(&inverse_minimum_pair("2"));
+    assert!(
+        matches!(admission, ChaseAdmission::Uncertified { .. }),
+        "no back-edge supplies a second filler: {admission:?}"
+    );
+}

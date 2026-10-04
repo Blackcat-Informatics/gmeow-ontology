@@ -1354,18 +1354,36 @@ impl StatementRule {
     /// `differentFrom` edge, which covers every finite count. When the count is the
     /// constant 1 — as execution parses it — execution mints exactly one witness,
     /// emits its property/type heads and NO inequality (it relates distinct witnesses
-    /// only). The analysis then uses exactly those heads. The rule stays a witness
-    /// family for the ladder: like every family, only the position proof certifies it.
+    /// only). The analysis then uses exactly those heads, and the rule is
+    /// [`exact`](Self::exact).
     fn analysed_heads(&self) -> &[[EvalTerm; 3]] {
+        match self.single_witness() {
+            Some(single) => &self.heads[..single],
+            None => &self.heads,
+        }
+    }
+
+    /// The single-witness head count of a family whose count execution parses as 1.
+    fn single_witness(&self) -> Option<usize> {
         match &self.witness_family {
             Some(WitnessFamily {
                 count: EvalTerm::ConstLit(count),
                 single,
             }) if crate::reason::value::NativeValues::parse_cardinality(count) == Some(1) => {
-                &self.heads[..*single]
+                Some(*single)
             }
-            _ => &self.heads,
+            _ => None,
         }
+    }
+
+    /// Whether [`Self::analysed_heads`] state this rule's complete restricted-chase
+    /// trigger. A count-1 family mints one witness only after its existing-witness
+    /// probe finds no filler satisfying exactly those heads, so it is the ordinary
+    /// existential rule `body → ∃w. heads` and every tuple rung may read it. Any
+    /// other position-only family is a two-ordinal summary of an arbitrary count,
+    /// which preserves positions but not tuple joins.
+    fn exact(&self) -> bool {
+        !self.position_only || self.single_witness().is_some()
     }
 
     pub(crate) fn from_binary(rule: &ExistentialRule) -> Self {
@@ -1603,10 +1621,17 @@ impl ChaseAdmission {
         // finite counts. They do NOT preserve every nonlinear tuple join (e.g.
         // a triangle requiring three distinct siblings). Only the position proof
         // may certify this abstraction; MSA requires a complete rule expansion.
-        let mut admission = if rules.iter().any(|rule| rule.position_only) {
+        // Exact count-1 families are complete rules, but their critical instance
+        // grows with every family, so they climb only the polynomial rungs.
+        let mut admission = if !rules.iter().all(StatementRule::exact) {
             Self::certify_weakly_acyclic(&analysis)
                 .unwrap_or_else(|violations| Self::Uncertified { violations })
         } else {
+            let ladder = if rules.iter().any(|rule| rule.position_only) {
+                Ladder::Polynomial
+            } else {
+                ladder
+            };
             let mut bridged = analysis.clone();
             bridged.extend(statement_bridges(&analysis));
             Self::certify_ladder(&analysis, &bridged, ladder)
