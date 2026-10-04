@@ -2245,6 +2245,9 @@ fn all_program_positions(rules: &[ExistentialRule]) -> BTreeSet<Position> {
     universe
 }
 
+/// A frontier variable of an existential rule with its refined body positions.
+type Frontier = (String, Vec<Position>);
+
 /// The joint-acyclicity dependency structure of one program, built once: every
 /// existential's `Move` set and every existential rule's frontier body positions.
 struct JointGraph {
@@ -2255,7 +2258,7 @@ struct JointGraph {
     moves: Vec<BTreeSet<Position>>,
     /// Per existential rule, each frontier variable with its non-empty refined body
     /// positions.
-    consumers: Vec<(usize, Vec<(String, Vec<Position>)>)>,
+    consumers: Vec<(usize, Vec<Frontier>)>,
     /// Rule index → its existential node indices.
     owners: BTreeMap<usize, Vec<usize>>,
 }
