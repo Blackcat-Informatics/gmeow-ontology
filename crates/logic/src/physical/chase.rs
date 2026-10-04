@@ -1641,11 +1641,27 @@ impl ChaseAdmission {
             };
             Self::certify_ladder(&analysis, &bridged, ladder)
         } else {
-            match Self::certify_weakly_acyclic(&analysis) {
+            let weak = Self::certify_weakly_acyclic(&analysis);
+            tracing::info!(
+                target: "termination_certificate",
+                certified = weak.is_ok(),
+                elapsed_ms = started.elapsed().as_millis(),
+                "checked weak acyclicity"
+            );
+            match weak {
                 Ok(admission) => admission,
-                Err(violations) => Self::certify_joint_acyclic(&bridged)
-                    .or_else(|| Self::certify_restricted_joint_acyclic(&bridged, &summarized))
-                    .unwrap_or(Self::Uncertified { violations }),
+                Err(violations) => {
+                    let joint = Self::certify_joint_acyclic(&bridged);
+                    tracing::info!(
+                        target: "termination_certificate",
+                        certified = joint.is_some(),
+                        elapsed_ms = started.elapsed().as_millis(),
+                        "checked joint acyclicity"
+                    );
+                    joint
+                        .or_else(|| Self::certify_restricted_joint_acyclic(&bridged, &summarized))
+                        .unwrap_or(Self::Uncertified { violations })
+                }
             }
         };
         tracing::info!(
@@ -1924,6 +1940,22 @@ impl ChaseAdmission {
         }
         let component = strongly_connected_components(&joint);
         let datalog = RjaDatalog::new(rules);
+        let mut sizes: BTreeMap<usize, usize> = BTreeMap::new();
+        for &c in &component {
+            *sizes.entry(c).or_default() += 1;
+        }
+        tracing::info!(
+            target: "termination_certificate",
+            existentials = graph.existentials.len(),
+            candidates = candidates.len(),
+            cyclic_candidates = candidates
+                .iter()
+                .filter(|(a, j, _)| graph.owned(*j).any(|b| component[b] == component[*a]))
+                .count(),
+            largest_component = sizes.values().max().copied().unwrap_or(0),
+            datalog_rules = datalog.rules.len(),
+            "restricted joint acyclicity candidates"
+        );
         let started = std::time::Instant::now();
         let mut closures = 0usize;
         let mut edges: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
