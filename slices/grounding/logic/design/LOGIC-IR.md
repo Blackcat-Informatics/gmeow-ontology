@@ -190,6 +190,24 @@ A covering states only exhaustiveness; it does not re-encode any membership disc
 foundation already enforces (for example the sort partition's mutual exclusivity, which the
 OntoUML stereotype-cardinality discipline owns).
 
+### List-valued constructors
+
+`logic:oneOf`, `logic:unionOf`, `logic:intersectionOf`, `logic:disjointUnionOf`,
+`logic:members`, `logic:hasKey` and `logic:propertyChainAxiom` take an RDF list. The IR carries
+every such list in one encoding, for named and anonymous owners alike: the constructor edge names
+the head cell, and each cell carries exactly one `rdf:first` member and one `rdf:rest` successor,
+ending in `rdf:nil`. A blank source cell becomes the content-addressed IRI
+`logic:list/<hash of the members>/cell/<index>`; an authored IRI cell keeps its name. Set-valued
+constructors sort and de-duplicate their members before minting; `propertyChainAxiom` composes
+left to right, so its authored order is kept. An anonymous owner is content-addressed as well
+(`logic:enumeration/…`, `logic:class-expression/…`, or `logic:axiom/…` for an n-ary disjointness
+resource), and every edge or list member naming it is redirected to that IRI. The canonical RDF
+1.2 projection asserts the cells directly, so the object-level `graph/logic` world receives
+complete lists and a re-parse recovers the same IR. A list that is not a finite, nil-terminated,
+non-branching chain, or that carries a member its constructor cannot admit, is a diagnostic — an
+error for a named owner — and its statement is not lifted; no partial list or dangling
+constructor edge is ever emitted.
+
 ## IR commitments — legalization, load-bearing annotations, the relational core
 
 Three commitments shape the IR so that lowering and execution have a sound target. They are cheap to

@@ -1881,6 +1881,9 @@ use purrdf::RdfDataset;
 #[cfg(test)]
 mod scope_tests;
 
+#[cfg(test)]
+mod logic_lists_tests;
+
 #[path = "casesplit.tests.rs"]
 #[cfg(test)]
 mod tests;

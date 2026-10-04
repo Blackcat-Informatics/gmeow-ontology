@@ -80,10 +80,6 @@ pub(crate) const FACET_LOCALS: &[&str] = &[
     "fractionDigits",
 ];
 
-const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
-const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
-const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
-
 /// The single-valued restriction *constraint* predicates handled by the lift, as
 /// local names (shared verbatim by the `owl:` and `logic:` namespaces).  A restriction
 /// node carries `onProperty` plus one or more of these:
@@ -254,11 +250,13 @@ fn collect_constraints(
 /// is silently lost.  A well-formed restriction contributes: the `logic:subClassOf` /
 /// `logic:equivalentClass` anchor edge(s) redirected to the skolem node, the
 /// `rdf:type logic:Restriction` typing, the `logic:onProperty` slot, and one axiom per
-/// constraint.
+/// constraint. Each lifted blank node is recorded in `skolems` (label → skolem IRI) so a
+/// list member or other edge naming the anonymous restriction resolves to the same node.
 pub(crate) fn skolemize_restrictions(
     store: &RdfDataset,
     vocab: &RestrictionVocab,
     diagnostics: &mut Vec<Diagnostic>,
+    skolems: &mut BTreeMap<String, String>,
 ) -> Vec<LiftedTriple> {
     let on_property_pred = crate::graphutil::nn(&vocab.iri(ON_PROPERTY_LOCAL));
     let sub_class_of_pred = crate::graphutil::nn(&vocab.sub_class_of);
@@ -335,6 +333,9 @@ pub(crate) fn skolemize_restrictions(
         }
 
         let skolem = skolem_iri(&content_key(&on_property, &constraints));
+        if let Subject::Blank { label, .. } = &node {
+            skolems.insert(label.clone(), skolem.clone());
+        }
 
         // Restriction internals.
         out.push(LiftedTriple {
@@ -387,53 +388,13 @@ pub(crate) fn skolemize_restrictions(
 // Class enumerations (owl:oneOf)
 // --------------------------------------------------------------------------- //
 
-/// The outcome of walking an `rdf:first`/`rdf:rest`/`rdf:nil` list.
-enum ListWalk {
-    /// A well-formed list: every cell carried `rdf:first` and the walk reached `rdf:nil`.
-    Complete(Vec<Node>),
-    /// A corrupt list — the walk hit the named defect before reaching `rdf:nil`.
-    Malformed(&'static str),
-}
-
-/// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, returning its members in
-/// order when the list is well-formed, or the defect that broke the walk.  A cell with
-/// no `rdf:first` (a hole), a cell with no `rdf:rest` (not nil-terminated), a non-resource
-/// cell, and a cycle (a revisited node) are each surfaced as [`ListWalk::Malformed`]
-/// rather than silently truncating the member set — the caller discloses and skips.
-fn rdf_list(store: &RdfDataset, head: &Node) -> ListWalk {
-    let first = crate::graphutil::nn(RDF_FIRST);
-    let rest = crate::graphutil::nn(RDF_REST);
-    let mut out: Vec<Node> = Vec::new();
-    let mut seen: BTreeSet<String> = BTreeSet::new();
-    let mut cursor = head.clone();
-    loop {
-        let Some(node) = crate::graphutil::term_as_subject(&cursor) else {
-            return ListWalk::Malformed("a list cell is a literal, not a resource");
-        };
-        if subject_str(&node) == RDF_NIL {
-            return ListWalk::Complete(out);
-        }
-        if !seen.insert(subject_str(&node)) {
-            return ListWalk::Malformed("list is cyclic");
-        }
-        match value(store, &node, &first) {
-            Some(item) => out.push(item),
-            None => return ListWalk::Malformed("a list cell has no rdf:first"),
-        }
-        match value(store, &node, &rest) {
-            Some(next) => cursor = next,
-            None => return ListWalk::Malformed("list is not nil-terminated"),
-        }
-    }
-}
-
 /// Every ANONYMOUS class enumeration under `vocab`: a blank subject carrying
-/// `<ns>oneOf` (the `[ owl:oneOf ( … ) ]` form anchored via `equivalentClass` /
-/// `subClassOf`).  Scoped to blank nodes because such a node holds ONLY enumeration
-/// internals, so the generic extractors can skip it wholesale (as they do restriction
-/// nodes) without dropping unrelated axioms.  A NAMED class carrying `oneOf` may also
-/// carry ordinary domain axioms, so it stays on the fail-soft disclosure path — the
-/// same anonymous-vs-named boundary the nested-filler case draws.
+/// `<ns>oneOf` (the `[ logic:oneOf ( … ) ]` form anchored via `equivalentClass` /
+/// `subClassOf`, or nested as a restriction filler). Scoped to blank nodes because such a
+/// node holds ONLY enumeration internals, so the generic extractors can skip it wholesale
+/// (as they do restriction nodes). A NAMED class carrying `oneOf` keeps its own IRI and
+/// its other axioms: the frontend's statement pass lowers its list through the same
+/// [`crate::lists::lower`] encoding, so named and anonymous enumerations share one shape.
 fn enumeration_nodes(store: &RdfDataset, vocab: &RestrictionVocab) -> Vec<Subject> {
     let one_of = vocab.iri(ONE_OF_LOCAL);
     let mut seen: BTreeSet<String> = BTreeSet::new();
@@ -460,23 +421,29 @@ pub(crate) fn enumeration_node_labels(
         .collect()
 }
 
-/// Lift every `owl:oneOf` class enumeration under `vocab` into flat `logic:oneOf`
-/// axioms on a stable node — a named class keeps its own IRI; an anonymous enumeration
-/// is content-addressed as `logic:enumeration/<hash>` (members sorted + deduped, so the
-/// id is order-independent and owl:/logic: authoring collide).  Members are emitted as
-/// individual `logic:oneOf` axioms (no RDF-list reification in the IR).
+/// Lift every anonymous class enumeration under `vocab` onto a content-addressed node
+/// `logic:enumeration/<hash>` (members sorted + deduped, so the id is order-independent
+/// and owl:/logic: authoring collide). The node is typed `logic:Enumeration` and carries
+/// ONE `logic:oneOf` edge to the head of its member list, lowered by
+/// [`crate::lists::lower`] into minted `rdf:first`/`rdf:rest` cells — the same list
+/// encoding every named `logic:oneOf` owner receives. Its anchor edges are redirected to
+/// the node and its blank label is recorded in `skolems`.
 ///
-/// Enumerations are a CLOSED-world construct the `logic:` layer treats as a projection
-/// artifact (gmeow's own slices never author them — that policy is enforced elsewhere);
-/// the adapter lifts them only so external OWL round-trips faithfully.
+/// A corrupt, empty or literal-celled list is a disclosed `MALFORMED_ENUMERATION`; an
+/// anonymous member is a disclosed `UNSUPPORTED_NESTED_ENUMERATION` (a blank individual is
+/// not a well-formed nominal). Either way the whole enumeration is skipped, never truncated.
 pub(crate) fn skolemize_enumerations(
     store: &RdfDataset,
     vocab: &RestrictionVocab,
     diagnostics: &mut Vec<Diagnostic>,
+    skolems: &mut BTreeMap<String, String>,
 ) -> Vec<LiftedTriple> {
     let one_of_pred = crate::graphutil::nn(&vocab.iri(ONE_OF_LOCAL));
     let sub_class_of_pred = crate::graphutil::nn(&vocab.sub_class_of);
     let equivalent_class_pred = crate::graphutil::nn(&vocab.equivalent_class);
+    let one_of_ctor = crate::lists::constructor(&logic(ONE_OF_LOCAL))
+        .expect("oneOf is a registered list constructor");
+    let no_anonymous_members = BTreeMap::new();
     let mut out: Vec<LiftedTriple> = Vec::new();
 
     for node in enumeration_nodes(store, vocab) {
@@ -486,12 +453,31 @@ pub(crate) fn skolemize_enumerations(
             graph: None,
         };
         let node_label = subject_str(&node);
-        let Some(list_head) = value(store, &node, &one_of_pred) else {
-            continue;
+        let heads = objects(store, &node, &one_of_pred);
+        let list_head = match heads.as_slice() {
+            [only] => only,
+            _ => {
+                diagnostics.push(warn(
+                    "MALFORMED_ENUMERATION",
+                    format!(
+                        "enumeration {node_label:?} has {} oneOf lists (exactly one is \
+                         required); skipped",
+                        heads.len()
+                    ),
+                    Some(node_label),
+                ));
+                continue;
+            }
         };
-        let members = match rdf_list(store, &list_head) {
-            ListWalk::Complete(members) => members,
-            ListWalk::Malformed(why) => {
+        let lowered = crate::lists::lower(
+            store,
+            one_of_ctor,
+            list_head,
+            &mut crate::lists::resolve_known(&no_anonymous_members),
+        );
+        let list = match lowered {
+            Ok(list) => list,
+            Err(crate::lists::ListDefect::Malformed(why)) => {
                 diagnostics.push(warn(
                     "MALFORMED_ENUMERATION",
                     format!("enumeration {node_label:?} has a corrupt oneOf list ({why}); skipped"),
@@ -499,50 +485,28 @@ pub(crate) fn skolemize_enumerations(
                 ));
                 continue;
             }
-        };
-        if members.is_empty() {
-            diagnostics.push(warn(
-                "MALFORMED_ENUMERATION",
-                format!("enumeration {node_label:?} has an empty oneOf list; skipped"),
-                Some(node_label),
-            ));
-            continue;
-        }
-        // Anonymous members have no stable identity — disclose and skip (a oneOf of
-        // blank nodes is not a well-formed nominal enumeration).
-        if members.iter().any(crate::graphutil::term_is_blank) {
-            diagnostics.push(warn(
-                "UNSUPPORTED_NESTED_ENUMERATION",
-                format!("enumeration {node_label:?} has an anonymous member; not lifted"),
-                Some(node_label),
-            ));
-            continue;
-        }
-        // (value, is_literal) members, sorted + deduped for a stable content key.
-        let mut mem: Vec<AtomicTerm> = match members
-            .iter()
-            .map(crate::graphutil::atomic_object)
-            .collect::<gmeow_errors::Result<_>>()
-        {
-            Ok(members) => members,
-            Err(error) => {
-                diagnostics.push(Diagnostic::error(
-                    "MALFORMED_ENUMERATION",
-                    error.to_string(),
+            Err(crate::lists::ListDefect::UnresolvedMember(why)) => {
+                diagnostics.push(warn(
+                    "UNSUPPORTED_NESTED_ENUMERATION",
+                    format!(
+                        "enumeration {node_label:?} has an anonymous member ({why}); not lifted"
+                    ),
                     Some(node_label),
                 ));
                 continue;
             }
         };
-        mem.sort();
-        mem.dedup();
 
         // Content-address the anonymous enumeration (members only → order-independent,
         // and owl:/logic: authoring collide on the same node).
         let enum_node = format!(
-            "{LOGIC_NAMESPACE}enumeration/{}",
-            sha256_12(&enumeration_content_key(&mem))
+            "{}{}",
+            crate::lists::ENUMERATION_PREFIX,
+            sha256_12(&enumeration_content_key(&list.members))
         );
+        if let Subject::Blank { label, .. } = &node {
+            skolems.insert(label.clone(), enum_node.clone());
+        }
 
         out.push(LiftedTriple {
             source,
@@ -550,12 +514,18 @@ pub(crate) fn skolemize_enumerations(
             predicate: RDF_TYPE.to_owned(),
             obj: AtomicTerm::resource(logic(ENUMERATION_CLASS_LOCAL)),
         });
-        for member in &mem {
+        out.push(LiftedTriple {
+            source,
+            subject: enum_node.clone(),
+            predicate: logic(ONE_OF_LOCAL),
+            obj: AtomicTerm::Iri(list.head),
+        });
+        for (subject, predicate, obj) in list.cells {
             out.push(LiftedTriple {
                 source,
-                subject: enum_node.clone(),
-                predicate: logic(ONE_OF_LOCAL),
-                obj: member.clone(),
+                subject,
+                predicate: predicate.to_owned(),
+                obj,
             });
         }
 
@@ -742,11 +712,12 @@ fn collect_datarange_facets(
 /// Every malformedness (a corrupt facet list, a missing `onDatatype`, a facet cell with no
 /// facet triple, a non-literal facet value) is disclosed and the datarange skipped whole;
 /// a nested/anonymous `onDatatype` is disclosed as the documented anonymous-nested
-/// boundary — nothing is silently lost.
+/// boundary — nothing is silently lost. Each lifted blank node is recorded in `skolems`.
 pub(crate) fn skolemize_dataranges(
     store: &RdfDataset,
     vocab: &RestrictionVocab,
     diagnostics: &mut Vec<Diagnostic>,
+    skolems: &mut BTreeMap<String, String>,
 ) -> Vec<LiftedTriple> {
     let on_datatype_pred = crate::graphutil::nn(&vocab.iri(ON_DATATYPE_LOCAL));
     let with_restrictions_pred = crate::graphutil::nn(&vocab.iri(WITH_RESTRICTIONS_LOCAL));
@@ -804,9 +775,10 @@ pub(crate) fn skolemize_dataranges(
         let Some(list_head) = value(store, &node, &with_restrictions_pred) else {
             continue;
         };
-        let cells = match rdf_list(store, &list_head) {
-            ListWalk::Complete(cells) => cells,
-            ListWalk::Malformed(why) => {
+        let cells: Vec<Node> = match crate::lists::walk(store, &list_head) {
+            Ok(walked) => walked.into_iter().map(|(_, facet)| facet).collect(),
+            Err(defect) => {
+                let why = defect.reason();
                 diagnostics.push(warn(
                     "MALFORMED_DATARANGE",
                     format!(
@@ -831,6 +803,9 @@ pub(crate) fn skolemize_dataranges(
         };
 
         let skolem = datarange_skolem_iri(&datarange_content_key(&on_datatype, &facets));
+        if let Subject::Blank { label, .. } = &node {
+            skolems.insert(label.clone(), skolem.clone());
+        }
 
         // Datarange internals.
         out.push(LiftedTriple {
