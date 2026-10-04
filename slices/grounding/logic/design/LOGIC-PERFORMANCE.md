@@ -220,9 +220,14 @@ termination classes**, never by weakening the refusal discipline.
   restricted-chase certificates below, whose blocking arguments assume Datalog-first order.
 - Termination certificates form a **ladder of strictly increasing power**: weak acyclicity ⊊
   joint acyclicity ⊊ super-weak acyclicity ⊊ model-summarizing acyclicity ⊊ model-faithful
-  acyclicity, with the restricted-chase-specific refinements beyond that. The certifier reports
-  the strongest class it can establish; anything uncertified refuses or runs under budget,
-  exactly as today.
+  acyclicity, with the restricted-chase-specific refinements beyond that. The first such
+  refinement is **restricted joint acyclicity** (Carral, Dragoste & Krötzsch 2017): it drops a
+  joint-acyclicity edge when the Datalog closure of the producer's and consumer's bodies already
+  satisfies the consumer's head, so an inverse back-edge no longer forms a cycle. It is sound
+  only for the Datalog-first restricted chase above, extends joint acyclicity but not super-weak
+  or model-summarizing acyclicity, and runs as the last rung so every program the skolem-chase
+  rungs certify keeps its class. The certifier reports the strongest class it can establish;
+  anything uncertified refuses or runs under budget, exactly as today.
 - The polynomial classes (joint and super-weak acyclicity) are checked structurally.
   **Model-summarizing acyclicity is decided by the engine itself**: the check is Datalog
   entailment over the critical instance, so the certifier is a self-hosted reasoning program —

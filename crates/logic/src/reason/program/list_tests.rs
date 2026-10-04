@@ -804,3 +804,34 @@ fn an_inverse_back_edge_satisfies_the_reverse_restriction_under_datalog_first() 
         "the inverse rule derives the posting's back edge to the source entry"
     );
 }
+
+#[test]
+fn an_inverse_pair_is_certified_and_runs_without_a_budget() {
+    // Restricted joint acyclicity certifies the inverse pair, so it runs unbudgeted and
+    // closes with exactly one witness under the Datalog-first schedule.
+    const ENTRY: &str = "urn:entry";
+    const POSTING: &str = "urn:posting";
+    let exists = |relation: &str, class: &str| Formula::Exists {
+        vars: vec!["z".to_owned()],
+        body: Box::new(Formula::And(vec![
+            atom("?x", relation, "?z"),
+            atom("?z", TYPE, class),
+        ])),
+    };
+    let p = program(vec![
+        (atom("?x", TYPE, ENTRY), exists("urn:post", POSTING)),
+        (atom("?x", "urn:post", "?y"), atom("?y", "urn:back", "?x")),
+        (atom("?x", TYPE, POSTING), exists("urn:back", ENTRY)),
+    ]);
+    let data = source(vec![fact("urn:journal", TYPE, ENTRY)]);
+    let prepared = crate::program_analysis::prepare_program(&p).unwrap();
+    let result = execute(
+        &prepared,
+        crate::reason::program::prepare_reasoning_input(&data).unwrap(),
+        &crate::physical::SelectedDomains::new([]).unwrap(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(result.status, crate::seam::BudgetStatus::Ok);
+    assert_eq!(result.witnesses.len(), 1);
+}
