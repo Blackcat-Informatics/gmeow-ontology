@@ -207,6 +207,17 @@ work only. Wall-clock remains advisory.
 Existential-rule execution keeps the restricted chase and grows by **certifying broader
 termination classes**, never by weakening the refusal discipline.
 
+- The restricted chase is **Datalog-first**. Within a stratum, witness-minting producers
+  (existential rules and generative witness families) fire only in a round that follows a
+  Datalog-only round with nothing left to add. Every existential trigger is therefore checked
+  against the Datalog closure of what already exists, and an obligation that derived facts
+  already satisfy is never minted: a restriction answered through an inverse property's back
+  edge stops after one witness rather than minting forever. Witness producers read every row
+  committed since they last gathered, however many Datalog-only rounds ran in between, so
+  semi-naive evaluation loses no trigger. A stratum concludes blocked or complete only after
+  its witness producers have had their round. The schedule mints a subset of the witnesses an
+  interleaved schedule would, and stays deterministic. It is also the precondition for the
+  restricted-chase certificates below, whose blocking arguments assume Datalog-first order.
 - Termination certificates form a **ladder of strictly increasing power**: weak acyclicity ⊊
   joint acyclicity ⊊ super-weak acyclicity ⊊ model-summarizing acyclicity ⊊ model-faithful
   acyclicity, with the restricted-chase-specific refinements beyond that. The certifier reports
