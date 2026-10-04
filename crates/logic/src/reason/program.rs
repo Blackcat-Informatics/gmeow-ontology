@@ -583,6 +583,16 @@ pub(super) fn execute_transaction(
         "reason phase boundary",
     );
     let sources = sources.prepare()?;
+    // Each world's own authored existential program, certified on its own for that
+    // world's published certificate.
+    let mut world_programs: BTreeMap<String, Vec<crate::physical::ExistentialRule>> =
+        BTreeMap::new();
+    for source in sources.rules.iter() {
+        world_programs
+            .entry(source.world.clone())
+            .or_default()
+            .push(source.rule.clone());
+    }
     let selected_potential: Vec<_> = possible.iter().chain(potential).cloned().collect();
     let properties = applicable_schema_laws(
         prepared,
@@ -730,7 +740,14 @@ pub(super) fn execute_transaction(
         event = "start",
         "reason phase boundary",
     );
-    let result = publish(result, input_contract, graphs, domains, &program.admission)?;
+    let result = publish(
+        result,
+        input_contract,
+        graphs,
+        domains,
+        &program.admission,
+        &world_programs,
+    )?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -800,6 +817,7 @@ pub(super) fn class_diagnostic(
             input.graphs,
             domains,
             &program.admission,
+            &BTreeMap::new(),
         )?,
     })
 }
@@ -810,6 +828,7 @@ fn publish(
     graphs: WorldGraphs,
     domains: &crate::physical::SelectedDomains,
     admission: &crate::physical::ChaseAdmission,
+    world_programs: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
 ) -> gmeow_errors::Result<ProgramClosure> {
     let JointMaterialization {
         result,
@@ -827,12 +846,19 @@ fn publish(
     let frontier = result.frontier();
     let status = result.status;
     let consumed_steps = result.consumed_steps;
+    // A world's certificate is its own authored program's termination class when that
+    // program certifies alone; otherwise it is the joint admission that authorized
+    // execution. Neither claims more than was proved.
     let certificates = graphs
         .keys()
         .map(|world| ChaseCertificate {
             world: world.clone(),
             input_contract,
-            admission: admission.clone(),
+            admission: world_programs
+                .get(world)
+                .map(|rules| crate::physical::ChaseAdmission::certify(rules))
+                .filter(crate::physical::ChaseAdmission::admits_native)
+                .unwrap_or_else(|| admission.clone()),
         })
         .collect();
     let inferred: Vec<_> = result

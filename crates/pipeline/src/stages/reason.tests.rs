@@ -640,3 +640,62 @@ fn pin_handle_hard_fails_on_a_digest_mismatch() {
         .expect_err("a mismatched pin must hard-fail");
     let _ = err;
 }
+
+#[test]
+fn demonstrator_worlds_must_publish_their_declared_certificate_class() {
+    use gmeow_logic::materialize::ChaseAdmission;
+    let certificate =
+        |world: &str, admission: ChaseAdmission| gmeow_logic::reason::ChaseCertificate {
+            world: world.to_owned(),
+            input_contract: [0; 32],
+            admission,
+        };
+    let evidence = || "test".to_owned();
+    let earned = |world: &str, code: &str| {
+        let admission = match code {
+            "chase.certificate.jointly-acyclic" => ChaseAdmission::JointlyAcyclic {
+                evidence: evidence(),
+            },
+            "chase.certificate.super-weakly-acyclic" => ChaseAdmission::SuperWeaklyAcyclic {
+                evidence: evidence(),
+            },
+            "chase.certificate.model-summarizing-acyclic" => {
+                ChaseAdmission::ModelSummarizingAcyclic {
+                    evidence: evidence(),
+                }
+            }
+            other => panic!("undeclared class {other}"),
+        };
+        certificate(world, admission)
+    };
+    let declared = gmeow_logic::termination_demonstrators::termination_ladder_certificate_codes();
+    let certificates: Vec<_> = declared
+        .iter()
+        .map(|(world, code)| earned(world, code))
+        .collect();
+    assert!(require_demonstrator_classes(&certificates).is_ok());
+
+    // A copied joint admission is not the demonstrator's own class.
+    let copied: Vec<_> = declared
+        .iter()
+        .map(|(world, _)| {
+            certificate(
+                world,
+                ChaseAdmission::WeaklyAcyclic {
+                    evidence: evidence(),
+                },
+            )
+        })
+        .collect();
+    let error = require_demonstrator_classes(&copied)
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("must certify as chase.certificate.jointly-acyclic"),
+        "{error}"
+    );
+    // An input without the demonstrator worlds has nothing to certify for them.
+    assert!(require_demonstrator_classes(&[]).is_ok());
+    // A present demonstrator still must earn its own class.
+    assert!(require_demonstrator_classes(&copied[..1]).is_err());
+}
