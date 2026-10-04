@@ -3339,7 +3339,12 @@ fn rja_exact_datalog(rule: &ExistentialRule) -> bool {
 struct RjaDatalog<'a> {
     rules: Vec<&'a ExistentialRule>,
     reads: Vec<BTreeSet<&'a str>>,
+    writes: Vec<BTreeSet<&'a str>>,
     by_predicate: BTreeMap<&'a str, Vec<usize>>,
+    /// Rules with an empty body, which fire on any premise.
+    unconditional: Vec<usize>,
+    /// [`Self::derivable`] per seed predicate set.
+    derivable: std::cell::RefCell<BTreeMap<BTreeSet<String>, std::rc::Rc<BTreeSet<String>>>>,
 }
 
 impl<'a> RjaDatalog<'a> {
@@ -3357,8 +3362,21 @@ impl<'a> RjaDatalog<'a> {
                     .collect()
             })
             .collect();
+        let writes = rules
+            .iter()
+            .map(|rule| {
+                rule.head
+                    .iter()
+                    .map(|atom| atom.predicate.as_str())
+                    .collect()
+            })
+            .collect();
         let mut by_predicate: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
+        let mut unconditional = Vec::new();
         for (index, predicates) in reads.iter().enumerate() {
+            if predicates.is_empty() {
+                unconditional.push(index);
+            }
             for predicate in predicates {
                 by_predicate.entry(predicate).or_default().push(index);
             }
@@ -3366,30 +3384,70 @@ impl<'a> RjaDatalog<'a> {
         Self {
             rules,
             reads,
+            writes,
             by_predicate,
+            unconditional,
+            derivable: std::cell::RefCell::default(),
         }
     }
 
-    /// The rules whose every body predicate is `present`. After the first round
-    /// (`fresh` is `None`), only those reading a predicate in `fresh` can derive
-    /// anything new.
+    /// The rules whose every body predicate is `present` and that read a predicate
+    /// in `fresh`. The first round passes every present predicate as fresh and also
+    /// fires the unconditional rules; later rounds pass only the predicates that just
+    /// gained facts, since no other rule can derive anything new.
     fn candidates(
         &self,
         present: &BTreeSet<String>,
-        fresh: Option<&BTreeSet<String>>,
+        fresh: &BTreeSet<String>,
+        first: bool,
     ) -> Vec<&'a ExistentialRule> {
         let ready = |index: &usize| self.reads[*index].iter().all(|p| present.contains(*p));
-        let indices: BTreeSet<usize> = match fresh {
-            None => (0..self.rules.len()).filter(ready).collect(),
-            Some(fresh) => fresh
-                .iter()
-                .filter_map(|predicate| self.by_predicate.get(predicate.as_str()))
-                .flatten()
-                .copied()
-                .filter(ready)
-                .collect(),
-        };
+        let indices: BTreeSet<usize> = fresh
+            .iter()
+            .filter_map(|predicate| self.by_predicate.get(predicate.as_str()))
+            .flatten()
+            .chain(first.then_some(&self.unconditional).into_iter().flatten())
+            .copied()
+            .filter(ready)
+            .collect();
         indices.into_iter().map(|index| self.rules[index]).collect()
+    }
+
+    /// Every predicate the rules can derive from facts over `seed`, ignoring joins:
+    /// a rule contributes its head predicates once all its body predicates are
+    /// derivable. A necessary condition for any closure over such facts, computed by
+    /// counter propagation once per distinct seed.
+    fn derivable(&self, seed: &BTreeSet<String>) -> std::rc::Rc<BTreeSet<String>> {
+        if let Some(known) = self.derivable.borrow().get(seed) {
+            return std::rc::Rc::clone(known);
+        }
+        let mut need: Vec<usize> = self.reads.iter().map(BTreeSet::len).collect();
+        let mut known: BTreeSet<String> = BTreeSet::new();
+        let mut queue: Vec<String> = seed.iter().cloned().collect();
+        for &index in &self.unconditional {
+            queue.extend(self.writes[index].iter().map(|p| (*p).to_owned()));
+        }
+        while let Some(predicate) = queue.pop() {
+            if !known.insert(predicate.clone()) {
+                continue;
+            }
+            for &index in self
+                .by_predicate
+                .get(predicate.as_str())
+                .into_iter()
+                .flatten()
+            {
+                need[index] -= 1;
+                if need[index] == 0 {
+                    queue.extend(self.writes[index].iter().map(|p| (*p).to_owned()));
+                }
+            }
+        }
+        let known = std::rc::Rc::new(known);
+        self.derivable
+            .borrow_mut()
+            .insert(seed.clone(), std::rc::Rc::clone(&known));
+        known
     }
 }
 
@@ -3457,10 +3515,21 @@ fn rja_trigger_blocked(
     // A rule re-runs only when one of its body predicates gained facts, and only once
     // every body predicate is present: the premise is a handful of facts, so almost
     // no rule of a large program can ever match it.
-    let mut fresh = None;
+    // Blocking needs every consumer head predicate; if even the join-free predicate
+    // closure of the premise misses one, no Datalog closure can supply it.
+    let derivable = datalog.derivable(&present);
+    if !consumer
+        .head
+        .iter()
+        .all(|atom| derivable.contains(&atom.predicate))
+    {
+        return false;
+    }
+    let mut fresh = present.clone();
+    let mut first = true;
     loop {
         let mut derived = Vec::new();
-        for rule in datalog.candidates(&present, fresh.as_ref()) {
+        for rule in datalog.candidates(&present, &fresh, first) {
             let walked = join::walk(
                 &rule.body,
                 &rel,
@@ -3505,7 +3574,8 @@ fn rja_trigger_blocked(
             break;
         }
         present.extend(grown.iter().cloned());
-        fresh = Some(grown);
+        fresh = grown;
+        first = false;
     }
     let existential: BTreeSet<String> = consumer.existentials().into_iter().collect();
     let freeze_universal = |term: &EvalTerm| match term {
