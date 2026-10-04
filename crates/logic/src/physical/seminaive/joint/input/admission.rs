@@ -16,8 +16,17 @@ use crate::physical::effects::{ProducerEffect, WorldProducerEffect, value_flow::
 use crate::physical::store::RelationStore;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
 
-const MAX_BINDINGS: usize = 4096;
-const MAX_BYTES: usize = 1024 * 1024;
+/// The proved-immutable selector rows, specialized statements and per-rule join
+/// matches one input-specific certificate may analyse. Weak acyclicity, the rung a
+/// position-only cardinality program uses, is linear in the specialized program.
+const MAX_BINDINGS: usize = 1 << 18;
+const MAX_BYTES: usize = 128 << 20;
+/// The selector rows feeding source-constant enrichment. Its interning stops at 512
+/// value cells, so more rows than this cannot sharpen it further.
+const ENRICHMENT_ROWS: usize = 4096;
+const ENRICHMENT_BYTES: usize = 1 << 20;
+/// The retained template rule metadata a cacheable joint template may carry.
+pub(super) const CACHEABLE_BYTES: usize = 1 << 20;
 
 /// Retained rule metadata only; no source facts or per-world closure is cached.
 pub(super) struct Template {
@@ -134,7 +143,7 @@ impl Template {
                 // the same coarsening the 512-cell interning cap already applies.
                 enrichment_bytes = enrichment_bytes.saturating_add(size.1);
                 if let Some(rows) = &mut enrichment {
-                    if rows.len() < MAX_BINDINGS && enrichment_bytes <= MAX_BYTES {
+                    if rows.len() < ENRICHMENT_ROWS && enrichment_bytes <= ENRICHMENT_BYTES {
                         rows.push(fact);
                     } else {
                         enrichment = None;
@@ -374,7 +383,7 @@ impl std::fmt::Display for EvidenceGap {
             Self::Uncacheable { metadata_bytes } => write!(
                 f,
                 "the joint template's rule metadata ({metadata_bytes} bytes) exceeds the \
-                 {MAX_BYTES}-byte cacheable bound"
+                 {CACHEABLE_BYTES}-byte cacheable bound"
             ),
             Self::Bound {
                 facts,

@@ -540,7 +540,7 @@ impl JointTemplate {
     }
 
     pub(crate) fn cacheable(&self) -> bool {
-        self.metadata_bytes <= 1024 * 1024
+        self.metadata_bytes <= admission::CACHEABLE_BYTES
     }
 
     /// This constructor observes EVERY selected fact while holding the immutable

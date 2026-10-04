@@ -1285,6 +1285,11 @@ impl StatementRule {
     }
 }
 
+/// The rules the EXPTIME model-summarizing rung may summarize. Its critical instance
+/// spans every constant of the program, so larger programs are refused with that
+/// reason rather than attempted.
+const MODEL_SUMMARIZING_MAX_RULES: usize = 64;
+
 /// Which rungs of the termination-class ladder a certification may climb.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Ladder {
@@ -1515,10 +1520,23 @@ impl ChaseAdmission {
         }
         match Self::certify_weakly_acyclic(rules) {
             Ok(admission) => admission,
-            Err(violations) => Self::certify_joint_acyclic(rules)
+            Err(mut violations) => Self::certify_joint_acyclic(rules)
                 .or_else(|| Self::certify_super_weak_acyclic(rules))
                 .or_else(|| match ladder {
-                    Ladder::Complete => Self::certify_model_summarizing(rules),
+                    Ladder::Complete if rules.len() <= MODEL_SUMMARIZING_MAX_RULES => {
+                        Self::certify_model_summarizing(rules)
+                    }
+                    Ladder::Complete => {
+                        violations.insert(
+                            0,
+                            format!(
+                                "model-summarizing acyclicity not attempted: {} rules exceed its \
+                                 {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
+                                rules.len()
+                            ),
+                        );
+                        None
+                    }
                     Ladder::Polynomial => None,
                 })
                 .unwrap_or(Self::Uncertified { violations }),
@@ -1586,10 +1604,13 @@ impl ChaseAdmission {
         add_wildcard_subsumption(&mut adj, &written, &read);
 
         // A special edge (u → v) violates weak acyclicity iff v can reach u (the edge
-        // lies in a cycle → the chase may not terminate).
+        // lies in a cycle → the chase may not terminate). The edge itself is in the
+        // graph, so that holds exactly when u and v share a strongly connected
+        // component: one linear pass decides every edge.
+        let component = position_components(&adj);
         let mut violations: Vec<String> = Vec::new();
         for (u, v) in &special {
-            if reaches(&adj, v, u) {
+            if component[u] == component[v] {
                 violations.push(format!(
                     "weak-acyclicity: existential edge {} -> {} lies in a cycle (the restricted chase may not terminate)",
                     u.render(),
@@ -2225,27 +2246,34 @@ fn add_wildcard_subsumption(
     }
 }
 
-/// Whether `to` is reachable from `from` in `adj` (BFS over ≥1 edges; a self-edge on
-/// `from` therefore counts).
-fn reaches(
+/// The strongly connected component of every position in `adj`, by position.
+fn position_components(
     adj: &std::collections::BTreeMap<Position, BTreeSet<Position>>,
-    from: &Position,
-    to: &Position,
-) -> bool {
-    let mut stack: Vec<&Position> = adj.get(from).into_iter().flatten().collect();
-    let mut seen: BTreeSet<&Position> = BTreeSet::new();
-    while let Some(node) = stack.pop() {
-        if node == to {
-            return true;
-        }
-        if !seen.insert(node) {
-            continue;
-        }
-        if let Some(succs) = adj.get(node) {
-            stack.extend(succs.iter());
-        }
-    }
-    false
+) -> std::collections::BTreeMap<&Position, usize> {
+    let nodes: BTreeSet<&Position> = adj
+        .iter()
+        .flat_map(|(from, to)| std::iter::once(from).chain(to))
+        .collect();
+    let index: std::collections::BTreeMap<&Position, usize> = nodes
+        .iter()
+        .enumerate()
+        .map(|(index, node)| (*node, index))
+        .collect();
+    let rows: Vec<Vec<usize>> = nodes
+        .iter()
+        .map(|node| {
+            adj.get(*node)
+                .into_iter()
+                .flatten()
+                .map(|next| index[next])
+                .collect()
+        })
+        .collect();
+    let component = purrdf_core::graph::scc_component_index(&rows);
+    index
+        .into_iter()
+        .map(|(node, position)| (node, component[position]))
+        .collect()
 }
 
 // ── Joint-acyclicity support: null-flow `Move` sets over refined positions ──────────
