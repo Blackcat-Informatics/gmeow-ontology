@@ -19,6 +19,11 @@ use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
 /// The proved-immutable selector rows, specialized statements and per-rule join
 /// matches one input-specific certificate may analyse. Weak acyclicity, the rung a
 /// position-only cardinality program uses, is linear in the specialized program.
+const LIST_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const LIST_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+/// Admission-only relation `(list head, cell)`: the cell is reachable from the head
+/// through `rdf:rest`. It never enters a source, effect or value-flow read.
+const LIST_CELL: &str = "https://blackcatinformatics.ca/gmeow/termination/list-cell";
 const MAX_BINDINGS: usize = 1 << 18;
 const MAX_BYTES: usize = 128 << 20;
 /// The selector rows feeding source-constant enrichment. Its interning stops at 512
@@ -73,6 +78,7 @@ impl Template {
                         .collect()
                 }),
                 position_only: !rule.numeric.is_empty(),
+                list_cells: Vec::new(),
             });
         let rules: Vec<_> = ordinary
             .chain(producers.iter().map(StatementRule::from_binary))
@@ -194,27 +200,101 @@ impl Template {
         possible: &[(String, Fact)],
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
-    ) -> gmeow_errors::Result<Option<ChaseAdmission>> {
+    ) -> gmeow_errors::Result<Result<ChaseAdmission, String>> {
         // Only producers that can fire on this admitted input bear on its termination.
         let seeds = firing_seeds(facts, possible, external, semantics);
         let mut rel = RelationStore::with_semantics(semantics);
         for fact in &evidence.facts {
             rel.insert(&fact.predicate, &fact.subject, &fact.object);
         }
+        // A list operator reads members of ITS list. When list structure is proved
+        // immutable, bind each member cell to the cells reachable from that list
+        // head, instead of to every cell of every list.
+        let list_cells_bound = [LIST_FIRST, LIST_REST]
+            .iter()
+            .all(|predicate| evidence.predicates.contains(semantics.predicate(predicate)))
+            && bind_list_cells(&mut rel, &evidence.facts, semantics);
         let mut analysis = Vec::new();
         let mut bytes = 0usize;
         for rule in &self.rules {
-            let immutable: Vec<_> = rule
+            // A fully bound immutable atom is a ground source row: no rung reads a
+            // position it holds. It is discharged, and solutions agreeing on every
+            // variable still read elsewhere specialize to one statement.
+            let discharged: Vec<bool> = rule
                 .body
                 .iter()
-                .filter_map(|atom| {
-                    let predicate = predicate(&atom[1])?;
-                    evidence
-                        .predicates
-                        .contains(semantics.predicate(predicate))
-                        .then(|| EvalAtom::positive(atom[0].clone(), predicate, atom[2].clone()))
+                .map(|atom| {
+                    predicate(&atom[1]).is_some_and(|predicate| {
+                        evidence.predicates.contains(semantics.predicate(predicate))
+                    })
                 })
                 .collect();
+            let discharged_atoms: Vec<_> = rule
+                .body
+                .iter()
+                .zip(&discharged)
+                .filter(|(_, discharged)| **discharged)
+                .filter_map(|(atom, _)| {
+                    let predicate = predicate(&atom[1])?;
+                    Some(EvalAtom::positive(
+                        atom[0].clone(),
+                        predicate,
+                        atom[2].clone(),
+                    ))
+                })
+                .collect();
+            // The join evaluates atoms in order. Bind each list head first, then
+            // restrict its member cells to that list, and only then read the cells:
+            // reading cells first would enumerate every cell of every list.
+            let cells: Vec<_> = rule
+                .list_cells
+                .iter()
+                .filter(|_| list_cells_bound)
+                .collect();
+            let reads_cell = |atom: &EvalAtom| {
+                cells
+                    .iter()
+                    .any(|(_, cell)| atom.subject == *cell || atom.object == *cell)
+            };
+            let immutable: Vec<_> =
+                discharged_atoms
+                    .iter()
+                    .filter(|atom| !reads_cell(atom))
+                    .cloned()
+                    .chain(cells.iter().map(|(list, cell)| {
+                        EvalAtom::positive(list.clone(), LIST_CELL, cell.clone())
+                    }))
+                    .chain(
+                        discharged_atoms
+                            .iter()
+                            .filter(|atom| reads_cell(atom))
+                            .cloned(),
+                    )
+                    .collect();
+            let relevant: BTreeSet<&str> = rule
+                .body
+                .iter()
+                .zip(&discharged)
+                .filter(|(_, discharged)| !**discharged)
+                .map(|(atom, _)| atom)
+                .chain(&rule.heads)
+                .flatten()
+                .filter_map(|term| match term {
+                    EvalTerm::Var(name) => Some(name.as_str()),
+                    _ => None,
+                })
+                .collect();
+            // When every still-read variable is bound by the discharged atoms, each
+            // specialization is ground: it holds no position a null can reach and
+            // fires on the same predicates. One witnesses them all.
+            let ground = relevant.iter().all(|name| {
+                immutable
+                    .iter()
+                    .flat_map(|atom| [&atom.subject, &atom.object])
+                    .any(|term| matches!(term, EvalTerm::Var(var) if var == name))
+            });
+            let mut projections = std::collections::HashSet::new();
+            let mut matches = 0usize;
             let outcome = join::walk(
                 &immutable,
                 &rel,
@@ -227,10 +307,30 @@ impl Template {
                     distinct: &[],
                     retain_sources: false,
                 },
-                |solution| Ok(push_analysis(&mut analysis, &mut bytes, rule, &solution)),
+                |solution| {
+                    matches += 1;
+                    let projection: Vec<_> = relevant
+                        .iter()
+                        .map(|name| solution.get(name).cloned())
+                        .collect();
+                    if !projections.insert(projection) {
+                        return Ok(true);
+                    }
+                    let pushed =
+                        push_analysis(&mut analysis, &mut bytes, rule, &solution, &discharged);
+                    Ok(pushed && !ground)
+                },
             )?;
-            if outcome != join::Outcome::Complete {
-                return Ok(None);
+            let witnessed = ground && outcome == join::Outcome::Stopped && projections.len() == 1;
+            if outcome != join::Outcome::Complete && !witnessed {
+                return Ok(Err(format!(
+                    "the input-specific analysis exhausted its bound of {MAX_BINDINGS} \
+                     specialized statements at {} ({matches} immutable matches, {} distinct \
+                     specializations; {} statements in total)",
+                    rule.name,
+                    projections.len(),
+                    analysis.len()
+                )));
             }
         }
         // A union across worlds only introduces extra bindings. Constant
@@ -239,7 +339,7 @@ impl Template {
         let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
         let admission = ChaseAdmission::certify_statements(&firing, semantics, Ladder::Complete);
         if admission.admits_native() {
-            return Ok(Some(admission));
+            return Ok(Ok(admission));
         }
         // Derived selector edges need not be immutable to have a finite value
         // domain. Reuse the same abstract interpreter, with at most 512 exact
@@ -283,7 +383,9 @@ impl Template {
                     .checked_mul(values.len())
                     .filter(|count| *count <= MAX_BINDINGS)
             }) else {
-                return Ok(None);
+                // The decided first-pass certificate stands when the finer
+                // enumeration cannot complete.
+                return Ok(Ok(admission));
             };
             for ordinal in 0..count {
                 let mut cursor = ordinal;
@@ -298,13 +400,13 @@ impl Template {
                         .collect(),
                     source_facts: Vec::new(),
                 };
-                if !push_analysis(&mut analysis, &mut bytes, rule, &solution) {
-                    return Ok(None);
+                if !push_analysis(&mut analysis, &mut bytes, rule, &solution, &[]) {
+                    return Ok(Ok(admission));
                 }
             }
         }
         let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
-        Ok(Some(ChaseAdmission::certify_statements(
+        Ok(Ok(ChaseAdmission::certify_statements(
             &firing,
             semantics,
             Ladder::Complete,
@@ -341,11 +443,12 @@ fn push_analysis(
     bytes: &mut usize,
     rule: &StatementRule,
     solution: &Solution,
+    discharged: &[bool],
 ) -> bool {
     if analysis.len() == MAX_BINDINGS {
         return false;
     }
-    let specialized = specialize(rule, solution, analysis.len());
+    let specialized = specialize(rule, solution, analysis.len(), discharged);
     let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
     write!(
         digest,
@@ -410,9 +513,6 @@ impl EvidenceGap {
     }
 }
 
-/// The bound a specialized statement analysis exhausted.
-pub(super) const ANALYSIS_BOUND: usize = MAX_BINDINGS;
-
 pub(super) struct Evidence<'a> {
     predicates: BTreeSet<String>,
     facts: Vec<&'a Fact>,
@@ -421,7 +521,14 @@ pub(super) struct Evidence<'a> {
     pub(super) identity: [u8; 32],
 }
 
-fn specialize(rule: &StatementRule, solution: &Solution, ordinal: usize) -> StatementRule {
+/// `discharged` marks the fully bound immutable body atoms to omit; an empty mask
+/// keeps every atom.
+fn specialize(
+    rule: &StatementRule,
+    solution: &Solution,
+    ordinal: usize,
+    discharged: &[bool],
+) -> StatementRule {
     let substitute = |atom: &[EvalTerm; 3]| {
         atom.each_ref().map(|term| {
             if let EvalTerm::Var(name) = term
@@ -434,7 +541,13 @@ fn specialize(rule: &StatementRule, solution: &Solution, ordinal: usize) -> Stat
     };
     StatementRule {
         name: format!("{}:immutable-binding:{ordinal}", rule.name),
-        body: rule.body.iter().map(substitute).collect(),
+        body: rule
+            .body
+            .iter()
+            .enumerate()
+            .filter(|(index, _)| !discharged.get(*index).copied().unwrap_or(false))
+            .map(|(_, atom)| substitute(atom))
+            .collect(),
         heads: rule.heads.iter().map(substitute).collect(),
         frontier: rule.frontier.as_ref().map(|frontier| {
             frontier
@@ -444,5 +557,52 @@ fn specialize(rule: &StatementRule, solution: &Solution, ordinal: usize) -> Stat
                 .collect()
         }),
         position_only: rule.position_only,
+        list_cells: Vec::new(),
     }
+}
+
+/// Add `(head, cell)` admission rows for every cell reachable through `rdf:rest`
+/// from every cell, so a list operator bound to any head (shared tails included)
+/// reads exactly its own cells. Returns `false`, adding nothing, when the rows would
+/// exceed the analysis bound; member cells then stay unconstrained, which is coarser
+/// but still covers every firing.
+fn bind_list_cells(
+    rel: &mut RelationStore,
+    facts: &[&Fact],
+    semantics: SemanticVocabulary,
+) -> bool {
+    let first = semantics.predicate(LIST_FIRST);
+    let rest = semantics.predicate(LIST_REST);
+    let mut cells = BTreeSet::new();
+    let mut next: BTreeMap<&purrdf::TermValue, Vec<&purrdf::TermValue>> = BTreeMap::new();
+    for fact in facts {
+        let predicate = semantics.predicate(&fact.predicate);
+        if predicate == first {
+            cells.insert(&fact.subject);
+        } else if predicate == rest {
+            next.entry(&fact.subject).or_default().push(&fact.object);
+        }
+    }
+    let mut rows = Vec::new();
+    for &head in &cells {
+        let mut seen = BTreeSet::from([head]);
+        let mut pending = vec![head];
+        while let Some(cell) = pending.pop() {
+            if cells.contains(cell) {
+                rows.push((head, cell));
+                if rows.len() > MAX_BINDINGS {
+                    return false;
+                }
+            }
+            for &tail in next.get(cell).into_iter().flatten() {
+                if seen.insert(tail) {
+                    pending.push(tail);
+                }
+            }
+        }
+    }
+    for (head, cell) in rows {
+        rel.insert(LIST_CELL, head, cell);
+    }
+    true
 }

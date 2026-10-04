@@ -1167,22 +1167,14 @@ impl JointInput<'_> {
             // it is not, the template certificate decides alone and its refusal
             // names why, never passing off the template ledger as the input's.
             let refinement = match &self.evidence {
-                Some(Ok(evidence)) => termination
-                    .certify(
-                        evidence,
-                        &self.certificate_flow,
-                        self.facts,
-                        &self.possible,
-                        &self.contextual_effects,
-                        template.semantics,
-                    )?
-                    .ok_or_else(|| {
-                        format!(
-                            "the input-specific analysis exhausted its bound of {} specialized \
-                             statements",
-                            admission::ANALYSIS_BOUND
-                        )
-                    }),
+                Some(Ok(evidence)) => termination.certify(
+                    evidence,
+                    &self.certificate_flow,
+                    self.facts,
+                    &self.possible,
+                    &self.contextual_effects,
+                    template.semantics,
+                )?,
                 Some(Err(gap)) => Err(gap.to_string()),
                 None => Err("no input-specific evidence was observed".to_owned()),
             };

@@ -733,3 +733,147 @@ fn changing_strata_share_layouts_and_preserve_witnesses_and_absence() {
         assert!(std::ptr::eq(first.1, second.1));
     }
 }
+
+/// The shipped schema laws as one forward joint template.
+fn schema_template() -> Arc<JointTemplate> {
+    Arc::new(
+        JointTemplate::build(
+            &[],
+            &[],
+            crate::reason::schema_laws(),
+            SemanticVocabulary::GroundedLogicV1,
+            &[],
+            None,
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            super::super::JointOperation::Forward,
+        )
+        .unwrap(),
+    )
+}
+
+/// One minimum restriction with a member, so the minimum-witness law fires.
+fn minimum_restriction_rows() -> Vec<Fact> {
+    let fact = |s: &str, p: &str, o: TermValue| Fact {
+        subject: TermValue::iri(s),
+        predicate: p.to_owned(),
+        object: o,
+    };
+    vec![
+        fact(
+            "urn:restriction",
+            "http://www.w3.org/2002/07/owl#onProperty",
+            TermValue::iri("urn:property"),
+        ),
+        fact(
+            "urn:restriction",
+            "http://www.w3.org/2002/07/owl#minQualifiedCardinality",
+            TermValue::simple_literal("1"),
+        ),
+        fact(
+            "urn:restriction",
+            "http://www.w3.org/2002/07/owl#onClass",
+            TermValue::iri("urn:witness-class"),
+        ),
+        fact("urn:individual", TYPE, TermValue::iri("urn:restriction")),
+    ]
+}
+
+/// `rdf:first`/`rdf:rest` rows of one list `prefix:0 .. prefix:(len - 1)`.
+fn list_rows(prefix: &str, members: &[String]) -> Vec<Fact> {
+    const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    let cell = |index: usize| TermValue::iri(format!("{prefix}:{index}"));
+    members
+        .iter()
+        .enumerate()
+        .flat_map(|(index, member)| {
+            let next = if index + 1 == members.len() {
+                TermValue::iri(NIL)
+            } else {
+                cell(index + 1)
+            };
+            [
+                Fact {
+                    subject: cell(index),
+                    predicate: FIRST.to_owned(),
+                    object: TermValue::iri(member),
+                },
+                Fact {
+                    subject: cell(index),
+                    predicate: REST.to_owned(),
+                    object: next,
+                },
+            ]
+        })
+        .collect()
+}
+
+fn assert_admitted(template: &Arc<JointTemplate>, rows: Vec<Fact>, why: &str) {
+    let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    match input.prepare().unwrap() {
+        NativeOutcome::Decided(plan) => {
+            assert!(
+                plan.admission.admits_native(),
+                "{why}: {:?}",
+                plan.admission
+            )
+        }
+        NativeOutcome::Unsupported(kind) => panic!("{why}: {kind:?}"),
+    }
+}
+
+#[test]
+fn a_pairwise_list_law_past_the_analysis_bound_is_witnessed_once() {
+    // A 600-member disjoint union names 360,000 ordered member pairs, past the 2^18
+    // analysis bound. Every variable of the pairwise law is bound by immutable list
+    // rows, so each specialization is ground: none carries a witness, all fire on
+    // the same predicates, and one represents them.
+    let mut rows = minimum_restriction_rows();
+    rows.push(Fact {
+        subject: TermValue::iri("urn:union"),
+        predicate: "http://www.w3.org/2002/07/owl#disjointUnionOf".to_owned(),
+        object: TermValue::iri("urn:union-cell:0"),
+    });
+    let members: Vec<_> = (0..600)
+        .map(|index| format!("urn:union-member:{index}"))
+        .collect();
+    rows.extend(list_rows("urn:union-cell", &members));
+    assert_admitted(
+        &schema_template(),
+        rows,
+        "a ground pairwise law cannot exhaust the input certificate",
+    );
+}
+
+#[test]
+fn a_list_operator_reads_only_the_cells_of_its_own_list() {
+    // One property chain among 600 unrelated two-member lists. A member cell that
+    // could be any cell of any list pairs 1,200 x 1,200 cells (1.44M matches, past
+    // the analysis bound); bound to its own list, the chain reads only its own two.
+    let mut rows = minimum_restriction_rows();
+    rows.push(Fact {
+        subject: TermValue::iri("urn:chained"),
+        predicate: "http://www.w3.org/2002/07/owl#propertyChainAxiom".to_owned(),
+        object: TermValue::iri("urn:chain-cell:0"),
+    });
+    rows.extend(list_rows(
+        "urn:chain-cell",
+        &["urn:link-a".to_owned(), "urn:link-b".to_owned()],
+    ));
+    for index in 0..600 {
+        rows.extend(list_rows(
+            &format!("urn:unrelated-list:{index}"),
+            &[
+                format!("urn:unrelated-a:{index}"),
+                format!("urn:unrelated-b:{index}"),
+            ],
+        ));
+    }
+    assert_admitted(
+        &schema_template(),
+        rows,
+        "unrelated lists cannot multiply a list operator's members",
+    );
+}
