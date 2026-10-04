@@ -917,6 +917,9 @@ mod clash_tests;
 mod minimum_tests;
 
 #[cfg(test)]
+mod expression_substrate_tests;
+
+#[cfg(test)]
 mod equality_tests;
 
 #[cfg(test)]

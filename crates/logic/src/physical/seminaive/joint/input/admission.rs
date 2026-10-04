@@ -102,7 +102,14 @@ impl Template {
             })
             .map(|predicate| semantics.predicate(predicate).to_owned())
             .collect();
+        let selectors: BTreeSet<_> = self
+            .predicates
+            .iter()
+            .map(|predicate| semantics.predicate(predicate))
+            .collect();
         let mut selected = Vec::new();
+        let mut enrichment = Some(Vec::new());
+        let mut enrichment_bytes = 0usize;
         let mut retained = 0usize;
         let mut per_predicate: BTreeMap<&str, usize> = BTreeMap::new();
         let mut bytes = 0usize;
@@ -116,15 +123,29 @@ impl Template {
                 // anywhere in the input. Bind EVERY fact, including dynamic
                 // predicate rows, without retaining or serializing the dataset.
                 write!(digest, "{fact:?}").expect("digest-only formatter");
-                // The certificate's join reads only proved-immutable relations, so
-                // only their rows are retained, all of them. A mutable selector row
-                // can never match that join; dropping it from the source-constant
-                // enrichment only coarsens value cells, which stays sound.
-                if !predicates.contains(semantics.predicate(&fact.predicate)) {
+                let predicate = semantics.predicate(&fact.predicate);
+                if !selectors.contains(predicate) {
                     continue;
                 }
                 let mut size = MetadataDigest(blake3::Hasher::new(), 0);
                 write!(size, "{world:?}:{fact:?}").expect("digest-only formatter");
+                // Every selector row sharpens the source-constant enrichment, under
+                // its own bound; past it the enrichment reads the immutable rows only,
+                // the same coarsening the 512-cell interning cap already applies.
+                enrichment_bytes = enrichment_bytes.saturating_add(size.1);
+                if let Some(rows) = &mut enrichment {
+                    if rows.len() < MAX_BINDINGS && enrichment_bytes <= MAX_BYTES {
+                        rows.push(fact);
+                    } else {
+                        enrichment = None;
+                    }
+                }
+                // The certificate's join reads only proved-immutable relations, so
+                // only their rows bound the analysis, all of them retained. A mutable
+                // selector row can never match that join.
+                if !predicates.contains(predicate) {
+                    continue;
+                }
                 bytes = bytes.saturating_add(size.1);
                 retained += 1;
                 *per_predicate
@@ -151,6 +172,7 @@ impl Template {
         Ok(Evidence {
             predicates,
             facts: selected,
+            enrichment,
             identity: *digest.0.finalize().as_bytes(),
         })
     }
@@ -215,7 +237,9 @@ impl Template {
         // value cells. This never executes a concrete closure or lowers a rule.
         let enriched = flow.with_source_constants(
             evidence
-                .facts
+                .enrichment
+                .as_ref()
+                .unwrap_or(&evidence.facts)
                 .iter()
                 .copied()
                 .chain(possible.iter().map(|(_, fact)| fact)),
@@ -383,6 +407,8 @@ pub(super) const ANALYSIS_BOUND: usize = MAX_BINDINGS;
 pub(super) struct Evidence<'a> {
     predicates: BTreeSet<String>,
     facts: Vec<&'a Fact>,
+    /// Every selector row for source-constant enrichment, when within bound.
+    enrichment: Option<Vec<&'a Fact>>,
     pub(super) identity: [u8; 32],
 }
 
