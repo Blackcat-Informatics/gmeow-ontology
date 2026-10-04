@@ -6,6 +6,7 @@
 //! statements remain available to the selected program in their original world.
 
 use std::collections::BTreeMap;
+use std::time::Instant;
 
 #[cfg(test)]
 mod test_support;
@@ -521,6 +522,16 @@ pub(super) fn execute_transaction(
     potential: &[(String, Fact)],
     retained: Option<&mut crate::physical::RetainedJoint>,
 ) -> gmeow_errors::Result<ProgramClosure> {
+    let modal_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "admit-native-modal-input",
+        event = "start",
+        source_worlds = input.facts.len(),
+        source_facts = input.facts.values().map(Vec::len).sum::<usize>(),
+        "reason phase boundary",
+    );
     prepared.admission.admit_world_local_template()?;
     input.admit_domains(domains)?;
     let modal = crate::modal::native::NativeModalProgram::prepare(&input.occurrences)?;
@@ -542,6 +553,15 @@ pub(super) fn execute_transaction(
             .or_insert_with(|| Arc::from([]));
         input.facts.entry(world.clone()).or_default();
     }
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "admit-native-modal-input",
+        event = "end",
+        elapsed_ms = modal_started.elapsed().as_millis(),
+        admitted_worlds = input.facts.len(),
+        "reason phase boundary",
+    );
     let possible = modal.possible_heads();
     let PreparedReasoningInput {
         facts,
@@ -551,6 +571,17 @@ pub(super) fn execute_transaction(
         contextual,
         ..
     } = input;
+    let schema_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-native-schema-input",
+        event = "start",
+        admitted_worlds = facts.len(),
+        admitted_facts = facts.values().map(Vec::len).sum::<usize>(),
+        modal_possible_heads = possible.len(),
+        "reason phase boundary",
+    );
     let sources = sources.prepare()?;
     let selected_potential: Vec<_> = possible.iter().chain(potential).cloned().collect();
     let properties = applicable_schema_laws(
@@ -561,6 +592,25 @@ pub(super) fn execute_transaction(
         &selected_potential,
         contextual.effects(),
     );
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-native-schema-input",
+        event = "end",
+        elapsed_ms = schema_started.elapsed().as_millis(),
+        selected_potential = selected_potential.len(),
+        selected_schema_laws = properties.len(),
+        contextual_effects = contextual.effects().len(),
+        "reason phase boundary",
+    );
+    let input_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "construct-native-reasoning-input",
+        event = "start",
+        "reason phase boundary",
+    );
     let admitted_input = prepared.reasoning_input(
         &properties,
         &sources,
@@ -569,6 +619,22 @@ pub(super) fn execute_transaction(
         Arc::clone(&possible),
         contextual.effects(),
     )?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "construct-native-reasoning-input",
+        event = "end",
+        elapsed_ms = input_started.elapsed().as_millis(),
+        "reason phase boundary",
+    );
+    let binding_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "bind-native-source-evidence",
+        event = "start",
+        "reason phase boundary",
+    );
     let binding =
         admitted_input.bind_native(&occurrences, &graphs, Some(modal), Some(contextual))?;
     if binding.source_refused {
@@ -579,7 +645,23 @@ pub(super) fn execute_transaction(
             },
         ));
     }
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "bind-native-source-evidence",
+        event = "end",
+        elapsed_ms = binding_started.elapsed().as_millis(),
+        "reason phase boundary",
+    );
     let input_contract = binding.input_contract;
+    let planning_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "plan-native-reasoning-program",
+        event = "start",
+        "reason phase boundary",
+    );
     let plan = prepared.reasoning_schema_program(&admitted_input)?;
     let program = match plan {
         NativeOutcome::Decided(program) => program,
@@ -589,8 +671,24 @@ pub(super) fn execute_transaction(
             )));
         }
     };
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "plan-native-reasoning-program",
+        event = "end",
+        elapsed_ms = planning_started.elapsed().as_millis(),
+        "reason phase boundary",
+    );
     let mut governor = crate::physical::StepGovernor::new(max_steps);
     let mut registry = crate::physical::SkolemRegistry::new();
+    let materialize_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "materialize-native-reasoning-program",
+        event = "start",
+        "reason phase boundary",
+    );
     let execution = match retained {
         Some(retained) => program.materialize_input_retained(
             &admitted_input,
@@ -606,6 +704,15 @@ pub(super) fn execute_transaction(
             &mut registry,
         ),
     }?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "materialize-native-reasoning-program",
+        event = "end",
+        elapsed_ms = materialize_started.elapsed().as_millis(),
+        consumed_steps = governor.consumed,
+        "reason phase boundary",
+    );
     let result = match execution {
         NativeOutcome::Decided(result) => result,
         NativeOutcome::Unsupported(kind) => {
@@ -615,7 +722,25 @@ pub(super) fn execute_transaction(
             )));
         }
     };
-    publish(result, input_contract, graphs, domains, &program.admission)
+    let publish_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "publish-native-reasoning-result",
+        event = "start",
+        "reason phase boundary",
+    );
+    let result = publish(result, input_contract, graphs, domains, &program.admission)?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "publish-native-reasoning-result",
+        event = "end",
+        elapsed_ms = publish_started.elapsed().as_millis(),
+        inferred_axioms = result.inferred.len(),
+        "reason phase boundary",
+    );
+    Ok(result)
 }
 
 /// The class-only diagnostic selects no ordinary, schema or authored EDB
@@ -790,6 +915,9 @@ mod clash_tests;
 
 #[cfg(test)]
 mod minimum_tests;
+
+#[cfg(test)]
+mod expression_substrate_tests;
 
 #[cfg(test)]
 mod equality_tests;

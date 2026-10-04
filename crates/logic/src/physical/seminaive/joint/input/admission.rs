@@ -9,13 +9,24 @@ use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
 use super::{BTreeMap, MetadataDigest, PreparedPropertyRule, SemanticVocabulary};
-use crate::physical::chase::{ChaseAdmission, ExistentialRule, StatementRule, join};
+use crate::physical::chase::{
+    ChaseAdmission, ExistentialRule, Ladder, StatementRule, firing_statements, join,
+};
 use crate::physical::effects::{ProducerEffect, WorldProducerEffect, value_flow::ValueFlow};
 use crate::physical::store::RelationStore;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
 
-const MAX_BINDINGS: usize = 4096;
-const MAX_BYTES: usize = 1024 * 1024;
+/// The proved-immutable selector rows, specialized statements and per-rule join
+/// matches one input-specific certificate may analyse. Weak acyclicity, the rung a
+/// position-only cardinality program uses, is linear in the specialized program.
+const MAX_BINDINGS: usize = 1 << 18;
+const MAX_BYTES: usize = 128 << 20;
+/// The selector rows feeding source-constant enrichment. Its interning stops at 512
+/// value cells, so more rows than this cannot sharpen it further.
+const ENRICHMENT_ROWS: usize = 4096;
+const ENRICHMENT_BYTES: usize = 1 << 20;
+/// The retained template rule metadata a cacheable joint template may carry.
+pub(super) const CACHEABLE_BYTES: usize = 1 << 20;
 
 /// Retained rule metadata only; no source facts or per-world closure is cached.
 pub(super) struct Template {
@@ -84,7 +95,7 @@ impl Template {
         effects: &[ProducerEffect],
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
-    ) -> Option<Evidence<'a>> {
+    ) -> Result<Evidence<'a>, EvidenceGap> {
         let predicates: BTreeSet<_> = self
             .predicates
             .iter()
@@ -106,9 +117,13 @@ impl Template {
             .map(|predicate| semantics.predicate(predicate))
             .collect();
         let mut selected = Vec::new();
+        let mut enrichment = Some(Vec::new());
+        let mut enrichment_bytes = 0usize;
+        let mut retained = 0usize;
+        let mut per_predicate: BTreeMap<&str, usize> = BTreeMap::new();
         let mut bytes = 0usize;
         let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
-        digest.0.update(b"gmeow-native-selector-bindings-v2\0");
+        digest.0.update(b"gmeow-native-selector-bindings-v3\0");
         write!(digest, "{predicates:?}:{possible:?}:{external:?}").expect("digest-only formatter");
         for (world, rows) in facts {
             write!(digest, "{world:?}").expect("digest-only formatter");
@@ -117,21 +132,56 @@ impl Template {
                 // anywhere in the input. Bind EVERY fact, including dynamic
                 // predicate rows, without retaining or serializing the dataset.
                 write!(digest, "{fact:?}").expect("digest-only formatter");
-                if !selectors.contains(semantics.predicate(&fact.predicate)) {
+                let predicate = semantics.predicate(&fact.predicate);
+                if !selectors.contains(predicate) {
                     continue;
                 }
                 let mut size = MetadataDigest(blake3::Hasher::new(), 0);
                 write!(size, "{world:?}:{fact:?}").expect("digest-only formatter");
-                bytes = bytes.saturating_add(size.1);
-                if selected.len() == MAX_BINDINGS || bytes > MAX_BYTES {
-                    return None;
+                // Every selector row sharpens the source-constant enrichment, under
+                // its own bound; past it the enrichment reads the immutable rows only,
+                // the same coarsening the 512-cell interning cap already applies.
+                enrichment_bytes = enrichment_bytes.saturating_add(size.1);
+                if let Some(rows) = &mut enrichment {
+                    if rows.len() < ENRICHMENT_ROWS && enrichment_bytes <= ENRICHMENT_BYTES {
+                        rows.push(fact);
+                    } else {
+                        enrichment = None;
+                    }
                 }
-                selected.push(fact);
+                // The certificate's join reads only proved-immutable relations, so
+                // only their rows bound the analysis, all of them retained. A mutable
+                // selector row can never match that join.
+                if !predicates.contains(predicate) {
+                    continue;
+                }
+                bytes = bytes.saturating_add(size.1);
+                retained += 1;
+                *per_predicate
+                    .entry(semantics.predicate(&fact.predicate))
+                    .or_default() += 1;
+                if retained <= MAX_BINDINGS && bytes <= MAX_BYTES {
+                    selected.push(fact);
+                }
             }
         }
-        Some(Evidence {
+        if retained > MAX_BINDINGS || bytes > MAX_BYTES {
+            let mut heaviest: Vec<_> = per_predicate
+                .into_iter()
+                .map(|(predicate, rows)| (predicate.to_owned(), rows))
+                .collect();
+            heaviest.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
+            heaviest.truncate(8);
+            return Err(EvidenceGap::Bound {
+                facts: retained,
+                bytes,
+                heaviest,
+            });
+        }
+        Ok(Evidence {
             predicates,
             facts: selected,
+            enrichment,
             identity: *digest.0.finalize().as_bytes(),
         })
     }
@@ -145,6 +195,8 @@ impl Template {
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
     ) -> gmeow_errors::Result<Option<ChaseAdmission>> {
+        // Only producers that can fire on this admitted input bear on its termination.
+        let seeds = firing_seeds(facts, possible, external, semantics);
         let mut rel = RelationStore::with_semantics(semantics);
         for fact in &evidence.facts {
             rel.insert(&fact.predicate, &fact.subject, &fact.object);
@@ -184,23 +236,27 @@ impl Template {
         // A union across worlds only introduces extra bindings. Constant
         // substitution retains all mutable body atoms and every witness frontier
         // dependency. A finite abstract closure therefore bounds every world.
-        let admission = ChaseAdmission::certify_statements(&analysis, semantics);
+        let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
+        let admission = ChaseAdmission::certify_statements(&firing, semantics, Ladder::Complete);
         if admission.admits_native() {
             return Ok(Some(admission));
         }
         // Derived selector edges need not be immutable to have a finite value
         // domain. Reuse the same abstract interpreter, with at most 512 exact
         // value cells. This never executes a concrete closure or lowers a rule.
-        let Some(enriched) = flow.with_source_constants(
+        let enriched = flow.with_source_constants(
             evidence
-                .facts
+                .enrichment
+                .as_ref()
+                .unwrap_or(&evidence.facts)
                 .iter()
                 .copied()
                 .chain(possible.iter().map(|(_, fact)| fact)),
             512,
-        ) else {
-            return Ok(Some(admission));
-        };
+        );
+        // The source-selected metadata flow remains a sound finite refinement
+        // when interning every other source value would exceed the analysis cap.
+        let enriched = enriched.as_ref().unwrap_or(flow);
         let bindings = enriched.finite_bindings_with_patterns(
             facts
                 .values()
@@ -247,10 +303,37 @@ impl Template {
                 }
             }
         }
+        let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
         Ok(Some(ChaseAdmission::certify_statements(
-            &analysis, semantics,
+            &firing,
+            semantics,
+            Ladder::Complete,
         )))
     }
+}
+
+/// The canonical predicates this input can present: every world fact, every possible
+/// fact and every external producer write. `None` when an external write may carry any
+/// predicate, so no producer can be shown not to fire.
+fn firing_seeds(
+    facts: &BTreeMap<String, Vec<Fact>>,
+    possible: &[(String, Fact)],
+    external: &[WorldProducerEffect],
+    semantics: SemanticVocabulary,
+) -> Option<BTreeSet<String>> {
+    let mut seeds: BTreeSet<String> = facts
+        .values()
+        .flatten()
+        .chain(possible.iter().map(|(_, fact)| fact))
+        .map(|fact| semantics.predicate(&fact.predicate).to_owned())
+        .collect();
+    for write in external
+        .iter()
+        .flat_map(|effect| effect.effect.writes.iter())
+    {
+        seeds.insert(semantics.predicate(write.predicate()?).to_owned());
+    }
+    Some(seeds)
 }
 
 fn push_analysis(
@@ -278,9 +361,63 @@ fn push_analysis(
     true
 }
 
+/// Why an input's specific termination certificate was not attempted. The
+/// source-independent template certificate then decides alone, and a refusal
+/// names this gap rather than presenting the template's ledger as the input's.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) enum EvidenceGap {
+    /// The retained rule metadata exceeds the cacheable bound.
+    Uncacheable { metadata_bytes: usize },
+    /// The proved-immutable selector rows exceed the analysis bound.
+    Bound {
+        facts: usize,
+        bytes: usize,
+        /// The predicates retaining the most rows, heaviest first.
+        heaviest: Vec<(String, usize)>,
+    },
+}
+
+impl std::fmt::Display for EvidenceGap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Uncacheable { metadata_bytes } => write!(
+                f,
+                "the joint template's rule metadata ({metadata_bytes} bytes) exceeds the \
+                 {CACHEABLE_BYTES}-byte cacheable bound"
+            ),
+            Self::Bound {
+                facts,
+                bytes,
+                heaviest,
+            } => {
+                write!(
+                    f,
+                    "{facts} proved-immutable selector rows ({bytes} bytes) exceed the \
+                     {MAX_BINDINGS}-row / {MAX_BYTES}-byte analysis bound; heaviest:"
+                )?;
+                for (predicate, rows) in heaviest {
+                    write!(f, " {predicate}={rows}")?;
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
+impl EvidenceGap {
+    pub(super) fn uncacheable(metadata_bytes: usize) -> Self {
+        Self::Uncacheable { metadata_bytes }
+    }
+}
+
+/// The bound a specialized statement analysis exhausted.
+pub(super) const ANALYSIS_BOUND: usize = MAX_BINDINGS;
+
 pub(super) struct Evidence<'a> {
     predicates: BTreeSet<String>,
     facts: Vec<&'a Fact>,
+    /// Every selector row for source-constant enrichment, when within bound.
+    enrichment: Option<Vec<&'a Fact>>,
     pub(super) identity: [u8; 32],
 }
 

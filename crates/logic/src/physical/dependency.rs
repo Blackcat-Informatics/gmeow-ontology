@@ -9,7 +9,7 @@
 //! graph is a DAG, and a single topological pass computes the least valid strata.
 //! No dependency is represented as a synthetic executable rule.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use petgraph::algo::kosaraju_scc;
 use petgraph::graph::{DiGraph, NodeIndex};
@@ -30,6 +30,16 @@ pub(crate) struct DependencyCycle {
     pub(crate) members: Vec<String>,
     pub(crate) head: String,
     pub(crate) read: String,
+    /// Deterministic path from the strict consumer back to its writer. Together
+    /// with `read -> head`, these typed edges are the concrete signed cycle.
+    pub(crate) return_path: Vec<DependencyPathStep>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct DependencyPathStep {
+    pub(crate) from: String,
+    pub(crate) to: String,
+    pub(crate) dependency: ReadDependency,
 }
 
 /// Dependency registration owns each symbol once. Graph edges point from
@@ -109,13 +119,53 @@ impl SignedDependencies {
             })
             .min_by_key(|edge| (names[edge.target().index()], names[edge.source().index()]))
         {
+            let source = edge.source();
+            let target = edge.target();
+            let component = component_of[source.index()];
+            let mut prior = BTreeMap::<NodeIndex, (NodeIndex, ReadDependency)>::new();
+            let mut pending = VecDeque::from([target]);
+            let mut visited = BTreeSet::from([target]);
+            while let Some(node) = pending.pop_front() {
+                if node == source {
+                    break;
+                }
+                let mut next: Vec<_> = self
+                    .graph
+                    .edges(node)
+                    .filter(|candidate| component_of[candidate.target().index()] == component)
+                    .map(|candidate| (candidate.target(), *candidate.weight()))
+                    .collect();
+                next.sort_by_key(|(node, dependency)| (names[node.index()], *dependency));
+                next.dedup();
+                for (successor, dependency) in next {
+                    if visited.insert(successor) {
+                        prior.insert(successor, (node, dependency));
+                        pending.push_back(successor);
+                    }
+                }
+            }
+            let mut path = Vec::new();
+            let mut current = source;
+            while current != target {
+                let &(previous, dependency) = prior
+                    .get(&current)
+                    .expect("an SCC strict edge has a return path");
+                path.push(DependencyPathStep {
+                    from: names[previous.index()].to_owned(),
+                    to: names[current.index()].to_owned(),
+                    dependency,
+                });
+                current = previous;
+            }
+            path.reverse();
             return Err(DependencyCycle {
-                members: components[component_of[edge.source().index()]]
+                members: components[component]
                     .iter()
                     .map(|node| names[node.index()].to_owned())
                     .collect(),
-                head: names[edge.target().index()].to_owned(),
-                read: names[edge.source().index()].to_owned(),
+                head: names[target.index()].to_owned(),
+                read: names[source.index()].to_owned(),
+                return_path: path,
             });
         }
         let mut outgoing = vec![Vec::new(); components.len()];

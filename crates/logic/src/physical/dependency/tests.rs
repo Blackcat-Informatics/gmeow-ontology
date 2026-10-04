@@ -59,6 +59,18 @@ fn completed_cycle_names_the_strict_read_and_its_component() {
             members: vec!["urn:a".to_owned(), "urn:b".to_owned(), "urn:c".to_owned()],
             head: "urn:c".to_owned(),
             read: "urn:a".to_owned(),
+            return_path: vec![
+                DependencyPathStep {
+                    from: "urn:c".to_owned(),
+                    to: "urn:b".to_owned(),
+                    dependency: ReadDependency::Positive,
+                },
+                DependencyPathStep {
+                    from: "urn:b".to_owned(),
+                    to: "urn:a".to_owned(),
+                    dependency: ReadDependency::Positive,
+                },
+            ],
         }
     );
 }

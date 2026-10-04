@@ -137,8 +137,44 @@ pub fn reason_over_dataset(
     // Issue canonical labels directly over the native RDF 1.2 carrier. The
     // shared issuer determines Skolem identity without a text document and a
     // second parse/freeze; every statement-layer row remains in its own table.
+    let canon_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "canonicalize-edb",
+        event = "start",
+        input_quads = edb.quad_count(),
+        input_terms = edb.term_count(),
+        "stage phase boundary",
+    );
     let canon = canonicalize_edb(edb, "stage-reason")?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "canonicalize-edb",
+        event = "end",
+        elapsed_ms = canon_started.elapsed().as_millis(),
+        output_quads = canon.quad_count(),
+        output_terms = canon.term_count(),
+        "stage phase boundary",
+    );
+    let prepare_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-reasoning-input",
+        event = "start",
+        "stage phase boundary",
+    );
     let input = prepare_reasoning_input(canon.as_ref())?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-reasoning-input",
+        event = "end",
+        elapsed_ms = prepare_started.elapsed().as_millis(),
+        "stage phase boundary",
+    );
     reason_prepared_input(edb, input, domains)
 }
 
@@ -155,8 +191,34 @@ fn reason_prepared_input(
     input: PreparedReasoningInput,
     domains: &SelectedDomains,
 ) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
+    let reason_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "reason-all",
+        event = "start",
+        selected_worlds = domains.worlds().len(),
+        "stage phase boundary",
+    );
     let result = reason_all(input, domains)
         .map_err(|error| stage_failure(format!("native reasoning failed: {error}")))?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "reason-all",
+        event = "end",
+        elapsed_ms = reason_started.elapsed().as_millis(),
+        inferred_axioms = result.inferred().len(),
+        "stage phase boundary",
+    );
+    let artifacts_started = Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "project-reason-artifacts",
+        event = "start",
+        "stage phase boundary",
+    );
     let native = result.native_execution()?;
     // Admit the exact committed native minting heads and their world-local proof;
     // certificate findings cite those heads, including subject-only value nulls.
@@ -230,6 +292,16 @@ fn reason_prepared_input(
     // run to run regardless of the reasoned result.
     let perf = perf_ledger().to_turtle();
     let dataset = reason_dataset(builder, &result, &chase_report, &witness_projections)?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "project-reason-artifacts",
+        event = "end",
+        elapsed_ms = artifacts_started.elapsed().as_millis(),
+        output_quads = dataset.quad_count(),
+        witness_projections = witness_projections.len(),
+        "stage phase boundary",
+    );
     Ok(ReasonArtifacts {
         closure,
         dataset,
@@ -661,18 +733,42 @@ impl Stage for ReasonStage {
         // committed closure AND backs the bundle's `graph/reasoning`; there is no
         // second full-fold export leaf.
         let edb_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = self.id(),
+            phase = "assemble-object-edb",
+            event = "start",
+            "stage phase boundary",
+        );
         // Admit the declared producers and select theory roles before
         // the physical union. Unselected report/support graphs cannot acquire an
         // intrinsic nonempty-domain law merely by occupying the carrier.
         let domains = object_level_domains(self, &input)?;
         let edb = crate::stages::carrier::assemble_object_level_edb(input.upstream)?;
         let edb_quads = edb.quad_count();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = self.id(),
+            phase = "assemble-object-edb",
+            event = "end",
+            elapsed_ms = edb_started.elapsed().as_millis(),
+            edb_quads,
+            "stage phase boundary",
+        );
         timings.push(StageRunTiming {
             phase: "assemble-object-edb".to_string(),
             elapsed_ms: edb_started.elapsed().as_millis(),
             metadata: Some(format!("edb-quads={edb_quads}")),
         });
         let closure_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = self.id(),
+            phase = "construct-closure-and-artifacts",
+            event = "start",
+            edb_quads,
+            "stage phase boundary",
+        );
         let reasoned = reason_over_dataset(edb.as_ref(), &domains)?;
         let inferred_axioms = reasoned.result.inferred().len();
         let budget = reasoned.result.provenance.consumed_budget;
@@ -687,6 +783,17 @@ impl Stage for ReasonStage {
             .saturating_add(reasoned.ledger.len())
             .saturating_add(reasoned.perf_ledger.len());
         let closure_reparse_bytes_removed = reasoned.closure.len();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = self.id(),
+            phase = "construct-closure-and-artifacts",
+            event = "end",
+            elapsed_ms = closure_started.elapsed().as_millis(),
+            edb_quads,
+            inferred_axioms,
+            artifact_bytes,
+            "stage phase boundary",
+        );
         timings.push(StageRunTiming {
             phase: "construct-closure-and-artifacts".to_string(),
             elapsed_ms: closure_started.elapsed().as_millis(),
@@ -702,6 +809,13 @@ impl Stage for ReasonStage {
             )),
         });
         let output_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = self.id(),
+            phase = "assemble-reason-product",
+            event = "start",
+            "stage phase boundary",
+        );
         // The CLOSURE is the reason stage's contribution to `gts_compose`'s union and
         // stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are diagnostic
         // REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology facts; they stay
@@ -755,6 +869,16 @@ impl Stage for ReasonStage {
             })?;
         let output_quads = bundle.dataset().quad_count();
         let product = StageProduct::from_bundle(self.id(), Arc::new(bundle));
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = self.id(),
+            phase = "assemble-reason-product",
+            event = "end",
+            elapsed_ms = output_started.elapsed().as_millis(),
+            output_quads,
+            diagnostic_nodes = nodes.len(),
+            "stage phase boundary",
+        );
         timings.push(StageRunTiming {
             phase: "assemble-reason-product".to_string(),
             elapsed_ms: output_started.elapsed().as_millis(),

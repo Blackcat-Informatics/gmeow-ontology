@@ -1285,6 +1285,83 @@ impl StatementRule {
     }
 }
 
+/// The rules the EXPTIME model-summarizing rung may summarize. Its critical instance
+/// spans every constant of the program, so larger programs are refused with that
+/// reason rather than attempted.
+const MODEL_SUMMARIZING_MAX_RULES: usize = 64;
+
+/// Which rungs of the termination-class ladder a certification may climb.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Ladder {
+    /// Weak, joint and super-weak acyclicity: the polynomial structural rungs. A
+    /// source-independent template uses these and defers model-summarizing
+    /// acyclicity to its input-specific certification, which sees only the
+    /// producers that can fire.
+    Polynomial,
+    /// Every rung, including the EXPTIME model-summarizing check.
+    Complete,
+}
+
+/// The producers of `rules` that can fire on one admitted input.
+///
+/// `seeds` are the canonical predicates the input's present and possible statements
+/// carry; `None` means some statement may carry any predicate, which keeps every
+/// producer. A producer fires only once each fixed body predicate is present or
+/// written by another firing producer (a variable body predicate needs any statement
+/// at all), so this least fixpoint over-approximates the firing set. A producer
+/// outside it never fires on this input, mints no witness, and cannot affect chase
+/// termination here; a firing producer whose head predicate is a variable may write
+/// any predicate and keeps every producer.
+pub(crate) fn firing_statements(
+    rules: &[StatementRule],
+    seeds: Option<&BTreeSet<String>>,
+    semantics: crate::native_semantics::SemanticVocabulary,
+) -> Vec<StatementRule> {
+    let Some(seeds) = seeds else {
+        return rules.to_vec();
+    };
+    let fixed = |term: &EvalTerm| match term {
+        EvalTerm::ConstNamed(iri) | EvalTerm::ConstLit(purrdf::TermValue::Iri(iri)) => {
+            Some(semantics.predicate(iri).to_owned())
+        }
+        _ => None,
+    };
+    let mut reachable = seeds.clone();
+    let mut fires = vec![false; rules.len()];
+    loop {
+        let mut changed = false;
+        for (rule, fired) in rules.iter().zip(&mut fires) {
+            if *fired {
+                continue;
+            }
+            let ready = rule.body.iter().all(|atom| match fixed(&atom[1]) {
+                Some(predicate) => reachable.contains(&predicate),
+                None => !reachable.is_empty(),
+            });
+            if !ready {
+                continue;
+            }
+            *fired = true;
+            changed = true;
+            for head in &rule.heads {
+                let Some(predicate) = fixed(&head[1]) else {
+                    return rules.to_vec();
+                };
+                reachable.insert(predicate);
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    rules
+        .iter()
+        .zip(fires)
+        .filter(|(_, fired)| *fired)
+        .map(|(rule, _)| rule.clone())
+        .collect()
+}
+
 impl ChaseAdmission {
     /// Certify the combined ordinary, existential and native schema producers.
     ///
@@ -1314,7 +1391,7 @@ impl ChaseAdmission {
             .map(StatementRule::from_binary)
             .chain(properties.iter().map(StatementRule::from_property))
             .collect();
-        Self::certify_statements(&analysis, semantics)
+        Self::certify_statements(&analysis, semantics, Ladder::Complete)
     }
 
     /// Certify a complete over-approximation of native producers. Source-bound
@@ -1323,6 +1400,7 @@ impl ChaseAdmission {
     pub(crate) fn certify_statements(
         rules: &[StatementRule],
         semantics: crate::native_semantics::SemanticVocabulary,
+        ladder: Ladder,
     ) -> Self {
         let fixed_relations = rules
             .iter()
@@ -1391,7 +1469,7 @@ impl ChaseAdmission {
             Self::certify_weakly_acyclic(&analysis)
                 .unwrap_or_else(|violations| Self::Uncertified { violations })
         } else {
-            Self::certify(&analysis)
+            Self::certify_on(&analysis, ladder)
         };
         let context = format!(
             "joint statement value-flow abstraction of {} native producer(s)",
@@ -1418,6 +1496,11 @@ impl ChaseAdmission {
     /// rungs all refuse. When no class certifies, return `Uncertified` carrying the
     /// weak-acyclicity position-graph violations (the canonical diagnostic).
     pub(crate) fn certify(rules: &[ExistentialRule]) -> Self {
+        Self::certify_on(rules, Ladder::Complete)
+    }
+
+    /// [`Self::certify`] over the selected rungs of the ladder.
+    pub(crate) fn certify_on(rules: &[ExistentialRule], ladder: Ladder) -> Self {
         if rules.iter().any(|rule| !rule.numeric.is_empty()) {
             // Arithmetic can collapse or reuse values. Only the conservative
             // position proof applies; critical-instance tuple proofs do not.
@@ -1437,9 +1520,25 @@ impl ChaseAdmission {
         }
         match Self::certify_weakly_acyclic(rules) {
             Ok(admission) => admission,
-            Err(violations) => Self::certify_joint_acyclic(rules)
+            Err(mut violations) => Self::certify_joint_acyclic(rules)
                 .or_else(|| Self::certify_super_weak_acyclic(rules))
-                .or_else(|| Self::certify_model_summarizing(rules))
+                .or_else(|| match ladder {
+                    Ladder::Complete if rules.len() <= MODEL_SUMMARIZING_MAX_RULES => {
+                        Self::certify_model_summarizing(rules)
+                    }
+                    Ladder::Complete => {
+                        violations.insert(
+                            0,
+                            format!(
+                                "model-summarizing acyclicity not attempted: {} rules exceed its \
+                                 {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
+                                rules.len()
+                            ),
+                        );
+                        None
+                    }
+                    Ladder::Polynomial => None,
+                })
                 .unwrap_or(Self::Uncertified { violations }),
         }
     }
@@ -1453,6 +1552,10 @@ impl ChaseAdmission {
             std::collections::BTreeMap::new();
         let mut special: Vec<(Position, Position)> = Vec::new();
         let mut all_nodes: BTreeSet<Position> = BTreeSet::new();
+        // Positions a head writes and a body reads: cross-rule flow joins a written
+        // position to every read position its values can match.
+        let mut written: BTreeSet<Position> = BTreeSet::new();
+        let mut read: BTreeSet<Position> = BTreeSet::new();
 
         for rule in rules {
             let body_vars = rule.body_vars();
@@ -1469,6 +1572,8 @@ impl ChaseAdmission {
                     for h in &hpos {
                         all_nodes.insert(b.clone());
                         all_nodes.insert(h.clone());
+                        read.insert(b.clone());
+                        written.insert(h.clone());
                         adj.entry(b.clone()).or_default().insert(h.clone());
                     }
                 }
@@ -1486,6 +1591,8 @@ impl ChaseAdmission {
                         for b in &frontier_bpos {
                             all_nodes.insert(b.clone());
                             all_nodes.insert(h.clone());
+                            read.insert(b.clone());
+                            written.insert(h.clone());
                             adj.entry(b.clone()).or_default().insert(h.clone());
                             special.push((b.clone(), h.clone()));
                         }
@@ -1494,13 +1601,16 @@ impl ChaseAdmission {
             }
         }
 
-        add_wildcard_subsumption(&mut adj, &all_nodes);
+        add_wildcard_subsumption(&mut adj, &written, &read);
 
         // A special edge (u → v) violates weak acyclicity iff v can reach u (the edge
-        // lies in a cycle → the chase may not terminate).
+        // lies in a cycle → the chase may not terminate). The edge itself is in the
+        // graph, so that holds exactly when u and v share a strongly connected
+        // component: one linear pass decides every edge.
+        let component = position_components(&adj);
         let mut violations: Vec<String> = Vec::new();
         for (u, v) in &special {
-            if reaches(&adj, v, u) {
+            if component[u] == component[v] {
                 violations.push(format!(
                     "weak-acyclicity: existential edge {} -> {} lies in a cycle (the restricted chase may not terminate)",
                     u.render(),
@@ -2106,61 +2216,64 @@ pub(crate) fn route_chase_with_registry_backstopped(
     Ok((admission, outcome))
 }
 
-/// Connect wildcard and constant refinements of the same `(predicate, slot)` when BOTH
-/// occur — a conservative over-approximation (a wildcard-typed null could be any class,
-/// and a wildcard consumer reads any class), so reachability is never under-counted.
+/// Join wildcard and constant refinements of the same `(predicate, slot)` along the
+/// flows a matching fact can actually take. A value written at the wildcard (any class)
+/// can be read at every constant refinement, and a value written at a constant
+/// refinement can be read at the wildcard. Shared nodes already carry same-class flow.
+/// A wildcard that is only read never feeds a constant, so no edge leaves it toward
+/// one: that edge would join two consumers and close cycles no chase can follow.
 fn add_wildcard_subsumption(
     adj: &mut std::collections::BTreeMap<Position, BTreeSet<Position>>,
-    nodes: &BTreeSet<Position>,
+    written: &BTreeSet<Position>,
+    read: &BTreeSet<Position>,
 ) {
-    use std::collections::BTreeMap;
-    // Group nodes by (predicate, slot).
-    let mut groups: BTreeMap<(String, Slot), (Vec<Position>, bool)> = BTreeMap::new();
-    for n in nodes {
-        let entry = groups.entry((n.predicate.clone(), n.slot)).or_default();
-        if n.class == ClassKey::Wildcard {
-            entry.1 = true;
-        } else {
-            entry.0.push(n.clone());
+    let wildcard = |position: &Position| Position {
+        predicate: position.predicate.clone(),
+        slot: position.slot,
+        class: ClassKey::Wildcard,
+    };
+    for constant in read.iter().filter(|p| p.class != ClassKey::Wildcard) {
+        let source = wildcard(constant);
+        if written.contains(&source) {
+            adj.entry(source).or_default().insert(constant.clone());
         }
     }
-    for ((predicate, slot), (consts, has_wildcard)) in groups {
-        if !has_wildcard || consts.is_empty() {
-            continue; // refinement stays precise unless both a wildcard and consts occur
-        }
-        let wildcard = Position {
-            predicate,
-            slot,
-            class: ClassKey::Wildcard,
-        };
-        for c in consts {
-            adj.entry(c.clone()).or_default().insert(wildcard.clone());
-            adj.entry(wildcard.clone()).or_default().insert(c);
+    for constant in written.iter().filter(|p| p.class != ClassKey::Wildcard) {
+        let target = wildcard(constant);
+        if read.contains(&target) {
+            adj.entry(constant.clone()).or_default().insert(target);
         }
     }
 }
 
-/// Whether `to` is reachable from `from` in `adj` (BFS over ≥1 edges; a self-edge on
-/// `from` therefore counts).
-fn reaches(
+/// The strongly connected component of every position in `adj`, by position.
+fn position_components(
     adj: &std::collections::BTreeMap<Position, BTreeSet<Position>>,
-    from: &Position,
-    to: &Position,
-) -> bool {
-    let mut stack: Vec<&Position> = adj.get(from).into_iter().flatten().collect();
-    let mut seen: BTreeSet<&Position> = BTreeSet::new();
-    while let Some(node) = stack.pop() {
-        if node == to {
-            return true;
-        }
-        if !seen.insert(node) {
-            continue;
-        }
-        if let Some(succs) = adj.get(node) {
-            stack.extend(succs.iter());
-        }
-    }
-    false
+) -> std::collections::BTreeMap<&Position, usize> {
+    let nodes: BTreeSet<&Position> = adj
+        .iter()
+        .flat_map(|(from, to)| std::iter::once(from).chain(to))
+        .collect();
+    let index: std::collections::BTreeMap<&Position, usize> = nodes
+        .iter()
+        .enumerate()
+        .map(|(index, node)| (*node, index))
+        .collect();
+    let rows: Vec<Vec<usize>> = nodes
+        .iter()
+        .map(|node| {
+            adj.get(*node)
+                .into_iter()
+                .flatten()
+                .map(|next| index[next])
+                .collect()
+        })
+        .collect();
+    let component = purrdf_core::graph::scc_component_index(&rows);
+    index
+        .into_iter()
+        .map(|(node, position)| (node, component[position]))
+        .collect()
 }
 
 // ── Joint-acyclicity support: null-flow `Move` sets over refined positions ──────────

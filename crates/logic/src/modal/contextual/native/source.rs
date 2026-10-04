@@ -1,54 +1,97 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! A borrowed view of the native ingress columns. Only term lookup is indexed;
-//! statements stay in their existing source owner and are never copied or frozen.
+//! A compact native view over ingress premises. It interns each distinct term
+//! once, retains only ID rows thereafter, and builds a predicate index without
+//! constructing or freezing a second RDF dataset.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::convert::Infallible;
 use std::sync::Arc;
 
 use crate::reason::refute::RefutationPremise;
+use foldhash::fast::FixedState;
+use hashbrown::HashMap;
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfStoreCapabilities, TermId, TermRef, TermValue};
 
 const REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 
-pub(super) struct SourceView<'a> {
-    sources: &'a BTreeMap<String, Arc<[RefutationPremise]>>,
-    values: Vec<TermValue>,
-    ids: BTreeMap<TermValue, TermId>,
-    reifiers: BTreeSet<(TermId, Option<TermId>)>,
+enum QuadCandidates<'a> {
+    All(std::slice::Iter<'a, QuadIds>),
+    Predicate {
+        rows: &'a [QuadIds],
+        indices: std::slice::Iter<'a, usize>,
+    },
+    Empty,
 }
 
-impl<'a> SourceView<'a> {
+impl Iterator for QuadCandidates<'_> {
+    type Item = QuadIds;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::All(rows) => rows.next().copied(),
+            Self::Predicate { rows, indices } => indices.next().map(|index| rows[*index]),
+            Self::Empty => None,
+        }
+    }
+}
+
+pub(super) struct SourceView {
+    values: Vec<TermValue>,
+    ids: HashMap<TermValue, TermId, FixedState>,
+    rows: Vec<QuadIds>,
+    rows_by_predicate: HashMap<TermId, Vec<usize>, FixedState>,
+    reifier_rows: Vec<QuadIds>,
+    annotation_rows: Vec<QuadIds>,
+    named_graphs: Vec<TermId>,
+}
+
+impl SourceView {
     pub(super) fn new(
-        sources: &'a BTreeMap<String, Arc<[RefutationPremise]>>,
+        sources: &BTreeMap<String, Arc<[RefutationPremise]>>,
     ) -> gmeow_errors::Result<Self> {
         let mut view = Self {
-            sources,
             values: Vec::new(),
-            ids: BTreeMap::new(),
-            reifiers: BTreeSet::new(),
+            ids: HashMap::default(),
+            rows: Vec::new(),
+            rows_by_predicate: HashMap::default(),
+            reifier_rows: Vec::new(),
+            annotation_rows: Vec::new(),
+            named_graphs: Vec::new(),
         };
+        let mut rows = Vec::new();
+        let mut reifiers = BTreeSet::new();
+        let mut named_graphs = BTreeSet::new();
         for source in sources.values().flat_map(|sources| sources.iter()) {
-            view.intern(&source.subject)?;
-            view.intern(&TermValue::iri(&source.predicate))?;
-            view.intern(&source.object)?;
-            if let Some(graph) = &source.graph {
-                view.intern(graph)?;
+            let s = view.intern(&source.subject)?;
+            let p = view.intern(&TermValue::iri(&source.predicate))?;
+            let o = view.intern(&source.object)?;
+            let g = source
+                .graph
+                .as_ref()
+                .map(|graph| view.intern(graph))
+                .transpose()?;
+            if let Some(graph) = g {
+                named_graphs.insert(graph);
+            }
+            if source.predicate == REIFIES {
+                reifiers.insert((s, g));
+            }
+            rows.push((QuadIds { s, p, o, g }, source.predicate == REIFIES));
+        }
+        view.named_graphs = named_graphs.into_iter().collect();
+        for (row, is_reifier) in rows {
+            if is_reifier {
+                view.reifier_rows.push(row);
+            } else if reifiers.contains(&(row.s, row.g)) {
+                view.annotation_rows.push(row);
+            } else {
+                let index = view.rows.len();
+                view.rows_by_predicate.entry(row.p).or_default().push(index);
+                view.rows.push(row);
             }
         }
-        view.reifiers = sources
-            .values()
-            .flat_map(|sources| sources.iter())
-            .filter(|source| source.predicate == REIFIES)
-            .map(|source| {
-                (
-                    view.id(&source.subject),
-                    source.graph.as_ref().map(|graph| view.id(graph)),
-                )
-            })
-            .collect();
         Ok(view)
     }
 
@@ -85,25 +128,22 @@ impl<'a> SourceView<'a> {
         self.ids[value]
     }
 
-    fn row(&self, source: &RefutationPremise) -> QuadIds {
-        QuadIds {
-            s: self.id(&source.subject),
-            p: self.id(&TermValue::iri(&source.predicate)),
-            o: self.id(&source.object),
-            g: source.graph.as_ref().map(|graph| self.id(graph)),
+    fn candidates(&self, predicate: Option<TermId>) -> QuadCandidates<'_> {
+        match predicate {
+            None => QuadCandidates::All(self.rows.iter()),
+            Some(predicate) => {
+                self.rows_by_predicate
+                    .get(&predicate)
+                    .map_or(QuadCandidates::Empty, |indices| QuadCandidates::Predicate {
+                        rows: &self.rows,
+                        indices: indices.iter(),
+                    })
+            }
         }
-    }
-
-    fn is_annotation(&self, source: &RefutationPremise) -> bool {
-        source.predicate != REIFIES
-            && self.reifiers.contains(&(
-                self.id(&source.subject),
-                source.graph.as_ref().map(|graph| self.id(graph)),
-            ))
     }
 }
 
-impl DatasetView for SourceView<'_> {
+impl DatasetView for SourceView {
     type Id = TermId;
     // Every term and row is resident in this view; a read cannot fail.
     type ReadError = Infallible;
@@ -114,11 +154,7 @@ impl DatasetView for SourceView<'_> {
     type ProbePlan = ();
 
     fn quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
-        self.sources
-            .values()
-            .flat_map(|sources| sources.iter())
-            .filter(|source| source.predicate != REIFIES && !self.is_annotation(source))
-            .map(|source| self.row(source))
+        self.rows.iter().copied()
     }
     fn resolve(&self, id: TermId) -> Result<TermRef<'_>, Infallible> {
         Ok(match &self.values[id.index()] {
@@ -158,6 +194,19 @@ impl DatasetView for SourceView<'_> {
         }
     }
     fn probe_plan(&self, _: bool, _: bool, _: bool, _: GraphMatch) -> Self::ProbePlan {}
+    fn quads_for_pattern(
+        &self,
+        s: Option<TermId>,
+        p: Option<TermId>,
+        o: Option<TermId>,
+        g: GraphMatch,
+    ) -> impl Iterator<Item = QuadIds> + '_ {
+        self.candidates(p).filter(move |row| {
+            s.is_none_or(|subject| row.s == subject)
+                && o.is_none_or(|object| row.o == object)
+                && g.matches(row.g)
+        })
+    }
     fn quads_for_pattern_with_plan(
         &self,
         _: &Self::ProbePlan,
@@ -172,18 +221,10 @@ impl DatasetView for SourceView<'_> {
         self.values.len() as u64
     }
     fn reifier_quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
-        self.sources
-            .values()
-            .flat_map(|sources| sources.iter())
-            .filter(|source| source.predicate == REIFIES)
-            .map(|source| self.row(source))
+        self.reifier_rows.iter().copied()
     }
     fn annotation_quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
-        self.sources
-            .values()
-            .flat_map(|sources| sources.iter())
-            .filter(|source| self.is_annotation(source))
-            .map(|source| self.row(source))
+        self.annotation_rows.iter().copied()
     }
     fn annotations_of_with_graph(
         &self,
@@ -194,11 +235,10 @@ impl DatasetView for SourceView<'_> {
             .map(|row| (row.p, row.o, row.g))
     }
     fn named_graphs(&self) -> impl Iterator<Item = TermId> + '_ {
-        self.sources
-            .values()
-            .flat_map(|sources| sources.iter())
-            .filter_map(|source| source.graph.as_ref().map(|graph| self.id(graph)))
-            .collect::<BTreeSet<_>>()
-            .into_iter()
+        self.named_graphs.iter().copied()
     }
 }
+
+#[cfg(test)]
+#[path = "source.tests.rs"]
+mod tests;

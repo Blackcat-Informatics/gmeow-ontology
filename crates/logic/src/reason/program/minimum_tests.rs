@@ -456,3 +456,77 @@ fn an_existing_existential_witness_does_not_materialize_the_rest_of_its_relation
     assert_eq!(result.status, crate::seam::BudgetStatus::Ok);
     assert!(result.witnesses.is_empty());
 }
+
+#[test]
+fn mutable_selector_rows_past_the_analysis_bound_leave_the_input_certificate_decidable() {
+    // Thousands of membership rows are input-scale data, not schema: the
+    // certificate's join never reads a mutable relation, so they cannot exhaust
+    // the bounded analysis of the proved-immutable schema rows.
+    let mut rows = request(MIN, "2", C);
+    rows.extend((0..4_200).map(|index| fact(&format!("urn:minimum:pad:{index}"), TYPE, SEEN)));
+    let result = run(rows, &[(P, SEEN)], None).unwrap();
+    assert_eq!(result.status, crate::seam::BudgetStatus::Ok);
+    assert_eq!(fillers(&result, P).len(), 2);
+    assert_eq!(fillers(&result, P), fillers(&result, SEEN));
+}
+
+#[test]
+fn immutable_selector_rows_past_the_analysis_bound_name_the_undecided_certificate() {
+    // Schema rows past the bound leave the input certificate undecided. The
+    // source-independent certificate refuses the minimum laws alone, and the
+    // refusal says the input-specific certificate was not attempted and why.
+    // One row past the 2^18-row analysis bound (the request adds one more).
+    const PAST_BOUND: usize = (1 << 18) + 1;
+    let mut rows = request(MIN, "2", C);
+    rows.extend(
+        (0..PAST_BOUND)
+            .map(|index| fact(&format!("urn:minimum:restriction:{index}"), ON_PROPERTY, P)),
+    );
+    let Err(error) = run(rows, &[(P, SEEN)], None) else {
+        panic!("an undecided input certificate must not admit the minimum laws");
+    };
+    let error = error.to_string();
+    assert!(
+        error.contains("input-specific termination certificate not decided"),
+        "{error}"
+    );
+    assert!(error.contains("proved-immutable selector rows"), "{error}");
+    assert!(error.contains("262144-row"), "{error}");
+    let heaviest = format!("heaviest: {ON_PROPERTY}={}", PAST_BOUND + 1);
+    assert!(
+        error.contains(&heaviest),
+        "the refusal names the heaviest immutable predicate: {error}"
+    );
+}
+
+#[test]
+fn a_schema_past_the_former_row_bound_still_reaches_its_input_certificate() {
+    // Production schemas carry thousands of restriction descriptors. Fifteen hundred
+    // qualified-minimum restrictions (4,500 immutable rows, past the former 4,096-row
+    // bound) are analysed exactly and certify; only the one restriction with a member
+    // mints witnesses.
+    let mut rows = request(MIN, "2", C);
+    for index in 0..1_500 {
+        let restriction = format!("urn:minimum:schema-restriction:{index}");
+        rows.extend([
+            fact(
+                &restriction,
+                ON_PROPERTY,
+                &format!("urn:minimum:schema-property:{index}"),
+            ),
+            fact(&restriction, ON_CLASS, C),
+            RdfQuad::new(
+                RdfTerm::iri(&restriction),
+                MIN,
+                RdfTerm::Literal(RdfLiteral::typed(
+                    "1",
+                    "http://www.w3.org/2001/XMLSchema#integer",
+                )),
+            ),
+        ]);
+    }
+    let result = run(rows, &[(P, SEEN)], None).unwrap();
+    assert_eq!(result.status, crate::seam::BudgetStatus::Ok);
+    assert_eq!(fillers(&result, P).len(), 2);
+    assert_eq!(result.witnesses.len(), 2);
+}

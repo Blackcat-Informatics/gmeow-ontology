@@ -8,6 +8,7 @@
 //! delta. No family is re-seeded from a materialized intermediate closure.
 
 use std::sync::Arc;
+use std::time::Instant;
 
 use super::property::PreparedPropertyRule;
 use super::{
@@ -141,7 +142,15 @@ impl JointProgram {
         ) else {
             return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
         };
-        let admission = producer_admission(rules, producers, properties, &families, semantics);
+        // No input-specific certification follows this entry: climb every rung here.
+        let admission = producer_admission(
+            rules,
+            producers,
+            properties,
+            &families,
+            semantics,
+            crate::physical::chase::Ladder::Complete,
+        );
         let layouts = RuleLayouts::new(rules)?;
         let producers = prepare_producers(producers)?;
         Ok(NativeOutcome::Decided(Self::from_schedule(
@@ -373,6 +382,14 @@ impl JointProgram {
         mut native: Option<input::NativeInputBinding<'_>>,
         mut retention: Option<&mut RetainedJoint>,
     ) -> gmeow_errors::Result<NativeOutcome<JointMaterialization>> {
+        let setup_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "initialize-native-worlds",
+            event = "start",
+            "reason phase boundary",
+        );
         if (self.operation != JointOperation::Relational) != native.is_some() {
             return Err(seminaive_err(
                 "native family execution requires its exact original source admission",
@@ -406,6 +423,15 @@ impl JointProgram {
         let observation_flow = native.as_ref().map(|binding| binding.flow);
         for entry in worlds {
             let (world, edb) = entry?;
+            tracing::info!(
+                target: "pipeline_phase",
+                stage = "stage-reason",
+                phase = "initialize-native-world",
+                event = "start",
+                world,
+                edb_facts = edb.len(),
+                "reason phase boundary",
+            );
             if runtimes.contains_key(world) {
                 return Err(seminaive_err("native world supplied twice"));
             }
@@ -474,7 +500,31 @@ impl JointProgram {
                 world.to_owned(),
                 WorldRuntime::new(&edb, self.semantics, family)?,
             );
+            tracing::info!(
+                target: "pipeline_phase",
+                stage = "stage-reason",
+                phase = "initialize-native-world",
+                event = "end",
+                world,
+                edb_facts = edb.len(),
+                initialized_worlds = runtimes.len(),
+                "reason phase boundary",
+            );
         }
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "initialize-native-worlds",
+            event = "end",
+            elapsed_ms = setup_started.elapsed().as_millis(),
+            worlds = runtimes.len(),
+            asserted_rows = asserted.len(),
+            runtime_rows = runtimes
+                .values()
+                .map(|runtime| runtime.store.facts().len())
+                .sum::<usize>(),
+            "reason phase boundary",
+        );
         let modal_start = effects.len();
         if let Some(modal) = &modal {
             effects.extend(modal.effects().iter().cloned());
@@ -544,6 +594,16 @@ impl JointProgram {
                 }
             }
         }
+        let schedule_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "schedule-native-effects",
+            event = "start",
+            effects = effects.len(),
+            observations = observations.len(),
+            "reason phase boundary",
+        );
         let Ok(schedule) = crate::physical::effects::schedule_worlds(
             &effects,
             self.semantics,
@@ -553,6 +613,15 @@ impl JointProgram {
             return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
         };
         let total = schedule.strata.iter().copied().max().unwrap_or(0) + 1;
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "schedule-native-effects",
+            event = "end",
+            elapsed_ms = schedule_started.elapsed().as_millis(),
+            strata = total,
+            "reason phase boundary",
+        );
         let captured_facts = retention.as_ref().map(|_| {
             runtimes
                 .iter()
@@ -609,6 +678,18 @@ impl JointProgram {
         let mut terminal = NativeClosureStatus::Completed;
         let mut inference_exhausted = false;
         'strata: for index in 0..total {
+            tracing::info!(
+                target: "pipeline_phase",
+                stage = "stage-reason",
+                phase = "materialize-native-stratum",
+                event = "start",
+                stratum = index,
+                runtime_rows = runtimes
+                    .values()
+                    .map(|runtime| runtime.store.facts().len())
+                    .sum::<usize>(),
+                "reason phase boundary",
+            );
             for (world, runtime) in &mut runtimes {
                 runtime.start_stratum(&plans[world], index);
             }
@@ -616,7 +697,23 @@ impl JointProgram {
             // stratum can still publish through successive frozen rounds. This
             // never advances a completed-read frontier or exposes a later stratum.
             let mut draining_retained = false;
+            let mut round_index = 0usize;
             loop {
+                let current_round = round_index;
+                round_index += 1;
+                tracing::info!(
+                    target: "pipeline_phase",
+                    stage = "stage-reason",
+                    phase = "materialize-native-round",
+                    event = "start",
+                    stratum = index,
+                    round = current_round,
+                    runtime_rows = runtimes
+                        .values()
+                        .map(|runtime| runtime.store.facts().len())
+                        .sum::<usize>(),
+                    "reason phase boundary",
+                );
                 let mut rounds = std::collections::BTreeMap::new();
                 let mut truncated = false;
                 let mut inference_cut = false;
@@ -643,6 +740,19 @@ impl JointProgram {
                     }
                     rounds.insert(world.clone(), round.candidates);
                 }
+                tracing::info!(
+                    target: "pipeline_phase",
+                    stage = "stage-reason",
+                    phase = "materialize-native-round-gather",
+                    event = "end",
+                    stratum = index,
+                    round = current_round,
+                    candidate_rows = rounds
+                        .values()
+                        .map(|candidates| candidates.entries.len())
+                        .sum::<usize>(),
+                    "reason phase boundary",
+                );
                 let retained_heads = match &mut reuse {
                     Some(reuse) => reuse.gather(index, &runtimes, &mut rounds)?,
                     None => std::collections::BTreeMap::new(),
@@ -800,6 +910,19 @@ impl JointProgram {
                     draining_retained = true;
                 }
             }
+            tracing::info!(
+                target: "pipeline_phase",
+                stage = "stage-reason",
+                phase = "materialize-native-stratum",
+                event = "end",
+                stratum = index,
+                rounds = round_index,
+                runtime_rows = runtimes
+                    .values()
+                    .map(|runtime| runtime.store.facts().len())
+                    .sum::<usize>(),
+                "reason phase boundary",
+            );
         }
         // Final observations use the same scheduled terminal in every world.
         // A later world's analysis cannot retroactively change the completion
@@ -1001,6 +1124,7 @@ fn producer_admission(
     properties: &[PreparedPropertyRule],
     families: &[families::Arm],
     semantics: crate::native_semantics::SemanticVocabulary,
+    ladder: crate::physical::chase::Ladder,
 ) -> ChaseAdmission {
     // Dropping filters/NAF is a conservative producer over-approximation for
     // termination. Arithmetic generation requires its own range certificate.
@@ -1040,7 +1164,7 @@ fn producer_admission(
             )
             .chain(families.iter().map(|arm| arm.statement.clone()))
             .collect();
-        ChaseAdmission::certify_statements(&statements, semantics)
+        ChaseAdmission::certify_statements(&statements, semantics, ladder)
     } else {
         ChaseAdmission::Uncertified {
             violations: arithmetic,
@@ -1337,6 +1461,16 @@ impl JointStratum {
             mode: ProvenanceMode::Record,
         };
         let mut round = RoundCandidateBuffer::new();
+        let sources_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-source-admission",
+            event = "start",
+            world,
+            input_rows = snapshot.store.facts().len(),
+            "reason phase boundary",
+        );
         state.family.prepare_sources(
             snapshot,
             &state.rows,
@@ -1346,8 +1480,28 @@ impl JointStratum {
             &state.progress.saturated_preds,
             &state.completed_reads,
         )?;
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-source-admission",
+            event = "end",
+            world,
+            elapsed_ms = sources_started.elapsed().as_millis(),
+            "reason phase boundary",
+        );
         if let Some(exe) = &self.ordinary {
             for index in 0..exe.stratum_count() {
+                let ordinary_started = Instant::now();
+                tracing::info!(
+                    target: "pipeline_phase",
+                    stage = "stage-reason",
+                    phase = "gather-native-ordinary-rules",
+                    event = "start",
+                    world,
+                    program_stratum = index,
+                    candidate_rows = round.entries.len(),
+                    "reason phase boundary",
+                );
                 round.merge_from(
                     evaluate_round_candidates(
                         exe,
@@ -1358,8 +1512,30 @@ impl JointStratum {
                     )?,
                     ProvenanceMode::Record,
                 )?;
+                tracing::info!(
+                    target: "pipeline_phase",
+                    stage = "stage-reason",
+                    phase = "gather-native-ordinary-rules",
+                    event = "end",
+                    world,
+                    program_stratum = index,
+                    elapsed_ms = ordinary_started.elapsed().as_millis(),
+                    candidate_rows = round.entries.len(),
+                    "reason phase boundary",
+                );
             }
         }
+        let properties_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-properties",
+            event = "start",
+            world,
+            properties = self.properties.len(),
+            candidate_rows = round.entries.len(),
+            "reason phase boundary",
+        );
         let mut property_truncated = false;
         let mut property_blocked = false;
         for property in &self.properties {
@@ -1392,6 +1568,29 @@ impl JointStratum {
                 break;
             }
         }
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-properties",
+            event = "end",
+            world,
+            elapsed_ms = properties_started.elapsed().as_millis(),
+            candidate_rows = round.entries.len(),
+            truncated = property_truncated,
+            blocked = property_blocked,
+            "reason phase boundary",
+        );
+        let chase_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-existentials",
+            event = "start",
+            world,
+            producers = self.producers.len(),
+            candidate_rows = round.entries.len(),
+            "reason phase boundary",
+        );
         let chase_truncated = chase_round(
             self.producers.iter().map(Arc::as_ref),
             &state.rel,
@@ -1410,6 +1609,28 @@ impl JointStratum {
                 Ok(())
             },
         )?;
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-existentials",
+            event = "end",
+            world,
+            elapsed_ms = chase_started.elapsed().as_millis(),
+            candidate_rows = round.entries.len(),
+            truncated = chase_truncated,
+            "reason phase boundary",
+        );
+        let families_started = Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-families",
+            event = "start",
+            world,
+            families = self.families.len(),
+            candidate_rows = round.entries.len(),
+            "reason phase boundary",
+        );
         state.family.round(
             &self.families,
             snapshot,
@@ -1421,6 +1642,16 @@ impl JointStratum {
             &state.completed_reads,
             &mut round,
         )?;
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "gather-native-families",
+            event = "end",
+            world,
+            elapsed_ms = families_started.elapsed().as_millis(),
+            candidate_rows = round.entries.len(),
+            "reason phase boundary",
+        );
         state.gaps.append(&mut round.builtin_gap);
         let inference_cut = property_truncated || chase_truncated;
         let truncated = inference_cut || state.family.analysis_exhausted();

@@ -10,6 +10,10 @@ use crate::seam::BudgetStatus;
 use purrdf::TermValue;
 
 const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+const PROPERTY_CHAIN: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
 const INSTANCE: &str = "https://blackcatinformatics.ca/logic/instanceOf";
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 const WORLD: &str = "urn:world";
@@ -26,6 +30,107 @@ fn atom(s: &str, p: &str, o: &str) -> EvalAtom {
 }
 fn property(values: [&str; 3]) -> PropertyAtom {
     PropertyAtom(values.map(term))
+}
+
+fn dependency_cycle(input: &JointInput) -> crate::physical::dependency::DependencyCycle {
+    let observations: Vec<_> = input
+        .facts
+        .keys()
+        .flat_map(|world| {
+            input.template.family_reads.iter().map(move |read| {
+                crate::physical::effects::WorldStatementObservation {
+                    world: world.clone(),
+                    pattern: input.flow.ranged_pattern(
+                        crate::physical::effects::StatementPattern::relation(
+                            read.predicate.as_deref(),
+                            read.marker.as_deref(),
+                        ),
+                    ),
+                }
+            })
+        })
+        .collect();
+    let scoped: Vec<_> = input
+        .world_effects
+        .iter()
+        .flat_map(|(world, effects)| {
+            effects.iter().cloned().map(move |effect| {
+                crate::physical::effects::WorldProducerEffect::local(world, effect)
+            })
+        })
+        .collect();
+    let predicates = input
+        .facts
+        .iter()
+        .map(|(world, facts)| {
+            (
+                world.clone(),
+                facts.iter().map(|fact| fact.predicate.clone()).collect(),
+            )
+        })
+        .collect();
+    crate::physical::effects::schedule_worlds(
+        &scoped,
+        input.template.semantics,
+        &predicates,
+        &observations,
+    )
+    .err()
+    .expect("input has a dependency cycle")
+}
+
+#[test]
+fn maximum_one_schema_exports_its_native_count_guard_to_value_flow() {
+    let laws: Vec<_> = crate::reason::schema_laws()
+        .iter()
+        .filter(|law| law.source.rule_iri == "dl:maximum-one-equality")
+        .collect();
+    assert!(!laws.is_empty());
+    for law in laws {
+        let guards = flow_cardinality_guards(law);
+        assert_eq!(guards.len(), 1);
+        assert_eq!(guards[0].count, 1);
+        assert_eq!(guards[0].term, EvalTerm::var("?count"));
+    }
+}
+
+#[test]
+fn minimum_schema_exports_every_generated_analysis_witness_to_value_flow() {
+    let laws: Vec<_> = crate::reason::schema_laws()
+        .iter()
+        .filter(|law| law.source.rule_iri.starts_with("dl:minimum-witness:"))
+        .collect();
+    assert!(!laws.is_empty());
+    for law in laws {
+        let body_variables: BTreeSet<_> = law
+            .analysis_body
+            .iter()
+            .flat_map(|atom| &atom.0)
+            .filter_map(|term| match term {
+                EvalTerm::Var(name) => Some(name.clone()),
+                _ => None,
+            })
+            .collect();
+        let generated: BTreeSet<_> = law
+            .analysis_heads
+            .iter()
+            .flat_map(|atom| &atom.0)
+            .filter_map(|term| match term {
+                EvalTerm::Var(name) if !body_variables.contains(name) => Some(name.clone()),
+                _ => None,
+            })
+            .collect();
+
+        assert_eq!(generated.len(), 2, "{}", law.source.rule_iri);
+        assert_eq!(
+            flow_native_witnesses(law)
+                .into_iter()
+                .collect::<BTreeSet<_>>(),
+            generated,
+            "{}",
+            law.source.rule_iri,
+        );
+    }
 }
 
 fn template(operator: &str) -> Arc<JointTemplate> {
@@ -149,6 +254,290 @@ fn schema_class_value_flow_admits_unrelated_failure_types_and_refuses_feedback()
         ));
         assert!(plan.materialize_input(&changed, None).is_err());
         assert!(plan.materialize_facts(&data, None).is_err());
+    }
+}
+
+#[test]
+fn range_selected_class_declaration_does_not_turn_type_into_the_ranged_property() {
+    const RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+    const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
+    const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
+    let template = Arc::new(
+        JointTemplate::build(
+            &[],
+            &[],
+            crate::reason::schema_laws(),
+            SemanticVocabulary::GroundedLogicV1,
+            &[],
+            None,
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            super::super::JointOperation::Forward,
+        )
+        .unwrap(),
+    );
+    let data = BTreeMap::from([(
+        WORLD.to_owned(),
+        vec![
+            Fact {
+                subject: TermValue::iri(PROPERTY),
+                predicate: RANGE.to_owned(),
+                object: TermValue::iri(CLASS),
+            },
+            Fact {
+                subject: TermValue::iri("urn:term"),
+                predicate: PROPERTY.to_owned(),
+                object: TermValue::iri("urn:declared-class"),
+            },
+            Fact {
+                subject: TermValue::iri("urn:individual"),
+                predicate: TYPE.to_owned(),
+                object: TermValue::iri("urn:ordinary-class"),
+            },
+        ],
+    )]);
+
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    assert!(
+        matches!(input.prepare().unwrap(), NativeOutcome::Decided(_)),
+        "rdf:type output cannot satisfy an unrelated data-selected predicate"
+    );
+}
+
+#[test]
+fn minimum_witness_selector_does_not_accept_unrelated_class_output() {
+    const RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+    const ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+    const ON_CLASS: &str = "http://www.w3.org/2002/07/owl#onClass";
+    const MINIMUM: &str = "http://www.w3.org/2002/07/owl#minQualifiedCardinality";
+    const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
+    const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
+    let template = Arc::new(
+        JointTemplate::build(
+            &[],
+            &[],
+            crate::reason::schema_laws(),
+            SemanticVocabulary::GroundedLogicV1,
+            &[],
+            None,
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            super::super::JointOperation::Forward,
+        )
+        .unwrap(),
+    );
+    let mut rows = vec![
+        Fact {
+            subject: TermValue::iri(PROPERTY),
+            predicate: RANGE.to_owned(),
+            object: TermValue::iri(CLASS),
+        },
+        Fact {
+            subject: TermValue::iri("urn:restriction"),
+            predicate: ON_PROPERTY.to_owned(),
+            object: TermValue::iri(PROPERTY),
+        },
+        Fact {
+            subject: TermValue::iri("urn:restriction"),
+            predicate: MINIMUM.to_owned(),
+            object: TermValue::simple_literal("1"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:restriction"),
+            predicate: ON_CLASS.to_owned(),
+            object: TermValue::iri("urn:witness-class"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:individual"),
+            predicate: TYPE.to_owned(),
+            object: TermValue::iri("urn:restriction"),
+        },
+    ];
+    rows.extend((0..600).map(|index| Fact {
+        subject: TermValue::iri(format!("urn:unrelated-individual:{index}")),
+        predicate: TYPE.to_owned(),
+        object: TermValue::iri(format!("urn:unrelated-class:{index}")),
+    }));
+    let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    match input.prepare().unwrap() {
+        NativeOutcome::Decided(plan) => {
+            assert!(
+                plan.admission.admits_native(),
+                "the finite restriction selectors must certify termination: {:?}",
+                plan.admission,
+            );
+        }
+        NativeOutcome::Unsupported(kind) => panic!(
+            "class-family output cannot satisfy a different exact restriction carrier: {kind:?}: {:?}",
+            dependency_cycle(&input),
+        ),
+    }
+}
+
+fn property_chain_input(
+    member: &str,
+    unrelated_type_list: bool,
+) -> (Arc<JointTemplate>, BTreeMap<String, Vec<Fact>>) {
+    const RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+    const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
+    const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
+    let template = Arc::new(
+        JointTemplate::build(
+            &[],
+            &[],
+            crate::reason::schema_laws(),
+            SemanticVocabulary::GroundedLogicV1,
+            &[],
+            None,
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            super::super::JointOperation::Forward,
+        )
+        .unwrap(),
+    );
+    let mut facts = vec![
+        Fact {
+            subject: TermValue::iri(PROPERTY),
+            predicate: RANGE.to_owned(),
+            object: TermValue::iri(CLASS),
+        },
+        Fact {
+            subject: TermValue::iri(PROPERTY),
+            predicate: PROPERTY_CHAIN.to_owned(),
+            object: TermValue::iri("urn:selected-list"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:selected-list"),
+            predicate: FIRST.to_owned(),
+            object: TermValue::iri(member),
+        },
+        Fact {
+            subject: TermValue::iri("urn:selected-list"),
+            predicate: REST.to_owned(),
+            object: TermValue::iri(NIL),
+        },
+        Fact {
+            subject: TermValue::iri("urn:individual"),
+            predicate: TYPE.to_owned(),
+            object: TermValue::iri("urn:ordinary-class"),
+        },
+        Fact {
+            subject: TermValue::iri("urn:individual"),
+            predicate: "urn:edge".to_owned(),
+            object: TermValue::iri("urn:object"),
+        },
+    ];
+    if unrelated_type_list {
+        facts.extend([
+            Fact {
+                subject: TermValue::iri("urn:unrelated-list"),
+                predicate: FIRST.to_owned(),
+                object: TermValue::iri(TYPE),
+            },
+            Fact {
+                subject: TermValue::iri("urn:unrelated-list"),
+                predicate: REST.to_owned(),
+                object: TermValue::iri(NIL),
+            },
+        ]);
+    }
+    (template, BTreeMap::from([(WORLD.to_owned(), facts)]))
+}
+
+#[test]
+fn unrelated_rdf_list_member_cannot_become_a_property_chain_read() {
+    let (template, data) = property_chain_input("urn:edge", true);
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    assert!(
+        matches!(input.prepare().unwrap(), NativeOutcome::Decided(_)),
+        "rdf:type in an unrelated RDF list must not create a property-chain cycle"
+    );
+}
+
+#[test]
+fn selected_property_chain_member_retains_its_real_dependency_cycle() {
+    let (template, data) = property_chain_input(TYPE, false);
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    assert!(matches!(
+        input.prepare().unwrap(),
+        NativeOutcome::Unsupported(super::super::UnsupportedKind::NonStratifiable)
+    ));
+}
+
+#[test]
+fn intersection_membership_uses_only_its_selected_list_classes() {
+    const RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+    const HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
+    const INTERSECTION: &str = "http://www.w3.org/2002/07/owl#intersectionOf";
+    const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
+    const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
+    let template = Arc::new(
+        JointTemplate::build(
+            &[],
+            &[],
+            crate::reason::schema_laws(),
+            SemanticVocabulary::GroundedLogicV1,
+            &[],
+            None,
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            super::super::JointOperation::Forward,
+        )
+        .unwrap(),
+    );
+    let data = BTreeMap::from([(
+        WORLD.to_owned(),
+        vec![
+            Fact {
+                subject: TermValue::iri(PROPERTY),
+                predicate: RANGE.to_owned(),
+                object: TermValue::iri(CLASS),
+            },
+            Fact {
+                subject: TermValue::iri("urn:restriction"),
+                predicate: ON_PROPERTY.to_owned(),
+                object: TermValue::iri(PROPERTY),
+            },
+            Fact {
+                subject: TermValue::iri("urn:restriction"),
+                predicate: HAS_VALUE.to_owned(),
+                object: TermValue::iri("urn:value"),
+            },
+            Fact {
+                subject: TermValue::iri("urn:intersection"),
+                predicate: INTERSECTION.to_owned(),
+                object: TermValue::iri("urn:intersection-list"),
+            },
+            Fact {
+                subject: TermValue::iri("urn:intersection-list"),
+                predicate: FIRST.to_owned(),
+                object: TermValue::iri("urn:member-class"),
+            },
+            Fact {
+                subject: TermValue::iri("urn:intersection-list"),
+                predicate: REST.to_owned(),
+                object: TermValue::iri(NIL),
+            },
+            Fact {
+                subject: TermValue::iri("urn:intersection"),
+                predicate: SUBCLASS.to_owned(),
+                object: TermValue::iri("urn:restriction"),
+            },
+            Fact {
+                subject: TermValue::iri("urn:individual"),
+                predicate: TYPE.to_owned(),
+                object: TermValue::iri("urn:member-class"),
+            },
+        ],
+    )]);
+
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    match input.prepare().unwrap() {
+        NativeOutcome::Decided(_) => {}
+        NativeOutcome::Unsupported(kind) => panic!(
+            "class-family output cannot satisfy an unselected intersection member: {kind:?}: {:?}",
+            dependency_cycle(&input),
+        ),
     }
 }
 
