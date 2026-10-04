@@ -145,6 +145,7 @@ fn producer_arm(
             frontier: None,
             position_only: false,
             list_cells: Vec::new(),
+            witness_family: None,
         },
         effect,
         flow: FlowRule {
@@ -402,6 +403,7 @@ pub(super) fn admission_arms(
                         frontier: None,
                         position_only: false,
                         list_cells: Vec::new(),
+                        witness_family: None,
                     },
                     flow: FlowRule {
                         body: vec![atom.0.clone()],

@@ -1374,3 +1374,240 @@ fn a_wildcard_class_that_is_written_still_closes_a_genuine_cycle() {
         "{violations:?}"
     );
 }
+
+// ── #1795: per-atom statement encoding, fresh-null keys, single witnesses ──────────
+
+fn statement_term(value: &str) -> EvalTerm {
+    if value.starts_with('?') {
+        var(value)
+    } else {
+        EvalTerm::ConstNamed(value.to_owned())
+    }
+}
+
+fn statement(s: &str, p: &str, o: &str) -> [EvalTerm; 3] {
+    [s, p, o].map(statement_term)
+}
+
+fn statement_rule(
+    name: &str,
+    body: Vec<[EvalTerm; 3]>,
+    heads: Vec<[EvalTerm; 3]>,
+    frontier: Option<&[&str]>,
+) -> StatementRule {
+    StatementRule {
+        name: name.to_owned(),
+        body,
+        heads,
+        frontier: frontier.map(|names| names.iter().map(|name| (*name).to_owned()).collect()),
+        position_only: false,
+        list_cells: Vec::new(),
+        witness_family: None,
+    }
+}
+
+fn certify_exact(rules: &[StatementRule]) -> ChaseAdmission {
+    ChaseAdmission::certify_statements(
+        rules,
+        crate::native_semantics::SemanticVocabulary::Exact,
+        Ladder::Complete,
+    )
+}
+
+/// `type(s, R) → ∃w. p(s, w) ∧ type(w, C)` as a native statement producer. A
+/// position-only producer (a witness family) admits weak acyclicity alone; otherwise
+/// the tuple rungs read the program through its encoding bridges.
+fn typed_witness_statement(position_only: bool) -> StatementRule {
+    StatementRule {
+        position_only,
+        ..statement_rule(
+            "http://ex/rule/typed-witness",
+            vec![statement("?s", TYPE, "http://ex/R")],
+            vec![statement("?s", P, "?w"), statement("?w", TYPE, C)],
+            Some(&["?s"]),
+        )
+    }
+}
+
+#[test]
+fn an_unrelated_variable_predicate_statement_keeps_typed_witnesses_binary() {
+    // `R ⊑ ∃p.C` terminates. A variable-predicate statement that only READS
+    // statements (`(s ?q o) → mentions(s, o)`) can never type anything. Encoding the
+    // whole program as statement pairs would make the trigger `type(s, R)` and the
+    // witness head `type(w, C)` share `subject-predicate[S|type]`: a self-loop through
+    // the existential edge. Per-atom encoding keeps both typed atoms binary. A witness
+    // family admits weak acyclicity only, so the position proof must succeed.
+    let reader = statement_rule(
+        "http://ex/rule/mentions",
+        vec![statement("?s", "?q", "?o")],
+        vec![statement("?s", "http://ex/mentions", "?o")],
+        None,
+    );
+    let admission = certify_exact(&[typed_witness_statement(true), reader]);
+    assert!(
+        matches!(admission, ChaseAdmission::WeaklyAcyclic { .. }),
+        "an unrelated variable-predicate reader must not refuse a typed witness: {admission:?}"
+    );
+}
+
+#[test]
+fn a_binary_witness_read_by_a_variable_predicate_statement_still_closes_its_cycle() {
+    // `(a ?q b) → type(b, R)` types the object of EVERY statement, including the
+    // witness `p(s, w)`: `w` becomes `R` and re-triggers `R ⊑ ∃p.C` forever. The
+    // binary write `p[O|·]` must reach the pair read `subject-object[O|·]` (weak
+    // acyclicity) and the binary fact must restate itself as pairs (tuple rungs).
+    let typer = statement_rule(
+        "http://ex/rule/type-every-object",
+        vec![statement("?a", "?q", "?b")],
+        vec![statement("?b", TYPE, "http://ex/R")],
+        None,
+    );
+    for position_only in [true, false] {
+        let admission = certify_exact(&[typed_witness_statement(position_only), typer.clone()]);
+        assert!(
+            !admission.admits_native(),
+            "a genuine binary-to-pair cycle must be refused (position-only {position_only}): \
+             {admission:?}"
+        );
+    }
+}
+
+#[test]
+fn a_variable_predicate_write_still_reaches_binary_triggers() {
+    // `(a ?q b) → (b ?q a)` swaps EVERY statement, so the witness `p(s, w)` yields
+    // `p(w, s)`; `p(u, v) → type(u, R)` then types the witness `R` and re-triggers
+    // the restriction forever. The pair write `subject-object[S|·]` must reach the
+    // binary read `p[S|·]` (weak acyclicity) and three agreeing pairs must restate
+    // the binary fact (tuple rungs).
+    let swap = statement_rule(
+        "http://ex/rule/swap-every-statement",
+        vec![statement("?a", "?q", "?b")],
+        vec![statement("?b", "?q", "?a")],
+        None,
+    );
+    let promote = statement_rule(
+        "http://ex/rule/p-subject-is-r",
+        vec![statement("?u", P, "?v")],
+        vec![statement("?u", TYPE, "http://ex/R")],
+        None,
+    );
+    for position_only in [true, false] {
+        let admission = certify_exact(&[
+            typed_witness_statement(position_only),
+            swap.clone(),
+            promote.clone(),
+        ]);
+        assert!(
+            !admission.admits_native(),
+            "a genuine pair-to-binary cycle must be refused (position-only {position_only}): \
+             {admission:?}"
+        );
+    }
+}
+
+/// `type(v, D) → ∃z. p(v, z)` and `type(x, C) → ∃y. p(x, y) ∧ type(y, D)`, plus a
+/// `p`-subject promoter whose object is `object`.
+fn null_partner_program(object: &str) -> Vec<ExistentialRule> {
+    vec![
+        restriction_rule("http://ex/rule/c", C, P, D),
+        ExistentialRule {
+            numeric: Vec::new(),
+            rule_iri: "http://ex/rule/d".to_owned(),
+            body: vec![atom(var("?v"), TYPE, EvalTerm::ConstNamed(D.to_owned()))],
+            head: vec![atom(var("?v"), P, var("?z"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        },
+        ExistentialRule {
+            numeric: Vec::new(),
+            rule_iri: "http://ex/rule/promote".to_owned(),
+            body: vec![atom(var("?u"), P, statement_term(object))],
+            head: vec![atom(var("?u"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        },
+    ]
+}
+
+#[test]
+fn a_fresh_null_partner_cannot_match_a_constant_read() {
+    // The `D` witness `y` gets `p(y, z)` with a FRESH `z`. The promoter needs
+    // `p(u, E)`; `z` never equals the constant `E`, so `y` is never promoted to `C`
+    // and the chase stops. Keying `p(y, z)`'s subject by the wildcard would feed
+    // `p[S|E]` and report a spurious cycle.
+    let admission = ChaseAdmission::certify(&null_partner_program(E));
+    assert!(
+        matches!(admission, ChaseAdmission::WeaklyAcyclic { .. }),
+        "a fresh null never matches a constant read: {admission:?}"
+    );
+}
+
+#[test]
+fn a_fresh_null_partner_still_matches_a_wildcard_read() {
+    // `p(u, ?any) → type(u, C)` DOES read `p(y, z)`: `y` becomes `C` and mints a
+    // new `D` witness forever. A null-keyed position must still feed wildcard reads.
+    let admission = ChaseAdmission::certify(&null_partner_program("?any"));
+    assert!(
+        !admission.admits_native(),
+        "a fresh null partner is still read by a wildcard: {admission:?}"
+    );
+}
+
+/// A two-ordinal witness family `R ⊑ ≥count p.C` and a consumer that types any
+/// `differentFrom` subject `R`.
+fn counted_family_program(count: &str) -> Vec<StatementRule> {
+    let family = StatementRule {
+        position_only: true,
+        witness_family: Some(WitnessFamily {
+            count: EvalTerm::ConstLit(TermValue::simple_literal(count)),
+            single: 2,
+        }),
+        ..statement_rule(
+            "http://ex/rule/family",
+            vec![statement("?s", TYPE, "http://ex/R")],
+            vec![
+                statement("?s", P, "?w"),
+                statement("?w", TYPE, C),
+                statement("?s", P, "?w2"),
+                statement("?w2", TYPE, C),
+                statement("?w", "http://www.w3.org/2002/07/owl#differentFrom", "?w2"),
+            ],
+            Some(&["?s"]),
+        )
+    };
+    let consumer = statement_rule(
+        "http://ex/rule/different-is-r",
+        vec![statement(
+            "?a",
+            "http://www.w3.org/2002/07/owl#differentFrom",
+            "?b",
+        )],
+        vec![statement("?a", TYPE, "http://ex/R")],
+        None,
+    );
+    vec![family, consumer]
+}
+
+#[test]
+fn a_single_witness_family_has_no_inequality_to_feed_back() {
+    // Execution mints ONE witness for a count of 1 and relates no pair, so the
+    // `differentFrom` consumer never fires on it and the program terminates.
+    let admission = certify_exact(&counted_family_program("1"));
+    assert!(
+        admission.admits_native(),
+        "a count of one emits no inequality: {admission:?}"
+    );
+}
+
+#[test]
+fn a_two_witness_family_keeps_its_inequality_cycle() {
+    // Two witnesses are related by `differentFrom`, typed `R`, and mint two more
+    // forever: the two-ordinal summary must stay in force for every other count.
+    let admission = certify_exact(&counted_family_program("2"));
+    assert!(
+        !admission.admits_native(),
+        "a count of two relates its witnesses: {admission:?}"
+    );
+}
