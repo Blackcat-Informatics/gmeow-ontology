@@ -758,3 +758,49 @@ fn empty_intersection_admits_active_resource_terms_without_inventing_literal_sub
         );
     }
 }
+
+#[test]
+fn an_inverse_back_edge_satisfies_the_reverse_restriction_under_datalog_first() {
+    // Entry ⊑ ∃post.Posting, post ⊑ back⁻, Posting ⊑ ∃back.Entry. The posting a minted
+    // entry receives already has its back edge to that entry once Datalog closes, so the
+    // reverse restriction is satisfied and the restricted chase stops after one witness.
+    // Checking triggers before Datalog closes would mint a fresh entry forever.
+    const ENTRY: &str = "urn:entry";
+    const POSTING: &str = "urn:posting";
+    const POST: &str = "urn:post";
+    const BACK: &str = "urn:back";
+    let exists = |relation: &str, class: &str| Formula::Exists {
+        vars: vec!["z".to_owned()],
+        body: Box::new(Formula::And(vec![
+            atom("?x", relation, "?z"),
+            atom("?z", TYPE, class),
+        ])),
+    };
+    let p = program(vec![
+        (atom("?x", TYPE, ENTRY), exists(POST, POSTING)),
+        (atom("?x", POST, "?y"), atom("?y", BACK, "?x")),
+        (atom("?x", TYPE, POSTING), exists(BACK, ENTRY)),
+    ]);
+    let data = source(vec![fact("urn:journal", TYPE, ENTRY)]);
+    let prepared = crate::program_analysis::prepare_program(&p).unwrap();
+    let result = execute(
+        &prepared,
+        crate::reason::program::prepare_reasoning_input(&data).unwrap(),
+        &crate::physical::SelectedDomains::new([]).unwrap(),
+        Some(64),
+    )
+    .unwrap();
+    assert_eq!(
+        result.status,
+        crate::seam::BudgetStatus::Ok,
+        "the restricted chase closes once Datalog supplies the back edge"
+    );
+    assert_eq!(result.witnesses.len(), 1, "one posting, no invented entry");
+    assert!(
+        result
+            .inferred
+            .iter()
+            .any(|row| row.predicate == BACK && row.object == TermValue::iri("urn:journal")),
+        "the inverse rule derives the posting's back edge to the source entry"
+    );
+}
