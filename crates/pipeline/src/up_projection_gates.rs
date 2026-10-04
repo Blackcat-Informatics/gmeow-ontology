@@ -322,7 +322,8 @@ fn slug(term: &str) -> String {
         if b.is_ascii_alphanumeric() || b == b'-' || b == b'_' {
             out.push(b as char);
         } else {
-            out.push_str(&format!("%{b:02X}"));
+            out.push('%');
+            purrdf_hash::hex::encode_upper_into(&[b], &mut out);
         }
     }
     out

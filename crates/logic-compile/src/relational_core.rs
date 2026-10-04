@@ -1362,12 +1362,7 @@ fn subst_term(t: Term, subs: &[(String, String)]) -> Term {
 /// The full SHA-256 digest of a framed structural key, used for projection record IRIs.
 fn sha256_hex(s: &str) -> String {
     use sha2::{Digest, Sha256};
-    let digest = Sha256::digest(s.as_bytes());
-    let mut out = String::with_capacity(64);
-    for b in &digest {
-        out.push_str(&format!("{b:02x}"));
-    }
-    out
+    purrdf_hash::hex::encode(&Sha256::digest(s.as_bytes()))
 }
 
 fn fact_iri(atom: &RcAtom) -> String {

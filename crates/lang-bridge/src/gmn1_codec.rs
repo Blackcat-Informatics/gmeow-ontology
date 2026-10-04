@@ -82,10 +82,6 @@ use gmeow_ns::LOGIC_NS;
 use gmeow_ns::MATH_NS;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-/// The RDF 1.2 `rdf:reifies` predicate. A reifier binding `x rdf:reifies <<( s p o )>>`
-/// materializes into exactly this predicate over an [`RdfTerm::Triple`] object — the same
-/// shape [`classify_reference`]'s triple-term arm already round-trips.
-const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 const CLASS_DENOTATION: &str = "https://blackcatinformatics.ca/lang/Denotation";
 const CLASS_SCRIPT: &str = "https://blackcatinformatics.ca/lang/Script";
 const CLASS_GMN_CODEBOOK: &str = "https://blackcatinformatics.ca/gmeow/GmnCodebook";
@@ -210,22 +206,7 @@ impl Gmn0Model {
     /// quads join the same deterministic sort/dedup as the base quads.
     #[must_use]
     pub fn from_dataset(ds: &RdfDataset) -> Self {
-        let mut quads: Vec<RdfQuad> = ds.owned_quads().collect();
-        for reifier in ds.owned_reifiers() {
-            let object = RdfTerm::Triple(Box::new(reifier.statement.clone()));
-            let mut quad = RdfQuad::new(reifier.reifier.clone(), RDF_REIFIES, object);
-            quad.graph_name = reifier.graph.clone();
-            quads.push(quad);
-        }
-        for annotation in ds.owned_annotations() {
-            let mut quad = RdfQuad::new(
-                annotation.reifier.clone(),
-                annotation.predicate.clone(),
-                annotation.object.clone(),
-            );
-            quad.graph_name = annotation.graph.clone();
-            quads.push(quad);
-        }
+        let mut quads: Vec<RdfQuad> = purrdf::flat_rdf_quads(ds).collect();
         quads.sort_by_key(quad_sort_key);
         quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
         Self { quads }

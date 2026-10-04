@@ -42,6 +42,9 @@ gmeow-gts-profile = { path = "../gts-profile" }
 # + this hash) and the browser-runnable MCP `validate_local` / `advise` surface
 # carries them.
 sha2.workspace = true
+# Base16 spelling of those fingerprints and cache keys, and of the `\xHH` escapes
+# in the Python-literal renderers; also the synthetic segment heads in cache-key tests.
+purrdf-hash.workspace = true
 # The canonical validation-shape IR + the shape-subsumption enforcement pre-order
 # (equivalent/subsumes/residue_normal_form): the equivalence ORACLE (`shape_oracle`)
 # inverts the SHACL emitter over this IR and decides equivalence via the subsumption
@@ -112,8 +115,6 @@ gmeow-affect-ingest = { path = "../affect-ingest" }
 serde_json.workspace = true
 # Ed25519 signing material for deterministic GTS signature tests: the substrate's key type.
 purrdf-ed25519.workspace = true
-# Hex spelling of synthetic segment heads in cache-key tests.
-purrdf-hash.workspace = true
 # Acceleration-program baselines (Phase 0); light feature set, see crates/logic.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 # Hermetic temp slices trees for the S6a merged-SHACL Merkle key integration test.

@@ -633,6 +633,14 @@ constitution-check: ## Verify every constitutional principle has live enforcemen
 crate-check: ## Verify Rust crate layering and acyclic crate DAGs.
 	$(GMEOW_DEV) crate-check
 
+helpers-hygiene: ## Prove helpers-ledger.toml holds (one home per job, PurRDF's where it exists), duplication debt only shrinks, and no replaced dependency returns.
+	cargo run -q --locked -p helper-census -- --self-test
+	python3 scripts/check-shared-helpers.py --self-test
+	python3 scripts/check-shared-helpers.py
+	python3 scripts/check-banned-deps.py --self-test
+	python3 scripts/check-banned-deps.py
+	python3 scripts/check-hash-domains.py --self-test
+
 lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 	$(GMEOW_DEV) lint-alignment
 

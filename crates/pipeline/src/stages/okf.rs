@@ -188,8 +188,9 @@ fn double_quoted(s: &str) -> String {
             '\t' => out.push_str("\\t"),
             c if c.is_control() => {
                 let code = c as u32;
-                if code <= 0xff {
-                    out.push_str(&format!("\\x{code:02x}"));
+                if let Ok(byte) = u8::try_from(code) {
+                    out.push_str("\\x");
+                    purrdf_hash::hex::encode_into(&[byte], &mut out);
                 } else {
                     out.push_str(&format!("\\u{code:04x}"));
                 }

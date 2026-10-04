@@ -1099,11 +1099,7 @@ fn no_tensor_payload_byte_reaches_the_graph() {
         "an ONNX lift carries shapes and indexes, never values:\n{ttl}"
     );
     // Nor as raw bytes in any escaped form.
-    let hex: String = MLP_WEIGHT_PAYLOAD[0]
-        .to_le_bytes()
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect();
+    let hex = purrdf_hash::hex::encode(&MLP_WEIGHT_PAYLOAD[0].to_le_bytes());
     assert!(
         !ttl.contains(&hex),
         "raw payload bytes leaked as hex:\n{ttl}"

@@ -32,3 +32,6 @@ gmeow-errors = { path = "../errors" }
 # structure, not textual repetition" acceptance bar. Reasoner-free, so this crate stays
 # engine-free and wasm-buildable.
 gmeow-term-arena = { path = "../term-arena" }
+
+[dev-dependencies]
+purrdf-hash.workspace = true

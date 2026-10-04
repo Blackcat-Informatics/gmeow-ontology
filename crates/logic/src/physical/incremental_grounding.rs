@@ -608,10 +608,9 @@ fn ground_term(term: &EvalTerm, solution: &Solution) -> gmeow_errors::Result<Eva
 }
 
 fn ground_rule_key(rule: &EvalRule) -> String {
-    super::plan::canonical_rule_hash(std::slice::from_ref(rule))
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
+    purrdf_hash::hex::encode(&super::plan::canonical_rule_hash(std::slice::from_ref(
+        rule,
+    )))
 }
 
 fn consolidate_edb(

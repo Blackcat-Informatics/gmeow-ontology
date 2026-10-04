@@ -14,7 +14,7 @@ use std::collections::HashSet;
 
 use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use super::super::graphutil::sha256_12;
 use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, NodeKind, Term};
@@ -557,52 +557,201 @@ fn owl_cardinality_literal(object: &AtomicTerm) -> Option<RdfLiteral> {
     })
 }
 
-/// Collect every lifted anonymous enumeration (`logic:enumeration/<hash>` typed
-/// `logic:Enumeration`, carrying `logic:oneOf` members), keyed by skolem node IRI.  The
-/// typed members arrive object-sorted because `program.axioms` is globally
-/// ordered by `LogicAxiom::sort_key` (see `LogicProgram::new` in `ir.rs`), but this
-/// collector also sorts+dedups each member list locally so the deterministic `owl:oneOf`
-/// list is guaranteed here rather than relying on that non-local ordering.
-fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<AtomicTerm>> {
+/// The IR's list cells (`cell rdf:first member` / `cell rdf:rest next`, see
+/// [`crate::lists`]), indexed once per projection.
+struct ListCells<'a> {
+    first: BTreeMap<&'a str, &'a AtomicTerm>,
+    rest: BTreeMap<&'a str, &'a str>,
+}
+
+impl<'a> ListCells<'a> {
+    fn of(program: &'a LogicProgram) -> Self {
+        let mut first = BTreeMap::new();
+        let mut rest = BTreeMap::new();
+        for axiom in &program.axioms {
+            match axiom.predicate.as_str() {
+                crate::lists::RDF_FIRST => {
+                    first.insert(axiom.subject.as_str(), &axiom.obj);
+                }
+                crate::lists::RDF_REST => {
+                    if let Some(next) = axiom.obj.as_iri() {
+                        rest.insert(axiom.subject.as_str(), next);
+                    }
+                }
+                _ => {}
+            }
+        }
+        Self { first, rest }
+    }
+
+    /// The `(cell, member)` chain from `head` to `rdf:nil`, or `None` when it is not a
+    /// complete, finite, non-empty list (the frontend never emits one).
+    fn walk(&self, head: &'a str) -> Option<Vec<(&'a str, &'a AtomicTerm)>> {
+        let mut out = Vec::new();
+        let mut seen = HashSet::new();
+        let mut cursor = head;
+        while cursor != crate::lists::RDF_NIL {
+            if !seen.insert(cursor) {
+                return None;
+            }
+            out.push((cursor, *self.first.get(cursor)?));
+            cursor = self.rest.get(cursor)?;
+        }
+        (!out.is_empty()).then_some(out)
+    }
+}
+
+/// Whether `axiom` is one `rdf:first` / `rdf:rest` field of an IR list cell.
+fn is_list_cell_axiom(axiom: &LogicAxiom) -> bool {
+    matches!(
+        axiom.predicate.as_str(),
+        crate::lists::RDF_FIRST | crate::lists::RDF_REST
+    )
+}
+
+/// Emit a walked list verbatim under the IR's own cell IRIs, so every RDF projection
+/// spells one list with the same cells.
+fn emit_list_cells(g: &mut TripleSink, cells: &[(&str, &AtomicTerm)]) {
+    let rdf_first = format!("{RDF_NS}first");
+    let rdf_rest = format!("{RDF_NS}rest");
+    for (index, (cell, member)) in cells.iter().enumerate() {
+        g.add_atomic(cell, &rdf_first, member);
+        let next = cells
+            .get(index + 1)
+            .map_or(crate::lists::RDF_NIL, |(next, _)| *next);
+        g.add_iri(cell, &rdf_rest, next);
+    }
+}
+
+/// The boolean / nominal class constructors a lifted anonymous class expression carries,
+/// as `logic:` local names. `complementOf` takes a single operand; the rest take lists.
+const CLASS_EXPRESSION_CONSTRUCTORS: [&str; 5] = [
+    "oneOf",
+    "unionOf",
+    "intersectionOf",
+    "disjointUnionOf",
+    "complementOf",
+];
+
+/// One lifted anonymous class expression: a `logic:Enumeration` (`logic:enumeration/<hash>`)
+/// or a skolemized boolean class expression (`logic:class-expression/<hash>`).
+#[derive(Default)]
+struct LiftedClassExpression<'a> {
+    /// `(constructor local name, operand or list head)`.
+    edges: Vec<(&'a str, &'a AtomicTerm)>,
+    /// Any further non-typing statement on the node (none is lifted today).
+    other: Vec<&'a str>,
+}
+
+/// Collect every lifted anonymous class expression, keyed by node IRI. Its typing
+/// (`logic:Enumeration` / `logic:Class`) is internal and re-spelled by the emitter.
+fn collect_lifted_class_expressions(
+    program: &LogicProgram,
+) -> BTreeMap<String, LiftedClassExpression<'_>> {
     let enumeration_ty = logic(restriction::ENUMERATION_CLASS_LOCAL);
-    let one_of = logic(restriction::ONE_OF_LOCAL);
-    let mut out: BTreeMap<String, Vec<AtomicTerm>> = BTreeMap::new();
+    let mut out: BTreeMap<String, LiftedClassExpression<'_>> = BTreeMap::new();
     for axiom in &program.axioms {
-        let pred = axiom.predicate.as_str();
-        if pred == RDF_TYPE && axiom.obj.as_iri() == Some(enumeration_ty.as_str()) {
+        let typed_enumeration =
+            axiom.predicate == RDF_TYPE && axiom.obj.as_iri() == Some(enumeration_ty.as_str());
+        if typed_enumeration
+            || axiom
+                .subject
+                .starts_with(crate::lists::CLASS_EXPRESSION_PREFIX)
+        {
             out.entry(axiom.subject.clone()).or_default();
-        } else if pred == one_of {
-            out.entry(axiom.subject.clone())
-                .or_default()
-                .push(axiom.obj.clone());
         }
     }
-    // Belt-and-braces determinism: program.axioms is already globally ordered by
-    // LogicAxiom::sort_key (see LogicProgram::new in ir.rs), so members arrive
-    // object-sorted; sort+dedup here makes the guarantee local rather than relying
-    // on that non-local ordering.
-    for members in out.values_mut() {
-        members.sort();
-        members.dedup();
+    for axiom in &program.axioms {
+        let Some(expression) = out.get_mut(&axiom.subject) else {
+            continue;
+        };
+        if axiom.predicate == RDF_TYPE {
+            continue;
+        }
+        match axiom
+            .predicate
+            .strip_prefix(LOGIC_NS)
+            .filter(|local| CLASS_EXPRESSION_CONSTRUCTORS.contains(local))
+        {
+            Some(local) => expression.edges.push((local, &axiom.obj)),
+            None => expression.other.push(axiom.predicate.as_str()),
+        }
     }
     out
 }
 
-/// Emit the `owl:oneOf` enumeration graph for one lifted enumeration (OWL 2 DL): the
-/// skolem node typed `owl:Class` with an `owl:oneOf` `rdf:List` of the members (minted
-/// as deterministic list-cell IRIs, never blank nodes).  Literal members are not valid
-/// OWL individuals, so an enumeration is emitted only when all members are IRIs.
-fn emit_enumeration(g: &mut TripleSink, node: &str, members: &[AtomicTerm]) {
-    if members.is_empty() || members.iter().any(|term| term.as_iri().is_none()) {
-        return;
+/// One constructor operand of a lifted class expression, validated for emission.
+enum LoweredOperand<'a> {
+    /// The walked `(cell, member)` chain of a list-valued constructor.
+    List(Vec<(&'a str, &'a AtomicTerm)>),
+    /// The single class operand of `complementOf`.
+    Class(&'a AtomicTerm),
+}
+
+/// Emit one lifted anonymous class expression to OWL 2 DL: the node typed `owl:Class`
+/// with its `owl:` constructor edges and list cells. An expression OWL 2 DL cannot carry
+/// faithfully here — an incomplete list, a literal (data) enumeration member, or any
+/// unrecognized statement — is dropped whole and disclosed in `drops`. Returns whether the
+/// expression was emitted.
+fn emit_class_expression(
+    g: &mut TripleSink,
+    node: &str,
+    expression: &LiftedClassExpression<'_>,
+    lists: &ListCells<'_>,
+    drops: &mut Vec<String>,
+) -> bool {
+    if let Some(predicate) = expression.other.first() {
+        drops.push(format!(
+            "class expression <{node}> carries <{predicate}>, which has no OWL DL class-\
+             expression equivalent; dropped"
+        ));
+        return false;
     }
-    let iris: Vec<String> = members
-        .iter()
-        .filter_map(|term| term.as_iri().map(str::to_owned))
-        .collect();
-    let list_head = emit_class_list(g, node, &iris);
+    if expression.edges.is_empty() {
+        drops.push(format!(
+            "class expression <{node}> has no constructor; dropped"
+        ));
+        return false;
+    }
+    let mut lowered: Vec<(&str, LoweredOperand<'_>)> = Vec::new();
+    for (local, operand) in &expression.edges {
+        if *local == "complementOf" {
+            if operand.as_iri().is_none() {
+                drops.push(format!(
+                    "owl:complementOf class expression <{node}> has a non-resource operand; \
+                     dropped"
+                ));
+                return false;
+            }
+            lowered.push((local, LoweredOperand::Class(operand)));
+            continue;
+        }
+        let Some(cells) = operand.as_iri().and_then(|head| lists.walk(head)) else {
+            drops.push(format!(
+                "owl:{local} class expression <{node}> has no complete member list; dropped"
+            ));
+            return false;
+        };
+        if cells.iter().any(|(_, member)| member.as_iri().is_none()) {
+            drops.push(format!(
+                "owl:{local} class expression <{node}> has a literal member, which is not an \
+                 OWL class or individual; dropped"
+            ));
+            return false;
+        }
+        lowered.push((local, LoweredOperand::List(cells)));
+    }
     g.add_iri(node, RDF_TYPE, &owl("Class"));
-    g.add_iri(node, &owl(restriction::ONE_OF_LOCAL), &list_head);
+    for (local, operand) in lowered {
+        match operand {
+            LoweredOperand::List(cells) => {
+                emit_list_cells(g, &cells);
+                g.add_iri(node, &owl(local), cells[0].0);
+            }
+            LoweredOperand::Class(class) => g.add_atomic(node, &owl(local), class),
+        }
+    }
+    true
 }
 
 // --------------------------------------------------------------------------- //
@@ -730,15 +879,20 @@ pub fn project_owl_dl_dataset(
     }
 
     // Re-emit class-expression restrictions as owl:Restriction graphs and anonymous
-    // enumerations as owl:oneOf graphs (DL expresses both), and skip their flat
-    // internals in the axiom loop.
+    // enumerations / boolean class expressions as owl:oneOf / owl:unionOf / … graphs over
+    // the IR's own list cells (DL expresses all of them), and skip their internals in the
+    // axiom loop.
     let restrictions = collect_lifted_restrictions(program);
     for (node, r) in &restrictions {
         emit_restriction(&mut g, node, r)?;
     }
-    let enumerations = collect_lifted_enumerations(program);
-    for (node, members) in &enumerations {
-        emit_enumeration(&mut g, node, members);
+    let lists = ListCells::of(program);
+    let enumerations = collect_lifted_class_expressions(program);
+    let mut dropped_class_exprs: HashSet<&str> = HashSet::new();
+    for (node, expression) in &enumerations {
+        if !emit_class_expression(&mut g, node, expression, &lists, &mut actual_drops) {
+            dropped_class_exprs.insert(node);
+        }
     }
     let dataranges = collect_lifted_dataranges(program);
     for (node, dr) in &dataranges {
@@ -748,10 +902,24 @@ pub fn project_owl_dl_dataset(
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
-        // Restriction / enumeration / datarange internals are emitted above.
+        // Restriction / class-expression / datarange internals are emitted above; list
+        // cells are emitted with the class expression that owns them.
         if restrictions.contains_key(&axiom.subject)
             || enumerations.contains_key(&axiom.subject)
             || dataranges.contains_key(&axiom.subject)
+            || is_list_cell_axiom(axiom)
+        {
+            continue;
+        }
+        // A subClassOf / equivalentClass edge into a dropped class expression must not
+        // dangle; the drop itself is disclosed.
+        if obj
+            .as_iri()
+            .is_some_and(|iri| dropped_class_exprs.contains(iri))
+            && matches!(
+                pred.strip_prefix(LOGIC_NS),
+                Some("subClassOf" | "equivalentClass")
+            )
         {
             continue;
         }
@@ -953,14 +1121,30 @@ pub fn project_owl_el_dataset(
             }
         }
     }
-    // Enumerations are nominals (owl:oneOf) — not OWL 2 EL. Every anonymous enumeration
-    // drops whole, along with the subClassOf/equivalentClass edges into it.
-    let enumerations = collect_lifted_enumerations(program);
-    for node in enumerations.keys() {
+    // Enumerations are nominals (owl:oneOf) — not OWL 2 EL — and every other lifted
+    // anonymous class expression carries a union / complement / partition (or an
+    // intersection over such members) this view does not project. Each drops whole,
+    // along with the subClassOf/equivalentClass edges into it.
+    let enumerations = collect_lifted_class_expressions(program);
+    for (node, expression) in &enumerations {
         dropped_class_exprs.insert(node.clone());
-        actual_drops.push(format!(
-            "owl:oneOf enumeration <{node}> is not OWL 2 EL-safe (nominals); dropped"
-        ));
+        if expression.edges.iter().any(|(local, _)| *local == "oneOf") {
+            actual_drops.push(format!(
+                "owl:oneOf enumeration <{node}> is not OWL 2 EL-safe (nominals); dropped"
+            ));
+        } else {
+            let constructors = expression
+                .edges
+                .iter()
+                .map(|(local, _)| format!("owl:{local}"))
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect::<Vec<_>>()
+                .join(", ");
+            actual_drops.push(format!(
+                "{constructors} class expression <{node}> is not projected to OWL 2 EL; dropped"
+            ));
+        }
     }
     // Datatype facets are not OWL 2 EL either. Every datarange drops whole, along with the
     // subClassOf/equivalentClass edges into it.
@@ -976,10 +1160,12 @@ pub fn project_owl_el_dataset(
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
-        // Restriction / enumeration / datarange internals are emitted (or dropped) above.
+        // Restriction / class-expression / datarange internals are emitted (or dropped)
+        // above; list cells belong to the class expression that owns them.
         if restrictions.contains_key(&axiom.subject)
             || enumerations.contains_key(&axiom.subject)
             || dataranges.contains_key(&axiom.subject)
+            || is_list_cell_axiom(axiom)
         {
             continue;
         }
@@ -1242,7 +1428,10 @@ pub fn project_canonical_rdf12_dataset(
         }
         // Canonical output keeps the authored value. Target-specific datatype conversions
         // belong at the corresponding projection boundary.
+        // List cells are the structural carrier of a list-valued constructor's operand
+        // (see `crate::lists`): asserted directly so the list reaches the object level.
         let direct_predicate = axiom.predicate.starts_with(LOGIC_NS)
+            || is_list_cell_axiom(axiom)
             || (axiom.predicate == RDF_TYPE
                 && axiom
                     .obj
@@ -1694,7 +1883,7 @@ fn emit_class_list(g: &mut TripleSink, base: &str, members: &[String]) -> String
     let rdf_rest = format!("{RDF_NS}rest");
     let mut rest = format!("{RDF_NS}nil");
     for (i, member) in members.iter().enumerate().rev() {
-        let cell = format!("{base}/cell/{i:04}");
+        let cell = crate::lists::cell_iri(base, i);
         g.add_iri(&cell, &rdf_first, member);
         g.add_iri(&cell, &rdf_rest, &rest);
         rest = cell;

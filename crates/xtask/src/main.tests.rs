@@ -43,7 +43,13 @@ fn sync_is_not_a_blanket_prerequisite() {
         .iter()
         .copied()
         .collect::<BTreeSet<_>>();
-    for name in ["sync", "check-lint", "crate-check", "i18n-lint"] {
+    for name in [
+        "sync",
+        "check-lint",
+        "crate-check",
+        "helpers-hygiene",
+        "i18n-lint",
+    ] {
         assert!(
             wave_zero.contains(name),
             "{name} reads no generated/ artifact and must start immediately"

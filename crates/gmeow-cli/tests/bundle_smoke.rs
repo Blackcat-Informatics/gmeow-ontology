@@ -17,9 +17,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command as StdCommand;
 
 use assert_cmd::Command;
-use purrdf_ed25519::SigningKey;
 use predicates::prelude::*;
 use purrdf::gts::model::{Term, TermKind};
+use purrdf_ed25519::SigningKey;
 
 // ── shared helpers (mirrors the `cli.rs` / `self_sufficiency.rs` conventions) ─
 

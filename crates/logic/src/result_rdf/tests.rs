@@ -234,11 +234,7 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     let result = native_conflict_result();
     let wire = native::encode(result.native_execution().unwrap()).unwrap();
     assert!(native::decode(&(wire.clone() + "00")).is_err());
-    let bytes = wire
-        .as_bytes()
-        .chunks_exact(2)
-        .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
-        .collect::<Vec<_>>();
+    let bytes = purrdf_hash::hex::decode(&wire).unwrap();
     let mut envelope: ciborium::Value = ciborium::de::from_reader(bytes.as_slice()).unwrap();
     let ciborium::Value::Array(fields) = &mut envelope else {
         panic!("native receipt envelope")
@@ -252,10 +248,7 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     ));
     let mut changed = Vec::new();
     ciborium::ser::into_writer(&envelope, &mut changed).unwrap();
-    let changed = changed
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>();
+    let changed = purrdf_hash::hex::encode(&changed);
     assert!(
         native::decode(&changed).is_err(),
         "unknown execution evidence must never disappear during admission"

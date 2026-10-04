@@ -13,7 +13,6 @@ use super::result_err;
 const SCHEMA: &str = "gmeow-native-execution-v1";
 const MAX_RECEIPT_BYTES: usize = 256 * 1024 * 1024;
 const MAX_RECEIPT_DEPTH: usize = 64;
-const HEX: &[u8; 16] = b"0123456789abcdef";
 
 /// CBOR preserves native terms, proof DAGs and finite u128 cardinalities. The
 /// enclosing content-addressed result binds these bytes; the receipt itself
@@ -33,12 +32,7 @@ pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Resul
                     "native execution receipt exceeds its structural bound: {error}"
                 ))
             })?;
-    let mut text = String::with_capacity(output.0.len() * 2);
-    for byte in output.0 {
-        text.push(char::from(HEX[usize::from(byte >> 4)]));
-        text.push(char::from(HEX[usize::from(byte & 15)]));
-    }
-    Ok(text)
+    Ok(purrdf_hash::hex::encode(&output.0))
 }
 
 /// Decode only the selected schema and one complete receipt. Semantic proof,
@@ -49,18 +43,9 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
             "native execution receipt has an invalid byte length".into(),
         ));
     }
-    let digit = |byte: u8| match byte {
-        b'0'..=b'9' => Ok(byte - b'0'),
-        b'a'..=b'f' => Ok(byte - b'a' + 10),
-        _ => Err(result_err(
-            "native execution receipt requires canonical lowercase hex".into(),
-        )),
-    };
-    let bytes = text
-        .as_bytes()
-        .chunks_exact(2)
-        .map(|pair| Ok((digit(pair[0])? << 4) | digit(pair[1])?))
-        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let bytes = purrdf_hash::hex::decode_canonical(text).map_err(|_| {
+        result_err("native execution receipt requires canonical lowercase hex".into())
+    })?;
     let mut cursor = Cursor::new(bytes.as_slice());
     let (schema, execution): (String, Box<NativeExecutionEvidence>) =
         ciborium::de::from_reader_with_recursion_limit(&mut cursor, MAX_RECEIPT_DEPTH).map_err(

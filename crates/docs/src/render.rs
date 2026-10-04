@@ -1400,7 +1400,10 @@ fn url_query_encode(s: &str) -> String {
             b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
                 out.push(b as char)
             }
-            _ => out.push_str(&format!("%{b:02X}")),
+            _ => {
+                out.push('%');
+                purrdf_hash::hex::encode_upper_into(&[b], &mut out);
+            }
         }
     }
     out
