@@ -3219,6 +3219,11 @@ impl ValueFlow {
         read.reads_write(write, self.universe.semantics)
     }
 
+    /// The semantic vocabulary this analysis universe interprets terms in.
+    pub(crate) fn semantics(&self) -> SemanticVocabulary {
+        self.universe.semantics
+    }
+
     /// A diagnostic rendering of a ranged pattern: each slot's fixed term, or its
     /// abstract range — its size, whether it admits the `Other` cell, and its first
     /// values.

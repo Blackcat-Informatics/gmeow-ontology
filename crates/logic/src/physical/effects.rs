@@ -107,6 +107,20 @@ impl StatementPattern {
         )
     }
 
+    /// Whether this write is a local clash commitment, `x instanceOf Nothing` in
+    /// either declared spelling: the proved head of a refutation, which denotes an
+    /// inconsistency and is never definition content.
+    pub(crate) fn is_clash_marker(&self, semantics: SemanticVocabulary) -> bool {
+        const INSTANCE: &str = "https://blackcatinformatics.ca/logic/instanceOf";
+        const NOTHING: [&str; 2] = [
+            "https://blackcatinformatics.ca/logic/Nothing",
+            "http://www.w3.org/2002/07/owl#Nothing",
+        ];
+        self.predicate.as_deref().is_some_and(|predicate| {
+            semantics.predicate(predicate) == semantics.predicate(INSTANCE)
+        }) && matches!(&self.object, Some(TermValue::Iri(iri)) if NOTHING.contains(&iri.as_str()))
+    }
+
     /// Read interpretation is role-sensitive. A constant marker may accept its
     /// declared alternate spelling; a subject, literal or quoted term may not.
     fn reads_write(&self, write: &Self, semantics: SemanticVocabulary) -> bool {
@@ -732,11 +746,18 @@ pub(crate) fn schedule_worlds(
 
 /// Exact source-owned definition immutability uses the same role-sensitive
 /// possible-write matcher as source rule admission and dependency construction.
+///
+/// `admits_clash` excludes local clash commitments ([`StatementPattern::is_clash_marker`])
+/// for a grammar that is bound from source and never re-read from the closure: a clash
+/// on a definition subject then changes nothing the grammar's reader sees, and is
+/// reported as the inconsistency it is.
 pub(crate) fn scoped_definition_writer<'a>(
     flow: &value_flow::ValueFlow,
     effects: &'a [WorldProducerEffect],
     definition: &WorldStatementObservation,
+    admits_clash: bool,
 ) -> Option<(&'a str, &'a StatementPattern)> {
+    let semantics = flow.semantics();
     effects
         .iter()
         .filter(|producer| producer.owner == definition.world)
@@ -745,6 +766,7 @@ pub(crate) fn scoped_definition_writer<'a>(
                 .effect
                 .writes
                 .iter()
+                .filter(|write| !(admits_clash && write.is_clash_marker(semantics)))
                 .find(|write| flow.overlaps_write(&definition.pattern, write))
                 .map(|write| (producer.effect.name.as_str(), write))
         })

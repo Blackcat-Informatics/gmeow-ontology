@@ -243,3 +243,73 @@ fn multi_head_producer_waits_as_one_effect_without_coupling_unrelated_writers() 
     assert_eq!(result.completed["urn:side-effect"], 0);
     assert_eq!(result.completed[TYPE], 1);
 }
+
+#[test]
+fn a_source_bound_grammar_admits_clash_commitments_but_no_other_write() {
+    // A refutation commits `x instanceOf Nothing` for any individual; an ordinary
+    // producer writes `x urn:q urn:v`. Both overlap the subject-wide definition of
+    // `urn:closed`. A grammar bound from source and never re-read from the closure
+    // admits only the clash, which changes nothing its reader sees.
+    use super::value_flow::{FlowRule, ValueFlow};
+    const NOTHING: &str = "https://blackcatinformatics.ca/logic/Nothing";
+    let read = [
+        EvalTerm::var("x"),
+        EvalTerm::named("urn:p"),
+        EvalTerm::var("y"),
+    ];
+    let rule = |name: &str, head: [EvalTerm; 3]| {
+        (
+            ProducerEffect::new(
+                name.to_owned(),
+                vec![StatementPattern::statement(&head)],
+                vec![(StatementPattern::statement(&read), ReadDependency::Positive)],
+            ),
+            FlowRule {
+                body: vec![read.clone()],
+                heads: vec![head],
+                native_witnesses: Vec::new(),
+                reads: vec![Some(read.clone())],
+                cardinality_guards: Vec::new(),
+                list_reads: Vec::new(),
+                selected_reads: Vec::new(),
+            },
+        )
+    };
+    let clash = rule(
+        "urn:refutation",
+        [
+            EvalTerm::var("x"),
+            EvalTerm::named(INSTANCE),
+            EvalTerm::named(NOTHING),
+        ],
+    );
+    let ordinary = rule(
+        "urn:ordinary",
+        [
+            EvalTerm::var("x"),
+            EvalTerm::named("urn:q"),
+            EvalTerm::named("urn:v"),
+        ],
+    );
+    let definition = WorldStatementObservation {
+        world: "urn:world".to_owned(),
+        pattern: StatementPattern::subject(TermValue::iri("urn:closed")),
+    };
+    let check = |producers: &[&(ProducerEffect, FlowRule)], admits_clash: bool| {
+        let effects: Vec<_> = producers
+            .iter()
+            .map(|(effect, _)| WorldProducerEffect::local("urn:world", effect.clone()))
+            .collect();
+        let rules: Vec<_> = producers.iter().map(|(_, flow)| flow.clone()).collect();
+        let bare: Vec<_> = producers.iter().map(|(effect, _)| effect.clone()).collect();
+        let flow = ValueFlow::new(&rules, &bare, SemanticVocabulary::Exact);
+        scoped_definition_writer(&flow, &effects, &definition, admits_clash)
+            .map(|(writer, _)| writer.to_owned())
+    };
+    assert_eq!(check(&[&clash], true), None);
+    assert_eq!(check(&[&clash], false).as_deref(), Some("urn:refutation"));
+    assert_eq!(
+        check(&[&clash, &ordinary], true).as_deref(),
+        Some("urn:ordinary")
+    );
+}
