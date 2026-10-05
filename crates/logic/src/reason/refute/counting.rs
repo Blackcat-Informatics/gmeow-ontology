@@ -245,8 +245,22 @@ fn bounds(
         {
             for fact in model.facts(predicate, Bound::Subject(*node)) {
                 let count = values.cardinality(&fact.object);
-                let qualifier = if class.len() + data.len() == 1 {
-                    class.first().or(data.first()).copied()
+                // Count qualifier meanings, not spellings: a semantic read returns
+                // every declared spelling of one qualifier.
+                let semantics = model.input.rel.semantics;
+                let meanings = class
+                    .iter()
+                    .map(|id| (OWL_ON_CLASS, *id))
+                    .chain(data.iter().map(|id| (OWL_ON_DATA_RANGE, *id)))
+                    .map(|(field, id)| {
+                        (
+                            crate::reason::dl::qualifier_meaning(semantics, field, model.term(id)),
+                            id,
+                        )
+                    })
+                    .collect::<BTreeMap<_, _>>();
+                let qualifier = if meanings.len() == 1 {
+                    meanings.values().next().copied()
                 } else {
                     None
                 };

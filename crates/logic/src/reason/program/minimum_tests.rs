@@ -530,3 +530,38 @@ fn a_schema_past_the_former_row_bound_still_reaches_its_input_certificate() {
     assert_eq!(fillers(&result, P).len(), 2);
     assert_eq!(result.witnesses.len(), 2);
 }
+
+#[test]
+fn one_universal_qualifier_in_both_spellings_is_one_qualifier() {
+    // A projected view restates `logic:onClass logic:Thing` as `owl:onClass owl:Thing`.
+    // The qualified count reads both spellings of its field; they name one qualifier,
+    // so admission completes instead of withholding every completed read.
+    const OWL_ON_CLASS: &str = "http://www.w3.org/2002/07/owl#onClass";
+    const EXISTING: &str = "urn:minimum:existing";
+    let mut rows = request(MIN, "1", "https://blackcatinformatics.ca/logic/Thing");
+    rows.push(fact(R, OWL_ON_CLASS, "http://www.w3.org/2002/07/owl#Thing"));
+    rows.push(fact(S, P, EXISTING));
+    let result = run(rows, &[(P, SEEN)], Some(100)).unwrap();
+    assert_eq!(
+        result.native_status,
+        crate::reason::refute::native::NativeClosureStatus::Completed
+    );
+    assert!(result.witnesses.is_empty());
+    assert_eq!(
+        fillers(&result, P),
+        [TermValue::iri(EXISTING)].into_iter().collect()
+    );
+}
+
+#[test]
+fn two_distinct_qualifiers_still_obstruct_a_qualified_count() {
+    // Spelling aliases collapse; genuinely different qualifiers do not.
+    const OWL_ON_CLASS: &str = "http://www.w3.org/2002/07/owl#onClass";
+    let mut rows = request(MIN, "1", C);
+    rows.push(fact(R, OWL_ON_CLASS, "urn:minimum:other"));
+    let result = run(rows, &[(P, SEEN)], Some(100)).unwrap();
+    assert!(matches!(
+        result.native_status,
+        crate::reason::refute::native::NativeClosureStatus::Blocked { .. }
+    ));
+}
