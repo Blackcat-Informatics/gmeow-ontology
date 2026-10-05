@@ -37,6 +37,24 @@ impl LiteralValue {
     /// residue stays in the shared GMEOW value algebra. Unknown is never false.
     pub(crate) fn named_datatype(&self, datatype: &str) -> Option<bool> {
         let meaning = &self.meaning;
+        if datatype == purrdf::xsd::datatype::XSD_ANY_URI {
+            // `xsd:anyURI` is an XSD 1.1 primitive: its value space is disjoint from
+            // every other primitive's, and every string of XML characters is one of
+            // its lexical forms. PurRDF interprets no anyURI value, so a literal
+            // typed anyURI arrives uninterpreted and every interpreted value lies
+            // outside it; an uninterpreted literal of any other datatype is unknown.
+            return match meaning {
+                LiteralMeaning::Opaque(term) => match term.as_ref() {
+                    TermValue::Literal { datatype, .. }
+                        if datatype == purrdf::xsd::datatype::XSD_ANY_URI =>
+                    {
+                        Some(true)
+                    }
+                    _ => None,
+                },
+                _ => Some(false),
+            };
+        }
         if matches!(meaning, LiteralMeaning::Opaque(_)) {
             return None;
         }
@@ -240,6 +258,7 @@ impl NativeValues {
                 datatype,
                 OWL_REAL
                     | OWL_RATIONAL
+                    | purrdf::xsd::datatype::XSD_ANY_URI
                     | "http://www.w3.org/2000/01/rdf-schema#Literal"
                     | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
                     | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
