@@ -564,11 +564,17 @@ impl JointProgram {
         if let Some(modal) = &modal {
             for definition in modal.definition_patterns() {
                 let flow = native.as_ref().expect("native modal binding").flow;
+                let asserted = |fact: &crate::rule_ir::Fact| {
+                    runtimes
+                        .get(&definition.world)
+                        .is_some_and(|runtime| runtime.store.contains_key(&fact.key()))
+                };
                 if let Some((writer, write)) = crate::physical::effects::scoped_definition_writer(
                     flow,
                     &effects,
                     &definition,
                     false,
+                    &asserted,
                 ) {
                     return Err(gmeow_errors::Diag::of_kind(crate::error::NativeCoverage {
                         profile: "native-immutable-modal-source-v1".to_owned(),
@@ -590,11 +596,17 @@ impl JointProgram {
                 // Contextual frames bind their grammar from source once and re-read
                 // only attribution metadata at evaluation, so a clash on a basis
                 // subject changes nothing they read.
+                let asserted = |fact: &crate::rule_ir::Fact| {
+                    runtimes
+                        .get(&definition.world)
+                        .is_some_and(|runtime| runtime.store.contains_key(&fact.key()))
+                };
                 if let Some((writer, write)) = crate::physical::effects::scoped_definition_writer(
                     flow,
                     &effects,
                     &definition,
                     true,
+                    &asserted,
                 ) {
                     return Err(gmeow_errors::Diag::of_kind(crate::error::NativeCoverage {
                         profile: "native-immutable-contextual-source-v1".to_owned(),

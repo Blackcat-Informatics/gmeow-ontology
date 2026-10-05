@@ -747,6 +747,9 @@ pub(crate) fn schedule_worlds(
 /// Exact source-owned definition immutability uses the same role-sensitive
 /// possible-write matcher as source rule admission and dependency construction.
 ///
+/// A write whose every possible statement is already `asserted` in the definition's
+/// world changes no definition: it can only re-derive what the grammar already reads.
+///
 /// `admits_clash` excludes local clash commitments ([`StatementPattern::is_clash_marker`])
 /// for a grammar that is bound from source and never re-read from the closure: a clash
 /// on a definition subject then changes nothing the grammar's reader sees, and is
@@ -756,7 +759,10 @@ pub(crate) fn scoped_definition_writer<'a>(
     effects: &'a [WorldProducerEffect],
     definition: &WorldStatementObservation,
     admits_clash: bool,
+    asserted: &dyn Fn(&crate::rule_ir::Fact) -> bool,
 ) -> Option<(&'a str, &'a StatementPattern)> {
+    /// The most statements a write may expand to before it counts as unbounded.
+    const IDEMPOTENT_LIMIT: usize = 4_096;
     let semantics = flow.semantics();
     effects
         .iter()
@@ -767,7 +773,12 @@ pub(crate) fn scoped_definition_writer<'a>(
                 .writes
                 .iter()
                 .filter(|write| !(admits_clash && write.is_clash_marker(semantics)))
-                .find(|write| flow.overlaps_write(&definition.pattern, write))
+                .filter(|write| flow.overlaps_write(&definition.pattern, write))
+                .find(|write| {
+                    !flow
+                        .finite_writes(write, IDEMPOTENT_LIMIT)
+                        .is_some_and(|facts| facts.iter().all(asserted))
+                })
                 .map(|write| (producer.effect.name.as_str(), write))
         })
 }

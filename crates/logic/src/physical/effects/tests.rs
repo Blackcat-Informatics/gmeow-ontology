@@ -303,7 +303,7 @@ fn a_source_bound_grammar_admits_clash_commitments_but_no_other_write() {
         let rules: Vec<_> = producers.iter().map(|(_, flow)| flow.clone()).collect();
         let bare: Vec<_> = producers.iter().map(|(effect, _)| effect.clone()).collect();
         let flow = ValueFlow::new(&rules, &bare, SemanticVocabulary::Exact);
-        scoped_definition_writer(&flow, &effects, &definition, admits_clash)
+        scoped_definition_writer(&flow, &effects, &definition, admits_clash, &|_| false)
             .map(|(writer, _)| writer.to_owned())
     };
     assert_eq!(check(&[&clash], true), None);
@@ -311,5 +311,73 @@ fn a_source_bound_grammar_admits_clash_commitments_but_no_other_write() {
     assert_eq!(
         check(&[&clash, &ordinary], true).as_deref(),
         Some("urn:ordinary")
+    );
+}
+
+#[test]
+fn a_finite_write_of_asserted_statements_changes_no_definition() {
+    // A domain law `p(x, y) → x a Formula` over the single row `p(a, b)` can write
+    // only `a a Formula`. When the source already asserts it, the write re-derives
+    // what the grammar reads; otherwise it adds a definition and refuses.
+    use super::value_flow::{FlowRule, ValueFlow};
+    const FORMULA: &str = "https://blackcatinformatics.ca/logic/Formula";
+    let body = [
+        EvalTerm::var("x"),
+        EvalTerm::named("urn:p"),
+        EvalTerm::var("y"),
+    ];
+    let head = [
+        EvalTerm::var("x"),
+        EvalTerm::named(TYPE),
+        EvalTerm::named(FORMULA),
+    ];
+    let effect = ProducerEffect::new(
+        "urn:domain".to_owned(),
+        vec![StatementPattern::statement(&head)],
+        vec![(StatementPattern::statement(&body), ReadDependency::Positive)],
+    );
+    let flow = ValueFlow::new(
+        &[FlowRule {
+            body: vec![body.clone()],
+            heads: vec![head],
+            native_witnesses: Vec::new(),
+            reads: vec![Some(body)],
+            cardinality_guards: Vec::new(),
+            list_reads: Vec::new(),
+            selected_reads: Vec::new(),
+        }],
+        std::slice::from_ref(&effect),
+        SemanticVocabulary::Exact,
+    );
+    let input = [crate::rule_ir::Fact {
+        subject: TermValue::iri("urn:a"),
+        predicate: "urn:p".to_owned(),
+        object: TermValue::iri("urn:b"),
+    }];
+    // Production refines writes in the source-enriched universe, where source values
+    // are distinct cells rather than the shared `Other` cell.
+    let flow = flow
+        .with_source_constants(input.iter(), 512)
+        .expect("a one-row source fits the enrichment cap");
+    let refined = flow.refine(std::slice::from_ref(&effect), &flow.summarize(input.iter()));
+    let effects: Vec<_> = refined
+        .into_iter()
+        .map(|effect| WorldProducerEffect::local("urn:world", effect))
+        .collect();
+    let definition = WorldStatementObservation {
+        world: "urn:world".to_owned(),
+        pattern: StatementPattern::relation(Some(TYPE), Some(FORMULA)),
+    };
+    let typed = crate::rule_ir::Fact {
+        subject: TermValue::iri("urn:a"),
+        predicate: TYPE.to_owned(),
+        object: TermValue::iri(FORMULA),
+    };
+    let asserted = |fact: &crate::rule_ir::Fact| *fact == typed;
+    assert!(scoped_definition_writer(&flow, &effects, &definition, false, &asserted).is_none());
+    assert_eq!(
+        scoped_definition_writer(&flow, &effects, &definition, false, &|_| false)
+            .map(|(writer, _)| writer),
+        Some("urn:domain")
     );
 }
