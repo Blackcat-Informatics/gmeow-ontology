@@ -7316,7 +7316,7 @@ gmeow:GroundingCorrespondenceJustificationRequiredConstraint
     logic:onClass logic:GroundingCorrespondence ;
     logic:anyOf gmeow:justification ;
     logic:formalizes logic:GroundingCorrespondence ;
-    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification"@x-gmeow-english .
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification" .
 
 gmeow:GroundingCorrespondenceSourceEndpointRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -7327,7 +7327,7 @@ gmeow:GroundingCorrespondenceSourceEndpointRequiredConstraint
     logic:onClass logic:GroundingCorrespondence ;
     logic:anyOf logic:sourceEndpoint ;
     logic:formalizes logic:GroundingCorrespondence ;
-    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint"@x-gmeow-english .
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint" .
 
 gmeow:GroundingCorrespondenceTargetEndpointRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -7338,7 +7338,7 @@ gmeow:GroundingCorrespondenceTargetEndpointRequiredConstraint
     logic:onClass logic:GroundingCorrespondence ;
     logic:anyOf logic:targetEndpoint ;
     logic:formalizes logic:GroundingCorrespondence ;
-    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint"@x-gmeow-english .
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint" .
 
 gmeow:GroundingCorrespondenceMorphismClassRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -7349,7 +7349,7 @@ gmeow:GroundingCorrespondenceMorphismClassRequiredConstraint
     logic:onClass logic:GroundingCorrespondence ;
     logic:anyOf logic:morphismClass ;
     logic:formalizes logic:GroundingCorrespondence ;
-    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismClass"@x-gmeow-english .
+    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismClass" .
 
 gmeow:GroundingCorrespondenceMorphismKindRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -7360,7 +7360,7 @@ gmeow:GroundingCorrespondenceMorphismKindRequiredConstraint
     logic:onClass logic:GroundingCorrespondence ;
     logic:anyOf logic:morphismKind ;
     logic:formalizes logic:GroundingCorrespondence ;
-    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismKind"@x-gmeow-english .
+    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismKind" .
 
 gmeow:GroundingCorrespondencePreservationKindRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -7371,7 +7371,7 @@ gmeow:GroundingCorrespondencePreservationKindRequiredConstraint
     logic:onClass logic:GroundingCorrespondence ;
     logic:anyOf logic:preservationKind ;
     logic:formalizes logic:GroundingCorrespondence ;
-    logic:message "GroundingCorrespondence must explicitly declare one logic:preservationKind"@x-gmeow-english .
+    logic:message "GroundingCorrespondence must explicitly declare one logic:preservationKind" .
 
 logic:CorrespondenceRelation
     a logic:Class ;
@@ -23489,7 +23489,7 @@ logic:ContextJournalPositionConstraint
     gmeow:howToUse "Provide contextPosition whenever contextJournal is present; validate the selected journal identity before evaluating temporal operators."@x-gmeow-english ;
     skos:scopeNote "The reciprocal constraint requires a journal when a position is supplied. A context selecting neither coordinate remains non-temporal."@x-gmeow-english ;
     skos:example "ex:c logic:contextJournal ex:j ; logic:contextPosition \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
-    logic:message "A context selecting a journal must also select its position."@x-gmeow-english .
+    logic:message "A context selecting a journal must also select its position." .
 
 logic:ContextPositionJournalConstraint
     a logic:GuardedImplicationConstraint ;
@@ -23506,7 +23506,7 @@ logic:ContextPositionJournalConstraint
     gmeow:howToUse "Provide contextJournal whenever contextPosition is present, retaining the exact journal identity in the context and the evaluation basis."@x-gmeow-english ;
     skos:scopeNote "The reciprocal constraint requires a position for a selected journal. Neither constraint creates observations or infers journal finalization."@x-gmeow-english ;
     skos:example "ex:c logic:contextPosition \"3\"^^xsd:nonNegativeInteger ; logic:contextJournal ex:j ."@x-gmeow-english ;
-    logic:message "A context selecting a position must identify its journal."@x-gmeow-english .
+    logic:message "A context selecting a position must identify its journal." .
 
 logic:FormulaAdmissionExhaustion
     a logic:Class ;
@@ -24059,7 +24059,7 @@ logic:UntilRequiresLeftConstraint
     gmeow:howToUse "Declare until and untilLeft together on one Formula; each property selects exactly one operand."@x-gmeow-english ;
     skos:scopeNote "The right operand must hold at some observed position; the left operand is required only at earlier positions. Structural completeness does not establish either operand's truth."@x-gmeow-english ;
     skos:example "ex:f a logic:Formula ; logic:until ex:right ; logic:untilLeft ex:left ."@x-gmeow-english ;
-    logic:message "A formula with until must also declare untilLeft."@x-gmeow-english .
+    logic:message "A formula with until must also declare untilLeft." .
 
 logic:UntilLeftRequiresUntilConstraint
     a logic:GuardedImplicationConstraint ;
@@ -24076,7 +24076,7 @@ logic:UntilLeftRequiresUntilConstraint
     gmeow:howToUse "Declare until and untilLeft together on one Formula; each property selects exactly one operand."@x-gmeow-english ;
     skos:scopeNote "The right operand must hold at some observed position; the left operand is required only at earlier positions. Structural completeness does not establish either operand's truth."@x-gmeow-english ;
     skos:example "ex:f a logic:Formula ; logic:until ex:right ; logic:untilLeft ex:left ."@x-gmeow-english ;
-    logic:message "A formula with untilLeft must also declare until."@x-gmeow-english .
+    logic:message "A formula with untilLeft must also declare until." .
 
 logic:finite-journal-infinite-trace
     a logic:NamedIndividual ;

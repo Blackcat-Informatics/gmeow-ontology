@@ -10879,9 +10879,9 @@ lang:SurfaceForm logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:allValuesFrom lang:Script ] ,
     [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:minQualifiedCardinality 1 ; logic:onClass lang:Script ] ,
     [ a logic:Restriction ; logic:onProperty lang:unicodeNormalization ; logic:allValuesFrom rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty lang:unicodeNormalization ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty lang:unicodeNormalization ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty lang:collationLocale ; logic:allValuesFrom rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty lang:collationLocale ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+    [ a logic:Restriction ; logic:onProperty lang:collationLocale ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
 
 lang:FormSlot rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:slotIndex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
@@ -10973,7 +10973,7 @@ lang:TransliterationMap rdfs:subClassOf
 
 lang:ProjectionEmission rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:preservationKind ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty lang:projectionTargetName ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+    [ a logic:Restriction ; logic:onProperty lang:projectionTargetName ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
 
 lang:GmnImportedPlane rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:cites ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
@@ -10985,14 +10985,14 @@ gmeow:GmnEnvelope logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:gmnEnvelopeCorrespondence ; logic:allValuesFrom logic:Correspondence ] .
 
 gmeow:GmnEnvelope rdfs:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:gmnSchemaVersion ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:gmnDictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:gmnDictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:gmnGlyphTableVersion ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnSchemaVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnDictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnDictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnGlyphTableVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:accordingTo ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:wasGeneratedBy ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:gmnCodebookDigest ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnCodebookDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
 
 gmeow:gmnSecurityRingClosure
     a logic:ClosureEntry ;
