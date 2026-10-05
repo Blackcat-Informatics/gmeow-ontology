@@ -3594,6 +3594,19 @@ fn rja_trigger_blocked(
         .iter()
         .all(|atom| derivable.contains(&atom.predicate))
     {
+        tracing::debug!(
+            target: "termination_certificate",
+            producer = producer.rule_iri.as_str(),
+            consumer = consumer.rule_iri.as_str(),
+            premise = ?present,
+            missing = ?consumer
+                .head
+                .iter()
+                .map(|atom| atom.predicate.as_str())
+                .filter(|p| !derivable.contains(*p))
+                .collect::<Vec<_>>(),
+            "restricted trigger cannot derive the consumer head predicates"
+        );
         return false;
     }
     let mut fresh = present.clone();
@@ -3678,5 +3691,19 @@ fn rja_trigger_blocked(
             Ok(false)
         },
     );
+    if !satisfied {
+        tracing::debug!(
+            target: "termination_certificate",
+            producer = producer.rule_iri.as_str(),
+            consumer = consumer.rule_iri.as_str(),
+            closure = ?rel_debug(&seen),
+            head = ?head,
+            "restricted trigger closure misses the consumer head"
+        );
+    }
     walked.is_ok() && satisfied
+}
+
+fn rel_debug(seen: &BTreeSet<FactKey>) -> Vec<String> {
+    seen.iter().take(60).map(|key| format!("{key:?}")).collect()
 }
