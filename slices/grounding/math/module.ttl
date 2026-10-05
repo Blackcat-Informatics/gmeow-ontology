@@ -11206,7 +11206,7 @@ math:ApproximateValue rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty math:approximates ; logic:allValuesFrom math:Number ] ,
     [ a logic:Restriction ; logic:onProperty math:approximates ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty math:approximates ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Number ] ,
-    [ a logic:Restriction ; logic:onProperty math:approximationError ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ;
+    [ a logic:Restriction ; logic:onProperty math:approximationError ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ;
     gmeow:enforcesFailureClass math:ExactApproximateConflation .
 
 # math:isExact must be true, and math:totalMass must be 1 (math:ProbabilityMeasure), are
@@ -11219,7 +11219,7 @@ math:ApproximateValue rdfs:subClassOf
 math:MathematicalConstant rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty math:isExact ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] ,
     [ a logic:Restriction ; logic:onProperty math:isExact ; logic:hasValue true ] ,
-    [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 0 ; logic:onClass logic:Thing ] ;
+    [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 0 ; logic:onDataRange rdfs:Literal ] ;
     gmeow:enforcesFailureClass math:ConstantAsDecimalLiteral .
 
 math:SetBuilderExpression rdfs:subClassOf
@@ -11289,7 +11289,7 @@ math:LieGroup rdfs:subClassOf
 math:RootSystem rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty math:cartanMatrix ; logic:minQualifiedCardinality 1 ; logic:onClass math:CartanMatrix ] ,
     [ a logic:Restriction ; logic:onProperty math:weylGroup ; logic:minQualifiedCardinality 1 ; logic:onClass math:WeylGroup ] ,
-    [ a logic:Restriction ; logic:onProperty math:rootSystemRank ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ;
+    [ a logic:Restriction ; logic:onProperty math:rootSystemRank ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ;
     gmeow:enforcesFailureClass math:IncompleteLieStructure .
 
 math:AutomorphismGroup rdfs:subClassOf
