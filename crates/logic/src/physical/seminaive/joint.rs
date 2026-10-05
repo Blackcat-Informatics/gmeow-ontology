@@ -1633,6 +1633,14 @@ impl JointStratum {
                     Ok(round.entries.len() <= governor.solution_cap())
                 },
             )?;
+            if visit.admission_blocked && !property_blocked {
+                tracing::warn!(
+                    target: "native_obstruction",
+                    world,
+                    rule = property.source.rule_iri.as_str(),
+                    "native property admission withholds completed reads"
+                );
+            }
             property_blocked |= visit.admission_blocked;
             if !visit.complete {
                 property_truncated = true;
@@ -1753,6 +1761,15 @@ impl JointStratum {
         let inference_cut = property_truncated || chase_truncated;
         let truncated = inference_cut || state.family.analysis_exhausted();
         let blocked = if property_blocked || state.family.positive_blocked(&self.families) {
+            let obstructions = state.family.blocking_obstructions(&self.families);
+            tracing::warn!(
+                target: "native_obstruction",
+                world,
+                property_admission_blocked = property_blocked,
+                obstructions = obstructions.len(),
+                detail = %obstructions.iter().take(12).cloned().collect::<Vec<_>>().join(" | "),
+                "retained native obstruction withholds completed reads"
+            );
             if self.blocked_reads.is_empty() {
                 return Err(seminaive_err(
                     "obstructed native producer has no declared completion dependency",

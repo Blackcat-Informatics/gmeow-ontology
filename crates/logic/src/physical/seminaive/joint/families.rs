@@ -830,6 +830,51 @@ impl State {
                 .is_some_and(|class| class.completion == NativeFamilyCompletion::Exhausted)
     }
 
+    /// Why [`Self::positive_blocked`] holds: each retained obstruction it found, by
+    /// owner, kind and detail.
+    pub(super) fn blocking_obstructions(&self, producers: &[Producer]) -> Vec<String> {
+        let mut found = Vec::new();
+        if producers.contains(&Producer::Class)
+            && let Some(classes) = &self.classes
+        {
+            found.extend(
+                classes
+                    .obstructions
+                    .iter()
+                    .map(|o| format!("class: {:?}: {}", o.kind, o.detail)),
+            );
+        }
+        for admission in &self.coverage.admissions {
+            if producers.contains(&Producer::Admission(admission.family))
+                && (admission.completion != NativeFamilyCompletion::Complete
+                    || !admission.obstructions.is_empty())
+            {
+                found.push(format!(
+                    "admission {:?} ({:?}): {}",
+                    admission.family,
+                    admission.completion,
+                    admission
+                        .obstructions
+                        .iter()
+                        .map(|o| format!("{:?}: {}", o.kind, o.detail))
+                        .collect::<Vec<_>>()
+                        .join("; ")
+                ));
+            }
+        }
+        for outcome in &self.ledger.outcomes {
+            if producers.contains(&Producer::Obligation(outcome.family)) {
+                found.extend(outcome.obstructions.iter().map(|o| {
+                    format!(
+                        "obligation {:?}: {:?}: {}",
+                        outcome.family, o.kind, o.detail
+                    )
+                }));
+            }
+        }
+        found
+    }
+
     /// Any retained source/value-space obstruction can hide positive conclusions.
     /// Pure source vocabulary membership is not a family obstruction: each actual
     /// construct is interpreted by its selected native owner.
