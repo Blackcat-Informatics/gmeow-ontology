@@ -245,7 +245,7 @@ gmeow:SliceTierRequiredConstraint
     logic:onClass gmeow:Slice ;
     logic:anyOf gmeow:sliceTier ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice declares exactly one tier: gmeow:tierCore, gmeow:tierExtension, or gmeow:tierProfile (a pure-selection profile that mints nothing — Principle 16)."@x-gmeow-english .
+    logic:message "A slice declares exactly one tier: gmeow:tierCore, gmeow:tierExtension, or gmeow:tierProfile (a pure-selection profile that mints nothing — Principle 16)." .
 
 gmeow:SliceConsumerRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -256,7 +256,7 @@ gmeow:SliceConsumerRequiredConstraint
     logic:onClass gmeow:Slice ;
     logic:anyOf gmeow:sliceConsumer ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15)."@x-gmeow-english .
+    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15)." .
 
 gmeow:SliceDependsOnCreatorRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -267,7 +267,7 @@ gmeow:SliceDependsOnCreatorRequiredConstraint
     logic:onClass gmeow:Slice ;
     logic:anyOf dcterms:creator ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice names at least one creator as a plain proper-name literal (projected to its CITATION.cff — third-party slice authors get citability from the manifest)."@x-gmeow-english .
+    logic:message "A slice names at least one creator as a plain proper-name literal (projected to its CITATION.cff — third-party slice authors get citability from the manifest)." .
 
 gmeow:SliceProvidesSubcommandPatternConstraint
     a logic:Constraint ;
@@ -276,7 +276,7 @@ gmeow:SliceProvidesSubcommandPatternConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:providesSubcommand value is a lowercase token the gmeow roll-up can dispatch on."@x-gmeow-english ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A provided subcommand is a lowercase token the gmeow roll-up can dispatch on (docs/cli-extensions.md)."@x-gmeow-english ;
+    logic:message "A provided subcommand is a lowercase token the gmeow roll-up can dispatch on (docs/cli-extensions.md)." ;
     logic:integrity logic:spscForall .
 logic:spscForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cmd" ] ;
@@ -297,7 +297,7 @@ gmeow:SliceConsumerLangMinLengthConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:sliceConsumer literal carries the @x-gmeow-english language tag and is at least 8 characters long (lang-tag discipline, the manifest datatype contract)."@x-gmeow-english ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15); the literal carries @x-gmeow-english (lang-tag discipline)."@x-gmeow-english ;
+    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15); the literal carries @x-gmeow-english (lang-tag discipline)." ;
     logic:integrity logic:sclForall .
 logic:sclForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
@@ -323,7 +323,7 @@ gmeow:SliceTitleUniqueLangConstraint
     logic:onClass gmeow:Slice ;
     logic:valuePath dcterms:title ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice carries at most one dcterms:title literal per language tag."@x-gmeow-english .
+    logic:message "A slice carries at most one dcterms:title literal per language tag." .
 
 gmeow:SliceTitleCanonicalConstraint
     a logic:Constraint ;
@@ -332,7 +332,7 @@ gmeow:SliceTitleCanonicalConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:Slice carries at least one dcterms:title literal tagged @x-gmeow-english — the canonical carrier the CITATION.cff projection requires; additional translations are freely permitted."@x-gmeow-english ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice carries at least the canonical @x-gmeow-english dcterms:title (projected to its CITATION.cff); translations may add further language-tagged literals, one per language tag."@x-gmeow-english ;
+    logic:message "A slice carries at least the canonical @x-gmeow-english dcterms:title (projected to its CITATION.cff); translations may add further language-tagged literals, one per language tag." ;
     logic:integrity logic:stcForall .
 logic:stcForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
