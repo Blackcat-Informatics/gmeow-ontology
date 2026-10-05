@@ -1632,6 +1632,11 @@ impl ChaseAdmission {
             .filter(|rule| !rule.exact())
             .map(|rule| rule.name.as_str())
             .collect();
+        let families: BTreeSet<&str> = rules
+            .iter()
+            .filter(|rule| rule.witness_family.is_some())
+            .map(|rule| rule.name.as_str())
+            .collect();
         let started = std::time::Instant::now();
         let mut admission = if summarized.is_empty() {
             let ladder = if rules.iter().any(|rule| rule.position_only) {
@@ -1660,7 +1665,12 @@ impl ChaseAdmission {
                     );
                     joint
                         .or_else(|| {
-                            Self::certify_restricted_joint_acyclic(&analysis, &bridged, &summarized)
+                            Self::certify_restricted_joint_acyclic(
+                                &analysis,
+                                &bridged,
+                                &summarized,
+                                &families,
+                            )
                         })
                         .unwrap_or(Self::Uncertified { violations })
                 }
@@ -1759,7 +1769,14 @@ impl ChaseAdmission {
                     }
                     Ladder::Polynomial => None,
                 })
-                .or_else(|| Self::certify_restricted_joint_acyclic(weak, tuples, &BTreeSet::new()))
+                .or_else(|| {
+                    Self::certify_restricted_joint_acyclic(
+                        weak,
+                        tuples,
+                        &BTreeSet::new(),
+                        &BTreeSet::new(),
+                    )
+                })
                 .unwrap_or(Self::Uncertified { violations }),
         }
     }
@@ -1918,10 +1935,16 @@ impl ChaseAdmission {
     /// whose trigger check needs more fillers than its head states, so none of its
     /// triggers is ever blocked. As a producer, a summary's head is a subset of the
     /// facts its real expansion emits, so a closure over it still under-approximates.
+    ///
+    /// A consumer named in `families` is a native minimum family, whose existing-witness
+    /// probe reads an `onClass` of Thing as the universal resource class: its trigger
+    /// check omits the Thing typing its analysis head states (see
+    /// [`universal_typing`]).
     fn certify_restricted_joint_acyclic(
         rules: &[ExistentialRule],
         closure: &[ExistentialRule],
         summarized: &BTreeSet<&str>,
+        families: &BTreeSet<&str>,
     ) -> Option<Self> {
         let graph = JointGraph::new(rules)?;
         // Joint acyclicity's edges, each with the frontiers that carry it. Every
@@ -1973,8 +1996,14 @@ impl ChaseAdmission {
             let triggers = !blockable
                 || carried.into_iter().any(|frontier| {
                     closures += 1;
-                    let held =
-                        rja_trigger_blocked(&rules[*producer], null, consumer, frontier, &datalog);
+                    let held = rja_trigger_blocked(
+                        &rules[*producer],
+                        null,
+                        consumer,
+                        frontier,
+                        &datalog,
+                        families.contains(consumer.rule_iri.as_str()),
+                    );
                     blocked += usize::from(held);
                     !held
                 });
@@ -3404,6 +3433,24 @@ fn rja_exact_datalog(rule: &ExistentialRule) -> bool {
         && PreparedChaseRule::new(rule.clone()).is_ok_and(|prepared| !prepared.mints())
 }
 
+/// Whether `atom` types its subject Thing, in either declared spelling. A native
+/// minimum family reads an `onClass` of Thing as the universal resource class: it
+/// emits no such typing and its existing-witness probe accepts any successor.
+fn universal_typing(atom: &EvalAtom) -> bool {
+    const INSTANCE: [&str; 2] = [
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "https://blackcatinformatics.ca/logic/instanceOf",
+    ];
+    const THING: [&str; 2] = [
+        "http://www.w3.org/2002/07/owl#Thing",
+        "https://blackcatinformatics.ca/logic/Thing",
+    ];
+    INSTANCE.contains(&atom.predicate.as_str())
+        && matches!(&atom.object,
+            EvalTerm::ConstNamed(iri) | EvalTerm::ConstLit(purrdf::TermValue::Iri(iri))
+                if THING.contains(&iri.as_str()))
+}
+
 /// The exact Datalog rules ([`rja_exact_datalog`]) of a program, indexed by the
 /// predicates their bodies read, so a closure over a small premise visits only the
 /// rules it can fire.
@@ -3533,6 +3580,7 @@ fn rja_trigger_blocked(
     consumer: &ExistentialRule,
     frontier: &str,
     datalog: &RjaDatalog<'_>,
+    universal_filler: bool,
 ) -> bool {
     const FROZEN: &str = "https://blackcatinformatics.ca/gmeow/termination/rja";
     let frozen = |side: &str, name: &str| {
@@ -3563,7 +3611,9 @@ fn rja_trigger_blocked(
     for atom in &consumer.body {
         push(atom, "w", &none);
     }
-    for atom in &producer.head {
+    // A Thing typing is a fact the chase need not emit (a minimum family with a Thing
+    // filler emits none), so leaving it out keeps the premise an under-approximation.
+    for atom in producer.head.iter().filter(|atom| !universal_typing(atom)) {
         push(atom, "v", &identify);
     }
     for atom in &producer.body {
@@ -3669,6 +3719,7 @@ fn rja_trigger_blocked(
     let head: Vec<EvalAtom> = consumer
         .head
         .iter()
+        .filter(|atom| !(universal_filler && universal_typing(atom)))
         .map(|atom| EvalAtom {
             subject: freeze_universal(&atom.subject),
             predicate: atom.predicate.clone(),

@@ -1813,12 +1813,23 @@ fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
     // back-edge blocks nothing and the cycle stays.
     let rules = inverse_pair(true);
     assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &rules, &BTreeSet::new())
-            .is_some()
+        ChaseAdmission::certify_restricted_joint_acyclic(
+            &rules,
+            &rules,
+            &BTreeSet::new(),
+            &BTreeSet::new()
+        )
+        .is_some()
     );
     let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
     assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &rules, &summarized).is_none(),
+        ChaseAdmission::certify_restricted_joint_acyclic(
+            &rules,
+            &rules,
+            &summarized,
+            &BTreeSet::new()
+        )
+        .is_none(),
         "a summarized consumer's trigger is never blocked"
     );
 }
@@ -1839,5 +1850,50 @@ fn an_unrelated_summarized_family_leaves_the_inverse_pair_certified() {
     assert!(
         matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
         "an unrelated summary must not demote the program: {admission:?}"
+    );
+}
+
+#[test]
+fn a_thing_filler_family_is_blocked_by_its_inverse_back_edge() {
+    // `Trajectory ⊑ ≥2 cp.ControlPoint`, `cp(x, y) → cpOf(y, x)` and
+    // `ControlPoint ⊑ ≥1 cpOf.Thing`: the production music shape. Execution reads the
+    // Thing filler as any resource, emits no Thing typing, and its probe finds the
+    // back-edge `cpOf(w, s)`. The analysis head's Thing typing must not demand more.
+    // `cpOf` ranges over trajectories, so without blocking the families cycle.
+    const THING: &str = "https://blackcatinformatics.ca/logic/Thing";
+    let rules = vec![
+        minimum_family(
+            "http://ex/rule/trajectory",
+            "http://ex/Trajectory",
+            "http://ex/cp",
+            "http://ex/ControlPoint",
+            "2",
+        ),
+        statement_rule(
+            "http://ex/rule/inverse",
+            vec![statement("?x", "http://ex/cp", "?y")],
+            vec![statement("?y", "http://ex/cpOf", "?x")],
+            None,
+        ),
+        minimum_family(
+            "http://ex/rule/control-point",
+            "http://ex/ControlPoint",
+            "http://ex/cpOf",
+            THING,
+            "1",
+        ),
+        // `cpOf` ranges over trajectories: a minted filler would re-trigger the first
+        // family, closing a weak-acyclicity cycle the back-edge alone breaks.
+        statement_rule(
+            "http://ex/rule/range",
+            vec![statement("?x", "http://ex/cpOf", "?y")],
+            vec![statement("?y", TYPE, "http://ex/Trajectory")],
+            None,
+        ),
+    ];
+    let admission = certify_exact(&rules);
+    assert!(
+        matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
+        "a Thing filler's trigger is any successor: {admission:?}"
     );
 }
