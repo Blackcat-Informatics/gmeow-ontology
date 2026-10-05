@@ -364,91 +364,148 @@ fn cardinality(
         output.finish(model.input, reads(), ledger);
         ledger.outcomes.push(output);
     }
+    // A clash between a lower and an upper bound depends only on the asserted class:
+    // evaluate each class once, and bind each typed individual only to the clashes
+    // its class has. A clash-free class records no per-individual obligation, since
+    // no individual could change its bounds.
+    let mut by_class: BTreeMap<TermId, Vec<PropertyClashes>> = BTreeMap::new();
     for assertion in model.facts(RDF_TYPE, Bound::Any) {
-        let mut discovery = NativeFamilyOutcome::new(
-            NativeRefutationFamily::Cardinality,
-            NativeObligationScope::Definition {
-                owner: assertion.object.clone(),
-            },
-        );
-        let paths = model.reach(model.id(&assertion.object), lists, &mut discovery, ledger)?;
-        if !discovery.obstructions.is_empty() {
-            discovery.finish(model.input, reads(), ledger);
-            ledger.outcomes.push(discovery);
+        let class = model.id(&assertion.object);
+        if !by_class.contains_key(&class) {
+            let clashes = class_clashes(
+                model,
+                class,
+                &assertion.object,
+                &restrictions,
+                values,
+                lists,
+                ledger,
+            )?;
+            by_class.insert(class, clashes);
         }
-        let nodes: BTreeMap<_, _> = paths
-            .into_iter()
-            .filter(|(node, _)| restrictions.contains(node))
-            .collect();
-        if nodes.is_empty() {
-            continue;
-        }
-        let mut output = NativeFamilyOutcome::new(
-            NativeRefutationFamily::Cardinality,
-            NativeObligationScope::World,
-        );
-        let rows = bounds(model, &nodes, values, &mut output, ledger)?;
-        let properties: BTreeSet<_> = rows.iter().map(|row| row.property).collect();
-        for property in properties {
+        for clash in &by_class[&class] {
             let mut obligation = NativeFamilyOutcome::new(
                 NativeRefutationFamily::Cardinality,
                 NativeObligationScope::Property {
                     individual: assertion.subject.clone(),
-                    property: model.term(property).clone(),
-                    restrictions: rows
-                        .iter()
-                        .filter(|row| row.property == property)
-                        .map(|row| model.term(row.node).clone())
-                        .collect::<BTreeSet<_>>()
-                        .into_iter()
-                        .collect(),
+                    property: model.term(clash.property).clone(),
+                    restrictions: clash.restrictions.clone(),
                 },
             );
-            obligation.bounds = output
-                .bounds
-                .iter()
-                .filter(|bound| {
-                    nodes.keys().any(|node| {
-                        model.term(*node) == &bound.owner
-                            && model.objects(*node, OWL_ON_PROPERTY).contains(&property)
-                    })
-                })
-                .cloned()
-                .collect();
-            // Invalid definition owners already have their exact own records.
-            // A different property's malformed bound is not this property's source.
-
-            for lower in rows
-                .iter()
-                .filter(|row| row.property == property && row.kind != BoundKind::Max)
-            {
-                for upper in rows
-                    .iter()
-                    .filter(|row| row.property == property && row.kind != BoundKind::Min)
-                {
-                    if !ledger.charge(1) {
-                        break;
-                    }
-                    if lower.count > upper.count
-                        && (upper.qualifier.is_none() || upper.qualifier == lower.qualifier)
-                    {
-                        let mut facts = vec![assertion.clone()];
-                        facts.extend(lower.facts.iter().cloned());
-                        facts.extend(upper.facts.iter().cloned());
-                        obligation.conclusions.push(NativeSupportedClash {
-                            committed: None,
-                            subject: assertion.subject.clone(),
-                            rule: RULE_CARDINALITY.to_owned(),
-                            support: model.input.support(&facts, ledger)?,
-                        });
-                    }
-                }
+            obligation.bounds = clash.bounds.clone();
+            for pair in &clash.pairs {
+                let mut facts = vec![assertion.clone()];
+                facts.extend(pair.iter().cloned());
+                obligation.conclusions.push(NativeSupportedClash {
+                    committed: None,
+                    subject: assertion.subject.clone(),
+                    rule: RULE_CARDINALITY.to_owned(),
+                    support: model.input.support(&facts, ledger)?,
+                });
             }
             obligation.finish(model.input, reads(), ledger);
             ledger.outcomes.push(obligation);
         }
     }
     Ok(())
+}
+
+/// One property's bound clashes on a class: the restrictions bearing them, their
+/// bound evidence, and the schema facts of each clashing lower/upper pair.
+struct PropertyClashes {
+    property: TermId,
+    restrictions: Vec<TermValue>,
+    bounds: Vec<NativeBoundEvidence>,
+    pairs: Vec<Vec<Fact>>,
+}
+
+/// Every bound clash an instance of `class` inherits, computed once per class.
+fn class_clashes(
+    model: &Model<'_>,
+    class: TermId,
+    term: &TermValue,
+    restrictions: &BTreeSet<TermId>,
+    values: &mut SchemaValues,
+    lists: &mut LogicalListCache,
+    ledger: &mut NativeFamilyLedger,
+) -> gmeow_errors::Result<Vec<PropertyClashes>> {
+    let mut discovery = NativeFamilyOutcome::new(
+        NativeRefutationFamily::Cardinality,
+        NativeObligationScope::Definition {
+            owner: term.clone(),
+        },
+    );
+    let paths = model.reach(class, lists, &mut discovery, ledger)?;
+    if !discovery.obstructions.is_empty() {
+        discovery.finish(model.input, reads(), ledger);
+        ledger.outcomes.push(discovery);
+    }
+    let nodes: BTreeMap<_, _> = paths
+        .into_iter()
+        .filter(|(node, _)| restrictions.contains(node))
+        .collect();
+    if nodes.is_empty() {
+        return Ok(Vec::new());
+    }
+    let mut output = NativeFamilyOutcome::new(
+        NativeRefutationFamily::Cardinality,
+        NativeObligationScope::World,
+    );
+    let rows = bounds(model, &nodes, values, &mut output, ledger)?;
+    let properties: BTreeSet<_> = rows.iter().map(|row| row.property).collect();
+    let mut clashes = Vec::new();
+    for property in properties {
+        let mut pairs = Vec::new();
+        'pairs: for lower in rows
+            .iter()
+            .filter(|row| row.property == property && row.kind != BoundKind::Max)
+        {
+            for upper in rows
+                .iter()
+                .filter(|row| row.property == property && row.kind != BoundKind::Min)
+            {
+                if !ledger.charge(1) {
+                    break 'pairs;
+                }
+                if lower.count > upper.count
+                    && (upper.qualifier.is_none() || upper.qualifier == lower.qualifier)
+                {
+                    let mut facts = lower.facts.clone();
+                    facts.extend(upper.facts.iter().cloned());
+                    pairs.push(facts);
+                }
+            }
+        }
+        if pairs.is_empty() {
+            continue;
+        }
+        // Invalid definition owners already have their exact own records.
+        // A different property's malformed bound is not this property's source.
+        let bounds = output
+            .bounds
+            .iter()
+            .filter(|bound| {
+                nodes.keys().any(|node| {
+                    model.term(*node) == &bound.owner
+                        && model.objects(*node, OWL_ON_PROPERTY).contains(&property)
+                })
+            })
+            .cloned()
+            .collect();
+        clashes.push(PropertyClashes {
+            property,
+            restrictions: rows
+                .iter()
+                .filter(|row| row.property == property)
+                .map(|row| model.term(row.node).clone())
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect(),
+            bounds,
+            pairs,
+        });
+    }
+    Ok(clashes)
 }
 
 fn identity(
