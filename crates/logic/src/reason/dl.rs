@@ -952,6 +952,24 @@ pub(crate) fn source_execution_requires_admission(
 /// Validate a selected atom's native operand roles without waiting for other
 /// writers. The same check governs source admission and positive rule candidates;
 /// an invalid source operand never becomes an inferred RDF contradiction.
+/// The meaning of a qualifier operand under `semantics`: one fixed spelling of a
+/// marker and its declared alternate. A semantic read of a qualifier field returns every
+/// declared spelling, and each row keeps its own marker spelling, so one qualifier
+/// written both as `logic:Thing` and as `owl:Thing` must count once.
+pub(crate) fn qualifier_meaning(
+    semantics: crate::native_semantics::SemanticVocabulary,
+    predicate: &str,
+    term: &TermValue,
+) -> TermValue {
+    match term {
+        TermValue::Iri(iri) => match semantics.alternate_marker(predicate, iri) {
+            Some(alternate) if alternate < iri.as_str() => TermValue::iri(alternate),
+            _ => term.clone(),
+        },
+        other => other.clone(),
+    }
+}
+
 pub(crate) fn source_operand_issue(
     family: DlConstructFamily,
     predicate: &str,
@@ -1389,9 +1407,17 @@ pub(crate) fn admit_source_constructs(
             family,
             F::QualifiedCardinality | F::MinQualifiedCardinality | F::MaxQualifiedCardinality
         ) {
+            let semantics = input.rel.semantics;
             let qualifiers = objects(ON_CLASS)
                 .into_iter()
-                .chain(objects(ON_DATA_RANGE))
+                .map(|term| (qualifier_meaning(semantics, ON_CLASS, term), term))
+                .chain(
+                    objects(ON_DATA_RANGE)
+                        .into_iter()
+                        .map(|term| (qualifier_meaning(semantics, ON_DATA_RANGE, term), term)),
+                )
+                .collect::<BTreeMap<_, _>>()
+                .into_values()
                 .collect::<Vec<_>>();
             if qualifiers.len() != 1 || !qualifiers.iter().all(|term| resource(term)) {
                 invalid_shape(

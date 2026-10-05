@@ -13,6 +13,10 @@ pub(super) struct Observations {
 }
 
 struct Observation {
+    /// Evaluations, reuses and evaluation time, for the cost trace.
+    evaluated: usize,
+    reused: usize,
+    nanos: u128,
     reads: Vec<StatementPattern>,
     preparation: Vec<NativeRead>,
     admitted: Vec<crate::reason::dl::DlConstructFamily>,
@@ -38,10 +42,30 @@ impl Observation {
             preparation.extend(arm.preparation);
         }
         Self {
+            evaluated: 0,
+            reused: 0,
+            nanos: 0,
             reads,
             preparation: preparation.into_iter().collect(),
             admitted: admission_families(Producer::Obligation(family)),
             current: None,
+        }
+    }
+}
+
+impl Drop for Observations {
+    fn drop(&mut self) {
+        for (family, observation) in &self.families {
+            if observation.evaluated + observation.reused > 0 {
+                tracing::info!(
+                    target: "native_family_cost",
+                    family = ?family,
+                    evaluated = observation.evaluated,
+                    reused = observation.reused,
+                    elapsed_ms = observation.nanos / 1_000_000,
+                    "native family analysis cost"
+                );
+            }
         }
     }
 }
@@ -82,11 +106,16 @@ impl Observations {
                             .any(|read| read.matches_fact(fact, input.rel.semantics))
                     })
             });
-            if !reusable {
+            if reusable {
+                observation.reused += 1;
+            } else {
                 // This view defers only the wildcard observation made by outcome
                 // finish. Actual constructor/list/admission reads are unchanged.
                 let raw = input.defer_world_completion();
+                let started = std::time::Instant::now();
                 super::evaluate(&[*family], &raw, values, lists, ledger)?;
+                observation.evaluated += 1;
+                observation.nanos += started.elapsed().as_nanos();
                 if ledger.work.exhausted
                     && let Some(previous) = &observation.current
                 {

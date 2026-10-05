@@ -116,3 +116,47 @@ fn datatype_cache_capacity_and_payload_misses_preserve_execution() {
     assert_eq!(cache.bytes, 0);
     assert_eq!(plan.contains(&large, &mut values), Some(true));
 }
+
+#[test]
+fn any_uri_is_an_intrinsic_primitive_datatype() {
+    // `xsd:anyURI` is an OWL 2 datatype-map primitive. A data range naming it compiles
+    // without a constructor, admits every anyURI literal, excludes every interpreted
+    // value of another primitive, and leaves an uninterpreted foreign datatype unknown.
+    const ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
+    let mut rel = RelationStore::new();
+    rel.insert(
+        "urn:values",
+        &iri("urn:subject"),
+        &literal("urn:x", ANY_URI),
+    );
+    edge(&mut rel, "urn:p", "urn:range", ANY_URI);
+    let mut values = NativeValues::default();
+    let plan = DatatypeCache::default()
+        .prepare(&rel, &iri(ANY_URI), &mut ListCache::default(), &mut values)
+        .unwrap();
+    assert_eq!(
+        plan.contains(&literal("urn:x", ANY_URI), &mut values),
+        Some(true)
+    );
+    assert_eq!(
+        plan.contains(&literal("not a uri at all", ANY_URI), &mut values),
+        Some(true)
+    );
+    assert_eq!(
+        plan.contains(
+            &literal("urn:x", "http://www.w3.org/2001/XMLSchema#string"),
+            &mut values
+        ),
+        Some(false)
+    );
+    assert_eq!(
+        plan.contains(&literal("2", INTEGER), &mut values),
+        Some(false)
+    );
+    assert_eq!(
+        plan.contains(&literal("x", "urn:custom"), &mut values),
+        None
+    );
+    // Infinite, not unknown: any finite count of distinct anyURI values exists.
+    assert_eq!(extent::named(ANY_URI).admits(1_000_000), Some(true));
+}

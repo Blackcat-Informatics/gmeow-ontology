@@ -135,6 +135,10 @@ pub(crate) struct PropertyLayout {
     pub(crate) source: PropertyRule,
     source_identity: [u8; 32],
     pub(crate) analysis_body: Vec<PropertyAtom>,
+    /// Each list-member cell `analysis_body` introduces, with the list head it is
+    /// read from. The body leaves the cell unconstrained for value flow; chase
+    /// admission may bind it to the cells actually reachable from that head.
+    pub(crate) analysis_list_cells: Vec<(EvalTerm, EvalTerm)>,
     pub(crate) analysis_heads: Vec<PropertyAtom>,
     /// Generative families depend on every body argument, including definition
     /// and count carriers that do not themselves appear in an emitted statement.
@@ -377,7 +381,7 @@ impl PreparedPropertyRule {
                 })
             })
             .transpose()?;
-        let analysis_body = analysis_body(&source);
+        let (analysis_body, analysis_list_cells) = analysis_body(&source);
         let analysis_heads = match &source.operation {
             Some(PropertyOperation::Minimum(pattern)) => {
                 pattern.analysis_heads(variables.keys().cloned().collect())
@@ -420,6 +424,7 @@ impl PreparedPropertyRule {
             source_identity,
             source,
             analysis_body,
+            analysis_list_cells,
             analysis_heads,
             witness_frontier,
             head,
@@ -946,14 +951,15 @@ impl PreparedPropertyRule {
 
 /// Every concrete list match maps to these body facts. Connectivity between
 /// cells and between first/last chain edges is relaxed only in this analysis.
-fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
+fn analysis_body(source: &PropertyRule) -> (Vec<PropertyAtom>, Vec<(EvalTerm, EvalTerm)>) {
     // Cardinality and datatype constraints bind no new terms. Omitting their filtering is a
     // conservative term-flow abstraction; their actual relation reads remain
     // explicit in the signed producer effects and execution's delta pivot.
     let mut body = source.body.clone();
     let Some(PropertyOperation::List(list)) = &source.operation else {
-        return body;
+        return (body, Vec::new());
     };
+    let mut cells = Vec::new();
     let mut names: BTreeSet<_> = source
         .body
         .iter()
@@ -967,17 +973,19 @@ fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
         })
         .collect();
     match &list.operation {
-        ListOperation::Member(value) => member_effect(&mut body, &mut names, value.clone()),
+        ListOperation::Member(value) => {
+            cells.push(member_effect(&mut body, &mut names, value.clone()));
+        }
         ListOperation::Pair(left, right) => {
-            member_effect(&mut body, &mut names, left.clone());
-            member_effect(&mut body, &mut names, right.clone());
+            cells.push(member_effect(&mut body, &mut names, left.clone()));
+            cells.push(member_effect(&mut body, &mut names, right.clone()));
         }
         ListOperation::AllTypes(subject) => {
             // This operator admits only nonempty lists. Every concrete output has
             // at least one member type; relaxing the other member checks preserves
             // the complete term-flow over-approximation for joint chase admission.
             let member = fresh_analysis_var(&mut names);
-            member_effect(&mut body, &mut names, member.clone());
+            cells.push(member_effect(&mut body, &mut names, member.clone()));
             body.push(PropertyAtom([
                 subject.clone(),
                 EvalTerm::named(list::TYPE),
@@ -993,8 +1001,8 @@ fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
         ListOperation::Chain(start, end) => {
             let first = fresh_analysis_var(&mut names);
             let last = fresh_analysis_var(&mut names);
-            member_effect(&mut body, &mut names, first.clone());
-            member_effect(&mut body, &mut names, last.clone());
+            cells.push(member_effect(&mut body, &mut names, first.clone()));
+            cells.push(member_effect(&mut body, &mut names, last.clone()));
             body.push(PropertyAtom([
                 start.clone(),
                 first,
@@ -1007,7 +1015,11 @@ fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
             ]));
         }
     }
-    body
+    let cells = cells
+        .into_iter()
+        .map(|cell| (list.head.clone(), cell))
+        .collect();
+    (body, cells)
 }
 
 fn fresh_analysis_var(names: &mut BTreeSet<String>) -> EvalTerm {
@@ -1021,7 +1033,12 @@ fn fresh_analysis_var(names: &mut BTreeSet<String>) -> EvalTerm {
     }
 }
 
-fn member_effect(body: &mut Vec<PropertyAtom>, names: &mut BTreeSet<String>, value: EvalTerm) {
+/// Read one member of a list through a fresh cell, and return that cell.
+fn member_effect(
+    body: &mut Vec<PropertyAtom>,
+    names: &mut BTreeSet<String>,
+    value: EvalTerm,
+) -> EvalTerm {
     let cell = fresh_analysis_var(names);
     body.push(PropertyAtom([
         cell.clone(),
@@ -1029,8 +1046,9 @@ fn member_effect(body: &mut Vec<PropertyAtom>, names: &mut BTreeSet<String>, val
         value,
     ]));
     body.push(PropertyAtom([
-        cell,
+        cell.clone(),
         EvalTerm::named(list::REST),
         fresh_analysis_var(names),
     ]));
+    cell
 }

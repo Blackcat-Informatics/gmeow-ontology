@@ -3219,6 +3219,95 @@ impl ValueFlow {
         read.reads_write(write, self.universe.semantics)
     }
 
+    /// The semantic vocabulary this analysis universe interprets terms in.
+    pub(crate) fn semantics(&self) -> SemanticVocabulary {
+        self.universe.semantics
+    }
+
+    /// Every concrete statement a ranged write can produce, when each slot is a fixed
+    /// term or a finite range without the `Other` cell and their product stays within
+    /// `limit`. `None` means the write may produce a statement no finite list names.
+    pub(crate) fn finite_writes(
+        &self,
+        write: &StatementPattern,
+        limit: usize,
+    ) -> Option<Vec<crate::rule_ir::Fact>> {
+        let values = |fixed: Option<TermValue>, index: usize| -> Option<Vec<TermValue>> {
+            if let Some(fixed) = fixed {
+                return Some(vec![fixed]);
+            }
+            let domain = &write.ranges.as_ref()?[index];
+            if domain.contains(self.universe.other()) || domain.len() > limit {
+                return None;
+            }
+            Some(
+                domain
+                    .indices()
+                    .map(|value| self.universe.values[value].clone())
+                    .collect(),
+            )
+        };
+        let subjects = values(write.subject.clone(), 0)?;
+        let predicates: Vec<String> = values(write.predicate.clone().map(TermValue::iri), 1)?
+            .into_iter()
+            .map(|predicate| match predicate {
+                TermValue::Iri(iri) => Some(iri),
+                _ => None,
+            })
+            .collect::<Option<_>>()?;
+        let objects = values(write.object.clone(), 2)?;
+        if subjects.len() * predicates.len() * objects.len() > limit {
+            return None;
+        }
+        let mut facts = Vec::new();
+        for subject in &subjects {
+            for predicate in &predicates {
+                for object in &objects {
+                    facts.push(crate::rule_ir::Fact {
+                        subject: subject.clone(),
+                        predicate: predicate.clone(),
+                        object: object.clone(),
+                    });
+                }
+            }
+        }
+        Some(facts)
+    }
+
+    /// A diagnostic rendering of a ranged pattern: each slot's fixed term, or its
+    /// abstract range — its size, whether it admits the `Other` cell, and its first
+    /// values.
+    pub(crate) fn describe_pattern(&self, pattern: &StatementPattern) -> String {
+        let slot = |fixed: Option<String>, index: usize| {
+            if let Some(fixed) = fixed {
+                return fixed;
+            }
+            let Some(ranges) = &pattern.ranges else {
+                return "*".to_owned();
+            };
+            let domain = &ranges[index];
+            let other = domain.contains(self.universe.other());
+            let shown: Vec<String> = domain
+                .indices()
+                .filter(|&value| value != self.universe.other())
+                .take(4)
+                .map(|value| format!("{:?}", self.universe.values[value]))
+                .collect();
+            format!(
+                "range[{} value(s){}: {}]",
+                domain.len(),
+                if other { ", incl. Other" } else { "" },
+                shown.join(", ")
+            )
+        };
+        format!(
+            "({}, {}, {})",
+            slot(pattern.subject.as_ref().map(|t| format!("{t:?}")), 0),
+            slot(pattern.predicate.clone(), 1),
+            slot(pattern.object.as_ref().map(|t| format!("{t:?}")), 2)
+        )
+    }
+
     /// Bind an external completion observation to this analysis universe. Fixed
     /// grammar constants then remain disjoint from the `Other` cell used for
     /// data-selected predicates, while genuinely unknown observations stay broad.

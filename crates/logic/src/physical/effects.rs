@@ -107,6 +107,20 @@ impl StatementPattern {
         )
     }
 
+    /// Whether this write is a local clash commitment, `x instanceOf Nothing` in
+    /// either declared spelling: the proved head of a refutation, which denotes an
+    /// inconsistency and is never definition content.
+    pub(crate) fn is_clash_marker(&self, semantics: SemanticVocabulary) -> bool {
+        const INSTANCE: &str = "https://blackcatinformatics.ca/logic/instanceOf";
+        const NOTHING: [&str; 2] = [
+            "https://blackcatinformatics.ca/logic/Nothing",
+            "http://www.w3.org/2002/07/owl#Nothing",
+        ];
+        self.predicate.as_deref().is_some_and(|predicate| {
+            semantics.predicate(predicate) == semantics.predicate(INSTANCE)
+        }) && matches!(&self.object, Some(TermValue::Iri(iri)) if NOTHING.contains(&iri.as_str()))
+    }
+
     /// Read interpretation is role-sensitive. A constant marker may accept its
     /// declared alternate spelling; a subject, literal or quoted term may not.
     fn reads_write(&self, write: &Self, semantics: SemanticVocabulary) -> bool {
@@ -732,22 +746,41 @@ pub(crate) fn schedule_worlds(
 
 /// Exact source-owned definition immutability uses the same role-sensitive
 /// possible-write matcher as source rule admission and dependency construction.
+///
+/// A write whose every possible statement is already `asserted` in the definition's
+/// world changes no definition: it can only re-derive what the grammar already reads.
+///
+/// `admits_clash` excludes local clash commitments ([`StatementPattern::is_clash_marker`])
+/// for a grammar that is bound from source and never re-read from the closure: a clash
+/// on a definition subject then changes nothing the grammar's reader sees, and is
+/// reported as the inconsistency it is.
 pub(crate) fn scoped_definition_writer<'a>(
     flow: &value_flow::ValueFlow,
     effects: &'a [WorldProducerEffect],
     definition: &WorldStatementObservation,
-) -> Option<&'a str> {
+    admits_clash: bool,
+    asserted: &dyn Fn(&crate::rule_ir::Fact) -> bool,
+) -> Option<(&'a str, &'a StatementPattern)> {
+    /// The most statements a write may expand to before it counts as unbounded.
+    const IDEMPOTENT_LIMIT: usize = 4_096;
+    let semantics = flow.semantics();
     effects
         .iter()
-        .find(|producer| {
-            producer.owner == definition.world
-                && producer
-                    .effect
-                    .writes
-                    .iter()
-                    .any(|write| flow.overlaps_write(&definition.pattern, write))
+        .filter(|producer| producer.owner == definition.world)
+        .find_map(|producer| {
+            producer
+                .effect
+                .writes
+                .iter()
+                .filter(|write| !(admits_clash && write.is_clash_marker(semantics)))
+                .filter(|write| flow.overlaps_write(&definition.pattern, write))
+                .find(|write| {
+                    !flow
+                        .finite_writes(write, IDEMPOTENT_LIMIT)
+                        .is_some_and(|facts| facts.iter().all(asserted))
+                })
+                .map(|write| (producer.effect.name.as_str(), write))
         })
-        .map(|producer| producer.effect.name.as_str())
 }
 
 #[cfg(test)]

@@ -1374,3 +1374,526 @@ fn a_wildcard_class_that_is_written_still_closes_a_genuine_cycle() {
         "{violations:?}"
     );
 }
+
+// ── #1795: per-atom statement encoding, fresh-null keys, single witnesses ──────────
+
+fn statement_term(value: &str) -> EvalTerm {
+    if value.starts_with('?') {
+        var(value)
+    } else {
+        EvalTerm::ConstNamed(value.to_owned())
+    }
+}
+
+fn statement(s: &str, p: &str, o: &str) -> [EvalTerm; 3] {
+    [s, p, o].map(statement_term)
+}
+
+fn statement_rule(
+    name: &str,
+    body: Vec<[EvalTerm; 3]>,
+    heads: Vec<[EvalTerm; 3]>,
+    frontier: Option<&[&str]>,
+) -> StatementRule {
+    StatementRule {
+        name: name.to_owned(),
+        body,
+        heads,
+        frontier: frontier.map(|names| names.iter().map(|name| (*name).to_owned()).collect()),
+        position_only: false,
+        list_cells: Vec::new(),
+        witness_family: None,
+    }
+}
+
+fn certify_exact(rules: &[StatementRule]) -> ChaseAdmission {
+    ChaseAdmission::certify_statements(
+        rules,
+        crate::native_semantics::SemanticVocabulary::Exact,
+        Ladder::Complete,
+    )
+}
+
+/// `type(s, R) → ∃w. p(s, w) ∧ type(w, C)` as a native statement producer. A
+/// position-only producer (a witness family) admits weak acyclicity alone; otherwise
+/// the tuple rungs read the program through its encoding bridges.
+fn typed_witness_statement(position_only: bool) -> StatementRule {
+    StatementRule {
+        position_only,
+        ..statement_rule(
+            "http://ex/rule/typed-witness",
+            vec![statement("?s", TYPE, "http://ex/R")],
+            vec![statement("?s", P, "?w"), statement("?w", TYPE, C)],
+            Some(&["?s"]),
+        )
+    }
+}
+
+#[test]
+fn an_unrelated_variable_predicate_statement_keeps_typed_witnesses_binary() {
+    // `R ⊑ ∃p.C` terminates. A variable-predicate statement that only READS
+    // statements (`(s ?q o) → mentions(s, o)`) can never type anything. Encoding the
+    // whole program as statement pairs would make the trigger `type(s, R)` and the
+    // witness head `type(w, C)` share `subject-predicate[S|type]`: a self-loop through
+    // the existential edge. Per-atom encoding keeps both typed atoms binary. A witness
+    // family admits weak acyclicity only, so the position proof must succeed.
+    let reader = statement_rule(
+        "http://ex/rule/mentions",
+        vec![statement("?s", "?q", "?o")],
+        vec![statement("?s", "http://ex/mentions", "?o")],
+        None,
+    );
+    let admission = certify_exact(&[typed_witness_statement(true), reader]);
+    assert!(
+        matches!(admission, ChaseAdmission::WeaklyAcyclic { .. }),
+        "an unrelated variable-predicate reader must not refuse a typed witness: {admission:?}"
+    );
+}
+
+#[test]
+fn a_binary_witness_read_by_a_variable_predicate_statement_still_closes_its_cycle() {
+    // `(a ?q b) → type(b, R)` types the object of EVERY statement, including the
+    // witness `p(s, w)`: `w` becomes `R` and re-triggers `R ⊑ ∃p.C` forever. The
+    // binary write `p[O|·]` must reach the pair read `subject-object[O|·]` (weak
+    // acyclicity) and the binary fact must restate itself as pairs (tuple rungs).
+    let typer = statement_rule(
+        "http://ex/rule/type-every-object",
+        vec![statement("?a", "?q", "?b")],
+        vec![statement("?b", TYPE, "http://ex/R")],
+        None,
+    );
+    for position_only in [true, false] {
+        let admission = certify_exact(&[typed_witness_statement(position_only), typer.clone()]);
+        assert!(
+            !admission.admits_native(),
+            "a genuine binary-to-pair cycle must be refused (position-only {position_only}): \
+             {admission:?}"
+        );
+    }
+}
+
+#[test]
+fn a_variable_predicate_write_still_reaches_binary_triggers() {
+    // `(a ?q b) → (b ?q a)` swaps EVERY statement, so the witness `p(s, w)` yields
+    // `p(w, s)`; `p(u, v) → type(u, R)` then types the witness `R` and re-triggers
+    // the restriction forever. The pair write `subject-object[S|·]` must reach the
+    // binary read `p[S|·]` (weak acyclicity) and three agreeing pairs must restate
+    // the binary fact (tuple rungs).
+    let swap = statement_rule(
+        "http://ex/rule/swap-every-statement",
+        vec![statement("?a", "?q", "?b")],
+        vec![statement("?b", "?q", "?a")],
+        None,
+    );
+    let promote = statement_rule(
+        "http://ex/rule/p-subject-is-r",
+        vec![statement("?u", P, "?v")],
+        vec![statement("?u", TYPE, "http://ex/R")],
+        None,
+    );
+    for position_only in [true, false] {
+        let admission = certify_exact(&[
+            typed_witness_statement(position_only),
+            swap.clone(),
+            promote.clone(),
+        ]);
+        assert!(
+            !admission.admits_native(),
+            "a genuine pair-to-binary cycle must be refused (position-only {position_only}): \
+             {admission:?}"
+        );
+    }
+}
+
+/// `type(v, D) → ∃z. p(v, z)` and `type(x, C) → ∃y. p(x, y) ∧ type(y, D)`, plus a
+/// `p`-subject promoter whose object is `object`.
+fn null_partner_program(object: &str) -> Vec<ExistentialRule> {
+    vec![
+        restriction_rule("http://ex/rule/c", C, P, D),
+        ExistentialRule {
+            numeric: Vec::new(),
+            rule_iri: "http://ex/rule/d".to_owned(),
+            body: vec![atom(var("?v"), TYPE, EvalTerm::ConstNamed(D.to_owned()))],
+            head: vec![atom(var("?v"), P, var("?z"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        },
+        ExistentialRule {
+            numeric: Vec::new(),
+            rule_iri: "http://ex/rule/promote".to_owned(),
+            body: vec![atom(var("?u"), P, statement_term(object))],
+            head: vec![atom(var("?u"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        },
+    ]
+}
+
+#[test]
+fn a_fresh_null_partner_cannot_match_a_constant_read() {
+    // The `D` witness `y` gets `p(y, z)` with a FRESH `z`. The promoter needs
+    // `p(u, E)`; `z` never equals the constant `E`, so `y` is never promoted to `C`
+    // and the chase stops. Keying `p(y, z)`'s subject by the wildcard would feed
+    // `p[S|E]` and report a spurious cycle.
+    let admission = ChaseAdmission::certify(&null_partner_program(E));
+    assert!(
+        matches!(admission, ChaseAdmission::WeaklyAcyclic { .. }),
+        "a fresh null never matches a constant read: {admission:?}"
+    );
+}
+
+#[test]
+fn a_fresh_null_partner_still_matches_a_wildcard_read() {
+    // `p(u, ?any) → type(u, C)` DOES read `p(y, z)`: `y` becomes `C` and mints a
+    // new `D` witness forever. A null-keyed position must still feed wildcard reads.
+    let admission = ChaseAdmission::certify(&null_partner_program("?any"));
+    assert!(
+        !admission.admits_native(),
+        "a fresh null partner is still read by a wildcard: {admission:?}"
+    );
+}
+
+/// A two-ordinal witness family `R ⊑ ≥count p.C` and a consumer that types any
+/// `differentFrom` subject `R`.
+fn counted_family_program(count: &str) -> Vec<StatementRule> {
+    let family = StatementRule {
+        position_only: true,
+        witness_family: Some(WitnessFamily {
+            count: EvalTerm::ConstLit(TermValue::simple_literal(count)),
+            single: 2,
+        }),
+        ..statement_rule(
+            "http://ex/rule/family",
+            vec![statement("?s", TYPE, "http://ex/R")],
+            vec![
+                statement("?s", P, "?w"),
+                statement("?w", TYPE, C),
+                statement("?s", P, "?w2"),
+                statement("?w2", TYPE, C),
+                statement("?w", "http://www.w3.org/2002/07/owl#differentFrom", "?w2"),
+            ],
+            Some(&["?s"]),
+        )
+    };
+    let consumer = statement_rule(
+        "http://ex/rule/different-is-r",
+        vec![statement(
+            "?a",
+            "http://www.w3.org/2002/07/owl#differentFrom",
+            "?b",
+        )],
+        vec![statement("?a", TYPE, "http://ex/R")],
+        None,
+    );
+    vec![family, consumer]
+}
+
+#[test]
+fn a_single_witness_family_has_no_inequality_to_feed_back() {
+    // Execution mints ONE witness for a count of 1 and relates no pair, so the
+    // `differentFrom` consumer never fires on it and the program terminates.
+    let admission = certify_exact(&counted_family_program("1"));
+    assert!(
+        admission.admits_native(),
+        "a count of one emits no inequality: {admission:?}"
+    );
+}
+
+#[test]
+fn a_two_witness_family_keeps_its_inequality_cycle() {
+    // Two witnesses are related by `differentFrom`, typed `R`, and mint two more
+    // forever: the two-ordinal summary must stay in force for every other count.
+    let admission = certify_exact(&counted_family_program("2"));
+    assert!(
+        !admission.admits_native(),
+        "a count of two relates its witnesses: {admission:?}"
+    );
+}
+
+/// `Entry ⊑ ∃post.Posting`, `post(x, y) → back(y, x)` and `Posting ⊑ ∃back.Entry`,
+/// optionally without the inverse rule.
+fn inverse_pair(with_inverse: bool) -> Vec<ExistentialRule> {
+    let class = |iri: &str| EvalTerm::ConstNamed(iri.to_owned());
+    let invent = |iri: &str, from: &str, relation: &str, to: &str| ExistentialRule {
+        numeric: Vec::new(),
+        rule_iri: iri.to_owned(),
+        body: vec![atom(var("?x"), TYPE, class(from))],
+        head: vec![
+            atom(var("?x"), relation, var("?z")),
+            atom(var("?z"), TYPE, class(to)),
+        ],
+        distinct: vec![],
+        witness_frontier: None,
+        witness_policy: WitnessPolicy::FrontierSkolem,
+    };
+    let mut rules = vec![
+        invent(
+            "http://ex/rule/entry",
+            "http://ex/Entry",
+            "http://ex/post",
+            "http://ex/Posting",
+        ),
+        invent(
+            "http://ex/rule/posting",
+            "http://ex/Posting",
+            "http://ex/back",
+            "http://ex/Entry",
+        ),
+    ];
+    if with_inverse {
+        rules.push(ExistentialRule {
+            numeric: Vec::new(),
+            rule_iri: "http://ex/rule/inverse".to_owned(),
+            body: vec![atom(var("?x"), "http://ex/post", var("?y"))],
+            head: vec![atom(var("?y"), "http://ex/back", var("?x"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        });
+    }
+    rules
+}
+
+#[test]
+fn an_inverse_back_edge_certifies_restricted_joint_acyclicity() {
+    // The posting minted for an entry already has its back edge to that entry once the
+    // inverse rule closes, so the reverse restriction never fires on it: the only
+    // dependency edge is blocked. The skolem-chase rungs cannot see that.
+    let admission = ChaseAdmission::certify(&inverse_pair(true));
+    match &admission {
+        ChaseAdmission::RestrictedJointlyAcyclic { evidence } => {
+            assert!(admission.admits_native());
+            assert!(evidence.contains("blocked"), "{evidence}");
+        }
+        other => panic!("the inverse pair is restricted jointly acyclic, got {other:?}"),
+    }
+    assert_eq!(
+        admission.to_finding().code,
+        "chase.certificate.restricted-jointly-acyclic"
+    );
+}
+
+#[test]
+fn without_the_inverse_rule_the_pair_stays_uncertified() {
+    // Nothing derives the back edge, so every minted entry mints a posting that mints
+    // a fresh entry: the restricted chase genuinely does not terminate.
+    assert!(!ChaseAdmission::certify(&inverse_pair(false)).admits_native());
+}
+
+#[test]
+fn restricted_joint_acyclicity_meets_incomparable_classes_to_their_glb() {
+    let rja = || ChaseAdmission::RestrictedJointlyAcyclic {
+        evidence: "rja".to_owned(),
+    };
+    let swa = ChaseAdmission::SuperWeaklyAcyclic {
+        evidence: "swa".to_owned(),
+    };
+    let msa = ChaseAdmission::ModelSummarizingAcyclic {
+        evidence: "msa".to_owned(),
+    };
+    let ja = ChaseAdmission::JointlyAcyclic {
+        evidence: "ja".to_owned(),
+    };
+    assert!(matches!(
+        rja().combine(swa),
+        ChaseAdmission::WeaklyAcyclic { .. }
+    ));
+    assert!(matches!(
+        rja().combine(msa),
+        ChaseAdmission::JointlyAcyclic { .. }
+    ));
+    assert!(matches!(
+        rja().combine(ja),
+        ChaseAdmission::JointlyAcyclic { .. }
+    ));
+}
+
+#[test]
+fn a_guarded_rule_never_blocks_a_restricted_trigger() {
+    // The inverse rule here carries an inequality guard. Evaluating it without the guard
+    // could fabricate the back edge, so the closure leaves it out entirely and the edge it
+    // would have blocked stays: the pair is not certified by restricted joint acyclicity.
+    let mut rules = inverse_pair(true);
+    rules
+        .last_mut()
+        .expect("the inverse rule")
+        .distinct
+        .push(("?x".to_owned(), "?y".to_owned()));
+    assert!(!matches!(
+        ChaseAdmission::certify(&rules),
+        ChaseAdmission::RestrictedJointlyAcyclic { .. }
+    ));
+}
+
+/// `subject ⊑ ≥count property.filler` as a native two-ordinal witness family.
+fn minimum_family(
+    name: &str,
+    subject: &str,
+    property: &str,
+    filler: &str,
+    count: &str,
+) -> StatementRule {
+    StatementRule {
+        position_only: true,
+        witness_family: Some(WitnessFamily {
+            count: EvalTerm::ConstLit(TermValue::simple_literal(count)),
+            single: 2,
+        }),
+        ..statement_rule(
+            name,
+            vec![statement("?s", TYPE, subject)],
+            vec![
+                statement("?s", property, "?w"),
+                statement("?w", TYPE, filler),
+                statement("?s", property, "?w2"),
+                statement("?w2", TYPE, filler),
+                statement("?w", "http://www.w3.org/2002/07/owl#differentFrom", "?w2"),
+            ],
+            Some(&["?s"]),
+        )
+    }
+}
+
+/// `Entry ⊑ ≥count post.Posting`, `post(x, y) → back(y, x)` and
+/// `Posting ⊑ ≥count back.Entry`: the production journal-entry shape.
+fn inverse_minimum_pair(count: &str) -> Vec<StatementRule> {
+    vec![
+        minimum_family(
+            "http://ex/rule/entry",
+            "http://ex/Entry",
+            "http://ex/post",
+            "http://ex/Posting",
+            count,
+        ),
+        statement_rule(
+            "http://ex/rule/inverse",
+            vec![statement("?x", "http://ex/post", "?y")],
+            vec![statement("?y", "http://ex/back", "?x")],
+            None,
+        ),
+        minimum_family(
+            "http://ex/rule/posting",
+            "http://ex/Posting",
+            "http://ex/back",
+            "http://ex/Entry",
+            count,
+        ),
+    ]
+}
+
+#[test]
+fn single_witness_inverse_families_certify_restricted_joint_acyclicity() {
+    // A count-1 family is the exact rule `Entry(s) → ∃w. post(s, w) ∧ Posting(w)`: its
+    // existing-witness probe is the restricted trigger check. The back-edge `back(w, s)`
+    // with `Entry(s)` satisfies the second family, so the tuple rungs may read it.
+    let admission = certify_exact(&inverse_minimum_pair("1"));
+    assert!(
+        matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
+        "a count-1 inverse pair is an exact restricted-chase program: {admission:?}"
+    );
+}
+
+#[test]
+fn multi_witness_inverse_families_stay_uncertified() {
+    // Two symbolic ordinals summarize every count above one: their trigger check
+    // needs `count` fillers, which no back-edge supplies, so the cycle refuses.
+    let admission = certify_exact(&inverse_minimum_pair("2"));
+    assert!(
+        matches!(admission, ChaseAdmission::Uncertified { .. }),
+        "no back-edge supplies a second filler: {admission:?}"
+    );
+}
+
+#[test]
+fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
+    // The same inverse pair certifies when its families are exact rules. Named as
+    // summaries, their trigger checks need more fillers than their heads state, so the
+    // back-edge blocks nothing and the cycle stays.
+    let rules = inverse_pair(true);
+    assert!(
+        ChaseAdmission::certify_restricted_joint_acyclic(
+            &rules,
+            &rules,
+            &BTreeSet::new(),
+            &BTreeSet::new()
+        )
+        .is_some()
+    );
+    let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
+    assert!(
+        ChaseAdmission::certify_restricted_joint_acyclic(
+            &rules,
+            &rules,
+            &summarized,
+            &BTreeSet::new()
+        )
+        .is_none(),
+        "a summarized consumer's trigger is never blocked"
+    );
+}
+
+#[test]
+fn an_unrelated_summarized_family_leaves_the_inverse_pair_certified() {
+    // One count-2 family elsewhere in the program no longer forces the whole joint
+    // program onto weak acyclicity: the exact inverse pair still blocks its back-edge.
+    let mut rules = inverse_minimum_pair("1");
+    rules.push(minimum_family(
+        "http://ex/rule/unrelated",
+        "http://ex/Ledger",
+        "http://ex/line",
+        "http://ex/Line",
+        "2",
+    ));
+    let admission = certify_exact(&rules);
+    assert!(
+        matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
+        "an unrelated summary must not demote the program: {admission:?}"
+    );
+}
+
+#[test]
+fn a_thing_filler_family_is_blocked_by_its_inverse_back_edge() {
+    // `Trajectory ⊑ ≥2 cp.ControlPoint`, `cp(x, y) → cpOf(y, x)` and
+    // `ControlPoint ⊑ ≥1 cpOf.Thing`: the production music shape. Execution reads the
+    // Thing filler as any resource, emits no Thing typing, and its probe finds the
+    // back-edge `cpOf(w, s)`. The analysis head's Thing typing must not demand more.
+    // `cpOf` ranges over trajectories, so without blocking the families cycle.
+    const THING: &str = "https://blackcatinformatics.ca/logic/Thing";
+    let rules = vec![
+        minimum_family(
+            "http://ex/rule/trajectory",
+            "http://ex/Trajectory",
+            "http://ex/cp",
+            "http://ex/ControlPoint",
+            "2",
+        ),
+        statement_rule(
+            "http://ex/rule/inverse",
+            vec![statement("?x", "http://ex/cp", "?y")],
+            vec![statement("?y", "http://ex/cpOf", "?x")],
+            None,
+        ),
+        minimum_family(
+            "http://ex/rule/control-point",
+            "http://ex/ControlPoint",
+            "http://ex/cpOf",
+            THING,
+            "1",
+        ),
+        // `cpOf` ranges over trajectories: a minted filler would re-trigger the first
+        // family, closing a weak-acyclicity cycle the back-edge alone breaks.
+        statement_rule(
+            "http://ex/rule/range",
+            vec![statement("?x", "http://ex/cpOf", "?y")],
+            vec![statement("?y", TYPE, "http://ex/Trajectory")],
+            None,
+        ),
+    ];
+    let admission = certify_exact(&rules);
+    assert!(
+        matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
+        "a Thing filler's trigger is any successor: {admission:?}"
+    );
+}

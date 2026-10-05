@@ -681,3 +681,59 @@ fn relational_native_blank_identity_cannot_be_relabelled_as_rdf_ingress() {
         "rehashed mode cannot reinterpret an exact native blank as RDF lowering"
     );
 }
+
+#[test]
+fn cardinality_obligations_bind_only_individuals_of_a_clashing_class() {
+    // `urn:Bad ⊑ ≥2 p ⊓ ≤1 p` clashes for every instance; `urn:Good ⊑ ≥1 p ⊓ ≤3 p`
+    // does not. The clash is a property of the class, so each `Bad` instance carries
+    // one obligation and no `Good` instance carries any.
+    const MIN: &str = "http://www.w3.org/2002/07/owl#minCardinality";
+    const MAX: &str = "http://www.w3.org/2002/07/owl#maxCardinality";
+    const INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+    const SUB: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const ON: &str = "http://www.w3.org/2002/07/owl#onProperty";
+    const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let mut iris = vec![
+        ("urn:Bad", SUB, "urn:bad"),
+        ("urn:bad", ON, "urn:p"),
+        ("urn:Good", SUB, "urn:good"),
+        ("urn:good", ON, "urn:p"),
+    ];
+    let individuals: Vec<(String, &str)> = (0..4)
+        .map(|i| (format!("urn:bad-{i}"), "urn:Bad"))
+        .chain((0..4).map(|i| (format!("urn:good-{i}"), "urn:Good")))
+        .collect();
+    iris.extend(
+        individuals
+            .iter()
+            .map(|(individual, class)| (individual.as_str(), TYPE, *class)),
+    );
+    let source = source(
+        &iris,
+        &[
+            ("urn:bad", MIN, "2", INTEGER),
+            ("urn:bad", MAX, "1", INTEGER),
+            ("urn:good", MIN, "1", INTEGER),
+            ("urn:good", MAX, "3", INTEGER),
+        ],
+    );
+    let ledgers = testing::fixtures(source.as_ref(), false);
+    let bound: BTreeSet<_> = ledgers
+        .iter()
+        .flat_map(|ledger| &ledger.outcomes)
+        .filter(|outcome| outcome.family == NativeRefutationFamily::Cardinality)
+        .filter_map(|outcome| match &outcome.obligation {
+            NativeObligationScope::Property { individual, .. } => {
+                assert!(!outcome.conclusions.is_empty(), "an obligation is a clash");
+                Some(individual.clone())
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        bound,
+        (0..4)
+            .map(|i| TermValue::iri(format!("urn:bad-{i}")))
+            .collect::<BTreeSet<_>>()
+    );
+}

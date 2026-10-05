@@ -288,6 +288,12 @@ pub(super) struct PreparedChaseRule {
 }
 
 impl PreparedChaseRule {
+    /// Whether firing this rule mints a value: an existential witness or an n-ary
+    /// reifier node. Datalog-first scheduling defers exactly these rules.
+    pub(super) fn mints(&self) -> bool {
+        !self.existentials.is_empty() || !self.reifier_groups.is_empty()
+    }
+
     /// Exact execution ownership also governs source/effect admission.
     pub(super) fn owns_world(&self, world: &str) -> gmeow_errors::Result<bool> {
         self.ownership.owns_world(world)
@@ -624,6 +630,10 @@ fn chase_world_into(
     // the restricted-satisfaction check skips already-witnessed obligations, and the
     // SkolemRegistry collapses repeat firings — so a weakly-acyclic program converges.
     // (Incrementality is out of scope: the perf ledger flags the chase non-incremental.)
+    // Datalog-first: minting rules fire only in a round that follows a Datalog-only
+    // round with nothing left to add, so every trigger sees the Datalog closure of
+    // what exists (the order restricted-chase certificates assume).
+    let mut generative = false;
     'fixpoint: loop {
         // The restricted chase commits one breadth layer per round. The first
         // appearance of a fact is therefore its minimal proof-height layer.
@@ -635,7 +645,7 @@ fn chase_world_into(
         // becomes a sound `Exhausted` withhold instead of an OOM. Unbudgeted ⇒ `usize::MAX`.
         let mut round = BTreeMap::new();
         let round_truncated = chase_round(
-            &prepared,
+            prepared.iter().filter(|rule| generative || !rule.mints()),
             &store,
             governor.solution_cap(),
             registry,
@@ -706,8 +716,14 @@ fn chase_world_into(
             break 'fixpoint;
         }
         if !progressed {
+            if !generative {
+                // Datalog has reached its fixpoint: let the minting rules fire.
+                generative = true;
+                continue;
+            }
             break; // natural fixpoint — the chase terminated
         }
+        generative = false;
         prior_round_height = round_height;
     }
 
@@ -1090,6 +1106,21 @@ fn fact_rule_iri(_sources: &[String]) -> String {
 // slot stays the wildcard `*`, and where both a wildcard and constants occur for one
 // `(predicate, slot)` they are conservatively connected (over-approximating reachability,
 // never under — so a non-terminating program is never wrongly certified).
+//
+// # Fresh-null refinement (why a witness's partner slot is not a wildcard)
+//
+// A head atom whose OTHER slot is an existential of the same rule writes a fact whose
+// other slot is a freshly minted null. That null never equals any constant: the chase
+// mints Skolem terms that are distinct from every source/program constant, and no
+// engine path rewrites a stored null (there is no `sameAs` substitution — the
+// equality laws only DERIVE `sameAs` facts, symmetric/transitive closure and clashes,
+// and the refutation families write only `instanceOf Nothing` heads). Such a fact can
+// therefore only ever match a body atom whose other slot is a variable. Its position
+// is keyed [`ClassKey::Null`], which feeds wildcard reads and never a constant read.
+// A DL-blocked firing reuses an ancestor witness instead of minting, which is still a
+// null, never a constant. Like every rung of the ladder, this models a minted witness
+// IRI (a content address in the Skolem namespace) as fresh; an input that copies a
+// minted witness IRI as a constant is outside that model for every rung, not just here.
 
 /// The class refinement of a position: the constant co-occurring in the atom's other
 /// slot, or the wildcard when that slot is a variable.
@@ -1099,6 +1130,23 @@ enum ClassKey {
     Const(String),
     /// The other slot is a variable — matches any class.
     Wildcard,
+    /// Written only: the other slot is a fresh null of the writing rule, so the fact
+    /// can be read only through a wildcard, never through a constant refinement.
+    Null,
+}
+
+impl ClassKey {
+    /// Whether a fact written at refinement `self` can match a body atom read at
+    /// refinement `read` of the same `(relation, slot)`. Exact: a written variable
+    /// may hold any constant, a written constant matches only itself, and a written
+    /// fresh null matches only a variable.
+    fn feeds(&self, read: &ClassKey) -> bool {
+        match (self, read) {
+            (_, ClassKey::Wildcard) | (ClassKey::Wildcard, _) => true,
+            (ClassKey::Const(written), ClassKey::Const(read)) => written == read,
+            (ClassKey::Null, _) | (_, ClassKey::Null) => false,
+        }
+    }
 }
 
 /// Which column of a binary atom a variable occupies.
@@ -1126,6 +1174,7 @@ impl Position {
         let class = match &self.class {
             ClassKey::Const(k) => k.as_str(),
             ClassKey::Wildcard => "*",
+            ClassKey::Null => "null",
         };
         format!("{}[{slot}|{class}]", self.predicate)
     }
@@ -1153,6 +1202,38 @@ fn refined_positions(atoms: &[EvalAtom], var: &str) -> Vec<Position> {
     out
 }
 
+/// The refined positions at which `var` occurs across the HEAD `atoms` of a rule whose
+/// existential variables are `existentials`: a position whose other slot is one of
+/// those existentials is keyed [`ClassKey::Null`] (see "Fresh-null refinement").
+fn refined_head_positions(
+    atoms: &[EvalAtom],
+    var: &str,
+    existentials: &BTreeSet<String>,
+) -> Vec<Position> {
+    let key = |other: &EvalTerm| match other {
+        EvalTerm::Var(name) if existentials.contains(name) => ClassKey::Null,
+        other => class_key(other),
+    };
+    let mut out = Vec::new();
+    for atom in atoms {
+        if matches!(&atom.subject, EvalTerm::Var(v) if v == var) {
+            out.push(Position {
+                predicate: atom.predicate.clone(),
+                slot: Slot::Subject,
+                class: key(&atom.object),
+            });
+        }
+        if matches!(&atom.object, EvalTerm::Var(v) if v == var) {
+            out.push(Position {
+                predicate: atom.predicate.clone(),
+                slot: Slot::Object,
+                class: key(&atom.subject),
+            });
+        }
+    }
+    out
+}
+
 /// The class key contributed by the OTHER slot's term.
 fn class_key(other: &EvalTerm) -> ClassKey {
     match other {
@@ -1167,6 +1248,7 @@ fn class_key(other: &EvalTerm) -> ClassKey {
 ///
 /// ```text
 /// Uncertified ⊏ WeaklyAcyclic ⊏ JointlyAcyclic ⊏ SuperWeaklyAcyclic ⊏ ModelSummarizingAcyclic
+///             ⊏ RestrictedJointlyAcyclic
 /// ```
 ///
 /// This `⊏` is the escalation order [`Self::certify`] tries cheapest-first, NOT a subset
@@ -1184,6 +1266,12 @@ fn class_key(other: &EvalTerm) -> ClassKey {
 /// restricted-chase termination), so the witness-addressing [`WitnessPolicy`] is
 /// unchanged: the certificate selects the proof variant, the runtime keeps its
 /// restricted chase.
+///
+/// [`Self::RestrictedJointlyAcyclic`] is the exception: it proves termination of the
+/// restricted chase itself under a **Datalog-first** schedule (witness-minting rules fire
+/// only once the non-generating rules reach a fixpoint), which every native executor
+/// runs. It strictly contains joint acyclicity and is incomparable with super-weak and
+/// model-summarizing acyclicity.
 ///
 /// The order is implemented explicitly ([`Self::rank`]), never derived: a derived `Ord`
 /// would order by declaration, not by the certified-strength meaning.
@@ -1205,6 +1293,14 @@ pub enum ChaseAdmission {
     /// Certified terminating by **super-weak acyclicity** (strictly broader than
     /// joint): the place/trigger moving relation over existentials is acyclic.
     SuperWeaklyAcyclic {
+        /// Human-readable proof summary folded into the divergence ledger.
+        evidence: String,
+    },
+    /// Certified terminating by **restricted joint acyclicity** (Carral, Dragoste &
+    /// Krötzsch 2017): joint acyclicity's dependency graph without the edges whose
+    /// trigger the Datalog-closed premise already satisfies. Valid for the Datalog-first
+    /// restricted chase.
+    RestrictedJointlyAcyclic {
         /// Human-readable proof summary folded into the divergence ledger.
         evidence: String,
     },
@@ -1235,9 +1331,61 @@ pub(crate) struct StatementRule {
     /// The head represents positions of an arbitrary finite witness family,
     /// rather than a complete tuple-generating rule with fixed multiplicity.
     pub(crate) position_only: bool,
+    /// `(list head, cell)` pairs: each body cell reads a member of that list.
+    pub(crate) list_cells: Vec<(EvalTerm, EvalTerm)>,
+    /// The minimum count of a witness family, when `heads` are its two-ordinal
+    /// position summary. Specialization substitutes the count like any head term.
+    pub(crate) witness_family: Option<WitnessFamily>,
+}
+
+/// The count of a native minimum-witness family and the layout of its analysis heads.
+#[derive(Debug, Clone)]
+pub(crate) struct WitnessFamily {
+    /// The family's minimum count term, possibly bound by specialization.
+    pub(crate) count: EvalTerm,
+    /// `heads[..single]` are exactly the heads ONE witness emits.
+    pub(crate) single: usize,
 }
 
 impl StatementRule {
+    /// The heads the termination proof analyses.
+    ///
+    /// A witness family is summarized by two symbolic ordinals and their
+    /// `differentFrom` edge, which covers every finite count. When the count is the
+    /// constant 1 — as execution parses it — execution mints exactly one witness,
+    /// emits its property/type heads and NO inequality (it relates distinct witnesses
+    /// only). The analysis then uses exactly those heads, and the rule is
+    /// [`exact`](Self::exact).
+    fn analysed_heads(&self) -> &[[EvalTerm; 3]] {
+        match self.single_witness() {
+            Some(single) => &self.heads[..single],
+            None => &self.heads,
+        }
+    }
+
+    /// The single-witness head count of a family whose count execution parses as 1.
+    fn single_witness(&self) -> Option<usize> {
+        match &self.witness_family {
+            Some(WitnessFamily {
+                count: EvalTerm::ConstLit(count),
+                single,
+            }) if crate::reason::value::NativeValues::parse_cardinality(count) == Some(1) => {
+                Some(*single)
+            }
+            _ => None,
+        }
+    }
+
+    /// Whether [`Self::analysed_heads`] state this rule's complete restricted-chase
+    /// trigger. A count-1 family mints one witness only after its existing-witness
+    /// probe finds no filler satisfying exactly those heads, so it is the ordinary
+    /// existential rule `body → ∃w. heads` and every tuple rung may read it. Any
+    /// other position-only family is a two-ordinal summary of an arbitrary count,
+    /// which preserves positions but not tuple joins.
+    fn exact(&self) -> bool {
+        !self.position_only || self.single_witness().is_some()
+    }
+
     pub(crate) fn from_binary(rule: &ExistentialRule) -> Self {
         let statement = |atom: &EvalAtom| {
             [
@@ -1260,10 +1408,16 @@ impl StatementRule {
                 )
             },
             position_only: !rule.numeric.is_empty(),
+            list_cells: Vec::new(),
+            witness_family: None,
         }
     }
 
     pub(crate) fn from_property(property: &crate::physical::PreparedPropertyRule) -> Self {
+        let minimum = match property.source.operation.as_ref() {
+            Some(crate::physical::PropertyOperation::Minimum(pattern)) => Some(pattern),
+            _ => None,
+        };
         Self {
             name: property.source.rule_iri.clone(),
             body: property
@@ -1277,10 +1431,12 @@ impl StatementRule {
                 .map(|atom| atom.0.clone())
                 .collect(),
             frontier: property.witness_frontier.clone(),
-            position_only: matches!(
-                property.source.operation.as_ref(),
-                Some(crate::physical::PropertyOperation::Minimum(_))
-            ),
+            position_only: minimum.is_some(),
+            list_cells: property.analysis_list_cells.clone(),
+            witness_family: minimum.map(|pattern| WitnessFamily {
+                count: pattern.minimum.clone(),
+                single: pattern.single_witness_heads(),
+            }),
         }
     }
 }
@@ -1365,14 +1521,25 @@ pub(crate) fn firing_statements(
 impl ChaseAdmission {
     /// Certify the combined ordinary, existential and native schema producers.
     ///
-    /// The binary certifier sees each statement `(s, p, o)` through three fixed
-    /// relations: `(s, p)`, `(s, o)` and `(p, o)`. Predicate variables therefore
-    /// participate in the SAME value-flow proof as subject/object variables.
-    /// This is a conservative analysis abstraction, never an execution rewrite:
-    /// projecting every concrete fact maps each concrete Skolem firing to a firing
-    /// of the abstract rule with identical variables and witness frontier. Pair
-    /// joins may admit additional combinations, but cannot remove a concrete firing.
-    /// A finite abstract Skolem closure consequently bounds the concrete closure.
+    /// Each statement atom `(s, p, o)` is encoded by ITS OWN predicate. A constant
+    /// predicate `P` keeps the binary relation `P(s, o)` and its class-refined
+    /// positions. A variable predicate is projected into three fixed relations,
+    /// `(s, p)`, `(s, o)` and `(p, o)`, so the predicate variable participates in the
+    /// SAME value-flow proof as subject/object variables. This is a conservative
+    /// analysis abstraction, never an execution rewrite: each concrete fact
+    /// `(s, P, o)` is represented in BOTH encodings, so each concrete Skolem firing
+    /// maps to a firing of the abstract rule with identical variables and witness
+    /// frontier. Pair joins may admit additional combinations, but cannot remove a
+    /// concrete firing. A finite abstract Skolem closure consequently bounds the
+    /// concrete closure.
+    ///
+    /// The two encodings meet only along real flows. Weak acyclicity joins their
+    /// positions directly ([`add_statement_links`]); the tuple rungs instead receive
+    /// Datalog bridge rules that restate each concrete fact in the other encoding
+    /// ([`statement_bridges`]). Choosing per atom matters: one variable-predicate
+    /// statement used to project the WHOLE program into pairs, where every typed
+    /// witness `?w instanceOf C` shares `subject-predicate[S|instanceOf]` with every
+    /// typed trigger and so lies on a spurious cycle.
     ///
     /// Each head remains one conjunction and no reifier or fresh variable is added.
     /// Constants retain their typed identity. Abstract relation names cannot collide
@@ -1402,50 +1569,35 @@ impl ChaseAdmission {
         semantics: crate::native_semantics::SemanticVocabulary,
         ladder: Ladder,
     ) -> Self {
-        let fixed_relations = rules
-            .iter()
-            .flat_map(|rule| rule.body.iter().chain(&rule.heads))
-            .all(|atom| {
-                matches!(
-                    &atom[1],
-                    EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(purrdf::TermValue::Iri(_))
-                )
-            });
-        let project = |terms: [&EvalTerm; 3]| {
-            [
-                (0, 1, "urn:gmeow:termination:subject-predicate"),
-                (0, 2, "urn:gmeow:termination:subject-object"),
-                (1, 2, "urn:gmeow:termination:predicate-object"),
-            ]
-            .map(|(left, right, relation)| {
-                EvalAtom::positive(terms[left].clone(), relation, terms[right].clone())
-            })
-        };
         // Abstract only the terms entering the termination proof. The executable
         // property layouts remain shared and retain their exact native spellings.
-        let property_atom = |terms: &[EvalTerm; 3]| {
+        let statement_atom = |terms: &[EvalTerm; 3]| {
             let terms = terms.each_ref().map(|term| {
                 let mut term = term.clone();
                 semantics.abstract_term(&mut term);
                 term
             });
-            // When metadata fixes every operator, retain the original binary
-            // relations and their class-refined positions. Dropping predicate
-            // correlation into statement pairs would create spurious cycles.
-            if fixed_relations {
-                let predicate = match &terms[1] {
-                    EvalTerm::ConstNamed(iri) | EvalTerm::ConstLit(purrdf::TermValue::Iri(iri)) => {
-                        iri
-                    }
-                    _ => unreachable!("fixed native predicate"),
-                };
-                vec![EvalAtom::positive(
-                    terms[0].clone(),
-                    predicate,
-                    terms[2].clone(),
-                )]
-            } else {
-                project(terms.each_ref()).to_vec()
+            match &terms[1] {
+                // A fixed operator keeps its binary relation and class-refined
+                // positions. Dropping its predicate correlation into statement
+                // pairs would create spurious cycles.
+                EvalTerm::ConstNamed(predicate)
+                | EvalTerm::ConstLit(purrdf::TermValue::Iri(predicate)) => {
+                    vec![EvalAtom::positive(
+                        terms[0].clone(),
+                        predicate,
+                        terms[2].clone(),
+                    )]
+                }
+                _ => [
+                    (0, 1, SUBJECT_PREDICATE),
+                    (0, 2, SUBJECT_OBJECT),
+                    (1, 2, PREDICATE_OBJECT),
+                ]
+                .map(|(left, right, relation)| {
+                    EvalAtom::positive(terms[left].clone(), relation, terms[right].clone())
+                })
+                .to_vec(),
             }
         };
         let analysis: Vec<_> = rules
@@ -1453,8 +1605,12 @@ impl ChaseAdmission {
             .map(|rule| ExistentialRule {
                 numeric: Vec::new(),
                 rule_iri: rule.name.clone(),
-                body: rule.body.iter().flat_map(property_atom).collect(),
-                head: rule.heads.iter().flat_map(property_atom).collect(),
+                body: rule.body.iter().flat_map(statement_atom).collect(),
+                head: rule
+                    .analysed_heads()
+                    .iter()
+                    .flat_map(statement_atom)
+                    .collect(),
                 // Dropping inequality guards only adds possible firings.
                 distinct: Vec::new(),
                 witness_frontier: rule.frontier.clone(),
@@ -1463,14 +1619,72 @@ impl ChaseAdmission {
             .collect();
         // Two symbolic ordinals preserve position dependencies for arbitrary
         // finite counts. They do NOT preserve every nonlinear tuple join (e.g.
-        // a triangle requiring three distinct siblings). Only the position proof
-        // may certify this abstraction; MSA requires a complete rule expansion.
-        let mut admission = if rules.iter().any(|rule| rule.position_only) {
-            Self::certify_weakly_acyclic(&analysis)
-                .unwrap_or_else(|violations| Self::Uncertified { violations })
+        // a triangle requiring three distinct siblings). Only the position
+        // rungs may read this abstraction: weak and joint acyclicity, whose
+        // graphs are identical over a summary and its real expansion, and
+        // restricted joint acyclicity, which never blocks a summary's trigger.
+        // Exact count-1 families are complete rules, but their critical instance
+        // grows with every family, so they climb only the polynomial rungs.
+        let mut bridged = analysis.clone();
+        bridged.extend(statement_bridges(&analysis));
+        let summarized: BTreeSet<&str> = rules
+            .iter()
+            .filter(|rule| !rule.exact())
+            .map(|rule| rule.name.as_str())
+            .collect();
+        let families: BTreeSet<&str> = rules
+            .iter()
+            .filter(|rule| rule.witness_family.is_some())
+            .map(|rule| rule.name.as_str())
+            .collect();
+        let started = std::time::Instant::now();
+        let mut admission = if summarized.is_empty() {
+            let ladder = if rules.iter().any(|rule| rule.position_only) {
+                Ladder::Polynomial
+            } else {
+                ladder
+            };
+            Self::certify_ladder(&analysis, &bridged, ladder)
         } else {
-            Self::certify_on(&analysis, ladder)
+            let weak = Self::certify_weakly_acyclic(&analysis);
+            tracing::info!(
+                target: "termination_certificate",
+                certified = weak.is_ok(),
+                elapsed_ms = started.elapsed().as_millis(),
+                "checked weak acyclicity"
+            );
+            match weak {
+                Ok(admission) => admission,
+                Err(violations) => {
+                    let joint = Self::certify_joint_acyclic(&analysis);
+                    tracing::info!(
+                        target: "termination_certificate",
+                        certified = joint.is_some(),
+                        elapsed_ms = started.elapsed().as_millis(),
+                        "checked joint acyclicity"
+                    );
+                    joint
+                        .or_else(|| {
+                            Self::certify_restricted_joint_acyclic(
+                                &analysis,
+                                &bridged,
+                                &summarized,
+                                &families,
+                            )
+                        })
+                        .unwrap_or(Self::Uncertified { violations })
+                }
+            }
         };
+        tracing::info!(
+            target: "termination_certificate",
+            producers = rules.len(),
+            summarized = summarized.len(),
+            analysed_rules = bridged.len(),
+            class = admission.to_finding().code,
+            elapsed_ms = started.elapsed().as_millis(),
+            "certified a joint statement program"
+        );
         let context = format!(
             "joint statement value-flow abstraction of {} native producer(s)",
             rules.len()
@@ -1479,6 +1693,7 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { evidence }
             | Self::JointlyAcyclic { evidence }
             | Self::SuperWeaklyAcyclic { evidence }
+            | Self::RestrictedJointlyAcyclic { evidence }
             | Self::ModelSummarizingAcyclic { evidence } => {
                 *evidence = format!("{context}; {evidence}");
             }
@@ -1490,10 +1705,12 @@ impl ChaseAdmission {
     }
 
     /// Certify `rules` by the termination-class ladder: escalate cheapest-first
-    /// (weak → joint → super-weak → model-summarizing acyclicity) and report the
-    /// **least-cost sufficient** certificate. The polynomial rungs run before the
+    /// (weak → joint → super-weak → model-summarizing → restricted joint acyclicity) and
+    /// report the **least-cost sufficient** certificate. The polynomial rungs run before the
     /// EXPTIME model-summarizing check, which is reached only when the structural
-    /// rungs all refuse. When no class certifies, return `Uncertified` carrying the
+    /// rungs all refuse. Restricted joint acyclicity runs last: it certifies only programs
+    /// whose skolem chase may not terminate but whose Datalog-first restricted chase does,
+    /// so every program the skolem-chase rungs certify keeps its class. When no class certifies, return `Uncertified` carrying the
     /// weak-acyclicity position-graph violations (the canonical diagnostic).
     pub(crate) fn certify(rules: &[ExistentialRule]) -> Self {
         Self::certify_on(rules, Ladder::Complete)
@@ -1518,13 +1735,26 @@ impl ChaseAdmission {
             return Self::certify_weakly_acyclic(&abstraction)
                 .unwrap_or_else(|violations| Self::Uncertified { violations });
         }
-        match Self::certify_weakly_acyclic(rules) {
+        Self::certify_ladder(rules, rules, ladder)
+    }
+
+    /// The ladder over one program in two equivalent presentations. The position
+    /// rungs — weak, joint and restricted joint acyclicity — read `weak`, whose
+    /// position graph joins the statement encodings itself along class-matched flows;
+    /// the tuple rungs read `tuples`, the same program closed under its encoding
+    /// bridges, as does restricted joint acyclicity's Datalog closure.
+    fn certify_ladder(
+        weak: &[ExistentialRule],
+        tuples: &[ExistentialRule],
+        ladder: Ladder,
+    ) -> Self {
+        match Self::certify_weakly_acyclic(weak) {
             Ok(admission) => admission,
-            Err(mut violations) => Self::certify_joint_acyclic(rules)
-                .or_else(|| Self::certify_super_weak_acyclic(rules))
+            Err(mut violations) => Self::certify_joint_acyclic(weak)
+                .or_else(|| Self::certify_super_weak_acyclic(tuples))
                 .or_else(|| match ladder {
-                    Ladder::Complete if rules.len() <= MODEL_SUMMARIZING_MAX_RULES => {
-                        Self::certify_model_summarizing(rules)
+                    Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
+                        Self::certify_model_summarizing(tuples)
                     }
                     Ladder::Complete => {
                         violations.insert(
@@ -1532,12 +1762,20 @@ impl ChaseAdmission {
                             format!(
                                 "model-summarizing acyclicity not attempted: {} rules exceed its \
                                  {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
-                                rules.len()
+                                tuples.len()
                             ),
                         );
                         None
                     }
                     Ladder::Polynomial => None,
+                })
+                .or_else(|| {
+                    Self::certify_restricted_joint_acyclic(
+                        weak,
+                        tuples,
+                        &BTreeSet::new(),
+                        &BTreeSet::new(),
+                    )
                 })
                 .unwrap_or(Self::Uncertified { violations }),
         }
@@ -1567,7 +1805,7 @@ impl ChaseAdmission {
                     continue;
                 }
                 let bpos = refined_positions(&rule.body, &hv);
-                let hpos = refined_positions(&rule.head, &hv);
+                let hpos = refined_head_positions(&rule.head, &hv, &existentials);
                 for b in &bpos {
                     for h in &hpos {
                         all_nodes.insert(b.clone());
@@ -1587,7 +1825,7 @@ impl ChaseAdmission {
                     frontier_bpos.extend(refined_positions(&rule.body, &fv));
                 }
                 for e in &existentials {
-                    for h in refined_positions(&rule.head, e) {
+                    for h in refined_head_positions(&rule.head, e, &existentials) {
                         for b in &frontier_bpos {
                             all_nodes.insert(b.clone());
                             all_nodes.insert(h.clone());
@@ -1602,6 +1840,7 @@ impl ChaseAdmission {
         }
 
         add_wildcard_subsumption(&mut adj, &written, &read);
+        add_statement_links(&mut adj, &written, &read);
 
         // A special edge (u → v) violates weak acyclicity iff v can reach u (the edge
         // lies in a cycle → the chase may not terminate). The edge itself is in the
@@ -1648,74 +1887,181 @@ impl ChaseAdmission {
     /// reports a spurious cycle whenever a null merely *touches* a position on a
     /// position-graph cycle; JA is exact about which frontier a null can actually bind.
     fn certify_joint_acyclic(rules: &[ExistentialRule]) -> Option<Self> {
-        let universe = all_program_positions(rules);
-        // Existential nodes: (rule index, existential var name).
-        let mut existentials: Vec<(usize, String)> = Vec::new();
-        for (i, r) in rules.iter().enumerate() {
-            for e in r.existentials() {
-                existentials.push((i, e));
-            }
-        }
-        if existentials.is_empty() {
-            // No existential to certify — weak acyclicity already handled this shape.
-            return None;
-        }
-        // Precompute each rule's frontier flows — (refined body positions, refined head
-        // positions) per frontier var — ONCE, instead of re-deriving them on every
-        // iteration of every existential's `move_set` fixpoint.
-        let precomputed_flows: Vec<Vec<(BTreeSet<Position>, Vec<Position>)>> = rules
-            .iter()
-            .map(|r| {
-                r.copied_vars()
-                    .into_iter()
-                    .map(|v| {
-                        (
-                            refined_positions(&r.body, &v).into_iter().collect(),
-                            refined_positions(&r.head, &v),
-                        )
-                    })
-                    .collect()
-            })
-            .collect();
-        let moves: Vec<BTreeSet<Position>> = existentials
-            .iter()
-            .map(|(i, e)| move_set(&precomputed_flows, &rules[*i], e, &universe))
-            .collect();
-
-        // Existential-dependency graph.
-        let mut edges: std::collections::BTreeMap<usize, BTreeSet<usize>> =
-            std::collections::BTreeMap::new();
-        let mut edge_count = 0usize;
-        for (a, _) in existentials.iter().enumerate() {
-            let mv = &moves[a];
-            for (j, r_j) in rules.iter().enumerate() {
-                if !r_j.is_existential() {
-                    continue;
-                }
-                // Can a1's null bind a frontier of r_j (all that frontier's body
-                // positions lie within Move)? Then it can trigger r_j's invention.
-                let triggers = r_j.frontier_vars().into_iter().any(|v| {
-                    let bpos = refined_positions(&r_j.body, &v);
-                    !bpos.is_empty() && bpos.iter().all(|p| move_contains(mv, p, &universe))
-                });
-                if !triggers {
-                    continue;
-                }
-                for (b, (bi, _)) in existentials.iter().enumerate() {
-                    if *bi == j && edges.entry(a).or_default().insert(b) {
-                        edge_count += 1;
-                    }
+        let graph = JointGraph::new(rules)?;
+        let mut edges: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
+        for (a, covered) in graph.moves.iter().enumerate() {
+            for (consumer, frontiers) in &graph.consumers {
+                // Can a's null bind a frontier of the consumer (all that frontier's
+                // body positions lie within Move)? Then it can trigger its invention.
+                if frontiers
+                    .iter()
+                    .any(|(_, body)| body.iter().all(|p| covered.contains(p)))
+                {
+                    edges[a].extend(graph.owned(*consumer));
                 }
             }
         }
-
+        let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
         // JA holds iff no existential node lies on a cycle (reaches itself).
-        let acyclic = (0..existentials.len()).all(|n| !node_reaches_self(&edges, n));
-        acyclic.then(|| Self::JointlyAcyclic {
+        acyclic(&edges).then(|| Self::JointlyAcyclic {
             evidence: format!(
                 "jointly acyclic: {} existential variable(s), {} dependency edge(s), no existential depends on itself",
-                existentials.len(),
+                graph.existentials.len(),
                 edge_count
+            ),
+        })
+    }
+
+    /// **Restricted joint acyclicity** (Carral, Dragoste & Krötzsch, IJCAI 2017,
+    /// Definition 4 as corrected in the authors' extended version): joint acyclicity's
+    /// existential-dependency graph, keeping an edge `v → w` only when the trigger it
+    /// models can actually fire under the restricted chase.
+    ///
+    /// For a frontier variable `x` of `ρ_w` whose body positions all lie in `Ω_v` (joint
+    /// acyclicity's move set), the edge is **blocked** when the Datalog closure of
+    /// `F = (B_w σ′ ∪ H_v[v/σ′(x)] ∪ B_v)σ` already entails `(∃w.H_w)σ′σ`: `σ′` renames
+    /// `ρ_w` apart, `σ` freezes every variable to a distinct constant, and the null `v` is
+    /// identified with `ρ_w`'s frontier. A null introduced by `ρ_v` then never triggers
+    /// `ρ_w`, because by the time witness-minting rules fire the Datalog-first schedule has
+    /// already derived the facts satisfying `ρ_w`'s head (an inverse property's back edge,
+    /// for instance). The graph acyclic means the Datalog-first restricted chase
+    /// terminates on every instance.
+    ///
+    /// The closure uses only exact positive Datalog rules ([`rja_exact_datalog`]); every
+    /// other rule is left out, so the closure under-approximates and can never block an
+    /// edge the chase could fire.
+    ///
+    /// A consumer named in `summarized` is a two-ordinal summary of a witness family
+    /// whose trigger check needs more fillers than its head states, so none of its
+    /// triggers is ever blocked. As a producer, a summary's head is a subset of the
+    /// facts its real expansion emits, so a closure over it still under-approximates.
+    ///
+    /// A consumer named in `families` is a native minimum family, whose existing-witness
+    /// probe reads an `onClass` of Thing as the universal resource class: its trigger
+    /// check omits the Thing typing its analysis head states (see
+    /// [`universal_typing`]).
+    fn certify_restricted_joint_acyclic(
+        rules: &[ExistentialRule],
+        closure: &[ExistentialRule],
+        summarized: &BTreeSet<&str>,
+        families: &BTreeSet<&str>,
+    ) -> Option<Self> {
+        let graph = JointGraph::new(rules)?;
+        // Joint acyclicity's edges, each with the frontiers that carry it. Every
+        // restricted edge is one of these, so a restricted cycle lies inside one
+        // strongly connected component of this graph: only an edge within a component
+        // can close a cycle, and only those are worth a Datalog closure.
+        let mut candidates: Vec<(usize, usize, Vec<&String>)> = Vec::new();
+        let mut joint: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
+        for (a, covered) in graph.moves.iter().enumerate() {
+            for (j, frontiers) in &graph.consumers {
+                let carried: Vec<&String> = frontiers
+                    .iter()
+                    .filter(|(_, body)| body.iter().all(|p| covered.contains(p)))
+                    .map(|(frontier, _)| frontier)
+                    .collect();
+                if !carried.is_empty() {
+                    joint[a].extend(graph.owned(*j));
+                    candidates.push((a, *j, carried));
+                }
+            }
+        }
+        let component = strongly_connected_components(&joint);
+        let datalog = RjaDatalog::new(closure);
+        let mut sizes: BTreeMap<usize, usize> = BTreeMap::new();
+        for &c in &component {
+            *sizes.entry(c).or_default() += 1;
+        }
+        tracing::info!(
+            target: "termination_certificate",
+            existentials = graph.existentials.len(),
+            candidates = candidates.len(),
+            cyclic_candidates = candidates
+                .iter()
+                .filter(|(a, j, _)| graph.owned(*j).any(|b| component[b] == component[*a]))
+                .count(),
+            largest_component = sizes.values().max().copied().unwrap_or(0),
+            datalog_rules = datalog.rules.len(),
+            "restricted joint acyclicity candidates"
+        );
+        let started = std::time::Instant::now();
+        let mut closures = 0usize;
+        let mut edges: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
+        let mut blocked = 0usize;
+        for (a, j, carried) in candidates {
+            let (producer, null) = &graph.existentials[a];
+            let consumer = &rules[j];
+            let cyclic = graph.owned(j).any(|b| component[b] == component[a]);
+            let blockable = cyclic && !summarized.contains(consumer.rule_iri.as_str());
+            let triggers = !blockable
+                || carried.into_iter().any(|frontier| {
+                    closures += 1;
+                    let held = rja_trigger_blocked(
+                        &rules[*producer],
+                        null,
+                        consumer,
+                        frontier,
+                        &datalog,
+                        families.contains(consumer.rule_iri.as_str()),
+                    );
+                    blocked += usize::from(held);
+                    !held
+                });
+            if triggers {
+                edges[a].extend(graph.owned(j));
+            }
+        }
+        let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
+        let acyclic = acyclic(&edges);
+        if !acyclic {
+            let remaining = strongly_connected_components(&edges);
+            let mut members: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+            for (node, &c) in remaining.iter().enumerate() {
+                members.entry(c).or_default().push(node);
+            }
+            for nodes in members.values() {
+                let looped = nodes.len() > 1 || edges[nodes[0]].contains(&nodes[0]);
+                if !looped {
+                    continue;
+                }
+                let names: Vec<String> = nodes
+                    .iter()
+                    .map(|&node| {
+                        let (rule, null) = &graph.existentials[node];
+                        let iri = rules[*rule].rule_iri.as_str();
+                        let mark = if summarized.contains(iri) {
+                            " (summarized)"
+                        } else {
+                            ""
+                        };
+                        format!("{iri} {null}{mark}")
+                    })
+                    .collect();
+                tracing::info!(
+                    target: "termination_certificate",
+                    members = ?names,
+                    "restricted joint acyclicity cycle"
+                );
+            }
+        }
+        tracing::info!(
+            target: "termination_certificate",
+            existentials = graph.existentials.len(),
+            datalog_rules = datalog.rules.len(),
+            closures,
+            blocked,
+            elapsed_ms = started.elapsed().as_millis(),
+            acyclic,
+            "checked restricted joint acyclicity"
+        );
+        acyclic.then(|| Self::RestrictedJointlyAcyclic {
+            evidence: format!(
+                "restricted jointly acyclic: {} existential variable(s), {} dependency \
+                 edge(s), {} trigger(s) blocked by the Datalog-closed premise, no \
+                 existential depends on itself",
+                graph.existentials.len(),
+                edge_count,
+                blocked
             ),
         })
     }
@@ -1977,6 +2323,7 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { .. }
                 | Self::JointlyAcyclic { .. }
                 | Self::SuperWeaklyAcyclic { .. }
+                | Self::RestrictedJointlyAcyclic { .. }
                 | Self::ModelSummarizingAcyclic { .. }
         )
     }
@@ -1999,6 +2346,7 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { .. }
             | Self::JointlyAcyclic { .. }
             | Self::SuperWeaklyAcyclic { .. }
+            | Self::RestrictedJointlyAcyclic { .. }
             | Self::ModelSummarizingAcyclic { .. } => Vec::new(),
         }
     }
@@ -2027,6 +2375,12 @@ impl ChaseAdmission {
             Self::SuperWeaklyAcyclic { evidence } => Finding::new(
                 Severity::Info,
                 "chase.certificate.super-weakly-acyclic".to_owned(),
+                evidence.clone(),
+            )
+            .with_tool("chase"),
+            Self::RestrictedJointlyAcyclic { evidence } => Finding::new(
+                Severity::Info,
+                "chase.certificate.restricted-jointly-acyclic".to_owned(),
                 evidence.clone(),
             )
             .with_tool("chase"),
@@ -2059,6 +2413,7 @@ impl ChaseAdmission {
             Self::JointlyAcyclic { .. } => 2,
             Self::SuperWeaklyAcyclic { .. } => 3,
             Self::ModelSummarizingAcyclic { .. } => 4,
+            Self::RestrictedJointlyAcyclic { .. } => 5,
         }
     }
 
@@ -2069,24 +2424,39 @@ impl ChaseAdmission {
             Self::WeaklyAcyclic { evidence }
             | Self::JointlyAcyclic { evidence }
             | Self::SuperWeaklyAcyclic { evidence }
+            | Self::RestrictedJointlyAcyclic { evidence }
             | Self::ModelSummarizingAcyclic { evidence } => Some(evidence),
             Self::Uncertified { .. } => None,
         }
     }
 
     /// The greatest lower bound of two **certified** classes in the certificate-strength
-    /// poset `WA ⊏ {JA ∥ SWA} ⊏ MSA`. The incomparable siblings JA and SWA meet to their
-    /// glb, `WeaklyAcyclic` — never a linearization to whichever the escalation probed
-    /// first; every other pair is comparable and meets to the lower (more conservative)
-    /// class by escalation rank.
+    /// poset with `WA ⊏ JA ⊏ RJA`, `WA ⊏ SWA ⊏ MSA` and `JA ⊏ MSA`. Incomparable pairs meet
+    /// to their glb: JA with SWA and RJA with SWA to `WeaklyAcyclic`, RJA with MSA to
+    /// `JointlyAcyclic` (the greatest class below both) — never a linearization to whichever
+    /// the escalation probed first. Every other pair is comparable and meets to the lower
+    /// (more conservative) class by escalation rank.
     fn meet_certified(lhs: Self, rhs: Self) -> Self {
         match (&lhs, &rhs) {
             (Self::JointlyAcyclic { .. }, Self::SuperWeaklyAcyclic { .. })
-            | (Self::SuperWeaklyAcyclic { .. }, Self::JointlyAcyclic { .. }) => {
+            | (Self::SuperWeaklyAcyclic { .. }, Self::JointlyAcyclic { .. })
+            | (Self::RestrictedJointlyAcyclic { .. }, Self::SuperWeaklyAcyclic { .. })
+            | (Self::SuperWeaklyAcyclic { .. }, Self::RestrictedJointlyAcyclic { .. }) => {
                 Self::WeaklyAcyclic {
                     evidence: format!(
                         "meet of incomparable certificates [{}] and [{}] → greatest lower bound \
                      weakly-acyclic",
+                        lhs.evidence().unwrap_or_default(),
+                        rhs.evidence().unwrap_or_default()
+                    ),
+                }
+            }
+            (Self::RestrictedJointlyAcyclic { .. }, Self::ModelSummarizingAcyclic { .. })
+            | (Self::ModelSummarizingAcyclic { .. }, Self::RestrictedJointlyAcyclic { .. }) => {
+                Self::JointlyAcyclic {
+                    evidence: format!(
+                        "meet of incomparable certificates [{}] and [{}] → greatest lower bound \
+                     jointly-acyclic",
                         lhs.evidence().unwrap_or_default(),
                         rhs.evidence().unwrap_or_default()
                     ),
@@ -2246,6 +2616,163 @@ fn add_wildcard_subsumption(
     }
 }
 
+/// The statement-pair relations a variable-predicate statement is projected into.
+/// `(s, p, o)` becomes `subject-predicate(s, p)`, `subject-object(s, o)` and
+/// `predicate-object(p, o)`; a constant-predicate statement keeps its binary relation.
+const SUBJECT_PREDICATE: &str = "urn:gmeow:termination:subject-predicate";
+const SUBJECT_OBJECT: &str = "urn:gmeow:termination:subject-object";
+const PREDICATE_OBJECT: &str = "urn:gmeow:termination:predicate-object";
+
+fn is_statement_pair(relation: &str) -> bool {
+    matches!(
+        relation,
+        SUBJECT_PREDICATE | SUBJECT_OBJECT | PREDICATE_OBJECT
+    )
+}
+
+/// Join the two statement encodings along the flows a concrete fact can take.
+///
+/// [`ChaseAdmission::certify_statements`] encodes each atom by its own predicate: a
+/// constant predicate `P` keeps the binary relation `P(s, o)`; a variable predicate is
+/// projected into the three statement-pair relations. One concrete fact `(s, P, o)` is
+/// seen by BOTH encodings, so a value written by one can be read by the other:
+///
+/// * a value written at `P[S|k]` (a binary head) can bind the subject of every
+///   variable-predicate body atom `(?s ?p X)`, whose subject reads
+///   `subject-object[S|key(X)]` — joined when `k` feeds `key(X)`. Objects likewise
+///   through `subject-object[O|·]`, whose key is the subject's, as in `P[O|·]`;
+/// * a value written at `subject-object[S|k]` (a variable-predicate head) can be read
+///   by every binary body atom `P(?s, X)` — at `P[S|key(X)]`, joined when `k` feeds
+///   `key(X)`, for every `P`, since the head may write any predicate. Objects likewise.
+///
+/// Exactness: a subject/object value of a variable-predicate atom always occupies its
+/// `subject-object` position (with the same refinement as the binary atom), so these
+/// edges carry every subject/object flow. The `subject-predicate`/`predicate-object`
+/// positions also hold the predicate VALUE; a binary atom has no predicate position to
+/// read or write — its predicate is a constant and never a null — so no edge links
+/// them. Keys follow [`ClassKey::feeds`]: a fresh null joins only a wildcard read.
+fn add_statement_links(
+    adj: &mut std::collections::BTreeMap<Position, BTreeSet<Position>>,
+    written: &BTreeSet<Position>,
+    read: &BTreeSet<Position>,
+) {
+    type Index<'a> = std::collections::BTreeMap<(Slot, &'a ClassKey), Vec<&'a Position>>;
+    let mut binary_reads: Index<'_> = Index::new();
+    let mut pair_reads: Index<'_> = Index::new();
+    for position in read {
+        let index = if position.predicate == SUBJECT_OBJECT {
+            &mut pair_reads
+        } else if !is_statement_pair(&position.predicate) {
+            &mut binary_reads
+        } else {
+            continue;
+        };
+        index
+            .entry((position.slot, &position.class))
+            .or_default()
+            .push(position);
+    }
+    for source in written {
+        let reads = if source.predicate == SUBJECT_OBJECT {
+            &binary_reads
+        } else if !is_statement_pair(&source.predicate) {
+            &pair_reads
+        } else {
+            continue;
+        };
+        // The read refinements this written refinement feeds: a written variable
+        // feeds every refinement, a constant itself and the wildcard, a null only
+        // the wildcard.
+        let targets: Vec<&Position> = match &source.class {
+            ClassKey::Wildcard => reads
+                .iter()
+                .filter(|((slot, _), _)| *slot == source.slot)
+                .flat_map(|(_, positions)| positions.iter().copied())
+                .collect(),
+            class => [class, &ClassKey::Wildcard]
+                .into_iter()
+                .filter(|read| source.class.feeds(read))
+                .flat_map(|read| reads.get(&(source.slot, read)).into_iter().flatten())
+                .copied()
+                .collect(),
+        };
+        if targets.is_empty() {
+            continue;
+        }
+        adj.entry(source.clone())
+            .or_default()
+            .extend(targets.into_iter().cloned());
+    }
+}
+
+/// Datalog rules restating each fact in the other statement encoding, for the tuple
+/// rungs (joint, super-weak and model-summarizing acyclicity), which read the analysis
+/// as a program rather than as a position graph.
+///
+/// A fact written in binary form `P(s, o)` is also the statement pairs `(s, P)`,
+/// `(s, o)` and `(P, o)`; three pairs agreeing on `s`, `P` and `o` may be the fact
+/// `P(s, o)`. A bridge invents nothing (no existential, so no special edge and no
+/// Skolem term) and only adds facts a concrete statement already denotes in the other
+/// encoding, so the bridged program's Skolem closure still contains the image of every
+/// concrete firing. Empty when the program uses only the binary encoding.
+fn statement_bridges(rules: &[ExistentialRule]) -> Vec<ExistentialRule> {
+    let mut written = BTreeSet::new();
+    let mut read = BTreeSet::new();
+    let mut pairs = false;
+    for rule in rules {
+        for (atoms, binary) in [(&rule.head, &mut written), (&rule.body, &mut read)] {
+            for atom in atoms {
+                if is_statement_pair(&atom.predicate) {
+                    pairs = true;
+                } else {
+                    binary.insert(atom.predicate.as_str());
+                }
+            }
+        }
+    }
+    if !pairs {
+        return Vec::new();
+    }
+    let subject = EvalTerm::var("?statement_subject");
+    let object = EvalTerm::var("?statement_object");
+    let binary = |predicate: &str| EvalAtom::positive(subject.clone(), predicate, object.clone());
+    let projected = |predicate: &str| {
+        vec![
+            EvalAtom::positive(
+                subject.clone(),
+                SUBJECT_PREDICATE,
+                EvalTerm::named(predicate),
+            ),
+            EvalAtom::positive(subject.clone(), SUBJECT_OBJECT, object.clone()),
+            EvalAtom::positive(EvalTerm::named(predicate), PREDICATE_OBJECT, object.clone()),
+        ]
+    };
+    let bridge = |name: String, body: Vec<EvalAtom>, head: Vec<EvalAtom>| ExistentialRule {
+        numeric: Vec::new(),
+        rule_iri: name,
+        body,
+        head,
+        distinct: Vec::new(),
+        witness_frontier: None,
+        witness_policy: WitnessPolicy::FrontierSkolem,
+    };
+    let to_pairs = written.iter().map(|predicate| {
+        bridge(
+            format!("urn:gmeow:termination:bridge:pairs:{predicate}"),
+            vec![binary(predicate)],
+            projected(predicate),
+        )
+    });
+    let to_binary = read.iter().map(|predicate| {
+        bridge(
+            format!("urn:gmeow:termination:bridge:binary:{predicate}"),
+            projected(predicate),
+            vec![binary(predicate)],
+        )
+    });
+    to_pairs.chain(to_binary).collect()
+}
+
 /// The strongly connected component of every position in `adj`, by position.
 fn position_components(
     adj: &std::collections::BTreeMap<Position, BTreeSet<Position>>,
@@ -2292,51 +2819,262 @@ fn all_program_positions(rules: &[ExistentialRule]) -> BTreeSet<Position> {
     universe
 }
 
-/// Conservative Move membership: `p ∈ mv`, OR — when the program has BOTH a wildcard and
-/// a constant refinement for `p`'s `(predicate, slot)` — any sibling of `p` at that
-/// `(predicate, slot)` is in `mv`.  This over-approximates a null's reach (wildcard nulls
-/// could be any class, constant consumers read any class), never under — so a real
-/// existential cycle is never hidden (soundness: JA never wrongly certifies).
-fn move_contains(mv: &BTreeSet<Position>, p: &Position, universe: &BTreeSet<Position>) -> bool {
-    if mv.contains(p) {
-        return true;
-    }
-    let same_slot = |q: &Position| q.predicate == p.predicate && q.slot == p.slot;
-    let has_wildcard = universe
-        .iter()
-        .any(|q| same_slot(q) && q.class == ClassKey::Wildcard);
-    let has_const = universe
-        .iter()
-        .any(|q| same_slot(q) && matches!(q.class, ClassKey::Const(_)));
-    has_wildcard && has_const && mv.iter().any(same_slot)
+/// A frontier variable of an existential rule with its refined body positions.
+type Frontier = (String, Vec<Position>);
+
+/// The joint-acyclicity dependency structure of one program, built once: every
+/// existential's `Move` set and every existential rule's frontier body positions.
+struct JointGraph {
+    /// Existential nodes: (rule index, existential variable).
+    existentials: Vec<(usize, String)>,
+    /// Per existential node, every refined position its null can occupy or be read
+    /// at (see [`MoveIndex`]).
+    moves: Vec<BTreeSet<Position>>,
+    /// Per existential rule, each frontier variable with its non-empty refined body
+    /// positions.
+    consumers: Vec<(usize, Vec<Frontier>)>,
+    /// Rule index → its existential node indices.
+    owners: BTreeMap<usize, Vec<usize>>,
 }
 
-/// The `Move` set of existential `e` (of `rule_i`): the least set of refined positions a
-/// null minted for `e` can occupy, closing null-flow through every rule's frontier
-/// variables (a frontier `v` whose refined body positions all lie within Move carries the
-/// null to `v`'s head positions).  Grows monotonically within the finite position
-/// universe, so the fixpoint terminates.
-fn move_set(
-    precomputed_flows: &[Vec<(BTreeSet<Position>, Vec<Position>)>],
-    rule_i: &ExistentialRule,
-    e: &str,
-    universe: &BTreeSet<Position>,
-) -> BTreeSet<Position> {
-    let mut mv: BTreeSet<Position> = refined_positions(&rule_i.head, e).into_iter().collect();
-    loop {
-        let before = mv.len();
-        for rule_flow in precomputed_flows {
-            for (bpos, hpos) in rule_flow {
-                if !bpos.is_empty() && bpos.iter().all(|p| move_contains(&mv, p, universe)) {
-                    mv.extend(hpos.iter().cloned());
-                }
+impl JointGraph {
+    /// `None` when the program has no existential to certify.
+    fn new(rules: &[ExistentialRule]) -> Option<Self> {
+        let mut existentials: Vec<(usize, String)> = Vec::new();
+        for (i, r) in rules.iter().enumerate() {
+            for e in r.existentials() {
+                existentials.push((i, e));
             }
         }
-        if mv.len() == before {
-            break;
+        if existentials.is_empty() {
+            return None;
+        }
+        let index = MoveIndex::new(rules);
+        let moves = existentials
+            .iter()
+            .map(|(i, e)| {
+                let fresh: BTreeSet<String> = rules[*i].existentials().into_iter().collect();
+                index.reach(refined_head_positions(&rules[*i].head, e, &fresh))
+            })
+            .collect();
+        let consumers = rules
+            .iter()
+            .enumerate()
+            .filter(|(_, rule)| rule.is_existential())
+            .map(|(j, rule)| {
+                let frontiers = rule
+                    .frontier_vars()
+                    .into_iter()
+                    .map(|v| {
+                        let body = refined_positions(&rule.body, &v);
+                        (v, body)
+                    })
+                    .filter(|(_, body)| !body.is_empty())
+                    .collect();
+                (j, frontiers)
+            })
+            .collect();
+        let mut owners: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+        for (node, (rule, _)) in existentials.iter().enumerate() {
+            owners.entry(*rule).or_default().push(node);
+        }
+        Some(Self {
+            existentials,
+            moves,
+            consumers,
+            owners,
+        })
+    }
+
+    fn owned(&self, rule: usize) -> impl Iterator<Item = usize> + '_ {
+        self.owners.get(&rule).into_iter().flatten().copied()
+    }
+}
+
+/// The null-flow closure of a program as a Horn propagation network, so each `Move`
+/// set is computed in time linear in the program (Dowling & Gallier, 1984) rather than
+/// by re-scanning every flow until a fixpoint.
+///
+/// A flow — one copied variable of one rule — carries a null from all of its refined
+/// body positions to its head positions. Each flow counts its uncovered body positions;
+/// covering a position decrements the flows that read it, and a flow whose count
+/// reaches zero fires once.
+///
+/// Across rules a written value reaches the read positions weak acyclicity joins it
+/// to: the same position, the wildcard/constant subsumption of its `(predicate, slot)`
+/// ([`add_wildcard_subsumption`]) and the statement-encoding links
+/// ([`add_statement_links`]). Head positions carry [`ClassKey::Null`] where their
+/// partner is a fresh null, so a null-keyed write feeds only wildcard reads. `Move` thus
+/// over-approximates a null's reach exactly as far as the weak-acyclicity graph does,
+/// never under — so a real existential cycle is never hidden.
+struct MoveIndex {
+    heads: Vec<Vec<Position>>,
+    need: Vec<usize>,
+    watch: BTreeMap<Position, Vec<usize>>,
+    links: BTreeMap<Position, BTreeSet<Position>>,
+}
+
+impl MoveIndex {
+    fn new(rules: &[ExistentialRule]) -> Self {
+        let mut heads = Vec::new();
+        let mut need = Vec::new();
+        let mut watch: BTreeMap<Position, Vec<usize>> = BTreeMap::new();
+        let mut written: BTreeSet<Position> = BTreeSet::new();
+        let mut read: BTreeSet<Position> = BTreeSet::new();
+        for rule in rules {
+            let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
+            for v in rule.head_vars() {
+                written.extend(refined_head_positions(&rule.head, &v, &existentials));
+            }
+            for v in rule.body_vars() {
+                read.extend(refined_positions(&rule.body, &v));
+            }
+            for v in rule.copied_vars() {
+                let body: BTreeSet<Position> =
+                    refined_positions(&rule.body, &v).into_iter().collect();
+                if body.is_empty() {
+                    continue;
+                }
+                let flow = heads.len();
+                for position in &body {
+                    watch.entry(position.clone()).or_default().push(flow);
+                }
+                need.push(body.len());
+                heads.push(refined_head_positions(&rule.head, &v, &existentials));
+            }
+        }
+        let mut links = BTreeMap::new();
+        add_wildcard_subsumption(&mut links, &written, &read);
+        add_statement_links(&mut links, &written, &read);
+        // A flow here needs ALL of a variable's body positions, and a variable-predicate
+        // atom also holds its subject in `subject-predicate[S|·]` and its object in
+        // `predicate-object[O|·]`. Weak acyclicity needs one position per edge and
+        // links only `subject-object`; a binary write reaches these too, at every
+        // refinement.
+        for source in written.iter().filter(|p| !is_statement_pair(&p.predicate)) {
+            let pair = match source.slot {
+                Slot::Subject => SUBJECT_PREDICATE,
+                Slot::Object => PREDICATE_OBJECT,
+            };
+            let targets: Vec<Position> = read
+                .iter()
+                .filter(|r| r.predicate == pair && r.slot == source.slot)
+                .cloned()
+                .collect();
+            if !targets.is_empty() {
+                links
+                    .entry(source.clone())
+                    .or_insert_with(BTreeSet::new)
+                    .extend(targets);
+            }
+        }
+        Self {
+            heads,
+            need,
+            watch,
+            links,
         }
     }
-    mv
+
+    /// Every position a null first written at `start` can occupy or be read at.
+    fn reach(&self, start: Vec<Position>) -> BTreeSet<Position> {
+        let mut need = self.need.clone();
+        let mut moved: BTreeSet<Position> = BTreeSet::new();
+        let mut queue = start;
+        while let Some(position) = queue.pop() {
+            if !moved.insert(position.clone()) {
+                continue;
+            }
+            for &flow in self.watch.get(&position).into_iter().flatten() {
+                need[flow] -= 1;
+                if need[flow] == 0 {
+                    queue.extend(self.heads[flow].iter().cloned());
+                }
+            }
+            queue.extend(self.links.get(&position).into_iter().flatten().cloned());
+        }
+        moved
+    }
+}
+
+/// The strongly connected component of every node (Tarjan, 1972), iteratively, in
+/// time linear in the graph. Two nodes share a component iff each reaches the other.
+fn strongly_connected_components(edges: &[BTreeSet<usize>]) -> Vec<usize> {
+    const UNVISITED: usize = usize::MAX;
+    let n = edges.len();
+    let mut index = vec![UNVISITED; n];
+    let mut low = vec![0usize; n];
+    let mut on_stack = vec![false; n];
+    let mut component = vec![UNVISITED; n];
+    let mut stack = Vec::new();
+    let mut next = 0usize;
+    let mut components = 0usize;
+    for root in 0..n {
+        if index[root] != UNVISITED {
+            continue;
+        }
+        let mut frames: Vec<(usize, Vec<usize>)> =
+            vec![(root, edges[root].iter().copied().collect())];
+        index[root] = next;
+        low[root] = next;
+        next += 1;
+        stack.push(root);
+        on_stack[root] = true;
+        while let Some((node, successors)) = frames.last_mut() {
+            let node = *node;
+            if let Some(successor) = successors.pop() {
+                if index[successor] == UNVISITED {
+                    index[successor] = next;
+                    low[successor] = next;
+                    next += 1;
+                    stack.push(successor);
+                    on_stack[successor] = true;
+                    frames.push((successor, edges[successor].iter().copied().collect()));
+                } else if on_stack[successor] {
+                    low[node] = low[node].min(index[successor]);
+                }
+                continue;
+            }
+            frames.pop();
+            if let Some((parent, _)) = frames.last() {
+                low[*parent] = low[*parent].min(low[node]);
+            }
+            if low[node] == index[node] {
+                while let Some(member) = stack.pop() {
+                    on_stack[member] = false;
+                    component[member] = components;
+                    if member == node {
+                        break;
+                    }
+                }
+                components += 1;
+            }
+        }
+    }
+    component
+}
+
+/// Whether a dependency graph over `edges.len()` nodes is acyclic (a self-edge is a
+/// cycle): Kahn's topological elimination, linear in the graph.
+fn acyclic(edges: &[BTreeSet<usize>]) -> bool {
+    let mut indegree = vec![0usize; edges.len()];
+    for targets in edges {
+        for &target in targets {
+            indegree[target] += 1;
+        }
+    }
+    let mut ready: Vec<usize> = (0..edges.len()).filter(|&n| indegree[n] == 0).collect();
+    let mut removed = 0usize;
+    while let Some(node) = ready.pop() {
+        removed += 1;
+        for &target in &edges[node] {
+            indegree[target] -= 1;
+            if indegree[target] == 0 {
+                ready.push(target);
+            }
+        }
+    }
+    removed == edges.len()
 }
 
 /// Whether `node` lies on a cycle in the existential-dependency graph (reaches itself
@@ -2681,3 +3419,342 @@ fn build_swa_place_graph(
 #[path = "chase.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+/// Whether `rule` is an exact positive Datalog rule for the restricted-joint-acyclicity
+/// closure: it mints nothing (no existential witness, no n-ary reifier node), and carries
+/// no inequality guard, numeric constraint or negated atom. Dropping such a condition
+/// would over-derive and could block an edge the chase fires, so those rules are left
+/// out of the closure entirely instead.
+fn rja_exact_datalog(rule: &ExistentialRule) -> bool {
+    !rule.is_existential()
+        && rule.numeric.is_empty()
+        && rule.distinct.is_empty()
+        && rule.body.iter().all(|atom| !atom.negated)
+        && PreparedChaseRule::new(rule.clone()).is_ok_and(|prepared| !prepared.mints())
+}
+
+/// Whether `atom` types its subject Thing, in either declared spelling. A native
+/// minimum family reads an `onClass` of Thing as the universal resource class: it
+/// emits no such typing and its existing-witness probe accepts any successor.
+fn universal_typing(atom: &EvalAtom) -> bool {
+    const INSTANCE: [&str; 2] = [
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "https://blackcatinformatics.ca/logic/instanceOf",
+    ];
+    const THING: [&str; 2] = [
+        "http://www.w3.org/2002/07/owl#Thing",
+        "https://blackcatinformatics.ca/logic/Thing",
+    ];
+    INSTANCE.contains(&atom.predicate.as_str())
+        && matches!(&atom.object,
+            EvalTerm::ConstNamed(iri) | EvalTerm::ConstLit(purrdf::TermValue::Iri(iri))
+                if THING.contains(&iri.as_str()))
+}
+
+/// The exact Datalog rules ([`rja_exact_datalog`]) of a program, indexed by the
+/// predicates their bodies read, so a closure over a small premise visits only the
+/// rules it can fire.
+struct RjaDatalog<'a> {
+    rules: Vec<&'a ExistentialRule>,
+    reads: Vec<BTreeSet<&'a str>>,
+    writes: Vec<BTreeSet<&'a str>>,
+    by_predicate: BTreeMap<&'a str, Vec<usize>>,
+    /// Rules with an empty body, which fire on any premise.
+    unconditional: Vec<usize>,
+    /// [`Self::derivable`] per seed predicate set.
+    derivable: std::cell::RefCell<BTreeMap<BTreeSet<String>, std::rc::Rc<BTreeSet<String>>>>,
+}
+
+impl<'a> RjaDatalog<'a> {
+    fn new(rules: &'a [ExistentialRule]) -> Self {
+        let rules: Vec<_> = rules
+            .iter()
+            .filter(|rule| rja_exact_datalog(rule))
+            .collect();
+        let reads: Vec<BTreeSet<&str>> = rules
+            .iter()
+            .map(|rule| {
+                rule.body
+                    .iter()
+                    .map(|atom| atom.predicate.as_str())
+                    .collect()
+            })
+            .collect();
+        let writes = rules
+            .iter()
+            .map(|rule| {
+                rule.head
+                    .iter()
+                    .map(|atom| atom.predicate.as_str())
+                    .collect()
+            })
+            .collect();
+        let mut by_predicate: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
+        let mut unconditional = Vec::new();
+        for (index, predicates) in reads.iter().enumerate() {
+            if predicates.is_empty() {
+                unconditional.push(index);
+            }
+            for predicate in predicates {
+                by_predicate.entry(predicate).or_default().push(index);
+            }
+        }
+        Self {
+            rules,
+            reads,
+            writes,
+            by_predicate,
+            unconditional,
+            derivable: std::cell::RefCell::default(),
+        }
+    }
+
+    /// The rules whose every body predicate is `present` and that read a predicate
+    /// in `fresh`. The first round passes every present predicate as fresh and also
+    /// fires the unconditional rules; later rounds pass only the predicates that just
+    /// gained facts, since no other rule can derive anything new.
+    fn candidates(
+        &self,
+        present: &BTreeSet<String>,
+        fresh: &BTreeSet<String>,
+        first: bool,
+    ) -> Vec<&'a ExistentialRule> {
+        let ready = |index: &usize| self.reads[*index].iter().all(|p| present.contains(*p));
+        let indices: BTreeSet<usize> = fresh
+            .iter()
+            .filter_map(|predicate| self.by_predicate.get(predicate.as_str()))
+            .flatten()
+            .chain(first.then_some(&self.unconditional).into_iter().flatten())
+            .copied()
+            .filter(ready)
+            .collect();
+        indices.into_iter().map(|index| self.rules[index]).collect()
+    }
+
+    /// Every predicate the rules can derive from facts over `seed`, ignoring joins:
+    /// a rule contributes its head predicates once all its body predicates are
+    /// derivable. A necessary condition for any closure over such facts, computed by
+    /// counter propagation once per distinct seed.
+    fn derivable(&self, seed: &BTreeSet<String>) -> std::rc::Rc<BTreeSet<String>> {
+        if let Some(known) = self.derivable.borrow().get(seed) {
+            return std::rc::Rc::clone(known);
+        }
+        let mut need: Vec<usize> = self.reads.iter().map(BTreeSet::len).collect();
+        let mut known: BTreeSet<String> = BTreeSet::new();
+        let mut queue: Vec<String> = seed.iter().cloned().collect();
+        for &index in &self.unconditional {
+            queue.extend(self.writes[index].iter().map(|p| (*p).to_owned()));
+        }
+        while let Some(predicate) = queue.pop() {
+            if !known.insert(predicate.clone()) {
+                continue;
+            }
+            for &index in self
+                .by_predicate
+                .get(predicate.as_str())
+                .into_iter()
+                .flatten()
+            {
+                need[index] -= 1;
+                if need[index] == 0 {
+                    queue.extend(self.writes[index].iter().map(|p| (*p).to_owned()));
+                }
+            }
+        }
+        let known = std::rc::Rc::new(known);
+        self.derivable
+            .borrow_mut()
+            .insert(seed.clone(), std::rc::Rc::clone(&known));
+        known
+    }
+}
+
+/// Condition (b) of restricted joint acyclicity: whether the Datalog closure of
+/// `ρ_w`'s body (renamed apart), `ρ_v`'s head with `null` identified with `ρ_w`'s
+/// `frontier`, and `ρ_v`'s body, all frozen to distinct constants, already satisfies
+/// `ρ_w`'s head with its existentials free. Any evaluation failure answers `false`
+/// (not blocked), which keeps the edge.
+fn rja_trigger_blocked(
+    producer: &ExistentialRule,
+    null: &str,
+    consumer: &ExistentialRule,
+    frontier: &str,
+    datalog: &RjaDatalog<'_>,
+    universal_filler: bool,
+) -> bool {
+    const FROZEN: &str = "https://blackcatinformatics.ca/gmeow/termination/rja";
+    let frozen = |side: &str, name: &str| {
+        purrdf::TermValue::iri(format!("{FROZEN}/{side}/{}", name.trim_start_matches('?')))
+    };
+    let value = |term: &EvalTerm,
+                 side: &str,
+                 rename: &dyn Fn(&str) -> Option<purrdf::TermValue>| {
+        match term {
+            EvalTerm::Var(name) => rename(name).unwrap_or_else(|| frozen(side, name)),
+            EvalTerm::ConstNamed(iri) => purrdf::TermValue::iri(iri),
+            EvalTerm::ConstLit(literal) => literal.clone(),
+        }
+    };
+    let none = |_: &str| None;
+    let identify = |name: &str| (name == null).then(|| frozen("w", frontier));
+    let mut facts: Vec<Fact> = Vec::new();
+    let mut push =
+        |atom: &EvalAtom, side: &str, rename: &dyn Fn(&str) -> Option<purrdf::TermValue>| {
+            if !atom.negated {
+                facts.push(Fact {
+                    subject: value(&atom.subject, side, rename),
+                    predicate: atom.predicate.clone(),
+                    object: value(&atom.object, side, rename),
+                });
+            }
+        };
+    for atom in &consumer.body {
+        push(atom, "w", &none);
+    }
+    // A Thing typing is a fact the chase need not emit (a minimum family with a Thing
+    // filler emits none), so leaving it out keeps the premise an under-approximation.
+    for atom in producer.head.iter().filter(|atom| !universal_typing(atom)) {
+        push(atom, "v", &identify);
+    }
+    for atom in &producer.body {
+        push(atom, "v", &none);
+    }
+    let mut rel = RelationStore::new();
+    let mut seen: BTreeSet<FactKey> = BTreeSet::new();
+    let mut present: BTreeSet<String> = BTreeSet::new();
+    for fact in facts {
+        if seen.insert(fact.key()) {
+            rel.insert(&fact.predicate, &fact.subject, &fact.object);
+            present.insert(fact.predicate);
+        }
+    }
+    let empty = Solution {
+        bindings: Vec::new(),
+        source_facts: Vec::new(),
+    };
+    // The frozen premise is finite and the rules invent nothing, so this terminates.
+    // A rule re-runs only when one of its body predicates gained facts, and only once
+    // every body predicate is present: the premise is a handful of facts, so almost
+    // no rule of a large program can ever match it.
+    // Blocking needs every consumer head predicate; if even the join-free predicate
+    // closure of the premise misses one, no Datalog closure can supply it.
+    let derivable = datalog.derivable(&present);
+    if !consumer
+        .head
+        .iter()
+        .all(|atom| derivable.contains(&atom.predicate))
+    {
+        tracing::debug!(
+            target: "termination_certificate",
+            producer = producer.rule_iri.as_str(),
+            consumer = consumer.rule_iri.as_str(),
+            premise = ?present,
+            missing = ?consumer
+                .head
+                .iter()
+                .map(|atom| atom.predicate.as_str())
+                .filter(|p| !derivable.contains(*p))
+                .collect::<Vec<_>>(),
+            "restricted trigger cannot derive the consumer head predicates"
+        );
+        return false;
+    }
+    let mut fresh = present.clone();
+    let mut first = true;
+    loop {
+        let mut derived = Vec::new();
+        for rule in datalog.candidates(&present, &fresh, first) {
+            let walked = join::walk(
+                &rule.body,
+                &rel,
+                &empty,
+                join::Policy {
+                    max_matches: usize::MAX,
+                    distinct: &[],
+                    retain_sources: false,
+                },
+                |solution| {
+                    for head in &rule.head {
+                        let ground = |term: &EvalTerm| match term {
+                            EvalTerm::Var(name) => solution.get(name).cloned(),
+                            EvalTerm::ConstNamed(iri) => Some(purrdf::TermValue::iri(iri)),
+                            EvalTerm::ConstLit(literal) => Some(literal.clone()),
+                        };
+                        if let (Some(subject), Some(object)) =
+                            (ground(&head.subject), ground(&head.object))
+                        {
+                            derived.push(Fact {
+                                subject,
+                                predicate: head.predicate.clone(),
+                                object,
+                            });
+                        }
+                    }
+                    Ok(true)
+                },
+            );
+            if walked.is_err() {
+                return false;
+            }
+        }
+        let mut grown = BTreeSet::new();
+        for fact in derived {
+            if seen.insert(fact.key()) {
+                rel.insert(&fact.predicate, &fact.subject, &fact.object);
+                grown.insert(fact.predicate);
+            }
+        }
+        if grown.is_empty() {
+            break;
+        }
+        present.extend(grown.iter().cloned());
+        fresh = grown;
+        first = false;
+    }
+    let existential: BTreeSet<String> = consumer.existentials().into_iter().collect();
+    let freeze_universal = |term: &EvalTerm| match term {
+        EvalTerm::Var(name) if !existential.contains(name) => EvalTerm::ConstLit(frozen("w", name)),
+        term => term.clone(),
+    };
+    let head: Vec<EvalAtom> = consumer
+        .head
+        .iter()
+        .filter(|atom| !(universal_filler && universal_typing(atom)))
+        .map(|atom| EvalAtom {
+            subject: freeze_universal(&atom.subject),
+            predicate: atom.predicate.clone(),
+            object: freeze_universal(&atom.object),
+            negated: false,
+        })
+        .collect();
+    let mut satisfied = false;
+    let walked = join::walk(
+        &head,
+        &rel,
+        &empty,
+        join::Policy {
+            max_matches: usize::MAX,
+            distinct: &[],
+            retain_sources: false,
+        },
+        |_| {
+            satisfied = true;
+            Ok(false)
+        },
+    );
+    if !satisfied {
+        tracing::debug!(
+            target: "termination_certificate",
+            producer = producer.rule_iri.as_str(),
+            consumer = consumer.rule_iri.as_str(),
+            closure = ?rel_debug(&seen),
+            head = ?head,
+            "restricted trigger closure misses the consumer head"
+        );
+    }
+    walked.is_ok() && satisfied
+}
+
+fn rel_debug(seen: &BTreeSet<FactKey>) -> Vec<String> {
+    seen.iter().take(60).map(|key| format!("{key:?}")).collect()
+}

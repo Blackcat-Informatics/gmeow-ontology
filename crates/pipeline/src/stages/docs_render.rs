@@ -101,10 +101,18 @@ pub(crate) fn reasoning_verdict_from_product(
         || !result.is_conclusive()
         || result.evaluation == EvaluationStatus::Unsupported
     {
+        let unsupported = &result.preservation.unsupported_constructs;
         return Err(fail(format!(
-            "the reasoning verdict is not conclusive: input={}, evaluation={}",
+            "the reasoning verdict is not conclusive: input={}, evaluation={}; {} unsupported: {}",
             result.input.wire(),
-            result.evaluation.wire()
+            result.evaluation.wire(),
+            unsupported.len(),
+            unsupported
+                .iter()
+                .take(24)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("; ")
         )));
     }
     let is_consistent = match result.information {

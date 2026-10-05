@@ -733,3 +733,360 @@ fn changing_strata_share_layouts_and_preserve_witnesses_and_absence() {
         assert!(std::ptr::eq(first.1, second.1));
     }
 }
+
+/// The shipped schema laws as one forward joint template.
+fn schema_template() -> Arc<JointTemplate> {
+    Arc::new(
+        JointTemplate::build(
+            &[],
+            &[],
+            crate::reason::schema_laws(),
+            SemanticVocabulary::GroundedLogicV1,
+            &[],
+            None,
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            super::super::JointOperation::Forward,
+        )
+        .unwrap(),
+    )
+}
+
+/// One minimum restriction with a member, so the minimum-witness law fires.
+fn minimum_restriction_rows() -> Vec<Fact> {
+    let fact = |s: &str, p: &str, o: TermValue| Fact {
+        subject: TermValue::iri(s),
+        predicate: p.to_owned(),
+        object: o,
+    };
+    vec![
+        fact(
+            "urn:restriction",
+            "http://www.w3.org/2002/07/owl#onProperty",
+            TermValue::iri("urn:property"),
+        ),
+        fact(
+            "urn:restriction",
+            "http://www.w3.org/2002/07/owl#minQualifiedCardinality",
+            TermValue::simple_literal("1"),
+        ),
+        fact(
+            "urn:restriction",
+            "http://www.w3.org/2002/07/owl#onClass",
+            TermValue::iri("urn:witness-class"),
+        ),
+        fact("urn:individual", TYPE, TermValue::iri("urn:restriction")),
+    ]
+}
+
+/// `rdf:first`/`rdf:rest` rows of one list `prefix:0 .. prefix:(len - 1)`.
+fn list_rows(prefix: &str, members: &[String]) -> Vec<Fact> {
+    const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    let cell = |index: usize| TermValue::iri(format!("{prefix}:{index}"));
+    members
+        .iter()
+        .enumerate()
+        .flat_map(|(index, member)| {
+            let next = if index + 1 == members.len() {
+                TermValue::iri(NIL)
+            } else {
+                cell(index + 1)
+            };
+            [
+                Fact {
+                    subject: cell(index),
+                    predicate: FIRST.to_owned(),
+                    object: TermValue::iri(member),
+                },
+                Fact {
+                    subject: cell(index),
+                    predicate: REST.to_owned(),
+                    object: next,
+                },
+            ]
+        })
+        .collect()
+}
+
+fn assert_admitted(template: &Arc<JointTemplate>, rows: Vec<Fact>, why: &str) {
+    let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    match input.prepare().unwrap() {
+        NativeOutcome::Decided(plan) => {
+            assert!(
+                plan.admission.admits_native(),
+                "{why}: {:?}",
+                plan.admission
+            )
+        }
+        NativeOutcome::Unsupported(kind) => panic!("{why}: {kind:?}"),
+    }
+}
+
+#[test]
+fn a_pairwise_list_law_past_the_analysis_bound_is_witnessed_once() {
+    // A 600-member disjoint union names 360,000 ordered member pairs, past the 2^18
+    // analysis bound. Every variable of the pairwise law is bound by immutable list
+    // rows, so each specialization is ground: none carries a witness, all fire on
+    // the same predicates, and one represents them.
+    let mut rows = minimum_restriction_rows();
+    rows.push(Fact {
+        subject: TermValue::iri("urn:union"),
+        predicate: "http://www.w3.org/2002/07/owl#disjointUnionOf".to_owned(),
+        object: TermValue::iri("urn:union-cell:0"),
+    });
+    let members: Vec<_> = (0..600)
+        .map(|index| format!("urn:union-member:{index}"))
+        .collect();
+    rows.extend(list_rows("urn:union-cell", &members));
+    assert_admitted(
+        &schema_template(),
+        rows,
+        "a ground pairwise law cannot exhaust the input certificate",
+    );
+}
+
+#[test]
+fn a_list_operator_reads_only_the_cells_of_its_own_list() {
+    // One property chain among 600 unrelated two-member lists. A member cell that
+    // could be any cell of any list pairs 1,200 x 1,200 cells (1.44M matches, past
+    // the analysis bound); bound to its own list, the chain reads only its own two.
+    let mut rows = minimum_restriction_rows();
+    rows.push(Fact {
+        subject: TermValue::iri("urn:chained"),
+        predicate: "http://www.w3.org/2002/07/owl#propertyChainAxiom".to_owned(),
+        object: TermValue::iri("urn:chain-cell:0"),
+    });
+    rows.extend(list_rows(
+        "urn:chain-cell",
+        &["urn:link-a".to_owned(), "urn:link-b".to_owned()],
+    ));
+    for index in 0..600 {
+        rows.extend(list_rows(
+            &format!("urn:unrelated-list:{index}"),
+            &[
+                format!("urn:unrelated-a:{index}"),
+                format!("urn:unrelated-b:{index}"),
+            ],
+        ));
+    }
+    assert_admitted(
+        &schema_template(),
+        rows,
+        "unrelated lists cannot multiply a list operator's members",
+    );
+}
+
+// ── #1795: production-scale witness programs certify through closed relations ──
+
+fn fact_iri(subject: &str, predicate: &str, object: &str) -> Fact {
+    Fact {
+        subject: TermValue::iri(subject),
+        predicate: predicate.to_owned(),
+        object: TermValue::iri(object),
+    }
+}
+
+const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const SUBPROPERTY: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+const RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+const INVERSE: &str = "http://www.w3.org/2002/07/owl#inverseOf";
+const TRANSITIVE: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+
+/// `members` individuals of `class`.
+fn population(class: &str, members: usize) -> Vec<Fact> {
+    (0..members)
+        .map(|index| fact_iri(&format!("urn:member:{index}"), TYPE, class))
+        .collect()
+}
+
+/// The first, settled-relation pass's certificate. On a production corpus the
+/// source-enumerated second pass cannot complete (its 512 value cells and binding
+/// bound are exhausted) and this pass decides alone; a small input is enumerated by
+/// the second pass, so the decisive first pass is checked directly.
+fn settled_admission(template: &Arc<JointTemplate>, rows: Vec<Fact>) -> ChaseAdmission {
+    let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    let Some(Ok(evidence)) = &input.evidence else {
+        panic!("no input-specific evidence was observed");
+    };
+    template
+        .termination
+        .as_ref()
+        .expect("a native termination template")
+        .certify_settled(
+            evidence,
+            input.facts,
+            &input.possible,
+            &input.contextual_effects,
+            template.semantics,
+        )
+        .unwrap()
+        .unwrap()
+        .admission
+}
+
+/// Both passes and the first pass alone must certify.
+fn assert_settled(template: &Arc<JointTemplate>, rows: Vec<Fact>, why: &str) {
+    let settled = settled_admission(template, rows.clone());
+    assert!(settled.admits_native(), "{why}: {settled:?}");
+    assert_admitted(template, rows, why);
+}
+
+/// One minimum restriction over a production-sized population.
+fn restricted_population() -> Vec<Fact> {
+    let mut rows = minimum_restriction_rows();
+    rows.extend(population("urn:restriction", 600));
+    rows
+}
+
+/// The EL calculus (subclass/subproperty closure, type propagation) joined with the
+/// shipped schema laws, as the production reasoner composes them.
+fn el_schema_template() -> Arc<JointTemplate> {
+    Arc::new(
+        JointTemplate::build(
+            &crate::reason::el::structured_el_rules(),
+            &[],
+            crate::reason::schema_laws(),
+            SemanticVocabulary::GroundedLogicV1,
+            &[],
+            None,
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            super::super::JointOperation::Forward,
+        )
+        .unwrap(),
+    )
+}
+
+fn admission(template: &Arc<JointTemplate>, rows: Vec<Fact>) -> ChaseAdmission {
+    let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    match input.prepare().unwrap() {
+        NativeOutcome::Decided(plan) => plan.admission.clone(),
+        NativeOutcome::Unsupported(kind) => panic!("unsupported: {kind:?}"),
+    }
+}
+
+/// Neither the first pass alone nor the whole input-specific admission certifies.
+fn assert_refused(template: &Arc<JointTemplate>, rows: Vec<Fact>, why: &str) {
+    let settled = settled_admission(template, rows.clone());
+    assert!(!settled.admits_native(), "{why}: {settled:?}");
+    let admission = admission(template, rows);
+    assert!(!admission.admits_native(), "{why}: {admission:?}");
+}
+
+#[test]
+fn a_witness_restriction_with_an_unrelated_transitive_property_certifies() {
+    // The transitive law takes its predicate from `instanceOf TransitiveProperty`
+    // markers, which `instanceOf` writers could in principle produce. No writer can
+    // produce THAT marker here, so the pair is closed, the law binds `urn:chain`, and
+    // the restriction's witness stays in its own binary relations.
+    let mut rows = restricted_population();
+    rows.push(fact_iri("urn:chain", TYPE, TRANSITIVE));
+    rows.push(fact_iri("urn:a", "urn:chain", "urn:b"));
+    rows.push(fact_iri("urn:b", "urn:chain", "urn:c"));
+    assert_settled(
+        &schema_template(),
+        rows,
+        "an unrelated transitive property cannot refuse a terminating witness",
+    );
+}
+
+#[test]
+fn a_witness_restriction_with_an_unrelated_subproperty_axiom_certifies() {
+    // `subPropertyOf` is written (by equivalence and by its own EL transitivity),
+    // but only by witness-free laws over settled relations: its closure is exact,
+    // so property propagation binds both of its predicates.
+    let mut rows = restricted_population();
+    rows.push(fact_iri("urn:narrow", SUBPROPERTY, "urn:broad"));
+    rows.push(fact_iri("urn:broad", SUBPROPERTY, "urn:broadest"));
+    rows.push(fact_iri("urn:a", "urn:narrow", "urn:b"));
+    assert_settled(
+        &el_schema_template(),
+        rows,
+        "an unrelated subproperty axiom cannot refuse a terminating witness",
+    );
+}
+
+#[test]
+fn type_propagation_over_real_subclass_rows_certifies() {
+    // The witness class has superclasses, and the EL calculus propagates its type
+    // along the subclass closure. None reaches the restriction, so the program
+    // terminates; the closure binds both classes of the propagation law.
+    let mut rows = restricted_population();
+    rows.push(fact_iri("urn:witness-class", SUBCLASS, "urn:middle-class"));
+    rows.push(fact_iri("urn:middle-class", SUBCLASS, "urn:top-class"));
+    assert_settled(
+        &el_schema_template(),
+        rows,
+        "type propagation over unrelated superclasses cannot refuse a terminating witness",
+    );
+}
+
+#[test]
+fn type_propagation_into_the_restriction_is_still_refused() {
+    // `witness-class ⊑ middle-class ⊑ restriction`: every witness is itself
+    // restricted and mints another witness forever. Only the subclass CLOSURE
+    // connects the witness class to the restriction, so it must be exact.
+    let mut rows = restricted_population();
+    rows.push(fact_iri("urn:witness-class", SUBCLASS, "urn:middle-class"));
+    rows.push(fact_iri("urn:middle-class", SUBCLASS, "urn:restriction"));
+    assert_refused(
+        &el_schema_template(),
+        rows,
+        "a subclass path back into the restriction must be refused",
+    );
+}
+
+#[test]
+fn a_range_back_into_its_own_restriction_is_still_refused() {
+    // `p rdfs:range R`, `R ⊑ ≥1 p`: each witness is typed `R` by the range and
+    // mints another `p` witness forever.
+    let mut rows = restricted_population();
+    rows.push(fact_iri("urn:property", RANGE, "urn:restriction"));
+    assert_refused(
+        &schema_template(),
+        rows,
+        "a genuinely cyclic range restriction must be refused",
+    );
+}
+
+#[test]
+fn an_inverse_pair_cycle_stays_refused_by_the_skolem_certificate() {
+    // Finance shape: `A ⊑ ≥2 p.B`, `B ⊑ ∃q.A`, `q inverseOf p`. The restricted chase
+    // terminates (the inverse edge already satisfies `B`'s restriction), but every
+    // rung bounds the Skolem chase, which does not: this stays refused (#1796).
+    let fact = |s: &str, p: &str, o: TermValue| Fact {
+        subject: TermValue::iri(s),
+        predicate: p.to_owned(),
+        object: o,
+    };
+    let owl = |local: &str| format!("http://www.w3.org/2002/07/owl#{local}");
+    let mut rows = vec![
+        fact("urn:a-min", &owl("onProperty"), TermValue::iri("urn:p")),
+        fact(
+            "urn:a-min",
+            &owl("minQualifiedCardinality"),
+            TermValue::simple_literal("2"),
+        ),
+        fact("urn:a-min", &owl("onClass"), TermValue::iri("urn:B")),
+        fact_iri("urn:A", SUBCLASS, "urn:a-min"),
+        fact("urn:b-some", &owl("onProperty"), TermValue::iri("urn:q")),
+        fact(
+            "urn:b-some",
+            &owl("someValuesFrom"),
+            TermValue::iri("urn:A"),
+        ),
+        fact_iri("urn:B", SUBCLASS, "urn:b-some"),
+        fact_iri("urn:q", INVERSE, "urn:p"),
+        fact_iri("urn:p", TYPE, &owl("ObjectProperty")),
+        fact_iri("urn:q", TYPE, &owl("ObjectProperty")),
+    ];
+    rows.extend(population("urn:A", 600));
+    assert_refused(
+        &el_schema_template(),
+        rows,
+        "the inverse-pair existential cycle is #1796's restricted-chase question",
+    );
+}
