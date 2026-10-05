@@ -20,7 +20,10 @@ const MAX_RECEIPT_DEPTH: usize = 64;
 pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Result<String> {
     let mut output = ReceiptWriter(Vec::new());
     ciborium::ser::into_writer(&(SCHEMA, execution), &mut output).map_err(|error| {
-        result_err(format!("native execution receipt encoding failed: {error}"))
+        result_err(format!(
+            "native execution receipt encoding failed: {error}; {}",
+            receipt_sizes(execution)
+        ))
     })?;
     // Bound the emitted envelope with the same decoder stack limit before it
     // becomes a published artifact. IgnoredAny walks structure without building
@@ -71,6 +74,49 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
         ));
     }
     Ok(execution)
+}
+
+/// The encoded size of each receipt field, so an oversized receipt names its cause.
+fn receipt_sizes(execution: &NativeExecutionEvidence) -> String {
+    fn size(value: &impl serde::Serialize) -> String {
+        let mut counter = ByteCounter(0);
+        match ciborium::ser::into_writer(value, &mut counter) {
+            Ok(()) => format!("{} B", counter.0),
+            Err(error) => format!("unencodable ({error})"),
+        }
+    }
+    format!(
+        "families {} ({} ledger(s), {} outcome(s)), class_admission {}, source_coverage {}, \
+         classes {} ({}), chase_certificates {}, witness_derivations {} ({}), frontier {}",
+        size(&execution.families),
+        execution.families.len(),
+        execution
+            .families
+            .iter()
+            .map(|ledger| ledger.outcomes.len())
+            .sum::<usize>(),
+        size(&execution.class_admission),
+        size(&execution.source_coverage),
+        size(&execution.classes),
+        execution.classes.len(),
+        size(&execution.chase_certificates),
+        size(&execution.witness_derivations),
+        execution.witness_derivations.len(),
+        size(&execution.frontier),
+    )
+}
+
+struct ByteCounter(usize);
+
+impl Write for ByteCounter {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.0 += bytes.len();
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }
 
 struct ReceiptVerifier<'a> {
