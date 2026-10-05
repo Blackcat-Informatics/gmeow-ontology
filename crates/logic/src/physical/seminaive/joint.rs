@@ -563,33 +563,40 @@ impl JointProgram {
         // contextual publications capable of activating ordinary consumers.
         if let Some(modal) = &modal {
             for definition in modal.definition_patterns() {
-                if let Some(writer) = crate::physical::effects::scoped_definition_writer(
-                    native.as_ref().expect("native modal binding").flow,
-                    &effects,
-                    &definition,
-                ) {
+                let flow = native.as_ref().expect("native modal binding").flow;
+                if let Some((writer, write)) =
+                    crate::physical::effects::scoped_definition_writer(flow, &effects, &definition)
+                {
                     return Err(gmeow_errors::Diag::of_kind(crate::error::NativeCoverage {
                         profile: "native-immutable-modal-source-v1".to_owned(),
                         source: writer.to_owned(),
-                        world: definition.world,
-                        detail:
-                            "reachable native producer can change selected modal definition grammar"
-                                .to_owned(),
+                        world: definition.world.clone(),
+                        detail: format!(
+                            "reachable native producer can change selected modal definition \
+                             grammar: its write {} overlaps the definition {}",
+                            flow.describe_pattern(write),
+                            flow.describe_pattern(&flow.ranged_pattern(definition.pattern.clone()))
+                        ),
                     }));
                 }
             }
         }
         if let Some(contextual) = &contextual {
             for definition in contextual.definition_patterns(runtimes.keys()) {
-                if let Some(writer) = crate::physical::effects::scoped_definition_writer(
-                    native.as_ref().expect("native contextual binding").flow,
-                    &effects,
-                    &definition,
-                ) {
+                let flow = native.as_ref().expect("native contextual binding").flow;
+                if let Some((writer, write)) =
+                    crate::physical::effects::scoped_definition_writer(flow, &effects, &definition)
+                {
                     return Err(gmeow_errors::Diag::of_kind(crate::error::NativeCoverage {
                         profile: "native-immutable-contextual-source-v1".to_owned(),
-                        source: writer.to_owned(), world: definition.world.clone(),
-                        detail: "reachable native producer can change selected contextual definition grammar".to_owned(),
+                        source: writer.to_owned(),
+                        world: definition.world.clone(),
+                        detail: format!(
+                            "reachable native producer can change selected contextual definition \
+                             grammar: its write {} overlaps the definition {}",
+                            flow.describe_pattern(write),
+                            flow.describe_pattern(&flow.ranged_pattern(definition.pattern.clone()))
+                        ),
                     }));
                 }
             }

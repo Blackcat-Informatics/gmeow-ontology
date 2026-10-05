@@ -736,18 +736,18 @@ pub(crate) fn scoped_definition_writer<'a>(
     flow: &value_flow::ValueFlow,
     effects: &'a [WorldProducerEffect],
     definition: &WorldStatementObservation,
-) -> Option<&'a str> {
+) -> Option<(&'a str, &'a StatementPattern)> {
     effects
         .iter()
-        .find(|producer| {
-            producer.owner == definition.world
-                && producer
-                    .effect
-                    .writes
-                    .iter()
-                    .any(|write| flow.overlaps_write(&definition.pattern, write))
+        .filter(|producer| producer.owner == definition.world)
+        .find_map(|producer| {
+            producer
+                .effect
+                .writes
+                .iter()
+                .find(|write| flow.overlaps_write(&definition.pattern, write))
+                .map(|write| (producer.effect.name.as_str(), write))
         })
-        .map(|producer| producer.effect.name.as_str())
 }
 
 #[cfg(test)]

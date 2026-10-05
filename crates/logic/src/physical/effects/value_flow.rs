@@ -3219,6 +3219,40 @@ impl ValueFlow {
         read.reads_write(write, self.universe.semantics)
     }
 
+    /// A diagnostic rendering of a ranged pattern: each slot's fixed term, or its
+    /// abstract range — its size, whether it admits the `Other` cell, and its first
+    /// values.
+    pub(crate) fn describe_pattern(&self, pattern: &StatementPattern) -> String {
+        let slot = |fixed: Option<String>, index: usize| {
+            if let Some(fixed) = fixed {
+                return fixed;
+            }
+            let Some(ranges) = &pattern.ranges else {
+                return "*".to_owned();
+            };
+            let domain = &ranges[index];
+            let other = domain.contains(self.universe.other());
+            let shown: Vec<String> = domain
+                .indices()
+                .filter(|&value| value != self.universe.other())
+                .take(4)
+                .map(|value| format!("{:?}", self.universe.values[value]))
+                .collect();
+            format!(
+                "range[{} value(s){}: {}]",
+                domain.len(),
+                if other { ", incl. Other" } else { "" },
+                shown.join(", ")
+            )
+        };
+        format!(
+            "({}, {}, {})",
+            slot(pattern.subject.as_ref().map(|t| format!("{t:?}")), 0),
+            slot(pattern.predicate.clone(), 1),
+            slot(pattern.object.as_ref().map(|t| format!("{t:?}")), 2)
+        )
+    }
+
     /// Bind an external completion observation to this analysis universe. Fixed
     /// grammar constants then remain disjoint from the `Other` cell used for
     /// data-selected predicates, while genuinely unknown observations stay broad.
