@@ -371,8 +371,9 @@ fn cardinality(
     let mut by_class: BTreeMap<TermId, Vec<PropertyClashes>> = BTreeMap::new();
     for assertion in model.facts(RDF_TYPE, Bound::Any) {
         let class = model.id(&assertion.object);
-        if !by_class.contains_key(&class) {
-            let clashes = class_clashes(
+        let clashes = match by_class.entry(class) {
+            std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+            std::collections::btree_map::Entry::Vacant(entry) => entry.insert(class_clashes(
                 model,
                 class,
                 &assertion.object,
@@ -380,10 +381,9 @@ fn cardinality(
                 values,
                 lists,
                 ledger,
-            )?;
-            by_class.insert(class, clashes);
-        }
-        for clash in &by_class[&class] {
+            )?),
+        };
+        for clash in clashes.iter() {
             let mut obligation = NativeFamilyOutcome::new(
                 NativeRefutationFamily::Cardinality,
                 NativeObligationScope::Property {
