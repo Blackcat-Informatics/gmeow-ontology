@@ -172,7 +172,7 @@ jobs:
 
       - name: Download the exact producer binary
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -249,28 +249,28 @@ jobs:
 
       - name: Download generation A
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}-a
           path: ${{ runner.temp }}/generated-a
 
       - name: Download generation B
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}-b
           path: ${{ runner.temp }}/generated-b
 
       - name: Download generation A evidence
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generation-evidence-${{ github.sha }}-a
           path: ${{ runner.temp }}/evidence-a
 
       - name: Download generation B evidence
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generation-evidence-${{ github.sha }}-b
           path: ${{ runner.temp }}/evidence-b
@@ -449,7 +449,7 @@ jobs:
           echo "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Download the authenticated optimized producer
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -547,7 +547,7 @@ jobs:
           echo "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Download the authenticated optimized producer
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -557,7 +557,7 @@ jobs:
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -571,7 +571,7 @@ jobs:
 
       - name: Download the authoritative producer receipt
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: producer-receipt-${{ github.sha }}
           path: dist
@@ -600,7 +600,7 @@ jobs:
 
       # This artifact and selector identity are required; a cache is never a transfer.
       - name: Download the selected prefix fixtures
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: prefix-test-fixtures-${{ github.sha }}
           path: .
@@ -738,7 +738,7 @@ jobs:
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -752,7 +752,7 @@ jobs:
 
       - name: Download the authoritative producer receipt
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: producer-receipt-${{ github.sha }}
           path: dist
@@ -762,7 +762,7 @@ jobs:
 
       # This artifact and selector identity are required; a cache is never a transfer.
       - name: Download the selected complete fixtures
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: complete-test-fixtures-${{ github.sha }}
           path: .
@@ -776,7 +776,7 @@ jobs:
           echo "${SELECTOR_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json" | sha256sum -c -
 
       - name: Download the authenticated optimized producer
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -788,7 +788,7 @@ jobs:
         run: make verify-producer-independent-test-fixtures
 
       - name: Download the exact producer-bound bundle import
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: bundle-import-cache-${{ github.sha }}
           path: .cache/gmeow-bundle-import
@@ -903,7 +903,7 @@ jobs:
       # never regenerate.
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -917,14 +917,14 @@ jobs:
 
       - name: Download the authenticated test archive and exact fixtures
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: rust-test-archive-${{ github.sha }}
           path: .
 
       - name: Download the authenticated whole-bundle import product
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: bundle-import-cache-${{ github.sha }}
           path: .cache/gmeow-bundle-import
@@ -1049,7 +1049,7 @@ jobs:
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1063,14 +1063,14 @@ jobs:
 
       - name: Download the authenticated test archive and exact fixtures
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: rust-test-archive-${{ github.sha }}
           path: .
 
       - name: Download the producer-bound bundle-import cache
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: bundle-import-cache-${{ github.sha }}
           path: .cache/gmeow-bundle-import
@@ -1193,7 +1193,7 @@ jobs:
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1206,7 +1206,7 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Download the authenticated optimized codebook verifier
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1215,7 +1215,7 @@ jobs:
         run: chmod +x dist/bin/gmeow-dev
 
       - name: Download the producer-selected prefix fixtures
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: prefix-test-fixtures-${{ github.sha }}
           path: .
@@ -1279,7 +1279,7 @@ jobs:
 
       - name: Download the exact producer binary
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1297,7 +1297,7 @@ jobs:
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1341,7 +1341,7 @@ jobs:
 
       - name: Download the exact producer binary
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1363,7 +1363,7 @@ jobs:
       # the materialized tree.
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1394,7 +1394,7 @@ jobs:
 
       - name: Download the exact producer binary
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1412,7 +1412,7 @@ jobs:
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1456,7 +1456,7 @@ jobs:
 
       - name: Download the exact producer binary
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1474,7 +1474,7 @@ jobs:
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1553,7 +1553,7 @@ jobs:
 
       - name: Download the exact producer binary
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1586,7 +1586,7 @@ jobs:
       # producer artifact must be present before `make heavy`.
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1602,7 +1602,7 @@ jobs:
       # explicit producer. Neither this transfer nor admission may produce fixtures.
       - name: Download the producer-selected browser codebook fixtures
         if: ${{ matrix.task == 'wasm-parity' || matrix.task == 'conformance-heavy' }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: prefix-test-fixtures-${{ github.sha }}
           path: .
