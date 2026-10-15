@@ -1378,6 +1378,7 @@ impl StatementRule {
             witness_family: None,
             rja_exact: rule.builtins.is_empty()
                 && rule.numeric.is_empty()
+                && rule.distinct_pairs.is_empty()
                 && rule.body.iter().all(|atom| !atom.negated),
         }
     }
@@ -1560,6 +1561,16 @@ pub(crate) fn firing_statements(
         .collect()
 }
 
+/// Exact premises for restricted blocking, separate from the value-flow quotient.
+struct RjaProgram<'a> {
+    rules: &'a [ExistentialRule],
+    closure: &'a [ExistentialRule],
+    nonblocking: &'a BTreeSet<&'a str>,
+    nonseeding: &'a BTreeSet<&'a str>,
+    families: &'a BTreeSet<&'a str>,
+    semantics: crate::native_semantics::SemanticVocabulary,
+}
+
 impl ChaseAdmission {
     /// Certify the combined ordinary, existential and native schema producers.
     ///
@@ -1592,7 +1603,10 @@ impl ChaseAdmission {
         properties: &[crate::physical::PreparedPropertyRule],
         semantics: crate::native_semantics::SemanticVocabulary,
     ) -> Self {
-        if properties.is_empty() && rules.iter().all(|rule| rule.numeric.is_empty()) {
+        if semantics == crate::native_semantics::SemanticVocabulary::Exact
+            && properties.is_empty()
+            && rules.iter().all(|rule| rule.numeric.is_empty())
+        {
             return Self::certify(rules);
         }
         let analysis: Vec<_> = rules
@@ -1613,52 +1627,68 @@ impl ChaseAdmission {
     ) -> Self {
         // Abstract only the terms entering the termination proof. The executable
         // property layouts remain shared and retain their exact native spellings.
-        let statement_atom = |terms: &[EvalTerm; 3]| {
-            let terms = terms.each_ref().map(|term| {
-                let mut term = term.clone();
-                semantics.abstract_term(&mut term);
-                term
-            });
-            match &terms[1] {
-                // A fixed operator keeps its binary relation and class-refined
-                // positions. Dropping its predicate correlation into statement
-                // pairs would create spurious cycles.
-                EvalTerm::ConstNamed(predicate)
-                | EvalTerm::ConstLit(purrdf::TermValue::Iri(predicate)) => {
-                    vec![EvalAtom::positive(
-                        terms[0].clone(),
-                        predicate,
-                        terms[2].clone(),
-                    )]
+        let statement_atom =
+            |terms: &[EvalTerm; 3], vocabulary: crate::native_semantics::SemanticVocabulary| {
+                let terms = terms.each_ref().map(|term| {
+                    let mut term = term.clone();
+                    vocabulary.abstract_term(&mut term);
+                    term
+                });
+                match &terms[1] {
+                    // A fixed operator keeps its binary relation and class-refined
+                    // positions. Dropping its predicate correlation into statement
+                    // pairs would create spurious cycles.
+                    EvalTerm::ConstNamed(predicate)
+                    | EvalTerm::ConstLit(purrdf::TermValue::Iri(predicate)) => {
+                        vec![EvalAtom::positive(
+                            terms[0].clone(),
+                            predicate,
+                            terms[2].clone(),
+                        )]
+                    }
+                    _ => [
+                        (0, 1, SUBJECT_PREDICATE),
+                        (0, 2, SUBJECT_OBJECT),
+                        (1, 2, PREDICATE_OBJECT),
+                    ]
+                    .map(|(left, right, relation)| {
+                        EvalAtom::positive(terms[left].clone(), relation, terms[right].clone())
+                    })
+                    .to_vec(),
                 }
-                _ => [
-                    (0, 1, SUBJECT_PREDICATE),
-                    (0, 2, SUBJECT_OBJECT),
-                    (1, 2, PREDICATE_OBJECT),
-                ]
-                .map(|(left, right, relation)| {
-                    EvalAtom::positive(terms[left].clone(), relation, terms[right].clone())
+            };
+        let program = |vocabulary| {
+            rules
+                .iter()
+                .map(|rule| ExistentialRule {
+                    numeric: Vec::new(),
+                    rule_iri: rule.name.clone(),
+                    body: rule
+                        .body
+                        .iter()
+                        .flat_map(|atom| statement_atom(atom, vocabulary))
+                        .collect(),
+                    head: rule
+                        .analysed_heads()
+                        .iter()
+                        .flat_map(|atom| statement_atom(atom, vocabulary))
+                        .collect(),
+                    // Dropping inequality guards only adds possible firings.
+                    distinct: Vec::new(),
+                    witness_frontier: rule.frontier.clone(),
+                    witness_policy: WitnessPolicy::FrontierSkolem,
                 })
-                .to_vec(),
-            }
+                .collect::<Vec<_>>()
         };
-        let analysis: Vec<_> = rules
-            .iter()
-            .map(|rule| ExistentialRule {
-                numeric: Vec::new(),
-                rule_iri: rule.name.clone(),
-                body: rule.body.iter().flat_map(statement_atom).collect(),
-                head: rule
-                    .analysed_heads()
-                    .iter()
-                    .flat_map(statement_atom)
-                    .collect(),
-                // Dropping inequality guards only adds possible firings.
-                distinct: Vec::new(),
-                witness_frontier: rule.frontier.clone(),
-                witness_policy: WitnessPolicy::FrontierSkolem,
-            })
-            .collect();
+        let analysis = program(semantics);
+        // Identify only fixed operators in a blocking proof. Data-valued
+        // vocabulary constants and variable bindings retain their exact values.
+        let mut blocking = program(crate::native_semantics::SemanticVocabulary::Exact);
+        for rule in &mut blocking {
+            for atom in rule.body.iter_mut().chain(&mut rule.head) {
+                atom.predicate = semantics.predicate(&atom.predicate).to_owned();
+            }
+        }
         // Two symbolic ordinals preserve position dependencies for arbitrary
         // finite counts. They do NOT preserve every nonlinear tuple join (e.g.
         // a triangle requiring three distinct siblings). Only the position
@@ -1683,7 +1713,7 @@ impl ChaseAdmission {
         };
         let closure: Vec<_> = rules
             .iter()
-            .zip(&analysis)
+            .zip(&blocking)
             .filter(|(rule, _)| binary_exact(rule))
             .map(|(_, rule)| rule.clone())
             .collect();
@@ -1702,6 +1732,28 @@ impl ChaseAdmission {
             .filter(|rule| !rule.exact() || !binary_exact(rule))
             .map(|rule| rule.name.as_str())
             .collect();
+        let nonseeding: BTreeSet<&str> = rules
+            .iter()
+            .filter(|rule| {
+                !binary_exact(rule)
+                    || rule.witness_family.as_ref().is_some_and(|family| {
+                        // A variable count can be zero or one: its two-ordinal
+                        // summary is not a guaranteed premise of every firing.
+                        !matches!(&family.count, EvalTerm::ConstLit(count)
+                            if crate::reason::value::NativeValues::parse_cardinality(count)
+                                .is_some_and(|count| count > 0))
+                    })
+            })
+            .map(|rule| rule.name.as_str())
+            .collect();
+        let rja = RjaProgram {
+            rules: &blocking,
+            closure: &closure,
+            nonblocking: &nonblocking,
+            nonseeding: &nonseeding,
+            families: &families,
+            semantics,
+        };
         let started = std::time::Instant::now();
         let mut admission = if summarized.is_empty() {
             let ladder = if rules.iter().any(|rule| rule.position_only) {
@@ -1709,7 +1761,7 @@ impl ChaseAdmission {
             } else {
                 ladder
             };
-            Self::certify_ladder(&analysis, &bridged, &closure, &nonblocking, ladder)
+            Self::certify_ladder(&analysis, &bridged, &rja, ladder)
         } else {
             let weak = Self::certify_weakly_acyclic(&analysis);
             tracing::info!(
@@ -1729,14 +1781,7 @@ impl ChaseAdmission {
                         "checked joint acyclicity"
                     );
                     joint
-                        .or_else(|| {
-                            Self::certify_restricted_joint_acyclic(
-                                &analysis,
-                                &closure,
-                                &nonblocking,
-                                &families,
-                            )
-                        })
+                        .or_else(|| Self::certify_restricted_joint_acyclic(&analysis, &rja))
                         .unwrap_or(Self::Uncertified { violations })
                 }
             }
@@ -1800,19 +1845,32 @@ impl ChaseAdmission {
             return Self::certify_weakly_acyclic(&abstraction)
                 .unwrap_or_else(|violations| Self::Uncertified { violations });
         }
-        Self::certify_ladder(rules, rules, rules, &BTreeSet::new(), ladder)
+        let empty = BTreeSet::new();
+        let guarded: BTreeSet<_> = rules
+            .iter()
+            .filter(|rule| !rule.distinct.is_empty())
+            .map(|rule| rule.rule_iri.as_str())
+            .collect();
+        let rja = RjaProgram {
+            rules,
+            closure: rules,
+            nonblocking: &guarded,
+            nonseeding: &empty,
+            families: &empty,
+            semantics: crate::native_semantics::SemanticVocabulary::Exact,
+        };
+        Self::certify_ladder(rules, rules, &rja, ladder)
     }
 
     /// The ladder over one program in two equivalent presentations. The position
     /// rungs — weak, joint and restricted joint acyclicity — read `weak`, whose
     /// position graph joins the statement encodings itself along class-matched flows;
     /// the tuple rungs read `tuples`, the same program closed under its encoding
-    /// bridges. Restricted blocking reads the separately admitted exact `closure`.
+    /// bridges. Restricted blocking reads separately admitted exact premises.
     fn certify_ladder(
         weak: &[ExistentialRule],
         tuples: &[ExistentialRule],
-        closure: &[ExistentialRule],
-        nonblocking: &BTreeSet<&str>,
+        rja: &RjaProgram<'_>,
         ladder: Ladder,
     ) -> Self {
         match Self::certify_weakly_acyclic(weak) {
@@ -1836,14 +1894,7 @@ impl ChaseAdmission {
                     }
                     Ladder::Polynomial => None,
                 })
-                .or_else(|| {
-                    Self::certify_restricted_joint_acyclic(
-                        weak,
-                        closure,
-                        nonblocking,
-                        &BTreeSet::new(),
-                    )
-                })
+                .or_else(|| Self::certify_restricted_joint_acyclic(weak, rja))
                 .unwrap_or(Self::Uncertified { violations }),
         }
     }
@@ -1998,20 +2049,18 @@ impl ChaseAdmission {
     /// other rule is left out, so the closure under-approximates and can never block an
     /// edge the chase could fire.
     ///
-    /// A consumer named in `summarized` is a two-ordinal summary of a witness family
+    /// A summarized consumer is a two-ordinal summary of a witness family
     /// whose trigger check needs more fillers than its head states, so none of its
     /// triggers is ever blocked. As a producer, a summary's head is a subset of the
     /// facts its real expansion emits, so a closure over it still under-approximates.
     ///
-    /// A consumer named in `families` is a native minimum family, whose existing-witness
+    /// A consumer named in `program.families` is a native minimum family, whose existing-witness
     /// probe reads an `onClass` of Thing as the universal resource class: its trigger
     /// check omits the Thing typing its analysis head states (see
     /// [`universal_typing`]).
     fn certify_restricted_joint_acyclic(
         rules: &[ExistentialRule],
-        closure: &[ExistentialRule],
-        summarized: &BTreeSet<&str>,
-        families: &BTreeSet<&str>,
+        program: &RjaProgram<'_>,
     ) -> Option<Self> {
         let graph = JointGraph::new(rules)?;
         // Joint acyclicity's edges, each with the frontiers that carry it. Every
@@ -2034,7 +2083,7 @@ impl ChaseAdmission {
             }
         }
         let component = strongly_connected_components(&joint);
-        let datalog = RjaDatalog::new(closure);
+        let datalog = RjaDatalog::new(program.closure, program.semantics);
         let mut sizes: BTreeMap<usize, usize> = BTreeMap::new();
         for &c in &component {
             *sizes.entry(c).or_default() += 1;
@@ -2057,19 +2106,23 @@ impl ChaseAdmission {
         let mut blocked = 0usize;
         for (a, j, carried) in candidates {
             let (producer, null) = &graph.existentials[a];
-            let consumer = &rules[j];
+            let consumer = &program.rules[j];
             let cyclic = graph.owned(j).any(|b| component[b] == component[a]);
-            let blockable = cyclic && !summarized.contains(consumer.rule_iri.as_str());
+            let blockable = cyclic
+                && !program.nonblocking.contains(consumer.rule_iri.as_str())
+                && !program
+                    .nonseeding
+                    .contains(program.rules[*producer].rule_iri.as_str());
             let triggers = !blockable
                 || carried.into_iter().any(|frontier| {
                     closures += 1;
                     let held = rja_trigger_blocked(
-                        &rules[*producer],
+                        &program.rules[*producer],
                         null,
                         consumer,
                         frontier,
                         &datalog,
-                        families.contains(consumer.rule_iri.as_str()),
+                        program.families.contains(consumer.rule_iri.as_str()),
                     );
                     blocked += usize::from(held);
                     !held
@@ -2096,8 +2149,8 @@ impl ChaseAdmission {
                     .map(|&node| {
                         let (rule, null) = &graph.existentials[node];
                         let iri = rules[*rule].rule_iri.as_str();
-                        let mark = if summarized.contains(iri) {
-                            " (summarized)"
+                        let mark = if program.nonblocking.contains(iri) {
+                            " (non-blockable)"
                         } else {
                             ""
                         };
@@ -3522,6 +3575,7 @@ fn universal_typing(atom: &EvalAtom) -> bool {
 /// predicates their bodies read, so a closure over a small premise visits only the
 /// rules it can fire.
 struct RjaDatalog<'a> {
+    semantics: crate::native_semantics::SemanticVocabulary,
     rules: Vec<&'a ExistentialRule>,
     reads: Vec<BTreeSet<&'a str>>,
     writes: Vec<BTreeSet<&'a str>>,
@@ -3533,7 +3587,10 @@ struct RjaDatalog<'a> {
 }
 
 impl<'a> RjaDatalog<'a> {
-    fn new(rules: &'a [ExistentialRule]) -> Self {
+    fn new(
+        rules: &'a [ExistentialRule],
+        semantics: crate::native_semantics::SemanticVocabulary,
+    ) -> Self {
         let rules: Vec<_> = rules
             .iter()
             .filter(|rule| rja_exact_datalog(rule))
@@ -3567,6 +3624,7 @@ impl<'a> RjaDatalog<'a> {
             }
         }
         Self {
+            semantics,
             rules,
             reads,
             writes,
@@ -3675,7 +3733,17 @@ fn rja_trigger_blocked(
                 });
             }
         };
-    for atom in &consumer.body {
+    // A marker constant may match either stored spelling. Its exact value is
+    // not guaranteed by that body match: omit the assumption instead of letting
+    // unrelated data joins read one arbitrarily chosen spelling as a fact.
+    let guaranteed_body = |atom: &&EvalAtom| match &atom.object {
+        EvalTerm::ConstNamed(iri) | EvalTerm::ConstLit(purrdf::TermValue::Iri(iri)) => datalog
+            .semantics
+            .alternate_marker(&atom.predicate, iri)
+            .is_none(),
+        _ => true,
+    };
+    for atom in consumer.body.iter().filter(guaranteed_body) {
         push(atom, "w", &none);
     }
     // A Thing typing is a fact the chase need not emit (a minimum family with a Thing
@@ -3683,7 +3751,7 @@ fn rja_trigger_blocked(
     for atom in producer.head.iter().filter(|atom| !universal_typing(atom)) {
         push(atom, "v", &identify);
     }
-    for atom in &producer.body {
+    for atom in producer.body.iter().filter(guaranteed_body) {
         push(atom, "v", &none);
     }
     let mut rel = RelationStore::new();

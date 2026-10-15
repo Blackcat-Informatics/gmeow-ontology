@@ -1783,6 +1783,23 @@ fn a_relaxed_negative_inverse_cannot_prove_restricted_termination() {
 }
 
 #[test]
+fn a_relaxed_distinct_inverse_cannot_prove_restricted_termination() {
+    let mut inverse = crate::rule_ir::EvalRule::positive(
+        "http://ex/rule/distinct-inverse",
+        atom(var("?y"), "http://ex/back", var("?x")),
+        vec![atom(var("?x"), "http://ex/post", var("?y"))],
+    );
+    // Every binding fails this guard, even when the two endpoint values differ.
+    inverse.distinct_pairs.push(("?x".into(), "?x".into()));
+    let mut statements: Vec<_> = inverse_pair(false)
+        .iter()
+        .map(StatementRule::from_binary)
+        .collect();
+    statements.push(StatementRule::from_ordinary(&inverse));
+    assert!(!certify_exact(&statements).admits_native());
+}
+
+#[test]
 fn a_filtered_property_inverse_cannot_prove_restricted_termination() {
     use crate::physical::{PropertyAtom, PropertyGuard, PropertyRule, ValueComparison};
     let rules = inverse_pair(false);
@@ -1801,6 +1818,91 @@ fn a_filtered_property_inverse_cannot_prove_restricted_termination() {
     let mut statements: Vec<_> = rules.iter().map(StatementRule::from_binary).collect();
     statements.push(StatementRule::from_property(&inverse));
     assert!(!certify_exact(&statements).admits_native());
+}
+
+#[test]
+fn vocabulary_data_constants_cannot_fabricate_a_restricted_inverse() {
+    let mut rules = inverse_pair(false);
+    rules[0].body.push(atom(
+        var("?x"),
+        "http://ex/gate",
+        EvalTerm::named("http://www.w3.org/2002/07/owl#Thing"),
+    ));
+    rules.extend([
+        ExistentialRule {
+            numeric: vec![],
+            rule_iri: "http://ex/rule/gate".into(),
+            body: vec![atom(var("?x"), TYPE, EvalTerm::named("http://ex/Entry"))],
+            head: vec![atom(
+                var("?x"),
+                "http://ex/gate",
+                EvalTerm::named("http://www.w3.org/2002/07/owl#Thing"),
+            )],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        },
+        ExistentialRule {
+            numeric: vec![],
+            rule_iri: "http://ex/rule/inverse".into(),
+            body: vec![
+                atom(var("?x"), "http://ex/post", var("?y")),
+                atom(
+                    var("?x"),
+                    "http://ex/gate",
+                    EvalTerm::named("https://blackcatinformatics.ca/logic/Thing"),
+                ),
+            ],
+            head: vec![atom(var("?y"), "http://ex/back", var("?x"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        },
+    ]);
+    let bounded = decided(
+        chase_world(
+            W,
+            &[fact("http://ex/entry", TYPE, "http://ex/Entry")],
+            &rules,
+            Some(40),
+        )
+        .unwrap(),
+    );
+    assert_eq!(bounded.status, BudgetStatus::Exhausted);
+    let statements: Vec<_> = rules.iter().map(StatementRule::from_binary).collect();
+    let admission = ChaseAdmission::certify_statements(
+        &statements,
+        crate::native_semantics::SemanticVocabulary::GroundedLogicV1,
+        Ladder::Complete,
+    );
+    assert!(
+        !admission.admits_native(),
+        "data-valued marker spellings are distinct: {admission:?}"
+    );
+    assert!(
+        !ChaseAdmission::certify_with_properties(
+            &rules,
+            &[],
+            crate::native_semantics::SemanticVocabulary::GroundedLogicV1,
+        )
+        .admits_native()
+    );
+}
+
+#[test]
+fn grounded_operator_spellings_keep_a_valid_inverse_certificate() {
+    let mut rules = inverse_pair(true);
+    rules[1].body[0].predicate = "https://blackcatinformatics.ca/logic/instanceOf".into();
+    rules[1].head[1].predicate = "https://blackcatinformatics.ca/logic/instanceOf".into();
+    let admission = ChaseAdmission::certify_with_properties(
+        &rules,
+        &[],
+        crate::native_semantics::SemanticVocabulary::GroundedLogicV1,
+    );
+    assert!(
+        matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
+        "{admission:?}"
+    );
 }
 
 #[test]
@@ -1892,6 +1994,73 @@ fn single_witness_inverse_families_certify_restricted_joint_acyclicity() {
 }
 
 #[test]
+fn a_variable_minimum_cannot_seed_a_two_witness_blocking_proof() {
+    let mut rules = inverse_minimum_pair("1");
+    rules[0].witness_family.as_mut().unwrap().count = var("?count");
+    rules[0].body.push(statement(
+        "http://ex/restriction",
+        "http://ex/count",
+        "?count",
+    ));
+    // This inverse requires two distinct postings. The count-variable summary
+    // states both, but a count-1 execution emits only one and never fires it.
+    rules[1].body.extend([
+        statement("?x", "http://ex/post", "?other"),
+        statement(
+            "?y",
+            "http://www.w3.org/2002/07/owl#differentFrom",
+            "?other",
+        ),
+    ]);
+    assert!(!certify_exact(&rules).admits_native());
+    // Select count=1 globally, then execute its actual one-witness expansion
+    // with the same two-posting inverse rule present.
+    let mut actual = inverse_pair(false);
+    actual[0].body.push(atom(
+        EvalTerm::named("http://ex/restriction"),
+        "http://ex/count",
+        var("?count"),
+    ));
+    actual.push(ExistentialRule {
+        numeric: vec![],
+        rule_iri: "http://ex/rule/two-posting-inverse".into(),
+        body: vec![
+            atom(var("?x"), "http://ex/post", var("?y")),
+            atom(var("?x"), "http://ex/post", var("?other")),
+            atom(
+                var("?y"),
+                "http://www.w3.org/2002/07/owl#differentFrom",
+                var("?other"),
+            ),
+        ],
+        head: vec![atom(var("?y"), "http://ex/back", var("?x"))],
+        distinct: vec![],
+        witness_frontier: None,
+        witness_policy: WitnessPolicy::FrontierSkolem,
+    });
+    let count = Fact {
+        subject: iri("http://ex/restriction"),
+        predicate: "http://ex/count".into(),
+        object: TermValue::Literal {
+            lexical_form: "1".into(),
+            datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger".into(),
+            language: None,
+            direction: None,
+        },
+    };
+    let bounded = decided(
+        chase_world(
+            W,
+            &[fact("http://ex/entry", TYPE, "http://ex/Entry"), count],
+            &actual,
+            Some(40),
+        )
+        .unwrap(),
+    );
+    assert_eq!(bounded.status, BudgetStatus::Exhausted);
+}
+
+#[test]
 fn multi_witness_inverse_families_stay_uncertified() {
     // Two symbolic ordinals summarize every count above one: their trigger check
     // needs `count` fillers, which no back-edge supplies, so the cycle refuses.
@@ -1908,24 +2077,20 @@ fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
     // summaries, their trigger checks need more fillers than their heads state, so the
     // back-edge blocks nothing and the cycle stays.
     let rules = inverse_pair(true);
-    assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(
-            &rules,
-            &rules,
-            &BTreeSet::new(),
-            &BTreeSet::new()
-        )
-        .is_some()
-    );
+    let empty = BTreeSet::new();
+    let mut program = RjaProgram {
+        rules: &rules,
+        closure: &rules,
+        nonblocking: &empty,
+        nonseeding: &empty,
+        families: &empty,
+        semantics: crate::native_semantics::SemanticVocabulary::Exact,
+    };
+    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program,).is_some());
     let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
+    program.nonblocking = &summarized;
     assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(
-            &rules,
-            &rules,
-            &summarized,
-            &BTreeSet::new()
-        )
-        .is_none(),
+        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program,).is_none(),
         "a summarized consumer's trigger is never blocked"
     );
 }
