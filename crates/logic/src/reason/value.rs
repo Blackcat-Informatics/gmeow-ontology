@@ -21,8 +21,9 @@ pub(crate) enum LiteralMeaning {
         language: String,
         direction: Option<RdfTextDirection>,
     },
-    /// No datatype interpretation was admitted. Only identical RDF terms are
-    /// known equal; different lexical forms are not evidence of unequal values.
+    /// No general native value representation was admitted. Identical RDF terms
+    /// are known equal; admitted anyURI values also share XML whitespace collapse.
+    /// Other lexical differences are not evidence of unequal values.
     Opaque(Box<TermValue>),
 }
 
@@ -221,6 +222,29 @@ impl LiteralValue {
     pub(crate) fn same_value(&self, other: &Self) -> Option<bool> {
         match (&self.meaning, &other.meaning) {
             (LiteralMeaning::Opaque(a), LiteralMeaning::Opaque(b)) if a == b => Some(true),
+            (LiteralMeaning::Opaque(a), LiteralMeaning::Opaque(b)) => {
+                match (a.as_ref(), b.as_ref()) {
+                    (
+                        TermValue::Literal {
+                            lexical_form: a,
+                            datatype: ad,
+                            ..
+                        },
+                        TermValue::Literal {
+                            lexical_form: b,
+                            datatype: bd,
+                            ..
+                        },
+                    ) if ad == purrdf::xsd::datatype::XSD_ANY_URI
+                        && bd == purrdf::xsd::datatype::XSD_ANY_URI =>
+                    {
+                        (purrdf::xsd::normalize_whitespace_collapse(a)
+                            == purrdf::xsd::normalize_whitespace_collapse(b))
+                        .then_some(true)
+                    }
+                    _ => None,
+                }
+            }
             (LiteralMeaning::Opaque(_), _) | (_, LiteralMeaning::Opaque(_)) => None,
             (LiteralMeaning::Rational(a), LiteralMeaning::Rational(b)) => Some(a == b),
             (

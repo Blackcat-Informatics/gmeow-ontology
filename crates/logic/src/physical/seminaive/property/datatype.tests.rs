@@ -162,6 +162,46 @@ fn any_uri_is_an_intrinsic_primitive_datatype() {
 }
 
 #[test]
+fn any_uri_enumeration_compares_collapsed_values() {
+    const ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
+    let mut rel = RelationStore::new();
+    edge(&mut rel, "urn:range", ONE_OF, "urn:list");
+    rel.insert(
+        super::super::list::FIRST,
+        &iri("urn:list"),
+        &literal("a b", ANY_URI),
+    );
+    edge(
+        &mut rel,
+        "urn:list",
+        super::super::list::REST,
+        super::super::list::NIL,
+    );
+    let mut values = NativeValues::default();
+    let plan = DatatypeCache::default()
+        .prepare(
+            &rel,
+            &iri("urn:range"),
+            &mut ListCache::default(),
+            &mut values,
+        )
+        .unwrap();
+    for value in ["a b", "a\tb", "\r\n a \t b \r"] {
+        assert_eq!(
+            plan.contains(&literal(value, ANY_URI), &mut values),
+            Some(true)
+        );
+    }
+    for (value, datatype) in [
+        ("a%20b", ANY_URI),
+        ("a\u{a0}b", ANY_URI),
+        ("a b", "urn:foreign"),
+    ] {
+        assert_eq!(plan.contains(&literal(value, datatype), &mut values), None);
+    }
+}
+
+#[test]
 fn any_uri_length_facets_measure_collapsed_characters() {
     const ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
     for (facet, kind) in [("length", 4), ("minLength", 5), ("maxLength", 6)] {
