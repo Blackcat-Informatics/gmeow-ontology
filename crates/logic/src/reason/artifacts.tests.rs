@@ -360,7 +360,13 @@ fn native_artifact_fixture_rejects_missing_or_mismatched_execution_evidence() {
         panic!("native result carries its inferred closure");
     };
     inferred.clear();
-    assert!(mismatched.validate_native_closure().is_err());
+    let error = mismatched.validate_native_closure().unwrap_err();
+    assert!(
+        error
+            .message()
+            .contains("native witness head or premise is absent from the committed closure"),
+        "{error}"
+    );
 }
 
 /// The α-equivalence section is the SHIPPED half of the expression-identity derivation:

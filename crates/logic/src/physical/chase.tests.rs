@@ -2086,11 +2086,11 @@ fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
         families: &empty,
         semantics: crate::native_semantics::SemanticVocabulary::Exact,
     };
-    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program,).is_some());
+    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_some());
     let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
     program.nonblocking = &summarized;
     assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program,).is_none(),
+        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_none(),
         "a summarized consumer's trigger is never blocked"
     );
 }
