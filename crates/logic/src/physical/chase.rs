@@ -1336,6 +1336,9 @@ pub(crate) struct StatementRule {
     /// The minimum count of a witness family, when `heads` are its two-ordinal
     /// position summary. Specialization substitutes the count like any head term.
     pub(crate) witness_family: Option<WitnessFamily>,
+    /// The source clause retains every runtime condition. Relaxed clauses bound
+    /// Skolem value flow but cannot derive facts used to block restricted triggers.
+    pub(crate) rja_exact: bool,
 }
 
 /// The count of a native minimum-witness family and the layout of its analysis heads.
@@ -1348,6 +1351,37 @@ pub(crate) struct WitnessFamily {
 }
 
 impl StatementRule {
+    pub(crate) fn from_ordinary(rule: &crate::rule_ir::EvalRule) -> Self {
+        let statement = |atom: &EvalAtom| {
+            [
+                atom.subject.clone(),
+                EvalTerm::named(&atom.predicate),
+                atom.object.clone(),
+            ]
+        };
+        Self {
+            name: rule.rule_iri.clone(),
+            body: rule
+                .body
+                .iter()
+                .filter(|atom| !atom.negated)
+                .map(statement)
+                .collect(),
+            heads: vec![statement(&rule.head)],
+            frontier: (!rule.numeric.is_empty()).then(|| {
+                super::numeric::input_variables(&rule.body)
+                    .into_iter()
+                    .collect()
+            }),
+            position_only: !rule.numeric.is_empty(),
+            list_cells: Vec::new(),
+            witness_family: None,
+            rja_exact: rule.builtins.is_empty()
+                && rule.numeric.is_empty()
+                && rule.body.iter().all(|atom| !atom.negated),
+        }
+    }
+
     /// The heads the termination proof analyses.
     ///
     /// A witness family is summarized by two symbolic ordinals and their
@@ -1410,6 +1444,9 @@ impl StatementRule {
             position_only: !rule.numeric.is_empty(),
             list_cells: Vec::new(),
             witness_family: None,
+            rja_exact: rule.numeric.is_empty()
+                && rule.distinct.is_empty()
+                && rule.body.iter().all(|atom| !atom.negated),
         }
     }
 
@@ -1437,6 +1474,11 @@ impl StatementRule {
                 count: pattern.minimum.clone(),
                 single: pattern.single_witness_heads(),
             }),
+            rja_exact: property.source.guards.is_empty()
+                && matches!(
+                    property.source.operation,
+                    None | Some(crate::physical::PropertyOperation::Minimum(_))
+                ),
         }
     }
 }
@@ -1627,6 +1669,24 @@ impl ChaseAdmission {
         // grows with every family, so they climb only the polynomial rungs.
         let mut bridged = analysis.clone();
         bridged.extend(statement_bridges(&analysis));
+        // Blocking requires an under-approximation of the runtime closure. The
+        // pair encoding and its reverse bridges can splice unrelated statements;
+        // neither belongs in this proof. Retain only exact, fixed-predicate rules.
+        let binary_exact = |rule: &StatementRule| {
+            rule.rja_exact
+                && rule.body.iter().chain(rule.analysed_heads()).all(|atom| {
+                    matches!(
+                        atom[1],
+                        EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(purrdf::TermValue::Iri(_))
+                    )
+                })
+        };
+        let closure: Vec<_> = rules
+            .iter()
+            .zip(&analysis)
+            .filter(|(rule, _)| binary_exact(rule))
+            .map(|(_, rule)| rule.clone())
+            .collect();
         let summarized: BTreeSet<&str> = rules
             .iter()
             .filter(|rule| !rule.exact())
@@ -1637,6 +1697,11 @@ impl ChaseAdmission {
             .filter(|rule| rule.witness_family.is_some())
             .map(|rule| rule.name.as_str())
             .collect();
+        let nonblocking: BTreeSet<&str> = rules
+            .iter()
+            .filter(|rule| !rule.exact() || !binary_exact(rule))
+            .map(|rule| rule.name.as_str())
+            .collect();
         let started = std::time::Instant::now();
         let mut admission = if summarized.is_empty() {
             let ladder = if rules.iter().any(|rule| rule.position_only) {
@@ -1644,7 +1709,7 @@ impl ChaseAdmission {
             } else {
                 ladder
             };
-            Self::certify_ladder(&analysis, &bridged, ladder)
+            Self::certify_ladder(&analysis, &bridged, &closure, &nonblocking, ladder)
         } else {
             let weak = Self::certify_weakly_acyclic(&analysis);
             tracing::info!(
@@ -1667,8 +1732,8 @@ impl ChaseAdmission {
                         .or_else(|| {
                             Self::certify_restricted_joint_acyclic(
                                 &analysis,
-                                &bridged,
-                                &summarized,
+                                &closure,
+                                &nonblocking,
                                 &families,
                             )
                         })
@@ -1735,17 +1800,19 @@ impl ChaseAdmission {
             return Self::certify_weakly_acyclic(&abstraction)
                 .unwrap_or_else(|violations| Self::Uncertified { violations });
         }
-        Self::certify_ladder(rules, rules, ladder)
+        Self::certify_ladder(rules, rules, rules, &BTreeSet::new(), ladder)
     }
 
     /// The ladder over one program in two equivalent presentations. The position
     /// rungs — weak, joint and restricted joint acyclicity — read `weak`, whose
     /// position graph joins the statement encodings itself along class-matched flows;
     /// the tuple rungs read `tuples`, the same program closed under its encoding
-    /// bridges, as does restricted joint acyclicity's Datalog closure.
+    /// bridges. Restricted blocking reads the separately admitted exact `closure`.
     fn certify_ladder(
         weak: &[ExistentialRule],
         tuples: &[ExistentialRule],
+        closure: &[ExistentialRule],
+        nonblocking: &BTreeSet<&str>,
         ladder: Ladder,
     ) -> Self {
         match Self::certify_weakly_acyclic(weak) {
@@ -1772,8 +1839,8 @@ impl ChaseAdmission {
                 .or_else(|| {
                     Self::certify_restricted_joint_acyclic(
                         weak,
-                        tuples,
-                        &BTreeSet::new(),
+                        closure,
+                        nonblocking,
                         &BTreeSet::new(),
                     )
                 })
@@ -3728,18 +3795,34 @@ fn rja_trigger_blocked(
         })
         .collect();
     let mut satisfied = false;
+    // Universal variables were frozen in the head atoms; retain their bindings
+    // too so guards comparing a frontier with an existential see both operands.
+    let frozen_bindings = Solution {
+        bindings: consumer
+            .body_vars()
+            .into_iter()
+            .map(|name| {
+                let value = frozen("w", &name);
+                (name, value)
+            })
+            .collect(),
+        source_facts: Vec::new(),
+    };
     let walked = join::walk(
         &head,
         &rel,
-        &empty,
+        &frozen_bindings,
         join::Policy {
             max_matches: usize::MAX,
-            distinct: &[],
+            distinct: &consumer.distinct,
             retain_sources: false,
         },
-        |_| {
-            satisfied = true;
-            Ok(false)
+        |candidate| {
+            if distinct_pairs_satisfied(&consumer.distinct, &candidate)? {
+                satisfied = true;
+                return Ok(false);
+            }
+            Ok(true)
         },
     );
     if !satisfied {

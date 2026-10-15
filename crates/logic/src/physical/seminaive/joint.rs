@@ -16,9 +16,7 @@ use super::{
     RoundCandidateBuffer, RoundExecution, RoundSnapshot, StepGovernor, StrataProgress,
     UnsupportedKind, commit_round, evaluate_round_candidates, record_candidate, seminaive_err,
 };
-use crate::physical::chase::{
-    ChaseAdmission, ExistentialRule, PreparedChaseRule, WitnessPolicy, chase_round,
-};
+use crate::physical::chase::{ChaseAdmission, ExistentialRule, PreparedChaseRule, chase_round};
 use crate::physical::dependency::ReadDependency;
 use crate::physical::effects::{EffectSchedule, ProducerEffect, StatementPattern};
 use crate::physical::plan::{Executable, RuleLayouts, compile_certified_stratum};
@@ -1171,37 +1169,23 @@ fn producer_admission(
     semantics: crate::native_semantics::SemanticVocabulary,
     ladder: crate::physical::chase::Ladder,
 ) -> ChaseAdmission {
-    // Dropping filters/NAF is a conservative producer over-approximation for
-    // termination. Arithmetic generation requires its own range certificate.
-    let mut termination_rules = producers.to_vec();
-    // A stratified reduction runs once on completed finite predecessors. Its
-    // output is a finite seed for later strata, never a recursive value inventor.
-    // Execution still requires the complete strict dependency certificate.
-    termination_rules.extend(rules.iter().filter(|r| r.reduction.is_none()).map(|r| {
-        ExistentialRule {
-            numeric: r.numeric.clone(),
-            rule_iri: r.rule_iri.clone(),
-            body: r.body.iter().filter(|a| !a.negated).cloned().collect(),
-            head: vec![r.head.clone()],
-            distinct: Vec::new(),
-            witness_frontier: None,
-            witness_policy: WitnessPolicy::FrontierSkolem,
-        }
-    }));
     let arithmetic: Vec<_> = rules
         .iter()
         .filter(|r| !r.builtins.is_empty() && head_generates_value(r))
         .map(|r| format!("{} has no certified arithmetic producer range", r.rule_iri))
         .collect();
-    for rule in &mut termination_rules {
-        for atom in rule.body.iter_mut().chain(&mut rule.head) {
-            semantics.abstract_atom(atom);
-        }
-    }
     if arithmetic.is_empty() {
-        let statements: Vec<_> = termination_rules
+        // Skolem flow may relax filters, but restricted blocking also needs the
+        // original clause's exactness. Preserve it before lowering either path.
+        let statements: Vec<_> = producers
             .iter()
             .map(crate::physical::chase::StatementRule::from_binary)
+            .chain(
+                rules
+                    .iter()
+                    .filter(|rule| rule.reduction.is_none())
+                    .map(crate::physical::chase::StatementRule::from_ordinary),
+            )
             .chain(
                 properties
                     .iter()

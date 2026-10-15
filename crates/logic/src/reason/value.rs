@@ -137,6 +137,18 @@ impl LiteralValue {
         match &self.meaning {
             LiteralMeaning::Native(XsdValue::String(value)) => Some(value.chars().count() as u128),
             LiteralMeaning::Native(XsdValue::Binary { bytes, .. }) => Some(bytes.len() as u128),
+            LiteralMeaning::Opaque(term) => match term.as_ref() {
+                TermValue::Literal {
+                    lexical_form,
+                    datatype,
+                    ..
+                } if datatype == purrdf::xsd::datatype::XSD_ANY_URI => Some(
+                    purrdf::xsd::normalize_whitespace_collapse(lexical_form)
+                        .chars()
+                        .count() as u128,
+                ),
+                _ => None,
+            },
             _ => None,
         }
     }

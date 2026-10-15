@@ -878,7 +878,7 @@ fn a_list_operator_reads_only_the_cells_of_its_own_list() {
     );
 }
 
-// ── #1795: production-scale witness programs certify through closed relations ──
+// ── Production-scale witness programs certify through closed relations ─────────
 
 fn fact_iri(subject: &str, predicate: &str, object: &str) -> Fact {
     Fact {
@@ -1056,7 +1056,7 @@ fn a_range_back_into_its_own_restriction_is_still_refused() {
 fn an_inverse_pair_cycle_stays_refused_by_the_skolem_certificate() {
     // Finance shape: `A ⊑ ≥2 p.B`, `B ⊑ ∃q.A`, `q inverseOf p`. The restricted chase
     // terminates (the inverse edge already satisfies `B`'s restriction), but every
-    // rung bounds the Skolem chase, which does not: this stays refused (#1796).
+    // Skolem rung cannot certify it; source-specialized admission is checked here.
     let fact = |s: &str, p: &str, o: TermValue| Fact {
         subject: TermValue::iri(s),
         predicate: p.to_owned(),
@@ -1087,6 +1087,6 @@ fn an_inverse_pair_cycle_stays_refused_by_the_skolem_certificate() {
     assert_refused(
         &el_schema_template(),
         rows,
-        "the inverse-pair existential cycle is #1796's restricted-chase question",
+        "the inverse-pair existential cycle needs a restricted-chase certificate",
     );
 }

@@ -3256,7 +3256,12 @@ impl ValueFlow {
             })
             .collect::<Option<_>>()?;
         let objects = values(write.object.clone(), 2)?;
-        if subjects.len() * predicates.len() * objects.len() > limit {
+        if subjects
+            .len()
+            .saturating_mul(predicates.len())
+            .saturating_mul(objects.len())
+            > limit
+        {
             return None;
         }
         let mut facts = Vec::new();

@@ -4,6 +4,7 @@
 //! Synthetic GMEOW rule interactions; no repository corpus or upstream suite.
 
 use super::*;
+use crate::physical::chase::WitnessPolicy;
 use crate::rule_ir::{EvalAtom, EvalTerm};
 use purrdf::TermValue;
 

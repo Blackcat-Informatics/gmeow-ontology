@@ -1375,7 +1375,7 @@ fn a_wildcard_class_that_is_written_still_closes_a_genuine_cycle() {
     );
 }
 
-// ── #1795: per-atom statement encoding, fresh-null keys, single witnesses ──────────
+// ── Per-atom statement encoding, fresh-null keys, single witnesses ────────────────
 
 fn statement_term(value: &str) -> EvalTerm {
     if value.starts_with('?') {
@@ -1403,6 +1403,7 @@ fn statement_rule(
         position_only: false,
         list_cells: Vec::new(),
         witness_family: None,
+        rja_exact: true,
     }
 }
 
@@ -1725,6 +1726,101 @@ fn a_guarded_rule_never_blocks_a_restricted_trigger() {
         ChaseAdmission::certify(&rules),
         ChaseAdmission::RestrictedJointlyAcyclic { .. }
     ));
+}
+
+#[test]
+fn distinct_witnesses_cannot_share_the_inverse_back_edge() {
+    let mut rules = inverse_pair(true);
+    for rule in &mut rules[..2] {
+        let mut second = rule.head.clone();
+        for atom in &mut second {
+            for term in [&mut atom.subject, &mut atom.object] {
+                if *term == var("?z") {
+                    *term = var("?z2");
+                }
+            }
+        }
+        rule.head.extend(second);
+        rule.distinct.push(("?z".to_owned(), "?z2".to_owned()));
+    }
+    assert!(
+        !ChaseAdmission::certify(&rules).admits_native(),
+        "one inverse back-edge cannot satisfy two distinct witnesses"
+    );
+    let statements: Vec<_> = rules.iter().map(StatementRule::from_binary).collect();
+    assert!(
+        !certify_exact(&statements).admits_native(),
+        "statement lowering must retain the guarded trigger boundary"
+    );
+    let bounded = decided(
+        chase_world(
+            W,
+            &[fact("http://ex/entry", TYPE, "http://ex/Entry")],
+            &rules,
+            Some(40),
+        )
+        .unwrap(),
+    );
+    assert_eq!(bounded.status, BudgetStatus::Exhausted);
+}
+
+#[test]
+fn a_relaxed_negative_inverse_cannot_prove_restricted_termination() {
+    let rules = inverse_pair(false);
+    let mut inverse = crate::rule_ir::EvalRule::positive(
+        "http://ex/rule/negative-inverse",
+        atom(var("?y"), "http://ex/back", var("?x")),
+        vec![atom(var("?x"), "http://ex/post", var("?y"))],
+    );
+    let mut absent = inverse.body[0].clone();
+    absent.negated = true;
+    inverse.body.push(absent);
+    // The runtime rule requires both post(x,y) and its absence and never fires.
+    // Erasing NAF fabricates the inverse and used to certify the infinite pair.
+    let mut statements: Vec<_> = rules.iter().map(StatementRule::from_binary).collect();
+    statements.push(StatementRule::from_ordinary(&inverse));
+    assert!(!certify_exact(&statements).admits_native());
+}
+
+#[test]
+fn a_filtered_property_inverse_cannot_prove_restricted_termination() {
+    use crate::physical::{PropertyAtom, PropertyGuard, PropertyRule, ValueComparison};
+    let rules = inverse_pair(false);
+    let inverse = crate::physical::PreparedPropertyRule::new(PropertyRule {
+        rule_iri: "http://ex/rule/filtered-inverse".to_owned(),
+        head: PropertyAtom(statement("?y", "http://ex/back", "?x")),
+        body: vec![PropertyAtom(statement("?x", "http://ex/post", "?y"))],
+        operation: None,
+        guards: vec![PropertyGuard {
+            comparison: ValueComparison::Equal,
+            left: EvalTerm::named("urn:one"),
+            right: EvalTerm::named("urn:two"),
+        }],
+    })
+    .unwrap();
+    let mut statements: Vec<_> = rules.iter().map(StatementRule::from_binary).collect();
+    statements.push(StatementRule::from_property(&inverse));
+    assert!(!certify_exact(&statements).admits_native());
+}
+
+#[test]
+fn pair_projection_cannot_fabricate_an_inverse_for_restricted_blocking() {
+    let mut statements: Vec<_> = inverse_pair(false)
+        .iter()
+        .map(StatementRule::from_binary)
+        .collect();
+    // The premise contains post(entry, posting) and type(posting, Posting).
+    // Their pairs can splice posting/post/Posting although that triple is absent.
+    statements.push(statement_rule(
+        "http://ex/rule/spliced-inverse",
+        vec![
+            statement("?y", "?p", "http://ex/Posting"),
+            statement("?x", "?p", "?y"),
+        ],
+        vec![statement("?y", "http://ex/back", "?x")],
+        None,
+    ));
+    assert!(!certify_exact(&statements).admits_native());
 }
 
 /// `subject ⊑ ≥count property.filler` as a native two-ordinal witness family.

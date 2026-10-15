@@ -160,3 +160,64 @@ fn any_uri_is_an_intrinsic_primitive_datatype() {
     // Infinite, not unknown: any finite count of distinct anyURI values exists.
     assert_eq!(extent::named(ANY_URI).admits(1_000_000), Some(true));
 }
+
+#[test]
+fn any_uri_length_facets_measure_collapsed_characters() {
+    const ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
+    for (facet, kind) in [("length", 4), ("minLength", 5), ("maxLength", 6)] {
+        let mut rel = RelationStore::new();
+        edge(&mut rel, "urn:range", ON_DATATYPE, ANY_URI);
+        edge(&mut rel, "urn:range", RESTRICTIONS, "urn:facets");
+        edge(
+            &mut rel,
+            "urn:facets",
+            super::super::list::FIRST,
+            "urn:facet",
+        );
+        edge(
+            &mut rel,
+            "urn:facets",
+            super::super::list::REST,
+            super::super::list::NIL,
+        );
+        rel.insert(
+            &format!("http://www.w3.org/2001/XMLSchema#{facet}"),
+            &iri("urn:facet"),
+            &literal("2", INTEGER),
+        );
+        let mut values = NativeValues::default();
+        let plan = DatatypeCache::default()
+            .prepare(
+                &rel,
+                &iri("urn:range"),
+                &mut ListCache::default(),
+                &mut values,
+            )
+            .unwrap();
+        for (lexical, length) in [
+            ("", 0),
+            ("a", 1),
+            ("é𐐀", 2),
+            ("\t é𐐀 \r\n", 2),
+            ("é\t\r\n𐐀", 3),
+            ("a\u{a0}", 2),
+            ("a%20b", 5),
+        ] {
+            let expected = match kind {
+                4 => length == 2,
+                5 => length >= 2,
+                6 => length <= 2,
+                _ => unreachable!(),
+            };
+            assert_eq!(
+                plan.contains(&literal(lexical, ANY_URI), &mut values),
+                Some(expected),
+                "{facet} for {lexical:?}",
+            );
+        }
+        assert_eq!(
+            plan.contains(&literal("é𐐀", "urn:foreign"), &mut values),
+            None
+        );
+    }
+}

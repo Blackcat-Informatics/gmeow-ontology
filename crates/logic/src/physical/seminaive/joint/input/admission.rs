@@ -71,24 +71,7 @@ impl Template {
         let ordinary = rules
             .iter()
             .filter(|rule| rule.reduction.is_none())
-            .map(|rule| StatementRule {
-                name: rule.rule_iri.clone(),
-                body: rule
-                    .body
-                    .iter()
-                    .filter(|atom| !atom.negated)
-                    .map(super::statement)
-                    .collect(),
-                heads: vec![super::statement(&rule.head)],
-                frontier: (!rule.numeric.is_empty()).then(|| {
-                    crate::physical::numeric::input_variables(&rule.body)
-                        .into_iter()
-                        .collect()
-                }),
-                position_only: !rule.numeric.is_empty(),
-                list_cells: Vec::new(),
-                witness_family: None,
-            });
+            .map(StatementRule::from_ordinary);
         let rules: Vec<_> = ordinary
             .chain(producers.iter().map(StatementRule::from_binary))
             .chain(properties.iter().map(StatementRule::from_property))
@@ -852,6 +835,7 @@ fn specialize(
                 .collect()
         }),
         position_only: rule.position_only,
+        rja_exact: rule.rja_exact,
         list_cells: Vec::new(),
         witness_family: rule.witness_family.as_ref().map(|family| {
             crate::physical::chase::WitnessFamily {
