@@ -1773,8 +1773,6 @@ dependencies = [
  "chrono",
  "ciborium",
  "criterion",
- "csv",
- "flate2",
  "foldhash 0.1.5",
  "gmeow-action-cache",
  "gmeow-build-inputs",
