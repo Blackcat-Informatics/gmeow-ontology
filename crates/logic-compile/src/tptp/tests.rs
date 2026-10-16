@@ -607,6 +607,274 @@ fn unselected_contextual_reification_does_not_block_selected_document() {
 }
 
 #[test]
+fn boolean_source_class_laws_define_membership_without_asserting_list_syntax() {
+    let (_, projection) = project(
+        r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+           @prefix ex: <https://example.org/> .
+           ex:Both logic:intersectionOf (ex:Left ex:Right) .
+           ex:Either logic:unionOf (ex:Left ex:Right) .
+           ex:Other logic:complementOf ex:Both .
+           ex:Named logic:oneOf (ex:a ex:b) ."#,
+    );
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{projection:?}"
+    );
+    for (class, operator) in [
+        ("Both", " & "),
+        ("Either", " | "),
+        ("Other", "~"),
+        ("Named", " = "),
+    ] {
+        let law = projection.sentences.iter().find(|sentence| {
+            sentence.body.contains("<=>")
+                && sentence
+                    .body
+                    .contains(&format!("I|https://example.org/{class}"))
+                && sentence.body.contains(operator)
+        });
+        assert!(
+            law.is_some(),
+            "missing {class} membership law: {projection:?}"
+        );
+    }
+    let problem = projection.problem.unwrap();
+    for syntax in [
+        "unionOf",
+        "intersectionOf",
+        "complementOf",
+        "oneOf",
+        "first",
+        "rest",
+    ] {
+        assert!(
+            !problem.contains(&format!("/{syntax}'")) && !problem.contains(&format!("#{syntax}'")),
+            "{problem}"
+        );
+    }
+}
+
+#[test]
+fn singleton_boolean_classes_keep_formula_arity() {
+    for (constructor, members, expected) in [
+        ("unionOf", "(ex:Only)", "I|https://example.org/Only"),
+        ("intersectionOf", "(ex:Only)", "I|https://example.org/Only"),
+        ("oneOf", "(ex:Only)", " = "),
+    ] {
+        let (_, projection) = project(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
+             @prefix ex: <https://example.org/> . ex:C logic:{constructor} {members} ."
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Complete,
+            "{constructor} {members}: {projection:?}"
+        );
+        let law = projection
+            .sentences
+            .iter()
+            .find(|sentence| sentence.body.contains("<=>"))
+            .unwrap();
+        assert!(law.body.contains(expected), "{law:?}");
+        assert!(
+            !law.body.contains(" & ") && !law.body.contains(" | "),
+            "{law:?}"
+        );
+    }
+}
+
+#[test]
+fn boolean_classes_refuse_malformed_uninterpreted_and_excluded_support() {
+    for definition in [
+        "ex:C logic:unionOf _:list . _:list <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ex:A ; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:list .",
+        "ex:C logic:unionOf (ex:A) ; logic:complementOf ex:B .",
+        "ex:C logic:oneOf (\"literal\") .",
+        "ex:C logic:unionOf (xsd:integer ex:A) .",
+        "ex:C a logic:Datarange ; logic:unionOf (ex:A ex:B) .",
+        "ex:C logic:unionOf (ex:A ex:B) ; logic:standpoint ex:observer .",
+        "ex:C logic:unionOf (ex:Unsupported) . ex:Unsupported logic:onProperty ex:p ; logic:minQualifiedCardinality 2 ; logic:onClass ex:A .",
+    ] {
+        let (_, projection) = project(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
+             @prefix xsd: <http://www.w3.org/2001/XMLSchema#> . \
+             @prefix ex: <https://example.org/> . {definition}"
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Blocked,
+            "{definition}: {projection:?}"
+        );
+        assert!(projection.problem.is_none());
+    }
+    let theory = compile_documents(&[
+        (
+            "owner.ttl",
+            "<https://example.org/C> <https://blackcatinformatics.ca/logic/unionOf> <https://example.org/list> .",
+            None,
+        ),
+        (
+            "list.ttl",
+            "<https://example.org/list> <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://example.org/A> ; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .",
+            None,
+        ),
+    ]);
+    let all =
+        SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));
+    assert_eq!(
+        project_tptp_fof(&theory, &all).status,
+        FofProjectionStatus::Complete
+    );
+    let mut selection = SourceSelection::all_classical_roots(&theory);
+    selection.documents = DocumentSelection::Exact(BTreeSet::from(["owner.ttl".into()]));
+    let selected = SourceAdmission::classical_fof(&theory, selection);
+    let projection = project_tptp_fof(&theory, &selected);
+    assert_eq!(projection.status, FofProjectionStatus::Blocked);
+    assert!(
+        projection
+            .blockers
+            .iter()
+            .any(|blocker| blocker.reason.contains("class-list support"))
+    );
+}
+
+#[test]
+fn boolean_class_lists_fail_closed_instead_of_admitting_a_prefix() {
+    for cells in [
+        "ex:list rdf:first ex:A, ex:B ; rdf:rest rdf:nil .",
+        "ex:list rdf:first ex:A ; rdf:rest rdf:nil, ex:tail .",
+        "ex:list rdf:first ex:A .",
+        "ex:list rdf:first ex:A ; rdf:rest ex:list .",
+        "ex:list rdf:first ex:A ; rdf:rest rdf:nil . rdf:nil rdf:first ex:B .",
+    ] {
+        let (_, projection) = project(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . \
+             @prefix ex: <https://example.org/> . ex:C logic:unionOf ex:list . {cells}"
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Blocked,
+            "{cells}: {projection:?}"
+        );
+        assert!(projection.problem.is_none());
+        assert!(
+            projection
+                .blockers
+                .iter()
+                .any(|blocker| blocker.code == "MALFORMED_CLASS_LIST"),
+            "{projection:?}"
+        );
+    }
+    for constructor in ["unionOf", "intersectionOf", "oneOf"] {
+        let (_, projection) = project(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
+             <https://example.org/C> logic:{constructor} () ."
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Blocked,
+            "{projection:?}"
+        );
+        assert!(projection.problem.is_none());
+        assert!(
+            projection
+                .blockers
+                .iter()
+                .any(|blocker| blocker.code == "MALFORMED_CLASS_LIST")
+        );
+    }
+}
+
+#[test]
+fn boolean_class_laws_compose_with_restrictions_and_retain_source_blank_identity() {
+    let (admission, projection) = project(
+        r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+           @prefix ex: <https://example.org/> .
+           ex:Whole logic:subClassOf _:outer .
+           _:outer logic:onProperty ex:status ; logic:allValuesFrom _:choices .
+           _:choices logic:oneOf (ex:ready ex:done) ."#,
+    );
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{projection:?}"
+    );
+    let definitions: Vec<_> = admission
+        .admitted()
+        .filter_map(|unit| {
+            if let crate::frontend::SemanticUnitDisposition::Admitted(
+                crate::frontend::AdmittedSemanticUnit::ClassDefinition(definition),
+            ) = &unit.disposition
+            {
+                Some(definition)
+            } else {
+                None
+            }
+        })
+        .collect();
+    assert_eq!(definitions.len(), 2);
+    for definition in definitions {
+        for value in definition.constants.values() {
+            if let crate::ir::AtomicTerm::Blank(blank) = value {
+                assert!(
+                    projection
+                        .problem
+                        .as_ref()
+                        .unwrap()
+                        .contains(&format!("B|{blank}"))
+                );
+            }
+        }
+    }
+    assert!(
+        !projection
+            .problem
+            .unwrap()
+            .contains("I|https://blackcatinformatics.ca/logic/enumeration/")
+    );
+}
+
+#[test]
+fn shared_boolean_list_cells_keep_each_selected_class_owner() {
+    let theory = compile_documents(&[
+        (
+            "first.ttl",
+            "<https://example.org/A> <https://blackcatinformatics.ca/logic/unionOf> <https://example.org/list> .",
+            None,
+        ),
+        (
+            "second.ttl",
+            "<https://example.org/B> <https://blackcatinformatics.ca/logic/unionOf> <https://example.org/list> .",
+            None,
+        ),
+        (
+            "cells.ttl",
+            "<https://example.org/list> <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://example.org/Member> ; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .",
+            None,
+        ),
+    ]);
+    for (owner, excluded) in [("first.ttl", "B"), ("second.ttl", "A")] {
+        let mut selection = SourceSelection::all_classical_roots(&theory);
+        selection.documents =
+            DocumentSelection::Exact(BTreeSet::from([owner.into(), "cells.ttl".into()]));
+        let admission = SourceAdmission::classical_fof(&theory, selection);
+        let projection = project_tptp_fof(&theory, &admission);
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Complete,
+            "{owner}: {projection:?}"
+        );
+        let problem = projection.problem.unwrap();
+        assert!(
+            !problem.contains(&format!("I|https://example.org/{excluded}'")),
+            "{problem}"
+        );
+        assert!(problem.contains("I|https://example.org/Member"));
+    }
+}
+
+#[test]
 fn source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax() {
     let (admission, projection) = project(
         r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .

@@ -205,6 +205,14 @@ impl AdmissionBuilder<'_> {
             }
             support.push(quad);
         }
+        if fields.keys().any(|local| {
+            matches!(
+                local.as_str(),
+                "unionOf" | "intersectionOf" | "complementOf" | "oneOf"
+            )
+        }) {
+            return self.lower_boolean_class(node, &fields, support, roots);
+        }
         if let Some(unsupported) = fields.keys().find(|local| {
             !matches!(
                 local.as_str(),
@@ -326,6 +334,155 @@ impl AdmissionBuilder<'_> {
             support,
             dependencies,
         })
+    }
+
+    fn lower_boolean_class(
+        &self,
+        node: SourceNode,
+        fields: &BTreeMap<String, TermId>,
+        mut support: Vec<QuadIds>,
+        roots: &BTreeSet<SourceNode>,
+    ) -> Result<ClassLowering, ClassRefusal> {
+        let dataset = self.theory.source().dataset();
+        if fields.len() != 1 {
+            return Err(unsupported_class(
+                "combined class constructors require separate certified definition laws",
+            ));
+        }
+        if data_resource(dataset, node.term) {
+            return Err(unsupported_class(
+                "datatype constructors require a certified value interpretation",
+            ));
+        }
+        let (constructor, value) = fields.first_key_value().expect("one constructor");
+        let members = if constructor == "complementOf" {
+            vec![*value]
+        } else {
+            self.selected_class_list(*value, &mut support)?
+        };
+        let mut constants = BTreeMap::new();
+        let mut bind = |id| -> Result<Term, ClassRefusal> {
+            if !matches!(dataset.resolve(id), TermRef::Iri(_) | TermRef::Blank { .. }) {
+                return Err(unsupported_class(
+                    "literal and quoted class terms require a certified value interpretation",
+                ));
+            }
+            let value =
+                atomic_term(dataset, id, false).map_err(|error| ClassRefusal::Malformed {
+                    code: "MALFORMED_CLASS_TERM",
+                    reason: error.to_string(),
+                })?;
+            let name = format!("__source_constant_{}", constants.len());
+            constants.insert(name.clone(), value);
+            Ok(Term::Var(name))
+        };
+        let root = bind(node.term)?;
+        let x = Term::Var("class_member".into());
+        let mut dependencies = BTreeSet::new();
+        let mut parts = Vec::new();
+        for member in members {
+            if constructor != "oneOf" {
+                if data_resource(dataset, member)
+                    || matches!(dataset.resolve(member), TermRef::Iri(iri)
+                        if iri.starts_with("http://www.w3.org/2001/XMLSchema#")
+                        || iri == "http://www.w3.org/2000/01/rdf-schema#Literal")
+                {
+                    return Err(unsupported_class(
+                        "datatype membership requires a certified value interpretation",
+                    ));
+                }
+                let dependency = SourceNode {
+                    term: member,
+                    graph: None,
+                };
+                if roots.contains(&dependency) {
+                    dependencies.insert(dependency);
+                }
+            }
+            parts.push(atom(
+                if constructor == "oneOf" {
+                    "https://blackcatinformatics.ca/logic/sameAs"
+                } else {
+                    LOGIC_INSTANCE_OF
+                },
+                vec![x.clone(), bind(member)?],
+            ));
+        }
+        let condition = match constructor.as_str() {
+            "complementOf" => Formula::Not(Box::new(parts.pop().expect("one complement"))),
+            _ if parts.len() == 1 => parts.pop().expect("one member"),
+            "intersectionOf" => Formula::And(parts),
+            _ => Formula::Or(parts),
+        };
+        Ok(ClassLowering {
+            definition: SourceClassDefinition {
+                formula: Formula::Forall {
+                    vars: vec!["class_member".into()],
+                    body: Box::new(Formula::Iff(
+                        Box::new(atom(LOGIC_INSTANCE_OF, vec![x, root])),
+                        Box::new(condition),
+                    )),
+                },
+                constants,
+            },
+            support,
+            dependencies,
+        })
+    }
+
+    fn selected_class_list(
+        &self,
+        head: TermId,
+        support: &mut Vec<QuadIds>,
+    ) -> Result<Vec<TermId>, ClassRefusal> {
+        use purrdf_core::SoleObject;
+
+        let dataset = self.theory.source().dataset();
+        let first = dataset.term_id_by_iri(crate::lists::RDF_FIRST);
+        let rest = dataset.term_id_by_iri(crate::lists::RDF_REST);
+        let nil = dataset.term_id_by_iri(crate::lists::RDF_NIL);
+        let mut first_support = Vec::new();
+        let mut rest_support = Vec::new();
+        let edge = |cell: TermId, predicate: Option<TermId>, evidence: &mut Vec<QuadIds>| {
+            predicate.map_or(SoleObject::None, |predicate| {
+                SoleObject::of(
+                    dataset
+                        .quads_for_pattern(Some(cell), Some(predicate), None, GraphMatch::Default)
+                        .map(|quad| {
+                            evidence.push(quad);
+                            quad.o
+                        }),
+                )
+            })
+        };
+        let members = purrdf_core::walk_rdf_list(
+            head,
+            nil,
+            |cell| edge(cell, first, &mut first_support),
+            |cell| edge(cell, rest, &mut rest_support),
+        )
+        .map_err(|error| ClassRefusal::Malformed {
+            code: "MALFORMED_CLASS_LIST",
+            reason: format!(
+                "class constructor requires a finite nonbranching RDF list: {:?}",
+                error.kind
+            ),
+        })?;
+        if members.is_empty() {
+            return Err(ClassRefusal::Malformed {
+                code: "MALFORMED_CLASS_LIST",
+                reason: "class constructor lists must be nonempty".into(),
+            });
+        }
+        for quad in first_support.into_iter().chain(rest_support) {
+            if !self.statement_selected(quad, SourceCarrier::Statement) {
+                return Err(unsupported_class(
+                    "class-list support is outside the selected documents",
+                ));
+            }
+            support.push(quad);
+        }
+        Ok(members)
     }
 }
 

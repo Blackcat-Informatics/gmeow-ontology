@@ -18,6 +18,13 @@
 //! canonical schema constraints. Unary interpretation does not depend on whether
 //! a class declaration happens to accompany the selected source. Profile laws
 //! cannot authorize an empty or refused source selection.
+//!
+//! Certified source-class laws cover object-property restrictions, Boolean
+//! membership and resource enumeration. Nonempty union/intersection lists lower
+//! to disjunction/conjunction, complement to classical negation, and resource
+//! enumeration to denotational equality without a unique-name assumption. Exact
+//! source constants and selected list support remain attached to these laws;
+//! unsupported dependencies, value interpretations and contexts refuse admission.
 
 mod writer;
 

@@ -747,7 +747,8 @@ fn extract_annotation_axioms(
 
 /// Lower one authored `owner <predicate> list` statement into the single IR list
 /// encoding: the constructor edge to the head cell (sourced from the authored statement)
-/// plus the `rdf:first`/`rdf:rest` cells (sourced from the list head). Blank members name
+/// plus the `rdf:first`/`rdf:rest` cells (sourced from their class owner for class
+/// constructors, otherwise the list head). Blank members name
 /// their lifted anonymous expression through `skolems`; a cell already asserted for
 /// another owner of the same list is not repeated.
 ///
@@ -811,14 +812,26 @@ fn lift_list_statement(
             return;
         }
     }
+    let class_list = matches!(
+        ctor.local,
+        "unionOf" | "intersectionOf" | "disjointUnionOf" | "oneOf"
+    );
     let cell_source = AxiomSource::ClassExpression(SourceNode {
-        term: source_quad.o,
+        term: if class_list {
+            source_quad.s
+        } else {
+            source_quad.o
+        },
         graph: source_quad.g,
     });
     for (subject, cell_predicate, obj) in list.cells {
-        if !emitted_cells.insert((subject.clone(), cell_predicate.to_owned(), obj.clone())) {
+        if !emitted_cells.insert((subject.clone(), cell_predicate.to_owned(), obj.clone()))
+            && !class_list
+        {
             continue;
         }
+        // Class owners can share cells. Keep each owner's source emission so
+        // canonical axiom deduplication retains every contributing definition.
         match LogicAxiom::new(
             subject.clone(),
             cell_predicate,
