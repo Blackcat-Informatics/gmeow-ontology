@@ -811,6 +811,84 @@ fn metadata_package_ids(root: &Path) -> Result<BTreeMap<String, String>> {
     Ok(packages)
 }
 
+/// Cargo messages and the selected unit graph must share metadata's explicit
+/// package identity. A target name cannot recover an implicit package name.
+fn capture_compiler_input(
+    root: &Path,
+    packages: &BTreeMap<String, String>,
+    selection: &ProductionSelection,
+    value: &Value,
+    artifacts: &mut Vec<CompilerArtifact>,
+    generated: &mut Vec<GeneratedInputs>,
+) -> Result<()> {
+    let Some(reason @ ("compiler-artifact" | "build-script-executed")) = value["reason"].as_str()
+    else {
+        return Ok(());
+    };
+    let id = string(value, "package_id")?;
+    let package = packages
+        .get(id)
+        .ok_or_else(|| fail(format!("Cargo message has unknown package identity {id}")))?
+        .replace(root.to_string_lossy().as_ref(), "<workspace>");
+    if reason == "build-script-executed" {
+        generated.push(GeneratedInputs {
+            directory: PathBuf::from(string(value, "out_dir")?),
+            package,
+        });
+    } else if selection
+        .units
+        .iter()
+        .any(|unit| unit.package == package && unit.manifest.is_some() && !unit.controller)
+    {
+        artifacts.push(CompilerArtifact {
+            files: strings(&value["filenames"])?
+                .into_iter()
+                .map(PathBuf::from)
+                .collect(),
+            source: PathBuf::from(string(&value["target"], "src_path")?),
+            build_script: strings(&value["target"]["kind"])?
+                .iter()
+                .any(|kind| kind == "custom-build"),
+            package,
+        });
+    }
+    Ok(())
+}
+
+fn selected_external_package_roots(
+    root: &Path,
+    metadata: &Value,
+    selection: &ProductionSelection,
+) -> Result<Vec<PathBuf>> {
+    let selected: BTreeSet<_> = selection
+        .units
+        .iter()
+        .filter(|unit| unit.manifest.is_none())
+        .map(|unit| unit.package.as_str())
+        .collect();
+    let mut roots = Vec::new();
+    for package in metadata["packages"]
+        .as_array()
+        .ok_or_else(|| fail("missing resolved packages"))?
+    {
+        let id = explicit_package_id(
+            string(package, "id")?,
+            string(package, "name")?,
+            string(package, "version")?,
+        )?
+        .replace(root.to_string_lossy().as_ref(), "<workspace>");
+        if selected.contains(id.as_str()) {
+            roots.push(
+                PathBuf::from(string(package, "manifest_path")?)
+                    .parent()
+                    .ok_or_else(|| fail("package root absent"))?
+                    .to_path_buf(),
+            );
+        }
+    }
+    Ok(roots)
+}
+
 fn metadata_manifests(root: &Path) -> Result<BTreeMap<String, String>> {
     let mut command = Command::new(cargo_program());
     command
@@ -1036,6 +1114,7 @@ fn replace_staged_executable(temporary: &Path, staged: &Path, receipt_path: &Pat
 /// executable, then atomically publish its receipt. Any compile, freshness,
 /// identity, or publication error fails.
 fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe) -> Result<()> {
+    let packages = metadata_package_ids(root)?;
     let environment = &recipe.compiler_environment;
     let mut command = cargo_build(
         root,
@@ -1081,36 +1160,14 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
         {
             eprint!("{message}");
         }
-        if value["reason"] == "build-script-executed" {
-            generated_roots.push(GeneratedInputs {
-                directory: PathBuf::from(string(&value, "out_dir")?),
-                package: string(&value, "package_id")?
-                    .replace(root.to_string_lossy().as_ref(), "<workspace>"),
-            });
-        }
-        if value["reason"] == "compiler-artifact" {
-            let package = string(&value, "package_id")?
-                .replace(root.to_string_lossy().as_ref(), "<workspace>");
-            if recipe
-                .source_inventory
-                .selection
-                .units
-                .iter()
-                .any(|unit| unit.package == package && unit.manifest.is_some() && !unit.controller)
-            {
-                artifacts.push(CompilerArtifact {
-                    files: strings(&value["filenames"])?
-                        .into_iter()
-                        .map(PathBuf::from)
-                        .collect(),
-                    source: PathBuf::from(string(&value["target"], "src_path")?),
-                    build_script: strings(&value["target"]["kind"])?
-                        .iter()
-                        .any(|kind| kind == "custom-build"),
-                    package,
-                });
-            }
-        }
+        capture_compiler_input(
+            root,
+            &packages,
+            &recipe.source_inventory.selection,
+            &value,
+            &mut artifacts,
+            &mut generated_roots,
+        )?;
         if value["reason"] == "compiler-artifact"
             && value["target"]["name"] == "gmeow-dev"
             && let Some(path) = value["executable"].as_str()
@@ -1136,30 +1193,8 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
         .current_dir(root)
         .args(["metadata", "--format-version", "1", "--locked"]);
     let metadata: Value = serde_json::from_str(&checked_output(metadata)?).map_err(fail)?;
-    let selected: BTreeSet<_> = recipe
-        .source_inventory
-        .selection
-        .units
-        .iter()
-        .filter(|unit| unit.manifest.is_none())
-        .map(|unit| unit.package.as_str())
-        .collect();
-    let external_roots = metadata["packages"]
-        .as_array()
-        .ok_or_else(|| fail("missing resolved packages"))?
-        .iter()
-        .filter(|package| {
-            package["id"]
-                .as_str()
-                .is_some_and(|id| selected.contains(id))
-        })
-        .map(|package| {
-            Ok(PathBuf::from(string(package, "manifest_path")?)
-                .parent()
-                .ok_or_else(|| fail("package root absent"))?
-                .to_path_buf())
-        })
-        .collect::<Result<Vec<_>>>()?;
+    let external_roots =
+        selected_external_package_roots(root, &metadata, &recipe.source_inventory.selection)?;
     compiler_inputs
         .verify(
             root,
