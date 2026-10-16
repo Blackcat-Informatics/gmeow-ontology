@@ -22860,3 +22860,59 @@ msgstr "此契约约束操作性输入准入；获准的普查另行评估重复
 msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
 msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
 msgstr "台账任务若指定缺失的源实现，则在报告其副本数前被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service refusal"
+msgstr "直接语义服务拒绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal to produce a selected OWL Direct-Semantics service answer, retaining whether the ontology has no model, the input is malformed, or execution failed."
+msgstr "无法生成所选 OWL 直接语义服务答案的操作性拒绝，保留本体无模型、输入格式错误和执行失败之间的区别。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a selected direct-semantics service cannot produce its requested answer."
+msgstr "在所选直接语义服务无法生成请求的答案时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret every refusal as malformed input or as an unknown consistency verdict."
+msgstr "不要将所有拒绝都解释为输入格式错误或一致性判定未知。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the typed refusal disposition and original upstream cause with the shared diagnostic."
+msgstr "在共享诊断中保留带类型的拒绝类别及原始上游原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The class describes availability of the requested service product; a no-model disposition remains a decided semantic observation."
+msgstr "该类描述所请求服务结果的可用性；无模型类别仍是已确定的语义观察。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classification of an ontology with no model is refused with the no-model disposition."
+msgstr "对无模型本体的分类请求以无模型类别被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service boundary"
+msgstr "直接语义服务边界"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary that preserves typed upstream refusals from the OWL Direct-Semantics service through the shared diagnostic substrate."
+msgstr "通过共享诊断基础保留 OWL 直接语义服务上游带类型拒绝的操作边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary that raises direct semantics service refusals."
+msgstr "用于标识发出直接语义服务拒绝的边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a refusal with an empty classification or a fabricated entailment answer."
+msgstr "不要用空分类或虚构的蕴涵答案替代拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the original cause as no-model, malformed or execution, and keep that cause available for inspection."
+msgstr "将原始原因归为无模型、格式错误或执行失败，并保留该原因以供检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boundary governs service result publication and makes no whole-canon consistency claim."
+msgstr "该边界管理服务结果的发布，不对整个规范语料的一致性作出断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed role chain retains the original native hierarchy error in the diagnostic."
+msgstr "格式错误的角色链在诊断中保留原始的原生层级错误。"

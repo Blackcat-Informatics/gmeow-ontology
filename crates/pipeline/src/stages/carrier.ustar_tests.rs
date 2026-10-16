@@ -286,7 +286,12 @@ fn small_docs_model() -> gmeow_docs::model::DocsModel {
         competencies: vec![competency],
         linkages: vec![linkage],
         reasoning: Some(ReasoningVerdict {
-            is_consistent: true,
+            consistency: gmeow_docs::model::ConsistencyAssessment::Consistent,
+            input: "valid".into(),
+            evaluation: "completed".into(),
+            completeness: "complete-for-fragment".into(),
+            information: "supported".into(),
+            unsupported_constructs: Default::default(),
             unsatisfiable: Default::default(),
         }),
         ..Default::default()

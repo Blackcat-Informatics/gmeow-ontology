@@ -140,7 +140,15 @@ fn coverage_projection_is_reasoner_independent_and_deterministic() {
     // whether a reasoning verdict is attached. Emitting with reasoning None vs a
     // verdict changes ONLY the reasoning-status triple, never the coverage incidence.
     let mut with_verdict = representative_model();
-    with_verdict.reasoning = Some(ReasoningVerdict::default());
+    with_verdict.reasoning = Some(ReasoningVerdict {
+        consistency: gmeow_docs::model::ConsistencyAssessment::Undetermined,
+        input: "valid".into(),
+        evaluation: "unsupported".into(),
+        completeness: "incomplete".into(),
+        information: "undetermined".into(),
+        unsupported_constructs: BTreeSet::from(["synthetic unsupported source".into()]),
+        unsatisfiable: BTreeSet::new(),
+    });
     let without = representative_model();
 
     let a = to_gmeow_rdf(&without, &std::collections::BTreeMap::new());

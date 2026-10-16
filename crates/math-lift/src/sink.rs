@@ -13,17 +13,15 @@
 //! - **Literals go through the RDF 1.2 value space**, so a datatype or language tag is a
 //!   real term rather than a hand-escaped suffix.
 //!
-//! Mirrors `crates/affect-ingest`'s `Sink` and the projection `TripleSink` at
-//! `crates/logic-compile/src/projections/rdf.rs`. That the shape appears a third time is
-//! the established norm here, not drift: each lives in a crate that must not depend on
-//! the others.
+//! This is also the accumulator used by affect ingestion through `gmeow-math`.
+//! Both producers use one RDF builder and decimal lexical implementation.
 //!
 //! # No `x-gmeow-*` language tags
 //!
 //! Lifted graphs are CONSUMER output — they leave through the shipped `gmeow` CLI.
 //! `crates/gmeow-cli/tests/self_sufficiency.rs` asserts no `x-gmeow-*` private-use tag
-//! leaks onto that surface, so this sink deliberately exposes no language-tagged
-//! constructor. A lift emits IRIs, plain literals, and typed literals.
+//! leaks onto that surface. Lift callers emit IRIs, plain literals and typed
+//! literals; affect ingestion supplies its authored language literals explicitly.
 
 use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 
@@ -63,7 +61,11 @@ impl Sink {
         Ok(())
     }
 
-    fn lit(&mut self, s: &str, p: &str, lit: RdfLiteral) -> gmeow_errors::Result<()> {
+    /// Emit a literal with its complete RDF 1.2 identity.
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn lit(&mut self, s: &str, p: &str, lit: RdfLiteral) -> gmeow_errors::Result<()> {
         let s = self.builder.intern_iri(s)?;
         let p = self.builder.intern_iri(p)?;
         let o = self.builder.intern_literal(lit)?;
@@ -120,7 +122,7 @@ impl Sink {
         self.lit(
             s,
             p,
-            RdfLiteral::typed(format_decimal(value), XSD_DECIMAL.to_owned()),
+            RdfLiteral::typed(f64_decimal_lexical(value), XSD_DECIMAL.to_owned()),
         )?;
         Ok(())
     }
@@ -140,8 +142,10 @@ impl Sink {
     }
 }
 
-/// `f64` → a valid `xsd:decimal` lexical form (never exponent notation, always a point).
-fn format_decimal(value: f64) -> String {
+/// A finite `f64` as `xsd:decimal` (never exponent notation, always a point).
+/// Callers validate finiteness before emission; NaN and infinities are not decimals.
+#[must_use]
+pub fn f64_decimal_lexical(value: f64) -> String {
     let s = format!("{value}");
     debug_assert!(
         !s.contains(['e', 'E']),

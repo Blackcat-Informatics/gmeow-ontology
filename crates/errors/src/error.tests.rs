@@ -5,6 +5,7 @@ use super::*;
 use crate::code::intern_code;
 use std::collections::HashSet;
 
+/// Every catalog code and interned handle stays unique under the fixed-hasher policy.
 #[test]
 fn every_errors_code_interns_with_no_collision() {
     let handles = register_all();
@@ -19,13 +20,15 @@ fn every_errors_code_interns_with_no_collision() {
             "errors code `{code}` did not intern after register_all()"
         );
     }
-    let distinct_strings: HashSet<&&str> = ERRORS_DIAG_CODES.iter().collect();
+    let distinct_strings: HashSet<&&str, purrdf_hash::fixed::FixedState> =
+        ERRORS_DIAG_CODES.iter().collect();
     assert_eq!(
         distinct_strings.len(),
         ERRORS_DIAG_CODES.len(),
         "duplicate errors diagnostic code string detected"
     );
-    let distinct_handles: HashSet<Code> = handles.iter().copied().collect();
+    let distinct_handles: HashSet<Code, purrdf_hash::fixed::FixedState> =
+        handles.iter().copied().collect();
     assert_eq!(
         distinct_handles.len(),
         handles.len(),

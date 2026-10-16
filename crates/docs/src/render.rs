@@ -1858,16 +1858,37 @@ fn md_health(model: &DocsModel) -> String {
                 t.category == DocTermCategory::Class && verdict.unsatisfiable.contains(&t.iri)
             })
             .count();
-        let consistency = if verdict.is_consistent {
-            model.ui("body_reasoning_consistent")
-        } else {
-            model.ui("body_reasoning_inconsistent")
+        let consistency = match verdict.consistency {
+            crate::model::ConsistencyAssessment::Consistent => {
+                model.ui("body_reasoning_consistent")
+            }
+            crate::model::ConsistencyAssessment::Inconsistent => {
+                model.ui("body_reasoning_inconsistent")
+            }
+            crate::model::ConsistencyAssessment::Undetermined => "undetermined",
         };
         push_line(
             &mut out,
             &format!(
                 "- Native DL reasoning: the ontology is {consistency}. **{unsat}** of {classes} \
-                 documented classes are unsatisfiable; the rest are satisfiable.",
+                documented classes are proved unsatisfiable.",
+            ),
+        );
+        if verdict.consistency != crate::model::ConsistencyAssessment::Consistent {
+            line(
+                &mut out,
+                "Satisfiability of the other documented classes is undetermined.",
+            );
+        }
+        push_line(
+            &mut out,
+            &format!(
+                "- Native observation: input={}, evaluation={}, completeness={}, information={}. Unsupported observations: **{}**.",
+                verdict.input,
+                verdict.evaluation,
+                verdict.completeness,
+                verdict.information,
+                verdict.unsupported_constructs.len(),
             ),
         );
         blank(&mut out);

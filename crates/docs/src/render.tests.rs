@@ -4,6 +4,26 @@
 use super::*;
 use crate::model::DocTermStability;
 
+#[test]
+fn health_renders_undecided_native_reasoning_without_positive_claims() {
+    let mut model = tiny_model();
+    model.reasoning = Some(crate::model::ReasoningVerdict {
+        consistency: crate::model::ConsistencyAssessment::Undetermined,
+        input: "valid".into(),
+        evaluation: "unsupported".into(),
+        completeness: "incomplete".into(),
+        information: "undetermined".into(),
+        unsupported_constructs: std::collections::BTreeSet::from(["nominal".into()]),
+        unsatisfiable: Default::default(),
+    });
+    let output = md_health(&model);
+    assert!(output.contains("ontology is undetermined"));
+    assert!(output.contains("evaluation=unsupported"));
+    assert!(output.contains("Unsupported observations: **1**"));
+    assert!(!output.contains("the rest are satisfiable"));
+    assert!(output.contains("other documented classes is undetermined"));
+}
+
 /// `CONTROLLER_HOOKS` equals the hooks the SHIPPED controller module actually binds.
 ///
 /// Scrapes `assets/gmeow-docs.js` for every element it looks up

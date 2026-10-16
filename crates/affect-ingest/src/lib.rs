@@ -45,9 +45,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use gmeow_math::{
-    TripleIndex, all_iris, first_iri, first_literal, has_type, index_graph, index_turtle, subjects,
+    RdfSink as Sink, TripleIndex, all_iris, f64_decimal_lexical, first_iri, first_literal,
+    has_type, index_graph, index_turtle, subjects,
 };
-use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
+use purrdf::RdfLiteral;
 use serde::{Deserialize, Serialize};
 
 // ───────────────────────────── namespaces ──────────────────────────────────
@@ -60,8 +61,6 @@ const LABELSET: &str = "https://blackcatinformatics.ca/gmeow-registry/labelset/"
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
-const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
-const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 /// Tolerance on the simplex (partition-of-unity) constraint for a softmax
 /// distribution over an exclusive label set: `|Σ scores − 1| ≤ SIMPLEX_EPS`. Loose
 /// enough to admit a probability distribution rounded to a few decimals (the
@@ -874,12 +873,20 @@ pub fn produce(
     if capture.candidate_labels.is_some() {
         let set_iri = config.candidate_set_iri();
         sink.iri(&set_iri, RDF_TYPE, &g("AffectLabelSet"))?;
-        sink.lang(&set_iri, RDFS_LABEL, &config.label_set_id)?;
+        sink.lit(
+            &set_iri,
+            RDFS_LABEL,
+            RdfLiteral::language_tagged(&config.label_set_id, GMEOW_ENGLISH),
+        )?;
         for surface in config.registered_labels() {
             let label_iri = config.label_iri(surface);
             sink.iri(&label_iri, RDF_TYPE, &g("AffectClassifierLabel"))?;
             sink.iri(&label_iri, &g("memberOfLabelSet"), &set_iri)?;
-            sink.lang(&label_iri, RDFS_LABEL, surface)?;
+            sink.lit(
+                &label_iri,
+                RDFS_LABEL,
+                RdfLiteral::language_tagged(surface, GMEOW_ENGLISH),
+            )?;
         }
     }
 
@@ -921,10 +928,13 @@ pub fn produce(
                     sink.iri(&claim_iri, RDF_TYPE, &g("AffectiveClaim"))?;
                     sink.iri(&claim_iri, &g("vantage"), &run_iri)?;
                     sink.iri(&claim_iri, &g("observedFeature"), &target.target_iri)?;
-                    sink.lang(
+                    sink.lit(
                         &claim_iri,
                         RDFS_LABEL,
-                        &format!("the text expresses {}", m.word),
+                        RdfLiteral::language_tagged(
+                            format!("the text expresses {}", m.word),
+                            GMEOW_ENGLISH,
+                        ),
                     )?;
                 }
             }
@@ -1274,88 +1284,6 @@ fn derive_registry_prefix(
     Ok(first.to_owned())
 }
 
-/// Format an f64 as an `xsd:decimal` lexical (`0.84`, `1.0`) — NEVER exponent
-/// form, which `xsd:decimal` forbids. Rust's `f64` `Display` already emits the
-/// shortest round-trip decimal WITHOUT scientific notation (only the `{:e}`
-/// formatter does that), even for tiny in-range scores like `1e-7` → `0.0000001`;
-/// we only normalize a whole number to carry a trailing `.0`. (NaN/±Inf are
-/// rejected upstream, so inputs are tame.)
-fn format_decimal(value: f64) -> String {
-    let s = format!("{value}");
-    debug_assert!(
-        !s.contains(['e', 'E']),
-        "f64 Display must never emit scientific notation (invalid xsd:decimal): {s}"
-    );
-    if s.contains('.') { s } else { format!("{s}.0") }
-}
-
-/// A thin accumulator over `purrdf::RdfDatasetBuilder` that emits deterministic,
-/// canonical Turtle (the codec sorts; no manual pre-sort needed). Mirrors the
-/// projection `TripleSink` at `crates/logic-compile/src/projections/rdf.rs`.
-#[derive(Default)]
-struct Sink {
-    builder: RdfDatasetBuilder,
-}
-
-impl Sink {
-    fn iri(&mut self, s: &str, p: &str, o: &str) -> gmeow_errors::Result<()> {
-        let s = self.builder.intern_iri(s)?;
-        let p = self.builder.intern_iri(p)?;
-        let o = self.builder.intern_iri(o)?;
-        self.builder.push_quad(s, p, o, None)?;
-        Ok(())
-    }
-
-    fn lit(&mut self, s: &str, p: &str, lit: RdfLiteral) -> gmeow_errors::Result<()> {
-        let s = self.builder.intern_iri(s)?;
-        let p = self.builder.intern_iri(p)?;
-        let o = self.builder.intern_literal(lit)?;
-        self.builder.push_quad(s, p, o, None)?;
-        Ok(())
-    }
-
-    fn string(&mut self, s: &str, p: &str, value: &str) -> gmeow_errors::Result<()> {
-        self.lit(s, p, RdfLiteral::simple(value))?;
-        Ok(())
-    }
-
-    fn decimal(&mut self, s: &str, p: &str, value: f64) -> gmeow_errors::Result<()> {
-        self.lit(
-            s,
-            p,
-            RdfLiteral::typed(format_decimal(value), XSD_DECIMAL.to_owned()),
-        )?;
-        Ok(())
-    }
-
-    fn boolean(&mut self, s: &str, p: &str, value: bool) -> gmeow_errors::Result<()> {
-        self.lit(
-            s,
-            p,
-            RdfLiteral::typed(
-                if value { "true" } else { "false" }.to_owned(),
-                XSD_BOOLEAN.to_owned(),
-            ),
-        )?;
-        Ok(())
-    }
-
-    fn lang(&mut self, s: &str, p: &str, text: &str) -> gmeow_errors::Result<()> {
-        self.lit(s, p, RdfLiteral::language_tagged(text, GMEOW_ENGLISH))?;
-        Ok(())
-    }
-
-    fn serialize(self) -> gmeow_errors::Result<String> {
-        let dataset = self.builder.freeze()?;
-        let bytes = serialize_dataset(
-            dataset.as_ref(),
-            "text/turtle",
-            SerializeGraph::DefaultGraph,
-        )?;
-        Ok(String::from_utf8(bytes)?)
-    }
-}
-
 // ───────────────────────────── get leg: recover ─────────────────────────────
 
 impl ScoreSemantics {
@@ -1586,7 +1514,7 @@ fn policy_from_thresholds(thresholds: BTreeMap<String, f64>) -> ThresholdPolicy 
 /// Round a score through the emitted `xsd:decimal` lexical, so a capture value
 /// compares equal to the value the get leg parses back from the graph.
 fn renormalize_decimal(value: f64) -> f64 {
-    format_decimal(value).parse().unwrap_or(value)
+    f64_decimal_lexical(value).parse().unwrap_or(value)
 }
 
 fn malformed(detail: impl Into<String>) -> IngestError {
@@ -2030,19 +1958,20 @@ mod tests {
         );
     }
 
+    /// Score lexical forms stay decimal-compatible for whole, tiny and signed values.
     #[test]
-    fn format_decimal_is_always_a_valid_xsd_decimal() {
+    fn f64_decimal_lexical_is_always_a_valid_xsd_decimal() {
         // xsd:decimal forbids scientific notation. A tiny in-range score must
         // still serialize as a plain decimal (and round-trip through the lexical).
         for v in [0.0, 1.0, 0.84, 0.0000001, 1e-12, 0.5_f64] {
-            let s = format_decimal(v);
+            let s = f64_decimal_lexical(v);
             assert!(
                 !s.contains(['e', 'E']),
-                "format_decimal({v}) = {s:?} must not use scientific notation"
+                "f64_decimal_lexical({v}) = {s:?} must not use scientific notation"
             );
             assert!(
                 s.contains('.'),
-                "format_decimal({v}) = {s:?} must carry a point"
+                "f64_decimal_lexical({v}) = {s:?} must carry a point"
             );
             assert_eq!(renormalize_decimal(v), s.parse::<f64>().unwrap());
         }

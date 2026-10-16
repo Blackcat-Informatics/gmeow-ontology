@@ -13,7 +13,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use gmeow_docs::model::{
-    ConstraintRule, DiagnosticsDigest, DocDiagFinding, DocsModel, ReasoningVerdict,
+    ConsistencyAssessment, ConstraintRule, DiagnosticsDigest, DocDiagFinding, DocsModel,
+    ReasoningVerdict,
 };
 use gmeow_docs::rdf::to_gmeow_rdf;
 use purrdf::RdfTerm;
@@ -36,21 +37,16 @@ pub(crate) fn reasoning_verdict_from_reason(
     reasoning_verdict_from_product(reason, "stage-reason")
 }
 
-/// Borrow the docs verdict from an explicitly selected, retained native owner.
+/// Borrow the complete result from an explicitly selected, retained native owner.
 ///
-/// Both documentation surfaces share the complete inferred payload and the DL
-/// reader's role-sensitive empty-class interpretation. The native information
-/// axis decides consistency; an empty class alone is not a witnessed clash.
-/// Missing identities, wrong payloads and inconclusive results refuse instead of
-/// becoming a fabricated positive verdict. Native hashing verifies the immutable
-/// publication contract without rendering, parsing or reasoning over RDF.
-pub(crate) fn reasoning_verdict_from_product(
-    reason: &StageProduct,
+/// Verify the retained owner, graph pin, complete native publication identity and
+/// result invariants. Valid inferred input is mandatory. This neither renders nor
+/// parses RDF and never constructs another reasoning closure.
+pub(crate) fn reasoning_result_from_product<'a>(
+    reason: &'a StageProduct,
     expected_owner: &str,
-) -> Result<ReasoningVerdict, gmeow_errors::Diag> {
-    use gmeow_logic::result::{
-        CompletenessStatus, EvaluationStatus, InformationState, InputStatus, ResultPayload,
-    };
+) -> Result<&'a gmeow_logic::result::ReasoningResult, gmeow_errors::Diag> {
+    use gmeow_logic::result::{InputStatus, ResultPayload};
     use gmeow_logic::result_rdf::GRAPH_REASONING;
 
     let fail = reasoning_verdict_error;
@@ -92,52 +88,52 @@ pub(crate) fn reasoning_verdict_from_product(
         ));
     }
     result.validate()?;
-    let ResultPayload::Inferred(inferred) = &result.payload else {
+    let ResultPayload::Inferred(_) = &result.payload else {
         return Err(fail(
             "the reasoning verdict requires a complete native Inferred payload".into(),
         ));
     };
-    if result.input != InputStatus::Valid
-        || !result.is_conclusive()
-        || result.evaluation == EvaluationStatus::Unsupported
-    {
-        let unsupported = &result.preservation.unsupported_constructs;
-        return Err(fail(format!(
-            "the reasoning verdict is not conclusive: input={}, evaluation={}; {} unsupported: {}",
-            result.input.wire(),
-            result.evaluation.wire(),
-            unsupported.len(),
-            unsupported
-                .iter()
-                .take(24)
-                .cloned()
-                .collect::<Vec<_>>()
-                .join("; ")
-        )));
+    if result.input != InputStatus::Valid {
+        return Err(fail(
+            "the reasoning observation requires valid native input".into(),
+        ));
     }
-    let is_consistent = match result.information {
+    Ok(result.as_ref())
+}
+
+/// Derive documentation observations through the shared authenticated native reader.
+/// Native axes decide consistency; an empty class alone is not a witnessed clash.
+/// Inconclusive results remain observations rather than fabricated positive verdicts.
+pub(crate) fn reasoning_verdict_from_product(
+    reason: &StageProduct,
+    expected_owner: &str,
+) -> Result<ReasoningVerdict, gmeow_errors::Diag> {
+    use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, InformationState};
+    let result = reasoning_result_from_product(reason, expected_owner)?;
+    let inferred = result.inferred();
+    let consistency = match result.information {
         InformationState::Supported
-            if result.completeness == CompletenessStatus::CompleteForFragment
+            if result.is_conclusive()
+                && result.evaluation != EvaluationStatus::Unsupported
+                && result.completeness == CompletenessStatus::CompleteForFragment
                 && result.preservation.unsupported_constructs.is_empty() =>
         {
-            true
+            ConsistencyAssessment::Consistent
         }
-        InformationState::Both => false,
-        _ => {
-            return Err(fail(format!(
-                "the native result does not decide consistency: information={}, completeness={}, unsupported={:?}",
-                result.information.wire(),
-                result.completeness.wire(),
-                result.preservation.unsupported_constructs
-            )));
-        }
+        InformationState::Both => ConsistencyAssessment::Inconsistent,
+        _ => ConsistencyAssessment::Undetermined,
     };
     let unsatisfiable = gmeow_logic::reason::dl::unsatisfiable_from_inferred(inferred)
         .into_iter()
         .map(|empty| empty.class)
         .collect();
     Ok(ReasoningVerdict {
-        is_consistent,
+        consistency,
+        input: result.input.wire().into(),
+        evaluation: result.evaluation.wire().into(),
+        completeness: result.completeness.wire().into(),
+        information: result.information.wire().into(),
+        unsupported_constructs: result.preservation.unsupported_constructs.clone(),
         unsatisfiable,
     })
 }
@@ -1023,7 +1019,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v11-native-diagnostic-reports"
+        "docs_render.v12-native-reasoning-observations"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
@@ -1055,7 +1051,7 @@ impl Stage for DocsRenderStage {
 }
 
 #[cfg(test)]
-mod reasoning_tests;
+pub(crate) mod reasoning_tests;
 
 #[path = "docs_render.tests.rs"]
 #[cfg(test)]

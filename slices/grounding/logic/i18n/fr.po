@@ -22860,3 +22860,59 @@ msgstr "Ce contrat régit l’admission opérationnelle des entrées ; le recens
 msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
 msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
 msgstr "Une tâche du registre nommant une implémentation source absente est refusée avant que son nombre de copies puisse être rapporté."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service refusal"
+msgstr "refus du service de sémantique directe"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal to produce a selected OWL Direct-Semantics service answer, retaining whether the ontology has no model, the input is malformed, or execution failed."
+msgstr "Un refus opérationnel de produire la réponse demandée à un service de sémantique directe OWL, qui conserve la distinction entre une ontologie sans modèle, une entrée mal formée et un échec d'exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a selected direct-semantics service cannot produce its requested answer."
+msgstr "À utiliser lorsqu'un service de sémantique directe sélectionné ne peut pas produire la réponse demandée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret every refusal as malformed input or as an unknown consistency verdict."
+msgstr "Ne pas interpréter chaque refus comme une entrée mal formée ou comme un verdict de cohérence inconnu."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the typed refusal disposition and original upstream cause with the shared diagnostic."
+msgstr "Conserver la catégorie typée du refus et sa cause amont d'origine avec le diagnostic partagé."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The class describes availability of the requested service product; a no-model disposition remains a decided semantic observation."
+msgstr "La classe décrit la disponibilité du résultat de service demandé ; la catégorie sans modèle reste une observation sémantique décidée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classification of an ontology with no model is refused with the no-model disposition."
+msgstr "La classification d'une ontologie sans modèle est refusée avec la catégorie sans modèle."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service boundary"
+msgstr "frontière du service de sémantique directe"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary that preserves typed upstream refusals from the OWL Direct-Semantics service through the shared diagnostic substrate."
+msgstr "La frontière opérationnelle qui conserve les refus amont typés du service de sémantique directe OWL dans le substrat de diagnostic partagé."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary that raises direct semantics service refusals."
+msgstr "À utiliser pour identifier la frontière qui émet les refus du service de sémantique directe."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a refusal with an empty classification or a fabricated entailment answer."
+msgstr "Ne pas remplacer un refus par une classification vide ou une réponse d'implication fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the original cause as no-model, malformed or execution, and keep that cause available for inspection."
+msgstr "Classer la cause d'origine comme absence de modèle, entrée mal formée ou échec d'exécution, et la conserver pour inspection."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boundary governs service result publication and makes no whole-canon consistency claim."
+msgstr "Cette frontière régit la publication des résultats du service sans affirmer la cohérence du corpus canonique complet."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed role chain retains the original native hierarchy error in the diagnostic."
+msgstr "Une chaîne de rôles mal formée conserve l'erreur native de hiérarchie d'origine dans le diagnostic."
