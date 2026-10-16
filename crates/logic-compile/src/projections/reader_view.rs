@@ -11,9 +11,12 @@
 /// retaining every original assertion and its native table. This is the carrier-side
 /// projection boundary used by consumers and OWL-oriented audit readers; it never
 /// becomes another authored source.
+///
+/// # Errors
+/// Returns the original storage failure if constructing the reader view fails.
 pub fn with_owl_rdfs_projection(
     dataset: &purrdf::RdfDataset,
-) -> std::sync::Arc<purrdf::RdfDataset> {
+) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
     project(dataset, GraphProjection::Preserve)
 }
 
@@ -21,8 +24,12 @@ pub fn with_owl_rdfs_projection(
 /// This selected view flattens named graphs and exposes reifiers and annotations
 /// as ordinary triples, matching PurRDF's SHACL projection contract. The source
 /// dataset remains the owner of graph context and statement metadata.
-#[must_use]
-pub fn shacl_reader_view(dataset: &purrdf::RdfDataset) -> std::sync::Arc<purrdf::RdfDataset> {
+///
+/// # Errors
+/// Returns the original storage failure if constructing the selected view fails.
+pub fn shacl_reader_view(
+    dataset: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
     project(dataset, GraphProjection::Shacl)
 }
 
@@ -50,7 +57,7 @@ enum AssertionTable {
 fn project(
     dataset: &purrdf::RdfDataset,
     graphs: GraphProjection,
-) -> std::sync::Arc<purrdf::RdfDataset> {
+) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     let mut remap = vec![None; dataset.term_count()];
     for quad in dataset.quads() {
@@ -61,20 +68,21 @@ fn project(
             graphs,
             quad,
             AssertionTable::Ordinary,
-        );
+        )?;
     }
     for (reifier, triple, graph) in dataset.reifiers_with_graph() {
-        let reifier = intern_preserving_term(&mut builder, dataset, &mut remap, reifier);
-        let triple = intern_preserving_term(&mut builder, dataset, &mut remap, triple);
+        let reifier = intern_preserving_term(&mut builder, dataset, &mut remap, reifier)?;
+        let triple = intern_preserving_term(&mut builder, dataset, &mut remap, triple)?;
         let graph = graphs
             .graph(graph)
-            .map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term));
+            .map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term))
+            .transpose()?;
         match graphs {
-            GraphProjection::Preserve => builder.push_reifier_in_graph(reifier, triple, graph),
+            GraphProjection::Preserve => builder.push_reifier_in_graph(reifier, triple, graph)?,
             GraphProjection::Shacl => {
                 let predicate =
-                    builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies");
-                builder.push_quad(reifier, predicate, triple, None);
+                    builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies")?;
+                builder.push_quad(reifier, predicate, triple, None)?;
             }
         }
     }
@@ -91,22 +99,20 @@ fn project(
                 g: graph,
             },
             AssertionTable::Annotation,
-        );
+        )?;
     }
     for graph in dataset
         .named_graphs()
         .filter(|_| matches!(graphs, GraphProjection::Preserve))
     {
-        let graph = intern_preserving_term(&mut builder, dataset, &mut remap, graph);
-        builder.declare_named_graph(graph);
+        let graph = intern_preserving_term(&mut builder, dataset, &mut remap, graph)?;
+        builder.declare_named_graph(graph)?;
     }
     // The source-to-builder id map is build-only scratch. Release it before freeze
     // materializes the immutable dataset so the two full-width tables do not overlap
     // at the projection boundary's peak-live allocation point.
     drop(remap);
-    builder
-        .freeze()
-        .expect("OWL/RDFS projection of a valid dataset must freeze")
+    Ok(builder.freeze()?)
 }
 
 /// Project one asserted operator/marker occurrence. Quoted triple payloads are
@@ -118,7 +124,7 @@ fn project_assertion(
     graphs: GraphProjection,
     quad: purrdf::QuadIds,
     table: AssertionTable,
-) {
+) -> gmeow_errors::Result<()> {
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     let source_predicate = match dataset.resolve(quad.p) {
         purrdf::TermRef::Iri(iri) => iri,
@@ -139,14 +145,15 @@ fn project_assertion(
         _ => None,
     };
 
-    let s = intern_preserving_term(builder, dataset, remap, quad.s);
-    let p = intern_preserving_term(builder, dataset, remap, quad.p);
-    let o = intern_preserving_term(builder, dataset, remap, quad.o);
+    let s = intern_preserving_term(builder, dataset, remap, quad.s)?;
+    let p = intern_preserving_term(builder, dataset, remap, quad.p)?;
+    let o = intern_preserving_term(builder, dataset, remap, quad.o)?;
     let g = graphs
         .graph(quad.g)
-        .map(|term| intern_preserving_term(builder, dataset, remap, term));
-    let projected_p = predicate.map(|iri| builder.intern_iri(iri));
-    let projected_o = object.map(|iri| builder.intern_iri(iri));
+        .map(|term| intern_preserving_term(builder, dataset, remap, term))
+        .transpose()?;
+    let projected_p = predicate.map(|iri| builder.intern_iri(iri)).transpose()?;
+    let projected_o = object.map(|iri| builder.intern_iri(iri)).transpose()?;
     let push = |builder: &mut purrdf::RdfDatasetBuilder, predicate, object| match (graphs, table) {
         (GraphProjection::Preserve, AssertionTable::Annotation) => {
             builder.push_annotation_in_graph(s, predicate, object, g)
@@ -158,15 +165,16 @@ fn project_assertion(
     };
     match (projected_p, projected_o) {
         (Some(projected_p), Some(projected_o)) => {
-            push(builder, projected_p, projected_o);
-            push(builder, projected_p, o);
-            push(builder, p, projected_o);
+            push(builder, projected_p, projected_o)?;
+            push(builder, projected_p, o)?;
+            push(builder, p, projected_o)?;
         }
-        (Some(projected_p), None) => push(builder, projected_p, o),
-        (None, Some(projected_o)) => push(builder, p, projected_o),
+        (Some(projected_p), None) => push(builder, projected_p, o)?,
+        (None, Some(projected_o)) => push(builder, p, projected_o)?,
         (None, None) => {}
     }
-    push(builder, p, o);
+    push(builder, p, o)?;
+    Ok(())
 }
 
 /// Re-intern one source term without allocating an owned quad around it. Blank scopes
@@ -176,9 +184,9 @@ fn intern_preserving_term(
     source: &purrdf::RdfDataset,
     remap: &mut [Option<purrdf::TermId>],
     source_id: purrdf::TermId,
-) -> purrdf::TermId {
+) -> gmeow_errors::Result<purrdf::TermId> {
     if let Some(mapped) = remap[source_id.index()] {
-        return mapped;
+        return Ok(mapped);
     }
 
     let mapped = match source.resolve(source_id) {
@@ -202,14 +210,14 @@ fn intern_preserving_term(
             })
         }
         purrdf::TermRef::Triple { s, p, o } => {
-            let s = intern_preserving_term(builder, source, remap, s);
-            let p = intern_preserving_term(builder, source, remap, p);
-            let o = intern_preserving_term(builder, source, remap, o);
+            let s = intern_preserving_term(builder, source, remap, s)?;
+            let p = intern_preserving_term(builder, source, remap, p)?;
+            let o = intern_preserving_term(builder, source, remap, o)?;
             builder.intern_triple(s, p, o)
         }
-    };
+    }?;
     remap[source_id.index()] = Some(mapped);
-    mapped
+    Ok(mapped)
 }
 
 #[path = "reader_view.tests.rs"]

@@ -254,7 +254,7 @@ proptest! {
     /// asymmetric, and transitive.
     #[test]
     fn entrenchment_is_strict_partial_order(edges in arb_dag_edges()) {
-        let store = WorldStore::new();
+        let store = WorldStore::new().unwrap();
         for (a, b) in &edges {
             // Higher-entrenched ≻ lower: node(a) overrides node(b), with a < b.
             store.insert_quad(WORLD, &node(*a), OVERRIDES, &node(*b));
@@ -304,7 +304,7 @@ proptest! {
     /// A cyclic overrides ring is rejected, never silently collapsed.
     #[test]
     fn entrenchment_cycle_is_rejected(ring_len in 2usize..6) {
-        let store = WorldStore::new();
+        let store = WorldStore::new().unwrap();
         for i in 0..ring_len {
             store.insert_quad(WORLD, &node(i), OVERRIDES, &node((i + 1) % ring_len));
         }

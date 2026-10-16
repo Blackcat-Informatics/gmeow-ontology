@@ -206,9 +206,9 @@ pub(crate) fn executable_docs_from_sources(
     // Reason over (reason_seed ∪ every example ABox). push_dataset standardizes blanks
     // apart per merged dataset, so example blanks never collide.
     let mut union = RdfDatasetBuilder::new();
-    union.push_dataset(reason_seed);
+    union.push_dataset(reason_seed).unwrap();
     for ex in &parsed {
-        union.push_dataset(ex.dataset.as_ref());
+        union.push_dataset(ex.dataset.as_ref()).unwrap();
     }
     let union_ds = union
         .freeze()
@@ -370,10 +370,9 @@ pub(super) fn add_named(
     scope: &str,
 ) -> Result<(), gmeow_errors::Diag> {
     let canon = canonicalize_nq(nq_bytes, scope)?;
-    let quads = parse_nq(canon.as_bytes())?;
-    reject_quoted_triples(&quads, graph_name)?;
     let dataset = parse_dataset(canon.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("add_named parse: {e}")))?;
+    reject_base_quoted_triples(&dataset, graph_name)?;
     builder
         .add_dataset_scoped(&dataset, Some(graph_name), Some(scope))
         .map_err(|e| stage_err(&e))?;
@@ -390,10 +389,9 @@ pub(super) fn add_base_nq(
     scope: &str,
 ) -> Result<(), gmeow_errors::Diag> {
     let canon = canonicalize_nq(nq_bytes, scope)?;
-    let quads = parse_nq(canon.as_bytes())?;
-    reject_quoted_triples(&quads, "default")?;
     let dataset = parse_dataset(canon.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("add_base_nq parse: {e}")))?;
+    reject_base_quoted_triples(&dataset, "default")?;
     builder
         .add_dataset_scoped(&dataset, None, Some(scope))
         .map_err(|e| stage_err(&e))?;
@@ -414,5 +412,5 @@ pub(super) fn union_turtle_datasets(
         .map(|bytes| parse_turtle_dataset(bytes))
         .collect::<Result<_, _>>()?;
     let refs: Vec<&purrdf::RdfDataset> = owned.iter().map(AsRef::as_ref).collect();
-    Ok(purrdf::RdfDataset::union(&refs))
+    Ok(purrdf::RdfDataset::union(&refs)?)
 }

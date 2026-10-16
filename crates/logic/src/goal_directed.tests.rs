@@ -398,8 +398,8 @@ fn identical_clauses_with_distinct_sorts_each_lower_under_their_own_sort() {
     );
     // Hash-consing: re-interning a sort IRI returns the SAME NodeId lowering used, so the
     // two authored sorts must BOTH appear among the metavariable sort tags.
-    let nat = leaf(&mut dag, &format!("{EX}Nat"));
-    let real = leaf(&mut dag, &format!("{EX}Real"));
+    let nat = leaf(&mut dag, &format!("{EX}Nat")).unwrap();
+    let real = leaf(&mut dag, &format!("{EX}Real")).unwrap();
     let sort_nodes: std::collections::HashSet<NodeId> =
         program.meta_sorts.values().copied().collect();
     assert!(
@@ -716,59 +716,36 @@ fn compiled_member_cons_projection_carries_structured_answers_and_derivation() {
     );
 }
 
-// ── WFS negation demonstrator: three-valued verdicts including undefined ─────────────
-//
-// No authored-path test above exercises `logic:verdictProbe`s, so this test is what
-// proves the compiled path carries the three-valued SLG-WFS verdict surface end to end.
-// This parses the REAL committed corpus
-// (`slices/grounding/logic/examples/reasoning-programs.ttl`) via [`authored_reasoning_programs`].
-// `ex:winWfs`'s rule body `win(X) :- move(X,Y), not win(Y)` is authored as a `logic:and` of a
-// positive and a negation-as-failure literal, and `logic:and`/`logic:or` carry no
-// `logic:conjunctIndex` analogous to `logic:argument`'s `logic:termIndex`. Formerly the
-// lowered conjunct order was therefore only as stable as the frontend's per-document
-// blank-node interning. [`lower_body`] now FLATTENS and SORTS a conjunction by
-// `Formula::content_key` (the SAME key `Formula::And`'s order-normalized identity uses)
-// before lowering, so the conjunct order — and hence the clause text, metavariable
-// numbering, and content-addressed IRIs — is DETERMINISTIC regardless of RDF object order:
-// the positive `move(...)` literal (`content_key` prefix `ATOM…`) always precedes the
-// negation (`NOT…`). This test now asserts that stable order.
+// Corpus controls hydrate exact producer observations; they never compile or
+// evaluate the repository demonstrators inside the test process.
+#[derive(serde::Deserialize)]
+struct AuthoredGoalObservation {
+    evaluations: Vec<GoalDirectedEvaluation>,
+    projection: String,
+    repeated_projection: String,
+    program_projections: BTreeMap<String, String>,
+    repeated_program_projections: BTreeMap<String, String>,
+}
 
-/// Parse the REAL authored demonstrator corpus
-/// (`slices/grounding/logic/examples/reasoning-programs.ttl`) through the exact same
-/// production frontend entry point `gmeow-pipeline`'s `stage-compile-logic` uses.
-fn authored_reasoning_programs() -> Vec<ReasoningProgramIr> {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("slices/grounding/logic/examples/reasoning-programs.ttl");
-    let (prog, diags) = gmeow_logic_compile::frontend::parse_logic_path(&path, None)
-        .expect("parse the authored reasoning-programs cell");
-    assert!(
-        diags
-            .iter()
-            .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
-        "unexpected error diagnostics: {diags:#?}"
-    );
-    assert!(
-        !prog.reasoning_programs.is_empty(),
-        "the authored cell carries at least one logic:ReasoningProgram"
-    );
-    prog.reasoning_programs
+fn authored_goal_observation() -> AuthoredGoalObservation {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let bytes = gmeow_action_cache::selection::source_artifacts::load(
+        &root,
+        "stage-goal-directed",
+        "pipeline/goal-directed-observation.json",
+    )
+    .expect("authenticated goal-directed observation");
+    serde_json::from_slice(&bytes).expect("typed goal-directed observation")
 }
 
 #[test]
-fn compiled_win_wfs_reasoning_program_carries_three_valued_verdicts() {
-    let programs = authored_reasoning_programs();
-    let win_program = programs
+fn corpus_compiled_win_wfs_reasoning_program_carries_three_valued_verdicts() {
+    let observation = authored_goal_observation();
+    let win = observation
+        .evaluations
         .iter()
-        .find(|p| p.iri.ends_with("winWfs"))
-        .cloned()
-        .expect("ex:winWfs is authored in the reasoning-programs cell");
-
-    let evals = evaluate_reasoning_programs(std::slice::from_ref(&win_program), &[])
-        .expect("evaluate the compiled win-wfs reasoning program");
-    assert_eq!(evals.len(), 1);
-    let win = &evals[0];
+        .find(|evaluation| evaluation.iri.ends_with("winWfs"))
+        .expect("ex:winWfs is present in the producer record");
     assert_eq!(win.status, "ok");
 
     const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
@@ -836,7 +813,7 @@ fn compiled_win_wfs_reasoning_program_carries_three_valued_verdicts() {
 
     // The distinctive SLG-WFS surface projects: an undefined verdict AND both founded
     // verdicts.
-    let nt = project_goal_directed(&evals);
+    let nt = &observation.program_projections[&win.iri];
     // G15: `atom` and `verdict` must be asserted of the SAME verdict subject — checking
     // "some line has this atom" and (independently) "some OTHER line has this verdict"
     // would false-pass a cross-subject mismatch (e.g. win(a)'s atom line paired with
@@ -888,9 +865,7 @@ fn compiled_win_wfs_reasoning_program_carries_three_valued_verdicts() {
     );
 
     // Byte-stability across two independent evaluations.
-    let evals2 = evaluate_reasoning_programs(std::slice::from_ref(&win_program), &[])
-        .expect("second evaluation");
-    let nt2 = project_goal_directed(&evals2);
+    let nt2 = &observation.repeated_program_projections[&win.iri];
     assert_eq!(
         nt, nt2,
         "the win-wfs projection is byte-identical across independent evaluations"
@@ -927,17 +902,11 @@ fn compiled_math_subsort_projection_carries_the_subsort_unified_answer() {
 // `slices/grounding/logic/examples/reasoning-programs.ttl` ships. ──────────────────────
 
 #[test]
-fn every_compiled_reasoning_program_answer_proof_checks_and_projection_is_deterministic() {
-    // The REAL committed corpus — all six authored programs (peano-add, member-cons, the
-    // math-subsort positive/control pair, reachability, win-wfs) in ONE parse — the
-    // authored-path equivalent of the retired `evaluate_shipped_demonstrators()` corpus
-    // sweep.
-    let programs = authored_reasoning_programs();
-    let subsort_edges = [(TEST_MATH_INTEGER.to_owned(), TEST_MATH_REAL.to_owned())];
-    let evals = evaluate_reasoning_programs(&programs, &subsort_edges)
-        .expect("evaluate the merged compiled corpus");
+fn corpus_every_compiled_reasoning_program_answer_proof_checks_and_projection_is_deterministic() {
+    let observation = authored_goal_observation();
+    let evals = &observation.evaluations;
     let mut total_answers = 0usize;
-    for eval in &evals {
+    for eval in evals {
         for ans in &eval.answers {
             assert!(
                 ans.proof_checks,
@@ -954,10 +923,9 @@ fn every_compiled_reasoning_program_answer_proof_checks_and_projection_is_determ
     );
 
     // Two evaluations produce byte-identical serialization (no hash-iteration order).
-    let nt_first = project_goal_directed(&evals);
+    let nt_first = &observation.projection;
     assert!(!nt_first.is_empty(), "the projection is non-empty");
-    let evals2 = evaluate_reasoning_programs(&programs, &subsort_edges).expect("second evaluation");
-    let nt_second = project_goal_directed(&evals2);
+    let nt_second = &observation.repeated_projection;
     assert_eq!(
         nt_first, nt_second,
         "two independent evaluations serialize byte-identically (deterministic)"

@@ -28,7 +28,7 @@ fn quad(s: &str, p: &str, o: &str) -> RdfQuad {
 fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().expect("valid test dataset")
 }
@@ -44,16 +44,20 @@ fn has(closure: &RlClosure, s: &str, p: &str, o: &str) -> bool {
 #[test]
 fn canonical_annotation_axioms_reach_the_named_rl_world() {
     let mut builder = RdfDatasetBuilder::new();
-    let world = builder.intern_iri(W);
-    let class = builder.intern_iri(A);
-    let super_class = builder.intern_iri(B);
-    let predicate = builder.intern_iri(gmeow_ns::LOGIC_SUB_CLASS_OF);
-    let x = builder.intern_iri(X);
-    let p = builder.intern_iri(P);
-    let y = builder.intern_iri(Y);
-    let statement = builder.intern_triple(x, p, y);
-    builder.push_reifier_in_graph(class, statement, Some(world));
-    builder.push_annotation_in_graph(class, predicate, super_class, Some(world));
+    let world = builder.intern_iri(W).unwrap();
+    let class = builder.intern_iri(A).unwrap();
+    let super_class = builder.intern_iri(B).unwrap();
+    let predicate = builder.intern_iri(gmeow_ns::LOGIC_SUB_CLASS_OF).unwrap();
+    let x = builder.intern_iri(X).unwrap();
+    let p = builder.intern_iri(P).unwrap();
+    let y = builder.intern_iri(Y).unwrap();
+    let statement = builder.intern_triple(x, p, y).unwrap();
+    builder
+        .push_reifier_in_graph(class, statement, Some(world))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(class, predicate, super_class, Some(world))
+        .unwrap();
     let source = builder.freeze().unwrap();
     assert_eq!(source.quads().count(), 0);
     assert_eq!(source.annotation_quads().count(), 1);

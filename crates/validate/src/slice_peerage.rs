@@ -384,15 +384,15 @@ pub fn seam_records_of(ds: &Dataset, path: &Path) -> Result<Vec<SeamRecord>> {
 /// content, never a second Turtle parse or a second scan of the source tree;
 /// `Dataset::from_frozen` clones the in-memory graph rather than mutating the
 /// catalog's shared `Arc`, a cheap in-memory copy of a small manifest graph).
-fn manifest_dataset(record: &SliceRecord) -> Dataset {
-    Dataset::from_frozen(Arc::clone(&record.manifest_graph))
+fn manifest_dataset(record: &SliceRecord) -> Result<Dataset> {
+    Ok(Dataset::from_frozen(Arc::clone(&record.manifest_graph))?)
 }
 
 /// Every slice IRI in `catalog` typed `gmeow:GroundingSlice`.
 fn grounding_slice_iris(catalog: &SliceCatalog) -> Result<BTreeSet<SliceIri>> {
     let mut out = BTreeSet::new();
     for record in catalog.records() {
-        let ds = manifest_dataset(record);
+        let ds = manifest_dataset(record)?;
         let is_grounding = ds
             .has_type(&record.manifest.slice_iri, GMEOW_GROUNDING_SLICE)
             .map_err(|e| parse_err(&record.manifest_path(), &e.to_string()))?;
@@ -409,7 +409,7 @@ fn grounding_slice_iris(catalog: &SliceCatalog) -> Result<BTreeSet<SliceIri>> {
 fn peerage_pairs(catalog: &SliceCatalog) -> Result<BTreeSet<(SliceIri, SliceIri)>> {
     let mut out = BTreeSet::new();
     for record in catalog.records() {
-        let ds = manifest_dataset(record);
+        let ds = manifest_dataset(record)?;
         let peers = ds
             .object_iris(&record.manifest.slice_iri, GMEOW_CO_FOUNDATIONAL_WITH)
             .map_err(|e| parse_err(&record.manifest_path(), &e.to_string()))?;
@@ -459,7 +459,7 @@ fn tier_priorities(catalog: &SliceCatalog) -> BTreeMap<SliceIri, u8> {
 pub fn seam_registry(catalog: &SliceCatalog) -> Result<Vec<SeamRecord>> {
     let mut out = Vec::new();
     for record in catalog.records() {
-        let ds = manifest_dataset(record);
+        let ds = manifest_dataset(record)?;
         out.extend(seam_records_of(&ds, &record.manifest_path())?);
     }
     out.sort();
@@ -764,7 +764,7 @@ impl CorpusIndex {
                 );
                 grounding_concepts.absorb_markers(&ds);
             }
-            let manifest = manifest_dataset(record);
+            let manifest = manifest_dataset(record)?;
             grounding_concepts.absorb_domains(&manifest, &record.manifest_path())?;
         }
         Ok(Self {

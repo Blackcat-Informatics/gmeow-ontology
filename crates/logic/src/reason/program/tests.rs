@@ -40,11 +40,13 @@ fn program() -> LogicProgram {
 
 fn input() -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&RdfQuad::new(
-        RdfTerm::iri(X),
-        EDGE,
-        RdfTerm::Literal(RdfLiteral::simple("a literal value")),
-    ));
+    builder
+        .push_owned_quad(&RdfQuad::new(
+            RdfTerm::iri(X),
+            EDGE,
+            RdfTerm::Literal(RdfLiteral::simple("a literal value")),
+        ))
+        .unwrap();
     builder.freeze().unwrap()
 }
 
@@ -85,13 +87,13 @@ fn default_graph_literal_flows_through_joint_formula_heads_with_real_premises() 
 #[test]
 fn native_annotations_keep_literal_facets_through_formula_feedback() {
     let mut builder = RdfDatasetBuilder::new();
-    let reifier = builder.intern_iri(X);
-    let subject = builder.intern_iri("urn:statement:subject");
-    let predicate = builder.intern_iri("urn:statement:predicate");
-    let object = builder.intern_iri("urn:statement:object");
-    let triple = builder.intern_triple(subject, predicate, object);
-    builder.push_reifier(reifier, triple);
-    let edge = builder.intern_iri(EDGE);
+    let reifier = builder.intern_iri(X).unwrap();
+    let subject = builder.intern_iri("urn:statement:subject").unwrap();
+    let predicate = builder.intern_iri("urn:statement:predicate").unwrap();
+    let object = builder.intern_iri("urn:statement:object").unwrap();
+    let triple = builder.intern_triple(subject, predicate, object).unwrap();
+    builder.push_reifier(reifier, triple).unwrap();
+    let edge = builder.intern_iri(EDGE).unwrap();
     for literal in [
         RdfLiteral::language_tagged("value", "ar"),
         RdfLiteral {
@@ -101,8 +103,8 @@ fn native_annotations_keep_literal_facets_through_formula_feedback() {
             direction: Some(purrdf::RdfTextDirection::Rtl),
         },
     ] {
-        let value = builder.intern_literal(literal);
-        builder.push_annotation(reifier, edge, value);
+        let value = builder.intern_literal(literal).unwrap();
+        builder.push_annotation(reifier, edge, value).unwrap();
     }
     let result = reason_program(
         &program(),
@@ -160,14 +162,18 @@ fn formula_producer_and_consumer_share_one_budget() {
 #[test]
 fn equal_subjects_in_distinct_worlds_do_not_share_rule_premises() {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:first"))
-            .in_graph(RdfTerm::iri("urn:world:first")),
-    );
-    builder.push_owned_quad(
-        &RdfQuad::new(RdfTerm::iri(X), "urn:unrelated", RdfTerm::iri("urn:second"))
-            .in_graph(RdfTerm::iri("urn:world:second")),
-    );
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:first"))
+                .in_graph(RdfTerm::iri("urn:world:first")),
+        )
+        .unwrap();
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(X), "urn:unrelated", RdfTerm::iri("urn:second"))
+                .in_graph(RdfTerm::iri("urn:world:second")),
+        )
+        .unwrap();
     let result = reason_program(
         &program(),
         prepare_reasoning_input(&builder.freeze().unwrap()).unwrap(),
@@ -186,10 +192,12 @@ fn equal_subjects_in_distinct_worlds_do_not_share_rule_premises() {
 #[test]
 fn graph_key_collision_is_rejected_instead_of_merging_worlds() {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:y"))
-            .in_graph(RdfTerm::iri(crate::reason::rl::DEFAULT_WORLD)),
-    );
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:y"))
+                .in_graph(RdfTerm::iri(crate::reason::rl::DEFAULT_WORLD)),
+        )
+        .unwrap();
     let error = input_facts(&builder.freeze().unwrap()).unwrap_err();
     assert!(error.message().contains("distinct source graphs"));
 }
@@ -303,7 +311,7 @@ fn native_has_value_preserves_literal_facet_and_wakes_authored_rules() {
             RdfTerm::iri("urn:restriction"),
         ),
     ] {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     let program = LogicProgram::new(vec![], vec![], vec![], None)
         .with_formulas(vec![law(atom(EDGE, &["x", "y"]), atom(DONE, &["x", "y"]))]);
@@ -345,18 +353,22 @@ fn schema_propagation_keeps_worlds_separate() {
         atom(DONE, &["x", "y"]),
     )]);
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &RdfQuad::new(
-            RdfTerm::iri(EDGE),
-            "http://www.w3.org/2000/01/rdf-schema#domain",
-            RdfTerm::iri("urn:class"),
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(EDGE),
+                "http://www.w3.org/2000/01/rdf-schema#domain",
+                RdfTerm::iri("urn:class"),
+            )
+            .in_graph(RdfTerm::iri("urn:schema-world")),
         )
-        .in_graph(RdfTerm::iri("urn:schema-world")),
-    );
-    builder.push_owned_quad(
-        &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:y"))
-            .in_graph(RdfTerm::iri("urn:data-world")),
-    );
+        .unwrap();
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:y"))
+                .in_graph(RdfTerm::iri("urn:data-world")),
+        )
+        .unwrap();
     let prepared = crate::program_analysis::prepare_program(&program).unwrap();
     let closure = execute(
         &prepared,
@@ -410,12 +422,16 @@ fn schema_dependency_cycle_through_negation_is_not_admitted_as_stratified() {
 #[test]
 fn active_schema_and_invention_share_a_joint_termination_certificate() {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:y")));
-    builder.push_owned_quad(&RdfQuad::new(
-        RdfTerm::iri(EDGE),
-        "http://www.w3.org/2000/01/rdf-schema#domain",
-        RdfTerm::iri("urn:class"),
-    ));
+    builder
+        .push_owned_quad(&RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri("urn:y")))
+        .unwrap();
+    builder
+        .push_owned_quad(&RdfQuad::new(
+            RdfTerm::iri(EDGE),
+            "http://www.w3.org/2000/01/rdf-schema#domain",
+            RdfTerm::iri("urn:class"),
+        ))
+        .unwrap();
     let input = builder.freeze().unwrap();
     let prepared = crate::program_analysis::prepare_program(&program()).unwrap();
     let full = execute(

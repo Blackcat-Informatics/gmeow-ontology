@@ -33,7 +33,7 @@ fn sm_rules() -> Vec<EvalRule> {
 }
 
 fn sm_store() -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         &format!("{SM}world-choice"),
         &format!("{SM}x"),

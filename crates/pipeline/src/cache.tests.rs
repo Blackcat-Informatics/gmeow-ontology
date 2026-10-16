@@ -11,7 +11,7 @@ use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
 use purrdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId, parse_dataset};
 
 fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
-    b.intern_iri(&format!("http://example.org/{n}"))
+    b.intern_iri(&format!("http://example.org/{n}")).unwrap()
 }
 
 const GRAPH_IRI: &str = "http://example.org/graph";
@@ -57,13 +57,15 @@ fn default_graph_commitment_covers_rdf12_reifiers_and_annotations() {
                 RdfTerm::iri("http://example.org/o"),
             ),
         );
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier).unwrap();
         if with_annotation {
-            builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
-                reifier_term,
-                "http://example.org/confidence",
-                RdfTerm::iri("http://example.org/high"),
-            ));
+            builder
+                .push_owned_annotation(&purrdf::RdfAnnotation::new(
+                    reifier_term,
+                    "http://example.org/confidence",
+                    RdfTerm::iri("http://example.org/high"),
+                ))
+                .unwrap();
         }
         let dataset = builder
             .freeze()
@@ -208,11 +210,16 @@ fn sample_logic_program() -> LogicProgram {
 /// (so the attached `Logic` handle has a real, re-derivable backing graph).
 fn dataset_with_named_graph() -> Arc<purrdf::RdfDataset> {
     let arts = gmeow_logic_compile::projections::compile_program(&sample_logic_program(), |_| {
-        Default::default()
+        Ok(Default::default())
     })
     .expect("compile sample program");
     let logic_ds = parse_dataset(
-        arts.canonical_rdf12.clone().into_text().content.as_bytes(),
+        arts.canonical_rdf12
+            .clone()
+            .into_text()
+            .unwrap()
+            .content
+            .as_bytes(),
         "text/turtle",
         None,
     )
@@ -220,13 +227,13 @@ fn dataset_with_named_graph() -> Arc<purrdf::RdfDataset> {
 
     let mut b = RdfDatasetBuilder::new();
     let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
-    b.push_quad(s, p, o, None); // a default-graph quad
+    b.push_quad(s, p, o, None).unwrap(); // a default-graph quad
     // Fold every triple of the logic projection into the named graph GRAPH_IRI.
     let graph = RdfTerm::Iri(GRAPH_IRI.to_owned());
     for quad in logic_ds.owned_quads() {
         let mut routed = quad.clone();
         routed.graph_name = Some(graph.clone());
-        b.push_owned_quad(&routed);
+        b.push_owned_quad(&routed).unwrap();
     }
     b.freeze().expect("valid")
 }
@@ -248,8 +255,12 @@ fn rich_bundle() -> PipelineBundle<PipelineHandle> {
 
     // A populated provenance with a registered unit + an occurrence.
     let mut prov = DatasetProvenance::new();
-    let unit = prov.register_unit("slices/core/epistemics", OriginKind::Source);
-    let artifact = prov.register_artifact("slices/core/epistemics/epistemics.ttl");
+    let unit = prov
+        .register_unit("slices/core/epistemics", OriginKind::Source)
+        .unwrap();
+    let artifact = prov
+        .register_artifact("slices/core/epistemics/epistemics.ttl")
+        .unwrap();
     prov.record_occurrence(
         QuadHandle::from_index(0),
         unit,
@@ -263,7 +274,7 @@ fn rich_bundle() -> PipelineBundle<PipelineHandle> {
     // payload is the compiled program, pinned to the canonical digest of its
     // backing `graph/logic` projection.
     let program = Arc::new(sample_logic_program());
-    let pinned = bundle.graph_digest(GRAPH_IRI);
+    let pinned = bundle.graph_digest(GRAPH_IRI).unwrap();
     bundle
         .pin_handle(GRAPH_IRI, PipelineHandle::Logic(program), pinned)
         .expect("pin handle over the named graph");
@@ -332,7 +343,7 @@ fn report_product(publication: crate::bundle::CompiledLogicPublication) -> Stage
         crate::bundle::bundle_artifacts(&source),
         source.provenance().clone(),
     );
-    let pin = bundle.graph_digest(GRAPH_IRI);
+    let pin = bundle.graph_digest(GRAPH_IRI).unwrap();
     bundle
         .pin_handle(
             GRAPH_IRI,
@@ -517,7 +528,7 @@ fn cached_bundle_structural_round_trip() {
     // The pinned digest matches the LIVE backing graph (pin_handle re-checked it).
     assert_eq!(
         entry.content_digest,
-        recon.graph_digest(GRAPH_IRI),
+        recon.graph_digest(GRAPH_IRI).unwrap(),
         "handle pin matches the reconstituted graph"
     );
 
@@ -1542,7 +1553,7 @@ fn reasoning_bundle_with_result(
     for quad in parsed.owned_quads() {
         let mut routed = quad.clone();
         routed.graph_name = Some(term.clone());
-        b.push_owned_quad(&routed);
+        b.push_owned_quad(&routed).unwrap();
     }
     let dataset = b.freeze().expect("freeze");
     let mut bundle = PipelineBundle::new(
@@ -1551,7 +1562,7 @@ fn reasoning_bundle_with_result(
         Arc::new(ContentStore::new()),
         DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(graph_iri);
+    let pinned = bundle.graph_digest(graph_iri).unwrap();
     bundle
         .pin_handle(
             graph_iri,
@@ -1667,12 +1678,12 @@ fn cached_reasoning_refuses_malformed_governed_summary() {
             if quad.predicate == predicate {
                 changed = true;
                 if keep_original {
-                    builder.push_owned_quad(&quad);
+                    builder.push_owned_quad(&quad).unwrap();
                 }
                 let Some(value) = &replacement else { continue };
                 quad.object = value.clone();
             }
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad).unwrap();
         }
         assert!(changed, "the mutation must reach its declared field");
         let altered = builder.freeze().unwrap();
@@ -1723,7 +1734,7 @@ fn cached_reasoning_handle_re_derives_the_result() {
         "the cache preserved the complete native Reasoning result"
     );
     // The pin matches the reconstituted backing graph.
-    assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
+    assert_eq!(entry.content_digest, recon.graph_digest(graph_iri).unwrap());
     // The bundle content fold round-trips.
     assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
 }
@@ -1765,7 +1776,7 @@ fn relational_core_bundle() -> (
         None,
     );
     let lowered = lower_program(&program);
-    let projection = project_relational_core(&lowered);
+    let projection = project_relational_core(&lowered).unwrap();
     let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
         .expect("parse projection");
     let graph_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
@@ -1774,7 +1785,7 @@ fn relational_core_bundle() -> (
     for quad in parsed.owned_quads() {
         let mut routed = quad.clone();
         routed.graph_name = Some(term.clone());
-        b.push_owned_quad(&routed);
+        b.push_owned_quad(&routed).unwrap();
     }
     let dataset = b.freeze().expect("freeze");
     let mut bundle = PipelineBundle::new(
@@ -1783,7 +1794,7 @@ fn relational_core_bundle() -> (
         Arc::new(ContentStore::new()),
         DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(graph_iri);
+    let pinned = bundle.graph_digest(graph_iri).unwrap();
     bundle
         .pin_handle(
             graph_iri,
@@ -1803,7 +1814,7 @@ fn cached_relational_core_refuses_changed_body_order_even_when_semantically_equa
     program.rules[0].body.reverse();
     assert_eq!(program.content_key().unwrap(), semantic_key);
     let graph_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
-    let digest = bundle.graph_digest(graph_iri);
+    let digest = bundle.graph_digest(graph_iri).unwrap();
     bundle
         .pin_handle(
             graph_iri,
@@ -1854,7 +1865,7 @@ fn cached_relational_core_handle_re_derives_the_dialect() {
         "the cache preserved the complete native RelationalCore program"
     );
     // The pin matches the reconstituted backing graph.
-    assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
+    assert_eq!(entry.content_digest, recon.graph_digest(graph_iri).unwrap());
     // The bundle content fold round-trips.
     assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
 }
@@ -1869,7 +1880,7 @@ fn correspondence_bundle() -> (
     use gmeow_logic_compile::projections::correspondence::project_correspondence;
     use std::sync::Arc;
     let program = crate::stages::compile_logic::synthetic_affine_program();
-    let projection = project_correspondence(&program);
+    let projection = project_correspondence(&program).unwrap();
     let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
         .expect("parse projection");
     let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
@@ -1878,7 +1889,7 @@ fn correspondence_bundle() -> (
     for quad in parsed.owned_quads() {
         let mut routed = quad.clone();
         routed.graph_name = Some(term.clone());
-        b.push_owned_quad(&routed);
+        b.push_owned_quad(&routed).unwrap();
     }
     let dataset = b.freeze().expect("freeze");
     let mut bundle = PipelineBundle::new(
@@ -1887,7 +1898,7 @@ fn correspondence_bundle() -> (
         Arc::new(ContentStore::new()),
         DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(graph_iri);
+    let pinned = bundle.graph_digest(graph_iri).unwrap();
     bundle
         .pin_handle(
             graph_iri,
@@ -1904,7 +1915,7 @@ fn cached_correspondence_refuses_to_publish_a_changed_standpoint() {
     let cache = PipelineCache::open(dir.path()).unwrap();
     let (mut bundle, mut program) = correspondence_bundle();
     let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
-    let backing_digest = bundle.graph_digest(graph_iri);
+    let backing_digest = bundle.graph_digest(graph_iri).unwrap();
     program.correspondences[0].according_to = Some("https://example.org/other-observer".into());
     bundle
         .pin_handle(
@@ -1959,6 +1970,6 @@ fn cached_correspondence_handle_re_derives_the_program() {
         program.content_key(),
         "the cache preserved the complete native Correspondence program"
     );
-    assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
+    assert_eq!(entry.content_digest, recon.graph_digest(graph_iri).unwrap());
     assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
 }

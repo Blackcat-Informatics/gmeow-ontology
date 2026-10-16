@@ -166,25 +166,21 @@ pub fn exclude_grounding_correspondences(
     let correspondence_subjects = grounding_correspondence_subjects(dataset);
     let mut builder = RdfDatasetBuilder::new();
     for graph in dataset.owned_named_graphs() {
-        let graph = builder.intern_owned_term(&graph);
-        builder.declare_named_graph(graph);
+        let graph = builder.intern_owned_term(&graph)?;
+        builder.declare_named_graph(graph)?;
     }
     for quad in dataset.owned_quads() {
         if !is_correspondence_quad(&quad, &correspondence_subjects) {
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad)?;
         }
     }
     for reifier in dataset.owned_reifiers() {
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier)?;
     }
     for annotation in dataset.owned_annotations() {
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation)?;
     }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Reason {
-            detail: format!("freeze grounding-correspondence exclusion: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Whether `graph` (a quad's/reifier's/annotation's graph-name term — `None` for the
@@ -278,14 +274,14 @@ pub fn without_recovery_case_envelopes(
 
     let mut builder = RdfDatasetBuilder::new();
     for graph in dataset.owned_named_graphs() {
-        let graph = builder.intern_owned_term(&graph);
-        builder.declare_named_graph(graph);
+        let graph = builder.intern_owned_term(&graph)?;
+        builder.declare_named_graph(graph)?;
     }
     for quad in quads {
         let recovery_owned = quad.predicate == RECOVERY_CASE
             || owned.contains(&(quad.graph_name.clone(), quad.subject.clone()));
         if !recovery_owned {
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad)?;
         }
     }
     for reifier in reifiers {
@@ -293,7 +289,7 @@ pub fn without_recovery_case_envelopes(
             || owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
             || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone()));
         if !recovery_owned {
-            builder.push_owned_reifier(&reifier);
+            builder.push_owned_reifier(&reifier)?;
         }
     }
     // Every annotation quad keyed on a pruned reifier is dropped here too: `owned`
@@ -302,14 +298,10 @@ pub fn without_recovery_case_envelopes(
     // metadata can reference a reifier that no longer exists in the EDB.
     for annotation in dataset.owned_annotations() {
         if !owned.contains(&(annotation.graph.clone(), annotation.reifier.clone())) {
-            builder.push_owned_annotation(&annotation);
+            builder.push_owned_annotation(&annotation)?;
         }
     }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Reason {
-            detail: format!("prune recovery-case envelopes: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Project a FULL bundle/snapshot dataset (every named graph GMEOW ships, including
@@ -344,32 +336,28 @@ pub fn project_object_level_edb(
     let mut builder = RdfDatasetBuilder::new();
     for graph in snapshot.owned_named_graphs() {
         if admitted_graph(&Some(graph.clone())) {
-            let graph = builder.intern_owned_term(&graph);
-            builder.declare_named_graph(graph);
+            let graph = builder.intern_owned_term(&graph)?;
+            builder.declare_named_graph(graph)?;
         }
     }
     for quad in snapshot.owned_quads() {
         if admitted_graph(&quad.graph_name)
             && !is_correspondence_quad(&quad, &correspondence_subjects)
         {
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad)?;
         }
     }
     for reifier in snapshot.owned_reifiers() {
         if admitted_graph(&reifier.graph) {
-            builder.push_owned_reifier(&reifier);
+            builder.push_owned_reifier(&reifier)?;
         }
     }
     for annotation in snapshot.owned_annotations() {
         if admitted_graph(&annotation.graph) {
-            builder.push_owned_annotation(&annotation);
+            builder.push_owned_annotation(&annotation)?;
         }
     }
-    let admitted = builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Reason {
-            detail: format!("freeze snapshot object-level reasoning EDB: {e}"),
-        })
-    })?;
+    let admitted = builder.freeze().map_err(gmeow_errors::Diag::from)?;
     without_recovery_case_envelopes(admitted.as_ref())
 }
 

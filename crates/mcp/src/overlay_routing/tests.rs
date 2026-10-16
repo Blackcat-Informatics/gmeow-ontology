@@ -12,30 +12,40 @@ const ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
 #[test]
 fn overlay_placement_keeps_complete_claims_and_independent_canon_identity() {
     let mut canon = RdfDatasetBuilder::new();
-    let canon_member = canon.intern_blank("member", BlankScope::DEFAULT);
-    let predicate = canon.intern_iri("urn:overlay:canon-only");
-    let object = canon.intern_iri("urn:overlay:canon-value");
-    let canon_graph = canon.intern_iri("urn:overlay:canon-world");
-    canon.push_quad(canon_member, predicate, object, Some(canon_graph));
+    let canon_member = canon.intern_blank("member", BlankScope::DEFAULT).unwrap();
+    let predicate = canon.intern_iri("urn:overlay:canon-only").unwrap();
+    let object = canon.intern_iri("urn:overlay:canon-value").unwrap();
+    let canon_graph = canon.intern_iri("urn:overlay:canon-world").unwrap();
+    canon
+        .push_quad(canon_member, predicate, object, Some(canon_graph))
+        .unwrap();
     let canon = canon.freeze().unwrap();
 
     let mut builder = RdfDatasetBuilder::new();
     // This qualified source scope would alias the canon's rebased scope if
     // overlay rows were pushed through the unscoped owned-record API.
-    let member = builder.intern_blank("member", BlankScope(1));
-    let other = builder.intern_blank("member", BlankScope(9));
-    let predicate = builder.intern_iri("urn:overlay:relation");
-    let claim = builder.intern_blank("claim", BlankScope(1));
-    let source = builder.intern_iri(SOURCE);
-    let unused = builder.intern_iri("urn:overlay:empty-source-world");
-    builder.declare_named_graph(unused);
-    let according_to = builder.intern_iri(ACCORDING_TO);
-    let row = builder.push_quad_with_handle(member, predicate, other, Some(source));
+    let member = builder.intern_blank("member", BlankScope(1)).unwrap();
+    let other = builder.intern_blank("member", BlankScope(9)).unwrap();
+    let predicate = builder.intern_iri("urn:overlay:relation").unwrap();
+    let claim = builder.intern_blank("claim", BlankScope(1)).unwrap();
+    let source = builder.intern_iri(SOURCE).unwrap();
+    let unused = builder
+        .intern_iri("urn:overlay:empty-source-world")
+        .unwrap();
+    builder.declare_named_graph(unused).unwrap();
+    let according_to = builder.intern_iri(ACCORDING_TO).unwrap();
+    let row = builder
+        .push_quad_with_handle(member, predicate, other, Some(source))
+        .unwrap();
     let location = RdfLocation::logical("inline external evidence");
     builder.attach_location(row, location.clone());
-    let statement = builder.intern_triple(member, predicate, other);
-    builder.push_reifier_in_graph(claim, statement, Some(source));
-    builder.push_annotation_in_graph(claim, according_to, source, Some(source));
+    let statement = builder.intern_triple(member, predicate, other).unwrap();
+    builder
+        .push_reifier_in_graph(claim, statement, Some(source))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(claim, according_to, source, Some(source))
+        .unwrap();
     let overlay = builder.freeze().unwrap();
     let original_rows = overlay.owned_quads().collect::<Vec<_>>();
 
@@ -93,8 +103,8 @@ fn overlay_placement_keeps_complete_claims_and_independent_canon_identity() {
 #[test]
 fn empty_overlay_still_declares_only_its_selected_external_origin() {
     let mut source = RdfDatasetBuilder::new();
-    let stale = source.intern_iri(SOURCE);
-    source.declare_named_graph(stale);
+    let stale = source.intern_iri(SOURCE).unwrap();
+    source.declare_named_graph(stale).unwrap();
     let source = source.freeze().unwrap();
     let output = transient_union(None, &source).unwrap();
     assert_eq!(output.quad_count(), 0);
@@ -114,12 +124,12 @@ fn empty_overlay_still_declares_only_its_selected_external_origin() {
 #[test]
 fn verification_overlay_limit_includes_statement_only_evidence() {
     let mut source = RdfDatasetBuilder::new();
-    let subject = source.intern_iri("urn:overlay:subject");
-    let predicate = source.intern_iri("urn:overlay:relation");
-    let statement = source.intern_triple(subject, predicate, subject);
-    let claim = source.intern_iri("urn:overlay:claim");
-    source.push_reifier(claim, statement);
-    source.push_annotation(claim, predicate, subject);
+    let subject = source.intern_iri("urn:overlay:subject").unwrap();
+    let predicate = source.intern_iri("urn:overlay:relation").unwrap();
+    let statement = source.intern_triple(subject, predicate, subject).unwrap();
+    let claim = source.intern_iri("urn:overlay:claim").unwrap();
+    source.push_reifier(claim, statement).unwrap();
+    source.push_annotation(claim, predicate, subject).unwrap();
     let source = source.freeze().unwrap();
     assert_eq!(source.quad_count(), 0);
     assert!(super::verify_record_limit(&source, 2).is_ok());

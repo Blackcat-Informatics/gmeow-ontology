@@ -184,6 +184,28 @@ fn malformed_native_world_is_failure_not_capability_gap() {
 }
 
 #[test]
+fn reserved_vocabulary_is_failure_in_both_lowerers() {
+    let mut formulas = parse_tptp("fof(goal, conjecture, person(alice)).\n").unwrap();
+    formulas[0].formula = Formula::Atom {
+        relation: Term::iri(format!("{}collision", entail::ENTAIL_RESERVED_NS)).unwrap(),
+        args: vec![Term::iri("urn:alice").unwrap()],
+    };
+    for error in [
+        lower_problem(&formulas, "urn:world").unwrap_err(),
+        lower_to_fol_program(&formulas).unwrap_err(),
+    ] {
+        let DecisionError::Failure { diagnostic } = error else {
+            panic!("reserved symbols are invalid input, not a capability gap");
+        };
+        assert!(diagnostic.to_string().contains("reserved entailment IRI"));
+        assert_eq!(
+            diagnostic.root.grade.severity,
+            gmeow_errors::Severity::Error
+        );
+    }
+}
+
+#[test]
 fn native_evaluation_failure_has_no_semantic_verdict() {
     let formulas = parse_tptp("fof(fact, axiom, person(alice)).\n").unwrap();
     let lowered = lower_problem(&formulas, "urn:world").unwrap();
@@ -193,8 +215,19 @@ fn native_evaluation_failure_has_no_semantic_verdict() {
         }))
     })
     .unwrap_err();
+    let DecisionError::Failure { diagnostic } = &error else {
+        panic!("execution failure must not become a capability gap");
+    };
+    assert_eq!(diagnostic.root.code, "conformance.run.failed");
     assert!(
-        matches!(&error, DecisionError::Failure { detail } if detail.contains("synthetic native execution failure"))
+        diagnostic
+            .to_string()
+            .contains("synthetic native execution failure")
+    );
+    let encoded = serde_json::to_vec(&error).unwrap();
+    assert_eq!(
+        serde_json::from_slice::<DecisionError>(&encoded).unwrap(),
+        error
     );
 }
 

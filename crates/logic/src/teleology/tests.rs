@@ -16,7 +16,7 @@ const W: &str = "https://blackcatinformatics.ca/gmeow/examples/w1/world";
 
 /// Build a `WorldStore` from N-Quads text.
 fn store_from(nq: &str) -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.load_nquads(nq).expect("valid N-Quads");
     store
 }
@@ -58,27 +58,43 @@ fn facts_of(nq: &str) -> WorldFacts {
 #[test]
 fn native_world_facts_preserve_claim_identity_and_scope() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let world = builder.intern_iri(W);
-    let other_world = builder.intern_iri(&format!("{W}/other"));
-    let claim = builder.intern_iri(&format!("{W}/claim"));
-    let state = builder.intern_iri(&format!("{W}/state"));
-    let obtains = builder.intern_iri(&format!("{LOGIC_NS}situationObtains"));
-    let situation = builder.intern_iri(&format!("{W}/situation"));
-    let according_to = builder.intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo");
-    let reviewer = builder.intern_iri(&format!("{W}/reviewer"));
-    let note = builder.intern_iri(&format!("{W}/note"));
-    let text = builder.intern_literal(purrdf::RdfLiteral {
-        lexical_form: "مراجعة".to_owned(),
-        datatype: None,
-        language: Some("ar".to_owned()),
-        direction: Some(purrdf::RdfTextDirection::Rtl),
-    });
-    let proposition = builder.intern_triple(state, obtains, situation);
-    builder.push_quad(state, obtains, situation, Some(world));
-    builder.push_reifier_in_graph(claim, proposition, Some(world));
-    builder.push_annotation_in_graph(claim, according_to, reviewer, Some(world));
-    builder.push_annotation_in_graph(claim, note, text, Some(world));
-    builder.push_quad(state, obtains, reviewer, Some(other_world));
+    let world = builder.intern_iri(W).unwrap();
+    let other_world = builder.intern_iri(&format!("{W}/other")).unwrap();
+    let claim = builder.intern_iri(&format!("{W}/claim")).unwrap();
+    let state = builder.intern_iri(&format!("{W}/state")).unwrap();
+    let obtains = builder
+        .intern_iri(&format!("{LOGIC_NS}situationObtains"))
+        .unwrap();
+    let situation = builder.intern_iri(&format!("{W}/situation")).unwrap();
+    let according_to = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo")
+        .unwrap();
+    let reviewer = builder.intern_iri(&format!("{W}/reviewer")).unwrap();
+    let note = builder.intern_iri(&format!("{W}/note")).unwrap();
+    let text = builder
+        .intern_literal(purrdf::RdfLiteral {
+            lexical_form: "مراجعة".to_owned(),
+            datatype: None,
+            language: Some("ar".to_owned()),
+            direction: Some(purrdf::RdfTextDirection::Rtl),
+        })
+        .unwrap();
+    let proposition = builder.intern_triple(state, obtains, situation).unwrap();
+    builder
+        .push_quad(state, obtains, situation, Some(world))
+        .unwrap();
+    builder
+        .push_reifier_in_graph(claim, proposition, Some(world))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(claim, according_to, reviewer, Some(world))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(claim, note, text, Some(world))
+        .unwrap();
+    builder
+        .push_quad(state, obtains, reviewer, Some(other_world))
+        .unwrap();
     let dataset = builder.freeze().expect("attributed world");
     let facts = WorldFacts::read_dataset(&dataset, W);
     assert_eq!(facts.triples.len(), 4);
@@ -1354,7 +1370,7 @@ fn materialize_teleology_runs_all_families_and_is_deterministic() {
         pr = l("precedes"),
     ));
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.load_nquads(&nq).expect("base world");
     store.load_nquads(&ideal_nq).expect("ideal world");
 
@@ -1383,7 +1399,7 @@ fn materialize_teleology_runs_all_families_and_is_deterministic() {
     );
 
     // Determinism: re-running over a fresh store yields byte-identical quads + ids.
-    let store2 = WorldStore::new();
+    let store2 = WorldStore::new().unwrap();
     store2.load_nquads(&nq).expect("base world");
     store2.load_nquads(&ideal_nq).expect("ideal world");
     let out2 = materialize_teleology(&store2).unwrap().0;
@@ -1405,7 +1421,7 @@ fn materialize_teleology_deontic_no_ideal_world_is_undetermined() {
         pgs = l("prescribedGoalSituation"),
         di = l("deonticallyIdeal"),
     );
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.load_nquads(&nq).expect("base world");
     let out = materialize_teleology(&store).unwrap().0;
     // The deontic evaluation carries goalEvaluationStatus = Undetermined.
@@ -1437,7 +1453,7 @@ fn materialize_teleology_serializable_history_emits_no_anomaly() {
         ch = l("ConcurrentHistory"),
         pr = l("precedes"),
     );
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.load_nquads(&nq).expect("world");
     let out = materialize_teleology(&store).unwrap().0;
     assert!(
@@ -1499,7 +1515,7 @@ fn materialize_teleology_derives_concurrent_anomaly_from_execution() {
     nq.push_str(&prim("r0", &[], &["sitY"])); // right writes sitY …
     nq.push_str(&prim("r1", &["sitX"], &["sitZ2"])); // … then reads sitX
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.load_nquads(&nq).expect("world");
     let out = materialize_teleology(&store).unwrap().0;
 
@@ -1523,7 +1539,7 @@ fn materialize_teleology_derives_concurrent_anomaly_from_execution() {
     );
 
     // Determinism: re-running over a fresh store yields byte-identical quads.
-    let store2 = WorldStore::new();
+    let store2 = WorldStore::new().unwrap();
     store2.load_nquads(&nq).expect("world");
     assert_eq!(out, materialize_teleology(&store2).unwrap().0);
 }

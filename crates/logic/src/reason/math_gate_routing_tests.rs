@@ -10,19 +10,31 @@ use super::{DIMENSION_CELL_PREDICATES, MATH_GATE_WORLD, promote_to_single_world}
 #[test]
 fn dimension_gate_routes_native_exponent_assertion_without_unrelated_metadata() {
     let mut builder = RdfDatasetBuilder::new();
-    let cell = builder.intern_iri("urn:dimension:cell");
-    let relation = builder.intern_iri("urn:dimension:asserted-relation");
-    let statement = builder.intern_triple(cell, relation, cell);
-    let graph = builder.intern_iri("urn:dimension:source-world");
-    let numerator = builder.intern_iri(DIMENSION_CELL_PREDICATES[2]);
-    let exponent = builder.intern_literal(RdfLiteral::typed(
-        "-2",
-        "http://www.w3.org/2001/XMLSchema#integer",
-    ));
-    let according_to = builder.intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo");
-    builder.push_reifier_in_graph(cell, statement, Some(graph));
-    builder.push_annotation_in_graph(cell, numerator, exponent, Some(graph));
-    builder.push_annotation_in_graph(cell, according_to, graph, Some(graph));
+    let cell = builder.intern_iri("urn:dimension:cell").unwrap();
+    let relation = builder
+        .intern_iri("urn:dimension:asserted-relation")
+        .unwrap();
+    let statement = builder.intern_triple(cell, relation, cell).unwrap();
+    let graph = builder.intern_iri("urn:dimension:source-world").unwrap();
+    let numerator = builder.intern_iri(DIMENSION_CELL_PREDICATES[2]).unwrap();
+    let exponent = builder
+        .intern_literal(RdfLiteral::typed(
+            "-2",
+            "http://www.w3.org/2001/XMLSchema#integer",
+        ))
+        .unwrap();
+    let according_to = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo")
+        .unwrap();
+    builder
+        .push_reifier_in_graph(cell, statement, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(cell, numerator, exponent, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(cell, according_to, graph, Some(graph))
+        .unwrap();
     let source = builder.freeze().unwrap();
     assert_eq!(source.quad_count(), 0);
     let selected = BTreeSet::from([DIMENSION_CELL_PREDICATES[2].to_owned()]);

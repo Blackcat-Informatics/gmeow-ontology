@@ -188,7 +188,7 @@ pub struct Atom {
 /// A pattern item: a flat atom or a nested OPTIONAL group.
 #[derive(Debug, Clone)]
 pub enum Item {
-    Atom(Atom),
+    Atom(Box<Atom>),
     Group(Vec<Item>),
 }
 
@@ -239,7 +239,7 @@ fn flatten_items(items: &[Item], out: &mut Vec<Atom>) {
     for item in items {
         match item {
             Item::Group(inner) => flatten_items(inner, out),
-            Item::Atom(a) => out.push(a.clone()),
+            Item::Atom(a) => out.push(a.as_ref().clone()),
         }
     }
 }
@@ -527,7 +527,7 @@ fn parse_item(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Item> {
         }
         return Ok(Item::Group(inner));
     }
-    Ok(Item::Atom(parse_atom(view, node)?))
+    Ok(Item::Atom(Box::new(parse_atom(view, node)?)))
 }
 
 fn parse_atom(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Atom> {

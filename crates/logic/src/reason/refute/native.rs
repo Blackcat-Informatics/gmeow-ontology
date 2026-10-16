@@ -4,6 +4,9 @@
 //! World-local family observations over the shared native fixed point. Positive
 //! conflict support is independent of writer completion and whole-model admission.
 
+mod source_support;
+pub(crate) use source_support::NativeProofLookup;
+
 use super::{BoundKind, RefutationPremise};
 use crate::physical::{WitnessDerivation, WitnessStatement, metadata_identity};
 use purrdf::TermValue;
@@ -49,7 +52,7 @@ pub enum NativeProofOrigin {
     /// A selected intrinsic domain law with its committed scoped witness.
     Intrinsic {
         /// Actual selected-domain witness receipt and minting head.
-        witness: WitnessDerivation,
+        witness: Box<WitnessDerivation>,
     },
 }
 
@@ -208,7 +211,7 @@ pub enum NativeObstructionKind {
 }
 
 /// A retained source/capability boundary with exact available evidence.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct NativeFamilyObstruction {
     /// Typed interpretation of this record.
     pub kind: NativeObstructionKind,
@@ -216,6 +219,16 @@ pub struct NativeFamilyObstruction {
     pub detail: String,
     /// References to exact shared proof nodes supporting this record.
     pub support: Vec<NativeProofId>,
+}
+
+/// One actual native producer refusal, with exact committed premises. This is
+/// capability evidence, never a logical contradiction or a fabricated head.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct NativeProducerObstruction {
+    /// Selected producer whose operation could not interpret these values.
+    pub producer: String,
+    /// Typed cause and exact local proof supports from the frozen input round.
+    pub reason: NativeFamilyObstruction,
 }
 
 /// Pending writer completion is never a final coherent result. Exhaustion is a
@@ -298,6 +311,8 @@ pub struct NativeFamilyLedger {
     pub input_contract: [u8; 32],
     /// Every current family and obligation result.
     pub outcomes: Vec<NativeFamilyOutcome>,
+    /// Operational refusals retained independently of refutation-family execution.
+    pub producer_obstructions: BTreeSet<NativeProducerObstruction>,
     /// Shared proof DAG in dependency order.
     pub proofs: Vec<NativeProofNode>,
     /// Complete contextual assessments, shared by their metadata proof nodes.
@@ -334,6 +349,7 @@ impl NativeFamilyLedger {
             graph,
             input_contract,
             outcomes: Vec::new(),
+            producer_obstructions: BTreeSet::new(),
             proofs: Vec::new(),
             contextual_receipts: Vec::new(),
             work: NativeAnalysisUsage {
@@ -355,7 +371,8 @@ impl NativeFamilyLedger {
     /// All engaged obligations must finish before absence of a clash is conclusive.
     #[must_use]
     pub fn complete(&self) -> bool {
-        !self.work.exhausted
+        self.producer_obstructions.is_empty()
+            && !self.work.exhausted
             && self.outcomes.iter().all(|outcome| {
                 matches!(
                     outcome.completion,
@@ -502,6 +519,25 @@ impl NativeFamilyLedger {
             seen.insert(proof.id);
             statements.insert(proof.id, &proof.statement);
         }
+        for obstruction in &self.producer_obstructions {
+            if obstruction.producer.is_empty()
+                || obstruction.reason.detail.is_empty()
+                || obstruction
+                    .reason
+                    .support
+                    .iter()
+                    .any(|id| !seen.contains(id))
+                || obstruction
+                    .reason
+                    .support
+                    .windows(2)
+                    .any(|pair| pair[0] >= pair[1])
+            {
+                return Err(invalid(
+                    "native producer obstruction has missing or foreign proof support",
+                ));
+            }
+        }
         for receipt in &self.contextual_receipts {
             if receipt
                 .statements
@@ -577,30 +613,11 @@ impl NativeFamilyLedger {
     /// Resolve only original assertion leaves of already-accounted proof nodes.
     /// Intrinsic law evidence has no RDF assertion leaf.
     pub fn source_leaves(&self, roots: &[NativeProofId]) -> Result<Vec<RefutationPremise>> {
-        let nodes: BTreeMap<_, _> = self.proofs.iter().map(|node| (node.id, node)).collect();
-        let mut pending = roots.to_vec();
-        let mut visited = BTreeSet::new();
-        let mut sources = BTreeSet::new();
-        while let Some(id) = pending.pop() {
-            if !visited.insert(id) {
-                continue;
-            }
-            let node = nodes
-                .get(&id)
-                .ok_or_else(|| invalid("source support references an absent native proof"))?;
-            match &node.origin {
-                NativeProofOrigin::Asserted {
-                    sources: leaves, ..
-                } => sources.extend(leaves.iter().cloned()),
-                NativeProofOrigin::Derived { premises, .. } => pending.extend(premises),
-                // Foreign modal leaves remain world-qualified native proof IDs.
-                // The global evidence owner validates their closed source DAG.
-                NativeProofOrigin::Modal { .. }
-                | NativeProofOrigin::Contextual { .. }
-                | NativeProofOrigin::Intrinsic { .. } => {}
-            }
-        }
-        Ok(sources.into_iter().collect())
+        self.proof_lookup().source_leaves(roots)
+    }
+
+    pub(crate) fn proof_lookup(&self) -> NativeProofLookup<'_> {
+        NativeProofLookup::new(self)
     }
 
     pub(crate) fn charge(&mut self, amount: u64) -> bool {
@@ -682,7 +699,14 @@ impl NativeFamilyOutcome {
 enum Origin {
     Asserted(Vec<usize>),
     Derived(usize),
-    Intrinsic(WitnessDerivation),
+    Intrinsic(Box<WitnessDerivation>),
+}
+
+/// Two checked views of proof positions owned by this one native input.
+#[derive(Default)]
+struct RecordedProofs {
+    rows: BTreeMap<usize, (NativeProofId, usize)>,
+    by_id: BTreeMap<NativeProofId, usize>,
 }
 
 /// One run-local origin column alongside the native FactStore. Only original input
@@ -699,7 +723,7 @@ pub(crate) struct NativeEvidenceIndex {
     terms: NativeSourceTerms,
     contextual_receipts:
         BTreeMap<[u8; 32], Arc<crate::contextual::native::NativeContextualReceipt>>,
-    recorded: std::cell::RefCell<BTreeMap<usize, (NativeProofId, usize)>>,
+    recorded: std::cell::RefCell<RecordedProofs>,
 }
 
 impl NativeEvidenceIndex {
@@ -925,7 +949,7 @@ impl NativeEvidenceIndex {
             }
             self.origins[slot] = Some(if let Some(witness) = intrinsic {
                 witness.validate()?;
-                Origin::Intrinsic(witness.clone())
+                Origin::Intrinsic(Box::new(witness.clone()))
             } else {
                 Origin::Derived(index)
             });
@@ -967,10 +991,10 @@ impl NativeEvidenceIndex {
         slot: usize,
         input: &NativeFamilyInput<'_>,
         ledger: &mut NativeFamilyLedger,
-        recorded: &mut BTreeMap<usize, (NativeProofId, usize)>,
+        recorded: &mut RecordedProofs,
         active: &mut BTreeSet<usize>,
     ) -> Result<NativeProofId> {
-        if let Some((id, index)) = recorded.get(&slot)
+        if let Some((id, index)) = recorded.rows.get(&slot)
             && ledger
                 .proofs
                 .get(*index)
@@ -1057,7 +1081,8 @@ impl NativeEvidenceIndex {
             origin,
         });
         active.remove(&slot);
-        recorded.insert(slot, (id, index));
+        recorded.rows.insert(slot, (id, index));
+        recorded.by_id.insert(id, index);
         Ok(id)
     }
 }
@@ -1263,6 +1288,25 @@ impl<'a> NativeFamilyInput<'a> {
         ids.sort();
         ids.dedup();
         Ok(ids)
+    }
+
+    /// Resolve original leaves through positions recorded by this same input,
+    /// checking every selected identity against the actual ledger entry.
+    pub(crate) fn support_with_sources(
+        &self,
+        facts: &[Fact],
+        ledger: &mut NativeFamilyLedger,
+    ) -> Result<(Vec<NativeProofId>, Vec<RefutationPremise>)> {
+        let ids = self.support(facts, ledger)?;
+        let recorded = self.evidence.recorded.borrow();
+        let sources = source_support::source_leaves(&ids, |id| {
+            recorded
+                .by_id
+                .get(id)
+                .and_then(|index| ledger.proofs.get(*index))
+                .filter(|node| node.id == *id)
+        })?;
+        Ok((ids, sources))
     }
 
     /// Authenticate the complete assessment publication against this committed

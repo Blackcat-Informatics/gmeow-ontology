@@ -45,6 +45,7 @@ pub mod i18n;
 // slice-quality translation axis reads the PURE half (`parse_po`,
 // `counts_as_reviewed_coverage`, `LOCALIZABLE_PREDICATES`, `expand_predicate`).
 pub mod i18n_compile;
+pub mod reviewed_coverage;
 // `llms.rs` is source-byte frozen by the model-facing invariance gate because it is
 // the one shared llmstxt.org shape emitter. Its pre-extraction module docs still name
 // the renderer through the old crate-local path, which cannot resolve from this leaf

@@ -19,7 +19,7 @@ fn parse_nt(nt: &str) -> std::sync::Arc<purrdf::RdfDataset> {
 #[test]
 fn affine_triangle_projects_related_match_never_equivalence() {
     let program = affine_triangle_worked_example();
-    let nt = project_correspondence(&program);
+    let nt = project_correspondence(&program).unwrap();
 
     // Check the alignment PREDICATE position (`<...>` as a predicate IRI), not a bare
     // substring — the loss-ledger prose names the forbidden predicates as disclosure.
@@ -69,7 +69,8 @@ fn quantitative_coordinates_retain_native_identity_through_projection_and_cache(
     .unwrap();
     program.correspondences[0].confidence = Some(confidence);
     program.correspondences[0].weight = Some(weight);
-    let projected = parse_correspondence(&parse_nt(&project_correspondence(&program))).unwrap();
+    let projected =
+        parse_correspondence(&parse_nt(&project_correspondence(&program).unwrap())).unwrap();
     assert_eq!(projected.correspondences, program.correspondences);
     let cached: CorrespondenceProgram =
         serde_json::from_slice(&serde_json::to_vec(&program).unwrap()).unwrap();
@@ -164,7 +165,7 @@ fn overclaim_gate_refuses_equivalence_for_commitment_shifting_bridge() {
 #[test]
 fn projection_round_trips_to_equal_content_key() {
     let program = affine_triangle_worked_example();
-    let nt = project_correspondence(&program);
+    let nt = project_correspondence(&program).unwrap();
     let dataset = parse_nt(&nt);
     let re_derived = parse_correspondence(&dataset).expect("re-derive correspondence program");
     assert_eq!(
@@ -178,7 +179,7 @@ fn projection_round_trips_to_equal_content_key() {
     );
     // And re-projecting the re-derived program is byte-identical (idempotent).
     assert_eq!(
-        project_correspondence(&re_derived),
+        project_correspondence(&re_derived).unwrap(),
         nt,
         "re-projecting the re-derived program is byte-identical"
     );
@@ -216,7 +217,7 @@ fn correspondence_identity_binds_leg_selection_standpoint_and_law_evidence() {
         let mut changed = baseline.clone();
         edit(&mut changed.correspondences[0]);
         assert_ne!(changed.content_key(), baseline.content_key(), "{label}");
-        let parsed = parse_correspondence(&parse_nt(&project_correspondence(&changed)))
+        let parsed = parse_correspondence(&parse_nt(&project_correspondence(&changed).unwrap()))
             .expect("read the complete projected correspondence");
         assert_eq!(parsed.content_key(), changed.content_key(), "{label}");
     }
@@ -245,7 +246,7 @@ fn correspondence_identity_frames_arbitrary_caveat_text_and_collection_boundarie
     split.correspondences[0].caveats.push(second);
     assert_ne!(joined.content_key(), split.content_key());
     for program in [joined, split] {
-        let parsed = parse_correspondence(&parse_nt(&project_correspondence(&program)))
+        let parsed = parse_correspondence(&parse_nt(&project_correspondence(&program).unwrap()))
             .expect("read all caveat text without treating it as identity framing");
         assert_eq!(parsed.content_key(), program.content_key());
     }
@@ -305,7 +306,7 @@ fn recovery_case_formula_round_trips_byte_identically() {
     .expect("unique recovery case");
     let program = CorrespondenceProgram::new(vec![correspondence], PreservationKind::Exact);
 
-    let nt = project_correspondence(&program);
+    let nt = project_correspondence(&program).unwrap();
     assert!(
         nt.contains("RecoveryCase"),
         "case type must be projected:\n{nt}"
@@ -317,7 +318,7 @@ fn recovery_case_formula_round_trips_byte_identically() {
     let dataset = parse_nt(&nt);
     let re_derived = parse_correspondence(&dataset).expect("re-derive recovery case");
     assert_eq!(program.content_key(), re_derived.content_key());
-    assert_eq!(project_correspondence(&re_derived), nt);
+    assert_eq!(project_correspondence(&re_derived).unwrap(), nt);
 
     let duplicate_transform = format!(
         "{nt}<https://example.org/recovery/language> <{}> <https://example.org/recovery/second-transform> .\n",
@@ -522,7 +523,7 @@ fn standpoint_index_round_trips_through_canonical_gmeow_property() {
     )
     .expect("standpoint-indexed correspondence");
     let program = CorrespondenceProgram::new(vec![correspondence], PreservationKind::Exact);
-    let nt = project_correspondence(&program);
+    let nt = project_correspondence(&program).unwrap();
 
     assert!(
         nt.contains(&format!("<{GMEOW_NAMESPACE}accordingTo>")),
@@ -541,8 +542,8 @@ fn standpoint_index_round_trips_through_canonical_gmeow_property() {
 /// The projection is deterministic (sorted, byte-stable across runs).
 #[test]
 fn projection_is_byte_deterministic() {
-    let a = project_correspondence(&affine_triangle_worked_example());
-    let b = project_correspondence(&affine_triangle_worked_example());
+    let a = project_correspondence(&affine_triangle_worked_example()).unwrap();
+    let b = project_correspondence(&affine_triangle_worked_example()).unwrap();
     assert_eq!(a, b, "the projection must be byte-deterministic");
     // Sorted: every non-empty line ends with " ." and the body is sorted.
     let lines: Vec<&str> = a.lines().filter(|l| !l.is_empty()).collect();

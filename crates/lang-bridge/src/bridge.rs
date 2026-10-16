@@ -65,6 +65,35 @@ pub struct IngestDiagnostic {
     pub construct: String,
 }
 
+impl std::fmt::Display for IngestDiagnostic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "lang:{}: {}",
+            self.failure_class.as_str(),
+            self.construct
+        )
+    }
+}
+
+impl std::error::Error for IngestDiagnostic {}
+
+impl IngestDiagnostic {
+    /// Retain this refusal and its grounded failure class in the shared envelope.
+    pub fn into_diag(self) -> gmeow_errors::Diag {
+        // NonUtf8Surface remains an input diagnosis, without a canonical failure
+        // individual. Preserve its typed cause without inventing an ontology term.
+        let grounded = self.failure_class == LangFailure::SilentIngestDrop;
+        let class = self.failure_class.iri();
+        let diagnostic = gmeow_errors::Diag::from(self);
+        if grounded {
+            diagnostic.with_failure_class(class)
+        } else {
+            diagnostic
+        }
+    }
+}
+
 /// A `lang:` ingestion failure class — the typed reasons a lift may hard-fail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum LangFailure {

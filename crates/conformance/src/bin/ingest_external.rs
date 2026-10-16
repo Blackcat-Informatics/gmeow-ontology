@@ -363,7 +363,7 @@ fn vendor_tptp_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
                 TptpError::Syntax(m) => format!("{}: malformed TPTP: {m}", problem.display()),
                 TptpError::Unsupported(m) => format!(
                     "{}: out-of-fragment construct ({m}) — this problem belongs in the \
-                 sibling -divergence corpus, not Lane-A",
+                sibling -divergence corpus, not Lane-A",
                     problem.display()
                 ),
             })
@@ -555,34 +555,32 @@ fn vendor_ontouml_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
         let abs = std::path::absolute(&model_path)
             .map_err(|e| ce(format!("cannot resolve {}: {e}", model_path.display())))?;
         let base = format!("file://{}", abs.display());
-        let model = parse_ontouml_model(&text, Some(&base)).map_err(|e| {
-            ce(match e {
-                OntoumlError::Syntax(m) => {
-                    format!("{}: malformed OntoUML: {m}", model_path.display())
-                }
-                OntoumlError::Unsupported(m) => format!(
-                    "{}: out-of-fragment construct ({m}) — this model belongs in the \
+        let model = parse_ontouml_model(&text, Some(&base)).map_err(|e| match e {
+            error @ OntoumlError::Failure(_) => error.into(),
+            OntoumlError::Syntax(m) => {
+                ce(format!("{}: malformed OntoUML: {m}", model_path.display()))
+            }
+            OntoumlError::Unsupported(m) => ce(format!(
+                "{}: out-of-fragment construct ({m}) — this model belongs in the \
                  sibling -divergence corpus, not Lane-A",
-                    model_path.display()
-                ),
-            })
+                model_path.display()
+            )),
         })?;
 
         let world_iri = format!("https://gmeow.example/{corpus_name}/{slug}/w");
         let (fq, input_nq, _count) =
             lower_and_evaluate(&model, &world_iri, AntiRigidityPolicy::WitnessObligation).map_err(
-                |e| {
-                    ce(match e {
-                        OntoumlError::Syntax(m) => format!(
-                            "{}: OntoUML lowering/evaluation failed: {m}",
-                            model_path.display()
-                        ),
-                        OntoumlError::Unsupported(m) => format!(
-                            "{}: out-of-fragment construct ({m}) — this model belongs in the \
+                |e| match e {
+                    error @ OntoumlError::Failure(_) => error.into(),
+                    OntoumlError::Syntax(m) => ce(format!(
+                        "{}: OntoUML lowering/evaluation failed: {m}",
+                        model_path.display()
+                    )),
+                    OntoumlError::Unsupported(m) => ce(format!(
+                        "{}: out-of-fragment construct ({m}) — this model belongs in the \
                              sibling -divergence corpus (an honest gap), not Lane-A",
-                            model_path.display()
-                        ),
-                    })
+                        model_path.display()
+                    )),
                 },
             )?;
 
@@ -966,14 +964,14 @@ fn build_reduced_dataset(
         let pred = pred.to_owned();
         let subject = premise.to_owned_term(q.s);
         let object = premise.to_owned_term(q.o);
-        builder.push_owned_quad(&RdfQuad::new(subject, pred, object));
+        builder.push_owned_quad(&RdfQuad::new(subject, pred, object))?;
     }
     for (s, p, o) in negation {
         builder.push_owned_quad(&RdfQuad::new(
             RdfTerm::iri(s.clone()),
             p.clone(),
             RdfTerm::iri(o.clone()),
-        ));
+        ))?;
     }
     builder
         .freeze()
@@ -2233,6 +2231,7 @@ fn grade_ontouml_corpus(
         // (`OntoumlError::Syntax`) is a corpus-authoring defect → a HARD FAIL.
         let model = match parse_ontouml_model(&text, Some(&base)) {
             Ok(m) => m,
+            Err(error @ OntoumlError::Failure(_)) => return Err(error.into()),
             Err(OntoumlError::Syntax(m)) => {
                 return Err(ce(format!(
                     "{}: malformed OntoUML: {m}",
@@ -2260,6 +2259,7 @@ fn grade_ontouml_corpus(
                 let fired = fired_disciplines(&fq);
                 native_verdict_string(None, &fired)
             }
+            Err(error @ OntoumlError::Failure(_)) => return Err(error.into()),
             Err(OntoumlError::Syntax(m)) => {
                 return Err(ce(format!(
                     "{}: OntoUML lowering/evaluation failed: {m}",

@@ -677,10 +677,10 @@ impl LangProjectionTarget for OntoLexTarget {
         "ontolex-lemon"
     }
 
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>> {
         let mut emissions = Vec::new();
         for source in &input.lang_models {
-            if let Some(emission) = emit_lexicon(source)? {
+            if let Some(emission) = emit_lexicon(source).map_err(IngestDiagnostic::into_diag)? {
                 emissions.push(emission);
             }
         }

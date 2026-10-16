@@ -361,7 +361,8 @@ fn correspondence_identity_is_not_loss_and_cannot_discharge_preservation_gates()
     assert_eq!(row.target.rsplit(':').next().unwrap().len(), 64);
     assert!(loss.projection_drops_for(&row.target).is_empty());
     assert!(loss.term_source_drops(&row.target).is_empty());
-    let exact = build_projection_report_from(header(0, 0), &[row.clone()], &loss).unwrap();
+    let exact =
+        build_projection_report_from(header(0, 0), std::slice::from_ref(&row), &loss).unwrap();
     assert!(
         !exact.contains("lossyDrop"),
         "an identity is not an actual loss"

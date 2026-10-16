@@ -35,6 +35,6 @@ pub fn register_stage_unit(
     prov: &mut DatasetProvenance,
     stage_id: &str,
     capabilities: &[String],
-) -> UnitId {
-    prov.register_unit(stage_id, origin_kind(capabilities))
+) -> gmeow_errors::Result<UnitId> {
+    Ok(prov.register_unit(stage_id, origin_kind(capabilities))?)
 }

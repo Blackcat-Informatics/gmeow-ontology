@@ -8,14 +8,16 @@ use gmeow_logic_compile::ir::{
 
 fn input() -> std::sync::Arc<purrdf::RdfDataset> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &purrdf::RdfQuad::new(
-            purrdf::RdfTerm::iri("urn:subject"),
-            "urn:input",
-            purrdf::RdfTerm::iri("urn:value"),
+    builder
+        .push_owned_quad(
+            &purrdf::RdfQuad::new(
+                purrdf::RdfTerm::iri("urn:subject"),
+                "urn:input",
+                purrdf::RdfTerm::iri("urn:value"),
+            )
+            .in_graph(purrdf::RdfTerm::iri("urn:world")),
         )
-        .in_graph(purrdf::RdfTerm::iri("urn:world")),
-    );
+        .unwrap();
     builder.freeze().unwrap()
 }
 

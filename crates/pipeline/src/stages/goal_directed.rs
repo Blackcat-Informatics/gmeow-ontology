@@ -33,6 +33,9 @@ use gmeow_logic::result_rdf::GRAPH_REASONING;
 use crate::bundle::PipelineHandle;
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 
+/// Producer-owned evaluations and independent serialization witnesses.
+pub(crate) const OBSERVATION_CHANNEL: &str = "pipeline/goal-directed-observation.json";
+
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-goal-directed".to_string(),
@@ -223,7 +226,7 @@ impl Stage for GoalDirectedStage {
         // (read off the stage-reason Reasoning handle) via
         // gmeow_logic::goal_directed::evaluate_reasoning_programs, instead of calling
         // evaluate_shipped_demonstrators() over the hand-interned Rust constants.
-        "goal-directed.v2"
+        "goal-directed.v3-authenticated-observations"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Read the compiled authored demonstrator corpus and the reasoned subsort closure
@@ -238,6 +241,39 @@ impl Stage for GoalDirectedStage {
         // that does not re-derive its answer atom HARD-fails here (fail-closed).
         let evals = evaluate_reasoning_programs(&program.reasoning_programs, &subsort_edges)?;
         let nt = project_goal_directed(&evals);
+        // Corpus controls consume these recorded evaluations. Their independent
+        // determinism witness belongs here, never in a test's execution path.
+        let repeated = evaluate_reasoning_programs(&program.reasoning_programs, &subsort_edges)?;
+        let projections: BTreeMap<_, _> = evals
+            .iter()
+            .map(|eval| {
+                (
+                    eval.iri.clone(),
+                    project_goal_directed(std::slice::from_ref(eval)),
+                )
+            })
+            .collect();
+        let repeated_projections: BTreeMap<_, _> = repeated
+            .iter()
+            .map(|eval| {
+                (
+                    eval.iri.clone(),
+                    project_goal_directed(std::slice::from_ref(eval)),
+                )
+            })
+            .collect();
+        let observation = serde_json::json!({
+            "evaluations": evals,
+            "projection": nt,
+            "repeated_projection": project_goal_directed(&repeated),
+            "program_projections": projections,
+            "repeated_program_projections": repeated_projections,
+        });
+        let artifacts = BTreeMap::from([(
+            OBSERVATION_CHANNEL.to_owned(),
+            serde_json::to_vec(&observation)
+                .map_err(|error| stage_err(format!("encode goal-directed observation: {error}")))?,
+        )]);
         // Route the projected N-Triples into the bundle-internal graph/goal-directed named
         // graph (the stage's sole attach delta).
         let dataset = crate::stages::carrier::parse_into_graph(
@@ -247,7 +283,7 @@ impl Stage for GoalDirectedStage {
         )?;
         let bundle = crate::bundle::bundle_from_artifacts_over(
             dataset,
-            BTreeMap::new(),
+            artifacts,
             purrdf::provenance::DatasetProvenance::new(),
         );
         Ok(StageOutput::new(StageProduct::from_bundle(

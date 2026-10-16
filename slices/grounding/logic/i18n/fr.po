@@ -5259,16 +5259,16 @@ msgid "Relates a logic:ReasoningContract to the logic:ArgumentationSemantics it 
 msgstr "Relie un logic:ReasoningContract à la logic:ArgumentationSemantics qu'il sélectionne — comment les conflits entre arguments réfutables sont résolus. À valeur unique sur le contrat. Domaine logic:ReasoningContract, portée logic:ArgumentationSemantics (exprimé en prose, conformément à la convention domaine/portée du module)."
 
 msgctxt "https://blackcatinformatics.ca/logic/argument|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:ArgumentStructure — an atomic-predication logic:Formula (over logic:relation) or a logic:FunctionTerm (over logic:functionSymbol) — to one of its argument term-carriers. The SAME property carries both, so a function term's operands reuse the predication argument machinery. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication), so a variadic argument list — including sequence markers and nested compound function terms — round-trips with its order and term kinds intact. It is not a direct link to the term value and carries no ordering by triple position."
-msgstr "Relie une logic:ArgumentStructure — une logic:Formula de prédication atomique (sur logic:relation) ou un logic:FunctionTerm (sur logic:functionSymbol) — à l'un de ses porteurs de terme-argument. La MÊME propriété porte les deux, si bien que les opérandes d'un terme fonctionnel réutilisent la machinerie d'argument de prédication. Chaque porteur fixe sa position avec logic:termIndex et sa valeur avec exactement une propriété de valeur-de-terme (logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker ou logic:termApplication), si bien qu'une liste d'arguments variadique — y compris les marqueurs de séquence et les termes fonctionnels composés imbriqués — fait l'aller-retour avec son ordre et ses genres de terme intacts. Ce n'est pas un lien direct vers la valeur du terme et cela ne porte aucun ordre par position de triplet."
+msgid "Relates a logic:ArgumentStructure to an ordered argument term-carrier. Atomic formulas, function terms and rule inequality guards share this structural link. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property, preserving order and term kinds independently of RDF statement order. It is not a direct link to the term value."
+msgstr "Relie une logic:ArgumentStructure à un porteur de terme d’argument ordonné. Les formules atomiques, les termes fonctionnels et les gardes d’inégalité de règle partagent ce lien structurel. Chaque porteur fixe sa position par logic:termIndex et sa valeur par exactement une propriété de valeur de terme, préservant l’ordre et la nature des termes indépendamment de l’ordre des énoncés RDF. Ce n’est pas un lien direct vers la valeur du terme."
 
 msgctxt "https://blackcatinformatics.ca/logic/argument|http://www.w3.org/2004/02/skos/core#example"
 msgid "The atom ex:knows(alice,bob) uses carriers at indices 0 and 1 linked through logic:argument."
 msgstr "L'atome ex:knows(alice,bob) emploie des porteurs aux indices 0 et 1 reliés via logic:argument."
 
 msgctxt "https://blackcatinformatics.ca/logic/ArgumentStructure|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A node that applies a reified operator to an ordered list of logic:argument term-carriers: an atomic-predication logic:Formula (operator = logic:relation) or a logic:FunctionTerm (operator = logic:functionSymbol). It is the shared rdfs:domain of logic:argument, so the ordered argument-carrier machinery is reused across both without asserting that a function term is a formula or that a formula is a term."
-msgstr "Un nœud qui applique un opérateur réifié à une liste ordonnée de porteurs de terme logic:argument : une logic:Formula de prédication atomique (opérateur = logic:relation) ou un logic:FunctionTerm (opérateur = logic:functionSymbol). C'est le rdfs:domain partagé de logic:argument, si bien que la machinerie ordonnée de porteur-d'argument est réutilisée entre les deux sans affirmer qu'un terme fonctionnel est une formule ni qu'une formule est un terme."
+msgid "A node applying an operator to an ordered list of logic:argument term-carriers. The operator is explicit as logic:relation on an atomic logic:Formula or logic:functionSymbol on a logic:FunctionTerm, or supplied structurally by a rule’s logic:distinctBody link. It is the shared domain of logic:argument; sharing the ordered carrier machinery does not assert that a guard or function term is a formula."
+msgstr "Un nœud appliquant un opérateur à une liste ordonnée de porteurs de termes logic:argument. L’opérateur est explicite via logic:relation sur une logic:Formula atomique ou logic:functionSymbol sur un logic:FunctionTerm, ou fourni structurellement par le lien logic:distinctBody d’une règle. C’est le domaine commun de logic:argument ; partager les porteurs ordonnés n’affirme pas qu’une garde ou un terme fonctionnel soit une formule."
 
 msgctxt "https://blackcatinformatics.ca/logic/Aspect|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A moment (trope): an endurant that exists only by inhering in a bearer on which it existentially depends — a colour, a belief, a marriage's commitment. The counterpart of gufo:Aspect, covering its intrinsic/extrinsic split (gufo:IntrinsicAspect inheres in a single bearer, gufo:ExtrinsicAspect depends on several): logic: carries that distinction on the inherence/dependence relation rather than as separate classes. The dependent counterpart of logic:Substantial. Qualities and modes are aspects (stated in prose, not as a subclass edge)."
@@ -6715,8 +6715,8 @@ msgid "Inequality body guard of a logic:Rule. Default-absent: a rule that needs 
 msgstr "Garde de corps d'inégalité d'une logic:Rule. Absente par défaut : une règle n'exigeant aucune inégalité ne porte aucune logic:distinctBody, de sorte que le corpus existant demeure identique octet pour octet."
 
 msgctxt "https://blackcatinformatics.ca/logic/distinctBody|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."
-msgstr "Relie une logic:Rule à une garde de corps d'inégalité : un nœud réifié portant rdf:subject et rdf:object (deux variables de règle et — à la différence de logic:body — aucun rdf:predicate) qui doivent se lier à des valeurs DISTINCTES pour que la règle se déclenche, se projetant vers la contrainte d'inégalité Datalog ?A != ?B. Parallèle à logic:negatedBody en tant que surface structurelle-de-règle additive : elle permet à une règle de détecter « au moins deux valeurs distinctes » (p. ex. une classe portant plus d'un stéréotype, ou un relateur médiatisant deux relata distincts) que le Datalog à sémantique ensembliste ne peut autrement exprimer. Une garde d'inégalité n'introduit aucune arête de dépendance négative, si bien qu'elle laisse inchangée la classe de stratification d'une règle."
+msgid "Relates a logic:Rule to an RDF-term inequality guard with exactly two ordered logic:argument carriers at logic:termIndex 0 and 1, each carrying one logic:termVariable. Both variables must be bound by the positive body and must denote different RDF terms for the rule to fire. This is term identity, not SPARQL value inequality: differently typed numeric literals can be distinct RDF terms with equal values. The guard introduces no negative dependency edge and leaves stratification unchanged. It projects to Datalog term inequality and SPARQL FILTER(!sameTerm(?A, ?B))."
+msgstr "Relie une logic:Rule à une garde d’inégalité de termes RDF avec exactement deux porteurs logic:argument ordonnés aux logic:termIndex 0 et 1, portant chacun une logic:termVariable. Les deux variables doivent être liées par le corps positif et désigner des termes RDF différents pour déclencher la règle. Il s’agit de l’identité des termes, non de l’inégalité des valeurs SPARQL : des littéraux numériques de types différents peuvent être des termes RDF distincts de valeurs égales. La garde n’introduit aucune dépendance négative et conserve la stratification. Elle se projette en inégalité de termes Datalog et en SPARQL FILTER(!sameTerm(?A, ?B))."
 
 msgctxt "https://blackcatinformatics.ca/logic/distinctnessRole|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:RelatumDistinctnessAssertion to one of the two roles that must bind distinct values on a focus node. Exactly two are asserted per record; the native coherence gate raises a violation when both roles bind the same value on one focus node. Domain logic:RelatumDistinctnessAssertion; two-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
@@ -8351,8 +8351,8 @@ msgid "Negation-as-failure body atom of a logic:Rule. Default-absent: a positive
 msgstr "Atome de corps de négation par l'échec d'une logic:Rule. Absent par défaut : une règle de Horn positive ne possède que des atomes logic:body et aucun logic:negatedBody, de sorte que le corpus positif existant reste inchangé."
 
 msgctxt "https://blackcatinformatics.ca/logic/negatedBody|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:Rule to a negated (negation-as-failure) body atom: the antecedent literal that must NOT be derivable for the rule to fire. Parallel to logic:body (the positive antecedent atoms) but read under closed-world negation, so a rule with any logic:negatedBody atom requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. The atom itself is a reified rdf:subject/rdf:predicate/rdf:object triple exactly as for logic:body; only its polarity differs."
-msgstr "Relie une logic:Rule à un atome de corps nié (négation-par-l'échec) : le littéral antécédent qui ne doit PAS être dérivable pour que la règle se déclenche. Parallèle à logic:body (les atomes antécédents positifs) mais lu sous négation à monde clos, de sorte qu'une règle comportant tout atome logic:negatedBody requiert au moins logic:StratifiedNAFProfile plutôt que logic:PositiveHornProfile. L'atome lui-même est un triplet rdf:subject/rdf:predicate/rdf:object réifié exactement comme pour logic:body ; seule sa polarité diffère."
+msgid "Relates a logic:Rule to a negation-as-failure body atom: an RDF 1.2 reifier whose rdf:reifies target is the quoted triple term, exactly as for logic:body. Typed logic:TermCarrier resources represent variables in any triple-term position; literals remain literal values. The atom must not be derivable for the rule to fire. A rule with a negated body requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. Quoting an atom never asserts its proposition."
+msgstr "Relie une logic:Rule à un atome de corps sous négation par l’échec : un réificateur RDF 1.2 dont la cible rdf:reifies est le terme triple cité, exactement comme pour logic:body. Des ressources typées logic:TermCarrier représentent les variables dans toute position du terme triple ; les littéraux restent des valeurs littérales. L’atome ne doit pas être dérivable pour déclencher la règle. Une règle avec un corps nié exige au minimum logic:StratifiedNAFProfile plutôt que logic:PositiveHornProfile. Citer un atome n’affirme jamais sa proposition."
 
 msgctxt "https://blackcatinformatics.ca/logic/negationOperator|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:ReasoningContract to a logic:NegationOperator its programs may use. Set-valued on the contract: a program may legitimately use explicit (strong) negation and negation-as-failure together, so this records the permitted operator set, not a single chosen operator. Domain logic:ReasoningContract, range logic:NegationOperator (stated in prose, matching the module's convention)."
@@ -10639,8 +10639,8 @@ msgid "A central record asserting that a class is identified by a KEY: the value
 msgstr "Un enregistrement central affirmant qu'une classe est identifiée par une CLÉ : la valeur d'une seule propriété clé désigne de manière unique l'instance de la classe, de sorte que deux instances qui s'accordent sur la valeur de la clé sont le même individu — et deux instances affirmées distinctes mais concordantes constituent une contradiction. Il nomme la classe avec logic:keyClass et la propriété clé avec logic:keyProperty, la paire que la porte de cohérence DL native associe pour décider du conflit d'accord de clé, et porte une rétro-référence logic:formalizes vers la propriété du domaine dont il encode la prose. Il s'agit du porteur logic: canonique d'une clé de type donnée/propriété unique : frappé de manière autonome (l'analogue logic: d'un axiome OWL 2 DL OWL hasKey, qui, sur une propriété de type donnée, est l'alternative sûre pour DL à un OWL InverseFunctionalProperty OWL 2 Full), de sorte que la clé est une obligation de raisonnement native plutôt qu'un triplet source OWL hasKey. L'autorité de raisonnement la nomme et l'applique ici ; l'axiome OWL OWL hasKey en est la vue DL avec perte et le sh:maxCount 1 inverse dérivé en est la projection SHACL."
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An ordered slot in an atomic formula's logic:argument list, a function term's logic:argument list, or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication (a nested compound function term). It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."
-msgstr "Un emplacement ordonné dans la liste logic:argument d'une formule atomique, dans la liste logic:argument d'un terme fonctionnel, ou dans le bloc logic:quantifiedVariable d'un quantificateur. Il porte exactement un logic:termIndex indexé à partir de zéro et exactement un type de valeur : logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, ou logic:termApplication (un terme fonctionnel composé imbriqué). Il n'est pas la valeur du terme elle-même ; c'est le nœud RDF qui préserve le type et la position de la valeur indépendamment de l'ordre des triplets."
+msgid "A structural RDF resource preserving one term value and its kind: logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication. An ordered argument or quantified-variable carrier has exactly one zero-based logic:termIndex. A carrier occupying a native RDF 1.2 triple-term position needs no index because that position already fixes its role. It is not the term value itself and never asserts a domain membership for that value."
+msgstr "Une ressource RDF structurelle préservant une valeur de terme et sa nature : logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker ou logic:termApplication. Un porteur d’argument ordonné ou de variable quantifiée possède exactement un logic:termIndex à partir de zéro. Un porteur occupant une position native de terme triple RDF 1.2 n’exige aucun indice, car cette position fixe déjà son rôle. Il n’est pas la valeur du terme et n’affirme jamais une appartenance de domaine pour cette valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, sequence marker, or compound function-term application. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."
@@ -22720,3 +22720,143 @@ msgstr "Il s’agit du cadrage de la provenance et des preuves, indépendant des
 msgctxt "https://blackcatinformatics.ca/logic/resultNativeExecution|http://www.w3.org/2004/02/skos/core#example"
 msgid "A terminal receipt retains both a supported conflict and an independently exhausted sibling obligation."
 msgstr "Un reçu terminal conserve à la fois un conflit étayé et une obligation sœur épuisée indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native source coverage refusal"
+msgstr "refus de couverture de la source native"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal when a selected native source cannot supply the complete, immutable definition evidence required by its profile and world. The refusal retains the source owner and unmet capability without deriving a semantic verdict."
+msgstr "Un refus opérationnel lorsqu’une source native sélectionnée ne peut fournir les preuves de définition complètes et immuables exigées par son profil et son monde. Le refus conserve le propriétaire de la source et la capacité non satisfaite sans dériver de verdict sémantique."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when native definition collection or producer-effect analysis refuses its selected source contract."
+msgstr "Utiliser lorsque la collecte des définitions natives ou l’analyse des effets des producteurs refuse son contrat source sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify this operational refusal as a contradiction or as source data disproving a proposition."
+msgstr "Ne pas classer ce refus opérationnel comme une contradiction ni comme des données sources réfutant une proposition."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected profile, source owner, world and exact unmet requirement from the native diagnostic."
+msgstr "Conserver le profil sélectionné, le propriétaire de la source, le monde et l’exigence exacte non satisfaite du diagnostic natif."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Coverage is relative to the requested native operation and its immutable source boundary."
+msgstr "La couverture est relative à l’opération native demandée et à sa frontière source immuable."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reachable producer that can rewrite selected modal definition grammar causes a source coverage refusal."
+msgstr "Un producteur accessible pouvant réécrire la grammaire d’une définition modale sélectionnée provoque un refus de couverture de la source."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native source admission refusal"
+msgstr "refus d’admission d’une source native"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The pre-execution refusal of an exact selected native class-expression source. Its original admission observation distinguishes malformed owned grammar from a well-formed construct outside the selected fragment and preserves every source path and input contract."
+msgstr "Le refus, avant exécution, d’une source exacte d’expression de classe native sélectionnée. Son observation d’admission originale distingue une grammaire possédée mal formée d’une construction bien formée hors du fragment sélectionné et conserve chaque chemin source et contrat d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the original selected class-expression admission refuses before native writers execute."
+msgstr "Utiliser lorsque l’admission originale de l’expression de classe sélectionnée refuse avant l’exécution des producteurs natifs."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse malformed input and unsupported evaluation into one semantic truth value."
+msgstr "Ne pas réduire une entrée mal formée et une évaluation non prise en charge à une même valeur de vérité sémantique."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry the complete typed admission observation with its exact input contract into the diagnostic ledger."
+msgstr "Transmettre au registre des diagnostics l’observation d’admission typée complète avec son contrat d’entrée exact."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class names failure of the selected operation to admit its source, independently of whether that source is logically consistent."
+msgstr "Cette classe désigne l’échec de l’opération sélectionnée à admettre sa source, indépendamment de la cohérence logique de cette source."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "An owned enumeration whose selected rdf:nil terminator has list fields is refused with its original source path."
+msgstr "Une énumération possédée dont le terminateur rdf:nil sélectionné porte des champs de liste est refusée avec son chemin source original."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native definition source admission"
+msgstr "admission des sources de définitions natives"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational source contract for complete native definition evidence and immutable selected grammar across one requested profile and world. Native collection and producer-effect analysis realize this contract before dependent execution."
+msgstr "Le contrat source opérationnel portant sur des preuves de définition natives complètes et une grammaire sélectionnée immuable pour un profil et un monde demandés. La collecte native et l’analyse des effets des producteurs réalisent ce contrat avant l’exécution dépendante."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the contract enforced by native definition coverage diagnostics."
+msgstr "Utiliser pour identifier le contrat imposé par les diagnostics de couverture des définitions natives."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer source completeness from a digest alone or permit a later writer to redefine an admitted source grammar."
+msgstr "Ne pas déduire la complétude d’une source de sa seule empreinte ni permettre à un producteur ultérieur de redéfinir une grammaire source admise."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the profile and world, retain every original definition, and reject producer effects that violate its required source boundary."
+msgstr "Sélectionner le profil et le monde, conserver chaque définition originale et refuser les effets de producteurs qui violent la frontière source exigée."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The contract governs operational source admission; it makes no object-level consistency claim."
+msgstr "Le contrat régit l’admission opérationnelle des sources ; il n’affirme aucune cohérence au niveau des objets."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected contextual definition must already have its complete source before native execution requests it."
+msgstr "Une définition contextuelle sélectionnée doit disposer de sa source complète avant que l’exécution native ne la demande."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "helper source admission refusal"
+msgstr "refus d’admission des sources du recensement"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal of a helper census request, policy ledger or source inventory that cannot satisfy the declared admission contract. The diagnostic retains the input boundary, original cause and available source location."
+msgstr "Un refus opérationnel d’une requête de recensement des fonctions auxiliaires, d’un registre de politique ou d’un inventaire source qui ne satisfait pas le contrat d’admission déclaré. Le diagnostic conserve la frontière d’entrée, la cause originale et la localisation source disponible."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when census arguments, ledger syntax, ledger schema or a declared source home cannot be admitted."
+msgstr "Utiliser lorsque les arguments du recensement, la syntaxe ou le schéma du registre, ou une implémentation source déclarée ne peuvent être admis."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for a discovered duplicate implementation or relabel an actual file access error as a schema defect."
+msgstr "Ne pas utiliser pour un doublon d’implémentation découvert ni requalifier une erreur réelle d’accès à un fichier en défaut de schéma."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the typed operation and parser cause, include the ledger row context, and repair the refused input before repeating the census."
+msgstr "Conserver l’opération typée et la cause du parseur, inclure le contexte de la ligne du registre et corriger l’entrée refusée avant de répéter le recensement."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Input admission precedes the policy verdict; refusal establishes neither compliance nor a measured duplication count."
+msgstr "L’admission des entrées précède le verdict de politique ; un refus n’établit ni la conformité ni un nombre mesuré de doublons."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed forbidden-name regular expression retains its original parser error and the owning job context."
+msgstr "Une expression régulière mal formée pour les noms interdits conserve son erreur de parseur originale et le contexte de la tâche propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "helper source admission"
+msgstr "admission des sources du recensement"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational admission contract for a structural helper census request and its complete policy and source inputs, realized by the native census argument, ledger and home resolvers."
+msgstr "Le contrat d’admission opérationnel d’une requête de recensement structurel des fonctions auxiliaires et de ses entrées complètes de politique et de source, réalisé par les résolveurs natifs des arguments, du registre et des implémentations déclarées."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the input contract enforced by helper census admission diagnostics."
+msgstr "Utiliser pour identifier le contrat d’entrée imposé par les diagnostics d’admission du recensement des fonctions auxiliaires."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not accept a partial ledger, an unresolved home or an unknown mode as a successful policy check."
+msgstr "Ne pas accepter un registre partiel, une implémentation déclarée introuvable ou un mode inconnu comme un contrôle de politique réussi."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one census mode, parse every declared policy field, and resolve source ownership before interpreting the policy result."
+msgstr "Sélectionner un mode de recensement, analyser chaque champ de politique déclaré et résoudre la propriété des sources avant d’interpréter le résultat de politique."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This contract governs operational input admission; the admitted census separately evaluates duplication and forbidden implementations."
+msgstr "Ce contrat régit l’admission opérationnelle des entrées ; le recensement admis évalue séparément les doublons et les implémentations interdites."
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
+msgstr "Une tâche du registre nommant une implémentation source absente est refusée avant que son nombre de copies puisse être rapporté."

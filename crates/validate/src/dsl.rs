@@ -102,14 +102,10 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> gmeow_errors::Result<DslMerge
                 focus_to_file.push((iri.to_owned(), path_str.clone()));
             }
         }
-        builder.push_dataset(&dataset);
+        builder.push_dataset(&dataset)?;
     }
 
-    let dataset = builder.freeze().map_err(|e| {
-        Diag::of_kind(crate::error::Serialize {
-            detail: format!("dataset freeze failed: {e}"),
-        })
-    })?;
+    let dataset = builder.freeze().map_err(gmeow_errors::Diag::from)?;
     Ok(DslMerge {
         dataset,
         focus_to_file,

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Resolve the declared PurRDF requirement against authenticated build inputs.
-//! Manifests state compatibility; committed lockfiles state the selected release.
+//! Manifests state compatibility and source; committed lockfiles state the exact selection.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -15,6 +15,22 @@ use gmeow_errors::{Diag, Result};
 /// component anywhere in either committed lockfile, or a requirement that could admit
 /// one, would reintroduce the retired serde/ciborium/ed25519-dalek boundary types.
 pub const PURRDF_MAJOR_FLOOR: u64 = 3;
+
+const REGISTRY_SOURCE: &str = "registry+https://github.com/rust-lang/crates.io-index";
+const GIT_REPOSITORY: &str = "https://github.com/Blackcat-Informatics/purrdf";
+
+fn git_source(revision: &str) -> Result<String> {
+    if revision.len() != 40
+        || !revision
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    {
+        return Err(invalid(
+            "PurRDF Git source requires a full lowercase commit revision",
+        ));
+    }
+    Ok(format!("git+{GIT_REPOSITORY}?rev={revision}#{revision}"))
+}
 
 fn is_purrdf_package(name: &str) -> bool {
     name == "purrdf" || name.starts_with("purrdf-")
@@ -41,7 +57,7 @@ fn excludes_below_floor(requirement: &semver::VersionReq) -> bool {
     })
 }
 
-/// A registry requirement and the concrete release selected by its lockfile.
+/// A compatibility requirement and the concrete version selected by its lockfile.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PurrdfResolution {
     /// The manifest's normalized semantic-version requirement.
@@ -101,14 +117,12 @@ fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PackageIdentit
         let identity = PackageIdentity {
             version: field("version")?,
             source: field("source")?,
-            checksum: field("checksum")?,
+            checksum: package
+                .get("checksum")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_owned(),
         };
-        if identity.source != "registry+https://github.com/rust-lang/crates.io-index" {
-            return Err(invalid(format!(
-                "{}: {name} is not a crates.io release",
-                path.display()
-            )));
-        }
         let parsed = semver::Version::parse(&identity.version).map_err(|error| {
             invalid(format!(
                 "{}: invalid {name} version: {error}",
@@ -122,16 +136,36 @@ fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PackageIdentit
                 identity.version
             )));
         }
-        if identity.checksum.len() != 64
-            || !identity
-                .checksum
-                .bytes()
-                .all(|byte| byte.is_ascii_hexdigit())
-        {
-            return Err(invalid(format!(
-                "{}: {name} requires its complete release checksum",
-                path.display()
-            )));
+        if identity.source == REGISTRY_SOURCE {
+            if identity.checksum.len() != 64
+                || !identity
+                    .checksum
+                    .bytes()
+                    .all(|byte| byte.is_ascii_hexdigit())
+            {
+                return Err(invalid(format!(
+                    "{}: {name} requires its complete release checksum",
+                    path.display()
+                )));
+            }
+        } else {
+            let revision = identity
+                .source
+                .split_once("?rev=")
+                .and_then(|(_, suffix)| suffix.split_once('#'))
+                .map(|(revision, _)| revision)
+                .ok_or_else(|| {
+                    invalid(format!(
+                        "{}: {name} has no exact Git revision",
+                        path.display()
+                    ))
+                })?;
+            if git_source(revision)? != identity.source || package.get("checksum").is_some() {
+                return Err(invalid(format!(
+                    "{}: {name} requires the official Git repository and matching complete revision",
+                    path.display()
+                )));
+            }
         }
         if identities.insert(name.to_owned(), identity).is_some() {
             return Err(invalid(format!(
@@ -160,27 +194,26 @@ fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PackageIdentit
     Ok(identities)
 }
 
-/// Read one named dependency requirement without admitting source replacement.
-fn registry_requirement(
+/// Read a registry requirement or an exact revision of the official Git source.
+fn dependency_requirement(
     dependencies: &toml::Value,
     name: &str,
     manifest_path: &Path,
-) -> Result<semver::VersionReq> {
+) -> Result<(semver::VersionReq, String)> {
     let dependency = dependencies.get(name).ok_or_else(|| {
         invalid(format!(
             "{}: declares no {name} dependency",
             manifest_path.display()
         ))
     })?;
+    let mut source = REGISTRY_SOURCE.to_owned();
     let requirement = match dependency {
         toml::Value::String(value) => Some(value.as_str()),
         toml::Value::Table(table)
             if ![
-                "git",
                 "path",
                 "registry",
                 "registry-index",
-                "rev",
                 "branch",
                 "tag",
                 "workspace",
@@ -191,33 +224,53 @@ fn registry_requirement(
                     .get("package")
                     .is_none_or(|package| package.as_str() == Some(name)) =>
         {
+            match (table.get("git"), table.get("rev")) {
+                (None, None) => {}
+                (Some(repository), Some(revision))
+                    if repository.as_str() == Some(GIT_REPOSITORY) =>
+                {
+                    source = git_source(
+                        revision
+                            .as_str()
+                            .ok_or_else(|| invalid("PurRDF Git revision must be text"))?,
+                    )?;
+                }
+                _ => {
+                    return Err(invalid(format!(
+                        "{}: {name} requires an exact official Git source",
+                        manifest_path.display()
+                    )));
+                }
+            }
             table.get("version").and_then(toml::Value::as_str)
         }
         _ => None,
     }
     .ok_or_else(|| {
         invalid(format!(
-            "{}: {name} must declare a crates.io version requirement",
+            "{}: {name} must declare a version requirement and an admitted source",
             manifest_path.display()
         ))
     })?;
-    semver::VersionReq::parse(requirement).map_err(|error| {
+    let requirement = semver::VersionReq::parse(requirement).map_err(|error| {
         invalid(format!(
             "{}: invalid {name} requirement: {error}",
             manifest_path.display()
         ))
-    })
+    })?;
+    Ok((requirement, source))
 }
 
 /// Resolve a root or standalone manifest's PurRDF requirement against its lockfile.
 ///
 /// # Errors
-/// Rejects missing inputs, non-registry declarations, ambiguous resolutions, and a
+/// Rejects missing inputs, unpinned or foreign Git declarations, ambiguous resolutions, and a
 /// locked release outside the declared requirement. The workspace must declare the
 /// direct core dependency, and every declared `purrdf-*` component must state the same
 /// compatibility requirement as `purrdf`, which must admit nothing below
 /// [`PURRDF_MAJOR_FLOOR`]. Every locked PurRDF component must select that release, sit
-/// at or above the floor, and retain its own checksum. This never updates a lockfile.
+/// at or above the floor, and retain its registry checksum or exact official Git
+/// revision. Manifest and lock sources must match. This never updates a lockfile.
 pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfResolution> {
     let manifest = read_toml(manifest_path)?;
     let workspace_dependencies = manifest
@@ -231,7 +284,7 @@ pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfRe
                 manifest_path.display()
             ))
         })?;
-    let requirement = registry_requirement(dependencies, "purrdf", manifest_path)?;
+    let (requirement, source) = dependency_requirement(dependencies, "purrdf", manifest_path)?;
     if !excludes_below_floor(&requirement) {
         return Err(invalid(format!(
             "{}: purrdf requirement {requirement} admits releases below the PurRDF \
@@ -240,7 +293,7 @@ pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfRe
         )));
     }
     if workspace_dependencies.is_some() {
-        registry_requirement(dependencies, "purrdf-core", manifest_path)?;
+        dependency_requirement(dependencies, "purrdf-core", manifest_path)?;
     }
     let components = dependencies
         .as_table()
@@ -248,14 +301,23 @@ pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfRe
         .flat_map(|table| table.keys())
         .filter(|name| name.as_str() != "purrdf" && is_purrdf_package(name));
     for name in components {
-        if registry_requirement(dependencies, name, manifest_path)? != requirement {
+        if dependency_requirement(dependencies, name, manifest_path)?
+            != (requirement.clone(), source.clone())
+        {
             return Err(invalid(format!(
-                "{}: purrdf and {name} requirements disagree",
+                "{}: purrdf and {name} requirements or sources disagree",
                 manifest_path.display()
             )));
         }
     }
     let packages = locked_purrdf_packages(lock_path)?;
+    if packages["purrdf"].source != source {
+        return Err(invalid(format!(
+            "{}: declared PurRDF source differs from {}",
+            manifest_path.display(),
+            lock_path.display()
+        )));
+    }
     let version = &packages["purrdf"].version;
     let parsed = semver::Version::parse(version).map_err(|error| {
         invalid(format!(

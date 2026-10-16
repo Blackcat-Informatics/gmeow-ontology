@@ -75,13 +75,6 @@ serde.workspace = true
 serde_json.workspace = true
 ciborium.workspace = true
 blake3.workspace = true
-# Delimited-data reader for the n-ary EDB loader (nary_rls): proper quoting/escaping
-# and STRICT uniform-arity parsing of ChaseBench-family CSV/TSV corpora. Already in the
-# workspace lock (a transitive dep), so this direct edge adds no new resolution.
-csv = "1"
-# gzip decoder for the n-ary EDB loader: ChaseBench-family corpora ship `.csv.gz`.
-# Already in the workspace lock (transitive), so no new resolution — the existing dep.
-flate2 = "1"
 # foldhash: a fast, FIXED-seed hasher (`foldhash::fast::FixedState`) for the
 # engine's lookup-only maps — replacing std's SipHash on the hot join/dedup plane
 # (no std SipHash on hot paths). A required, always-on dependency (NOT optionality): determinism

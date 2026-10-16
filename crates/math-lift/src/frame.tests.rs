@@ -8,8 +8,8 @@ const BASE: &str = "https://blackcatinformatics.ca/gmeow/examples/math/lift/";
 fn framed(kind: BridgeKind, rung: Rung, source: &[u8]) -> (RunFrame, String) {
     let frame = RunFrame::mint(kind, BASE, source);
     let mut sink = Sink::new();
-    frame.emit(&mut sink, rung);
-    let ttl = sink.serialize();
+    frame.emit(&mut sink, rung).unwrap();
+    let ttl = sink.serialize().unwrap();
     (frame, ttl)
 }
 
@@ -86,7 +86,7 @@ fn each_bridge_kind_emits_its_own_run_class() {
 fn an_empty_codomain_is_refused_before_serialization() {
     let frame = RunFrame::mint(BridgeKind::Proof, BASE, b"src");
     let mut sink = Sink::new();
-    frame.emit(&mut sink, Rung::section_retraction());
+    frame.emit(&mut sink, Rung::section_retraction()).unwrap();
     let err = Lifted::seal(&frame, sink, 0).expect_err("an empty codomain must not seal");
     assert!(
         format!("{err}").contains("unliftable ingest"),
@@ -98,10 +98,12 @@ fn an_empty_codomain_is_refused_before_serialization() {
 fn a_generated_node_carries_the_back_edge_the_native_lint_requires() {
     let frame = RunFrame::mint(BridgeKind::R, BASE, b"src");
     let mut sink = Sink::new();
-    frame.emit(&mut sink, Rung::lossy_vague_with_witness());
+    frame
+        .emit(&mut sink, Rung::lossy_vague_with_witness())
+        .unwrap();
     let node = frame.node("fit", "mtcarsFit");
-    sink.typed(&node, &math("FittedModel"));
-    frame.generated(&mut sink, &node);
+    sink.typed(&node, &math("FittedModel")).unwrap();
+    frame.generated(&mut sink, &node).unwrap();
     let lifted = Lifted::seal(&frame, sink, 1).expect("one codomain node seals");
     assert!(lifted.turtle.contains("wasGeneratedBy"));
     assert_eq!(lifted.run_iri, frame.run_iri);
@@ -115,5 +117,5 @@ fn a_section_retraction_without_a_witness_is_a_programming_error() {
         ..Rung::section_retraction()
     };
     let frame = RunFrame::mint(BridgeKind::Proof, BASE, b"src");
-    frame.emit(&mut Sink::new(), rung);
+    frame.emit(&mut Sink::new(), rung).unwrap();
 }

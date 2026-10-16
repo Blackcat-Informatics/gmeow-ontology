@@ -17,27 +17,27 @@ const TOM: &str = "http://example.org/tom";
 /// A tiny, consistent A-Box: `Cat ⊑ Animal`, `tom a Cat`.
 fn consistent_dataset() -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let cat = builder.intern_iri(CAT);
-    let animal = builder.intern_iri(ANIMAL);
-    let tom = builder.intern_iri(TOM);
-    let sub = builder.intern_iri(RDFS_SUBCLASSOF);
-    let ty = builder.intern_iri(RDF_TYPE);
-    builder.push_quad(cat, sub, animal, None);
-    builder.push_quad(tom, ty, cat, None);
+    let cat = builder.intern_iri(CAT).unwrap();
+    let animal = builder.intern_iri(ANIMAL).unwrap();
+    let tom = builder.intern_iri(TOM).unwrap();
+    let sub = builder.intern_iri(RDFS_SUBCLASSOF).unwrap();
+    let ty = builder.intern_iri(RDF_TYPE).unwrap();
+    builder.push_quad(cat, sub, animal, None).unwrap();
+    builder.push_quad(tom, ty, cat, None).unwrap();
     builder.freeze().expect("freeze the consistent fixture")
 }
 
 /// A tiny, INCONSISTENT A-Box: `Cat` and `Dog` are disjoint, yet `tom` is both.
 fn inconsistent_dataset() -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let cat = builder.intern_iri(CAT);
-    let dog = builder.intern_iri(DOG);
-    let tom = builder.intern_iri(TOM);
-    let disjoint = builder.intern_iri(OWL_DISJOINT_WITH);
-    let ty = builder.intern_iri(RDF_TYPE);
-    builder.push_quad(cat, disjoint, dog, None);
-    builder.push_quad(tom, ty, cat, None);
-    builder.push_quad(tom, ty, dog, None);
+    let cat = builder.intern_iri(CAT).unwrap();
+    let dog = builder.intern_iri(DOG).unwrap();
+    let tom = builder.intern_iri(TOM).unwrap();
+    let disjoint = builder.intern_iri(OWL_DISJOINT_WITH).unwrap();
+    let ty = builder.intern_iri(RDF_TYPE).unwrap();
+    builder.push_quad(cat, disjoint, dog, None).unwrap();
+    builder.push_quad(tom, ty, cat, None).unwrap();
+    builder.push_quad(tom, ty, dog, None).unwrap();
     builder.freeze().expect("freeze the inconsistent fixture")
 }
 
@@ -87,8 +87,65 @@ fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
     let error = reasoner
         .class_satisfiability(&TermValue::iri(CAT))
         .expect_err("an unsatisfiable ontology has no meaningful class answer");
-    assert_eq!(error.kind(), DlServiceFailureKind::NoModel);
-    assert!(error.detail().contains("unsatisfiable"), "{error}");
+    let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
+    assert_eq!(failure.kind, DlServiceFailureKind::NoModel);
+    assert!(matches!(failure.cause.as_ref(), EntailError::Unsatisfiable));
+    assert!(error.message().contains("unsatisfiable"), "{error}");
+}
+
+#[test]
+fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped() {
+    let dataset = purrdf::parse_dataset(
+        b"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+          <urn:short-chain> owl:propertyChainAxiom ( <urn:operand> ) .",
+        "text/turtle",
+        None,
+    )
+    .unwrap();
+    let error = DlReasoner::new(&dataset).expect_err("a one-role chain is malformed");
+    drop(dataset);
+    assert_eq!(
+        gmeow_errors::code::code_str(error.code()),
+        "logic.dl-service"
+    );
+    let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
+    assert_eq!(failure.kind, DlServiceFailureKind::Malformed);
+    assert!(matches!(
+        failure.cause.as_ref(),
+        EntailError::RoleHierarchy(_)
+    ));
+    assert!(
+        std::error::Error::source(failure)
+            .unwrap()
+            .is::<EntailError>()
+    );
+    let recorded = gmeow_errors::DiagLedger::new()
+        .record(error, gmeow_errors::StageId::new("native-dl-consumer"));
+    assert_eq!(recorded.root.code, "logic.dl-service");
+    assert!(
+        recorded
+            .root
+            .frames
+            .iter()
+            .any(|frame| frame.message.contains("urn:short-chain"))
+    );
+}
+
+#[test]
+fn native_service_cancellation_is_an_execution_diagnostic_with_its_original_cause() {
+    let error = map_entail_err(EntailError::RoleHierarchy(
+        purrdf::entail::RoleHierarchyError::Stopped,
+    ));
+    let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
+    assert_eq!(failure.kind, DlServiceFailureKind::Execution);
+    assert!(matches!(
+        failure.cause.as_ref(),
+        EntailError::RoleHierarchy(purrdf::entail::RoleHierarchyError::Stopped)
+    ));
+    assert_eq!(
+        gmeow_errors::code::code_str(error.code()),
+        "logic.dl-service"
+    );
 }
 
 #[test]

@@ -99,3 +99,22 @@ pub fn termination_ladder_demonstrators() -> [(&'static str, &'static str); 3] {
         (GRAPH_DEMO_MODEL_SUMMARIZING, MODEL_SUMMARIZING_TTL),
     ]
 }
+
+/// Each demonstrator world with the certificate finding code its program must earn.
+/// `stage-reason` refuses a run whose demonstrator world publishes any other class.
+pub fn termination_ladder_certificate_codes() -> [(&'static str, &'static str); 3] {
+    [
+        (
+            GRAPH_DEMO_JOINTLY_ACYCLIC,
+            "chase.certificate.jointly-acyclic",
+        ),
+        (
+            GRAPH_DEMO_SUPER_WEAKLY_ACYCLIC,
+            "chase.certificate.super-weakly-acyclic",
+        ),
+        (
+            GRAPH_DEMO_MODEL_SUMMARIZING,
+            "chase.certificate.model-summarizing-acyclic",
+        ),
+    ]
+}

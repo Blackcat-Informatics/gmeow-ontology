@@ -1014,3 +1014,59 @@ msgstr "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId « examples-arc
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsProducerRuntimeStoreSegments|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite \"crates/mcp/src/storage.rs\" ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."
 msgstr "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite « crates/mcp/src/storage.rs » ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "snapshot input refusal"
+msgstr "refus d’une entrée d’instantané"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The native snapshot producer refuses a selected source that cannot be completely and faithfully ingested. The typed cause retains source readiness failures, unrepresentable term positions, blank encoding collisions or prior builder poison; an accepted prefix cannot stand for the selected input."
+msgstr "Le producteur natif d’instantanés refuse une source sélectionnée qui ne peut être ingérée complètement et fidèlement. La cause typée conserve les défauts de disponibilité de la source, les positions de termes non représentables, les collisions d’encodage des nœuds anonymes ou un état d’échec préalable du constructeur ; un préfixe accepté ne peut remplacer l’entrée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when native snapshot input admission fails before a publishable snapshot exists."
+msgstr "Utiliser lorsque l’admission d’une entrée d’instantané natif échoue avant qu’un instantané publiable n’existe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a read-side parse failure or a frame-compression violation for this producer input refusal."
+msgstr "Ne pas substituer à ce refus d’entrée du producteur un échec d’analyse côté lecteur ou une violation de compression des trames."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original typed ingestion error, including its checkpoint, term position or colliding blank identities."
+msgstr "Conserver l’erreur d’ingestion typée originale, y compris son point de contrôle, sa position de terme ou les identités de nœuds anonymes en collision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The refusal governs input fidelity and producer readiness, independently of the mandated compression profile of emitted frames."
+msgstr "Le refus concerne la fidélité des entrées et la disponibilité du producteur, indépendamment du profil de compression imposé aux trames émises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "An incomplete source view is refused at its ingestion checkpoint instead of publishing the rows read before its failure."
+msgstr "Une vue source incomplète est refusée à son point de contrôle d’ingestion plutôt que de publier les lignes lues avant son échec."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native snapshot input admission"
+msgstr "admission des entrées d’instantané natif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer input contract requiring complete source access, ready operational checkpoints and lossless representation of every selected native RDF term, reifier and annotation before a snapshot can be published."
+msgstr "Le contrat d’entrée du producteur exigeant un accès complet aux sources, des points de contrôle opérationnels prêts et une représentation sans perte de chaque terme RDF natif, réificateur et annotation sélectionnés avant publication d’un instantané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the native ingestion contract realized by the GMEOW snapshot authorship profile."
+msgstr "Utiliser pour identifier le contrat d’ingestion native réalisé par le profil de production d’instantanés GMEOW."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret successful prefix ingestion as permission to publish after any selected source has failed."
+msgstr "Ne pas interpréter l’ingestion réussie d’un préfixe comme une permission de publier après l’échec d’une source sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Ingest every selected source through the native writer, check completion and retain its full ingestion receipt before publishing."
+msgstr "Ingérer chaque source sélectionnée par le producteur natif, vérifier son achèvement et conserver son reçu d’ingestion complet avant publication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native statement bindings and annotations retain their own tables; the contract never authorizes flattening away their information."
+msgstr "Les liaisons d’énoncés et les annotations natives conservent leurs propres tables ; le contrat n’autorise jamais l’effacement de leurs informations par aplatissement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#example"
+msgid "A native rule source retains its reifier bindings when admitted to the snapshot alongside ordinary RDF statements."
+msgstr "Une source de règles natives conserve ses liaisons de réificateurs lors de son admission dans l’instantané aux côtés des énoncés RDF ordinaires."

@@ -44,7 +44,7 @@ fn quad(s: &str, p: &str, o: &str) -> RdfQuad {
 fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().expect("valid test dataset")
 }
@@ -65,7 +65,7 @@ fn dataset_without_axiom(
         {
             continue;
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder
         .freeze()
@@ -80,14 +80,7 @@ fn scratch_leave_one_out(edb: &RdfDataset, axiom: &LeaveOneOutAxiom) -> bool {
     )
     .expect("scratch leave-one-out reasons")
     .iter()
-    .any(|inferred| {
-        calculus_term(&inferred.subject) == calculus_term(&axiom.subject)
-            && calculus_term(&inferred.predicate) == calculus_term(&axiom.predicate)
-            && inferred
-                .object
-                .as_iri()
-                .is_some_and(|object| calculus_term(object) == calculus_term(&axiom.object))
-    })
+    .any(|inferred| inferred_matches_axiom(inferred, axiom))
 }
 
 fn fact_surfaces(facts: &TypedFactSet) -> Vec<(String, Vec<String>)> {
@@ -126,7 +119,7 @@ fn direct_edb_fold_is_fact_identical_to_the_world_store_adapter() {
         RdfQuad::new(RdfTerm::iri(A), p, RdfTerm::iri(C)),
         RdfQuad::new(RdfTerm::iri(B), p, RdfTerm::iri(C)).in_graph(RdfTerm::blank_node("graph")),
     ] {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     let dataset = builder.freeze().expect("mixed-world fixture freezes");
 
@@ -135,7 +128,7 @@ fn direct_edb_fold_is_fact_identical_to_the_world_store_adapter() {
     // The retired production shape is retained here as a semantic oracle: copy
     // through WorldStore, enumerate its named worlds, and build the same typed
     // facts. The optimized one-pass adapter must change cost, never membership.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store
         .load_dataset(dataset.as_ref())
         .expect("world-store oracle load");
@@ -403,6 +396,26 @@ fn disjoint_union_pair_is_certified_without_a_native_transaction() {
         &[LeaveOneOutAxiom::new(A, DISJOINT, B)],
     )
     .expect("disjoint-union witness is answered by the certified batch");
+    assert_eq!(observed.rederived, vec![true]);
+    assert_eq!(observed.certified_probes, 1);
+    assert_eq!(observed.native_probes, 0);
+}
+
+#[test]
+fn reciprocal_disjointness_batch_matches_scratch_after_exact_retraction() {
+    let store = dataset(vec![quad(A, DISJOINT, B), quad(B, DISJOINT, A)]);
+    let probe = LeaveOneOutAxiom::new(A, DISJOINT, B);
+    let observed = leave_one_out_rederived_observed(
+        prepare_reasoning_input(&store).unwrap(),
+        &SelectedDomains::new([]).unwrap(),
+        std::slice::from_ref(&probe),
+    )
+    .expect("reciprocal disjointness is answered by the certified batch");
+
+    assert_eq!(
+        observed.rederived,
+        vec![scratch_leave_one_out(&store, &probe)]
+    );
     assert_eq!(observed.rederived, vec![true]);
     assert_eq!(observed.certified_probes, 1);
     assert_eq!(observed.native_probes, 0);

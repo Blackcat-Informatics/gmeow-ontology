@@ -35,6 +35,7 @@ define_diag_kind! {
     code = "gts-profile.snapshot-admission";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "GTS snapshot input admission: {}", cause;
+    failure_class = "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal";
 }
 
 /// The complete GTS-profile diagnostic-code catalog, in registration order.

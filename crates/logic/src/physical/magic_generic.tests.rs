@@ -50,7 +50,7 @@ impl TupleAnnotationAlgebra for SumProduct {
 }
 
 fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     for (s, p, o) in triples {
         store.insert_quad(W, s, p, o);
     }

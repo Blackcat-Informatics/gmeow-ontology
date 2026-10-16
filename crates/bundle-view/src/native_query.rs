@@ -64,7 +64,7 @@ pub fn dataset_from_files(
         parsed.push(dataset_from_turtle(&bytes, &path.display().to_string())?);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    Ok(Arc::new(RdfDataset::union(&refs)))
+    Ok(Arc::new(RdfDataset::union(&refs)?))
 }
 
 /// Run a SPARQL query over `dataset`, returning the native result.

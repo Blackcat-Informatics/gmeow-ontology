@@ -115,9 +115,9 @@ pub(super) fn record(
                 let mut builder = RdfDatasetBuilder::new();
                 // Native arena transfer carries reifiers, annotations and graph identity
                 // as well as triples. Only this operation's small probe is appended.
-                builder.push_dataset(source);
+                builder.push_dataset(source)?;
                 for quad in &abox {
-                    builder.push_owned_quad(quad);
+                    builder.push_owned_quad(quad)?;
                 }
                 let dataset = builder.freeze().map_err(gmeow_errors::Diag::from)?;
                 let subjects: BTreeSet<_> = abox

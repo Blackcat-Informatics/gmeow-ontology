@@ -212,31 +212,36 @@ impl Gmn0Model {
         Self { quads }
     }
 
-    /// Rebuild a frozen [`RdfDataset`] carrying exactly this model's quads.
-    #[must_use]
-    pub fn to_dataset(&self) -> Arc<RdfDataset> {
+    /// Rebuild a frozen dataset carrying exactly this model's quads.
+    ///
+    /// # Errors
+    /// Returns the original native storage failure.
+    pub fn to_dataset(&self) -> gmeow_errors::Result<Arc<RdfDataset>> {
         let mut builder = RdfDatasetBuilder::new();
         for quad in &self.quads {
-            builder.push_owned_quad(quad);
+            builder.push_owned_quad(quad)?;
         }
-        builder
-            .freeze()
-            .expect("a Gmn0Model built from valid RdfQuads freezes cleanly")
+        Ok(builder.freeze()?)
     }
 
     /// The RDFC-1.0 canonical N-Quads form — the single canonical-comparison primitive
     /// this codec's round-trip gate (and the GTS/N-Quads byte-teeth gates) share.
-    #[must_use]
-    pub fn canonical_nquads(&self) -> String {
-        purrdf::canonicalize(&self.to_dataset()).nquads
+    ///
+    /// # Errors
+    /// Returns the original native model-construction failure.
+    pub fn canonical_nquads(&self) -> gmeow_errors::Result<String> {
+        let dataset = self.to_dataset()?;
+        Ok(purrdf::canonicalize(&dataset).nquads)
     }
 }
 
 /// Two GMN-0 models are the SAME model iff their RDFC-1.0 canonical N-Quads agree —
 /// the codec's round-trip gate's sole equality oracle.
-#[must_use]
-pub fn gmn0_canonically_equal(a: &Gmn0Model, b: &Gmn0Model) -> bool {
-    a.canonical_nquads() == b.canonical_nquads()
+///
+/// # Errors
+/// Returns a native construction failure; an operational error is never inequality.
+pub fn gmn0_canonically_equal(a: &Gmn0Model, b: &Gmn0Model) -> gmeow_errors::Result<bool> {
+    Ok(a.canonical_nquads()? == b.canonical_nquads()?)
 }
 
 /// A deterministic, total sort key over an [`RdfQuad`] (string-keyed; blank labels sort
@@ -4344,11 +4349,11 @@ pub(crate) struct RoundTrip {
 }
 
 impl RoundTrip {
-    pub(crate) fn evaluate(model: &Gmn0Model, dict: &GmnDictionary) -> Result<Self, Gmn1Error> {
+    pub(crate) fn evaluate(model: &Gmn0Model, dict: &GmnDictionary) -> gmeow_errors::Result<Self> {
         let document = gmn1_write(model, dict)?;
         let reconstructed = gmn1_read(&document, dict)?;
-        let original_canonical = model.canonical_nquads();
-        let reconstructed_canonical = reconstructed.canonical_nquads();
+        let original_canonical = model.canonical_nquads()?;
+        let reconstructed_canonical = reconstructed.canonical_nquads()?;
         Ok(Self {
             document,
             reconstructed,
@@ -4375,8 +4380,8 @@ impl RoundTrip {
 /// call. `Ok(())` iff the round-trip is exact; `Err` names the concrete failure
 /// (write-side uncovered term, read-side parse/uncovered defect, or a canonical
 /// mismatch between the original and reconstructed model).
-pub fn round_trip_check(model: &Gmn0Model, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
-    RoundTrip::evaluate(model, dict)?.check_canonical()
+pub fn round_trip_check(model: &Gmn0Model, dict: &GmnDictionary) -> gmeow_errors::Result<()> {
+    Ok(RoundTrip::evaluate(model, dict)?.check_canonical()?)
 }
 
 #[path = "gmn1_codec.tests.rs"]

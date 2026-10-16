@@ -47,7 +47,7 @@ fn source_legs<'a>(lowered: &'a SparqlLowering, source: &str, cell: &str) -> &'a
     &lowered.legs[&binding_key(cell, &cell.bindings[0])]
 }
 
-fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> Arc<RdfDataset> {
+fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> purrdf::backend::DatasetHandle {
     let engine = NativeSparqlEngine::new();
     let typed = engine
         .prepare_algebra(query.clone(), QueryOptions::EMPTY)
@@ -65,7 +65,7 @@ fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> Arc<RdfDataset> {
     let result = evaluate(&typed);
     let rendered = evaluate(&emitted);
     assert!(
-        purrdf::datasets_isomorphic(&result, &rendered),
+        purrdf::datasets_isomorphic(result.as_ref(), rendered.as_ref()),
         "emitted mapping changed native execution"
     );
     result
@@ -87,7 +87,7 @@ fn typed_and_emitted_binding_preserve_get_suppression_and_unguarded_put() {
     );
     let get = run(&legs.get, &lowered.queries["test.rq"], &input);
     assert!(purrdf::datasets_isomorphic(
-        &get,
+        get.as_ref(),
         &dataset("<urn:visible> <urn:view> <urn:value> .")
     ));
     let put = run(
@@ -96,7 +96,7 @@ fn typed_and_emitted_binding_preserve_get_suppression_and_unguarded_put() {
         &dataset("<urn:hidden> <urn:view> <urn:edit> ."),
     );
     assert!(purrdf::datasets_isomorphic(
-        &put,
+        put.as_ref(),
         &dataset("<urn:hidden> <urn:source> <urn:edit> .")
     ));
     assert_eq!(
@@ -123,15 +123,15 @@ fn typed_cell_domains_stay_isolated_from_profile_union_and_other_contexts() {
         dataset("<urn:item> <urn:source> <urn:value>; <urn:other-source> <urn:other-value> .");
     let isolated = run(&legs.get, &isolated_text, &input);
     assert!(purrdf::datasets_isomorphic(
-        &isolated,
+        isolated.as_ref(),
         &dataset("<urn:item> <urn:view> <urn:value> .")
     ));
     let mut contextual = purrdf::RdfDatasetBuilder::new();
-    let s = contextual.intern_iri("urn:item");
-    let p = contextual.intern_iri("urn:source");
-    let o = contextual.intern_iri("urn:context-only");
-    let world = contextual.intern_iri("urn:standpoint");
-    contextual.push_quad(s, p, o, Some(world));
+    let s = contextual.intern_iri("urn:item").unwrap();
+    let p = contextual.intern_iri("urn:source").unwrap();
+    let o = contextual.intern_iri("urn:context-only").unwrap();
+    let world = contextual.intern_iri("urn:standpoint").unwrap();
+    contextual.push_quad(s, p, o, Some(world)).unwrap();
     let output = run(&legs.get, &isolated_text, &contextual.freeze().unwrap());
     assert_eq!(
         purrdf::native_quads::flat_rdf_quads(&output).count(),
@@ -157,14 +157,14 @@ fn typed_mapping_executes_nested_paths_optionals_values_and_legalized_expression
   gm:valueClassMap ([gm:whenValue <urn:kind>; gm:toClass <urn:Target>])].
 "#;
     let lowered = compile(source, "");
-    let legs = source_legs(&lowered, &source, "urn:cell");
+    let legs = source_legs(&lowered, source, "urn:cell");
     assert!(legs.put.is_none());
     let input = dataset(
         "<urn:s> <urn:edge> <urn:middle>; <urn:label> \"hello\"; <urn:approved> true . <urn:middle> <urn:right> <urn:kind> . <urn:unapproved> <urn:edge> <urn:middle>; <urn:label> \"hello\" .",
     );
     let output = run(&legs.get, &lowered.queries["test.rq"], &input);
     assert!(purrdf::datasets_isomorphic(
-        &output,
+        output.as_ref(),
         &dataset("<urn:s> a <urn:Target> .")
     ));
 }
@@ -179,7 +179,7 @@ fn typed_retag_preserves_script_selection_and_hidden_bearer_guard() {
 "#;
     let ontology = "gm:hasName rdfs:range gm:Appellation . gm:fullName rdfs:domain gm:Appellation; gm:coarsenGuarded true .";
     let lowered = compile(source, ontology);
-    let legs = source_legs(&lowered, &source, "urn:cell");
+    let legs = source_legs(&lowered, source, "urn:cell");
     let input = dataset(
         r#"
 <urn:visible> gm:fullName "hello"@x-gmeow-test; gm:nameLanguage <urn:language>; gm:nameScript "Latn" .
@@ -191,7 +191,7 @@ fn typed_retag_preserves_script_selection_and_hidden_bearer_guard() {
     );
     let output = run(&legs.get, &lowered.queries["test.rq"], &input);
     assert!(purrdf::datasets_isomorphic(
-        &output,
+        output.as_ref(),
         &dataset("<urn:visible> <urn:label> \"hello\"@en-Latn .")
     ));
 }
@@ -207,7 +207,7 @@ fn unsupported_expression_has_loss_evidence_without_a_placeholder_binding() {
         &dataset("<urn:s> <urn:source> <urn:o> ."),
     );
     assert!(purrdf::datasets_isomorphic(
-        &output,
+        output.as_ref(),
         &dataset("<urn:s> <urn:view> <urn:o> .")
     ));
     let drops = lowered.loss.projection_drops_for(&lowered.ledger[0].target);
@@ -232,7 +232,7 @@ fn native_and_emitted_candidate_put_keep_literal_evidence_and_import_ownership()
    gm:ingestResidue "external input cannot attest the original measurement"]].
 "#;
     let lowered = compile(source, "");
-    let legs = source_legs(&lowered, &source, "urn:cell");
+    let legs = source_legs(&lowered, source, "urn:cell");
     let result = run(
         legs.put.as_ref().unwrap(),
         &lowered.put_queries["test.put.rq"],
@@ -247,7 +247,11 @@ fn native_and_emitted_candidate_put_keep_literal_evidence_and_import_ownership()
         && row.object == purrdf::RdfTerm::iri("https://blackcatinformatics.ca/gmeow/import/test")));
 }
 
-fn profile_output(lowered: &SparqlLowering, put: bool, input: &Arc<RdfDataset>) -> Arc<RdfDataset> {
+fn profile_output(
+    lowered: &SparqlLowering,
+    put: bool,
+    input: &Arc<RdfDataset>,
+) -> purrdf::backend::DatasetHandle {
     let text = if put {
         &lowered.put_queries["test.put.rq"]
     } else {
@@ -273,7 +277,7 @@ fn independent_output(
             &legs.get
         };
         let result = run(query, &native::emit(query.clone()).unwrap(), input);
-        union.push_dataset(&result);
+        union.push_dataset(&result).unwrap();
     }
     union.freeze().unwrap()
 }
@@ -311,11 +315,11 @@ fn full_profiles_equal_independent_binding_execution_despite_shared_variable_nam
         let input = dataset(input);
         let actual = profile_output(&lowered, put, &input);
         assert!(
-            purrdf::datasets_isomorphic(&actual, &dataset(expected)),
+            purrdf::datasets_isomorphic(actual.as_ref(), &dataset(expected)),
             "another binding's template crossed its branch"
         );
         assert!(purrdf::datasets_isomorphic(
-            &actual,
+            actual.as_ref(),
             &independent_output(&lowered, put, &input)
         ));
     }
@@ -344,7 +348,7 @@ fn candidate_ground_rows_and_template_blanks_belong_only_to_their_successful_bra
     );
     assert!(
         purrdf::datasets_isomorphic(
-            &recovered,
+            recovered.as_ref(),
             &dataset("<urn:item> <urn:source> <urn:value> .")
         ),
         "inactive claim branches must not emit ground import metadata or partial blank claims"
@@ -356,7 +360,10 @@ fn candidate_ground_rows_and_template_blanks_belong_only_to_their_successful_bra
         let input = dataset(input);
         let actual = profile_output(&lowered, true, &input);
         assert!(
-            purrdf::datasets_isomorphic(&actual, &independent_output(&lowered, true, &input)),
+            purrdf::datasets_isomorphic(
+                actual.as_ref(),
+                &independent_output(&lowered, true, &input)
+            ),
             "candidate templates must allocate independent blanks and retain branch-local claims"
         );
     }
@@ -375,11 +382,11 @@ fn optional_binding_remains_unbound_in_its_own_profile_branch() {
     let input = dataset("<urn:item> <urn:source> <urn:value> .");
     let output = profile_output(&lowered, false, &input);
     assert!(purrdf::datasets_isomorphic(
-        &output,
+        output.as_ref(),
         &dataset("<urn:item> <urn:view> <urn:value> .")
     ));
     assert!(purrdf::datasets_isomorphic(
-        &output,
+        output.as_ref(),
         &independent_output(&lowered, false, &input)
     ));
 }
@@ -550,7 +557,10 @@ fn retag_helpers_never_capture_an_authored_value_with_the_same_name() {
         );
         let output = profile_output(&lowered, false, &input);
         assert!(
-            purrdf::datasets_isomorphic(&output, &dataset("<urn:item> <urn:label> \"hello\"@en .")),
+            purrdf::datasets_isomorphic(
+                output.as_ref(),
+                &dataset("<urn:item> <urn:label> \"hello\"@en .")
+            ),
             "authored value ?{value} must remain distinct from generated retag roles"
         );
     }
@@ -584,7 +594,7 @@ fn authored_language_final_value_and_hidden_bearer_roles_keep_their_own_bindings
     let output = profile_output(&lowered, false, &input);
     assert!(
         purrdf::datasets_isomorphic(
-            &output,
+            output.as_ref(),
             &dataset("<urn:visible> <urn:label> \"hello\"@en-Latn .")
         ),
         "authored language correlation, final-value filter and hidden-bearer exclusion must all survive fresh helper allocation"
@@ -607,7 +617,7 @@ fn value_class_lookup_does_not_capture_an_authored_class_suffixed_variable() {
         dataset("<urn:item> <urn:kind> <urn:kind-value>; <urn:evidence> <urn:SourceEvidence> .");
     let output = profile_output(&lowered, false, &input);
     assert!(purrdf::datasets_isomorphic(
-        &output,
+        output.as_ref(),
         &dataset("<urn:item> a <urn:Target> .")
     ));
 }
@@ -689,7 +699,10 @@ fn name_part_retag_reuses_an_authored_parent_language_binding() {
     );
     let output = profile_output(&lowered, false, &input);
     assert!(
-        purrdf::datasets_isomorphic(&output, &dataset("<urn:part> <urn:label> \"hello\"@en .")),
+        purrdf::datasets_isomorphic(
+            output.as_ref(),
+            &dataset("<urn:part> <urn:label> \"hello\"@en .")
+        ),
         "allocated helper names must not disconnect a real authored parent-language correlation"
     );
 }

@@ -68,6 +68,14 @@ impl MinimumPattern {
         heads.push(PropertyAtom([first, EvalTerm::named(DIFFERENT), other]));
         heads
     }
+
+    /// How many leading [`Self::analysis_heads`] belong to the first ordinal alone:
+    /// its property head and, when qualified, its class head. These are exactly the
+    /// heads [`PreparedMinimum::visit`] emits for a count of one, which mints a single
+    /// witness and relates no pair by inequality.
+    pub(crate) fn single_witness_heads(&self) -> usize {
+        1 + usize::from(self.class.is_some())
+    }
 }
 
 #[derive(Debug)]

@@ -79,10 +79,12 @@ fn synth_to_dataset(g: &Graph) -> Arc<RdfDataset> {
     let mut ids: Vec<TermId> = Vec::with_capacity(g.terms.len());
     for term in &g.terms {
         let id = match term.kind {
-            TermKind::Iri => builder.intern_iri(&term.value.clone().unwrap_or_default()),
-            TermKind::Bnode => {
-                builder.intern_blank(&term.value.clone().unwrap_or_default(), BlankScope(0))
-            }
+            TermKind::Iri => builder
+                .intern_iri(&term.value.clone().unwrap_or_default())
+                .unwrap(),
+            TermKind::Bnode => builder
+                .intern_blank(&term.value.clone().unwrap_or_default(), BlankScope(0))
+                .unwrap(),
             TermKind::Literal => {
                 let lexical = term.value.clone().unwrap_or_default();
                 let lit = match (&term.lang, &term.direction) {
@@ -106,21 +108,23 @@ fn synth_to_dataset(g: &Graph) -> Arc<RdfDataset> {
                         }
                     }
                 };
-                builder.intern_literal(lit)
+                builder.intern_literal(lit).unwrap()
             }
         };
         ids.push(id);
     }
 
     for &(s, p, o, gname) in &g.quads {
-        builder.push_quad(ids[s], ids[p], ids[o], gname.map(|gi| ids[gi]));
+        builder
+            .push_quad(ids[s], ids[p], ids[o], gname.map(|gi| ids[gi]))
+            .unwrap();
     }
     for &(rid, (s, p, o), _gname) in &g.reifiers {
-        let triple = builder.intern_triple(ids[s], ids[p], ids[o]);
-        builder.push_reifier(ids[rid], triple);
+        let triple = builder.intern_triple(ids[s], ids[p], ids[o]).unwrap();
+        builder.push_reifier(ids[rid], triple).unwrap();
     }
     for &(r, p, v, _gname) in &g.annotations {
-        builder.push_annotation(ids[r], ids[p], ids[v]);
+        builder.push_annotation(ids[r], ids[p], ids[v]).unwrap();
     }
 
     builder

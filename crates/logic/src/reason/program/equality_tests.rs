@@ -43,7 +43,7 @@ fn literal(s: &str, p: &str, text: &str, datatype: &str) -> RdfQuad {
 fn source(rows: &[RdfQuad]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(row);
+        builder.push_owned_quad(row).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -287,14 +287,47 @@ fn native_equality_refuses_unknown_datatype_comparison() {
         literal(A, P, "one", "urn:equality:opaque"),
         literal(B, P, "uno", "urn:equality:opaque"),
     ]);
-    let error = run(&rows, &[(SAME, SEEN)], None)
-        .err()
-        .expect("unknown datatype equality must refuse execution");
-    assert!(
-        error
-            .to_string()
-            .contains("undefined datatype value comparison")
+    let closure = run(&rows, &[(SAME, SEEN)], None).unwrap();
+    let result = super::test_support::assert_obstructed(
+        &copying(&[(SAME, SEEN)]),
+        closure,
+        crate::reason::refute::NativeObstructionKind::UnsupportedValue,
     );
+    assert!(
+        result
+            .inferred()
+            .iter()
+            .all(|row| row.is_edb || row.predicate != SAME)
+    );
+    let execution = result.native_execution().unwrap();
+    let ledger = execution
+        .families
+        .iter()
+        .find(|ledger| !ledger.producer_obstructions.is_empty())
+        .unwrap();
+    assert!(
+        ledger
+            .producer_obstructions
+            .iter()
+            .all(|obstruction| !obstruction.reason.support.is_empty())
+    );
+    let projection = crate::result_rdf::project_reasoning_result(&result).unwrap();
+    let restored = crate::result_rdf::parse_reasoning_graph(&projection).unwrap();
+    assert_eq!(restored.native_execution().unwrap(), execution);
+    let mut corrupt = result.clone();
+    let ledger = corrupt
+        .provenance
+        .native_execution
+        .as_mut()
+        .unwrap()
+        .families
+        .iter_mut()
+        .find(|ledger| !ledger.producer_obstructions.is_empty())
+        .unwrap();
+    let mut obstruction = ledger.producer_obstructions.pop_first().unwrap();
+    obstruction.reason.support[0] = crate::reason::refute::NativeProofId([0; 32]);
+    ledger.producer_obstructions.insert(obstruction);
+    assert!(corrupt.validate_native_closure().is_err());
 }
 
 #[test]

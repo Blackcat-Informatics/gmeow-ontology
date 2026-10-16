@@ -7,12 +7,14 @@ use gmeow_logic_compile::frontend::parse_logic_str;
 /// A real typed rule input, independently parsed for cache identity checks.
 fn program() -> LogicProgram {
     parse_logic_str(
-            "@prefix logic: <https://blackcatinformatics.ca/logic/> .
+            r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
              @prefix ex: <https://example.test/> .
              @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-             ex:rule logic:instanceOf logic:Rule ;
-                 logic:head [ rdf:subject \"?x\" ; rdf:predicate ex:derived ; rdf:object \"?y\" ] ;
-                 logic:body [ rdf:subject \"?x\" ; rdf:predicate ex:asserted ; rdf:object \"?y\" ] .",
+             _:rulec982f48bS3_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rulec982f48bS3_y a logic:TermCarrier ; logic:termVariable "y" .
+ex:rule logic:instanceOf logic:Rule ;
+                 logic:head [ rdf:reifies <<( _:rulec982f48bS3_x ex:derived _:rulec982f48bS3_y )>> ] ;
+                 logic:body [ rdf:reifies <<( _:rulec982f48bS3_x ex:asserted _:rulec982f48bS3_y )>> ] ."#,
             None,
         )
         .expect("synthetic rule parses")
@@ -86,6 +88,45 @@ fn preparation_reuses_ir_and_distinguishes_complete_context() {
     ));
 }
 
+#[test]
+fn native_input_binds_axiom_content_even_when_executable_rules_are_identical() {
+    use gmeow_logic_compile::ir::{Formula, Term};
+
+    let with_axiom = |value| {
+        let mut program = program();
+        program.axioms.push(
+            Formula::atom(
+                Term::iri("urn:metadata").unwrap(),
+                vec![
+                    Term::iri("urn:source").unwrap(),
+                    Term::literal(value, None).unwrap(),
+                ],
+            )
+            .unwrap()
+            .as_horn_axiom()
+            .unwrap(),
+        );
+        program
+    };
+    let first = prepare_program(&with_axiom("first")).unwrap();
+    let other = prepare_program(&with_axiom("other")).unwrap();
+    assert_eq!(first.rules.len(), other.rules.len());
+    assert_eq!(first.rules[0].head, other.rules[0].head);
+    assert_ne!(first.identity, other.identity);
+    assert_eq!(first.publication().identity, first.identity);
+    let facts = std::collections::BTreeMap::new();
+    let sources = crate::reason::source_existentials::Collector::default()
+        .prepare()
+        .unwrap();
+    let domains = crate::physical::SelectedDomains::new([]).unwrap();
+    let input = |prepared: &PreparedProgram| {
+        prepared
+            .reasoning_input(&[], &sources, &domains, &facts, Arc::from([]), &[])
+            .unwrap()
+    };
+    assert_ne!(input(&first).identity(), input(&other).identity());
+}
+
 /// Unsupported formulas retain their exact boundary on a hit; absence of a lowered
 /// head must never erase the reason no negative proof is available.
 #[test]
@@ -117,7 +158,7 @@ fn cache_hit_preserves_formula_residue() {
 #[test]
 fn cache_has_bounded_retention_without_invalidating_live_consumers() {
     let program = program();
-    let retained = Arc::new(PreparedProgram::lower(&program).expect("lower"));
+    let retained = prepare_program(&program).expect("lower");
     let mut cache = PreparationCache::default();
     for index in 0..=MAX_ENTRIES {
         let mut key = [0; 32];
@@ -127,7 +168,7 @@ fn cache_has_bounded_retention_without_invalidating_live_consumers() {
     assert_eq!(cache.entries.len(), MAX_ENTRIES);
     assert!(cache.get(&[0; 32]).is_none());
     assert_eq!(retained.rules.len(), 1);
-    let mut oversized = PreparedProgram::lower(&program).expect("lower large");
+    let mut oversized = retained.publication();
     oversized.rules[0].rule_iri = "x".repeat(MAX_RENDERED_BYTES + 1);
     assert!(!oversized.cacheable());
 }

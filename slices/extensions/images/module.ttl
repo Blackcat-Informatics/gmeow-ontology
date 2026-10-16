@@ -641,7 +641,7 @@ gmeow:ImageRegion logic:subClassOf
 # gmeow:RegionSelectorShape — exactly one selector type and exactly one literal selector value.
 gmeow:RegionSelector logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:selectorType ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:selectorValue ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:selectorValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
 
 # gmeow:SceneGraphEdgeShape — exactly one subject region, object region, and relation; at most one
 # confidence in [0.0, 1.0]. The bounded numeric range is validation-only (no OWL faceted-datatype

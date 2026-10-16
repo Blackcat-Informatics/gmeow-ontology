@@ -28,26 +28,26 @@ impl ConformanceOntology {
             if quad.g.is_none() {
                 // Owned terms preserve their qualified blank identities. A native
                 // push carries triple terms without a text codec or source parse.
-                builder.push_owned_quad(&dataset.to_owned_quad(index, quad));
+                builder.push_owned_quad(&dataset.to_owned_quad(index, quad))?;
             }
         }
-        let reifies = builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies");
+        let reifies = builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies")?;
         for (reifier, triple, graph) in dataset.reifiers_with_graph() {
             if graph.is_none() {
-                let subject = builder.intern_owned_term(&dataset.to_owned_term(reifier));
-                let object = builder.intern_owned_term(&dataset.to_owned_term(triple));
-                builder.push_quad(subject, reifies, object, None);
+                let subject = builder.intern_owned_term(&dataset.to_owned_term(reifier))?;
+                let object = builder.intern_owned_term(&dataset.to_owned_term(triple))?;
+                builder.push_quad(subject, reifies, object, None)?;
             }
         }
         for (reifier, predicate, object, graph) in dataset.annotations_with_graph() {
             if graph.is_none() {
-                let subject = builder.intern_owned_term(&dataset.to_owned_term(reifier));
-                let predicate = builder.intern_owned_term(&dataset.to_owned_term(predicate));
-                let object = builder.intern_owned_term(&dataset.to_owned_term(object));
-                builder.push_quad(subject, predicate, object, None);
+                let subject = builder.intern_owned_term(&dataset.to_owned_term(reifier))?;
+                let predicate = builder.intern_owned_term(&dataset.to_owned_term(predicate))?;
+                let object = builder.intern_owned_term(&dataset.to_owned_term(object))?;
+                builder.push_quad(subject, predicate, object, None)?;
             }
         }
-        let default = builder.freeze().map_err(fail)?;
+        let default = builder.freeze()?;
         if default.quad_count() == 0 {
             return Err(fail("terminal bundle omitted its default ontology graph"));
         }
@@ -57,13 +57,15 @@ impl ConformanceOntology {
         })
     }
 
-    fn reader(&self) -> &Arc<RdfDataset> {
-        self.reader.get_or_init(|| {
-            // The shared canonical projector replaces the former test-local
-            // alias implementation. Preparation happens once in the producer;
-            // every test process restores this exact native result.
-            gmeow_logic_compile::projections::reader_view::with_owl_rdfs_projection(&self.default)
-        })
+    fn reader(&self) -> FixtureResult<&Arc<RdfDataset>> {
+        if let Some(reader) = self.reader.get() {
+            return Ok(reader);
+        }
+        // Publish only a fully constructed reader view. Failure remains retryable
+        // and never installs a partial dataset in the shared producer cache.
+        let projected =
+            gmeow_logic_compile::projections::reader_view::with_owl_rdfs_projection(&self.default)?;
+        Ok(self.reader.get_or_init(|| projected))
     }
 
     pub(super) fn authored_pack(&self) -> FixtureResult<Vec<u8>> {
@@ -71,7 +73,7 @@ impl ConformanceOntology {
     }
 
     pub(super) fn pack(&self) -> FixtureResult<Vec<u8>> {
-        PackBuilder::build_bytes(self.reader()).map_err(fail)
+        PackBuilder::build_bytes(self.reader()?).map_err(fail)
     }
 
     pub(super) fn text(&self) -> FixtureResult<Vec<u8>> {

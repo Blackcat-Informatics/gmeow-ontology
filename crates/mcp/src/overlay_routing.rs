@@ -24,7 +24,7 @@ pub(super) fn transient_union(
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     if let Some(canon) = canon {
-        builder.push_dataset(canon);
+        builder.push_dataset(canon)?;
     }
     let scope = builder
         .blank_identities()
@@ -39,25 +39,25 @@ pub(super) fn transient_union(
             })
         })?;
     let external = RdfTerm::iri(super::EXTERNAL_OVERLAY_GRAPH);
-    let external_id = builder.intern_owned_term(&external);
-    builder.declare_named_graph(external_id);
+    let external_id = builder.intern_owned_term(&external)?;
+    builder.declare_named_graph(external_id)?;
     for mut quad in overlay.owned_quads() {
         quad.graph_name = None;
-        builder.push_owned_quad_scoped(&quad, scope);
+        builder.push_owned_quad_scoped(&quad, scope)?;
         quad.graph_name = Some(external.clone());
-        builder.push_owned_quad_scoped(&quad, scope);
+        builder.push_owned_quad_scoped(&quad, scope)?;
     }
     for mut reifier in overlay.owned_reifiers() {
         reifier.graph = None;
-        builder.push_owned_reifier_scoped(&reifier, scope);
+        builder.push_owned_reifier_scoped(&reifier, scope)?;
         reifier.graph = Some(external.clone());
-        builder.push_owned_reifier_scoped(&reifier, scope);
+        builder.push_owned_reifier_scoped(&reifier, scope)?;
     }
     for mut annotation in overlay.owned_annotations() {
         annotation.graph = None;
-        builder.push_owned_annotation_scoped(&annotation, scope);
+        builder.push_owned_annotation_scoped(&annotation, scope)?;
         annotation.graph = Some(external.clone());
-        builder.push_owned_annotation_scoped(&annotation, scope);
+        builder.push_owned_annotation_scoped(&annotation, scope)?;
     }
     Ok(builder.freeze()?)
 }

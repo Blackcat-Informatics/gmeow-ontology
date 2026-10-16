@@ -23,7 +23,7 @@ fn typed_lit_quad(s: &str, p: &str, value: &str, dt: &str) -> RdfQuad {
 fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
     for q in quads {
-        b.push_owned_quad(&q);
+        b.push_owned_quad(&q).unwrap();
     }
     b.freeze().expect("freeze")
 }
@@ -140,10 +140,6 @@ fn ifp_declaration_cannot_merge_subjects_in_another_world() {
     assert!(is_consistent(input.as_ref()));
     assert!(!is_inconsistent(input.as_ref()));
 }
-fn withholds(edb: &RdfDataset) -> bool {
-    decide(edb).is_none()
-}
-
 #[test]
 fn empty_edb_does_not_engage() {
     let edb = RdfDatasetBuilder::new().freeze().unwrap();
@@ -224,16 +220,33 @@ fn ifp_literal_merge_matches_by_value() {
 }
 
 #[test]
-fn ifp_with_class_construction_withholds() {
-    // The same IFP but a subClassOf/disjoint construction present — outside the
-    // pure assertional fragment ⇒ withhold rather than guess.
-    let edb = dataset(vec![
+fn ifp_with_unrelated_subclass_keeps_identity_admission_and_clash_teeth() {
+    // Shared schema producers admit the subclass independently. It neither
+    // blocks a complete identity observation nor hides a real IFP clash.
+    let mut rows = vec![
         quad("http://ex/p", RDF_TYPE, OWL_INVERSE_FUNCTIONAL_PROPERTY),
         quad("http://ex/s1", "http://ex/p", "http://ex/o"),
         quad("http://ex/A", RDFS_SUBCLASSOF, "http://ex/B"),
-    ]);
-    assert!(withholds(edb.as_ref()));
-    assert!(!decides_identity(edb.as_ref()));
+    ];
+    let edb = dataset(rows.clone());
+    let ledgers = observations(edb.as_ref());
+    assert!(
+        ledgers
+            .iter()
+            .flat_map(|ledger| &ledger.outcomes)
+            .any(|outcome| outcome.family == NativeRefutationFamily::Identity
+                && outcome.completion == NativeFamilyCompletion::Complete)
+    );
+    assert_eq!(
+        testing::decision(&ledgers, |family| family
+            != NativeRefutationFamily::Datatype),
+        Some(Decision::Consistent)
+    );
+
+    rows.push(quad("http://ex/s2", "http://ex/p", "http://ex/o"));
+    rows.push(quad("http://ex/s1", OWL_DIFFERENT_FROM, "http://ex/s2"));
+    let clashing = dataset(rows);
+    assert!(is_inconsistent(clashing.as_ref()));
 }
 
 #[test]

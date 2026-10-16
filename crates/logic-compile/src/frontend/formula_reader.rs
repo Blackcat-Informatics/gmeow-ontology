@@ -12,6 +12,7 @@ use std::mem::size_of;
 
 use purrdf::dataset_view::TermGuard;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use purrdf_hash::fixed::FixedState;
 
 use super::{
     ACTUAL_WORLD_IRI, FormulaSource, MODAL_ACCESSIBILITY_RELATIONS, SelectedFormulaGraph,
@@ -85,8 +86,8 @@ pub(crate) struct FormulaReader<
     temporal_prefix: String,
     interval_prefix: String,
     /// Successful size admissions belong to this immutable dataset and graph.
-    admitted_sources: HashSet<D::Id>,
-    memo: HashMap<MemoKey<D::Id>, MemoEntry>,
+    admitted_sources: HashSet<D::Id, FixedState>,
+    memo: HashMap<MemoKey<D::Id>, MemoEntry, FixedState>,
     insertion_order: VecDeque<MemoKey<D::Id>>,
     retained_bytes: usize,
     max_bytes: usize,
@@ -107,8 +108,8 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
             world_prefix,
             temporal_prefix,
             interval_prefix,
-            admitted_sources: HashSet::new(),
-            memo: HashMap::new(),
+            admitted_sources: HashSet::with_hasher(FixedState::new()),
+            memo: HashMap::with_hasher(FixedState::new()),
             insertion_order: VecDeque::new(),
             retained_bytes: 0,
             max_bytes: MAX_MEMO_BYTES,
@@ -736,6 +737,23 @@ fn parse_bound_vars(store: &impl FormulaSource, node: &Subject) -> ReadResult<Ve
     Ok(indexed.into_iter().map(|(_, n)| n).collect())
 }
 
+/// Read a rule's RDF-term inequality guard without changing it into value inequality.
+pub(super) fn read_rule_distinct_pair(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<(String, String)> {
+    super::admission::admit(store, node)?;
+    let terms = parse_term_carriers(store, node, "argument", &mut Vec::new())
+        .map_err(|error| super::formula_err_for(error.focus, error.detail))?;
+    let [Term::Var(left), Term::Var(right)] = terms.as_slice() else {
+        return Err(super::formula_err_for(
+            subject_str(node),
+            "logic:distinctBody requires exactly two variable arguments at indices 0 and 1",
+        ));
+    };
+    Ok((format!("?{left}"), format!("?{right}")))
+}
+
 /// Reuse the strict typed term reader for compact rule object carriers.
 /// No value properties means an ordinary RDF resource; any declared carrier is
 /// mandatory, including datatype-only and conflicting-value errors.
@@ -754,6 +772,8 @@ pub(super) fn read_atomic_carrier(
     ]
     .iter()
     .all(|field| formula_objects(store, carrier, field).is_empty())
+        && !super::has_structural_class(store, carrier, &Node::iri(logic_iri("TermCarrier")))
+        && formula_objects(store, carrier, "termIndex").is_empty()
     {
         return Ok(None);
     }

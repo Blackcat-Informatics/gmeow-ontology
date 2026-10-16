@@ -41,10 +41,10 @@ use std::hint::black_box;
 // NOTE: each case id must NOT equal a generator name — the macro emits a
 // per-case item under that id, which would shadow the imported generator — so the
 // ids carry the scale suffix (`_n6`, …) and stay distinct from the fn names.
-#[bench::transitive_closure_n6(transitive_closure(6))]
-#[bench::strongly_connected_n4(strongly_connected(4))]
-#[bench::same_generation_n3(same_generation(3))]
-#[bench::reachability_n6(reachability(6))]
+#[bench::transitive_closure_n6(transitive_closure(6).expect("synthetic benchmark workload"))]
+#[bench::strongly_connected_n4(strongly_connected(4).expect("synthetic benchmark workload"))]
+#[bench::same_generation_n3(same_generation(3).expect("synthetic benchmark workload"))]
+#[bench::reachability_n6(reachability(6).expect("synthetic benchmark workload"))]
 fn native_forward(workload: SynthWorkload) -> NativeForwardRun {
     black_box(
         run_native_forward(&workload.edb, &workload.program).expect("native forward run succeeds"),

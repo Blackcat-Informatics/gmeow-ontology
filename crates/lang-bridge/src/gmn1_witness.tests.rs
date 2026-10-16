@@ -51,7 +51,7 @@ fn multi_claim_model() -> Gmn0Model {
             iri("open"),
         ),
     ];
-    model_from_quads(&quads)
+    model_from_quads(&quads).unwrap()
 }
 
 #[test]
@@ -149,7 +149,7 @@ fn idempotence_holds_on_a_by_reference_literal_document() {
         format!("{GMEOW_NS}label"),
         RdfTerm::Literal(RdfLiteral::language_tagged("porte", "fr")),
     )];
-    let model = model_from_quads(&quads);
+    let model = model_from_quads(&quads).unwrap();
     let dict = empty_dict();
 
     let doc = gmn1_write(&model, &dict).expect("by-reference document writes");

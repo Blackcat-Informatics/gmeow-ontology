@@ -7,12 +7,17 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 # reach(?x, ?y) :- edge(?x, ?y) .
+_:rule5f66aa70S3_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rule5f66aa70S3_y a logic:TermCarrier ; logic:termVariable "y" .
 ex:reachBase a logic:Rule ;
-    logic:head [ rdf:subject "?x" ; rdf:predicate ex:reach ; rdf:object "?y" ] ;
-    logic:body [ rdf:subject "?x" ; rdf:predicate ex:edge ; rdf:object "?y" ] .
+    logic:head [ rdf:reifies <<( _:rule5f66aa70S3_x ex:reach _:rule5f66aa70S3_y )>> ] ;
+    logic:body [ rdf:reifies <<( _:rule5f66aa70S3_x ex:edge _:rule5f66aa70S3_y )>> ] .
 
 # reach(?x, ?z) :- edge(?x, ?y), reach(?y, ?z) .
+_:rule5f66aa70S4_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rule5f66aa70S4_z a logic:TermCarrier ; logic:termVariable "z" .
+_:rule5f66aa70S4_y a logic:TermCarrier ; logic:termVariable "y" .
 ex:reachStep a logic:Rule ;
-    logic:head [ rdf:subject "?x" ; rdf:predicate ex:reach ; rdf:object "?z" ] ;
-    logic:body [ rdf:subject "?x" ; rdf:predicate ex:edge ; rdf:object "?y" ] ,
-               [ rdf:subject "?y" ; rdf:predicate ex:reach ; rdf:object "?z" ] .
+    logic:head [ rdf:reifies <<( _:rule5f66aa70S4_x ex:reach _:rule5f66aa70S4_z )>> ] ;
+    logic:body [ rdf:reifies <<( _:rule5f66aa70S4_x ex:edge _:rule5f66aa70S4_y )>> ] ,
+               [ rdf:reifies <<( _:rule5f66aa70S4_y ex:reach _:rule5f66aa70S4_z )>> ] .

@@ -286,9 +286,9 @@ impl PreparedActionPolicy {
         self.validate()?;
         let mut builder = RdfDatasetBuilder::new();
         for row in &self.rows {
-            builder.push_owned_quad(&row.native());
+            builder.push_owned_quad(&row.native())?;
         }
-        let built = builder.freeze().map_err(|error| fail(error.to_string()))?;
+        let built = builder.freeze()?;
         Ok(self.dataset.get_or_init(|| built))
     }
 }

@@ -33,7 +33,7 @@ fn domains(worlds: Vec<SelectedLogicalWorld>) -> SelectedDomains {
 fn data(rows: &[RdfQuad]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(row);
+        builder.push_owned_quad(row).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -126,8 +126,8 @@ fn physical_import_report_and_compiler_graphs_do_not_select_domains() {
         "urn:carrier:report",
         "urn:carrier:compiler",
     ] {
-        let graph = builder.intern_iri(graph);
-        builder.declare_named_graph(graph);
+        let graph = builder.intern_iri(graph).unwrap();
+        builder.declare_named_graph(graph).unwrap();
     }
     let input = builder.freeze().unwrap();
     let none = domains(vec![]);

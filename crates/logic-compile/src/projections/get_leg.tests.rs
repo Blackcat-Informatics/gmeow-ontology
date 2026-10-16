@@ -25,18 +25,20 @@ fn quoted(subject: &str, predicate: &str, object: Expression) -> Expression {
 #[test]
 fn mapping_constant_read_retains_native_proposition_and_direction() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let owner = builder.intern_iri("urn:mapping");
-    let field = builder.intern_iri(GM_BIND_EXPR);
-    let subject = builder.intern_iri("urn:subject");
-    let predicate = builder.intern_iri("urn:predicate");
-    let object = builder.intern_literal(purrdf::RdfLiteral {
-        lexical_form: "hello".into(),
-        datatype: None,
-        language: Some("en".into()),
-        direction: Some(purrdf::RdfTextDirection::Rtl),
-    });
-    let triple_term = builder.intern_triple(subject, predicate, object);
-    builder.push_annotation(owner, field, triple_term);
+    let owner = builder.intern_iri("urn:mapping").unwrap();
+    let field = builder.intern_iri(GM_BIND_EXPR).unwrap();
+    let subject = builder.intern_iri("urn:subject").unwrap();
+    let predicate = builder.intern_iri("urn:predicate").unwrap();
+    let object = builder
+        .intern_literal(purrdf::RdfLiteral {
+            lexical_form: "hello".into(),
+            datatype: None,
+            language: Some("en".into()),
+            direction: Some(purrdf::RdfTextDirection::Rtl),
+        })
+        .unwrap();
+    let triple_term = builder.intern_triple(subject, predicate, object).unwrap();
+    builder.push_annotation(owner, field, triple_term).unwrap();
     let dataset = builder.freeze().unwrap();
     let view = DslView::new(&dataset);
     let value = view.first_object("urn:mapping", GM_BIND_EXPR).unwrap();

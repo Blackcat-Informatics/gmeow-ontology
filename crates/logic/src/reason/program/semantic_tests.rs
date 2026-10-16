@@ -72,11 +72,13 @@ fn canonical_derived_domain_wakes_native_schema_and_canonical_consumer() {
         ),
     ]);
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&RdfQuad::new(
-        RdfTerm::iri("urn:x"),
-        EDGE,
-        RdfTerm::iri("urn:y"),
-    ));
+    builder
+        .push_owned_quad(&RdfQuad::new(
+            RdfTerm::iri("urn:x"),
+            EDGE,
+            RdfTerm::iri("urn:y"),
+        ))
+        .unwrap();
     let input = builder.freeze().unwrap();
     let prepared = crate::program_analysis::prepare_program(&program).unwrap();
     let closure = execute(
@@ -125,7 +127,9 @@ fn derived_canonical_property_marker_is_visible_in_the_same_fixed_point() {
     )]);
     let mut builder = RdfDatasetBuilder::new();
     for (s, o) in [("urn:x", "urn:y"), ("urn:y", "urn:z")] {
-        builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), EDGE, RdfTerm::iri(o)));
+        builder
+            .push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), EDGE, RdfTerm::iri(o)))
+            .unwrap();
     }
     let prepared = crate::program_analysis::prepare_program(&program).unwrap();
     let closure = execute(
@@ -393,7 +397,9 @@ fn canonical_membership_is_visible_to_native_list_intersection_with_exact_eviden
         ),
         ("urn:x", INSTANCE, "urn:member-class"),
     ] {
-        builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+        builder
+            .push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)))
+            .unwrap();
     }
     let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![rule(
         formula(

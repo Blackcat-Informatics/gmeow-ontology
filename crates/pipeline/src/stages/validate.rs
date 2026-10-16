@@ -563,7 +563,7 @@ impl ValidateStage {
             Arc::new(purrdf::RdfDataset::union(&[
                 source_dataset.as_ref(),
                 substrate_dataset.as_ref(),
-            ]))
+            ])?)
         };
         timings.push(StageRunTiming {
             phase: "native-validation-selection".to_string(),
@@ -722,7 +722,7 @@ impl ValidateStage {
         let reasoned_dataset = Arc::new(purrdf::RdfDataset::union(&[
             source_dataset.as_ref(),
             closure_dataset.as_ref(),
-        ]));
+        ])?);
         let abductive_suggestions =
             gmeow_validate::abductive::abductive_advisories(reasoned_dataset.as_ref());
         for suggestion in abductive_suggestions {
@@ -795,7 +795,7 @@ impl ValidateStage {
         let dataset = Arc::new(purrdf::RdfDataset::union(&[
             diagnostics_dataset.as_ref(),
             claim_dataset.as_ref(),
-        ]));
+        ])?);
         // FORWARD diagnostics fold: the producer's report findings are the SINGLE source
         // of both the shipped `graph/diagnostics` RDF (above) AND the run-level
         // DiagLedger. Project the findings once to pre-lowered DiagNodes, carry them on
