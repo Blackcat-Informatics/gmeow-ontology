@@ -21,10 +21,10 @@ fn excluded_owner_roots_remain_in_the_complete_admission_inventory() {
         .iter()
         .find(|unit| unit.kind == SemanticUnitKind::Owner)
         .expect("selected contract owner");
-    assert!(
-        matches!(&owner.disposition, SemanticUnitDisposition::Blocked { code, .. }
-        if code == "UNSUPPORTED_SELECTED_OWNER")
-    );
+    assert!(matches!(
+        &owner.disposition,
+        SemanticUnitDisposition::ConfigurationDeclaration { .. }
+    ));
 
     for roots in [RootSelection::None, RootSelection::Exact(BTreeSet::new())] {
         let mut selection = all.clone();

@@ -68,10 +68,10 @@ pub use prepared::PreparedLogicSource;
 
 mod source_admission;
 pub use source_admission::{
-    AdmittedSemanticUnit, DocumentSelection, FofSemanticProfile, PropertyCharacteristic,
-    RootSelection, SemanticUnitAdmission, SemanticUnitDisposition, SemanticUnitKind,
-    SourceAdmission, SourceAdmissionStatus, SourceAssertion, SourceClassDefinition,
-    SourceGraphSelection, SourceSelection,
+    AdmittedSemanticUnit, DocumentSelection, FOF_SOURCE_PROFILE, FofSemanticProfile,
+    PropertyCharacteristic, RootSelection, SemanticUnitAdmission, SemanticUnitDisposition,
+    SemanticUnitKind, SourceAdmission, SourceAdmissionStatus, SourceAssertion,
+    SourceClassDefinition, SourceContractDeclaration, SourceGraphSelection, SourceSelection,
 };
 
 use super::compat;
@@ -1444,38 +1444,48 @@ fn is_facet_class(local: &str) -> bool {
 }
 
 /// Route a facet value (its local name + its facet-class local name) into the
-/// correct field of `contract`. Returns `false` if the facet class is unknown
-/// (caller emits the `UNKNOWN_PROFILE` diagnostic).
-fn route_facet_value(contract: &mut ReasoningContract, facet_class: &str, value_local: String) {
-    match facet_class {
-        "FormulaFragment" => contract.formula_fragment = Some(value_local),
-        "ModelSemantics" => contract.model_semantics = Some(value_local),
-        "TruthAlgebra" => contract.truth_algebra = Some(value_local),
-        "AdmissibleValuationPolicy" => contract.admissible_valuation = Some(value_local),
-        "DesignatedValueSet" => contract.designated_values = Some(value_local),
-        "EvolutionMode" => contract.evolution = Some(value_local),
-        "ArgumentationSemantics" => contract.argumentation = Some(value_local),
-        "RevisionPolicy" => contract.revision = Some(value_local),
-        "EqualityPolicy" => contract.equality_policy = Some(value_local),
-        // `ClosureValue` reached via `logic:defaultClosure` sets the map default.
-        "ClosureValue" => contract.default_closure = Some(value_local),
-        "NegationOperator" => {
-            contract.negation_operators.insert(value_local);
+/// correct field of `contract`. Single-valued facets reject conflicting values;
+/// repeated identical declarations and the set-valued facets remain idempotent.
+fn route_facet_value(
+    contract: &mut ReasoningContract,
+    facet_class: &str,
+    value_local: String,
+) -> Result<(), String> {
+    let singleton = match facet_class {
+        "FormulaFragment" => Some(&mut contract.formula_fragment),
+        "ModelSemantics" => Some(&mut contract.model_semantics),
+        "TruthAlgebra" => Some(&mut contract.truth_algebra),
+        "AdmissibleValuationPolicy" => Some(&mut contract.admissible_valuation),
+        "DesignatedValueSet" => Some(&mut contract.designated_values),
+        "EvolutionMode" => Some(&mut contract.evolution),
+        "ArgumentationSemantics" => Some(&mut contract.argumentation),
+        "RevisionPolicy" => Some(&mut contract.revision),
+        "EqualityPolicy" => Some(&mut contract.equality_policy),
+        "ClosureValue" => Some(&mut contract.default_closure),
+        _ => None,
+    };
+    if let Some(slot) = singleton {
+        if let Some(previous) = slot.as_ref() {
+            if previous != &value_local {
+                return Err(format!(
+                    "single-valued {facet_class} has conflicting values {previous:?} and {value_local:?}"
+                ));
+            }
+        } else {
+            *slot = Some(value_local);
         }
-        "ContextAxis" => {
-            contract.context_axes.insert(value_local);
-        }
-        "UncertaintyMeasure" => {
-            contract.uncertainty_measures.insert(value_local);
-        }
-        "ResourcePolicy" => {
-            contract.resource_policies.insert(value_local);
-        }
-        "ProjectionTarget" => {
-            contract.projection_targets.insert(value_local);
-        }
-        _ => {}
+        return Ok(());
     }
+    let values = match facet_class {
+        "NegationOperator" => &mut contract.negation_operators,
+        "ContextAxis" => &mut contract.context_axes,
+        "UncertaintyMeasure" => &mut contract.uncertainty_measures,
+        "ResourcePolicy" => &mut contract.resource_policies,
+        "ProjectionTarget" => &mut contract.projection_targets,
+        _ => return Err(format!("unknown contract facet class {facet_class:?}")),
+    };
+    values.insert(value_local);
+    Ok(())
 }
 
 /// Whether the source graph declares a probability model: either a triple with
@@ -1490,6 +1500,30 @@ fn graph_declares_probability_model(store: &RdfDataset) -> bool {
     // Any individual typed logic:ProbabilityModel.
     let prob_model_class = Node::iri(logic_iri("ProbabilityModel"));
     !subjects_of_structural_class(store, &prob_model_class).is_empty()
+}
+
+/// A closure entry has one key and one value; never select an arbitrary field.
+fn closure_field(
+    store: &RdfDataset,
+    entry: &Subject,
+    property: &str,
+    owner: &str,
+) -> Result<Option<Node>, Diagnostic> {
+    let mut values = objects(store, entry, &nn(&logic_iri(property))).into_iter();
+    let Some(first) = values.next() else {
+        return Ok(None);
+    };
+    if values.any(|value| value != first) {
+        return Err(Diagnostic::error(
+            "AMBIGUOUS_CLOSURE_ENTRY",
+            format!(
+                "reasoning contract {owner:?} closure entry {:?} has multiple distinct logic:{property} values",
+                subject_str(entry)
+            ),
+            Some(owner.to_owned()),
+        ));
+    }
+    Ok(Some(first))
 }
 
 fn extract_contracts(
@@ -1571,7 +1605,13 @@ fn extract_contracts(
                             .or_else(|| facet_class_of(store, &value_iri));
                         match facet_class {
                     Some(facet_class) => {
-                        route_facet_value(&mut contract, &facet_class, value_local)
+                        if let Err(detail) = route_facet_value(&mut contract, &facet_class, value_local) {
+                            diagnostics.push(Diagnostic::error(
+                                "INVALID_CONTRACT_FACET",
+                                detail,
+                                Some(iri_str.clone()),
+                            ));
+                        }
                     }
                     None => diagnostics.push(Diagnostic::error(
                         "UNKNOWN_PROFILE",
@@ -1605,15 +1645,37 @@ fn extract_contracts(
                 ));
                         continue;
                     };
-                    let key = value(store, &entry_node, &nn(&logic_iri("closureKey")))
-                        .map(|t| term_str(&t));
-                    let val = value(store, &entry_node, &nn(&logic_iri("closureValue"))).map(|t| {
+                    let key = match closure_field(store, &entry_node, "closureKey", &iri_str) {
+                        Ok(key) => key.map(|term| term_str(&term)),
+                        Err(diagnostic) => {
+                            diagnostics.push(diagnostic);
+                            continue;
+                        }
+                    };
+                    let val = match closure_field(store, &entry_node, "closureValue", &iri_str) {
+                        Ok(value) => value,
+                        Err(diagnostic) => {
+                            diagnostics.push(diagnostic);
+                            continue;
+                        }
+                    }
+                    .map(|t| {
                         let v = term_str(&t);
                         v.strip_prefix(LOGIC_NAMESPACE).unwrap_or(&v).to_owned()
                     });
                     match (key, val) {
                         (Some(key), Some(val)) => {
-                            contract.closure_entries.insert(key, val);
+                            if let Some(previous) = contract.closure_entries.get(&key) {
+                                if previous != &val {
+                                    diagnostics.push(Diagnostic::error(
+                                        "AMBIGUOUS_CLOSURE_ENTRY",
+                                        format!("reasoning contract {iri_str:?} has conflicting closure values {previous:?} and {val:?} for key {key:?}"),
+                                        Some(iri_str.clone()),
+                                    ));
+                                }
+                            } else {
+                                contract.closure_entries.insert(key, val);
+                            }
                         }
                         (key, val) => {
                             let mut missing: Vec<&str> = Vec::new();

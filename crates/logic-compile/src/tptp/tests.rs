@@ -17,6 +17,9 @@ mod cardinality_tests;
 #[path = "owners.tests.rs"]
 mod owner_tests;
 
+#[path = "contracts.tests.rs"]
+mod contract_tests;
+
 fn compile(source: &str) -> crate::frontend::CompiledTheory {
     let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).expect("valid RDF 1.2");
     PreparedLogicSource::new(&dataset)

@@ -32,6 +32,13 @@
 //! Qualified object counts require their explicit class. Minima use distinct
 //! denoting witnesses, maxima exclude an excessive witness set, and exact counts
 //! retain both bounds. Independent bounds remain conjunctive.
+//!
+//! Reasoning-contract declarations retain their native configuration and authored
+//! support facts as typed metatheory evidence, outside the object-theory axioms.
+//! Declaring a nonclassical configuration does not select it for this classical
+//! proof operation. Referenced closure entries and
+//! facet-type support must belong to the selected source; compiler errors and
+//! scoped declarations still refuse admission.
 
 mod writer;
 
