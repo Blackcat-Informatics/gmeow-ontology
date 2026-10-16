@@ -816,19 +816,44 @@ impl<'a> AdmissionBuilder<'a> {
                     }
                 };
                 self.push(SemanticUnitKind::Rule, anchor, documents, disposition);
-            } else if selected && self.selection.owners.contains(&anchor) {
-                self.push(
-                    SemanticUnitKind::Owner,
-                    anchor,
-                    documents,
-                    blocked(
-                        "UNSUPPORTED_SELECTED_OWNER",
-                        format!(
-                            "the classical profile has no execution contract for owner family {:?}",
-                            lowering.family
+            } else {
+                let disposition = if !selected || !self.selection.owners.contains(&anchor) {
+                    outside("the owner root is outside the selected documents, graph, or root set")
+                } else {
+                    match &lowering.disposition {
+                        OwnerDisposition::Emitted { .. }
+                            if lowering.diagnostics.iter().any(|&index| {
+                                self.theory.diagnostics()[index].severity == Severity::Error
+                            }) =>
+                        {
+                            malformed(
+                                "MALFORMED_SELECTED_OWNER",
+                                format!(
+                                    "selected {:?} owner carries compiler errors at diagnostics {:?}",
+                                    lowering.family, lowering.diagnostics
+                                ),
+                            )
+                        }
+                        OwnerDisposition::Emitted { .. } => blocked(
+                            "UNSUPPORTED_SELECTED_OWNER",
+                            format!(
+                                "the classical profile has no execution contract for owner family {:?}",
+                                lowering.family
+                            ),
                         ),
-                    ),
-                );
+                        OwnerDisposition::Rejected => malformed(
+                            "MALFORMED_SELECTED_OWNER",
+                            format!(
+                                "selected {:?} owner failed compiler admission at diagnostics {:?}",
+                                lowering.family, lowering.diagnostics
+                            ),
+                        ),
+                        OwnerDisposition::OutsideDefaultGraph => {
+                            outside("owner is outside the selected default graph")
+                        }
+                    }
+                };
+                self.push(SemanticUnitKind::Owner, anchor, documents, disposition);
             }
         }
         for index in 0..self.theory.program().rules.len() {

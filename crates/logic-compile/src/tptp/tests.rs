@@ -14,6 +14,9 @@ use crate::frontend::{
 #[path = "cardinality.tests.rs"]
 mod cardinality_tests;
 
+#[path = "owners.tests.rs"]
+mod owner_tests;
+
 fn compile(source: &str) -> crate::frontend::CompiledTheory {
     let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).expect("valid RDF 1.2");
     PreparedLogicSource::new(&dataset)
