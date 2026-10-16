@@ -7,6 +7,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
+use gmeow_docs::model::ConsistencyAssessment;
+
 use gmeow_logic::reason::el::InferredAxiom;
 use gmeow_logic::result::{
     CompletenessStatus, ContradictionWitness, EvaluationStatus, InformationState, InputStatus,
@@ -124,7 +126,7 @@ fn native_empty_classes_preserve_consistency_and_both_grounded_spellings() {
     );
     let verdict =
         reasoning_verdict_from_reason(&upstream(product)).expect("decided native verdict");
-    assert!(verdict.is_consistent);
+    assert_eq!(verdict.consistency, ConsistencyAssessment::Consistent);
     assert_eq!(
         verdict.unsatisfiable,
         BTreeSet::from([
@@ -162,17 +164,18 @@ fn witnessed_native_inconsistency_remains_distinct_from_empty_classes() {
         });
     let verdict = reasoning_verdict_from_reason(&upstream(product(native.clone())))
         .expect("witnessed contradiction");
-    assert!(!verdict.is_consistent);
+    assert_eq!(verdict.consistency, ConsistencyAssessment::Inconsistent);
     assert_eq!(
         verdict.unsatisfiable,
         BTreeSet::from(["urn:docs-verdict:empty".to_owned()])
     );
     native.completeness = CompletenessStatus::Incomplete;
     native.preservation = PreservationClaim::for_unsupported(["urn:docs-verdict:unsupported-rule"]);
-    assert!(
-        !reasoning_verdict_from_reason(&upstream(product(native)))
+    assert_eq!(
+        reasoning_verdict_from_reason(&upstream(product(native)))
             .unwrap()
-            .is_consistent,
+            .consistency,
+        ConsistencyAssessment::Inconsistent,
         "a completed run's witnessed contradiction remains decisive with unrelated unsupported residue"
     );
 }
@@ -222,8 +225,8 @@ fn missing_reason_product_handle_and_wrong_payloads_refuse() {
     );
 }
 
-/// Completed-but-undetermined and unsupported information states are not a
-/// proof of consistency; neither are incomplete, unsupported or invalid runs.
+/// Undecided observations can be published, but never become positive consistency
+/// or class satisfiability claims. Invalid native input remains a hard failure.
 #[test]
 fn nonconclusive_or_undecided_native_results_never_render_consistent() {
     // gmeow-test-input: synthetic-only
@@ -235,17 +238,22 @@ fn nonconclusive_or_undecided_native_results_never_render_consistent() {
     ] {
         let mut native = result(Vec::new());
         native.information = information;
-        assert!(
+        assert_eq!(
             reasoning_verdict_from_reason(&upstream(product(native)))
-                .unwrap_err()
-                .message()
-                .contains("does not decide consistency")
+                .unwrap()
+                .consistency,
+            ConsistencyAssessment::Undetermined,
         );
     }
     for completeness in [CompletenessStatus::Incomplete, CompletenessStatus::Unknown] {
         let mut native = result(Vec::new());
         native.completeness = completeness;
-        assert!(reasoning_verdict_from_reason(&upstream(product(native))).is_err());
+        assert_eq!(
+            reasoning_verdict_from_reason(&upstream(product(native)))
+                .unwrap()
+                .consistency,
+            ConsistencyAssessment::Undetermined
+        );
     }
     for evaluation in [
         EvaluationStatus::BudgetExhausted,
@@ -254,11 +262,11 @@ fn nonconclusive_or_undecided_native_results_never_render_consistent() {
         let mut native = result(Vec::new());
         native.evaluation = evaluation;
         native.completeness = CompletenessStatus::Incomplete;
-        assert!(
+        assert_eq!(
             reasoning_verdict_from_reason(&upstream(product(native)))
-                .unwrap_err()
-                .message()
-                .contains("not conclusive")
+                .unwrap()
+                .consistency,
+            ConsistencyAssessment::Undetermined,
         );
     }
     let mut invalid = result(Vec::new());
@@ -267,20 +275,60 @@ fn nonconclusive_or_undecided_native_results_never_render_consistent() {
     let mut dropped = result(Vec::new());
     dropped.preservation =
         PreservationClaim::for_unsupported(["urn:docs-verdict:unsupported-rule"]);
-    assert!(
+    assert_eq!(
         reasoning_verdict_from_reason(&upstream(product(dropped)))
-            .unwrap_err()
-            .message()
-            .contains("does not decide consistency")
+            .unwrap()
+            .consistency,
+        ConsistencyAssessment::Undetermined,
     );
     // CompleteForFragment independently certifies conclusiveness under the
     // native result contract, even if a broader computation exhausted its budget.
     let mut complete_fragment = result(Vec::new());
     complete_fragment.evaluation = EvaluationStatus::BudgetExhausted;
-    assert!(
+    assert_eq!(
         reasoning_verdict_from_reason(&upstream(product(complete_fragment)))
             .unwrap()
-            .is_consistent
+            .consistency,
+        ConsistencyAssessment::Consistent,
+    );
+}
+
+/// Publication preserves the exact refusal and known empty classes while the
+/// native gate's own consistency predicate continues to reject the same result.
+#[test]
+fn unsupported_native_observation_keeps_all_axes_and_gate_refusal() {
+    let mut native = result(vec![axiom("urn:empty", LOGIC_SUBCLASS, LOGIC_NOTHING)]);
+    native.evaluation = EvaluationStatus::Unsupported;
+    native.completeness = CompletenessStatus::Incomplete;
+    native.information = InformationState::Undetermined;
+    native.preservation =
+        PreservationClaim::for_unsupported(["nominal-set-equality", "class-equivalence"]);
+    assert!(
+        !native.is_decided_consistent(),
+        "the reason/verify gate still rejects this result"
+    );
+    let verdict = reasoning_verdict_from_reason(&upstream(product(native.clone()))).unwrap();
+    assert_eq!(verdict.consistency, ConsistencyAssessment::Undetermined);
+    assert_eq!(verdict.input, native.input.wire());
+    assert_eq!(verdict.evaluation, native.evaluation.wire());
+    assert_eq!(verdict.completeness, native.completeness.wire());
+    assert_eq!(verdict.information, native.information.wire());
+    assert_eq!(
+        verdict.unsupported_constructs,
+        native.preservation.unsupported_constructs
+    );
+    assert_eq!(verdict.unsatisfiable, BTreeSet::from(["urn:empty".into()]));
+    let mut term = gmeow_docs::model::DocTerm {
+        iri: "urn:empty".into(),
+        category: gmeow_docs::model::DocTermCategory::Class,
+        ..Default::default()
+    };
+    assert_eq!(verdict.term_status(&term), "unsatisfiable");
+    term.iri = "urn:other".into();
+    assert_eq!(verdict.term_status(&term), "undetermined");
+    assert!(
+        !native.is_decided_consistent(),
+        "observing docs cannot change native admission"
     );
 }
 
@@ -379,7 +427,7 @@ fn retained_snapshot_owns_the_post_dag_documentation_verdict() {
     assert!(reasoning_verdict_from_reason(&upstream(released)).is_err());
     let verdict = reasoning_verdict_from_product(&snapshot, "stage-snapshot")
         .expect("retained snapshot owner");
-    assert!(verdict.is_consistent);
+    assert_eq!(verdict.consistency, ConsistencyAssessment::Consistent);
     assert_eq!(
         verdict.unsatisfiable,
         BTreeSet::from(["urn:docs-verdict:snapshot-empty".to_owned()])

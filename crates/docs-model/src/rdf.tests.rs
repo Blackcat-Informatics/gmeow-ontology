@@ -179,6 +179,24 @@ fn empty_model_yields_empty_string() {
 }
 
 #[test]
+fn undecided_reasoning_projection_never_invents_satisfiable_classes() {
+    let mut model = tiny_model();
+    model.reasoning = Some(crate::model::ReasoningVerdict {
+        consistency: crate::model::ConsistencyAssessment::Undetermined,
+        input: "valid".into(),
+        evaluation: "unsupported".into(),
+        completeness: "incomplete".into(),
+        information: "undetermined".into(),
+        unsupported_constructs: std::collections::BTreeSet::from(["nominal".into()]),
+        unsatisfiable: Default::default(),
+    });
+    let rdf = to_gmeow_rdf(&model, &BTreeMap::new());
+    assert!(rdf.contains("\"undetermined\""));
+    assert!(rdf.contains("\"not-evaluated\""));
+    assert!(!rdf.contains("\"satisfiable\""));
+}
+
+#[test]
 fn entailment_dag_round_trips_rule_conclusion_and_all_premises() {
     let model = tiny_model();
     let mut entailments: BTreeMap<String, Vec<crate::exec::Entailment>> = BTreeMap::new();

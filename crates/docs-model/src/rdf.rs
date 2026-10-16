@@ -222,17 +222,9 @@ pub fn to_gmeow_rdf(
         // Per-term native-reasoner status — projected ONLY when a verdict is
         // attached (the production docs-graph stage consumes stage-reason), so the
         // SPARQL surface never carries a fabricated satisfiability claim. A class
-        // is satisfiable unless proven unsatisfiable; a non-class is not-evaluated.
+        // needs conclusive admission before absence of emptiness can be positive.
         if let Some(verdict) = &model.reasoning {
-            let status = if term.category == crate::model::DocTermCategory::Class {
-                if verdict.unsatisfiable.contains(&term.iri) {
-                    "unsatisfiable"
-                } else {
-                    "satisfiable"
-                }
-            } else {
-                "not-evaluated"
-            };
+            let status = verdict.term_status(term);
             triple(
                 &subject,
                 &format!("{GMEOW}docReasoningStatus"),
