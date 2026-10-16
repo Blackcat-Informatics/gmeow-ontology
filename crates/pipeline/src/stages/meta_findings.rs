@@ -138,30 +138,35 @@ impl MetaDerivation {
     /// Project the derived public meta-findings directly into their native graph.
     /// Trace evidence remains on this derivation; only the governed public fields
     /// and materialized glut witnesses enter the diagnostics dataset.
-    pub fn append_to(&self, builder: &mut RdfDatasetBuilder, graph_iri: &str) {
-        let graph = builder.intern_iri(graph_iri);
+    pub fn append_to(
+        &self,
+        builder: &mut RdfDatasetBuilder,
+        graph_iri: &str,
+    ) -> gmeow_errors::Result<()> {
+        let graph = builder.intern_iri(graph_iri)?;
         for (predicate, edges) in [
             (FINDING_ROOT_CAUSE, &self.root_cause),
             (FINDING_CLUSTER, &self.cluster),
         ] {
             for (finding, root) in edges {
-                push_native_iri(builder, graph, finding, predicate, root);
+                push_native_iri(builder, graph, finding, predicate, root)?;
             }
         }
         for root in &self.cluster_root {
-            push_native_iri(builder, graph, root, CLUSTER_ROOT, root);
+            push_native_iri(builder, graph, root, CLUSTER_ROOT, root)?;
         }
         for (class, roots) in [
             (FINDING_CLUSTER_CLASS, &self.cluster_typed),
             (ROOT_FINDING_CLASS, &self.root_finding_typed),
         ] {
             for root in roots {
-                push_native_iri(builder, graph, root, RDF_TYPE, class);
+                push_native_iri(builder, graph, root, RDF_TYPE, class)?;
             }
         }
         for (a, b) in &self.glut {
-            self.push_witness(builder, graph, graph_iri, a, b);
+            self.push_witness(builder, graph, graph_iri, a, b)?;
         }
+        Ok(())
     }
 
     /// The symmetric conflict has one content-addressed witness, with two links
@@ -173,7 +178,7 @@ impl MetaDerivation {
         graph_iri: &str,
         a: &str,
         b: &str,
-    ) {
+    ) -> gmeow_errors::Result<()> {
         let (lo, hi) = if a <= b { (a, b) } else { (b, a) };
         let witness = glut_witness_iri(lo, hi);
         for (predicate, object) in [
@@ -185,7 +190,7 @@ impl MetaDerivation {
             (GLUT_WITNESS_OF, lo),
             (GLUT_WITNESS_OF, hi),
         ] {
-            push_native_iri(builder, graph, &witness, predicate, object);
+            push_native_iri(builder, graph, &witness, predicate, object)?;
         }
         let label = format!(
             "cross-node glut between {} and {} at a shared anchor",
@@ -195,16 +200,17 @@ impl MetaDerivation {
         let message = format!(
             "cross-node glut: {lo} and {hi} carry opposing coherence polarity at one anchor"
         );
-        gmeow_errors::abox::annotate_builder(builder, &witness, &label, &message, graph_iri);
-        let subject = builder.intern_iri(&witness);
+        gmeow_errors::abox::annotate_builder(builder, &witness, &label, &message, graph_iri)?;
+        let subject = builder.intern_iri(&witness)?;
         for (predicate, value) in [
             (FINDING_CODE, GLUT_WITNESS_CODE),
             (FINDING_MESSAGE, message.as_str()),
         ] {
-            let predicate = builder.intern_iri(predicate);
-            let object = builder.intern_literal(purrdf::RdfLiteral::simple(value));
-            builder.push_quad(subject, predicate, object, Some(graph));
+            let predicate = builder.intern_iri(predicate)?;
+            let object = builder.intern_literal(purrdf::RdfLiteral::simple(value))?;
+            builder.push_quad(subject, predicate, object, Some(graph))?;
         }
+        Ok(())
     }
 }
 
@@ -214,11 +220,12 @@ fn push_native_iri(
     s: &str,
     p: &str,
     o: &str,
-) {
-    let subject = builder.intern_iri(s);
-    let predicate = builder.intern_iri(p);
-    let object = builder.intern_iri(o);
-    builder.push_quad(subject, predicate, object, Some(graph));
+) -> gmeow_errors::Result<()> {
+    let subject = builder.intern_iri(s)?;
+    let predicate = builder.intern_iri(p)?;
+    let object = builder.intern_iri(o)?;
+    builder.push_quad(subject, predicate, object, Some(graph))?;
+    Ok(())
 }
 
 impl MetaProgram {
@@ -429,7 +436,7 @@ impl MetaProgram {
                 row[pi].as_ref().and_then(iri_of),
                 row[oi].as_ref().and_then(iri_of),
             ) {
-                push_world(&mut builder, &s, &p, &o);
+                push_world(&mut builder, &s, &p, &o)?;
                 fact_count += 1;
             }
         }
@@ -437,7 +444,7 @@ impl MetaProgram {
             return Ok(MetaDerivation::default());
         }
         for (c, p) in &self.category_polarity {
-            push_world(&mut builder, c, CATEGORY_POLARITY, p);
+            push_world(&mut builder, c, CATEGORY_POLARITY, p)?;
         }
         let edb = builder.freeze().map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::MetaFold {
@@ -585,9 +592,15 @@ fn short_finding(iri: &str) -> &str {
 }
 
 /// Push one all-IRI triple into the single chase world.
-fn push_world(builder: &mut RdfDatasetBuilder, s: &str, p: &str, o: &str) {
+fn push_world(
+    builder: &mut RdfDatasetBuilder,
+    s: &str,
+    p: &str,
+    o: &str,
+) -> gmeow_errors::Result<()> {
     let quad = RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(WORLD));
-    builder.push_owned_quad(&quad);
+    builder.push_owned_quad(&quad)?;
+    Ok(())
 }
 
 /// The IRI string of a bound SPARQL term, or `None` if it is not an IRI.

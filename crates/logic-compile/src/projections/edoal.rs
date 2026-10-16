@@ -252,19 +252,19 @@ impl Nt {
     }
 
     fn attach_list(&mut self, subject: &str, predicate: &str, items: &[String]) {
-        let head = self.fresh_bnode();
-        self.add_bnode_obj(subject, predicate, &head);
-        let mut cur = head;
-        for (i, item) in items.iter().enumerate() {
-            self.add_node(&cur, RDF_FIRST, item);
-            if i + 1 < items.len() {
-                let next = self.fresh_bnode();
-                self.add_bnode_obj(&cur, RDF_REST, &next);
-                cur = next;
-            } else {
-                self.add_iri(&cur, RDF_REST, RDF_NIL);
-            }
-        }
+        let cells: Vec<_> = (0..items.len()).map(|_| self.fresh_bnode()).collect();
+        let vocab = purrdf_core::ListVocab {
+            first: RDF_FIRST.to_owned(),
+            rest: RDF_REST.to_owned(),
+            nil: RDF_NIL.to_owned(),
+        };
+        let head = purrdf_core::build_rdf_list(
+            items.iter().cloned(),
+            &vocab,
+            |index| cells[index].clone(),
+            |s, p, o| self.add_node(&s, &p, &o),
+        );
+        self.add_node(subject, predicate, &head);
     }
 }
 

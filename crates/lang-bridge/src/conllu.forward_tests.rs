@@ -171,7 +171,13 @@ ex:s0 a lang:FormSlot ; lang:slotForm ex:w .
     let err = ConlluTarget
         .emit(&input)
         .expect_err("missing slot index must hard-fail");
-    assert!(err.construct.contains("no lang:slotIndex"), "{err:?}");
+    assert!(
+        err.downcast_ref::<crate::bridge::IngestDiagnostic>()
+            .expect("typed ingestion refusal")
+            .construct
+            .contains("no lang:slotIndex"),
+        "{err:?}"
+    );
 }
 
 #[test]
@@ -198,7 +204,10 @@ ex:s1 a lang:FormSlot ; lang:slotIndex 0 ; lang:slotForm ex:wB .
         .emit(&input)
         .expect_err("duplicate slot index must hard-fail");
     assert!(
-        err.construct.contains("duplicate lang:slotIndex"),
+        err.downcast_ref::<crate::bridge::IngestDiagnostic>()
+            .expect("typed ingestion refusal")
+            .construct
+            .contains("duplicate lang:slotIndex"),
         "{err:?}"
     );
 }

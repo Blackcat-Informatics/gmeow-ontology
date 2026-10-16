@@ -57,7 +57,8 @@ fn lower_fno_extracts_nested_collection_atoms() {
             None,
         )
         .expect("parse dsl"),
-    );
+    )
+    .unwrap();
     let dsl = db.freeze().expect("freeze dsl");
 
     let onto = parse_dataset(
@@ -140,7 +141,8 @@ fn fno_abox_individuals_carry_full_structural_annotations() {
             None,
         )
         .expect("parse dsl"),
-    );
+    )
+    .unwrap();
     let dsl = db.freeze().expect("freeze dsl");
     let onto = parse_dataset(
         onto_ttl.as_bytes(),

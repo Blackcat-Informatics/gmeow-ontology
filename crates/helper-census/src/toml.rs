@@ -86,7 +86,7 @@ pub(crate) fn parse(text: &str) -> Result<BTreeMap<String, Value>, Error> {
         let line = reader.line;
         if next == '[' {
             let (path, is_array) = reader.header()?;
-            open_header(&mut root, &path, is_array).map_err(|message| Error { line, message })?;
+            open_header(&mut root, &path, is_array, line)?;
             current = path;
         } else {
             let key = reader.bare_key()?;
@@ -95,7 +95,7 @@ pub(crate) fn parse(text: &str) -> Result<BTreeMap<String, Value>, Error> {
             reader.skip_inline_space();
             let value = reader.value()?;
             reader.end_of_line()?;
-            let table = table_at(&mut root, &current).map_err(|message| Error { line, message })?;
+            let table = table_at(&mut root, &current, line)?;
             if table.insert(key.clone(), value).is_some() {
                 return Err(Error {
                     line,
@@ -111,9 +111,13 @@ fn open_header(
     root: &mut BTreeMap<String, Value>,
     path: &[String],
     is_array: bool,
-) -> Result<(), String> {
-    let (last, parents) = path.split_last().ok_or("an empty table header")?;
-    let parent = table_at(root, parents)?;
+    line: usize,
+) -> Result<(), Error> {
+    let (last, parents) = path.split_last().ok_or_else(|| Error {
+        line,
+        message: "an empty table header".to_owned(),
+    })?;
+    let parent = table_at(root, parents, line)?;
     if is_array {
         match parent
             .entry(last.clone())
@@ -123,13 +127,19 @@ fn open_header(
                 items.push(Value::Table(BTreeMap::new()));
                 Ok(())
             }
-            _ => Err(format!(
-                "`[[{}]]` names a key that is not an array of tables",
-                path.join(".")
-            )),
+            _ => Err(Error {
+                line,
+                message: format!(
+                    "`[[{}]]` names a key that is not an array of tables",
+                    path.join(".")
+                ),
+            }),
         }
     } else if parent.contains_key(last) {
-        Err(format!("table `[{}]` is defined twice", path.join(".")))
+        Err(Error {
+            line,
+            message: format!("table `[{}]` is defined twice", path.join(".")),
+        })
     } else {
         parent.insert(last.clone(), Value::Table(BTreeMap::new()));
         Ok(())
@@ -140,19 +150,31 @@ fn open_header(
 fn table_at<'a>(
     root: &'a mut BTreeMap<String, Value>,
     path: &[String],
-) -> Result<&'a mut BTreeMap<String, Value>, String> {
+    line: usize,
+) -> Result<&'a mut BTreeMap<String, Value>, Error> {
     let mut table = root;
     for segment in path {
-        let next = table
-            .get_mut(segment)
-            .ok_or_else(|| format!("`{segment}` is used before its header"))?;
+        let next = table.get_mut(segment).ok_or_else(|| Error {
+            line,
+            message: format!("`{segment}` is used before its header"),
+        })?;
         table = match next {
             Value::Table(inner) => inner,
             Value::Array(items) => match items.last_mut() {
                 Some(Value::Table(inner)) => inner,
-                _ => return Err(format!("`{segment}` is not an array of tables")),
+                _ => {
+                    return Err(Error {
+                        line,
+                        message: format!("`{segment}` is not an array of tables"),
+                    });
+                }
             },
-            _ => return Err(format!("`{segment}` is a value, not a table")),
+            _ => {
+                return Err(Error {
+                    line,
+                    message: format!("`{segment}` is a value, not a table"),
+                });
+            }
         };
     }
     Ok(table)

@@ -451,10 +451,10 @@ impl StageReceipt {
         let graphs = graph_names
             .into_iter()
             .map(|graph| {
-                let projected = bundle.dataset().project_named_graph(&graph);
+                let projected = bundle.dataset().project_named_graph(&graph)?;
                 Ok(ReceiptEntity {
                     identity: graph.clone(),
-                    digest: bundle.graph_digest(&graph).to_hex(),
+                    digest: bundle.graph_digest(&graph)?.to_hex(),
                     structural_count: u64::try_from(projected.quad_count()).map_err(|_| {
                         gmeow_errors::Diag::of_kind(crate::error::Decode {
                             message: format!("receipt graph <{graph}> quad count exceeds u64"),
@@ -1378,7 +1378,7 @@ impl CachedBundle {
                     }));
                 }
             }
-            let backing = bundle.dataset().project_named_graph(graph);
+            let backing = bundle.dataset().project_named_graph(graph)?;
             validate_handle_projection(&entry.payload, &backing)?;
             let arm = handle_arm_tag(&entry.payload);
             let payload_digest = handle_payload_digest(&entry.payload);
@@ -1473,8 +1473,8 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
         let mut provenance = DatasetProvenance::new();
         for row in &self.provenance {
             let kind = origin_kind_from_str(&row.kind)?;
-            let unit = provenance.register_unit(row.unit.clone(), kind);
-            let artifact = provenance.register_artifact(row.artifact.clone());
+            let unit = provenance.register_unit(row.unit.clone(), kind)?;
+            let artifact = provenance.register_artifact(row.artifact.clone())?;
             let quad_index = *quad_indices.get(&row.quad_key).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                     expected: format!("restored asserted quad {}", row.quad_key),
@@ -1497,7 +1497,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
         // Assemble the bundle, then re-pin every handle (re-checks the digest invariant).
         let mut bundle = PipelineBundleAlias::new(dataset, lookaside, Arc::new(store), provenance);
         for h in self.handles {
-            let subgraph = Arc::new(bundle.dataset().project_named_graph(&h.graph));
+            let subgraph = Arc::new(bundle.dataset().project_named_graph(&h.graph)?);
             // Derive the pin and typed payload from the SAME live graph projection.
             // `pin_handle` independently checks that pin against the restored carrier,
             // preserving the hard-fail invariant without a duplicate persisted graph.

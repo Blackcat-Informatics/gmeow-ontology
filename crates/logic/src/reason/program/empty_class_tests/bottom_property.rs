@@ -164,10 +164,12 @@ fn invalid_positive_obligation_fields_fail_instead_of_becoming_absent() {
     for property in [OBJECT_BOTTOM, DATA_BOTTOM] {
         for count in ["-1", "1.5", "unknown"] {
             let rows = count_source(true, property, "minCardinality", count);
-            let error = run(&rows, Vec::new())
-                .err()
-                .expect("invalid source count must fail");
-            assert!(error.to_string().contains("non-negative integer fields"));
+            let closure = run(&rows, Vec::new()).unwrap();
+            super::super::test_support::assert_obstructed(
+                &program(Vec::new()),
+                closure,
+                crate::reason::refute::NativeObstructionKind::UnsupportedValue,
+            );
         }
     }
 }

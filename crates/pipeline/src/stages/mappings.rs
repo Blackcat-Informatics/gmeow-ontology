@@ -677,7 +677,7 @@ fn discharge_correspondence_laws(
     // `logic:hasLawClaim` emission). Deterministic: `project_correspondence` sorts + dedups.
     let program = CorrespondenceProgram::new(rebuilt, aligned.correspondences.preservation)
         .with_leg_programs(aligned.correspondences.leg_programs.clone());
-    Ok(project_correspondence(&program).into_bytes())
+    Ok(project_correspondence(&program)?.into_bytes())
 }
 
 /// The A→B authorization set computed straight from `root`: the `gmeow:ProjectionMapping` cell
@@ -1482,7 +1482,7 @@ impl Stage for MappingsStage {
             lang_glossary_graph.as_ref(),
             correspondence_laws_graph.as_ref(),
             substrate_sbom_graph.as_ref(),
-        ]));
+        ])?);
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
             dataset,
@@ -1518,7 +1518,7 @@ fn mappings_rdf_dataset(
         parsed.push(ds);
     }
     let refs: Vec<&purrdf::RdfDataset> = parsed.iter().map(|a| a.as_ref()).collect();
-    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)?))
 }
 
 #[path = "mappings.tests.rs"]

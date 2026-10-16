@@ -54,7 +54,7 @@ fn q(s: &str, p: &str, o: &str) -> String {
 
 /// Read the world's facts from N-Quads text.
 fn facts_of(nq: &str) -> WorldFacts {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.load_nquads(nq).expect("valid N-Quads");
     WorldFacts::read(&store, W)
 }

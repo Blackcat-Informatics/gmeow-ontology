@@ -41,7 +41,9 @@ fn compile_logic_upstream_with_reasoning_programs() -> StageProduct {
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
+    let pinned = bundle
+        .graph_digest(crate::stages::compile_logic::GRAPH_LOGIC)
+        .unwrap();
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_LOGIC,
@@ -95,7 +97,7 @@ fn reason_upstream_with_math_tower() -> StageProduct {
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(GRAPH_REASONING);
+    let pinned = bundle.graph_digest(GRAPH_REASONING).unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
@@ -131,7 +133,7 @@ fn goal_directed_stage_attaches_a_nonempty_goal_directed_graph() {
         })
         .expect("goal-directed run");
     let dataset = out.product.bundle().dataset();
-    let graph = dataset.project_named_graph(GRAPH_GOAL_DIRECTED);
+    let graph = dataset.project_named_graph(GRAPH_GOAL_DIRECTED).unwrap();
     let quads: Vec<_> = graph.owned_quads().collect();
     assert!(
         !quads.is_empty(),
@@ -288,7 +290,9 @@ fn run_hard_fails_when_the_logic_handle_carries_zero_reasoning_programs() {
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
+    let pinned = bundle
+        .graph_digest(crate::stages::compile_logic::GRAPH_LOGIC)
+        .unwrap();
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_LOGIC,

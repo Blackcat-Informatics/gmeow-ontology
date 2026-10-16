@@ -136,7 +136,7 @@ const P2: &str = "http://example.org/p2";
 const O2: &str = "http://example.org/o2";
 
 fn small_store() -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(TEST_WORLD, S1, P1, O1);
     store.insert_quad(TEST_WORLD, S2, P2, O2);
     store

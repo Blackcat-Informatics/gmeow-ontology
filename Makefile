@@ -256,7 +256,7 @@ test-corpus-scanner: ## Verify the corpus-purity scanner with inert source fixtu
 test-corpus-purity: test-corpus-scanner ## Reject every direct or indirect corpus producer reachable from tests.
 	./scripts/lint-test-corpus-producers.sh
 
-lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, and source-policy seals).
+lint: check-sync-prerequisite-test ## Run fast source hygiene and inert docs prerequisite controls.
 	pre-commit run --all-files --show-diff-on-failure
 
 # Clippy is deliberately not a commit hook: it is a compiled whole-workspace gate owned
@@ -264,7 +264,7 @@ lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets,
 # fast source hygiene with no skip environment or hidden second Rust build.
 # `check-lint` reads only the git-tracked tree (`/generated/` is gitignored in full),
 # which is why the DAG starts it immediately rather than after `sync`.
-check-lint:
+check-lint: check-sync-prerequisite-test
 	pre-commit run --all-files --show-diff-on-failure
 
 validate: ## Validate syntax, term annotations, merged SHACL, and central mapping/statement/test DSL SHACL.
@@ -283,6 +283,10 @@ rust-build: test-corpus-purity $(RUST_READY_STAMP) ## Compile Rust workspace tes
 
 rust-prebuild: test-corpus-purity ## Compile producer-independent CI test units separately from the optimized corpus producer.
 	cargo nextest run --no-run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS)
+
+.PHONY: clippy-prebuild
+clippy-prebuild: test-corpus-purity ## Diagnose producer-independent Rust targets before corpus production; the full clippy gate remains required.
+	cargo clippy $(RUST_PREBUILD_WORKSPACE_ARGS) --all-targets --keep-going -- -D warnings
 
 rust-test: nextest doctests ## Run the Rust workspace tests (including carrier/coherence proofs) and doctests.
 
@@ -436,10 +440,14 @@ check-sync: ## The one pipeline producer: materialize (SYNC_MODE=update) or read
 	@# narrower `SYNC_OUTPUTS=docs` selection skips that pipeline-level dist/ write, so
 	@# it alone needs an explicit materialize-then-build prerequisite here.
 	@if [ "$(SYNC_OUTPUTS)" = "docs" ]; then \
-		$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
+		$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE) && \
 		$(MAKE) build; \
 	fi
 	$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,) $(if $(strip $(SYNC_TIMINGS_JSON)),--timings-json $(SYNC_TIMINGS_JSON),)
+
+.PHONY: check-sync-prerequisite-test
+check-sync-prerequisite-test: ## Verify docs prerequisite failure propagation using inert producer stubs.
+	./scripts/test-check-sync-prerequisites.sh
 
 i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 	$(GMEOW_DEV) i18n lint
@@ -702,7 +710,7 @@ nextest-synthetic: test-corpus-purity ## Run an explicit NEXTEST_FILTER over syn
 	@# This diagnostic selection uses the producer-independent workspace build graph.
 	@# It grants no corpus access: selected corpus consumers fail in their authenticated
 	@# loader even if the invoking shell carried credentials from a previous full run.
-	env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+	unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
 	  cargo nextest run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS) $(NEXTEST_FILTER_ARG) --no-tests=fail
 
 nextest-evidence-tools: ## Build the exact report-only resource/JUnit tools shipped beside the test archive.
@@ -924,6 +932,11 @@ maint-refresh-wasm-assets: ## Prepare all browser assets, produce and gate once,
 		( cd "crates/$$engine-wasm/js" && node --test tests/*.test.mjs ); \
 	done
 	@echo "OK: all six browser assets passed the full gate and Node parity."
+
+.PHONY: maint-pin-purrdf
+maint-pin-purrdf: ## Resolve the authored exact PurRDF Git revision in production and fuzz locks; qualification is separate.
+	cargo update -p purrdf
+	cargo update --manifest-path fuzz/Cargo.toml -p purrdf
 
 maint-bump-purrdf: ## Select VERSION within the declared PurRDF requirements, update both locks, and gate every wasm engine.
 	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=3.0.0"; exit 1; }
@@ -1203,6 +1216,14 @@ fuzz-smoke: fuzz-substrate-check ## Run bounded coverage-guided fuzz smoke tests
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
 	cargo bench -p gmeow-logic -p gmeow-validate
+
+.PHONY: bench-class-evidence bench-class-evidence-build
+bench-class-evidence-build: ## Compile the class-evidence benchmark without running measurements.
+	cargo bench -p gmeow-logic --bench reason --no-run
+
+CLASS_EVIDENCE_FILTER ?= class_restrictions
+bench-class-evidence: ## Measure native class evidence; CLASS_EVIDENCE_FILTER selects cases.
+	cargo bench -p gmeow-logic --bench reason -- '$(CLASS_EVIDENCE_FILTER)'
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare

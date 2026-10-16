@@ -378,8 +378,8 @@ fn explanations_for_result_carries_faithful_two_step_derivation() {
         RdfQuad::new(RdfTerm::iri(s), SUBCLASS, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     };
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&quad(A, B));
-    builder.push_owned_quad(&quad(B, C));
+    builder.push_owned_quad(&quad(A, B)).unwrap();
+    builder.push_owned_quad(&quad(B, C)).unwrap();
     let edb = builder.freeze().expect("valid edb");
 
     let input =
@@ -438,9 +438,11 @@ fn explanations_for_result_asserted_fact_is_a_leaf() {
     const B: &str = "http://gmeow.example/B";
 
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &RdfQuad::new(RdfTerm::iri(A), SUBCLASS, RdfTerm::iri(B)).in_graph(RdfTerm::iri(W)),
-    );
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(A), SUBCLASS, RdfTerm::iri(B)).in_graph(RdfTerm::iri(W)),
+        )
+        .unwrap();
     let edb = builder.freeze().expect("valid edb");
 
     let input =

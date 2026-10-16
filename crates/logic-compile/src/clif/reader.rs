@@ -146,6 +146,19 @@ fn nt_term(expr: &SExpr) -> Result<String, LogicParseError> {
                 Ok(format!("<{}>", nt_escape_iri(name)))
             }
         }
+        SExpr::List(items) if items.first().and_then(symbol_of) == Some("triple") => {
+            let [_, subject, predicate, object] = items.as_slice() else {
+                return Err(LogicParseError(
+                    "CLIF triple term requires exactly three operands".into(),
+                ));
+            };
+            Ok(format!(
+                "<<( {} {} {} )>>",
+                nt_term(subject)?,
+                nt_term(predicate)?,
+                nt_term(object)?
+            ))
+        }
         SExpr::List(items) => {
             // A `(lit "lex")` / `(lit "lex" 'dt')` / `(lit "lex" @lang)` reserved form.
             let lit = parse_lit_form(items)?;

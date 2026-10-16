@@ -42,6 +42,8 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// silent success).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum OntoumlError {
+    /// The selected native operation failed; never a capability-gap observation.
+    Failure(gmeow_errors::RecordedDiag),
     /// The source is malformed OntoUML — a hard parse failure (no recovery).
     Syntax(String),
     /// The source is well-formed but uses a construct outside the fragment the
@@ -53,6 +55,9 @@ pub enum OntoumlError {
 impl std::fmt::Display for OntoumlError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            OntoumlError::Failure(diagnostic) => {
+                write!(f, "OntoUML execution failed: {diagnostic}")
+            }
             OntoumlError::Syntax(m) => write!(f, "OntoUML syntax error: {m}"),
             OntoumlError::Unsupported(m) => {
                 write!(f, "OntoUML construct outside the native fragment: {m}")
@@ -62,6 +67,15 @@ impl std::fmt::Display for OntoumlError {
 }
 
 impl std::error::Error for OntoumlError {}
+
+impl From<gmeow_errors::Diag> for OntoumlError {
+    fn from(error: gmeow_errors::Diag) -> Self {
+        Self::Failure(gmeow_errors::DiagLedger::new().record(
+            error,
+            gmeow_errors::StageId::new("ontouml-native-execution"),
+        ))
+    }
+}
 
 /// Map an OntoUML stereotype local name to its `logic:` stereotype local name.
 ///

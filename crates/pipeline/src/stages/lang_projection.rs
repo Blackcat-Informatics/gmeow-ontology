@@ -123,13 +123,9 @@ pub fn build_corpus(
 
     for target in registry() {
         let name = target.name();
-        let batch = target.emit_observed(&input).map_err(|d| {
-            stage_err(format!(
-                "lang-projection target '{name}' hard-failed ({}): {}",
-                d.failure_class.as_str(),
-                d.construct
-            ))
-        })?;
+        let batch = target
+            .emit_observed(&input)
+            .map_err(|error| error.with_context(format!("lang-projection target '{name}'")))?;
         pack.record(name, &batch)?;
         gates.record(name, &batch)?;
         let emissions = batch.emissions;

@@ -1841,7 +1841,7 @@ impl McpView {
 
     #[cfg(feature = "core")]
     fn run_docs_query(&self, sparql: &str) -> gmeow_errors::Result<Value> {
-        let docs = self.documentation();
+        let docs = self.documentation()?;
         let result = gmeow_bundle_view::native_query::query(docs, sparql)?;
         sparql_result_to_json(result)
     }
@@ -2640,25 +2640,29 @@ impl McpView {
     /// The documentation graph re-rooted to the default graph, projected once and
     /// shared by every query surface for this server.
     #[cfg(feature = "core")]
-    fn documentation(&self) -> &Arc<purrdf::RdfDataset> {
-        self.documentation.get_or_init(|| {
-            Arc::new(
-                self.dataset
-                    .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION),
-            )
-        })
+    fn documentation(&self) -> gmeow_errors::Result<&Arc<purrdf::RdfDataset>> {
+        if let Some(dataset) = self.documentation.get() {
+            return Ok(dataset);
+        }
+        let dataset = Arc::new(
+            self.dataset
+                .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION)?,
+        );
+        Ok(self.documentation.get_or_init(|| dataset))
     }
 
     /// The authoring-briefs graph re-rooted to the default graph, projected once and
     /// shared by every `slice_brief` call for this server.
     #[cfg(feature = "core")]
-    fn authoring_briefs(&self) -> &Arc<purrdf::RdfDataset> {
-        self.authoring_briefs.get_or_init(|| {
-            Arc::new(
-                self.dataset
-                    .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS),
-            )
-        })
+    fn authoring_briefs(&self) -> gmeow_errors::Result<&Arc<purrdf::RdfDataset>> {
+        if let Some(dataset) = self.authoring_briefs.get() {
+            return Ok(dataset);
+        }
+        let dataset = Arc::new(
+            self.dataset
+                .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS)?,
+        );
+        Ok(self.authoring_briefs.get_or_init(|| dataset))
     }
 
     /// The `term-IRI → site URL` map, built once from the documentation graph and
@@ -4102,7 +4106,7 @@ impl McpServer {
     fn tool_docs_search(&self, args: &Value) -> gmeow_errors::Result<String> {
         let query = required_str(args, "query")?;
         let limit = optional_limit(args, "limit")?.unwrap_or(20);
-        let docs = self.view.documentation();
+        let docs = self.view.documentation()?;
         let hits = search_documentation(docs, query, limit)?;
         let results: Vec<Value> = hits.iter().map(SearchHit::to_json).collect();
         Ok(json!({"ok": true, "query": query, "results": results}).to_string())
@@ -4165,7 +4169,7 @@ impl McpServer {
                 ),
             })
         })?;
-        let round_trip = gmn0_canonically_equal(&model, &back);
+        let round_trip = gmn0_canonically_equal(&model, &back)?;
         if !round_trip {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: "encode_gmn1: the emitted GMN-1 does not round-trip to the input model \
@@ -4176,7 +4180,7 @@ impl McpServer {
         Ok(json!({
             "ok": true,
             "gmn1": doc.text,
-            "canonical_nquads": back.canonical_nquads(),
+            "canonical_nquads": back.canonical_nquads()?,
             "round_trip": round_trip,
         })
         .to_string())
@@ -4491,7 +4495,7 @@ impl McpServer {
                 message: format!("gmn_expand: re-reading the re-encoded model failed: {error}"),
             })
         })?;
-        if !gmn0_canonically_equal(&model, &back) {
+        if !gmn0_canonically_equal(&model, &back)? {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: "gmn_expand: round-trip witness failed — the expanded GMN-0 normal form \
                           is not canonically stable under re-encode/re-read (refusing a lossy \
@@ -4501,7 +4505,7 @@ impl McpServer {
         }
         Ok(json!({
             "ok": true,
-            "expanded_nquads": model.canonical_nquads(),
+            "expanded_nquads": model.canonical_nquads()?,
             "reencoded_gmn": reencoded.text,
             "round_trip": true,
         })
@@ -5443,7 +5447,8 @@ impl McpServer {
         let axis = optional_str(args, "axis");
         let batch = optional_step_count(args, "batch")?;
         let slice_iri = expand_slice_iri(slice);
-        let out = extract_authoring_packets(self.view.authoring_briefs(), &slice_iri, axis, batch)?;
+        let out =
+            extract_authoring_packets(self.view.authoring_briefs()?, &slice_iri, axis, batch)?;
         Ok(out.to_string())
     }
 
@@ -7704,8 +7709,8 @@ fn txn_world_dataset(
     obtains: &[&str],
 ) -> gmeow_errors::Result<Arc<purrdf::RdfDataset>> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    builder.push_dataset(policy.dataset()?);
-    let mut push = |subject: &str, predicate: &str, object: &str| {
+    builder.push_dataset(policy.dataset()?)?;
+    let mut push = |subject: &str, predicate: &str, object: &str| -> gmeow_errors::Result<()> {
         builder.push_owned_quad(
             &purrdf::RdfQuad::new(
                 RdfTerm::Iri(subject.to_owned()),
@@ -7713,18 +7718,15 @@ fn txn_world_dataset(
                 RdfTerm::Iri(object.to_owned()),
             )
             .in_graph(RdfTerm::Iri(TXN_WORLD.to_owned())),
-        );
+        )?;
+        Ok(())
     };
-    push(TXN_ROOT, LOGIC_INSTANTIATES_SCHEMA, schema_iri);
-    push(TXN_ROOT, LOGIC_TRANSITION_FROM_STATE, TXN_START);
+    push(TXN_ROOT, LOGIC_INSTANTIATES_SCHEMA, schema_iri)?;
+    push(TXN_ROOT, LOGIC_TRANSITION_FROM_STATE, TXN_START)?;
     for situation in obtains {
-        push(TXN_START, LOGIC_SITUATION_OBTAINS, situation);
+        push(TXN_START, LOGIC_SITUATION_OBTAINS, situation)?;
     }
-    builder.freeze().map_err(|error| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: error.to_string(),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Execute the native policy with the real start state and explicit commit mode.
@@ -8680,7 +8682,7 @@ pub fn extract_authoring_packets(
     for subj in &emit_subjects {
         let s = RdfTerm::iri(subj.clone());
         for (pred, obj) in &subjects[subj] {
-            builder.push_owned_quad(&RdfQuad::new(s.clone(), pred.clone(), obj.clone()));
+            builder.push_owned_quad(&RdfQuad::new(s.clone(), pred.clone(), obj.clone()))?;
         }
     }
     let subgraph = builder.freeze().map_err(|e| {
@@ -8725,7 +8727,7 @@ pub fn slice_brief_from_bundle(
         purrdf::import_gts_events(snapshot).with_ctx(|| "read snapshot gmeow.gts".to_string())?;
     let briefs = bundle
         .dataset
-        .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS);
+        .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS)?;
     let slice_iri = expand_slice_iri(slice);
     extract_authoring_packets(&briefs, &slice_iri, axis, batch)
 }

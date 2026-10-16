@@ -837,29 +837,33 @@ pub fn config_for_evidence(
 /// `gmeow:AffectiveClaim` for each above-threshold label that reviews onto a
 /// `gmeow:EmotionType`; and a `gmeow:AffectEvaluationConcluded` for each target
 /// where nothing crossed threshold ("checked and flat" ≠ "never checked").
+///
+/// # Errors
+/// Retains the typed capture-validation refusal or the original native storage,
+/// codec or UTF-8 failure. A failed emission never returns a partial graph.
 pub fn produce(
     capture: &ClassifierRunCapture,
     config: &IngestConfig,
-) -> Result<String, IngestError> {
+) -> gmeow_errors::Result<String> {
     validate(capture, config)?;
 
     let run_iri = mint_run_iri(capture, &config.mint_base);
     let mut sink = Sink::default();
 
     // ── the run ──
-    sink.iri(&run_iri, RDF_TYPE, &g("ModelInferenceRun"));
-    sink.string(&run_iri, &g("modelIdentifier"), &capture.model_identifier);
-    sink.string(&run_iri, &g("modelRevision"), &capture.model_revision);
-    sink.string(&run_iri, &g("modelFramework"), &capture.model_framework);
-    sink.string(&run_iri, &g("modelTask"), &capture.model_task);
+    sink.iri(&run_iri, RDF_TYPE, &g("ModelInferenceRun"))?;
+    sink.string(&run_iri, &g("modelIdentifier"), &capture.model_identifier)?;
+    sink.string(&run_iri, &g("modelRevision"), &capture.model_revision)?;
+    sink.string(&run_iri, &g("modelFramework"), &capture.model_framework)?;
+    sink.string(&run_iri, &g("modelTask"), &capture.model_task)?;
     if let Some(tok) = &capture.tokenizer_revision {
-        sink.string(&run_iri, &g("tokenizerRevision"), tok);
+        sink.string(&run_iri, &g("tokenizerRevision"), tok)?;
     }
     if let Some(ls) = &capture.label_set_revision {
-        sink.string(&run_iri, &g("labelSetRevision"), ls);
+        sink.string(&run_iri, &g("labelSetRevision"), ls)?;
     }
     if let Some(template) = &capture.hypothesis_template {
-        sink.string(&run_iri, &g("hypothesisTemplate"), template);
+        sink.string(&run_iri, &g("hypothesisTemplate"), template)?;
     }
 
     // Run-scoped (zero-shot): the candidate set is part of the run identity, not a
@@ -869,19 +873,19 @@ pub fn produce(
     // registered exactly as the fixed-label adapters' labels are in the base graph).
     if capture.candidate_labels.is_some() {
         let set_iri = config.candidate_set_iri();
-        sink.iri(&set_iri, RDF_TYPE, &g("AffectLabelSet"));
-        sink.lang(&set_iri, RDFS_LABEL, &config.label_set_id);
+        sink.iri(&set_iri, RDF_TYPE, &g("AffectLabelSet"))?;
+        sink.lang(&set_iri, RDFS_LABEL, &config.label_set_id)?;
         for surface in config.registered_labels() {
             let label_iri = config.label_iri(surface);
-            sink.iri(&label_iri, RDF_TYPE, &g("AffectClassifierLabel"));
-            sink.iri(&label_iri, &g("memberOfLabelSet"), &set_iri);
-            sink.lang(&label_iri, RDFS_LABEL, surface);
+            sink.iri(&label_iri, RDF_TYPE, &g("AffectClassifierLabel"))?;
+            sink.iri(&label_iri, &g("memberOfLabelSet"), &set_iri)?;
+            sink.lang(&label_iri, RDFS_LABEL, surface)?;
         }
     }
 
     let semantics_iri = capture.score_semantics.iri();
     for target in &capture.targets {
-        sink.iri(&run_iri, &g("usedInput"), &target.target_iri);
+        sink.iri(&run_iri, &g("usedInput"), &target.target_iri)?;
 
         let mut any_crossed = false;
         for cell in &target.scores {
@@ -894,16 +898,16 @@ pub fn produce(
                 })?;
             let out_iri = mint_output_iri(&run_iri, &target.target_iri, &cell.label);
 
-            sink.iri(&out_iri, RDF_TYPE, &g("AffectClassifierOutput"));
-            sink.iri(&out_iri, &g("producedBy"), &run_iri);
-            sink.iri(&out_iri, &g("vantage"), &run_iri);
-            sink.iri(&out_iri, &g("classifiedTarget"), &target.target_iri);
-            sink.iri(&out_iri, &g("emittedLabel"), &label_iri);
-            sink.decimal(&out_iri, &g("classifierScore"), cell.score);
-            sink.iri(&out_iri, &g("scoreSemantics"), &semantics_iri);
-            sink.decimal(&out_iri, &g("thresholdApplied"), threshold);
+            sink.iri(&out_iri, RDF_TYPE, &g("AffectClassifierOutput"))?;
+            sink.iri(&out_iri, &g("producedBy"), &run_iri)?;
+            sink.iri(&out_iri, &g("vantage"), &run_iri)?;
+            sink.iri(&out_iri, &g("classifiedTarget"), &target.target_iri)?;
+            sink.iri(&out_iri, &g("emittedLabel"), &label_iri)?;
+            sink.decimal(&out_iri, &g("classifierScore"), cell.score)?;
+            sink.iri(&out_iri, &g("scoreSemantics"), &semantics_iri)?;
+            sink.decimal(&out_iri, &g("thresholdApplied"), threshold)?;
             if let Some(cal) = &capture.score_calibration {
-                sink.string(&out_iri, &g("scoreCalibration"), cal);
+                sink.string(&out_iri, &g("scoreCalibration"), cal)?;
             }
 
             if cell.score >= threshold {
@@ -913,15 +917,15 @@ pub fn produce(
                 // authors a reviewed closeMatch to an EmotionType.
                 if let Some(m) = config.emotion_close_match.get(&label_iri) {
                     let claim_iri = format!("{out_iri}/claim");
-                    sink.iri(&out_iri, &g("supportsAffectiveClaim"), &claim_iri);
-                    sink.iri(&claim_iri, RDF_TYPE, &g("AffectiveClaim"));
-                    sink.iri(&claim_iri, &g("vantage"), &run_iri);
-                    sink.iri(&claim_iri, &g("observedFeature"), &target.target_iri);
+                    sink.iri(&out_iri, &g("supportsAffectiveClaim"), &claim_iri)?;
+                    sink.iri(&claim_iri, RDF_TYPE, &g("AffectiveClaim"))?;
+                    sink.iri(&claim_iri, &g("vantage"), &run_iri)?;
+                    sink.iri(&claim_iri, &g("observedFeature"), &target.target_iri)?;
                     sink.lang(
                         &claim_iri,
                         RDFS_LABEL,
                         &format!("the text expresses {}", m.word),
-                    );
+                    )?;
                 }
             }
         }
@@ -942,37 +946,37 @@ pub fn produce(
                 .threshold_for(&winner.label)
                 .expect("threshold present (validated)");
             let decision_iri = mint_decision_iri(&run_iri, &target.target_iri);
-            sink.iri(&decision_iri, RDF_TYPE, &g("AffectDecision"));
-            sink.iri(&decision_iri, &g("vantage"), &run_iri);
-            sink.iri(&decision_iri, &g("observedFeature"), &target.target_iri);
+            sink.iri(&decision_iri, RDF_TYPE, &g("AffectDecision"))?;
+            sink.iri(&decision_iri, &g("vantage"), &run_iri)?;
+            sink.iri(&decision_iri, &g("observedFeature"), &target.target_iri)?;
             sink.iri(
                 &decision_iri,
                 &g("decidedLabel"),
                 &config.label_iri(&winner.label),
-            );
-            sink.iri(&decision_iri, &g("derivedByFunction"), &g("fnArgmax"));
+            )?;
+            sink.iri(&decision_iri, &g("derivedByFunction"), &g("fnArgmax"))?;
             sink.boolean(
                 &decision_iri,
                 &g("decisionCrossedThreshold"),
                 winner.score >= winner_threshold,
-            );
+            )?;
             // The margin (top1 − top2) is the argmax confidence — recorded only when a
             // runner-up exists (a single top-1-score capture has none).
             if target.scores.len() >= 2 {
                 let mut desc: Vec<f64> = target.scores.iter().map(|c| c.score).collect();
                 desc.sort_by(|a, b| b.partial_cmp(a).expect("finite scores"));
-                sink.decimal(&decision_iri, &g("decisionMargin"), desc[0] - desc[1]);
+                sink.decimal(&decision_iri, &g("decisionMargin"), desc[0] - desc[1])?;
             }
         } else if !any_crossed {
             // Multi-label / run-scoped: "concluded and flat" is not "never checked".
             let concluded_iri = mint_concluded_iri(&run_iri, &target.target_iri);
-            sink.iri(&concluded_iri, RDF_TYPE, &g("AffectEvaluationConcluded"));
-            sink.iri(&concluded_iri, &g("vantage"), &run_iri);
-            sink.iri(&concluded_iri, &g("observedFeature"), &target.target_iri);
+            sink.iri(&concluded_iri, RDF_TYPE, &g("AffectEvaluationConcluded"))?;
+            sink.iri(&concluded_iri, &g("vantage"), &run_iri)?;
+            sink.iri(&concluded_iri, &g("observedFeature"), &target.target_iri)?;
         }
     }
 
-    Ok(sink.serialize())
+    sink.serialize()
 }
 
 /// All hard-fail checks, keyed to the affect design's rules. Runs to completion
@@ -1294,33 +1298,37 @@ struct Sink {
 }
 
 impl Sink {
-    fn iri(&mut self, s: &str, p: &str, o: &str) {
-        let s = self.builder.intern_iri(s);
-        let p = self.builder.intern_iri(p);
-        let o = self.builder.intern_iri(o);
-        self.builder.push_quad(s, p, o, None);
+    fn iri(&mut self, s: &str, p: &str, o: &str) -> gmeow_errors::Result<()> {
+        let s = self.builder.intern_iri(s)?;
+        let p = self.builder.intern_iri(p)?;
+        let o = self.builder.intern_iri(o)?;
+        self.builder.push_quad(s, p, o, None)?;
+        Ok(())
     }
 
-    fn lit(&mut self, s: &str, p: &str, lit: RdfLiteral) {
-        let s = self.builder.intern_iri(s);
-        let p = self.builder.intern_iri(p);
-        let o = self.builder.intern_literal(lit);
-        self.builder.push_quad(s, p, o, None);
+    fn lit(&mut self, s: &str, p: &str, lit: RdfLiteral) -> gmeow_errors::Result<()> {
+        let s = self.builder.intern_iri(s)?;
+        let p = self.builder.intern_iri(p)?;
+        let o = self.builder.intern_literal(lit)?;
+        self.builder.push_quad(s, p, o, None)?;
+        Ok(())
     }
 
-    fn string(&mut self, s: &str, p: &str, value: &str) {
-        self.lit(s, p, RdfLiteral::simple(value));
+    fn string(&mut self, s: &str, p: &str, value: &str) -> gmeow_errors::Result<()> {
+        self.lit(s, p, RdfLiteral::simple(value))?;
+        Ok(())
     }
 
-    fn decimal(&mut self, s: &str, p: &str, value: f64) {
+    fn decimal(&mut self, s: &str, p: &str, value: f64) -> gmeow_errors::Result<()> {
         self.lit(
             s,
             p,
             RdfLiteral::typed(format_decimal(value), XSD_DECIMAL.to_owned()),
-        );
+        )?;
+        Ok(())
     }
 
-    fn boolean(&mut self, s: &str, p: &str, value: bool) {
+    fn boolean(&mut self, s: &str, p: &str, value: bool) -> gmeow_errors::Result<()> {
         self.lit(
             s,
             p,
@@ -1328,25 +1336,23 @@ impl Sink {
                 if value { "true" } else { "false" }.to_owned(),
                 XSD_BOOLEAN.to_owned(),
             ),
-        );
+        )?;
+        Ok(())
     }
 
-    fn lang(&mut self, s: &str, p: &str, text: &str) {
-        self.lit(s, p, RdfLiteral::language_tagged(text, GMEOW_ENGLISH));
+    fn lang(&mut self, s: &str, p: &str, text: &str) -> gmeow_errors::Result<()> {
+        self.lit(s, p, RdfLiteral::language_tagged(text, GMEOW_ENGLISH))?;
+        Ok(())
     }
 
-    fn serialize(self) -> String {
-        let dataset = self
-            .builder
-            .freeze()
-            .expect("well-formed triple set freezes");
+    fn serialize(self) -> gmeow_errors::Result<String> {
+        let dataset = self.builder.freeze()?;
         let bytes = serialize_dataset(
             dataset.as_ref(),
             "text/turtle",
             SerializeGraph::DefaultGraph,
-        )
-        .expect("turtle serialization");
-        String::from_utf8(bytes).expect("utf-8 turtle")
+        )?;
+        Ok(String::from_utf8(bytes)?)
     }
 }
 
@@ -1621,6 +1627,14 @@ fn required_decimal(index: &TripleIndex, s: &str, p: &str) -> Result<f64, Ingest
 mod tests {
     use super::*;
 
+    fn produce_refusal(capture: &ClassifierRunCapture, config: &IngestConfig) -> IngestError {
+        let failure = produce(capture, config).expect_err("the capture must be refused");
+        failure
+            .downcast_ref::<IngestError>()
+            .expect("original typed capture refusal")
+            .clone()
+    }
+
     /// A minimal ontology fixture: a two-label GoEmotions set (`joy` mapped to an
     /// EmotionType, `neutral` unmapped) with the closeMatch cell authored the way
     /// `mappings/equivalences.ttl` authors it.
@@ -1846,8 +1860,8 @@ mod tests {
         let mut cap = capture();
         cap.model_revision = "  ".to_owned();
         assert_eq!(
-            produce(&cap, &config()),
-            Err(IngestError::MissingModelRevision)
+            produce_refusal(&cap, &config()),
+            IngestError::MissingModelRevision
         );
     }
 
@@ -1860,10 +1874,10 @@ mod tests {
             score: 0.9,
         }];
         assert_eq!(
-            produce(&cap, &config()),
-            Err(IngestError::UnregisteredLabel {
+            produce_refusal(&cap, &config()),
+            IngestError::UnregisteredLabel {
                 label: "notALabel".to_owned()
-            })
+            }
         );
     }
 
@@ -1873,8 +1887,8 @@ mod tests {
         cap.score_semantics = ScoreSemantics::CalibratedProbability;
         cap.function_to_apply = "sigmoid".to_owned(); // n/a for calibrated → no activation check
         assert_eq!(
-            produce(&cap, &config()),
-            Err(IngestError::MissingScoreCalibration)
+            produce_refusal(&cap, &config()),
+            IngestError::MissingScoreCalibration
         );
     }
 
@@ -1883,13 +1897,13 @@ mod tests {
         let mut cap = capture();
         cap.targets[0].scores[0].score = 1.5;
         assert!(matches!(
-            produce(&cap, &config()),
-            Err(IngestError::ScoreOutOfRange { .. })
+            produce_refusal(&cap, &config()),
+            IngestError::ScoreOutOfRange { .. }
         ));
         cap.targets[0].scores[0].score = f64::NAN;
         assert!(matches!(
-            produce(&cap, &config()),
-            Err(IngestError::ScoreOutOfRange { .. })
+            produce_refusal(&cap, &config()),
+            IngestError::ScoreOutOfRange { .. }
         ));
     }
 
@@ -1908,8 +1922,8 @@ mod tests {
             },
         ];
         assert!(matches!(
-            produce(&cap, &config()),
-            Err(IngestError::DuplicateLabel { .. })
+            produce_refusal(&cap, &config()),
+            IngestError::DuplicateLabel { .. }
         ));
     }
 
@@ -1918,16 +1932,16 @@ mod tests {
         let mut cap = capture();
         cap.targets[0].target_iri = "not an iri".to_owned();
         assert!(matches!(
-            produce(&cap, &config()),
-            Err(IngestError::InvalidTargetIri { .. })
+            produce_refusal(&cap, &config()),
+            IngestError::InvalidTargetIri { .. }
         ));
 
         let mut cap = capture();
         let dup = cap.targets[0].clone();
         cap.targets.push(dup);
         assert!(matches!(
-            produce(&cap, &config()),
-            Err(IngestError::DuplicateTargetIri { .. })
+            produce_refusal(&cap, &config()),
+            IngestError::DuplicateTargetIri { .. }
         ));
     }
 
@@ -1940,8 +1954,8 @@ mod tests {
             score: 0.8,
         }];
         assert!(matches!(
-            produce(&cap, &config()),
-            Err(IngestError::IncompleteScores { .. })
+            produce_refusal(&cap, &config()),
+            IngestError::IncompleteScores { .. }
         ));
     }
 
@@ -1950,8 +1964,8 @@ mod tests {
         let mut cap = capture();
         cap.function_to_apply = "softmax".to_owned();
         assert!(matches!(
-            produce(&cap, &config()),
-            Err(IngestError::ActivationMismatch { .. })
+            produce_refusal(&cap, &config()),
+            IngestError::ActivationMismatch { .. }
         ));
     }
 
@@ -2011,8 +2025,8 @@ mod tests {
         let mut no_template = zeroshot_capture();
         no_template.hypothesis_template = None;
         assert_eq!(
-            produce(&no_template, &cfg),
-            Err(IngestError::MissingHypothesisTemplate)
+            produce_refusal(&no_template, &cfg),
+            IngestError::MissingHypothesisTemplate
         );
     }
 
@@ -2163,8 +2177,8 @@ mod tests {
             ]),
         };
         assert!(matches!(
-            produce(&cap, &argmax_config()),
-            Err(IngestError::ExclusivityViolation { .. })
+            produce_refusal(&cap, &argmax_config()),
+            IngestError::ExclusivityViolation { .. }
         ));
     }
 
@@ -2186,8 +2200,8 @@ mod tests {
             },
         ];
         assert!(matches!(
-            produce(&cap, &argmax_config()),
-            Err(IngestError::AmbiguousArgmax { .. })
+            produce_refusal(&cap, &argmax_config()),
+            IngestError::AmbiguousArgmax { .. }
         ));
     }
 
@@ -2210,8 +2224,8 @@ mod tests {
             },
         ];
         assert!(matches!(
-            produce(&cap, &argmax_config()),
-            Err(IngestError::NonNormalizedExclusiveScores { .. })
+            produce_refusal(&cap, &argmax_config()),
+            IngestError::NonNormalizedExclusiveScores { .. }
         ));
     }
 
@@ -2222,8 +2236,8 @@ mod tests {
         cap.score_semantics = ScoreSemantics::Sigmoid;
         cap.function_to_apply = "sigmoid".to_owned();
         assert!(matches!(
-            produce(&cap, &argmax_config()),
-            Err(IngestError::ScoreSemanticsDecisionMismatch { .. })
+            produce_refusal(&cap, &argmax_config()),
+            IngestError::ScoreSemanticsDecisionMismatch { .. }
         ));
     }
 

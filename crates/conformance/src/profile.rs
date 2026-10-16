@@ -228,15 +228,15 @@ pub fn parse_profile(case_id: &str, value: &Value) -> gmeow_errors::Result<Profi
                 "case {case_id}: source admission requires its exact class-expression/list contract"
             )));
         }
-        if let Some(status) = obj.get("source_admission_status") {
-            if !matches!(
+        if let Some(status) = obj.get("source_admission_status")
+            && !matches!(
                 status.as_str(),
                 Some("outside-selection" | "admitted" | "refused")
-            ) {
-                return Err(invalid(format!(
-                    "case {case_id}: unknown source-admission observation status"
-                )));
-            }
+            )
+        {
+            return Err(invalid(format!(
+                "case {case_id}: unknown source-admission observation status"
+            )));
         }
         if foundation_lowering
             || teleology_lowering

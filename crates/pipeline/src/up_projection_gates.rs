@@ -395,7 +395,7 @@ pub(crate) fn ledger_from_audit(
             message: e.to_string(),
         })
     })?;
-    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated)?;
     let report = evaluate_gates(&gated, &[], &verdicts);
 
     // Attribute each gate verdict back to its vocabulary via the corr IRI → vocab map.
@@ -941,7 +941,7 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> gmeow_errors::Result<Tier> {
             message: e.to_string(),
         })
     })?;
-    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated)?;
     let report = evaluate_gates(&gated, &[], &verdicts);
     let r = report.per_correspondence.first().ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::UpProjection {

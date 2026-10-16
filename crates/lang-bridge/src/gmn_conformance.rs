@@ -11,6 +11,22 @@ use crate::{
     Gmn0Model, GmnDictionary, gmn1_read, gmn1_write, idempotence_check, per_claim_round_trip_check,
 };
 
+/// Keep an actual codec verdict in an observation while preserving operational failure.
+///
+/// # Errors
+/// Returns the original diagnostic unless its cause is the codec's semantic error type.
+pub fn codec_verdict<T>(
+    outcome: gmeow_errors::Result<T>,
+) -> gmeow_errors::Result<Result<T, crate::Gmn1Error>> {
+    match outcome {
+        Ok(value) => Ok(Ok(value)),
+        Err(error) => match error.downcast_ref::<crate::Gmn1Error>() {
+            Some(cause) => Ok(Err(cause.clone())),
+            None => Err(error),
+        },
+    }
+}
+
 /// Actual output and independent witnesses from one positive vector execution.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PositiveObservation {
@@ -62,12 +78,13 @@ pub fn observe_positive(
     dictionary: &GmnDictionary,
 ) -> gmeow_errors::Result<PositiveObservation> {
     let document = gmn1_write(model, dictionary)?;
-    let source = model.canonical_nquads();
+    let source = model.canonical_nquads()?;
     let content_digest = crate::gmn1_digest::canonical_content_digest(&source);
     Ok(PositiveObservation {
         source,
         reconstructed: gmn1_read(&document, dictionary)
-            .map(|back| back.canonical_nquads())
+            .map_err(gmeow_errors::Diag::from)
+            .and_then(|back| back.canonical_nquads())
             .map_err(record_failure),
         content_digest,
         per_claim: per_claim_round_trip_check(model, dictionary).map_err(record_failure),

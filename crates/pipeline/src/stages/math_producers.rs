@@ -287,7 +287,7 @@ impl Stage for MathProducersStage {
             )?);
         }
         let refs: Vec<&RdfDataset> = graphs.iter().map(|g| g.as_ref()).collect();
-        let dataset = Arc::new(RdfDataset::union(&refs));
+        let dataset = Arc::new(RdfDataset::union(&refs)?);
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
             dataset,

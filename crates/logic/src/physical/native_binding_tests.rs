@@ -70,7 +70,7 @@ fn copy_rule() -> EvalRule {
 
 #[test]
 fn forward_and_reduct_keep_native_objects_worlds_and_exact_premises() {
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new().unwrap();
     for fact in facts() {
         store
             .insert_quad_terms(
@@ -129,7 +129,7 @@ fn forward_and_reduct_keep_native_objects_worlds_and_exact_premises() {
 
 #[test]
 fn indexed_join_and_negation_distinguish_native_source_terms() {
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new().unwrap();
     let values = values();
     for object in &values {
         for predicate in ["urn:source", "urn:corroborates"] {

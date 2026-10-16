@@ -92,21 +92,19 @@ pub fn lower_reifiers(dataset: &RdfDataset) -> StatementLowering {
             out.nested.push(reifier.reifier);
             continue;
         }
+        let (subject, predicate, object, _) = statement.into_parts();
         out.rows.push((
             reifier.reifier.clone(),
             REIFIED_STATEMENT_SUBJECT.to_owned(),
-            statement.subject,
+            subject,
         ));
         out.rows.push((
             reifier.reifier.clone(),
             REIFIED_STATEMENT_PREDICATE.to_owned(),
-            RdfTerm::Iri(statement.predicate),
+            RdfTerm::Iri(predicate),
         ));
-        out.rows.push((
-            reifier.reifier,
-            REIFIED_STATEMENT_OBJECT.to_owned(),
-            statement.object,
-        ));
+        out.rows
+            .push((reifier.reifier, REIFIED_STATEMENT_OBJECT.to_owned(), object));
     }
     out
 }

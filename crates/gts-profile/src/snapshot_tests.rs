@@ -21,10 +21,14 @@ const EMPTY_PROJECTION: &str = "https://blackcatinformatics.ca/gmeow/graph/test-
 
 fn native_finding() -> Arc<RdfDataset> {
     let mut source = RdfDatasetBuilder::new();
-    let subject = source.intern_iri(FINDING);
-    let predicate = source.intern_iri("https://blackcatinformatics.ca/gmeow/findingGateVerdict");
-    let object = source.intern_iri("https://blackcatinformatics.ca/gmeow/GateFatal");
-    source.push_quad(subject, predicate, object, None);
+    let subject = source.intern_iri(FINDING).unwrap();
+    let predicate = source
+        .intern_iri("https://blackcatinformatics.ca/gmeow/findingGateVerdict")
+        .unwrap();
+    let object = source
+        .intern_iri("https://blackcatinformatics.ca/gmeow/GateFatal")
+        .unwrap();
+    source.push_quad(subject, predicate, object, None).unwrap();
     source.freeze().expect("tiny native finding")
 }
 
@@ -48,11 +52,15 @@ fn owned_exit_refuses_a_poisoned_prefix_with_the_exact_native_cause() {
     let accepted_payload = snapshot.snapshot_payload();
 
     let mut source = RdfDatasetBuilder::new();
-    let subject = source.intern_iri(FINDING);
-    let predicate = source.intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom");
-    let object = source.intern_iri("https://blackcatinformatics.ca/gmeow/source/test");
-    let quoted = source.intern_triple(subject, predicate, object);
-    source.push_quad(subject, predicate, quoted, None);
+    let subject = source.intern_iri(FINDING).unwrap();
+    let predicate = source
+        .intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom")
+        .unwrap();
+    let object = source
+        .intern_iri("https://blackcatinformatics.ca/gmeow/source/test")
+        .unwrap();
+    let quoted = source.intern_triple(subject, predicate, object).unwrap();
+    source.push_quad(subject, predicate, quoted, None).unwrap();
     let unsupported = source.freeze().expect("native quoted provenance value");
     let cause = snapshot
         .add_view(&unsupported)
@@ -61,6 +69,10 @@ fn owned_exit_refuses_a_poisoned_prefix_with_the_exact_native_cause() {
     assert_eq!(snapshot.snapshot_payload(), accepted_payload);
 
     let error = publish(snapshot).expect_err("the accepted prefix is not the selected snapshot");
+    assert_eq!(
+        error.inner().failure_class.as_deref(),
+        error::SnapshotAdmission::FAILURE_CLASS
+    );
     let typed = error
         .downcast_ref::<error::SnapshotAdmission>()
         .expect("typed admission");
@@ -74,10 +86,10 @@ fn owned_exit_refuses_a_poisoned_prefix_with_the_exact_native_cause() {
 #[test]
 fn exact_omitted_graph_inventory_survives_the_ownership_exit() {
     let mut source = RdfDatasetBuilder::new();
-    let diagnostics = source.intern_iri(DIAGNOSTICS);
-    let empty_projection = source.intern_iri(EMPTY_PROJECTION);
-    source.declare_named_graph(diagnostics);
-    source.declare_named_graph(empty_projection);
+    let diagnostics = source.intern_iri(DIAGNOSTICS).unwrap();
+    let empty_projection = source.intern_iri(EMPTY_PROJECTION).unwrap();
+    source.declare_named_graph(diagnostics).unwrap();
+    source.declare_named_graph(empty_projection).unwrap();
     let declarations = source.freeze().expect("declared empty GMEOW roles");
     let mut snapshot = SnapshotBuilder::new();
     let _finding = snapshot.add_view(&native_finding()).expect("finding input");
@@ -131,8 +143,8 @@ fn companion_receipt_refuses_wrong_output_trailing_and_malformed_fields() {
 #[test]
 fn inherited_omissions_stay_in_the_original_report_outside_the_payload() {
     let mut source = RdfDatasetBuilder::new();
-    let graph = source.intern_iri(EMPTY_PROJECTION);
-    source.declare_named_graph(graph);
+    let graph = source.intern_iri(EMPTY_PROJECTION).unwrap();
+    source.declare_named_graph(graph).unwrap();
     // gmeow-test-input: synthetic-only
     let original = view_to_gmeow_gts(&source.freeze().expect("empty selected role"))
         .expect("original emission");
@@ -431,6 +443,10 @@ fn native_view_exit_keeps_the_failed_completion_checkpoint() {
     };
     // gmeow-test-input: synthetic-only
     let error = view_to_gmeow_gts(&source).expect_err("incomplete selected finding input");
+    assert_eq!(
+        error.inner().failure_class.as_deref(),
+        error::SnapshotAdmission::FAILURE_CLASS
+    );
     let typed = error
         .downcast_ref::<error::SnapshotAdmission>()
         .expect("typed admission");

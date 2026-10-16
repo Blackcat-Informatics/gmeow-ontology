@@ -103,7 +103,7 @@ pub fn compose(
 
     let mut refs: Vec<&RdfDataset> = vec![statements.dataset()];
     refs.extend(looped_defaults.iter().map(|d| d.as_ref()));
-    Ok(RdfDataset::union(&refs))
+    Ok(RdfDataset::union(&refs)?)
 }
 
 /// Project `dataset` to a fresh frozen dataset carrying ONLY its default-graph quads
@@ -116,14 +116,14 @@ fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, gmeow_err
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for quad in dataset.owned_quads() {
         if quad.graph_name.is_none() {
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad)?;
         }
     }
     for reifier in dataset.owned_reifiers() {
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier)?;
     }
     for annotation in dataset.owned_annotations() {
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation)?;
     }
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {

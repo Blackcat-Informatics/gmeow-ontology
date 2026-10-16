@@ -260,14 +260,14 @@ pub trait LangProjectionTarget {
     /// Vec means the composed model carries no source this target lowers FROM — the driver
     /// folds one honest no-source ledger row. Hard-fails (naming the construct) rather than
     /// ever silently dropping source material.
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic>;
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>>;
 
     /// Emit once while retaining native measurements for producer-owned contract receipts.
     /// Targets without a GMN measurement return only their normal emission products.
     fn emit_observed(
         &self,
         input: &LangProjectionInput,
-    ) -> Result<LangEmissionBatch, IngestDiagnostic> {
+    ) -> gmeow_errors::Result<LangEmissionBatch> {
         self.emit(input).map(|emissions| LangEmissionBatch {
             emissions,
             gmn_metrics: None,
@@ -355,7 +355,7 @@ impl LangProjectionTarget for EbnfTarget {
         "ebnf"
     }
 
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>> {
         let mut emissions = Vec::new();
         for source in &input.grammars {
             let canon = source.canonical();
@@ -414,7 +414,7 @@ impl LangProjectionTarget for AbnfTarget {
         "abnf"
     }
 
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>> {
         let mut emissions = Vec::new();
         for source in &input.grammars {
             let canon = source.canonical();
@@ -516,7 +516,7 @@ impl LangProjectionTarget for GbnfTarget {
         "gbnf"
     }
 
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>> {
         gmn_glyph_grammar_emissions(
             input,
             Formalism::Gbnf,
@@ -541,7 +541,7 @@ impl LangProjectionTarget for LarkTarget {
         "lark"
     }
 
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>> {
         gmn_glyph_grammar_emissions(
             input,
             Formalism::Lark,
@@ -575,7 +575,7 @@ fn gmn_glyph_grammar_emissions(
     target: &str,
     ext: &str,
     blocking_constructs: impl Fn(&Grammar) -> Vec<String>,
-) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+) -> gmeow_errors::Result<Vec<LangEmission>> {
     let Some(source) = input.grammars.iter().find(|g| g.name == "gmn") else {
         // No GMN glyph grammar in the composed model: honest no-source (the driver folds the row).
         return Ok(Vec::new());
@@ -583,16 +583,16 @@ fn gmn_glyph_grammar_emissions(
     // The version major keys the artifact path; like the GMN-1 codec's dictionary it is a
     // mandatory capability — a gmn-grammar-driven emission with no resolved major hard-fails
     // rather than defaulting to a constant.
-    let major = input
-        .gmn_dialect_major
-        .as_deref()
-        .ok_or_else(|| IngestDiagnostic {
+    let major = input.gmn_dialect_major.as_deref().ok_or_else(|| {
+        (IngestDiagnostic {
             failure_class: LangFailure::SilentIngestDrop,
             construct: format!(
                 "resolved GMN dialect major is absent; the version-keyed {target} grammar-surface \
                  path cannot default"
             ),
-        })?;
+        })
+        .into_diag()
+    })?;
 
     let canon = source.canonical();
     // The gmn grammar's lang:Grammar RDF is emitted once by the EBNF target — this emission
@@ -683,7 +683,7 @@ fn grammar_view_bytes(
     target: &str,
     ext: &str,
     blocking_constructs: impl Fn(&Grammar) -> Vec<String>,
-) -> Result<Vec<u8>, IngestDiagnostic> {
+) -> gmeow_errors::Result<Vec<u8>> {
     let emissions =
         gmn_glyph_grammar_emissions(input, formalism, target, ext, blocking_constructs)?;
     Ok(emissions
@@ -738,36 +738,36 @@ impl LangProjectionTarget for Gmn1Target {
         "gmn1"
     }
 
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>> {
         self.emit_observed(input).map(|batch| batch.emissions)
     }
 
     fn emit_observed(
         &self,
         input: &LangProjectionInput,
-    ) -> Result<LangEmissionBatch, IngestDiagnostic> {
+    ) -> gmeow_errors::Result<LangEmissionBatch> {
         let mut emissions = Vec::new();
         if !input.lang_models.is_empty() {
             let dict = input
                 .gmn_dictionary
                 .as_ref()
-                .ok_or_else(|| IngestDiagnostic {
+                .ok_or_else(|| (IngestDiagnostic {
                     failure_class: LangFailure::SilentIngestDrop,
                     construct: "current GMN codebook dictionary is absent; version-pinned resolution cannot default"
                         .to_owned(),
-                })?;
+                }).into_diag())?;
             // The graph-resolved dialect major keys every emitted artifact path. It is a
             // mandatory codec capability like the dictionary — a source-driven emission with
             // no resolved major hard-fails rather than defaulting to a constant.
             let major = input
                 .gmn_dialect_major
                 .as_deref()
-                .ok_or_else(|| IngestDiagnostic {
+                .ok_or_else(|| (IngestDiagnostic {
                     failure_class: LangFailure::SilentIngestDrop,
                     construct: "resolved GMN dialect major is absent; version-keyed artifact paths cannot default"
                         .to_owned(),
-                })?;
-            emissions.extend(self.per_source_emissions(input, dict, major));
+                }).into_diag())?;
+            emissions.extend(self.per_source_emissions(input, dict, major)?);
         }
         // The two fallible bundle-level ecosystem products (token-metrics + verbalizer) are
         // computed BEFORE the pack so the pack folds a content-addressed leaf over each one's
@@ -780,7 +780,7 @@ impl LangProjectionTarget for Gmn1Target {
             input.gmn_dictionary.as_ref(),
             input.gmn_dialect_major.as_deref(),
         ) {
-            let metrics = measure_token_metrics(&input.lang_models, dict);
+            let metrics = measure_token_metrics(&input.lang_models, dict)?;
             (
                 gmn1_token_metrics_emission(&metrics.aggregate(), dict, major)?,
                 Some(metrics),
@@ -861,7 +861,7 @@ impl Gmn1Target {
         input: &LangProjectionInput,
         dict: &GmnDictionary,
         major: &str,
-    ) -> Vec<LangEmission> {
+    ) -> gmeow_errors::Result<Vec<LangEmission>> {
         let mut emissions = Vec::new();
         for source in &input.lang_models {
             let Ok(ds) = purrdf::parse_dataset(&source.bytes, "text/turtle", None) else {
@@ -874,7 +874,7 @@ impl Gmn1Target {
             let model = Gmn0Model::from_dataset(&ds);
             let (exact, artifact_text, unsupported) = match gmn1_write(&model, dict) {
                 Ok(doc) => match gmn1_read(&doc, dict) {
-                    Ok(back) if gmn0_canonically_equal(&model, &back) => {
+                    Ok(back) if gmn0_canonically_equal(&model, &back)? => {
                         (true, doc.text, Vec::new())
                     }
                     Ok(_) => (
@@ -929,7 +929,7 @@ impl Gmn1Target {
                 source_rdf: Vec::new(),
             });
         }
-        emissions
+        Ok(emissions)
     }
 }
 
@@ -1130,14 +1130,14 @@ fn gmn1_token_metrics_emission(
     metrics: &TokenMetrics,
     dict: &GmnDictionary,
     major: &str,
-) -> Result<Option<LangEmission>, IngestDiagnostic> {
+) -> gmeow_errors::Result<Option<LangEmission>> {
     if metrics.measured_sources == 0 {
         // No source round-trips ⇒ no GMN artifact ships ⇒ no corpus to measure. Emit nothing
         // rather than a vacuous all-zero product (mirrors the pack's no-input branch).
         return Ok(None);
     }
     if !metrics.compression_gate_holds() {
-        return Err(IngestDiagnostic {
+        return Err((IngestDiagnostic {
             failure_class: LangFailure::SilentIngestDrop,
             construct: format!(
                 "GMN compression gate FAILED over the grounding corpus: the sound byte-fallback \
@@ -1150,7 +1150,8 @@ fn gmn1_token_metrics_emission(
                 metrics.gmn_nonascii_bytes,
                 metrics.turtle_best_case_tokens,
             ),
-        });
+        })
+        .into_diag());
     }
     let nt = ntriples_sorted(token_metrics_triples(metrics, dict));
     let mut loss = LossLedger::new();
@@ -1377,16 +1378,18 @@ fn gmn1_verbalizer_emission(
     forms: &[crate::gmn_verbalize::GmnOperatorForm],
     dict: &GmnDictionary,
     major: &str,
-) -> Result<Option<LangEmission>, IngestDiagnostic> {
+) -> gmeow_errors::Result<Option<LangEmission>> {
     if forms.is_empty() {
         return Ok(None);
     }
-    let pairs = build_verbalization_pairs(forms).map_err(|e| IngestDiagnostic {
+    let pairs = build_verbalization_pairs(forms).map_err(|e| {
+        (IngestDiagnostic {
         failure_class: LangFailure::SilentIngestDrop,
         construct: format!(
             "GMN⇄NL verbalization is not a sound bidirectional map over the operator inventory: \
              {e}; a training corpus that is not injective must never ship"
         ),
+    }).into_diag()
     })?;
     // MEASURE the bidirectional round-trip — the sole license for the EXACT preservation the
     // per-unit correspondences below claim. A false measurement downgrades every unit to the

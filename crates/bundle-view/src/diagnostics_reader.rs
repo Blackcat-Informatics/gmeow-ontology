@@ -165,7 +165,7 @@ fn location_optionals(node: &str) -> String {
 /// with `purrdf::gts::flattened_dataset_from_bytes` — has dropped the graph label
 /// and yields an empty index.
 pub fn read_findings(dataset: &Arc<RdfDataset>) -> Result<FindingIndex, Diag> {
-    let diag = Arc::new(dataset.project_named_graph(GRAPH_DIAGNOSTICS));
+    let diag = Arc::new(dataset.project_named_graph(GRAPH_DIAGNOSTICS)?);
     let mut findings: BTreeMap<String, Finding> = BTreeMap::new();
 
     // Q1 — one row per finding subject: the required grade coordinates + optional
@@ -423,7 +423,7 @@ impl WitnessIndex {
 /// had no existential obligation.
 pub fn read_invented_witnesses(dataset: &Arc<RdfDataset>) -> Result<WitnessIndex, Diag> {
     const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-    let diag = Arc::new(dataset.project_named_graph(GRAPH_DIAGNOSTICS));
+    let diag = Arc::new(dataset.project_named_graph(GRAPH_DIAGNOSTICS)?);
     let mut witnesses: BTreeMap<String, WitnessRecord> = BTreeMap::new();
 
     // W1 — the invented nulls and their existential ordinal.

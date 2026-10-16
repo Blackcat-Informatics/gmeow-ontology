@@ -4,6 +4,33 @@
 use super::*;
 use serde_json::json;
 
+#[test]
+fn missing_selected_record_fields_return_invalid_data() {
+    for (value, field) in [
+        (serde_json::json!({"type": "section"}), "section_id"),
+        (serde_json::json!({"type": "book"}), "title"),
+        (
+            serde_json::json!({"type": "book", "title": "Synthetic", "corpus_db_chapter_summaries": [{}]}),
+            "chapter_index",
+        ),
+        (
+            serde_json::json!({"type": "book", "title": "Synthetic", "corpus_db_characters": [{}]}),
+            "name",
+        ),
+        (
+            serde_json::json!({"type": "book", "title": "Synthetic", "corpus_db_concepts": [{}]}),
+            "name",
+        ),
+    ] {
+        let record: Record = serde_json::from_value(value).unwrap();
+        let error = FoundationImporter::new()
+            .import_corpus(&[record], "synthetic.jsonl")
+            .unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+        assert!(error.to_string().contains(field), "{error}");
+    }
+}
+
 // -- canonical_decimal ------------------------------------------------- //
 
 #[test]

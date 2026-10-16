@@ -15,7 +15,7 @@ const P_B: &str = "http://example.org/p/b";
 const O_B: &str = "http://example.org/o/b";
 
 fn populated_store() -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD_A, S_A, P_A, O_A);
     store.insert_quad(WORLD_B, S_B, P_B, O_B);
     store
@@ -24,20 +24,30 @@ fn populated_store() -> WorldStore {
 #[test]
 fn native_world_ingress_preserves_standpoint_claim_evidence() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let world = builder.intern_iri(WORLD_A);
-    let reifier = builder.intern_iri("https://example.org/claim");
-    let speaker = builder.intern_iri("https://example.org/speaker");
-    let says = builder.intern_iri("https://blackcatinformatics.ca/gmeow/fullName");
-    let literal = builder.intern_literal(purrdf::RdfLiteral {
-        lexical_form: "مرحبا".to_owned(),
-        datatype: None,
-        language: Some("ar".to_owned()),
-        direction: Some(purrdf::RdfTextDirection::Rtl),
-    });
-    let statement = builder.intern_triple(speaker, says, literal);
-    builder.push_reifier_in_graph(reifier, statement, Some(world));
-    let according_to = builder.intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo");
-    builder.push_annotation_in_graph(reifier, according_to, speaker, Some(world));
+    let world = builder.intern_iri(WORLD_A).unwrap();
+    let reifier = builder.intern_iri("https://example.org/claim").unwrap();
+    let speaker = builder.intern_iri("https://example.org/speaker").unwrap();
+    let says = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/fullName")
+        .unwrap();
+    let literal = builder
+        .intern_literal(purrdf::RdfLiteral {
+            lexical_form: "مرحبا".to_owned(),
+            datatype: None,
+            language: Some("ar".to_owned()),
+            direction: Some(purrdf::RdfTextDirection::Rtl),
+        })
+        .unwrap();
+    let statement = builder.intern_triple(speaker, says, literal).unwrap();
+    builder
+        .push_reifier_in_graph(reifier, statement, Some(world))
+        .unwrap();
+    let according_to = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo")
+        .unwrap();
+    builder
+        .push_annotation_in_graph(reifier, according_to, speaker, Some(world))
+        .unwrap();
     let source = builder.freeze().expect("attributed claim");
     let store = WorldStore::from_dataset(&source).expect("native world ingress");
     let quads = store.quads_for_pattern_in_world(WORLD_A, None, None, None);
@@ -70,9 +80,9 @@ fn load_dataset_preserves_named_graph_worlds() {
     let quad =
         RdfQuad::new(RdfTerm::iri(S_A), P_A, RdfTerm::iri(O_A)).in_graph(RdfTerm::iri(WORLD_A));
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&quad);
+    builder.push_owned_quad(&quad).unwrap();
     let source = builder.freeze().expect("valid dataset");
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store
         .load_dataset(source.as_ref())
         .expect("RDF dataset should load into LOGIC");
@@ -86,7 +96,7 @@ fn single_quad_dataset(world: &str, s: &str, p: &str, o: &str) -> std::sync::Arc
     use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
     let quad = RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(world));
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&quad);
+    builder.push_owned_quad(&quad).unwrap();
     builder.freeze().expect("valid dataset")
 }
 
@@ -185,7 +195,7 @@ fn worlds_lists_both_world_iris() {
 
 #[test]
 fn empty_store_has_no_worlds() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     assert!(store.worlds().is_empty());
 }
 
@@ -307,7 +317,7 @@ fn select_no_cross_world_results() {
 
 #[test]
 fn select_parse_error_returns_err() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let result = store.select("NOT VALID SPARQL AT ALL");
     assert!(result.is_err(), "invalid SPARQL must return Err");
 }

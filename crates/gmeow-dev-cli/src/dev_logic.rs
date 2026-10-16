@@ -88,7 +88,7 @@ fn resolve_query(
     max_answers: Option<usize>,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<(Vec<Answer>, String)> {
-    let store = WorldStore::new();
+    let store = WorldStore::new()?;
     store.load_nquads(nquads).map_err(error::logic)?;
 
     let world = match world_iri {

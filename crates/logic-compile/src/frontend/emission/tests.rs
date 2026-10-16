@@ -179,11 +179,13 @@ fn identical_restriction_expansions_retain_both_native_roots() {
 #[test]
 fn native_annotation_and_physical_duplicate_keep_one_exact_statement_origin() {
     let mut builder = RdfDatasetBuilder::new();
-    let s = builder.intern_iri("https://example.org/Thing");
-    let p = builder.intern_iri("https://blackcatinformatics.ca/logic/subClassOf");
-    let o = builder.intern_iri("https://example.org/Supertype");
-    builder.push_annotation(s, p, o);
-    builder.push_quad(s, p, o, None);
+    let s = builder.intern_iri("https://example.org/Thing").unwrap();
+    let p = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/subClassOf")
+        .unwrap();
+    let o = builder.intern_iri("https://example.org/Supertype").unwrap();
+    builder.push_annotation(s, p, o).unwrap();
+    builder.push_quad(s, p, o, None).unwrap();
     let source = PreparedLogicSource::new(&builder.freeze().unwrap()).unwrap();
     let compiled = source.compile_with_sources(None).unwrap();
     assert_eq!(compiled.program().axioms.len(), 1);
@@ -203,16 +205,24 @@ fn native_annotation_and_physical_duplicate_keep_one_exact_statement_origin() {
 #[test]
 fn reifier_origins_follow_scope_sensitive_deduplication() {
     let mut builder = RdfDatasetBuilder::new();
-    let s = builder.intern_iri("https://example.org/Thing");
-    let p = builder.intern_iri("https://blackcatinformatics.ca/logic/subClassOf");
-    let o = builder.intern_iri("https://example.org/Supertype");
-    let triple = builder.intern_triple(s, p, o);
-    let confidence = builder.intern_iri("https://blackcatinformatics.ca/logic/confidence");
+    let s = builder.intern_iri("https://example.org/Thing").unwrap();
+    let p = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/subClassOf")
+        .unwrap();
+    let o = builder.intern_iri("https://example.org/Supertype").unwrap();
+    let triple = builder.intern_triple(s, p, o).unwrap();
+    let confidence = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/confidence")
+        .unwrap();
     for (name, value) in [("first", "0.75"), ("second", "0.75"), ("third", "0.25")] {
-        let reifier = builder.intern_iri(&format!("https://example.org/{name}"));
-        let value = builder.intern_literal(RdfLiteral::simple(value.to_owned()));
-        builder.push_reifier(reifier, triple);
-        builder.push_annotation(reifier, confidence, value);
+        let reifier = builder
+            .intern_iri(&format!("https://example.org/{name}"))
+            .unwrap();
+        let value = builder
+            .intern_literal(RdfLiteral::simple(value.to_owned()))
+            .unwrap();
+        builder.push_reifier(reifier, triple).unwrap();
+        builder.push_annotation(reifier, confidence, value).unwrap();
     }
     let source = PreparedLogicSource::new(&builder.freeze().unwrap()).unwrap();
     let compiled = source.compile_with_sources(None).unwrap();

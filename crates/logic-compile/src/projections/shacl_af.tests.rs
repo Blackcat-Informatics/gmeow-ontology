@@ -113,7 +113,8 @@ fn naf_and_distinct_lower_to_filters() {
         "negation-as-failure must lower to FILTER NOT EXISTS:\n{ttl}"
     );
     assert!(
-        ttl.contains("FILTER ( $this != ?y )") || ttl.contains("FILTER ( ?y != $this )"),
+        ttl.contains("FILTER ( !sameTerm($this, ?y) )")
+            || ttl.contains("FILTER ( !sameTerm(?y, $this) )"),
         "the inequality guard must lower to a FILTER:\n{ttl}"
     );
 }

@@ -3,6 +3,45 @@
 
 use super::*;
 
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn native_deep_pass_refusal_is_a_hard_error_with_its_original_diagnostic() {
+    let error = gmeow_errors::Diag::of_kind(crate::error::Dataset {
+        detail: "synthetic native admission refusal".to_owned(),
+    });
+    let expected_code = gmeow_errors::code::code_str(error.code());
+    let mut report = Report::new("validate");
+    fold_deep_outcome(
+        Err(DeepPassError::Native(error)),
+        0,
+        "fixture.ttl",
+        &mut report,
+    );
+    let finding = report
+        .findings
+        .iter()
+        .find(|finding| finding.code == expected_code)
+        .unwrap();
+    assert_eq!(finding.severity, Severity::Error);
+    assert!(
+        finding
+            .message
+            .contains("synthetic native admission refusal")
+    );
+    assert!(
+        finding
+            .locations
+            .iter()
+            .any(|location| location.path.as_deref() == Some("fixture.ttl"))
+    );
+    assert!(
+        !report
+            .findings
+            .iter()
+            .any(|finding| finding.code == "validate.deep.unavailable")
+    );
+}
+
 #[test]
 fn validation_flat_view_keeps_statement_metadata_and_original_worlds() {
     use purrdf::{RdfAnnotation, RdfDatasetBuilder, RdfLiteral, RdfReifier, RdfTerm, RdfTriple};
@@ -13,25 +52,29 @@ fn validation_flat_view_keeps_statement_metadata_and_original_worlds() {
         ("urn:world:a", "urn:value:a"),
         ("urn:world:b", "urn:value:b"),
     ] {
-        builder.push_owned_reifier(
-            &RdfReifier::new(
-                reifier.clone(),
-                RdfTriple::new(
-                    RdfTerm::iri("urn:subject"),
-                    "urn:predicate",
-                    RdfTerm::iri(object),
-                ),
+        builder
+            .push_owned_reifier(
+                &RdfReifier::new(
+                    reifier.clone(),
+                    RdfTriple::new(
+                        RdfTerm::iri("urn:subject"),
+                        "urn:predicate",
+                        RdfTerm::iri(object),
+                    ),
+                )
+                .in_graph(Some(RdfTerm::iri(world))),
             )
-            .in_graph(Some(RdfTerm::iri(world))),
-        );
-        builder.push_owned_annotation(
-            &RdfAnnotation::new(
-                reifier.clone(),
-                "urn:source",
-                RdfTerm::Literal(RdfLiteral::simple(world)),
+            .unwrap();
+        builder
+            .push_owned_annotation(
+                &RdfAnnotation::new(
+                    reifier.clone(),
+                    "urn:source",
+                    RdfTerm::Literal(RdfLiteral::simple(world)),
+                )
+                .in_graph(Some(RdfTerm::iri(world))),
             )
-            .in_graph(Some(RdfTerm::iri(world))),
-        );
+            .unwrap();
     }
     let original = builder.freeze().expect("two explicitly scoped claims");
     let flat = flatten_to_default_graph(&original).expect("validation projection");
@@ -40,7 +83,7 @@ fn validation_flat_view_keeps_statement_metadata_and_original_worlds() {
         .map(|row| {
             assert_eq!(row.reifier, reifier);
             assert_eq!(row.graph, None);
-            row.statement.object
+            row.statement.into_parts().2
         })
         .collect();
     assert_eq!(
@@ -59,16 +102,21 @@ fn validation_flat_view_keeps_statement_metadata_and_original_worlds() {
     assert_eq!(
         sources,
         std::collections::HashSet::from([
-            RdfTerm::Literal(RdfLiteral::typed(
-                "urn:world:a",
-                "http://www.w3.org/2001/XMLSchema#string"
-            )),
-            RdfTerm::Literal(RdfLiteral::typed(
-                "urn:world:b",
-                "http://www.w3.org/2001/XMLSchema#string"
-            )),
+            RdfTerm::Literal(RdfLiteral::simple("urn:world:a")),
+            RdfTerm::Literal(RdfLiteral::simple("urn:world:b")),
         ])
     );
+    // The owned model omits implied datatypes; native value identity must still
+    // retain the exact datatype, language and direction of every source literal.
+    let original_values: std::collections::HashSet<_> = original
+        .annotations()
+        .map(|(_, _, object)| original.as_ref().term_value(object))
+        .collect();
+    let flat_values: std::collections::HashSet<_> = flat
+        .annotations()
+        .map(|(_, _, object)| flat.as_ref().term_value(object))
+        .collect();
+    assert_eq!(flat_values, original_values);
     assert_eq!(original.named_graphs().count(), 2);
     assert!(original.owned_reifiers().all(|row| row.graph.is_some()));
     assert!(original.owned_annotations().all(|row| row.graph.is_some()));

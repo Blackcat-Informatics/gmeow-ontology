@@ -165,10 +165,12 @@ ex:cNot a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:dNot ; gmeo
     let pruned_dict = GmnDictionary::from_dataset(&pruned).expect("pruned dictionary loads");
 
     let mut builder = RdfDatasetBuilder::new();
-    let subject = builder.intern_iri(&format!("{MATH_NS}Expression"));
-    let predicate = builder.intern_iri(&format!("{MATH_NS}operator"));
-    let addition = builder.intern_iri(&format!("{MATH_NS}Addition"));
-    builder.push_quad(subject, predicate, addition, None);
+    let subject = builder.intern_iri(&format!("{MATH_NS}Expression")).unwrap();
+    let predicate = builder.intern_iri(&format!("{MATH_NS}operator")).unwrap();
+    let addition = builder.intern_iri(&format!("{MATH_NS}Addition")).unwrap();
+    builder
+        .push_quad(subject, predicate, addition, None)
+        .unwrap();
     let model = Gmn0Model::from_dataset(&builder.freeze().expect("freeze"));
 
     let full_doc = gmn1_write(&model, &full_dict).expect("full writer uses glyph");
@@ -427,7 +429,7 @@ fn effective_store_is_identity_on_a_repair_free_model() {
         },
     };
     let effective = resolve_effective(&model).expect("repair-free model resolves");
-    assert!(gmn0_canonically_equal(&model, &effective));
+    assert!(gmn0_canonically_equal(&model, &effective).unwrap());
 }
 
 #[test]
@@ -668,10 +670,10 @@ fn number_tokens_recognize_grammar_productions() {
 #[test]
 fn simple_triple_round_trips_with_empty_dictionary() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW_NS}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW_NS}hasState"));
-    let o = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW_NS}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW_NS}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW_NS}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let dict = empty_dict();
@@ -686,10 +688,12 @@ fn iri_under_no_registered_namespace_rides_by_reference() {
     // literal-by-reference machinery and lets realistic external URLs round-trip.
     let external = "https://mastodon.social";
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW_NS}account1"));
-    let p = b.intern_iri(&format!("{GMEOW_NS}accountServiceHomepage"));
-    let o = b.intern_iri(external);
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW_NS}account1")).unwrap();
+    let p = b
+        .intern_iri(&format!("{GMEOW_NS}accountServiceHomepage"))
+        .unwrap();
+    let o = b.intern_iri(external).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let dict = empty_dict();
@@ -771,10 +775,10 @@ fn coverage_report_fraction_is_vacuously_full_on_empty_model() {
 #[test]
 fn measure_coverage_is_full_over_a_covered_model() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW_NS}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW_NS}hasState"));
-    let o = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW_NS}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW_NS}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW_NS}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let dict = empty_dict();

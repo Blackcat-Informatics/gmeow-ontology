@@ -99,10 +99,11 @@ pub(super) fn record(
     let mut emitted = BTreeMap::new();
     for term in dictionary.alias_entries().keys() {
         let mut builder = RdfDatasetBuilder::new();
-        let subject = builder.intern_iri("https://blackcatinformatics.ca/gmeow/probeSubject");
-        let predicate = builder.intern_iri("https://blackcatinformatics.ca/gmeow/probePredicate");
-        let object = builder.intern_iri(term);
-        builder.push_quad(subject, predicate, object, None);
+        let subject = builder.intern_iri("https://blackcatinformatics.ca/gmeow/probeSubject")?;
+        let predicate =
+            builder.intern_iri("https://blackcatinformatics.ca/gmeow/probePredicate")?;
+        let object = builder.intern_iri(term)?;
+        builder.push_quad(subject, predicate, object, None)?;
         let dataset = builder
             .freeze()
             .map_err(|error| super::super::stage_err(&error.to_string()))?;

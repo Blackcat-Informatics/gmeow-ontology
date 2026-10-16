@@ -29,28 +29,43 @@ const ROWS_PER_SOURCE: usize = 4_096;
 
 fn synthetic_source(seed: usize) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let predicate = builder.intern_iri("https://example.org/predicate");
-    let annotation_predicate = builder.intern_iri("https://example.org/confidence");
-    let graph = builder.intern_iri(&format!("https://example.org/graph/{seed}"));
+    let predicate = builder.intern_iri("https://example.org/predicate").unwrap();
+    let annotation_predicate = builder
+        .intern_iri("https://example.org/confidence")
+        .unwrap();
+    let graph = builder
+        .intern_iri(&format!("https://example.org/graph/{seed}"))
+        .unwrap();
 
     for row in 0..ROWS_PER_SOURCE {
         let subject = if row % 257 == 0 {
-            builder.intern_blank("shared", BlankScope((row % 3) as u32))
+            builder
+                .intern_blank("shared", BlankScope((row % 3) as u32))
+                .unwrap()
         } else {
-            builder.intern_iri(&format!("https://example.org/{seed}/subject/{row:05}"))
+            builder
+                .intern_iri(&format!("https://example.org/{seed}/subject/{row:05}"))
+                .unwrap()
         };
-        let object = builder.intern_literal(RdfLiteral::simple(format!(
-            "source={seed};row={row:05};payload=the-canonical-stratum-keeps-this-lexical-value"
-        )));
-        builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph));
+        let object = builder
+            .intern_literal(RdfLiteral::simple(format!(
+                "source={seed};row={row:05};payload=the-canonical-stratum-keeps-this-lexical-value"
+            )))
+            .unwrap();
+        builder
+            .push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph))
+            .unwrap();
 
         if row % 997 == 0 {
-            let triple = builder.intern_triple(subject, predicate, object);
-            let reifier =
-                builder.intern_iri(&format!("https://example.org/{seed}/reifier/{row:05}"));
-            builder.push_reifier(reifier, triple);
-            let confidence = builder.intern_literal(RdfLiteral::simple("0.99"));
-            builder.push_annotation(reifier, annotation_predicate, confidence);
+            let triple = builder.intern_triple(subject, predicate, object).unwrap();
+            let reifier = builder
+                .intern_iri(&format!("https://example.org/{seed}/reifier/{row:05}"))
+                .unwrap();
+            builder.push_reifier(reifier, triple).unwrap();
+            let confidence = builder.intern_literal(RdfLiteral::simple("0.99")).unwrap();
+            builder
+                .push_annotation(reifier, annotation_predicate, confidence)
+                .unwrap();
         }
     }
 
@@ -76,7 +91,7 @@ fn legacy_stratum_digest(
             u32::try_from(index + 1).expect("the synthetic reference has few enough sources"),
         );
         for quad in quads {
-            builder.push_owned_quad_scoped(quad, scope);
+            builder.push_owned_quad_scoped(quad, scope).unwrap();
         }
     }
     let union = builder.freeze().expect("legacy union freezes");
@@ -84,7 +99,7 @@ fn legacy_stratum_digest(
     let blank_count = (0..union.term_count())
         .filter(|index| {
             matches!(
-                union.resolve(purrdf::TermId::from_index(*index as u32)),
+                union.resolve(purrdf::TermId::from_index(*index as u32).unwrap()),
                 purrdf::TermRef::Blank { .. }
             )
         })
@@ -136,27 +151,48 @@ fn id_native_stratum_is_byte_identical_and_strictly_lowers_allocations() {
 
 fn projection_source() -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let rdf_type = builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-    let logic_class = builder.intern_iri("https://blackcatinformatics.ca/logic/Class");
-    let logic_subclass = builder.intern_iri("https://blackcatinformatics.ca/logic/subClassOf");
-    let logic_thing = builder.intern_iri("https://blackcatinformatics.ca/logic/Thing");
-    let graph = builder.intern_iri("https://example.org/graph/projection");
-    let annotation_predicate = builder.intern_iri("https://example.org/confidence");
+    let rdf_type = builder
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        .unwrap();
+    let logic_class = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/Class")
+        .unwrap();
+    let logic_subclass = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/subClassOf")
+        .unwrap();
+    let logic_thing = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/Thing")
+        .unwrap();
+    let graph = builder
+        .intern_iri("https://example.org/graph/projection")
+        .unwrap();
+    let annotation_predicate = builder
+        .intern_iri("https://example.org/confidence")
+        .unwrap();
     for row in 0..ROWS_PER_SOURCE {
-        let subject = builder.intern_iri(&format!("https://example.org/class/{row:05}"));
-        builder.push_quad(subject, rdf_type, logic_class, None);
-        builder.push_quad(subject, logic_subclass, logic_thing, Some(graph));
+        let subject = builder
+            .intern_iri(&format!("https://example.org/class/{row:05}"))
+            .unwrap();
+        builder
+            .push_quad(subject, rdf_type, logic_class, None)
+            .unwrap();
+        builder
+            .push_quad(subject, logic_subclass, logic_thing, Some(graph))
+            .unwrap();
         if row == 0 {
-            let triple = builder.intern_triple(subject, logic_subclass, logic_thing);
-            let reifier = builder.intern_iri("https://example.org/reifier/projection");
-            let confidence = builder.intern_literal(RdfLiteral::simple("0.99"));
-            builder.push_reifier_in_graph(reifier, triple, Some(graph));
-            builder.push_annotation_in_graph(
-                reifier,
-                annotation_predicate,
-                confidence,
-                Some(graph),
-            );
+            let triple = builder
+                .intern_triple(subject, logic_subclass, logic_thing)
+                .unwrap();
+            let reifier = builder
+                .intern_iri("https://example.org/reifier/projection")
+                .unwrap();
+            let confidence = builder.intern_literal(RdfLiteral::simple("0.99")).unwrap();
+            builder
+                .push_reifier_in_graph(reifier, triple, Some(graph))
+                .unwrap();
+            builder
+                .push_annotation_in_graph(reifier, annotation_predicate, confidence, Some(graph))
+                .unwrap();
         }
     }
     builder.freeze().expect("the projection source is valid")
@@ -191,15 +227,15 @@ fn legacy_with_owl_rdfs_projection(dataset: &RdfDataset) -> Arc<RdfDataset> {
             if let Some(object) = object {
                 projected.object = purrdf::RdfTerm::iri(object);
             }
-            builder.push_owned_quad(&projected);
+            builder.push_owned_quad(&projected).unwrap();
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     for reifier in dataset.owned_reifiers() {
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier).unwrap();
     }
     for annotation in dataset.owned_annotations() {
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation).unwrap();
     }
     builder
         .freeze()
@@ -209,7 +245,8 @@ fn legacy_with_owl_rdfs_projection(dataset: &RdfDataset) -> Arc<RdfDataset> {
 #[test]
 fn id_native_owl_projection_is_byte_identical_and_strictly_lowers_allocations() {
     let source = projection_source();
-    let (candidate, candidate_alloc) = measure(|| with_owl_rdfs_projection(source.as_ref()));
+    let (candidate, candidate_alloc) =
+        measure(|| with_owl_rdfs_projection(source.as_ref()).unwrap());
     let (legacy, legacy_alloc) = measure(|| legacy_with_owl_rdfs_projection(source.as_ref()));
 
     let candidate_nquads =

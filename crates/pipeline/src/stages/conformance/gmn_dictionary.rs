@@ -121,12 +121,12 @@ pub(super) fn record(
             format!("{GMEOW}hasState"),
             iri("open"),
         )),
-    ));
+    ))?;
     builder.push_owned_quad(&RdfQuad::new(
         iri("reifier1"),
         format!("{GMEOW}hasState"),
         iri("open"),
-    ));
+    ))?;
     let dataset = builder
         .freeze()
         .map_err(|error| super::stage_err(&error.to_string()))?;
@@ -141,8 +141,12 @@ pub(super) fn record(
         ),
         current_header: gmn1_read(&header(latest), dict).map(|_| ()),
         future_header: gmn1_read(&header(future), dict).map(|_| ()),
-        per_claim: per_claim_round_trip_check(&model, dict),
-        standalone: per_claim_standalone_check(&model, dict),
+        per_claim: gmeow_lang_bridge::gmn_conformance::codec_verdict(per_claim_round_trip_check(
+            &model, dict,
+        ))?,
+        standalone: gmeow_lang_bridge::gmn_conformance::codec_verdict(per_claim_standalone_check(
+            &model, dict,
+        ))?,
         glyphs: glyph_sources(sources.document(LANG)?),
         records: cases::record(dict)?,
         costs: costs::record(sources.document(LANG)?, dict)?,

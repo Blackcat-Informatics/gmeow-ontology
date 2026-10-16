@@ -390,6 +390,54 @@ reject 'authored-source bytes reach std::fs::copy through local test flow'
 reject 'authored-source bytes reach std::fs::write through local test flow'
 rm "$fixture/crates/ignored/tests/attempt.rs"
 
+# Mutable recursive collectors cannot hide repository paths behind an output vector.
+cat > "$fixture/crates/ignored/tests/attempt.rs" <<'RUST'
+fn retain_document(path: PathBuf, output: &mut Vec<PathBuf>) {
+    output.extend([path]);
+}
+fn gather_documents(dir: &Path, output: &mut Vec<PathBuf>) {
+    for entry in std::fs::read_dir(dir).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            gather_documents(&path, output);
+        } else {
+            retain_document(path, output);
+        }
+    }
+}
+#[test]
+fn attempt() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices");
+    let mut modules = Vec::new();
+    gather_documents(&root, &mut modules);
+    for module in modules {
+        renamed_compiler::parse_logic_path(&module, None);
+    }
+}
+RUST
+reject 'authored-source bytes reach renamed_compiler::parse_logic_path through local test flow'
+rm "$fixture/crates/ignored/tests/attempt.rs"
+
+# The same mutation pattern over an explicit temporary fixture stays synthetic.
+cat > "$fixture/crates/ignored/tests/control.rs" <<'RUST'
+fn gather_documents(dir: &Path, output: &mut Vec<PathBuf>) {
+    for entry in std::fs::read_dir(dir).unwrap() {
+        output.push(entry.unwrap().path());
+    }
+}
+#[test]
+fn control() {
+    let tmp = tempfile::tempdir().unwrap();
+    let mut modules = Vec::new();
+    gather_documents(tmp.path(), &mut modules);
+    for module in modules {
+        renamed_compiler::parse_logic_path(&module, None);
+    }
+}
+RUST
+scan > "$fixture_root/result.log" 2>&1
+rm "$fixture/crates/ignored/tests/control.rs"
+
 # A broken lexical analysis is a gate failure, never an empty finding set.
 printf '#[test]\nfn broken() { parse_dataset("tiny");\n' > "$fixture/crates/ignored/lib.rs"
 reject 'unclosed Rust delimiter'

@@ -6,6 +6,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use syn::{Meta, Token, parse::Parser, punctuated::Punctuated};
 
+/// Whether a cfg predicate has no possible non-test/doc configuration. Unknown
+/// predicates are errors, never permission to remove source from a policy scan.
+pub fn cfg_excludes_production(predicate: &str) -> Result<bool> {
+    let predicate = syn::parse_str(predicate).map_err(fail)?;
+    Ok(!CfgContext::from_rustc("", &[], true)?
+        .portable(&predicate)?
+        .yes)
+}
+
 /// Complete rustc cfg context for one selected Cargo unit. Known but absent axes
 /// are false; a custom axis without a recorded owner is an admission failure.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

@@ -45,7 +45,7 @@ fn fact(subject: &str, predicate: &str, object: &str) -> RdfQuad {
 fn source(rows: &[RdfQuad]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(row);
+        builder.push_owned_quad(row).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -293,10 +293,12 @@ fn invalid_active_qualified_bounds_refuse_instead_of_becoming_zero() {
         ("one", "urn:empty:opaque-datatype"),
     ] {
         let rows = bound_rows(true, "minQualifiedCardinality", lexical, datatype, true);
-        let error = run(&rows, Vec::new())
-            .err()
-            .expect("an invalid selected cardinality is not an absent obligation");
-        assert!(error.to_string().contains("non-negative integer fields"));
+        let closure = run(&rows, Vec::new()).unwrap();
+        super::test_support::assert_obstructed(
+            &program(Vec::new()),
+            closure,
+            crate::reason::refute::NativeObstructionKind::UnsupportedValue,
+        );
     }
 }
 

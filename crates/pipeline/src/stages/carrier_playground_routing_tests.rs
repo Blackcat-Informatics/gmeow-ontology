@@ -9,23 +9,35 @@ use gmeow_logic::result_rdf::GRAPH_REASONING;
 #[test]
 fn playground_selects_complete_graph_roles_in_one_identity_space() {
     let mut builder = RdfDatasetBuilder::new();
-    let member = builder.intern_blank("member", BlankScope(7));
-    let claim = builder.intern_blank("claim", BlankScope(9));
-    let predicate = builder.intern_iri("urn:playground:relation");
-    let source_graph = builder.intern_iri("urn:playground:original-source");
-    let statement = builder.intern_triple(member, predicate, source_graph);
-    let standpoint = builder.intern_iri("https://blackcatinformatics.ca/logic/standpoint");
+    let member = builder.intern_blank("member", BlankScope(7)).unwrap();
+    let claim = builder.intern_blank("claim", BlankScope(9)).unwrap();
+    let predicate = builder.intern_iri("urn:playground:relation").unwrap();
+    let source_graph = builder
+        .intern_iri("urn:playground:original-source")
+        .unwrap();
+    let statement = builder
+        .intern_triple(member, predicate, source_graph)
+        .unwrap();
+    let standpoint = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/standpoint")
+        .unwrap();
     let location = RdfLocation::logical("selected playground source");
     for role in [GRAPH_DOCUMENTATION, GRAPH_REASONING, GRAPH_DIAGNOSTICS] {
-        let graph = builder.intern_iri(role);
-        let row = builder.push_quad_with_handle(member, predicate, source_graph, Some(graph));
+        let graph = builder.intern_iri(role).unwrap();
+        let row = builder
+            .push_quad_with_handle(member, predicate, source_graph, Some(graph))
+            .unwrap();
         builder.attach_location(row, location.clone());
-        builder.push_reifier_in_graph(claim, statement, Some(graph));
-        builder.push_annotation_in_graph(claim, standpoint, graph, Some(graph));
+        builder
+            .push_reifier_in_graph(claim, statement, Some(graph))
+            .unwrap();
+        builder
+            .push_annotation_in_graph(claim, standpoint, graph, Some(graph))
+            .unwrap();
     }
-    builder.declare_named_graph(source_graph);
-    let empty = builder.intern_iri("urn:playground:unused-empty");
-    builder.declare_named_graph(empty);
+    builder.declare_named_graph(source_graph).unwrap();
+    let empty = builder.intern_iri("urn:playground:unused-empty").unwrap();
+    builder.declare_named_graph(empty).unwrap();
     let source = builder.freeze().unwrap();
     let original_rows = source.owned_quads().collect::<Vec<_>>();
     let output = playground_dataset_from_bundle(&source).unwrap();
@@ -61,8 +73,8 @@ fn playground_selects_complete_graph_roles_in_one_identity_space() {
 #[test]
 fn playground_keeps_required_empty_graph_roles_without_stale_declarations() {
     let mut builder = RdfDatasetBuilder::new();
-    let old = builder.intern_iri("urn:playground:unused-empty");
-    builder.declare_named_graph(old);
+    let old = builder.intern_iri("urn:playground:unused-empty").unwrap();
+    builder.declare_named_graph(old).unwrap();
     let output = playground_dataset_from_bundle(&builder.freeze().unwrap()).unwrap();
     assert_eq!(output.quad_count(), 0);
     assert_eq!(output.reifiers().count(), 0);
@@ -76,17 +88,31 @@ fn playground_keeps_required_empty_graph_roles_without_stale_declarations() {
 #[test]
 fn playground_lifts_only_witness_derivation_out_of_diagnostics() {
     let mut builder = RdfDatasetBuilder::new();
-    let graph = builder.intern_iri(GRAPH_DIAGNOSTICS);
-    let witness = builder.intern_iri("urn:playground:invented");
-    let reifier = builder.intern_iri("urn:playground:minting-head");
-    let finding = builder.intern_iri("urn:playground:finding");
-    let rdf_type = builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-    let rdf_object = builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#object");
-    let invented = builder.intern_iri(&format!("{}InventedWitness", gmeow_ns::GMEOW_NS));
-    let finding_type = builder.intern_iri(&format!("{}Finding", gmeow_ns::GMEOW_NS));
-    builder.push_quad(witness, rdf_type, invented, Some(graph));
-    builder.push_quad(reifier, rdf_object, witness, Some(graph));
-    builder.push_quad(finding, rdf_type, finding_type, Some(graph));
+    let graph = builder.intern_iri(GRAPH_DIAGNOSTICS).unwrap();
+    let witness = builder.intern_iri("urn:playground:invented").unwrap();
+    let reifier = builder.intern_iri("urn:playground:minting-head").unwrap();
+    let finding = builder.intern_iri("urn:playground:finding").unwrap();
+    let rdf_type = builder
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        .unwrap();
+    let rdf_object = builder
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#object")
+        .unwrap();
+    let invented = builder
+        .intern_iri(&format!("{}InventedWitness", gmeow_ns::GMEOW_NS))
+        .unwrap();
+    let finding_type = builder
+        .intern_iri(&format!("{}Finding", gmeow_ns::GMEOW_NS))
+        .unwrap();
+    builder
+        .push_quad(witness, rdf_type, invented, Some(graph))
+        .unwrap();
+    builder
+        .push_quad(reifier, rdf_object, witness, Some(graph))
+        .unwrap();
+    builder
+        .push_quad(finding, rdf_type, finding_type, Some(graph))
+        .unwrap();
     let source = builder.freeze().unwrap();
     let output = playground_dataset_from_bundle(&source).unwrap();
     let rows = output.owned_quads().collect::<Vec<_>>();

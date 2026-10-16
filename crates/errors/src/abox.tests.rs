@@ -104,7 +104,7 @@ fn cross_substrate_parity_string_and_builder_emit_the_same_quad_set() {
     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut lines);
 
     let mut builder = purrdf_core::RdfDatasetBuilder::new();
-    annotate_builder(&mut builder, SUBJECT, LABEL, DEFINITION, GRAPH);
+    annotate_builder(&mut builder, SUBJECT, LABEL, DEFINITION, GRAPH).unwrap();
     let dataset = builder.freeze().expect("valid dataset");
 
     // Render the builder's quads through the SAME term Display the

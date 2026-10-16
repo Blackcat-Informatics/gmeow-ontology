@@ -7,7 +7,7 @@ use super::*;
 
 #[test]
 fn reason_verify_orchestration_invokes_the_result_producer_once() {
-    let dataset = purrdf::RdfDataset::union(&[]);
+    let dataset = purrdf::RdfDataset::union(&[]).unwrap();
     let calls = Cell::new(0usize);
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let gates = gmeow_pipeline::fixture::authenticated_reasoned_gates(&root)

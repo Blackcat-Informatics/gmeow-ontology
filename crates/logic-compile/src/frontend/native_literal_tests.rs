@@ -59,7 +59,7 @@ fn native_formula_and_relational_roundtrip_retain_literal_identity() {
             identities.insert(lowered.content_key().unwrap()),
             "literal identities cannot collapse"
         );
-        let wire = project_relational_core(&lowered);
+        let wire = project_relational_core(&lowered).unwrap();
         let graph = purrdf::parse_dataset(wire.as_bytes(), "application/n-triples", None).unwrap();
         assert_eq!(
             parse_relational_core(&graph)

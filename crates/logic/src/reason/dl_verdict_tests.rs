@@ -192,7 +192,7 @@ fn native_execution(rows: Vec<purrdf::RdfQuad>) -> crate::result::NativeExecutio
 fn native_result(rows: Vec<purrdf::RdfQuad>) -> crate::result::ReasoningResult {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(&row);
+        builder.push_owned_quad(&row).unwrap();
     }
     let source = builder.freeze().expect("tiny native source");
     crate::reason::reason_all(
@@ -254,7 +254,7 @@ fn native_construct_selection_ignores_data_mentions_and_retains_exact_operator_s
         .unwrap();
     let source = ledger.source_leaves(&[selected[0].support]).unwrap();
     assert_eq!(source.len(), 1);
-    let source = source.iter().next().unwrap();
+    let source = source.first().unwrap();
     assert_eq!(source.predicate, complement);
     assert_eq!(source.graph, Some(TermValue::iri(world)));
     assert_eq!(source.object, TermValue::iri("urn:coverage:D"));

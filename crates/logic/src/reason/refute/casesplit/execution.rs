@@ -64,11 +64,12 @@ impl ClassExecutionOutcome {
         {
             return Err(fail("an unselected class family cannot publish a conflict"));
         }
+        let proofs = ledger.proof_lookup();
         for conflict in &self.contextual_conflicts {
-            conflict.validate(ledger)?;
+            conflict.validate_with(&proofs)?;
         }
         for obstruction in &self.obstructions {
-            ledger.source_leaves(&obstruction.support)?;
+            proofs.source_leaves(&obstruction.support)?;
         }
         Ok(())
     }
@@ -166,8 +167,8 @@ fn native_support(
     ledger: &mut NativeFamilyLedger,
     facts: &[Fact],
 ) -> gmeow_errors::Result<Support> {
-    let ids = input.support(facts, ledger)?;
-    Ok(Support::from_native(ledger.source_leaves(&ids)?, ids))
+    let (ids, sources) = input.support_with_sources(facts, ledger)?;
+    Ok(Support::from_native(sources, ids))
 }
 
 fn relevant(predicate: &str) -> bool {

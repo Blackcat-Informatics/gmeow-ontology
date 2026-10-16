@@ -47,11 +47,13 @@ fn resolve(ds: &RdfDataset) -> CurrentCodebook {
 /// A small `@c`-sigil gmeow-namespace model (uniform schema, so tabular form applies).
 fn gmeow_model(objects: &[&str]) -> Gmn0Model {
     let mut builder = RdfDatasetBuilder::new();
-    let predicate = builder.intern_iri(&format!("{GMEOW_NS}relatesTo"));
+    let predicate = builder.intern_iri(&format!("{GMEOW_NS}relatesTo")).unwrap();
     for (i, object) in objects.iter().enumerate() {
-        let subject = builder.intern_iri(&format!("{GMEOW_NS}subject{i}"));
-        let object = builder.intern_iri(&format!("{GMEOW_NS}{object}"));
-        builder.push_quad(subject, predicate, object, None);
+        let subject = builder
+            .intern_iri(&format!("{GMEOW_NS}subject{i}"))
+            .unwrap();
+        let object = builder.intern_iri(&format!("{GMEOW_NS}{object}")).unwrap();
+        builder.push_quad(subject, predicate, object, None).unwrap();
     }
     Gmn0Model::from_dataset(&builder.freeze().expect("model freezes"))
 }
@@ -243,22 +245,25 @@ fn content_digest_names_the_model_not_the_surface() {
 
     // Both surfaces canonicalize to the same model → one content digest.
     assert_eq!(
-        content_digest(&from_record),
-        content_digest(&from_tabular),
+        content_digest(&from_record).unwrap(),
+        content_digest(&from_tabular).unwrap(),
         "two surface encodings of one model share a content digest"
     );
-    assert_eq!(content_digest(&from_record), content_digest(&model));
+    assert_eq!(
+        content_digest(&from_record).unwrap(),
+        content_digest(&model).unwrap()
+    );
 
     // A different model yields a different content digest.
     let other = gmeow_model(&["objectA", "objectC"]);
     assert_ne!(
-        content_digest(&model),
-        content_digest(&other),
+        content_digest(&model).unwrap(),
+        content_digest(&other).unwrap(),
         "a different model must take a different content digest"
     );
 
     // Well-formed algorithm tag + 64 lowercase hex.
-    let digest = content_digest(&model);
+    let digest = content_digest(&model).unwrap();
     let hex = digest.strip_prefix("blake3:").expect("blake3: tag");
     assert_eq!(hex.len(), 64);
     assert!(

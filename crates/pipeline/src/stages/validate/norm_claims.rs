@@ -65,7 +65,7 @@ pub struct Observation {
 /// # Errors
 /// Returns the canonicalization refusal if the exact graph cannot be committed.
 pub fn observe_shipped(dataset: &RdfDataset) -> gmeow_errors::Result<ShippedObservation> {
-    let graph = dataset.project_named_graph(GRAPH);
+    let graph = dataset.project_named_graph(GRAPH)?;
     let advisory_assessments = graph
         .owned_quads()
         .filter_map(
@@ -122,20 +122,20 @@ fn close(
     // This contract explicitly joins the one selected claim graph to the one
     // standalone TBox in the default world. Preserve native statement metadata;
     // do not flatten through an RDF text projection or pull in unrelated graphs.
-    let claims = claims.project_named_graph(GRAPH);
+    let claims = claims.project_named_graph(GRAPH)?;
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(norms);
+    builder.push_dataset(norms)?;
     for mut quad in claims.owned_quads() {
         quad.graph_name = None;
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
     for mut reifier in claims.owned_reifiers() {
         reifier.graph = None;
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier)?;
     }
     for mut annotation in claims.owned_annotations() {
         annotation.graph = None;
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation)?;
     }
     let input = builder.freeze().map_err(Diag::from)?;
     let closure = gmeow_logic::reason::rl_closure(&input)?;

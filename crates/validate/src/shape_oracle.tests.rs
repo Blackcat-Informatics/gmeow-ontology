@@ -70,6 +70,39 @@ fn duplicate_typed_failure_metadata_is_malformed() {
 }
 
 #[test]
+fn malformed_value_lists_cannot_be_admitted_as_weaker_shapes() {
+    for (head, fields, expected) in [
+        (
+            "<urn:list>",
+            "<urn:list> rdf:first <urn:a>, <urn:b>; rdf:rest rdf:nil .",
+            "more than one rdf:first",
+        ),
+        (
+            "<urn:list>",
+            "<urn:list> rdf:first <urn:a>; rdf:rest rdf:nil, <urn:tail> .",
+            "more than one rdf:rest",
+        ),
+        (
+            "<urn:list>",
+            "<urn:list> rdf:first <urn:a>; rdf:rest <urn:list> .",
+            "returns to a cell already walked",
+        ),
+        ("rdf:nil", "rdf:nil rdf:first <urn:a> .", "rdf:nil carries"),
+    ] {
+        let source = format!(
+            "{HEADER}@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             <urn:Shape> a sh:NodeShape; sh:targetClass <urn:Class>;\n\
+             sh:property [ sh:path <urn:property>; sh:in {head} ] .\n{fields}"
+        );
+        let error = read_shacl_shape(&parse_ttl(&source), "urn:Shape")
+            .expect_err("a malformed selected value list must fail shape admission");
+        assert!(error.message().contains("malformed rdf:List"), "{error}");
+        assert!(error.message().contains(expected), "{error}");
+        assert!(error.message().contains("urn:Shape"), "{error}");
+    }
+}
+
+#[test]
 fn repeated_identical_typed_failure_metadata_is_one_value() {
     let ttl = format!(
         "{HEADER}<https://ex/Shape> a sh:NodeShape ;\n\
@@ -1068,8 +1101,7 @@ const NC_SCOPED_TTL: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
         FILTER NOT EXISTS { $this <https://ex/indep> <https://ex/independent> . \
         $this <https://ex/tier> <https://ex/secondary> . \
         $this <https://ex/cov> <https://ex/significant> . } }\"\"\" ] .\n";
-// The BUGGY unscoped De-Morgan lowering: a UNION of per-conjunct `FILTER NOT EXISTS` arms.
-// Each arm binds nothing, so `$this` is unbound and the check degrades to global existence.
+// SHACL pre-binds `$this` in every branch, so this De-Morgan form retains focus.
 const NC_UNION_TTL: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
         <https://ex/NotabilityShape> a sh:NodeShape ;\n\
@@ -1121,12 +1153,18 @@ fn semantic_cross_check_accepts_the_scoped_negated_conjunction_record() {
 }
 
 #[test]
+fn semantic_cross_check_accepts_the_focus_bound_union_negated_conjunction_projection() {
+    semantic_cross_check(NC_SCOPED_TTL, NC_UNION_TTL, &nc_witnesses())
+        .expect("SHACL pre-binding preserves the focus in every union arm");
+}
+
+#[test]
 fn semantic_cross_check_rejects_the_unscoped_union_negated_conjunction_projection() {
-    // The load-bearing guard: the pre-fix `{¬a} UNION {¬b} UNION {¬c}` lowering loses
-    // $this-scoping, so a sibling satisfying one conjunct globally clears the branch and the
-    // near-miss is NOT flagged — the oracle MUST catch it (guard against silent recurrence of
-    // the orgbook_notability_mutation projector bug).
-    let err = semantic_cross_check(NC_SCOPED_TTL, NC_UNION_TTL, &nc_witnesses())
+    // Lose the focus binding explicitly. An unrelated sibling can now clear a
+    // missing conjunct globally, and the product oracle must reject that projection.
+    let unscoped = NC_UNION_TTL.replace("NOT EXISTS { $this", "NOT EXISTS { ?unscoped");
+    assert_eq!(unscoped.matches("NOT EXISTS { ?unscoped").count(), 3);
+    let err = semantic_cross_check(NC_SCOPED_TTL, &unscoped, &nc_witnesses())
         .expect_err("an unscoped-union projection must not survive the witness cross-check");
     assert!(err.to_string().contains("does not reproduce"), "{err}");
 }

@@ -294,7 +294,9 @@ fn reduced_seed_attribution_matches_full_edb_attribution() {
     // The reduced seed: exactly `build_executable_docs_data`'s
     // `source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)`
     // call — the authored chain re-rooted into the true default graph.
-    let reduced_seed = raw_source_load.project_named_graph(GRAPH_AUTHORED_DEFAULT);
+    let reduced_seed = raw_source_load
+        .project_named_graph(GRAPH_AUTHORED_DEFAULT)
+        .unwrap();
 
     // A SEPARATE named "import" world (standing in for GRAPH_IMPORTS /
     // GRAPH_ALIGNMENTS / the logic graphs `assemble_object_level_edb` unions in),
@@ -337,7 +339,7 @@ ex:rex a ex:Dog .
 
     // The full object-level EDB, shaped exactly like `assemble_object_level_edb`:
     // the default-world projection UNIONED with the other named-world graphs.
-    let full_edb = purrdf::RdfDataset::union(&[&reduced_seed, import_world.as_ref()]);
+    let full_edb = purrdf::RdfDataset::union(&[&reduced_seed, import_world.as_ref()]).unwrap();
 
     // What stage-reason would commit for this full EDB: the base ontology-only
     // closure, subtracted (witness-insensitively) in both runs below. Because the

@@ -201,7 +201,7 @@ fn promote_to_single_world(
         }
         let promoted = RdfQuad::new(quad.subject, quad.predicate, quad.object)
             .in_graph(RdfTerm::iri(MATH_GATE_WORLD));
-        builder.push_owned_quad(&promoted);
+        builder.push_owned_quad(&promoted)?;
     }
     // The reasoner's DL-derived (non-EDB) edges — the same edges the verify queries see —
     // so a derived dimension triple is gated too, not only the asserted ones.
@@ -215,13 +215,9 @@ fn promote_to_single_world(
             quad.object.clone(),
         )
         .in_graph(RdfTerm::iri(MATH_GATE_WORLD));
-        builder.push_owned_quad(&promoted);
+        builder.push_owned_quad(&promoted)?;
     }
-    builder.freeze().map_err(|e| {
-        math_gate_err(format!(
-            "promote the reasoned closure into the math dimension-gate scratch world: {e}"
-        ))
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 #[cfg(test)]

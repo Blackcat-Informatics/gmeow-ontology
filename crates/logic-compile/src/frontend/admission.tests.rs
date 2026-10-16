@@ -186,12 +186,18 @@ fn annotation_only_temporal_links_have_the_same_source_admission_limit() {
     use crate::frontend::reconstruct_formula_in_named_context;
 
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let graph = builder.intern_iri("urn:example:source");
-    let next = builder.intern_iri(&logic_iri("next"));
+    let graph = builder.intern_iri("urn:example:source").unwrap();
+    let next = builder.intern_iri(&logic_iri("next")).unwrap();
     for depth in 0..MAX_FORMULA_SOURCE_DEPTH {
-        let node = builder.intern_iri(&format!("urn:example:n{depth}"));
-        let child = builder.intern_iri(&format!("urn:example:n{}", depth + 1));
-        builder.push_annotation_in_graph(node, next, child, Some(graph));
+        let node = builder
+            .intern_iri(&format!("urn:example:n{depth}"))
+            .unwrap();
+        let child = builder
+            .intern_iri(&format!("urn:example:n{}", depth + 1))
+            .unwrap();
+        builder
+            .push_annotation_in_graph(node, next, child, Some(graph))
+            .unwrap();
     }
     let source = builder.freeze().unwrap();
     let error = reconstruct_formula_in_named_context(

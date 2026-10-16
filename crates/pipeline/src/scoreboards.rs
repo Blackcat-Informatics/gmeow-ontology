@@ -261,7 +261,7 @@ fn dataset_from_files(paths: &[PathBuf]) -> gmeow_errors::Result<Arc<RdfDataset>
         return Ok(parsed.remove(0));
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    Ok(Arc::new(RdfDataset::union(&refs)))
+    Ok(Arc::new(RdfDataset::union(&refs)?))
 }
 
 /// Serialize the default graph of a dataset to N-Triples text. Preserves the exact
@@ -1456,8 +1456,7 @@ fn retag_dataset_to_internal(
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut quads = purrdf::flat_rdf_quads_from_dataset(dataset);
     crate::projections::retag_quads(&mut quads, inverse_tag_map);
-    flat_dataset_from_quads(&quads)
-        .map_err(|message| Diag::of_kind(crate::error::Scoreboard { message }))
+    flat_dataset_from_quads(&quads).map_err(Diag::from)
 }
 
 fn retag_literal(lit: &RdfLiteral, language: &str) -> RdfLiteral {

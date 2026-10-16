@@ -23,6 +23,31 @@ struct Frame {
     evidence: NativeEvidenceIndex,
 }
 impl Frame {
+    fn source_ledger(&self) -> NativeFamilyLedger {
+        NativeFamilyLedger::new(
+            self.evidence.world.clone(),
+            self.evidence.graph.clone(),
+            self.evidence.input_contract,
+            None,
+        )
+    }
+
+    fn source_support(
+        &self,
+        facts: &[Fact],
+        ledger: &mut NativeFamilyLedger,
+    ) -> Result<(Vec<NativeProofId>, Vec<RefutationPremise>)> {
+        let completed = BTreeSet::new();
+        let input = NativeFamilyInput::new(
+            &self.store,
+            &self.rel,
+            &self.rows,
+            &self.evidence,
+            &completed,
+        )?;
+        input.support_with_sources(facts, ledger)
+    }
+
     fn new(facts: &[Fact]) -> Self {
         let mut store = FactStore::new();
         let mut rel = RelationStore::with_semantics(
@@ -97,6 +122,7 @@ impl Frame {
             &mut lists,
             &mut ledger,
             &mut coverage,
+            None,
         )
         .unwrap();
         analyze(
@@ -175,6 +201,29 @@ fn late_native_equality_waits_for_completion_and_preserves_committed_derivation_
     };
     assert_eq!(rule, "urn:rule:late-equality");
     assert_eq!(premises.len(), 1);
+    let mut source_ledger = frame.source_ledger();
+    let (roots, leaves) = frame
+        .source_support(
+            &[
+                fact("urn:a", SAME, "urn:b"),
+                fact("urn:a", "urn:late-equality", "urn:b"),
+            ],
+            &mut source_ledger,
+        )
+        .unwrap();
+    let expected: Vec<_> = frame
+        .evidence
+        .sources
+        .iter()
+        .filter(|source| source.predicate == "urn:late-equality")
+        .cloned()
+        .collect();
+    assert_eq!(
+        leaves, expected,
+        "the shared derived/source DAG keeps one original leaf"
+    );
+    assert_eq!(source_ledger.source_leaves(&roots).unwrap(), leaves);
+    source_ledger.validate().unwrap();
     assert!(
         after.proofs.iter().any(
             |proof| proof.id == premises[0] && proof.statement.predicate == "urn:late-equality"
@@ -228,7 +277,67 @@ fn evidence_cannot_be_reused_in_another_native_world_or_contract() {
             None,
         );
         assert!(input.support(frame.store.facts(), &mut ledger).is_err());
+        assert!(
+            input
+                .support_with_sources(frame.store.facts(), &mut ledger)
+                .is_err()
+        );
     }
+}
+
+#[test]
+fn source_lookup_preserves_exact_leaves_across_growth_and_ledger_replacement() {
+    let facts = [
+        fact("urn:a", DIFFERENT, "urn:b"),
+        fact("urn:c", DIFFERENT, "urn:d"),
+    ];
+    let frame = Frame::new(&facts);
+    let mut ledger = frame.source_ledger();
+    let (first, leaves) = frame.source_support(&facts[..1], &mut ledger).unwrap();
+    assert_eq!(leaves, vec![frame.evidence.sources[0].clone()]);
+    let (all, leaves) = frame.source_support(&facts, &mut ledger).unwrap();
+    assert_eq!(leaves, frame.evidence.sources.to_vec());
+    assert!(all.contains(&first[0]));
+    ledger.validate().unwrap();
+    let wire = serde_json::to_vec(&ledger).unwrap();
+    {
+        let lookup = ledger.proof_lookup();
+        assert_eq!(lookup.source_leaves(&all).unwrap(), leaves);
+        assert_eq!(lookup.source_leaves(&[all[0], all[0]]).unwrap().len(), 1);
+        assert!(lookup.source_leaves(&[NativeProofId([255; 32])]).is_err());
+        assert!(lookup.source_leaves(&[]).unwrap().is_empty());
+    }
+    assert_eq!(serde_json::to_vec(&ledger).unwrap(), wire);
+    let mut replacement = frame.source_ledger();
+    let (rebound, rebound_leaves) = frame.source_support(&facts, &mut replacement).unwrap();
+    assert_eq!(rebound, all);
+    assert_eq!(rebound_leaves, leaves);
+    replacement.validate().unwrap();
+}
+
+#[test]
+fn cached_source_lookup_rejects_an_identity_mismatched_ledger_position() {
+    let facts = [
+        fact("urn:a", DIFFERENT, "urn:b"),
+        fact("urn:c", DIFFERENT, "urn:d"),
+    ];
+    let frame = Frame::new(&facts);
+    let mut ledger = frame.source_ledger();
+    frame.source_support(&facts, &mut ledger).unwrap();
+    let selected = ledger.proofs[0].id;
+    frame
+        .evidence
+        .recorded
+        .borrow_mut()
+        .by_id
+        .insert(selected, 1);
+    let error = frame.source_support(&facts[..1], &mut ledger).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("source support references an absent native proof")
+    );
+    ledger.validate().unwrap();
 }
 
 #[test]
@@ -253,14 +362,18 @@ fn source(
 ) -> Arc<purrdf::RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for &(s, p, o) in rows {
-        builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+        builder
+            .push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)))
+            .unwrap();
     }
     for &(s, p, o, dt) in literals {
-        builder.push_owned_quad(&RdfQuad::new(
-            RdfTerm::iri(s),
-            p,
-            RdfTerm::literal(RdfLiteral::typed(o, dt)),
-        ));
+        builder
+            .push_owned_quad(&RdfQuad::new(
+                RdfTerm::iri(s),
+                p,
+                RdfTerm::literal(RdfLiteral::typed(o, dt)),
+            ))
+            .unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -443,11 +556,13 @@ fn malformed_distinctness_lists_are_not_semantic_contradictions() {
 #[test]
 fn original_native_blank_occurrences_survive_execution_identity_lowering() {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&RdfQuad::new(
-        RdfTerm::blank_node("owned"),
-        DIFFERENT,
-        RdfTerm::blank_node("owned"),
-    ));
+    builder
+        .push_owned_quad(&RdfQuad::new(
+            RdfTerm::blank_node("owned"),
+            DIFFERENT,
+            RdfTerm::blank_node("owned"),
+        ))
+        .unwrap();
     let source = builder.freeze().unwrap();
     let ledgers = testing::fixtures(source.as_ref(), false);
     let ledger = ledgers.iter().find(|ledger| ledger.has_conflict()).unwrap();
@@ -615,7 +730,7 @@ fn intrinsic_domain_support_requires_the_actual_committed_scoped_receipt() {
         .unwrap();
     assert_eq!(support.len(), 1);
     assert!(
-        matches!(&ledger.proofs[0].origin, NativeProofOrigin::Intrinsic { witness } if witness == receipt)
+        matches!(&ledger.proofs[0].origin, NativeProofOrigin::Intrinsic { witness } if witness.as_ref() == receipt)
     );
     assert!(
         !ledger
@@ -679,5 +794,61 @@ fn relational_native_blank_identity_cannot_be_relabelled_as_rdf_ingress() {
     assert!(
         ledger.validate().is_err(),
         "rehashed mode cannot reinterpret an exact native blank as RDF lowering"
+    );
+}
+
+#[test]
+fn cardinality_obligations_bind_only_individuals_of_a_clashing_class() {
+    // `urn:Bad ⊑ ≥2 p ⊓ ≤1 p` clashes for every instance; `urn:Good ⊑ ≥1 p ⊓ ≤3 p`
+    // does not. The clash is a property of the class, so each `Bad` instance carries
+    // one obligation and no `Good` instance carries any.
+    const MIN: &str = "http://www.w3.org/2002/07/owl#minCardinality";
+    const MAX: &str = "http://www.w3.org/2002/07/owl#maxCardinality";
+    const INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+    const SUB: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const ON: &str = "http://www.w3.org/2002/07/owl#onProperty";
+    const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let mut iris = vec![
+        ("urn:Bad", SUB, "urn:bad"),
+        ("urn:bad", ON, "urn:p"),
+        ("urn:Good", SUB, "urn:good"),
+        ("urn:good", ON, "urn:p"),
+    ];
+    let individuals: Vec<(String, &str)> = (0..4)
+        .map(|i| (format!("urn:bad-{i}"), "urn:Bad"))
+        .chain((0..4).map(|i| (format!("urn:good-{i}"), "urn:Good")))
+        .collect();
+    iris.extend(
+        individuals
+            .iter()
+            .map(|(individual, class)| (individual.as_str(), TYPE, *class)),
+    );
+    let source = source(
+        &iris,
+        &[
+            ("urn:bad", MIN, "2", INTEGER),
+            ("urn:bad", MAX, "1", INTEGER),
+            ("urn:good", MIN, "1", INTEGER),
+            ("urn:good", MAX, "3", INTEGER),
+        ],
+    );
+    let ledgers = testing::fixtures(source.as_ref(), false);
+    let bound: BTreeSet<_> = ledgers
+        .iter()
+        .flat_map(|ledger| &ledger.outcomes)
+        .filter(|outcome| outcome.family == NativeRefutationFamily::Cardinality)
+        .filter_map(|outcome| match &outcome.obligation {
+            NativeObligationScope::Property { individual, .. } => {
+                assert!(!outcome.conclusions.is_empty(), "an obligation is a clash");
+                Some(individual.clone())
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        bound,
+        (0..4)
+            .map(|i| TermValue::iri(format!("urn:bad-{i}")))
+            .collect::<BTreeSet<_>>()
     );
 }

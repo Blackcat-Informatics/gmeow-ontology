@@ -22,7 +22,7 @@ fn quad(subject: &str, predicate: &str, object: &str) -> RdfQuad {
 fn dataset(quads: impl IntoIterator<Item = RdfQuad>) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().expect("synthetic dataset")
 }
@@ -74,8 +74,8 @@ fn a_default_fact_cannot_prove_a_conclusion_in_another_context() {
 #[test]
 fn declaration_only_contexts_do_not_disappear_from_admission() {
     let mut builder = RdfDatasetBuilder::new();
-    let context = builder.intern_iri("urn:unselected-context");
-    builder.declare_named_graph(context);
+    let context = builder.intern_iri("urn:unselected-context").unwrap();
+    builder.declare_named_graph(context).unwrap();
     let declared = builder.freeze().unwrap();
     assert_eq!(declared.quad_count(), 0);
     context_gap(&declared, &goal(), "premise", "urn:unselected-context");
@@ -86,22 +86,26 @@ fn declaration_only_contexts_do_not_disappear_from_admission() {
 fn native_metadata_graphs_are_subject_to_the_same_context_admission() {
     let world = RdfTerm::iri("urn:metadata-context");
     let mut reifiers = RdfDatasetBuilder::new();
-    reifiers.push_owned_reifier(
-        &RdfReifier::new(
-            RdfTerm::iri("urn:claim"),
-            RdfTriple::new(RdfTerm::iri("urn:x"), RDF_TYPE, RdfTerm::iri("urn:B")),
+    reifiers
+        .push_owned_reifier(
+            &RdfReifier::new(
+                RdfTerm::iri("urn:claim"),
+                RdfTriple::new(RdfTerm::iri("urn:x"), RDF_TYPE, RdfTerm::iri("urn:B")),
+            )
+            .in_graph(Some(world.clone())),
         )
-        .in_graph(Some(world.clone())),
-    );
+        .unwrap();
     let mut annotations = RdfDatasetBuilder::new();
-    annotations.push_owned_annotation(
-        &RdfAnnotation::new(
-            RdfTerm::iri("urn:claim"),
-            "urn:reportedBy",
-            RdfTerm::iri("urn:alice"),
+    annotations
+        .push_owned_annotation(
+            &RdfAnnotation::new(
+                RdfTerm::iri("urn:claim"),
+                "urn:reportedBy",
+                RdfTerm::iri("urn:alice"),
+            )
+            .in_graph(Some(world)),
         )
-        .in_graph(Some(world)),
-    );
+        .unwrap();
     for source in [reifiers.freeze().unwrap(), annotations.freeze().unwrap()] {
         assert_eq!(source.quad_count(), 0);
         context_gap(&source, &goal(), "premise", "urn:metadata-context");
@@ -113,16 +117,22 @@ fn native_metadata_graphs_are_subject_to_the_same_context_admission() {
 fn asserted_and_native_annotation_standpoints_share_admission() {
     let predicate = "https://blackcatinformatics.ca/gmeow/accordingTo";
     let mut native = RdfDatasetBuilder::new();
-    native.push_owned_quad(&quad("urn:x", RDF_TYPE, "urn:B"));
-    native.push_owned_reifier(&RdfReifier::new(
-        RdfTerm::iri("urn:claim"),
-        RdfTriple::new(RdfTerm::iri("urn:x"), RDF_TYPE, RdfTerm::iri("urn:B")),
-    ));
-    native.push_owned_annotation(&RdfAnnotation::new(
-        RdfTerm::iri("urn:claim"),
-        predicate,
-        RdfTerm::iri("urn:alice"),
-    ));
+    native
+        .push_owned_quad(&quad("urn:x", RDF_TYPE, "urn:B"))
+        .unwrap();
+    native
+        .push_owned_reifier(&RdfReifier::new(
+            RdfTerm::iri("urn:claim"),
+            RdfTriple::new(RdfTerm::iri("urn:x"), RDF_TYPE, RdfTerm::iri("urn:B")),
+        ))
+        .unwrap();
+    native
+        .push_owned_annotation(&RdfAnnotation::new(
+            RdfTerm::iri("urn:claim"),
+            predicate,
+            RdfTerm::iri("urn:alice"),
+        ))
+        .unwrap();
     let native = native.freeze().unwrap();
     let ordinary = dataset([
         quad("urn:x", RDF_TYPE, "urn:B"),
@@ -174,11 +184,13 @@ fn native_provenance_and_quoted_scope_survive_without_asserting_the_quote() {
     let mut builder = RdfDatasetBuilder::new();
     let asserted = quad("urn:x", RDF_TYPE, "urn:A")
         .with_location(purrdf::RdfLocation::logical("synthetic-source-occurrence"));
-    builder.push_owned_quad(&asserted);
-    builder.push_owned_quad(&quad("urn:A", RDFS_SUBCLASSOF, "urn:B"));
+    builder.push_owned_quad(&asserted).unwrap();
+    builder
+        .push_owned_quad(&quad("urn:A", RDFS_SUBCLASSOF, "urn:B"))
+        .unwrap();
     let quoted = RdfTriple::new(RdfTerm::iri("urn:x"), RDF_TYPE, RdfTerm::iri("urn:C"));
     let reifier = RdfReifier::new(RdfTerm::blank_node("claim"), quoted.clone());
-    builder.push_owned_reifier(&reifier);
+    builder.push_owned_reifier(&reifier).unwrap();
     let provenance = RdfAnnotation::new(
         RdfTerm::blank_node("claim"),
         "https://blackcatinformatics.ca/logic/provenance",
@@ -192,17 +204,19 @@ fn native_provenance_and_quoted_scope_survive_without_asserting_the_quote() {
             "http://www.w3.org/2001/XMLSchema#decimal",
         )),
     );
-    builder.push_owned_annotation(&provenance);
-    builder.push_owned_annotation(&confidence);
+    builder.push_owned_annotation(&provenance).unwrap();
+    builder.push_owned_annotation(&confidence).unwrap();
     // Quoting a context coordinate does not select that context for this theory.
-    builder.push_owned_reifier(&RdfReifier::new(
-        RdfTerm::iri("urn:scope-description"),
-        RdfTriple::new(
-            RdfTerm::iri("urn:other-claim"),
-            "https://blackcatinformatics.ca/logic/standpoint",
-            RdfTerm::iri("urn:bob"),
-        ),
-    ));
+    builder
+        .push_owned_reifier(&RdfReifier::new(
+            RdfTerm::iri("urn:scope-description"),
+            RdfTriple::new(
+                RdfTerm::iri("urn:other-claim"),
+                "https://blackcatinformatics.ca/logic/standpoint",
+                RdfTerm::iri("urn:bob"),
+            ),
+        ))
+        .unwrap();
     let premise = builder.freeze().unwrap();
     let admitted = AdmittedDefaultGraph::new(&premise, "premise").unwrap();
     let reduced = build_world_edb(&admitted, &[]).unwrap();
@@ -245,11 +259,13 @@ fn native_provenance_and_quoted_scope_survive_without_asserting_the_quote() {
 #[test]
 fn native_conclusion_metadata_is_not_an_empty_tautology() {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_annotation(&RdfAnnotation::new(
-        RdfTerm::iri("urn:claim"),
-        "urn:reportedBy",
-        RdfTerm::iri("urn:alice"),
-    ));
+    builder
+        .push_owned_annotation(&RdfAnnotation::new(
+            RdfTerm::iri("urn:claim"),
+            "urn:reportedBy",
+            RdfTerm::iri("urn:alice"),
+        ))
+        .unwrap();
     let conclusion = builder.freeze().unwrap();
     assert_eq!(conclusion.quad_count(), 0);
     assert!(matches!(
@@ -271,11 +287,13 @@ fn native_conclusion_metadata_is_not_an_empty_tautology() {
 #[test]
 fn native_property_annotations_participate_in_the_same_reachability_decision() {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_annotation(&RdfAnnotation::new(
-        RdfTerm::iri("urn:P"),
-        RDFS_SUBPROPERTYOF,
-        RdfTerm::iri("urn:Q"),
-    ));
+    builder
+        .push_owned_annotation(&RdfAnnotation::new(
+            RdfTerm::iri("urn:P"),
+            RDFS_SUBPROPERTYOF,
+            RdfTerm::iri("urn:Q"),
+        ))
+        .unwrap();
     let premise = builder.freeze().unwrap();
     assert_eq!(premise.quad_count(), 0);
     let positive = dataset([quad("urn:P", RDFS_SUBPROPERTYOF, "urn:Q")]);
@@ -304,19 +322,23 @@ fn empty_conjunction_is_only_a_tautology_even_for_unselected_premise_contexts() 
 #[test]
 fn reserved_minting_namespace_cannot_hide_in_native_evidence() {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&quad("urn:x", RDF_TYPE, "urn:B"));
-    builder.push_owned_annotation(&RdfAnnotation::new(
-        RdfTerm::iri("urn:claim"),
-        "urn:evidence",
-        RdfTerm::triple(RdfTriple::new(
-            RdfTerm::iri("urn:item"),
-            "urn:value",
-            RdfTerm::literal(RdfLiteral::typed(
-                "opaque",
-                format!("{ENTAIL_RESERVED_NS}datatype"),
+    builder
+        .push_owned_quad(&quad("urn:x", RDF_TYPE, "urn:B"))
+        .unwrap();
+    builder
+        .push_owned_annotation(&RdfAnnotation::new(
+            RdfTerm::iri("urn:claim"),
+            "urn:evidence",
+            RdfTerm::triple(RdfTriple::new(
+                RdfTerm::iri("urn:item"),
+                "urn:value",
+                RdfTerm::literal(RdfLiteral::typed(
+                    "opaque",
+                    format!("{ENTAIL_RESERVED_NS}datatype"),
+                )),
             )),
-        )),
-    ));
+        ))
+        .unwrap();
     let premise = builder.freeze().unwrap();
     let error = dl_entails(&premise, &goal()).unwrap_err();
     assert!(

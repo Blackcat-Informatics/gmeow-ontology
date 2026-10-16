@@ -10,7 +10,7 @@ use std::sync::Arc;
 fn dataset(ttl: &str) -> Arc<RdfDataset> {
     let parsed = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("ttl parses");
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(parsed.as_ref());
+    builder.push_dataset(parsed.as_ref()).unwrap();
     builder.freeze().expect("freeze")
 }
 

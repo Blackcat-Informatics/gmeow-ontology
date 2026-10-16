@@ -9,7 +9,10 @@
 //! may run only from a complete admission; an unsupported required unit blocks the
 //! whole problem instead of yielding a smaller, vacuously consistent theory.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+
+mod classes;
+mod contracts;
 
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 
@@ -28,6 +31,10 @@ const LOGIC_INSTANCE_OF: &str = "https://blackcatinformatics.ca/logic/instanceOf
 const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
 const LOGIC_BUILTIN: &str = "https://blackcatinformatics.ca/logic/Builtin";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+
+/// Classical object-theory task with explicit metatheory catalogue accounting.
+pub const FOF_SOURCE_PROFILE: &str =
+    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v2";
 
 /// The only graph placement admitted by the initial external classical profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -74,8 +81,8 @@ pub struct SourceSelection {
 
 impl SourceSelection {
     /// Select every recorded document, every top-level formula, every Horn rule,
-    /// and every typed owner. A profile that cannot execute a selected owner must
-    /// report it as a required-unit blocker.
+    /// and every typed owner. Configuration declarations remain explicit
+    /// metatheory; unsupported required executable owners block the operation.
     #[must_use]
     pub fn all_classical_roots(theory: &CompiledTheory) -> Self {
         let documents = if theory.source().origins().is_empty() {
@@ -123,18 +130,20 @@ pub struct FofSemanticProfile {
     pub blank_nodes: String,
     pub free_variables: String,
     pub context: String,
+    pub contracts: String,
 }
 
 impl Default for FofSemanticProfile {
     fn default() -> Self {
         Self {
-            id: "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v1".into(),
+            id: FOF_SOURCE_PROFILE.into(),
             graph: "selected default-graph assertions only".into(),
             world: "open-world classical first-order theory".into(),
             equality: "denotational equality without a unique-name assumption".into(),
             blank_nodes: "source-scoped existential blanks skolemized for satisfiability".into(),
             free_variables: "top-level free variables universally closed".into(),
             context: "unscoped sentences only; no standpoint, time, modality, confidence, provenance, or module erasure".into(),
+            contracts: "configuration declarations are metatheory catalogue evidence; this classical object-theory task does not execute them or assert their grammar as object axioms".into(),
         }
     }
 }
@@ -157,6 +166,7 @@ pub enum SemanticUnitKind {
     Formula,
     Rule,
     PropertyCharacteristic,
+    ClassDefinition,
     Import,
     StructuralSyntax,
     Quotation,
@@ -194,6 +204,22 @@ pub struct PropertyCharacteristic {
     pub characteristic: String,
 }
 
+/// A source class law in the canonical formula IR. Ground bindings retain native
+/// blank identity without misrepresenting a source blank as an authored IRI.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct SourceClassDefinition {
+    pub formula: Formula,
+    pub constants: BTreeMap<String, AtomicTerm>,
+}
+
+/// An authored configuration declaration and its exact selected RDF facts. The
+/// native value remains evidence, never an implicit execution-profile switch.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct SourceContractDeclaration {
+    pub configuration: crate::ir::ReasoningContract,
+    pub facts: Vec<SourceAssertion>,
+}
+
 /// Payload carried by an admitted semantic unit. Program indices are valid only
 /// for the exact [`CompiledTheory`] whose digest the admission records.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -202,18 +228,37 @@ pub enum AdmittedSemanticUnit {
     Formula { index: usize },
     Rule { index: usize },
     PropertyCharacteristic(PropertyCharacteristic),
+    ClassDefinition(SourceClassDefinition),
 }
 
 /// Complete disposition of one source unit.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum SemanticUnitDisposition {
     Admitted(AdmittedSemanticUnit),
-    StructuralSupport { detail: String },
-    OutsideSelection { reason: String },
-    QuotedUnasserted { detail: String },
-    Blocked { code: String, reason: String },
-    Malformed { code: String, reason: String },
-    Observed { detail: String },
+    ConfigurationDeclaration {
+        declaration: Box<SourceContractDeclaration>,
+        reason: String,
+    },
+    StructuralSupport {
+        detail: String,
+    },
+    OutsideSelection {
+        reason: String,
+    },
+    QuotedUnasserted {
+        detail: String,
+    },
+    Blocked {
+        code: String,
+        reason: String,
+    },
+    Malformed {
+        code: String,
+        reason: String,
+    },
+    Observed {
+        detail: String,
+    },
 }
 
 impl SemanticUnitDisposition {
@@ -253,6 +298,10 @@ pub struct SourceAdmission {
     pub units: Vec<SemanticUnitAdmission>,
     pub declared_classes: BTreeSet<String>,
     pub declared_builtins: BTreeSet<String>,
+    /// Live compiler authority is not part of an observation receipt. Safe callers
+    /// can inspect/edit public evidence, but editing it invalidates projection.
+    #[serde(skip)]
+    checked_evidence: Option<[u8; 32]>,
 }
 
 impl SourceAdmission {
@@ -262,28 +311,51 @@ impl SourceAdmission {
         AdmissionBuilder::new(theory, selection).build()
     }
 
-    #[must_use]
     pub fn blockers(&self) -> impl Iterator<Item = &SemanticUnitAdmission> {
         self.units
             .iter()
             .filter(|unit| unit.disposition.blocks() || unit.disposition.malformed())
     }
 
-    #[must_use]
     pub fn admitted(&self) -> impl Iterator<Item = &SemanticUnitAdmission> {
         self.units.iter().filter(|unit| unit.disposition.admitted())
     }
 
-    /// Whether this admission is still bound to this exact immutable source and
-    /// compiled program.
+    /// Native configuration metadata retained outside the object-theory axioms.
+    pub fn configuration_declarations(&self) -> impl Iterator<Item = &SourceContractDeclaration> {
+        self.units
+            .iter()
+            .filter_map(|unit| match &unit.disposition {
+                SemanticUnitDisposition::ConfigurationDeclaration { declaration, .. } => {
+                    Some(declaration.as_ref())
+                }
+                _ => None,
+            })
+    }
+
+    /// Whether this is an unchanged live compiler decision for the exact source
+    /// and program. Deserialized observations require fresh source admission.
     #[must_use]
     pub fn matches(&self, theory: &CompiledTheory) -> bool {
-        self.source_digest == source_digest(theory)
+        self.checked_evidence
+            .is_some_and(|checked| checked == self.evidence_digest())
+            && self.source_digest == source_digest(theory)
             && self.program_digest
                 == digest_bytes(
                     b"gmeow-logic-program-v1\0",
                     theory.program().canonical_key().as_bytes(),
                 )
+    }
+
+    fn evidence_digest(&self) -> [u8; 32] {
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(b"gmeow-live-source-admission-v1\0");
+        // Stream all serialized fields into the digest sink. The private compiler
+        // commitment is skipped by serde; no second admission-sized buffer or
+        // executable/RDF serialization boundary is introduced.
+        serde_json::to_writer(&mut hasher, self)
+            .expect("SourceAdmission fields serialize to an infallible digest sink");
+        *hasher.finalize().as_bytes()
     }
 }
 
@@ -294,6 +366,8 @@ struct AdmissionBuilder<'a> {
     units: Vec<SemanticUnitAdmission>,
     declared_classes: BTreeSet<String>,
     declared_builtins: BTreeSet<String>,
+    certified_classes: BTreeSet<SourceNode>,
+    class_support: BTreeSet<SourceStatementBinding>,
 }
 
 impl<'a> AdmissionBuilder<'a> {
@@ -309,12 +383,15 @@ impl<'a> AdmissionBuilder<'a> {
             units: Vec::new(),
             declared_classes: BTreeSet::new(),
             declared_builtins: BTreeSet::new(),
+            certified_classes: BTreeSet::new(),
+            class_support: BTreeSet::new(),
         }
     }
 
     fn build(mut self) -> SourceAdmission {
         self.validate_document_selection();
         self.scan_declarations();
+        self.admit_classes();
         self.admit_source_statements();
         self.admit_imports();
         self.admit_property_characteristics();
@@ -338,7 +415,7 @@ impl<'a> AdmissionBuilder<'a> {
             SourceAdmissionStatus::Empty
         };
         let selection_digest = self.selection.digest();
-        SourceAdmission {
+        let mut admission = SourceAdmission {
             profile: FofSemanticProfile::default(),
             source_digest: source_digest(self.theory),
             program_digest: digest_bytes(
@@ -351,7 +428,10 @@ impl<'a> AdmissionBuilder<'a> {
             units: self.units,
             declared_classes: self.declared_classes,
             declared_builtins: self.declared_builtins,
-        }
+            checked_evidence: None,
+        };
+        admission.checked_evidence = Some(admission.evidence_digest());
+        admission
     }
 
     fn validate_document_selection(&mut self) {
@@ -514,14 +594,14 @@ impl<'a> AdmissionBuilder<'a> {
                         documents,
                         SemanticUnitDisposition::Blocked {
                             code: "UNSUPPORTED_QUOTED_TERM_ARGUMENT".into(),
-                            reason,
+                            reason: reason.to_string(),
                         },
                     ),
                 Err(reason) => self.push(
                     SemanticUnitKind::Assertion,
                     anchor,
                     documents,
-                    malformed("MALFORMED_SELECTED_ASSERTION", reason),
+                    malformed("MALFORMED_SELECTED_ASSERTION", reason.to_string()),
                 ),
             }
         }
@@ -781,19 +861,49 @@ impl<'a> AdmissionBuilder<'a> {
                     }
                 };
                 self.push(SemanticUnitKind::Rule, anchor, documents, disposition);
-            } else if selected && self.selection.owners.contains(&anchor) {
-                self.push(
-                    SemanticUnitKind::Owner,
-                    anchor,
-                    documents,
-                    blocked(
-                        "UNSUPPORTED_SELECTED_OWNER",
-                        format!(
-                            "the classical profile has no execution contract for owner family {:?}",
-                            lowering.family
+            } else {
+                let disposition = if !selected || !self.selection.owners.contains(&anchor) {
+                    outside("the owner root is outside the selected documents, graph, or root set")
+                } else {
+                    match &lowering.disposition {
+                        OwnerDisposition::Emitted { .. }
+                            if lowering.diagnostics.iter().any(|&index| {
+                                self.theory.diagnostics()[index].severity == Severity::Error
+                            }) =>
+                        {
+                            malformed(
+                                "MALFORMED_SELECTED_OWNER",
+                                format!(
+                                    "selected {:?} owner carries compiler errors at diagnostics {:?}",
+                                    lowering.family, lowering.diagnostics
+                                ),
+                            )
+                        }
+                        OwnerDisposition::Emitted { index }
+                            if lowering.family == OwnerFamily::Contract =>
+                        {
+                            self.contract_declaration(lowering.source, *index)
+                        }
+                        OwnerDisposition::Emitted { .. } => blocked(
+                            "UNSUPPORTED_SELECTED_OWNER",
+                            format!(
+                                "the classical profile has no execution contract for owner family {:?}",
+                                lowering.family
+                            ),
                         ),
-                    ),
-                );
+                        OwnerDisposition::Rejected => malformed(
+                            "MALFORMED_SELECTED_OWNER",
+                            format!(
+                                "selected {:?} owner failed compiler admission at diagnostics {:?}",
+                                lowering.family, lowering.diagnostics
+                            ),
+                        ),
+                        OwnerDisposition::OutsideDefaultGraph => {
+                            outside("owner is outside the selected default graph")
+                        }
+                    }
+                };
+                self.push(SemanticUnitKind::Owner, anchor, documents, disposition);
             }
         }
         for index in 0..self.theory.program().rules.len() {
@@ -812,22 +922,45 @@ impl<'a> AdmissionBuilder<'a> {
     }
 
     fn admit_remaining_axioms(&mut self) {
+        let formula_axioms: BTreeSet<_> = self
+            .theory
+            .formula_lowerings()
+            .iter()
+            .filter_map(|lowering| match lowering.disposition {
+                FormulaDisposition::Axiom(index) => Some(index),
+                _ => None,
+            })
+            .collect();
         for (index, sources) in self.theory.axiom_sources().iter().enumerate() {
-            let handled_formula = self.theory.formula_lowerings().iter().any(|lowering| {
-                matches!(&lowering.disposition, FormulaDisposition::Axiom(found) if *found == index)
-            });
-            if handled_formula
+            if formula_axioms.contains(&index)
                 || sources
                     .iter()
                     .all(|source| matches!(source, AxiomSource::Statement { .. }))
             {
                 continue;
             }
-            let documents: BTreeSet<_> = sources
-                .iter()
-                .flat_map(|source| self.axiom_source_documents(source))
-                .collect();
+            let mut documents = BTreeSet::new();
+            let mut all_sources_outside = !sources.is_empty();
+            for source in sources {
+                let contributing = self.axiom_source_documents(source);
+                all_sources_outside &=
+                    !contributing.is_empty() && !self.documents_selected(&contributing);
+                documents.extend(contributing);
+            }
             let anchor = format!("program:axiom:{index}");
+            // Canonical deduplication can combine several source roots into one
+            // axiom. Any selected contributor keeps it required. Only positive
+            // evidence that every contributing document is excluded permits an
+            // outside-selection disposition; absent receipts are not that evidence.
+            if all_sources_outside {
+                self.push(
+                    SemanticUnitKind::Assertion,
+                    anchor,
+                    documents,
+                    outside("the axiom's contributing documents are outside the exact selection"),
+                );
+                continue;
+            }
             if sources
                 .iter()
                 .any(|source| matches!(source, AxiomSource::Reification(_)))
@@ -840,6 +973,28 @@ impl<'a> AdmissionBuilder<'a> {
                         "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION",
                         "a reified assertion cannot be flattened without preserving its standpoint/provenance/context envelope",
                     ),
+                );
+            } else if sources
+                .iter()
+                .any(|source| matches!(source, AxiomSource::ClassExpression(_)))
+                && sources.iter().all(|source| match source {
+                    AxiomSource::Statement { .. } => true,
+                    AxiomSource::ClassExpression(node) => {
+                        let documents = self.node_documents(*node);
+                        self.certified_classes.contains(node)
+                            || (!documents.is_empty() && !self.documents_selected(&documents))
+                    }
+                    _ => false,
+                })
+            {
+                self.push(
+                    SemanticUnitKind::StructuralSyntax,
+                    anchor,
+                    documents,
+                    SemanticUnitDisposition::StructuralSupport {
+                        detail: "class lowering is represented by exact source-bound formula laws"
+                            .into(),
+                    },
                 );
             } else if sources
                 .iter()
@@ -935,6 +1090,12 @@ impl<'a> AdmissionBuilder<'a> {
     }
 
     fn is_structural_statement(&self, quad: QuadIds) -> bool {
+        if self.class_support.contains(&SourceStatementBinding {
+            canonical: quad,
+            carrier: SourceCarrier::Statement,
+        }) {
+            return true;
+        }
         let dataset = self.theory.source().dataset();
         let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
             return true;
@@ -949,21 +1110,20 @@ impl<'a> AdmissionBuilder<'a> {
         let Some(unit) = self.theory.source().source_graph().unit(node) else {
             return false;
         };
-        if matches!(predicate, RDF_TYPE | LOGIC_INSTANCE_OF) && unit.declarations.contains(&quad.o)
-        {
-            return true;
-        }
-        false
+        matches!(predicate, RDF_TYPE | LOGIC_INSTANCE_OF) && unit.declarations.contains(&quad.o)
     }
 
     fn references_class_expression(&self, quad: QuadIds) -> bool {
-        self.theory.source().source_graph().declares(
-            SourceNode {
-                term: quad.o,
-                graph: quad.g,
-            },
-            SourceUnitKind::ClassExpression,
-        )
+        let node = SourceNode {
+            term: quad.o,
+            graph: quad.g,
+        };
+        !self.certified_classes.contains(&node)
+            && self
+                .theory
+                .source()
+                .source_graph()
+                .declares(node, SourceUnitKind::ClassExpression)
     }
 
     fn is_procedural_predicate(&self, predicate: &str) -> bool {
@@ -1182,10 +1342,15 @@ fn single_iri_object(
     }
 }
 
-fn assertion_from_quad(dataset: &RdfDataset, quad: QuadIds) -> Result<SourceAssertion, String> {
+fn assertion_from_quad(
+    dataset: &RdfDataset,
+    quad: QuadIds,
+) -> gmeow_errors::Result<SourceAssertion> {
     let subject = atomic_term(dataset, quad.s, false)?;
     let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
-        return Err("RDF predicate is not an IRI".into());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "RDF predicate is not an IRI".into(),
+        }));
     };
     let object = atomic_term(dataset, quad.o, true)?;
     Ok(SourceAssertion {
@@ -1199,7 +1364,7 @@ fn atomic_term(
     dataset: &RdfDataset,
     id: TermId,
     literal_allowed: bool,
-) -> Result<AtomicTerm, String> {
+) -> gmeow_errors::Result<AtomicTerm> {
     match dataset.resolve(id) {
         TermRef::Iri(iri) => Ok(AtomicTerm::Iri(iri.to_owned())),
         TermRef::Blank { label, scope } => Ok(AtomicTerm::Blank(
@@ -1212,7 +1377,9 @@ fn atomic_term(
             direction,
         } if literal_allowed => {
             let TermRef::Iri(datatype) = dataset.resolve(datatype) else {
-                return Err("literal datatype is not an IRI".into());
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+                    detail: "literal datatype is not an IRI".into(),
+                }));
             };
             let language = language.map(str::to_owned);
             Ok(AtomicTerm::Literal(purrdf::RdfLiteral {
@@ -1226,18 +1393,30 @@ fn atomic_term(
                 direction,
             }))
         }
-        TermRef::Literal { .. } => Err("literal cannot occur in assertion subject position".into()),
-        TermRef::Triple { .. } => Err(
-            "quoted triple term requires an explicit proposition-term translation and remains unasserted"
+        TermRef::Literal { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "literal cannot occur in assertion subject position".into(),
+        })),
+        TermRef::Triple { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "quoted triple term requires an explicit proposition-term translation and remains unasserted"
                 .into(),
-        ),
+        })),
     }
 }
 
 fn source_digest(theory: &CompiledTheory) -> String {
     let dataset = theory.source().dataset();
     let mut hasher = blake3::Hasher::new();
-    hasher.update(b"gmeow-prepared-source-v2\0");
+    hasher.update(b"gmeow-prepared-source-v3\0");
+    let mut graphs: Vec<_> = dataset
+        .named_graphs()
+        .map(|graph| term_anchor(dataset, dataset.resolve(graph)))
+        .collect();
+    graphs.sort_unstable();
+    for graph in graphs {
+        hasher.update(b"G|");
+        hasher.update(&(graph.len() as u64).to_be_bytes());
+        hasher.update(graph.as_bytes());
+    }
     for quad in dataset.quads() {
         hasher.update(quad_anchor(dataset, quad).as_bytes());
         hasher.update(b"\n");

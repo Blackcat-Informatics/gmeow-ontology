@@ -59,11 +59,13 @@ fn equal_lexical_values_only_fire_the_rule_with_their_complete_identity() {
     assert!(prepared.preservation.unsupported_constructs.is_empty());
     for (index, literal) in literals.into_iter().enumerate() {
         let mut builder = RdfDatasetBuilder::new();
-        builder.push_owned_quad(&RdfQuad::new(
-            RdfTerm::iri("urn:subject"),
-            "urn:seed",
-            RdfTerm::literal(literal),
-        ));
+        builder
+            .push_owned_quad(&RdfQuad::new(
+                RdfTerm::iri("urn:subject"),
+                "urn:seed",
+                RdfTerm::literal(literal),
+            ))
+            .unwrap();
         let result = execute(
             &prepared,
             crate::reason::program::prepare_reasoning_input(&builder.freeze().unwrap()).unwrap(),

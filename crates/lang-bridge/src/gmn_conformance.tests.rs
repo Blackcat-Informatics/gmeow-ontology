@@ -2,6 +2,26 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+
+#[test]
+fn codec_verdict_preserves_the_exact_semantic_refusal() {
+    let cause = crate::Gmn1Error::MalformedNumber {
+        token: "9.5e-1".into(),
+    };
+    let verdict = codec_verdict::<()>(Err(cause.clone().into())).unwrap();
+    assert_eq!(verdict.unwrap_err(), cause);
+}
+
+#[test]
+fn codec_verdict_propagates_operational_failure_without_semantic_reclassification() {
+    let cause = std::io::Error::other("synthetic native operation refusal");
+    let failure = codec_verdict::<()>(Err(cause.into())).unwrap_err();
+    let original = failure
+        .downcast_ref::<std::io::Error>()
+        .expect("original operational cause");
+    assert_eq!(original.kind(), std::io::ErrorKind::Other);
+    assert_eq!(original.to_string(), "synthetic native operation refusal");
+}
 use purrdf::{RdfQuad, RdfTerm};
 
 #[test]
@@ -16,7 +36,10 @@ fn independent_byte_and_semantic_failures_survive_observation_transport() {
     let observed = observe_positive(&model, &GmnDictionary::default()).unwrap();
     let expected = b"@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__cliSubject, p: gmeow__cliPredicate, o: gmeow__cliObject}\n";
     assert!(observed.failures(expected).is_empty(), "{observed:?}");
-    assert_eq!(observed.content_digest, crate::content_digest(&model));
+    assert_eq!(
+        observed.content_digest,
+        crate::content_digest(&model).unwrap()
+    );
     let bytes = serde_json::to_vec(&observed).unwrap();
     let mut restored: PositiveObservation = serde_json::from_slice(&bytes).unwrap();
     assert!(restored.failures(expected).is_empty());

@@ -155,7 +155,11 @@ impl<'a> FoldView<'a> {
     pub fn with_requested(dataset: &'a RdfDataset, requested: Vec<String>) -> Self {
         let mut iri_index: BTreeMap<&'a str, usize> = BTreeMap::new();
         for tid in 0..dataset.term_count() {
-            if let TermRef::Iri(v) = dataset.resolve(TermId::from_index(tid as u32)) {
+            // This ordinal already exists in the immutable, admitted term table;
+            // conversion cannot request storage or exceed its validated capacity.
+            let id = TermId::from_index(u32::try_from(tid).expect("frozen term ordinal fits u32"))
+                .expect("frozen term ordinal is representable");
+            if let TermRef::Iri(v) = dataset.resolve(id) {
                 iri_index.entry(v).or_insert(tid);
             }
         }
@@ -212,7 +216,10 @@ impl<'a> FoldView<'a> {
 
     /// Resolve a term id to its borrowed view over the frozen dataset arena.
     fn tref(&self, tid: usize) -> TermRef<'a> {
-        self.dataset.resolve(TermId::from_index(tid as u32))
+        // All view indices originate in this frozen dataset's term table.
+        let id = TermId::from_index(u32::try_from(tid).expect("frozen term ordinal fits u32"))
+            .expect("frozen term ordinal is representable");
+        self.dataset.resolve(id)
     }
     /// The IRI string of `tid` (or `""` for any non-IRI term).
     fn iri_or_empty(&self, tid: usize) -> String {
@@ -1244,17 +1251,17 @@ fn default_graph_dataset(
     let mut b = RdfDatasetBuilder::new();
     for q in dataset.owned_quads() {
         if q.graph_name.is_none() {
-            b.push_owned_quad(&q);
+            b.push_owned_quad(&q)?;
         }
     }
     for r in dataset.owned_reifiers() {
         if r.graph.is_none() {
-            b.push_owned_reifier(&r);
+            b.push_owned_reifier(&r)?;
         }
     }
     for a in dataset.owned_annotations() {
         if a.graph.is_none() {
-            b.push_owned_annotation(&a);
+            b.push_owned_annotation(&a)?;
         }
     }
     b.freeze()
@@ -2076,21 +2083,20 @@ fn dataset_with_public_tags(
     let mut b = RdfDatasetBuilder::new();
     for mut q in dataset.owned_quads() {
         q.object = retag(q.object);
-        b.push_owned_quad(&q);
+        b.push_owned_quad(&q)?;
     }
     for mut r in dataset.owned_reifiers() {
-        r.statement.object = retag(r.statement.object);
-        b.push_owned_reifier(&r);
+        let (subject, predicate, object, location) = r.statement.into_parts();
+        let mut statement = purrdf::RdfTriple::new(subject, predicate, retag(object));
+        statement.location = location;
+        r.statement = statement;
+        b.push_owned_reifier(&r)?;
     }
     for mut a in dataset.owned_annotations() {
         a.object = retag(a.object);
-        b.push_owned_annotation(&a);
+        b.push_owned_annotation(&a)?;
     }
-    b.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("public-tag dataset freeze: {e}"),
-        })
-    })
+    b.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Serialize an ALREADY public-tag-remapped dataset through purrdf's native
@@ -2341,17 +2347,17 @@ fn skos_source_dataset(view: &FoldView) -> Result<std::sync::Arc<RdfDataset>, gm
     let class_iris: BTreeSet<&str> = classes.iter().map(|&t| view.lex(t)).collect();
 
     let mut builder = RdfDatasetBuilder::new();
-    let rdf_type = builder.intern_iri(RDF_TYPE);
-    let owl_class = builder.intern_iri(&format!("{OWL}Class"));
-    let rdfs_label = builder.intern_iri(&format!("{RDFS}label"));
-    let skos_definition = builder.intern_iri(&format!("{SKOS}definition"));
-    let rdfs_sub_class_of = builder.intern_iri(&format!("{RDFS}subClassOf"));
-    let has_top_concept = builder.intern_iri(SKOS_ROLE_HAS_TOP_CONCEPT);
-    let scheme = builder.intern_iri(ONTOLOGY_IRI);
+    let rdf_type = builder.intern_iri(RDF_TYPE)?;
+    let owl_class = builder.intern_iri(&format!("{OWL}Class"))?;
+    let rdfs_label = builder.intern_iri(&format!("{RDFS}label"))?;
+    let skos_definition = builder.intern_iri(&format!("{SKOS}definition"))?;
+    let rdfs_sub_class_of = builder.intern_iri(&format!("{RDFS}subClassOf"))?;
+    let has_top_concept = builder.intern_iri(SKOS_ROLE_HAS_TOP_CONCEPT)?;
+    let scheme = builder.intern_iri(ONTOLOGY_IRI)?;
 
     for &t in &classes {
-        let subject = builder.intern_iri(view.lex(t));
-        builder.push_quad(subject, rdf_type, owl_class, None);
+        let subject = builder.intern_iri(view.lex(t))?;
+        builder.push_quad(subject, rdf_type, owl_class, None)?;
 
         let mut seen_labels: BTreeSet<String> = BTreeSet::new();
         for (text, lang, _fallback) in view.public_texts(t, &format!("{RDFS}label")) {
@@ -2363,8 +2369,8 @@ fn skos_source_dataset(view: &FoldView) -> Result<std::sync::Arc<RdfDataset>, gm
                     datatype: None,
                     language: Some(l),
                     direction: None,
-                });
-                builder.push_quad(subject, rdfs_label, obj, None);
+                })?;
+                builder.push_quad(subject, rdfs_label, obj, None)?;
             }
         }
         let mut seen_defs: BTreeSet<String> = BTreeSet::new();
@@ -2377,8 +2383,8 @@ fn skos_source_dataset(view: &FoldView) -> Result<std::sync::Arc<RdfDataset>, gm
                     datatype: None,
                     language: Some(l),
                     direction: None,
-                });
-                builder.push_quad(subject, skos_definition, obj, None);
+                })?;
+                builder.push_quad(subject, skos_definition, obj, None)?;
             }
         }
 
@@ -2389,21 +2395,21 @@ fn skos_source_dataset(view: &FoldView) -> Result<std::sync::Arc<RdfDataset>, gm
             }
         }
         if broader.is_empty() {
-            let obj = builder.intern_iri(view.lex(t));
-            builder.push_quad(scheme, has_top_concept, obj, None);
+            let obj = builder.intern_iri(view.lex(t))?;
+            builder.push_quad(scheme, has_top_concept, obj, None)?;
         } else {
             for b in broader {
-                let obj = builder.intern_iri(b);
-                builder.push_quad(subject, rdfs_sub_class_of, obj, None);
+                let obj = builder.intern_iri(b)?;
+                builder.push_quad(subject, rdfs_sub_class_of, obj, None)?;
             }
         }
 
         for (p, o) in view.predicate_objects(t, ALIGNMENTS_GRAPH) {
             let p_local = view.lex(p).rsplit('#').next().unwrap_or("");
             if SKOS_MATCHES.contains(&p_local) && view.is_iri(o) {
-                let pred = builder.intern_iri(view.lex(p));
-                let obj = builder.intern_iri(view.lex(o));
-                builder.push_quad(subject, pred, obj, None);
+                let pred = builder.intern_iri(view.lex(p))?;
+                let obj = builder.intern_iri(view.lex(o))?;
+                builder.push_quad(subject, pred, obj, None)?;
             }
         }
     }
@@ -2549,35 +2555,35 @@ fn obo_graphs_source_dataset(
     classes.sort_by(|&a, &b| view.lex(a).cmp(view.lex(b)));
 
     let mut builder = RdfDatasetBuilder::new();
-    let rdf_type = builder.intern_iri(RDF_TYPE);
-    let owl_class = builder.intern_iri(&format!("{OWL}Class"));
-    let rdfs_label = builder.intern_iri(&label_iri);
-    let skos_definition = builder.intern_iri(&definition_iri);
-    let rdfs_sub_class_of = builder.intern_iri(&format!("{RDFS}subClassOf"));
-    let owl_version_info = builder.intern_iri(&format!("{OWL}versionInfo"));
-    let graph_id = builder.intern_iri(ONTOLOGY_IRI);
+    let rdf_type = builder.intern_iri(RDF_TYPE)?;
+    let owl_class = builder.intern_iri(&format!("{OWL}Class"))?;
+    let rdfs_label = builder.intern_iri(&label_iri)?;
+    let skos_definition = builder.intern_iri(&definition_iri)?;
+    let rdfs_sub_class_of = builder.intern_iri(&format!("{RDFS}subClassOf"))?;
+    let owl_version_info = builder.intern_iri(&format!("{OWL}versionInfo"))?;
+    let graph_id = builder.intern_iri(ONTOLOGY_IRI)?;
 
-    let version_obj = builder.intern_literal(RdfLiteral::simple(version));
-    builder.push_quad(graph_id, owl_version_info, version_obj, None);
+    let version_obj = builder.intern_literal(RdfLiteral::simple(version))?;
+    builder.push_quad(graph_id, owl_version_info, version_obj, None)?;
 
     for &t in &classes {
-        let subject = builder.intern_iri(view.lex(t));
-        builder.push_quad(subject, rdf_type, owl_class, None);
+        let subject = builder.intern_iri(view.lex(t))?;
+        builder.push_quad(subject, rdf_type, owl_class, None)?;
 
         let (label, _fb) = view.public_text_with_fallback(t, &label_iri);
         if !label.is_empty() {
-            let obj = builder.intern_literal(RdfLiteral::simple(label));
-            builder.push_quad(subject, rdfs_label, obj, None);
+            let obj = builder.intern_literal(RdfLiteral::simple(label))?;
+            builder.push_quad(subject, rdfs_label, obj, None)?;
         }
         let (definition, _fb) = view.public_text_with_fallback(t, &definition_iri);
         if !definition.is_empty() {
-            let obj = builder.intern_literal(RdfLiteral::simple(definition));
-            builder.push_quad(subject, skos_definition, obj, None);
+            let obj = builder.intern_literal(RdfLiteral::simple(definition))?;
+            builder.push_quad(subject, skos_definition, obj, None)?;
         }
         for o in view.objects(t, &format!("{RDFS}subClassOf"), DEFAULT_SCOPE) {
             if view.is_iri(o) {
-                let obj = builder.intern_iri(view.lex(o));
-                builder.push_quad(subject, rdfs_sub_class_of, obj, None);
+                let obj = builder.intern_iri(view.lex(o))?;
+                builder.push_quad(subject, rdfs_sub_class_of, obj, None)?;
             }
         }
     }

@@ -9,18 +9,28 @@ use gmeow_logic::reason::rl::DEFAULT_WORLD;
 #[test]
 fn competency_world_keeps_attributed_claims_and_their_shared_native_subject() {
     let mut builder = RdfDatasetBuilder::new();
-    let member = builder.intern_blank("member", BlankScope(7));
-    let object = builder.intern_blank("member", BlankScope(9));
-    let relation = builder.intern_iri("https://blackcatinformatics.ca/math/hasPart");
-    let claim = builder.intern_blank("claim", BlankScope(7));
-    let old = builder.intern_iri("urn:competency:source-world");
-    let according_to = builder.intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo");
-    builder.push_quad(member, relation, object, None);
-    let triple = builder.intern_triple(member, relation, object);
-    builder.push_reifier_in_graph(claim, triple, Some(old));
-    builder.push_annotation_in_graph(claim, according_to, old, Some(old));
-    let empty = builder.intern_iri("urn:competency:empty-source-world");
-    builder.declare_named_graph(empty);
+    let member = builder.intern_blank("member", BlankScope(7)).unwrap();
+    let object = builder.intern_blank("member", BlankScope(9)).unwrap();
+    let relation = builder
+        .intern_iri("https://blackcatinformatics.ca/math/hasPart")
+        .unwrap();
+    let claim = builder.intern_blank("claim", BlankScope(7)).unwrap();
+    let old = builder.intern_iri("urn:competency:source-world").unwrap();
+    let according_to = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo")
+        .unwrap();
+    builder.push_quad(member, relation, object, None).unwrap();
+    let triple = builder.intern_triple(member, relation, object).unwrap();
+    builder
+        .push_reifier_in_graph(claim, triple, Some(old))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(claim, according_to, old, Some(old))
+        .unwrap();
+    let empty = builder
+        .intern_iri("urn:competency:empty-source-world")
+        .unwrap();
+    builder.declare_named_graph(empty).unwrap();
     let source = builder.freeze().unwrap();
     let original = source.owned_quads().next().unwrap();
     let output = world_scoped(&source).unwrap();
@@ -57,8 +67,10 @@ fn competency_world_keeps_attributed_claims_and_their_shared_native_subject() {
 #[test]
 fn competency_empty_selection_declares_the_reasoner_world_only() {
     let mut builder = RdfDatasetBuilder::new();
-    let old = builder.intern_iri("urn:competency:empty-source-world");
-    builder.declare_named_graph(old);
+    let old = builder
+        .intern_iri("urn:competency:empty-source-world")
+        .unwrap();
+    builder.declare_named_graph(old).unwrap();
     let source = builder.freeze().unwrap();
     let output = world_scoped(&source).unwrap();
     assert_eq!(output.rdf_row_count(), 0);
