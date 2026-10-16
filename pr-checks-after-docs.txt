@@ -1,0 +1,3 @@
+PENDING    CodeRabbit
+SUCCESS    license/cla  https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=1827
+state: pending

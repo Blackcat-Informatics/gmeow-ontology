@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with/brief.json  (+ requirements.json, references.json)
+
+  - issue #1825 + 1 comment(s) via github
+  - link crawl: no `#N` references in the issue or its comments
+  - forge search on ['build:', 'reconcile', 'producer']: 14 other item(s)
+  - GhpRsq-Defect-Class trailers: 2 distinct class(es) in the last 200 commits
+  - prior attempts: 0 commit(s) citing #1825 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1825: 0
+  - requirement candidates: 2 line(s); 0 comment(s) matched no rule
+  - referenced artifacts: 3 path(s) (2 on disk), 0 identifier(s), 2 workspace package(s), 1 URL(s)

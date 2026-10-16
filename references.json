@@ -1,0 +1,51 @@
+{
+  "paths": [
+    {
+      "ref": "crates/docs-print/src/doc_render.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/docs-print/src/doc_render.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 620,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "43a43a19d feat(1628): render slice documents into mdbook + PDF, unify the link authority"
+      ]
+    },
+    {
+      "ref": "docs-print/src/lib.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/docs-print/src/lib.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "crates/xtask/src/producer.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/xtask/src/producer.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 1202,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "22842c8c8 fix: close optimized producer admission gaps",
+        "e049a22a2 fix: preserve optimized producer authority across checkouts",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer"
+      ]
+    }
+  ],
+  "identifiers": [],
+  "packages": [
+    "docs-print",
+    "xtask"
+  ],
+  "urls": [
+    "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38927612921/job/117063071573"
+  ],
+  "truncated": []
+}

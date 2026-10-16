@@ -1,0 +1,27 @@
+{
+  "rows": [
+    {
+      "id": "C1.1",
+      "line": 2,
+      "rules": [
+        "modal"
+      ],
+      "text": "by docs-print/src/lib.rs and called by render.rs. It must not be deleted.",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-16T16:28:01Z"
+    },
+    {
+      "id": "C1.2",
+      "line": 16,
+      "rules": [
+        "modal"
+      ],
+      "text": "Regression coverage must include implicit workspace identities, generated owners,",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-16T16:28:01Z"
+    }
+  ],
+  "silent_comments": []
+}

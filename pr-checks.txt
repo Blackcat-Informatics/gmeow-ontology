@@ -1,0 +1,22 @@
+$ stagectl pr-checks 1827
+FAILURE    quality
+SKIPPED    producer
+SKIPPED    medium-consumer-surface
+SKIPPED    rust
+SKIPPED    rust-archive
+SKIPPED    fixture-complete
+SKIPPED    ontology-generated
+SKIPPED    rust-static
+SKIPPED    ontology-validate
+SKIPPED    ontology-reason
+SKIPPED    ontology-misc
+SKIPPED    heavy
+FAILURE    fixture-prefix
+FAILURE    generation (b)
+FAILURE    generation (a)
+SUCCESS    rust-prebuild
+SUCCESS    producer-build
+SUCCESS    lint
+SUCCESS    CodeRabbit
+SUCCESS    license/cla
+state: fail

@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "07f4c6c59db06962c6a17d104f320d36359be826",
+  "headRefName": "paudley/1825-reconcile-producer-input-selection-with",
+  "headRefOid": "dcf3f749142e71e5822a6dd574f3f19c16ca75b0",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1827,
+  "state": "OPEN",
+  "title": "fix(build): preserve producer identity and fail docs prerequisites closed",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1827"
+}

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "issue": 1825,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with",
+  "branch": "paudley/1825-reconcile-producer-input-selection-with",
+  "slug": "reconcile-producer-input-selection-with",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "07f4c6c59db06962c6a17d104f320d36359be826",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with",
+    "branch:paudley/1825-reconcile-producer-input-selection-with",
+    "removed stale .git/info/exclude:/.stage/",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1825-reconcile-producer-input-selection-with/.stage/reconcile-producer-input-selection-with/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-16T10:44:19-0600"
+}

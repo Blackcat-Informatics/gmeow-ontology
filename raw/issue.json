@@ -1,0 +1,36 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Observed failure\n\nMerged main commit `07f4c6c59db06962c6a17d104f320d36359be826` fails the\nproducer-build job in CI run\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38927612921/job/117063071573.\nThe optimized pipeline compilation completes (28m 11s), then authentication fails:\n\n```\nproducer build: selected Rust implementation absent from compiler reads: crates/docs-print/src/doc_render.rs\n```\n\nDependent producer/generation/ontology/heavy lanes are skipped. Lint passed;\nrust-prebuild was still running when this failure was observed. This is a real\nfailed qualification, not a green merge or a runtime resource diagnosis.\n\n## Required repair and acceptance\n\nReconcile authored producer input selection with the actual Rust module graph.\nPreserve exact-source/recipe authentication, O3/full-LTO, assertions, overflow\nchecks and the single producer boundary. Do not ignore missing compiler reads or\nweaken the seal. If this is an obsolete implementation, remove the obsolete path\nafter checking all production callers; otherwise wire its intended implementation\ninto the production module graph.\n\nExercise the source-selection/dep-info regression without production fingerprint\nexecution locally, then obtain passing exact-source hosted producer qualification\nand downstream gate evidence. Principles 4, 7 and 18 apply. Full reasoning issue\ncompletion remains separate from this build repair.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcr1XKw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Source inspection narrows the CI failure: doc_render.rs is a live module declared\nby docs-print/src/lib.rs and called by render.rs. It must not be deleted.\n\nIn crates/xtask/src/producer.rs, resolve_source_selection normalizes package IDs\nthrough metadata_package_ids / explicit_package_id. The compiler-artifact and\nbuild-script-executed branches of build_producer instead use raw Cargo package_id\nstrings with workspace path substitution only. Thus a Cargo ID whose fragment is\nonly the version cannot match the explicit name@version selected unit identity.\nThe artifact filter silently omits the selected package, then the final read seal\ncorrectly refuses its source. This is a source-supported cause to reproduce with\nsynthetic Cargo metadata/messages; the remote compiler-artifact transcript itself\nwas not uploaded, so that exact raw message remains unavailable.\n\nNormalize artifact and generated-input owners using the same exact metadata map,\nreject unknown package IDs, and preserve the selected-unit and compiler-read seals.\nRegression coverage must include implicit workspace identities, generated owners,\nexplicit IDs, unknown/contradictory IDs and unselected artifacts. No CPU or\nenvironment fingerprint is needed to test message identity binding.\n",
+      "createdAt": "2026-10-16T16:28:01Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1825#issuecomment-6219978539",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-16T16:26:37Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1825,
+  "state": "OPEN",
+  "title": "build: reconcile producer input selection with compiled docs-print sources",
+  "updatedAt": "2026-10-16T16:28:01Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1825"
+}
