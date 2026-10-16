@@ -192,18 +192,22 @@ impl GoalDirectedStage {
 }
 
 impl Default for GoalDirectedStage {
+    /// Use the production program and reasoning dependencies.
     fn default() -> Self {
         Self::new()
     }
 }
 
 impl Stage for GoalDirectedStage {
+    /// The stable identity shared with the authored pipeline DAG.
     fn id(&self) -> &str {
         "stage-goal-directed"
     }
+    /// Read the compiled programs and their reasoned subsort evidence.
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    /// Persist only the independently authenticated proof observation delta.
     fn cache_policy(&self) -> CachePolicy {
         // Only this stage's proof-checked graph and observation are published: no
         // upstream carrier or typed handle is retained. Persist that contribution
@@ -211,15 +215,19 @@ impl Stage for GoalDirectedStage {
         // The action identity binds both authored programs and reasoned subsorts.
         CachePolicy::Persistent
     }
+    /// Narrow reasoning input while preserving its typed-handle commitment.
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
     }
+    /// Declare the stage-owned proof-answer graph.
     fn attaches_graphs(&self) -> &[String] {
         crate::stages::attach::graphs(self.id())
     }
+    /// This contribution attaches no blob-representation lane.
     fn attaches_blob_reps(&self) -> &[String] {
         crate::stages::attach::blob_reps(self.id())
     }
+    /// Invalidate earlier recomputed observations at the persistence boundary.
     fn impl_version(&self) -> &str {
         // v2: the stage now compiles the AUTHORED logic:ReasoningProgram corpus (read off
         // the stage-compile-logic Logic handle) against the reasoned rdfs:subClassOf closure
@@ -228,6 +236,7 @@ impl Stage for GoalDirectedStage {
         // evaluate_shipped_demonstrators() over the hand-interned Rust constants.
         "goal-directed.v4-persistent-observations"
     }
+    /// Evaluate authored programs, check their proofs and publish their observations.
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Read the compiled authored demonstrator corpus and the reasoned subsort closure
         // off their respective typed upstream handles — both HARD-fail (no fallback to the

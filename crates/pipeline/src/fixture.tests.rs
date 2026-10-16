@@ -37,6 +37,7 @@ fn receipts() -> Vec<StageReceipt> {
 }
 
 #[test]
+/// Every selected fixture must be readable across processes without a producer.
 fn selected_fixture_stages_are_stable_persistent_contributions() {
     let spec = full_spec();
     let graph = spec.validate().unwrap();

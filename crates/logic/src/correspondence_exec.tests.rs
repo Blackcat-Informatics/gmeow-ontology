@@ -981,6 +981,7 @@ fn mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case() {
 }
 
 #[test]
+/// Loss evidence survives complete executable paths without authorizing recovery.
 fn honest_lossy_recovery_requires_legs_and_keeps_its_refutation() {
     use gmeow_logic_compile::projections::correspondence_gates::{assert_gates, evaluate_gates};
 
@@ -1002,6 +1003,23 @@ fn honest_lossy_recovery_requires_legs_and_keeps_its_refutation() {
             body: get.invert(),
         },
     ]);
+    let mut recoverable = complete.clone();
+    recoverable.correspondences[0].recovery_cases = vec![recovery_case(true)];
+    assert_eq!(
+        program_verdicts(&recoverable).expect("execute both resolved legs")
+            ["https://example.org/correspondence"].section.verdict,
+        DischargeVerdict::ObligationDischarged
+    );
+    for leg in 0..2 {
+        let mut wrong_body = recoverable.clone();
+        wrong_body.leg_programs[leg].body = step("https://example.org/unrelated");
+        assert_eq!(
+            program_verdicts(&wrong_body).expect("execute mutated leg")
+                ["https://example.org/correspondence"].section.verdict,
+            DischargeVerdict::ObligationViolated,
+            "the recoverable control must execute each independently supplied leg"
+        );
+    }
     let verdicts = program_verdicts(&complete).expect("execute the lossy recovery case");
     assert_eq!(
         verdicts["https://example.org/correspondence"]
@@ -1020,6 +1038,7 @@ fn honest_lossy_recovery_requires_legs_and_keeps_its_refutation() {
 }
 
 #[test]
+/// A recovery formula cannot authorize execution without both resolved bodies.
 fn recovery_evidence_with_a_missing_resolved_leg_fails_closed() {
     let program = CorrespondenceProgram::new(
         vec![recovery_correspondence(recovery_case(true))],
