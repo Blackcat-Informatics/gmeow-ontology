@@ -1,0 +1,24 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) & test(frontend::tests::) & (test(contract) | test(closure_entry_missing_value) | test(unknown_semantic_profile))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [optimized] target(s) in 1m 28s
+────────────
+ Nextest run ID a50a52fb-20b2-4b39-9198-c626a6ab6ed7 with nextest profile: ci
+    Starting 9 tests across 2 binaries (978 tests and 223 binaries skipped)
+        PASS [   0.042s] (1/9) gmeow-logic-compile frontend::tests::parse_multiple_contracts_with_complexity
+        PASS [   0.042s] (2/9) gmeow-logic-compile frontend::tests::closure_entry_missing_value_is_a_hard_error
+        PASS [   0.042s] (3/9) gmeow-logic-compile frontend::tests::contract_facet_config_does_not_leak_into_domain_axioms
+        PASS [   0.042s] (4/9) gmeow-logic-compile frontend::tests::unknown_semantic_profile_emits_diagnostic
+        PASS [   0.042s] (5/9) gmeow-logic-compile frontend::tests::unknown_semantic_profile_is_a_hard_error
+        PASS [   0.042s] (6/9) gmeow-logic-compile frontend::tests::supported_contract_compiles_clean
+        PASS [   0.042s] (7/9) gmeow-logic-compile frontend::tests::unsupported_contract_is_a_hard_compile_failure
+        PASS [   0.042s] (8/9) gmeow-logic-compile frontend::tests::probability_model_in_unselected_graph_does_not_admit_default_contract
+        PASS [   0.043s] (9/9) gmeow-logic-compile frontend::tests::native_structural_typing_extracts_rules_contracts_and_constraints_without_aliasing_domain_types
+────────────
+     Summary [   0.074s] 9 tests run: 9 passed, 978 skipped

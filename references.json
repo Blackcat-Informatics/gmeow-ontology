@@ -1,0 +1,40 @@
+{
+  "paths": [],
+  "identifiers": [
+    {
+      "name": "UNSUPPORTED_CLASS_EXPRESSION",
+      "files": 3
+    },
+    {
+      "name": "CONTEXT_ERASURE_FORBIDDEN",
+      "files": 2
+    },
+    {
+      "name": "UNSUPPORTED_SELECTED_OWNER",
+      "files": 1
+    },
+    {
+      "name": "RULE_TERM_DISTINCT_REQUIRES_BINDING_SEMANTICS",
+      "files": 1
+    },
+    {
+      "name": "COMPILER_ERROR_IN_SELECTED_THEORY",
+      "files": 2
+    },
+    {
+      "name": "gmeow.gts",
+      "files": 456
+    },
+    {
+      "name": "FullIndependence",
+      "files": 21
+    },
+    {
+      "name": "ProbabilityModel",
+      "files": 41
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

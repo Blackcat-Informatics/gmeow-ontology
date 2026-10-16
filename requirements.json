@@ -1,0 +1,159 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 6,
+      "rules": [
+        "modal"
+      ],
+      "text": "- 51 `CONTEXT_ERASURE_FORBIDDEN` (standpoint/modal translation required)",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 15,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- give every selected canonical unit a typed, certified FOF disposition;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 16,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- implement the missing class-expression, standpoint/modal, contract-owner, distinct-body, and probabilistic-profile semantics, or give an explicit typed proof-task selection that excludes a unit for a sound documented reason;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 17,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- preserve standpoint, provenance, complements, loss evidence, and stage contracts;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 18,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- produce the canon FOF base once in the O3/full-LTO producer and carry it in `gmeow.gts`, rather than recompiling the flattened canon on every consumer invocation;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 19,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- compose caller premises/goals with that prepared native base in memory, with no serialization/reparse step;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B7",
+      "line": 20,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- make `gmeow prove` reach the selected native/external prover against the complete admitted canon from a blinded cwd;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B8",
+      "line": 21,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- report the exact bundle and prepared-canon identities.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B9",
+      "line": 25,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- complete-canon admission has zero blockers for the supported proof profile;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B10",
+      "line": 26,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B11",
+      "line": 27,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- focused product tests cover GMEOW proof behavior without duplicating PurRDF or external-prover conformance;",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B12",
+      "line": 28,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- runtime evidence records elapsed time, peak memory, and intermediate bytes for prepared-canon load plus request composition.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B13",
+      "line": 30,
+      "rules": [
+        "dependency"
+      ],
+      "text": "Depends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "historical 327-unit inventory belongs to its original bundle/selection and must",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-16T00:54:10Z"
+    }
+  ],
+  "silent_comments": []
+}

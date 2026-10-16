@@ -1,0 +1,974 @@
+﻿2026-10-16T15:53:49.8192362Z Current runner version: '2.337.0'
+2026-10-16T15:53:49.8217636Z ##[group]Runner Image Provisioner
+2026-10-16T15:53:49.8218422Z Hosted Compute Agent
+2026-10-16T15:53:49.8218965Z Version: 20261012.601
+2026-10-16T15:53:49.8219553Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-16T15:53:49.8220260Z Build Date: 2026-10-12T17:48:21Z
+2026-10-16T15:53:49.8220902Z Worker ID: {3048f879-3b9a-4636-a5ae-8073cfa85f80}
+2026-10-16T15:53:49.8221605Z Region: eastus
+2026-10-16T15:53:49.8222097Z Cloud: Azure
+2026-10-16T15:53:49.8222589Z ##[endgroup]
+2026-10-16T15:53:49.8224224Z ##[group]Operating System
+2026-10-16T15:53:49.8224818Z Ubuntu
+2026-10-16T15:53:49.8225296Z 24.04.5
+2026-10-16T15:53:49.8225751Z LTS
+2026-10-16T15:53:49.8226211Z ##[endgroup]
+2026-10-16T15:53:49.8226709Z ##[group]Runner Image
+2026-10-16T15:53:49.8227261Z Image: ubuntu-24.04
+2026-10-16T15:53:49.8227776Z Version: 20261012.334.1
+2026-10-16T15:53:49.8229008Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-16T15:53:49.8230615Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-16T15:53:49.8231560Z ##[endgroup]
+2026-10-16T15:53:49.8232527Z ##[group]GITHUB_TOKEN Permissions
+2026-10-16T15:53:49.8234676Z Contents: read
+2026-10-16T15:53:49.8235199Z Metadata: read
+2026-10-16T15:53:49.8235676Z ##[endgroup]
+2026-10-16T15:53:49.8237649Z Secret source: Actions
+2026-10-16T15:53:49.8238471Z Cache mode: write
+2026-10-16T15:53:49.8239424Z Prepare workflow directory
+2026-10-16T15:53:49.8566295Z Prepare all required actions
+2026-10-16T15:53:49.8615108Z Getting action download info
+2026-10-16T15:53:50.1261558Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-16T15:53:50.2217648Z Download action repository 'dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8' (SHA:29eef336d9b2848a0b548edc03f92a220660cdb8)
+2026-10-16T15:53:50.3493214Z Download action repository 'Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6' (SHA:6323deb102c322ba6fcbdcafc7e3dddab59af2b6)
+2026-10-16T15:53:50.5519565Z Download action repository 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9' (SHA:55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+2026-10-16T15:53:50.6631553Z Download action repository 'actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d' (SHA:45bfe0192ca1faeb007ade9deae92b16b8254a0d)
+2026-10-16T15:53:50.8190460Z Download action repository 'actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9' (SHA:fc324d3547104276b827a68afc52ff2a11cc49c9)
+2026-10-16T15:53:51.1251787Z Getting action download info
+2026-10-16T15:53:51.2149019Z Download action repository 'actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f' (SHA:bbbca2ddaa5d8feaa63e36b76fdaad77386f024f)
+2026-10-16T15:53:51.3290449Z Complete job name: build
+2026-10-16T15:53:51.4257717Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-10-16T15:53:51.4259475Z with:
+2026-10-16T15:53:51.4260314Z   persist-credentials: false
+2026-10-16T15:53:51.4261434Z   repository: Blackcat-Informatics/gmeow-ontology
+2026-10-16T15:53:51.4270234Z   token: ***
+2026-10-16T15:53:51.4271074Z   ssh-strict: true
+2026-10-16T15:53:51.4271914Z   ssh-user: git
+2026-10-16T15:53:51.4272726Z   clean: true
+2026-10-16T15:53:51.4273754Z   sparse-checkout-cone-mode: true
+2026-10-16T15:53:51.4274787Z   fetch-depth: 1
+2026-10-16T15:53:51.4275624Z   fetch-tags: false
+2026-10-16T15:53:51.4276492Z   show-progress: true
+2026-10-16T15:53:51.4277344Z   lfs: false
+2026-10-16T15:53:51.4278153Z   submodules: false
+2026-10-16T15:53:51.4279018Z   set-safe-directory: true
+2026-10-16T15:53:51.4279997Z   allow-unsafe-pr-checkout: false
+2026-10-16T15:53:51.4281290Z ##[endgroup]
+2026-10-16T15:53:51.5334186Z Syncing repository: Blackcat-Informatics/gmeow-ontology
+2026-10-16T15:53:51.5337253Z ##[group]Getting Git version info
+2026-10-16T15:53:51.5338711Z Working directory is '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T15:53:51.5341167Z [command]/usr/bin/git version
+2026-10-16T15:53:51.5406574Z git version 2.55.0
+2026-10-16T15:53:51.5428970Z ##[endgroup]
+2026-10-16T15:53:51.5440919Z Temporarily overriding HOME='/home/runner/work/_temp/c1ddccc2-98c4-4f37-badc-9b06d0ab606b' before making global git config changes
+2026-10-16T15:53:51.5445995Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-16T15:53:51.5450230Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-16T15:53:51.5501764Z Deleting the contents of '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T15:53:51.5505903Z ##[group]Determining repository object format
+2026-10-16T15:53:51.5509009Z ##[endgroup]
+2026-10-16T15:53:51.5511475Z ##[group]Initializing the repository
+2026-10-16T15:53:51.5514403Z [command]/usr/bin/git init /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-16T15:53:51.5629165Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-16T15:53:51.5631834Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-16T15:53:51.5635212Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-16T15:53:51.5638256Z hint: call:
+2026-10-16T15:53:51.5639973Z hint:
+2026-10-16T15:53:51.5642193Z hint: 	git config --global init.defaultBranch <name>
+2026-10-16T15:53:51.5644657Z hint:
+2026-10-16T15:53:51.5646677Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-16T15:53:51.5649799Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-16T15:53:51.5652373Z hint:
+2026-10-16T15:53:51.5653221Z hint: 	git branch -m <name>
+2026-10-16T15:53:51.5654442Z hint:
+2026-10-16T15:53:51.5655663Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-16T15:53:51.5657748Z Initialized empty Git repository in /home/runner/work/gmeow-ontology/gmeow-ontology/.git/
+2026-10-16T15:53:51.5662326Z [command]/usr/bin/git remote add origin https://github.com/Blackcat-Informatics/gmeow-ontology
+2026-10-16T15:53:51.5696749Z ##[endgroup]
+2026-10-16T15:53:51.5699449Z ##[group]Disabling automatic garbage collection
+2026-10-16T15:53:51.5701764Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-16T15:53:51.5734974Z ##[endgroup]
+2026-10-16T15:53:51.5737356Z ##[group]Setting up auth
+2026-10-16T15:53:51.5739167Z Removing SSH command configuration
+2026-10-16T15:53:51.5741914Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-16T15:53:51.5774652Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-16T15:53:51.6142730Z Removing HTTP extra header
+2026-10-16T15:53:51.6150621Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-16T15:53:51.6185614Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-16T15:53:51.6446399Z Removing includeIf entries pointing to credentials config files
+2026-10-16T15:53:51.6452354Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-16T15:53:51.6489873Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-16T15:53:51.6720304Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-16T15:53:51.6757546Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path /home/runner/work/_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:51.6788659Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:51.6821645Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:51.6854254Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:51.6880376Z ##[endgroup]
+2026-10-16T15:53:51.6882441Z ##[group]Fetching the repository
+2026-10-16T15:53:51.6887465Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +07f4c6c59db06962c6a17d104f320d36359be826:refs/remotes/origin/main
+2026-10-16T15:53:54.7711515Z From https://github.com/Blackcat-Informatics/gmeow-ontology
+2026-10-16T15:53:54.7714062Z  * [new ref]         07f4c6c59db06962c6a17d104f320d36359be826 -> origin/main
+2026-10-16T15:53:54.7721967Z [command]/usr/bin/git branch --list --remote origin/main
+2026-10-16T15:53:54.7751502Z   origin/main
+2026-10-16T15:53:54.7760374Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-10-16T15:53:54.7783833Z 07f4c6c59db06962c6a17d104f320d36359be826
+2026-10-16T15:53:54.7788235Z ##[endgroup]
+2026-10-16T15:53:54.7789109Z ##[group]Determining the checkout info
+2026-10-16T15:53:54.7794888Z ##[endgroup]
+2026-10-16T15:53:54.7795441Z [command]/usr/bin/git sparse-checkout disable
+2026-10-16T15:53:54.7844538Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-16T15:53:54.7872735Z ##[group]Checking out the ref
+2026-10-16T15:53:54.7876566Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-16T15:53:55.7955756Z Switched to a new branch 'main'
+2026-10-16T15:53:55.7959218Z branch 'main' set up to track 'origin/main'.
+2026-10-16T15:53:55.7993439Z ##[endgroup]
+2026-10-16T15:53:55.8052240Z [command]/usr/bin/git log -1 --format=%H
+2026-10-16T15:53:55.8079451Z 07f4c6c59db06962c6a17d104f320d36359be826
+2026-10-16T15:53:55.8126366Z ##[group]Removing auth
+2026-10-16T15:53:55.8126939Z Removing SSH command configuration
+2026-10-16T15:53:55.8127640Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-16T15:53:55.8129045Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-16T15:53:55.8364791Z Removing HTTP extra header
+2026-10-16T15:53:55.8368955Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-16T15:53:55.8403249Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-16T15:53:55.8647963Z Removing includeIf entries pointing to credentials config files
+2026-10-16T15:53:55.8651783Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-16T15:53:55.8681204Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+2026-10-16T15:53:55.8683126Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+2026-10-16T15:53:55.8684825Z includeif.gitdir:/github/workspace/.git.path
+2026-10-16T15:53:55.8685728Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-16T15:53:55.8693013Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+2026-10-16T15:53:55.8714537Z /home/runner/work/_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:55.8723971Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-e5151360\-0968\-4db8\-841c\-89ffd900f646\.config
+2026-10-16T15:53:55.8758379Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+2026-10-16T15:53:55.8780769Z /home/runner/work/_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:55.8789543Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-e5151360\-0968\-4db8\-841c\-89ffd900f646\.config
+2026-10-16T15:53:55.8823888Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-16T15:53:55.8847578Z /github/runner_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:55.8857945Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-e5151360\-0968\-4db8\-841c\-89ffd900f646\.config
+2026-10-16T15:53:55.8889841Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-16T15:53:55.8911212Z /github/runner_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config
+2026-10-16T15:53:55.8919255Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-e5151360\-0968\-4db8\-841c\-89ffd900f646\.config
+2026-10-16T15:53:55.8950273Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-16T15:53:55.9192194Z Removing credentials config '/home/runner/work/_temp/git-credentials-e5151360-0968-4db8-841c-89ffd900f646.config'
+2026-10-16T15:53:55.9194171Z ##[endgroup]
+2026-10-16T15:53:55.9646934Z ##[group]Run dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+2026-10-16T15:53:55.9647446Z with:
+2026-10-16T15:53:55.9647714Z   toolchain: nightly-2026-09-05
+2026-10-16T15:53:55.9648010Z ##[endgroup]
+2026-10-16T15:53:55.9745378Z ##[start-action display=Run : parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+2026-10-16T15:53:55.9801178Z ##[group]Run : parse toolchain version
+2026-10-16T15:53:55.9801612Z [36;1m: parse toolchain version[0m
+2026-10-16T15:53:55.9801933Z [36;1mif [[ -z $toolchain ]]; then[0m
+2026-10-16T15:53:55.9802556Z [36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070[0m
+2026-10-16T15:53:55.9803196Z [36;1m  echo "'toolchain' is a required input" >&2[0m
+2026-10-16T15:53:55.9803746Z [36;1m  exit 1[0m
+2026-10-16T15:53:55.9804138Z [36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then[0m
+2026-10-16T15:53:55.9804674Z [36;1m  if [[ Linux == macOS ]]; then[0m
+2026-10-16T15:53:55.9805276Z [36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:55.9805923Z [36;1m  else[0m
+2026-10-16T15:53:55.9806422Z [36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:55.9806989Z [36;1m  fi[0m
+2026-10-16T15:53:55.9807345Z [36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then[0m
+2026-10-16T15:53:55.9807999Z [36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:55.9808561Z [36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then[0m
+2026-10-16T15:53:55.9809198Z [36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:55.9809807Z [36;1melse[0m
+2026-10-16T15:53:55.9810106Z [36;1m  echo "toolchain=$toolchain" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:55.9810472Z [36;1mfi[0m
+2026-10-16T15:53:56.0105421Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:53:56.0106320Z env:
+2026-10-16T15:53:56.0106703Z   toolchain: nightly-2026-09-05
+2026-10-16T15:53:56.0107159Z ##[endgroup]
+2026-10-16T15:53:56.0274869Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=52]
+2026-10-16T15:53:56.0300030Z ##[start-action display=Run : construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+2026-10-16T15:53:56.0336379Z ##[group]Run : construct rustup command line
+2026-10-16T15:53:56.0336800Z [36;1m: construct rustup command line[0m
+2026-10-16T15:53:56.0337355Z [36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:56.0338132Z [36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:56.0338747Z [36;1mecho "downgrade=" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:53:56.0409691Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:53:56.0410264Z env:
+2026-10-16T15:53:56.0410564Z   targets: 
+2026-10-16T15:53:56.0410868Z   components: 
+2026-10-16T15:53:56.0411187Z ##[endgroup]
+2026-10-16T15:53:56.0523938Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=22]
+2026-10-16T15:53:56.0529261Z ##[start-action display=Run : set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+2026-10-16T15:53:56.0566465Z ##[group]Run : set $CARGO_HOME
+2026-10-16T15:53:56.0566791Z [36;1m: set $CARGO_HOME[0m
+2026-10-16T15:53:56.0567179Z [36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV[0m
+2026-10-16T15:53:56.0641233Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:53:56.0641810Z ##[endgroup]
+2026-10-16T15:53:56.0759587Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=22]
+2026-10-16T15:53:56.0763248Z ##[start-action display=Run : install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+2026-10-16T15:53:56.0808116Z ##[group]Run : install rustup if needed
+2026-10-16T15:53:56.0808484Z [36;1m: install rustup if needed[0m
+2026-10-16T15:53:56.0808830Z [36;1mif ! command -v rustup &>/dev/null; then[0m
+2026-10-16T15:53:56.0809692Z [36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y[0m
+2026-10-16T15:53:56.0810562Z [36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH[0m
+2026-10-16T15:53:56.0810889Z [36;1mfi[0m
+2026-10-16T15:53:56.0880234Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:53:56.0880731Z env:
+2026-10-16T15:53:56.0881017Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:53:56.0881380Z ##[endgroup]
+2026-10-16T15:53:56.0978140Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=21]
+2026-10-16T15:53:56.0983123Z ##[start-action display=Run : install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+2026-10-16T15:53:56.0991093Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-10-16T15:53:56.0995815Z ##[start-action display=rustup toolchain install nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_4]
+2026-10-16T15:53:56.1030972Z ##[group]Run rustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update
+2026-10-16T15:53:56.1031676Z [36;1mrustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update[0m
+2026-10-16T15:53:56.1096505Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:53:56.1096951Z env:
+2026-10-16T15:53:56.1097214Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:53:56.1097578Z   RUSTUP_PERMIT_COPY_RENAME: 1
+2026-10-16T15:53:56.1097890Z ##[endgroup]
+2026-10-16T15:53:56.1694325Z info: syncing channel updates for nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-16T15:53:56.3040898Z info: latest update on 2026-09-05 for version 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-16T15:53:56.3042228Z info: downloading 3 components
+2026-10-16T15:54:04.0409165Z 
+2026-10-16T15:54:04.0481108Z   nightly-2026-09-05-x86_64-unknown-linux-gnu installed - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-16T15:54:04.0481961Z 
+2026-10-16T15:54:04.0551094Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=7955]
+2026-10-16T15:54:04.0584341Z ##[start-action display=Run rustup default nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_5]
+2026-10-16T15:54:04.0612141Z ##[group]Run rustup default nightly-2026-09-05
+2026-10-16T15:54:04.0612586Z [36;1mrustup default nightly-2026-09-05[0m
+2026-10-16T15:54:04.0677986Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:54:04.0678532Z env:
+2026-10-16T15:54:04.0678846Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.0679242Z ##[endgroup]
+2026-10-16T15:54:04.0828446Z info: using existing install for nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-16T15:54:04.0836039Z info: default toolchain set to nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-16T15:54:04.0836462Z 
+2026-10-16T15:54:04.0908254Z   nightly-2026-09-05-x86_64-unknown-linux-gnu unchanged - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-16T15:54:04.0909364Z 
+2026-10-16T15:54:04.0910262Z info: note that the toolchain 'nightly-x86_64-unknown-linux-gnu' is currently in use (overridden by '/home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml')
+2026-10-16T15:54:04.0932556Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=34]
+2026-10-16T15:54:04.0939120Z ##[start-action display=Run : create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+2026-10-16T15:54:04.0969906Z ##[group]Run : create cachekey
+2026-10-16T15:54:04.0970289Z [36;1m: create cachekey[0m
+2026-10-16T15:54:04.0971238Z [36;1mDATE=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')[0m
+2026-10-16T15:54:04.0972243Z [36;1mHASH=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-hash: //p')[0m
+2026-10-16T15:54:04.0972980Z [36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT[0m
+2026-10-16T15:54:04.1038429Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:54:04.1038968Z env:
+2026-10-16T15:54:04.1039284Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.1039683Z ##[endgroup]
+2026-10-16T15:54:04.1397269Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=45]
+2026-10-16T15:54:04.1400564Z ##[start-action display=Run : disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+2026-10-16T15:54:04.1426471Z ##[group]Run : disable incremental compilation
+2026-10-16T15:54:04.1426906Z [36;1m: disable incremental compilation[0m
+2026-10-16T15:54:04.1427329Z [36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then[0m
+2026-10-16T15:54:04.1427729Z [36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV[0m
+2026-10-16T15:54:04.1428068Z [36;1mfi[0m
+2026-10-16T15:54:04.1491162Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:54:04.1491636Z env:
+2026-10-16T15:54:04.1491915Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.1492274Z ##[endgroup]
+2026-10-16T15:54:04.1579328Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=17]
+2026-10-16T15:54:04.1581995Z ##[start-action display=Run : enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+2026-10-16T15:54:04.1606101Z ##[group]Run : enable colors in Cargo output
+2026-10-16T15:54:04.1606470Z [36;1m: enable colors in Cargo output[0m
+2026-10-16T15:54:04.1606825Z [36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then[0m
+2026-10-16T15:54:04.1607200Z [36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV[0m
+2026-10-16T15:54:04.1607529Z [36;1mfi[0m
+2026-10-16T15:54:04.1661517Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:54:04.1661953Z env:
+2026-10-16T15:54:04.1662211Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.1662713Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:04.1662993Z ##[endgroup]
+2026-10-16T15:54:04.1745740Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=16]
+2026-10-16T15:54:04.1750096Z ##[start-action display=Run : enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+2026-10-16T15:54:04.1774410Z ##[group]Run : enable Cargo sparse registry
+2026-10-16T15:54:04.1774780Z [36;1m: enable Cargo sparse registry[0m
+2026-10-16T15:54:04.1775209Z [36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70[0m
+2026-10-16T15:54:04.1776037Z [36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then[0m
+2026-10-16T15:54:04.1776931Z [36;1m  if rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[89]\.'; then[0m
+2026-10-16T15:54:04.1777629Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-10-16T15:54:04.1778254Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV[0m
+2026-10-16T15:54:04.1778864Z [36;1m  elif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[67]\.'; then[0m
+2026-10-16T15:54:04.1779544Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-10-16T15:54:04.1780137Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV[0m
+2026-10-16T15:54:04.1780537Z [36;1m  fi[0m
+2026-10-16T15:54:04.1780748Z [36;1mfi[0m
+2026-10-16T15:54:04.1834932Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:54:04.1835502Z env:
+2026-10-16T15:54:04.1835851Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.1836216Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:04.1836479Z   CARGO_TERM_COLOR: always
+2026-10-16T15:54:04.1836923Z ##[endgroup]
+2026-10-16T15:54:04.2158637Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=40]
+2026-10-16T15:54:04.2164323Z ##[start-action display=Run : work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+2026-10-16T15:54:04.2209226Z ##[group]Run : work around spurious network errors in curl 8.0
+2026-10-16T15:54:04.2209957Z [36;1m: work around spurious network errors in curl 8.0[0m
+2026-10-16T15:54:04.2210784Z [36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation[0m
+2026-10-16T15:54:04.2211659Z [36;1mif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.7[01]\.'; then[0m
+2026-10-16T15:54:04.2212319Z [36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV[0m
+2026-10-16T15:54:04.2212728Z [36;1mfi[0m
+2026-10-16T15:54:04.2274806Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:54:04.2275280Z env:
+2026-10-16T15:54:04.2275562Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.2275922Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:04.2276229Z   CARGO_TERM_COLOR: always
+2026-10-16T15:54:04.2276545Z ##[endgroup]
+2026-10-16T15:54:04.2482492Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=31]
+2026-10-16T15:54:04.2487928Z ##[start-action display=Run rustc +nightly-2026-09-05 --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+2026-10-16T15:54:04.2512996Z ##[group]Run rustc +nightly-2026-09-05 --version --verbose
+2026-10-16T15:54:04.2513443Z [36;1mrustc +nightly-2026-09-05 --version --verbose[0m
+2026-10-16T15:54:04.2575435Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-16T15:54:04.2575913Z env:
+2026-10-16T15:54:04.2576204Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.2576578Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:04.2576893Z   CARGO_TERM_COLOR: always
+2026-10-16T15:54:04.2577210Z ##[endgroup]
+2026-10-16T15:54:04.2761308Z rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-16T15:54:04.2762236Z binary: rustc
+2026-10-16T15:54:04.2763035Z commit-hash: 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+2026-10-16T15:54:04.2764741Z commit-date: 2026-09-04
+2026-10-16T15:54:04.2765540Z host: x86_64-unknown-linux-gnu
+2026-10-16T15:54:04.2766388Z release: 1.100.0-nightly
+2026-10-16T15:54:04.2767162Z LLVM version: 23.1.1
+2026-10-16T15:54:04.2782546Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=29]
+2026-10-16T15:54:04.2915457Z ##[group]Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+2026-10-16T15:54:04.2915887Z with:
+2026-10-16T15:54:04.2916160Z   prefix-key: v0-rust
+2026-10-16T15:54:04.2916399Z   add-job-id-key: true
+2026-10-16T15:54:04.2916650Z   add-rust-environment-hash-key: true
+2026-10-16T15:54:04.2916938Z   cache-targets: true
+2026-10-16T15:54:04.2917166Z   cache-all-crates: false
+2026-10-16T15:54:04.2917420Z   cache-workspace-crates: false
+2026-10-16T15:54:04.2917677Z   save-if: true
+2026-10-16T15:54:04.2917890Z   cache-provider: github
+2026-10-16T15:54:04.2918124Z   cache-bin: true
+2026-10-16T15:54:04.2918332Z   lookup-only: false
+2026-10-16T15:54:04.2918567Z   cmd-format: {0}
+2026-10-16T15:54:04.2918767Z env:
+2026-10-16T15:54:04.2918972Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:04.2919233Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:04.2919460Z   CARGO_TERM_COLOR: always
+2026-10-16T15:54:04.2919697Z ##[endgroup]
+2026-10-16T15:54:15.9881455Z ##[group]Cache Configuration
+2026-10-16T15:54:15.9882296Z Cache Provider:
+2026-10-16T15:54:15.9882739Z     github
+2026-10-16T15:54:15.9883151Z Workspaces:
+2026-10-16T15:54:15.9883890Z     /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-16T15:54:15.9884551Z Cache Paths:
+2026-10-16T15:54:15.9884991Z     /home/runner/.cargo/bin
+2026-10-16T15:54:15.9885489Z     /home/runner/.cargo/.crates.toml
+2026-10-16T15:54:15.9886018Z     /home/runner/.cargo/.crates2.json
+2026-10-16T15:54:15.9886555Z     /home/runner/.cargo/registry
+2026-10-16T15:54:15.9887112Z     /home/runner/.cargo/git
+2026-10-16T15:54:15.9887734Z     /home/runner/work/gmeow-ontology/gmeow-ontology/target
+2026-10-16T15:54:15.9888290Z Restore Key:
+2026-10-16T15:54:15.9888761Z     v0-rust-build-Linux-x64-79b4dc05
+2026-10-16T15:54:15.9889297Z Cache Key:
+2026-10-16T15:54:15.9889791Z     v0-rust-build-Linux-x64-79b4dc05-b52d5a8e
+2026-10-16T15:54:15.9890452Z .. Prefix:
+2026-10-16T15:54:15.9890803Z   - v0-rust-build-Linux-x64
+2026-10-16T15:54:15.9891319Z .. Environment considered:
+2026-10-16T15:54:15.9891857Z   - Rust Versions:
+2026-10-16T15:54:15.9892561Z     - 1.100.0-nightly x86_64-unknown-linux-gnu 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+2026-10-16T15:54:15.9894051Z     - 1.101.0-nightly x86_64-unknown-linux-gnu 4ebd258257737d5b7635c116fa7d281627a7e937
+2026-10-16T15:54:15.9895006Z     - 1.99.0 x86_64-unknown-linux-gnu b940084d7eb6a299eb4bfeb8e34901bc051e7ac4
+2026-10-16T15:54:15.9895699Z   - CARGO_HOME
+2026-10-16T15:54:15.9896078Z   - CARGO_INCREMENTAL
+2026-10-16T15:54:15.9896490Z   - CARGO_TERM_COLOR
+2026-10-16T15:54:15.9896891Z .. Lockfiles considered:
+2026-10-16T15:54:15.9897496Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/.cargo/config.toml
+2026-10-16T15:54:15.9898284Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/Cargo.lock
+2026-10-16T15:54:15.9899184Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache/Cargo.toml
+2026-10-16T15:54:15.9900200Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect-ingest/Cargo.toml
+2026-10-16T15:54:15.9901214Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect/Cargo.toml
+2026-10-16T15:54:15.9902234Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bench-engines/Cargo.toml
+2026-10-16T15:54:15.9903229Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs/Cargo.toml
+2026-10-16T15:54:15.9904513Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import/Cargo.toml
+2026-10-16T15:54:15.9905472Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view/Cargo.toml
+2026-10-16T15:54:15.9906428Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cli-core/Cargo.toml
+2026-10-16T15:54:15.9907454Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/conformance/Cargo.toml
+2026-10-16T15:54:15.9909083Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cost-measure/Cargo.toml
+2026-10-16T15:54:15.9910127Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog/Cargo.toml
+2026-10-16T15:54:15.9911470Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model/Cargo.toml
+2026-10-16T15:54:15.9912503Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-print/Cargo.toml
+2026-10-16T15:54:15.9913451Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs/Cargo.toml
+2026-10-16T15:54:15.9914601Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors/Cargo.toml
+2026-10-16T15:54:15.9915605Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/foundation-corpus/Cargo.toml
+2026-10-16T15:54:15.9916612Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-cli/Cargo.toml
+2026-10-16T15:54:15.9917534Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli/Cargo.toml
+2026-10-16T15:54:15.9918517Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix/Cargo.toml
+2026-10-16T15:54:15.9919451Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-wasm/Cargo.toml
+2026-10-16T15:54:15.9920364Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile/Cargo.toml
+2026-10-16T15:54:15.9921300Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/helper-census/Cargo.toml
+2026-10-16T15:54:15.9922228Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge/Cargo.toml
+2026-10-16T15:54:15.9923133Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form/Cargo.toml
+2026-10-16T15:54:15.9924159Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/license/Cargo.toml
+2026-10-16T15:54:15.9924950Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile/Cargo.toml
+2026-10-16T15:54:15.9925784Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic/Cargo.toml
+2026-10-16T15:54:15.9926595Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lsp/Cargo.toml
+2026-10-16T15:54:15.9927401Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift/Cargo.toml
+2026-10-16T15:54:15.9928214Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math/Cargo.toml
+2026-10-16T15:54:15.9929011Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-core-wasm/Cargo.toml
+2026-10-16T15:54:15.9929833Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev/Cargo.toml
+2026-10-16T15:54:15.9930641Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-wasm/Cargo.toml
+2026-10-16T15:54:15.9931435Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp/Cargo.toml
+2026-10-16T15:54:15.9932203Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/music/Cargo.toml
+2026-10-16T15:54:15.9933047Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns/Cargo.toml
+2026-10-16T15:54:15.9934384Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/perf-evidence/Cargo.toml
+2026-10-16T15:54:15.9934973Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline/Cargo.toml
+2026-10-16T15:54:15.9935518Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/query-wasm/Cargo.toml
+2026-10-16T15:54:15.9936053Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/reason-wasm/Cargo.toml
+2026-10-16T15:54:15.9936568Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-brief/Cargo.toml
+2026-10-16T15:54:15.9937092Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality/Cargo.toml
+2026-10-16T15:54:15.9937614Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest/Cargo.toml
+2026-10-16T15:54:15.9938193Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena/Cargo.toml
+2026-10-16T15:54:15.9938740Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/test-batch-macros/Cargo.toml
+2026-10-16T15:54:15.9939285Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode/Cargo.toml
+2026-10-16T15:54:15.9940215Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate-wasm/Cargo.toml
+2026-10-16T15:54:15.9940744Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate/Cargo.toml
+2026-10-16T15:54:15.9941373Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/xtask/Cargo.toml
+2026-10-16T15:54:15.9941855Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml
+2026-10-16T15:54:15.9942479Z ##[endgroup]
+2026-10-16T15:54:15.9942603Z 
+2026-10-16T15:54:15.9942691Z ... Restoring cache ...
+2026-10-16T15:54:16.0490068Z No cache found.
+2026-10-16T15:54:16.0648689Z ##[group]Run echo "version=$(make --no-print-directory print-mdbook-ver)" >> "$GITHUB_OUTPUT"
+2026-10-16T15:54:16.0649628Z [36;1mecho "version=$(make --no-print-directory print-mdbook-ver)" >> "$GITHUB_OUTPUT"[0m
+2026-10-16T15:54:16.0715241Z shell: /usr/bin/bash -e {0}
+2026-10-16T15:54:16.0715678Z env:
+2026-10-16T15:54:16.0716030Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:16.0716527Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:16.0716934Z   CARGO_TERM_COLOR: always
+2026-10-16T15:54:16.0717352Z   CACHE_ON_FAILURE: false
+2026-10-16T15:54:16.0717758Z ##[endgroup]
+2026-10-16T15:54:16.1054441Z ##[group]Run actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+2026-10-16T15:54:16.1054868Z with:
+2026-10-16T15:54:16.1055111Z   path: .cache/gmeow-tools/mdbook/0.5.4
+2026-10-16T15:54:16.1055443Z   key: mdbook-v1-Linux-X64-0.5.4
+2026-10-16T15:54:16.1055747Z   enableCrossOsArchive: false
+2026-10-16T15:54:16.1056028Z   fail-on-cache-miss: false
+2026-10-16T15:54:16.1056287Z   lookup-only: false
+2026-10-16T15:54:16.1056520Z   save-always: false
+2026-10-16T15:54:16.1056744Z env:
+2026-10-16T15:54:16.1056961Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:16.1057255Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:16.1057508Z   CARGO_TERM_COLOR: always
+2026-10-16T15:54:16.1057772Z   CACHE_ON_FAILURE: false
+2026-10-16T15:54:16.1058023Z ##[endgroup]
+2026-10-16T15:54:16.2766586Z Cache not found for input keys: mdbook-v1-Linux-X64-0.5.4
+2026-10-16T15:54:16.2861771Z ##[group]Run make maint-mdbook-smoke
+2026-10-16T15:54:16.2862193Z [36;1mmake maint-mdbook-smoke[0m
+2026-10-16T15:54:16.2923965Z shell: /usr/bin/bash -e {0}
+2026-10-16T15:54:16.2924311Z env:
+2026-10-16T15:54:16.2924592Z   CARGO_HOME: /home/runner/.cargo
+2026-10-16T15:54:16.2924957Z   CARGO_INCREMENTAL: 0
+2026-10-16T15:54:16.2925269Z   CARGO_TERM_COLOR: always
+2026-10-16T15:54:16.2925593Z   CACHE_ON_FAILURE: false
+2026-10-16T15:54:16.2925921Z ##[endgroup]
+2026-10-16T15:54:16.3172875Z make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
+2026-10-16T15:54:16.3196733Z make[1]: Entering directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T15:54:16.3454905Z make[2]: Entering directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T15:54:16.3700551Z cargo xtask producer run -- sync --mode update --outputs generated  
+2026-10-16T15:56:32.5407883Z [1m[92m   Compiling[0m proc-macro2 v1.0.107
+2026-10-16T15:56:32.5408682Z [1m[92m   Compiling[0m quote v1.0.47
+2026-10-16T15:56:32.5409301Z [1m[92m   Compiling[0m unicode-ident v1.0.24
+2026-10-16T15:56:32.5409951Z [1m[92m   Compiling[0m serde_core v1.0.229
+2026-10-16T15:56:32.6021764Z [1m[92m   Compiling[0m cfg-if v1.0.4
+2026-10-16T15:56:32.6275150Z [1m[92m   Compiling[0m memchr v2.8.3
+2026-10-16T15:56:32.7745395Z [1m[92m   Compiling[0m serde v1.0.229
+2026-10-16T15:56:33.1425384Z [1m[92m   Compiling[0m typenum v1.20.1
+2026-10-16T15:56:33.4085239Z [1m[92m   Compiling[0m hashbrown v0.17.1
+2026-10-16T15:56:34.7107246Z [1m[92m   Compiling[0m syn v2.0.119
+2026-10-16T15:56:34.9005742Z [1m[92m   Compiling[0m syn v3.0.3
+2026-10-16T15:56:35.7405424Z [1m[92m   Compiling[0m libc v0.2.189
+2026-10-16T15:56:36.0124775Z [1m[92m   Compiling[0m regex-syntax v0.8.11
+2026-10-16T15:56:37.5175760Z [1m[92m   Compiling[0m aho-corasick v1.1.4
+2026-10-16T15:56:40.5625640Z [1m[92m   Compiling[0m regex-automata v0.4.16
+2026-10-16T15:56:40.8005628Z [1m[92m   Compiling[0m version_check v0.9.5
+2026-10-16T15:56:41.6785540Z [1m[92m   Compiling[0m hybrid-array v0.4.15
+2026-10-16T15:56:42.4046003Z [1m[92m   Compiling[0m crypto-common v0.2.2
+2026-10-16T15:56:43.4642206Z [1m[92m   Compiling[0m purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:56:49.7775764Z [1m[92m   Compiling[0m regex v1.13.1
+2026-10-16T15:56:50.5415259Z [1m[92m   Compiling[0m block-buffer v0.12.1
+2026-10-16T15:56:50.6574254Z [1m[92m   Compiling[0m cpufeatures v0.3.0
+2026-10-16T15:56:50.6885145Z [1m[92m   Compiling[0m zmij v1.0.23
+2026-10-16T15:56:50.9026157Z [1m[92m   Compiling[0m crossbeam-utils v0.8.22
+2026-10-16T15:56:50.9385519Z [1m[92m   Compiling[0m synstructure v0.13.2
+2026-10-16T15:56:51.1965203Z [1m[92m   Compiling[0m smallvec v1.15.2
+2026-10-16T15:56:51.3945447Z [1m[92m   Compiling[0m crossbeam-epoch v0.9.20
+2026-10-16T15:56:51.5765536Z [1m[92m   Compiling[0m serde_json v1.0.151
+2026-10-16T15:56:52.2397560Z [1m[92m   Compiling[0m purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:56:59.2212350Z [1m[92m   Compiling[0m crossbeam-deque v0.8.7
+2026-10-16T15:56:59.7186137Z [1m[92m   Compiling[0m rayon-core v1.13.0
+2026-10-16T15:56:59.7922877Z [1m[92m   Compiling[0m const-oid v0.10.2
+2026-10-16T15:56:59.9605383Z [1m[92m   Compiling[0m digest v0.11.3
+2026-10-16T15:57:00.2625030Z [1m[92m   Compiling[0m purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:03.4264246Z [1m[92m   Compiling[0m purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:05.6304970Z [1m[92m   Compiling[0m serde_derive v1.0.229
+2026-10-16T15:57:06.3006691Z [1m[92m   Compiling[0m purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:06.4095413Z [1m[92m   Compiling[0m itoa v1.0.18
+2026-10-16T15:57:07.2425436Z [1m[92m   Compiling[0m zerofrom-derive v0.1.7
+2026-10-16T15:57:07.4965094Z [1m[92m   Compiling[0m sha2 v0.11.0
+2026-10-16T15:57:08.4516056Z [1m[92m   Compiling[0m equivalent v1.0.2
+2026-10-16T15:57:08.4845039Z [1m[92m   Compiling[0m either v1.17.0
+2026-10-16T15:57:08.6604063Z [1m[92m   Compiling[0m stable_deref_trait v1.2.1
+2026-10-16T15:57:08.6901661Z [1m[92m   Compiling[0m rayon v1.12.0
+2026-10-16T15:57:11.7798285Z [1m[92m   Compiling[0m purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:15.6987004Z [1m[92m   Compiling[0m purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:16.7666981Z [1m[92m   Compiling[0m purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:24.0517537Z [1m[92m   Compiling[0m zerofrom v0.1.8
+2026-10-16T15:57:24.1345590Z [1m[92m   Compiling[0m arrayvec v0.7.8
+2026-10-16T15:57:24.3575527Z [1m[92m   Compiling[0m displaydoc v0.2.6
+2026-10-16T15:57:24.4825193Z [1m[92m   Compiling[0m shlex v2.0.1
+2026-10-16T15:57:24.7025443Z [1m[92m   Compiling[0m find-msvc-tools v0.1.9
+2026-10-16T15:57:25.0775052Z [1m[92m   Compiling[0m cc v1.4.0
+2026-10-16T15:57:27.3125402Z [1m[92m   Compiling[0m generic-array v0.14.7
+2026-10-16T15:57:27.3955240Z [1m[92m   Compiling[0m autocfg v1.5.1
+2026-10-16T15:57:28.5875811Z [1m[92m   Compiling[0m once_cell v1.21.4
+2026-10-16T15:57:28.7515138Z [1m[92m   Compiling[0m num-traits v0.2.19
+2026-10-16T15:57:30.8255712Z [1m[92m   Compiling[0m getrandom v0.3.4
+2026-10-16T15:57:31.3283898Z [1m[92m   Compiling[0m indexmap v2.14.0
+2026-10-16T15:57:31.3497989Z [1m[92m   Compiling[0m arrayref v0.3.9
+2026-10-16T15:57:31.3814896Z [1m[92m   Compiling[0m yoke-derive v0.8.2
+2026-10-16T15:57:32.3255294Z [1m[92m   Compiling[0m inout v0.2.2
+2026-10-16T15:57:32.4096217Z [1m[92m   Compiling[0m cmov v0.5.4
+2026-10-16T15:57:32.4305790Z [1m[92m   Compiling[0m zerocopy v0.8.55
+2026-10-16T15:57:32.5977940Z [1m[92m   Compiling[0m log v0.4.33
+2026-10-16T15:57:32.7575463Z [1m[92m   Compiling[0m ctutils v0.4.2
+2026-10-16T15:57:33.2742411Z [1m[92m   Compiling[0m purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:35.8225487Z [1m[92m   Compiling[0m zerocopy-derive v0.8.55
+2026-10-16T15:57:46.5165512Z [1m[92m   Compiling[0m yoke v0.8.3
+2026-10-16T15:57:46.6915845Z [1m[92m   Compiling[0m purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:51.2726233Z [1m[92m   Compiling[0m purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:54.8211261Z [1m[92m   Compiling[0m zerovec-derive v0.11.3
+2026-10-16T15:57:58.0255927Z [1m[92m   Compiling[0m purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:57:58.1651303Z [1m[92m   Compiling[0m cpubits v0.1.1
+2026-10-16T15:57:58.1951626Z [1m[92m   Compiling[0m fastrand v2.5.0
+2026-10-16T15:58:02.8145815Z [1m[92m   Compiling[0m zerovec v0.11.6
+2026-10-16T15:58:03.3684890Z [1m[92m   Compiling[0m universal-hash v0.6.1
+2026-10-16T15:58:03.4295064Z [1m[92m   Compiling[0m cipher v0.5.2
+2026-10-16T15:58:03.6815916Z [1m[92m   Compiling[0m bitflags v2.13.1
+2026-10-16T15:58:04.1785515Z [1m[92m   Compiling[0m polyval v0.7.3
+2026-10-16T15:58:04.3215181Z [1m[92m   Compiling[0m crc32fast v1.5.0
+2026-10-16T15:58:04.5505741Z [1m[92m   Compiling[0m twox-hash v2.1.3
+2026-10-16T15:58:04.6245319Z [1m[92m   Compiling[0m simd-adler32 v0.3.10
+2026-10-16T15:58:04.7935639Z [1m[92m   Compiling[0m structured-zstd v0.0.49
+2026-10-16T15:58:05.1175284Z [1m[92m   Compiling[0m ghash v0.6.0
+2026-10-16T15:58:05.1715032Z [1m[92m   Compiling[0m aes v0.9.3
+2026-10-16T15:58:05.6764149Z [1m[92m   Compiling[0m ctr v0.10.1
+2026-10-16T15:58:05.8075071Z [1m[92m   Compiling[0m aead v0.6.1
+2026-10-16T15:58:05.8883185Z [1m[92m   Compiling[0m adler2 v2.0.1
+2026-10-16T15:58:06.2886232Z [1m[92m   Compiling[0m purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:58:26.2315127Z [1m[92m   Compiling[0m miniz_oxide v0.8.9
+2026-10-16T15:58:27.2165417Z [1m[92m   Compiling[0m aes-gcm v0.11.1
+2026-10-16T15:58:27.4037352Z [1m[92m   Compiling[0m tinystr v0.8.3
+2026-10-16T15:58:27.5416489Z [1m[92m   Compiling[0m purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:58:28.2954900Z [1m[92m   Compiling[0m visual-hashing v1.0.0
+2026-10-16T15:58:28.5225609Z [1m[92m   Compiling[0m purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:58:40.1447096Z [1m[92m   Compiling[0m flate2 v1.1.9
+2026-10-16T15:58:42.5779030Z [1m[92m   Compiling[0m base64 v0.22.1
+2026-10-16T15:58:43.4726207Z [1m[92m   Compiling[0m purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:58:59.4371449Z [1m[92m   Compiling[0m purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:59:09.0185460Z [1m[92m   Compiling[0m writeable v0.6.3
+2026-10-16T15:59:09.1585336Z [1m[92m   Compiling[0m litemap v0.8.2
+2026-10-16T15:59:09.3205095Z [1m[92m   Compiling[0m bit-vec v0.8.0
+2026-10-16T15:59:09.5285589Z [1m[92m   Compiling[0m tinyvec_macros v0.1.1
+2026-10-16T15:59:09.5545054Z [1m[92m   Compiling[0m utf8_iter v1.0.4
+2026-10-16T15:59:09.6365736Z [1m[92m   Compiling[0m tinyvec v1.12.0
+2026-10-16T15:59:10.1225541Z [1m[92m   Compiling[0m bit-set v0.8.0
+2026-10-16T15:59:10.2355290Z [1m[92m   Compiling[0m icu_locale_core v2.2.0
+2026-10-16T15:59:12.1811547Z [1m[92m   Compiling[0m purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:59:20.8885966Z [1m[92m   Compiling[0m potential_utf v0.1.5
+2026-10-16T15:59:20.9675312Z [1m[92m   Compiling[0m zerotrie v0.2.4
+2026-10-16T15:59:21.2782073Z [1m[92m   Compiling[0m icu_properties_data v2.2.0
+2026-10-16T15:59:21.3716520Z [1m[92m   Compiling[0m parking_lot_core v0.9.12
+2026-10-16T15:59:21.5592554Z [1m[92m   Compiling[0m winnow v1.0.4
+2026-10-16T15:59:22.8553306Z [1m[92m   Compiling[0m icu_normalizer_data v2.2.0
+2026-10-16T15:59:23.9419070Z [1m[92m   Compiling[0m toml_parser v1.1.2+spec-1.1.0
+2026-10-16T15:59:25.3846686Z [1m[92m   Compiling[0m icu_provider v2.2.0
+2026-10-16T15:59:25.8050233Z [1m[92m   Compiling[0m icu_collections v2.2.0
+2026-10-16T15:59:26.3846089Z [1m[92m   Compiling[0m purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T15:59:56.9276288Z [1m[92m   Compiling[0m purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:00:24.8108229Z [1m[92m   Compiling[0m crypto-common v0.1.7
+2026-10-16T16:00:24.8825217Z [1m[92m   Compiling[0m block-buffer v0.10.4
+2026-10-16T16:00:24.9645819Z [1m[92m   Compiling[0m serde_spanned v0.6.9
+2026-10-16T16:00:25.0365738Z [1m[92m   Compiling[0m toml_datetime v0.6.11
+2026-10-16T16:00:25.3566709Z [1m[92m   Compiling[0m purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:00:38.9325449Z [1m[92m   Compiling[0m half v2.7.1
+2026-10-16T16:00:39.2165293Z [1m[92m   Compiling[0m toml_datetime v1.1.1+spec-1.1.0
+2026-10-16T16:00:39.5695538Z [1m[92m   Compiling[0m serde_spanned v1.1.1
+2026-10-16T16:00:39.6465539Z [1m[92m   Compiling[0m num-integer v0.1.46
+2026-10-16T16:00:40.0625732Z [1m[92m   Compiling[0m scopeguard v1.2.0
+2026-10-16T16:00:40.1036093Z [1m[92m   Compiling[0m ciborium-io v0.2.2
+2026-10-16T16:00:40.1344488Z [1m[92m   Compiling[0m toml_write v0.1.2
+2026-10-16T16:00:40.3155246Z [1m[92m   Compiling[0m winnow v0.7.15
+2026-10-16T16:00:42.9955387Z [1m[92m   Compiling[0m toml_edit v0.22.27
+2026-10-16T16:00:48.8295521Z [1m[92m   Compiling[0m ciborium-ll v0.2.2
+2026-10-16T16:00:48.9926133Z [1m[92m   Compiling[0m lock_api v0.4.14
+2026-10-16T16:00:49.2265573Z [1m[92m   Compiling[0m toml v1.1.3+spec-1.1.0
+2026-10-16T16:00:52.8889969Z [1m[92m   Compiling[0m purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:00:54.2015411Z [1m[92m   Compiling[0m digest v0.10.7
+2026-10-16T16:00:54.3744867Z [1m[92m   Compiling[0m purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:05.3636032Z [1m[92m   Compiling[0m purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:06.7946718Z [1m[92m   Compiling[0m purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:06.8314232Z [1m[92m   Compiling[0m purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:09.4846052Z [1m[92m   Compiling[0m purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:10.3646719Z [1m[92m   Compiling[0m purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:13.0033993Z [1m[92m   Compiling[0m purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:14.5274544Z [1m[92m   Compiling[0m purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:15.5920612Z [1m[92m   Compiling[0m blake3 v1.8.5
+2026-10-16T16:01:17.1255388Z [1m[92m   Compiling[0m allocator-api2 v0.2.21
+2026-10-16T16:01:17.3135072Z [1m[92m   Compiling[0m percent-encoding v2.3.2
+2026-10-16T16:01:17.5175103Z [1m[92m   Compiling[0m cpufeatures v0.2.17
+2026-10-16T16:01:17.8336060Z [1m[92m   Compiling[0m sha2 v0.10.9
+2026-10-16T16:01:19.4211646Z [1m[92m   Compiling[0m purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+2026-10-16T16:01:21.4065785Z [1m[92m   Compiling[0m icu_normalizer v2.2.0
+2026-10-16T16:01:21.6921939Z [1m[92m   Compiling[0m parking_lot v0.12.5
+2026-10-16T16:01:22.2080845Z [1m[92m   Compiling[0m icu_properties v2.2.0
+2026-10-16T16:01:22.2455152Z [1m[92m   Compiling[0m cargo-config2 v0.1.45
+2026-10-16T16:01:23.7075162Z [1m[92m   Compiling[0m ciborium v0.2.2
+2026-10-16T16:01:24.3825706Z [1m[92m   Compiling[0m toml v0.8.23
+2026-10-16T16:01:27.3325362Z [1m[92m   Compiling[0m num-bigint v0.4.8
+2026-10-16T16:01:27.8261786Z [1m[92m   Compiling[0m bytemuck_derive v1.11.0
+2026-10-16T16:01:30.0496144Z [1m[92m   Compiling[0m constant_time_eq v0.4.2
+2026-10-16T16:01:30.1525406Z [1m[92m   Compiling[0m unicode-script v0.5.8
+2026-10-16T16:01:30.5057744Z [1m[92m   Compiling[0m libm v0.2.16
+2026-10-16T16:01:30.8565877Z [1m[92m   Compiling[0m glob v0.3.4
+2026-10-16T16:01:31.7775842Z [1m[92m   Compiling[0m gmeow-build-inputs v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs)
+2026-10-16T16:01:34.9506281Z [1m[92m   Compiling[0m idna_adapter v1.2.2
+2026-10-16T16:01:36.9975306Z [1m[92m   Compiling[0m idna v1.1.0
+2026-10-16T16:01:38.2976171Z [1m[92m   Compiling[0m gmeow-errors v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors)
+2026-10-16T16:01:39.4088862Z [1m[92m   Compiling[0m bytemuck v1.25.2
+2026-10-16T16:01:41.0536652Z [1m[92m   Compiling[0m unicode-normalization v0.1.25
+2026-10-16T16:01:41.5435775Z [1m[92m   Compiling[0m yoke-derive v0.7.5
+2026-10-16T16:01:42.0795367Z [1m[92m   Compiling[0m thiserror v2.0.19
+2026-10-16T16:01:42.5425495Z [1m[92m   Compiling[0m foldhash v0.1.5
+2026-10-16T16:01:43.2755422Z [1m[92m   Compiling[0m hashbrown v0.15.5
+2026-10-16T16:01:44.1645233Z [1m[92m   Compiling[0m zerovec-derive v0.10.3
+2026-10-16T16:01:46.8952275Z [1m[92m   Compiling[0m thiserror-impl v2.0.19
+2026-10-16T16:01:52.0435994Z [1m[92m   Compiling[0m gmeow-term-arena v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena)
+2026-10-16T16:01:52.7744320Z [1m[92m   Compiling[0m heck v0.5.0
+2026-10-16T16:01:53.6985131Z [1m[92m   Compiling[0m lazy_static v1.5.0
+2026-10-16T16:01:53.7355149Z [1m[92m   Compiling[0m siphasher v1.0.3
+2026-10-16T16:01:53.9055617Z [1m[92m   Compiling[0m tracing-core v0.1.36
+2026-10-16T16:01:54.6375151Z [1m[92m   Compiling[0m litemap v0.7.5
+2026-10-16T16:01:54.9049573Z [1m[92m   Compiling[0m core_maths v0.1.1
+2026-10-16T16:01:54.9586120Z [1m[92m   Compiling[0m gmeow-ns v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns)
+2026-10-16T16:01:55.4429989Z [1m[92m   Compiling[0m ring v0.17.14
+2026-10-16T16:01:55.7154564Z [1m[92m   Compiling[0m yoke v0.7.5
+2026-10-16T16:01:55.8915336Z [1m[92m   Compiling[0m zerovec v0.10.4
+2026-10-16T16:01:56.9505880Z [1m[92m   Compiling[0m tracing-attributes v0.1.31
+2026-10-16T16:01:57.6735761Z [1m[92m   Compiling[0m tinystr v0.7.6
+2026-10-16T16:01:58.6465498Z [1m[92m   Compiling[0m writeable v0.5.5
+2026-10-16T16:01:58.9266259Z [1m[92m   Compiling[0m pin-project-lite v0.2.17
+2026-10-16T16:01:58.9665452Z [1m[92m   Compiling[0m icu_locid v1.5.0
+2026-10-16T16:02:02.6276401Z [1m[92m   Compiling[0m cobs v0.3.0
+2026-10-16T16:02:02.7396540Z [1m[92m   Compiling[0m postcard v1.1.3
+2026-10-16T16:02:03.1088198Z [1m[92m   Compiling[0m gmeow-logic-compile v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile)
+2026-10-16T16:02:11.4196169Z [1m[92m   Compiling[0m gmeow-gts-profile v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile)
+2026-10-16T16:02:13.8978181Z [1m[92m   Compiling[0m tracing v0.1.44
+2026-10-16T16:02:14.1242812Z [1m[92m   Compiling[0m fdeflate v0.3.7
+2026-10-16T16:02:14.6965408Z [1m[92m   Compiling[0m icu_provider_macros v1.5.0
+2026-10-16T16:02:15.1365208Z [1m[92m   Compiling[0m slotmap v1.1.1
+2026-10-16T16:02:15.5675921Z [1m[92m   Compiling[0m ref-cast v1.0.26
+2026-10-16T16:02:15.9155757Z [1m[92m   Compiling[0m getrandom v0.4.3
+2026-10-16T16:02:16.0906237Z [1m[92m   Compiling[0m rustversion v1.0.23
+2026-10-16T16:02:16.6095322Z [1m[92m   Compiling[0m rustix v1.1.4
+2026-10-16T16:02:17.0995526Z [1m[92m   Compiling[0m zeroize v1.9.0
+2026-10-16T16:02:17.2105266Z [1m[92m   Compiling[0m float-cmp v0.9.0
+2026-10-16T16:02:17.2655203Z [1m[92m   Compiling[0m strict-num v0.1.1
+2026-10-16T16:02:17.3585498Z [1m[92m   Compiling[0m rustls-pki-types v1.15.1
+2026-10-16T16:02:19.4365371Z [1m[92m   Compiling[0m icu_provider v1.5.0
+2026-10-16T16:02:20.2225640Z [1m[92m   Compiling[0m ttf-parser v0.24.1
+2026-10-16T16:02:20.4676333Z [1m[92m   Compiling[0m gmeow-math-lift v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift)
+2026-10-16T16:02:24.0156214Z [1m[92m   Compiling[0m gmeow-lang-form v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form)
+2026-10-16T16:02:24.6916273Z [1m[92m   Compiling[0m gmeow-logic v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic)
+2026-10-16T16:02:24.8665778Z [1m[92m   Compiling[0m ref-cast-impl v1.0.26
+2026-10-16T16:02:28.6485188Z [1m[92m   Compiling[0m ahash v0.8.12
+2026-10-16T16:02:28.7665183Z [1m[92m   Compiling[0m getrandom v0.2.17
+2026-10-16T16:02:28.7835900Z [1m[92m   Compiling[0m time-core v0.1.9
+2026-10-16T16:02:28.8895256Z [1m[92m   Compiling[0m weezl v0.1.12
+2026-10-16T16:02:28.9435578Z [1m[92m   Compiling[0m num-conv v0.2.2
+2026-10-16T16:02:29.0553100Z [1m[92m   Compiling[0m fixedbitset v0.5.7
+2026-10-16T16:02:29.3850040Z [1m[92m   Compiling[0m linux-raw-sys v0.12.1
+2026-10-16T16:02:29.5275198Z [1m[92m   Compiling[0m color_quant v1.1.0
+2026-10-16T16:02:29.6874956Z [1m[92m   Compiling[0m untrusted v0.9.0
+2026-10-16T16:02:29.7245326Z [1m[92m   Compiling[0m httparse v1.10.1
+2026-10-16T16:02:29.7445638Z [1m[92m   Compiling[0m icu_locid_transform_data v1.5.1
+2026-10-16T16:02:29.8298287Z [1m[92m   Compiling[0m ryu v1.0.23
+2026-10-16T16:02:29.9941380Z [1m[92m   Compiling[0m roxmltree v0.20.0
+2026-10-16T16:02:31.4138672Z [1m[92m   Compiling[0m fontconfig-parser v0.5.8
+2026-10-16T16:02:33.4215467Z [1m[92m   Compiling[0m petgraph v0.8.3
+2026-10-16T16:02:35.3635740Z [1m[92m   Compiling[0m time-macros v0.2.32
+2026-10-16T16:02:38.3956384Z [1m[92m   Compiling[0m gmeow-math v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/math)
+2026-10-16T16:02:54.6828251Z [1m[92m   Compiling[0m tiny-skia-path v0.11.4
+2026-10-16T16:02:55.0496026Z [1m[92m   Compiling[0m num-rational v0.4.2
+2026-10-16T16:02:55.5905313Z [1m[92m   Compiling[0m num-iter v0.1.46
+2026-10-16T16:02:55.6505510Z [1m[92m   Compiling[0m num-complex v0.4.6
+2026-10-16T16:02:56.1085596Z [1m[92m   Compiling[0m chrono v0.4.45
+2026-10-16T16:02:56.1645712Z [1m[92m   Compiling[0m kurbo v0.11.3
+2026-10-16T16:02:57.9405857Z [1m[92m   Compiling[0m memmap2 v0.9.11
+2026-10-16T16:02:58.1116507Z [1m[92m   Compiling[0m unicode-bidi-mirroring v0.3.0
+2026-10-16T16:02:58.1645827Z [1m[92m   Compiling[0m unicode-ccc v0.3.0
+2026-10-16T16:02:58.2415753Z [1m[92m   Compiling[0m powerfmt v0.2.0
+2026-10-16T16:02:58.3955707Z [1m[92m   Compiling[0m bytes v1.12.1
+2026-10-16T16:02:59.0015491Z [1m[92m   Compiling[0m deranged v0.5.8
+2026-10-16T16:02:59.1276111Z [1m[92m   Compiling[0m portable-atomic v1.14.0
+2026-10-16T16:03:00.1747266Z [1m[92m   Compiling[0m paste v1.0.15
+2026-10-16T16:03:00.3789778Z [1m[92m   Compiling[0m bitflags v1.3.2
+2026-10-16T16:03:00.4094654Z [1m[92m   Compiling[0m byteorder-lite v0.1.0
+2026-10-16T16:03:00.4365492Z [1m[92m   Compiling[0m unicode-general-category v1.1.0
+2026-10-16T16:03:00.6475682Z [1m[92m   Compiling[0m rustls v0.23.42
+2026-10-16T16:03:00.7176858Z [1m[92m   Compiling[0m rustc-hash v2.1.3
+2026-10-16T16:03:00.7755747Z [1m[92m   Compiling[0m rand_core v0.6.4
+2026-10-16T16:03:00.8915420Z [1m[92m   Compiling[0m unicode-properties v0.1.4
+2026-10-16T16:03:01.0085711Z [1m[92m   Compiling[0m borrow-or-share v0.2.4
+2026-10-16T16:03:01.0144813Z [1m[92m   Compiling[0m foldhash v0.2.0
+2026-10-16T16:03:01.0525369Z [1m[92m   Compiling[0m fluent-uri v0.4.1
+2026-10-16T16:03:01.1265213Z [1m[92m   Compiling[0m hashbrown v0.16.1
+2026-10-16T16:03:02.0215845Z [1m[92m   Compiling[0m rustybuzz v0.18.0
+2026-10-16T16:03:02.1625375Z [1m[92m   Compiling[0m phf_shared v0.11.3
+2026-10-16T16:03:02.3205063Z [1m[92m   Compiling[0m rand v0.8.7
+2026-10-16T16:03:03.1335023Z [1m[92m   Compiling[0m time v0.3.54
+2026-10-16T16:03:06.1077274Z [1m[92m   Compiling[0m png v0.17.16
+2026-10-16T16:03:07.4933343Z [1m[92m   Compiling[0m http v1.4.2
+2026-10-16T16:03:08.9116994Z [1m[92m   Compiling[0m fontdb v0.21.0
+2026-10-16T16:03:09.9758376Z [1m[92m   Compiling[0m svgtypes v0.15.3
+2026-10-16T16:03:17.2135788Z [1m[92m   Compiling[0m num v0.4.3
+2026-10-16T16:03:17.2435794Z [1m[92m   Compiling[0m strum_macros v0.26.4
+2026-10-16T16:03:19.1035029Z [1m[92m   Compiling[0m tempfile v3.27.0
+2026-10-16T16:03:19.5035082Z [1m[92m   Compiling[0m rustls-webpki v0.103.13
+2026-10-16T16:03:19.9426229Z [1m[92m   Compiling[0m simplecss v0.2.2
+2026-10-16T16:03:20.6925173Z [1m[92m   Compiling[0m quick-xml v0.41.0
+2026-10-16T16:03:21.3584136Z [1m[92m   Compiling[0m data-url v0.3.2
+2026-10-16T16:03:21.8885219Z [1m[92m   Compiling[0m unicode-vo v0.1.0
+2026-10-16T16:03:21.9521970Z [1m[92m   Compiling[0m xmlwriter v0.1.0
+2026-10-16T16:03:22.1557412Z [1m[92m   Compiling[0m anyhow v1.0.104
+2026-10-16T16:03:22.2907740Z [1m[92m   Compiling[0m same-file v1.0.6
+2026-10-16T16:03:22.3615974Z [1m[92m   Compiling[0m vsimd v0.8.0
+2026-10-16T16:03:22.4905268Z [1m[92m   Compiling[0m unscanny v0.1.0
+2026-10-16T16:03:22.5805876Z [1m[92m   Compiling[0m icu_properties_data v1.5.1
+2026-10-16T16:03:22.7804159Z [1m[92m   Compiling[0m pxfm v0.1.30
+2026-10-16T16:03:22.7978676Z [1m[92m   Compiling[0m outref v0.5.2
+2026-10-16T16:03:22.8399024Z [1m[92m   Compiling[0m subtle v2.6.1
+2026-10-16T16:03:22.9355774Z [1m[92m   Compiling[0m pico-args v0.5.0
+2026-10-16T16:03:23.1196188Z [1m[92m   Compiling[0m unicode-bidi v0.3.18
+2026-10-16T16:03:23.9843923Z [1m[92m   Compiling[0m thiserror v1.0.69
+2026-10-16T16:03:24.2512019Z [1m[92m   Compiling[0m wasmparser v0.221.3
+2026-10-16T16:03:24.4625061Z [1m[92m   Compiling[0m zune-core v0.5.1
+2026-10-16T16:03:24.6688030Z [1m[92m   Compiling[0m imagesize v0.13.0
+2026-10-16T16:03:25.1735226Z [1m[92m   Compiling[0m linked-hash-map v0.5.6
+2026-10-16T16:03:25.3271621Z [1m[92m   Compiling[0m micromap v0.3.0
+2026-10-16T16:03:25.6835671Z [1m[92m   Compiling[0m downcast-rs v1.2.1
+2026-10-16T16:03:25.7195214Z [1m[92m   Compiling[0m wasmi_core v0.40.0
+2026-10-16T16:03:26.3363973Z [1m[92m   Compiling[0m referencing v0.46.10
+2026-10-16T16:03:27.3885732Z [1m[92m   Compiling[0m moxcms v0.8.1
+2026-10-16T16:03:30.1425703Z [1m[92m   Compiling[0m yaml-rust v0.4.5
+2026-10-16T16:03:31.8997245Z [1m[92m   Compiling[0m usvg v0.43.0
+2026-10-16T16:03:32.4925091Z [1m[92m   Compiling[0m strum v0.26.3
+2026-10-16T16:03:32.5335105Z [1m[92m   Compiling[0m zune-jpeg v0.5.15
+2026-10-16T16:03:38.5055256Z [1m[92m   Compiling[0m uuid-simd v0.8.0
+2026-10-16T16:03:38.7248628Z [1m[92m   Compiling[0m walkdir v2.5.0
+2026-10-16T16:03:39.0655696Z [1m[92m   Compiling[0m plist v1.10.0
+2026-10-16T16:03:39.4945385Z [1m[92m   Compiling[0m ureq-proto v0.6.0
+2026-10-16T16:03:40.3735130Z [1m[92m   Compiling[0m icu_locid_transform v1.5.0
+2026-10-16T16:03:40.8635866Z [1m[92m   Compiling[0m gmeow-action-cache v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache)
+2026-10-16T16:03:42.0887290Z [1m[92m   Compiling[0m fraction v0.15.4
+2026-10-16T16:03:44.8025596Z [1m[92m   Compiling[0m phf_generator v0.11.3
+2026-10-16T16:03:45.0645609Z [1m[92m   Compiling[0m gif v0.14.2
+2026-10-16T16:03:45.1381292Z [1m[92m   Compiling[0m webpki-roots v1.0.9
+2026-10-16T16:03:45.2085668Z [1m[92m   Compiling[0m png v0.18.1
+2026-10-16T16:03:46.2335655Z [1m[92m   Compiling[0m icu_collections v1.5.0
+2026-10-16T16:03:47.1095413Z [1m[92m   Compiling[0m form_urlencoded v1.2.2
+2026-10-16T16:03:47.2405498Z [1m[92m   Compiling[0m fancy-regex v0.18.0
+2026-10-16T16:03:47.2866983Z [1m[92m   Compiling[0m fancy-regex v0.16.2
+2026-10-16T16:03:49.2795109Z [1m[92m   Compiling[0m unic-langid-impl v0.9.6
+2026-10-16T16:03:49.9705920Z [1m[92m   Compiling[0m ppv-lite86 v0.2.21
+2026-10-16T16:03:50.1565096Z [1m[92m   Compiling[0m bincode v1.3.3
+2026-10-16T16:03:50.3467360Z [1m[92m   Compiling[0m email_address v0.2.9
+2026-10-16T16:03:50.5996286Z [1m[92m   Compiling[0m quick-xml v0.36.2
+2026-10-16T16:03:50.6815309Z [1m[92m   Compiling[0m enum-ordinalize-derive v4.4.1
+2026-10-16T16:03:52.9486216Z [1m[92m   Compiling[0m thiserror-impl v1.0.69
+2026-10-16T16:03:54.3615361Z [1m[92m   Compiling[0m jsonschema-regex v0.46.10
+2026-10-16T16:03:54.5940039Z [1m[92m   Compiling[0m utf8-zero v0.8.1
+2026-10-16T16:03:54.6894150Z [1m[92m   Compiling[0m unsafe-libyaml v0.2.11
+2026-10-16T16:03:56.2085806Z [1m[92m   Compiling[0m unicode-segmentation v1.13.3
+2026-10-16T16:03:56.5275536Z [1m[92m   Compiling[0m rust_decimal v1.42.1
+2026-10-16T16:03:56.7005288Z [1m[92m   Compiling[0m num-cmp v0.1.0
+2026-10-16T16:03:56.9325046Z [1m[92m   Compiling[0m bytecount v0.6.9
+2026-10-16T16:03:57.0115119Z [1m[92m   Compiling[0m fnv v1.0.7
+2026-10-16T16:03:57.0470436Z [1m[92m   Compiling[0m codex v0.1.1
+2026-10-16T16:03:57.0514187Z [1m[92m   Compiling[0m palette v0.7.6
+2026-10-16T16:03:57.1696670Z [1m[92m   Compiling[0m by_address v1.2.1
+2026-10-16T16:03:57.2247260Z [1m[92m   Compiling[0m data-encoding v2.11.0
+2026-10-16T16:03:57.8735142Z [1m[92m   Compiling[0m thin-vec v0.2.18
+2026-10-16T16:03:58.1565297Z [1m[92m   Compiling[0m unicode-math-class v0.1.0
+2026-10-16T16:03:58.2455588Z [1m[92m   Compiling[0m numerals v0.1.4
+2026-10-16T16:03:58.3582969Z [1m[92m   Compiling[0m biblatex v0.10.0
+2026-10-16T16:03:58.9225541Z [1m[92m   Compiling[0m typst-utils v0.13.1
+2026-10-16T16:03:59.3395156Z [1m[92m   Compiling[0m jsonschema v0.46.10
+2026-10-16T16:04:01.9865847Z [1m[92m   Compiling[0m palette_derive v0.7.6
+2026-10-16T16:04:03.8855261Z [1m[92m   Compiling[0m syntect v5.3.0
+2026-10-16T16:04:10.8636689Z [1m[92m   Compiling[0m enum-ordinalize v4.4.1
+2026-10-16T16:04:10.8914987Z [1m[92m   Compiling[0m serde_yaml v0.9.34+deprecated
+2026-10-16T16:04:13.4317807Z [1m[92m   Compiling[0m ureq v3.3.0
+2026-10-16T16:04:13.5495195Z [1m[92m   Compiling[0m citationberg v0.5.0
+2026-10-16T16:04:16.6056618Z [1m[92m   Compiling[0m rand_chacha v0.3.1
+2026-10-16T16:04:16.9025372Z [1m[92m   Compiling[0m unic-langid v0.9.6
+2026-10-16T16:04:16.9356127Z [1m[92m   Compiling[0m url v2.5.8
+2026-10-16T16:04:17.6181932Z [1m[92m   Compiling[0m image v0.25.10
+2026-10-16T16:04:18.5255645Z [1m[92m   Compiling[0m phf_macros v0.11.3
+2026-10-16T16:04:31.9115283Z [1m[92m   Compiling[0m wasmi_ir v0.40.0
+2026-10-16T16:04:33.3325545Z [1m[92m   Compiling[0m zerotrie v0.1.3
+2026-10-16T16:04:34.7946149Z [1m[92m   Compiling[0m typst-timing v0.13.1
+2026-10-16T16:04:34.9150344Z [1m[92m   Compiling[0m fancy-regex v0.17.0
+2026-10-16T16:04:35.5376712Z [1m[92m   Compiling[0m approx v0.5.1
+2026-10-16T16:04:35.6285250Z [1m[92m   Compiling[0m ecow v0.2.6
+2026-10-16T16:04:35.9385996Z [1m[92m   Compiling[0m comemo-macros v0.4.0
+2026-10-16T16:04:37.1165278Z [1m[92m   Compiling[0m bstr v1.13.0
+2026-10-16T16:04:38.0995123Z [1m[92m   Compiling[0m csv-core v0.1.13
+2026-10-16T16:04:38.3385951Z [1m[92m   Compiling[0m wasmi_collections v0.40.0
+2026-10-16T16:04:38.7521266Z [1m[92m   Compiling[0m chinese-variant v1.1.6
+2026-10-16T16:04:38.7914988Z [1m[92m   Compiling[0m fast-srgb8 v1.0.0
+2026-10-16T16:04:38.8395334Z [1m[92m   Compiling[0m spin v0.9.9
+2026-10-16T16:04:38.9555163Z [1m[92m   Compiling[0m mutate_once v0.1.2
+2026-10-16T16:04:39.0065414Z [1m[92m   Compiling[0m multi-stash v0.2.0
+2026-10-16T16:04:39.0555975Z [1m[92m   Compiling[0m object v0.37.3
+2026-10-16T16:04:39.1375556Z [1m[92m   Compiling[0m semver v1.0.28
+2026-10-16T16:04:39.3015287Z [1m[92m   Compiling[0m wasmi v0.40.0
+2026-10-16T16:04:39.5175712Z [1m[92m   Compiling[0m gmeow-validate v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate)
+2026-10-16T16:04:42.2405156Z [1m[92m   Compiling[0m comemo v0.4.0
+2026-10-16T16:04:42.6864175Z [1m[92m   Compiling[0m kamadak-exif v0.6.1
+2026-10-16T16:04:50.1135159Z [1m[92m   Compiling[0m chinese-number v0.7.8
+2026-10-16T16:04:50.4801575Z [1m[92m   Compiling[0m csv v1.4.0
+2026-10-16T16:04:51.1624360Z [1m[92m   Compiling[0m tiktoken-rs v0.12.0
+2026-10-16T16:04:52.8826047Z [1m[92m   Compiling[0m typst-syntax v0.13.1
+2026-10-16T16:04:53.4925815Z [1m[92m   Compiling[0m phf v0.11.3
+2026-10-16T16:04:53.6205058Z [1m[92m   Compiling[0m icu_provider_blob v1.5.0
+2026-10-16T16:04:54.4005167Z [1m[92m   Compiling[0m lipsum v0.9.1
+2026-10-16T16:04:54.9622477Z [1m[92m   Compiling[0m icu_properties v1.5.1
+2026-10-16T16:04:57.1325639Z [1m[92m   Compiling[0m hayagriva v0.8.1
+2026-10-16T16:04:59.6435947Z [1m[92m   Compiling[0m two-face v0.4.5
+2026-10-16T16:05:02.8075322Z [1m[92m   Compiling[0m typst-macros v0.13.1
+2026-10-16T16:05:18.9965465Z [1m[92m   Compiling[0m unicode-security v0.1.2
+2026-10-16T16:05:19.5795015Z [1m[92m   Compiling[0m az v1.3.0
+2026-10-16T16:05:20.9905933Z [1m[92m   Compiling[0m bumpalo v3.20.3
+2026-10-16T16:05:21.7095854Z [1m[92m   Compiling[0m qcms v0.3.0
+2026-10-16T16:05:22.9575518Z [1m[92m   Compiling[0m typst-assets v0.13.1
+2026-10-16T16:05:23.0125129Z [1m[92m   Compiling[0m typed-arena v2.0.2
+2026-10-16T16:05:23.0925368Z [1m[92m   Compiling[0m typst-library v0.13.1
+2026-10-16T16:05:24.2146323Z [1m[92m   Compiling[0m gmeow-lang-bridge v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge)
+2026-10-16T16:05:46.9725636Z [1m[92m   Compiling[0m utf8parse v0.2.2
+2026-10-16T16:05:47.0131093Z [1m[92m   Compiling[0m gmeow-docs-model v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model)
+2026-10-16T16:05:48.2114747Z [1m[92m   Compiling[0m ar_archive_writer v0.5.2
+2026-10-16T16:05:50.5896300Z [1m[92m   Compiling[0m font-types v0.11.3
+2026-10-16T16:05:50.9527822Z [1m[92m   Compiling[0m read-fonts v0.39.2
+2026-10-16T16:06:07.1826789Z [1m[92m   Compiling[0m psm v0.1.31
+2026-10-16T16:06:08.5485726Z [1m[92m   Compiling[0m polycool v0.4.0
+2026-10-16T16:06:09.1895772Z [1m[92m   Compiling[0m colorchoice v1.0.5
+2026-10-16T16:06:09.2385470Z [1m[92m   Compiling[0m anstyle-query v1.1.5
+2026-10-16T16:06:09.2776132Z [1m[92m   Compiling[0m is_terminal_polyfill v1.70.2
+2026-10-16T16:06:09.3206199Z [1m[92m   Compiling[0m anstyle v1.0.14
+2026-10-16T16:06:09.4955381Z [1m[92m   Compiling[0m icu_segmenter_data v1.5.1
+2026-10-16T16:06:09.5964209Z [1m[92m   Compiling[0m kurbo v0.13.1
+2026-10-16T16:06:11.9005279Z [1m[92m   Compiling[0m anstyle-parse v1.0.0
+2026-10-16T16:06:12.0325270Z [1m[92m   Compiling[0m stacker v0.1.24
+2026-10-16T16:06:12.3095423Z [1m[92m   Compiling[0m zune-core v0.4.12
+2026-10-16T16:06:12.4645296Z [1m[92m   Compiling[0m quick-error v2.0.1
+2026-10-16T16:06:12.5025798Z [1m[92m   Compiling[0m pulldown-cmark v0.13.4
+2026-10-16T16:06:12.5855207Z [1m[92m   Compiling[0m image-webp v0.1.3
+2026-10-16T16:06:14.1337704Z [1m[92m   Compiling[0m zune-jpeg v0.4.21
+2026-10-16T16:06:15.0645550Z [1m[92m   Compiling[0m anstream v1.0.0
+2026-10-16T16:06:15.4045251Z [1m[92m   Compiling[0m write-fonts v0.48.1
+2026-10-16T16:06:36.1135223Z [1m[92m   Compiling[0m skrifa v0.42.1
+2026-10-16T16:06:46.0055565Z [1m[92m   Compiling[0m tiny-skia v0.11.4
+2026-10-16T16:06:46.7535190Z [1m[92m   Compiling[0m gif v0.13.3
+2026-10-16T16:06:47.7105385Z [1m[92m   Compiling[0m rgb v0.8.53
+2026-10-16T16:06:48.0995603Z [1m[92m   Compiling[0m pulldown-cmark-escape v0.11.0
+2026-10-16T16:06:48.1605449Z [1m[92m   Compiling[0m strsim v0.11.1
+2026-10-16T16:06:48.2645321Z [1m[92m   Compiling[0m unicase v2.9.0
+2026-10-16T16:06:48.4231583Z [1m[92m   Compiling[0m clap_lex v1.1.0
+2026-10-16T16:06:48.6225733Z [1m[92m   Compiling[0m memo-map v0.3.3
+2026-10-16T16:06:48.6795565Z [1m[92m   Compiling[0m xmlparser v0.13.6
+2026-10-16T16:06:48.7235575Z [1m[92m   Compiling[0m minijinja v2.21.0
+2026-10-16T16:06:49.3735047Z [1m[92m   Compiling[0m typst-svg v0.13.1
+2026-10-16T16:06:49.8265393Z [1m[92m   Compiling[0m clap_builder v4.6.2
+2026-10-16T16:06:55.4405144Z [1m[92m   Compiling[0m resvg v0.43.0
+2026-10-16T16:06:57.3445673Z [1m[92m   Compiling[0m subsetter v0.2.6
+2026-10-16T16:06:58.6285486Z [1m[92m   Compiling[0m icu_segmenter v1.5.0
+2026-10-16T16:07:00.9855936Z [1m[92m   Compiling[0m anstyle-parse v0.2.7
+2026-10-16T16:07:01.1206242Z [1m[92m   Compiling[0m icu_provider_adapters v1.5.0
+2026-10-16T16:07:01.2554921Z [1m[92m   Compiling[0m pdf-writer v0.12.1
+2026-10-16T16:07:01.2847121Z [1m[92m   Compiling[0m tracing-log v0.2.0
+2026-10-16T16:07:01.4905742Z [1m[92m   Compiling[0m sharded-slab v0.1.7
+2026-10-16T16:07:02.1376101Z [1m[92m   Compiling[0m clap_derive v4.6.4
+2026-10-16T16:07:04.3745274Z [1m[92m   Compiling[0m matchers v0.2.0
+2026-10-16T16:07:04.4392519Z [1m[92m   Compiling[0m thread_local v1.1.10
+2026-10-16T16:07:04.6225391Z [1m[92m   Compiling[0m if_chain v1.0.3
+2026-10-16T16:07:04.6525576Z [1m[92m   Compiling[0m hypher v0.1.7
+2026-10-16T16:07:04.8935619Z [1m[92m   Compiling[0m nu-ansi-term v0.50.3
+2026-10-16T16:07:05.2182562Z [1m[92m   Compiling[0m tracing-subscriber v0.3.23
+2026-10-16T16:07:06.0487214Z [1m[92m   Compiling[0m typst-layout v0.13.1
+2026-10-16T16:07:09.2655694Z [1m[92m   Compiling[0m typst-eval v0.13.1
+2026-10-16T16:07:17.1195763Z [1m[92m   Compiling[0m svg2pdf v0.12.0
+2026-10-16T16:07:20.6087691Z [1m[92m   Compiling[0m clap v4.6.4
+2026-10-16T16:07:20.6465263Z [1m[92m   Compiling[0m anstream v0.6.21
+2026-10-16T16:07:20.9416374Z [1m[92m   Compiling[0m gmeow-docs v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs)
+2026-10-16T16:07:21.1615342Z [1m[92m   Compiling[0m typst-html v0.13.1
+2026-10-16T16:07:23.0337605Z [1m[92m   Compiling[0m gmeow-bundle-view v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view)
+2026-10-16T16:07:24.2996204Z [1m[92m   Compiling[0m gmeow-slice-quality v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality)
+2026-10-16T16:07:39.4805478Z [1m[92m   Compiling[0m typst-realize v0.13.1
+2026-10-16T16:07:41.9615989Z [1m[92m   Compiling[0m gmeow-bundle-import v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import)
+2026-10-16T16:07:42.1145024Z [1m[92m   Compiling[0m xmp-writer v0.3.3
+2026-10-16T16:07:42.8625829Z [1m[92m   Compiling[0m typst-pdf v0.13.1
+2026-10-16T16:07:45.1415684Z [1m[92m   Compiling[0m typst v0.13.1
+2026-10-16T16:07:45.1505941Z [1m[92m   Compiling[0m gmeow-docs-catalog v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog)
+2026-10-16T16:07:46.2896478Z [1m[92m   Compiling[0m gmeow-cli-core v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/cli-core)
+2026-10-16T16:07:46.3856202Z [1m[92m   Compiling[0m gmeow-transcode v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode)
+2026-10-16T16:07:49.5757152Z [1m[92m   Compiling[0m gmeow-pipeline v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline)
+2026-10-16T16:07:49.7195971Z [1m[92m   Compiling[0m gmeow-license v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/license)
+2026-10-16T16:07:49.9555668Z [1m[92m   Compiling[0m gmeow-conformance v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/conformance)
+2026-10-16T16:07:50.0285923Z [1m[92m   Compiling[0m docs-print v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-print)
+2026-10-16T16:07:57.3926633Z [1m[92m   Compiling[0m gmeow-slice-brief v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-brief)
+2026-10-16T16:08:00.0325898Z [1m[92m   Compiling[0m gmeow-affect v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect)
+2026-10-16T16:08:01.6205644Z [1m[92m   Compiling[0m gmeow-slicetest v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest)
+2026-10-16T16:08:06.6810966Z [1m[92m   Compiling[0m gmeow-mcp v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp)
+2026-10-16T16:08:23.5375971Z [1m[92m   Compiling[0m gmeow-foundation-corpus v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/foundation-corpus)
+2026-10-16T16:08:32.6025111Z [1m[92m   Compiling[0m gmeow-mcp-dev v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev)
+2026-10-16T16:08:32.9179680Z [1m[92m   Compiling[0m gmeow-dev-cli v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli)
+2026-10-16T16:26:13.0698577Z [1m[92m    Finished[0m `pipeline` profile [optimized] target(s) in 29m 40s
+2026-10-16T16:26:18.5479814Z producer build: selected Rust implementation absent from compiler reads: crates/docs-print/src/doc_render.rs
+2026-10-16T16:26:18.5619405Z make[2]: *** [Makefile:443: check-sync] Error 1
+2026-10-16T16:26:18.5620528Z make[2]: Leaving directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T16:26:18.5641905Z make[2]: Entering directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T16:26:18.5807240Z make producer-build
+2026-10-16T16:26:18.5829799Z make[3]: Entering directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T16:26:18.5976684Z cargo xtask producer build
+2026-10-16T16:26:24.1784171Z [1m[92m   Compiling[0m gmeow-bundle-import v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import)
+2026-10-16T16:26:24.1787227Z [1m[92m   Compiling[0m gmeow-pipeline v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline)
+2026-10-16T16:26:24.1850735Z [1m[92m   Compiling[0m gmeow-slicetest v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest)
+2026-10-16T16:26:25.0987287Z [1m[92m   Compiling[0m gmeow-mcp v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp)
+2026-10-16T16:26:55.7243986Z [1m[92m   Compiling[0m gmeow-mcp-dev v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev)
+2026-10-16T16:26:55.9684864Z [1m[92m   Compiling[0m gmeow-dev-cli v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli)
+2026-10-16T16:44:29.1724695Z [1m[92m    Finished[0m `pipeline` profile [optimized] target(s) in 18m 05s
+2026-10-16T16:44:34.4781614Z producer build: selected Rust implementation absent from compiler reads: crates/docs-print/src/doc_render.rs
+2026-10-16T16:44:34.4930896Z make[3]: *** [Makefile:328: producer-build] Error 1
+2026-10-16T16:44:34.4933763Z make[3]: Leaving directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T16:44:34.4935885Z make[2]: *** [Makefile:366: cli-build] Error 2
+2026-10-16T16:44:34.4936754Z make[2]: Leaving directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T16:44:34.4942422Z make[1]: *** [Makefile:442: check-sync] Error 2
+2026-10-16T16:44:34.4945801Z make[1]: Leaving directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-16T16:44:34.4946826Z make: *** [Makefile:1263: maint-mdbook-smoke] Error 2
+2026-10-16T16:44:34.4966525Z ##[error]Process completed with exit code 2.
+2026-10-16T16:44:34.5104437Z Post job cleanup.
+2026-10-16T16:44:34.5979791Z [command]/usr/bin/git version
+2026-10-16T16:44:34.6021405Z git version 2.55.0
+2026-10-16T16:44:34.6058344Z Temporarily overriding HOME='/home/runner/work/_temp/a31adc6e-2be6-493e-bbed-e6f478c2f426' before making global git config changes
+2026-10-16T16:44:34.6059943Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-16T16:44:34.6065127Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-16T16:44:34.6097532Z Removing SSH command configuration
+2026-10-16T16:44:34.6103979Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-16T16:44:34.6140101Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-16T16:44:34.6381892Z Removing HTTP extra header
+2026-10-16T16:44:34.6390084Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-16T16:44:34.6424361Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-16T16:44:34.6670893Z Removing includeIf entries pointing to credentials config files
+2026-10-16T16:44:34.6679057Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-16T16:44:34.6715099Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-16T16:44:34.7164056Z Cleaning up orphan processes
