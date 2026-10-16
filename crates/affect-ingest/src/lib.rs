@@ -1958,8 +1958,8 @@ mod tests {
         );
     }
 
-    #[test]
     /// Score lexical forms stay decimal-compatible for whole, tiny and signed values.
+    #[test]
     fn f64_decimal_lexical_is_always_a_valid_xsd_decimal() {
         // xsd:decimal forbids scientific notation. A tiny in-range score must
         // still serialize as a plain decimal (and round-trip through the lexical).

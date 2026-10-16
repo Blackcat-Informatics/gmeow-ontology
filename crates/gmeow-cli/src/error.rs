@@ -108,12 +108,14 @@ impl std::error::Error for PreservedDiagnostic {
 }
 
 impl std::fmt::Display for ProverFailed {
+    /// Render the prover failure summary without flattening its retained evidence.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.detail)
     }
 }
 
 impl std::error::Error for ProverFailed {
+    /// Expose the preserved upstream diagnostic, when this failure has one.
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         self.cause
             .as_deref()
@@ -175,8 +177,8 @@ mod tests {
     use gmeow_errors::intern_code;
     use std::collections::HashSet;
 
-    #[test]
     /// Registration remains idempotent and distinct for the complete CLI catalog.
+    #[test]
     fn every_gmeow_cli_code_interns_with_no_collision() {
         let handles = register_all();
         assert_eq!(

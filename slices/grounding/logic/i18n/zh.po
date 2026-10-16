@@ -22915,4 +22915,4 @@ msgstr "该边界管理服务结果的发布，不对整个规范语料的一致
 
 msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#example"
 msgid "A malformed role chain retains the original native hierarchy error in the diagnostic."
-msgstr "格式错误的角色链在诊断中保留原始本机层级错误。"
+msgstr "格式错误的角色链在诊断中保留原始的原生层级错误。"

@@ -184,8 +184,8 @@ fn configuration_catalogue_alone_does_not_authorize_a_proof() {
     );
 }
 
-#[test]
 /// Every singleton facet rejects a source that would otherwise choose its last value.
+#[test]
 fn conflicting_singleton_contract_facets_fail_native_admission() {
     for property in [
         "formulaFragment",

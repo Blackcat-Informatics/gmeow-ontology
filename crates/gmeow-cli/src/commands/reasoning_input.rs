@@ -36,17 +36,20 @@ gmeow_errors::impl_diag_kind! {
 }
 
 impl std::fmt::Display for ReasoningInputFailure {
+    /// Display the input-operation summary while retaining structured cause evidence.
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(formatter, "{}: {}", self.operation, self.cause)
     }
 }
 
 impl std::error::Error for ReasoningInputFailure {
+    /// Preserve the original diagnostic as the inspectable source of this refusal.
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(self.cause.as_ref())
     }
 }
 
+/// Attach the selected path and input identity to a typed operation refusal.
 fn refused(
     path: &Path,
     operation: &'static str,
@@ -63,6 +66,8 @@ fn refused(
     .with_focus(path.display().to_string())
 }
 
+/// Load the selected RDF input and retain the exact bytes' identity with it.
+/// Parse, read and format failures retain their original diagnostic cause.
 pub(super) fn load_reasoning_input(
     path: &Path,
     role: &'static str,
@@ -130,8 +135,8 @@ pub(super) fn load_reasoning_input(
 mod tests {
     use super::*;
 
-    #[test]
     /// An input refusal keeps its operation identity, registered grade and typed cause.
+    #[test]
     fn input_refusal_retains_registered_grade_identity_and_original_diagnostic() {
         let cause = Diag::of_kind(crate::error::SourceReadFailed {
             detail: "selected input is unavailable".to_owned(),

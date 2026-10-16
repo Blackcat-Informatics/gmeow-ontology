@@ -5,8 +5,8 @@ use super::*;
 use crate::code::intern_code;
 use std::collections::HashSet;
 
-#[test]
 /// Every catalog code and interned handle stays unique under the fixed-hasher policy.
+#[test]
 fn every_errors_code_interns_with_no_collision() {
     let handles = register_all();
     assert_eq!(

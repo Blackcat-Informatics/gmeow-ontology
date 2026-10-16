@@ -4,8 +4,8 @@
 use super::*;
 use crate::ns::math;
 
-#[test]
 /// Language identity survives emission and invalid IRIs are refused at native freeze.
+#[test]
 fn explicit_language_literals_keep_their_identity_and_invalid_iris_fail() {
     let mut sink = Sink::new();
     sink.lit(

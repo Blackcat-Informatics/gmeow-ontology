@@ -78,6 +78,7 @@ fn entailed_subsumption_is_certified_true() {
     assert!(certified.is_exact());
 }
 
+/// No-model refusal retains its semantic category, upstream cause and canonical failure class.
 #[test]
 fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
     let dataset = inconsistent_dataset();
@@ -97,6 +98,7 @@ fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
     );
 }
 
+/// Recording owns the original hierarchy error after the input dataset is released.
 #[test]
 fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped() {
     let dataset = purrdf::parse_dataset(

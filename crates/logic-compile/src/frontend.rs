@@ -1538,6 +1538,8 @@ fn closure_field(
     Ok(Some(first))
 }
 
+/// Extract configuration owners with their source emissions and diagnostic observations.
+/// Invalid facets remain errors on their owner; declarations never become domain axioms.
 fn extract_contracts(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,

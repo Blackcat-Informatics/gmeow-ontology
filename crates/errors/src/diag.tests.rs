@@ -11,19 +11,21 @@ use std::io;
 assert_not_impl_all!(Diag: std::error::Error);
 assert_not_impl_all!(Diag: serde::Serialize);
 
-#[derive(Debug)]
 /// A deliberately non-cloneable cause exercises the existing-payload macro path.
+#[derive(Debug)]
 struct EvidenceFailure {
     source: io::Error,
 }
 
 impl fmt::Display for EvidenceFailure {
+    /// Show the payload message without consuming its non-cloneable IO cause.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "evidence unavailable: {}", self.source)
     }
 }
 
 impl StdError for EvidenceFailure {
+    /// Expose the original typed IO error through the standard source chain.
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&self.source)
     }
@@ -36,8 +38,8 @@ crate::impl_diag_kind! {
     failure_class = "urn:test:evidence-failure";
 }
 
-#[test]
 /// Shared registration preserves code, grade, downcasting and the original IO cause.
+#[test]
 fn existing_payload_registration_preserves_noncloneable_evidence() {
     let diag = Diag::of_kind(EvidenceFailure {
         source: io::Error::new(io::ErrorKind::NotFound, "receipt missing"),

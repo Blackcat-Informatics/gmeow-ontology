@@ -976,8 +976,8 @@ fn standard_output_macros_retain_nested_input_ownership() {
     }
 }
 
-#[test]
 /// Diagnostic syntax retains nested file bytes while unknown capabilities fail closed.
+#[test]
 fn diagnostic_macros_retain_nested_inputs_and_refuse_unowned_capabilities() {
     for name in ["define_diag_kind", "impl_diag_kind"] {
         let root = fixture(&format!(

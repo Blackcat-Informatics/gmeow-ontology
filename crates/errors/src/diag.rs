@@ -938,12 +938,15 @@ macro_rules! impl_diag_kind {
         }
 
         impl $crate::diag::DiagKind for $name {
+            /// Reuse the payload's single interned registration handle.
             fn code(&self) -> $crate::code::Code {
                 Self::register()
             }
+            /// Return the declared grade without inspecting or consuming the evidence.
             fn grade(&self) -> $crate::grade::Grade {
                 $grade
             }
+            /// Expose the declared ontology failure class without constructing a payload.
             fn failure_class(&self) -> ::core::option::Option<&'static str> {
                 Self::FAILURE_CLASS
             }
