@@ -2640,17 +2640,19 @@ fn dl_report_core<T>(
     evidence_grade: EvidenceGrade,
     gate_admission: GateAdmission,
     input: InputIdentity,
-    certified: &gmeow_logic::reasoner_services::CertifiedAnswer<T>,
+    certified: &purrdf::entail::Certified<T>,
 ) -> ReasoningReportCore {
-    let boundaries: Vec<_> = certified
-        .boundaries
+    let certificate = certified.certificate();
+    let completeness = certificate.completeness();
+    let boundaries: Vec<_> = certificate
+        .boundaries()
         .iter()
         .map(|boundary| ReasoningBoundary {
             code: boundary.construct().to_string(),
             detail: boundary.reason().to_owned(),
         })
         .collect();
-    let preservation = if certified.is_exact() {
+    let preservation = if completeness == purrdf::entail::DlCompleteness::Decided {
         PreservationReport::exact()
     } else {
         PreservationReport::sound_under(boundaries.iter().map(|row| row.code.clone()).collect())
@@ -2661,13 +2663,13 @@ fn dl_report_core<T>(
         verdict: verdict.to_owned(),
         decision,
         input_status: "valid".to_owned(),
-        evaluation_status: if certified.is_decided() {
+        evaluation_status: if completeness.is_decided() {
             "completed"
         } else {
             "budget-exhausted"
         }
         .to_owned(),
-        completeness: if certified.is_decided() {
+        completeness: if completeness.is_decided() {
             "complete-for-fragment"
         } else {
             "incomplete"
@@ -2682,9 +2684,9 @@ fn dl_report_core<T>(
         program: native_program(operation, fragment),
         engine: reasoning_engine(operation),
         metrics: ReasoningMetrics {
-            decisions: Some(certified.decisions),
-            steps: Some(certified.steps),
-            budget: Some(certified.budget),
+            decisions: Some(certificate.decisions()),
+            steps: Some(certificate.steps()),
+            budget: Some(certificate.budget()),
         },
         boundaries,
         diagnostics: Vec::new(),
@@ -2905,14 +2907,19 @@ pub fn consistency(
         }
     };
     let certified = reasoner.consistency();
-    let (decision, information, evidence, admission, has_model) = match certified.answer {
-        purrdf::entail::Verdict::True if certified.is_exact() => (
-            DecisionClass::Positive,
-            "supported",
-            EvidenceGrade::Certificate,
-            GateAdmission::Certificate,
-            Some(true),
-        ),
+    let completeness = certified.certificate().completeness();
+    let (decision, information, evidence, admission, has_model) = match *certified.answer() {
+        purrdf::entail::Verdict::True
+            if completeness == purrdf::entail::DlCompleteness::Decided =>
+        {
+            (
+                DecisionClass::Positive,
+                "supported",
+                EvidenceGrade::Certificate,
+                GateAdmission::Certificate,
+                Some(true),
+            )
+        }
         purrdf::entail::Verdict::True => (
             DecisionClass::Positive,
             "undetermined",
@@ -2920,7 +2927,7 @@ pub fn consistency(
             GateAdmission::Attestation,
             Some(true),
         ),
-        purrdf::entail::Verdict::False if certified.is_decided() => (
+        purrdf::entail::Verdict::False if completeness.is_decided() => (
             DecisionClass::Negative,
             "opposed",
             EvidenceGrade::Certificate,
@@ -2946,7 +2953,7 @@ pub fn consistency(
         common: dl_report_core(
             ReasoningOperation::Consistency,
             FRAGMENT,
-            &certified.answer.to_string(),
+            &certified.answer().to_string(),
             decision,
             information,
             evidence,
@@ -3046,8 +3053,8 @@ pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, 
             );
         }
     };
-    let hierarchy = &certified.answer;
-    let exact = certified.is_exact();
+    let hierarchy = certified.answer();
+    let exact = certified.certificate().completeness() == purrdf::entail::DlCompleteness::Decided;
     NativeReasoningReport {
         common: dl_report_core(
             ReasoningOperation::Classification,
@@ -3157,8 +3164,8 @@ pub fn realize(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, g
             );
         }
     };
-    let realization = &certified.answer;
-    let exact = certified.is_exact();
+    let realization = certified.answer();
+    let exact = certified.certificate().completeness() == purrdf::entail::DlCompleteness::Decided;
     NativeReasoningReport {
         common: dl_report_core(
             ReasoningOperation::Realization,
