@@ -5,6 +5,43 @@ use super::*;
 
 const INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
+/// A datatype enumeration cannot admit malformed decimals through rational equality.
+#[test]
+fn malformed_decimal_does_not_satisfy_a_rational_enumeration() {
+    let mut rel = RelationStore::new();
+    edge(&mut rel, "urn:range", ONE_OF, "urn:list");
+    rel.insert(
+        super::super::list::FIRST,
+        &iri("urn:list"),
+        &literal("1/2", "http://www.w3.org/2002/07/owl#rational"),
+    );
+    edge(
+        &mut rel,
+        "urn:list",
+        super::super::list::REST,
+        super::super::list::NIL,
+    );
+    let mut values = NativeValues::default();
+    let plan = DatatypeCache::default()
+        .prepare(
+            &rel,
+            &iri("urn:range"),
+            &mut ListCache::default(),
+            &mut values,
+        )
+        .unwrap();
+    const DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+    assert_eq!(plan.contains(&literal("1/2", DECIMAL), &mut values), None);
+    assert_eq!(
+        plan.contains(&literal("0.5", DECIMAL), &mut values),
+        Some(true)
+    );
+    assert_eq!(
+        plan.contains(&literal("0.25", DECIMAL), &mut values),
+        Some(false)
+    );
+}
+
 fn iri(value: &str) -> TermValue {
     TermValue::Iri(value.to_owned())
 }
