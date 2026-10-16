@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "a631f73e6e39b4493d295bcd83b4deec80637f54",
+  "headRefName": "issue-1757-snapshot-critical",
+  "headRefOid": "51b7abd40cbdccf79c525086a853a2ec132ffc1d",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1793,
+  "state": "OPEN",
+  "title": "fix(1789): specialize termination analysis without combinatorial products",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1793"
+}

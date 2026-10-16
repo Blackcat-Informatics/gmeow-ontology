@@ -1,0 +1,71 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+error: this `if` statement can be collapsed
+   --> crates/conformance/src/profile.rs:231:9
+    |
+231 | /         if let Some(status) = obj.get("source_admission_status") {
+232 | |             if !matches!(
+233 | |                 status.as_str(),
+234 | |                 Some("outside-selection" | "admitted" | "refused")
+...   |
+240 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+231 ~         if let Some(status) = obj.get("source_admission_status")
+232 ~             && !matches!(
+233 |                 status.as_str(),
+...
+238 |                 )));
+239 ~             }
+    |
+
+error: this `if` statement can be collapsed
+   --> crates/conformance/src/run.rs:227:9
+    |
+227 | /         if let Some(expected) = profile_value
+228 | |             .get("source_admission_status")
+229 | |             .and_then(serde_json::Value::as_str)
+...   |
+237 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+help: collapse nested if block
+    |
+229 ~             .and_then(serde_json::Value::as_str)
+230 ~             && expected != observation.admission.observation_status() {
+231 |                 return Err(prefix(
+...
+234 |                 ));
+235 ~             }
+    |
+
+error: could not compile `gmeow-conformance` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-conformance` (lib test) due to 2 previous errors
+    Checking gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+    Checking gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+    Checking gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+    Checking docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+    Checking gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+    Checking gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+make: *** [Makefile:289: clippy-prebuild] Error 101

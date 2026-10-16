@@ -1,0 +1,37 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(program_analysis::tests::)' --no-tests=fail
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 4m 02s
+────────────
+ Nextest run ID 1c8057bf-95c6-4b7e-85f8-c81d602c68d7 with nextest profile: ci
+    Starting 5 tests across 26 binaries (2281 tests and 199 binaries skipped)
+        PASS [   0.520s] (1/5) gmeow-logic program_analysis::tests::cache_has_bounded_retention_without_invalidating_live_consumers
+        PASS [   0.520s] (2/5) gmeow-logic program_analysis::tests::large_source_identity_does_not_evict_a_small_preparation
+        PASS [   0.521s] (3/5) gmeow-logic program_analysis::tests::cache_hit_preserves_formula_residue
+        PASS [   0.553s] (4/5) gmeow-logic program_analysis::tests::preparation_reuses_ir_and_distinguishes_complete_context
+        PASS [   0.557s] (5/5) gmeow-logic program_analysis::tests::native_input_binds_axiom_content_even_when_executable_rules_are_identical
+────────────
+     Summary [   0.583s] 5 tests run: 5 passed, 2281 skipped

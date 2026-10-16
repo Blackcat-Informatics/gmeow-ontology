@@ -1,0 +1,200 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-validate) & (test(extracted_test_ownership_keeps_all_production_seals_armed) | test(feature_enabled_inline_module_cannot_hide_a_raw_gts_writer) | test(cfg_predicate_test_gating_is_recognised_in_composed_forms) | test(live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate) | test(live_repo_producer_map_is_total_and_exercises_all_three_source_kinds) | test(seal_c_))' --no-tests=fail
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/build-inputs)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/xtask)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 42s
+────────────
+ Nextest run ID 0751944f-3b3a-449a-bd10-e7ff5847c7a0 with nextest profile: ci
+    Starting 10 tests across 23 binaries (750 tests and 202 binaries skipped)
+        PASS [   0.024s] ( 1/10) gmeow-validate repo_static::tests::cfg_predicate_test_gating_is_recognised_in_composed_forms
+        PASS [   0.026s] ( 2/10) gmeow-validate repo_static::tests::seal_c_passes_when_every_producer_is_declared
+        PASS [   0.029s] ( 3/10) gmeow-validate repo_static::tests::seal_c_fails_on_a_producer_with_no_declared_medium_source_kind
+        PASS [   0.030s] ( 4/10) gmeow-validate repo_static::tests::seal_c_fails_when_the_census_is_below_the_non_vacuity_floor
+        PASS [   0.029s] ( 5/10) gmeow-validate repo_static::tests::seal_c_fails_on_a_stale_call_site
+        PASS [   0.030s] ( 6/10) gmeow-validate repo_static::tests::seal_c_fails_when_a_declared_medium_carries_no_source_kind
+        FAIL [   0.035s] ( 7/10) gmeow-validate repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 0.02s
+
+  stderr ───
+
+    thread 'repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer' (3382675) panicked at crates/validate/src/repo_static.tests.rs:2580:5:
+    []
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.052s] ( 8/10) gmeow-validate repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed' (3382677) panicked at crates/validate/src/repo_static.tests.rs:2533:9:
+    assertion `left == right` failed: #[path = "production.tests.rs"] mod production;: []
+      left: false
+     right: true
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [  12.153s] ( 9/10) gmeow-validate repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 12.05s
+
+  stderr ───
+
+    thread 'repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds' (3382678) panicked at crates/validate/src/repo_static.tests.rs:2077:5:
+    census must not error: ["production module ownership: macro collect! has no selected source-input capability owner in /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/test-batch-macros/src/lib.rs"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [  14.762s] (10/10) gmeow-validate repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 14.75s
+
+  stderr ───
+
+    thread 'repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate' (3382672) panicked at crates/validate/src/repo_static.tests.rs:1888:5:
+    census must not error: ["production module ownership: macro collect! has no selected source-input capability owner in /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/test-batch-macros/src/lib.rs"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [  15.046s] 10 tests run: 6 passed, 4 failed, 750 skipped
+        FAIL [   0.035s] ( 7/10) gmeow-validate repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 0.02s
+
+  stderr ───
+
+    thread 'repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer' (3382675) panicked at crates/validate/src/repo_static.tests.rs:2580:5:
+    []
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.052s] ( 8/10) gmeow-validate repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed' (3382677) panicked at crates/validate/src/repo_static.tests.rs:2533:9:
+    assertion `left == right` failed: #[path = "production.tests.rs"] mod production;: []
+      left: false
+     right: true
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [  12.153s] ( 9/10) gmeow-validate repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 12.05s
+
+  stderr ───
+
+    thread 'repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds' (3382678) panicked at crates/validate/src/repo_static.tests.rs:2077:5:
+    census must not error: ["production module ownership: macro collect! has no selected source-input capability owner in /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/test-batch-macros/src/lib.rs"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [  14.762s] (10/10) gmeow-validate repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 654 filtered out; finished in 14.75s
+
+  stderr ───
+
+    thread 'repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate' (3382672) panicked at crates/validate/src/repo_static.tests.rs:1888:5:
+    census must not error: ["production module ownership: macro collect! has no selected source-input capability owner in /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/test-batch-macros/src/lib.rs"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:705: nextest-synthetic] Error 100

@@ -1,0 +1,260 @@
+{
+  "issue": 1757,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1740": "perf(logic): integrate the authenticated native pipeline and calculus",
+    "1704": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+    "1748": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+    "317": "Music \u00b7 Timbre & the sensory bridge (MIR observations, embeddings by reference)",
+    "1760": "perf(logic): restore certified batch slice probes",
+    "1757": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+    "1758": "fix(ci): admit transferred optimized producers",
+    "1759": "perf(pipeline): schedule stages on completion",
+    "1732": "perf: persist completed producer fixtures across CI runs",
+    "1695": "bug(logic): route modal verdict evaluation through the shipped reasoner",
+    "1731": "build: authenticate an O3 full-LTO pipeline producer",
+    "1739": "build: authenticate the O3/full-LTO pipeline producer",
+    "1733": "logic: implement the composite agentic modal kernel",
+    "1734": "logic: evaluate LTLf operators over enactment journals",
+    "1735": "logic: derive per-step deontic work-graph assessments",
+    "1747": "logic: reachability discharge (Arm A) never consults the corpus's own compiled rule heads",
+    "1736": "logic: implement compositional intent algebra and revision",
+    "1737": "logic: project certified protocol roles into orchestrations",
+    "1742": "logic: implement correspondence composition and standpoint-indexed merge",
+    "1743": "perf: certify correspondence normalization and physical fusion",
+    "1738": "perf: execute the production pipeline as a certified deontic work graph",
+    "1745": "perf: adopt typed correspondence execution throughout the production pipeline",
+    "272": "feat(gts): COSE signing & encryption \u2014 evidence/opaque profiles + remaining \u00a718 vectors",
+    "1741": "logic: complete typed correspondence execution and law-bearing source recovery",
+    "1755": "[bug] Compact LogicAxiom lowering collapses distinct RDF literal identities",
+    "1744": "logic: complete correspondence targets and executable openEHR exemplars",
+    "1749": "slicetest: competency cells with cqDataFile cannot use a reasoning lane, and always merge the repo's own store",
+    "1712": "logic/mappings: salvage the correspondence frontend \u2014 dsl/mappings cells as logic:Correspondence IR",
+    "1746": "logic: non-entailment obligation discharge misses logic:instanceOf-typed obligations",
+    "1750": "cli: consistency-family commands need gate-able exit codes and machine-readable verdicts",
+    "1751": "logic: TPTP-FOF export + external prover harness (whole-corpus FOL verdicts)",
+    "1752": "slice-quality: an external-corpus mode for sacred/consumer slices outside the GMEOW checkout",
+    "306": "EPIC: Music \u2014 frame-relative musical content; every notation a lossy projection",
+    "307": "Music \u00b7 Structural foundation (extension scaffold, WEMI specialization, derivation & genre)",
+    "310": "Music \u00b7 Musical time (time frames, tempo maps, meter, polymeter vs polyrhythm, groove)"
+  },
+  "link_relations": {
+    "1740": "mentions",
+    "1704": "mentions",
+    "1748": "mentions",
+    "317": "mentions",
+    "1760": "mentions",
+    "1757": "mentions",
+    "1758": "mentions",
+    "1759": "mentions",
+    "1732": "2-hop",
+    "1695": "2-hop",
+    "1731": "2-hop",
+    "1739": "2-hop",
+    "1733": "2-hop",
+    "1734": "2-hop",
+    "1735": "2-hop",
+    "1747": "2-hop",
+    "1736": "2-hop",
+    "1737": "2-hop",
+    "1742": "2-hop",
+    "1743": "2-hop",
+    "1738": "2-hop",
+    "1745": "2-hop",
+    "272": "2-hop",
+    "1741": "2-hop",
+    "1755": "2-hop",
+    "1744": "2-hop",
+    "1749": "2-hop",
+    "1712": "2-hop",
+    "1746": "2-hop",
+    "1750": "2-hop",
+    "1751": "2-hop",
+    "1752": "2-hop",
+    "306": "2-hop",
+    "307": "2-hop",
+    "310": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1745,
+      "title": "perf: adopt typed correspondence execution throughout the production pipeline",
+      "state": "OPEN"
+    },
+    {
+      "number": 1194,
+      "title": "V4 \u2014 Equivalence-before-deletion: retire hand-authored shapes.ttl + structural ShEx",
+      "state": "OPEN"
+    },
+    {
+      "number": 1741,
+      "title": "logic: complete typed correspondence execution and law-bearing source recovery",
+      "state": "OPEN"
+    },
+    {
+      "number": 1518,
+      "title": "perf(rust): optimize the native pipeline and make check critical path",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1655,
+      "title": "repo hygiene: sweep stale process references and tighten the ref lint",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1700,
+      "title": "perf(test): 2x required-lane optimization with DAG caching",
+      "state": "CLOSED"
+    },
+    {
+      "number": 629,
+      "title": "EPIC \u2014 Remove rdflib repo-wide: port remaining graph logic to Rust + oxigraph (gmeow_validate), pyoxigraph-only Python seam",
+      "state": "CLOSED"
+    },
+    {
+      "number": 856,
+      "title": "logic-compile: have gmeow_logic.compile_logic return a native Report directly (drop the Python dict forward)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 840,
+      "title": "P6 \u2014 purrdf: RdfEventSource/RdfEventSink seam",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1330,
+      "title": "Upgrade to purrdf 0.3.0 and migrate slice tests to the bnode-capable Rust harness",
+      "state": "CLOSED"
+    },
+    {
+      "number": 835,
+      "title": "P1 \u2014 purrdf: SRP-decompose py_store.rs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 713,
+      "title": "T3 \u2014 Hypothetical / subjunctive operator (\u25c7): test without committing",
+      "state": "CLOSED"
+    },
+    {
+      "number": 710,
+      "title": "epic: Transaction Logic (Bonner\u2013Kifer) \u2014 state-change, queries+updates+transactions unified in the logic: layer",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1413,
+      "title": "feat(logic): decide the withheld OWL 2 DL/Full fragment natively \u2014 complement refutation, qualified-cardinality counting, nominal/datatype value-space, xsd facet evaluation",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "consumer-artifact-path-coupling": 1,
+    "repeated-unshared-reasoning-analysis": 1
+  },
+  "prior_attempts": {
+    "commits": [
+      "28817b370 fix(logic): preserve alternate calculus spellings"
+    ],
+    "branches": [
+      "issue-1757-ja-linear",
+      "issue-1757-snapshot-critical",
+      "origin/issue-1757-ja-linear",
+      "origin/issue-1757-production-verdict",
+      "origin/issue-1757-snapshot-critical"
+    ],
+    "prs": [
+      {
+        "number": 1801,
+        "title": "perf(1757): compute joint acyclicity in linear Horn propagation",
+        "state": "OPEN",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1801",
+        "this_stage": false
+      },
+      {
+        "number": 1802,
+        "title": "fix(1757): certify and run native reasoning on the production corpus",
+        "state": "OPEN",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1802",
+        "this_stage": false
+      },
+      {
+        "number": 1804,
+        "title": "fix(slices): repair the corpus inconsistencies native reasoning exposed",
+        "state": "OPEN",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1804",
+        "this_stage": false
+      },
+      {
+        "number": 1791,
+        "title": "perf(1757): make native reasoning fit and finish on the production corpus",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1791",
+        "this_stage": false
+      },
+      {
+        "number": 1785,
+        "title": "feat(dev): helper census: one home per job, PurRDF's where it exists",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1785",
+        "this_stage": false
+      },
+      {
+        "number": 1758,
+        "title": "fix(ci): admit transferred optimized producers",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1758",
+        "this_stage": false
+      },
+      {
+        "number": 1760,
+        "title": "perf(logic): restore certified batch slice probes",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1760",
+        "this_stage": false
+      },
+      {
+        "number": 1759,
+        "title": "perf(pipeline): schedule stages on completion",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1759",
+        "this_stage": false
+      },
+      {
+        "number": 1740,
+        "title": "perf(logic): integrate the authenticated native pipeline and calculus",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1740",
+        "this_stage": false
+      },
+      {
+        "number": 1788,
+        "title": "fix(1787): carry every logic: list to graph/logic in one encoding",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1788",
+        "this_stage": false
+      },
+      {
+        "number": 1784,
+        "title": "deps: adopt purrdf 3.0 and enforce a major-3 substrate floor",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1784",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1757-perf-logic-finish-merged-pipeline"
+  },
+  "coverage": [
+    "issue #1757 + 24 comment(s) via github",
+    "link crawl: 35 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['perf/logic:', 'finish', 'merged']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 2 distinct class(es) in the last 200 commits",
+    "prior attempts: 1 commit(s) citing #1757 (second parents walked), 5 other branch(es) named for it",
+    "PRs citing #1757: 11",
+    "requirement candidates: 19 line(s); 14 comment(s) matched no rule",
+    "referenced artifacts: 15 path(s) (12 on disk), 24 identifier(s), 3 workspace package(s), 0 URL(s)"
+  ]
+}

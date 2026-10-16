@@ -1,0 +1,209 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+    Checking gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error: unused `std::result::Result` that must be used
+  --> crates/logic/tests/paged_dispatch.rs:48:9
+   |
+48 | /         builder.push_owned_quad(
+49 | |             &RdfQuad::new(RdfTerm::iri(*subject), *predicate, RdfTerm::iri(*object))
+50 | |                 .in_graph(RdfTerm::iri(WORLD)),
+51 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+48 |         let _ = builder.push_owned_quad(
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/tests/paged_dispatch.rs:632:5
+    |
+632 | /     builder.push_owned_quad(
+633 | |         &RdfQuad::new(
+634 | |             RdfTerm::iri(format!("{EX}holder")),
+635 | |             format!("{EX}mentions"),
+...   |
+638 | |         .in_graph(RdfTerm::iri(WORLD)),
+639 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+632 |     let _ = builder.push_owned_quad(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/tests/paged_dispatch.rs:640:5
+    |
+640 | /     builder.push_owned_reifier(
+641 | |         &RdfReifier::new(reifier.clone(), embedded).in_graph(Some(RdfTerm::iri(WORLD))),
+642 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+640 |     let _ = builder.push_owned_reifier(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/tests/paged_dispatch.rs:643:5
+    |
+643 | /     builder.push_owned_annotation(
+644 | |         &RdfAnnotation::new(
+645 | |             reifier,
+646 | |             format!("{EX}confidence"),
+...   |
+649 | |         .in_graph(Some(RdfTerm::iri(WORLD))),
+650 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+643 |     let _ = builder.push_owned_annotation(
+    |     +++++++
+
+error: could not compile `gmeow-logic` (test "paged_dispatch") due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0277]: the trait bound `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>: purrdf::DatasetView` is not satisfied
+   --> crates/conformance/src/compare.rs:272:47
+    |
+272 |         let bytes = purrdf::serialize_dataset(&projected, NTRIPLES, SerializeGraph::DefaultGraph)
+    |                     ------------------------- ^^^^^^^^^^ the trait `purrdf::DatasetView` is not implemented for `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `purrdf::DatasetView`:
+              purrdf::CompositeDatasetView
+              purrdf::DeltaDatasetView
+              purrdf::PackView<'_>
+              purrdf::PagedDataset
+              purrdf::PagedQueryView<'_>
+              purrdf::PagedStackQueryView<'_>
+              purrdf::RdfDataset
+              purrdf::TripleRead<'_>
+            and 6 others
+note: required by a bound in `purrdf::serialize_dataset`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf/src/native_codecs/serialize.rs:119:29
+    |
+119 | pub fn serialize_dataset<D: DatasetView>(
+    |                             ^^^^^^^^^^^ required by this bound in `serialize_dataset`
+
+error[E0308]: mismatched types
+   --> crates/conformance/src/external/tptp/lower_fol.rs:207:13
+    |
+207 |             world,
+    |             ^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+207 |             world: world.expect("REASON"),
+    |                  ++++++++++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:14
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |              ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:24
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |                        ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:33
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |                                 ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:44
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |                                            ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 217 |             .push_quad(subject.expect("REASON"), predicate, object, Some(self.world));
+     |                               +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 217 |             .push_quad(subject, predicate.expect("REASON"), object, Some(self.world));
+     |                                          +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 217 |             .push_quad(subject, predicate, object.expect("REASON"), Some(self.world));
+     |                                                  +++++++++++++++++
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-conformance` (lib) due to 3 previous errors
+error: could not compile `gmeow-conformance` (lib test) due to 3 previous errors
+error[E0308]: mismatched types
+   --> crates/validate/src/slice_peerage.rs:388:5
+    |
+387 | fn manifest_dataset(record: &SliceRecord) -> Dataset {
+    |                                              ------- expected `purrdf::slice::rdf_query::Dataset` because of return type
+388 |     Dataset::from_frozen(Arc::clone(&record.manifest_graph))
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Dataset`, found `Result<Dataset, SliceError>`
+    |
+    = note: expected struct `Dataset`
+                 found enum `std::result::Result<Dataset, purrdf::slice::SliceError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::slice::rdf_query::Dataset, purrdf::slice::SliceError>` value, panicking if the value is a `Result::Err`
+    |
+388 |     Dataset::from_frozen(Arc::clone(&record.manifest_graph)).expect("REASON")
+    |                                                             +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/validate/src/validate_all.rs:555:78
+    |
+555 |                     .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+    |                                                                              ^ expected `String`, found `ShapesError`
+    |
+help: try using a conversion method
+    |
+555 |                     .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e.to_string() })),
+    |                                                                               ++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-validate` (lib) due to 2 previous errors
+error[E0509]: cannot move out of type `purrdf::RdfTriple`, which implements the `Drop` trait
+  --> crates/validate/src/data_validate.tests.rs:43:13
+   |
+43 |             row.statement.object
+   |             ^^^^^^^^^^^^^^^^^^^^
+   |             |
+   |             cannot move out of here
+   |             move occurs because `row.statement.object` has type `purrdf::RdfTerm`, which does not implement the `Copy` trait
+   |
+help: consider cloning the value if the performance cost is acceptable
+   |
+43 |             row.statement.object.clone()
+   |                                 ++++++++
+
+Some errors have detailed explanations: E0308, E0509.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-validate` (lib test) due to 3 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

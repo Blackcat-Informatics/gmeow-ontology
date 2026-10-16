@@ -1,0 +1,7 @@
+Repair the production census for extracted test modules, preserving every production seal (Principles 4, 7, 12, 18).
+
+Reuse the existing first-party Rust module/cfg resolver in gmeow-build-inputs. Add a separate read-only ownership query, explicitly distinct from authenticated producer or native semantic identity. Resolve actual module declarations and paths across possible non-test cfg branches, retain any file with a production owner even when it also has a test owner, and report resolution failures rather than guess. Do not use filename allowlists, bless synthetic producers, or weaken the corpus-producer scanner.
+
+Route only production-call-site scans through this ownership result: generated disk folds, raw/profile GTS authors, producer declarations, string-error types and diagnostic kinds. Keep unmanaged temporary-directory scanning over all code, including tests. Correct the existing composed-cfg blanker: any(test, feature=...) can run in production and must remain visible; all(test, ...) cannot.
+
+Synthetic controls must prove extracted/nested test exclusion, production files with misleading test-like names, shared test/production ownership, composed cfg, production Seal A/B/C failures and generated-path failures, plus continued corpus-producer refusal. Refresh the two named live seal controls. Full crate-check still requires the separate genuine diagnostic/browser findings to be fixed. No full qualification or completion is inferred from this focused repair.

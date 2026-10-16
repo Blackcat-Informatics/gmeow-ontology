@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "a631f73e6e39b4493d295bcd83b4deec80637f54",
+  "headRefName": "issue-1796-datalog-first",
+  "headRefOid": "12e5c4f8a395971c49126dbcdb6d822eb04f635f",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1798,
+  "state": "OPEN",
+  "title": "feat(1796): run the restricted chase Datalog-first",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1798"
+}

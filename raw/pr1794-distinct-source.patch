@@ -1,0 +1,248 @@
+diff --git a/crates/logic/src/reason/program.rs b/crates/logic/src/reason/program.rs
+index d77325070..e5f9720a0 100644
+--- a/crates/logic/src/reason/program.rs
++++ b/crates/logic/src/reason/program.rs
+@@ -583,6 +583,16 @@ pub(super) fn execute_transaction(
+         "reason phase boundary",
+     );
+     let sources = sources.prepare()?;
++    // Each world's own authored existential program, certified on its own for that
++    // world's published certificate.
++    let mut world_programs: BTreeMap<String, Vec<crate::physical::ExistentialRule>> =
++        BTreeMap::new();
++    for source in sources.rules.iter() {
++        world_programs
++            .entry(source.world.clone())
++            .or_default()
++            .push(source.rule.clone());
++    }
+     let selected_potential: Vec<_> = possible.iter().chain(potential).cloned().collect();
+     let properties = applicable_schema_laws(
+         prepared,
+@@ -730,7 +740,14 @@ pub(super) fn execute_transaction(
+         event = "start",
+         "reason phase boundary",
+     );
+-    let result = publish(result, input_contract, graphs, domains, &program.admission)?;
++    let result = publish(
++        result,
++        input_contract,
++        graphs,
++        domains,
++        &program.admission,
++        &world_programs,
++    )?;
+     tracing::info!(
+         target: "pipeline_phase",
+         stage = "stage-reason",
+@@ -800,6 +817,7 @@ pub(super) fn class_diagnostic(
+             input.graphs,
+             domains,
+             &program.admission,
++            &BTreeMap::new(),
+         )?,
+     })
+ }
+@@ -810,6 +828,7 @@ fn publish(
+     graphs: WorldGraphs,
+     domains: &crate::physical::SelectedDomains,
+     admission: &crate::physical::ChaseAdmission,
++    world_programs: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
+ ) -> gmeow_errors::Result<ProgramClosure> {
+     let JointMaterialization {
+         result,
+@@ -827,12 +846,19 @@ fn publish(
+     let frontier = result.frontier();
+     let status = result.status;
+     let consumed_steps = result.consumed_steps;
++    // A world's certificate is its own authored program's termination class when that
++    // program certifies alone; otherwise it is the joint admission that authorized
++    // execution. Neither claims more than was proved.
+     let certificates = graphs
+         .keys()
+         .map(|world| ChaseCertificate {
+             world: world.clone(),
+             input_contract,
+-            admission: admission.clone(),
++            admission: world_programs
++                .get(world)
++                .map(|rules| crate::physical::ChaseAdmission::certify(rules))
++                .filter(crate::physical::ChaseAdmission::admits_native)
++                .unwrap_or_else(|| admission.clone()),
+         })
+         .collect();
+     let inferred: Vec<_> = result
+diff --git a/crates/logic/src/reason/source_existentials/tests.rs b/crates/logic/src/reason/source_existentials/tests.rs
+index 8039e6701..2fc2a932a 100644
+--- a/crates/logic/src/reason/source_existentials/tests.rs
++++ b/crates/logic/src/reason/source_existentials/tests.rs
+@@ -925,3 +925,30 @@ fn source_owned_effects_do_not_create_a_foreign_negative_cycle() {
+             .any(|row| row.graph == B && row.predicate == SEED)
+     );
+ }
++
++#[test]
++fn each_demonstrator_world_publishes_its_own_certificate_class() {
++    // Rooted into their own worlds as the producer roots them, the demonstrators
++    // run under one joint execution admission, yet each world's published
++    // certificate is its own program's class, never a copy of the joint one.
++    let mut builder = RdfDatasetBuilder::new();
++    for (graph, ttl) in termination_ladder_demonstrators() {
++        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
++        for mut quad in dataset.owned_quads() {
++            quad.graph_name = Some(RdfTerm::iri(graph));
++            builder.push_owned_quad(&quad);
++        }
++    }
++    let input = super::super::program::prepare_reasoning_input(&builder.freeze().unwrap()).unwrap();
++    let result =
++        crate::reason::reason_all(input, &crate::physical::SelectedDomains::new([]).unwrap())
++            .unwrap();
++    let certificates = &result.native_execution().unwrap().chase_certificates;
++    for (world, code) in crate::termination_demonstrators::termination_ladder_certificate_codes() {
++        let published = certificates
++            .iter()
++            .find(|certificate| certificate.world == world)
++            .map(|certificate| certificate.to_finding().code);
++        assert_eq!(published.as_deref(), Some(code), "{world}");
++    }
++}
+diff --git a/crates/logic/src/termination_demonstrators.rs b/crates/logic/src/termination_demonstrators.rs
+index 162a22598..198ad4d9a 100644
+--- a/crates/logic/src/termination_demonstrators.rs
++++ b/crates/logic/src/termination_demonstrators.rs
+@@ -99,3 +99,22 @@ pub fn termination_ladder_demonstrators() -> [(&'static str, &'static str); 3] {
+         (GRAPH_DEMO_MODEL_SUMMARIZING, MODEL_SUMMARIZING_TTL),
+     ]
+ }
++
++/// Each demonstrator world with the certificate finding code its program must earn.
++/// `stage-reason` refuses a run whose demonstrator world publishes any other class.
++pub fn termination_ladder_certificate_codes() -> [(&'static str, &'static str); 3] {
++    [
++        (
++            GRAPH_DEMO_JOINTLY_ACYCLIC,
++            "chase.certificate.jointly-acyclic",
++        ),
++        (
++            GRAPH_DEMO_SUPER_WEAKLY_ACYCLIC,
++            "chase.certificate.super-weakly-acyclic",
++        ),
++        (
++            GRAPH_DEMO_MODEL_SUMMARIZING,
++            "chase.certificate.model-summarizing-acyclic",
++        ),
++    ]
++}
+diff --git a/crates/pipeline/src/stages/reason.rs b/crates/pipeline/src/stages/reason.rs
+index d5c186d2b..f2e9bb363 100644
+--- a/crates/pipeline/src/stages/reason.rs
++++ b/crates/pipeline/src/stages/reason.rs
+@@ -245,6 +245,7 @@ fn reason_prepared_input(
+         )
+         .with_tool("reason"),
+     );
++    require_demonstrator_classes(&native.chase_certificates)?;
+     for certificate in &native.chase_certificates {
+         let world = certificate.world.clone();
+         let mut finding = certificate.to_finding();
+@@ -911,3 +912,32 @@ pub(crate) use test_support::reason_artifacts;
+ pub(crate) use test_support::reason_product;
+ #[cfg(test)]
+ pub(crate) use test_support::reason_test_dataset;
++
++/// Each termination-ladder demonstrator world present in this reasoning input must
++/// publish its declared class: the shipped bundle carries that certification power only
++/// if the reasoner proves it. The producer always roots the demonstrators into the
++/// object-level EDB, and the shipped-bundle golden test requires their findings.
++fn require_demonstrator_classes(
++    certificates: &[gmeow_logic::reason::ChaseCertificate],
++) -> Result<(), gmeow_errors::Diag> {
++    for (world, code) in
++        gmeow_logic::termination_demonstrators::termination_ladder_certificate_codes()
++    {
++        let Some(certificate) = certificates
++            .iter()
++            .find(|certificate| certificate.world == world)
++        else {
++            continue;
++        };
++        let published = certificate.to_finding().code;
++        if published != code {
++            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
++                stage: "stage-reason".to_string(),
++                message: format!(
++                    "termination demonstrator {world} must certify as {code}, got {published}"
++                ),
++            }));
++        }
++    }
++    Ok(())
++}
+diff --git a/crates/pipeline/src/stages/reason.tests.rs b/crates/pipeline/src/stages/reason.tests.rs
+index 0d0fcf1b1..f2e8c5976 100644
+--- a/crates/pipeline/src/stages/reason.tests.rs
++++ b/crates/pipeline/src/stages/reason.tests.rs
+@@ -640,3 +640,62 @@ fn pin_handle_hard_fails_on_a_digest_mismatch() {
+         .expect_err("a mismatched pin must hard-fail");
+     let _ = err;
+ }
++
++#[test]
++fn demonstrator_worlds_must_publish_their_declared_certificate_class() {
++    use gmeow_logic::materialize::ChaseAdmission;
++    let certificate =
++        |world: &str, admission: ChaseAdmission| gmeow_logic::reason::ChaseCertificate {
++            world: world.to_owned(),
++            input_contract: [0; 32],
++            admission,
++        };
++    let evidence = || "test".to_owned();
++    let earned = |world: &str, code: &str| {
++        let admission = match code {
++            "chase.certificate.jointly-acyclic" => ChaseAdmission::JointlyAcyclic {
++                evidence: evidence(),
++            },
++            "chase.certificate.super-weakly-acyclic" => ChaseAdmission::SuperWeaklyAcyclic {
++                evidence: evidence(),
++            },
++            "chase.certificate.model-summarizing-acyclic" => {
++                ChaseAdmission::ModelSummarizingAcyclic {
++                    evidence: evidence(),
++                }
++            }
++            other => panic!("undeclared class {other}"),
++        };
++        certificate(world, admission)
++    };
++    let declared = gmeow_logic::termination_demonstrators::termination_ladder_certificate_codes();
++    let certificates: Vec<_> = declared
++        .iter()
++        .map(|(world, code)| earned(world, code))
++        .collect();
++    assert!(require_demonstrator_classes(&certificates).is_ok());
++
++    // A copied joint admission is not the demonstrator's own class.
++    let copied: Vec<_> = declared
++        .iter()
++        .map(|(world, _)| {
++            certificate(
++                world,
++                ChaseAdmission::WeaklyAcyclic {
++                    evidence: evidence(),
++                },
++            )
++        })
++        .collect();
++    let error = require_demonstrator_classes(&copied)
++        .unwrap_err()
++        .to_string();
++    assert!(
++        error.contains("must certify as chase.certificate.jointly-acyclic"),
++        "{error}"
++    );
++    // An input without the demonstrator worlds has nothing to certify for them.
++    assert!(require_demonstrator_classes(&[]).is_ok());
++    // A present demonstrator still must earn its own class.
++    assert!(require_demonstrator_classes(&copied[..1]).is_err());
++}

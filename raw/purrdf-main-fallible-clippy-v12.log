@@ -1,0 +1,69 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on package cache
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+error[E0308]: mismatched types
+   --> crates/math-lift/src/r/lift.rs:621:28
+    |
+612 |     fn resolve_fit(&self, expr: Option<&RExpr>) -> Option<FitInfo> {
+    |                                                    --------------- expected `std::option::Option<r::lift::FitInfo>` because of return type
+...
+621 |                     return Ok(None);
+    |                            ^^^^^^^^ expected `Option<FitInfo>`, found `Result<Option<_>, _>`
+    |
+    = note: expected enum `Option<r::lift::FitInfo>`
+               found enum `std::result::Result<Option<_>, _>`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-math-lift` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-math-lift` (lib test) due to 1 previous error
+error[E0308]: `?` operator has incompatible types
+   --> crates/lang-bridge/src/gmn1_codec.rs:233:34
+    |
+233 |         Ok(purrdf::canonicalize(&self.to_dataset()?).nquads)
+    |                                  ^^^^^^^^^^^^^^^^^^ expected `RdfDataset`, found `Arc<RdfDataset>`
+    |
+    = note: `?` operator cannot convert from `std::sync::Arc<RdfDataset>` to `RdfDataset`
+    = note: expected struct `RdfDataset`
+               found struct `std::sync::Arc<RdfDataset>`
+
+error[E0277]: `?` couldn't convert the error to `bridge::IngestDiagnostic`
+   --> crates/lang-bridge/src/registry.rs:770:75
+    |
+770 |             emissions.extend(self.per_source_emissions(input, dict, major)?);
+    |                                   ----------------------------------------^ the trait `std::convert::From<gmeow_errors::Diag>` is not implemented for `bridge::IngestDiagnostic`
+    |                                   |
+    |                                   this can't be annotated with `?` because it has type `Result<_, gmeow_errors::Diag>`
+    |
+note: `bridge::IngestDiagnostic` needs to implement `From<gmeow_errors::Diag>`
+   --> crates/lang-bridge/src/bridge.rs:61:1
+    |
+ 61 | pub struct IngestDiagnostic {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+
+error[E0277]: `?` couldn't convert the error to `bridge::IngestDiagnostic`
+   --> crates/lang-bridge/src/registry.rs:783:74
+    |
+783 |             let metrics = measure_token_metrics(&input.lang_models, dict)?;
+    |                           -----------------------------------------------^ the trait `std::convert::From<gmeow_errors::Diag>` is not implemented for `bridge::IngestDiagnostic`
+    |                           |
+    |                           this can't be annotated with `?` because it has type `Result<_, gmeow_errors::Diag>`
+    |
+note: `bridge::IngestDiagnostic` needs to implement `From<gmeow_errors::Diag>`
+   --> crates/lang-bridge/src/bridge.rs:61:1
+    |
+ 61 | pub struct IngestDiagnostic {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-lang-bridge` (lib) due to 3 previous errors
+error: could not compile `gmeow-lang-bridge` (lib test) due to 3 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

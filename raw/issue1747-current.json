@@ -1,0 +1,33 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Found while wiring a consistency gate over the Principia corpus.\n\n## Problem\n\n`crates/logic/src/obligations.rs` `check_reachability(obligation, heads, \u2026)` takes `heads = foundation::head_predicate_iris()` \u2014 the head predicates of the built-in foundation STRATA tables only. An external corpus's obligations forbid predicates in the corpus's own namespace (e.g. `principia:toolUseEntailsIdentityConstitution`), and the corpus's own compiled rules are exactly the rules that could reach them \u2014 but they are never consulted. `DischargeSyntacticReachability` therefore discharges vacuously for any corpus that authors its own rules: the check proves \"GMEOW's foundation rules don't derive your forbidden predicate\", which was never in question.\n\n## Proposed direction\n\nUnion the foundation heads with the head predicates of the compiled `LogicProgram` under check (`program.rules[i].head.predicate`). The program is already available wherever discharge runs after a compile. This is the smallest change that turns `DischargeSyntacticReachability` into a statement about the corpus rather than about the foundation.\n\n## Workaround in use\n\nAn asserted-lane competency ASK per doctrine file that binds each obligation's forbidden predicate and checks `FILTER NOT EXISTS { ?rule logic:head ?head . ?head rdf:predicate <forbidden> }` file-locally. Honest but file-scoped and reasoning-free.\n\n## Approved integration under #1704\n\nThis report is current implementation scope. The branch's rule extractor repairs are useful prerequisites, but foundation-only obligation discharge remains unrepaired.\n\n- Build one reusable, content-addressed reachability analysis from the selected canonical program and foundation strata, including the corpus's own admitted rule heads. Consume the already compiled native program; do not serialize, reparse or lower it again.\n- Bind the analysis and discharge receipt to exact program/import/context/engine identities. An excluded, malformed or unsupported rule must prevent an unjustified negative reachability proof; missing heads are not evidence of impossibility.\n- Syntactic unreachability can discharge an obligation; a reachable head only prevents that discharge. It is not a witnessed derivation and must not produce ObligationViolated by itself. Distinguish unknown/not syntactically discharged from an actual counterexample, following LOGIC-FOUNDATION.\n- Retain the other discharge arms and provenance. Report the examined obligation/rule inventory and refuse foreign/stale analyses.\n- Verify reachable custom heads, unreachable predicates, malformed/excluded rules, mixed typing, imports and changed-program invalidation.\n\nBlocked by #1746 and #1748. Blocks #1735. GMEOW owns these obligation semantics; no duplicated PurRDF conformance suite. Principles 4, 7, 9, 17\u201319.\n\n\n## Resolved discharge semantics\n\n`LOGIC-FOUNDATION.md` defines the discharge conditions as alternative sufficient proofs. A matching rule head establishes possibility and can only leave syntactic discharge unknown; it is not `ObligationViolated`. If a selected, certified complete finite closure supplies a negative result, that stronger evidence can discharge the obligation despite syntactic reachability. A real derived counterexample supplies violation. An explicitly requested but unwired discharge condition remains a capability error.\n\nThe local implementation now separates reachable-head uncertainty from counterexamples and respects the finite-closure alternative. Shared native rule/formula preparation is being integrated across dataset selection, materialization and program reasoning. This does not yet resolve the foundation-only inventory: complete corpus/import/context coverage and bound analysis/discharge receipts remain mandatory here and under #1748. In particular, the final analysis must account for schema-induced/native dynamic producers and excluded formulas; merely unioning textual Horn heads is not a certificate for every consequence of the selected theory.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-09-08T19:40:03Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    }
+  ],
+  "milestone": null,
+  "number": 1747,
+  "state": "OPEN",
+  "title": "logic: reachability discharge (Arm A) never consults the corpus's own compiled rule heads",
+  "updatedAt": "2026-09-08T22:20:37Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1747"
+}

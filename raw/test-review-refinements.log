@@ -1,0 +1,20 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(native_artifact_fixture_rejects) | test(a_summarized_consumer_never_blocks))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Finished `test` profile [optimized] target(s) in 2m 13s
+────────────
+ Nextest run ID 6aa7c004-ecab-4bb4-bd52-59c584e5e0d4 with nextest profile: ci
+    Starting 2 tests across 26 binaries (2261 tests and 199 binaries skipped)
+        PASS [   0.009s] (1/2) gmeow-logic physical::chase::tests::a_summarized_consumer_never_blocks_a_restricted_trigger
+        PASS [   0.038s] (2/2) gmeow-logic reason::artifacts::tests::native_artifact_fixture_rejects_missing_or_mismatched_execution_evidence
+────────────
+     Summary [   0.067s] 2 tests run: 2 passed, 2261 skipped

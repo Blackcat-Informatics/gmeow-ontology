@@ -1,0 +1,472 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking purrdf-text v3.0.0
+    Checking purrdf-geo v3.0.0
+    Checking purrdf-hnsw v3.0.0
+    Checking purrdf-rdf v3.0.0
+    Checking typst-library v0.13.1
+    Checking write-fonts v0.48.1
+    Checking skrifa v0.42.1
+    Checking trycmd v0.15.11
+    Checking rayon-cond v0.4.0
+    Checking spm_precompiled v0.1.4
+    Checking gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/test-batch-macros)
+    Checking gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-form)
+    Checking xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/xtask)
+    Checking gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/license)
+    Checking gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/cost-measure)
+    Checking tokenizers v0.22.2
+    Checking purrdf-retrieval v3.0.0
+    Checking subsetter v0.2.6
+    Checking svg2pdf v0.12.0
+    Checking purrdf-slice v3.0.0
+    Checking purrdf-shapes v3.0.0
+    Checking typst-svg v0.13.1
+    Checking typst-eval v0.13.1
+    Checking typst-layout v0.13.1
+    Checking typst-realize v0.13.1
+    Checking typst-pdf v0.13.1
+    Checking typst-html v0.13.1
+    Checking typst v0.13.1
+    Checking purrdf-validate v3.0.0
+    Checking purrdf v3.0.0
+    Checking gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/term-arena)
+    Checking gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/ns)
+    Checking gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gts-profile)
+    Checking gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-import)
+    Checking gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/foundation-corpus)
+    Checking gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/query-wasm)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+    Checking gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/music)
+    Checking gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math)
+    Checking gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect-ingest)
+    Checking gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+    Checking gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+    Checking gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+error: this function has too many arguments (8/7)
+    --> crates/logic/src/external_evidence.rs:1129:1
+     |
+1129 | / fn check(
+1130 | |     disposition: ArtifactCheckDisposition,
+1131 | |     artifact: &SzsArtifact,
+1132 | |     problem_digest: &str,
+...    |
+1137 | |     detail: impl Into<String>,
+1138 | | ) -> ArtifactCheck {
+     | |__________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#too_many_arguments
+     = note: `-D clippy::too-many-arguments` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::too_many_arguments)]`
+
+error: this `if` statement can be collapsed
+   --> crates/logic/src/modal/contextual/native/evidence.rs:249:9
+    |
+249 | /         if let Some(stop) = &self.upstream_stop {
+250 | |             if self.provenance.consumed_budget.allowance
+251 | |                 != budget
+252 | |                     .allowance
+...   |
+261 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+249 ~         if let Some(stop) = &self.upstream_stop
+250 ~             && (self.provenance.consumed_budget.allowance
+251 |                 != budget
+...
+254 |                 || (matches!(stop, NativeContextualUpstreamStop::InferenceExhausted)
+255 ~                     && budget.limit != Some(crate::result::BudgetLimit::Inference)))
+256 |             {
+...
+259 |                 )));
+260 ~             }
+    |
+
+error: very complex type used. Consider factoring parts into `type` definitions
+   --> crates/logic/src/modal/contextual.rs:504:6
+    |
+504 | ) -> Result<BTreeMap<String, (D::Id, Option<D::Id>)>, AdmissionError> {
+    |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#type_complexity
+    = note: `-D clippy::type-complexity` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::type_complexity)]`
+
+error: very complex type used. Consider factoring parts into `type` definitions
+   --> crates/logic/src/modal/contextual.rs:738:13
+    |
+738 |     claims: BTreeMap<(String, D::Id, D::Id, D::Id), Evidence>,
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#type_complexity
+
+error: large size difference between variants
+   --> crates/logic/src/physical/chase.rs:262:1
+    |
+262 | / enum ChaseOwnership {
+263 | |     Template,
+264 | |     Source(SourceExistentialRule),
+    | |     ----------------------------- the largest variant contains at least 408 bytes
+265 | |     Domain(crate::physical::SelectedLogicalWorld),
+    | |     --------------------------------------------- the second-largest variant contains at least 136 bytes
+266 | | }
+    | |_^ the entire enum is at least 408 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+264 -     Source(SourceExistentialRule),
+264 +     Source(Box<SourceExistentialRule>),
+    |
+
+error: this `if` statement can be collapsed
+   --> crates/logic/src/physical/effects/value_flow.rs:644:21
+    |
+644 | /                     if input
+645 | |                         .predicate
+646 | |                         .as_ref()
+647 | |                         .is_none_or(|required| required == &predicate)
+...   |
+652 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+help: collapse nested if block
+    |
+647 ~                         .is_none_or(|required| required == &predicate)
+648 ~                         && let Some(name) = variable(&head[input.column]) {
+649 |                             variables.insert(name.to_owned());
+650 ~                         }
+    |
+
+error: using `contains()` instead of `iter().any()` is more efficient
+   --> crates/logic/src/physical/seminaive/joint/families/analysis.rs:182:17
+    |
+182 |             && !admissions.iter().any(|current| *current == prior)
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `admissions.contains(&prior)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#manual_contains
+    = note: `-D clippy::manual-contains` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_contains)]`
+
+error: this function has too many arguments (8/7)
+   --> crates/logic/src/physical/seminaive/joint/families.rs:730:5
+    |
+730 | /     pub(super) fn prepare_sources(
+731 | |         &mut self,
+732 | |         snapshot: RoundSnapshot<'_>,
+733 | |         rows: &[crate::rule_ir::DerivedRow],
+...   |
+738 | |         observed: &BTreeSet<NativeRead>,
+739 | |     ) -> gmeow_errors::Result<()> {
+    | |_________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#too_many_arguments
+
+error: this function has too many arguments (10/7)
+   --> crates/logic/src/physical/seminaive/joint/families.rs:769:5
+    |
+769 | /     pub(super) fn round(
+770 | |         &mut self,
+771 | |         producers: &[Producer],
+772 | |         snapshot: RoundSnapshot<'_>,
+...   |
+779 | |         round: &mut RoundCandidateBuffer,
+780 | |     ) -> gmeow_errors::Result<()> {
+    | |_________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#too_many_arguments
+
+error: this function has too many arguments (9/7)
+   --> crates/logic/src/physical/seminaive/joint/families.rs:905:5
+    |
+905 | /     pub(super) fn finish(
+906 | |         &mut self,
+907 | |         store: &crate::rule_ir::FactStore,
+908 | |         rel: &crate::physical::RelationStore,
+...   |
+914 | |         terminal: &crate::reason::refute::native::NativeClosureStatus,
+915 | |     ) -> gmeow_errors::Result<()> {
+    | |_________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#too_many_arguments
+
+error: unnecessary closure used to substitute value for `Option::None`
+   --> crates/logic/src/physical/seminaive/joint/input/admission.rs:266:23
+    |
+266 |               closable: closable_rows
+    |  _______________________^
+267 | |                 .map(|facts| Closable { candidates, facts })
+268 | |                 .ok_or_else(|| EvidenceGap::ClosureSourceBound {
+269 | |                     facts: closable_facts,
+270 | |                     bytes: closable_bytes,
+271 | |                 }),
+    | |__________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#unnecessary_lazy_evaluations
+    = note: `-D clippy::unnecessary-lazy-evaluations` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_lazy_evaluations)]`
+help: use `ok_or` instead
+    |
+268 ~                 .ok_or(EvidenceGap::ClosureSourceBound {
+269 +                     facts: closable_facts,
+270 +                     bytes: closable_bytes,
+271 ~                 }),
+    |
+
+error: this function has too many arguments (8/7)
+   --> crates/logic/src/physical/seminaive/joint/input.rs:338:5
+    |
+338 | /     fn build(
+339 | |         rules: &[EvalRule],
+340 | |         templates: &[ExistentialRule],
+341 | |         properties: &[PreparedPropertyRule],
+...   |
+346 | |         operation: super::JointOperation,
+347 | |     ) -> gmeow_errors::Result<Self> {
+    | |___________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#too_many_arguments
+
+error: this function has too many arguments (11/7)
+   --> crates/logic/src/physical/seminaive/joint.rs:169:5
+    |
+169 | /     fn from_schedule(
+170 | |         rules: &RuleLayouts,
+171 | |         producers: &[Arc<PreparedChaseRule>],
+172 | |         properties: &[PreparedPropertyRule],
+...   |
+180 | |         admission: ChaseAdmission,
+181 | |     ) -> Self {
+    | |_____________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#too_many_arguments
+
+error: derefed type is same as origin
+    --> crates/logic/src/physical/seminaive/joint.rs:1090:33
+     |
+1090 |         if let Some(retained) = retention.as_deref_mut() {
+     |                                 ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `retention`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#needless_option_as_deref
+     = note: `-D clippy::needless-option-as-deref` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::needless_option_as_deref)]`
+
+error: this function has too many arguments (8/7)
+   --> crates/logic/src/physical/seminaive/property.rs:523:5
+    |
+523 | /     pub(super) fn visit(
+524 | |         &self,
+525 | |         rel: &RelationStore,
+526 | |         delta: Delta,
+...   |
+531 | |         emit: &mut impl FnMut(&str, Fact, &[Fact]) -> gmeow_errors::Result<bool>,
+532 | |     ) -> gmeow_errors::Result<PropertyVisit> {
+    | |____________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#too_many_arguments
+
+error: this `if` guard returns a bool literal and is followed by another
+   --> crates/logic/src/reason/leave_one_out.rs:309:13
+    |
+309 | /             if triple.predicate == OWL_COMPLEMENT
+310 | |                 && ((triple.subject == left && triple.object == right)
+311 | |                     || (triple.subject == right && triple.object == left))
+...   |
+315 | |             false
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#needless_bool
+    = note: `-D clippy::needless-bool` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_bool)]`
+help: you can reduce it to
+    |
+309 ~             triple.predicate == OWL_COMPLEMENT && ((triple.subject == left && triple.object == right)
+310 +                     || (triple.subject == right && triple.object == left))
+    |
+
+error: large size difference between variants
+   --> crates/logic/src/reason/program.rs:749:1
+    |
+749 | /   pub(super) enum ClassDiagnosticRun {
+750 | | /     SourceRefused {
+751 | | |         admission: super::refute::ClassAdmissionObservation,
+752 | | |     },
+    | | |_____- the second-largest variant contains at least 72 bytes
+753 | | /     Executed {
+754 | | |         closure: ProgramClosure,
+755 | | |     },
+    | | |_____- the largest variant contains at least 416 bytes
+756 | |   }
+    | |___^ the entire enum is at least 416 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+754 -         closure: ProgramClosure,
+754 +         closure: Box<ProgramClosure>,
+    |
+
+error: this `if` statement can be collapsed
+   --> crates/logic/src/reason/refute/datatype.rs:650:9
+    |
+650 | /         if ready && admitted && ledger.charge(1) {
+651 | |             if let Err(error) = model.prepare(root) {
+652 | |                 let fields = DEFINITION_FIELDS
+653 | |                     .iter()
+...   |
+662 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+help: collapse nested if block
+    |
+650 ~         if ready && admitted && ledger.charge(1)
+651 ~             && let Err(error) = model.prepare(root) {
+652 |                 let fields = DEFINITION_FIELDS
+...
+660 |                 );
+661 ~             }
+    |
+
+error: large size difference between variants
+  --> crates/logic/src/reason/refute/native.rs:25:1
+   |
+25 | /   pub enum NativeProofOrigin {
+26 | |       /// Original admitted statements, before deterministic native blank lowering.
+27 | |       Asserted {
+28 | |           /// Exact original occurrences owning this execution statement.
+...  |
+34 | | /     Derived {
+35 | | |         /// Exact admitted rule identity.
+36 | | |         rule: String,
+37 | | |         /// Actual committed derivation identifier.
+...  | |
+40 | | |         premises: Vec<NativeProofId>,
+41 | | |     },
+   | | |_____- the second-largest variant contains at least 72 bytes
+...  |
+53 | | /     Intrinsic {
+54 | | |         /// Actual selected-domain witness receipt and minting head.
+55 | | |         witness: WitnessDerivation,
+56 | | |     },
+   | | |_____- the largest variant contains at least 328 bytes
+57 | |   }
+   | |___^ the entire enum is at least 328 bytes
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+   |
+55 -         witness: WitnessDerivation,
+55 +         witness: Box<WitnessDerivation>,
+   |
+
+error: large size difference between variants
+   --> crates/logic/src/reason/refute/native.rs:666:1
+    |
+666 | / enum Origin {
+667 | |     Asserted(Vec<usize>),
+    | |     -------------------- the second-largest variant contains at least 24 bytes
+668 | |     Derived(usize),
+669 | |     Intrinsic(WitnessDerivation),
+    | |     ---------------------------- the largest variant contains at least 328 bytes
+670 | | }
+    | |_^ the entire enum is at least 328 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+669 -     Intrinsic(WitnessDerivation),
+669 +     Intrinsic(Box<WitnessDerivation>),
+    |
+
+error: large size difference between variants
+  --> crates/logic/src/reason/refute/diagnostic.rs:18:1
+   |
+18 | /   pub enum ClassDiagnosticOutcome {
+19 | |       /// No writer ran because the selected source grammar or capability refused.
+20 | | /     SourceRefused {
+21 | | |         /// Every selected source owner, exact context and refusal.
+22 | | |         admission: ClassAdmissionObservation,
+23 | | |     },
+   | | |_____- the second-largest variant contains at least 72 bytes
+24 | |       /// Intrinsic domains and the class producer used the shared native governor.
+25 | | /     Executed {
+26 | | |         /// Complete evidence for that explicit operation.
+27 | | |         execution: ClassDiagnosticObservation,
+28 | | |     },
+   | | |_____- the largest variant contains at least 336 bytes
+29 | |   }
+   | |___^ the entire enum is at least 336 bytes
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+   |
+27 -         execution: ClassDiagnosticObservation,
+27 +         execution: Box<ClassDiagnosticObservation>,
+   |
+
+error: large size difference between variants
+   --> crates/logic/src/verify.rs:269:1
+    |
+269 | / enum ClosureBaseOutcome {
+270 | |     Ready(ClosureBase),
+    | |     ------------------ the largest variant contains at least 272 bytes
+271 | |     IncompleteClosure(Vec<Finding>),
+    | |     ------------------------------- the second-largest variant contains at least 24 bytes
+272 | | }
+    | |_^ the entire enum is at least 272 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+270 -     Ready(ClosureBase),
+270 +     Ready(Box<ClosureBase>),
+    |
+
+error: could not compile `gmeow-logic` (lib) due to 22 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: deref which would be done by auto-deref
+   --> crates/logic/src/correspondence_exec/plan_projection/tests.rs:115:45
+    |
+115 |             let schema = builder.intern_iri(*schema);
+    |                                             ^^^^^^^ help: try: `schema`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#explicit_auto_deref
+    = note: `-D clippy::explicit-auto-deref` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::explicit_auto_deref)]`
+
+error: unnecessary use of `clone` to create a slice from a reference
+  --> crates/logic/src/physical/store/witness/retention_tests.rs:69:37
+   |
+69 |         .record_head(&recipe.scope, &[witness.clone()], &head, premises)
+   |                                     ^^^^^^^^^^^^^^^^^^ help: try: `std::slice::from_ref(&witness)`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#cloned_ref_to_slice_refs
+   = note: `-D clippy::cloned-ref-to-slice-refs` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::cloned_ref_to_slice_refs)]`
+
+error: using `.iter.next()` on an array
+   --> crates/logic/src/reason/dl_verdict_tests.rs:257:18
+    |
+257 |     let source = source.iter().next().unwrap();
+    |                  ^^^^^^^^^^^^^^^^^^^^ help: try calling: `source.first()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#iter_next_slice
+    = note: `-D clippy::iter-next-slice` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::iter_next_slice)]`
+
+error: could not compile `gmeow-logic` (lib test) due to 25 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

@@ -1,0 +1,19 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) & (test(probabilistic_measure_without_model_is_unsupported) | test(probabilistic_measure_with_declared_model_is_supported) | test(probability_model_in_unselected_graph_does_not_admit_default_contract) | test(native_structural_typing_extracts_rules_contracts_and_constraints_without_aliasing_domain_types))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 52.81s
+────────────
+ Nextest run ID 8561645e-6675-4c38-9788-cf45144937ba with nextest profile: ci
+    Starting 4 tests across 2 binaries (932 tests and 223 binaries skipped)
+        PASS [   0.005s] (1/4) gmeow-logic-compile frontend::tests::probability_model_in_unselected_graph_does_not_admit_default_contract
+        PASS [   0.005s] (2/4) gmeow-logic-compile frontend::tests::probabilistic_measure_without_model_is_unsupported
+        PASS [   0.006s] (3/4) gmeow-logic-compile frontend::tests::probabilistic_measure_with_declared_model_is_supported
+        PASS [   0.007s] (4/4) gmeow-logic-compile frontend::tests::native_structural_typing_extracts_rules_contracts_and_constraints_without_aliasing_domain_types
+────────────
+     Summary [   0.018s] 4 tests run: 4 passed, 932 skipped

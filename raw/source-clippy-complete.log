@@ -1,0 +1,28 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+error: empty line after doc comment
+   --> crates/gmeow-dev-cli/tests/make_gate_contract.rs:453:1
+    |
+453 | / /// Every real-DAG medium refresh must enter through the admitted producer.
+454 | |
+    | |_^
+...
+457 |   fn term_release_authority_has_only_the_authenticated_producer_entry_point() {
+    |   ------------------------------------------------------------------------- the comment documents this function
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#empty_line_after_doc_comments
+    = note: `-D clippy::empty-line-after-doc-comments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::empty_line_after_doc_comments)]`
+    = help: if the empty line is unintentional, remove it
+help: if the documentation should include the empty line include it in the comment
+    |
+454 | ///
+    |
+
+error: could not compile `gmeow-dev-cli` (test "make_gate_contract") due to 1 previous error
+make: *** [Makefile:289: clippy-prebuild] Error 101

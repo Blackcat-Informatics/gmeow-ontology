@@ -1,0 +1,51 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Rule (agreed)\nSplit by **generic mechanism versus gmeow semantics**, not strictly by RDF versus beyond-RDF:\n\n- **purrdf owns** the generic, logic-agnostic engines and decision procedures, wherever their theory is general:\n  - RDF parsing and serialization, SPARQL and its pushdown;\n  - XSD/OWL datatype value spaces;\n  - Datalog and existential-chase execution;\n  - chase termination certification (WA/JA/SWA/MSA/RJA, Datalog-first);\n  - the OWL-Direct DL hypertableau with absorption, proofs and certificates;\n  - module extraction.\n- **gmeow owns** the `logic:` language, its semantics and its compilation onto those engines:\n  - modal and contextual worlds;\n  - grounding and correspondence laws;\n  - world-scoped refutation ledgers and provenance policy;\n  - the slices and the `gmeow.gts` / `gmeow` CLI deliverables.\n- **Each overlap gets exactly one owner.** The inferior copy is deleted (greenfield), never kept as a fallback.\n- **CLAUDE.md** currently says \"the native `logic:` reasoner is the single reasoning authority\". It should read: the authority on `logic:` **semantics**, executed on purrdf engines.\n\n## Boundary requirements\nThe split only pays if crossing it is cheap and lossless:\n1. **Proofs bound to source premises,** so gmeow ledgers can cite purrdf derivations. purrdf already has `DlProof`, `ChaseProof` and `ServiceProof`.\n2. **World-scoped input:** named graphs as worlds.\n3. **Budgets and stop signals** (`StopSignal` exists).\n4. **Shared-store or delta seams,** so production does not copy a ~690k-fact store per call. These may need adding upstream.\n5. **purrdf release cadence** that keeps up with boundary moves (gmeow pins `purrdf = \"3\"`).\n\n## Current overlap inventory\n| Overlap | gmeow today | purrdf home | Status |\n|---|---|---|---|\n| OWL DL class-model consistency | `logic/src/reason/refute/casesplit.rs`: partial case-split; refuses defined classes and domain/range, about 21k production obstructions (#1757, PR #1802) | `entail::owl_dl`: SHOIQ(D) hypertableau, absorption, `Reasoner::consistency` with `DlCertificate`/`DlProof` | **Next:** benchmark on the production class-model worlds, then delegate and delete `casesplit` |\n| Existential chase and termination ladder | `logic/src/physical/chase.rs` and the joint materializer (WA/JA/SWA/MSA/RJA, Datalog-first, #1796) | `purrdf-datalog` (seminaive, chase, WA only) | #1797 tracks lifting RJA/Datalog-first; the full engine move follows |\n| Datatype semantics | `reason/value.rs` named-datatype membership; `property/datatype/extent.rs`; `anyURI` added in #1802 | `purrdf-xsd` (value-space datatypes; lexical-space types are only constants today) | Upstream lexical-space datatype membership, then drop gmeow's layer |\n| Class-producer per-round re-evaluation | joint family round re-runs the class model every round | goes away with delegation | Folded into the class-model item |\n\nFurther overlaps found along the way get added here, not left implicit.",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABZhu30g",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Benchmark: the class-model worlds on the locked purrdf 3.0.0 hypertableau\n\nThis is the \"benchmark on the production class-model worlds\" step from the overlap table. It goes through gmeow's own `DlReasoner::consistency` seam, using the crates.io `purrdf-entail 3.0.0` that `Cargo.lock` selects. The inputs are the class worlds dumped from the producer after the corpus repairs in #1804. Each run was capped at 60 min and 16 GB.\n\n| World | Answer | Completeness | Boundaries | Time |\n|---|---|---|---|---|\n| Fixture worlds (36: one example, 35 W3C) | 34 answered (26 true, 8 false; the example clash fixture answers `false`). Checked against each case's expected verdict: 33 match W3C. That includes `webont-description-logic-035`, which the native reasoner records as `incomplete`. `webont-Thing-005` answers `consistent` where W3C says inconsistent: `owl:Thing owl:oneOf (s)` is satisfiable under Direct Semantics with a one-element domain, and only inconsistent under the RDF-Based Semantics that case is written for. That is a semantics divergence, not an engine error | 33 decided; one decided-within-boundaries | `fs2rdf-domain-range-expression-ar`: `data-range`, `unrecognized-term` | at most a few ms each |\n| W3C `webont-I5.26-006`, `-007` | **refused** at open: `Malformed: cyclic OWL class expression`. This is an OWL Full-only construct; W3C says consistent | none | none | n/a |\n| `graph/imports` | true | decided-within-boundaries | `data-range` | 24 ms |\n| `graph/logic` | none | timed out | none reported | over 60 min |\n| `graph/rl_default` | none | timed out | none reported | over 60 min |\n\n- The `graph/imports` boundary comes entirely from `rdfs:range xsd:dateTimeStamp`. purrdf 3.0.0 does not decide that datatype exactly, while `xsd:date`, `xsd:dateTime` and `xsd:integer` all decide cleanly. Filed upstream as Blackcat-Informatics/purrdf#451.\n- `graph/logic` and `rl_default` do not decide within the producer budget on the released engine.\n\n**Consequence for the delegation row:** delegating the class model to the released hypertableau cannot make the production verdict conclusive yet. Two things block it: the speed of the engine on the two large worlds, and the `dateTimeStamp` boundary. `casesplit` stays in place until a purrdf release decides these worlds. Deleting it now would replace an honest `unsupported` verdict with timeouts.\n",
+      "createdAt": "2026-10-06T02:25:16Z",
+      "includesCreatedEdit": true,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6008059858",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABZiZwcw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Follow-up: ABox summarization, and the source of every boundary\n\n**Structure.** Neither large world has any role assertion between individuals. The individuals carry only types and data:\n\n| World | Typed individuals | Distinct assertion signatures | Couplers |\n|---|---|---|---|\n| `graph/logic` | 3,047 | 50 | `oneOf` 17, `hasValue` 18, `members` 10 |\n| `graph/rl_default` | 16,887 | 698 | `sameAs` 420, `differentFrom` 2, `hasValue` 25, `oneOf` 18 |\n\n**Summarization.** I kept one representative per identical assertion signature. Any individual that a nominal, a coupler or another axiom names was kept verbatim (862 and 3,032 respectively, most of them punned class terms). Without role edges this is sound and complete for consistency. Results on the locked purrdf 3.0.0:\n\n| Summarized world | Individuals | Result |\n|---|---|---|\n| `graph/imports` | 722 \u2192 5 | true in 2 ms; `data-range` |\n| `graph/logic` | 3,047 \u2192 893 | true, but in **53 min**; `data-range`, `property-chain`, `unrecognized-term` |\n| `graph/rl_default` | 16,887 \u2192 3,673 | no answer in 60 min |\n\nSummarization does not bring `graph/logic` within budget, so the cost is driven by the TBox and not by the individuals.\n\n**Each boundary, reduced to a one-axiom probe:**\n- `data-range`: `rdfs:range xsd:dateTimeStamp`, filed as Blackcat-Informatics/purrdf#451.\n- `property-chain`: any `owl:propertyChainAxiom`, of which `graph/logic` has 9. Filed as Blackcat-Informatics/purrdf#452.\n- `unrecognized-term`, from two separate sources:\n  - `rdfs:range rdf:langString`, filed as Blackcat-Informatics/purrdf#453;\n  - `rdf:type rdf:Statement` on 232 rule-atom nodes. That one is a gmeow defect: the `logic:` rule projection uses RDF 1.1 classic reification. Filed as #1805. The RDF 1.2 `rdf:reifies` triple-term form decides with no boundary on the same engine.\n\n**Where delegation stands.** Even with all four boundary causes fixed, the released engine does not decide `graph/logic` or `rl_default` within the producer budget.\n",
+      "createdAt": "2026-10-06T03:31:22Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6008762483",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-05T13:50:41Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1803,
+  "state": "OPEN",
+  "title": "Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow",
+  "updatedAt": "2026-10-06T03:31:22Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803"
+}

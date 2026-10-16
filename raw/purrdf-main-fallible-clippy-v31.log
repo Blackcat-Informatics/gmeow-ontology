@@ -1,0 +1,60 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/correspondence_lower.rs:234:9
+    |
+234 |         dsl_b.push_dataset(&ds);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+234 |         let _ = dsl_b.push_dataset(&ds);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/reason.rs:586:9
+    |
+586 |         builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+586 |         let _ = builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/reason.rs:590:9
+    |
+590 |         builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+590 |         let _ = builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/reason.rs:594:9
+    |
+594 |         builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+594 |         let _ = builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope));
+    |         +++++++
+
+error: could not compile `gmeow-pipeline` (lib) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-pipeline` (lib test) due to 4 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

@@ -1,0 +1,42 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+error: the `Err`-variant returned from this function is very large
+   --> crates/logic-compile/src/frontend/source_admission/classes.rs:135:10
+    |
+135 |     ) -> Result<ClassLowering, SemanticUnitDisposition> {
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates/logic-compile/src/frontend/source_admission.rs:222:5
+    |
+222 |     Admitted(AdmittedSemanticUnit),
+    |     ------------------------------ the largest variant contains at least 184 bytes
+    |
+    = help: try reducing the size of `frontend::source_admission::SemanticUnitDisposition`, for example by boxing large elements or replacing it with `Box<frontend::source_admission::SemanticUnitDisposition>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#result_large_err
+    = note: `-D clippy::result-large-err` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::result_large_err)]`
+
+error: the `Err`-variant returned from this closure is very large
+   --> crates/logic-compile/src/frontend/source_admission/classes.rs:230:32
+    |
+230 |         let mut bind = |id| -> Result<Term, SemanticUnitDisposition> {
+    |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates/logic-compile/src/frontend/source_admission.rs:222:5
+    |
+222 |     Admitted(AdmittedSemanticUnit),
+    |     ------------------------------ the largest variant contains at least 184 bytes
+    |
+    = help: try reducing the size of `frontend::source_admission::SemanticUnitDisposition`, for example by boxing large elements or replacing it with `Box<frontend::source_admission::SemanticUnitDisposition>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#result_large_err
+
+error: could not compile `gmeow-logic-compile` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic-compile` (lib test) due to 2 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

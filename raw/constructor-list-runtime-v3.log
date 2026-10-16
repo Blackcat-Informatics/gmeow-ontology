@@ -1,0 +1,37 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(reason::program::list_tests::) | test(physical::seminaive::joint::source_grammar::tests::)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error[E0308]: mismatched types
+   --> crates/logic/src/physical/seminaive/joint/source_grammar.tests.rs:106:13
+    |
+104 |         EvalAtom::positive(
+    |         ------------------ arguments to this function are incorrect
+105 |             EvalTerm::var("cell"),
+106 |             crate::provenance::instance_of_iri(),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `String`
+    |
+note: associated function defined here
+   --> crates/logic/src/rule_ir.rs:155:19
+    |
+155 |     pub(crate) fn positive(subject: EvalTerm, predicate: &str, object: EvalTerm) -> Self {
+    |                   ^^^^^^^^                    ---------------
+help: consider borrowing here
+    |
+106 |             &crate::provenance::instance_of_iri(),
+    |             +
+
+error[E0308]: mismatched types
+   --> crates/logic/src/physical/seminaive/joint/source_grammar.tests.rs:111:13
+    |
+111 |             format!("{}naryArg0", crate::provenance::LOGIC_NAMESPACE),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `String`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-logic` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:709: nextest-synthetic] Error 101

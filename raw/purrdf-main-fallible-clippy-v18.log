@@ -1,0 +1,779 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error: unneeded `return` statement
+   --> crates/logic/src/materialize.rs:566:17
+    |
+566 | /                 return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
+567 | |                     "non-monotone materialization requires WellFoundedProfile or StableModelProfile, got {other}"
+568 | |                 ))));
+    | |____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#needless_return
+    = note: `-D clippy::needless-return` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_return)]`
+help: remove `return`
+    |
+566 ~                 Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
+567 +                     "non-monotone materialization requires WellFoundedProfile or StableModelProfile, got {other}"
+568 ~                 ))))
+    |
+
+error: could not compile `gmeow-logic` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/conjecture/tests.rs:35:9
+   |
+35 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+35 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/conjecture/tests.rs:66:5
+   |
+66 |     builder.push_owned_quad(&quad);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+66 |     let _ = builder.push_owned_quad(&quad);
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/conjecture/tests.rs:377:9
+    |
+377 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+377 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/explain/tests.rs:381:5
+    |
+381 |     builder.push_owned_quad(&quad(A, B));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+381 |     let _ = builder.push_owned_quad(&quad(A, B));
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/explain/tests.rs:382:5
+    |
+382 |     builder.push_owned_quad(&quad(B, C));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+382 |     let _ = builder.push_owned_quad(&quad(B, C));
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/explain/tests.rs:441:5
+    |
+441 | /     builder.push_owned_quad(
+442 | |         &RdfQuad::new(RdfTerm::iri(A), SUBCLASS, RdfTerm::iri(B)).in_graph(RdfTerm::iri(W)),
+443 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+441 |     let _ = builder.push_owned_quad(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/lower.tests.rs:11:5
+   |
+11 | /     builder.push_owned_quad(
+12 | |         &purrdf::RdfQuad::new(
+13 | |             purrdf::RdfTerm::iri("urn:subject"),
+14 | |             "urn:input",
+...  |
+17 | |         .in_graph(purrdf::RdfTerm::iri("urn:world")),
+18 | |     );
+   | |_____^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+11 |     let _ = builder.push_owned_quad(
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/materialize.annotation_tests.rs:22:5
+   |
+22 | /     builder.push_owned_quad(
+23 | |         &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri(Y)).in_graph(RdfTerm::iri(WORLD)),
+24 | |     );
+   | |_____^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+22 |     let _ = builder.push_owned_quad(
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/obligations.tests.rs:242:5
+    |
+242 |     builder.push_dataset(&first);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+242 |     let _ = builder.push_dataset(&first);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/obligations.tests.rs:243:5
+    |
+243 |     builder.push_dataset(&second);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+243 |     let _ = builder.push_dataset(&second);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/obligations/program_tests.rs:330:5
+    |
+330 |     builder.push_dataset(&first);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+330 |     let _ = builder.push_dataset(&first);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/obligations/program_tests.rs:331:5
+    |
+331 |     builder.push_dataset(&second);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+331 |     let _ = builder.push_dataset(&second);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/physical/interning.rs:443:5
+    |
+443 |     builder.push_dataset(&single);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+443 |     let _ = builder.push_dataset(&single);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/physical/interning.rs:445:9
+    |
+445 | /         builder.push_owned_quad(
+446 | |             &purrdf::RdfQuad::new(
+447 | |                 quad.subject.clone(),
+448 | |                 quad.predicate.clone(),
+...   |
+451 | |             .in_graph(purrdf::RdfTerm::iri(PROBE_GRAPH)),
+452 | |         );
+    | |_________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+445 |         let _ = builder.push_owned_quad(
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/session/tests.rs:15:9
+   |
+15 | /         builder.push_owned_quad(&RdfQuad::new(
+16 | |             RdfTerm::iri(*subject),
+17 | |             *predicate,
+18 | |             RdfTerm::iri(*object),
+19 | |         ));
+   | |__________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+15 |         let _ = builder.push_owned_quad(&RdfQuad::new(
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/dl_verdict_tests.rs:195:9
+    |
+195 |         builder.push_owned_quad(&row);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+195 |         let _ = builder.push_owned_quad(&row);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/dl.tests.rs:189:9
+    |
+189 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+189 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/el.tests.rs:26:9
+   |
+26 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+26 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/list_tests.rs:26:9
+   |
+26 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+26 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/literal_tests.rs:62:9
+   |
+62 | /         builder.push_owned_quad(&RdfQuad::new(
+63 | |             RdfTerm::iri("urn:subject"),
+64 | |             "urn:seed",
+65 | |             RdfTerm::literal(literal),
+66 | |         ));
+   | |__________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+62 |         let _ = builder.push_owned_quad(&RdfQuad::new(
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/semantic_tests.rs:75:5
+   |
+75 | /     builder.push_owned_quad(&RdfQuad::new(
+76 | |         RdfTerm::iri("urn:x"),
+77 | |         EDGE,
+78 | |         RdfTerm::iri("urn:y"),
+79 | |     ));
+   | |______^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+75 |     let _ = builder.push_owned_quad(&RdfQuad::new(
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/program/semantic_tests.rs:128:9
+    |
+128 |         builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), EDGE, RdfTerm::iri(o)));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+128 |         let _ = builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), EDGE, RdfTerm::iri(o)));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/program/semantic_tests.rs:396:9
+    |
+396 |         builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+396 |         let _ = builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/program/dl_input_tests.rs:362:9
+    |
+362 |         builder.push_owned_quad(&row);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+362 |         let _ = builder.push_owned_quad(&row);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/clash_tests.rs:43:9
+   |
+43 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+43 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/minimum_tests.rs:46:9
+   |
+46 |         builder.push_owned_quad(&row);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+46 |         let _ = builder.push_owned_quad(&row);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/expression_substrate_tests.rs:73:13
+   |
+73 |             builder.push_owned_quad(&quad);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+73 |             let _ = builder.push_owned_quad(&quad);
+   |             +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/equality_tests.rs:46:9
+   |
+46 |         builder.push_owned_quad(row);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+46 |         let _ = builder.push_owned_quad(row);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/empty_class_tests.rs:48:9
+   |
+48 |         builder.push_owned_quad(row);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+48 |         let _ = builder.push_owned_quad(row);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/program/joint_family_tests.rs:28:9
+   |
+28 |         builder.push_owned_quad(row);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+28 |         let _ = builder.push_owned_quad(row);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/refute/datatype/tests.rs:41:9
+   |
+41 |         builder.push_owned_quad(&fact);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+41 |         let _ = builder.push_owned_quad(&fact);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/refute/counting.tests.rs:26:9
+   |
+26 |         b.push_owned_quad(&q);
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+26 |         let _ = b.push_owned_quad(&q);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/refute/casesplit.tests.rs:19:9
+   |
+19 |         b.push_owned_quad(&q);
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+19 |         let _ = b.push_owned_quad(&q);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/refute/native/tests.rs:364:9
+    |
+364 |         builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+364 |         let _ = builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/refute/native/tests.rs:367:9
+    |
+367 | /         builder.push_owned_quad(&RdfQuad::new(
+368 | |             RdfTerm::iri(s),
+369 | |             p,
+370 | |             RdfTerm::literal(RdfLiteral::typed(o, dt)),
+371 | |         ));
+    | |__________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+367 |         let _ = builder.push_owned_quad(&RdfQuad::new(
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/refute/native/tests.rs:554:5
+    |
+554 | /     builder.push_owned_quad(&RdfQuad::new(
+555 | |         RdfTerm::blank_node("owned"),
+556 | |         DIFFERENT,
+557 | |         RdfTerm::blank_node("owned"),
+558 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+554 |     let _ = builder.push_owned_quad(&RdfQuad::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/refute/diagnostic/tests.rs:14:9
+   |
+14 |         builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+14 |         let _ = builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/refute/tests.rs:249:17
+    |
+249 |                 builder.push_owned_quad(&row);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+249 |                 let _ = builder.push_owned_quad(&row);
+    |                 +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/refute/tests.rs:329:9
+    |
+329 |         b.push_owned_quad(&q);
+    |         ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+329 |         let _ = b.push_owned_quad(&q);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/refute/tests.rs:331:5
+    |
+331 | /     b.push_owned_quad(
+332 | |         &RdfQuad::new(
+333 | |             RdfTerm::iri("http://ex/r1"),
+334 | |             OWL_MIN_CARDINALITY,
+...   |
+337 | |         .in_graph(RdfTerm::iri(W)),
+338 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+331 |     let _ = b.push_owned_quad(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/refute/tests.rs:620:9
+    |
+620 |         builder.push_owned_quad(&row.in_graph(RdfTerm::iri(WORLD)));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+620 |         let _ = builder.push_owned_quad(&row.in_graph(RdfTerm::iri(WORLD)));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/mod.tests.rs:47:9
+   |
+47 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+47 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/reason/mod.tests.rs:68:9
+   |
+68 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+68 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/mod.tests.rs:129:9
+    |
+129 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+129 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/result_rdf/tests.rs:139:5
+    |
+139 | /     source.push_owned_quad(&purrdf::RdfQuad::new(
+140 | |         purrdf::RdfTerm::iri("urn:gmeow:test:conflicting-individual"),
+141 | |         "https://blackcatinformatics.ca/logic/instanceOf",
+142 | |         purrdf::RdfTerm::iri("https://blackcatinformatics.ca/logic/Nothing"),
+143 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+139 |     let _ = source.push_owned_quad(&purrdf::RdfQuad::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/rule_ir/reduction/tests.rs:72:9
+   |
+72 | /         builder.push_owned_quad(
+73 | |             &RdfQuad::new(RdfTerm::iri(*subject), *predicate, object.clone())
+74 | |                 .in_graph(RdfTerm::iri(*world)),
+75 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+72 |         let _ = builder.push_owned_quad(
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/verify.tests.rs:35:9
+   |
+35 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+35 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:184:9
+    |
+184 | /         builder.push_owned_quad(
+185 | |             &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W2)),
+186 | |         );
+    | |_________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+184 |         let _ = builder.push_owned_quad(
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:188:5
+    |
+188 | /     builder.push_owned_quad(
+189 | |         &RdfQuad::new(
+190 | |             RdfTerm::iri(R),
+191 | |             MAX_CARDINALITY,
+...   |
+197 | |         .in_graph(RdfTerm::iri(W2)),
+198 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+188 |     let _ = builder.push_owned_quad(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:265:9
+    |
+265 |         builder.push_owned_quad(&quad(s, p, o));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+265 |         let _ = builder.push_owned_quad(&quad(s, p, o));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:322:5
+    |
+322 | /     builder.push_owned_quad(&quad(
+323 | |         "http://ex/obl",
+324 | |         RDF_TYPE,
+325 | |         &lg("NonEntailmentObligation"),
+326 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+322 |     let _ = builder.push_owned_quad(&quad(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:327:5
+    |
+327 | /     builder.push_owned_quad(&quad(
+328 | |         "http://ex/obl",
+329 | |         &lg("obligationDischargeCondition"),
+330 | |         &lg("DischargeFiniteClosure"),
+331 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+327 |     let _ = builder.push_owned_quad(&quad(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:332:5
+    |
+332 | /     builder.push_owned_quad(
+333 | |         &RdfQuad::new(
+334 | |             RdfTerm::iri("http://ex/obl"),
+335 | |             lg("obligationForbiddenPredicate"),
+...   |
+341 | |         .in_graph(RdfTerm::iri(W)),
+342 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+332 |     let _ = builder.push_owned_quad(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:354:9
+    |
+354 |         builder.push_owned_quad(&quad(s, &p, o));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+354 |         let _ = builder.push_owned_quad(&quad(s, &p, o));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:460:9
+    |
+460 |         builder.push_owned_quad(&quad(s, p, o));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+460 |         let _ = builder.push_owned_quad(&quad(s, p, o));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/verify.tests.rs:463:5
+    |
+463 | /     builder.push_owned_quad(
+464 | |         &RdfQuad::new(
+465 | |             RdfTerm::iri(cand),
+466 | |             reviewed_by.clone(),
+...   |
+472 | |         .in_graph(RdfTerm::iri(W)),
+473 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+463 |     let _ = builder.push_owned_quad(
+    |     +++++++
+
+error: could not compile `gmeow-logic` (lib test) due to 57 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

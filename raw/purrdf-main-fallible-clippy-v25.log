@@ -1,0 +1,723 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+    Checking gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+error: unused `std::result::Result` that must be used
+   --> crates/validate/benches/cost_common/mod.rs:112:9
+    |
+112 |         builder.push_dataset(&ds);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+112 |         let _ = builder.push_dataset(&ds);
+    |         +++++++
+
+error: could not compile `gmeow-validate` (bench "conformance_union_cost_alloc") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-validate` (bench "conformance_union_cost_instructions") due to 1 previous error
+error[E0599]: no method named `quad_count` found for enum `std::result::Result<T, E>` in the current scope
+    --> crates/validate/tests/conformance_support/mod.rs:164:15
+     |
+ 164 |         graph.quad_count() > 0,
+     |               ^^^^^^^^^^ method not found in `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+     |
+note: the method `quad_count` exists on the type `purrdf::RdfDataset`
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:2248:5
+     |
+2248 |     pub fn quad_count(&self) -> usize {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `purrdf::RdfDataset` value, panicking if the value is a `Result::Err`
+     |
+ 164 |         graph.expect("REASON").quad_count() > 0,
+     |              +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/validate/tests/conformance_support/mod.rs:167:30
+    |
+167 |     flatten_to_default_graph(&graph)
+    |     ------------------------ ^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |     |
+    |     arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/validate/tests/conformance_support/mod.rs:476:4
+    |
+476 | fn flatten_to_default_graph(dataset: &RdfDataset) -> Arc<RdfDataset> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^ --------------------
+
+Some errors have detailed explanations: E0308, E0599.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-validate` (test "consumer_advisory_shape") due to 2 previous errors
+error: could not compile `gmeow-validate` (test "language_catalog") due to 2 previous errors
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:174:9
+    |
+173 |     let core = select(
+    |                ------ arguments to this function are incorrect
+174 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:228:9
+    |
+227 |     let anchors = select(
+    |                   ------ arguments to this function are incorrect
+228 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:244:9
+    |
+243 |     let ants = select(
+    |                ------ arguments to this function are incorrect
+244 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:262:9
+    |
+261 |     let derived = select(
+    |                   ------ arguments to this function are incorrect
+262 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:275:9
+    |
+274 |     let sugs = select(
+    |                ------ arguments to this function are incorrect
+275 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:288:9
+    |
+287 |     let locs = select(
+    |                ------ arguments to this function are incorrect
+288 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:307:9
+    |
+306 |     let labels = select(
+    |                  ------ arguments to this function are incorrect
+307 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:431:9
+    |
+430 |     let cores = select(
+    |                 ------ arguments to this function are incorrect
+431 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+   --> crates/bundle-view/src/diagnostics_reader.rs:457:9
+    |
+456 |     let heads = select(
+    |                 ------ arguments to this function are incorrect
+457 |         &diag,
+    |         ^^^^^ expected `&Arc<RdfDataset>`, found `&Arc<Result<RdfDataset, RdfDiagnostic>>`
+    |
+    = note: expected reference `&Arc<RdfDataset>`
+               found reference `&Arc<std::result::Result<RdfDataset, purrdf::RdfDiagnostic>>`
+note: function defined here
+   --> crates/bundle-view/src/native_query.rs:90:8
+    |
+ 90 | pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
+    |        ^^^^^^ -------------------------
+
+error[E0308]: mismatched types
+    --> crates/bundle-view/src/export.rs:158:54
+     |
+ 158 |             if let TermRef::Iri(v) = dataset.resolve(TermId::from_index(tid as u32)) {
+     |                                              ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, CapacityError>`
+     |                                              |
+     |                                              arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::CapacityError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1675:12
+     |
+1675 |     pub fn resolve(&self, id: TermId) -> TermRef<'_> {
+     |            ^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::CapacityError>` value, panicking if the value is a `Result::Err`
+     |
+ 158 |             if let TermRef::Iri(v) = dataset.resolve(TermId::from_index(tid as u32).expect("REASON")) {
+     |                                                                                    +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/bundle-view/src/export.rs:215:30
+     |
+ 215 |         self.dataset.resolve(TermId::from_index(tid as u32))
+     |                      ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, CapacityError>`
+     |                      |
+     |                      arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::CapacityError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1675:12
+     |
+1675 |     pub fn resolve(&self, id: TermId) -> TermRef<'_> {
+     |            ^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::CapacityError>` value, panicking if the value is a `Result::Err`
+     |
+ 215 |         self.dataset.resolve(TermId::from_index(tid as u32).expect("REASON"))
+     |                                                            +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-bundle-view` (lib) due to 11 previous errors
+error: could not compile `gmeow-bundle-view` (lib test) due to 11 previous errors
+error[E0308]: arguments to this method are incorrect
+    --> crates/slicetest/src/stores_world_routing_tests.rs:18:13
+     |
+  18 |     builder.push_quad(member, relation, object, None);
+     |             ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:18:23
+     |
+  18 |     builder.push_quad(member, relation, object, None);
+     |                       ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:18:31
+     |
+  18 |     builder.push_quad(member, relation, object, None);
+     |                               ^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:18:41
+     |
+  18 |     builder.push_quad(member, relation, object, None);
+     |                                         ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  18 |     builder.push_quad(member.expect("REASON"), relation, object, None);
+     |                             +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  18 |     builder.push_quad(member, relation.expect("REASON"), object, None);
+     |                                       +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  18 |     builder.push_quad(member, relation, object.expect("REASON"), None);
+     |                                               +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/slicetest/src/stores_world_routing_tests.rs:19:26
+     |
+  19 |     let triple = builder.intern_triple(member, relation, object);
+     |                          ^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:19:40
+     |
+  19 |     let triple = builder.intern_triple(member, relation, object);
+     |                                        ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:19:48
+     |
+  19 |     let triple = builder.intern_triple(member, relation, object);
+     |                                                ^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:19:58
+     |
+  19 |     let triple = builder.intern_triple(member, relation, object);
+     |                                                          ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1586:12
+     |
+1586 |     pub fn intern_triple(
+     |            ^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  19 |     let triple = builder.intern_triple(member.expect("REASON"), relation, object);
+     |                                              +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  19 |     let triple = builder.intern_triple(member, relation.expect("REASON"), object);
+     |                                                        +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  19 |     let triple = builder.intern_triple(member, relation, object.expect("REASON"));
+     |                                                                +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/slicetest/src/stores_world_routing_tests.rs:20:55
+    |
+ 20 |     builder.push_reifier_in_graph(claim, triple, Some(old));
+    |                                                  ---- ^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                                                  |
+    |                                                  arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/slicetest/src/stores_world_routing_tests.rs:20:50
+    |
+ 20 |     builder.push_reifier_in_graph(claim, triple, Some(old));
+    |                                                  ^^^^^---^
+    |                                                       |
+    |                                                       this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+ 20 |     builder.push_reifier_in_graph(claim, triple, Some(old.expect("REASON")));
+    |                                                          +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/slicetest/src/stores_world_routing_tests.rs:20:13
+     |
+  20 |     builder.push_reifier_in_graph(claim, triple, Some(old));
+     |             ^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:20:35
+     |
+  20 |     builder.push_reifier_in_graph(claim, triple, Some(old));
+     |                                   ^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:20:42
+     |
+  20 |     builder.push_reifier_in_graph(claim, triple, Some(old));
+     |                                          ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2639:12
+     |
+2639 |     pub fn push_reifier_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  20 |     builder.push_reifier_in_graph(claim.expect("REASON"), triple, Some(old));
+     |                                        +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  20 |     builder.push_reifier_in_graph(claim, triple.expect("REASON"), Some(old));
+     |                                                +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/slicetest/src/stores_world_routing_tests.rs:21:69
+    |
+ 21 |     builder.push_annotation_in_graph(claim, according_to, old, Some(old));
+    |                                                                ---- ^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                                                                |
+    |                                                                arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/slicetest/src/stores_world_routing_tests.rs:21:64
+    |
+ 21 |     builder.push_annotation_in_graph(claim, according_to, old, Some(old));
+    |                                                                ^^^^^---^
+    |                                                                     |
+    |                                                                     this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+ 21 |     builder.push_annotation_in_graph(claim, according_to, old, Some(old.expect("REASON")));
+    |                                                                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/slicetest/src/stores_world_routing_tests.rs:21:13
+     |
+  21 |     builder.push_annotation_in_graph(claim, according_to, old, Some(old));
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:21:38
+     |
+  21 |     builder.push_annotation_in_graph(claim, according_to, old, Some(old));
+     |                                      ^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:21:45
+     |
+  21 |     builder.push_annotation_in_graph(claim, according_to, old, Some(old));
+     |                                             ^^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/slicetest/src/stores_world_routing_tests.rs:21:59
+     |
+  21 |     builder.push_annotation_in_graph(claim, according_to, old, Some(old));
+     |                                                           ^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2709:12
+     |
+2709 |     pub fn push_annotation_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  21 |     builder.push_annotation_in_graph(claim.expect("REASON"), according_to, old, Some(old));
+     |                                           +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  21 |     builder.push_annotation_in_graph(claim, according_to.expect("REASON"), old, Some(old));
+     |                                                         +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  21 |     builder.push_annotation_in_graph(claim, according_to, old.expect("REASON"), Some(old));
+     |                                                              +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/slicetest/src/stores_world_routing_tests.rs:23:33
+     |
+  23 |     builder.declare_named_graph(empty);
+     |             ------------------- ^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+     |             |
+     |             arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1279:12
+     |
+1279 |     pub fn declare_named_graph(&mut self, g: TermId) -> Result<(), StorageError> {
+     |            ^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  23 |     builder.declare_named_graph(empty.expect("REASON"));
+     |                                      +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/slicetest/src/stores_world_routing_tests.rs:61:33
+     |
+  61 |     builder.declare_named_graph(old);
+     |             ------------------- ^^^ expected `TermId`, found `Result<TermId, StorageError>`
+     |             |
+     |             arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1279:12
+     |
+1279 |     pub fn declare_named_graph(&mut self, g: TermId) -> Result<(), StorageError> {
+     |            ^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  61 |     builder.declare_named_graph(old.expect("REASON"));
+     |                                    +++++++++++++++++
+
+error: could not compile `gmeow-slicetest` (lib test) due to 8 previous errors
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+error: unused `std::result::Result` that must be used
+  --> crates/slice-quality/src/reasoner.tests.rs:12:5
+   |
+12 |     b.push_dataset(&ds);
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+12 |     let _ = b.push_dataset(&ds);
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/slice-quality/src/rubric.tests.rs:33:5
+   |
+33 |     b.push_dataset(&ds);
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+33 |     let _ = b.push_dataset(&ds);
+   |     +++++++
+
+error: could not compile `gmeow-slice-quality` (lib test) due to 2 previous errors
+error: unused `std::result::Result` that must be used
+  --> crates/conformance/tests/diagnostics_meta_findings.rs:18:5
+   |
+18 | /     builder.push_owned_quad(
+19 | |         &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(WORLD)),
+20 | |     );
+   | |_____^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+18 |     let _ = builder.push_owned_quad(
+   |     +++++++
+
+error: could not compile `gmeow-conformance` (test "diagnostics_meta_findings") due to 1 previous error
+error[E0004]: non-exhaustive patterns: `gmeow_conformance::external::OntoumlError::Failure(_)` not covered
+   --> crates/conformance/src/bin/ingest_external.rs:559:22
+    |
+559 |             ce(match e {
+    |                      ^ pattern `gmeow_conformance::external::OntoumlError::Failure(_)` not covered
+    |
+note: `gmeow_conformance::external::OntoumlError` defined here
+   --> crates/conformance/src/external/ontouml/model.rs:44:1
+    |
+ 44 | pub enum OntoumlError {
+    | ^^^^^^^^^^^^^^^^^^^^^
+ 45 |     /// The selected native operation failed; never a capability-gap observation.
+ 46 |     Failure(gmeow_errors::RecordedDiag),
+    |     ------- not covered
+    = note: the matched value is of type `gmeow_conformance::external::OntoumlError`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+    |
+567 ~                 ),
+568 ~                 gmeow_conformance::external::OntoumlError::Failure(_) => todo!(),
+    |
+
+error[E0004]: non-exhaustive patterns: `gmeow_conformance::external::OntoumlError::Failure(_)` not covered
+   --> crates/conformance/src/bin/ingest_external.rs:575:30
+    |
+575 |                     ce(match e {
+    |                              ^ pattern `gmeow_conformance::external::OntoumlError::Failure(_)` not covered
+    |
+note: `gmeow_conformance::external::OntoumlError` defined here
+   --> crates/conformance/src/external/ontouml/model.rs:44:1
+    |
+ 44 | pub enum OntoumlError {
+    | ^^^^^^^^^^^^^^^^^^^^^
+ 45 |     /// The selected native operation failed; never a capability-gap observation.
+ 46 |     Failure(gmeow_errors::RecordedDiag),
+    |     ------- not covered
+    = note: the matched value is of type `gmeow_conformance::external::OntoumlError`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+    |
+584 ~                         ),
+585 ~                         gmeow_conformance::external::OntoumlError::Failure(_) => todo!(),
+    |
+
+For more information about this error, try `rustc --explain E0004`.
+error: could not compile `gmeow-conformance` (bin "ingest-external" test) due to 2 previous errors
+error: could not compile `gmeow-conformance` (bin "ingest-external") due to 2 previous errors
+error[E0308]: mismatched types
+    --> crates/bench-engines/src/main.rs:709:71
+     |
+ 709 |     let (scratch_res, scratch_sample) = measure(|| run_native_forward(&updated, &program));
+     |                                                    ------------------ ^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+     |                                                    |
+     |                                                    arguments to this function are incorrect
+     |
+     = note: expected reference `&RdfDataset`
+                found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+    --> crates/logic/src/cost.rs:1436:8
+     |
+1436 | pub fn run_native_forward(
+     |        ^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `quads` found for enum `std::result::Result<T, E>` in the current scope
+    --> crates/bench-engines/src/main.rs:879:37
+     |
+ 879 |     let updated_edb_count = updated.quads().count() as u64;
+     |                                     ^^^^^ method not found in `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+     |
+note: the method `quads` exists on the type `purrdf::RdfDataset`
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1639:5
+     |
+1639 |     pub fn quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: use the `?` operator to extract the `purrdf::RdfDataset` value, propagating a `Result::Err` value to the caller
+     |
+ 879 |     let updated_edb_count = updated?.quads().count() as u64;
+     |                                    +
+
+error[E0308]: mismatched types
+    --> crates/bench-engines/src/main.rs:2046:54
+     |
+2046 |             let updated_scratch = run_native_forward(&updated, &program)
+     |                                   ------------------ ^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+     |                                   |
+     |                                   arguments to this function are incorrect
+     |
+     = note: expected reference `&RdfDataset`
+                found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+    --> crates/logic/src/cost.rs:1436:8
+     |
+1436 | pub fn run_native_forward(
+     |        ^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `quads` found for enum `std::result::Result<T, E>` in the current scope
+    --> crates/bench-engines/src/main.rs:2088:45
+     |
+2088 |             let updated_edb_count = updated.quads().count() as u64;
+     |                                             ^^^^^ method not found in `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+     |
+note: the method `quads` exists on the type `purrdf::RdfDataset`
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1639:5
+     |
+1639 |     pub fn quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: use the `?` operator to extract the `purrdf::RdfDataset` value, propagating a `Result::Err` value to the caller
+     |
+2088 |             let updated_edb_count = updated?.quads().count() as u64;
+     |                                            +
+
+error: could not compile `gmeow-bench-engines` (bin "bench-engines") due to 4 previous errors
+error: could not compile `gmeow-bench-engines` (bin "bench-engines" test) due to 4 previous errors
+error[E0308]: mismatched types
+   --> crates/validate/tests/conformance_cases/conformance_affect_producer.rs:197:17
+    |
+196 |             produce(&cap, &cfg),
+    |             ------------------- this expression has type `std::result::Result<std::string::String, gmeow_errors::Diag>`
+197 |             Err(IngestError::ExclusivityViolation { .. })
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Diag`, found `IngestError`
+
+error[E0308]: mismatched types
+   --> crates/validate/tests/conformance_cases/conformance_affect_producer.rs:209:17
+    |
+208 |             produce(&cap, &cfg),
+    |             ------------------- this expression has type `std::result::Result<std::string::String, gmeow_errors::Diag>`
+209 |             Err(IngestError::ScoreSemanticsDecisionMismatch { .. })
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Diag`, found `IngestError`
+
+error[E0308]: mismatched types
+   --> crates/validate/tests/conformance_cases/conformance_affect_producer.rs:222:17
+    |
+221 |             produce(&cap, &cfg),
+    |             ------------------- this expression has type `std::result::Result<std::string::String, gmeow_errors::Diag>`
+222 |             Err(IngestError::NonNormalizedExclusiveScores { .. })
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Diag`, found `IngestError`
+
+error[E0308]: mismatched types
+   --> crates/validate/tests/conformance_cases/conformance_affect_producer.rs:288:47
+    |
+288 |             matches!(produce(&cap, &cfg), Err(IngestError::MissingModelRevision)),
+    |                      -------------------      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Diag`, found `IngestError`
+    |                      |
+    |                      this expression has type `std::result::Result<std::string::String, gmeow_errors::Diag>`
+
+error[E0308]: mismatched types
+   --> crates/validate/tests/conformance_cases/conformance_affect_producer.rs:301:21
+    |
+300 |                 produce(&cap, &cfg),
+    |                 ------------------- this expression has type `std::result::Result<std::string::String, gmeow_errors::Diag>`
+301 |                 Err(IngestError::UnregisteredLabel { .. })
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Diag`, found `IngestError`
+
+error[E0308]: mismatched types
+   --> crates/validate/tests/conformance_cases/conformance_affect_producer.rs:368:13
+    |
+367 |         produce(&broken, &cfg),
+    |         ---------------------- this expression has type `std::result::Result<std::string::String, gmeow_errors::Diag>`
+368 |         Err(IngestError::MissingHypothesisTemplate)
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Diag`, found `IngestError`
+
+error: could not compile `gmeow-validate` (test "conformance_suite") due to 8 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

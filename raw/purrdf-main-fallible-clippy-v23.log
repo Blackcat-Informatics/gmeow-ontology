@@ -1,0 +1,91 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+error: unused `std::result::Result` that must be used
+  --> crates/conformance/src/external/ontouml/lower.rs:62:9
+   |
+62 | /         builder.push_owned_quad(
+63 | |             &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(world_iri)),
+64 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+62 |         let _ = builder.push_owned_quad(
+   |         +++++++
+
+error: could not compile `gmeow-conformance` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-conformance` (lib test) due to 1 previous error
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:794:9
+    |
+794 |         builder.push_dataset(user);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+794 |         let _ = builder.push_dataset(user);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:922:9
+    |
+922 |         builder.push_owned_reifier(&reifier);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+922 |         let _ = builder.push_owned_reifier(&reifier);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:926:9
+    |
+926 |         builder.push_owned_annotation(&annotation);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+926 |         let _ = builder.push_owned_annotation(&annotation);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:994:9
+    |
+994 |         builder.push_owned_quad(&shortcut);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+994 |         let _ = builder.push_owned_quad(&shortcut);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+    --> crates/validate/src/data_validate.rs:1017:5
+     |
+1017 |     builder.push_dataset(data);
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+     |
+1017 |     let _ = builder.push_dataset(data);
+     |     +++++++
+
+error: could not compile `gmeow-validate` (lib) due to 5 previous errors
+error: could not compile `gmeow-validate` (lib test) due to 5 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

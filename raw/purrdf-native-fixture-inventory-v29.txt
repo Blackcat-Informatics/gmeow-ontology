@@ -1,0 +1,12 @@
+1 crates/mcp/src/overlay_routing/tests.rs
+0 crates/mcp/src/tests.rs
+2 crates/pipeline/src/stages/carrier.docs_try_it_golden.rs
+0 crates/pipeline/src/stages/carrier.xsd_canon_tests.rs
+3 crates/pipeline/src/stages/carrier/test_support.rs
+1 crates/pipeline/src/stages/carrier_playground_routing_tests.rs
+2 crates/pipeline/src/stages/carrier_rooting_tests.rs
+2 crates/pipeline/src/stages/compile_logic/native_carrier/tests.rs
+1 crates/pipeline/src/stages/correspondence_soundness.tests.rs
+1 crates/pipeline/src/stages/reason.tests.rs
+0 crates/pipeline/src/stages/reason_test_support.rs
+2 crates/pipeline/src/stages/validate.tests.rs

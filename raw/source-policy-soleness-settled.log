@@ -1,0 +1,355 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-slicetest) | (package(gmeow-validate) & test(repo_static::tests::))' --no-tests=fail
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 4m 20s
+────────────
+ Nextest run ID 0ba53111-20f1-44d1-b689-812bdfb4ab2c with nextest profile: ci
+    Starting 164 tests across 25 binaries (638 tests and 200 binaries skipped)
+        PASS [   0.006s] (  1/164) gmeow-slicetest paths::tests::conformance_data_is_slice_local_except_for_the_grounding_kernel
+        PASS [   0.008s] (  2/164) gmeow-slicetest paths::tests::partially_migrated_slice_adds_local_residue_after_generated_authorities
+        PASS [   0.008s] (  3/164) gmeow-slicetest paths::tests::example_file_is_slice_relative_query_file_is_repo_relative
+        PASS [   0.008s] (  4/164) gmeow-slicetest paths::tests::explicit_root_is_portable_immutable_and_missing_roots_fail_closed
+        PASS [   0.009s] (  5/164) gmeow-slicetest paths::tests::module_and_migrated_shapes_resolve_to_their_authorities
+        PASS [   0.010s] (  6/164) gmeow-slicetest paths::tests::slice_dir_is_the_spec_grandparent
+        PASS [   0.011s] (  7/164) gmeow-slicetest error::tests::every_slicetest_code_interns_with_no_collision
+        PASS [   0.010s] (  8/164) gmeow-slicetest repository::tests::concurrent_cross_device_snapshots_use_unique_owned_paths
+        PASS [   0.012s] (  9/164) gmeow-slicetest exec::tests::cq_data_file_overlay_applies_and_is_removed
+        PASS [   0.013s] ( 10/164) gmeow-slicetest exec::tests::parsed_fixture_cache_observes_changed_invalid_and_missing_source
+        PASS [   0.014s] ( 11/164) gmeow-slicetest dsl::tests::rejects_malformed_boolean_literal
+        PASS [   0.014s] ( 12/164) gmeow-slicetest dsl::tests::well_formed_multi_column_shape_still_parses
+        PASS [   0.014s] ( 13/164) gmeow-slicetest exec::tests::lang_gmn_nonlexical_guard_rejects_word_form_subclasses
+        PASS [   0.014s] ( 14/164) gmeow-slicetest dsl::tests::rejects_conflicting_duplicate_competency_questions
+        PASS [   0.014s] ( 15/164) gmeow-slicetest exec::tests::is_satisfiable_by_surfaces_missing_required_column
+        PASS [   0.013s] ( 16/164) gmeow-slicetest dsl::tests::rejects_result_shape_with_unknown_term_kind
+        PASS [   0.014s] ( 17/164) gmeow-slicetest dsl::tests::identical_duplicate_competency_solutions_are_harmless
+        PASS [   0.013s] ( 18/164) gmeow-slicetest exec::tests::structural_fail_witness_requires_the_ban_to_trip
+        PASS [   0.014s] ( 19/164) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_variable
+        PASS [   0.014s] ( 20/164) gmeow-slicetest dsl::tests::parses_conformance_exemplars
+        PASS [   0.014s] ( 21/164) gmeow-slicetest exec::tests::result_shape_conforming_bindings_pass
+        PASS [   0.014s] ( 22/164) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_binding
+        PASS [   0.013s] ( 23/164) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_term_kind
+        PASS [   0.015s] ( 24/164) gmeow-slicetest dsl::tests::parses_structural_exemplars
+        PASS [   0.013s] ( 25/164) gmeow-slicetest exec::tests::result_shape_term_kind_mismatch_hard_fails
+        PASS [   0.015s] ( 26/164) gmeow-slicetest dsl::tests::parses_cq_result_shape_into_the_canonical_type
+        PASS [   0.005s] ( 27/164) gmeow-slicetest repository::tests::worker_snapshot_fails_closed_for_other_link_errors
+        PASS [   0.006s] ( 28/164) gmeow-slicetest repository::tests::worker_snapshot_does_not_remove_an_existing_cross_device_destination
+        PASS [   0.015s] ( 29/164) gmeow-slicetest dsl::tests::rejects_expected_rows_for_unknown_competency_question
+        PASS [   0.017s] ( 30/164) gmeow-slicetest dsl::tests::parses_competency_exemplars
+        PASS [   0.016s] ( 31/164) gmeow-slicetest exec::tests::source_shape_pins_preserve_laws_without_namespace_or_shared_owner_guessing
+        PASS [   0.016s] ( 32/164) gmeow-slicetest exec::tests::generated_shape_union_is_scoped_back_to_the_slice_authority
+        PASS [   0.009s] ( 33/164) gmeow-slicetest repository::tests::worker_receipt_follows_only_the_exact_executable_bytes
+        PASS [   0.005s] ( 34/164) gmeow-slicetest::owl_rdfs_projection class_position_marker_projects_but_endpoint_data_does_not
+        PASS [   0.009s] ( 35/164) gmeow-slicetest stores::world_routing_tests::competency_empty_selection_declares_the_reasoner_world_only
+        PASS [   0.009s] ( 36/164) gmeow-slicetest stores::tests::rdfs_close_infers_type_and_subclass
+        PASS [   0.011s] ( 37/164) gmeow-slicetest repository::tests::worker_paths_survive_a_relative_checkout_and_changed_working_directory
+        PASS [   0.011s] ( 38/164) gmeow-slicetest repository::tests::worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices
+        PASS [   0.009s] ( 39/164) gmeow-slicetest stores::world_routing_tests::competency_world_keeps_attributed_claims_and_their_shared_native_subject
+        PASS [   0.020s] ( 40/164) gmeow-slicetest exec::tests::the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration
+        PASS [   0.009s] ( 41/164) gmeow-validate repo_static::tests::any_deficiency_entry_fails_the_repository_gate
+        PASS [   0.010s] ( 42/164) gmeow-validate repo_static::tests::a_weakened_notice_or_moved_entry_fails_the_repository_gate
+        PASS [   0.011s] ( 43/164) gmeow-validate repo_static::tests::a_missing_or_duplicate_deficiency_marker_fails_the_repository_gate
+        PASS [   0.011s] ( 44/164) gmeow-validate repo_static::tests::authored_shex_gate_flags_a_shex_file_and_passes_when_absent
+        PASS [   0.007s] ( 45/164) gmeow-validate repo_static::tests::canonical_notice_only_deficiency_ledger_passes
+        PASS [   0.007s] ( 46/164) gmeow-validate repo_static::tests::cfg_predicate_test_gating_is_recognised_in_composed_forms
+        PASS [   0.014s] ( 47/164) gmeow-validate repo_static::tests::anyhow_workspace_dependency_form_fails
+        PASS [   0.009s] ( 48/164) gmeow-validate repo_static::tests::blank_pass_keeps_strings_blanks_comments_and_cfg_test_bodies
+        PASS [   0.012s] ( 49/164) gmeow-validate repo_static::tests::ban_ignores_a_product_read_of_a_generated_const
+        PASS [   0.014s] ( 50/164) gmeow-validate repo_static::tests::ban_flags_a_literal_generated_disk_read_in_a_produce_stage
+        PASS [   0.012s] ( 51/164) gmeow-validate repo_static::tests::ban_flags_a_whitespace_join_generated_read
+        PASS [   0.011s] ( 52/164) gmeow-validate repo_static::tests::ban_ignores_prose_mentioning_generated_paths
+        PASS [   0.014s] ( 53/164) gmeow-validate repo_static::tests::a_slice_ttl_without_a_trailing_newline_is_rejected
+        PASS [   0.014s] ( 54/164) gmeow-validate repo_static::tests::ban_flags_a_produce_read_outside_stages_dir
+        PASS [   0.015s] ( 55/164) gmeow-validate repo_static::tests::a_correctly_terminated_slice_ttl_passes
+        PASS [   0.016s] ( 56/164) gmeow-validate repo_static::tests::a_slice_ttl_ending_in_a_blank_line_is_rejected
+        PASS [   0.016s] ( 57/164) gmeow-validate repo_static::tests::ban_exempts_cfg_test_modules
+        PASS [   0.017s] ( 58/164) gmeow-validate repo_static::tests::annotating_a_pinned_kind_without_trimming_the_pin_still_passes
+        PASS [   0.017s] ( 59/164) gmeow-validate repo_static::tests::ban_exempts_a_marked_audit_read
+        FAIL [   0.013s] ( 60/164) gmeow-validate repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body' (3650327) panicked at crates/validate/src/repo_static.tests.rs:2636:5:
+    fn prod() {}
+    #[cfg(all(test, not(target_arch =         )))]
+    mod tests {
+        fn t() { purrdf::gts_write::to_gts(x); }
+    }
+
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.018s] ( 61/164) gmeow-validate repo_static::tests::a_new_kind_without_a_failure_class_fails_the_ratchet
+        PASS [   0.019s] ( 62/164) gmeow-validate repo_static::tests::ban_flags_a_const_indirected_generated_disk_read
+        PASS [   0.013s] ( 63/164) gmeow-validate repo_static::tests::collect_ttl_files_skips_symlinked_dirs_without_looping
+        PASS [   0.020s] ( 64/164) gmeow-validate repo_static::tests::ban_flags_a_format_join_generated_read
+        PASS [   0.014s] ( 65/164) gmeow-validate repo_static::tests::census_reads_code_and_failure_class_through_a_multiline_struct_body
+        PASS [   0.020s] ( 66/164) gmeow-validate repo_static::tests::ban_flags_a_borrowed_or_method_const_generated_read
+        PASS [   0.021s] ( 67/164) gmeow-validate repo_static::tests::a_kind_bound_to_an_unminted_failure_class_fails
+        PASS [   0.014s] ( 68/164) gmeow-validate repo_static::tests::declarative_gate_catches_alternate_prefix_and_full_iri_bypass
+        PASS [   0.021s] ( 69/164) gmeow-validate repo_static::tests::a_medium_failure_class_with_no_rust_producer_fails
+        PASS [   0.019s] ( 70/164) gmeow-validate repo_static::tests::ban_flags_a_slashless_const_generated_read
+        PASS [   0.012s] ( 71/164) gmeow-validate repo_static::tests::declarative_gate_exempts_only_a_registered_fail_witness
+        PASS [   0.009s] ( 72/164) gmeow-validate repo_static::tests::disarming_an_raii_temp_guard_fails
+        PASS [   0.023s] ( 73/164) gmeow-validate repo_static::tests::an_empty_slice_ttl_is_rejected
+        PASS [   0.009s] ( 74/164) gmeow-validate repo_static::tests::gmeow_shapes_drained_passes_empty_and_flags_a_regrown_shape
+        PASS [   0.010s] ( 75/164) gmeow-validate repo_static::tests::gts_slice_ships_no_hand_authored_shapes_ttl
+        PASS [   0.014s] ( 76/164) gmeow-validate repo_static::tests::declarative_gate_flags_unbacked_node_shape_and_passes_backed
+        PASS [   0.009s] ( 77/164) gmeow-validate repo_static::tests::gts_chokepoint_rejects_a_direct_production_emit_gts_call
+        PASS [   0.010s] ( 78/164) gmeow-validate repo_static::tests::gmeow_shapes_drained_requires_the_file_to_exist
+        PASS [   0.011s] ( 79/164) gmeow-validate repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer
+        PASS [   0.011s] ( 80/164) gmeow-validate repo_static::tests::hand_rolled_temp_dir_in_production_code_fails
+        PASS [   0.011s] ( 81/164) gmeow-validate repo_static::tests::gts_chokepoint_permits_the_profile_crate_and_test_code
+        PASS [   0.009s] ( 82/164) gmeow-validate repo_static::tests::hand_rolled_temp_dir_inside_cfg_test_module_still_fails
+        PASS [   0.016s] ( 83/164) gmeow-validate repo_static::tests::declarative_gate_walks_inline_property_shape_up_to_its_node_shape
+        PASS [   0.014s] ( 84/164) gmeow-validate repo_static::tests::differential_oracle_seal_allows_retained_engine_independent_goldens
+        PASS [   0.006s] ( 85/164) gmeow-validate repo_static::tests::pin_gate_flags_a_purrdf_release_below_the_major_floor
+        PASS [   0.017s] ( 86/164) gmeow-validate repo_static::tests::differential_oracle_crosscheck_target_reintroduction_fails
+        PASS [   0.008s] ( 87/164) gmeow-validate repo_static::tests::only_a_purrdf_use_statement_binds_the_writer_name
+        PASS [   0.006s] ( 88/164) gmeow-validate repo_static::tests::pin_gate_flags_structured_zstd_below_floor
+        PASS [   0.010s] ( 89/164) gmeow-validate repo_static::tests::makefile_target_reaching_docker_fails
+        PASS [   0.010s] ( 90/164) gmeow-validate repo_static::tests::minimal_repo_passes
+        PASS [   0.008s] ( 91/164) gmeow-validate repo_static::tests::pin_gate_flags_fuzz_purrdf_source_drift
+        PASS [   0.006s] ( 92/164) gmeow-validate repo_static::tests::raii_tempdir_usage_passes
+        PASS [   0.011s] ( 93/164) gmeow-validate repo_static::tests::ok_position_and_single_arg_and_nested_string_do_not_false_positive
+        PASS [   0.011s] ( 94/164) gmeow-validate repo_static::tests::parse_top_level_generic_args_splits_only_top_level_commas
+        PASS [   0.012s] ( 95/164) gmeow-validate repo_static::tests::minimal_repo_with_a_clean_crate_passes_error_crate_dep_check
+        PASS [   0.009s] ( 96/164) gmeow-validate repo_static::tests::pin_gate_rejects_same_version_checksum_drift_and_asset_key_tracks_release
+        PASS [   0.009s] ( 97/164) gmeow-validate repo_static::tests::pin_gate_passes_matching_source_and_zstd_floor
+        PASS [   0.008s] ( 98/164) gmeow-validate repo_static::tests::purity_gate_catches_alternate_prefix_and_full_iri_bypass
+        PASS [   0.013s] ( 99/164) gmeow-validate repo_static::tests::makefile_target_reaching_java_fails
+        PASS [   0.010s] (100/164) gmeow-validate repo_static::tests::pin_gate_flags_fuzz_purrdf_tag_drift
+        PASS [   0.010s] (101/164) gmeow-validate repo_static::tests::pin_gate_skips_absent_inputs
+        PASS [   0.009s] (102/164) gmeow-validate repo_static::tests::purity_gate_rejects_backref_on_unrelated_node_or_in_a_comment
+        PASS [   0.010s] (103/164) gmeow-validate repo_static::tests::projection_compute_purity_flags_unbacked_construct_and_passes_a_backed_one
+        PASS [   0.006s] (104/164) gmeow-validate repo_static::tests::rdf_stack_ban_flags_a_workspace_form_shacl_dep
+        PASS [   0.016s] (105/164) gmeow-validate repo_static::tests::makefile_target_invoking_pull_images_script_fails
+        PASS [   0.010s] (106/164) gmeow-validate repo_static::tests::rdf_stack_ban_flags_a_competing_rdf_dep
+        PASS [   0.009s] (107/164) gmeow-validate repo_static::tests::real_checkout_without_deficiency_ledger_fails_closed
+        PASS [   0.006s] (108/164) gmeow-validate repo_static::tests::result_u8_string_return_type_fails
+        PASS [   0.006s] (109/164) gmeow-validate repo_static::tests::result_unit_string_return_type_fails
+        PASS [   0.006s] (110/164) gmeow-validate repo_static::tests::seal_a_fails_on_any_raw_production_emit_gts_caller
+        PASS [   0.009s] (111/164) gmeow-validate repo_static::tests::required_ci_oracle_reasoner_token_fails
+        PASS [   0.006s] (112/164) gmeow-validate repo_static::tests::seal_b_follows_a_renamed_writer_import
+        PASS [   0.011s] (113/164) gmeow-validate repo_static::tests::rdf_stack_ban_allows_the_purrdf_umbrella
+        PASS [   0.009s] (114/164) gmeow-validate repo_static::tests::required_ci_job_container_token_fails
+        PASS [   0.025s] (115/164) gmeow-validate repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed
+        PASS [   0.010s] (116/164) gmeow-validate repo_static::tests::required_ci_docker_token_fails
+        PASS [   0.007s] (117/164) gmeow-validate repo_static::tests::seal_a_refuses_borrowed_unchecked_or_receipt_discarding_snapshot_exits
+        PASS [   0.008s] (118/164) gmeow-validate repo_static::tests::seal_b_fails_on_a_compact_streamable_caller
+        PASS [   0.008s] (119/164) gmeow-validate repo_static::tests::seal_b_follows_a_renamed_free_function_import
+        PASS [   0.008s] (120/164) gmeow-validate repo_static::tests::seal_b_fails_on_to_gts_pack_entries_and_from_tar_callers
+        PASS [   0.007s] (121/164) gmeow-validate repo_static::tests::seal_c_fails_on_a_producer_with_no_declared_medium_source_kind
+        FAIL [   0.006s] (122/164) gmeow-validate repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules' (3650474) panicked at crates/validate/src/repo_static.tests.rs:2423:5:
+    [GtsAuthorshipHit { file: "crates/gmeow-pipeline/src/clean.rs", line: 16, entry_point: "compact::compact_streamable", token: "compact::compact_streamable(" }]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.008s] (123/164) gmeow-validate repo_static::tests::seal_b_fails_on_a_writer_with_layout_caller
+        PASS [   0.008s] (124/164) gmeow-validate repo_static::tests::seal_c_fails_when_a_declared_medium_carries_no_source_kind
+        PASS [   0.008s] (125/164) gmeow-validate repo_static::tests::seal_c_fails_on_a_stale_call_site
+        PASS [   0.007s] (126/164) gmeow-validate repo_static::tests::seal_c_fails_when_the_census_is_below_the_non_vacuity_floor
+        PASS [   0.007s] (127/164) gmeow-validate repo_static::tests::seal_c_passes_when_every_producer_is_declared
+        PASS [   0.007s] (128/164) gmeow-validate repo_static::tests::seals_ignore_substring_collisions
+        PASS [   0.005s] (129/164) gmeow-validate repo_static::tests::shapes_ratchet_hard_fails_when_slices_dir_is_missing
+        PASS [   0.005s] (130/164) gmeow-validate repo_static::tests::shapes_ratchet_passes_when_census_is_empty_or_pinned
+        PASS [   0.006s] (131/164) gmeow-validate repo_static::tests::seals_pass_with_only_the_profile_crate_emitter
+        PASS [   0.007s] (132/164) gmeow-validate repo_static::tests::shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_world
+        PASS [   0.007s] (133/164) gmeow-validate repo_static::tests::shapes_ratchet_flags_a_shapes_ttl_outside_the_pin
+        PASS [   0.006s] (134/164) gmeow-validate repo_static::tests::shapes_ratchet_permits_shrinkage_without_touching_the_pin
+        PASS [   0.006s] (135/164) gmeow-validate repo_static::tests::string_result_in_comment_and_cfg_test_module_is_ignored
+        PASS [   0.006s] (136/164) gmeow-validate repo_static::tests::std_result_fully_qualified_string_error_fails
+        PASS [   0.007s] (137/164) gmeow-validate repo_static::tests::shortened_env_temp_dir_spelling_fails_once
+        PASS [   0.007s] (138/164) gmeow-validate repo_static::tests::temp_dir_named_in_comment_or_string_literal_is_ignored
+        PASS [   0.007s] (139/164) gmeow-validate repo_static::tests::temp_dir_gate_skips_a_repo_without_crates
+        PASS [   0.005s] (140/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_never_passes_silently_on_an_unparsable_root_manifest
+        PASS [   0.007s] (141/164) gmeow-validate repo_static::tests::thiserror_in_target_cfg_dependencies_fails
+        PASS [   0.006s] (142/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_accepts_one_workspace_pin_matching_the_ci_cli
+        PASS [   0.007s] (143/164) gmeow-validate repo_static::tests::thiserror_dependency_string_form_fails
+        PASS [   0.007s] (144/164) gmeow-validate repo_static::tests::unresolved_module_ownership_retains_the_typed_policy_failure
+        PASS [   0.006s] (145/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_rejects_a_ci_cli_that_disagrees_with_the_library_pin
+        PASS [   0.007s] (146/164) gmeow-validate repo_static::tests::two_rust_producers_for_one_medium_failure_class_fail
+        PASS [   0.007s] (147/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_rejects_a_ci_binaryen_literal
+        PASS [   0.006s] (148/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_rejects_a_range_workspace_pin
+        PASS [   0.007s] (149/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_rejects_a_member_that_redeclares_the_version
+        PASS [   0.006s] (150/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_rejects_a_shell_form_binaryen_literal
+        PASS [   0.005s] (151/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_rejects_an_absent_ci_workflow
+        PASS [   0.006s] (152/164) gmeow-validate repo_static::tests::wasm_bindgen_parity_rejects_a_workspace_without_the_declaration
+        PASS [   0.011s] (153/164) gmeow-validate repo_static::tests::the_gate_covers_every_slice_ttl_not_only_module_ttl
+        PASS [   0.071s] (154/164) gmeow-validate repo_static::tests::live_hand_authored_shapes_ttl_census_is_subset_or_equal_of_the_pin
+        PASS [   0.335s] (155/164) gmeow-slicetest exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth
+        PASS [   0.292s] (156/164) gmeow-validate repo_static::tests::the_real_repository_holds_the_trailing_newline_invariant
+        PASS [   0.328s] (157/164) gmeow-validate repo_static::tests::declarative_gate_is_clean_on_the_migrated_tree
+        PASS [   1.029s] (158/164) gmeow-validate repo_static::tests::live_tree_has_no_unmanaged_temp_dir
+        FAIL [   2.626s] (159/164) gmeow-validate repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 2.62s
+
+  stderr ───
+
+    thread 'repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes' (3650511) panicked at crates/validate/src/repo_static.tests.rs:2889:5:
+    assertion `left == right` failed: these are the failure-class-bound kinds today
+      left: ["bundle-import.cache", "bundle-view.export", "bundle-view.io", "bundle-view.rdf.parse", "docs-catalog.concept-lattice", "docs-catalog.distribution", "gts-profile.archive", "gts-profile.frame", "lang-bridge.gmn1.native-codebook", "lang-bridge.gmn1.unpinned-glyph-cost", "logic-compile.formula-admission", "logic.contextual-fragment", "logic.temporal-journal-admission", "math.lift.empty-codomain", "math.lift.onnx.unliftable", "math.lift.onnx.wire", "math.lift.proof.parse", "math.lift.proof.unliftable", "math.lift.r.parse", "math.lift.r.unliftable", "math.lift.source.not-utf8", "mcp-dev.error", "mcp.duplicate-registration", "mcp.invalid-registration", "mcp.medium.unpinned-store-dictionary", "mcp.segment-not-loaded", "mcp.unknown-resource", "mcp.unknown-tool", "pipeline.medium.corpus-drift", "pipeline.medium.dictionary-regression", "pipeline.medium.digest-mismatch", "pipeline.medium.opaque-frame", "pipeline.medium.undeclared-dictionary", "pipeline.medium.unknown-dictionary", "pipeline.medium.unknown-schema", "slice-quality.record"]
+     right: ["bundle-import.cache", "bundle-view.export", "bundle-view.io", "bundle-view.rdf.parse", "docs-catalog.concept-lattice", "docs-catalog.distribution", "gts-profile.frame", "lang-bridge.gmn1.unpinned-glyph-cost", "math.lift.empty-codomain", "math.lift.onnx.unliftable", "math.lift.onnx.wire", "math.lift.proof.parse", "math.lift.proof.unliftable", "math.lift.r.parse", "math.lift.r.unliftable", "math.lift.source.not-utf8", "mcp-dev.error", "mcp.duplicate-registration", "mcp.invalid-registration", "mcp.medium.unpinned-store-dictionary", "mcp.segment-not-loaded", "mcp.unknown-resource", "mcp.unknown-tool", "pipeline.medium.corpus-drift", "pipeline.medium.dictionary-regression", "pipeline.medium.digest-mismatch", "pipeline.medium.opaque-frame", "pipeline.medium.undeclared-dictionary", "pipeline.medium.unknown-dictionary", "pipeline.medium.unknown-schema", "slice-quality.record"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   2.749s] (160/164) gmeow-validate repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds
+        PASS [   3.880s] (161/164) gmeow-validate repo_static::tests::live_repo_has_one_owned_snapshot_publication_path
+        PASS [   4.237s] (162/164) gmeow-validate repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate
+        PASS [   4.348s] (163/164) gmeow-validate repo_static::tests::integration_test_callers_exist_and_are_outside_the_production_census
+        FAIL [  11.383s] (164/164) gmeow-validate repo_static::tests::live_repo_static_passes
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::live_repo_static_passes ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::live_repo_static_passes
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 11.37s
+
+  stderr ───
+
+    thread 'repo_static::tests::live_repo_static_passes' (3650394) panicked at crates/validate/src/repo_static.tests.rs:917:5:
+    ["crates/helper-census/src/census.rs:224: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: pub(crate) fn home(job: &Job, workspace: &Workspace) -> Result<Home, String> {", "crates/helper-census/src/census.rs:805: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: pub(crate) fn census_lines(job: &Job, workspace: &Workspace) -> Result<Vec<String>, String> {", "crates/helper-census/src/ledger.rs:151: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: pub(crate) fn parse(text: &str) -> Result<Ledger, String> {", "crates/helper-census/src/ledger.rs:220: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: ) -> Result<(), String> {", "crates/helper-census/src/ledger.rs:234: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn string(table: &BTreeMap<String, Value>, key: &str) -> Result<String, String> {", "crates/helper-census/src/ledger.rs:242: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn strings(table: &BTreeMap<String, Value>, key: &str) -> Result<Vec<String>, String> {", "crates/helper-census/src/ledger.rs:255: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn job(row: &BTreeMap<String, Value>) -> Result<Job, String> {", "crates/helper-census/src/ledger.rs:292: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn forbidden_table(table: &BTreeMap<String, Value>) -> Result<Forbidden, String> {", "crates/helper-census/src/ledger.rs:323: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn criterion(table: &BTreeMap<String, Value>, what: &str) -> Result<(), String> {", "crates/helper-census/src/ledger.rs:335: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn distinct(table: &BTreeMap<String, Value>) -> Result<Distinct, String> {", "crates/helper-census/src/ledger.rs:356: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn variant(table: &BTreeMap<String, Value>) -> Result<Variant, String> {", "crates/helper-census/src/main.rs:75: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn parse_arguments(mut args: impl Iterator<Item = String>) -> Result<Arguments, String> {", "crates/helper-census/src/main.rs:142: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn run(arguments: &Arguments) -> Result<ExitCode, String> {", "crates/helper-census/src/toml.rs:114: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: ) -> Result<(), String> {", "crates/helper-census/src/toml.rs:143: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: ) -> Result<&'a mut BTreeMap<String, Value>, String> {", "crates/logic/src/physical/seminaive/joint/input/admission.rs:800: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: closable: Result<Closable<'a>, String>,", "crates/gts-profile/src/error.rs: diagnostic kind `gts-profile.snapshot-admission` declares no `failure_class` and is outside the pinned shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in crates/validate/src/repo_static.rs) — the set of kinds with no ontological failure class only ever SHRINKS. Mint the failure class in the owning slice and bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here", "crates/logic/src/error.rs: diagnostic kind `logic.native-coverage` declares no `failure_class` and is outside the pinned shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in crates/validate/src/repo_static.rs) — the set of kinds with no ontological failure class only ever SHRINKS. Mint the failure class in the owning slice and bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here", "crates/logic/src/error.rs: diagnostic kind `logic.native-source-admission` declares no `failure_class` and is outside the pinned shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in crates/validate/src/repo_static.rs) — the set of kinds with no ontological failure class only ever SHRINKS. Mint the failure class in the owning slice and bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [  11.427s] 164 tests run: 160 passed, 4 failed, 638 skipped
+        FAIL [   0.013s] ( 60/164) gmeow-validate repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body' (3650327) panicked at crates/validate/src/repo_static.tests.rs:2636:5:
+    fn prod() {}
+    #[cfg(all(test, not(target_arch =         )))]
+    mod tests {
+        fn t() { purrdf::gts_write::to_gts(x); }
+    }
+
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.006s] (122/164) gmeow-validate repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'repo_static::tests::seals_ignore_comments_strings_and_test_gated_modules' (3650474) panicked at crates/validate/src/repo_static.tests.rs:2423:5:
+    [GtsAuthorshipHit { file: "crates/gmeow-pipeline/src/clean.rs", line: 16, entry_point: "compact::compact_streamable", token: "compact::compact_streamable(" }]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   2.626s] (159/164) gmeow-validate repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 2.62s
+
+  stderr ───
+
+    thread 'repo_static::tests::the_live_bound_kinds_resolve_to_their_ontology_classes' (3650511) panicked at crates/validate/src/repo_static.tests.rs:2889:5:
+    assertion `left == right` failed: these are the failure-class-bound kinds today
+      left: ["bundle-import.cache", "bundle-view.export", "bundle-view.io", "bundle-view.rdf.parse", "docs-catalog.concept-lattice", "docs-catalog.distribution", "gts-profile.archive", "gts-profile.frame", "lang-bridge.gmn1.native-codebook", "lang-bridge.gmn1.unpinned-glyph-cost", "logic-compile.formula-admission", "logic.contextual-fragment", "logic.temporal-journal-admission", "math.lift.empty-codomain", "math.lift.onnx.unliftable", "math.lift.onnx.wire", "math.lift.proof.parse", "math.lift.proof.unliftable", "math.lift.r.parse", "math.lift.r.unliftable", "math.lift.source.not-utf8", "mcp-dev.error", "mcp.duplicate-registration", "mcp.invalid-registration", "mcp.medium.unpinned-store-dictionary", "mcp.segment-not-loaded", "mcp.unknown-resource", "mcp.unknown-tool", "pipeline.medium.corpus-drift", "pipeline.medium.dictionary-regression", "pipeline.medium.digest-mismatch", "pipeline.medium.opaque-frame", "pipeline.medium.undeclared-dictionary", "pipeline.medium.unknown-dictionary", "pipeline.medium.unknown-schema", "slice-quality.record"]
+     right: ["bundle-import.cache", "bundle-view.export", "bundle-view.io", "bundle-view.rdf.parse", "docs-catalog.concept-lattice", "docs-catalog.distribution", "gts-profile.frame", "lang-bridge.gmn1.unpinned-glyph-cost", "math.lift.empty-codomain", "math.lift.onnx.unliftable", "math.lift.onnx.wire", "math.lift.proof.parse", "math.lift.proof.unliftable", "math.lift.r.parse", "math.lift.r.unliftable", "math.lift.source.not-utf8", "mcp-dev.error", "mcp.duplicate-registration", "mcp.invalid-registration", "mcp.medium.unpinned-store-dictionary", "mcp.segment-not-loaded", "mcp.unknown-resource", "mcp.unknown-tool", "pipeline.medium.corpus-drift", "pipeline.medium.dictionary-regression", "pipeline.medium.digest-mismatch", "pipeline.medium.opaque-frame", "pipeline.medium.undeclared-dictionary", "pipeline.medium.unknown-dictionary", "pipeline.medium.unknown-schema", "slice-quality.record"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [  11.383s] (164/164) gmeow-validate repo_static::tests::live_repo_static_passes
+  stdout ───
+
+    running 1 test
+    test repo_static::tests::live_repo_static_passes ... FAILED
+
+    failures:
+
+    failures:
+        repo_static::tests::live_repo_static_passes
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 655 filtered out; finished in 11.37s
+
+  stderr ───
+
+    thread 'repo_static::tests::live_repo_static_passes' (3650394) panicked at crates/validate/src/repo_static.tests.rs:917:5:
+    ["crates/helper-census/src/census.rs:224: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: pub(crate) fn home(job: &Job, workspace: &Workspace) -> Result<Home, String> {", "crates/helper-census/src/census.rs:805: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: pub(crate) fn census_lines(job: &Job, workspace: &Workspace) -> Result<Vec<String>, String> {", "crates/helper-census/src/ledger.rs:151: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: pub(crate) fn parse(text: &str) -> Result<Ledger, String> {", "crates/helper-census/src/ledger.rs:220: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: ) -> Result<(), String> {", "crates/helper-census/src/ledger.rs:234: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn string(table: &BTreeMap<String, Value>, key: &str) -> Result<String, String> {", "crates/helper-census/src/ledger.rs:242: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn strings(table: &BTreeMap<String, Value>, key: &str) -> Result<Vec<String>, String> {", "crates/helper-census/src/ledger.rs:255: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn job(row: &BTreeMap<String, Value>) -> Result<Job, String> {", "crates/helper-census/src/ledger.rs:292: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn forbidden_table(table: &BTreeMap<String, Value>) -> Result<Forbidden, String> {", "crates/helper-census/src/ledger.rs:323: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn criterion(table: &BTreeMap<String, Value>, what: &str) -> Result<(), String> {", "crates/helper-census/src/ledger.rs:335: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn distinct(table: &BTreeMap<String, Value>) -> Result<Distinct, String> {", "crates/helper-census/src/ledger.rs:356: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn variant(table: &BTreeMap<String, Value>) -> Result<Variant, String> {", "crates/helper-census/src/main.rs:75: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn parse_arguments(mut args: impl Iterator<Item = String>) -> Result<Arguments, String> {", "crates/helper-census/src/main.rs:142: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: fn run(arguments: &Arguments) -> Result<ExitCode, String> {", "crates/helper-census/src/toml.rs:114: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: ) -> Result<(), String> {", "crates/helper-census/src/toml.rs:143: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: ) -> Result<&'a mut BTreeMap<String, Value>, String> {", "crates/logic/src/physical/seminaive/joint/input/admission.rs:800: Result<_, String> uses String as the error type — gmeow_errors::Diag is the sole first-party error type (Phase-6 Diag-substrate honest invariant); a String in Ok position (Result<String, …> or a single-argument Result<String> alias) is fine, only String as the error (second) type parameter is banned: closable: Result<Closable<'a>, String>,", "crates/gts-profile/src/error.rs: diagnostic kind `gts-profile.snapshot-admission` declares no `failure_class` and is outside the pinned shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in crates/validate/src/repo_static.rs) — the set of kinds with no ontological failure class only ever SHRINKS. Mint the failure class in the owning slice and bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here", "crates/logic/src/error.rs: diagnostic kind `logic.native-coverage` declares no `failure_class` and is outside the pinned shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in crates/validate/src/repo_static.rs) — the set of kinds with no ontological failure class only ever SHRINKS. Mint the failure class in the owning slice and bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here", "crates/logic/src/error.rs: diagnostic kind `logic.native-source-admission` declares no `failure_class` and is outside the pinned shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in crates/validate/src/repo_static.rs) — the set of kinds with no ontological failure class only ever SHRINKS. Mint the failure class in the owning slice and bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:705: nextest-synthetic] Error 100

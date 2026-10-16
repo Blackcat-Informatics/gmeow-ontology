@@ -1,0 +1,16 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(implicit_git_package_identity_uses_cargo_metadata_without_guessing_a_name) | test(explicit_git_package_identity_binds_the_unique_resolved_lock_revision)' --no-tests=fail
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/xtask)
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/build-inputs)
+    Finished `test` profile [optimized] target(s) in 3.10s
+────────────
+ Nextest run ID 8c870d74-6835-4c2c-bddb-4bc3964bd56c with nextest profile: ci
+    Starting 2 tests across 224 binaries (7388 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.004s] (1/2) xtask::bin/xtask producer::tests::implicit_git_package_identity_uses_cargo_metadata_without_guessing_a_name
+        PASS [   0.005s] (2/2) gmeow-build-inputs::inventory explicit_git_package_identity_binds_the_unique_resolved_lock_revision
+────────────
+     Summary [   0.059s] 2 tests run: 2 passed, 7388 skipped

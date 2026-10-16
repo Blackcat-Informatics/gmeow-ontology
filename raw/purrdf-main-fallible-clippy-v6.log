@@ -1,0 +1,351 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+error[E0425]: cannot find function `try_build_rdf_list` in crate `purrdf_core`
+   --> crates/logic-compile/src/projections/rdf.rs:299:22
+    |
+299 |         purrdf_core::try_build_rdf_list(
+    |                      ^^^^^^^^^^^^^^^^^^ not found in `purrdf_core`
+    |
+note: similarly named function `build_rdf_list` defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/collections.rs:517:0
+help: a function with a similar name exists
+    |
+299 -         purrdf_core::try_build_rdf_list(
+299 +         purrdf_core::build_rdf_list(
+    |
+help: consider importing this function
+    |
+ 11 + use purrdf_core::collections::try_build_rdf_list;
+    |
+help: if you import `try_build_rdf_list`, refer to it directly
+    |
+299 -         purrdf_core::try_build_rdf_list(
+299 +         try_build_rdf_list(
+    |
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/math-lift/src/sink.rs:50:22
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:32
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:35
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:38
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s.expect("REASON"), p, o, None);
+     |                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/math-lift/src/sink.rs:62:22
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:32
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:35
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:38
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s.expect("REASON"), p, o, None);
+     |                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-math-lift` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-math-lift` (lib test) due to 2 previous errors
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:566:15
+    |
+566 |     (value >= 0).then(|| {
+    |      -----    ^ expected `Integer`, found integer
+    |      |
+    |      expected because this is `purrdf::xsd::exact::Integer`
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/logic-compile/src/projections/rdf.rs:2082:28
+     |
+2082 |     let triple = g.builder.intern_triple(s, p, o);
+     |                            ^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2082:42
+     |
+2082 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                          ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2082:45
+     |
+2082 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                             ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2082:48
+     |
+2082 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1586:11
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2082 |     let triple = g.builder.intern_triple(s?, p, o);
+     |                                           +
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2082 |     let triple = g.builder.intern_triple(s, p?, o);
+     |                                              +
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2082 |     let triple = g.builder.intern_triple(s, p, o?);
+     |                                                 +
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/logic-compile/src/projections/rdf.rs:2083:15
+     |
+2083 |     g.builder.push_reifier(reifier, triple);
+     |               ^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, Diag>`
+    --> crates/logic-compile/src/projections/rdf.rs:2083:28
+     |
+2083 |     g.builder.push_reifier(reifier, triple);
+     |                            ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, gmeow_errors::Diag>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2083:37
+     |
+2083 |     g.builder.push_reifier(reifier, triple);
+     |                                     ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2628:11
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, gmeow_errors::Diag>` value, propagating a `Result::Err` value to the caller
+     |
+2083 |     g.builder.push_reifier(reifier?, triple);
+     |                                   +
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2083 |     g.builder.push_reifier(reifier, triple?);
+     |                                           +
+
+error[E0277]: the trait bound `purrdf_core::DatasetHandle: purrdf_core::DatasetView` is not satisfied
+  --> crates/logic-compile/src/projections/sparql/tests.rs:90:9
+   |
+89 |     assert!(purrdf::datasets_isomorphic(
+   |             --------------------------- required by a bound introduced by this call
+90 |         &get,
+   |         ^^^^ the trait `purrdf_core::DatasetView` is not implemented for `purrdf_core::DatasetHandle`
+   |
+   = help: the following other types implement trait `purrdf_core::DatasetView`:
+             purrdf::shapes::data_view::ShaclDatasetView
+             purrdf_core::CompositeDatasetView
+             purrdf_core::DeltaDatasetView
+             purrdf_core::PackView<'_>
+             purrdf_core::PagedDataset
+             purrdf_core::PagedQueryView<'_>
+             purrdf_core::PagedStackQueryView<'_>
+             purrdf_core::RdfDataset
+           and 5 others
+note: required by a bound in `purrdf_core::datasets_isomorphic`
+  --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/compare.rs:64:0
+
+error[E0277]: the trait bound `purrdf_core::DatasetHandle: purrdf_core::DatasetView` is not satisfied
+  --> crates/logic-compile/src/projections/sparql/tests.rs:99:9
+   |
+98 |     assert!(purrdf::datasets_isomorphic(
+   |             --------------------------- required by a bound introduced by this call
+99 |         &put,
+   |         ^^^^ the trait `purrdf_core::DatasetView` is not implemented for `purrdf_core::DatasetHandle`
+   |
+   = help: the following other types implement trait `purrdf_core::DatasetView`:
+             purrdf::shapes::data_view::ShaclDatasetView
+             purrdf_core::CompositeDatasetView
+             purrdf_core::DeltaDatasetView
+             purrdf_core::PackView<'_>
+             purrdf_core::PagedDataset
+             purrdf_core::PagedQueryView<'_>
+             purrdf_core::PagedStackQueryView<'_>
+             purrdf_core::RdfDataset
+           and 5 others
+note: required by a bound in `purrdf_core::datasets_isomorphic`
+  --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/compare.rs:64:0
+
+error[E0277]: the trait bound `purrdf_core::DatasetHandle: purrdf_core::DatasetView` is not satisfied
+   --> crates/logic-compile/src/projections/sparql/tests.rs:126:9
+    |
+125 |     assert!(purrdf::datasets_isomorphic(
+    |             --------------------------- required by a bound introduced by this call
+126 |         &isolated,
+    |         ^^^^^^^^^ the trait `purrdf_core::DatasetView` is not implemented for `purrdf_core::DatasetHandle`
+    |
+    = help: the following other types implement trait `purrdf_core::DatasetView`:
+              purrdf::shapes::data_view::ShaclDatasetView
+              purrdf_core::CompositeDatasetView
+              purrdf_core::DeltaDatasetView
+              purrdf_core::PackView<'_>
+              purrdf_core::PagedDataset
+              purrdf_core::PagedQueryView<'_>
+              purrdf_core::PagedStackQueryView<'_>
+              purrdf_core::RdfDataset
+            and 5 others
+note: required by a bound in `purrdf_core::datasets_isomorphic`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/compare.rs:64:0
+
+error[E0277]: the trait bound `purrdf_core::DatasetHandle: purrdf_core::DatasetView` is not satisfied
+   --> crates/logic-compile/src/projections/sparql/tests.rs:167:9
+    |
+166 |     assert!(purrdf::datasets_isomorphic(
+    |             --------------------------- required by a bound introduced by this call
+167 |         &output,
+    |         ^^^^^^^ the trait `purrdf_core::DatasetView` is not implemented for `purrdf_core::DatasetHandle`
+    |
+    = help: the following other types implement trait `purrdf_core::DatasetView`:
+              purrdf::shapes::data_view::ShaclDatasetView
+              purrdf_core::CompositeDatasetView
+              purrdf_core::DeltaDatasetView
+              purrdf_core::PackView<'_>
+              purrdf_core::PagedDataset
+              purrdf_core::PagedQueryView<'_>
+              purrdf_core::PagedStackQueryView<'_>
+              purrdf_core::RdfDataset
+            and 5 others
+note: required by a bound in `purrdf_core::datasets_isomorphic`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/compare.rs:64:0
+
+error[E0277]: the trait bound `purrdf_core::DatasetHandle: purrdf_core::DatasetView` is not satisfied
+   --> crates/logic-compile/src/projections/sparql/tests.rs:194:9
+    |
+193 |     assert!(purrdf::datasets_isomorphic(
+    |             --------------------------- required by a bound introduced by this call
+194 |         &output,
+    |         ^^^^^^^ the trait `purrdf_core::DatasetView` is not implemented for `purrdf_core::DatasetHandle`
+    |
+    = help: the following other types implement trait `purrdf_core::DatasetView`:
+              purrdf::shapes::data_view::ShaclDatasetView
+              purrdf_core::CompositeDatasetView
+              purrdf_core::DeltaDatasetView
+              purrdf_core::PackView<'_>
+              purrdf_core::PagedDataset
+              purrdf_core::PagedQueryView<'_>
+              purrdf_core::PagedStackQueryView<'_>
+              purrdf_core::RdfDataset
+            and 5 others
+note: required by a bound in `purrdf_core::datasets_isomorphic`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/compare.rs:64:0
+
+error[E0277]: the trait bound `purrdf_core::DatasetHandle: purrdf_core::DatasetView` is not satisfied
+   --> crates/logic-compile/src/projections/sparql/tests.rs:210:9
+    |
+209 |     assert!(purrdf::datasets_isomorphic(
+    |             --------------------------- required by a bound introduced by this call
+210 |         &output,
+    |         ^^^^^^^ the trait `purrdf_core::DatasetView` is not implemented for `purrdf_core::DatasetHandle`
+    |
+    = help: the following other types implement trait `purrdf_core::DatasetView`:
+              purrdf::shapes::data_view::ShaclDatasetView
+              purrdf_core::CompositeDatasetView
+              purrdf_core::DeltaDatasetView
+              purrdf_core::PackView<'_>
+              purrdf_core::PagedDataset
+              purrdf_core::PagedQueryView<'_>
+              purrdf_core::PagedStackQueryView<'_>
+              purrdf_core::RdfDataset
+            and 5 others
+note: required by a bound in `purrdf_core::datasets_isomorphic`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/compare.rs:64:0
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/sparql/tests.rs:259:5
+    |
+250 | fn profile_output(lowered: &SparqlLowering, put: bool, input: &Arc<RdfDataset>) -> Arc<RdfDataset> {
+    |                                                                                    --------------- expected `std::sync::Arc<purrdf_core::RdfDataset>` because of return type
+...
+259 |     run(&query, text, input)
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^ expected `Arc<RdfDataset>`, found `DatasetHandle`
+    |
+    = note: expected struct `std::sync::Arc<purrdf_core::RdfDataset>`
+               found struct `purrdf_core::DatasetHandle`
+
+Some errors have detailed explanations: E0308, E0425.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-logic-compile` (lib) due to 4 previous errors
+Some errors have detailed explanations: E0277, E0308, E0425.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-logic-compile` (lib test) due to 11 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

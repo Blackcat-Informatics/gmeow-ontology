@@ -1,0 +1,173 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+error[E0308]: mismatched types
+   --> crates/math-lift/src/r/lift.rs:621:28
+    |
+612 |     fn resolve_fit(&self, expr: Option<&RExpr>) -> Option<FitInfo> {
+    |                                                    --------------- expected `std::option::Option<r::lift::FitInfo>` because of return type
+...
+621 |                     return Ok(None);
+    |                            ^^^^^^^^ expected `Option<FitInfo>`, found `Result<Option<_>, _>`
+    |
+    = note: expected enum `Option<r::lift::FitInfo>`
+               found enum `std::result::Result<Option<_>, _>`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-math-lift` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error[E0053]: method `emit` has an incompatible type for trait
+   --> crates/lang-bridge/src/bcp47.rs:87:52
+    |
+ 87 |     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `gmeow_errors::Diag`, found `bridge::IngestDiagnostic`
+    |
+note: type in trait
+   --> crates/lang-bridge/src/registry.rs:263:52
+    |
+263 |     fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>>;
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: expected signature `fn(&Bcp47Target, &LangProjectionInput) -> Result<_, gmeow_errors::Diag>`
+               found signature `fn(&Bcp47Target, &LangProjectionInput) -> Result<_, bridge::IngestDiagnostic>`
+help: change the output type to match the trait
+    |
+ 87 -     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+ 87 +     fn emit(&self, input: &LangProjectionInput) -> std::result::Result<std::vec::Vec<registry::LangEmission>, gmeow_errors::Diag> {
+    |
+
+error[E0053]: method `emit` has an incompatible type for trait
+   --> crates/lang-bridge/src/conllu.rs:689:52
+    |
+689 |     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `gmeow_errors::Diag`, found `bridge::IngestDiagnostic`
+    |
+note: type in trait
+   --> crates/lang-bridge/src/registry.rs:263:52
+    |
+263 |     fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>>;
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: expected signature `fn(&ConlluTarget, &LangProjectionInput) -> Result<_, gmeow_errors::Diag>`
+               found signature `fn(&ConlluTarget, &LangProjectionInput) -> Result<_, bridge::IngestDiagnostic>`
+help: change the output type to match the trait
+    |
+689 -     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+689 +     fn emit(&self, input: &LangProjectionInput) -> std::result::Result<std::vec::Vec<registry::LangEmission>, gmeow_errors::Diag> {
+    |
+
+error[E0053]: method `emit` has an incompatible type for trait
+   --> crates/lang-bridge/src/nif.rs:81:52
+    |
+ 81 |     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `gmeow_errors::Diag`, found `bridge::IngestDiagnostic`
+    |
+note: type in trait
+   --> crates/lang-bridge/src/registry.rs:263:52
+    |
+263 |     fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>>;
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: expected signature `fn(&NifBridge, &LangProjectionInput) -> Result<_, gmeow_errors::Diag>`
+               found signature `fn(&NifBridge, &LangProjectionInput) -> Result<_, bridge::IngestDiagnostic>`
+help: change the output type to match the trait
+    |
+ 81 -     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+ 81 +     fn emit(&self, input: &LangProjectionInput) -> std::result::Result<std::vec::Vec<registry::LangEmission>, gmeow_errors::Diag> {
+    |
+
+error[E0053]: method `emit` has an incompatible type for trait
+   --> crates/lang-bridge/src/ontolex.rs:680:52
+    |
+680 |     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `gmeow_errors::Diag`, found `bridge::IngestDiagnostic`
+    |
+note: type in trait
+   --> crates/lang-bridge/src/registry.rs:263:52
+    |
+263 |     fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>>;
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: expected signature `fn(&OntoLexTarget, &LangProjectionInput) -> Result<_, gmeow_errors::Diag>`
+               found signature `fn(&OntoLexTarget, &LangProjectionInput) -> Result<_, bridge::IngestDiagnostic>`
+help: change the output type to match the trait
+    |
+680 -     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+680 +     fn emit(&self, input: &LangProjectionInput) -> std::result::Result<std::vec::Vec<registry::LangEmission>, gmeow_errors::Diag> {
+    |
+
+error[E0053]: method `emit` has an incompatible type for trait
+   --> crates/lang-bridge/src/semaf.rs:77:52
+    |
+ 77 |     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `gmeow_errors::Diag`, found `bridge::IngestDiagnostic`
+    |
+note: type in trait
+   --> crates/lang-bridge/src/registry.rs:263:52
+    |
+263 |     fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>>;
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: expected signature `fn(&SemafBridge, &LangProjectionInput) -> Result<_, gmeow_errors::Diag>`
+               found signature `fn(&SemafBridge, &LangProjectionInput) -> Result<_, bridge::IngestDiagnostic>`
+help: change the output type to match the trait
+    |
+ 77 -     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+ 77 +     fn emit(&self, input: &LangProjectionInput) -> std::result::Result<std::vec::Vec<registry::LangEmission>, gmeow_errors::Diag> {
+    |
+
+error[E0053]: method `emit` has an incompatible type for trait
+   --> crates/lang-bridge/src/tei.rs:57:52
+    |
+ 57 |     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `gmeow_errors::Diag`, found `bridge::IngestDiagnostic`
+    |
+note: type in trait
+   --> crates/lang-bridge/src/registry.rs:263:52
+    |
+263 |     fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>>;
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: expected signature `fn(&TeiBridge, &LangProjectionInput) -> Result<_, gmeow_errors::Diag>`
+               found signature `fn(&TeiBridge, &LangProjectionInput) -> Result<_, bridge::IngestDiagnostic>`
+help: change the output type to match the trait
+    |
+ 57 -     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+ 57 +     fn emit(&self, input: &LangProjectionInput) -> std::result::Result<std::vec::Vec<registry::LangEmission>, gmeow_errors::Diag> {
+    |
+
+For more information about this error, try `rustc --explain E0053`.
+error: could not compile `gmeow-lang-bridge` (lib) due to 6 previous errors
+error: could not compile `gmeow-math-lift` (lib test) due to 1 previous error
+error[E0609]: no field `construct` on type `gmeow_errors::Diag`
+   --> crates/lang-bridge/src/conllu.forward_tests.rs:174:17
+    |
+174 |     assert!(err.construct.contains("no lang:slotIndex"), "{err:?}");
+    |                 ^^^^^^^^^ unknown field
+
+error[E0609]: no field `construct` on type `gmeow_errors::Diag`
+   --> crates/lang-bridge/src/conllu.forward_tests.rs:201:13
+    |
+201 |         err.construct.contains("duplicate lang:slotIndex"),
+    |             ^^^^^^^^^ unknown field
+
+error[E0609]: no field `construct` on type `gmeow_errors::Diag`
+   --> crates/lang-bridge/src/nif.tests.rs:107:17
+    |
+107 |     assert!(err.construct.contains("inverted"), "{err:?}");
+    |                 ^^^^^^^^^ unknown field
+
+error[E0609]: no field `construct` on type `gmeow_errors::Diag`
+   --> crates/lang-bridge/src/nif.tests.rs:123:17
+    |
+123 |     assert!(err.construct.contains("exceeds"), "{err:?}");
+    |                 ^^^^^^^^^ unknown field
+
+error[E0609]: no field `construct` on type `gmeow_errors::Diag`
+  --> crates/lang-bridge/src/tei.tests.rs:97:17
+   |
+97 |     assert!(err.construct.contains("not an integer"), "{err:?}");
+   |                 ^^^^^^^^^ unknown field
+
+Some errors have detailed explanations: E0053, E0609.
+For more information about an error, try `rustc --explain E0053`.
+error: could not compile `gmeow-lang-bridge` (lib test) due to 11 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

@@ -1,0 +1,22 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-cli) & (test(commands::prove::tests::) | test(commands::reasoning_report::tests::))' --no-tests=fail
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-cli)
+error: failed to run custom build command for `gmeow-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-cli)`
+
+Caused by:
+  process didn't exit successfully: `/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-cli/69488f6a9f69ac5e/out/build_script_build` (exit status: 101)
+  --- stdout
+  cargo:rerun-if-env-changed=GMEOW_BUNDLE_PATH
+
+  --- stderr
+
+  thread 'main' (3383449) panicked at crates/gmeow-cli/build.rs:64:9:
+  gmeow: staged gmeow.gts bundle /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-cli/../../generated/dist/gmeow.gts is missing, empty, or not a regular file — run `make cli-build` (or `make install`) to materialize every embedded producer asset before building this consumer. It is a git-ignored local/release product, not a committed input.
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:705: nextest-synthetic] Error 101

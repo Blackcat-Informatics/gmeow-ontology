@@ -1,0 +1,354 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+error: unused `std::result::Result` that must be used
+  --> crates/logic/tests/session_common/mod.rs:68:9
+   |
+68 | /         builder.push_owned_quad(
+69 | |             &RdfQuad::new(RdfTerm::iri(iri(s)), edge_pred(), RdfTerm::iri(iri(o)))
+70 | |                 .in_graph(RdfTerm::iri(WORLD)),
+71 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+68 |         let _ = builder.push_owned_quad(
+   |         +++++++
+
+error: could not compile `gmeow-logic` (test "reasoning_session_crash_replay") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic` (test "reasoning_session_paged_composition") due to 1 previous error
+error: unused `std::result::Result` that must be used
+  --> crates/logic/benches/reason.rs:62:9
+   |
+62 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+62 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/benches/reason.rs:178:9
+    |
+178 | /         builder.push_owned_quad(
+179 | |             &RdfQuad::new(RdfTerm::iri(subject), predicate, object).in_graph(RdfTerm::iri(W)),
+180 | |         );
+    | |_________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+178 |         let _ = builder.push_owned_quad(
+    |         +++++++
+
+error: could not compile `gmeow-logic` (bench "reason") due to 2 previous errors
+error: could not compile `gmeow-logic` (test "reasoning_session_refusal") due to 1 previous error
+error: could not compile `gmeow-logic` (test "reasoning_session_semver") due to 1 previous error
+error: could not compile `gmeow-logic` (test "reasoning_session_annotation_parity") due to 1 previous error
+error: unused `std::result::Result` that must be used
+  --> crates/logic/tests/ontology_entailments.rs:99:9
+   |
+99 |         builder.push_dataset(&dataset);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+99 |         let _ = builder.push_dataset(&dataset);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/tests/ontology_entailments.rs:102:9
+    |
+102 |         builder.push_owned_quad(quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+102 |         let _ = builder.push_owned_quad(quad);
+    |         +++++++
+
+error: could not compile `gmeow-logic` (test "ontology_entailments") due to 2 previous errors
+error: unused `std::result::Result` that must be used
+  --> crates/logic/tests/datatype_value_space_decides_w3c_divergence.rs:91:9
+   |
+91 |         b.push_owned_quad(&q);
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+91 |         let _ = b.push_owned_quad(&q);
+   |         +++++++
+
+error: could not compile `gmeow-logic` (test "datatype_value_space_decides_w3c_divergence") due to 1 previous error
+error: unused `std::result::Result` that must be used
+   --> crates/logic/tests/reasoning_session_smoke.rs:126:9
+    |
+126 | /         builder.push_owned_quad(
+127 | |             &RdfQuad::new(
+128 | |                 RdfTerm::iri(format!("{EX}{s}")),
+129 | |                 format!("{EX}edge"),
+...   |
+132 | |             .in_graph(RdfTerm::iri(WORLD)),
+133 | |         );
+    | |_________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+126 |         let _ = builder.push_owned_quad(
+    |         +++++++
+
+error: could not compile `gmeow-logic` (test "reasoning_session_smoke") due to 1 previous error
+error: could not compile `gmeow-logic` (test "reasoning_session_parity") due to 1 previous error
+error: unused `std::result::Result` that must be used
+  --> crates/logic/tests/external_relations.rs:90:9
+   |
+90 | /         builder.push_owned_quad(
+91 | |             &RdfQuad::new(
+92 | |                 RdfTerm::iri(ex(document)),
+93 | |                 ex("status"),
+...  |
+96 | |             .in_graph(RdfTerm::iri(WORLD)),
+97 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+90 |         let _ = builder.push_owned_quad(
+   |         +++++++
+
+error: could not compile `gmeow-logic` (test "external_relations") due to 1 previous error
+error: unused `std::result::Result` that must be used
+  --> crates/logic/tests/enactment_observed_not_derived.rs:56:9
+   |
+56 | /         builder.push_owned_quad(
+57 | |             &RdfQuad::new(RdfTerm::iri(*s), *p, RdfTerm::iri(*o)).in_graph(RdfTerm::iri(WORLD)),
+58 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+56 |         let _ = builder.push_owned_quad(
+   |         +++++++
+
+error: could not compile `gmeow-logic` (test "enactment_observed_not_derived") due to 1 previous error
+error: could not compile `gmeow-logic` (test "reasoning_session_restore_rejection") due to 1 previous error
+error[E0308]: mismatched types
+   --> crates/logic/tests/paged_dispatch.rs:115:47
+    |
+115 |     let pack_bytes = PackBuilder::build_bytes(&resident).expect("build succinct pack");
+    |                      ------------------------ ^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |                      |
+    |                      arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: associated function defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/pack/container.rs:449:12
+    |
+449 |     pub fn build_bytes(dataset: &RdfDataset) -> Result<Vec<u8>, PackError> {
+    |            ^^^^^^^^^^^
+
+error[E0277]: the trait bound `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>: purrdf::DatasetView` is not satisfied
+   --> crates/logic/tests/paged_dispatch.rs:121:29
+    |
+121 |         dispatch_query_view(&resident, identity(7), WORLD, &program, PROFILE, &budget)
+    |         ------------------- ^^^^^^^^^ the trait `purrdf::DatasetView` is not implemented for `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `purrdf::DatasetView`:
+              purrdf::CompositeDatasetView
+              purrdf::DeltaDatasetView
+              purrdf::PackView<'_>
+              purrdf::PagedDataset
+              purrdf::PagedQueryView<'_>
+              purrdf::PagedStackQueryView<'_>
+              purrdf::RdfDataset
+              purrdf::TripleRead<'_>
+            and 6 others
+note: required by a bound in `gmeow_logic::dispatch::dispatch_query_view`
+   --> crates/logic/src/dispatch.rs:523:31
+    |
+523 | pub fn dispatch_query_view<V: DatasetView>(
+    |                               ^^^^^^^^^^^ required by this bound in `dispatch_query_view`
+
+error[E0308]: mismatched types
+   --> crates/logic/tests/paged_dispatch.rs:401:47
+    |
+401 |     let whole = materialize_program(&program, &resident, MaterializationLimits::default(), None)
+    |                 -------------------           ^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |                 |
+    |                 arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/logic/src/materialize.rs:641:8
+    |
+641 | pub fn materialize_program(
+    |        ^^^^^^^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-logic` (test "paged_dispatch") due to 3 previous errors
+error[E0277]: the trait bound `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>: purrdf::DatasetView` is not satisfied
+   --> crates/conformance/src/compare.rs:272:47
+    |
+272 |         let bytes = purrdf::serialize_dataset(&projected, NTRIPLES, SerializeGraph::DefaultGraph)
+    |                     ------------------------- ^^^^^^^^^^ the trait `purrdf::DatasetView` is not implemented for `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `purrdf::DatasetView`:
+              purrdf::CompositeDatasetView
+              purrdf::DeltaDatasetView
+              purrdf::PackView<'_>
+              purrdf::PagedDataset
+              purrdf::PagedQueryView<'_>
+              purrdf::PagedStackQueryView<'_>
+              purrdf::RdfDataset
+              purrdf::TripleRead<'_>
+            and 6 others
+note: required by a bound in `purrdf::serialize_dataset`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf/src/native_codecs/serialize.rs:119:29
+    |
+119 | pub fn serialize_dataset<D: DatasetView>(
+    |                             ^^^^^^^^^^^ required by this bound in `serialize_dataset`
+
+error[E0308]: mismatched types
+   --> crates/conformance/src/external/tptp/lower_fol.rs:207:13
+    |
+207 |             world,
+    |             ^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+207 |             world: world.expect("REASON"),
+    |                  ++++++++++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:14
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |              ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:24
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |                        ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:33
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |                                 ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/conformance/src/external/tptp/lower_fol.rs:217:44
+     |
+ 217 |             .push_quad(subject, predicate, object, Some(self.world));
+     |                                            ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 217 |             .push_quad(subject.expect("REASON"), predicate, object, Some(self.world));
+     |                               +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 217 |             .push_quad(subject, predicate.expect("REASON"), object, Some(self.world));
+     |                                          +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 217 |             .push_quad(subject, predicate, object.expect("REASON"), Some(self.world));
+     |                                                  +++++++++++++++++
+
+error: could not compile `gmeow-conformance` (lib) due to 3 previous errors
+error: could not compile `gmeow-conformance` (lib test) due to 3 previous errors
+error[E0308]: mismatched types
+   --> crates/validate/src/slice_peerage.rs:388:5
+    |
+387 | fn manifest_dataset(record: &SliceRecord) -> Dataset {
+    |                                              ------- expected `purrdf::slice::rdf_query::Dataset` because of return type
+388 |     Dataset::from_frozen(Arc::clone(&record.manifest_graph))
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Dataset`, found `Result<Dataset, SliceError>`
+    |
+    = note: expected struct `Dataset`
+                 found enum `std::result::Result<Dataset, purrdf::slice::SliceError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::slice::rdf_query::Dataset, purrdf::slice::SliceError>` value, panicking if the value is a `Result::Err`
+    |
+388 |     Dataset::from_frozen(Arc::clone(&record.manifest_graph)).expect("REASON")
+    |                                                             +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/validate/src/validate_all.rs:555:78
+    |
+555 |                     .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
+    |                                                                              ^ expected `String`, found `ShapesError`
+    |
+help: try using a conversion method
+    |
+555 |                     .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e.to_string() })),
+    |                                                                               ++++++++++++
+
+error[E0509]: cannot move out of type `purrdf::RdfTriple`, which implements the `Drop` trait
+  --> crates/validate/src/data_validate.tests.rs:43:13
+   |
+43 |             row.statement.object
+   |             ^^^^^^^^^^^^^^^^^^^^
+   |             |
+   |             cannot move out of here
+   |             move occurs because `row.statement.object` has type `purrdf::RdfTerm`, which does not implement the `Copy` trait
+   |
+help: consider cloning the value if the performance cost is acceptable
+   |
+43 |             row.statement.object.clone()
+   |                                 ++++++++
+
+Some errors have detailed explanations: E0308, E0509.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-validate` (lib test) due to 3 previous errors
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-validate` (lib) due to 2 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

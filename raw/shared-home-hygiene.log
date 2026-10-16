@@ -1,0 +1,2 @@
+FAIL: job `fixed-hasher-everywhere`: 704 copies remain, debt records 705; lower it with `scripts/check-shared-helpers.py --write-debt`
+FAIL: job `rdf-collection`: 20 copies outside its home, debt allows 19

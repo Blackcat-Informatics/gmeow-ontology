@@ -1,0 +1,7 @@
+The qualification retry failed at the authored-default source boundary: its guard flattened valid native `rdf:reifies` bindings and mistook their quoted objects for unsupported ordinary base quads. This was a GMEOW boundary error, not evidence that PurRDF's native statement tables were lost.
+
+The repair parses canonical RDF back into the complete native dataset before checking only its ordinary quad partition. Native bindings travel through the statement tables; unsupported ordinary quoted positions still fail closed and report the offending row. The two fixture ingestion helpers now share the corrected guard.
+
+The expanded control first reproduced the exact producer failure. Its repaired run passed both cases: canonical authored-default plus named `graph/logic` through the actual SnapshotBuilder, mandated GTS profile, frame audit, GTS read/import and exact typed-rule consumer; and a negative ordinary quotation refusal. The selected rule retains its dynamic predicate, Arabic directional literal, negation, distinct guard and scope. Nextest 1b981437-983b-4041-88a9-efad97234113: 2 passed, 0.100s execution.
+
+These are explicit synthetic inputs; the tests do not produce the corpus. Source-load's stage version is bumped. The repair is uncommitted, and the full retry remains FAILED. No third full gate has started while the known static, diagnostic and browser-asset prerequisites remain unresolved. Principles 2, 3, 4, 7, 18.

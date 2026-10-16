@@ -1,0 +1,99 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(tptp::tests::)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 12s
+────────────
+ Nextest run ID 1548573b-5c9f-4e28-be41-76e094c9e0b9 with nextest profile: ci
+    Starting 24 tests across 224 binaries (7379 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.015s] ( 1/24) gmeow-logic-compile tptp::tests::admission_identity_includes_empty_named_graph_declarations
+        PASS [   0.015s] ( 2/24) gmeow-logic-compile tptp::tests::full_literal_identity_survives_as_an_ordinary_constant
+        PASS [   0.015s] ( 3/24) gmeow-logic-compile tptp::tests::quoted_payload_remains_unasserted
+        PASS [   0.015s] ( 4/24) gmeow-logic-compile tptp::tests::source_identity_binds_the_complete_base_receipt
+        PASS [   0.016s] ( 5/24) gmeow-logic-compile tptp::tests::edited_profile_selection_and_symbol_tables_cannot_change_proof_semantics
+        PASS [   0.016s] ( 6/24) gmeow-logic-compile tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+        PASS [   0.016s] ( 7/24) gmeow-logic-compile tptp::tests::selected_formula_with_term_equal_is_a_required_blocker
+        PASS [   0.015s] ( 8/24) gmeow-logic-compile tptp::tests::scalar_formula_grammar_never_becomes_domain_predicates
+        PASS [   0.016s] ( 9/24) gmeow-logic-compile tptp::tests::exact_document_selection_uses_composition_bindings_without_reparsing
+        PASS [   0.016s] (10/24) gmeow-logic-compile tptp::tests::rewriting_an_admitted_assertion_cannot_reuse_its_old_source_unit_identity
+        PASS [   0.016s] (11/24) gmeow-logic-compile tptp::tests::procedural_term_comparison_blocks_the_whole_problem
+        PASS [   0.016s] (12/24) gmeow-logic-compile tptp::tests::unselected_class_expression_does_not_block_selected_document
+        PASS [   0.016s] (13/24) gmeow-logic-compile tptp::tests::serialized_admission_is_observation_data_not_compiler_authority
+        PASS [   0.016s] (14/24) gmeow-logic-compile tptp::tests::top_and_bottom_class_membership_have_their_defined_meaning
+        PASS [   0.016s] (15/24) gmeow-logic-compile tptp::tests::denotational_identity_uses_equality_without_a_unique_name_axiom
+        PASS [   0.016s] (16/24) gmeow-logic-compile tptp::tests::property_characteristic_record_emits_the_law_once
+        PASS [   0.016s] (17/24) gmeow-logic-compile tptp::tests::deduplicated_class_axiom_remains_required_with_one_selected_contributor
+        PASS [   0.016s] (18/24) gmeow-logic-compile tptp::tests::unselected_contextual_reification_does_not_block_selected_document
+        PASS [   0.016s] (19/24) gmeow-logic-compile tptp::tests::class_dependencies_cannot_read_definitions_from_excluded_documents
+        PASS [   0.016s] (20/24) gmeow-logic-compile tptp::tests::structural_owner_does_not_hide_an_unrelated_domain_assertion
+        PASS [   0.016s] (21/24) gmeow-logic-compile tptp::tests::class_restrictions_do_not_erase_context_datatypes_or_procedural_semantics
+        PASS [   0.016s] (22/24) gmeow-logic-compile tptp::tests::ordinary_domain_assertions_and_subclass_law_reach_the_problem
+        PASS [   0.017s] (23/24) gmeow-logic-compile tptp::tests::restriction_dependencies_are_class_laws_not_recursive_syntax_expansion
+        FAIL [   0.019s] (24/24) gmeow-logic-compile tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax
+  stdout ───
+
+    running 1 test
+    test tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 944 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax' (1308304) panicked at crates/logic-compile/src/tptp/tests.rs:648:5:
+    FofSentence { name: "gmeow_17c3da9aa74073b8e4108d1c90f6f8a8de743811548989b6faf61eefe9048084", role: "axiom", body: "(! [V_636c6173735f6d656d626572] : ('P|2|https://blackcatinformatics.ca/logic/instanceOf'(V_636c6173735f6d656d626572,'B|c14n0') <=> ((? [V_636c6173735f76616c7565] : ('P|2|https://example.org/part'(V_636c6173735f6d656d626572,V_636c6173735f76616c7565) & 'P|2|https://blackcatinformatics.ca/logic/instanceOf'(V_636c6173735f76616c7565,'I|https://example.org/Part'))) & (! [V_636c6173735f76616c7565_2] : ('P|2|https://example.org/part'(V_636c6173735f6d656d626572,V_636c6173735f76616c7565_2) => 'P|2|https://blackcatinformatics.ca/logic/instanceOf'(V_636c6173735f76616c7565_2,'I|https://example.org/Part'))) & 'P|2|https://example.org/part'(V_636c6173735f6d656d626572,'I|https://example.org/fixed'))))", source_units: {"35b0194494347e4457ff9769e98e4f88a9871be44f5cab89fb3b0f057740d827"} }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.079s] 24 tests run: 23 passed, 1 failed, 7379 skipped
+        FAIL [   0.019s] (24/24) gmeow-logic-compile tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax
+  stdout ───
+
+    running 1 test
+    test tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 944 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax' (1308304) panicked at crates/logic-compile/src/tptp/tests.rs:648:5:
+    FofSentence { name: "gmeow_17c3da9aa74073b8e4108d1c90f6f8a8de743811548989b6faf61eefe9048084", role: "axiom", body: "(! [V_636c6173735f6d656d626572] : ('P|2|https://blackcatinformatics.ca/logic/instanceOf'(V_636c6173735f6d656d626572,'B|c14n0') <=> ((? [V_636c6173735f76616c7565] : ('P|2|https://example.org/part'(V_636c6173735f6d656d626572,V_636c6173735f76616c7565) & 'P|2|https://blackcatinformatics.ca/logic/instanceOf'(V_636c6173735f76616c7565,'I|https://example.org/Part'))) & (! [V_636c6173735f76616c7565_2] : ('P|2|https://example.org/part'(V_636c6173735f6d656d626572,V_636c6173735f76616c7565_2) => 'P|2|https://blackcatinformatics.ca/logic/instanceOf'(V_636c6173735f76616c7565_2,'I|https://example.org/Part'))) & 'P|2|https://example.org/part'(V_636c6173735f6d656d626572,'I|https://example.org/fixed'))))", source_units: {"35b0194494347e4457ff9769e98e4f88a9871be44f5cab89fb3b0f057740d827"} }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

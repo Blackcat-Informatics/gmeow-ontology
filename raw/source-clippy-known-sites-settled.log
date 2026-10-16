@@ -1,0 +1,245 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets -- -D warnings
+    Blocking waiting for file lock on package cache
+    Checking purrdf-sparql-results v3.0.0
+    Checking purrdf-markdown v3.0.0
+    Checking purrdf-columnar v3.0.0
+    Checking purrdf-json v3.0.0
+    Checking purrdf-shex v3.0.0
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/errors)
+    Checking purrdf-datalog v3.0.0
+    Checking purrdf-gts v3.0.0
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking rustls v0.23.42
+    Checking idna_adapter v1.2.2
+    Checking clap v4.6.4
+    Checking tinystr v0.7.6
+    Checking criterion-plot v0.5.0
+    Checking gungraun v0.19.4
+    Checking weezl v0.1.12
+    Checking roxmltree v0.20.0
+    Checking color_quant v1.1.0
+    Checking tiny-skia-path v0.11.4
+    Checking slotmap v1.1.1
+    Checking tracing-log v0.2.0
+    Checking sharded-slab v0.1.7
+    Checking matchers v0.2.0
+    Checking kurbo v0.11.3
+    Checking criterion v0.5.1
+    Checking thread_local v1.1.10
+    Checking fontconfig-parser v0.5.8
+    Checking nu-ansi-term v0.50.3
+    Checking unicode-properties v0.1.4
+    Checking bitflags v1.3.2
+    Checking purrdf-sparql-eval v3.0.0
+    Checking deranged v0.5.8
+    Checking icu_locid v1.5.0
+    Checking unicode-bidi-mirroring v0.3.0
+    Checking num-conv v0.2.2
+    Checking unicode-ccc v0.3.0
+    Checking powerfmt v0.2.0
+    Checking time-core v0.1.9
+    Checking idna v1.1.0
+    Checking byteorder-lite v0.1.0
+    Checking icu_locid_transform_data v1.5.1
+    Checking simplecss v0.2.2
+    Checking png v0.17.16
+    Checking quick-xml v0.41.0
+    Checking rustybuzz v0.18.0
+    Checking pxfm v0.1.30
+    Checking data-url v0.3.2
+    Checking unicode-vo v0.1.0
+    Checking tracing-subscriber v0.3.23
+    Checking xmlwriter v0.1.0
+    Checking rand_core v0.6.4
+    Checking linked-hash-map v0.5.6
+    Checking unscanny v0.1.0
+    Checking jsonschema v0.46.10
+    Checking pico-args v0.5.0
+    Checking fontdb v0.21.0
+    Checking unicode-bidi v0.3.18
+    Checking zune-core v0.5.1
+    Checking imagesize v0.13.0
+    Checking downcast-rs v1.2.1
+    Checking yaml-rust v0.4.5
+    Checking gif v0.14.2
+    Checking strum v0.26.3
+    Checking portable-atomic v1.14.0
+    Checking wasmi_core v0.40.0
+    Checking icu_provider v1.5.0
+    Checking svgtypes v0.15.3
+    Checking zune-jpeg v0.5.15
+    Checking png v0.18.1
+    Checking icu_collections v1.5.0
+    Checking time v0.3.54
+    Checking unic-langid-impl v0.9.6
+    Checking form_urlencoded v1.2.2
+    Checking bincode v1.3.3
+    Checking quick-xml v0.36.2
+    Checking fancy-regex v0.16.2
+    Checking numerals v0.1.4
+    Checking unsafe-libyaml v0.2.11
+    Checking thin-vec v0.2.18
+    Checking unicode-math-class v0.1.0
+    Checking biblatex v0.10.0
+    Checking icu_locid_transform v1.5.0
+    Checking wasmi_ir v0.40.0
+    Checking url v2.5.8
+    Checking thiserror v1.0.69
+    Checking enum-ordinalize v4.4.1
+    Checking typst-utils v0.13.1
+    Checking unic-langid v0.9.6
+    Checking wasmparser v0.221.3
+    Checking gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/cli-core)
+    Checking icu_properties_data v1.5.1
+    Checking rand v0.8.7
+    Checking rand_chacha v0.3.1
+    Checking purrdf-entail v3.0.0
+    Checking zerotrie v0.1.3
+    Checking phf_shared v0.11.3
+    Checking typst-timing v0.13.1
+    Checking approx v0.5.1
+    Checking ecow v0.2.6
+    Checking rand_core v0.9.5
+    Checking csv-core v0.1.13
+    Checking spin v0.9.9
+    Checking multi-stash v0.2.0
+    Checking fast-srgb8 v1.0.0
+    Checking serde_yaml v0.9.34+deprecated
+    Checking wasmi_collections v0.40.0
+    Checking mutate_once v0.1.2
+    Checking chinese-variant v1.1.6
+    Checking csv v1.4.0
+    Checking icu_properties v1.5.1
+    Checking lipsum v0.9.1
+    Checking icu_provider_blob v1.5.0
+    Checking kamadak-exif v0.6.1
+    Checking usvg v0.43.0
+    Checking chinese-number v0.7.8
+    Checking typst-syntax v0.13.1
+    Checking palette v0.7.6
+    Checking phf v0.11.3
+    Checking comemo v0.4.0
+    Checking codex v0.1.1
+    Checking rust_decimal v1.42.1
+    Checking typed-arena v2.0.2
+    Checking typst-assets v0.13.1
+    Checking moxcms v0.8.1
+    Checking qcms v0.3.0
+    Checking az v1.3.0
+    Checking bumpalo v3.20.3
+    Checking citationberg v0.5.0
+    Checking rand_chacha v0.9.0
+    Checking diff v0.1.13
+    Checking yansi v1.0.1
+    Checking font-types v0.11.3
+    Checking polycool v0.4.0
+    Checking zune-core v0.4.12
+    Checking quick-error v2.0.1
+    Checking psm v0.1.31
+    Checking rand v0.9.5
+    Checking plist v1.10.0
+    Checking icu_segmenter_data v1.5.1
+    Checking pretty_assertions v1.4.1
+    Checking kurbo v0.13.1
+    Checking tiny-skia v0.11.4
+    Checking gif v0.13.3
+    Checking rgb v0.8.53
+    Checking read-fonts v0.39.2
+    Checking zune-jpeg v0.4.21
+    Checking image-webp v0.1.3
+    Checking ureq v3.3.0
+    Checking xmlparser v0.13.6
+    Checking stacker v0.1.24
+    Checking icu_segmenter v1.5.0
+    Checking icu_provider_adapters v1.5.0
+    Checking pdf-writer v0.12.1
+    Checking if_chain v1.0.3
+    Checking quick-error v1.2.3
+    Checking hypher v0.1.7
+    Checking syntect v5.3.0
+    Checking rand_xorshift v0.4.0
+    Checking xmp-writer v0.3.3
+    Checking unarray v0.1.4
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+    Checking inventory v0.3.24
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/test-batch-macros)
+    Checking wasm-bindgen-shared v0.2.125
+    Checking rusty-fork v0.3.1
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+    Checking normalize-line-endings v0.3.0
+    Checking predicates-core v1.0.10
+    Checking wasm-bindgen v0.2.125
+    Checking snapbox-macros v0.4.0
+    Checking float-cmp v0.10.0
+    Checking filetime v0.2.29
+    Checking os_pipe v1.2.3
+    Checking toml_datetime v0.7.5+spec-1.1.0
+    Checking content_inspector v0.2.4
+    Checking dunce v1.0.5
+    Checking difflib v0.4.0
+    Checking proptest v1.11.0
+    Checking humantime v2.4.0
+    Checking termtree v0.5.1
+    Checking toml_writer v1.1.2+spec-1.1.0
+    Checking shlex v1.3.0
+    Checking static_assertions v1.1.0
+    Checking resvg v0.43.0
+    Checking minimal-lexical v0.2.1
+    Checking castaway v0.2.4
+    Checking wasmi v0.40.0
+    Checking predicates-tree v1.0.13
+    Checking snapbox v0.6.24
+    Checking itertools v0.14.0
+    Checking predicates v3.1.4
+    Checking base64 v0.13.1
+    Checking macro_rules_attribute v0.2.2
+    Checking humantime-serde v1.1.1
+    Checking monostate v0.1.18
+    Checking derive_builder v0.20.2
+    Checking esaxx-rs v0.1.10
+    Checking nom v7.1.3
+    Checking toml_edit v0.23.10+spec-1.0.0
+    Checking compact_str v0.9.1
+    Checking two-face v0.4.5
+    Checking hayagriva v0.8.1
+    Checking dary_heap v0.3.9
+    Checking fancy-regex v0.14.0
+    Checking unicode-normalization-alignments v0.1.12
+    Checking image v0.25.10
+    Checking unicode_categories v0.1.1
+    Checking gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/perf-evidence)
+    Checking syn v2.0.119
+    Checking assert_cmd v2.2.2
+    Checking xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/xtask)
+    Checking helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/helper-census)
+    Checking gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/build-inputs)
+error: this `if` statement can be collapsed
+    --> crates/xtask/src/producer.rs:1037:9
+     |
+1037 | /         if value["reason"] == "compiler-message" {
+1038 | |             if let Some(message) = value["message"]["rendered"].as_str() {
+1039 | |                 eprint!("{message}");
+1040 | |             }
+1041 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+     = note: `-D clippy::collapsible-if` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+     |
+1037 ~         if value["reason"] == "compiler-message"
+1038 ~             && let Some(message) = value["message"]["rendered"].as_str() {
+1039 |                 eprint!("{message}");
+1040 ~             }
+     |
+
+error: could not compile `xtask` (bin "xtask") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `xtask` (bin "xtask" test) due to 1 previous error
+make: *** [Makefile:289: clippy-prebuild] Error 101

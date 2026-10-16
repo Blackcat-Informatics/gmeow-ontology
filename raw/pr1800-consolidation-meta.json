@@ -1,0 +1,13 @@
+{
+  "baseRefName": "issue-1757-snapshot-critical",
+  "baseRefOid": "51b7abd40cbdccf79c525086a853a2ec132ffc1d",
+  "headRefName": "issue-1795-certifier-encoding",
+  "headRefOid": "4e7c7f2a7982004d21310002eb2cb20162a611e6",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1800,
+  "state": "OPEN",
+  "title": "fix(1795): sharpen termination-statement encoding and bind closed relations",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1800"
+}

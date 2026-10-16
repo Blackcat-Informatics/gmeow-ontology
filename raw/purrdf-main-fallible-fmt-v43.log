@@ -1,0 +1,18 @@
+cargo fmt
+error: unexpected closing delimiter: `}`
+   --> /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance/src/bin/ingest_external.rs:371:9
+    |
+317 | fn vendor_tptp_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
+    |                                                                      - the nearest open delimiter
+...
+362 |             match e {
+    |                     - the nearest open delimiter
+...
+369 |                 )),
+    |                  - missing open `(` for this delimiter
+370 |             })
+    |              - missing open `(` for this delimiter
+371 |         })?;
+    |         ^ unexpected closing delimiter
+
+make: *** [Makefile:248: fmt] Error 1

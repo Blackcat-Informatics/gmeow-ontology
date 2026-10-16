@@ -1,0 +1,56 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(ifp_with_unrelated_subclass_keeps_identity_admission_and_clash_teeth) | test(entangled_cardinality_and_existential_share_native_proofs_and_budget) | test(unrelated_quoted_data_does_not_select_class_admission_and_empty_graphs_survive))' --no-tests=fail
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Finished `test` profile [optimized] target(s) in 1m 47s
+────────────
+ Nextest run ID 6b78115f-ba11-4806-8a37-4fb57ed8196e with nextest profile: ci
+    Starting 3 tests across 26 binaries (2276 tests and 199 binaries skipped)
+        PASS [   0.007s] (1/3) gmeow-logic reason::refute::casesplit::scope_tests::unrelated_quoted_data_does_not_select_class_admission_and_empty_graphs_survive
+        FAIL [   0.047s] (2/3) gmeow-logic reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget
+  stdout ───
+
+    running 1 test
+    test reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget ... FAILED
+
+    failures:
+
+    failures:
+        reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2054 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget' (372668) panicked at crates/logic/src/reason/refute/tests.rs:418:10:
+    the existing someValuesFrom obligation commits its property and class witness
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.061s] (3/3) gmeow-logic reason::refute::counting::tests::ifp_with_unrelated_subclass_keeps_identity_admission_and_clash_teeth
+────────────
+     Summary [   0.085s] 3 tests run: 2 passed, 1 failed, 2276 skipped
+        FAIL [   0.047s] (2/3) gmeow-logic reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget
+  stdout ───
+
+    running 1 test
+    test reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget ... FAILED
+
+    failures:
+
+    failures:
+        reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2054 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget' (372668) panicked at crates/logic/src/reason/refute/tests.rs:418:10:
+    the existing someValuesFrom obligation commits its property and class witness
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

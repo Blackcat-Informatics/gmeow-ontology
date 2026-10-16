@@ -1,0 +1,13 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(canonical_numeric_data_ranges_validate_the_generated_union)' --no-tests=fail
+    Finished `test` profile [optimized] target(s) in 0.35s
+────────────
+ Nextest run ID a463110d-0262-4326-ac42-b67f1dd7a6da with nextest profile: ci
+    Starting 1 test across 224 binaries (7414 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.038s] (1/1) gmeow-validate::open_world_projection canonical_numeric_data_ranges_validate_the_generated_union
+────────────
+     Summary [   0.092s] 1 test run: 1 passed, 7414 skipped

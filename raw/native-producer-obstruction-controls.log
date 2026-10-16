@@ -1,0 +1,22 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(obligations::) | test(result_rdf::tests::) | test(reason::refute::native::tests::) | test(malformed_or_undefined_keys_cannot_certify_a_complete_native_result) | test(maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation) | test(undefined_value_comparison_cannot_become_a_complete_native_result) | test(invalid_positive_obligation_fields_fail_instead_of_becoming_absent) | test(invalid_active_qualified_bounds_refuse_instead_of_becoming_zero) | test(native_equality_refuses_unknown_datatype_comparison) | test(incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run) | test(list_membership_feedback_cannot_hide_an_existential_cycle) | test(unknown_value_interpretations_withhold_only_the_affected_law))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error[E0599]: no method named `to_ntriples` found for struct `std::string::String` in the current scope
+   --> crates/logic/src/reason/program/equality_tests.rs:315:73
+    |
+315 |     let restored = crate::result_rdf::parse_reasoning_graph(&projection.to_ntriples()).unwrap();
+    |                                                                         ^^^^^^^^^^^ method not found in `std::string::String`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `gmeow-logic` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:709: nextest-synthetic] Error 101

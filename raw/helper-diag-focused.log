@@ -1,0 +1,75 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(helper-census) | package(gmeow-errors) | (package(gmeow-logic) & test(physical::seminaive::joint::input))' --no-tests=fail
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/errors)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-import)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/cli-core)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/xtask)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/helper-census)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/music)
+error[E0308]: mismatched types
+   --> crates/helper-census/src/main.rs:324:18
+    |
+324 |         |ledger| census::check_findings(&Workspace::walk(tree), &ledger),
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Vec<Diag>`, found `Vec<String>`
+    |
+    = note: expected struct `Vec<Diag>`
+               found struct `Vec<std::string::String>`
+
+error[E0308]: mismatched types
+   --> crates/helper-census/src/main.rs:322:5
+    |
+317 |   fn distinct_findings(tree: &dyn Tree, members: &str, kind: &str, anchor: &str) -> Vec<String> {
+    |                                                                                     ----------- expected `Vec<std::string::String>` because of return type
+...
+322 | /     ledger::parse(&row).map_or_else(
+323 | |         |error| vec![error],
+324 | |         |ledger| census::check_findings(&Workspace::walk(tree), &ledger),
+325 | |     )
+    | |_____^ expected `Vec<String>`, found `Vec<Diag>`
+    |
+    = note: expected struct `Vec<std::string::String>`
+               found struct `Vec<Diag>`
+
+error[E0308]: mismatched types
+   --> crates/helper-census/src/main.rs:621:18
+    |
+621 |         |ledger| census::check_findings(&workspace, &ledger),
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Vec<Diag>`, found `Vec<String>`
+    |
+    = note: expected struct `Vec<Diag>`
+               found struct `Vec<std::string::String>`
+
+error[E0599]: no method named `starts_with` found for reference `&Diag` in the current scope
+   --> crates/helper-census/src/main.rs:680:44
+    |
+680 |                     .all(|finding| finding.starts_with("isomorphic bodies")),
+    |                                            ^^^^^^^^^^^ method not found in `&Diag`
+
+error[E0369]: binary operation `==` cannot be applied to type `Result<&str, &Diag>`
+   --> crates/helper-census/src/main.rs:752:37
+    |
+752 |             home_package.as_deref() == Ok("fixture-alpha"),
+    |             ----------------------- ^^ ------------------- Result<&str, _>
+    |             |
+    |             Result<&str, &Diag>
+    |
+note: `Result<&str, &Diag>` does not implement `PartialEq<Result<&str, _>>`
+   --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/core/src/result.rs:558:1
+    |
+558 | pub enum Result<T, E> {
+    | ^^^^^^^^^^^^^^^^^^^^^ `Result<&str, &Diag>` is defined in another crate
+
+Some errors have detailed explanations: E0308, E0369, E0599.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `helper-census` (bin "helper-census" test) due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:705: nextest-synthetic] Error 101

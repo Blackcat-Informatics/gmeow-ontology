@@ -1,0 +1,5 @@
+The existing implementation commit `ce1c916a7` has been recovered and its exact patch applied cleanly to the current combined qualification candidate for PR #1802. The newer native RDF 1.2 and corpus-purity changes remain intact. No replacement implementation or gate suppression was introduced.
+
+The full-gate retry exposed 54 string-error findings on current source, versus the 38 covered by the historical migration. Focused external-evidence and numeric checks are now running against the integrated source; the older branch passes are not current qualification. The newer helper-census channels, production test-module classification, native diagnostic failure-class bindings and browser substrate attestations remain concrete gate blockers. There has been no qualifying full-gate pass, new commit, issue closure or merge.
+
+Next steps: settle those known source prerequisites, verify the affected CLI and diagnostic consumers, then perform the required qualification and review before ordinary commits and ghprsq integration. Principles 4, 7, 18.

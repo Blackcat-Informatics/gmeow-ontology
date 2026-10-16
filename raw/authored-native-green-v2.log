@@ -1,0 +1,20 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & (test(native_rule_statement_layer_survives_the_production_gts_profile) | test(authored_base_quote_outside_a_native_binding_still_fails_closed))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 56s
+────────────
+ Nextest run ID 1b981437-983b-4041-88a9-efad97234113 with nextest profile: ci
+    Starting 2 tests across 25 binaries (1031 tests and 200 binaries skipped)
+        PASS [   0.073s] (1/2) gmeow-pipeline stages::carrier::logic_graph_golden_tests::authored_base_quote_outside_a_native_binding_still_fails_closed
+        PASS [   0.079s] (2/2) gmeow-pipeline stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+────────────
+     Summary [   0.100s] 2 tests run: 2 passed, 1031 skipped

@@ -1,0 +1,9 @@
+IN_PROGRESS generation (a)  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38791437979/job/116617978355
+FAILURE    generation (b)  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38791437979/job/116617978346
+IN_PROGRESS fixture-prefix  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38791437979/job/116617978189
+SUCCESS    producer-build  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38791437979/job/116617273355
+SUCCESS    lint  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38791437979/job/116617273161
+SUCCESS    rust-prebuild  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/38791437979/job/116617273492
+SUCCESS    CodeRabbit
+SUCCESS    license/cla  https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=1802
+state: fail

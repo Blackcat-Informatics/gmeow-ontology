@@ -1,0 +1,240 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(physical::seminaive::joint) | test(external_evidence) | test(modal::contextual) | test(reason::refute::) | test(reason::leave_one_out) | test(physical::chase) | test(physical::effects) | test(physical::store::witness) | test(reason::dl_verdict) | test(correspondence_exec::plan_projection) | test(verify::)) & !test(whole_bundle)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error[E0061]: this function takes 7 arguments but 8 arguments were supplied
+   --> crates/logic/src/physical/seminaive/joint/input/admission_tests.rs:63:9
+    |
+ 63 |         JointTemplate::build(
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+ 69 |             None,
+    |             ---- unexpected argument #6 of type `std::option::Option<_>`
+    |
+note: expected `SourceTemplates<'_>`, found `&[_; 0]`
+   --> crates/logic/src/physical/seminaive/joint/input/admission_tests.rs:68:13
+    |
+ 68 |             &[],
+    |             ^^^
+    = note: expected struct `SourceTemplates<'_>`
+            found reference `&[_; 0]`
+note: associated function defined here
+   --> crates/logic/src/physical/seminaive/joint/input.rs:350:8
+    |
+350 |     fn build(
+    |        ^^^^^
+...
+355 |         source: SourceTemplates<'_>,
+    |         ---------------------------
+help: remove the extra argument
+    |
+ 68 -             &[],
+ 69 -             None,
+ 68 +             /* SourceTemplates<'_> */,
+    |
+
+error[E0061]: this function takes 7 arguments but 8 arguments were supplied
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:266:9
+    |
+266 |         JointTemplate::build(
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+272 |             None,
+    |             ---- unexpected argument #6 of type `std::option::Option<_>`
+    |
+note: expected `SourceTemplates<'_>`, found `&[_; 0]`
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:271:13
+    |
+271 |             &[],
+    |             ^^^
+    = note: expected struct `SourceTemplates<'_>`
+            found reference `&[_; 0]`
+note: associated function defined here
+   --> crates/logic/src/physical/seminaive/joint/input.rs:350:8
+    |
+350 |     fn build(
+    |        ^^^^^
+...
+355 |         source: SourceTemplates<'_>,
+    |         ---------------------------
+help: remove the extra argument
+    |
+271 -             &[],
+272 -             None,
+271 +             /* SourceTemplates<'_> */,
+    |
+
+error[E0061]: this function takes 7 arguments but 8 arguments were supplied
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:315:9
+    |
+315 |         JointTemplate::build(
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+321 |             None,
+    |             ---- unexpected argument #6 of type `std::option::Option<_>`
+    |
+note: expected `SourceTemplates<'_>`, found `&[_; 0]`
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:320:13
+    |
+320 |             &[],
+    |             ^^^
+    = note: expected struct `SourceTemplates<'_>`
+            found reference `&[_; 0]`
+note: associated function defined here
+   --> crates/logic/src/physical/seminaive/joint/input.rs:350:8
+    |
+350 |     fn build(
+    |        ^^^^^
+...
+355 |         source: SourceTemplates<'_>,
+    |         ---------------------------
+help: remove the extra argument
+    |
+320 -             &[],
+321 -             None,
+320 +             /* SourceTemplates<'_> */,
+    |
+
+error[E0061]: this function takes 7 arguments but 8 arguments were supplied
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:385:9
+    |
+385 |         JointTemplate::build(
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+391 |             None,
+    |             ---- unexpected argument #6 of type `std::option::Option<_>`
+    |
+note: expected `SourceTemplates<'_>`, found `&[_; 0]`
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:390:13
+    |
+390 |             &[],
+    |             ^^^
+    = note: expected struct `SourceTemplates<'_>`
+            found reference `&[_; 0]`
+note: associated function defined here
+   --> crates/logic/src/physical/seminaive/joint/input.rs:350:8
+    |
+350 |     fn build(
+    |        ^^^^^
+...
+355 |         source: SourceTemplates<'_>,
+    |         ---------------------------
+help: remove the extra argument
+    |
+390 -             &[],
+391 -             None,
+390 +             /* SourceTemplates<'_> */,
+    |
+
+error[E0061]: this function takes 7 arguments but 8 arguments were supplied
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:476:9
+    |
+476 |         JointTemplate::build(
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+482 |             None,
+    |             ---- unexpected argument #6 of type `std::option::Option<_>`
+    |
+note: expected `SourceTemplates<'_>`, found `&[_; 0]`
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:481:13
+    |
+481 |             &[],
+    |             ^^^
+    = note: expected struct `SourceTemplates<'_>`
+            found reference `&[_; 0]`
+note: associated function defined here
+   --> crates/logic/src/physical/seminaive/joint/input.rs:350:8
+    |
+350 |     fn build(
+    |        ^^^^^
+...
+355 |         source: SourceTemplates<'_>,
+    |         ---------------------------
+help: remove the extra argument
+    |
+481 -             &[],
+482 -             None,
+481 +             /* SourceTemplates<'_> */,
+    |
+
+error[E0061]: this function takes 7 arguments but 8 arguments were supplied
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:740:9
+    |
+740 |         JointTemplate::build(
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+746 |             None,
+    |             ---- unexpected argument #6 of type `std::option::Option<_>`
+    |
+note: expected `SourceTemplates<'_>`, found `&[_; 0]`
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:745:13
+    |
+745 |             &[],
+    |             ^^^
+    = note: expected struct `SourceTemplates<'_>`
+            found reference `&[_; 0]`
+note: associated function defined here
+   --> crates/logic/src/physical/seminaive/joint/input.rs:350:8
+    |
+350 |     fn build(
+    |        ^^^^^
+...
+355 |         source: SourceTemplates<'_>,
+    |         ---------------------------
+help: remove the extra argument
+    |
+745 -             &[],
+746 -             None,
+745 +             /* SourceTemplates<'_> */,
+    |
+
+error[E0061]: this function takes 7 arguments but 8 arguments were supplied
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:948:9
+    |
+948 |         JointTemplate::build(
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+954 |             None,
+    |             ---- unexpected argument #6 of type `std::option::Option<_>`
+    |
+note: expected `SourceTemplates<'_>`, found `&[_; 0]`
+   --> crates/logic/src/physical/seminaive/joint/input/tests.rs:953:13
+    |
+953 |             &[],
+    |             ^^^
+    = note: expected struct `SourceTemplates<'_>`
+            found reference `&[_; 0]`
+note: associated function defined here
+   --> crates/logic/src/physical/seminaive/joint/input.rs:350:8
+    |
+350 |     fn build(
+    |        ^^^^^
+...
+355 |         source: SourceTemplates<'_>,
+    |         ---------------------------
+help: remove the extra argument
+    |
+953 -             &[],
+954 -             None,
+953 +             /* SourceTemplates<'_> */,
+    |
+
+error: variable does not need to be mutable
+   --> crates/logic/src/physical/seminaive/joint.rs:352:9
+    |
+352 |         mut retention: Option<&mut RetainedJoint>,
+    |         ----^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `-D unused-mut` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_mut)]`
+
+For more information about this error, try `rustc --explain E0061`.
+error: could not compile `gmeow-logic` (lib test) due to 8 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:709: nextest-synthetic] Error 101

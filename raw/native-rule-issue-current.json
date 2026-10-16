@@ -1,0 +1,51 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Defect\n\nThe `logic:` program's RDF projection (`crates/logic-compile/src/projections/rdf.rs`, the \"Rules as logic:Rule nodes\" block) encodes every rule's head, body and negated-body atom with **RDF 1.1 classic reification**: `rdf:type rdf:Statement` plus `rdf:subject`, `rdf:predicate` and `rdf:object`. `.goals` requires RDF 1.2 only, with no RDF 1.1 shortcuts.\n\n## Observed consequence\n\nThese atom nodes reach the `graph/logic` class world: 232 `rdf:type rdf:Statement` assertions such as `logic:rule/_000001/body/0000`. The OWL-Direct reverse mapping in purrdf 3.0.0 reports `rdf:Statement` as an `unrecognized-term` boundary, so that world's consistency verdict cannot be exact. A one-triple probe (`<s> rdf:type rdf:Statement`) reproduces it.\n\nProbed on the same engine, the RDF 1.2 form `<b0> rdf:reifies <<( <x> <p> <y> )>>` decides with **no** boundary.\n\n## Why this is not a mechanical swap\n\n- Atom variables are encoded as plain literals (`\"?x\"`), including in subject position. An RDF 1.2 triple term cannot take a literal subject, so variables need a term representation that is valid in every triple-term position.\n- The compiler frontend reads this projection back (`frontend.rs` reads `rdf:Statement` nodes), so the reader moves with the writer.\n- Triple terms travel in `gmeow.gts`'s statement layer, not its base quads. A comment in `frontend.rs` gives that as the reason classic reification was chosen for one slice-authored obligation form. The rule encoding has to be carried through that layer losslessly.\n\n## Requirement\n\nEncode `logic:` rule atoms in RDF 1.2: triple terms reached by `rdf:reifies`, with variables as terms that are valid in every triple-term position. Round-trip byte-identically through the frontend, carry the encoding losslessly to `gmeow.gts`, and remove the RDF 1.1 reification form from the rule projection (greenfield, no dual encoding).\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcYYRMg",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Native rule-atom projection\n\nIssue 1805 requires RDF 1.2 rule atoms reached by rdf:reifies, legal resource-valued variable carriers in every triple-term position, byte-identical logical round trips, lossless GTS carriage, and removal of classic rule encoding. Principles 1, 2, 3, 4, 7, 17 and 18 govern this change. Scope remains the compiler and its actual first-party rule producers/consumers.\n\nExisting mechanisms: TripleSink already owns RdfDatasetBuilder; graphutil default_graph_pattern includes the reifier/annotation layer; formula_reader::read_atomic_carrier admits typed variables and literals; logic:termDistinct already expresses a term inequality. Reuse those homes. Triple terms do not assert their contents. Variable carriers must not become logical domain assertions.\n\nThe live issue has no comments and no earlier implementation attempt. The brief found related ownership and projection issues and the combined production PR; requirements-candidates extraction found zero lines, so the entire issue body is the manual acceptance contract. No independent plan or completion review has been performed; unavailable collaboration tools are not a review pass.\n\n## Task 1: One native rule writer and reader\n\nEmit head, positive body, negated body and distinct guards as RDF 1.2 reifiers over triple terms. Carry variables through the existing term-carrier vocabulary, preserving literal strings that begin with a question mark as literals. Decode native statement-layer targets through the same carrier reader, rejecting missing/ambiguous targets or malformed guard relations. Preserve scope, polarity, aggregation, raw variable names and object datatypes/language/direction. Remove the classic rule writer and reader after migrating their first-party inputs; do not introduce a compatibility mode or dual writer.\n\n## Task 2: Migrate first-party source and consumers\n\nMigrate the repository-authored rules and affected test fixtures to the single native form. Update rule structural admission and ownership so internal carriers remain structural. Update directly affected annotation prose and its existing French/Chinese translations together. Any shared scoped-axiom emission helper must also emit native reifiers rather than retain a second classic emitter. Preserve unrelated foreign-data interpretation and dirty work.\n\n## Task 3: Prove round trips and carriage\n\nUse tiny synthetic programs to exercise variable/resource/blank/literal atoms, positive and negated bodies, distinct guards, aggregation and scope. Assert identical IR/content identity after projection and frontend parsing, no classic rule scaffold, no accidental assertion of quoted atoms, and exact source ownership. Exercise a small GMEOW-profile GTS bundle through its actual writer/reader with the full statement layer; tests must not produce or load the ontology corpus. Review intentional snapshot changes before acceptance.\n\nFocused checks use the existing Make surface and standard workspace graph. Final producer/full-gate/cold-generation requirements remain on the combined production branch, after fixes settle. No compiler-profile, assertion, overflow, fixture or hook weakening.\n\n## Task 4: Publish and integrate\n\nCommit and push coherent verified units normally, publish actual results to the issue and combined PR, obtain fresh CodeRabbit and independent completion review where available, then qualify the combined source. Every merge uses ghprsq. No completion or merge-readiness claim before all issue acceptance and required gates are met.\n",
+      "createdAt": "2026-10-15T18:40:28Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1805#issuecomment-6199578930",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcZNdIA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "The native writer/reader and first-party rule inputs are migrated in the isolated worktree and applied to the combined production candidate. Head, positive-body and negated-body atoms now use `rdf:reifies` triple terms. Variables use typed resource carriers; question-mark literals remain literals. The classic rule encoding is removed rather than kept as a second grammar. Principles 2, 3, 4, 7, 17 and 18 apply.\n\nOne design correction from implementation evidence: native rule guards compare RDF term identity, whereas the existing procedural `logic:termDistinct` means SPARQL value inequality. Guards therefore use two ordered variable argument carriers, and their SHACL-AF projection uses `!sameTerm`. The five directly affected structural definitions and their existing French/Chinese translations move together. No comparison semantics is silently changed by the encoding migration.\n\nThe first native round-trip/scoped-quotation controls passed before the expanded migration. Combined lint passes. The expanded compiler/consumer run is in progress; it has not passed yet. Its GTS control routes a directional-literal rule with dynamic predicate, negation, guard and contextual scope through the carrier-rooting helper, the mandated GMEOW snapshot writer, and native GTS import. Compilation caught two ordinary test-code errors (checked-term construction and mandatory ingestion-report handling); both are fixed without suppressions. Empty or malformed typed carriers now fail closed in every triple position.\n\nNo full producer/gate result, completion audit, commit of the canonical migration, PR readiness or merge is claimed. The combined source must still pass its required full qualification.\n",
+      "createdAt": "2026-10-15T19:24:18Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1805#issuecomment-6200450336",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-06T03:31:10Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1805,
+  "state": "OPEN",
+  "title": "logic: rule projection uses RDF 1.1 classic reification (rdf:Statement); move to RDF 1.2 triple terms",
+  "updatedAt": "2026-10-15T19:24:18Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1805"
+}

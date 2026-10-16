@@ -1,0 +1,350 @@
+{
+  "paths": [
+    {
+      "ref": "scripts/test-corpus-producer-scanner.sh",
+      "path": "/home/paudley/Active/gmeow-ontology/scripts/test-corpus-producer-scanner.sh",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 416,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "a159730f8 perf(logic): integrate the certified native pipeline"
+      ]
+    },
+    {
+      "ref": "crates/pipeline/src/scheduler.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/pipeline/src/scheduler.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 1642,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "a43f4b013 perf(pipeline): schedule stages on completion (#1738)",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "620406270 perf(cache): unify content-addressed fixture products (Principles 4, 7)",
+        "5454baa17 perf(test): make DAG cache reuse bounded and auditable",
+        "967889855 perf(pipeline): cache bounded DAG products and reuse one closure",
+        "e35d138f3 docs(pipeline): point the two doc links at targets rustdoc can resolve",
+        "da8957732 perf(pipeline): bound the carrier's lifetime, and derive the pin",
+        "ee96aeeab fix: stop the gate littering /tmp, and gate the pattern that caused it",
+        "8887a1ce6 feat(pipeline): gate medium dictionaries on measured two-part MDL cost"
+      ]
+    },
+    {
+      "ref": "Cargo.lock",
+      "path": "/home/paudley/Active/gmeow-ontology/Cargo.lock",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 6367,
+      "licence": "",
+      "commits": [
+        "41ec956a4 deps: adopt purrdf 3.0 and enforce a major-3 substrate floor (#1784)",
+        "1510a48a3 perf: reuse authenticated validation state (Principles 4, 7, 18)",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "f6a422059 build: bump GMEOW to 0.3.0 with PurRDF 2.0.0",
+        "22842c8c8 fix: close optimized producer admission gaps",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer",
+        "f01e5fc7c feat(deps): repin purrdf to the 1.1.0 crates.io release (#1645)",
+        "a319905e6 fix(pipeline): stabilize release history and GTS sink (#1699)",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "dd60b195b chore(1666): re-pin purrdf to merged 3aa4ba51 substrate"
+      ]
+    },
+    {
+      "ref": "generated/projections/lang/gmn-codebook.cbor",
+      "path": "/home/paudley/Active/gmeow-ontology/generated/projections/lang/gmn-codebook.cbor",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": ".github/workflows/ci.yml",
+      "path": "/home/paudley/Active/gmeow-ontology/.github/workflows/ci.yml",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 1790,
+      "licence": "",
+      "commits": [
+        "38f568b04 chore(deps): bump taiki-e/install-action from 2.86.1 to 2.87.19 (#1775)",
+        "31053008b ci: budget measured cold producer tails",
+        "b6c4441ba fix(ci): admit transferred optimized producers",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "0bddf6ad9 fix(pipeline): isolate finalized fixture selectors from sync candidates",
+        "4ef37a98e perf: persist producer fixture actions across CI runs",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer",
+        "723ba5f3e fix(ci): date-pin the nightly so one run cannot build with two compilers",
+        "4140e2698 chore(deps): bump actions/checkout from 7.0.0 to 7.0.1",
+        "c55e06206 chore(deps): bump Swatinem/rust-cache from 2.9.1 to 2.9.2"
+      ]
+    },
+    {
+      "ref": "crates/action-cache/src/executable.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/action-cache/src/executable.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 305,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "b6c4441ba fix(ci): admit transferred optimized producers",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "22842c8c8 fix: close optimized producer admission gaps",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer"
+      ]
+    },
+    {
+      "ref": "crates/action-cache/src/executable.tests.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/action-cache/src/executable.tests.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 187,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "b6c4441ba fix(ci): admit transferred optimized producers",
+        "a159730f8 perf(logic): integrate the certified native pipeline"
+      ]
+    },
+    {
+      "ref": "crates/gmeow-dev-cli/src/dev_producer.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/gmeow-dev-cli/src/dev_producer.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 181,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "1510a48a3 perf: reuse authenticated validation state (Principles 4, 7, 18)",
+        "b6c4441ba fix(ci): admit transferred optimized producers",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "22842c8c8 fix: close optimized producer admission gaps",
+        "e049a22a2 fix: preserve optimized producer authority across checkouts",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer"
+      ]
+    },
+    {
+      "ref": "crates/gmeow-dev-cli/tests/make_gate_contract.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/gmeow-dev-cli/tests/make_gate_contract.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 1844,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "daf8552c1 fix(1768): harden one-file build acceptance",
+        "4f3411112 fix(1768): ship one-file prover consumer",
+        "b6c4441ba fix(ci): admit transferred optimized producers",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "0bddf6ad9 fix(pipeline): isolate finalized fixture selectors from sync candidates",
+        "22842c8c8 fix: close optimized producer admission gaps",
+        "4ef37a98e perf: persist producer fixture actions across CI runs",
+        "e049a22a2 fix: preserve optimized producer authority across checkouts",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer",
+        "723ba5f3e fix(ci): date-pin the nightly so one run cannot build with two compilers"
+      ]
+    },
+    {
+      "ref": "origin/main...HEAD",
+      "path": "/home/paudley/Active/gmeow-ontology/origin/main...HEAD",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "crates/logic/src/reason/leave_one_out.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/logic/src/reason/leave_one_out.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 420,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "0996b01d0 fix(reason): retain property-chain probes on native path",
+        "197c1922c perf: certify incremental reasoning probes",
+        "28817b370 fix(logic): preserve alternate calculus spellings",
+        "8557d7e43 perf(logic): batch certified slice probes"
+      ]
+    },
+    {
+      "ref": "crates/logic/src/reason/mod.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/logic/src/reason/mod.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 1119,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "197c1922c perf: certify incremental reasoning probes",
+        "28817b370 fix(logic): preserve alternate calculus spellings",
+        "8557d7e43 perf(logic): batch certified slice probes",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "7aa92ca5a $(cat \\ \t<<'EOF' fix(logic): route modal evaluation through reason_program (#1695)",
+        "ec13e5721 fix(logic): preserve modal derivation joins (#1695)",
+        "8e5fa7ae0 fix(provenance): harden citation and Wikidata validation",
+        "09a0106c8 fix(logic): route modal evaluation through reasoner",
+        "2357a77a1 feat(1666): cut goal-directed reasoning onto PurRDF order-sorted datalog",
+        "c403cf754 fix(1682): lower canonical logic:domain/logic:range to the reasoner"
+      ]
+    },
+    {
+      "ref": "crates/build-inputs/src/resolution.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/build-inputs/src/resolution.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 323,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "8557d7e43 perf(logic): batch certified slice probes",
+        "a159730f8 perf(logic): integrate the certified native pipeline"
+      ]
+    },
+    {
+      "ref": "slices/grounding/logic/module.ttl",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/grounding/logic/module.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 24093,
+      "licence": "",
+      "commits": [
+        "8557d7e43 perf(logic): batch certified slice probes",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "0e80c11a0 feat(validation): per-document term authority and executable recovery legs (#1650)",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "c403cf754 fix(1682): lower canonical logic:domain/logic:range to the reasoner",
+        "bda21d6aa fix(1682): flip merge-reintroduced owl: to logic: in core slices",
+        "47a735ce1 fix(1682): use full IRIs for the property-type filter in the gpc SPARQL target",
+        "6aeb64e5b fix(1682): complete the owl: retirement across readers, full-IRI constructs, characteristic projection, and translations",
+        "767e3a91c feat(1682): flip every slice module.ttl from owl: to canonical logic: authoring",
+        "4f62c2a44 feat(1682): declare the canonical logic: grounding vocabulary and correspondence laws"
+      ]
+    },
+    {
+      "ref": "fr.po/zh.po",
+      "path": "/home/paudley/Active/gmeow-ontology/fr.po/zh.po",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "a159730f8",
+      "files": 0
+    },
+    {
+      "name": "NativeReasoningSession::retract",
+      "files": 0
+    },
+    {
+      "name": "b1676af1a",
+      "files": 0
+    },
+    {
+      "name": "ghprsq",
+      "files": 3
+    },
+    {
+      "name": "prepare_reasoning_input",
+      "files": 80
+    },
+    {
+      "name": "SourceView",
+      "files": 2
+    },
+    {
+      "name": "reason_all",
+      "files": 71
+    },
+    {
+      "name": "tracing",
+      "files": 37
+    },
+    {
+      "name": "ValueFlow::summarize",
+      "files": 0
+    },
+    {
+      "name": "Domain",
+      "files": 321
+    },
+    {
+      "name": "FlowSummary::publish_rectangle",
+      "files": 0
+    },
+    {
+      "name": "head_domains",
+      "files": 1
+    },
+    {
+      "name": "publish_head_conditions",
+      "files": 1
+    },
+    {
+      "name": "perf",
+      "files": 343
+    },
+    {
+      "name": "rule_index",
+      "files": 4
+    },
+    {
+      "name": "visit",
+      "files": 128
+    },
+    {
+      "name": "FlowRule",
+      "files": 5
+    },
+    {
+      "name": "analysis_body",
+      "files": 4
+    },
+    {
+      "name": "parse_cardinality",
+      "files": 0
+    },
+    {
+      "name": "CardinalityEqual",
+      "files": 2
+    },
+    {
+      "name": "Other",
+      "files": 114
+    },
+    {
+      "name": "maximum_one_equality_requires_both_qualifiers_and_keeps_every_premise",
+      "files": 1
+    },
+    {
+      "name": "FlowRule::native_witnesses",
+      "files": 0
+    },
+    {
+      "name": "witness_frontier",
+      "files": 19
+    }
+  ],
+  "packages": [
+    "gmeow-build-inputs",
+    "gmeow-dev-cli",
+    "gmeow-logic"
+  ],
+  "urls": [],
+  "truncated": []
+}

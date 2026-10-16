@@ -1,0 +1,44 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-pipeline) & test(compile_logic::list_corpus::)) | (package(gmeow-logic) & test(goal_directed::) & !test(corpus_)) | (package(gmeow-docs-model) & test(reviewed_coverage::))' --no-tests=fail
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 54s
+────────────
+ Nextest run ID e77e4757-aaa3-4e28-adc6-71c2a5ef9f9a with nextest profile: ci
+    Starting 18 tests across 52 binaries (3459 tests and 173 binaries skipped)
+        PASS [   0.013s] ( 1/18) gmeow-pipeline stages::compile_logic::list_corpus::tests::complete_list_observation_uses_the_supplied_projection
+        PASS [   0.013s] ( 2/18) gmeow-pipeline stages::compile_logic::list_corpus::tests::missing_cell_field_remains_a_recorded_defect
+        PASS [   0.014s] ( 3/18) gmeow-docs-model reviewed_coverage::tests::synthetic_catalogs_record_reviewed_keys_and_reject_malformed_input
+        PASS [   0.017s] ( 4/18) gmeow-logic goal_directed::tests::distinct_authored_iris_with_same_local_name_project_to_distinct_nodes
+        PASS [   0.019s] ( 5/18) gmeow-logic goal_directed::tests::programs_with_function_symbols_negation_or_non_binary_atoms_are_excluded_from_the_oracle
+        PASS [   0.019s] ( 6/18) gmeow-logic goal_directed::tests::answer_and_verdict_iris_are_content_addressed_not_positional
+        PASS [   0.019s] ( 7/18) gmeow-logic goal_directed::tests::compiled_math_subsort_reasoning_program_seeds_term_sorts_from_constant_sorts
+        PASS [   0.019s] ( 8/18) gmeow-logic goal_directed::tests::a_sorted_binary_program_is_excluded_from_the_unsorted_forward_oracle
+        PASS [   0.019s] ( 9/18) gmeow-logic goal_directed::tests::identical_clauses_with_distinct_sorts_each_lower_under_their_own_sort
+        PASS [   0.020s] (10/18) gmeow-logic goal_directed::tests::compiled_math_subsort_projection_carries_the_subsort_unified_answer
+        PASS [   0.020s] (11/18) gmeow-logic goal_directed::tests::a_constant_with_two_asserted_sorts_binds_when_one_is_comparable
+        PASS [   0.020s] (12/18) gmeow-logic goal_directed::tests::compiled_member_cons_reasoning_program_enumerates_with_reused_variable_names
+        PASS [   0.020s] (13/18) gmeow-logic goal_directed::tests::compiled_peano_add_projection_carries_the_authored_program_structure_and_is_byte_stable_across_runs
+        PASS [   0.019s] (14/18) gmeow-logic goal_directed::tests::compiled_peano_add_projection_carries_answer_atom_and_derivation_iri
+        PASS [   0.020s] (15/18) gmeow-logic goal_directed::tests::compiled_member_cons_projection_carries_structured_answers_and_derivation
+        PASS [   0.020s] (16/18) gmeow-logic goal_directed::tests::compiled_peano_add_reasoning_program_resolves_and_proof_checks
+        PASS [   0.020s] (17/18) gmeow-logic goal_directed::tests::reachability_program_is_gated_into_the_oracle_fragment_and_passes_it
+        PASS [   0.024s] (18/18) gmeow-logic goal_directed::tests::the_cross_engine_oracle_hard_fails_a_deliberately_wrong_answer_set
+────────────
+     Summary [   0.055s] 18 tests run: 18 passed, 3459 skipped

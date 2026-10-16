@@ -1,0 +1,184 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(tptp::) | test(external_evidence::)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 45s
+────────────
+ Nextest run ID f90d24eb-91a9-4309-b046-3d55fa4410ba with nextest profile: ci
+    Starting 101 tests across 224 binaries (7311 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.006s] (  1/101) gmeow-conformance external::tptp::parser::tests::include_directive_is_a_capability_gap
+        PASS [   0.006s] (  2/101) gmeow-conformance external::tptp::parser::tests::equality_is_a_capability_gap
+        PASS [   0.006s] (  3/101) gmeow-conformance external::tptp::parser::tests::function_symbol_in_argument_is_a_capability_gap
+        PASS [   0.007s] (  4/101) gmeow-conformance external::tptp::parser::tests::parses_an_inference_with_no_parents_and_a_quoted_rule_iri
+        PASS [   0.007s] (  5/101) gmeow-conformance external::tptp::parser::tests::a_malformed_inference_arity_is_a_syntax_error
+        PASS [   0.007s] (  6/101) gmeow-conformance external::tptp::parser::tests::missing_trailing_dot_is_a_syntax_error
+        PASS [   0.007s] (  7/101) gmeow-conformance external::tptp::parser::tests::parses_a_universal_implication
+        PASS [   0.009s] (  8/101) gmeow-conformance external::tptp::parser::tests::leading_underscore_identifier_is_a_syntax_error
+        PASS [   0.009s] (  9/101) gmeow-conformance external::tptp::parser::tests::parses_an_inference_source_with_status_and_parents
+        PASS [   0.009s] ( 10/101) gmeow-conformance external::tptp::parser::tests::a_plain_problem_formula_carries_no_annotation
+        PASS [   0.009s] ( 11/101) gmeow-conformance external::tptp::parser::tests::a_nested_inference_parent_is_a_capability_gap
+        PASS [   0.009s] ( 12/101) gmeow-conformance external::tptp::parser::tests::defined_atom_is_a_capability_gap
+        PASS [   0.010s] ( 13/101) gmeow-conformance external::tptp::parser::tests::an_unrecognized_source_functor_is_a_capability_gap
+        PASS [   0.012s] ( 14/101) gmeow-conformance external::tptp::lower_fol::tests::binary_predicate_conjecture_is_a_capability_gap
+        PASS [   0.012s] ( 15/101) gmeow-conformance external::tptp::lower_fol::tests::cnf_two_positive_clause_is_a_capability_gap
+        PASS [   0.012s] ( 16/101) gmeow-conformance external::tptp::lower_fol::tests::negated_ground_conjecture_is_an_honest_gap
+        PASS [   0.012s] ( 17/101) gmeow-conformance external::tptp::lower_fol::tests::disjunctive_premise_is_a_capability_gap
+        PASS [   0.005s] ( 18/101) gmeow-conformance external::tptp::parser::tests::parses_file_bare_name_and_theory_sources
+        PASS [   0.005s] ( 19/101) gmeow-conformance external::tptp::parser::tests::parses_conjecture_role
+        PASS [   0.005s] ( 20/101) gmeow-conformance external::tptp::parser::tests::parses_disjointness_as_negated_conjunction
+        PASS [   0.012s] ( 21/101) gmeow-conformance external::tptp::parser::tests::parses_cnf_clause_with_implicit_universal
+        PASS [   0.012s] ( 22/101) gmeow-conformance external::tptp::lower_fol::tests::the_lowered_program_identity_is_content_addressed_and_stable
+        PASS [   0.005s] ( 23/101) gmeow-conformance external::tptp::parser::tests::parses_negated_conjecture_role
+        PASS [   0.013s] ( 24/101) gmeow-conformance external::tptp::lower_fol::tests::malformed_native_world_is_failure_not_capability_gap
+        PASS [   0.005s] ( 25/101) gmeow-conformance external::tptp::parser::tests::parses_ground_atom
+        PASS [   0.005s] ( 26/101) gmeow-conformance external::tptp::parser::tests::parses_iff_and_reverse_implication
+        PASS [   0.005s] ( 27/101) gmeow-conformance external::tptp::parser::tests::parses_multiple_formulas_in_order
+        PASS [   0.013s] ( 28/101) gmeow-conformance external::tptp::lower_fol::tests::reserved_vocabulary_is_failure_in_both_lowerers
+        PASS [   0.013s] ( 29/101) gmeow-conformance external::tptp::lower_fol::tests::world_scoped_edb_shape_matches_seed
+        PASS [   0.005s] ( 30/101) gmeow-conformance external::tptp::parser::tests::plain_role_is_a_derived_step_not_a_premise
+        PASS [   0.014s] ( 31/101) gmeow-conformance external::tptp::lower_fol::tests::native_evaluation_failure_has_no_semantic_verdict
+        PASS [   0.005s] ( 32/101) gmeow-conformance external::tptp::parser::tests::parses_the_useful_info_field
+        PASS [   0.005s] ( 33/101) gmeow-conformance external::tptp::parser::tests::parses_nested_alternating_quantifiers
+        PASS [   0.014s] ( 34/101) gmeow-conformance external::tptp::lower_fol::tests::direct_lowering_deduplicates_and_retains_the_selected_world
+        PASS [   0.004s] ( 35/101) gmeow-conformance external::tptp::parser::tests::skips_comments_including_szs_status
+        PASS [   0.005s] ( 36/101) gmeow-conformance external::tptp::parser::tests::quantifier_binds_only_a_unit_body_not_a_binary_formula
+        PASS [   0.006s] ( 37/101) gmeow-conformance external::tptp::parser::tests::tff_dialect_is_a_capability_gap
+        PASS [   0.005s] ( 38/101) gmeow-conformance external::tptp::parser::tests::unknown_role_is_a_syntax_error
+        PASS [   0.008s] ( 39/101) gmeow-logic-compile tptp::protocol::tests::admits_repeated_bound_status_across_both_channels
+        PASS [   0.008s] ( 40/101) gmeow-logic-compile tptp::protocol::tests::rejects_conjecture_status_for_axiom_consistency
+        PASS [   0.008s] ( 41/101) gmeow-logic-compile tptp::protocol::tests::rejects_missing_malformed_and_unknown_status
+        PASS [   0.008s] ( 42/101) gmeow-logic-compile tptp::protocol::tests::status_without_problem_name_remains_bound_to_the_selected_child_invocation
+        PASS [   0.009s] ( 43/101) gmeow-logic-compile tptp::protocol::tests::rejects_conflicting_statuses
+        PASS [   0.009s] ( 44/101) gmeow-logic-compile tptp::protocol::tests::rejects_explicit_foreign_problem
+        PASS [   0.013s] ( 45/101) gmeow-logic external_evidence::tests::structural_refutation_never_becomes_a_certificate_without_rule_replay
+        PASS [   0.014s] ( 46/101) gmeow-logic external_evidence::tests::normalized_model_parse_failure_retains_original_and_exact_parsed_text
+        PASS [   0.014s] ( 47/101) gmeow-logic external_evidence::tests::model_table_representation_overflow_is_typed_resource_evidence
+        PASS [   0.015s] ( 48/101) gmeow-logic external_evidence::tests::foreign_refutation_leaf_is_invalid_even_with_a_false_terminal
+        PASS [   0.015s] ( 49/101) gmeow-logic external_evidence::tests::malformed_model_retains_the_typed_parser_cause_and_serialized_evidence
+        PASS [   0.014s] ( 50/101) gmeow-logic external_evidence::tests::unsupported_model_sort_retains_a_typed_refusal_instead_of_invalidity
+        PASS [   0.016s] ( 51/101) gmeow-logic external_evidence::tests::model_that_falsifies_an_emitted_sentence_is_invalid
+        PASS [   0.013s] ( 52/101) gmeow-logic external_evidence::tests::vampire_single_sorted_model_is_independently_checked
+        PASS [   0.016s] ( 53/101) gmeow-logic external_evidence::tests::framed_artifact_capture_is_exact_and_problem_bound
+        PASS [   0.016s] ( 54/101) gmeow-logic external_evidence::tests::domain_size_refusal_is_resource_evidence_not_a_false_model_claim
+        PASS [   0.016s] ( 55/101) gmeow-logic external_evidence::tests::incomplete_table_diagnostic_retains_the_symbol_and_source
+        PASS [   0.016s] ( 56/101) gmeow-logic external_evidence::tests::model_budget_refusal_preserves_resource_class_usage_and_sentence_locus
+        PASS [   0.016s] ( 57/101) gmeow-logic external_evidence::tests::protocol_diagnostic_retains_channel_marker_and_expected_identity
+        PASS [   0.017s] ( 58/101) gmeow-logic external_evidence::tests::foreign_and_unbalanced_artifact_markers_are_protocol_failures
+        PASS [   0.018s] ( 59/101) gmeow-logic external_evidence::tests::artifact_problem_binding_accepts_the_exact_submitted_path_alias
+        PASS [   0.017s] ( 60/101) gmeow-logic external_evidence::tests::partial_model_table_is_invalid_before_formula_evaluation
+        PASS [   0.017s] ( 61/101) gmeow-logic-compile tptp::tests::admission_identity_includes_empty_named_graph_declarations
+        PASS [   0.008s] ( 62/101) gmeow-logic-compile tptp::tests::native_rule_carriers_use_reflected_properties_in_both_head_and_body
+        PASS [   0.010s] ( 63/101) gmeow-logic-compile tptp::tests::full_literal_identity_survives_as_an_ordinary_constant
+        PASS [   0.020s] ( 64/101) gmeow-logic-compile tptp::tests::blank_schema_class_support_does_not_admit_literal_class_objects
+        PASS [   0.010s] ( 65/101) gmeow-logic-compile tptp::tests::ordinary_domain_assertions_and_subclass_law_reach_the_problem
+        PASS [   0.011s] ( 66/101) gmeow-logic-compile tptp::tests::edited_profile_selection_and_symbol_tables_cannot_change_proof_semantics
+        PASS [   0.007s] ( 67/101) gmeow-logic-compile tptp::tests::scalar_formula_grammar_never_becomes_domain_predicates
+        PASS [   0.008s] ( 68/101) gmeow-logic-compile tptp::tests::rewriting_an_admitted_assertion_cannot_reuse_its_old_source_unit_identity
+        PASS [   0.013s] ( 69/101) gmeow-logic-compile tptp::tests::denotational_identity_uses_equality_without_a_unique_name_axiom
+        PASS [   0.009s] ( 70/101) gmeow-logic-compile tptp::tests::property_characteristic_record_emits_the_law_once
+        PASS [   0.005s] ( 71/101) gmeow-logic-compile tptp::tests::selected_formula_with_term_equal_is_a_required_blocker
+        PASS [   0.014s] ( 72/101) gmeow-logic-compile tptp::tests::class_constraint_ambiguity_is_malformed_but_identical_repetition_is_not
+        PASS [   0.014s] ( 73/101) gmeow-logic-compile tptp::tests::class_restrictions_do_not_erase_context_datatypes_or_procedural_semantics
+        PASS [   0.010s] ( 74/101) gmeow-logic-compile tptp::tests::profile_class_laws_cannot_authorize_an_empty_source_selection
+        PASS [   0.009s] ( 75/101) gmeow-logic-compile tptp::tests::restriction_roles_can_alias_intrinsic_schema_operators
+        PASS [   0.012s] ( 76/101) gmeow-logic-compile tptp::tests::exact_document_selection_uses_composition_bindings_without_reparsing
+        PASS [   0.010s] ( 77/101) gmeow-logic-compile tptp::tests::procedural_term_comparison_blocks_the_whole_problem
+        PASS [   0.012s] ( 78/101) gmeow-logic-compile tptp::tests::intrinsic_operator_aliases_have_profile_meanings_for_every_direct_schema_lowering
+        PASS [   0.010s] ( 79/101) gmeow-logic-compile tptp::tests::quoted_payload_remains_unasserted
+        PASS [   0.015s] ( 80/101) gmeow-logic-compile tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+        PASS [   0.010s] ( 81/101) gmeow-logic-compile tptp::tests::property_object_equality_reaches_positive_and_negative_applications
+        PASS [   0.010s] ( 82/101) gmeow-logic-compile tptp::tests::restriction_dependencies_are_class_laws_not_recursive_syntax_expansion
+        PASS [   0.015s] ( 83/101) gmeow-logic-compile tptp::tests::class_dependencies_cannot_read_definitions_from_excluded_documents
+        PASS [   0.015s] ( 84/101) gmeow-logic-compile tptp::tests::deduplicated_class_axiom_remains_required_with_one_selected_contributor
+        PASS [   0.006s] ( 85/101) gmeow-logic-compile tptp::tests::serialized_admission_is_observation_data_not_compiler_authority
+        FAIL [   0.012s] ( 86/101) gmeow-logic-compile tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity
+  stdout ───
+
+    running 1 test
+    test tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 953 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity' (3061659) panicked at crates/logic-compile/src/tptp/tests.rs:969:9:
+    assertion `left == right` failed: arity 0: FofProjection { status: Blocked, profile_id: "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v1", source_digest: "c59be77af8b57712260a380d610cabcf6d64d76a5a5b91612dd933e9a846ad60", program_digest: "4a2e459253fa226acdde5a1302dc93c553c21575dbe891916288cef8e6b03929", selection_digest: "51c05c93f46f300dfc5431e76bad60e172df9c37972452a663658b8fe3281197", sentences: [], blockers: [FofProjectionBlocker { unit_id: Some("911ce2b62c02a0bde72884dee4c380782c0f92faec33c8ec5ca1cae9663c87b0"), code: "MALFORMED_SELECTED_FORMULA", reason: "selected formula failed compiler admission at diagnostic 0" }, FofProjectionBlocker { unit_id: Some("b6a290f8afcb8bb9438365f52f1274d1e82fa6762f38b39b254c6462074bdae7"), code: "MALFORMED_SELECTED_FORMULA", reason: "selected formula failed compiler admission at diagnostic 0" }, FofProjectionBlocker { unit_id: Some("1580a0d77c3ddafe740ad61ff5917428e5519a99a80a0f384dfc3b56ac5be4d5"), code: "MALFORMED_SELECTED_FORMULA", reason: "selected formula failed compiler admission at diagnostic 1" }, FofProjectionBlocker { unit_id: Some("9c5c8751008a4c5588d27367cea01879b5a1b589282cee5c578352b55b60de9e"), code: "COMPILER_ERROR_IN_SELECTED_THEORY", reason: "[MALFORMED_FORMULA] logic:Formula https://example.org/atom atomic predication requires at least one logic:argument" }, FofProjectionBlocker { unit_id: Some("e162992d2eac17a0cfce66f718c2eefb50b00b036effcb9d406cfa309984570e"), code: "COMPILER_ERROR_IN_SELECTED_THEORY", reason: "[MALFORMED_FORMULA] logic:Formula https://example.org/positive atomic predication requires at least one logic:argument" }], problem: None, problem_digest: None }
+      left: Blocked
+     right: Complete
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.005s] ( 87/101) gmeow-logic-compile tptp::tests::source_identity_binds_the_complete_base_receipt
+        PASS [   0.006s] ( 88/101) gmeow-logic-compile tptp::tests::top_and_bottom_class_membership_have_their_defined_meaning
+        PASS [   0.006s] ( 89/101) gmeow-logic-compile tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax
+        PASS [   0.006s] ( 90/101) gmeow-logic-compile tptp::tests::unary_application_and_membership_share_one_interpretation_without_a_declaration_switch
+        PASS [   0.006s] ( 91/101) gmeow-logic-compile tptp::tests::unselected_class_expression_does_not_block_selected_document
+        PASS [   0.006s] ( 92/101) gmeow-logic-compile tptp::tests::structural_owner_does_not_hide_an_unrelated_domain_assertion
+        PASS [   0.005s] ( 93/101) gmeow-logic-compile tptp::tests::unselected_contextual_reification_does_not_block_selected_document
+        PASS [   0.063s] ( 94/101) gmeow-conformance external::tptp::lower_fol::tests::implication_to_negation_is_disjointness
+        PASS [   0.063s] ( 95/101) gmeow-conformance external::tptp::lower_fol::tests::open_model_is_consistent
+        PASS [   0.063s] ( 96/101) gmeow-conformance external::tptp::lower_fol::tests::ground_unary_non_theorem_refutes_to_consistent
+        PASS [   0.065s] ( 97/101) gmeow-conformance external::tptp::lower_fol::tests::cnf_disjointness_clash_is_inconsistent
+        PASS [   0.065s] ( 98/101) gmeow-conformance external::tptp::lower_fol::tests::disjointness_clash_is_inconsistent
+        PASS [   0.065s] ( 99/101) gmeow-conformance external::tptp::lower_fol::tests::subclass_non_theorem_is_consistent
+        PASS [   0.066s] (100/101) gmeow-conformance external::tptp::lower_fol::tests::ground_unary_theorem_refutes_to_inconsistent
+        PASS [   0.066s] (101/101) gmeow-conformance external::tptp::lower_fol::tests::subclass_theorem_refutes_via_fresh_witness
+────────────
+     Summary [   0.117s] 101 tests run: 100 passed, 1 failed, 7311 skipped
+        FAIL [   0.012s] ( 86/101) gmeow-logic-compile tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity
+  stdout ───
+
+    running 1 test
+    test tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 953 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'tptp::tests::reified_applications_preserve_property_identity_at_every_source_arity' (3061659) panicked at crates/logic-compile/src/tptp/tests.rs:969:9:
+    assertion `left == right` failed: arity 0: FofProjection { status: Blocked, profile_id: "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v1", source_digest: "c59be77af8b57712260a380d610cabcf6d64d76a5a5b91612dd933e9a846ad60", program_digest: "4a2e459253fa226acdde5a1302dc93c553c21575dbe891916288cef8e6b03929", selection_digest: "51c05c93f46f300dfc5431e76bad60e172df9c37972452a663658b8fe3281197", sentences: [], blockers: [FofProjectionBlocker { unit_id: Some("911ce2b62c02a0bde72884dee4c380782c0f92faec33c8ec5ca1cae9663c87b0"), code: "MALFORMED_SELECTED_FORMULA", reason: "selected formula failed compiler admission at diagnostic 0" }, FofProjectionBlocker { unit_id: Some("b6a290f8afcb8bb9438365f52f1274d1e82fa6762f38b39b254c6462074bdae7"), code: "MALFORMED_SELECTED_FORMULA", reason: "selected formula failed compiler admission at diagnostic 0" }, FofProjectionBlocker { unit_id: Some("1580a0d77c3ddafe740ad61ff5917428e5519a99a80a0f384dfc3b56ac5be4d5"), code: "MALFORMED_SELECTED_FORMULA", reason: "selected formula failed compiler admission at diagnostic 1" }, FofProjectionBlocker { unit_id: Some("9c5c8751008a4c5588d27367cea01879b5a1b589282cee5c578352b55b60de9e"), code: "COMPILER_ERROR_IN_SELECTED_THEORY", reason: "[MALFORMED_FORMULA] logic:Formula https://example.org/atom atomic predication requires at least one logic:argument" }, FofProjectionBlocker { unit_id: Some("e162992d2eac17a0cfce66f718c2eefb50b00b036effcb9d406cfa309984570e"), code: "COMPILER_ERROR_IN_SELECTED_THEORY", reason: "[MALFORMED_FORMULA] logic:Formula https://example.org/positive atomic predication requires at least one logic:argument" }], problem: None, problem_digest: None }
+      left: Blocked
+     right: Complete
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

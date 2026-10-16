@@ -1,0 +1,36 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error[E0308]: mismatched types
+  --> crates/logic/src/physical/seminaive/joint/source_grammar.rs:68:36
+   |
+68 |                 if constructor_iri(p) {
+   |                    --------------- ^ expected `&str`, found `&Nested<TermValue>`
+   |                    |
+   |                    arguments to this function are incorrect
+   |
+   = note: expected reference `&str`
+              found reference `&purrdf_lex::walk::Nested<purrdf::TermValue>`
+note: function defined here
+  --> crates/logic/src/physical/seminaive/joint/source_grammar.rs:57:4
+   |
+57 | fn constructor_iri(iri: &str) -> bool {
+   |    ^^^^^^^^^^^^^^^ ---------
+
+error: unused variable: `effect`
+   --> crates/logic/src/physical/seminaive/joint/source_grammar.rs:178:21
+    |
+178 |         for (index, effect) in input
+    |                     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_effect`
+    |
+    = note: `-D unused-variables` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_variables)]`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-logic` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic` (lib test) due to 2 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

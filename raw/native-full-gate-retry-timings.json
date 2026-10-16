@@ -1,0 +1,29 @@
+{
+  "schema": "gmeow-check-timings-v1",
+  "succeeded": false,
+  "tasks": [
+    {"name": "audit", "status": "skipped", "elapsed_ms": 0},
+    {"name": "check-lint", "status": "passed", "elapsed_ms": 23042},
+    {"name": "clippy", "status": "skipped", "elapsed_ms": 0},
+    {"name": "compliance-report", "status": "skipped", "elapsed_ms": 0},
+    {"name": "console", "status": "skipped", "elapsed_ms": 0},
+    {"name": "console-test", "status": "skipped", "elapsed_ms": 0},
+    {"name": "constitution-check", "status": "skipped", "elapsed_ms": 0},
+    {"name": "coverage", "status": "skipped", "elapsed_ms": 0},
+    {"name": "crate-check", "status": "failed", "elapsed_ms": 2284476},
+    {"name": "doc-lint", "status": "skipped", "elapsed_ms": 0},
+    {"name": "doctests", "status": "skipped", "elapsed_ms": 0},
+    {"name": "helpers-hygiene", "status": "passed", "elapsed_ms": 33057},
+    {"name": "i18n-lint", "status": "passed", "elapsed_ms": 2279493},
+    {"name": "lint-alignment", "status": "skipped", "elapsed_ms": 0},
+    {"name": "medium-gate", "status": "skipped", "elapsed_ms": 0},
+    {"name": "nextest", "status": "skipped", "elapsed_ms": 0},
+    {"name": "reason-verify", "status": "skipped", "elapsed_ms": 0},
+    {"name": "rust-build", "status": "skipped", "elapsed_ms": 0},
+    {"name": "slice-quality-gate", "status": "skipped", "elapsed_ms": 0},
+    {"name": "sync", "status": "failed", "elapsed_ms": 2522353},
+    {"name": "test-fixtures", "status": "skipped", "elapsed_ms": 0},
+    {"name": "validate", "status": "skipped", "elapsed_ms": 0},
+    {"name": "wikidata", "status": "skipped", "elapsed_ms": 0}
+  ]
+}

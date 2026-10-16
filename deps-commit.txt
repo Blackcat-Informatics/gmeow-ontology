@@ -1,0 +1,9 @@
+chore(logic): remove unused corpus loader dependencies
+
+Remove unused csv and flate2 edges left after the n-ary loader was retired.
+Refresh both generated Cargo locks against the existing manifests, including
+the fuzz graph's existing tracing and term-hash edges. PurRDF selections stay
+unchanged; no feature, compiler profile or warning policy changes.
+
+Principles 4, 7 and 12. Source inspection and Cargo's unused-dependency findings
+agree; the final 152-test focused build emits neither unused dependency warning.

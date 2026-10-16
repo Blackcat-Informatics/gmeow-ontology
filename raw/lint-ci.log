@@ -1,0 +1,612 @@
+lint	UNKNOWN STEP	﻿2026-10-05T12:14:43.8913557Z Current runner version: '2.337.0'
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8949854Z ##[group]Runner Image Provisioner
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8951246Z Hosted Compute Agent
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8952520Z Version: 20260901.588
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8953688Z Commit: f88ec8081b781fac6c440065ac7ff9e710ce3d0b
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8954895Z Build Date: 2026-09-01T19:56:44Z
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8956019Z Worker ID: {c3f3ccb1-acf4-4a4e-851d-f97b5043ebb8}
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8957395Z Azure Region: eastus2
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8958292Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8960702Z ##[group]Operating System
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8961766Z Ubuntu
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8962927Z 24.04.5
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8963905Z LTS
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8964698Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8965707Z ##[group]Runner Image
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8966740Z Image: ubuntu-24.04
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8967617Z Version: 20260927.320.1
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8969821Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260927.320/images/ubuntu/Ubuntu2404-Readme.md
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8972869Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260927.320
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8974590Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8976573Z ##[group]GITHUB_TOKEN Permissions
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8979464Z Contents: read
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8980484Z Metadata: read
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8981365Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8984672Z Secret source: Actions
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8986449Z Cache mode: write
+lint	UNKNOWN STEP	2026-10-05T12:14:43.8987981Z Prepare workflow directory
+lint	UNKNOWN STEP	2026-10-05T12:14:43.9551196Z Prepare all required actions
+lint	UNKNOWN STEP	2026-10-05T12:14:43.9623787Z Getting action download info
+lint	UNKNOWN STEP	2026-10-05T12:14:44.2074202Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+lint	UNKNOWN STEP	2026-10-05T12:14:44.3189887Z Download action repository 'dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8' (SHA:29eef336d9b2848a0b548edc03f92a220660cdb8)
+lint	UNKNOWN STEP	2026-10-05T12:14:44.4348030Z Download action repository 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9' (SHA:55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+lint	UNKNOWN STEP	2026-10-05T12:14:44.5983257Z Download action repository 'taiki-e/install-action@7623a79cdfecb99d681017af368ca353d9f49bb5' (SHA:7623a79cdfecb99d681017af368ca353d9f49bb5)
+lint	UNKNOWN STEP	2026-10-05T12:14:44.9560069Z Complete job name: lint
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0392745Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0394193Z with:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0394651Z   persist-credentials: false
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0395238Z   repository: Blackcat-Informatics/gmeow-ontology
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0399360Z   token: ***
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0399779Z   ssh-strict: true
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0400212Z   ssh-user: git
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0400621Z   clean: true
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0401051Z   sparse-checkout-cone-mode: true
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0401567Z   fetch-depth: 1
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0402188Z   fetch-tags: false
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0402617Z   show-progress: true
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0403054Z   lfs: false
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0403491Z   submodules: false
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0403942Z   set-safe-directory: true
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0404444Z   allow-unsafe-pr-checkout: false
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0405260Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0406377Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0407669Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0408451Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0409110Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0409613Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:45.0410102Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1507741Z Syncing repository: Blackcat-Informatics/gmeow-ontology
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1510743Z ##[group]Getting Git version info
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1512437Z Working directory is '/home/runner/work/gmeow-ontology/gmeow-ontology'
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1514478Z [command]/usr/bin/git version
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1515907Z git version 2.55.0
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1534802Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1545915Z Temporarily overriding HOME='/home/runner/work/_temp/1e6794e5-c024-4b61-a04d-7c0475a3c111' before making global git config changes
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1547865Z Adding repository directory to the temporary git global config as a safe directory
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1552929Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1604469Z Deleting the contents of '/home/runner/work/gmeow-ontology/gmeow-ontology'
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1607939Z ##[group]Determining repository object format
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1609631Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1610387Z ##[group]Initializing the repository
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1614367Z [command]/usr/bin/git init /home/runner/work/gmeow-ontology/gmeow-ontology
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1734762Z hint: Using 'master' as the name for the initial branch. This default branch name
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1736267Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1737558Z hint: to use in all of your new repositories, which will suppress this warning,
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1738611Z hint: call:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1739371Z hint:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1740425Z hint: 	git config --global init.defaultBranch <name>
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1741506Z hint:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1742745Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1744279Z hint: 'development'. The just-created branch can be renamed via this command:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1745628Z hint:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1746321Z hint: 	git branch -m <name>
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1747104Z hint:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1748121Z hint: Disable this message with "git config set advice.defaultBranchName false"
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1749891Z Initialized empty Git repository in /home/runner/work/gmeow-ontology/gmeow-ontology/.git/
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1753101Z [command]/usr/bin/git remote add origin https://github.com/Blackcat-Informatics/gmeow-ontology
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1797713Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1799025Z ##[group]Disabling automatic garbage collection
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1802206Z [command]/usr/bin/git config --local gc.auto 0
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1831598Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1833840Z ##[group]Setting up auth
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1834822Z Removing SSH command configuration
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1839081Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+lint	UNKNOWN STEP	2026-10-05T12:14:45.1871475Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2229249Z Removing HTTP extra header
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2235199Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2276854Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2488611Z Removing includeIf entries pointing to credentials config files
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2493482Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2524744Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2748541Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2785878Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path /home/runner/work/_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2817654Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2853212Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2886987Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2915173Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2916533Z ##[group]Fetching the repository
+lint	UNKNOWN STEP	2026-10-05T12:14:45.2923228Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +a4b8b9640a05bc24fac9c6463ffb5de588b70e23:refs/remotes/pull/1802/merge
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5522977Z From https://github.com/Blackcat-Informatics/gmeow-ontology
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5525730Z  * [new ref]         a4b8b9640a05bc24fac9c6463ffb5de588b70e23 -> pull/1802/merge
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5534642Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5536693Z ##[group]Determining the checkout info
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5538879Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5540158Z [command]/usr/bin/git sparse-checkout disable
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5590853Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5620155Z ##[group]Checking out the ref
+lint	UNKNOWN STEP	2026-10-05T12:14:48.5624739Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/1802/merge
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5703935Z Note: switching to 'refs/remotes/pull/1802/merge'.
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5704588Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5705003Z You are in 'detached HEAD' state. You can look around, make experimental
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5706072Z changes and commit them, and you can discard any commits you make in this
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5707136Z state without impacting any branches by switching back to a branch.
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5707694Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5708074Z If you want to create a new branch to retain commits you create, you may
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5709053Z do so (now or later) by using -c with the switch command. Example:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5709663Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5709914Z   git switch -c <new-branch-name>
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5710309Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5710934Z Or undo this operation with:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5711363Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5711581Z   git switch -
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5712146Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5712616Z Turn off this advice by setting config variable advice.detachedHead to false
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5713230Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5713945Z HEAD is now at a4b8b96 Merge 5d43eb77fb87ab53f39fea4fe2f5971cac0aa6d3 into a631f73e6e39b4493d295bcd83b4deec80637f54
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5740260Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5785204Z [command]/usr/bin/git log -1 --format=%H
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5809894Z a4b8b9640a05bc24fac9c6463ffb5de588b70e23
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5824166Z ##[group]Removing auth
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5824681Z Removing SSH command configuration
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5826923Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+lint	UNKNOWN STEP	2026-10-05T12:14:49.5858178Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6087765Z Removing HTTP extra header
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6091478Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6124501Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6354444Z Removing includeIf entries pointing to credentials config files
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6355391Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6381438Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6383222Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6383876Z includeif.gitdir:/github/workspace/.git.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6384432Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6390965Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6413151Z /home/runner/work/_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6427741Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-1e887e86\-fc67\-4289\-ba8d\-973a251d9ca3\.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6460355Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6480883Z /home/runner/work/_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6489025Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-1e887e86\-fc67\-4289\-ba8d\-973a251d9ca3\.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6520540Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6550786Z /github/runner_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6559877Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-1e887e86\-fc67\-4289\-ba8d\-973a251d9ca3\.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6585606Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6607860Z /github/runner_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6620934Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-1e887e86\-fc67\-4289\-ba8d\-973a251d9ca3\.config
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6651475Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6876440Z Removing credentials config '/home/runner/work/_temp/git-credentials-1e887e86-fc67-4289-ba8d-973a251d9ca3.config'
+lint	UNKNOWN STEP	2026-10-05T12:14:49.6885258Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7224114Z ##[group]Run dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7224661Z with:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7224965Z   toolchain: nightly-2026-09-05
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7225293Z   components: rustfmt
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7225550Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7226163Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7226964Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7227408Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7227806Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7228106Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7228393Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7320127Z ##[start-action display=Run : parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7393839Z ##[group]Run : parse toolchain version
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7394385Z ^[[36;1m: parse toolchain version^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7394728Z ^[[36;1mif [[ -z $toolchain ]]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7395302Z ^[[36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7395909Z ^[[36;1m  echo "'toolchain' is a required input" >&2^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7396255Z ^[[36;1m  exit 1^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7396642Z ^[[36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7397309Z ^[[36;1m  if [[ Linux == macOS ]]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7397905Z ^[[36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7398461Z ^[[36;1m  else^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7398905Z ^[[36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7399413Z ^[[36;1m  fi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7399760Z ^[[36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7400345Z ^[[36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7400855Z ^[[36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7401424Z ^[[36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7402144Z ^[[36;1melse^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7402438Z ^[[36;1m  echo "toolchain=$toolchain" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7402778Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7990513Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7991013Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7992008Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7992987Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7993520Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7993981Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7994324Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7994684Z   toolchain: nightly-2026-09-05
+lint	UNKNOWN STEP	2026-10-05T12:14:49.7995014Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8135564Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=81]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8160097Z ##[start-action display=Run : construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8189682Z ##[group]Run : construct rustup command line
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8190079Z ^[[36;1m: construct rustup command line^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8190589Z ^[[36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8191271Z ^[[36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8192387Z ^[[36;1mecho "downgrade=" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8253946Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8254347Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8254980Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8255741Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8256275Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8256664Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8256960Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8257244Z   targets: 
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8257478Z   components: rustfmt
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8257740Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8354846Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=19]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8358981Z ##[start-action display=Run : set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8397087Z ##[group]Run : set $CARGO_HOME
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8397415Z ^[[36;1m: set $CARGO_HOME^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8397794Z ^[[36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8457774Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8458179Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8458808Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8459748Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8460213Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8460607Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8460907Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8461190Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8550708Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=19]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8553645Z ##[start-action display=Run : install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8588500Z ##[group]Run : install rustup if needed
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8588930Z ^[[36;1m: install rustup if needed^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8615392Z ^[[36;1mif ! command -v rustup &>/dev/null; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8616266Z ^[[36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8617091Z ^[[36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8617433Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8677015Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8677420Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8678048Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8678825Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8679269Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8679648Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8679951Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8680254Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8680552Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8766027Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=21]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8770612Z ##[start-action display=Run : install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8777960Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8782327Z ##[start-action display=rustup toolchain install nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_4]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8811335Z ##[group]Run rustup toolchain install nightly-2026-09-05 --component rustfmt --profile minimal --no-self-update
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8812669Z ^[[36;1mrustup toolchain install nightly-2026-09-05 --component rustfmt --profile minimal --no-self-update^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8870906Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8871290Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8872089Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8872854Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8873306Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8873685Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8873978Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8874269Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8874564Z   RUSTUP_PERMIT_COPY_RENAME: 1
+lint	UNKNOWN STEP	2026-10-05T12:14:49.8874838Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:49.9449703Z info: syncing channel updates for nightly-2026-09-05-x86_64-unknown-linux-gnu
+lint	UNKNOWN STEP	2026-10-05T12:14:50.1164827Z info: latest update on 2026-09-05 for version 1.100.0-nightly (0ed41eb41 2026-09-04)
+lint	UNKNOWN STEP	2026-10-05T12:14:50.1165673Z info: downloading 4 components
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3200191Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3264283Z   nightly-2026-09-05-x86_64-unknown-linux-gnu installed - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3265069Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3328589Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=8454]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3336675Z ##[start-action display=Run rustup default nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_5]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3369281Z ##[group]Run rustup default nightly-2026-09-05
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3369639Z ^[[36;1mrustup default nightly-2026-09-05^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3433449Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3433800Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3434386Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3435098Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3435506Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3435862Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3436121Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3436385Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3436650Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3557759Z info: using existing install for nightly-2026-09-05-x86_64-unknown-linux-gnu
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3563107Z info: default toolchain set to nightly-2026-09-05-x86_64-unknown-linux-gnu
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3563481Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3624694Z   nightly-2026-09-05-x86_64-unknown-linux-gnu unchanged - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3626027Z info: note that the toolchain 'nightly-x86_64-unknown-linux-gnu' is currently in use (overridden by '/home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml')
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3627112Z 
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3641526Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=30]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3646698Z ##[start-action display=Run : create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3676713Z ##[group]Run : create cachekey
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3677031Z ^[[36;1m: create cachekey^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3677613Z ^[[36;1mDATE=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3678420Z ^[[36;1mHASH=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-hash: //p')^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3678972Z ^[[36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3741205Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3741578Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3742691Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3743451Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3743870Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3744274Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3744544Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3744809Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.3745075Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4080002Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=43]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4083250Z ##[start-action display=Run : disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4157217Z ##[group]Run : disable incremental compilation
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4157600Z ^[[36;1m: disable incremental compilation^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4157934Z ^[[36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4158306Z ^[[36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4158599Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4224836Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4225193Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4225771Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4226482Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4227053Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4227392Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4227645Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4227900Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4228147Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4319967Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=23]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4322720Z ##[start-action display=Run : enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4351301Z ##[group]Run : enable colors in Cargo output
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4351646Z ^[[36;1m: enable colors in Cargo output^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4352313Z ^[[36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4352677Z ^[[36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4352986Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4415566Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4415934Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4416537Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4417274Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4417687Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4418036Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4418308Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4418571Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4418864Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4419095Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4506569Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=18]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4511603Z ##[start-action display=Run : enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4541139Z ##[group]Run : enable Cargo sparse registry
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4541477Z ^[[36;1m: enable Cargo sparse registry^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4542174Z ^[[36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4542908Z ^[[36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4543689Z ^[[36;1m  if rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[89]\.'; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4544476Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4545027Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4545569Z ^[[36;1m  elif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[67]\.'; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4546173Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4546688Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4547045Z ^[[36;1m  fi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4547240Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4609363Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4609720Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4610300Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4611008Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4611419Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4612003Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4612274Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4612536Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4612786Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4613010Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4613238Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4923527Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=41]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4928307Z ##[start-action display=Run : work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4958851Z ##[group]Run : work around spurious network errors in curl 8.0
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4959431Z ^[[36;1m: work around spurious network errors in curl 8.0^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4960186Z ^[[36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4961000Z ^[[36;1mif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.7[01]\.'; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4961604Z ^[[36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.4962508Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5028316Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5028772Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5029450Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5030385Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5030888Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5031417Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5032082Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5032486Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5033024Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5033355Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5033724Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5293888Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=36]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5298012Z ##[start-action display=Run rustc +nightly-2026-09-05 --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5327391Z ##[group]Run rustc +nightly-2026-09-05 --version --verbose
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5327809Z ^[[36;1mrustc +nightly-2026-09-05 --version --verbose^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5392444Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5392804Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5393382Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5394104Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5394501Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5394841Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5395261Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5395532Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5395782Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5396000Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5396233Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5575317Z rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5576169Z binary: rustc
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5576805Z commit-hash: 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5577530Z commit-date: 2026-09-04
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5578068Z host: x86_64-unknown-linux-gnu
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5578397Z release: 1.100.0-nightly
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5578689Z LLVM version: 23.1.1
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5591183Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=29]
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5659814Z ##[group]Run pipx install pre-commit
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5660165Z ^[[36;1mpipx install pre-commit^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5724292Z shell: /usr/bin/bash -e {0}
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5724553Z env:
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5725135Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5725857Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5726258Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5726594Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5726848Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5727271Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5727518Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5727735Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:14:58.5727958Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:14:59.1383494Z creating virtual environment...
+lint	UNKNOWN STEP	2026-10-05T12:14:59.3184764Z installing pre-commit...
+lint	UNKNOWN STEP	2026-10-05T12:15:02.3191703Z done! ✨ 🌟 ✨
+lint	UNKNOWN STEP	2026-10-05T12:15:02.3192708Z   installed package pre-commit 4.6.2, installed using Python 3.12.3
+lint	UNKNOWN STEP	2026-10-05T12:15:02.3193298Z   These apps are now available
+lint	UNKNOWN STEP	2026-10-05T12:15:02.3193687Z     - pre-commit
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4033269Z ##[group]Run actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4033659Z with:
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4033861Z   path: ~/.cache/pre-commit
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4034294Z   key: pre-commit-Linux-500d101f154ae8ff7058bdbad82b6cf50f30892f22c4f7118e4d4bbcc0e34dae
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4034792Z   restore-keys: pre-commit-Linux-
+lint	UNKNOWN STEP	
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4035073Z   enableCrossOsArchive: false
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4035322Z   fail-on-cache-miss: false
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4035573Z   lookup-only: false
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4035783Z   save-always: false
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4035981Z env:
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4036545Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4037250Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4037647Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4038025Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4038277Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4038537Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4038791Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4039010Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:15:02.4039231Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:15:02.5932862Z Cache hit for: pre-commit-Linux-500d101f154ae8ff7058bdbad82b6cf50f30892f22c4f7118e4d4bbcc0e34dae
+lint	UNKNOWN STEP	2026-10-05T12:15:03.1227728Z Received 80998577 of 80998577 (100.0%), 164.4 MBs/sec
+lint	UNKNOWN STEP	2026-10-05T12:15:03.1228512Z Cache Size: ~77 MB (80998577 B)
+lint	UNKNOWN STEP	2026-10-05T12:15:03.1324009Z [command]/usr/bin/tar -xf /home/runner/work/_temp/938f7636-462a-4842-9a96-ad6e35f0aa3c/cache.tzst -P -C /home/runner/work/gmeow-ontology/gmeow-ontology --use-compress-program unzstd
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7529283Z Cache restored successfully
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7642194Z Cache restored from key: pre-commit-Linux-500d101f154ae8ff7058bdbad82b6cf50f30892f22c4f7118e4d4bbcc0e34dae
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7824389Z ##[group]Run taiki-e/install-action@7623a79cdfecb99d681017af368ca353d9f49bb5
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7824827Z with:
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7825023Z   tool: ripgrep
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7825229Z   checksum: true
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7825446Z   fallback: cargo-binstall
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7825676Z env:
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7826248Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7826977Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7827413Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7827752Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7828002Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7828263Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7828515Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7828734Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7828956Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7834863Z ##[start-action display=Run bail() {;id=__taiki-e_install-action.__run]
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7853373Z ##[group]Run bail() {
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7853656Z ^[[36;1mbail() {^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7853918Z ^[[36;1m  printf '::error::install-action: %s\n' "$*"^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7854222Z ^[[36;1m  exit 1^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7854416Z ^[[36;1m}^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7854767Z ^[[36;1m# If /bin/sh is dash, environment variable containing % is not imported, but is fine^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7855299Z ^[[36;1m# because it also means that it will not be exposed to subprocess.^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7855890Z ^[[36;1mif /usr/bin/env | grep -Eq '^BASH_FUNC_'; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7856438Z ^[[36;1m  bail 'bash function injection via BASH_FUNC_ environment variable is not allowed for security reasons'^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7856931Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7857155Z ^[[36;1mif ! command -v bash >/dev/null; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7857514Z ^[[36;1m  if grep -Eq '^ID=alpine' /etc/os-release; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7857959Z ^[[36;1m    printf '::group::Install packages required for install-action (bash)\n'^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7858395Z ^[[36;1m    # NB: sync with apk_install in main.sh^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7858716Z ^[[36;1m    if command -v sudo >/dev/null; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7859030Z ^[[36;1m      sudo apk --no-cache add bash^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7859353Z ^[[36;1m    elif command -v doas >/dev/null; then^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7859661Z ^[[36;1m      doas apk --no-cache add bash^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7859934Z ^[[36;1m    else^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7860158Z ^[[36;1m      apk --no-cache add bash^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7860416Z ^[[36;1m    fi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7860629Z ^[[36;1m    printf '::endgroup::\n'^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7860882Z ^[[36;1m  else^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7861112Z ^[[36;1m    bail 'this action requires bash'^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7861387Z ^[[36;1m  fi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7861572Z ^[[36;1mfi^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7862182Z ^[[36;1mbash --noprofile --norc "${GITHUB_ACTION_PATH:?}/main.sh"^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7863310Z shell: /usr/bin/env -u ENV -u BASH_ENV -u CDPATH -u SHELLOPTS -u BASHOPTS /bin/sh -eu {0}
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7863723Z env:
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7864279Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7864987Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7865381Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7865726Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7865977Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7866237Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7866484Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7866704Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7866933Z   INPUT_TOOL: ripgrep
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7867152Z   INPUT_CHECKSUM: true
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7867374Z   INPUT_FALLBACK: cargo-binstall
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7870452Z   DEFAULT_GITHUB_TOKEN: ***
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7870880Z   ACTION_USER_AGENT: taiki-e/install-action (7623a79cdfecb99d681017af368ca353d9f49bb5)
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7871308Z   RUNNER_OS: Linux
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7871515Z   RUNNER_ARCH: X64
+lint	UNKNOWN STEP	2026-10-05T12:15:03.7871715Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:15:03.8004425Z info: host platform: x86_64_linux
+lint	UNKNOWN STEP	2026-10-05T12:15:03.8020959Z info: install-action does not support ripgrep (updating install-action might resolve this); fallback to cargo-binstall
+lint	UNKNOWN STEP	2026-10-05T12:15:03.8062462Z info: installing cargo-binstall@latest (1.23.0)
+lint	UNKNOWN STEP	2026-10-05T12:15:03.8396735Z info: downloading https://github.com/cargo-bins/cargo-binstall/releases/download/v1.23.0/cargo-binstall-x86_64-unknown-linux-musl.tgz
+lint	UNKNOWN STEP	2026-10-05T12:15:04.0786657Z info: verifying sha256 checksum for cargo-binstall-x86_64-unknown-linux-musl.tgz
+lint	UNKNOWN STEP	2026-10-05T12:15:04.2235458Z info: cargo-binstall installed at /home/runner/.cargo/bin/cargo-binstall
+lint	UNKNOWN STEP	2026-10-05T12:15:04.2238688Z + cargo-binstall binstall -V
+lint	UNKNOWN STEP	2026-10-05T12:15:04.2246955Z 1.23.0
+lint	UNKNOWN STEP	2026-10-05T12:15:04.2362798Z cargo-binstall:  INFO resolve: Resolving package: 'ripgrep'
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5095680Z cargo-binstall:  WARN The package ripgrep v15.2.0 (x86_64-unknown-linux-musl) has been downloaded from github.com
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5096784Z cargo-binstall:  INFO This will install the following binaries:
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5097554Z cargo-binstall:  INFO   - rg => /home/runner/.cargo/bin/rg
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5098173Z cargo-binstall:  INFO Installing binaries...
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5108252Z cargo-binstall:  INFO Done in 11.284860327s
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5137946Z ##[end-action id=__taiki-e_install-action.__run;outcome=success;conclusion=success;duration_ms=11730]
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5160068Z ##[start-action display=Run Set-StrictMode -Version Latest;id=__taiki-e_install-action.__run_2]
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5164783Z ##[end-action id=__taiki-e_install-action.__run_2;outcome=skipped;conclusion=skipped;duration_ms=0]
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5193159Z ##[group]Run make lint
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5193440Z ^[[36;1mmake lint^[[0m
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5254153Z shell: /usr/bin/bash -e {0}
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5254410Z env:
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5254991Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5255709Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5256109Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5256472Z   CARGO_ENV_CFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5256726Z   CARGO_ENV_CXXFLAGS_FORCE: true
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5256985Z   CARGO_HOME: /home/runner/.cargo
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5257234Z   CARGO_INCREMENTAL: 0
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5257460Z   CARGO_TERM_COLOR: always
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5257684Z ##[endgroup]
+lint	UNKNOWN STEP	2026-10-05T12:15:15.5507595Z pre-commit run --all-files --show-diff-on-failure
+lint	UNKNOWN STEP	2026-10-05T12:15:17.3308650Z trim trailing whitespace.................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:17.9207809Z fix end of files.........................................................Failed
+lint	UNKNOWN STEP	2026-10-05T12:15:17.9209427Z - hook id: end-of-file-fixer
+lint	UNKNOWN STEP	2026-10-05T12:15:17.9210224Z - exit code: 1
+lint	UNKNOWN STEP	2026-10-05T12:15:17.9210554Z - files were modified by this hook
+lint	UNKNOWN STEP	2026-10-05T12:15:17.9210763Z 
+lint	UNKNOWN STEP	2026-10-05T12:15:17.9210866Z Fixing helpers-ledger.toml
+lint	UNKNOWN STEP	2026-10-05T12:15:17.9211033Z 
+lint	UNKNOWN STEP	2026-10-05T12:15:18.5734471Z check yaml...............................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:19.0830533Z check toml...............................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:19.6574268Z check json...............................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:20.1803258Z check for merge conflicts................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:20.8177768Z check for case conflicts.................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:21.4377081Z check for added large files..............................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:22.2918185Z mixed line ending........................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:26.7508297Z codespell................................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:27.5637376Z yamllint.................................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:28.9133281Z Lint GitHub Actions workflow files.......................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:35.7421755Z markdownlint-cli2........................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:37.3509226Z shellcheck...............................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:37.8087533Z zizmor...................................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:38.6179667Z Detect hardcoded secrets.................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:15:57.7000494Z reject corpus producers reachable from tests.............................Passed
+lint	UNKNOWN STEP	2026-10-05T12:16:05.5467919Z cargo fmt --check........................................................Passed
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7505465Z lint issue/PR references.................................................Failed
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7506307Z - hook id: lint-issue-refs
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7506742Z - exit code: 1
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7506931Z 
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7507153Z Found process provenance in Rust line comments:
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7508659Z ./crates/logic/src/physical/chase.tests.rs:1378:// ── #1795: per-atom statement encoding, fresh-null keys, single witnesses ──────────
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7510984Z ./crates/logic/src/physical/seminaive/joint/input/tests.rs:881:// ── #1795: production-scale witness programs certify through closed relations ──
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7512925Z ./crates/logic/src/physical/seminaive/joint/input/tests.rs:1059:    // rung bounds the Skolem chase, which does not: this stays refused (#1796).
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7514374Z lint-issue-refs: origin/main is absent; branch-added-line scan skipped
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7514860Z 
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7515010Z pre-commit hook(s) made changes.
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7515655Z If you are seeing this message in CI, reproduce locally with: `pre-commit run --all-files`.
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7516620Z To run `pre-commit` as part of git workflow, use `pre-commit install`.
+lint	UNKNOWN STEP	2026-10-05T12:16:06.7517286Z All changes made by hooks:
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1461720Z diff --git a/helpers-ledger.toml b/helpers-ledger.toml
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1462570Z index 0ae980b..b984207 100644
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1463002Z --- a/helpers-ledger.toml
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1463401Z +++ b/helpers-ledger.toml
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1463985Z @@ -1171,4 +1171,3 @@ enforced = true
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1464455Z  constants = []
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1464869Z  fingerprints = ["rule:wasm-import-reflect-get"]
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1465355Z  names = []
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1465636Z -
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1685962Z make: *** [Makefile:260: lint] Error 1
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1704668Z ##[error]Process completed with exit code 2.
+lint	UNKNOWN STEP	2026-10-05T12:16:07.1821458Z Post job cleanup.
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2649954Z [command]/usr/bin/git version
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2688245Z git version 2.55.0
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2724984Z Temporarily overriding HOME='/home/runner/work/_temp/a3874770-3625-43d6-bd63-ff899c3a4f93' before making global git config changes
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2726326Z Adding repository directory to the temporary git global config as a safe directory
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2730958Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2762607Z Removing SSH command configuration
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2768772Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+lint	UNKNOWN STEP	2026-10-05T12:16:07.2802234Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+lint	UNKNOWN STEP	2026-10-05T12:16:07.3031494Z Removing HTTP extra header
+lint	UNKNOWN STEP	2026-10-05T12:16:07.3036585Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+lint	UNKNOWN STEP	2026-10-05T12:16:07.3069221Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+lint	UNKNOWN STEP	2026-10-05T12:16:07.3296666Z Removing includeIf entries pointing to credentials config files
+lint	UNKNOWN STEP	2026-10-05T12:16:07.3303292Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+lint	UNKNOWN STEP	2026-10-05T12:16:07.3337014Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+lint	UNKNOWN STEP	2026-10-05T12:16:07.3703838Z Cleaning up orphan processes

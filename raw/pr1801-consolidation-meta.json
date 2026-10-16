@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "a631f73e6e39b4493d295bcd83b4deec80637f54",
+  "headRefName": "issue-1757-ja-linear",
+  "headRefOid": "92068d6292b81aefe620564ffbbfbb59061b78b1",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1801,
+  "state": "OPEN",
+  "title": "perf(1757): compute joint acyclicity in linear Horn propagation",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1801"
+}

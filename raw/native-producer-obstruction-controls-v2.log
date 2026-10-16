@@ -1,0 +1,172 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(obligations::) | test(result_rdf::tests::) | test(reason::refute::native::tests::) | test(malformed_or_undefined_keys_cannot_certify_a_complete_native_result) | test(maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation) | test(undefined_value_comparison_cannot_become_a_complete_native_result) | test(invalid_positive_obligation_fields_fail_instead_of_becoming_absent) | test(invalid_active_qualified_bounds_refuse_instead_of_becoming_zero) | test(native_equality_refuses_unknown_datatype_comparison) | test(incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run) | test(list_membership_feedback_cannot_hide_an_existential_cycle) | test(unknown_value_interpretations_withhold_only_the_affected_law))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 47s
+────────────
+ Nextest run ID 91f0ab88-ab04-4d2f-a480-f8e93859a75f with nextest profile: ci
+    Starting 96 tests across 26 binaries (2201 tests and 199 binaries skipped)
+        PASS [   0.016s] ( 1/96) gmeow-logic obligations::tests::standing_obligations_discharge_on_the_real_strata
+        PASS [   0.015s] ( 2/96) gmeow-logic obligations::tests::unwired_discharge_condition_is_a_hard_error
+        PASS [   0.016s] ( 3/96) gmeow-logic obligations::tests::arm_b_finite_closure_green_then_red
+        PASS [   0.016s] ( 4/96) gmeow-logic obligations::tests::missing_discharge_condition_is_a_hard_error
+        PASS [   0.016s] ( 5/96) gmeow-logic obligations::tests::counterexample_survives_without_finite_closure_condition
+        PASS [   0.016s] ( 6/96) gmeow-logic obligations::tests::reachable_head_remains_unknown_without_a_counterexample
+        PASS [   0.019s] ( 7/96) gmeow-logic obligations::tests::native_obligation_discovery_preserves_independent_document_blank_scopes
+        PASS [   0.025s] ( 8/96) gmeow-logic obligations::tests::source_hash_matches_prose_no_drift
+        PASS [   0.026s] ( 9/96) gmeow-logic obligations::tests::projected_translation_is_not_hashed
+        PASS [   0.026s] (10/96) gmeow-logic obligations::tests::advice_guidance_message_binds_usewhen_prose
+        PASS [   0.027s] (11/96) gmeow-logic obligations::tests::advisory_constraint_message_binds_avoidwhen_prose
+        PASS [   0.025s] (12/96) gmeow-logic obligations::tests::single_category_candidate_produces_correct_coverage
+        PASS [   0.027s] (13/96) gmeow-logic obligations::tests::candidate_without_harvest_link_is_skipped
+        PASS [   0.027s] (14/96) gmeow-logic obligations::tests::edited_prose_surfaces_as_drift
+        PASS [   0.028s] (15/96) gmeow-logic obligations::tests::canonical_candidate_typing_reaches_coverage_and_prose_drift_checks
+        PASS [   0.027s] (16/96) gmeow-logic obligations::tests::duplicate_category_on_candidate_is_a_hard_error
+        PASS [   0.018s] (17/96) gmeow-logic reason::refute::native::tests::evidence_cannot_be_reused_in_another_native_world_or_contract
+        PASS [   0.019s] (18/96) gmeow-logic reason::refute::native::tests::a_datatype_conflict_does_not_erase_an_unrelated_invalid_definition
+        PASS [   0.022s] (19/96) gmeow-logic reason::refute::native::tests::cardinality_obligations_bind_only_individuals_of_a_clashing_class
+        PASS [   0.025s] (20/96) gmeow-logic reason::refute::native::tests::canonical_roles_preserve_source_spellings_without_aliasing_ordinary_terms
+        PASS [   0.024s] (21/96) gmeow-logic reason::refute::native::tests::every_independent_property_and_source_bound_survives_positive_refutation
+        PASS [   0.008s] (22/96) gmeow-logic reason::refute::native::tests::relational_native_blank_identity_cannot_be_relabelled_as_rdf_ingress
+        PASS [   0.011s] (23/96) gmeow-logic reason::refute::native::tests::missing_or_relabelled_native_support_fails_closed
+        PASS [   0.016s] (24/96) gmeow-logic reason::refute::native::tests::malformed_distinctness_lists_are_not_semantic_contradictions
+        PASS [   0.067s] (25/96) gmeow-logic obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+        PASS [   0.016s] (26/96) gmeow-logic reason::refute::native::tests::original_native_blank_occurrences_survive_execution_identity_lowering
+        PASS [   0.074s] (27/96) gmeow-logic obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+        PASS [   0.025s] (28/96) gmeow-logic reason::refute::native::tests::late_native_equality_waits_for_completion_and_preserves_committed_derivation_support
+        PASS [   0.047s] (29/96) gmeow-logic reason::refute::native::tests::cached_source_lookup_rejects_an_identity_mismatched_ledger_position
+        PASS [   0.020s] (30/96) gmeow-logic reason::refute::native::tests::zero_analysis_budget_never_publishes_an_unexamined_conflict
+        PASS [   0.021s] (31/96) gmeow-logic reason::refute::native::tests::source_lookup_preserves_exact_leaves_across_growth_and_ledger_replacement
+        PASS [   0.060s] (32/96) gmeow-logic reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run
+        PASS [   0.012s] (33/96) gmeow-logic result_rdf::tests::conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math
+        PASS [   0.067s] (34/96) gmeow-logic reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+        PASS [   0.018s] (35/96) gmeow-logic result_rdf::tests::conjecture_reader_rejects_a_blank_math_statement_identity
+        PASS [   0.021s] (36/96) gmeow-logic result_rdf::tests::attributed_context_round_trips_and_changes_result_identity
+        PASS [   0.022s] (37/96) gmeow-logic result_rdf::tests::conjecture_projection_is_byte_deterministic
+        PASS [   0.079s] (38/96) gmeow-logic reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+        FAIL [   0.062s] (39/96) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3579452) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.023s] (40/96) gmeow-logic result_rdf::tests::conjecture_verdict_round_trips
+        PASS [   0.071s] (41/96) gmeow-logic reason::refute::native::tests::intrinsic_domain_support_requires_the_actual_committed_scoped_receipt
+        PASS [   0.024s] (42/96) gmeow-logic result_rdf::tests::conjecture_verdict_escapes_control_bearing_formula_identity
+        PASS [   0.012s] (43/96) gmeow-logic result_rdf::tests::derived_row_parser_rejects_public_rule_that_disagrees_with_raw_identity
+        PASS [   0.099s] (44/96) gmeow-logic obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+        PASS [   0.010s] (45/96) gmeow-logic result_rdf::tests::derived_row_round_trip_preserves_duplicate_source_multiplicity
+        PASS [   0.098s] (46/96) gmeow-logic obligations::tests::empty_selected_obligation_inventory_is_visible
+        PASS [   0.010s] (47/96) gmeow-logic result_rdf::tests::different_kb_world_mints_distinct_node
+        PASS [   0.021s] (48/96) gmeow-logic result_rdf::tests::derived_row_parser_rejects_a_missing_raw_receipt_identity
+        PASS [   0.107s] (49/96) gmeow-logic obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+        PASS [   0.020s] (50/96) gmeow-logic result_rdf::tests::derived_row_parser_rejects_a_tampered_source_receipt
+        PASS [   0.011s] (51/96) gmeow-logic result_rdf::tests::math_twin_edge_names_the_witness
+        PASS [   0.017s] (52/96) gmeow-logic result_rdf::tests::five_axes_appear_with_their_iris
+        PASS [   0.009s] (53/96) gmeow-logic result_rdf::tests::native_reasoning_summary_matches_the_wire_projection
+        PASS [   0.112s] (54/96) gmeow-logic obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+        PASS [   0.028s] (55/96) gmeow-logic result_rdf::tests::derived_axiom_blank_and_literal_terms_round_trip
+        PASS [   0.008s] (56/96) gmeow-logic result_rdf::tests::native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity
+        PASS [   0.116s] (57/96) gmeow-logic obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+        PASS [   0.006s] (58/96) gmeow-logic result_rdf::tests::parse_rejects_body_without_conjecture_subject
+        PASS [   0.033s] (59/96) gmeow-logic result_rdf::tests::content_address_is_stable_and_differs_with_content
+        PASS [   0.010s] (60/96) gmeow-logic result_rdf::tests::parse_fails_closed_on_missing_result_conclusion
+        PASS [   0.120s] (61/96) gmeow-logic obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+        PASS [   0.014s] (62/96) gmeow-logic result_rdf::tests::obligation_leg_emitted_exactly_on_refutation
+        PASS [   0.007s] (63/96) gmeow-logic result_rdf::tests::promotion_leg_emitted_exactly_on_corroboration
+        PASS [   0.009s] (64/96) gmeow-logic result_rdf::tests::projection_is_byte_deterministic
+        PASS [   0.026s] (65/96) gmeow-logic result_rdf::tests::modal_derived_row_round_trips_its_complete_receipt
+        PASS [   0.017s] (66/96) gmeow-logic result_rdf::tests::parse_fails_closed_on_missing_result_budget_consumed
+        PASS [   0.125s] (67/96) gmeow-logic obligations::program_tests::a_committed_schema_operator_cannot_bypass_admission_at_a_budget_cut
+        PASS [   0.011s] (68/96) gmeow-logic result_rdf::tests::round_trip_for_an_invalid_request
+        PASS [   0.015s] (69/96) gmeow-logic result_rdf::tests::parse_rejects_multiple_unrelated_results_instead_of_selecting_row_order
+        PASS [   0.011s] (70/96) gmeow-logic result_rdf::tests::round_trip_recovers_axes_and_provenance
+        PASS [   0.130s] (71/96) gmeow-logic obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+        PASS [   0.027s] (72/96) gmeow-logic result_rdf::tests::native_reader_preserves_the_selected_verdict_and_ignores_other_worlds
+        PASS [   0.011s] (73/96) gmeow-logic result_rdf::tests::two_unrelated_reasoning_verdicts_cannot_select_a_handle_by_row_order
+        PASS [   0.025s] (74/96) gmeow-logic result_rdf::tests::parse_fails_closed_on_missing_result_query
+        PASS [   0.024s] (75/96) gmeow-logic result_rdf::tests::parse_rejects_a_body_without_the_result_subject
+        PASS [   0.009s] (76/96) gmeow-logic result_rdf::tests::witness_order_does_not_affect_projection
+        PASS [   0.118s] (77/96) gmeow-logic reason::program::dl_input_tests::unknown_value_interpretations_withhold_only_the_affected_law
+        PASS [   0.136s] (78/96) gmeow-logic obligations::tests::finite_closure_can_discharge_a_reachable_head
+        PASS [   0.016s] (79/96) gmeow-logic result_rdf::tests::two_standpoints_mint_two_distinct_nodes
+        PASS [   0.029s] (80/96) gmeow-logic result_rdf::tests::open_verdict_emits_neither_leg
+        PASS [   0.014s] (81/96) gmeow-logic result_rdf::tests::typed_inferred_objects_survive_closure_and_receipt_projections
+        PASS [   0.120s] (82/96) gmeow-logic reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero
+        PASS [   0.138s] (83/96) gmeow-logic obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+        PASS [   0.055s] (84/96) gmeow-logic result_rdf::tests::native_execution_requires_the_selected_program_analysis_and_current_schema
+        PASS [   0.058s] (85/96) gmeow-logic result_rdf::tests::native_world_conflict_does_not_supply_an_unrelated_conclusion_proof
+        PASS [   0.067s] (86/96) gmeow-logic result_rdf::tests::native_execution_publication_refuses_an_envelope_its_reader_cannot_admit
+        PASS [   0.166s] (87/96) gmeow-logic obligations::program_tests::changed_import_input_and_engine_recipe_invalidate_analysis
+        PASS [   0.170s] (88/96) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+        PASS [   0.152s] (89/96) gmeow-logic reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+        PASS [   0.066s] (90/96) gmeow-logic result_rdf::tests::native_execution_receipt_refuses_trailing_bytes_and_unknown_fields
+        PASS [   0.066s] (91/96) gmeow-logic result_rdf::tests::native_result_admission_refuses_missing_duplicate_and_corrupt_execution
+        PASS [   0.055s] (92/96) gmeow-logic result_rdf::tests::terminal_result_retains_native_execution_and_requires_the_separate_closure
+        PASS [   0.157s] (93/96) gmeow-logic reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation
+        PASS [   0.173s] (94/96) gmeow-logic reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent
+        PASS [   0.218s] (95/96) gmeow-logic obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+        PASS [   1.693s] (96/96) gmeow-logic obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+────────────
+     Summary [   1.720s] 96 tests run: 95 passed, 1 failed, 2201 skipped
+        FAIL [   0.062s] (39/96) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3579452) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

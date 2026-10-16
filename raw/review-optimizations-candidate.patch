@@ -1,0 +1,155 @@
+--- a/crates/logic/src/physical/seminaive/joint/input/admission.rs
++++ b/crates/logic/src/physical/seminaive/joint/input/admission.rs
+@@ -8,6 +8,7 @@
+ 
+ use std::collections::BTreeSet;
+ use std::fmt::Write as _;
++use std::sync::Arc;
+ 
+ use super::{BTreeMap, MetadataDigest, PreparedPropertyRule, SemanticVocabulary};
+ use crate::physical::chase::{
+@@ -917,26 +918,80 @@
+             next.entry(&fact.subject).or_default().push(&fact.object);
+         }
+     }
+-    let mut rows = Vec::new();
++    if cells.is_empty() {
++        return true;
++    }
++    let nodes: Vec<_> = cells
++        .iter()
++        .copied()
++        .chain(next.iter().flat_map(|(head, tails)| {
++            std::iter::once(*head).chain(tails.iter().copied())
++        }))
++        .collect::<BTreeSet<_>>()
++        .into_iter()
++        .collect();
++    let index: BTreeMap<_, _> = nodes
++        .iter()
++        .enumerate()
++        .map(|(index, &node)| (node, index))
++        .collect();
++    let edges: Vec<Vec<usize>> = nodes
++        .iter()
++        .map(|node| {
++            next.get(*node)
++                .into_iter()
++                .flatten()
++                .map(|tail| index[*tail])
++                .collect()
++        })
++        .collect();
++    let component = purrdf_core::graph::scc_component_index(&edges);
++    let count = component.iter().copied().max().map_or(0, |last| last + 1);
++    let mut members = vec![BTreeSet::new(); count];
++    for &cell in &cells {
++        let node = index[cell];
++        members[component[node]].insert(node);
++    }
++    let mut successors = vec![BTreeSet::new(); count];
++    for (node, tails) in edges.iter().enumerate() {
++        for &tail in tails {
++            if component[node] != component[tail] {
++                successors[component[node]].insert(component[tail]);
++            }
++        }
++    }
++    // The upstream component IDs are reverse topological: every successor is
++    // already settled. Shared rest-only paths reuse their immutable cell sets;
++    // only a branch or a new first-cell member requires a union.
++    let mut reachable = vec![Arc::new(BTreeSet::new()); count];
++    let mut rows = 0usize;
++    for current in 0..count {
++        let mut known = Arc::new(members[current].clone());
++        for &tail in &successors[current] {
++            if known.is_subset(&reachable[tail]) {
++                known = Arc::clone(&reachable[tail]);
++            } else if !reachable[tail].is_subset(&known) {
++                Arc::make_mut(&mut known).extend(reachable[tail].iter().copied());
++            }
++        }
++        let Some(total) = members[current]
++            .len()
++            .checked_mul(known.len())
++            .and_then(|added| rows.checked_add(added))
++        else {
++            return false;
++        };
++        if total > MAX_BINDINGS {
++            return false;
++        }
++        rows = total;
++        reachable[current] = known;
++    }
++    // Publish only after the complete association count has been admitted.
+     for &head in &cells {
+-        let mut seen = BTreeSet::from([head]);
+-        let mut pending = vec![head];
+-        while let Some(cell) = pending.pop() {
+-            if cells.contains(cell) {
+-                rows.push((head, cell));
+-                if rows.len() > MAX_BINDINGS {
+-                    return false;
+-                }
+-            }
+-            for &tail in next.get(cell).into_iter().flatten() {
+-                if seen.insert(tail) {
+-                    pending.push(tail);
+-                }
+-            }
+-        }
+-    }
+-    for (head, cell) in rows {
+-        rel.insert(LIST_CELL, head, cell);
++        for &cell in reachable[component[index[head]]].iter() {
++            rel.insert(LIST_CELL, head, nodes[cell]);
++        }
+     }
+     true
+ }
+--- a/crates/logic/src/physical/chase.rs
++++ b/crates/logic/src/physical/chase.rs
+@@ -623,6 +623,7 @@
+         .cloned()
+         .map(PreparedChaseRule::new)
+         .collect::<gmeow_errors::Result<Vec<_>>>()?;
++    let has_minting = prepared.iter().any(PreparedChaseRule::mints);
+ 
+     let contract = WitnessContract::native(crate::native_semantics::SemanticVocabulary::Exact);
+ 
+@@ -716,7 +717,7 @@
+             break 'fixpoint;
+         }
+         if !progressed {
+-            if !generative {
++            if !generative && has_minting {
+                 // Datalog has reached its fixpoint: let the minting rules fire.
+                 generative = true;
+                 continue;
+--- a/crates/logic/src/physical/seminaive/joint.rs
++++ b/crates/logic/src/physical/seminaive/joint.rs
+@@ -698,6 +698,14 @@
+             // round that follows a Datalog-only round with nothing left to add, so every
+             // trigger is checked against the Datalog closure of what already exists.
+             // A witness obligation that derived facts already satisfy is never minted.
++            let has_minting = plans.values().any(|plan| {
++                let stratum = &plan.strata[index];
++                stratum.producers.iter().any(|producer| producer.mints())
++                    || stratum
++                        .properties
++                        .iter()
++                        .any(|property| property.witness_frontier.is_some())
++            });
+             let mut generative = false;
+             let mut round_index = 0usize;
+             loop {
+@@ -837,7 +845,7 @@
+                     contextual_rows != 0 || rounds.values().any(|round| !round.entries.is_empty());
+                 // Blocked reads wait on completion, not on witnesses: a stratum concludes
+                 // blocked only after its witness producers have had their round as well.
+-                if !any && !generative && !truncated && !draining_retained {
++                if !any && !generative && has_minting && !truncated && !draining_retained {
+                     // Datalog has reached its fixpoint: let the witness producers fire.
+                     generative = true;
+                     continue;

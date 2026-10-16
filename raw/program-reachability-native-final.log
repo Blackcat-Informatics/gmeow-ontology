@@ -1,0 +1,746 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic) & (test(obligations::) | test(result_rdf::tests::) | test(program_analysis::tests::) | test(physical::chase::tests::) | test(physical::seminaive::joint::) | test(reason::source_existentials::tests) | test(reason::program::) | test(reason::refute::native::tests::) | test(selected_closure_materialization_keeps_native_inference_without_global_gates) | test(entangled_cardinality_and_existential_share_native_proofs_and_budget) | test(empty_nominal_guard_remains_in_joint_invention_admission) | test(an_inverse_back_edge_satisfies_the_reverse_restriction_under_datalog_first) | test(functional_property_distinct_xml_literals_are_withheld) | test(unknown_value_interpretations_withhold_only_the_affected_law))) | (package(gmeow-pipeline) & test(demonstrator_worlds_must_publish_their_declared_certificate_class))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 8m 46s
+────────────
+ Nextest run ID bac7243b-2d1f-4fdc-a145-40d86c40d5d3 with nextest profile: ci
+    Starting 413 tests across 51 binaries (2917 tests and 174 binaries skipped)
+        PASS [   0.018s] (  1/413) gmeow-logic obligations::tests::standing_obligations_discharge_on_the_real_strata
+        PASS [   0.018s] (  2/413) gmeow-logic obligations::tests::reachable_head_remains_unknown_without_a_counterexample
+        PASS [   0.018s] (  3/413) gmeow-logic obligations::tests::counterexample_survives_without_finite_closure_condition
+        PASS [   0.019s] (  4/413) gmeow-logic obligations::tests::arm_b_finite_closure_green_then_red
+        PASS [   0.019s] (  5/413) gmeow-logic obligations::tests::unwired_discharge_condition_is_a_hard_error
+        PASS [   0.021s] (  6/413) gmeow-logic obligations::tests::missing_discharge_condition_is_a_hard_error
+        PASS [   0.024s] (  7/413) gmeow-logic obligations::tests::edited_prose_surfaces_as_drift
+        PASS [   0.025s] (  8/413) gmeow-logic obligations::tests::candidate_without_harvest_link_is_skipped
+        PASS [   0.026s] (  9/413) gmeow-logic obligations::tests::projected_translation_is_not_hashed
+        PASS [   0.026s] ( 10/413) gmeow-logic obligations::tests::duplicate_category_on_candidate_is_a_hard_error
+        PASS [   0.025s] ( 11/413) gmeow-logic obligations::tests::advice_guidance_message_binds_usewhen_prose
+        PASS [   0.027s] ( 12/413) gmeow-logic obligations::tests::native_obligation_discovery_preserves_independent_document_blank_scopes
+        PASS [   0.025s] ( 13/413) gmeow-logic obligations::tests::source_hash_matches_prose_no_drift
+        PASS [   0.027s] ( 14/413) gmeow-logic obligations::tests::canonical_candidate_typing_reaches_coverage_and_prose_drift_checks
+        PASS [   0.027s] ( 15/413) gmeow-logic obligations::tests::single_category_candidate_produces_correct_coverage
+        PASS [   0.027s] ( 16/413) gmeow-logic obligations::tests::advisory_constraint_message_binds_avoidwhen_prose
+        PASS [   0.008s] ( 17/413) gmeow-logic physical::chase::tests::a_fresh_null_partner_cannot_match_a_constant_read
+        PASS [   0.006s] ( 18/413) gmeow-logic physical::chase::tests::a_summarized_consumer_never_blocks_a_restricted_trigger
+        PASS [   0.009s] ( 19/413) gmeow-logic physical::chase::tests::a_single_witness_family_has_no_inequality_to_feed_back
+        PASS [   0.008s] ( 20/413) gmeow-logic physical::chase::tests::a_thing_filler_family_is_blocked_by_its_inverse_back_edge
+        PASS [   0.008s] ( 21/413) gmeow-logic physical::chase::tests::a_wildcard_class_that_is_written_still_closes_a_genuine_cycle
+        PASS [   0.013s] ( 22/413) gmeow-logic physical::chase::tests::a_relaxed_negative_inverse_cannot_prove_restricted_termination
+        PASS [   0.010s] ( 23/413) gmeow-logic physical::chase::tests::a_wildcard_class_that_is_only_read_does_not_close_a_cycle
+        PASS [   0.010s] ( 24/413) gmeow-logic physical::chase::tests::a_two_witness_family_keeps_its_inequality_cycle
+        PASS [   0.016s] ( 25/413) gmeow-logic physical::chase::tests::a_filtered_property_inverse_cannot_prove_restricted_termination
+        PASS [   0.020s] ( 26/413) gmeow-logic physical::chase::tests::a_guarded_rule_never_blocks_a_restricted_trigger
+        PASS [   0.013s] ( 27/413) gmeow-logic physical::chase::tests::an_unrelated_summarized_family_leaves_the_inverse_pair_certified
+        PASS [   0.017s] ( 28/413) gmeow-logic physical::chase::tests::a_variable_minimum_cannot_seed_a_two_witness_blocking_proof
+        PASS [   0.015s] ( 29/413) gmeow-logic physical::chase::tests::an_unrelated_variable_predicate_statement_keeps_typed_witnesses_binary
+        PASS [   0.042s] ( 30/413) gmeow-logic physical::chase::tests::a_binary_witness_read_by_a_variable_predicate_statement_still_closes_its_cycle
+        PASS [   0.019s] ( 31/413) gmeow-logic physical::chase::tests::a_variable_predicate_write_still_reaches_binary_triggers
+        PASS [   0.017s] ( 32/413) gmeow-logic physical::chase::tests::certificate_finding_carries_evidence_or_violations
+        PASS [   0.016s] ( 33/413) gmeow-logic physical::chase::tests::certify_acyclic_chain_certifies
+        PASS [   0.016s] ( 34/413) gmeow-logic physical::chase::tests::certifier_refuses_non_terminating_programs
+        PASS [   0.016s] ( 35/413) gmeow-logic physical::chase::tests::certify_acyclic_el_restriction_is_weakly_acyclic_and_non_vacuous
+        PASS [   0.031s] ( 36/413) gmeow-logic physical::chase::tests::a_fresh_null_partner_still_matches_a_wildcard_read
+        PASS [   0.012s] ( 37/413) gmeow-logic physical::chase::tests::certify_lattice_combine_merges_uncertified_violations
+        PASS [   0.020s] ( 38/413) gmeow-logic physical::chase::tests::certify_cyclic_defeats_joint_acyclicity
+        PASS [   0.037s] ( 39/413) gmeow-logic physical::chase::tests::a_relaxed_distinct_inverse_cannot_prove_restricted_termination
+        PASS [   0.008s] ( 40/413) gmeow-logic physical::chase::tests::certify_lattice_ranks_are_strictly_ordered
+        PASS [   0.015s] ( 41/413) gmeow-logic physical::chase::tests::certify_lattice_combine_is_the_strength_poset_meet
+        PASS [   0.021s] ( 42/413) gmeow-logic physical::chase::tests::certify_jointly_acyclic_evidence_is_non_vacuous
+        PASS [   0.018s] ( 43/413) gmeow-logic physical::chase::tests::certify_jointly_acyclic_non_vacuous_beyond_weak
+        PASS [   0.027s] ( 44/413) gmeow-logic physical::chase::tests::certify_cyclic_defeats_super_weak_acyclicity
+        PASS [   0.039s] ( 45/413) gmeow-logic physical::chase::tests::an_inverse_back_edge_certifies_restricted_joint_acyclicity
+        PASS [   0.023s] ( 46/413) gmeow-logic physical::chase::tests::certify_lattice_combine_takes_the_weaker
+        PASS [   0.035s] ( 47/413) gmeow-logic physical::chase::tests::certifier_soundness_differential_reaches_fixpoint
+        PASS [   0.013s] ( 48/413) gmeow-logic physical::chase::tests::certify_super_weakly_acyclic_non_vacuous_beyond_weak
+        PASS [   0.020s] ( 49/413) gmeow-logic physical::chase::tests::certify_non_existential_program_is_trivially_weakly_acyclic
+        PASS [   0.033s] ( 50/413) gmeow-logic physical::chase::tests::certify_cyclic_restriction_is_uncertified
+        PASS [   0.013s] ( 51/413) gmeow-logic physical::chase::tests::chase_invents_a_witness_for_some_values_from
+        PASS [   0.039s] ( 52/413) gmeow-logic physical::chase::tests::certify_cyclic_defeats_msa
+        PASS [   0.025s] ( 53/413) gmeow-logic physical::chase::tests::certify_msa_runs_the_engine_fixpoint
+        PASS [   0.020s] ( 54/413) gmeow-logic physical::chase::tests::certify_super_weak_evidence_is_non_vacuous
+        PASS [   0.017s] ( 55/413) gmeow-logic physical::chase::tests::chase_budget_exhaustion_is_incomplete_not_wrong
+        PASS [   0.020s] ( 56/413) gmeow-logic physical::chase::tests::chase_at_least_two_requires_two_distinct_witnesses
+        PASS [   0.079s] ( 57/413) gmeow-logic obligations::tests::empty_selected_obligation_inventory_is_visible
+        PASS [   0.011s] ( 58/413) gmeow-logic physical::chase::tests::chase_terminates_on_a_bounded_program
+        PASS [   0.025s] ( 59/413) gmeow-logic physical::chase::tests::certify_super_weakly_acyclic_is_reported_by_the_ladder
+        PASS [   0.013s] ( 60/413) gmeow-logic physical::chase::tests::conjunctive_blocker_stops_at_a_witness_and_unfinished_search_never_invents
+        PASS [   0.008s] ( 61/413) gmeow-logic physical::chase::tests::multi_witness_inverse_families_stay_uncertified
+        PASS [   0.022s] ( 62/413) gmeow-logic physical::chase::tests::chase_restricted_satisfaction_skips_when_witness_exists
+        PASS [   0.038s] ( 63/413) gmeow-logic physical::chase::tests::certify_model_summarizing_non_vacuous_beyond_structural
+        PASS [   0.008s] ( 64/413) gmeow-logic physical::chase::tests::restricted_joint_acyclicity_meets_incomparable_classes_to_their_glb
+        PASS [   0.020s] ( 65/413) gmeow-logic physical::chase::tests::duplicate_heads_keep_the_first_standalone_proof_and_raw_budget
+        PASS [   0.017s] ( 66/413) gmeow-logic physical::chase::tests::explain_recovers_the_recipe_of_a_chase_invented_witness
+        PASS [   0.016s] ( 67/413) gmeow-logic physical::chase::tests::jointly_acyclic_program_runs_natively_unbudgeted_on_route_chase
+        PASS [   0.030s] ( 68/413) gmeow-logic physical::chase::tests::chase_materialize_echoes_later_worlds_asserted_facts_after_budget_exhaustion
+        PASS [   0.037s] ( 69/413) gmeow-logic physical::chase::tests::certify_two_rule_cycle_is_uncertified
+        PASS [   0.016s] ( 70/413) gmeow-logic physical::chase::tests::reified_nary_head_rejects_a_duplicate_positional_index
+        PASS [   0.017s] ( 71/413) gmeow-logic physical::chase::tests::reified_nary_head_accepts_a_contiguous_shape
+        PASS [   0.025s] ( 72/413) gmeow-logic physical::chase::tests::grounded_operator_spellings_keep_a_valid_inverse_certificate
+        PASS [   0.050s] ( 73/413) gmeow-logic physical::chase::tests::certify_msa_refuses_oversized_critical_instance_without_materializing
+        PASS [   0.019s] ( 74/413) gmeow-logic physical::chase::tests::reified_nary_head_rejects_a_gapped_positional_index
+        PASS [   0.011s] ( 75/413) gmeow-logic physical::chase::tests::single_witness_inverse_families_certify_restricted_joint_acyclicity
+        PASS [   0.015s] ( 76/413) gmeow-logic physical::chase::tests::route_certified_program_runs_natively
+        PASS [   0.027s] ( 77/413) gmeow-logic physical::chase::tests::model_summarizing_program_runs_natively_unbudgeted_on_route_chase
+        PASS [   0.103s] ( 78/413) gmeow-logic obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+        PASS [   0.108s] ( 79/413) gmeow-logic obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+        PASS [   0.029s] ( 80/413) gmeow-logic physical::chase::tests::pair_projection_cannot_fabricate_an_inverse_for_restricted_blocking
+        PASS [   0.037s] ( 81/413) gmeow-logic physical::chase::tests::refused_existential_program_counts_a_reason_ledger_dlgap
+        PASS [   0.047s] ( 82/413) gmeow-logic physical::chase::tests::distinct_witnesses_cannot_share_the_inverse_back_edge
+        PASS [   0.020s] ( 83/413) gmeow-logic physical::seminaive::joint::families::analysis::tests::completion_preserves_not_engaged_separately_from_engaged_complete
+        PASS [   0.016s] ( 84/413) gmeow-logic physical::seminaive::joint::families::analysis::tests::new_relevant_rows_invalidate_but_unrelated_metadata_reuses_the_analysis
+        PASS [   0.026s] ( 85/413) gmeow-logic physical::chase::tests::route_uncertified_without_budget_refuses_to_the_oracle
+        PASS [   0.119s] ( 86/413) gmeow-logic obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+        PASS [   0.016s] ( 87/413) gmeow-logic physical::seminaive::joint::families::analysis::tests::partial_analysis_of_new_facts_keeps_earlier_supported_clashes
+        PASS [   0.019s] ( 88/413) gmeow-logic physical::seminaive::joint::families::analysis::tests::identity_engagement_and_unrelated_metadata_share_the_declared_read_boundary
+        PASS [   0.016s] ( 89/413) gmeow-logic physical::seminaive::joint::families::contextual_finalization_tests::an_unselected_contextual_operation_needs_no_upstream_stop_record
+        PASS [   0.033s] ( 90/413) gmeow-logic physical::chase::tests::route_uncertified_with_budget_runs_partial
+        PASS [   0.123s] ( 91/413) gmeow-logic obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+        PASS [   0.026s] ( 92/413) gmeow-logic physical::seminaive::joint::families::analysis::tests::completed_observation_preserves_paid_identity_proofs_at_exact_allowance
+        PASS [   0.036s] ( 93/413) gmeow-logic physical::chase::tests::without_the_inverse_rule_the_pair_stays_uncertified
+        PASS [   0.013s] ( 94/413) gmeow-logic physical::seminaive::joint::input::admission::tests::inconclusive_refinement_retains_rule_and_counts_on_the_shared_diagnostic
+        PASS [   0.028s] ( 95/413) gmeow-logic physical::seminaive::joint::families::analysis::tests::pending_source_preparation_is_not_certified_by_cached_observation
+        PASS [   0.039s] ( 96/413) gmeow-logic physical::chase::tests::super_weakly_acyclic_program_runs_natively_unbudgeted_on_route_chase
+        PASS [   0.131s] ( 97/413) gmeow-logic obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+        PASS [   0.132s] ( 98/413) gmeow-logic obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+        PASS [   0.040s] ( 99/413) gmeow-logic physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse
+        PASS [   0.029s] (100/413) gmeow-logic physical::seminaive::joint::families::analysis::tests::unchanged_obstruction_keeps_its_exact_support_without_recharging
+        PASS [   0.133s] (101/413) gmeow-logic obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+        PASS [   0.054s] (102/413) gmeow-logic physical::chase::tests::reduced_witness_frontier_does_not_erase_copied_value_feedback
+        PASS [   0.043s] (103/413) gmeow-logic physical::chase::tests::sparse_obstruction_absence_cannot_authorize_msa
+        PASS [   0.020s] (104/413) gmeow-logic physical::seminaive::joint::input::admission::tests::list_cell_bindings_do_not_follow_incoming_rest_only_components
+        PASS [   0.038s] (105/413) gmeow-logic physical::seminaive::joint::families::contextual_finalization_tests::every_upstream_stop_preserves_unvisited_requests_and_actual_inference_allowance
+        PASS [   0.024s] (106/413) gmeow-logic physical::seminaive::joint::input::admission::tests::list_cell_bindings_share_a_branching_rest_only_cycle
+        PASS [   0.025s] (107/413) gmeow-logic physical::seminaive::joint::input::contextual_tests::abstract_contextual_outputs_activate_only_their_owner_and_declared_markers
+        PASS [   0.025s] (108/413) gmeow-logic physical::seminaive::joint::input::tests::maximum_one_schema_exports_its_native_count_guard_to_value_flow
+        PASS [   0.012s] (109/413) gmeow-logic physical::seminaive::joint::retained::tests::carry_candidates_observe_one_frozen_world_and_current_premise_depths
+        PASS [   0.026s] (110/413) gmeow-logic physical::seminaive::joint::input::tests::equivalent_abstract_shapes_reuse_a_plan_without_reusing_concrete_values
+        PASS [   0.028s] (111/413) gmeow-logic physical::seminaive::joint::input::tests::minimum_schema_exports_every_generated_analysis_witness_to_value_flow
+        PASS [   0.044s] (112/413) gmeow-logic physical::seminaive::joint::input::admission::tests::list_cell_bindings_match_reachability_for_every_three_node_graph
+        PASS [   0.163s] (113/413) gmeow-logic obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+        PASS [   0.018s] (114/413) gmeow-logic physical::seminaive::joint::retained::tests::introductions_wait_for_their_world_premises_and_reached_producer
+        PASS [   0.176s] (115/413) gmeow-logic obligations::program_tests::changed_import_input_and_engine_recipe_invalidate_analysis
+        PASS [   0.069s] (116/413) gmeow-logic physical::seminaive::joint::input::admission::tests::a_marker_a_witness_may_carry_is_open
+        PASS [   0.042s] (117/413) gmeow-logic physical::seminaive::joint::input::tests::schema_class_value_flow_admits_unrelated_failure_types_and_refuses_feedback
+        PASS [   0.029s] (118/413) gmeow-logic physical::seminaive::joint::tests::data_selected_reader_and_invention_have_one_termination_proof
+        PASS [   0.055s] (119/413) gmeow-logic physical::seminaive::joint::input::tests::changing_strata_share_layouts_and_preserve_witnesses_and_absence
+        PASS [   0.031s] (120/413) gmeow-logic physical::seminaive::joint::tests::competing_chase_heads_keep_the_joint_proof_winner_in_either_order
+        PASS [   0.069s] (121/413) gmeow-logic physical::seminaive::joint::input::admission::tests::the_closure_of_a_witness_free_relation_is_complete
+        PASS [   0.011s] (122/413) gmeow-logic physical::seminaive::joint::tests::negative_cycle_through_existential_head_is_refused
+        PASS [   0.026s] (123/413) gmeow-logic physical::seminaive::joint::tests::implicit_dimension_reads_wait_for_their_producers
+        PASS [   0.085s] (124/413) gmeow-logic physical::seminaive::joint::input::admission::tests::a_marker_no_writer_can_produce_is_closed
+        PASS [   0.021s] (125/413) gmeow-logic physical::seminaive::joint::tests::negation_waits_for_existential_producer_and_ordinary_consumers
+        PASS [   0.023s] (126/413) gmeow-logic physical::seminaive::joint::tests::joint_rounds_are_deterministic_across_worker_counts
+        PASS [   0.034s] (127/413) gmeow-logic physical::seminaive::joint::tests::global_budget_preserves_unrun_world_inputs_and_withholds_heads
+        PASS [   0.038s] (128/413) gmeow-logic physical::seminaive::joint::tests::dynamic_completion_preserves_later_fixed_writers
+        PASS [   0.031s] (129/413) gmeow-logic physical::seminaive::joint::tests::ordinary_and_existential_feedback_shares_provenance_and_governor
+        PASS [   0.019s] (130/413) gmeow-logic physical::seminaive::joint::witness_tests::identical_frontiers_in_distinct_worlds_have_distinct_scoped_witnesses
+        PASS [   0.023s] (131/413) gmeow-logic physical::seminaive::joint::tests::shared_witness_frontier_stays_finite_through_schema_feedback
+        PASS [   0.214s] (132/413) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+        PASS [   0.010s] (133/413) gmeow-logic physical::seminaive::joint::witness_tests::zero_and_partial_budget_publish_only_committed_minting_heads
+        PASS [   0.021s] (134/413) gmeow-logic physical::seminaive::joint::witness_tests::retention::two_world_round_preserves_each_committed_introduction_and_excludes_the_cut_suffix
+        PASS [   0.031s] (135/413) gmeow-logic physical::seminaive::joint::tests::termination_certificate_includes_ordinary_feedback_edges
+        PASS [   0.033s] (136/413) gmeow-logic physical::seminaive::joint::witness_tests::bodyless_subject_only_head_uses_the_same_scoped_registry
+        PASS [   0.026s] (137/413) gmeow-logic physical::seminaive::joint::witness_tests::native_witness_receipt_rejects_missing_heads_wrong_scope_and_tampered_proof
+        PASS [   0.031s] (138/413) gmeow-logic physical::seminaive::joint::witness_tests::minimum_and_generic_invention_share_world_contract_and_committed_head_protocol
+        PASS [   0.009s] (139/413) gmeow-logic program_analysis::tests::cache_hit_preserves_formula_residue
+        PASS [   0.020s] (140/413) gmeow-logic physical::seminaive::joint::witness_tests::source_rule_content_and_source_contract_both_participate_in_address
+        PASS [   0.032s] (141/413) gmeow-logic physical::seminaive::joint::witness_tests::minting_heads_keep_subject_and_object_positions_and_exclude_later_edges
+        PASS [   0.041s] (142/413) gmeow-logic physical::seminaive::joint::tests::shared_ordinary_commit_preserves_parallel_and_budget_parity
+        PASS [   0.015s] (143/413) gmeow-logic program_analysis::tests::cache_has_bounded_retention_without_invalidating_live_consumers
+        PASS [   0.230s] (144/413) gmeow-logic obligations::tests::finite_closure_can_discharge_a_reachable_head
+        PASS [   0.099s] (145/413) gmeow-logic physical::seminaive::joint::input::tests::intersection_membership_uses_only_its_selected_list_classes
+        PASS [   0.033s] (146/413) gmeow-logic physical::seminaive::joint::witness_tests::reordered_and_unrelated_input_does_not_change_witness_address_or_proof
+        PASS [   0.092s] (147/413) gmeow-logic physical::seminaive::joint::input::tests::unrelated_rdf_list_member_cannot_become_a_property_chain_read
+        PASS [   0.021s] (148/413) gmeow-logic program_analysis::tests::large_source_identity_does_not_evict_a_small_preparation
+        PASS [   0.128s] (149/413) gmeow-logic physical::seminaive::joint::input::admission::tests::a_relation_written_from_an_open_relation_is_open
+        PASS [   0.031s] (150/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::datatype_capacity_feedback_through_a_definition_is_not_stratifiable
+        PASS [   0.069s] (151/413) gmeow-logic physical::seminaive::joint::tests::witness_flow_through_predicate_positions_cannot_hide_an_invention_cycle
+        PASS [   0.123s] (152/413) gmeow-logic physical::seminaive::joint::input::tests::selected_property_chain_member_retains_its_real_dependency_cycle
+        PASS [   0.041s] (153/413) gmeow-logic program_analysis::tests::native_input_binds_axiom_content_even_when_executable_rules_are_identical
+        PASS [   0.131s] (154/413) gmeow-logic physical::seminaive::joint::input::tests::range_selected_class_declaration_does_not_turn_type_into_the_ranged_property
+        PASS [   0.151s] (155/413) gmeow-logic physical::seminaive::joint::input::admission::tests::list_cell_binding_limit_is_inclusive_and_publication_is_atomic
+        PASS [   0.062s] (156/413) gmeow-logic program_analysis::tests::preparation_reuses_ir_and_distinguishes_complete_context
+        PASS [   0.069s] (157/413) gmeow-logic reason::dl::tests::functional_property_distinct_xml_literals_are_withheld
+        PASS [   0.301s] (158/413) gmeow-logic obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+        PASS [   0.073s] (159/413) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definition_feedback_cycle_refuses_a_transient_clash
+        PASS [   0.131s] (160/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::missing_qualified_datatype_is_never_guessed_from_a_property_range
+        PASS [   0.141s] (161/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::independent_existential_fillers_do_not_constrain_existing_values_or_each_other
+        PASS [   0.144s] (162/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::existential_empty_space_reaches_authored_rules_with_all_facet_premises
+        PASS [   0.114s] (163/413) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definitions_with_identical_names_remain_world_local
+        PASS [   0.376s] (164/413) gmeow-logic obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+        PASS [   0.172s] (165/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::datatype_constraint_definition_writers_complete_before_clash_evaluation
+        PASS [   0.186s] (166/413) gmeow-logic reason::program::clash_tests::canonical_composite_keys_wait_for_late_definition_writers
+        PASS [   0.057s] (167/413) gmeow-logic reason::program::clash_tests::key_definition_feedback_cycle_is_refused_before_any_clash
+        PASS [   0.293s] (168/413) gmeow-logic physical::seminaive::joint::input::tests::minimum_witness_selector_does_not_accept_unrelated_class_output
+        PASS [   0.164s] (169/413) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_facets_are_conjunctive_and_preserve_every_definition_premise
+        PASS [   0.198s] (170/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::native_datatype_capacity_and_proofs_stay_in_the_asserting_world
+        PASS [   0.210s] (171/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::datatype_property_literal_domain_and_local_universals_are_actual_clash_producers
+        PASS [   0.174s] (172/413) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_length_restriction_uses_shared_native_values_in_cardinality
+        PASS [   0.223s] (173/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::late_native_range_values_wake_authored_consumers_with_actual_source_spellings
+        PASS [   0.163s] (174/413) gmeow-logic reason::program::clash_tests::disjoint_properties_compare_values_and_feed_authored_rules
+        PASS [   0.216s] (175/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::undefined_membership_and_capacity_are_explicit_refusals_not_negative_decisions
+        PASS [   0.216s] (176/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::upstream_finite_datatype_capacity_reaches_the_authored_constraint_consumer
+        PASS [   0.238s] (177/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::a_universal_empty_space_only_clashes_when_a_value_is_required
+        PASS [   0.013s] (178/413) gmeow-logic reason::program::contextual_input_tests::contextual_preparation_is_shared_until_a_successful_source_edit
+        PASS [   0.187s] (179/413) gmeow-logic reason::program::clash_tests::datatype_tests::native_datatype_dag_composes_membership_and_preserves_lexical_proofs
+        PASS [   0.240s] (180/413) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definition_producers_complete_before_any_membership_witness
+        FAIL [   0.155s] (181/413) gmeow-logic reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.13s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation' (3088747) panicked at crates/logic/src/reason/program/clash_tests.rs:820:9:
+    -1 http://www.w3.org/2001/XMLSchema#integer
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.161s] (182/413) gmeow-logic reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.13s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result' (3088694) panicked at crates/logic/src/reason/program/clash_tests.rs:303:9:
+    two-classes
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.075s] (183/413) gmeow-logic reason::program::dl_input_tests::derived_qualified_maximum_is_enforced_by_the_dl_continuation
+        PASS [   0.161s] (184/413) gmeow-logic reason::program::clash_tests::maximum_never_guesses_a_missing_qualifier_or_invents_thing_membership
+        FAIL [   0.120s] (185/413) gmeow-logic reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.10s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result' (3088829) panicked at crates/logic/src/reason/program/clash_tests.rs:570:18:
+    unknown values cannot silently decide the selected law
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.265s] (186/413) gmeow-logic reason::program::clash_tests::functionality_uses_canonical_records_and_requires_resource_distinctness
+        PASS [   0.193s] (187/413) gmeow-logic reason::program::clash_tests::late_negative_assertion_values_wake_consumers_with_exact_worlds_and_premises
+        PASS [   0.440s] (188/413) gmeow-logic physical::seminaive::joint::input::tests::type_propagation_over_real_subclass_rows_certifies
+        PASS [   0.127s] (189/413) gmeow-logic reason::program::dl_input_tests::derived_directional_literal_survives_the_public_closure_projection
+        PASS [   0.332s] (190/413) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definition_admission_refuses_malformed_or_unsupported_sources
+        PASS [   0.219s] (191/413) gmeow-logic reason::program::clash_tests::key_values_join_late_native_values_with_actual_definition_and_value_evidence
+        PASS [   0.131s] (192/413) gmeow-logic reason::program::dl_input_tests::derived_literal_enters_the_functional_value_clash_index
+        PASS [   0.142s] (193/413) gmeow-logic reason::program::dl_input_tests::derived_list_cells_reach_nominal_membership
+        PASS [   0.483s] (194/413) gmeow-logic physical::seminaive::joint::input::tests::a_witness_restriction_with_an_unrelated_transitive_property_certifies
+        PASS [   0.170s] (195/413) gmeow-logic reason::program::clash_tests::universal_keys_need_no_explicit_thing_memberships
+        PASS [   0.034s] (196/413) gmeow-logic reason::program::domain_tests::retained_domain_authority_obeys_the_existing_template_payload_bound
+        PASS [   0.058s] (197/413) gmeow-logic reason::program::domain_tests::invalid_selection_and_tampered_intrinsic_evidence_fail_closed
+        PASS [   0.234s] (198/413) gmeow-logic reason::program::clash_tests::named_datatype_maximum_counts_cross_datatype_values_with_late_feedback
+        PASS [   0.130s] (199/413) gmeow-logic reason::program::dl_input_tests::key_collision_uses_shared_numeric_value_identity
+        PASS [   0.110s] (200/413) gmeow-logic reason::program::dl_input_tests::program_continuation_publishes_only_derived_native_rows
+        PASS [   0.279s] (201/413) gmeow-logic reason::program::clash_tests::maximum_search_can_find_a_witness_after_unproved_or_undefined_candidates
+        PASS [   0.114s] (202/413) gmeow-logic reason::program::domain_tests::empty_selected_world_needs_no_prior_graph_declaration_or_fabricated_premise
+        PASS [   0.129s] (203/413) gmeow-logic reason::program::dl_input_tests::unknown_value_interpretations_withhold_only_the_affected_law
+        PASS [   0.139s] (204/413) gmeow-logic reason::program::dl_input_tests::negative_assertion_compares_derived_values_and_keeps_actual_premises
+        PASS [   0.118s] (205/413) gmeow-logic reason::program::domain_tests::existing_member_satisfies_the_domain_without_redundant_null
+        PASS [   0.589s] (206/413) gmeow-logic physical::seminaive::joint::input::tests::a_range_back_into_its_own_restriction_is_still_refused
+        PASS [   0.284s] (207/413) gmeow-logic reason::program::clash_tests::native_maximum_waits_for_explicit_resource_inequality_and_feeds_consumers
+        PASS [   0.580s] (208/413) gmeow-logic physical::seminaive::joint::input::tests::type_propagation_into_the_restriction_is_still_refused
+        PASS [   0.254s] (209/413) gmeow-logic reason::program::dl_input_tests::derived_restriction_fields_reach_dl_without_crossing_worlds
+        PASS [   0.175s] (210/413) gmeow-logic reason::program::domain_tests::blank_graph_scope_is_retained_in_intrinsic_evidence_and_output
+        PASS [   0.244s] (211/413) gmeow-logic reason::program::dl_input_tests::disjoint_properties_compare_values_and_distinguish_quoted_triples
+        PASS [   0.625s] (212/413) gmeow-logic physical::seminaive::joint::input::tests::a_witness_restriction_with_an_unrelated_subproperty_axiom_certifies
+        PASS [   0.321s] (213/413) gmeow-logic reason::program::clash_tests::native_cardinality_uses_literal_values_and_each_asserted_upper_bound
+        PASS [   0.107s] (214/413) gmeow-logic reason::program::domain_tests::zero_budget_retains_selection_without_publishing_an_uncommitted_domain
+        PASS [   0.133s] (215/413) gmeow-logic reason::program::domain_tests::top_emptiness_and_authored_consumer_share_the_domain_fixed_point
+        PASS [   0.325s] (216/413) gmeow-logic reason::program::clash_tests::structural_property_and_identity_clashes_join_the_same_round_graph
+        FAIL [   0.097s] (217/413) gmeow-logic reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent
+  stdout ───
+
+    running 1 test
+    test reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent' (3089815) panicked at crates/logic/src/reason/program/empty_class_tests/bottom_property.rs:169:18:
+    invalid source count must fail
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.128s] (218/413) gmeow-logic reason::program::empty_class_tests::bottom_property::asserted_empty_property_values_wake_authored_consumers_with_exact_evidence
+        PASS [   0.087s] (219/413) gmeow-logic reason::program::empty_class_tests::bottom_property::repeated_bounds_do_not_overwrite_the_positive_obligation
+        PASS [   0.175s] (220/413) gmeow-logic reason::program::domain_tests::top_emptiness_in_one_selected_world_does_not_cross_into_its_sibling
+        PASS [   0.231s] (221/413) gmeow-logic reason::program::domain_tests::intrinsic_domain_reaches_minimum_and_the_same_governor_budget_prefix
+        PASS [   0.233s] (222/413) gmeow-logic reason::program::domain_tests::selected_worlds_and_contracts_have_distinct_order_independent_witnesses
+        FAIL [   0.123s] (223/413) gmeow-logic reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero
+  stdout ───
+
+    running 1 test
+    test reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.10s
+
+  stderr ───
+
+    thread 'reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero' (3089960) panicked at crates/logic/src/reason/program/empty_class_tests.rs:298:14:
+    an invalid selected cardinality is not an absent obligation
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.522s] (224/413) gmeow-logic reason::program::clash_tests::key_agreement_needs_shared_values_distinctness_and_one_world
+        PASS [   0.172s] (225/413) gmeow-logic reason::program::empty_class_tests::direct_nothing_filler_needs_no_asserted_bottom_reflexivity
+        PASS [   0.354s] (226/413) gmeow-logic reason::program::dl_input_tests::functional_clashes_preserve_language_direction_and_signed_zero_distinctions
+        PASS [   0.472s] (227/413) gmeow-logic reason::program::clash_tests::qualified_maximum_counts_late_membership_in_its_own_world_only
+        PASS [   0.158s] (228/413) gmeow-logic reason::program::empty_class_tests::repeated_bounds_remain_conjunctive_and_a_budget_cut_withholds_consumers
+        PASS [   0.192s] (229/413) gmeow-logic reason::program::empty_class_tests::empty_filler_evidence_cannot_cross_source_worlds_or_cached_inputs
+        PASS [   0.386s] (230/413) gmeow-logic reason::program::dl_input_tests::functional_clashes_use_value_identity_without_erasing_source_spellings
+        PASS [   0.261s] (231/413) gmeow-logic reason::program::empty_class_tests::bottom_property::has_value_empty_restrictions_preserve_literal_fields
+        PASS [   0.194s] (232/413) gmeow-logic reason::program::empty_class_tests::self_disjointness_has_no_fabricated_reflexive_premise_or_individual
+        PASS [   0.820s] (233/413) gmeow-logic physical::seminaive::joint::input::tests::a_list_operator_reads_only_the_cells_of_its_own_list
+        PASS [   0.187s] (234/413) gmeow-logic reason::program::empty_class_tests::universal_class::late_universal_subclasses_wake_positive_consumers_before_absence
+        PASS [   0.364s] (235/413) gmeow-logic reason::program::domain_tests::physical_import_report_and_compiler_graphs_do_not_select_domains
+        PASS [   0.275s] (236/413) gmeow-logic reason::program::empty_class_tests::bottom_property::source_worlds_budget_and_property_identity_bound_the_consequence
+        PASS [   0.234s] (237/413) gmeow-logic reason::program::empty_class_tests::late_empty_existential_fillers_wake_class_and_instance_consumers_before_absence
+        PASS [   0.161s] (238/413) gmeow-logic reason::program::equality_tests::functional_literal_clashes_never_publish_resource_equalities
+        FAIL [   0.105s] (239/413) gmeow-logic reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+  stdout ───
+
+    running 1 test
+    test reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.08s
+
+  stderr ───
+
+    thread 'reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison' (3090655) panicked at crates/logic/src/reason/program/equality_tests.rs:292:10:
+    unknown datatype equality must refuse execution
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.054s] (240/413) gmeow-logic reason::program::joint_family_tests::malformed_class_preflight_retains_typed_world_source_and_input_identity_before_writers
+        PASS [   0.188s] (241/413) gmeow-logic reason::program::equality_tests::functional_equality_wakes_authored_consumers_and_retains_late_value_evidence
+        PASS [   0.317s] (242/413) gmeow-logic reason::program::empty_class_tests::bottom_property::late_restriction_emptiness_reaches_authored_rules_before_negation
+        PASS [   0.301s] (243/413) gmeow-logic reason::program::empty_class_tests::disjoint_superclass_emptiness_wakes_consumers_with_the_actual_source_orientation
+        PASS [   0.092s] (244/413) gmeow-logic reason::program::expression_substrate_tests::the_twins_control_certifies_without_inventing_an_operator
+        PASS [   0.788s] (245/413) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::finite_datatype_lower_and_exact_counts_are_conjunctive_and_keep_large_source_values
+        PASS [   0.178s] (246/413) gmeow-logic reason::program::equality_tests::missing_qualifier_or_larger_maximum_cannot_choose_an_equality
+        PASS [   0.106s] (247/413) gmeow-logic reason::program::joint_family_tests::every_world_has_actual_chase_admission_even_when_zero_budget_commits_no_domain_head
+        PASS [   0.113s] (248/413) gmeow-logic reason::program::joint_family_tests::malformed_selected_npa_does_not_publish_clash_or_release_its_absence_reader
+        PASS [   0.149s] (249/413) gmeow-logic reason::program::expression_substrate_tests::the_operator_less_control_certifies_and_mints_exactly_one_operator_witness
+        PASS [   0.304s] (250/413) gmeow-logic reason::program::empty_class_tests::universal_class::universal_roles_do_not_merge_worlds_rewrite_data_or_match_foreign_markers
+        PASS [   0.237s] (251/413) gmeow-logic reason::program::equality_tests::maximum_one_equality_requires_both_qualifiers_and_keeps_every_premise
+        PASS [   0.181s] (252/413) gmeow-logic reason::program::equality_tests::universal_qualified_and_unqualified_exact_one_need_no_invented_membership
+        PASS [   0.331s] (253/413) gmeow-logic reason::program::empty_class_tests::universal_class::equivalent_universal_classes_reach_members_in_both_source_orientations
+        PASS [   0.240s] (254/413) gmeow-logic reason::program::equality_tests::inverse_functional_equality_uses_shared_literal_values_without_erasing_lexical_evidence
+        PASS [   0.309s] (255/413) gmeow-logic reason::program::equality_tests::false_or_string_flags_and_nonself_edges_do_not_enable_local_reflexivity
+        FAIL [   0.060s] (256/413) gmeow-logic reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run' (3091176) panicked at crates/logic/src/reason/program/list_tests.rs:170:9:
+    selected native source admission refused before execution
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.158s] (257/413) gmeow-logic reason::program::joint_family_tests::cross_world_modal_read_observes_late_native_writer_before_owner_consumer_and_naf
+        PASS [   0.213s] (258/413) gmeow-logic reason::program::equality_tests::shared_preparation_does_not_reuse_equality_across_worlds_or_inputs
+        PASS [   0.153s] (259/413) gmeow-logic reason::program::joint_family_tests::missing_npa_target_cannot_be_pruned_out_of_the_completion_proof
+        PASS [   0.331s] (260/413) gmeow-logic reason::program::empty_class_tests::zero_unqualified_and_missing_object_qualifiers_cannot_force_empty_class
+        PASS [   0.139s] (261/413) gmeow-logic reason::program::joint_family_tests::ordinary_unconstrained_data_is_not_an_isolated_family_vocabulary_refusal
+        PASS [   0.128s] (262/413) gmeow-logic reason::program::joint_family_tests::source_empty_late_equality_clash_precedes_naf_and_leaves_disconnected_individual_local
+        PASS [   0.147s] (263/413) gmeow-logic reason::program::joint_family_tests::modal_absence_cycle_is_refused_by_the_same_world_qualified_producer_graph
+        PASS [   0.119s] (264/413) gmeow-logic reason::program::list_tests::an_inverse_pair_is_certified_and_runs_without_a_budget
+        PASS [   0.221s] (265/413) gmeow-logic reason::program::equality_tests::true_local_self_restrictions_feed_native_rules_in_both_directions
+        PASS [   0.131s] (266/413) gmeow-logic reason::program::list_tests::an_inverse_back_edge_satisfies_the_reverse_restriction_under_datalog_first
+        FAIL [   0.051s] (267/413) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3091405) panicked at crates/logic/src/reason/program/list_tests.rs:335:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.158s] (268/413) gmeow-logic reason::program::joint_family_tests::reachable_modal_grammar_writer_is_refused_before_source_definition_can_change
+        PASS [   0.147s] (269/413) gmeow-logic reason::program::list_tests::a_shared_list_tail_is_an_independent_logical_reference
+        PASS [   0.101s] (270/413) gmeow-logic reason::program::list_tests::intersection_guard_finishes_before_negated_consumers
+        PASS [   0.145s] (271/413) gmeow-logic reason::program::list_tests::empty_intersection_admits_active_resource_terms_without_inventing_literal_subjects
+        PASS [   0.162s] (272/413) gmeow-logic reason::program::list_tests::derived_list_cells_wake_nominal_membership_and_its_consumer
+        PASS [   0.119s] (273/413) gmeow-logic reason::program::list_tests::intersection_membership_shares_late_type_feedback_and_complete_premises
+        PASS [   0.169s] (274/413) gmeow-logic reason::program::list_tests::empty_nominal_guard_remains_in_joint_invention_admission
+        PASS [   0.133s] (275/413) gmeow-logic reason::program::list_tests::intersection_index_wakes_when_its_first_member_type_arrives_late
+        PASS [   0.104s] (276/413) gmeow-logic reason::program::list_tests::repeated_member_occurrences_preserve_all_different_counterevidence
+        PASS [   0.086s] (277/413) gmeow-logic reason::program::minimum_tests::a_complete_distinct_subset_blocks_invention_after_a_failed_greedy_prefix
+        PASS [   0.129s] (278/413) gmeow-logic reason::program::list_tests::late_distinctness_wakes_nominal_closure_and_its_rule_consumer
+        PASS [   0.132s] (279/413) gmeow-logic reason::program::list_tests::single_binary_existential_uses_one_witness_per_frontier_binding
+        PASS [   0.118s] (280/413) gmeow-logic reason::program::minimum_tests::a_huge_count_withholds_before_allocating_witnesses_or_a_quadratic_head
+        PASS [   0.496s] (281/413) gmeow-logic reason::program::empty_class_tests::positive_qualified_bounds_keep_every_original_schema_premise
+        PASS [   1.113s] (282/413) gmeow-logic physical::seminaive::joint::input::tests::an_inverse_pair_cycle_stays_refused_by_the_skolem_certificate
+        PASS [   0.156s] (283/413) gmeow-logic reason::program::list_tests::universal_list_guards_never_join_types_across_worlds
+        PASS [   0.168s] (284/413) gmeow-logic reason::program::list_tests::list_cache_and_membership_are_local_to_their_source_world
+        PASS [   0.167s] (285/413) gmeow-logic reason::program::list_tests::property_chain_uses_derived_edges_and_retains_literal_and_full_path_evidence
+        PASS [   0.132s] (286/413) gmeow-logic reason::program::minimum_tests::finite_object_witnesses_receive_source_bound_unbounded_admission
+        PASS [   0.183s] (287/413) gmeow-logic reason::program::list_tests::nominal_closure_requires_every_explicit_difference_without_unique_names
+        PASS [   0.023s] (288/413) gmeow-logic reason::program::semantic_tests::head_and_body_scopes_are_not_erased_and_source_evidence_survives_publication
+        PASS [   0.020s] (289/413) gmeow-logic reason::program::semantic_tests::incomplete_canonical_producer_cannot_publish_projected_completion
+        PASS [   0.109s] (290/413) gmeow-logic reason::program::minimum_tests::one_universal_qualifier_in_both_spellings_is_one_qualifier
+        PASS [   0.017s] (291/413) gmeow-logic reason::program::semantic_tests::late_projected_type_wakes_canonical_existential_body_with_original_premise
+        PASS [   0.175s] (292/413) gmeow-logic reason::program::minimum_tests::a_nonuniversal_qualifier_still_requires_explicit_member_evidence
+        PASS [   0.099s] (293/413) gmeow-logic reason::program::minimum_tests::two_distinct_qualifiers_still_obstruct_a_qualified_count
+        PASS [   0.023s] (294/413) gmeow-logic reason::program::semantic_tests::semantic_negative_cycle_is_refused_across_declared_predicate_spellings
+        PASS [   0.202s] (295/413) gmeow-logic reason::program::literal_tests::equal_lexical_values_only_fire_the_rule_with_their_complete_identity
+        PASS [   0.016s] (296/413) gmeow-logic reason::program::semantic_tests::template_admission_preserves_and_refuses_unexecuted_source_scope
+        PASS [   0.034s] (297/413) gmeow-logic reason::program::semantic_tests::marker_constants_are_interpreted_but_variable_data_identity_stays_exact
+        PASS [   0.058s] (298/413) gmeow-logic reason::program::semantic_tests::derived_canonical_property_marker_is_visible_in_the_same_fixed_point
+        PASS [   0.186s] (299/413) gmeow-logic reason::program::minimum_tests::cached_finite_admission_cannot_authorize_a_cyclic_definition_with_the_same_abstract_columns
+        PASS [   0.115s] (300/413) gmeow-logic reason::program::minimum_tests::universal_object_qualification_accepts_existing_resources_without_invented_membership
+        PASS [   0.036s] (301/413) gmeow-logic reason::program::semantic_tests::ordinary_data_marker_and_marker_used_as_predicate_are_not_aliases
+        PASS [   0.137s] (302/413) gmeow-logic reason::program::minimum_tests::qualified_minimum_and_exact_witnesses_feed_native_consumers_with_actual_premises
+        PASS [   0.014s] (303/413) gmeow-logic reason::program::tests::graph_key_collision_is_rejected_instead_of_merging_worlds
+        PASS [   0.191s] (304/413) gmeow-logic reason::program::minimum_tests::cyclic_witnesses_withhold_without_publishing_a_model_only_self_loop
+        PASS [   0.140s] (305/413) gmeow-logic reason::program::minimum_tests::static_inheritance_can_activate_a_finite_witness_chain_without_a_runtime_budget
+        PASS [   0.017s] (306/413) gmeow-logic reason::refute::native::tests::cached_source_lookup_rejects_an_identity_mismatched_ledger_position
+        PASS [   0.023s] (307/413) gmeow-logic reason::refute::native::tests::a_datatype_conflict_does_not_erase_an_unrelated_invalid_definition
+        PASS [   0.143s] (308/413) gmeow-logic reason::program::minimum_tests::universal_qualifiers_reuse_existing_resources_without_requiring_type_evidence
+        PASS [   0.035s] (309/413) gmeow-logic reason::program::tests::schema_dependency_cycle_through_negation_is_not_admitted_as_stratified
+        PASS [   0.011s] (310/413) gmeow-logic reason::refute::native::tests::cardinality_obligations_bind_only_individuals_of_a_clashing_class
+        PASS [   0.108s] (311/413) gmeow-logic reason::program::semantic_tests::canonical_membership_is_visible_to_native_list_intersection_with_exact_evidence
+        PASS [   0.215s] (312/413) gmeow-logic reason::program::minimum_tests::every_immutable_definition_binding_participates_and_mutable_fields_are_not_frozen
+        PASS [   0.019s] (313/413) gmeow-logic reason::refute::native::tests::every_independent_property_and_source_bound_survives_positive_refutation
+        PASS [   0.016s] (314/413) gmeow-logic reason::refute::native::tests::evidence_cannot_be_reused_in_another_native_world_or_contract
+        PASS [   0.012s] (315/413) gmeow-logic reason::refute::native::tests::missing_or_relabelled_native_support_fails_closed
+        PASS [   0.017s] (316/413) gmeow-logic reason::refute::native::tests::malformed_distinctness_lists_are_not_semantic_contradictions
+        PASS [   0.008s] (317/413) gmeow-logic reason::refute::native::tests::source_lookup_preserves_exact_leaves_across_growth_and_ledger_replacement
+        PASS [   0.047s] (318/413) gmeow-logic reason::refute::native::tests::canonical_roles_preserve_source_spellings_without_aliasing_ordinary_terms
+        PASS [   0.190s] (319/413) gmeow-logic reason::program::minimum_tests::recursion_requiring_three_distinct_siblings_cannot_hide_in_a_two_ordinal_analysis
+        PASS [   0.142s] (320/413) gmeow-logic reason::program::semantic_tests::canonical_derived_domain_wakes_native_schema_and_canonical_consumer
+        PASS [   0.020s] (321/413) gmeow-logic reason::refute::native::tests::relational_native_blank_identity_cannot_be_relabelled_as_rdf_ingress
+        PASS [   0.028s] (322/413) gmeow-logic reason::refute::native::tests::original_native_blank_occurrences_survive_execution_identity_lowering
+        PASS [   0.266s] (323/413) gmeow-logic reason::program::minimum_tests::an_existing_existential_witness_does_not_materialize_the_rest_of_its_relation
+        PASS [   0.037s] (324/413) gmeow-logic reason::refute::native::tests::late_native_equality_waits_for_completion_and_preserves_committed_derivation_support
+        PASS [   0.026s] (325/413) gmeow-logic reason::refute::native::tests::zero_analysis_budget_never_publishes_an_unexamined_conflict
+        PASS [   0.175s] (326/413) gmeow-logic reason::program::minimum_tests::witness_identity_retains_the_world_even_for_identical_source_terms
+        PASS [   0.104s] (327/413) gmeow-logic reason::program::tests::shared_schema_budget_cuts_before_the_authored_consumer
+        PASS [   0.032s] (328/413) gmeow-logic reason::source_existentials::tests::each_demonstrator_parses_and_certifies_to_its_class
+        PASS [   0.044s] (329/413) gmeow-logic reason::source_existentials::tests::actual_literals_and_canonical_data_constants_are_not_namespace_rewritten
+        PASS [   0.125s] (330/413) gmeow-logic reason::program::tests::native_annotations_keep_literal_facets_through_formula_feedback
+        PASS [   0.123s] (331/413) gmeow-logic reason::program::tests::schema_plans_reuse_analyses_without_reusing_world_data
+        PASS [   0.018s] (332/413) gmeow-logic reason::source_existentials::tests::malformed_or_foreign_world_atom_cannot_drop_a_conjunct
+        PASS [   0.090s] (333/413) gmeow-logic reason::refute::native::tests::intrinsic_domain_support_requires_the_actual_committed_scoped_receipt
+        PASS [   0.320s] (334/413) gmeow-logic reason::program::minimum_tests::an_unfinished_distinct_subset_probe_never_authorizes_invention
+        PASS [   0.155s] (335/413) gmeow-logic reason::program::tests::derived_schema_and_authored_consumers_share_one_fixed_point
+        PASS [   0.165s] (336/413) gmeow-logic reason::program::tests::default_graph_literal_flows_through_joint_formula_heads_with_real_premises
+        PASS [   0.159s] (337/413) gmeow-logic reason::program::tests::equal_subjects_in_distinct_worlds_do_not_share_rule_premises
+        PASS [   0.080s] (338/413) gmeow-logic reason::source_existentials::tests::annotation_owned_definitions_execute_once_with_original_source_evidence
+        PASS [   0.081s] (339/413) gmeow-logic reason::source_existentials::tests::budget_prefix_only_publishes_committed_source_heads
+        PASS [   0.157s] (340/413) gmeow-logic reason::program::tests::native_has_value_preserves_literal_facet_and_wakes_authored_rules
+        PASS [   0.092s] (341/413) gmeow-logic reason::source_existentials::tests::changed_source_content_rekeys_witness_without_reinterpreting_the_source_iri
+        PASS [   0.013s] (342/413) gmeow-logic result_rdf::tests::conjecture_projection_is_byte_deterministic
+        PASS [   0.032s] (343/413) gmeow-logic reason::source_existentials::tests::source_governor_backstop_restores_caller_limit_on_error_and_refusal
+        PASS [   0.019s] (344/413) gmeow-logic result_rdf::tests::attributed_context_round_trips_and_changes_result_identity
+        PASS [   0.099s] (345/413) gmeow-logic reason::source_existentials::tests::duplicate_authored_rule_names_do_not_share_termination_symbols
+        PASS [   0.103s] (346/413) gmeow-logic reason::source_existentials::tests::dl_source_execution_keeps_literal_results_and_one_governor_budget
+        PASS [   0.179s] (347/413) gmeow-logic reason::program::tests::schema_propagation_keeps_worlds_separate
+        PASS [   0.077s] (348/413) gmeow-logic reason::source_existentials::tests::initially_unreachable_consumer_waits_for_joint_source_heads
+        PASS [   0.075s] (349/413) gmeow-logic reason::source_existentials::tests::named_compiler_graph_is_not_a_silent_source_blacklist
+        PASS [   0.020s] (350/413) gmeow-logic result_rdf::tests::conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math
+        PASS [   0.018s] (351/413) gmeow-logic result_rdf::tests::conjecture_verdict_round_trips
+        PASS [   0.023s] (352/413) gmeow-logic result_rdf::tests::conjecture_reader_rejects_a_blank_math_statement_identity
+        PASS [   0.800s] (353/413) gmeow-logic reason::program::empty_class_tests::bottom_property::zero_and_unselected_qualifiers_do_not_assert_emptiness
+        PASS [   0.026s] (354/413) gmeow-logic result_rdf::tests::conjecture_verdict_escapes_control_bearing_formula_identity
+        PASS [   0.217s] (355/413) gmeow-logic reason::program::tests::active_schema_and_invention_share_a_joint_termination_certificate
+        PASS [   0.067s] (356/413) gmeow-logic reason::source_existentials::tests::positive_native_consumer_observes_source_multihead_output_in_same_fixed_point
+        PASS [   0.019s] (357/413) gmeow-logic result_rdf::tests::content_address_is_stable_and_differs_with_content
+        PASS [   0.102s] (358/413) gmeow-logic reason::source_existentials::tests::grammar_writers_refuse_but_unrelated_type_inference_is_admitted
+        PASS [   0.135s] (359/413) gmeow-logic reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget
+        PASS [   0.050s] (360/413) gmeow-logic reason::source_existentials::tests::source_schema_target_aliases_refuse_without_renaming_data
+        PASS [   0.010s] (361/413) gmeow-logic result_rdf::tests::five_axes_appear_with_their_iris
+        PASS [   0.212s] (362/413) gmeow-logic reason::program::tests::formula_producer_and_consumer_share_one_budget
+        PASS [   0.019s] (363/413) gmeow-logic result_rdf::tests::derived_row_round_trip_preserves_duplicate_source_multiplicity
+        PASS [   0.028s] (364/413) gmeow-logic result_rdf::tests::derived_axiom_blank_and_literal_terms_round_trip
+        PASS [   0.300s] (365/413) gmeow-logic reason::program::minimum_tests::unqualified_object_and_some_value_obligations_share_the_witness_pipeline
+        PASS [   0.033s] (366/413) gmeow-logic result_rdf::tests::derived_row_parser_rejects_a_missing_raw_receipt_identity
+        PASS [   0.024s] (367/413) gmeow-logic result_rdf::tests::modal_derived_row_round_trips_its_complete_receipt
+        PASS [   0.023s] (368/413) gmeow-logic result_rdf::tests::native_reader_preserves_the_selected_verdict_and_ignores_other_worlds
+        PASS [   0.016s] (369/413) gmeow-logic result_rdf::tests::obligation_leg_emitted_exactly_on_refutation
+        PASS [   0.032s] (370/413) gmeow-logic result_rdf::tests::math_twin_edge_names_the_witness
+        PASS [   0.037s] (371/413) gmeow-logic result_rdf::tests::derived_row_parser_rejects_a_tampered_source_receipt
+        PASS [   0.096s] (372/413) gmeow-logic reason::source_existentials::tests::source_and_ordinary_feedback_share_the_termination_admission
+        PASS [   0.039s] (373/413) gmeow-logic result_rdf::tests::derived_row_parser_rejects_public_rule_that_disagrees_with_raw_identity
+        PASS [   0.036s] (374/413) gmeow-logic result_rdf::tests::different_kb_world_mints_distinct_node
+        PASS [   0.028s] (375/413) gmeow-logic result_rdf::tests::native_reasoning_summary_matches_the_wire_projection
+        PASS [   0.141s] (376/413) gmeow-logic reason::source_existentials::tests::each_demonstrator_world_publishes_its_own_certificate_class
+        PASS [   0.026s] (377/413) gmeow-logic result_rdf::tests::native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity
+        PASS [   0.093s] (378/413) gmeow-logic reason::source_existentials::tests::source_owned_effects_do_not_create_a_foreign_negative_cycle
+        PASS [   0.019s] (379/413) gmeow-logic result_rdf::tests::parse_fails_closed_on_missing_result_query
+        PASS [   0.021s] (380/413) gmeow-logic result_rdf::tests::parse_fails_closed_on_missing_result_conclusion
+        PASS [   0.029s] (381/413) gmeow-logic result_rdf::tests::open_verdict_emits_neither_leg
+        PASS [   0.016s] (382/413) gmeow-logic result_rdf::tests::parse_rejects_a_body_without_the_result_subject
+        PASS [   0.015s] (383/413) gmeow-logic result_rdf::tests::parse_rejects_body_without_conjecture_subject
+        PASS [   0.015s] (384/413) gmeow-logic result_rdf::tests::projection_is_byte_deterministic
+        PASS [   0.015s] (385/413) gmeow-logic result_rdf::tests::round_trip_for_an_invalid_request
+        PASS [   0.014s] (386/413) gmeow-logic result_rdf::tests::two_standpoints_mint_two_distinct_nodes
+        PASS [   0.025s] (387/413) gmeow-logic result_rdf::tests::parse_fails_closed_on_missing_result_budget_consumed
+        PASS [   0.013s] (388/413) gmeow-logic result_rdf::tests::two_unrelated_reasoning_verdicts_cannot_select_a_handle_by_row_order
+        PASS [   0.015s] (389/413) gmeow-logic result_rdf::tests::round_trip_recovers_axes_and_provenance
+        PASS [   0.017s] (390/413) gmeow-logic result_rdf::tests::promotion_leg_emitted_exactly_on_corroboration
+        PASS [   0.021s] (391/413) gmeow-logic result_rdf::tests::parse_rejects_multiple_unrelated_results_instead_of_selecting_row_order
+        PASS [   0.101s] (392/413) gmeow-logic reason::source_existentials::tests::source_preparation_cache_reuses_native_ir_and_binds_field_content_and_graph
+        PASS [   0.012s] (393/413) gmeow-logic result_rdf::tests::witness_order_does_not_affect_projection
+        PASS [   0.797s] (394/413) gmeow-logic reason::program::empty_class_tests::universal_class::mixed_universal_class_spellings_preserve_the_actual_two_source_premises
+        PASS [   0.123s] (395/413) gmeow-logic reason::source_existentials::tests::same_source_iri_in_distinct_worlds_has_distinct_content_bound_witnesses
+        PASS [   0.103s] (396/413) gmeow-logic reason::source_existentials::tests::source_worlds_do_not_become_templates_and_definition_premises_are_real
+        PASS [   0.133s] (397/413) gmeow-logic reason::source_existentials::tests::nominal_joint_clash_precedes_its_absence_consumer
+        PASS [   0.015s] (398/413) gmeow-pipeline stages::reason::tests::demonstrator_worlds_must_publish_their_declared_certificate_class
+        PASS [   0.024s] (399/413) gmeow-logic result_rdf::tests::typed_inferred_objects_survive_closure_and_receipt_projections
+        PASS [   0.075s] (400/413) gmeow-logic result_rdf::tests::native_execution_requires_the_selected_program_analysis_and_current_schema
+        PASS [   0.086s] (401/413) gmeow-logic result_rdf::tests::native_execution_receipt_refuses_trailing_bytes_and_unknown_fields
+        PASS [   0.084s] (402/413) gmeow-logic result_rdf::tests::native_result_admission_refuses_missing_duplicate_and_corrupt_execution
+        PASS [   0.080s] (403/413) gmeow-logic result_rdf::tests::native_world_conflict_does_not_supply_an_unrelated_conclusion_proof
+        PASS [   0.093s] (404/413) gmeow-logic result_rdf::tests::native_execution_publication_refuses_an_envelope_its_reader_cannot_admit
+        PASS [   0.073s] (405/413) gmeow-logic result_rdf::tests::terminal_result_retains_native_execution_and_requires_the_separate_closure
+        PASS [   0.075s] (406/413) gmeow-logic verify::tests::selected_closure_materialization_keeps_native_inference_without_global_gates
+        PASS [   0.962s] (407/413) gmeow-logic reason::program::empty_class_tests::bottom_property::positive_restriction_bounds_retain_every_defining_field_without_population
+        PASS [   1.071s] (408/413) gmeow-logic reason::program::minimum_tests::mutable_selector_rows_past_the_analysis_bound_leave_the_input_certificate_decidable
+        PASS [   2.696s] (409/413) gmeow-logic obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+        PASS [   2.832s] (410/413) gmeow-logic physical::seminaive::joint::input::tests::a_pairwise_list_law_past_the_analysis_bound_is_witnessed_once
+        PASS [   1.826s] (411/413) gmeow-logic reason::program::minimum_tests::late_restriction_fields_activate_the_witness_family_in_the_same_fixed_point
+        PASS [   4.716s] (412/413) gmeow-logic reason::program::minimum_tests::a_schema_past_the_former_row_bound_still_reaches_its_input_certificate
+        PASS [  17.673s] (413/413) gmeow-logic reason::program::minimum_tests::immutable_selector_rows_past_the_analysis_bound_name_the_undecided_certificate
+────────────
+     Summary [  18.862s] 413 tests run: 405 passed, 8 failed, 2917 skipped
+        FAIL [   0.155s] (181/413) gmeow-logic reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.13s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation' (3088747) panicked at crates/logic/src/reason/program/clash_tests.rs:820:9:
+    -1 http://www.w3.org/2001/XMLSchema#integer
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.161s] (182/413) gmeow-logic reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.13s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result' (3088694) panicked at crates/logic/src/reason/program/clash_tests.rs:303:9:
+    two-classes
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.120s] (185/413) gmeow-logic reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.10s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result' (3088829) panicked at crates/logic/src/reason/program/clash_tests.rs:570:18:
+    unknown values cannot silently decide the selected law
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.097s] (217/413) gmeow-logic reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent
+  stdout ───
+
+    running 1 test
+    test reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent' (3089815) panicked at crates/logic/src/reason/program/empty_class_tests/bottom_property.rs:169:18:
+    invalid source count must fail
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.123s] (223/413) gmeow-logic reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero
+  stdout ───
+
+    running 1 test
+    test reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.10s
+
+  stderr ───
+
+    thread 'reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero' (3089960) panicked at crates/logic/src/reason/program/empty_class_tests.rs:298:14:
+    an invalid selected cardinality is not an absent obligation
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.105s] (239/413) gmeow-logic reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+  stdout ───
+
+    running 1 test
+    test reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.08s
+
+  stderr ───
+
+    thread 'reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison' (3090655) panicked at crates/logic/src/reason/program/equality_tests.rs:292:10:
+    unknown datatype equality must refuse execution
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.060s] (256/413) gmeow-logic reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run' (3091176) panicked at crates/logic/src/reason/program/list_tests.rs:170:9:
+    selected native source admission refused before execution
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.051s] (267/413) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3091405) panicked at crates/logic/src/reason/program/list_tests.rs:335:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

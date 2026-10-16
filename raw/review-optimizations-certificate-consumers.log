@@ -1,0 +1,58 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic) & (test(reason::source_existentials::tests) | test(reason::program::minimum_tests) | test(entangled_cardinality_and_existential_share_native_proofs_and_budget))) | (package(gmeow-pipeline) & test(demonstrator_worlds_must_publish_their_declared_certificate_class))' --no-tests=fail
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [optimized] target(s) in 17.41s
+────────────
+ Nextest run ID dff7ae54-1c8b-4b71-bcf5-5fc081315a3c with nextest profile: ci
+    Starting 45 tests across 51 binaries (3273 tests and 174 binaries skipped)
+        PASS [   0.043s] ( 1/45) gmeow-logic reason::source_existentials::tests::each_demonstrator_parses_and_certifies_to_its_class
+        PASS [   0.056s] ( 2/45) gmeow-logic reason::source_existentials::tests::actual_literals_and_canonical_data_constants_are_not_namespace_rewritten
+        PASS [   0.083s] ( 3/45) gmeow-logic reason::source_existentials::tests::budget_prefix_only_publishes_committed_source_heads
+        PASS [   0.088s] ( 4/45) gmeow-logic reason::source_existentials::tests::changed_source_content_rekeys_witness_without_reinterpreting_the_source_iri
+        PASS [   0.089s] ( 5/45) gmeow-logic reason::program::minimum_tests::static_inheritance_can_activate_a_finite_witness_chain_without_a_runtime_budget
+        PASS [   0.095s] ( 6/45) gmeow-logic reason::program::minimum_tests::universal_object_qualification_accepts_existing_resources_without_invented_membership
+        PASS [   0.040s] ( 7/45) gmeow-logic reason::source_existentials::tests::malformed_or_foreign_world_atom_cannot_drop_a_conjunct
+        PASS [   0.054s] ( 8/45) gmeow-logic reason::source_existentials::tests::initially_unreachable_consumer_waits_for_joint_source_heads
+        PASS [   0.098s] ( 9/45) gmeow-logic reason::program::minimum_tests::a_complete_distinct_subset_blocks_invention_after_a_failed_greedy_prefix
+        PASS [   0.105s] (10/45) gmeow-logic reason::program::minimum_tests::cached_finite_admission_cannot_authorize_a_cyclic_definition_with_the_same_abstract_columns
+        PASS [   0.106s] (11/45) gmeow-logic reason::program::minimum_tests::one_universal_qualifier_in_both_spellings_is_one_qualifier
+        PASS [   0.106s] (12/45) gmeow-logic reason::program::minimum_tests::finite_object_witnesses_receive_source_bound_unbounded_admission
+        PASS [   0.107s] (13/45) gmeow-logic reason::program::minimum_tests::two_distinct_qualifiers_still_obstruct_a_qualified_count
+        PASS [   0.106s] (14/45) gmeow-logic reason::program::minimum_tests::cyclic_witnesses_withhold_without_publishing_a_model_only_self_loop
+        PASS [   0.117s] (15/45) gmeow-logic reason::program::minimum_tests::every_immutable_definition_binding_participates_and_mutable_fields_are_not_frozen
+        PASS [   0.121s] (16/45) gmeow-logic reason::program::minimum_tests::a_nonuniversal_qualifier_still_requires_explicit_member_evidence
+        PASS [   0.023s] (17/45) gmeow-logic reason::source_existentials::tests::source_governor_backstop_restores_caller_limit_on_error_and_refusal
+        PASS [   0.122s] (18/45) gmeow-logic reason::program::minimum_tests::universal_qualifiers_reuse_existing_resources_without_requiring_type_evidence
+        PASS [   0.129s] (19/45) gmeow-logic reason::program::minimum_tests::a_huge_count_withholds_before_allocating_witnesses_or_a_quadratic_head
+        PASS [   0.129s] (20/45) gmeow-logic reason::source_existentials::tests::each_demonstrator_world_publishes_its_own_certificate_class
+        PASS [   0.133s] (21/45) gmeow-logic reason::source_existentials::tests::grammar_writers_refuse_but_unrelated_type_inference_is_admitted
+        PASS [   0.046s] (22/45) gmeow-logic reason::source_existentials::tests::positive_native_consumer_observes_source_multihead_output_in_same_fixed_point
+        PASS [   0.059s] (23/45) gmeow-logic reason::source_existentials::tests::named_compiler_graph_is_not_a_silent_source_blacklist
+        PASS [   0.144s] (24/45) gmeow-logic reason::source_existentials::tests::annotation_owned_definitions_execute_once_with_original_source_evidence
+        PASS [   0.149s] (25/45) gmeow-logic reason::program::minimum_tests::recursion_requiring_three_distinct_siblings_cannot_hide_in_a_two_ordinal_analysis
+        PASS [   0.150s] (26/45) gmeow-logic reason::source_existentials::tests::dl_source_execution_keeps_literal_results_and_one_governor_budget
+        PASS [   0.152s] (27/45) gmeow-logic reason::program::minimum_tests::qualified_minimum_and_exact_witnesses_feed_native_consumers_with_actual_premises
+        PASS [   0.153s] (28/45) gmeow-logic reason::program::minimum_tests::late_restriction_fields_activate_the_witness_family_in_the_same_fixed_point
+        PASS [   0.068s] (29/45) gmeow-logic reason::source_existentials::tests::nominal_joint_clash_precedes_its_absence_consumer
+        PASS [   0.039s] (30/45) gmeow-pipeline stages::reason::tests::demonstrator_worlds_must_publish_their_declared_certificate_class
+        PASS [   0.040s] (31/45) gmeow-logic reason::source_existentials::tests::source_schema_target_aliases_refuse_without_renaming_data
+        PASS [   0.160s] (32/45) gmeow-logic reason::program::minimum_tests::an_existing_existential_witness_does_not_materialize_the_rest_of_its_relation
+        PASS [   0.161s] (33/45) gmeow-logic reason::source_existentials::tests::duplicate_authored_rule_names_do_not_share_termination_symbols
+        PASS [   0.163s] (34/45) gmeow-logic reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget
+        PASS [   0.174s] (35/45) gmeow-logic reason::program::minimum_tests::witness_identity_retains_the_world_even_for_identical_source_terms
+        PASS [   0.056s] (36/45) gmeow-logic reason::source_existentials::tests::source_worlds_do_not_become_templates_and_definition_premises_are_real
+        PASS [   0.081s] (37/45) gmeow-logic reason::source_existentials::tests::source_and_ordinary_feedback_share_the_termination_admission
+        PASS [   0.079s] (38/45) gmeow-logic reason::source_existentials::tests::source_owned_effects_do_not_create_a_foreign_negative_cycle
+        PASS [   0.181s] (39/45) gmeow-logic reason::program::minimum_tests::unqualified_object_and_some_value_obligations_share_the_witness_pipeline
+        PASS [   0.090s] (40/45) gmeow-logic reason::source_existentials::tests::same_source_iri_in_distinct_worlds_has_distinct_content_bound_witnesses
+        PASS [   0.188s] (41/45) gmeow-logic reason::program::minimum_tests::an_unfinished_distinct_subset_probe_never_authorizes_invention
+        PASS [   0.102s] (42/45) gmeow-logic reason::source_existentials::tests::source_preparation_cache_reuses_native_ir_and_binds_field_content_and_graph
+        PASS [   0.820s] (43/45) gmeow-logic reason::program::minimum_tests::mutable_selector_rows_past_the_analysis_bound_leave_the_input_certificate_decidable
+        PASS [   3.748s] (44/45) gmeow-logic reason::program::minimum_tests::a_schema_past_the_former_row_bound_still_reaches_its_input_certificate
+        PASS [  10.735s] (45/45) gmeow-logic reason::program::minimum_tests::immutable_selector_rows_past_the_analysis_bound_name_the_undecided_certificate
+────────────
+     Summary [  10.766s] 45 tests run: 45 passed, 3273 skipped

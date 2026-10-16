@@ -1,0 +1,6 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+crates/conformance/src/bin/ingest_external.rs: unbalanced Rust delimiters
+xargs: perl: exited with status 255; aborting
+make: *** [Makefile:257: test-corpus-purity] Error 124

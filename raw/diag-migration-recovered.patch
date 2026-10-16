@@ -1,0 +1,4500 @@
+diff --git a/crates/gmeow-cli/src/commands.rs b/crates/gmeow-cli/src/commands.rs
+index 8ce09e31e..f78520648 100644
+--- a/crates/gmeow-cli/src/commands.rs
++++ b/crates/gmeow-cli/src/commands.rs
+@@ -2520,10 +2520,7 @@ fn publish_reasoning_failure(
+             inputs,
+             native_program(operation, fragment),
+             reasoning_engine(operation),
+-            ReportDiagnostic {
+-                code: code.to_owned(),
+-                detail,
+-            },
++            ReportDiagnostic::message(code, detail),
+         ),
+         result: ReasoningPayload::Empty,
+     }
+@@ -2574,10 +2571,7 @@ fn dl_service_failure_report(
+                     engine: reasoning_engine(operation),
+                     metrics: ReasoningMetrics::default(),
+                     boundaries: Vec::new(),
+-                    diagnostics: vec![ReportDiagnostic {
+-                        code: "ONTOLOGY_HAS_NO_MODEL".to_owned(),
+-                        detail,
+-                    }],
++                    diagnostics: vec![ReportDiagnostic::message("ONTOLOGY_HAS_NO_MODEL", detail)],
+                 },
+                 result: if operation == ReasoningOperation::Consistency {
+                     ReasoningPayload::Consistency {
+@@ -3358,9 +3352,8 @@ fn fragments_graph_source(
+ /// sorted by id (deterministic).
+ fn extract_decidability_surface(
+     dataset: &purrdf::RdfDataset,
+-) -> Result<DecidabilitySurface, String> {
+-    let registry = gmeow_logic::reason::NativeFragmentRegistry::observe(dataset)
+-        .map_err(|error| error.to_string())?;
++) -> gmeow_errors::Result<DecidabilitySurface> {
++    let registry = gmeow_logic::reason::NativeFragmentRegistry::observe(dataset)?;
+     let mut labels = BTreeMap::new();
+     for quad in dataset.owned_quads() {
+         if quad.predicate != RDFS_LABEL_IRI {
+@@ -3379,7 +3372,11 @@ fn extract_decidability_surface(
+             let label = labels
+                 .get(id)
+                 .filter(|label| !label.trim().is_empty())
+-                .ok_or_else(|| format!("source admission {id} has no label"))?
++                .ok_or_else(|| {
++                    Diag::of_kind(crate::error::RdfPipelineFailed {
++                        detail: format!("source admission {id} has no label"),
++                    })
++                })?
+                 .clone();
+             Ok(SourceAdmissionRow {
+                 id: id.clone(),
+@@ -3387,7 +3384,7 @@ fn extract_decidability_surface(
+                 requirement: registry.source_admission_requirements[id].clone(),
+             })
+         })
+-        .collect::<Result<Vec<_>, String>>()?;
++        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+     let decided = registry
+         .decided_ids
+         .iter()
+@@ -3511,11 +3508,11 @@ pub fn logic_fragments(
+     };
+     let surface = match extract_decidability_surface(dataset.as_ref()) {
+         Ok(surface) => surface,
+-        Err(message) => {
++        Err(diagnostic) => {
+             return fail(
+                 reporter,
+                 "gmeow-cli.logic-fragments.invalid-surface",
+-                message,
++                diagnostic.to_string(),
+             );
+         }
+     };
+diff --git a/crates/gmeow-cli/src/commands/prove.rs b/crates/gmeow-cli/src/commands/prove.rs
+index 64a79d23e..cd661a58a 100644
+--- a/crates/gmeow-cli/src/commands/prove.rs
++++ b/crates/gmeow-cli/src/commands/prove.rs
+@@ -9,9 +9,11 @@ use std::io::{Read, Write as _};
+ use std::path::{Path, PathBuf};
+ use std::process::{Command, Stdio};
+ use std::sync::Arc;
++use std::sync::atomic::{AtomicBool, Ordering};
+ use std::time::{Duration, Instant};
+ 
+ use gmeow_cli_core::Reporter;
++use gmeow_errors::Diag;
+ use gmeow_logic::external_evidence::{
+     ArtifactCheck, ArtifactCheckDisposition, SzsArtifact, check_external_artifact,
+     extract_szs_artifacts,
+@@ -74,6 +76,7 @@ impl From<&FofProjection> for ProjectionReceipt {
+ 
+ #[derive(Debug, Clone, Serialize)]
+ struct CapturedStream {
++    retained: Vec<u8>,
+     digest: String,
+     total_bytes: u64,
+     retained_bytes: usize,
+@@ -84,6 +87,7 @@ struct CapturedStream {
+ 
+ #[derive(Debug, Clone, Serialize)]
+ struct ProcessReceipt {
++    selection: ProcessSelection,
+     pass: String,
+     arguments: Vec<String>,
+     elapsed_ms: u64,
+@@ -123,8 +127,19 @@ struct ProveReport {
+ }
+ 
+ impl ProveReport {
+-    fn blank(decision: DecisionClass, code: &str, detail: impl Into<String>) -> Self {
+-        let detail = detail.into();
++    fn blank(decision: DecisionClass, diagnostic: Diag) -> Self {
++        let inputs = diagnostic
++            .inner()
++            .observed
++            .as_ref()
++            .filter(|slot| {
++                slot.datatype.as_deref()
++                    == Some("https://blackcatinformatics.ca/gmeow/SelectedInputIdentitiesJson")
++            })
++            .map(|slot| {
++                serde_json::from_str(&slot.lexical).expect("internally serialized input identities")
++            })
++            .unwrap_or_default();
+         Self {
+             common: ReasoningReportCore::refused(
+                 ReasoningOperation::AxiomConsistency,
+@@ -135,13 +150,10 @@ impl ProveReport {
+                 } else {
+                     "valid"
+                 },
+-                Vec::new(),
++                inputs,
+                 ProgramIdentity::selected(FOF_PROFILE, &["source-admission-pending"]),
+                 EngineIdentity::external_host(),
+-                ReportDiagnostic {
+-                    code: code.to_owned(),
+-                    detail,
+-                },
++                ReportDiagnostic::from_diag(&diagnostic),
+             ),
+             task: FofTask::AxiomConsistency,
+             admission: None,
+@@ -150,7 +162,7 @@ impl ProveReport {
+         }
+     }
+ 
+-    fn execution_failure(&mut self, code: &str, detail: impl Into<String>) {
++    fn execution_failure(&mut self, diagnostic: Diag) {
+         self.common.verdict = "execution-failure".to_owned();
+         self.common.decision = DecisionClass::ExecutionFailure;
+         self.common.evaluation_status = "failed".to_owned();
+@@ -158,13 +170,91 @@ impl ProveReport {
+         self.common.information_state = "not-evaluated".to_owned();
+         self.common.evidence_grade = EvidenceGrade::Refused;
+         self.common.gate_admission = GateAdmission::Refused;
+-        self.common.diagnostics.push(ReportDiagnostic {
+-            code: code.to_owned(),
+-            detail: detail.into(),
+-        });
++        self.common
++            .diagnostics
++            .push(ReportDiagnostic::from_diag(&diagnostic));
+     }
+ }
+ 
++fn failure(reason: &str, detail: impl Into<String>) -> Diag {
++    Diag::of_kind(crate::error::ProverFailed {
++        reason: reason.to_owned(),
++        detail: detail.into(),
++        evidence: serde_json::Value::Null,
++        cause: None,
++    })
++}
++
++fn caused_failure(
++    reason: &'static str,
++    error: impl std::error::Error + Send + Sync + 'static,
++    context: impl Into<String>,
++) -> Diag {
++    let context = context.into();
++    Diag::of_kind(crate::error::ProverFailed {
++        reason: reason.to_owned(),
++        detail: format!("{context}: {error}"),
++        evidence: serde_json::Value::Null,
++        cause: Some(Box::new(error)),
++    })
++    .with_context(context)
++}
++
++fn diagnostic_snapshot(diagnostic: &Diag) -> serde_json::Value {
++    serde_json::json!({
++        "code": gmeow_errors::code::code_str(diagnostic.code()),
++        "grade": diagnostic.grade(),
++        "message": diagnostic.message(),
++        "source_context": diagnostic.inner().source_ctx,
++        "context": diagnostic.inner().context.iter().map(|frame| frame.label.as_str()).collect::<Vec<_>>(),
++        "emitted_at": {
++            "file": diagnostic.emitted_at().file(),
++            "line": diagnostic.emitted_at().line(),
++            "column": diagnostic.emitted_at().column(),
++        },
++        "observed": diagnostic.inner().observed,
++        "expected": diagnostic.inner().expected,
++    })
++}
++
++fn caused_diagnostic(
++    reason: &'static str,
++    diagnostic: Diag,
++    context: impl Into<String>,
++    mut evidence: serde_json::Value,
++) -> Diag {
++    let context = context.into();
++    let source = diagnostic_snapshot(&diagnostic);
++    if let Some(object) = evidence.as_object_mut() {
++        object.insert("cause_diagnostic".to_owned(), source);
++    } else {
++        evidence = serde_json::json!({"value": evidence, "cause_diagnostic": source});
++    }
++    let detail = format!("{context}: {diagnostic:#}");
++    Diag::of_kind(crate::error::ProverFailed {
++        reason: reason.to_owned(),
++        detail,
++        evidence,
++        cause: Some(Box::new(crate::error::PreservedDiagnostic(diagnostic))),
++    })
++    .with_context(context)
++}
++
++fn with_process(diagnostic: Diag, receipt: &ProcessReceipt) -> Diag {
++    diagnostic.with_observed(gmeow_errors::Slot::typed(
++        serde_json::to_string(receipt).expect("process receipt serializes"),
++        "https://blackcatinformatics.ca/gmeow/ProverProcessReceiptJson",
++    ))
++}
++
++fn with_inputs(mut diagnostic: Diag, inputs: &[InputIdentity]) -> Diag {
++    diagnostic.inner_mut().observed = Some(gmeow_errors::Slot::typed(
++        serde_json::to_string(inputs).expect("input identities serialize"),
++        "https://blackcatinformatics.ca/gmeow/SelectedInputIdentitiesJson",
++    ));
++    diagnostic
++}
++
+ struct LoadedTheory {
+     identities: Vec<InputIdentity>,
+     // The source-local IDs retained in provenance bindings belong to these exact
+@@ -194,6 +284,7 @@ struct ResolvedProver {
+     digest: String,
+ }
+ 
++#[derive(Debug, Clone, Serialize)]
+ struct StreamBytes {
+     digest: String,
+     total_bytes: u64,
+@@ -212,11 +303,14 @@ impl StreamBytes {
+             truncated: self.truncated,
+             utf8_valid,
+             text,
++            retained: self.retained,
+         }
+     }
+ }
+ 
++#[derive(Debug, Clone, Serialize)]
+ struct RawProcessReceipt {
++    selection: ProcessSelection,
+     elapsed_ms: u64,
+     exit_code: Option<i32>,
+     signal: Option<i32>,
+@@ -240,10 +334,10 @@ pub(crate) fn prove(
+ ) -> i32 {
+     let paths = match source_paths(inputs, dir) {
+         Ok(paths) => paths,
+-        Err((code, detail)) => {
++        Err(diagnostic) => {
+             return publish_failure(
+                 reporter,
+-                ProveReport::blank(DecisionClass::Malformed, code, detail),
++                ProveReport::blank(DecisionClass::Malformed, diagnostic),
+                 format,
+                 gate,
+                 evidence_out,
+@@ -252,9 +346,8 @@ pub(crate) fn prove(
+     };
+     let loaded = match load_theory(&paths) {
+         Ok(loaded) => loaded,
+-        Err((code, detail, identities)) => {
+-            let mut report = ProveReport::blank(DecisionClass::Malformed, code, detail);
+-            report.common.inputs = identities;
++        Err(diagnostic) => {
++            let report = ProveReport::blank(DecisionClass::Malformed, diagnostic);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+     };
+@@ -308,6 +401,7 @@ pub(crate) fn prove(
+             .extend(projection.blockers.iter().map(|blocker| ReportDiagnostic {
+                 code: blocker.code.clone(),
+                 detail: blocker.reason.clone(),
++                diagnostic: None,
+             }));
+         emit_warning(
+             reporter,
+@@ -333,21 +427,21 @@ pub(crate) fn prove(
+     let (problem_path, temp_guard) = match write_problem(problem, problem_digest, out) {
+         Ok(result) => result,
+         Err(detail) => {
+-            report.execution_failure("PROBLEM_WRITE_FAILED", detail);
++            report.execution_failure(detail);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+     };
+     let resolved = match resolve_prover(prover) {
+         Ok(resolved) => resolved,
+         Err(detail) => {
+-            report.execution_failure("PROVER_NOT_AVAILABLE", detail);
++            report.execution_failure(detail);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+     };
+     let version = match prover_version(&resolved) {
+         Ok(version) => version,
+         Err(detail) => {
+-            report.execution_failure("PROVER_VERSION_UNAVAILABLE", detail);
++            report.execution_failure(detail);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+     };
+@@ -384,7 +478,7 @@ pub(crate) fn prove(
+         ) {
+             Ok(raw) => raw,
+             Err(detail) => {
+-                report.execution_failure("PROVER_SPAWN_FAILED", detail);
++                report.execution_failure(detail);
+                 report.execution = Some(execution);
+                 return publish_failure(reporter, report, format, gate, evidence_out);
+             }
+@@ -392,6 +486,7 @@ pub(crate) fn prove(
+         let stdout = raw.stdout.into_report();
+         let stderr = raw.stderr.into_report();
+         let mut receipt = ProcessReceipt {
++            selection: raw.selection,
+             pass: pass_name,
+             arguments,
+             elapsed_ms: raw.elapsed_ms,
+@@ -404,39 +499,48 @@ pub(crate) fn prove(
+             artifacts: Vec::new(),
+         };
+         if receipt.timed_out {
+-            report.execution_failure(
+-                "PROVER_PARENT_DEADLINE",
+-                format!(
+-                    "{} exceeded the parent wall deadline of {timeout_secs}s and was reaped",
+-                    resolved.path.display()
++            report.execution_failure(with_process(
++                failure(
++                    "PROVER_PARENT_DEADLINE",
++                    format!(
++                        "{} exceeded the parent wall deadline of {timeout_secs}s and was reaped",
++                        resolved.path.display()
++                    ),
+                 ),
+-            );
++                &receipt,
++            ));
+             execution.passes.push(receipt);
+             report.execution = Some(execution);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+         if receipt.exit_code != Some(0) || receipt.signal.is_some() {
+-            report.execution_failure(
+-                "PROVER_CHILD_FAILED",
+-                format!(
+-                    "{} exited with code {:?} and signal {:?}",
+-                    resolved.path.display(),
+-                    receipt.exit_code,
+-                    receipt.signal
++            report.execution_failure(with_process(
++                failure(
++                    "PROVER_CHILD_FAILED",
++                    format!(
++                        "{} exited with code {:?} and signal {:?}",
++                        resolved.path.display(),
++                        receipt.exit_code,
++                        receipt.signal
++                    ),
+                 ),
+-            );
++                &receipt,
++            ));
+             execution.passes.push(receipt);
+             report.execution = Some(execution);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+         if receipt.stdout.truncated || receipt.stderr.truncated {
+-            report.execution_failure(
+-                "PROVER_OUTPUT_LIMIT",
+-                format!(
+-                    "prover output exceeded the {}-byte per-stream evidence bound",
+-                    MAX_PROVER_OUTPUT_BYTES
++            report.execution_failure(with_process(
++                failure(
++                    "PROVER_OUTPUT_LIMIT",
++                    format!(
++                        "prover output exceeded the {}-byte per-stream evidence bound",
++                        MAX_PROVER_OUTPUT_BYTES
++                    ),
+                 ),
+-            );
++                &receipt,
++            ));
+             execution.passes.push(receipt);
+             report.execution = Some(execution);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+@@ -449,7 +553,7 @@ pub(crate) fn prove(
+         ) {
+             Ok(szs) => szs,
+             Err(error) => {
+-                report.execution_failure(&error.code, error.detail);
++                report.execution_failure(with_process(error.into(), &receipt));
+                 execution.passes.push(receipt);
+                 report.execution = Some(execution);
+                 return publish_failure(reporter, report, format, gate, evidence_out);
+@@ -461,7 +565,7 @@ pub(crate) fn prove(
+             match extract_szs_artifacts(&receipt.stdout.text, &receipt.stderr.text, &aliases) {
+                 Ok(artifacts) => artifacts,
+                 Err(error) => {
+-                    report.execution_failure(&error.code, error.detail);
++                    report.execution_failure(with_process(error, &receipt));
+                     execution.passes.push(receipt);
+                     report.execution = Some(execution);
+                     return publish_failure(reporter, report, format, gate, evidence_out);
+@@ -479,7 +583,10 @@ pub(crate) fn prove(
+             .iter()
+             .find(|artifact| artifact.check.disposition == ArtifactCheckDisposition::Invalid)
+         {
+-            report.execution_failure(&invalid.check.code, invalid.check.detail.clone());
++            report.execution_failure(with_process(
++                failure(&invalid.check.code, invalid.check.detail.clone()),
++                &receipt,
++            ));
+             execution.passes.push(receipt);
+             report.execution = Some(execution);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+@@ -488,13 +595,16 @@ pub(crate) fn prove(
+             artifact_concludes_outcome(&artifact.artifact.kind)
+                 && !artifact_matches_outcome(&artifact.artifact.kind, outcome)
+         }) {
+-            report.execution_failure(
+-                "SZS_ARTIFACT_OUTCOME_MISMATCH",
+-                format!(
+-                    "SZS status {} is incompatible with the captured {} artifact",
+-                    szs.status, mismatched.artifact.kind
++            report.execution_failure(with_process(
++                failure(
++                    "SZS_ARTIFACT_OUTCOME_MISMATCH",
++                    format!(
++                        "SZS status {} is incompatible with the captured {} artifact",
++                        szs.status, mismatched.artifact.kind
++                    ),
+                 ),
+-            );
++                &receipt,
++            ));
+             execution.passes.push(receipt);
+             report.execution = Some(execution);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+@@ -503,13 +613,16 @@ pub(crate) fn prove(
+             if let Some(previous) = decisive_szs.as_ref()
+                 && previous.outcome != outcome
+             {
+-                report.execution_failure(
+-                    "CONFLICTING_PROVER_PASS_OUTCOME",
+-                    format!(
+-                        "separate prover passes reported incompatible outcomes {:?} and {:?}",
+-                        previous.outcome, outcome
++                report.execution_failure(with_process(
++                    failure(
++                        "CONFLICTING_PROVER_PASS_OUTCOME",
++                        format!(
++                            "separate prover passes reported incompatible outcomes {:?} and {:?}",
++                            previous.outcome, outcome
++                        ),
+                     ),
+-                );
++                    &receipt,
++                ));
+                 execution.passes.push(receipt);
+                 report.execution = Some(execution);
+                 return publish_failure(reporter, report, format, gate, evidence_out);
+@@ -536,18 +649,23 @@ pub(crate) fn prove(
+     match digest_file(&resolved.path) {
+         Ok(after) if after == resolved.digest => {}
+         Ok(after) => {
+-            report.execution_failure(
++            report.execution_failure(failure(
+                 "PROVER_EXECUTABLE_CHANGED",
+                 format!(
+                     "selected executable changed during the run ({} -> {after})",
+                     resolved.digest
+                 ),
+-            );
++            ));
+             report.execution = Some(execution);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+         Err(detail) => {
+-            report.execution_failure("PROVER_EXECUTABLE_RECHECK_FAILED", detail);
++            report.execution_failure(caused_diagnostic(
++                "PROVER_EXECUTABLE_RECHECK_FAILED",
++                detail,
++                "recheck prover executable",
++                serde_json::Value::Null,
++            ));
+             report.execution = Some(execution);
+             return publish_failure(reporter, report, format, gate, evidence_out);
+         }
+@@ -597,6 +715,7 @@ pub(crate) fn prove(
+         report.common.diagnostics.push(ReportDiagnostic {
+             code: checked.check.code.clone(),
+             detail: checked.check.detail.clone(),
++            diagnostic: None,
+         });
+         if checked.check.disposition == ArtifactCheckDisposition::Certificate {
+             report.common.evidence_grade = EvidenceGrade::Certificate;
+@@ -611,6 +730,7 @@ pub(crate) fn prove(
+         report.common.gate_admission = GateAdmission::Attestation;
+         report.common.diagnostics.push(ReportDiagnostic {
+             code: "MISSING_CHECKABLE_EXTERNAL_ARTIFACT".to_owned(),
++            diagnostic: None,
+             detail: match final_szs.outcome {
+                 SzsOutcome::Consistent => {
+                     "the satisfiable status carries no admitted finite-model artifact"
+@@ -651,16 +771,13 @@ fn artifact_disposition_rank(disposition: ArtifactCheckDisposition) -> u8 {
+     }
+ }
+ 
+-fn source_paths(
+-    inputs: &[PathBuf],
+-    dir: Option<&Path>,
+-) -> Result<Vec<PathBuf>, (&'static str, String)> {
++fn source_paths(inputs: &[PathBuf], dir: Option<&Path>) -> gmeow_errors::Result<Vec<PathBuf>> {
+     let mut candidates = inputs.to_vec();
+     if let Some(root) = dir {
+         candidates.extend(collect_semantic_sources(root)?);
+     }
+     if candidates.is_empty() {
+-        return Err((
++        return Err(failure(
+             "NO_SOURCE_INPUT",
+             "pass one or more RDF files and/or --dir <corpus-root>".to_owned(),
+         ));
+@@ -669,13 +786,14 @@ fn source_paths(
+     let mut paths = Vec::new();
+     for path in candidates {
+         let canonical = std::fs::canonicalize(&path).map_err(|error| {
+-            (
++            caused_failure(
+                 "SOURCE_PATH_UNAVAILABLE",
+-                format!("cannot resolve {}: {error}", path.display()),
++                error,
++                format!("cannot resolve {}", path.display()),
+             )
+         })?;
+         if !canonical.is_file() {
+-            return Err((
++            return Err(failure(
+                 "SOURCE_NOT_FILE",
+                 format!("{} is not a regular file", canonical.display()),
+             ));
+@@ -685,7 +803,7 @@ fn source_paths(
+         }
+     }
+     if paths.len() > MAX_SOURCE_DOCUMENTS {
+-        return Err((
++        return Err(failure(
+             "SOURCE_COUNT_LIMIT",
+             format!(
+                 "selected {} documents; the bounded limit is {MAX_SOURCE_DOCUMENTS}",
+@@ -697,15 +815,16 @@ fn source_paths(
+     Ok(paths)
+ }
+ 
+-fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str, String)> {
++fn collect_semantic_sources(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+     let root = std::fs::canonicalize(root).map_err(|error| {
+-        (
++        caused_failure(
+             "SOURCE_ROOT_UNAVAILABLE",
+-            format!("cannot resolve {}: {error}", root.display()),
++            error,
++            format!("cannot resolve {}", root.display()),
+         )
+     })?;
+     if !root.is_dir() {
+-        return Err((
++        return Err(failure(
+             "SOURCE_ROOT_NOT_DIRECTORY",
+             format!("{} is not a directory", root.display()),
+         ));
+@@ -715,22 +834,25 @@ fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str,
+     let mut sources = Vec::new();
+     while let Some(directory) = pending.pop() {
+         let entries = std::fs::read_dir(&directory).map_err(|error| {
+-            (
++            caused_failure(
+                 "SOURCE_ROOT_READ_FAILED",
+-                format!("cannot inspect {}: {error}", directory.display()),
++                error,
++                format!("cannot inspect {}", directory.display()),
+             )
+         })?;
+         for entry in entries {
+             let entry = entry.map_err(|error| {
+-                (
++                caused_failure(
+                     "SOURCE_ROOT_READ_FAILED",
+-                    format!("cannot inspect {}: {error}", directory.display()),
++                    error,
++                    format!("cannot inspect {}", directory.display()),
+                 )
+             })?;
+             let file_type = entry.file_type().map_err(|error| {
+-                (
++                caused_failure(
+                     "SOURCE_ROOT_READ_FAILED",
+-                    format!("cannot inspect {}: {error}", entry.path().display()),
++                    error,
++                    format!("cannot inspect {}", entry.path().display()),
+                 )
+             })?;
+             let path = entry.path();
+@@ -739,7 +861,7 @@ fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str,
+             } else if file_type.is_file() && is_semantic_source(&path) {
+                 sources.push(path);
+                 if sources.len() > MAX_SOURCE_DOCUMENTS {
+-                    return Err((
++                    return Err(failure(
+                         "SOURCE_COUNT_LIMIT",
+                         format!(
+                             "corpus contains more than {MAX_SOURCE_DOCUMENTS} semantic documents"
+@@ -751,7 +873,7 @@ fn collect_semantic_sources(root: &Path) -> Result<Vec<PathBuf>, (&'static str,
+     }
+     sources.sort();
+     if sources.is_empty() {
+-        return Err((
++        return Err(failure(
+             "EMPTY_SOURCE_ROOT",
+             format!("no module.ttl or *.logic.ttl source exists below {root_display}"),
+         ));
+@@ -765,18 +887,19 @@ fn is_semantic_source(path: &Path) -> bool {
+         .is_some_and(|name| name == "module.ttl" || name.ends_with(".logic.ttl"))
+ }
+ 
+-fn load_theory(
+-    paths: &[PathBuf],
+-) -> Result<LoadedTheory, (&'static str, String, Vec<InputIdentity>)> {
++fn load_theory(paths: &[PathBuf]) -> gmeow_errors::Result<LoadedTheory> {
+     let mut receipts = Vec::with_capacity(paths.len());
+     let mut identities = Vec::with_capacity(paths.len());
+     let mut documents = Vec::with_capacity(paths.len());
+     for path in paths {
+         let bytes = std::fs::read(path).map_err(|error| {
+-            (
+-                "SOURCE_READ_FAILED",
+-                format!("cannot read {}: {error}", path.display()),
+-                identities.clone(),
++            with_inputs(
++                caused_failure(
++                    "SOURCE_READ_FAILED",
++                    error,
++                    format!("cannot read {}", path.display()),
++                ),
++                &identities,
+             )
+         })?;
+         let base = format!("file://{}", path.display());
+@@ -788,14 +911,13 @@ fn load_theory(
+                 Some(base.clone()),
+                 &bytes,
+             ));
+-            (
++            with_inputs(failure(
+                 "SOURCE_SYNTAX_UNKNOWN",
+                 format!(
+                     "cannot infer RDF syntax for {}; expected .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
+                     path.display()
+                 ),
+-                identities.clone(),
+-            )
++            ), &identities)
+         })?;
+         identities.push(InputIdentity::from_bytes(
+             path,
+@@ -805,10 +927,13 @@ fn load_theory(
+             &bytes,
+         ));
+         let dataset = purrdf::parse_dataset(&bytes, media, Some(&base)).map_err(|error| {
+-            (
+-                "SOURCE_PARSE_FAILED",
+-                format!("cannot parse {} as {media}: {error}", path.display()),
+-                identities.clone(),
++            with_inputs(
++                caused_failure(
++                    "SOURCE_PARSE_FAILED",
++                    error,
++                    format!("cannot parse {} as {media}", path.display()),
++                ),
++                &identities,
+             )
+         })?;
+         receipts.push(SourceDocument {
+@@ -830,21 +955,35 @@ fn load_theory(
+         },
+     )
+     .map_err(|error| {
+-        (
+-            "SOURCE_COMPOSITION_REFUSED",
+-            format!("cannot compose selected documents: {error}"),
+-            identities.clone(),
++        with_inputs(
++            caused_failure(
++                "SOURCE_COMPOSITION_REFUSED",
++                error,
++                "compose selected documents",
++            ),
++            &identities,
+         )
+     })?;
+     let materialized = composite.materialize().map_err(|error| {
+-        (
+-            "SOURCE_MATERIALIZATION_REFUSED",
+-            format!("cannot materialize selected documents: {error}"),
+-            identities.clone(),
++        with_inputs(
++            caused_failure(
++                "SOURCE_MATERIALIZATION_REFUSED",
++                error,
++                "materialize selected documents",
++            ),
++            &identities,
++        )
++    })?;
++    let mut prepared = PreparedLogicSource::new(&materialized).map_err(|error| {
++        with_inputs(
++            caused_failure(
++                "SOURCE_PREPARATION_FAILED",
++                error,
++                "compile selected theory",
++            ),
++            &identities,
+         )
+     })?;
+-    let mut prepared = PreparedLogicSource::new(&materialized)
+-        .map_err(|error| ("SOURCE_PREPARATION_FAILED", error.0, identities.clone()))?;
+     for (index, (receipt, original)) in receipts.iter().zip(&documents).enumerate() {
+         prepared
+             .record_document(receipt.clone(), original, |term| {
+@@ -862,11 +1001,23 @@ fn load_theory(
+                     ))
+                 })
+             })
+-            .map_err(|error| ("SOURCE_BINDING_FAILED", error.0, identities.clone()))?;
++            .map_err(|error| {
++                with_inputs(
++                    caused_failure("SOURCE_BINDING_FAILED", error, "compile selected theory"),
++                    &identities,
++                )
++            })?;
+     }
+-    let theory = prepared
+-        .into_compiled(None)
+-        .map_err(|error| ("SOURCE_COMPILATION_FAILED", error.0, identities.clone()))?;
++    let theory = prepared.into_compiled(None).map_err(|error| {
++        with_inputs(
++            caused_failure(
++                "SOURCE_COMPILATION_FAILED",
++                error,
++                "compile selected theory",
++            ),
++            &identities,
++        )
++    })?;
+     Ok(LoadedTheory {
+         identities,
+         _documents: documents,
+@@ -889,16 +1040,29 @@ fn write_problem(
+     problem: &str,
+     digest: &str,
+     out: Option<&Path>,
+-) -> Result<(PathBuf, Option<tempfile::TempPath>), String> {
++) -> gmeow_errors::Result<(PathBuf, Option<tempfile::TempPath>)> {
+     if let Some(path) = out {
+-        std::fs::write(path, problem)
+-            .map_err(|error| format!("cannot write {}: {error}", path.display()))?;
+-        let read_back = std::fs::read(path)
+-            .map_err(|error| format!("cannot verify {}: {error}", path.display()))?;
++        std::fs::write(path, problem).map_err(|error| {
++            caused_failure(
++                "PROBLEM_WRITE_FAILED",
++                error,
++                format!("write problem {}", path.display()),
++            )
++        })?;
++        let read_back = std::fs::read(path).map_err(|error| {
++            caused_failure(
++                "PROBLEM_VERIFY_READ_FAILED",
++                error,
++                format!("verify problem {}", path.display()),
++            )
++        })?;
+         if read_back != problem.as_bytes() {
+-            return Err(format!(
+-                "problem file {} does not contain the emitted bytes",
+-                path.display()
++            return Err(failure(
++                "PROBLEM_CONTENT_CHANGED",
++                format!(
++                    "problem file {} does not contain the emitted bytes",
++                    path.display()
++                ),
+             ));
+         }
+         return Ok((path.to_path_buf(), None));
+@@ -908,16 +1072,32 @@ fn write_problem(
+         .prefix(&prefix)
+         .suffix(".p")
+         .tempfile()
+-        .map_err(|error| format!("cannot create managed problem file: {error}"))?;
+-    file.write_all(problem.as_bytes())
+-        .map_err(|error| format!("cannot write managed problem file: {error}"))?;
+-    file.flush()
+-        .map_err(|error| format!("cannot flush managed problem file: {error}"))?;
++        .map_err(|error| {
++            caused_failure(
++                "PROBLEM_TEMPFILE_CREATE_FAILED",
++                error,
++                "create managed problem file",
++            )
++        })?;
++    file.write_all(problem.as_bytes()).map_err(|error| {
++        caused_failure(
++            "PROBLEM_TEMPFILE_WRITE_FAILED",
++            error,
++            "write managed problem file",
++        )
++    })?;
++    file.flush().map_err(|error| {
++        caused_failure(
++            "PROBLEM_TEMPFILE_FLUSH_FAILED",
++            error,
++            "flush managed problem file",
++        )
++    })?;
+     let temp = file.into_temp_path();
+     Ok((temp.to_path_buf(), Some(temp)))
+ }
+ 
+-fn resolve_prover(choice: ProverChoice) -> Result<ResolvedProver, String> {
++fn resolve_prover(choice: ProverChoice) -> gmeow_errors::Result<ResolvedProver> {
+     let (flavor, path) = if let Some(path) = std::env::var_os("GMEOW_PROVER_PATH") {
+         let path = PathBuf::from(path);
+         let flavor = match choice {
+@@ -934,24 +1114,41 @@ fn resolve_prover(choice: ProverChoice) -> Result<ResolvedProver, String> {
+         match choice {
+             ProverChoice::Eprover => (
+                 ProverFlavor::EProver,
+-                find_on_path("eprover").ok_or_else(|| "no eprover on PATH".to_owned())?,
++                find_on_path("eprover")
++                    .ok_or_else(|| failure("PROVER_NOT_AVAILABLE", "no eprover on PATH"))?,
+             ),
+             ProverChoice::Vampire => (
+                 ProverFlavor::Vampire,
+-                find_on_path("vampire").ok_or_else(|| "no vampire on PATH".to_owned())?,
++                find_on_path("vampire")
++                    .ok_or_else(|| failure("PROVER_NOT_AVAILABLE", "no vampire on PATH"))?,
+             ),
+             ProverChoice::Auto => find_on_path("eprover")
+                 .map(|path| (ProverFlavor::EProver, path))
+                 .or_else(|| find_on_path("vampire").map(|path| (ProverFlavor::Vampire, path)))
+-                .ok_or_else(|| "no eprover or vampire on PATH".to_owned())?,
++                .ok_or_else(|| failure("PROVER_NOT_AVAILABLE", "no eprover or vampire on PATH"))?,
+         }
+     };
+-    let path = std::fs::canonicalize(&path)
+-        .map_err(|error| format!("cannot resolve prover {}: {error}", path.display()))?;
++    let path = std::fs::canonicalize(&path).map_err(|error| {
++        caused_failure(
++            "PROVER_PATH_UNAVAILABLE",
++            error,
++            format!("resolve prover {}", path.display()),
++        )
++    })?;
+     if !path.is_file() {
+-        return Err(format!("prover {} is not a regular file", path.display()));
++        return Err(failure(
++            "PROVER_NOT_FILE",
++            format!("prover {} is not a regular file", path.display()),
++        ));
+     }
+-    let digest = digest_file(&path)?;
++    let digest = digest_file(&path).map_err(|diagnostic| {
++        caused_diagnostic(
++            "PROVER_EXECUTABLE_IDENTITY_FAILED",
++            diagnostic,
++            format!("hash prover {}", path.display()),
++            serde_json::Value::Null,
++        )
++    })?;
+     Ok(ResolvedProver {
+         flavor,
+         path,
+@@ -967,7 +1164,7 @@ fn find_on_path(name: &str) -> Option<PathBuf> {
+     })
+ }
+ 
+-fn prover_version(prover: &ResolvedProver) -> Result<String, String> {
++fn prover_version(prover: &ResolvedProver) -> gmeow_errors::Result<String> {
+     let arguments = vec!["--version".to_owned()];
+     let raw = run_bounded_process(
+         &prover.path,
+@@ -976,28 +1173,33 @@ fn prover_version(prover: &ResolvedProver) -> Result<String, String> {
+         VERSION_DEADLINE,
+         MAX_VERSION_OUTPUT_BYTES,
+     )?;
+-    if raw.timed_out {
+-        return Err(format!(
+-            "{} --version exceeded {VERSION_DEADLINE:?}",
+-            prover.path.display()
++    let reason = if raw.timed_out {
++        Some("PROVER_VERSION_DEADLINE")
++    } else if raw.exit_code != Some(0) || raw.signal.is_some() {
++        Some("PROVER_VERSION_CHILD_FAILED")
++    } else if raw.stdout.truncated || raw.stderr.truncated {
++        Some("PROVER_VERSION_OUTPUT_LIMIT")
++    } else {
++        None
++    };
++    if let Some(reason) = reason {
++        return Err(process_failure(
++            reason,
++            "prover version discovery failed",
++            &raw,
++            None,
+         ));
+     }
+-    if raw.exit_code != Some(0) || raw.signal.is_some() {
+-        return Err(format!(
+-            "{} --version exited with code {:?} and signal {:?}",
+-            prover.path.display(),
+-            raw.exit_code,
+-            raw.signal
+-        ));
+-    }
+-    if raw.stdout.truncated || raw.stderr.truncated {
+-        return Err("prover version output exceeded its evidence bound".to_owned());
+-    }
+     let stdout = String::from_utf8_lossy(&raw.stdout.retained);
+     let stderr = String::from_utf8_lossy(&raw.stderr.retained);
+     let version = format!("{stdout}\n{stderr}").trim().to_owned();
+     if version.is_empty() {
+-        return Err("prover --version produced no identity text".to_owned());
++        return Err(process_failure(
++            "PROVER_VERSION_EMPTY",
++            "prover --version produced no identity text",
++            &raw,
++            None,
++        ));
+     }
+     Ok(version)
+ }
+@@ -1062,13 +1264,101 @@ fn problem_aliases(path: &Path, digest: &str) -> BTreeSet<String> {
+     aliases
+ }
+ 
++/// Exact selected subprocess inputs, including the final problem argument.
++#[derive(Debug, Clone, Serialize)]
++struct ProcessSelection {
++    executable: String,
++    executable_digest: Option<String>,
++    arguments: Vec<String>,
++    problem: Option<String>,
++    problem_digest: Option<String>,
++    deadline_ms: u64,
++    output_limit: usize,
++}
++
++fn process_failure(
++    reason: &'static str,
++    detail: impl Into<String>,
++    receipt: &RawProcessReceipt,
++    cause: Option<Box<dyn std::error::Error + Send + Sync>>,
++) -> Diag {
++    Diag::of_kind(crate::error::ProverFailed {
++        reason: reason.to_owned(),
++        detail: detail.into(),
++        evidence: serde_json::to_value(receipt).expect("process receipt serializes"),
++        cause,
++    })
++}
++
++fn process_diagnostic_failure(
++    reason: &'static str,
++    detail: impl Into<String>,
++    receipt: &RawProcessReceipt,
++    diagnostic: Diag,
++) -> Diag {
++    caused_diagnostic(
++        reason,
++        diagnostic,
++        detail,
++        serde_json::to_value(receipt).expect("process receipt serializes"),
++    )
++}
++
++fn empty_stream() -> StreamBytes {
++    StreamBytes {
++        digest: blake3::hash(&[]).to_hex().to_string(),
++        total_bytes: 0,
++        retained: Vec::new(),
++        truncated: false,
++    }
++}
++
+ fn run_bounded_process(
+     binary: &Path,
+     arguments: &[String],
+     problem: Option<&Path>,
+     deadline: Duration,
+     output_limit: usize,
+-) -> Result<RawProcessReceipt, String> {
++) -> gmeow_errors::Result<RawProcessReceipt> {
++    let mut argv = arguments.to_vec();
++    if let Some(problem) = problem {
++        argv.push(problem.display().to_string());
++    }
++    let mut receipt = RawProcessReceipt {
++        selection: ProcessSelection {
++            executable: binary.display().to_string(),
++            executable_digest: None,
++            arguments: argv,
++            problem: problem.map(|path| path.display().to_string()),
++            problem_digest: None,
++            deadline_ms: u64::try_from(deadline.as_millis()).unwrap_or(u64::MAX),
++            output_limit,
++        },
++        elapsed_ms: 0,
++        exit_code: None,
++        signal: None,
++        timed_out: false,
++        stdout: empty_stream(),
++        stderr: empty_stream(),
++    };
++    receipt.selection.executable_digest = Some(digest_file(binary).map_err(|diagnostic| {
++        process_diagnostic_failure(
++            "PROVER_EXECUTABLE_IDENTITY_FAILED",
++            "cannot hash selected prover",
++            &receipt,
++            diagnostic,
++        )
++    })?);
++    if let Some(problem) = problem {
++        receipt.selection.problem_digest = Some(digest_file(problem).map_err(|diagnostic| {
++            process_diagnostic_failure(
++                "PROVER_PROBLEM_IDENTITY_FAILED",
++                "cannot hash selected problem",
++                &receipt,
++                diagnostic,
++            )
++        })?);
++    }
+     let mut command = Command::new(binary);
+     command
+         .args(arguments)
+@@ -1084,88 +1374,197 @@ fn run_bounded_process(
+         command.process_group(0);
+     }
+     let started = Instant::now();
+-    let mut child = command
+-        .spawn()
+-        .map_err(|error| format!("cannot run {}: {error}", binary.display()))?;
+-    let Some(stdout) = child.stdout.take() else {
++    let mut child = command.spawn().map_err(|error| {
++        process_failure(
++            "PROVER_SPAWN_FAILED",
++            "cannot spawn selected prover",
++            &receipt,
++            Some(Box::new(error)),
++        )
++    })?;
++    let stdout = child.stdout.take();
++    let stderr = child.stderr.take();
++    let (Some(stdout), Some(stderr)) = (stdout, stderr) else {
+         kill_process_tree(&mut child);
+-        let _ = child.wait();
+-        return Err("selected child has no stdout pipe".to_owned());
++        let status = child.wait();
++        if let Ok(status) = status {
++            record_status(&mut receipt, status);
++        }
++        return Err(process_failure(
++            "PROVER_PIPE_MISSING",
++            "selected child has a missing output pipe",
++            &receipt,
++            None,
++        ));
+     };
+-    let Some(stderr) = child.stderr.take() else {
++    #[cfg(unix)]
++    if let Err(error) = set_nonblocking(&stdout).and_then(|()| set_nonblocking(&stderr)) {
+         kill_process_tree(&mut child);
+-        let _ = child.wait();
+-        return Err("selected child has no stderr pipe".to_owned());
+-    };
+-    let stdout_reader = std::thread::spawn(move || drain_stream(stdout, output_limit));
+-    let stderr_reader = std::thread::spawn(move || drain_stream(stderr, output_limit));
+-    let expires = started + deadline;
+-    let mut timed_out = false;
+-    let status = loop {
++        if let Ok(status) = child.wait() {
++            record_status(&mut receipt, status);
++        }
++        receipt.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
++        return Err(process_failure(
++            "PROVER_PIPE_NONBLOCK_FAILED",
++            "cannot make selected prover output pipes deadline-aware",
++            &receipt,
++            Some(Box::new(error)),
++        ));
++    }
++    let stdout_capture = Arc::new(std::sync::Mutex::new(empty_stream()));
++    let stderr_capture = Arc::new(std::sync::Mutex::new(empty_stream()));
++    let stdout_shared = Arc::clone(&stdout_capture);
++    let stderr_shared = Arc::clone(&stderr_capture);
++    let stop_readers = Arc::new(AtomicBool::new(false));
++    let stdout_stop = Arc::clone(&stop_readers);
++    let stderr_stop = Arc::clone(&stop_readers);
++    let stdout_reader = std::thread::spawn(move || {
++        drain_stream_until_stopped(stdout, output_limit, &stdout_shared, &stdout_stop)
++    });
++    let stderr_reader = std::thread::spawn(move || {
++        drain_stream_until_stopped(stderr, output_limit, &stderr_shared, &stderr_stop)
++    });
++    let mut failures: Vec<(&'static str, std::io::Error)> = Vec::new();
++    loop {
+         match child.try_wait() {
+-            Ok(Some(status)) => break status,
+-            Ok(None) if Instant::now() < expires => std::thread::sleep(PROCESS_POLL_INTERVAL),
++            Ok(Some(status)) => {
++                record_status(&mut receipt, status);
++                break;
++            }
++            Ok(None) if started.elapsed() < deadline => std::thread::sleep(PROCESS_POLL_INTERVAL),
+             Ok(None) => {
+-                timed_out = true;
+-                kill_process_tree(&mut child);
+-                break child.wait().map_err(|error| {
+-                    format!("cannot reap timed-out child {}: {error}", binary.display())
+-                })?;
++                receipt.timed_out = true;
++                break;
+             }
+             Err(error) => {
+-                kill_process_tree(&mut child);
+-                let _ = child.wait();
+-                return Err(format!(
+-                    "cannot poll selected child {}: {error}",
+-                    binary.display()
+-                ));
++                failures.push(("PROVER_POLL_FAILED", error));
++                break;
+             }
+         }
+-    };
+-    let stdout = stdout_reader
+-        .join()
+-        .map_err(|_| "selected child stdout reader panicked".to_owned())?
+-        .map_err(|error| format!("cannot read selected child stdout: {error}"))?;
+-    let stderr = stderr_reader
+-        .join()
+-        .map_err(|_| "selected child stderr reader panicked".to_owned())?
+-        .map_err(|error| format!("cannot read selected child stderr: {error}"))?;
+-    #[cfg(unix)]
+-    use std::os::unix::process::ExitStatusExt as _;
+-    Ok(RawProcessReceipt {
+-        elapsed_ms: u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+-        exit_code: status.code(),
+-        #[cfg(unix)]
+-        signal: status.signal(),
+-        #[cfg(not(unix))]
+-        signal: None,
+-        timed_out,
+-        stdout,
+-        stderr,
+-    })
++    }
++    // Also close descendant-held pipes after the direct child exits. Only this
++    // invocation's process group is selected; unrelated processes are untouched.
++    kill_process_tree(&mut child);
++    stop_readers.store(true, Ordering::Release);
++    match child.wait() {
++        Ok(status) => record_status(&mut receipt, status),
++        Err(error) => failures.push(("PROVER_REAP_FAILED", error)),
++    }
++    // Join BOTH readers even when the first fails. Shared incremental captures
++    // preserve every observed byte through a read error or a reader panic.
++    for (name, reader) in [
++        ("PROVER_STDOUT_READ_FAILED", stdout_reader),
++        ("PROVER_STDERR_READ_FAILED", stderr_reader),
++    ] {
++        match reader.join() {
++            Ok(Ok(())) => {}
++            Ok(Err(error)) => failures.push((name, error)),
++            Err(_) => failures.push((name, std::io::Error::other("prover stream reader panicked"))),
++        }
++    }
++    receipt.stdout = stdout_capture
++        .lock()
++        .unwrap_or_else(std::sync::PoisonError::into_inner)
++        .clone();
++    receipt.stderr = stderr_capture
++        .lock()
++        .unwrap_or_else(std::sync::PoisonError::into_inner)
++        .clone();
++    receipt.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
++    if !failures.is_empty() {
++        let (reason, cause) = failures.remove(0);
++        let mut diagnostic = process_failure(
++            reason,
++            "selected prover process did not complete cleanly",
++            &receipt,
++            Some(Box::new(cause)),
++        );
++        for (operation, error) in failures {
++            diagnostic = diagnostic.with_context(format!("{operation}: {error}"));
++        }
++        return Err(diagnostic);
++    }
++    Ok(receipt)
+ }
+ 
+-fn drain_stream(mut stream: impl Read, limit: usize) -> std::io::Result<StreamBytes> {
++fn record_status(receipt: &mut RawProcessReceipt, status: std::process::ExitStatus) {
++    receipt.exit_code = status.code();
++    #[cfg(unix)]
++    {
++        use std::os::unix::process::ExitStatusExt as _;
++        receipt.signal = status.signal();
++    }
++}
++
++#[cfg(test)]
++fn drain_stream(
++    mut stream: impl Read,
++    limit: usize,
++    capture: &std::sync::Mutex<StreamBytes>,
++) -> std::io::Result<()> {
++    drain_stream_inner(&mut stream, limit, capture, None)
++}
++
++fn drain_stream_until_stopped(
++    mut stream: impl Read,
++    limit: usize,
++    capture: &std::sync::Mutex<StreamBytes>,
++    stop: &AtomicBool,
++) -> std::io::Result<()> {
++    drain_stream_inner(&mut stream, limit, capture, Some(stop))
++}
++
++fn drain_stream_inner(
++    stream: &mut impl Read,
++    limit: usize,
++    capture: &std::sync::Mutex<StreamBytes>,
++    stop: Option<&AtomicBool>,
++) -> std::io::Result<()> {
+     let mut hasher = blake3::Hasher::new();
+-    let mut retained = Vec::with_capacity(limit.min(64 * 1024));
+-    let mut total = 0_u64;
+     let mut buffer = [0_u8; 16 * 1024];
+     loop {
+-        let read = stream.read(&mut buffer)?;
++        let read = match stream.read(&mut buffer) {
++            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
++            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
++                if stop.is_some_and(|stop| stop.load(Ordering::Acquire)) {
++                    return Ok(());
++                }
++                std::thread::sleep(PROCESS_POLL_INTERVAL);
++                continue;
++            }
++            value => value?,
++        };
+         if read == 0 {
+-            break;
++            return Ok(());
+         }
+         hasher.update(&buffer[..read]);
+-        total = total.saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
+-        let available = limit.saturating_sub(retained.len());
+-        retained.extend_from_slice(&buffer[..read.min(available)]);
++        let mut bytes = capture
++            .lock()
++            .unwrap_or_else(std::sync::PoisonError::into_inner);
++        bytes.total_bytes = bytes
++            .total_bytes
++            .saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
++        let available = limit.saturating_sub(bytes.retained.len());
++        bytes
++            .retained
++            .extend_from_slice(&buffer[..read.min(available)]);
++        bytes.digest = hasher.finalize().to_hex().to_string();
++        bytes.truncated =
++            bytes.total_bytes > u64::try_from(bytes.retained.len()).unwrap_or(u64::MAX);
+     }
+-    Ok(StreamBytes {
+-        digest: hasher.finalize().to_hex().to_string(),
+-        total_bytes: total,
+-        truncated: total > u64::try_from(retained.len()).unwrap_or(u64::MAX),
+-        retained,
+-    })
++}
++
++#[cfg(unix)]
++fn set_nonblocking(stream: &impl std::os::fd::AsRawFd) -> std::io::Result<()> {
++    let descriptor = stream.as_raw_fd();
++    let flags = unsafe { libc::fcntl(descriptor, libc::F_GETFL) };
++    if flags < 0 {
++        return Err(std::io::Error::last_os_error());
++    }
++    if unsafe { libc::fcntl(descriptor, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0 {
++        return Err(std::io::Error::last_os_error());
++    }
++    Ok(())
+ }
+ 
+ fn kill_process_tree(child: &mut std::process::Child) {
+@@ -1190,11 +1589,7 @@ fn publish_failure(
+     evidence_out: Option<&Path>,
+ ) -> i32 {
+     if let Some(diagnostic) = report.common.diagnostics.last() {
+-        emit_error(
+-            reporter,
+-            &format!("gmeow-cli.prove.{}", diagnostic.code.to_ascii_lowercase()),
+-            diagnostic.detail.clone(),
+-        );
++        emit_error(reporter, &diagnostic.code, diagnostic.detail.clone());
+     }
+     publish_report(report, format, gate, evidence_out, reporter)
+ }
+@@ -1211,15 +1606,14 @@ fn publish_report(
+     if let Some(path) = evidence_out
+         && let Err(error) = std::fs::write(path, json.as_bytes())
+     {
+-        report.execution_failure(
++        let diagnostic = caused_failure(
+             "EVIDENCE_WRITE_FAILED",
+-            format!("cannot write {}: {error}", path.display()),
+-        );
+-        emit_error(
+-            reporter,
+-            "gmeow-cli.prove.evidence-write-failed",
+-            format!("cannot write {}: {error}", path.display()),
++            error,
++            format!("write evidence report {}", path.display()),
+         );
++        let detail = diagnostic.message().to_owned();
++        report.execution_failure(diagnostic);
++        emit_error(reporter, "gmeow-cli.prove.evidence-write-failed", detail);
+         json = serde_json::to_string_pretty(&report)
+             .expect("typed prove report serialization is infallible");
+     }
+diff --git a/crates/gmeow-cli/src/commands/prove.tests.rs b/crates/gmeow-cli/src/commands/prove.tests.rs
+index 89e264ee2..62fd82dab 100644
+--- a/crates/gmeow-cli/src/commands/prove.tests.rs
++++ b/crates/gmeow-cli/src/commands/prove.tests.rs
+@@ -96,3 +96,178 @@ fn prover_passes_request_supported_proof_and_model_artifacts() {
+             .any(|pair| pair == ["--schedule", "casc_sat"])
+     );
+ }
++
++#[test]
++fn stream_read_failure_retains_partial_bytes_and_digest() {
++    struct BrokenReader(bool);
++    impl std::io::Read for BrokenReader {
++        fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
++            if self.0 {
++                return Err(std::io::Error::other("synthetic read fault"));
++            }
++            self.0 = true;
++            output[..4].copy_from_slice(&[0xff, 1, 2, 3]);
++            Ok(4)
++        }
++    }
++    let capture = std::sync::Mutex::new(super::empty_stream());
++    assert!(super::drain_stream(BrokenReader(false), 2, &capture).is_err());
++    let bytes = capture.into_inner().expect("capture lock");
++    assert_eq!(bytes.retained, [0xff, 1]);
++    assert_eq!(bytes.total_bytes, 4);
++    assert!(bytes.truncated);
++    assert_eq!(
++        bytes.digest,
++        blake3::hash(&[0xff, 1, 2, 3]).to_hex().to_string()
++    );
++    let projected = bytes.into_report();
++    assert_eq!(projected.retained, [0xff, 1]);
++    assert!(!projected.utf8_valid);
++}
++
++#[test]
++fn failed_version_keeps_both_streams_and_process_identity() {
++    let (_directory, binary) =
++        script("printf 'partial identity'; printf 'version error' >&2; exit 7");
++    let prover = super::ResolvedProver {
++        flavor: ProverFlavor::EProver,
++        digest: super::digest_file(&binary).expect("executable identity"),
++        path: binary,
++    };
++    let error = super::prover_version(&prover).expect_err("version process failed");
++    let report = super::ReportDiagnostic::from_diag(&error);
++    assert_eq!(report.code, "PROVER_VERSION_CHILD_FAILED");
++    let structured = report.diagnostic.expect("structured diagnostic");
++    let receipt = &structured.fields["evidence"];
++    assert_eq!(receipt["exit_code"], 7);
++    assert_eq!(receipt["selection"]["arguments"][0], "--version");
++    assert_eq!(receipt["selection"]["executable_digest"], prover.digest);
++    assert_eq!(receipt["stdout"]["total_bytes"], 16);
++    assert_eq!(receipt["stderr"]["total_bytes"], 13);
++    assert_eq!(
++        receipt["stdout"]["digest"],
++        blake3::hash(b"partial identity").to_hex().to_string()
++    );
++    assert_eq!(
++        receipt["stderr"]["digest"],
++        blake3::hash(b"version error").to_hex().to_string()
++    );
++}
++
++#[test]
++fn spawn_failure_preserves_problem_and_original_io_cause() {
++    let directory = tempfile::tempdir().expect("scratch directory");
++    let binary = directory.path().join("not-executable");
++    std::fs::write(&binary, b"not an executable").expect("write input");
++    let problem = directory.path().join("problem.p");
++    std::fs::write(&problem, b"fof(a,axiom,p).\n").expect("write problem");
++    let args = vec!["--auto".to_owned()];
++    let error = run_bounded_process(&binary, &args, Some(&problem), Duration::from_secs(1), 32)
++        .expect_err("selected file has no execute permission");
++    let projected = super::ReportDiagnostic::from_diag(&error);
++    assert_eq!(projected.code, "PROVER_SPAWN_FAILED");
++    let evidence = projected.diagnostic.expect("evidence");
++    assert!(evidence.causes.len() >= 2);
++    let receipt = &evidence.fields["evidence"];
++    assert_eq!(
++        receipt["selection"]["arguments"][1],
++        problem.display().to_string()
++    );
++    assert_eq!(
++        receipt["selection"]["problem_digest"],
++        blake3::hash(b"fof(a,axiom,p).\n").to_hex().to_string()
++    );
++    assert_eq!(receipt["stdout"]["total_bytes"], 0);
++    assert_eq!(receipt["stderr"]["total_bytes"], 0);
++    assert!(receipt["exit_code"].is_null());
++}
++
++#[test]
++fn malformed_later_source_preserves_prior_and_failing_input_identity() {
++    let directory = tempfile::tempdir().expect("scratch directory");
++    let first = directory.path().join("a.ttl");
++    let second = directory.path().join("b.ttl");
++    std::fs::write(&first, "<urn:s> <urn:p> <urn:o> .").expect("source");
++    std::fs::write(&second, "this is not turtle").expect("bad source");
++    let error = match super::load_theory(&[first, second]) {
++        Ok(_) => panic!("malformed source must fail"),
++        Err(error) => error,
++    };
++    let report = super::ProveReport::blank(super::DecisionClass::Malformed, error);
++    assert_eq!(report.common.inputs.len(), 2);
++    assert_eq!(report.common.diagnostics[0].code, "SOURCE_PARSE_FAILED");
++    let diagnostic = report.common.diagnostics[0]
++        .diagnostic
++        .as_ref()
++        .expect("evidence");
++    assert!(!diagnostic.causes.is_empty());
++    assert!(diagnostic.observed.is_some());
++}
++
++#[test]
++fn exited_parent_does_not_leave_descendant_pipe_unbounded() {
++    let (_directory, binary) = script("sleep 30 &\nprintf 'done'; exit 0");
++    let started = std::time::Instant::now();
++    let receipt = run_bounded_process(&binary, &[], None, Duration::from_millis(100), 32)
++        .expect("parent receipt");
++    assert_eq!(receipt.exit_code, Some(0));
++    assert_eq!(receipt.stdout.retained, b"done");
++    assert!(started.elapsed() < Duration::from_secs(2));
++}
++
++#[test]
++fn escaped_descendant_cannot_extend_the_parent_deadline() {
++    let directory = tempfile::tempdir().expect("scratch directory");
++    let pid_file = directory.path().join("escaped.pid");
++    let binary = directory.path().join("synthetic-prover");
++    std::fs::write(
++        &binary,
++        format!(
++            "#!/bin/sh\nsetsid sh -c 'echo $$ > {}; sleep 30' &\nprintf 'done'\nexit 0\n",
++            pid_file.display()
++        ),
++    )
++    .expect("write synthetic prover");
++    std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755))
++        .expect("make synthetic prover executable");
++    let started = std::time::Instant::now();
++    let receipt = run_bounded_process(&binary, &[], None, Duration::from_millis(100), 32)
++        .expect("parent receipt");
++    assert_eq!(receipt.exit_code, Some(0));
++    assert_eq!(receipt.stdout.retained, b"done");
++    assert!(
++        started.elapsed() < Duration::from_secs(2),
++        "an escaped descendant holding the pipe must not extend the deadline"
++    );
++    for _ in 0..20 {
++        if let Ok(pid) = std::fs::read_to_string(&pid_file) {
++            if let Ok(pid) = pid.trim().parse::<i32>() {
++                unsafe {
++                    libc::kill(pid, libc::SIGKILL);
++                }
++                break;
++            }
++        }
++        std::thread::sleep(Duration::from_millis(10));
++    }
++}
++
++#[test]
++fn process_identity_failure_retains_the_original_diagnostic() {
++    let directory = tempfile::tempdir().expect("scratch directory");
++    let error = run_bounded_process(directory.path(), &[], None, Duration::from_secs(1), 32)
++        .expect_err("a directory cannot be hashed as an executable");
++    let projected = super::ReportDiagnostic::from_diag(&error);
++    assert_eq!(projected.code, "PROVER_EXECUTABLE_IDENTITY_FAILED");
++    let evidence = projected.diagnostic.expect("structured evidence");
++    assert_eq!(
++        evidence.fields["evidence"]["cause_diagnostic"]["code"],
++        "diag.foreign-error"
++    );
++    assert!(
++        evidence
++            .causes
++            .iter()
++            .any(|cause| cause.contains("hash selected prover"))
++    );
++}
+diff --git a/crates/gmeow-cli/src/commands/reasoning_report.rs b/crates/gmeow-cli/src/commands/reasoning_report.rs
+index f050046d3..18adbd17c 100644
+--- a/crates/gmeow-cli/src/commands/reasoning_report.rs
++++ b/crates/gmeow-cli/src/commands/reasoning_report.rs
+@@ -10,7 +10,7 @@
+ 
+ use std::path::{Path, PathBuf};
+ 
+-use serde::Serialize;
++use serde::{Deserialize, Serialize};
+ 
+ use crate::OutputFormat;
+ 
+@@ -107,7 +107,7 @@ impl GateAdmission {
+ }
+ 
+ /// Exact identity of one selected input document.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+ pub(crate) struct InputIdentity {
+     pub(crate) path: String,
+     pub(crate) role: String,
+@@ -254,6 +254,131 @@ pub(crate) struct ReasoningBoundary {
+ pub(crate) struct ReportDiagnostic {
+     pub(crate) code: String,
+     pub(crate) detail: String,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub(crate) diagnostic: Option<DiagnosticEvidence>,
++}
++
++/// Deterministic wire projection of a live diagnostic at the report boundary.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub(crate) struct DiagnosticEvidence {
++    pub(crate) code: String,
++    pub(crate) grade: gmeow_errors::Grade,
++    pub(crate) source_context: gmeow_errors::SourceContext,
++    pub(crate) context: Vec<String>,
++    pub(crate) causes: Vec<String>,
++    pub(crate) cause_details: Vec<serde_json::Value>,
++    pub(crate) emitted_at: DiagnosticSite,
++    pub(crate) context_sites: Vec<DiagnosticSite>,
++    pub(crate) fields: serde_json::Value,
++    pub(crate) process: Option<serde_json::Value>,
++    pub(crate) observed: Option<gmeow_errors::Slot>,
++    pub(crate) expected: Option<gmeow_errors::Slot>,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub(crate) struct DiagnosticSite {
++    file: String,
++    line: u32,
++    column: u32,
++}
++
++impl DiagnosticSite {
++    fn from_location(location: &std::panic::Location<'_>) -> Self {
++        Self {
++            file: location.file().to_owned(),
++            line: location.line(),
++            column: location.column(),
++        }
++    }
++}
++
++impl ReportDiagnostic {
++    pub(crate) fn message(code: impl Into<String>, detail: impl Into<String>) -> Self {
++        Self {
++            code: code.into(),
++            detail: detail.into(),
++            diagnostic: None,
++        }
++    }
++
++    pub(crate) fn from_diag(diag: &gmeow_errors::Diag) -> Self {
++        let inner = diag.inner();
++        let mut causes = Vec::new();
++        let mut cause_details = Vec::new();
++        let mut source = inner
++            .source
++            .as_deref()
++            .map(|source| source as &dyn std::error::Error);
++        while let Some(cause) = source {
++            causes.push(cause.to_string());
++            cause_details.push(cause.downcast_ref::<std::io::Error>().map(|error|
++                serde_json::json!({"io_kind": format!("{:?}", error.kind()), "raw_os_error": error.raw_os_error()})
++            ).unwrap_or(serde_json::Value::Null));
++            source = cause.source();
++        }
++        let fields = if let Some(failure) = diag.downcast_ref::<crate::error::ProverFailed>() {
++            serde_json::json!({"reason": failure.reason, "evidence": failure.evidence})
++        } else if let Some(error) =
++            diag.downcast_ref::<gmeow_logic_compile::tptp::SzsProtocolError>()
++        {
++            serde_json::to_value(error).expect("SZS protocol error serializes")
++        } else if let Some(error) =
++            diag.downcast_ref::<gmeow_logic::external_evidence::ArtifactProtocolError>()
++        {
++            serde_json::to_value(error).expect("artifact protocol error serializes")
++        } else if let Some(error) = diag.downcast_ref::<std::io::Error>() {
++            serde_json::json!({"io_kind": format!("{:?}", error.kind()), "raw_os_error": error.raw_os_error()})
++        } else {
++            serde_json::Value::Null
++        };
++        Self {
++            code: diag
++                .downcast_ref::<crate::error::ProverFailed>()
++                .map(|error| error.reason.to_owned())
++                .or_else(|| {
++                    diag.downcast_ref::<gmeow_logic_compile::tptp::SzsProtocolError>()
++                        .map(|error| error.code.clone())
++                })
++                .or_else(|| {
++                    diag.downcast_ref::<gmeow_logic::external_evidence::ArtifactProtocolError>()
++                        .map(|error| error.code.clone())
++                })
++                .unwrap_or_else(|| gmeow_errors::code::code_str(diag.code()).to_owned()),
++            detail: diag.message().to_owned(),
++            diagnostic: Some(DiagnosticEvidence {
++                code: gmeow_errors::code::code_str(diag.code()).to_owned(),
++                grade: diag.grade(),
++                source_context: inner.source_ctx.clone(),
++                context: inner
++                    .context
++                    .iter()
++                    .map(|frame| frame.label.clone())
++                    .collect(),
++                causes,
++                cause_details,
++                emitted_at: DiagnosticSite::from_location(diag.emitted_at()),
++                context_sites: inner
++                    .context
++                    .iter()
++                    .map(|frame| DiagnosticSite::from_location(frame.at))
++                    .collect(),
++                fields,
++                process: inner
++                    .observed
++                    .as_ref()
++                    .filter(|slot| {
++                        slot.datatype.as_deref()
++                            == Some("https://blackcatinformatics.ca/gmeow/ProverProcessReceiptJson")
++                    })
++                    .map(|slot| {
++                        serde_json::from_str(&slot.lexical)
++                            .expect("internally serialized process receipt")
++                    }),
++                observed: inner.observed.clone(),
++                expected: inner.expected.clone(),
++            }),
++        }
++    }
+ }
+ 
+ /// The fields every reasoning-family report carries.
+@@ -472,9 +597,11 @@ impl ReasoningReportCore {
+     }
+ }
+ 
+-pub(crate) fn digest_file(path: &Path) -> Result<String, String> {
+-    let bytes = std::fs::read(path)
+-        .map_err(|error| format!("cannot read {} for identity: {error}", path.display()))?;
++pub(crate) fn digest_file(path: &Path) -> gmeow_errors::Result<String> {
++    let bytes = std::fs::read(path).map_err(|error| {
++        gmeow_errors::Diag::from(error)
++            .with_context(format!("read {} for identity", path.display()))
++    })?;
+     Ok(blake3::hash(&bytes).to_hex().to_string())
+ }
+ 
+@@ -510,10 +637,7 @@ mod tests {
+             Vec::new(),
+             ProgramIdentity::selected("test-profile", &["test-engine"]),
+             EngineIdentity::gmeow_native(),
+-            ReportDiagnostic {
+-                code: "TEST".to_owned(),
+-                detail: "synthetic".to_owned(),
+-            },
++            ReportDiagnostic::message("TEST", "synthetic"),
+         );
+         report.evidence_grade = evidence;
+         report.gate_admission = gate;
+@@ -577,4 +701,14 @@ mod tests {
+             EXIT_EXECUTION
+         );
+     }
++
++    #[test]
++    fn message_diagnostic_preserves_the_existing_wire_shape() {
++        let value = serde_json::to_value(ReportDiagnostic::message("TEST", "synthetic"))
++            .expect("report diagnostic serializes");
++        assert_eq!(
++            value,
++            serde_json::json!({"code": "TEST", "detail": "synthetic"})
++        );
++    }
+ }
+diff --git a/crates/gmeow-cli/src/error.rs b/crates/gmeow-cli/src/error.rs
+index 7e5855327..501578979 100644
+--- a/crates/gmeow-cli/src/error.rs
++++ b/crates/gmeow-cli/src/error.rs
+@@ -74,12 +74,81 @@ define_diag_kind! {
+     message = "{}", detail;
+ }
+ 
++/// A selected consumer-prover operation failed. The structured payload is the
++/// operation's exact evidence, never inferred from the human-readable message.
++#[derive(Debug)]
++pub(crate) struct ProverFailed {
++    pub(crate) reason: String,
++    pub(crate) detail: String,
++    pub(crate) evidence: serde_json::Value,
++    pub(crate) cause: Option<Box<dyn std::error::Error + Send + Sync>>,
++}
++
++/// Keep a shared diagnostic live inside a prover diagnostic's standard error
++/// chain when a lower typed boundary fails. This wrapper preserves the original
++/// code, grade, context and downcastable source rather than flattening the
++/// diagnostic to its display text.
++#[derive(Debug)]
++pub(crate) struct PreservedDiagnostic(pub(crate) gmeow_errors::Diag);
++
++impl std::fmt::Display for PreservedDiagnostic {
++    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        write!(formatter, "{:#}", self.0)
++    }
++}
++
++impl std::error::Error for PreservedDiagnostic {
++    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
++        self.0
++            .inner()
++            .source
++            .as_deref()
++            .map(|source| source as &dyn std::error::Error)
++    }
++}
++
++impl std::fmt::Display for ProverFailed {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        f.write_str(&self.detail)
++    }
++}
++
++impl std::error::Error for ProverFailed {
++    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
++        self.cause
++            .as_deref()
++            .map(|cause| cause as &dyn std::error::Error)
++    }
++}
++
++impl ProverFailed {
++    pub(crate) const CODE: &'static str = "gmeow-cli.prove.failed";
++
++    pub(crate) fn register() -> Code {
++        gmeow_errors::register_code(Self::CODE)
++    }
++}
++
++impl gmeow_errors::DiagKind for ProverFailed {
++    fn code(&self) -> Code {
++        Self::register()
++    }
++    fn grade(&self) -> Grade {
++        Grade::new(
++            Severity::Error,
++            FindingCategory::IncompleteCheck,
++            Standpoint::Binding,
++        )
++    }
++}
++
+ /// The complete shippable-CLI diagnostic-code catalog, in registration order —
+ /// the kinds minted here plus the `explain`-command kinds defined beside their
+ /// use site. (Consumed by the collision test; the running CLI reaches its kinds
+ /// directly.)
+ #[allow(dead_code)]
+ pub const GMEOW_CLI_DIAG_CODES: &[&str] = &[
++    ProverFailed::CODE,
+     RdfPipelineFailed::CODE,
+     BundleReadFailed::CODE,
+     SourceReadFailed::CODE,
+@@ -96,6 +165,7 @@ pub const GMEOW_CLI_DIAG_CODES: &[&str] = &[
+ #[allow(dead_code)]
+ pub fn register_all() -> Vec<Code> {
+     vec![
++        ProverFailed::register(),
+         RdfPipelineFailed::register(),
+         BundleReadFailed::register(),
+         SourceReadFailed::register(),
+diff --git a/crates/logic-compile/src/frontend/source_admission.rs b/crates/logic-compile/src/frontend/source_admission.rs
+index 93f94dd27..83055282d 100644
+--- a/crates/logic-compile/src/frontend/source_admission.rs
++++ b/crates/logic-compile/src/frontend/source_admission.rs
+@@ -514,14 +514,14 @@ impl<'a> AdmissionBuilder<'a> {
+                         documents,
+                         SemanticUnitDisposition::Blocked {
+                             code: "UNSUPPORTED_QUOTED_TERM_ARGUMENT".into(),
+-                            reason,
++                            reason: reason.to_string(),
+                         },
+                     ),
+                 Err(reason) => self.push(
+                     SemanticUnitKind::Assertion,
+                     anchor,
+                     documents,
+-                    malformed("MALFORMED_SELECTED_ASSERTION", reason),
++                    malformed("MALFORMED_SELECTED_ASSERTION", reason.to_string()),
+                 ),
+             }
+         }
+@@ -1182,10 +1182,15 @@ fn single_iri_object(
+     }
+ }
+ 
+-fn assertion_from_quad(dataset: &RdfDataset, quad: QuadIds) -> Result<SourceAssertion, String> {
++fn assertion_from_quad(
++    dataset: &RdfDataset,
++    quad: QuadIds,
++) -> gmeow_errors::Result<SourceAssertion> {
+     let subject = atomic_term(dataset, quad.s, false)?;
+     let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
+-        return Err("RDF predicate is not an IRI".into());
++        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
++            detail: "RDF predicate is not an IRI".into(),
++        }));
+     };
+     let object = atomic_term(dataset, quad.o, true)?;
+     Ok(SourceAssertion {
+@@ -1199,7 +1204,7 @@ fn atomic_term(
+     dataset: &RdfDataset,
+     id: TermId,
+     literal_allowed: bool,
+-) -> Result<AtomicTerm, String> {
++) -> gmeow_errors::Result<AtomicTerm> {
+     match dataset.resolve(id) {
+         TermRef::Iri(iri) => Ok(AtomicTerm::Iri(iri.to_owned())),
+         TermRef::Blank { label, scope } => Ok(AtomicTerm::Blank(
+@@ -1212,7 +1217,9 @@ fn atomic_term(
+             direction,
+         } if literal_allowed => {
+             let TermRef::Iri(datatype) = dataset.resolve(datatype) else {
+-                return Err("literal datatype is not an IRI".into());
++                return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
++                    detail: "literal datatype is not an IRI".into(),
++                }));
+             };
+             let language = language.map(str::to_owned);
+             Ok(AtomicTerm::Literal(purrdf::RdfLiteral {
+@@ -1226,11 +1233,13 @@ fn atomic_term(
+                 direction,
+             }))
+         }
+-        TermRef::Literal { .. } => Err("literal cannot occur in assertion subject position".into()),
+-        TermRef::Triple { .. } => Err(
+-            "quoted triple term requires an explicit proposition-term translation and remains unasserted"
++        TermRef::Literal { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
++            detail: "literal cannot occur in assertion subject position".into(),
++        })),
++        TermRef::Triple { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
++            detail: "quoted triple term requires an explicit proposition-term translation and remains unasserted"
+                 .into(),
+-        ),
++        })),
+     }
+ }
+ 
+diff --git a/crates/logic/src/error.rs b/crates/logic/src/error.rs
+index 7cddc4c65..9c1a8ee1c 100644
+--- a/crates/logic/src/error.rs
++++ b/crates/logic/src/error.rs
+@@ -117,6 +117,33 @@ define_diag_kind! {
+     message = "{}", detail;
+ }
+ 
++/// Typed evidence for a numeric physical-execution failure.
++///
++/// This value is the downcastable source payload of the existing
++/// [`Physical`] diagnostic kind. It is never used as a function error type:
++/// every failing boundary returns [`gmeow_errors::Diag`], while cached plan
++/// preparation retains a clone solely to mint a fresh diagnostic per caller.
++#[derive(Debug, Clone)]
++pub struct Numeric {
++    pub rule: String,
++    pub operation: String,
++    pub operands: String,
++    pub datatype: String,
++    pub detail: String,
++}
++
++impl std::fmt::Display for Numeric {
++    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        write!(
++            formatter,
++            "numeric rule {} operation {} operands {} datatype {}: {}; selected operation is incomplete",
++            self.rule, self.operation, self.operands, self.datatype, self.detail
++        )
++    }
++}
++
++impl std::error::Error for Numeric {}
++
+ define_diag_kind! {
+     /// A teleology derivation precondition does not hold: a goal, plan, outcome,
+     /// action-schema, gate-probe, or deontic node missing a required property, an
+diff --git a/crates/logic/src/external_evidence.rs b/crates/logic/src/external_evidence.rs
+index 02418c5f8..993491f5f 100644
+--- a/crates/logic/src/external_evidence.rs
++++ b/crates/logic/src/external_evidence.rs
+@@ -18,6 +18,7 @@
+ 
+ use std::collections::{BTreeMap, BTreeSet};
+ 
++use gmeow_errors::{Diag, DiagKind, Grade};
+ use gmeow_logic_compile::tptp::FofSentence;
+ use gmeow_logic_compile::tptp::problem_name_matches;
+ use gmeow_math_lift::proof::{
+@@ -69,12 +70,332 @@ pub struct SzsArtifact {
+ /// Stable refusal emitted by strict SZS artifact framing.
+ #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+ pub struct ArtifactProtocolError {
++    /// Transcript channel which supplied the rejected framing.
++    pub channel: Option<ArtifactChannel>,
++    /// One-based offending framing line, when identified.
++    pub line: Option<usize>,
++    /// Exact rejected marker or transcript.
++    pub source_text: Option<String>,
++    /// Admitted problem names against which the marker was checked.
++    pub expected_problems: BTreeSet<String>,
+     /// Stable machine code.
+     pub code: String,
+     /// Human-readable explanation.
+     pub detail: String,
+ }
+ 
++/// The checker operation which refused the supplied evidence.
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
++#[serde(rename_all = "kebab-case")]
++pub enum EvidenceOperation {
++    /// Reparse the exact emitted problem.
++    ProblemParsing,
++    /// Parse an external finite-model document.
++    ModelParsing,
++    /// Parse and validate an external refutation.
++    RefutationParsing,
++    /// Recover the problem's function and predicate signature.
++    Signature,
++    /// Validate the finite interpretation tables.
++    ModelTable,
++    /// Validate the finite domain and its distinctness.
++    Domain,
++    /// Evaluate the problem against the supplied interpretation.
++    Evaluation,
++}
++
++/// Why the selected evidence operation cannot certify its input.
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
++#[serde(rename_all = "kebab-case")]
++pub enum EvidenceFailureClass {
++    /// Malformed or semantically false evidence.
++    Invalid,
++    /// Well-formed evidence outside the admitted checker fragment.
++    Unsupported,
++    /// A declared finite resource bound was reached.
++    Resource,
++}
++
++/// Machine-readable evidence retained through diagnostic report projection.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct EvidenceFailure {
++    /// Selected checker operation.
++    pub operation: EvidenceOperation,
++    /// Typed refusal category, independent of prose.
++    pub classification: EvidenceFailureClass,
++    /// Original refusal detail.
++    pub detail: String,
++    /// The input unit, symbol, or semantic locus when known.
++    pub locus: Option<String>,
++    /// Exact source document available at the checker boundary.
++    pub source_text: Option<String>,
++    /// Exact transformed text supplied to the parser when it differs from the
++    /// retained source document.
++    pub parsed_text: Option<String>,
++    /// Resource usage or inventory size observed at refusal.
++    pub observed: Option<u64>,
++    /// Selected resource ceiling.
++    pub limit: Option<u64>,
++}
++
++/// A serialized view of a shared diagnostic at the artifact-report boundary.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct ArtifactDiagnostic {
++    /// Stable shared diagnostic code.
++    pub code: String,
++    /// The diagnostic's complete grade.
++    pub grade: Grade,
++    /// Typed checker evidence.
++    pub evidence: EvidenceFailure,
++    /// Ordered causal error descriptions, preserved at serialization.
++    pub causes: Vec<String>,
++    /// Original parser diagnostic code, before checker context was attached.
++    pub source_code: Option<String>,
++    /// Original parser diagnostic grade.
++    pub source_grade: Option<Grade>,
++    /// Original parser source coordinates and focus.
++    pub source_context: Option<gmeow_errors::SourceContext>,
++    /// Ordered propagation contexts.
++    pub context: Vec<String>,
++    /// Rust source location at which the failure was observed.
++    pub emitted_file: String,
++    /// One-based Rust source line.
++    pub emitted_line: u32,
++}
++
++#[derive(Debug)]
++struct ExternalEvidenceFailure {
++    evidence: EvidenceFailure,
++    cause: Option<Diag>,
++}
++
++impl std::fmt::Display for ExternalEvidenceFailure {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        f.write_str(&self.evidence.detail)
++    }
++}
++
++impl std::error::Error for ExternalEvidenceFailure {
++    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
++        self.cause
++            .as_ref()
++            .and_then(|cause| cause.inner().source.as_deref().map(|source| source as _))
++    }
++}
++
++impl DiagKind for ExternalEvidenceFailure {
++    fn code(&self) -> gmeow_errors::Code {
++        let code = match self.evidence.classification {
++            EvidenceFailureClass::Unsupported => "logic.external-evidence.unsupported",
++            EvidenceFailureClass::Resource => "logic.external-evidence.resource",
++            EvidenceFailureClass::Invalid => match self.evidence.operation {
++                EvidenceOperation::ProblemParsing => "logic.external-evidence.problem-parse",
++                EvidenceOperation::ModelParsing => "logic.external-evidence.model-parse",
++                EvidenceOperation::RefutationParsing => "logic.external-evidence.refutation-parse",
++                EvidenceOperation::Signature => "logic.external-evidence.signature",
++                EvidenceOperation::ModelTable => "logic.external-evidence.model-table",
++                EvidenceOperation::Domain => "logic.external-evidence.domain",
++                EvidenceOperation::Evaluation => "logic.external-evidence.evaluation",
++            },
++        };
++        gmeow_errors::register_code(code)
++    }
++}
++
++impl std::fmt::Display for ArtifactProtocolError {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        f.write_str(&self.detail)
++    }
++}
++
++impl std::error::Error for ArtifactProtocolError {}
++
++impl DiagKind for ArtifactProtocolError {
++    fn code(&self) -> gmeow_errors::Code {
++        gmeow_errors::register_code(&self.code)
++    }
++}
++
++#[track_caller]
++fn failure(operation: EvidenceOperation, detail: impl Into<String>) -> Diag {
++    Diag::of_kind(ExternalEvidenceFailure {
++        evidence: EvidenceFailure {
++            operation,
++            classification: EvidenceFailureClass::Invalid,
++            detail: detail.into(),
++            locus: None,
++            source_text: None,
++            parsed_text: None,
++            observed: None,
++            limit: None,
++        },
++        cause: None,
++    })
++}
++
++#[track_caller]
++fn unsupported(operation: EvidenceOperation, detail: impl Into<String>) -> Diag {
++    let mut diagnostic = failure(operation, detail);
++    let source = diagnostic
++        .inner_mut()
++        .source
++        .as_mut()
++        .expect("typed failure");
++    let payload = source
++        .downcast_mut::<ExternalEvidenceFailure>()
++        .expect("typed failure");
++    payload.evidence.classification = EvidenceFailureClass::Unsupported;
++    let code = payload.code();
++    diagnostic.inner_mut().code = code;
++    diagnostic
++}
++
++#[track_caller]
++fn resource_failure(
++    operation: EvidenceOperation,
++    detail: impl Into<String>,
++    observed: u64,
++    limit: u64,
++) -> Diag {
++    let mut diagnostic = failure(operation, detail);
++    let source = diagnostic
++        .inner_mut()
++        .source
++        .as_mut()
++        .expect("typed failure");
++    let payload = source
++        .downcast_mut::<ExternalEvidenceFailure>()
++        .expect("typed failure");
++    payload.evidence.classification = EvidenceFailureClass::Resource;
++    payload.evidence.observed = Some(observed);
++    payload.evidence.limit = Some(limit);
++    let code = payload.code();
++    diagnostic.inner_mut().code = code;
++    diagnostic
++}
++
++fn at_locus(mut diagnostic: Diag, locus: &str) -> Diag {
++    if let Some(payload) = diagnostic
++        .inner_mut()
++        .source
++        .as_mut()
++        .and_then(|source| source.downcast_mut::<ExternalEvidenceFailure>())
++    {
++        payload.evidence.locus = Some(locus.to_owned());
++    }
++    diagnostic.with_context(format!("external evidence unit {locus}"))
++}
++
++#[track_caller]
++fn evaluation_failure(detail: impl Into<String>) -> Diag {
++    failure(EvidenceOperation::Evaluation, detail)
++}
++
++#[track_caller]
++fn parser_failure(
++    operation: EvidenceOperation,
++    source: &str,
++    parsed: Option<&str>,
++    cause: Diag,
++) -> Diag {
++    Diag::of_kind(ExternalEvidenceFailure {
++        evidence: EvidenceFailure {
++            operation,
++            classification: EvidenceFailureClass::Invalid,
++            detail: cause.to_string(),
++            locus: None,
++            source_text: Some(source.to_owned()),
++            parsed_text: parsed.map(str::to_owned),
++            observed: None,
++            limit: None,
++        },
++        cause: Some(cause),
++    })
++}
++
++fn failed_check(
++    artifact: &SzsArtifact,
++    problem_digest: &str,
++    code: &str,
++    diagnostic: Diag,
++    units: u64,
++    evaluations: u64,
++    budget: Option<u64>,
++) -> ArtifactCheck {
++    let failure = diagnostic
++        .downcast_ref::<ExternalEvidenceFailure>()
++        .expect("checker failure is typed");
++    let mut evidence = failure.evidence.clone();
++    if evidence.source_text.is_none()
++        && matches!(
++            evidence.operation,
++            EvidenceOperation::ModelParsing
++                | EvidenceOperation::RefutationParsing
++                | EvidenceOperation::ModelTable
++                | EvidenceOperation::Domain
++                | EvidenceOperation::Evaluation
++        )
++    {
++        evidence.source_text = Some(artifact.text.clone());
++    }
++    let disposition = match evidence.classification {
++        EvidenceFailureClass::Invalid => ArtifactCheckDisposition::Invalid,
++        EvidenceFailureClass::Unsupported | EvidenceFailureClass::Resource => {
++            ArtifactCheckDisposition::Unsupported
++        }
++    };
++    let mut causes = failure
++        .cause
++        .as_ref()
++        .map(|cause| vec![cause.message().to_owned()])
++        .unwrap_or_default();
++    let mut cause = std::error::Error::source(failure);
++    while let Some(value) = cause {
++        causes.push(value.to_string());
++        cause = value.source();
++    }
++    let code = match (evidence.classification, evidence.operation) {
++        (EvidenceFailureClass::Unsupported, _) => "UNSUPPORTED_FINITE_MODEL",
++        (EvidenceFailureClass::Resource, EvidenceOperation::Domain) => "FINITE_MODEL_DOMAIN_LIMIT",
++        _ => code,
++    };
++    let mut result = check(
++        disposition,
++        artifact,
++        problem_digest,
++        units,
++        evaluations,
++        budget,
++        code,
++        diagnostic.message(),
++    );
++    result.diagnostic = Some(ArtifactDiagnostic {
++        code: gmeow_errors::code::code_str(diagnostic.code()).to_owned(),
++        grade: diagnostic.grade(),
++        evidence,
++        causes,
++        source_code: failure
++            .cause
++            .as_ref()
++            .map(|cause| gmeow_errors::code::code_str(cause.code()).to_owned()),
++        source_grade: failure.cause.as_ref().map(Diag::grade),
++        source_context: failure
++            .cause
++            .as_ref()
++            .map(|cause| cause.inner().source_ctx.clone()),
++        context: failure
++            .cause
++            .iter()
++            .flat_map(|cause| cause.inner().context.iter())
++            .chain(diagnostic.inner().context.iter())
++            .map(|frame| frame.label.clone())
++            .collect(),
++        emitted_file: diagnostic.emitted_at().file().to_owned(),
++        emitted_line: diagnostic.emitted_at().line(),
++    });
++    result
++}
++
+ /// Strength established by the independent artifact checker.
+ #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+ #[serde(rename_all = "kebab-case")]
+@@ -111,6 +432,9 @@ pub struct ArtifactCheck {
+     pub code: String,
+     /// Human-readable explanation.
+     pub detail: String,
++    /// Full typed failure evidence retained at the report boundary.
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub diagnostic: Option<ArtifactDiagnostic>,
+ }
+ 
+ #[derive(Debug, Clone, PartialEq, Eq)]
+@@ -140,20 +464,40 @@ pub fn extract_szs_artifacts(
+     stdout: &str,
+     stderr: &str,
+     expected_problem_names: &BTreeSet<String>,
+-) -> Result<Vec<SzsArtifact>, ArtifactProtocolError> {
++) -> gmeow_errors::Result<Vec<SzsArtifact>> {
+     let mut artifacts = Vec::new();
+     scan_artifact_channel(
+         stdout,
+         ArtifactChannel::Stdout,
+         expected_problem_names,
+         &mut artifacts,
+-    )?;
++    )
++    .map_err(|mut diagnostic| {
++        let payload = diagnostic
++            .inner_mut()
++            .source
++            .as_mut()
++            .and_then(|source| source.downcast_mut::<ArtifactProtocolError>())
++            .expect("protocol diagnostic");
++        payload.expected_problems = expected_problem_names.clone();
++        diagnostic
++    })?;
+     scan_artifact_channel(
+         stderr,
+         ArtifactChannel::Stderr,
+         expected_problem_names,
+         &mut artifacts,
+-    )?;
++    )
++    .map_err(|mut diagnostic| {
++        let payload = diagnostic
++            .inner_mut()
++            .source
++            .as_mut()
++            .and_then(|source| source.downcast_mut::<ArtifactProtocolError>())
++            .expect("protocol diagnostic");
++        payload.expected_problems = expected_problem_names.clone();
++        diagnostic
++    })?;
+     Ok(artifacts)
+ }
+ 
+@@ -187,16 +531,18 @@ fn scan_artifact_channel(
+     channel: ArtifactChannel,
+     expected_problem_names: &BTreeSet<String>,
+     output: &mut Vec<SzsArtifact>,
+-) -> Result<(), ArtifactProtocolError> {
++) -> gmeow_errors::Result<()> {
+     let mut open: Option<OpenArtifact> = None;
+     for (index, line) in transcript.split_inclusive('\n').enumerate() {
+         let line_number = index + 1;
+-        let marker = parse_marker(line)?;
++        let marker =
++            parse_marker(line).map_err(|error| protocol_at(error, channel, line_number, line))?;
+         match (marker, open.as_mut()) {
+             (None, Some(active)) => active.text.push_str(line),
+             (None, None) => {}
+             (Some(marker), None) if marker.start => {
+-                validate_marker_problem(&marker, expected_problem_names)?;
++                validate_marker_problem(&marker, expected_problem_names)
++                    .map_err(|error| protocol_at(error, channel, line_number, line))?;
+                 open = Some(OpenArtifact {
+                     marker,
+                     start_line: line_number,
+@@ -204,7 +550,10 @@ fn scan_artifact_channel(
+                 });
+             }
+             (Some(marker), None) => {
+-                return Err(protocol_error(
++                return Err(protocol_error_at(
++                    channel,
++                    line_number,
++                    line,
+                     "UNMATCHED_SZS_ARTIFACT_END",
+                     format!(
+                         "{:?} line {line_number} ends `{}` without a matching start marker",
+@@ -213,7 +562,10 @@ fn scan_artifact_channel(
+                 ));
+             }
+             (Some(marker), Some(active)) if marker.start => {
+-                return Err(protocol_error(
++                return Err(protocol_error_at(
++                    channel,
++                    line_number,
++                    line,
+                     "NESTED_SZS_ARTIFACT",
+                     format!(
+                         "{:?} line {line_number} starts `{}` before `{}` from line {} ended",
+@@ -222,10 +574,14 @@ fn scan_artifact_channel(
+                 ));
+             }
+             (Some(marker), Some(_)) => {
+-                validate_marker_problem(&marker, expected_problem_names)?;
++                validate_marker_problem(&marker, expected_problem_names)
++                    .map_err(|error| protocol_at(error, channel, line_number, line))?;
+                 let active = open.take().expect("matched open artifact");
+                 if marker.kind != active.marker.kind {
+-                    return Err(protocol_error(
++                    return Err(protocol_error_at(
++                        channel,
++                        line_number,
++                        line,
+                         "MISMATCHED_SZS_ARTIFACT_KIND",
+                         format!(
+                             "{:?} line {line_number} ends `{}` but line {} started `{}`",
+@@ -237,7 +593,10 @@ fn scan_artifact_channel(
+                     && active.marker.problem.is_some()
+                     && marker.problem != active.marker.problem
+                 {
+-                    return Err(protocol_error(
++                    return Err(protocol_error_at(
++                        channel,
++                        line_number,
++                        line,
+                         "MISMATCHED_SZS_ARTIFACT_PROBLEM",
+                         format!(
+                             "{:?} artifact start/end markers name different problems",
+@@ -260,7 +619,10 @@ fn scan_artifact_channel(
+         }
+     }
+     if let Some(active) = open {
+-        return Err(protocol_error(
++        return Err(protocol_error_at(
++            channel,
++            active.start_line,
++            transcript,
+             "UNTERMINATED_SZS_ARTIFACT",
+             format!(
+                 "{:?} line {} starts `{}` without a matching end marker",
+@@ -271,7 +633,7 @@ fn scan_artifact_channel(
+     Ok(())
+ }
+ 
+-fn parse_marker(line: &str) -> Result<Option<Marker>, ArtifactProtocolError> {
++fn parse_marker(line: &str) -> gmeow_errors::Result<Option<Marker>> {
+     let mut body = line.trim();
+     let Some(first) = body.chars().next() else {
+         return Ok(None);
+@@ -327,7 +689,7 @@ fn parse_marker(line: &str) -> Result<Option<Marker>, ArtifactProtocolError> {
+ fn validate_marker_problem(
+     marker: &Marker,
+     expected_problem_names: &BTreeSet<String>,
+-) -> Result<(), ArtifactProtocolError> {
++) -> gmeow_errors::Result<()> {
+     if let Some(problem) = marker.problem.as_deref()
+         && !problem_name_matches(problem, expected_problem_names)
+     {
+@@ -339,11 +701,40 @@ fn validate_marker_problem(
+     Ok(())
+ }
+ 
+-fn protocol_error(code: &str, detail: impl Into<String>) -> ArtifactProtocolError {
+-    ArtifactProtocolError {
++fn protocol_at(mut diagnostic: Diag, channel: ArtifactChannel, line: usize, source: &str) -> Diag {
++    let payload = diagnostic
++        .inner_mut()
++        .source
++        .as_mut()
++        .and_then(|source| source.downcast_mut::<ArtifactProtocolError>())
++        .expect("protocol diagnostic");
++    payload.channel = Some(channel);
++    payload.line = Some(line);
++    payload.source_text = Some(source.to_owned());
++    diagnostic.with_context(format!("{channel:?} line {line}"))
++}
++
++#[track_caller]
++fn protocol_error_at(
++    channel: ArtifactChannel,
++    line: usize,
++    source: &str,
++    code: &str,
++    detail: impl Into<String>,
++) -> Diag {
++    protocol_at(protocol_error(code, detail), channel, line, source)
++}
++
++#[track_caller]
++fn protocol_error(code: &str, detail: impl Into<String>) -> Diag {
++    Diag::of_kind(ArtifactProtocolError {
++        channel: None,
++        line: None,
++        source_text: None,
++        expected_problems: BTreeSet::new(),
+         code: code.to_owned(),
+         detail: detail.into(),
+-    }
++    })
+ }
+ 
+ fn check_refutation(
+@@ -354,11 +745,19 @@ fn check_refutation(
+     let derivation = match parse_derivation(artifact.text.as_bytes()) {
+         Ok(derivation) => derivation,
+         Err(error) => {
+-            return invalid(
++            return failed_check(
+                 artifact,
+                 problem_digest,
+                 "MALFORMED_TSTP_REFUTATION",
+-                error.to_string(),
++                parser_failure(
++                    EvidenceOperation::RefutationParsing,
++                    &artifact.text,
++                    None,
++                    error,
++                ),
++                0,
++                0,
++                None,
+             );
+         }
+     };
+@@ -367,17 +766,22 @@ fn check_refutation(
+             artifact,
+             problem_digest,
+             "TSTP_REFUTATION_NOT_FALSE",
++            EvidenceOperation::RefutationParsing,
++            None,
+             "the unique terminal step does not conclude `$false`",
+         );
+     }
+     let problem = match parsed_problem(sentences) {
+         Ok(problem) => problem,
+         Err(detail) => {
+-            return invalid(
++            return failed_check(
+                 artifact,
+                 problem_digest,
+                 "EMITTED_PROBLEM_REPARSE_FAILED",
+                 detail,
++                0,
++                0,
++                None,
+             );
+         }
+     };
+@@ -389,6 +793,8 @@ fn check_refutation(
+                 artifact,
+                 problem_digest,
+                 "FOREIGN_TSTP_LEAF_ROLE",
++                EvidenceOperation::RefutationParsing,
++                Some(&step.name),
+                 format!(
+                     "leaf `{}` has role `{}` rather than an admitted problem-premise role",
+                     step.name,
+@@ -401,6 +807,8 @@ fn check_refutation(
+                 artifact,
+                 problem_digest,
+                 "UNBOUND_TSTP_LEAF",
++                EvidenceOperation::RefutationParsing,
++                Some(&step.name),
+                 format!(
+                     "leaf `{}` is not bound to an external problem source",
+                     step.name
+@@ -416,6 +824,8 @@ fn check_refutation(
+                 artifact,
+                 problem_digest,
+                 "FOREIGN_TSTP_LEAF_FORMULA",
++                EvidenceOperation::RefutationParsing,
++                Some(&step.name),
+                 format!(
+                     "leaf `{}` is not one of the exact emitted problem formulae",
+                     step.name
+@@ -428,6 +838,8 @@ fn check_refutation(
+             artifact,
+             problem_digest,
+             "TSTP_REFUTATION_HAS_NO_INPUT_LEAF",
++            EvidenceOperation::RefutationParsing,
++            None,
+             "the refutation contains no exact emitted problem premise",
+         );
+     }
+@@ -576,84 +988,109 @@ fn check_finite_model(
+     artifact: &SzsArtifact,
+     sentences: &[FofSentence],
+     problem_digest: &str,
++) -> ArtifactCheck {
++    check_finite_model_with_budget(artifact, sentences, problem_digest, MODEL_EVALUATION_BUDGET)
++}
++
++fn check_finite_model_with_budget(
++    artifact: &SzsArtifact,
++    sentences: &[FofSentence],
++    problem_digest: &str,
++    evaluation_limit: u64,
+ ) -> ArtifactCheck {
+     let problem = match parsed_problem(sentences) {
+         Ok(problem) => problem,
+         Err(detail) => {
+-            return invalid(
++            return failed_check(
+                 artifact,
+                 problem_digest,
+                 "EMITTED_PROBLEM_REPARSE_FAILED",
+                 detail,
++                0,
++                0,
++                None,
+             );
+         }
+     };
+     let model_document = match parse_model_document(&artifact.text) {
+         Ok(document) => document,
+         Err(detail) => {
+-            return invalid(artifact, problem_digest, "MALFORMED_FINITE_MODEL", detail);
++            return failed_check(
++                artifact,
++                problem_digest,
++                "MALFORMED_FINITE_MODEL",
++                detail,
++                0,
++                0,
++                None,
++            );
+         }
+     };
+     let model = match FiniteModel::from_document(&model_document, &problem) {
+         Ok(model) => model,
+         Err(detail) => {
+-            return invalid(
++            return failed_check(
+                 artifact,
+                 problem_digest,
+                 "INVALID_FINITE_MODEL_TABLE",
+                 detail,
++                0,
++                0,
++                None,
+             );
+         }
+     };
+-    let mut budget = EvaluationBudget::new(MODEL_EVALUATION_BUDGET);
++    let mut budget = EvaluationBudget::new(evaluation_limit);
+     for step in problem.steps() {
+         let Conclusion::Formula(formula) = &step.conclusion else {
+             return invalid(
+                 artifact,
+                 problem_digest,
+                 "NON_FOF_EMITTED_SENTENCE",
++                EvidenceOperation::ProblemParsing,
++                Some(&step.name),
+                 format!("emitted sentence `{}` is not FOF", step.name),
+             );
+         };
+-        match model.evaluate(formula, &mut budget) {
++        match model
++            .evaluate(formula, &mut budget)
++            .map_err(|error| at_locus(error, &step.name))
++        {
+             Ok(true) => {}
+             Ok(false) => {
+-                return check(
+-                    ArtifactCheckDisposition::Invalid,
++                let detail = format!(
++                    "finite interpretation makes emitted sentence `{}` false",
++                    step.name
++                );
++                return failed_check(
+                     artifact,
+                     problem_digest,
+-                    u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
+-                    budget.used(),
+-                    Some(MODEL_EVALUATION_BUDGET),
+                     "FINITE_MODEL_FALSIFIES_PROBLEM",
+-                    format!(
+-                        "finite interpretation makes emitted sentence `{}` false",
+-                        step.name
+-                    ),
+-                );
+-            }
+-            Err(EvalError::Budget) => {
+-                return check(
+-                    ArtifactCheckDisposition::Unsupported,
+-                    artifact,
+-                    problem_digest,
++                    at_locus(evaluation_failure(detail), &step.name),
+                     u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
+                     budget.used(),
+-                    Some(MODEL_EVALUATION_BUDGET),
+-                    "FINITE_MODEL_CHECK_BUDGET_EXHAUSTED",
+-                    "finite interpretation exceeds the bounded semantic checker budget",
++                    Some(evaluation_limit),
+                 );
+             }
+-            Err(EvalError::Invalid(detail)) => {
+-                return check(
+-                    ArtifactCheckDisposition::Invalid,
++            Err(error) => {
++                let resource =
++                    error
++                        .downcast_ref::<ExternalEvidenceFailure>()
++                        .is_some_and(|failure| {
++                            failure.evidence.classification == EvidenceFailureClass::Resource
++                        });
++                return failed_check(
+                     artifact,
+                     problem_digest,
++                    if resource {
++                        "FINITE_MODEL_CHECK_BUDGET_EXHAUSTED"
++                    } else {
++                        "FINITE_MODEL_EVALUATION_FAILED"
++                    },
++                    error,
+                     u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
+                     budget.used(),
+-                    Some(MODEL_EVALUATION_BUDGET),
+-                    "FINITE_MODEL_EVALUATION_FAILED",
+-                    detail,
++                    Some(evaluation_limit),
+                 );
+             }
+         }
+@@ -664,15 +1101,18 @@ fn check_finite_model(
+         problem_digest,
+         u64::try_from(model_document.steps().len()).unwrap_or(u64::MAX),
+         budget.used(),
+-        Some(MODEL_EVALUATION_BUDGET),
++        Some(evaluation_limit),
+         "FINITE_MODEL_CHECKED",
+         "the total single-sorted finite interpretation satisfies every exact emitted FOF sentence",
+     )
+ }
+ 
+-fn parsed_problem(sentences: &[FofSentence]) -> Result<Document, String> {
++fn parsed_problem(sentences: &[FofSentence]) -> gmeow_errors::Result<Document> {
+     if sentences.is_empty() {
+-        return Err("the emitted problem sentence inventory is empty".to_owned());
++        return Err(failure(
++            EvidenceOperation::ProblemParsing,
++            "the emitted problem sentence inventory is empty",
++        ));
+     }
+     let mut source = String::new();
+     for sentence in sentences {
+@@ -682,7 +1122,8 @@ fn parsed_problem(sentences: &[FofSentence]) -> Result<Document, String> {
+         source.push_str(&sentence.body);
+         source.push_str(").\n");
+     }
+-    parse_document(source.as_bytes()).map_err(|error| error.to_string())
++    parse_document(source.as_bytes())
++        .map_err(|error| parser_failure(EvidenceOperation::ProblemParsing, &source, None, error))
+ }
+ 
+ fn check(
+@@ -705,6 +1146,7 @@ fn check(
+         budget,
+         code: code.to_owned(),
+         detail: detail.into(),
++        diagnostic: None,
+     }
+ }
+ 
+@@ -712,18 +1154,16 @@ fn invalid(
+     artifact: &SzsArtifact,
+     problem_digest: &str,
+     code: &str,
++    operation: EvidenceOperation,
++    locus: Option<&str>,
+     detail: impl Into<String>,
+ ) -> ArtifactCheck {
+-    check(
+-        ArtifactCheckDisposition::Invalid,
+-        artifact,
+-        problem_digest,
+-        0,
+-        0,
+-        None,
+-        code,
+-        detail,
+-    )
++    let diagnostic = failure(operation, detail);
++    let diagnostic = match locus {
++        Some(locus) => at_locus(diagnostic, locus),
++        None => diagnostic,
++    };
++    failed_check(artifact, problem_digest, code, diagnostic, 0, 0, None)
+ }
+ 
+ #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+@@ -739,31 +1179,41 @@ struct Signature {
+ }
+ 
+ impl Signature {
+-    fn from_problem(problem: &Document) -> Result<Self, String> {
++    fn from_problem(problem: &Document) -> gmeow_errors::Result<Self> {
+         let mut signature = Self {
+             functions: BTreeMap::new(),
+             predicates: BTreeMap::new(),
+         };
+         for step in problem.steps() {
+             let Conclusion::Formula(formula) = &step.conclusion else {
+-                return Err(format!("problem sentence `{}` is not FOF", step.name));
++                return Err(failure(
++                    EvidenceOperation::Signature,
++                    format!("problem sentence `{}` is not FOF", step.name),
++                ));
+             };
+-            signature.formula(formula)?;
++            signature
++                .formula(formula)
++                .map_err(|error| at_locus(error, &step.name))?;
+         }
+         Ok(signature)
+     }
+ 
+-    fn formula(&mut self, formula: &Formula) -> Result<(), String> {
++    fn formula(&mut self, formula: &Formula) -> gmeow_errors::Result<()> {
+         match formula {
+             Formula::Atom(term) => {
+                 let Term::Apply { functor, args } = term else {
+-                    return Err("a predicate position contains a variable".to_owned());
++                    return Err(failure(
++                        EvidenceOperation::Signature,
++                        "a predicate position contains a variable",
++                    ));
+                 };
+                 if !matches!(functor.as_str(), "$true" | "$false") {
+-                    insert_arity(&mut self.predicates, functor, args.len(), "predicate")?;
++                    insert_arity(&mut self.predicates, functor, args.len(), "predicate")
++                        .map_err(|error| at_locus(error, functor))?;
+                     if self.functions.contains_key(functor) {
+-                        return Err(format!(
+-                            "symbol `{functor}` is used as both function and predicate"
++                        return Err(failure(
++                            EvidenceOperation::Signature,
++                            format!("symbol `{functor}` is used as both function and predicate"),
+                         ));
+                     }
+                 }
+@@ -785,14 +1235,16 @@ impl Signature {
+         Ok(())
+     }
+ 
+-    fn term(&mut self, term: &Term) -> Result<(), String> {
++    fn term(&mut self, term: &Term) -> gmeow_errors::Result<()> {
+         let Term::Apply { functor, args } = term else {
+             return Ok(());
+         };
+-        insert_arity(&mut self.functions, functor, args.len(), "function")?;
++        insert_arity(&mut self.functions, functor, args.len(), "function")
++            .map_err(|error| at_locus(error, functor))?;
+         if self.predicates.contains_key(functor) {
+-            return Err(format!(
+-                "symbol `{functor}` is used as both predicate and function"
++            return Err(failure(
++                EvidenceOperation::Signature,
++                format!("symbol `{functor}` is used as both predicate and function"),
+             ));
+         }
+         for argument in args {
+@@ -807,12 +1259,13 @@ fn insert_arity(
+     symbol: &str,
+     arity: usize,
+     kind: &str,
+-) -> Result<(), String> {
++) -> gmeow_errors::Result<()> {
+     if let Some(previous) = arities.insert(symbol.to_owned(), arity)
+         && previous != arity
+     {
+-        return Err(format!(
+-            "{kind} `{symbol}` occurs at arities {previous} and {arity}"
++        return Err(failure(
++            EvidenceOperation::Signature,
++            format!("{kind} `{symbol}` occurs at arities {previous} and {arity}"),
+         ));
+     }
+     Ok(())
+@@ -826,24 +1279,33 @@ struct FiniteModel {
+ }
+ 
+ impl FiniteModel {
+-    fn from_document(model: &Document, problem: &Document) -> Result<Self, String> {
++    fn from_document(model: &Document, problem: &Document) -> gmeow_errors::Result<Self> {
+         let signature = Signature::from_problem(problem)?;
+         let mut domain_formula: Option<&Formula> = None;
+         let mut distinct = Vec::new();
+         let mut definitions = Vec::new();
+         for step in model.steps() {
+             if !matches!(step.source, Source::Asserted) {
+-                return Err(format!(
+-                    "model unit `{}` carries proof provenance rather than a direct table entry",
+-                    step.name
++                return Err(failure(
++                    EvidenceOperation::ModelTable,
++                    format!(
++                        "model unit `{}` carries proof provenance rather than a direct table entry",
++                        step.name
++                    ),
+                 ));
+             }
+             let Conclusion::Formula(formula) = &step.conclusion else {
+-                return Err(format!("model unit `{}` is not FOF", step.name));
++                return Err(failure(
++                    EvidenceOperation::ModelTable,
++                    format!("model unit `{}` is not FOF", step.name),
++                ));
+             };
+             if step.role == Role::FiDomain || step.name.starts_with("finite_domain") {
+                 if domain_formula.replace(formula).is_some() {
+-                    return Err("finite model has more than one domain formula".to_owned());
++                    return Err(failure(
++                        EvidenceOperation::ModelTable,
++                        "finite model has more than one domain formula",
++                    ));
+                 }
+             } else if step.name.starts_with("distinct_domain") {
+                 distinct.push(formula);
+@@ -853,20 +1315,31 @@ impl FiniteModel {
+             ) {
+                 flatten_and(formula, &mut definitions);
+             } else {
+-                return Err(format!(
+-                    "model unit `{}` has unsupported role `{}`",
+-                    step.name,
+-                    step.role.as_str()
++                return Err(unsupported(
++                    EvidenceOperation::ModelTable,
++                    format!(
++                        "model unit `{}` has unsupported role `{}`",
++                        step.name,
++                        step.role.as_str()
++                    ),
+                 ));
+             }
+         }
+-        let domain = extract_domain(
+-            domain_formula.ok_or_else(|| "finite model has no domain formula".to_owned())?,
+-        )?;
++        let domain = extract_domain(domain_formula.ok_or_else(|| {
++            failure(
++                EvidenceOperation::ModelTable,
++                "finite model has no domain formula",
++            )
++        })?)?;
+         if domain.len() > MAX_MODEL_DOMAIN {
+-            return Err(format!(
+-                "finite model domain has {} elements; checker limit is {MAX_MODEL_DOMAIN}",
+-                domain.len()
++            return Err(resource_failure(
++                EvidenceOperation::Domain,
++                format!(
++                    "finite model domain has {} elements; checker limit is {MAX_MODEL_DOMAIN}",
++                    domain.len()
++                ),
++                u64::try_from(domain.len()).unwrap_or(u64::MAX),
++                u64::try_from(MAX_MODEL_DOMAIN).unwrap_or(u64::MAX),
+             ));
+         }
+         verify_distinctness(&domain, &distinct)?;
+@@ -885,17 +1358,16 @@ impl FiniteModel {
+                 }
+                 Formula::Not(inner) => {
+                     let Formula::Atom(atom) = inner.as_ref() else {
+-                        return Err(
+-                            "a negated model table entry must be a predicate atom".to_owned()
+-                        );
++                        return Err(failure(
++                            EvidenceOperation::ModelTable,
++                            "a negated model table entry must be a predicate atom",
++                        ));
+                     };
+                     insert_predicate_definition(atom, false, &domain_set, &mut predicates)?;
+                 }
+                 _ => {
+-                    return Err(
+-                        "finite-model tables admit only ground function equations and signed predicate atoms"
+-                            .to_owned(),
+-                    );
++                    return Err(failure(EvidenceOperation::ModelTable, "finite-model tables admit only ground function equations and signed predicate atoms"
++                            .to_owned()));
+                 }
+             }
+         }
+@@ -908,10 +1380,12 @@ impl FiniteModel {
+                     })
+                     .or_insert_with(|| symbol.clone());
+             }
+-            verify_total_table(symbol, *arity, domain.len(), functions.keys())?;
++            verify_total_table(symbol, *arity, domain.len(), functions.keys())
++                .map_err(|error| at_locus(error, symbol))?;
+         }
+         for (symbol, arity) in &signature.predicates {
+-            verify_total_table(symbol, *arity, domain.len(), predicates.keys())?;
++            verify_total_table(symbol, *arity, domain.len(), predicates.keys())
++                .map_err(|error| at_locus(error, symbol))?;
+         }
+         Ok(Self {
+             domain,
+@@ -924,7 +1398,7 @@ impl FiniteModel {
+         &self,
+         formula: &Formula,
+         budget: &mut EvaluationBudget,
+-    ) -> Result<bool, EvalError> {
++    ) -> gmeow_errors::Result<bool> {
+         let mut bindings = BTreeMap::new();
+         self.eval_formula(formula, &mut bindings, budget)
+     }
+@@ -934,7 +1408,7 @@ impl FiniteModel {
+         formula: &Formula,
+         bindings: &mut BTreeMap<String, String>,
+         budget: &mut EvaluationBudget,
+-    ) -> Result<bool, EvalError> {
++    ) -> gmeow_errors::Result<bool> {
+         budget.charge()?;
+         match formula {
+             Formula::Atom(Term::Apply { functor, args })
+@@ -956,12 +1430,12 @@ impl FiniteModel {
+                     })
+                     .copied()
+                     .ok_or_else(|| {
+-                        EvalError::Invalid(format!(
++                        evaluation_failure(format!(
+                             "finite model has no predicate value for `{functor}`"
+                         ))
+                     })
+             }
+-            Formula::Atom(Term::Variable(variable)) => Err(EvalError::Invalid(format!(
++            Formula::Atom(Term::Variable(variable)) => Err(evaluation_failure(format!(
+                 "variable `{variable}` appears in predicate position"
+             ))),
+             Formula::Equation {
+@@ -1007,7 +1481,7 @@ impl FiniteModel {
+         body: &Formula,
+         bindings: &mut BTreeMap<String, String>,
+         budget: &mut EvaluationBudget,
+-    ) -> Result<bool, EvalError> {
++    ) -> gmeow_errors::Result<bool> {
+         fn visit(
+             model: &FiniteModel,
+             quantifier: Quantifier,
+@@ -1016,7 +1490,7 @@ impl FiniteModel {
+             bindings: &mut BTreeMap<String, String>,
+             budget: &mut EvaluationBudget,
+             cursor: usize,
+-        ) -> Result<bool, EvalError> {
++        ) -> gmeow_errors::Result<bool> {
+             if cursor == variables.len() {
+                 return model.eval_formula(body, bindings, budget);
+             }
+@@ -1061,7 +1535,7 @@ impl FiniteModel {
+         terms: &[Term],
+         bindings: &BTreeMap<String, String>,
+         budget: &mut EvaluationBudget,
+-    ) -> Result<Vec<String>, EvalError> {
++    ) -> gmeow_errors::Result<Vec<String>> {
+         terms
+             .iter()
+             .map(|term| self.eval_term(term, bindings, budget))
+@@ -1073,11 +1547,11 @@ impl FiniteModel {
+         term: &Term,
+         bindings: &BTreeMap<String, String>,
+         budget: &mut EvaluationBudget,
+-    ) -> Result<String, EvalError> {
++    ) -> gmeow_errors::Result<String> {
+         budget.charge()?;
+         match term {
+             Term::Variable(variable) => bindings.get(variable).cloned().ok_or_else(|| {
+-                EvalError::Invalid(format!("free variable `{variable}` in emitted problem"))
++                evaluation_failure(format!("free variable `{variable}` in emitted problem"))
+             }),
+             Term::Apply { functor, args } => {
+                 let arguments = self.eval_terms(args, bindings, budget)?;
+@@ -1088,7 +1562,7 @@ impl FiniteModel {
+                     })
+                     .cloned()
+                     .ok_or_else(|| {
+-                        EvalError::Invalid(format!(
++                        evaluation_failure(format!(
+                             "finite model has no function value for `{functor}`"
+                         ))
+                     })
+@@ -1102,39 +1576,70 @@ fn verify_total_table<'a>(
+     arity: usize,
+     domain_size: usize,
+     keys: impl Iterator<Item = &'a TableKey>,
+-) -> Result<(), String> {
+-    let expected = domain_size
+-        .checked_pow(u32::try_from(arity).map_err(|_| "symbol arity does not fit u32")?)
+-        .ok_or_else(|| format!("table size for `{symbol}/{arity}` overflows"))?;
++) -> gmeow_errors::Result<()> {
++    let exponent = u32::try_from(arity).map_err(|_| {
++        at_locus(
++            resource_failure(
++                EvidenceOperation::ModelTable,
++                format!("symbol `{symbol}` arity {arity} does not fit u32"),
++                u64::try_from(arity).unwrap_or(u64::MAX),
++                u64::from(u32::MAX),
++            ),
++            symbol,
++        )
++    })?;
++    let expected = domain_size.checked_pow(exponent).ok_or_else(|| {
++        at_locus(
++            resource_failure(
++                EvidenceOperation::ModelTable,
++                format!("table size for `{symbol}/{arity}` over {domain_size} elements overflows"),
++                u64::try_from(domain_size).unwrap_or(u64::MAX),
++                u64::try_from(usize::MAX).unwrap_or(u64::MAX),
++            ),
++            symbol,
++        )
++    })?;
+     let mut actual = 0_usize;
+     for key in keys.filter(|key| key.symbol == symbol) {
+         if key.arguments.len() != arity {
+-            return Err(format!(
+-                "model defines `{symbol}` at arity {} but the problem uses arity {arity}",
+-                key.arguments.len()
++            return Err(failure(
++                EvidenceOperation::ModelTable,
++                format!(
++                    "model defines `{symbol}` at arity {} but the problem uses arity {arity}",
++                    key.arguments.len()
++                ),
+             ));
+         }
+         actual = actual.saturating_add(1);
+     }
+     if actual != expected {
+-        return Err(format!(
+-            "model table for `{symbol}/{arity}` has {actual} entries; a total interpretation over {domain_size} elements requires {expected}"
++        return Err(failure(
++            EvidenceOperation::ModelTable,
++            format!(
++                "model table for `{symbol}/{arity}` has {actual} entries; a total interpretation over {domain_size} elements requires {expected}"
++            ),
+         ));
+     }
+     Ok(())
+ }
+ 
+-fn extract_domain(formula: &Formula) -> Result<Vec<String>, String> {
++fn extract_domain(formula: &Formula) -> gmeow_errors::Result<Vec<String>> {
+     let Formula::Quantified {
+         quantifier: Quantifier::ForAll,
+         variables,
+         body,
+     } = formula
+     else {
+-        return Err("domain formula must universally quantify one variable".to_owned());
++        return Err(failure(
++            EvidenceOperation::Domain,
++            "domain formula must universally quantify one variable",
++        ));
+     };
+     let [variable] = variables.as_slice() else {
+-        return Err("domain formula must bind exactly one variable".to_owned());
++        return Err(failure(
++            EvidenceOperation::Domain,
++            "domain formula must bind exactly one variable",
++        ));
+     };
+     let mut alternatives = Vec::new();
+     flatten_or(body, &mut alternatives);
+@@ -1147,37 +1652,50 @@ fn extract_domain(formula: &Formula) -> Result<Vec<String>, String> {
+             right,
+         } = alternative
+         else {
+-            return Err("domain alternatives must be positive equalities".to_owned());
++            return Err(failure(
++                EvidenceOperation::Domain,
++                "domain alternatives must be positive equalities",
++            ));
+         };
+         let element = match (left, right) {
+             (Term::Variable(name), term) | (term, Term::Variable(name)) if name == variable => {
+                 domain_constant(term)?
+             }
+             _ => {
+-                return Err(
++                return Err(failure(
++                    EvidenceOperation::Domain,
+                     "every domain equality must compare the bound variable with a ground constant"
+                         .to_owned(),
+-                );
++                ));
+             }
+         };
+         if !seen.insert(element.clone()) {
+-            return Err(format!("domain element `{element}` appears more than once"));
++            return Err(failure(
++                EvidenceOperation::Domain,
++                format!("domain element `{element}` appears more than once"),
++            ));
+         }
+         domain.push(element);
+     }
+     if domain.is_empty() {
+-        return Err("finite model domain is empty".to_owned());
++        return Err(failure(
++            EvidenceOperation::Domain,
++            "finite model domain is empty",
++        ));
+     }
+     Ok(domain)
+ }
+ 
+-fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), String> {
++fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> gmeow_errors::Result<()> {
+     if domain.len() == 1 {
+         if formulas.is_empty() {
+             return Ok(());
+         }
+     } else if formulas.is_empty() {
+-        return Err("multi-element model has no distinct-domain formula".to_owned());
++        return Err(failure(
++            EvidenceOperation::Domain,
++            "multi-element model has no distinct-domain formula",
++        ));
+     }
+     let domain_set: BTreeSet<_> = domain.iter().cloned().collect();
+     let mut actual = BTreeSet::new();
+@@ -1191,12 +1709,18 @@ fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), S
+                 right,
+             } = conjunct
+             else {
+-                return Err("distinct-domain formula must contain only disequalities".to_owned());
++                return Err(failure(
++                    EvidenceOperation::Domain,
++                    "distinct-domain formula must contain only disequalities",
++                ));
+             };
+             let left = domain_constant(left)?;
+             let right = domain_constant(right)?;
+             if left == right || !domain_set.contains(&left) || !domain_set.contains(&right) {
+-                return Err("distinct-domain formula names an invalid pair".to_owned());
++                return Err(failure(
++                    EvidenceOperation::Domain,
++                    "distinct-domain formula names an invalid pair",
++                ));
+             }
+             let pair = if left < right {
+                 (left, right)
+@@ -1204,7 +1728,10 @@ fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), S
+                 (right, left)
+             };
+             if !actual.insert(pair) {
+-                return Err("distinct-domain formula repeats a pair".to_owned());
++                return Err(failure(
++                    EvidenceOperation::Domain,
++                    "distinct-domain formula repeats a pair",
++                ));
+             }
+         }
+     }
+@@ -1220,9 +1747,10 @@ fn verify_distinctness(domain: &[String], formulas: &[&Formula]) -> Result<(), S
+         }
+     }
+     if actual != expected {
+-        return Err(
+-            "distinct-domain formula does not cover every domain pair exactly once".to_owned(),
+-        );
++        return Err(failure(
++            EvidenceOperation::Domain,
++            "distinct-domain formula does not cover every domain pair exactly once",
++        ));
+     }
+     Ok(())
+ }
+@@ -1232,27 +1760,35 @@ fn insert_function_definition(
+     right: &Term,
+     domain: &BTreeSet<String>,
+     functions: &mut BTreeMap<TableKey, String>,
+-) -> Result<(), String> {
++) -> gmeow_errors::Result<()> {
+     let left_domain = domain_term(left, domain);
+     let right_domain = domain_term(right, domain);
+     let (application, result) = match (left_domain, right_domain) {
+         (None, Some(result)) => (left, result),
+         (Some(result), None) => (right, result),
+         _ => {
+-            return Err(
++            return Err(failure(
++                EvidenceOperation::ModelTable,
+                 "function definition must equate one application with one domain element"
+                     .to_owned(),
+-            );
++            ));
+         }
+     };
+     let Term::Apply { functor, args } = application else {
+-        return Err("function-definition left side must be an application".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelTable,
++            "function-definition left side must be an application",
++        ));
+     };
+     let arguments = args
+         .iter()
+         .map(|argument| {
+-            domain_term(argument, domain)
+-                .ok_or_else(|| "function table argument is not a domain element".to_owned())
++            domain_term(argument, domain).ok_or_else(|| {
++                failure(
++                    EvidenceOperation::ModelTable,
++                    "function table argument is not a domain element",
++                )
++            })
+         })
+         .collect::<Result<Vec<_>, _>>()?;
+     let key = TableKey {
+@@ -1260,7 +1796,10 @@ fn insert_function_definition(
+         arguments,
+     };
+     if functions.insert(key, result).is_some() {
+-        return Err(format!("function `{functor}` has a duplicate table entry"));
++        return Err(failure(
++            EvidenceOperation::ModelTable,
++            format!("function `{functor}` has a duplicate table entry"),
++        ));
+     }
+     Ok(())
+ }
+@@ -1270,18 +1809,28 @@ fn insert_predicate_definition(
+     value: bool,
+     domain: &BTreeSet<String>,
+     predicates: &mut BTreeMap<TableKey, bool>,
+-) -> Result<(), String> {
++) -> gmeow_errors::Result<()> {
+     let Term::Apply { functor, args } = atom else {
+-        return Err("predicate table entry has a variable in predicate position".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelTable,
++            "predicate table entry has a variable in predicate position",
++        ));
+     };
+     if matches!(functor.as_str(), "$true" | "$false") {
+-        return Err("predicate table may not redefine a TPTP truth constant".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelTable,
++            "predicate table may not redefine a TPTP truth constant",
++        ));
+     }
+     let arguments = args
+         .iter()
+         .map(|argument| {
+-            domain_term(argument, domain)
+-                .ok_or_else(|| "predicate table argument is not a domain element".to_owned())
++            domain_term(argument, domain).ok_or_else(|| {
++                failure(
++                    EvidenceOperation::ModelTable,
++                    "predicate table argument is not a domain element",
++                )
++            })
+         })
+         .collect::<Result<Vec<_>, _>>()?;
+     let key = TableKey {
+@@ -1289,17 +1838,26 @@ fn insert_predicate_definition(
+         arguments,
+     };
+     if predicates.insert(key, value).is_some() {
+-        return Err(format!("predicate `{functor}` has a duplicate table entry"));
++        return Err(failure(
++            EvidenceOperation::ModelTable,
++            format!("predicate `{functor}` has a duplicate table entry"),
++        ));
+     }
+     Ok(())
+ }
+ 
+-fn domain_constant(term: &Term) -> Result<String, String> {
++fn domain_constant(term: &Term) -> gmeow_errors::Result<String> {
+     let Term::Apply { functor, args } = term else {
+-        return Err("domain element is a variable".to_owned());
++        return Err(failure(
++            EvidenceOperation::Domain,
++            "domain element is a variable",
++        ));
+     };
+     if !args.is_empty() {
+-        return Err("domain element is not a constant".to_owned());
++        return Err(failure(
++            EvidenceOperation::Domain,
++            "domain element is not a constant",
++        ));
+     }
+     Ok(functor.clone())
+ }
+@@ -1339,12 +1897,6 @@ fn flatten_or<'a>(formula: &'a Formula, output: &mut Vec<&'a Formula>) {
+     }
+ }
+ 
+-#[derive(Debug)]
+-enum EvalError {
+-    Budget,
+-    Invalid(String),
+-}
+-
+ #[derive(Debug)]
+ struct EvaluationBudget {
+     remaining: u64,
+@@ -1359,9 +1911,14 @@ impl EvaluationBudget {
+         }
+     }
+ 
+-    fn charge(&mut self) -> Result<(), EvalError> {
++    fn charge(&mut self) -> gmeow_errors::Result<()> {
+         if self.remaining == 0 {
+-            return Err(EvalError::Budget);
++            return Err(resource_failure(
++                EvidenceOperation::Evaluation,
++                "finite interpretation exceeds the bounded semantic checker budget",
++                self.used,
++                self.used,
++            ));
+         }
+         self.remaining -= 1;
+         self.used += 1;
+@@ -1373,7 +1930,21 @@ impl EvaluationBudget {
+     }
+ }
+ 
+-fn parse_model_document(source: &str) -> Result<Document, String> {
++fn parse_model_document(source: &str) -> gmeow_errors::Result<Document> {
++    parse_model_document_inner(source).map_err(|mut diagnostic| {
++        if let Some(payload) = diagnostic
++            .inner_mut()
++            .source
++            .as_mut()
++            .and_then(|source| source.downcast_mut::<ExternalEvidenceFailure>())
++        {
++            payload.evidence.source_text = Some(source.to_owned());
++        }
++        diagnostic
++    })
++}
++
++fn parse_model_document_inner(source: &str) -> gmeow_errors::Result<Document> {
+     let clean = strip_comments(source)?;
+     let units = split_annotated_units(&clean)?;
+     let mut normalized = String::new();
+@@ -1386,15 +1957,21 @@ fn parse_model_document(source: &str) -> Result<Document, String> {
+             }
+             "tff" => {
+                 if fields.len() < 3 {
+-                    return Err("typed model unit has fewer than three fields".to_owned());
++                    return Err(failure(
++                        EvidenceOperation::ModelParsing,
++                        "typed model unit has fewer than three fields",
++                    ));
+                 }
+                 let role = fields[1].trim();
+                 if role == "type" {
+                     continue;
+                 }
+                 if role != "axiom" || fields.len() != 3 {
+-                    return Err(format!(
+-                        "typed model unit has unsupported role or annotation shape `{role}`"
++                    return Err(unsupported(
++                        EvidenceOperation::ModelParsing,
++                        format!(
++                            "typed model unit has unsupported role or annotation shape `{role}`"
++                        ),
+                     ));
+                 }
+                 normalized.push_str("fof(");
+@@ -1404,16 +1981,24 @@ fn parse_model_document(source: &str) -> Result<Document, String> {
+                 normalized.push_str(").\n");
+             }
+             other => {
+-                return Err(format!(
+-                    "finite-model artifact uses unsupported TPTP dialect `{other}`"
++                return Err(unsupported(
++                    EvidenceOperation::ModelParsing,
++                    format!("finite-model artifact uses unsupported TPTP dialect `{other}`"),
+                 ));
+             }
+         }
+     }
+-    parse_document(normalized.as_bytes()).map_err(|error| error.to_string())
++    parse_document(normalized.as_bytes()).map_err(|error| {
++        parser_failure(
++            EvidenceOperation::ModelParsing,
++            source,
++            Some(&normalized),
++            error,
++        )
++    })
+ }
+ 
+-fn strip_comments(source: &str) -> Result<String, String> {
++fn strip_comments(source: &str) -> gmeow_errors::Result<String> {
+     let chars: Vec<char> = source.chars().collect();
+     let mut output = String::with_capacity(source.len());
+     let mut index = 0;
+@@ -1463,7 +2048,10 @@ fn strip_comments(source: &str) -> Result<String, String> {
+                 index += 1;
+             }
+             if !closed {
+-                return Err("finite-model artifact has an unterminated block comment".to_owned());
++                return Err(failure(
++                    EvidenceOperation::ModelParsing,
++                    "finite-model artifact has an unterminated block comment",
++                ));
+             }
+             continue;
+         }
+@@ -1471,12 +2059,15 @@ fn strip_comments(source: &str) -> Result<String, String> {
+         index += 1;
+     }
+     if quote.is_some() {
+-        return Err("finite-model artifact has an unterminated quoted atom".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelParsing,
++            "finite-model artifact has an unterminated quoted atom",
++        ));
+     }
+     Ok(output)
+ }
+ 
+-fn split_annotated_units(source: &str) -> Result<Vec<&str>, String> {
++fn split_annotated_units(source: &str) -> gmeow_errors::Result<Vec<&str>> {
+     let mut units = Vec::new();
+     let mut start = None;
+     let mut depth = 0_i64;
+@@ -1508,9 +2099,10 @@ fn split_annotated_units(source: &str) -> Result<Vec<&str>, String> {
+             ')' | ']' | '}' => {
+                 depth -= 1;
+                 if depth < 0 {
+-                    return Err(
+-                        "finite-model artifact has an unmatched closing delimiter".to_owned()
+-                    );
++                    return Err(failure(
++                        EvidenceOperation::ModelParsing,
++                        "finite-model artifact has an unmatched closing delimiter",
++                    ));
+                 }
+             }
+             '.' if depth == 0 => {
+@@ -1521,31 +2113,46 @@ fn split_annotated_units(source: &str) -> Result<Vec<&str>, String> {
+         }
+     }
+     if depth != 0 || start.is_some() || quote.is_some() {
+-        return Err("finite-model artifact ends inside an annotated unit".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelParsing,
++            "finite-model artifact ends inside an annotated unit",
++        ));
+     }
+     if units.is_empty() {
+-        return Err("finite-model artifact contains no annotated formula".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelParsing,
++            "finite-model artifact contains no annotated formula",
++        ));
+     }
+     Ok(units)
+ }
+ 
+-fn annotated_fields(unit: &str) -> Result<(&str, Vec<&str>), String> {
++fn annotated_fields(unit: &str) -> gmeow_errors::Result<(&str, Vec<&str>)> {
+     let unit = unit.trim();
+-    let open = unit
+-        .find('(')
+-        .ok_or_else(|| "annotated model unit has no opening parenthesis".to_owned())?;
++    let open = unit.find('(').ok_or_else(|| {
++        failure(
++            EvidenceOperation::ModelParsing,
++            "annotated model unit has no opening parenthesis",
++        )
++    })?;
+     if !unit.ends_with(".)") && !unit.ends_with(").") {
+-        return Err("annotated model unit has no `).` terminator".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelParsing,
++            "annotated model unit has no `).` terminator",
++        ));
+     }
+     let dialect = unit[..open].trim();
+-    let close = unit
+-        .rfind(')')
+-        .ok_or_else(|| "annotated model unit has no closing parenthesis".to_owned())?;
++    let close = unit.rfind(')').ok_or_else(|| {
++        failure(
++            EvidenceOperation::ModelParsing,
++            "annotated model unit has no closing parenthesis",
++        )
++    })?;
+     let inner = &unit[open + 1..close];
+     Ok((dialect, split_top_level(inner)?))
+ }
+ 
+-fn split_top_level(source: &str) -> Result<Vec<&str>, String> {
++fn split_top_level(source: &str) -> gmeow_errors::Result<Vec<&str>> {
+     let mut fields = Vec::new();
+     let mut start = 0;
+     let mut depth = 0_i64;
+@@ -1576,17 +2183,23 @@ fn split_top_level(source: &str) -> Result<Vec<&str>, String> {
+             _ => {}
+         }
+         if depth < 0 {
+-            return Err("annotated model fields have unmatched delimiters".to_owned());
++            return Err(failure(
++                EvidenceOperation::ModelParsing,
++                "annotated model fields have unmatched delimiters",
++            ));
+         }
+     }
+     if depth != 0 || quote.is_some() {
+-        return Err("annotated model fields end inside a delimiter".to_owned());
++        return Err(failure(
++            EvidenceOperation::ModelParsing,
++            "annotated model fields end inside a delimiter",
++        ));
+     }
+     fields.push(&source[start..]);
+     Ok(fields)
+ }
+ 
+-fn strip_default_sort_annotations(formula: &str) -> Result<String, String> {
++fn strip_default_sort_annotations(formula: &str) -> gmeow_errors::Result<String> {
+     let chars: Vec<char> = formula.chars().collect();
+     let mut output = String::with_capacity(formula.len());
+     let mut index = 0;
+@@ -1629,11 +2242,17 @@ fn strip_default_sort_annotations(formula: &str) -> Result<String, String> {
+                 while chars.get(index).is_some_and(|c| c.is_whitespace()) {
+                     index += 1;
+                 }
+-                if chars.get(index) != Some(&'$') || chars.get(index + 1) != Some(&'i') {
+-                    return Err(
++                if chars.get(index) != Some(&'$')
++                    || chars.get(index + 1) != Some(&'i')
++                    || chars
++                        .get(index + 2)
++                        .is_some_and(|character| character.is_alphanumeric() || *character == '_')
++                {
++                    return Err(unsupported(
++                        EvidenceOperation::ModelParsing,
+                         "Vampire finite-model checker admits only the single default `$i` sort"
+                             .to_owned(),
+-                    );
++                    ));
+                 }
+                 index += 2;
+             }
+diff --git a/crates/logic/src/external_evidence.tests.rs b/crates/logic/src/external_evidence.tests.rs
+index 7c2386557..e6f488c5b 100644
+--- a/crates/logic/src/external_evidence.tests.rs
++++ b/crates/logic/src/external_evidence.tests.rs
+@@ -64,7 +64,10 @@ fn foreign_and_unbalanced_artifact_markers_are_protocol_failures() {
+         &BTreeSet::from(["problem.p".to_owned()]),
+     )
+     .expect_err("foreign problem");
+-    assert_eq!(foreign.code, "FOREIGN_SZS_ARTIFACT_PROBLEM");
++    assert_eq!(
++        gmeow_errors::code::code_str(foreign.code()),
++        "FOREIGN_SZS_ARTIFACT_PROBLEM"
++    );
+ 
+     let unterminated = extract_szs_artifacts(
+         "% SZS output start Proof for problem.p\nfof(a,axiom,p(a)).\n",
+@@ -72,7 +75,10 @@ fn foreign_and_unbalanced_artifact_markers_are_protocol_failures() {
+         &BTreeSet::from(["problem.p".to_owned()]),
+     )
+     .expect_err("unterminated artifact");
+-    assert_eq!(unterminated.code, "UNTERMINATED_SZS_ARTIFACT");
++    assert_eq!(
++        gmeow_errors::code::code_str(unterminated.code()),
++        "UNTERMINATED_SZS_ARTIFACT"
++    );
+ }
+ 
+ #[test]
+@@ -97,6 +103,16 @@ fn foreign_refutation_leaf_is_invalid_even_with_a_false_terminal() {
+     let check = check_external_artifact(&proof, &[sentence("p(a)")], "problem-digest");
+     assert_eq!(check.disposition, ArtifactCheckDisposition::Invalid);
+     assert_eq!(check.code, "FOREIGN_TSTP_LEAF_FORMULA");
++    let diagnostic = check.diagnostic.expect("typed refutation refusal");
++    assert_eq!(
++        diagnostic.evidence.operation,
++        EvidenceOperation::RefutationParsing
++    );
++    assert_eq!(diagnostic.evidence.locus.as_deref(), Some("input"));
++    assert_eq!(
++        diagnostic.evidence.source_text.as_deref(),
++        Some(proof.text.as_str())
++    );
+ }
+ 
+ #[test]
+@@ -131,6 +147,16 @@ fn model_that_falsifies_an_emitted_sentence_is_invalid() {
+     let check = check_external_artifact(&model, &[sentence("p(a)")], "problem-digest");
+     assert_eq!(check.disposition, ArtifactCheckDisposition::Invalid);
+     assert_eq!(check.code, "FINITE_MODEL_FALSIFIES_PROBLEM");
++    let diagnostic = check.diagnostic.expect("typed false-model refusal");
++    assert_eq!(diagnostic.evidence.operation, EvidenceOperation::Evaluation);
++    assert_eq!(
++        diagnostic.evidence.locus.as_deref(),
++        Some("gmeow_problem_axiom")
++    );
++    assert_eq!(
++        diagnostic.evidence.source_text.as_deref(),
++        Some(model.text.as_str())
++    );
+ }
+ 
+ #[test]
+@@ -155,3 +181,213 @@ fn partial_model_table_is_invalid_before_formula_evaluation() {
+         check.detail
+     );
+ }
++
++#[test]
++fn protocol_diagnostic_retains_channel_marker_and_expected_identity() {
++    let marker = "% SZS output start Proof for foreign.p\n";
++    let expected = BTreeSet::from(["problem.p".to_owned()]);
++    let diagnostic = extract_szs_artifacts("", marker, &expected).expect_err("foreign problem");
++    let payload = diagnostic
++        .downcast_ref::<ArtifactProtocolError>()
++        .expect("typed protocol cause");
++    assert_eq!(payload.channel, Some(ArtifactChannel::Stderr));
++    assert_eq!(payload.line, Some(1));
++    assert_eq!(payload.source_text.as_deref(), Some(marker));
++    assert_eq!(payload.expected_problems, expected);
++    assert_eq!(
++        diagnostic.grade(),
++        Grade::new(
++            gmeow_errors::Severity::Error,
++            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
++            gmeow_errors::Standpoint::Binding,
++        )
++    );
++    assert_eq!(diagnostic.inner().context[0].label, "Stderr line 1");
++}
++
++#[test]
++fn malformed_model_retains_the_typed_parser_cause_and_serialized_evidence() {
++    let source = "fof(domain,fi_domain, ! [X] : ).\n";
++    let diagnostic = parse_model_document(source).expect_err("missing quantified body");
++    assert_eq!(
++        gmeow_errors::code::code_str(diagnostic.code()),
++        "logic.external-evidence.model-parse"
++    );
++    let payload = diagnostic
++        .downcast_ref::<ExternalEvidenceFailure>()
++        .expect("typed checker cause");
++    let cause = payload.cause.as_ref().expect("retained parser diagnostic");
++    assert!(cause.is::<gmeow_math_lift::error::TstpParse>());
++    assert_eq!(payload.evidence.source_text.as_deref(), Some(source));
++    assert_eq!(
++        payload.evidence.classification,
++        EvidenceFailureClass::Invalid
++    );
++    let checked = check_external_artifact(
++        &artifact("FiniteModel", source),
++        &[sentence("p(a)")],
++        "identity",
++    );
++    assert_eq!(checked.disposition, ArtifactCheckDisposition::Invalid);
++    assert_eq!(checked.code, "MALFORMED_FINITE_MODEL");
++    let evidence = checked.diagnostic.as_ref().expect("serialized diagnostic");
++    assert_eq!(
++        evidence.source_code.as_deref(),
++        Some("math.lift.proof.parse")
++    );
++    assert_eq!(evidence.grade, diagnostic.grade());
++    assert!(!evidence.causes.is_empty());
++    let first = serde_json::to_string(&checked).expect("report JSON");
++    let repeated = check_external_artifact(
++        &artifact("FiniteModel", source),
++        &[sentence("p(a)")],
++        "identity",
++    );
++    assert_eq!(
++        first,
++        serde_json::to_string(&repeated).expect("repeat JSON")
++    );
++}
++
++#[test]
++fn normalized_model_parse_failure_retains_original_and_exact_parsed_text() {
++    let source = "% retained source line\n\
++                  tff(declare_a,type,a:$i).\n\
++                  tff(bad,axiom,! [X:$i] : ).\n";
++    let diagnostic = parse_model_document(source).expect_err("missing quantified body");
++    let payload = diagnostic
++        .downcast_ref::<ExternalEvidenceFailure>()
++        .expect("typed model parser refusal");
++    assert_eq!(payload.evidence.source_text.as_deref(), Some(source));
++    let parsed = payload
++        .evidence
++        .parsed_text
++        .as_deref()
++        .expect("exact normalized parser input");
++    assert_ne!(parsed, source);
++    assert!(!parsed.contains("declare_a"));
++    assert!(parsed.contains("fof(bad"));
++}
++
++#[test]
++fn model_table_representation_overflow_is_typed_resource_evidence() {
++    let diagnostic = verify_total_table("wide", usize::MAX, 2, std::iter::empty::<&TableKey>())
++        .expect_err("unrepresentable table cardinality");
++    assert_eq!(
++        gmeow_errors::code::code_str(diagnostic.code()),
++        "logic.external-evidence.resource"
++    );
++    let payload = diagnostic
++        .downcast_ref::<ExternalEvidenceFailure>()
++        .expect("typed table resource refusal");
++    assert_eq!(
++        payload.evidence.classification,
++        EvidenceFailureClass::Resource
++    );
++    assert_eq!(payload.evidence.operation, EvidenceOperation::ModelTable);
++    assert_eq!(payload.evidence.locus.as_deref(), Some("wide"));
++    assert!(payload.evidence.observed.is_some());
++    assert!(payload.evidence.limit.is_some());
++}
++
++#[test]
++fn unsupported_model_sort_retains_a_typed_refusal_instead_of_invalidity() {
++    let source = "tff(finite_domain,axiom, ! [X:$int] : X = d0).\n";
++    let checked = check_external_artifact(
++        &artifact("FiniteModel", source),
++        &[sentence("p(a)")],
++        "identity",
++    );
++    assert_eq!(checked.disposition, ArtifactCheckDisposition::Unsupported);
++    assert_eq!(checked.code, "UNSUPPORTED_FINITE_MODEL");
++    let diagnostic = checked.diagnostic.expect("typed unsupported evidence");
++    assert_eq!(diagnostic.code, "logic.external-evidence.unsupported");
++    assert_eq!(
++        diagnostic.evidence.classification,
++        EvidenceFailureClass::Unsupported
++    );
++    assert_eq!(
++        diagnostic.evidence.operation,
++        EvidenceOperation::ModelParsing
++    );
++    assert_eq!(diagnostic.evidence.source_text.as_deref(), Some(source));
++}
++
++#[test]
++fn model_budget_refusal_preserves_resource_class_usage_and_sentence_locus() {
++    let source = "fof(domain,fi_domain, ! [X] : X = d0).\nfof(a_value,axiom,a = d0).\nfof(p_value,axiom,p(d0)).\n";
++    let checked = check_finite_model_with_budget(
++        &artifact("FiniteModel", source),
++        &[sentence("p(a)")],
++        "identity",
++        1,
++    );
++    assert_eq!(checked.disposition, ArtifactCheckDisposition::Unsupported);
++    assert_eq!(checked.code, "FINITE_MODEL_CHECK_BUDGET_EXHAUSTED");
++    assert_eq!(checked.evaluations, 1);
++    assert_eq!(checked.budget, Some(1));
++    let diagnostic = checked.diagnostic.expect("resource diagnostic");
++    assert_eq!(diagnostic.code, "logic.external-evidence.resource");
++    assert_eq!(
++        diagnostic.evidence.classification,
++        EvidenceFailureClass::Resource
++    );
++    assert_eq!(diagnostic.evidence.operation, EvidenceOperation::Evaluation);
++    assert_eq!(diagnostic.evidence.observed, Some(1));
++    assert_eq!(diagnostic.evidence.limit, Some(1));
++    assert_eq!(
++        diagnostic.evidence.locus.as_deref(),
++        Some("gmeow_problem_axiom")
++    );
++    assert_eq!(diagnostic.evidence.source_text.as_deref(), Some(source));
++}
++
++#[test]
++fn domain_size_refusal_is_resource_evidence_not_a_false_model_claim() {
++    let alternatives = (0..=MAX_MODEL_DOMAIN)
++        .map(|index| format!("X = d{index}"))
++        .collect::<Vec<_>>()
++        .join(" | ");
++    let source = format!("fof(domain,fi_domain,! [X] : ({alternatives})).\n");
++    let checked = check_external_artifact(
++        &artifact("FiniteModel", &source),
++        &[sentence("p(a)")],
++        "identity",
++    );
++    assert_eq!(checked.disposition, ArtifactCheckDisposition::Unsupported);
++    assert_eq!(checked.code, "FINITE_MODEL_DOMAIN_LIMIT");
++    let diagnostic = checked.diagnostic.expect("resource evidence");
++    assert_eq!(diagnostic.evidence.operation, EvidenceOperation::Domain);
++    assert_eq!(
++        diagnostic.evidence.classification,
++        EvidenceFailureClass::Resource
++    );
++    assert_eq!(
++        diagnostic.evidence.observed,
++        Some(u64::try_from(MAX_MODEL_DOMAIN + 1).expect("small domain"))
++    );
++    assert_eq!(
++        diagnostic.evidence.limit,
++        Some(u64::try_from(MAX_MODEL_DOMAIN).expect("small limit"))
++    );
++}
++
++#[test]
++fn incomplete_table_diagnostic_retains_the_symbol_and_source() {
++    let source = "fof(domain,fi_domain,! [X] : X = d0).\nfof(a_value,axiom,a = d0).\n";
++    let checked = check_external_artifact(
++        &artifact("FiniteModel", source),
++        &[sentence("p(a)")],
++        "identity",
++    );
++    assert_eq!(checked.code, "INVALID_FINITE_MODEL_TABLE");
++    let diagnostic = checked.diagnostic.expect("typed table failure");
++    assert_eq!(diagnostic.code, "logic.external-evidence.model-table");
++    assert_eq!(
++        diagnostic.evidence.classification,
++        EvidenceFailureClass::Invalid
++    );
++    assert_eq!(diagnostic.evidence.locus.as_deref(), Some("p"));
++    assert_eq!(diagnostic.evidence.source_text.as_deref(), Some(source));
++    assert!(diagnostic.evidence.detail.contains("total interpretation"));
++}
+diff --git a/crates/logic/src/physical/chase.rs b/crates/logic/src/physical/chase.rs
+index 8804b5057..b3ea294f3 100644
+--- a/crates/logic/src/physical/chase.rs
++++ b/crates/logic/src/physical/chase.rs
+@@ -296,7 +296,7 @@ impl PreparedChaseRule {
+     pub(super) fn new(rule: ExistentialRule) -> gmeow_errors::Result<Self> {
+         Ok(Self {
+             numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body)
+-                .map_err(|detail| super::numeric::error(&rule.rule_iri, &detail))?,
++                .map_err(|diagnostic| super::numeric::with_rule(&rule.rule_iri, diagnostic))?,
+             existentials: rule.existentials(),
+             frontier_vars: rule.frontier_vars(),
+             reifier_groups: reified_nary_head_groups(&rule)?,
+diff --git a/crates/logic/src/physical/numeric.rs b/crates/logic/src/physical/numeric.rs
+index e2342fc63..2cf2d8467 100644
+--- a/crates/logic/src/physical/numeric.rs
++++ b/crates/logic/src/physical/numeric.rs
+@@ -21,11 +21,16 @@ enum Operand {
+ }
+ 
+ impl Operand {
+-    fn prepare(term: &RcTerm) -> Result<Self, String> {
++    fn prepare(term: &RcTerm) -> gmeow_errors::Result<Self> {
+         match term {
+             RcTerm::Var(name) => Ok(Self::Variable(name.clone())),
+             RcTerm::Literal(value) => decode_literal(value).map(Self::Constant),
+-            _ => Err("numeric operand must be a variable or a finite numeric literal".to_owned()),
++            _ => Err(failure(
++                "operand preparation",
++                format!("{term:?}"),
++                "",
++                "numeric operand must be a variable or a finite numeric literal",
++            )),
+         }
+     }
+ 
+@@ -33,16 +38,21 @@ impl Operand {
+         &'a self,
+         solution: &Solution,
+         values: &mut BTreeMap<&'a str, XsdValue>,
+-    ) -> Result<XsdValue, String> {
++    ) -> gmeow_errors::Result<XsdValue> {
+         match self {
+             Self::Constant(value) => Ok(value.clone()),
+             Self::Variable(name) => {
+                 if let Some(value) = values.get(name.as_str()) {
+                     return Ok(value.clone());
+                 }
+-                let term = solution
+-                    .get(name)
+-                    .ok_or_else(|| format!("unbound numeric input {name}"))?;
++                let term = solution.get(name).ok_or_else(|| {
++                    failure(
++                        "operand resolution",
++                        name,
++                        "",
++                        format!("unbound numeric input {name}"),
++                    )
++                })?;
+                 let TermValue::Literal {
+                     lexical_form,
+                     datatype,
+@@ -50,7 +60,12 @@ impl Operand {
+                     direction: None,
+                 } = term
+                 else {
+-                    return Err(format!("nonnumeric binding for {name}"));
++                    return Err(failure(
++                        "operand resolution",
++                        format!("{name}={term:?}"),
++                        "",
++                        format!("nonnumeric binding for {name}"),
++                    ));
+                 };
+                 let value = decode(lexical_form, datatype)?;
+                 values.insert(name, value.clone());
+@@ -93,32 +108,31 @@ impl Plan {
+     pub(super) fn for_body(
+         calls: &[RcNumeric],
+         body: &[crate::rule_ir::EvalAtom],
+-    ) -> Result<Self, String> {
++    ) -> gmeow_errors::Result<Self> {
+         if !calls.is_empty() {
+             let bound = input_variables(body);
+             let scheduled =
+                 gmeow_logic_compile::relational_core::numeric::schedule(calls.to_vec(), bound)
+-                    .map_err(str::to_owned)?;
++                    .map_err(|detail| {
++                        failure("binding schedule", format!("{calls:?}"), "", detail)
++                    })?;
+             if scheduled != calls {
+-                return Err("noncanonical numeric binding schedule".to_owned());
++                return Err(failure(
++                    "binding schedule",
++                    format!("{calls:?}"),
++                    "",
++                    "noncanonical numeric binding schedule",
++                ));
+             }
+         }
+         Self::prepare(calls)
+     }
+ 
+-    pub(super) fn prepare(calls: &[RcNumeric]) -> Result<Self, String> {
++    pub(super) fn prepare(calls: &[RcNumeric]) -> gmeow_errors::Result<Self> {
+         let calls = calls
+             .iter()
+-            .map(|call| {
+-                call.validate().map_err(str::to_owned)?;
+-                Ok(Instruction {
+-                    operator: call.operator,
+-                    left: Operand::prepare(&call.left)?,
+-                    right: Operand::prepare(&call.right)?,
+-                    result: call.result.as_ref().map(Operand::prepare).transpose()?,
+-                })
+-            })
+-            .collect::<Result<_, String>>()?;
++            .map(Instruction::prepare)
++            .collect::<gmeow_errors::Result<_>>()?;
+         Ok(Self { calls })
+     }
+ 
+@@ -130,7 +144,7 @@ impl Plan {
+         for call in &self.calls {
+             let keep = call
+                 .apply(solution, &mut values)
+-                .map_err(|detail| error(rule, &format!("{}: {detail}", call.operator.iri())))?;
++                .map_err(|diagnostic| with_rule(rule, with_operation(call.operator, diagnostic)))?;
+             if !keep {
+                 return Ok(false);
+             }
+@@ -167,11 +181,25 @@ impl Plan {
+ }
+ 
+ impl Instruction {
++    fn prepare(call: &RcNumeric) -> gmeow_errors::Result<Self> {
++        let prepare = || {
++            call.validate()
++                .map_err(|detail| failure(call.operator.iri(), format!("{call:?}"), "", detail))?;
++            Ok(Self {
++                operator: call.operator,
++                left: Operand::prepare(&call.left)?,
++                right: Operand::prepare(&call.right)?,
++                result: call.result.as_ref().map(Operand::prepare).transpose()?,
++            })
++        };
++        prepare().map_err(|diagnostic| with_operation(call.operator, diagnostic))
++    }
++
+     fn apply<'a>(
+         &'a self,
+         solution: &mut Solution,
+         values: &mut BTreeMap<&'a str, XsdValue>,
+-    ) -> Result<bool, String> {
++    ) -> gmeow_errors::Result<bool> {
+         use NumericOperator as Op;
+         let left = self.left.resolve(solution, values)?;
+         let right = self.right.resolve(solution, values)?;
+@@ -181,8 +209,14 @@ impl Instruction {
+             Op::Multiply => xsd::numeric_mul,
+             Op::Divide => xsd::numeric_div,
+             comparison => {
+-                let ordering =
+-                    xsd::numeric_cmp(&left, &right).ok_or("unordered numeric comparison")?;
++                let ordering = xsd::numeric_cmp(&left, &right).ok_or_else(|| {
++                    failure(
++                        self.operator.iri(),
++                        format!("{left:?}, {right:?}"),
++                        "",
++                        "unordered numeric comparison",
++                    )
++                })?;
+                 return Ok(match comparison {
+                     Op::Equal => ordering.is_eq(),
+                     Op::NotEqual => !ordering.is_eq(),
+@@ -194,12 +228,23 @@ impl Instruction {
+                 });
+             }
+         };
+-        let result = operation(&left, &right).map_err(|error| error.to_string())?;
+-        finite(&result)?;
+-        let target = self
+-            .result
+-            .as_ref()
+-            .ok_or("missing numeric result operand")?;
++        let result = operation(&left, &right).map_err(|error| {
++            failure(
++                self.operator.iri(),
++                format!("{left:?}, {right:?}"),
++                format!("{}, {}", left.datatype().iri(), right.datatype().iri()),
++                error.to_string(),
++            )
++        })?;
++        finite(&result, &format!("{result:?}"), result.datatype().iri())?;
++        let target = self.result.as_ref().ok_or_else(|| {
++            failure(
++                self.operator.iri(),
++                format!("{left:?}, {right:?}"),
++                "",
++                "missing numeric result operand",
++            )
++        })?;
+         if let Operand::Variable(name) = target
+             && solution.get(name).is_none()
+         {
+@@ -218,39 +263,138 @@ impl Instruction {
+         let bound = target.resolve(solution, values)?;
+         xsd::numeric_cmp(&bound, &result)
+             .map(|order| order.is_eq())
+-            .ok_or_else(|| "unordered numeric result equality".to_owned())
++            .ok_or_else(|| {
++                failure(
++                    self.operator.iri(),
++                    format!("{bound:?}, {result:?}"),
++                    "",
++                    "unordered numeric result equality",
++                )
++            })
+     }
+ }
+ 
+-fn decode_literal(value: &RdfLiteral) -> Result<XsdValue, String> {
++fn decode_literal(value: &RdfLiteral) -> gmeow_errors::Result<XsdValue> {
+     if value.language.as_ref().is_some() || value.direction.as_ref().is_some() {
+-        return Err("numeric literal cannot carry language or direction".to_owned());
++        return Err(failure(
++            "literal decoding",
++            format!("{value:?}"),
++            value.datatype_iri(),
++            "numeric literal cannot carry language or direction",
++        ));
+     }
+     decode(&value.lexical_form, value.datatype_iri())
+ }
+ 
+-fn decode(lexical: &str, datatype: &str) -> Result<XsdValue, String> {
++fn decode(lexical: &str, datatype: &str) -> gmeow_errors::Result<XsdValue> {
+     let value = xsd::parse_by_iri(lexical, datatype)
+-        .map_err(|error| error.to_string())?
+-        .ok_or_else(|| format!("unsupported numeric datatype {datatype}"))?;
+-    finite(&value)?;
++        .map_err(|error| failure("literal decoding", lexical, datatype, error.to_string()))?
++        .ok_or_else(|| {
++            failure(
++                "literal decoding",
++                lexical,
++                datatype,
++                format!("unsupported numeric datatype {datatype}"),
++            )
++        })?;
++    finite(&value, lexical, datatype)?;
+     Ok(value)
+ }
+ 
+-fn finite(value: &XsdValue) -> Result<(), String> {
++fn finite(value: &XsdValue, operand: &str, datatype: &str) -> gmeow_errors::Result<()> {
+     match value {
+         XsdValue::Integer { .. } | XsdValue::Decimal(_) => Ok(()),
+         XsdValue::Float(value) if value.is_finite() => Ok(()),
+         XsdValue::Double(value) if value.is_finite() => Ok(()),
+-        _ => Err("selected numeric relation requires a finite RDF numeric value".to_owned()),
++        _ => Err(failure(
++            "finite numeric value",
++            operand,
++            datatype,
++            "selected numeric relation requires a finite RDF numeric value",
++        )),
+     }
+ }
+ 
+-pub(super) fn error(rule: &str, detail: &str) -> gmeow_errors::Diag {
+-    gmeow_errors::Diag::of_kind(crate::error::RelationalCore {
+-        detail: format!("numeric rule {rule}: {detail}; selected operation is incomplete"),
++/// Mint the diagnostic at the failing numeric boundary, before propagation.
++#[track_caller]
++fn failure(
++    operation: impl Into<String>,
++    operands: impl Into<String>,
++    datatype: impl Into<String>,
++    detail: impl Into<String>,
++) -> gmeow_errors::Diag {
++    diagnostic(crate::error::Numeric {
++        rule: String::new(),
++        operation: operation.into(),
++        operands: operands.into(),
++        datatype: datatype.into(),
++        detail: detail.into(),
+     })
+ }
+ 
++#[track_caller]
++fn diagnostic(payload: crate::error::Numeric) -> gmeow_errors::Diag {
++    let detail = payload.to_string();
++    let mut diagnostic = gmeow_errors::Diag::of_kind(crate::error::Physical { detail });
++    diagnostic.inner_mut().source = Some(Box::new(payload));
++    diagnostic
++}
++
++fn with_operation(
++    operator: NumericOperator,
++    mut diagnostic: gmeow_errors::Diag,
++) -> gmeow_errors::Diag {
++    let mut payload = numeric_payload(&diagnostic);
++    payload.operation = operator.iri().to_owned();
++    diagnostic.inner_mut().message = payload.to_string();
++    diagnostic.inner_mut().source = Some(Box::new(payload));
++    diagnostic
++}
++
++/// Attach the owning rule without reducing a diagnostic to its rendered message.
++pub(super) fn with_rule(rule: &str, mut diagnostic: gmeow_errors::Diag) -> gmeow_errors::Diag {
++    let mut payload = numeric_payload(&diagnostic);
++    payload.rule = rule.to_owned();
++    diagnostic.inner_mut().message = payload.to_string();
++    diagnostic.inner_mut().source = Some(Box::new(payload));
++    diagnostic
++}
++
++fn numeric_payload(diagnostic: &gmeow_errors::Diag) -> crate::error::Numeric {
++    diagnostic
++        .downcast_ref::<crate::error::Numeric>()
++        .expect("physical numeric failures retain the typed Numeric source payload")
++        .clone()
++}
++
++/// A cached preparation verdict, never a function's error type. Only the typed
++/// failure evidence is retained; each retrieval mints an independent diagnostic.
++#[derive(Debug)]
++pub(super) enum Prepared {
++    Ready(Plan),
++    Rejected(crate::error::Numeric),
++}
++
++impl Prepared {
++    pub(super) fn for_body(calls: &[RcNumeric], body: &[crate::rule_ir::EvalAtom]) -> Self {
++        match Plan::for_body(calls, body) {
++            Ok(plan) => Self::Ready(plan),
++            Err(diagnostic) => Self::Rejected(numeric_payload(&diagnostic)),
++        }
++    }
++
++    #[track_caller]
++    pub(super) fn get(&self, rule: &str) -> gmeow_errors::Result<&Plan> {
++        match self {
++            Self::Ready(plan) => Ok(plan),
++            Self::Rejected(payload) => {
++                let mut payload = payload.clone();
++                payload.rule = rule.to_owned();
++                Err(diagnostic(payload))
++            }
++        }
++    }
++}
++
+ #[cfg(test)]
+ mod tests;
+diff --git a/crates/logic/src/physical/numeric/tests.rs b/crates/logic/src/physical/numeric/tests.rs
+index a6b7e93df..a5eb81e04 100644
+--- a/crates/logic/src/physical/numeric/tests.rs
++++ b/crates/logic/src/physical/numeric/tests.rs
+@@ -416,3 +416,146 @@ fn invalid_numeric_instructions_fail_before_empty_world_execution() {
+     rule.numeric[0].left = RcTerm::Literal(RdfLiteral::simple("1"));
+     assert!(JointProgram::prepare(&[rule], &[]).is_err());
+ }
++
++#[test]
++fn numeric_decode_failures_retain_typed_datatype_and_lexical_evidence() {
++    for (lexical, datatype, expected_detail) in [
++        ("not-a-number", DECIMAL, ""),
++        (
++            "1",
++            "urn:unsupported-number",
++            "unsupported numeric datatype",
++        ),
++        (
++            "INF",
++            "http://www.w3.org/2001/XMLSchema#double",
++            "finite RDF numeric value",
++        ),
++    ] {
++        let diagnostic = decode(lexical, datatype).unwrap_err();
++        assert_eq!(diagnostic.code(), crate::error::Physical::register());
++        assert_eq!(diagnostic.grade().severity, gmeow_errors::Severity::Error);
++        let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
++        assert_eq!(payload.datatype, datatype);
++        assert!(!payload.operands.is_empty());
++        assert!(!payload.detail.is_empty());
++        assert!(payload.detail.contains(expected_detail));
++        assert_eq!(payload.operands, lexical);
++    }
++}
++
++#[test]
++fn numeric_execution_diagnostics_keep_operator_rule_and_operand_evidence() {
++    let plan = Plan::prepare(&[call(
++        NumericOperator::Divide,
++        value("1"),
++        var("?weight"),
++        Some(var("?result")),
++    )])
++    .unwrap();
++    for mut candidate in [
++        Solution {
++            bindings: vec![],
++            source_facts: vec![],
++        },
++        Solution {
++            bindings: vec![("?weight".into(), TermValue::iri("urn:not-numeric"))],
++            source_facts: vec![],
++        },
++        solution("0"),
++    ] {
++        let diagnostic = plan
++            .apply("urn:diagnostic-rule", &mut candidate)
++            .unwrap_err();
++        let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
++        assert_eq!(diagnostic.code(), crate::error::Physical::register());
++        assert_eq!(payload.operation, NumericOperator::Divide.iri());
++        assert_eq!(payload.rule, "urn:diagnostic-rule");
++        assert!(!payload.operands.is_empty());
++        assert!(!payload.detail.is_empty());
++    }
++}
++
++#[test]
++fn cached_numeric_preparation_failure_mints_independent_complete_diagnostics() {
++    let mut rule = EvalRule::positive(
++        "urn:cached-invalid-numeric",
++        EvalAtom::positive(
++            EvalTerm::ConstNamed("urn:s".into()),
++            "urn:p",
++            EvalTerm::ConstNamed("urn:o".into()),
++        ),
++        vec![],
++    );
++    rule.numeric = vec![call(
++        NumericOperator::Add,
++        RcTerm::Literal(RdfLiteral::typed("broken", DECIMAL)),
++        value("1"),
++        Some(var("?result")),
++    )];
++    let mut cache = crate::physical::plan::PlanCache::new(2);
++    let cold = cache.get_or_compile("numeric-diagnostic", vec![rule.clone()]);
++    assert!(!cold.cache_hit);
++    let warm = cache.get_or_compile("numeric-diagnostic", vec![rule]);
++    assert!(warm.cache_hit);
++    let cold = cold.executable.unwrap();
++    let warm = warm.executable.unwrap();
++    assert!(std::sync::Arc::ptr_eq(&cold, &warm));
++    let (rule, cold_plan) = cold.rule_entry(0);
++    let (_, warm_plan) = warm.rule_entry(0);
++    let first_line = line!() + 1;
++    let first = cold_plan.numeric(&rule.rule_iri).unwrap_err();
++    let second_line = line!() + 1;
++    let second = warm_plan.numeric(&rule.rule_iri).unwrap_err();
++    assert!(!std::ptr::eq(first.inner(), second.inner()));
++    assert_eq!(first.code(), crate::error::Physical::register());
++    assert_eq!(first.code(), second.code());
++    assert_eq!(first.grade(), second.grade());
++    assert_eq!(first.message(), second.message());
++    assert_eq!(first.emitted_at().line(), first_line);
++    assert_eq!(second.emitted_at().line(), second_line);
++    for diagnostic in [&first, &second] {
++        let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
++        assert_eq!(payload.rule, rule.rule_iri);
++        assert_eq!(payload.operation, NumericOperator::Add.iri());
++        assert_eq!(payload.datatype, DECIMAL);
++        assert_eq!(payload.operands, "broken");
++        assert!(!payload.detail.is_empty());
++    }
++}
++
++#[test]
++fn numeric_binding_schedule_failure_is_a_registered_diagnostic() {
++    let diagnostic = Plan::for_body(
++        &[call(
++            NumericOperator::Add,
++            var("?missing"),
++            value("1"),
++            Some(var("?result")),
++        )],
++        &[],
++    )
++    .unwrap_err();
++    assert_eq!(diagnostic.code(), crate::error::Physical::register());
++    let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
++    assert_eq!(payload.operation, "binding schedule");
++    assert!(payload.operands.contains("?missing"));
++    assert!(payload.operands.contains(DECIMAL));
++    assert!(!payload.detail.is_empty());
++}
++
++#[test]
++fn numeric_operand_and_language_refusals_keep_native_term_evidence() {
++    let diagnostic = Operand::prepare(&RcTerm::Iri("urn:not-a-number".into())).unwrap_err();
++    let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
++    assert!(payload.operands.contains("urn:not-a-number"));
++    assert!(payload.detail.contains("finite numeric literal"));
++
++    let literal = RdfLiteral::language_tagged("one", "en");
++    let diagnostic = decode_literal(&literal).unwrap_err();
++    let payload = diagnostic.downcast_ref::<crate::error::Numeric>().unwrap();
++    assert_eq!(payload.datatype, literal.datatype_iri());
++    assert!(payload.operands.contains("one"));
++    assert!(payload.operands.contains("en"));
++    assert!(payload.detail.contains("language or direction"));
++}
+diff --git a/crates/logic/src/physical/plan.rs b/crates/logic/src/physical/plan.rs
+index d3acd0db4..40512c872 100644
+--- a/crates/logic/src/physical/plan.rs
++++ b/crates/logic/src/physical/plan.rs
+@@ -492,7 +492,7 @@ pub(crate) fn canonical_rule_hash(rules: &[EvalRule]) -> [u8; 32] {
+ /// decided here once.
+ pub(crate) struct RulePlan {
+     /// Decoded numeric constants and typed operator dispatch, shared across rounds.
+-    numeric: Result<super::numeric::Plan, String>,
++    numeric: super::numeric::Prepared,
+     /// Body indices of the POSITIVE atoms, in body order (the join drivers).
+     positive: Box<[usize]>,
+     /// Body indices of the NEGATED atoms, in body order (the NAF filters).
+@@ -679,7 +679,7 @@ impl RulePlan {
+             let operators = lower_operators(rule, &positive, &execution_order, &slots);
+             let operator_source_order_swaps = restore_body_order_swaps(&execution_order);
+             return Self {
+-                numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body),
++                numeric: super::numeric::Prepared::for_body(&rule.numeric, &rule.body),
+                 positive: positive.into_boxed_slice(),
+                 negated: negated.into_boxed_slice(),
+                 variables: variables.into_boxed_slice(),
+@@ -728,7 +728,7 @@ impl RulePlan {
+         let operators = lower_operators(rule, &positive, &execution_source_order, &slots);
+         let operator_source_order_swaps = restore_body_order_swaps(&execution_source_order);
+         Self {
+-            numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body),
++            numeric: super::numeric::Prepared::for_body(&rule.numeric, &rule.body),
+             positive: positive.into_boxed_slice(),
+             negated: negated.into_boxed_slice(),
+             variables: variables.into_boxed_slice(),
+@@ -741,10 +741,9 @@ impl RulePlan {
+         }
+     }
+ 
++    #[track_caller]
+     pub(super) fn numeric(&self, rule: &str) -> gmeow_errors::Result<&super::numeric::Plan> {
+-        self.numeric
+-            .as_ref()
+-            .map_err(|detail| super::numeric::error(rule, detail))
++        self.numeric.get(rule)
+     }
+ 
+     /// The positive body-atom indices, in body order.
+diff --git a/crates/pipeline/src/catalog_families.tests.rs b/crates/pipeline/src/catalog_families.tests.rs
+index c0755973d..0c1338077 100644
+--- a/crates/pipeline/src/catalog_families.tests.rs
++++ b/crates/pipeline/src/catalog_families.tests.rs
+@@ -12,10 +12,10 @@ fn repo_root() -> std::path::PathBuf {
+ }
+ 
+ fn observations() -> &'static RegistryObservations {
+-    static OBSERVED: std::sync::OnceLock<Result<RegistryObservations, String>> =
++    static OBSERVED: std::sync::OnceLock<Result<RegistryObservations, gmeow_errors::Diag>> =
+         std::sync::OnceLock::new();
+     OBSERVED
+-        .get_or_init(|| authenticated_registry(&repo_root()).map_err(|error| error.to_string()))
++        .get_or_init(|| authenticated_registry(&repo_root()))
+         .as_ref()
+         .unwrap_or_else(|error| panic!("authenticated catalog registry: {error}"))
+ }

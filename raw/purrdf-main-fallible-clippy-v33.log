@@ -1,0 +1,24 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+error: unused `std::result::Result` that must be used
+  --> crates/gmeow-dev-cli/src/dev_slice_quality_test_support.rs:21:5
+   |
+21 |     b.push_dataset(&ds);
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+21 |     let _ = b.push_dataset(&ds);
+   |     +++++++
+
+error: could not compile `gmeow-dev-cli` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+make: *** [Makefile:289: clippy-prebuild] Error 101

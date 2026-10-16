@@ -1,0 +1,125 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-slicetest) | (package(gmeow-validate) & (test(extracted_test_ownership_keeps_all_production_seals_armed) | test(feature_enabled_inline_module_cannot_hide_a_raw_gts_writer) | test(cfg_predicate_test_gating_is_recognised_in_composed_forms) | test(live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate) | test(live_repo_producer_map_is_total_and_exercises_all_three_source_kinds) | test(seal_c_)))' --no-tests=fail
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/build-inputs)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/action-cache)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/xtask)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 4m 43s
+────────────
+ Nextest run ID bc9eef48-647c-4da3-b8e2-4f09804f74c9 with nextest profile: ci
+    Starting 50 tests across 25 binaries (750 tests and 200 binaries skipped)
+        PASS [   0.008s] ( 1/50) gmeow-slicetest paths::tests::partially_migrated_slice_adds_local_residue_after_generated_authorities
+        PASS [   0.010s] ( 2/50) gmeow-slicetest paths::tests::slice_dir_is_the_spec_grandparent
+        PASS [   0.011s] ( 3/50) gmeow-slicetest paths::tests::conformance_data_is_slice_local_except_for_the_grounding_kernel
+        PASS [   0.012s] ( 4/50) gmeow-slicetest paths::tests::module_and_migrated_shapes_resolve_to_their_authorities
+        PASS [   0.012s] ( 5/50) gmeow-slicetest paths::tests::example_file_is_slice_relative_query_file_is_repo_relative
+        PASS [   0.014s] ( 6/50) gmeow-slicetest exec::tests::is_satisfiable_by_surfaces_missing_required_column
+        PASS [   0.015s] ( 7/50) gmeow-slicetest error::tests::every_slicetest_code_interns_with_no_collision
+        PASS [   0.014s] ( 8/50) gmeow-slicetest paths::tests::explicit_root_is_portable_immutable_and_missing_roots_fail_closed
+        PASS [   0.015s] ( 9/50) gmeow-slicetest repository::tests::worker_paths_survive_a_relative_checkout_and_changed_working_directory
+        PASS [   0.015s] (10/50) gmeow-slicetest repository::tests::concurrent_cross_device_snapshots_use_unique_owned_paths
+        PASS [   0.005s] (11/50) gmeow-slicetest repository::tests::worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices
+        PASS [   0.005s] (12/50) gmeow-slicetest repository::tests::worker_snapshot_does_not_remove_an_existing_cross_device_destination
+        PASS [   0.005s] (13/50) gmeow-slicetest repository::tests::worker_snapshot_fails_closed_for_other_link_errors
+        PASS [   0.018s] (14/50) gmeow-slicetest exec::tests::structural_fail_witness_requires_the_ban_to_trip
+        PASS [   0.019s] (15/50) gmeow-slicetest exec::tests::generated_shape_union_is_scoped_back_to_the_slice_authority
+        PASS [   0.019s] (16/50) gmeow-slicetest exec::tests::cq_data_file_overlay_applies_and_is_removed
+        PASS [   0.007s] (17/50) gmeow-slicetest stores::tests::rdfs_close_infers_type_and_subclass
+        PASS [   0.021s] (18/50) gmeow-slicetest dsl::tests::identical_duplicate_competency_solutions_are_harmless
+        PASS [   0.020s] (19/50) gmeow-slicetest dsl::tests::rejects_result_shape_with_unknown_term_kind
+        PASS [   0.021s] (20/50) gmeow-slicetest dsl::tests::parses_cq_result_shape_into_the_canonical_type
+        PASS [   0.020s] (21/50) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_variable
+        PASS [   0.020s] (22/50) gmeow-slicetest dsl::tests::rejects_malformed_boolean_literal
+        PASS [   0.021s] (23/50) gmeow-slicetest dsl::tests::parses_conformance_exemplars
+        PASS [   0.021s] (24/50) gmeow-slicetest exec::tests::result_shape_term_kind_mismatch_hard_fails
+        PASS [   0.021s] (25/50) gmeow-slicetest dsl::tests::parses_competency_exemplars
+        PASS [   0.021s] (26/50) gmeow-slicetest dsl::tests::rejects_conflicting_duplicate_competency_questions
+        PASS [   0.022s] (27/50) gmeow-slicetest dsl::tests::well_formed_multi_column_shape_still_parses
+        PASS [   0.022s] (28/50) gmeow-slicetest dsl::tests::parses_structural_exemplars
+        PASS [   0.021s] (29/50) gmeow-slicetest dsl::tests::rejects_expected_rows_for_unknown_competency_question
+        PASS [   0.022s] (30/50) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_binding
+        PASS [   0.021s] (31/50) gmeow-slicetest exec::tests::result_shape_conforming_bindings_pass
+        PASS [   0.021s] (32/50) gmeow-slicetest exec::tests::lang_gmn_nonlexical_guard_rejects_word_form_subclasses
+        PASS [   0.022s] (33/50) gmeow-slicetest exec::tests::source_shape_pins_preserve_laws_without_namespace_or_shared_owner_guessing
+        PASS [   0.022s] (34/50) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_term_kind
+        PASS [   0.006s] (35/50) gmeow-slicetest::owl_rdfs_projection class_position_marker_projects_but_endpoint_data_does_not
+        PASS [   0.008s] (36/50) gmeow-slicetest stores::world_routing_tests::competency_empty_selection_declares_the_reasoner_world_only
+        PASS [   0.011s] (37/50) gmeow-slicetest repository::tests::worker_receipt_follows_only_the_exact_executable_bytes
+        PASS [   0.008s] (38/50) gmeow-slicetest stores::world_routing_tests::competency_world_keeps_attributed_claims_and_their_shared_native_subject
+        PASS [   0.026s] (39/50) gmeow-slicetest exec::tests::the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration
+        PASS [   0.013s] (40/50) gmeow-validate repo_static::tests::cfg_predicate_test_gating_is_recognised_in_composed_forms
+        PASS [   0.012s] (41/50) gmeow-validate repo_static::tests::seal_c_passes_when_every_producer_is_declared
+        PASS [   0.013s] (42/50) gmeow-validate repo_static::tests::seal_c_fails_when_the_census_is_below_the_non_vacuity_floor
+        PASS [   0.014s] (43/50) gmeow-validate repo_static::tests::seal_c_fails_when_a_declared_medium_carries_no_source_kind
+        PASS [   0.017s] (44/50) gmeow-validate repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer
+        PASS [   0.015s] (45/50) gmeow-validate repo_static::tests::seal_c_fails_on_a_producer_with_no_declared_medium_source_kind
+        PASS [   0.015s] (46/50) gmeow-validate repo_static::tests::seal_c_fails_on_a_stale_call_site
+        PASS [   0.023s] (47/50) gmeow-validate repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed
+        FAIL [   0.382s] (48/50) gmeow-slicetest exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth
+  stdout ───
+
+    running 1 test
+    test exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth ... FAILED
+
+    failures:
+
+    failures:
+        exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 38 filtered out; finished in 0.37s
+
+  stderr ───
+
+    thread 'exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth' (3499296) panicked at crates/slicetest/src/exec.tests.rs:444:6:
+    the correctly pinned sole finding passes: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(2), message: "cell https://example.org/soleProbe declares gmeow:expectedSoleFinding, so the shape raising shacl.SPARQLConstraintComponent (https://example.org/FirstLaw) must be the ONLY law this fixture trips; it also raised: [shacl.SPARQLConstraintComponent on <https://example.org/item> (shape <https://example.org/SecondLaw>)]", context: [], antecedents: [], source: Some(ConformanceCell { detail: "cell https://example.org/soleProbe declares gmeow:expectedSoleFinding, so the shape raising shacl.SPARQLConstraintComponent (https://example.org/FirstLaw) must be the ONLY law this fixture trips; it also raised: [shacl.SPARQLConstraintComponent on <https://example.org/item> (shape <https://example.org/SecondLaw>)]" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/slicetest/src/exec.rs", line: 1087, column: 32 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   5.222s] (49/50) gmeow-validate repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds
+        PASS [   6.347s] (50/50) gmeow-validate repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate
+────────────
+     Summary [   6.385s] 50 tests run: 49 passed, 1 failed, 750 skipped
+        FAIL [   0.382s] (48/50) gmeow-slicetest exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth
+  stdout ───
+
+    running 1 test
+    test exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth ... FAILED
+
+    failures:
+
+    failures:
+        exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 38 filtered out; finished in 0.37s
+
+  stderr ───
+
+    thread 'exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth' (3499296) panicked at crates/slicetest/src/exec.tests.rs:444:6:
+    the correctly pinned sole finding passes: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(2), message: "cell https://example.org/soleProbe declares gmeow:expectedSoleFinding, so the shape raising shacl.SPARQLConstraintComponent (https://example.org/FirstLaw) must be the ONLY law this fixture trips; it also raised: [shacl.SPARQLConstraintComponent on <https://example.org/item> (shape <https://example.org/SecondLaw>)]", context: [], antecedents: [], source: Some(ConformanceCell { detail: "cell https://example.org/soleProbe declares gmeow:expectedSoleFinding, so the shape raising shacl.SPARQLConstraintComponent (https://example.org/FirstLaw) must be the ONLY law this fixture trips; it also raised: [shacl.SPARQLConstraintComponent on <https://example.org/item> (shape <https://example.org/SecondLaw>)]" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/slicetest/src/exec.rs", line: 1087, column: 32 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:705: nextest-synthetic] Error 100

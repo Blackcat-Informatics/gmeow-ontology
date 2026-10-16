@@ -1,0 +1,69 @@
+crates/docs-model/src/gmn1_primer.rs:145:            &[self.section()],
+crates/docs-model/src/gmn1_primer.rs:170:        llms::render_section(&self.section())
+crates/docs-model/src/gmn1_primer.tests.rs:190:        p.section()
+crates/bundle-view/src/export.rs:1645:    sections.push(primer.section());
+crates/bundle-view/src/export.rs:1719:    out.push_str(&gmeow_docs_model::llms::render_section(&primer.section()));
+crates/pipeline/src/correspondence_law.tests.rs:59:    let outcome = discharge_section_law(&get_rq, &put_rq, std::slice::from_ref(&seed));
+crates/pipeline/src/correspondence_law.tests.rs:93:    let outcome = discharge_section_law(LITERAL_GET, LITERAL_PUT, std::slice::from_ref(&seed));
+crates/pipeline/src/correspondence_law.tests.rs:121:    let outcome = discharge_section_law(
+crates/pipeline/src/correspondence_law.tests.rs:152:    let outcome = discharge_section_law(BLANK_GET, BLANK_PUT, std::slice::from_ref(&seed));
+crates/pipeline/src/correspondence_law.tests.rs:176:    let put_get = discharge_put_get_law(BLANK_GET, BLANK_PUT, &[view]);
+crates/pipeline/src/correspondence_law.tests.rs:251:    let outcome = discharge_section_law(FAB_GET, FAB_PUT, std::slice::from_ref(&seed));
+crates/pipeline/src/correspondence_law.tests.rs:268:    let outcome = discharge_section_law(FAB_GET, FAB_PUT, &seeds);
+crates/pipeline/src/correspondence_law.tests.rs:291:    let a = discharge_section_law(FAB_GET, FAB_PUT, &seeds);
+crates/pipeline/src/correspondence_law.tests.rs:292:    let b = discharge_section_law(FAB_GET, FAB_PUT, &seeds);
+crates/pipeline/src/correspondence_law.tests.rs:300:    let c = discharge_section_law(FAB_GET, FAB_PUT, &seeds2);
+crates/pipeline/src/correspondence_law.tests.rs:336:    let outcome = discharge_section_law(broken, FAB_PUT, std::slice::from_ref(&seed));
+crates/pipeline/src/correspondence_law.tests.rs:347:    let outcome = discharge_section_law(FAB_GET, FAB_PUT, &[]);
+crates/pipeline/src/correspondence_law.tests.rs:358:    let none = discharge_laws(FAB_GET, FAB_PUT, MorphismClass::BridgeView).unwrap();
+crates/pipeline/src/correspondence_law.tests.rs:365:    let claims = discharge_laws(FAB_GET, FAB_PUT, MorphismClass::SectionRetraction).unwrap();
+crates/pipeline/src/correspondence_law.tests.rs:387:    let claims = discharge_laws(&get_rq, &put_rq, MorphismClass::SectionRetraction).unwrap();
+crates/pipeline/src/correspondence_law.rs:44:    Atom, Countermodel, DischargeOutcome, SeedGraph, derive_seeds, discharge_algebra_laws,
+crates/pipeline/src/correspondence_law.rs:45:    discharge_laws, discharge_put_get_law, discharge_section_law,
+crates/pipeline/src/stages/mappings.rs:588:        let claims = crate::correspondence_law::discharge_algebra_laws(
+crates/pipeline/src/stages/correspondence_lower.rs:214:/// [`sparql::lower_sparql`] + [`crate::correspondence_law::discharge_algebra_laws`] pipeline, so it yields
+crates/pipeline/src/stages/correspondence_lower.rs:262:        for claim in crate::correspondence_law::discharge_algebra_laws(
+crates/docs/src/console.rs:789:        self.section(
+crates/docs/src/console.rs:798:        self.section(
+crates/docs/src/console.rs:809:        self.section(
+crates/docs/src/console.rs:816:        self.section(
+crates/logic/src/correspondence_exec.tests.rs:122:        discharge_algebra_laws(get.clone(), put.clone(), MorphismClass::SectionRetraction).unwrap();
+crates/logic/src/correspondence_exec.tests.rs:133:        discharge_algebra_laws(get.clone(), put.clone(), MorphismClass::BridgeView)
+crates/logic/src/correspondence_exec.tests.rs:145:    assert!(discharge_algebra_laws(select.clone(), put, MorphismClass::SectionRetraction).is_err());
+crates/logic/src/correspondence_exec.tests.rs:146:    assert!(discharge_algebra_laws(get, select, MorphismClass::SectionRetraction).is_err());
+crates/logic/src/correspondence_exec.tests.rs:226:        prepared.section(std::slice::from_ref(&input)),
+crates/logic/src/correspondence_exec.tests.rs:227:        prepared.put_get(std::slice::from_ref(&input)),
+crates/logic/src/correspondence_exec.tests.rs:298:        discharge_section_law(get, put, &[source]).verdict,
+crates/logic/src/correspondence_exec.tests.rs:312:        discharge_put_get_law(get, put, &[view("https://example.org/default")]).verdict,
+crates/logic/src/correspondence_exec.tests.rs:315:    let edited = discharge_put_get_law(get, put, &[view("https://example.org/edited")]);
+crates/logic/src/correspondence_exec.tests.rs:321:    let claims = discharge_laws(get, put, MorphismClass::SectionRetraction).unwrap();
+crates/logic/src/correspondence_exec.tests.rs:459:    let outcome = discharge_section_law(get, put, &seeds);
+crates/logic/src/correspondence_exec.tests.rs:467:        discharge_section_law(get, &wrong_direction, &seeds).verdict,
+crates/logic/src/correspondence_exec.tests.rs:486:        discharge_section_law(get, put, &seeds).verdict,
+crates/logic/src/correspondence_exec.tests.rs:491:    let outcome = discharge_section_law(get, put_in_default, &seeds);
+crates/logic/src/correspondence_exec.tests.rs:517:        discharge_section_law(get, put, &seeds).verdict,
+crates/logic/src/correspondence_exec.tests.rs:651:    let good = discharge_recovery_case(&recovery_case(true), &get, &put);
+crates/logic/src/correspondence_exec.tests.rs:658:    let bad = discharge_recovery_case(&recovery_case(false), &get, &put);
+crates/logic/src/correspondence_exec.tests.rs:696:            discharge_recovery_case(case, &get, &put),
+crates/logic/src/correspondence_exec.tests.rs:720:        discharge_recovery_cases(&correspondence, &get, &put),
+crates/logic/src/correspondence_exec.tests.rs:749:    let outcome = discharge_recovery_case(&case, &get, &get.invert());
+crates/logic/src/correspondence_exec.tests.rs:763:    // atom in the seed graph, and the atom-set comparison in `discharge_section_law` could
+crates/logic/src/correspondence_exec.tests.rs:784:    let outcome = discharge_recovery_case(&case, &get, &get.invert());
+crates/logic/src/correspondence_exec.tests.rs:810:    let outcome = discharge_recovery_case(&case, &get, &get.invert());
+crates/logic/src/correspondence_exec.tests.rs:912:        discharge_recovery_case(&case, &get, &get.invert()).verdict,
+crates/logic/src/correspondence_exec.tests.rs:946:    let outcome = discharge_recovery_case(&case, &get, &get.invert());
+crates/logic/src/correspondence_exec.tests.rs:978:        assert!(discharge_laws(query, query, MorphismClass::SectionRetraction).is_err());
+crates/logic/src/correspondence_exec.tests.rs:998:    assert!(discharge_laws(&query, &query, MorphismClass::SectionRetraction).is_err());
+crates/logic/src/correspondence_exec.rs:551:pub fn discharge_section_law(
+crates/logic/src/correspondence_exec.rs:567:pub fn discharge_put_get_law(
+crates/logic/src/correspondence_exec.rs:1105:pub fn discharge_recovery_case(
+crates/logic/src/correspondence_exec.rs:1123:fn discharge_recovery_cases(
+crates/logic/src/correspondence_exec.rs:1274:                discharge_recovery_cases(correspondence, get, put).verdict
+crates/logic/src/correspondence_exec.rs:1624:pub fn discharge_laws(
+crates/logic/src/correspondence_exec.rs:1632:    PreparedLawExecution::new(get_query, put_query)?.discharge_laws(rung)
+crates/logic/src/correspondence_exec.rs:1638:pub fn discharge_algebra_laws(
+crates/logic/src/correspondence_exec.rs:1646:    PreparedLawExecution::from_algebra(get, put)?.discharge_laws(rung)
+crates/logic/src/correspondence_exec.rs:1651:    pub fn discharge_laws(&self, rung: MorphismClass) -> gmeow_errors::Result<Vec<LawClaimIr>> {
+crates/logic/src/reason/artifacts.rs:351:        self.text.section(text);
+crates/logic/src/reason/artifacts.rs:387:    out.section("\n# --- derived (inferred) closure ---\n");
+crates/logic/src/reason/artifacts.rs:453:    out.section("\n# --- derived math: expression alpha-equivalence identity ---\n");

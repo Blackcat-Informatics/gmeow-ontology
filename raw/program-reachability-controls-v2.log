@@ -1,0 +1,893 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(obligations::) | test(verify::tests::))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 04s
+────────────
+ Nextest run ID b5748324-a13a-4da3-ae6d-7e957d83399f with nextest profile: ci
+    Starting 41 tests across 26 binaries (2252 tests and 199 binaries skipped)
+        PASS [   0.012s] ( 1/41) gmeow-logic obligations::tests::missing_discharge_condition_is_a_hard_error
+        PASS [   0.012s] ( 2/41) gmeow-logic obligations::tests::unwired_discharge_condition_is_a_hard_error
+        PASS [   0.013s] ( 3/41) gmeow-logic obligations::tests::reachable_head_remains_unknown_without_a_counterexample
+        PASS [   0.013s] ( 4/41) gmeow-logic obligations::tests::standing_obligations_discharge_on_the_real_strata
+        PASS [   0.013s] ( 5/41) gmeow-logic obligations::tests::counterexample_survives_without_finite_closure_condition
+        PASS [   0.015s] ( 6/41) gmeow-logic obligations::tests::arm_b_finite_closure_green_then_red
+        PASS [   0.018s] ( 7/41) gmeow-logic obligations::tests::advice_guidance_message_binds_usewhen_prose
+        PASS [   0.018s] ( 8/41) gmeow-logic obligations::tests::native_obligation_discovery_preserves_independent_document_blank_scopes
+        PASS [   0.017s] ( 9/41) gmeow-logic obligations::tests::candidate_without_harvest_link_is_skipped
+        PASS [   0.017s] (10/41) gmeow-logic obligations::tests::single_category_candidate_produces_correct_coverage
+        PASS [   0.018s] (11/41) gmeow-logic obligations::tests::duplicate_category_on_candidate_is_a_hard_error
+        PASS [   0.017s] (12/41) gmeow-logic obligations::tests::canonical_candidate_typing_reaches_coverage_and_prose_drift_checks
+        PASS [   0.018s] (13/41) gmeow-logic obligations::tests::advisory_constraint_message_binds_avoidwhen_prose
+        PASS [   0.018s] (14/41) gmeow-logic obligations::tests::projected_translation_is_not_hashed
+        PASS [   0.017s] (15/41) gmeow-logic obligations::tests::edited_prose_surfaces_as_drift
+        PASS [   0.017s] (16/41) gmeow-logic obligations::tests::source_hash_matches_prose_no_drift
+        PASS [   0.006s] (17/41) gmeow-logic verify::tests::embedded_verify_queries_are_sorted_nonempty_and_known
+        FAIL [   0.054s] (18/41) gmeow-logic verify::tests::dl_coverage_gap_makes_verify_fail
+  stdout ───
+
+    running 1 test
+    test verify::tests::dl_coverage_gap_makes_verify_fail ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::dl_coverage_gap_makes_verify_fail
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'verify::tests::dl_coverage_gap_makes_verify_fail' (2910390) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.050s] (19/41) gmeow-logic verify::tests::reviewer_gate_literal_reviewer_is_a_violation
+  stdout ───
+
+    running 1 test
+    test verify::tests::reviewer_gate_literal_reviewer_is_a_violation ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::reviewer_gate_literal_reviewer_is_a_violation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'verify::tests::reviewer_gate_literal_reviewer_is_a_violation' (2910396) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (20/41) gmeow-logic obligations::tests::finite_closure_can_discharge_a_reachable_head
+  stdout ───
+
+    running 1 test
+    test obligations::tests::finite_closure_can_discharge_a_reachable_head ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::finite_closure_can_discharge_a_reachable_head
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::tests::finite_closure_can_discharge_a_reachable_head' (2910357) panicked at crates/logic/src/obligations.tests.rs:355:58:
+    complete empty closure: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (21/41) gmeow-logic verify::tests::ask_query_is_rejected
+  stdout ───
+
+    running 1 test
+    test verify::tests::ask_query_is_rejected ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::ask_query_is_rejected
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'verify::tests::ask_query_is_rejected' (2910352) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (22/41) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+  stdout ───
+
+    running 1 test
+    test obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected' (2910370) panicked at crates/logic/src/obligations.tests.rs:127:70:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (23/41) gmeow-logic verify::tests::clean_query_yields_no_error_findings
+  stdout ───
+
+    running 1 test
+    test verify::tests::clean_query_yields_no_error_findings ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::clean_query_yields_no_error_findings
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::clean_query_yields_no_error_findings' (2910349) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.070s] (24/41) gmeow-logic obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible' (2910365) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.070s] (25/41) gmeow-logic obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+  stdout ───
+
+    running 1 test
+    test obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate' (2910358) panicked at crates/logic/src/obligations.tests.rs:447:60:
+    check runs: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://ex/obl has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://ex/obl has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.072s] (26/41) gmeow-logic obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::independent_document_blank_obligations_survive_native_ingress ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::program_tests::independent_document_blank_obligations_survive_native_ingress' (2910348) panicked at crates/logic/src/obligations/program_tests.rs:243:65:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://blackcatinformatics.ca/gmeow/skolem/5e15271ac628e4f3b9a0d8cdf9b04a1b8e0eee17 has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://blackcatinformatics.ca/gmeow/skolem/5e15271ac628e4f3b9a0d8cdf9b04a1b8e0eee17 has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.072s] (27/41) gmeow-logic obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence' (2910354) panicked at crates/logic/src/obligations/program_tests.rs:63:5:
+    assertion `left == right` failed: ObligationAssessment { analysis: [242, 166, 184, 153, 48, 13, 224, 87, 219, 230, 105, 56, 123, 206, 53, 110, 99, 36, 255, 39, 157, 255, 138, 187, 116, 172, 39, 253, 231, 163, 136, 164], outcomes: [], findings: [Finding { severity: Note, code: "verify.non-entailment.inventory", message: "discovered and checked 0 distinct non-entailment obligation(s) in world <https://blackcatinformatics.ca/gmeow/graph/rl-default>; authored=0, admitted=0, discharged=0", tool: Some("verify"), locations: [], related_locations: [], related_labels: [], suggestions: [], advice: [], remediation: [], finding_iri: None, anchor_iri: None, anchor_non_trivial: false, antecedents: [], root_cause: None, cluster: None, cross_node_glut_with: [], tags: ["world:https://blackcatinformatics.ca/gmeow/graph/rl-default"], detail: Some("analysis=f2a6b899300de057dbe669387bce356e6324ff279dff8abb74ac27fde7a388a4; program=48ee7f5f1ba196b68375f0a05803498cde5e9354990c14bfd83cef06df569cf6; input=a4bcc0e52bd1758f0851bbaa92b01299867e85634c387dc09a8ec5f339fd0a9b; engine=gmeow-logic@gmeow-logic/0.3.0+native.5; world=https://blackcatinformatics.ca/gmeow/graph/rl-default; foundation=420d25f7682e24907257b5d3989125b4e220c9a0db4db7b924ed4364799a0062; theory=79a1958166e9ff0acb003ece2a7222dd28b84040905037740830a00b4a2fbd05; examined producers: foundation/1/0, foundation/1/1, foundation/1/2, foundation/1/3, foundation/1/4, foundation/1/5, foundation/1/6, foundation/1/7, foundation/1/8, foundation/1/9, foundation/1/10, foundation/1/11, foundation/1/12, foundation/1/13, foundation/1/14, foundation/1/15, foundation/1/16, foundation/1/17, foundation/1/18, foundation/1/19, foundation/1/20, foundation/1/21, foundation/1/22, foundation/1/23, foundation/1/24, foundation/1/25, foundation/1/26, foundation/1/27, foundation/1/28, foundation/1/29, foundation/1/30, foundation/2/0, foundation/2/1, foundation/2/2, foundation/2/3, foundation/2/4, foundation/2/5, foundation/2/6, foundation/2/7, foundation/2/8, foundation/2/9, foundation/2/10, foundation/2/11, foundation/2/12, foundation/2/13, foundation/2/14, foundation/2/15, foundation/2/16, foundation/2/17, foundation/2/18, foundation/2/19, foundation/2/20, foundation/2/21, foundation/2/22, foundation/2/23, foundation/2/24, foundation/2/25, foundation/2/26, foundation/2/27, foundation/3/0, foundation/3/1, foundation/3/2, foundation/3/3, foundation/3/4, foundation/3/5, foundation/3/6, foundation/3/7, foundation/3/8, foundation/3/9, foundation/3/10, foundation/4/0, foundation/4/1, foundation/4/2, foundation/4/3, foundation/4/4, foundation/4/5, foundation/4/6, foundation/4/7, foundation/4/8, foundation/4/9, foundation/4/10, foundation/4/11, foundation/4/12, foundation/4/13, foundation/4/14, foundation/4/15, foundation/4/16, el:subClassOf-transitive, el:equivalentClass-fwd, el:equivalentClass-bwd, el:type-propagation, el:subPropertyOf-transitive, dl:individual-clash, dl:unsatisfiable-class, dl:nothing-membership, https://blackcatinformatics.ca/logic/formula-rule/7bbb7eb4c4cc5284c24ca8158e37b94a211406a2, dl:union-member, dl:intersection-member, dl:intersection-membership, dl:empty-intersection-subject, dl:empty-intersection-object, dl:empty-intersection-predicate, dl:oneOf-closure-clash, dl:disjointUnion-member, dl:oneOf-member, dl:disjointUnion-disjoint, dl:allDisjointClasses-pairwise, dl:allDisjointProperties-pairwise, dl:allDifferent-pairwise, dl:allDifferent-pairwise, dl:property-chain, dl:complement-disjoint, dl:complement-disjoint, dl:equivalentProperty-subproperty, dl:equivalentProperty-subproperty, dl:subPropertyOf-propagation, dl:domain, dl:range, dl:symmetric-property, dl:inverseOf, dl:inverseOf-symmetry, dl:transitive-property, dl:someValuesFrom, dl:allValuesFrom, dl:hasValue-assertion, dl:hasValue-membership, dl:universal-class-subclass, dl:universal-class-subclass, dl:self-disjoint-empty-class, dl:disjoint-superclass-empty-class, dl:disjoint-superclass-empty-class, dl:someValuesFrom-unsat-filler, dl:min-cardinality-unsat-filler, dl:min-cardinality-unsat-filler, dl:someValuesFrom-unsat-filler, dl:min-cardinality-unsat-filler, dl:min-cardinality-unsat-filler, dl:bottom-property-clash, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-clash, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:functional-equality, dl:functional-equality, dl:inverse-functional-equality, dl:inverse-functional-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:hasSelf-assertion, dl:hasSelf-membership, dl:sameAs-symmetry, dl:sameAs-transitive, dl:same-different-clash, dl:same-different-clash, dl:asymmetric-property-clash, dl:irreflexive-property-clash, dl:property-disjoint-clash, dl:negative-property-assertion-clash, dl:negative-property-assertion-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:has-key-clash, dl:has-key-clash, dl:has-key-clash, dl:has-key-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:minimum-witness:http://www.w3.org/2002/07/owl#minCardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#cardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#minQualifiedCardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#qualifiedCardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#someValuesFrom, dl:datatype-property-literal-clash, dl:datatype-membership-clash, dl:datatype-membership-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, native-family:Obligation(Cardinality):0, native-family:Obligation(Identity):0, native-family:Obligation(Identity):1, native-family:Obligation(Identity):2, native-family:Obligation(HasSelf):0, native-family:Obligation(Datatype):0, native-family:Obligation(Datatype):1, native-family:Class:0, native-family:Class:1, native-family:Class:2, native-family:Class:3, native-family:Class:4, native-family:Class:5, native-source-admission:dl:union-member:0:UnionOf, native-source-admission:dl:intersection-member:0:IntersectionOf, native-source-admission:dl:intersection-membership:0:IntersectionOf, native-source-admission:dl:empty-intersection-subject:0:IntersectionOf, native-source-admission:dl:empty-intersection-object:0:IntersectionOf, native-source-admission:dl:empty-intersection-predicate:0:IntersectionOf, native-source-admission:dl:oneOf-closure-clash:0:OneOf, native-source-admission:dl:disjointUnion-member:0:DisjointUnionOf, native-source-admission:dl:oneOf-member:0:OneOf, native-source-admission:dl:disjointUnion-disjoint:0:DisjointUnionOf, native-source-admission:dl:allDisjointClasses-pairwise:0:AllDisjointClasses, native-source-admission:dl:allDisjointProperties-pairwise:0:AllDisjointProperties, native-source-admission:dl:allDifferent-pairwise:0:AllDifferent, native-source-admission:dl:allDifferent-pairwise:0:AllDifferent, native-source-admission:dl:property-chain:0:PropertyChainAxiom, native-source-admission:dl:complement-disjoint:0:ComplementOf, native-source-admission:dl:complement-disjoint:0:ComplementOf, native-source-admission:dl:domain:0:Domain, native-source-admission:dl:range:0:Range, native-source-admission:dl:someValuesFrom:1:SomeValuesFrom, native-source-admission:dl:allValuesFrom:1:AllValuesFrom, native-source-admission:dl:hasValue-assertion:1:HasValue, native-source-admission:dl:hasValue-membership:1:HasValue, native-source-admission:dl:someValuesFrom-unsat-filler:1:SomeValuesFrom, native-source-admission:dl:min-cardinality-unsat-filler:1:MinQualifiedCardinality, native-source-admission:dl:min-cardinality-unsat-filler:1:QualifiedCardinality, native-source-admission:dl:someValuesFrom-unsat-filler:1:SomeValuesFrom, native-source-admission:dl:min-cardinality-unsat-filler:1:MinQualifiedCardinality, native-source-admission:dl:min-cardinality-unsat-filler:1:QualifiedCardinality, native-source-admission:dl:bottom-property-clash:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:SomeValuesFrom, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:HasValue, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:MinCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:Cardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:bottom-property-clash:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:SomeValuesFrom, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:HasValue, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:MinCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:Cardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:functional-equality:0:FunctionalProperty, native-source-admission:dl:functional-equality:1:FunctionalProperty, native-source-admission:dl:inverse-functional-equality:0:InverseFunctionalProperty, native-source-admission:dl:maximum-one-equality:0:MaxCardinality, native-source-admission:dl:maximum-one-equality:0:Cardinality, native-source-admission:dl:maximum-one-equality:0:MaxQualifiedCardinality, native-source-admission:dl:maximum-one-equality:0:MaxQualifiedCardinality, native-source-admission:dl:maximum-one-equality:0:QualifiedCardinality, native-source-admission:dl:maximum-one-equality:0:QualifiedCardinality, native-source-admission:dl:hasSelf-assertion:0:HasSelf, native-source-admission:dl:hasSelf-membership:0:HasSelf, native-source-admission:dl:asymmetric-property-clash:0:AsymmetricProperty, native-source-admission:dl:irreflexive-property-clash:0:IrreflexiveProperty, native-source-admission:dl:property-disjoint-clash:0:PropertyDisjointWith, native-source-admission:dl:negative-property-assertion-clash:0:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:1:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:2:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:0:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:1:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:2:NegativePropertyAssertion, native-source-admission:dl:functional-property-clash:0:FunctionalProperty, native-source-admission:dl:functional-property-clash:0:FunctionalProperty, native-source-admission:dl:functional-property-clash:0:FunctionalProperty, native-source-admission:dl:functional-property-clash:1:FunctionalProperty, native-source-admission:dl:functional-property-clash:1:FunctionalProperty, native-source-admission:dl:functional-property-clash:1:FunctionalProperty, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:max-cardinality-clash:2:MaxCardinality, native-source-admission:dl:max-cardinality-clash:2:Cardinality, native-source-admission:dl:max-cardinality-clash:2:MaxQualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:MaxQualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:MaxQualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:QualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:QualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:QualifiedCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#minCardinality:1:MinCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#cardinality:1:Cardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#minQualifiedCardinality:1:MinQualifiedCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#qualifiedCardinality:1:QualifiedCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#someValuesFrom:1:SomeValuesFrom, native-source-admission:dl:datatype-membership-clash:0:Range, native-source-admission:dl:datatype-membership-clash:0:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:SomeValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:MinQualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:0:QualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:0:SomeValuesFrom, native-source-admission:dl:datatype-capacity-clash:3:Range, native-source-admission:dl:datatype-capacity-clash:0:SomeValuesFrom, native-source-admission:dl:datatype-capacity-clash:4:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:MinCardinality, native-source-admission:dl:datatype-capacity-clash:3:Range, native-source-admission:dl:datatype-capacity-clash:0:MinCardinality, native-source-admission:dl:datatype-capacity-clash:4:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:Cardinality, native-source-admission:dl:datatype-capacity-clash:3:Range, native-source-admission:dl:datatype-capacity-clash:0:Cardinality, native-source-admission:dl:datatype-capacity-clash:4:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:MinQualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:4:Range, native-source-admission:dl:datatype-capacity-clash:0:MinQualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:5:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:QualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:4:Range, native-source-admission:dl:datatype-capacity-clash:0:QualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:5:AllValuesFrom"), failure_class: None, category: None, standpoint: None, attributions: [], documented_terms: [], guidance: [], derived_from_quads: [], cited_iris: [] }] }
+      left: 0
+     right: 1
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.072s] (28/41) gmeow-logic obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+  stdout ───
+
+    running 1 test
+    test obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value' (2910374) panicked at crates/logic/src/obligations.tests.rs:226:9:
+    ; logic:obligationForbiddenPredicate ex:p, ex:q: non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.074s] (29/41) gmeow-logic obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+  stdout ───
+
+    running 1 test
+    test obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution' (2910379) panicked at crates/logic/src/obligations.tests.rs:171:6:
+    governance checks: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/both has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/both has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.073s] (30/41) gmeow-logic obligations::tests::empty_selected_obligation_inventory_is_visible
+        FAIL [   0.063s] (31/41) gmeow-logic verify::tests::counterpart_non_transitivity_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::counterpart_non_transitivity_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::counterpart_non_transitivity_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::counterpart_non_transitivity_green_then_red' (2910393) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.078s] (32/41) gmeow-logic obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation' (2910350) panicked at crates/logic/src/obligations/program_tests.rs:156:65:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.065s] (33/41) gmeow-logic verify::tests::non_entailment_carrier_required_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::non_entailment_carrier_required_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::non_entailment_carrier_required_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::non_entailment_carrier_required_green_then_red' (2910387) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.079s] (34/41) gmeow-logic verify::tests::asserted_deceptive_intent_is_not_a_derived_violation
+  stdout ───
+
+    running 1 test
+    test verify::tests::asserted_deceptive_intent_is_not_a_derived_violation ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::asserted_deceptive_intent_is_not_a_derived_violation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'verify::tests::asserted_deceptive_intent_is_not_a_derived_violation' (2910375) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.081s] (35/41) gmeow-logic obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples' (2910361) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.061s] (36/41) gmeow-logic verify::tests::violating_query_yields_error_finding_with_detail
+  stdout ───
+
+    running 1 test
+    test verify::tests::violating_query_yields_error_finding_with_detail ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::violating_query_yields_error_finding_with_detail
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'verify::tests::violating_query_yields_error_finding_with_detail' (2910398) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (37/41) gmeow-logic verify::tests::promotion_cases_required_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::promotion_cases_required_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::promotion_cases_required_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::promotion_cases_required_green_then_red' (2910392) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.068s] (38/41) gmeow-logic verify::tests::selected_closure_materialization_keeps_native_inference_without_global_gates
+        FAIL [   0.087s] (39/41) gmeow-logic obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::foreign_or_changed_program_analysis_is_refused ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.08s
+
+  stderr ───
+
+    thread 'obligations::program_tests::foreign_or_changed_program_analysis_is_refused' (2910362) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.075s] (40/41) gmeow-logic verify::tests::reviewer_gate_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::reviewer_gate_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::reviewer_gate_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'verify::tests::reviewer_gate_green_then_red' (2910391) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   1.096s] (41/41) gmeow-logic obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 1.08s
+
+  stderr ───
+
+    thread 'obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate' (2910377) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   1.112s] 41 tests run: 19 passed, 22 failed, 2252 skipped
+        FAIL [   0.054s] (18/41) gmeow-logic verify::tests::dl_coverage_gap_makes_verify_fail
+  stdout ───
+
+    running 1 test
+    test verify::tests::dl_coverage_gap_makes_verify_fail ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::dl_coverage_gap_makes_verify_fail
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'verify::tests::dl_coverage_gap_makes_verify_fail' (2910390) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.050s] (19/41) gmeow-logic verify::tests::reviewer_gate_literal_reviewer_is_a_violation
+  stdout ───
+
+    running 1 test
+    test verify::tests::reviewer_gate_literal_reviewer_is_a_violation ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::reviewer_gate_literal_reviewer_is_a_violation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'verify::tests::reviewer_gate_literal_reviewer_is_a_violation' (2910396) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (20/41) gmeow-logic obligations::tests::finite_closure_can_discharge_a_reachable_head
+  stdout ───
+
+    running 1 test
+    test obligations::tests::finite_closure_can_discharge_a_reachable_head ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::finite_closure_can_discharge_a_reachable_head
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::tests::finite_closure_can_discharge_a_reachable_head' (2910357) panicked at crates/logic/src/obligations.tests.rs:355:58:
+    complete empty closure: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (21/41) gmeow-logic verify::tests::ask_query_is_rejected
+  stdout ───
+
+    running 1 test
+    test verify::tests::ask_query_is_rejected ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::ask_query_is_rejected
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'verify::tests::ask_query_is_rejected' (2910352) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (22/41) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+  stdout ───
+
+    running 1 test
+    test obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected' (2910370) panicked at crates/logic/src/obligations.tests.rs:127:70:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (23/41) gmeow-logic verify::tests::clean_query_yields_no_error_findings
+  stdout ───
+
+    running 1 test
+    test verify::tests::clean_query_yields_no_error_findings ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::clean_query_yields_no_error_findings
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::clean_query_yields_no_error_findings' (2910349) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.070s] (24/41) gmeow-logic obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible' (2910365) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.070s] (25/41) gmeow-logic obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+  stdout ───
+
+    running 1 test
+    test obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate' (2910358) panicked at crates/logic/src/obligations.tests.rs:447:60:
+    check runs: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://ex/obl has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://ex/obl has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.072s] (26/41) gmeow-logic obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::independent_document_blank_obligations_survive_native_ingress ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::program_tests::independent_document_blank_obligations_survive_native_ingress' (2910348) panicked at crates/logic/src/obligations/program_tests.rs:243:65:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://blackcatinformatics.ca/gmeow/skolem/5e15271ac628e4f3b9a0d8cdf9b04a1b8e0eee17 has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://blackcatinformatics.ca/gmeow/skolem/5e15271ac628e4f3b9a0d8cdf9b04a1b8e0eee17 has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.072s] (27/41) gmeow-logic obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence' (2910354) panicked at crates/logic/src/obligations/program_tests.rs:63:5:
+    assertion `left == right` failed: ObligationAssessment { analysis: [242, 166, 184, 153, 48, 13, 224, 87, 219, 230, 105, 56, 123, 206, 53, 110, 99, 36, 255, 39, 157, 255, 138, 187, 116, 172, 39, 253, 231, 163, 136, 164], outcomes: [], findings: [Finding { severity: Note, code: "verify.non-entailment.inventory", message: "discovered and checked 0 distinct non-entailment obligation(s) in world <https://blackcatinformatics.ca/gmeow/graph/rl-default>; authored=0, admitted=0, discharged=0", tool: Some("verify"), locations: [], related_locations: [], related_labels: [], suggestions: [], advice: [], remediation: [], finding_iri: None, anchor_iri: None, anchor_non_trivial: false, antecedents: [], root_cause: None, cluster: None, cross_node_glut_with: [], tags: ["world:https://blackcatinformatics.ca/gmeow/graph/rl-default"], detail: Some("analysis=f2a6b899300de057dbe669387bce356e6324ff279dff8abb74ac27fde7a388a4; program=48ee7f5f1ba196b68375f0a05803498cde5e9354990c14bfd83cef06df569cf6; input=a4bcc0e52bd1758f0851bbaa92b01299867e85634c387dc09a8ec5f339fd0a9b; engine=gmeow-logic@gmeow-logic/0.3.0+native.5; world=https://blackcatinformatics.ca/gmeow/graph/rl-default; foundation=420d25f7682e24907257b5d3989125b4e220c9a0db4db7b924ed4364799a0062; theory=79a1958166e9ff0acb003ece2a7222dd28b84040905037740830a00b4a2fbd05; examined producers: foundation/1/0, foundation/1/1, foundation/1/2, foundation/1/3, foundation/1/4, foundation/1/5, foundation/1/6, foundation/1/7, foundation/1/8, foundation/1/9, foundation/1/10, foundation/1/11, foundation/1/12, foundation/1/13, foundation/1/14, foundation/1/15, foundation/1/16, foundation/1/17, foundation/1/18, foundation/1/19, foundation/1/20, foundation/1/21, foundation/1/22, foundation/1/23, foundation/1/24, foundation/1/25, foundation/1/26, foundation/1/27, foundation/1/28, foundation/1/29, foundation/1/30, foundation/2/0, foundation/2/1, foundation/2/2, foundation/2/3, foundation/2/4, foundation/2/5, foundation/2/6, foundation/2/7, foundation/2/8, foundation/2/9, foundation/2/10, foundation/2/11, foundation/2/12, foundation/2/13, foundation/2/14, foundation/2/15, foundation/2/16, foundation/2/17, foundation/2/18, foundation/2/19, foundation/2/20, foundation/2/21, foundation/2/22, foundation/2/23, foundation/2/24, foundation/2/25, foundation/2/26, foundation/2/27, foundation/3/0, foundation/3/1, foundation/3/2, foundation/3/3, foundation/3/4, foundation/3/5, foundation/3/6, foundation/3/7, foundation/3/8, foundation/3/9, foundation/3/10, foundation/4/0, foundation/4/1, foundation/4/2, foundation/4/3, foundation/4/4, foundation/4/5, foundation/4/6, foundation/4/7, foundation/4/8, foundation/4/9, foundation/4/10, foundation/4/11, foundation/4/12, foundation/4/13, foundation/4/14, foundation/4/15, foundation/4/16, el:subClassOf-transitive, el:equivalentClass-fwd, el:equivalentClass-bwd, el:type-propagation, el:subPropertyOf-transitive, dl:individual-clash, dl:unsatisfiable-class, dl:nothing-membership, https://blackcatinformatics.ca/logic/formula-rule/7bbb7eb4c4cc5284c24ca8158e37b94a211406a2, dl:union-member, dl:intersection-member, dl:intersection-membership, dl:empty-intersection-subject, dl:empty-intersection-object, dl:empty-intersection-predicate, dl:oneOf-closure-clash, dl:disjointUnion-member, dl:oneOf-member, dl:disjointUnion-disjoint, dl:allDisjointClasses-pairwise, dl:allDisjointProperties-pairwise, dl:allDifferent-pairwise, dl:allDifferent-pairwise, dl:property-chain, dl:complement-disjoint, dl:complement-disjoint, dl:equivalentProperty-subproperty, dl:equivalentProperty-subproperty, dl:subPropertyOf-propagation, dl:domain, dl:range, dl:symmetric-property, dl:inverseOf, dl:inverseOf-symmetry, dl:transitive-property, dl:someValuesFrom, dl:allValuesFrom, dl:hasValue-assertion, dl:hasValue-membership, dl:universal-class-subclass, dl:universal-class-subclass, dl:self-disjoint-empty-class, dl:disjoint-superclass-empty-class, dl:disjoint-superclass-empty-class, dl:someValuesFrom-unsat-filler, dl:min-cardinality-unsat-filler, dl:min-cardinality-unsat-filler, dl:someValuesFrom-unsat-filler, dl:min-cardinality-unsat-filler, dl:min-cardinality-unsat-filler, dl:bottom-property-clash, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-clash, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:bottom-property-empty-class, dl:functional-equality, dl:functional-equality, dl:inverse-functional-equality, dl:inverse-functional-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:maximum-one-equality, dl:hasSelf-assertion, dl:hasSelf-membership, dl:sameAs-symmetry, dl:sameAs-transitive, dl:same-different-clash, dl:same-different-clash, dl:asymmetric-property-clash, dl:irreflexive-property-clash, dl:property-disjoint-clash, dl:negative-property-assertion-clash, dl:negative-property-assertion-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:functional-property-clash, dl:has-key-clash, dl:has-key-clash, dl:has-key-clash, dl:has-key-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:max-cardinality-clash, dl:minimum-witness:http://www.w3.org/2002/07/owl#minCardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#cardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#minQualifiedCardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#qualifiedCardinality, dl:minimum-witness:http://www.w3.org/2002/07/owl#someValuesFrom, dl:datatype-property-literal-clash, dl:datatype-membership-clash, dl:datatype-membership-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, dl:datatype-capacity-clash, native-family:Obligation(Cardinality):0, native-family:Obligation(Identity):0, native-family:Obligation(Identity):1, native-family:Obligation(Identity):2, native-family:Obligation(HasSelf):0, native-family:Obligation(Datatype):0, native-family:Obligation(Datatype):1, native-family:Class:0, native-family:Class:1, native-family:Class:2, native-family:Class:3, native-family:Class:4, native-family:Class:5, native-source-admission:dl:union-member:0:UnionOf, native-source-admission:dl:intersection-member:0:IntersectionOf, native-source-admission:dl:intersection-membership:0:IntersectionOf, native-source-admission:dl:empty-intersection-subject:0:IntersectionOf, native-source-admission:dl:empty-intersection-object:0:IntersectionOf, native-source-admission:dl:empty-intersection-predicate:0:IntersectionOf, native-source-admission:dl:oneOf-closure-clash:0:OneOf, native-source-admission:dl:disjointUnion-member:0:DisjointUnionOf, native-source-admission:dl:oneOf-member:0:OneOf, native-source-admission:dl:disjointUnion-disjoint:0:DisjointUnionOf, native-source-admission:dl:allDisjointClasses-pairwise:0:AllDisjointClasses, native-source-admission:dl:allDisjointProperties-pairwise:0:AllDisjointProperties, native-source-admission:dl:allDifferent-pairwise:0:AllDifferent, native-source-admission:dl:allDifferent-pairwise:0:AllDifferent, native-source-admission:dl:property-chain:0:PropertyChainAxiom, native-source-admission:dl:complement-disjoint:0:ComplementOf, native-source-admission:dl:complement-disjoint:0:ComplementOf, native-source-admission:dl:domain:0:Domain, native-source-admission:dl:range:0:Range, native-source-admission:dl:someValuesFrom:1:SomeValuesFrom, native-source-admission:dl:allValuesFrom:1:AllValuesFrom, native-source-admission:dl:hasValue-assertion:1:HasValue, native-source-admission:dl:hasValue-membership:1:HasValue, native-source-admission:dl:someValuesFrom-unsat-filler:1:SomeValuesFrom, native-source-admission:dl:min-cardinality-unsat-filler:1:MinQualifiedCardinality, native-source-admission:dl:min-cardinality-unsat-filler:1:QualifiedCardinality, native-source-admission:dl:someValuesFrom-unsat-filler:1:SomeValuesFrom, native-source-admission:dl:min-cardinality-unsat-filler:1:MinQualifiedCardinality, native-source-admission:dl:min-cardinality-unsat-filler:1:QualifiedCardinality, native-source-admission:dl:bottom-property-clash:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:SomeValuesFrom, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:HasValue, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:MinCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:Cardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomObjectProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:bottom-property-clash:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:SomeValuesFrom, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:HasValue, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:MinCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:Cardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:MinQualifiedCardinality, native-source-admission:dl:bottom-property-empty-class:0:BottomDataProperty, native-source-admission:dl:bottom-property-empty-class:1:QualifiedCardinality, native-source-admission:dl:functional-equality:0:FunctionalProperty, native-source-admission:dl:functional-equality:1:FunctionalProperty, native-source-admission:dl:inverse-functional-equality:0:InverseFunctionalProperty, native-source-admission:dl:maximum-one-equality:0:MaxCardinality, native-source-admission:dl:maximum-one-equality:0:Cardinality, native-source-admission:dl:maximum-one-equality:0:MaxQualifiedCardinality, native-source-admission:dl:maximum-one-equality:0:MaxQualifiedCardinality, native-source-admission:dl:maximum-one-equality:0:QualifiedCardinality, native-source-admission:dl:maximum-one-equality:0:QualifiedCardinality, native-source-admission:dl:hasSelf-assertion:0:HasSelf, native-source-admission:dl:hasSelf-membership:0:HasSelf, native-source-admission:dl:asymmetric-property-clash:0:AsymmetricProperty, native-source-admission:dl:irreflexive-property-clash:0:IrreflexiveProperty, native-source-admission:dl:property-disjoint-clash:0:PropertyDisjointWith, native-source-admission:dl:negative-property-assertion-clash:0:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:1:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:2:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:0:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:1:NegativePropertyAssertion, native-source-admission:dl:negative-property-assertion-clash:2:NegativePropertyAssertion, native-source-admission:dl:functional-property-clash:0:FunctionalProperty, native-source-admission:dl:functional-property-clash:0:FunctionalProperty, native-source-admission:dl:functional-property-clash:0:FunctionalProperty, native-source-admission:dl:functional-property-clash:1:FunctionalProperty, native-source-admission:dl:functional-property-clash:1:FunctionalProperty, native-source-admission:dl:functional-property-clash:1:FunctionalProperty, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:has-key-clash:0:HasKey, native-source-admission:dl:max-cardinality-clash:2:MaxCardinality, native-source-admission:dl:max-cardinality-clash:2:Cardinality, native-source-admission:dl:max-cardinality-clash:2:MaxQualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:MaxQualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:MaxQualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:QualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:QualifiedCardinality, native-source-admission:dl:max-cardinality-clash:2:QualifiedCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#minCardinality:1:MinCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#cardinality:1:Cardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#minQualifiedCardinality:1:MinQualifiedCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#qualifiedCardinality:1:QualifiedCardinality, native-source-admission:dl:minimum-witness:http://www.w3.org/2002/07/owl#someValuesFrom:1:SomeValuesFrom, native-source-admission:dl:datatype-membership-clash:0:Range, native-source-admission:dl:datatype-membership-clash:0:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:SomeValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:MinQualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:0:QualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:0:SomeValuesFrom, native-source-admission:dl:datatype-capacity-clash:3:Range, native-source-admission:dl:datatype-capacity-clash:0:SomeValuesFrom, native-source-admission:dl:datatype-capacity-clash:4:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:MinCardinality, native-source-admission:dl:datatype-capacity-clash:3:Range, native-source-admission:dl:datatype-capacity-clash:0:MinCardinality, native-source-admission:dl:datatype-capacity-clash:4:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:Cardinality, native-source-admission:dl:datatype-capacity-clash:3:Range, native-source-admission:dl:datatype-capacity-clash:0:Cardinality, native-source-admission:dl:datatype-capacity-clash:4:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:MinQualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:4:Range, native-source-admission:dl:datatype-capacity-clash:0:MinQualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:5:AllValuesFrom, native-source-admission:dl:datatype-capacity-clash:0:QualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:4:Range, native-source-admission:dl:datatype-capacity-clash:0:QualifiedCardinality, native-source-admission:dl:datatype-capacity-clash:5:AllValuesFrom"), failure_class: None, category: None, standpoint: None, attributions: [], documented_terms: [], guidance: [], derived_from_quads: [], cited_iris: [] }] }
+      left: 0
+     right: 1
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.072s] (28/41) gmeow-logic obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+  stdout ───
+
+    running 1 test
+    test obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value' (2910374) panicked at crates/logic/src/obligations.tests.rs:226:9:
+    ; logic:obligationForbiddenPredicate ex:p, ex:q: non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.074s] (29/41) gmeow-logic obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+  stdout ───
+
+    running 1 test
+    test obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution' (2910379) panicked at crates/logic/src/obligations.tests.rs:171:6:
+    governance checks: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/both has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/both has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.063s] (31/41) gmeow-logic verify::tests::counterpart_non_transitivity_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::counterpart_non_transitivity_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::counterpart_non_transitivity_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::counterpart_non_transitivity_green_then_red' (2910393) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.078s] (32/41) gmeow-logic obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation' (2910350) panicked at crates/logic/src/obligations/program_tests.rs:156:65:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.065s] (33/41) gmeow-logic verify::tests::non_entailment_carrier_required_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::non_entailment_carrier_required_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::non_entailment_carrier_required_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::non_entailment_carrier_required_green_then_red' (2910387) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.079s] (34/41) gmeow-logic verify::tests::asserted_deceptive_intent_is_not_a_derived_violation
+  stdout ───
+
+    running 1 test
+    test verify::tests::asserted_deceptive_intent_is_not_a_derived_violation ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::asserted_deceptive_intent_is_not_a_derived_violation
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'verify::tests::asserted_deceptive_intent_is_not_a_derived_violation' (2910375) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.081s] (35/41) gmeow-logic obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples' (2910361) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.061s] (36/41) gmeow-logic verify::tests::violating_query_yields_error_finding_with_detail
+  stdout ───
+
+    running 1 test
+    test verify::tests::violating_query_yields_error_finding_with_detail ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::violating_query_yields_error_finding_with_detail
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'verify::tests::violating_query_yields_error_finding_with_detail' (2910398) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (37/41) gmeow-logic verify::tests::promotion_cases_required_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::promotion_cases_required_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::promotion_cases_required_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'verify::tests::promotion_cases_required_green_then_red' (2910392) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.087s] (39/41) gmeow-logic obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::foreign_or_changed_program_analysis_is_refused ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.08s
+
+  stderr ───
+
+    thread 'obligations::program_tests::foreign_or_changed_program_analysis_is_refused' (2910362) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.075s] (40/41) gmeow-logic verify::tests::reviewer_gate_green_then_red
+  stdout ───
+
+    running 1 test
+    test verify::tests::reviewer_gate_green_then_red ... FAILED
+
+    failures:
+
+    failures:
+        verify::tests::reviewer_gate_green_then_red
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'verify::tests::reviewer_gate_green_then_red' (2910391) panicked at crates/logic/src/verify/prepared_gates/test_support.rs:19:10:
+    native authored law tests require the producer-selected fixture identity: NotPresent
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   1.096s] (41/41) gmeow-logic obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2068 filtered out; finished in 1.08s
+
+  stderr ───
+
+    thread 'obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate' (2910377) panicked at crates/logic/src/obligations/program_tests.rs:62:64:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate", context: [], antecedents: [], source: Some(Obligation { detail: "non-entailment obligation https://example.org/obligation has no logic:obligationForbiddenPredicate" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/obligations.rs", line: 61, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

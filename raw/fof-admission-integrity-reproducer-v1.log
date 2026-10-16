@@ -1,0 +1,57 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem)' --no-tests=fail
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 48.02s
+────────────
+ Nextest run ID 822529c9-f33b-4749-9147-65bfe228fae6 with nextest profile: ci
+    Starting 1 test across 224 binaries (7390 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        FAIL [   0.007s] (1/1) gmeow-logic-compile tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+  stdout ───
+
+    running 1 test
+    test tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 932 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem' (388306) panicked at crates/logic-compile/src/tptp/tests.rs:260:5:
+    assertion `left == right` failed: removing required-unit refusals must not authorize a partial theory
+      left: Complete
+     right: Blocked
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.090s] 1 test run: 0 passed, 1 failed, 7390 skipped
+        FAIL [   0.007s] (1/1) gmeow-logic-compile tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+  stdout ───
+
+    running 1 test
+    test tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 932 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem' (388306) panicked at crates/logic-compile/src/tptp/tests.rs:260:5:
+    assertion `left == right` failed: removing required-unit refusals must not authorize a partial theory
+      left: Complete
+     right: Blocked
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

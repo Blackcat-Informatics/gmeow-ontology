@@ -1,0 +1,79 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(list_cell_bindings_) | test(list_cell_binding_limit_))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error[E0277]: the trait bound `std::string::String: From<&&str>` is not satisfied
+   --> crates/logic/src/physical/seminaive/joint/input/admission_tests.rs:76:65
+    |
+ 76 |                         rel.contains(LIST_CELL, &TermValue::iri(head), &TermValue::iri(cell)),
+    |                                                  -------------- ^^^^ the trait `From<&&str>` is not implemented for `std::string::String`
+    |                                                  |
+    |                                                  required by a bound introduced by this call
+    |
+    = help: consider casting the `&&str` value to `&str`
+    = note: required for `&&str` to implement `Into<std::string::String>`
+note: required by a bound in `purrdf::TermValue::iri`
+   --> /kache/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/purrdf-lex-3.0.0/src/constructors.rs:116:35
+    |
+ 86 |           impl $type {
+...
+116 |           $vis fn $name($text: impl ::core::convert::Into<::std::string::String>) -> Self {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `TermValue::iri`
+    |
+   ::: /kache/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/purrdf-core-3.0.0/src/ir/term.rs:361:1
+    |
+361 | / purrdf_lex::constructors! {
+362 | |     impl TermValue {
+363 | |         /// An IRI term from its full string.
+364 | |         #[inline]
+365 | |         pub fn iri(value) -> Self::Iri;
+366 | |     }
+367 | | }
+    | |_- in this macro invocation
+    = note: this error originates in the macro `$crate::constructors` which comes from the expansion of the macro `purrdf_lex::constructors` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider dereferencing here
+    |
+ 76 |                         rel.contains(LIST_CELL, &TermValue::iri(*head), &TermValue::iri(cell)),
+    |                                                                 +
+
+error[E0277]: the trait bound `std::string::String: From<&&str>` is not satisfied
+   --> crates/logic/src/physical/seminaive/joint/input/admission_tests.rs:76:88
+    |
+ 76 |                         rel.contains(LIST_CELL, &TermValue::iri(head), &TermValue::iri(cell)),
+    |                                                                         -------------- ^^^^ the trait `From<&&str>` is not implemented for `std::string::String`
+    |                                                                         |
+    |                                                                         required by a bound introduced by this call
+    |
+    = help: consider casting the `&&str` value to `&str`
+    = note: required for `&&str` to implement `Into<std::string::String>`
+note: required by a bound in `purrdf::TermValue::iri`
+   --> /kache/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/purrdf-lex-3.0.0/src/constructors.rs:116:35
+    |
+ 86 |           impl $type {
+...
+116 |           $vis fn $name($text: impl ::core::convert::Into<::std::string::String>) -> Self {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `TermValue::iri`
+    |
+   ::: /kache/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/purrdf-core-3.0.0/src/ir/term.rs:361:1
+    |
+361 | / purrdf_lex::constructors! {
+362 | |     impl TermValue {
+363 | |         /// An IRI term from its full string.
+364 | |         #[inline]
+365 | |         pub fn iri(value) -> Self::Iri;
+366 | |     }
+367 | | }
+    | |_- in this macro invocation
+    = note: this error originates in the macro `$crate::constructors` which comes from the expansion of the macro `purrdf_lex::constructors` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider dereferencing here
+    |
+ 76 |                         rel.contains(LIST_CELL, &TermValue::iri(head), &TermValue::iri(*cell)),
+    |                                                                                        +
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-logic` (lib test) due to 2 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:709: nextest-synthetic] Error 101

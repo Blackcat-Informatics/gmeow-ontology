@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "a631f73e6e39b4493d295bcd83b4deec80637f54",
+  "headRefName": "issue-1757-production-verdict",
+  "headRefOid": "b797a315e09cf6a118e0ca60975007a65f43a138",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1802,
+  "state": "OPEN",
+  "title": "fix(1757): certify and run native reasoning on the production corpus",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1802"
+}

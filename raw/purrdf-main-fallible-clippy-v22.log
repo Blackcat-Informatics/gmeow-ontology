@@ -1,0 +1,642 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+    Checking gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error[E0277]: the trait bound `DecisionError: From<TptpError>` is not satisfied
+   --> crates/conformance/src/observations.rs:188:26
+    |
+188 |             let parsed = parse_tptp(&tstp).map_err(DecisionError::from)?;
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `std::convert::From<external::tptp::parser::TptpError>` is not implemented for `external::tptp::lower_fol::DecisionError`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:88:1
+    |
+ 88 | pub enum DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^
+help: `external::tptp::lower_fol::DecisionError` implements trait `std::convert::From<T>`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:111:1
+    |
+111 | impl From<LoweringGap> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<external::tptp::lower_fol::LoweringGap>`
+...
+117 | impl From<gmeow_errors::Diag> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<gmeow_errors::Diag>`
+    = note: the full name for the type has been written to '/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-conformance/b11a2f43624d4392/out/gmeow_conformance-b11a2f43624d4392.long-type-6716610618583967957.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: the trait bound `DecisionError: From<TptpError>` is not satisfied
+   --> crates/conformance/src/observations.rs:188:44
+    |
+188 |             let parsed = parse_tptp(&tstp).map_err(DecisionError::from)?;
+    |                                            ^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `std::convert::From<external::tptp::parser::TptpError>` is not implemented for `external::tptp::lower_fol::DecisionError`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:88:1
+    |
+ 88 | pub enum DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^
+help: `external::tptp::lower_fol::DecisionError` implements trait `std::convert::From<T>`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:111:1
+    |
+111 | impl From<LoweringGap> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<external::tptp::lower_fol::LoweringGap>`
+...
+117 | impl From<gmeow_errors::Diag> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<gmeow_errors::Diag>`
+    = note: the full name for the type has been written to '/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-conformance/b11a2f43624d4392/out/gmeow_conformance-b11a2f43624d4392.long-type-6716610618583967957.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: the trait bound `DecisionError: From<TptpError>` is not satisfied
+   --> crates/conformance/src/observations.rs:188:52
+    |
+188 |             let parsed = parse_tptp(&tstp).map_err(DecisionError::from)?;
+    |                                                    ^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `std::convert::From<external::tptp::parser::TptpError>` is not implemented for `external::tptp::lower_fol::DecisionError`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:88:1
+    |
+ 88 | pub enum DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^
+help: `external::tptp::lower_fol::DecisionError` implements trait `std::convert::From<T>`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:111:1
+    |
+111 | impl From<LoweringGap> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<external::tptp::lower_fol::LoweringGap>`
+...
+117 | impl From<gmeow_errors::Diag> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<gmeow_errors::Diag>`
+    = note: the full name for the type has been written to '/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-conformance/b11a2f43624d4392/out/gmeow_conformance-b11a2f43624d4392.long-type-6716610618583967957.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-conformance` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0026]: variant `external::tptp::lower_fol::DecisionError::Failure` does not have a field named `detail`
+   --> crates/conformance/src/external/tptp/lower_fol.tests.rs:197:51
+    |
+197 |         matches!(&error, DecisionError::Failure { detail } if detail.contains("synthetic native execution failure"))
+    |                                                   ^^^^^^
+    |                                                   |
+    |                                                   variant `external::tptp::lower_fol::DecisionError::Failure` does not have this field
+    |                                                   help: `external::tptp::lower_fol::DecisionError::Failure` has a field named `diagnostic`
+
+error[E0027]: pattern does not mention field `diagnostic`
+   --> crates/conformance/src/external/tptp/lower_fol.tests.rs:197:26
+    |
+197 |         matches!(&error, DecisionError::Failure { detail } if detail.contains("synthetic native execution failure"))
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing field `diagnostic`
+    |
+help: include the missing field in the pattern
+    |
+197 |         matches!(&error, DecisionError::Failure { detail, diagnostic } if detail.contains("synthetic native execution failure"))
+    |                                                         ++++++++++++
+help: if you don't care about this missing field, you can explicitly ignore it
+    |
+197 |         matches!(&error, DecisionError::Failure { detail, diagnostic: _ } if detail.contains("synthetic native execution failure"))
+    |                                                         +++++++++++++++
+help: or always ignore missing fields here
+    |
+197 |         matches!(&error, DecisionError::Failure { detail, .. } if detail.contains("synthetic native execution failure"))
+    |                                                         ++++
+
+error[E0277]: the trait bound `DecisionError: From<TptpError>` is not satisfied
+   --> crates/conformance/src/observations.rs:188:26
+    |
+188 |             let parsed = parse_tptp(&tstp).map_err(DecisionError::from)?;
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `std::convert::From<external::tptp::parser::TptpError>` is not implemented for `external::tptp::lower_fol::DecisionError`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:88:1
+    |
+ 88 | pub enum DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^
+help: `external::tptp::lower_fol::DecisionError` implements trait `std::convert::From<T>`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:111:1
+    |
+111 | impl From<LoweringGap> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<external::tptp::lower_fol::LoweringGap>`
+...
+117 | impl From<gmeow_errors::Diag> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<gmeow_errors::Diag>`
+    = note: the full name for the type has been written to '/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-conformance/f373125597c1bb69/out/gmeow_conformance-f373125597c1bb69.long-type-6107419125232313528.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: the trait bound `DecisionError: From<TptpError>` is not satisfied
+   --> crates/conformance/src/observations.rs:188:44
+    |
+188 |             let parsed = parse_tptp(&tstp).map_err(DecisionError::from)?;
+    |                                            ^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `std::convert::From<external::tptp::parser::TptpError>` is not implemented for `external::tptp::lower_fol::DecisionError`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:88:1
+    |
+ 88 | pub enum DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^
+help: `external::tptp::lower_fol::DecisionError` implements trait `std::convert::From<T>`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:111:1
+    |
+111 | impl From<LoweringGap> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<external::tptp::lower_fol::LoweringGap>`
+...
+117 | impl From<gmeow_errors::Diag> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<gmeow_errors::Diag>`
+    = note: the full name for the type has been written to '/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-conformance/f373125597c1bb69/out/gmeow_conformance-f373125597c1bb69.long-type-6107419125232313528.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: the trait bound `DecisionError: From<TptpError>` is not satisfied
+   --> crates/conformance/src/observations.rs:188:52
+    |
+188 |             let parsed = parse_tptp(&tstp).map_err(DecisionError::from)?;
+    |                                                    ^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `std::convert::From<external::tptp::parser::TptpError>` is not implemented for `external::tptp::lower_fol::DecisionError`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:88:1
+    |
+ 88 | pub enum DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^
+help: `external::tptp::lower_fol::DecisionError` implements trait `std::convert::From<T>`
+   --> crates/conformance/src/external/tptp/lower_fol.rs:111:1
+    |
+111 | impl From<LoweringGap> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<external::tptp::lower_fol::LoweringGap>`
+...
+117 | impl From<gmeow_errors::Diag> for DecisionError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `std::convert::From<gmeow_errors::Diag>`
+    = note: the full name for the type has been written to '/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-conformance/f373125597c1bb69/out/gmeow_conformance-f373125597c1bb69.long-type-6107419125232313528.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+Some errors have detailed explanations: E0026, E0027, E0277.
+For more information about an error, try `rustc --explain E0026`.
+error: could not compile `gmeow-conformance` (lib test) due to 5 previous errors
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:778:9
+    |
+778 |         builder.push_dataset(bundle_edb.as_ref());
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+778 |         let _ = builder.push_dataset(bundle_edb.as_ref());
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:779:9
+    |
+779 |         builder.push_dataset(user);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+779 |         let _ = builder.push_dataset(user);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:902:9
+    |
+902 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+902 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:906:9
+    |
+906 |         builder.push_owned_reifier(&reifier);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+906 |         let _ = builder.push_owned_reifier(&reifier);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:910:9
+    |
+910 |         builder.push_owned_annotation(&annotation);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+910 |         let _ = builder.push_owned_annotation(&annotation);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:980:5
+    |
+980 |     builder.push_dataset(&dataset);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+980 |     let _ = builder.push_dataset(&dataset);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/data_validate.rs:982:9
+    |
+982 |         builder.push_owned_quad(&shortcut);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+982 |         let _ = builder.push_owned_quad(&shortcut);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+    --> crates/validate/src/data_validate.rs:1004:5
+     |
+1004 |     builder.push_dataset(ontology);
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+     |
+1004 |     let _ = builder.push_dataset(ontology);
+     |     +++++++
+
+error: unused `std::result::Result` that must be used
+    --> crates/validate/src/data_validate.rs:1005:5
+     |
+1005 |     builder.push_dataset(data);
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+     |
+1005 |     let _ = builder.push_dataset(data);
+     |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/validate/src/data_validate.tests.rs:16:9
+   |
+16 | /         builder.push_owned_reifier(
+17 | |             &RdfReifier::new(
+18 | |                 reifier.clone(),
+19 | |                 RdfTriple::new(
+...  |
+25 | |             .in_graph(Some(RdfTerm::iri(world))),
+26 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+16 |         let _ = builder.push_owned_reifier(
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/validate/src/data_validate.tests.rs:27:9
+   |
+27 | /         builder.push_owned_annotation(
+28 | |             &RdfAnnotation::new(
+29 | |                 reifier.clone(),
+30 | |                 "urn:source",
+...  |
+33 | |             .in_graph(Some(RdfTerm::iri(world))),
+34 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+27 |         let _ = builder.push_owned_annotation(
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/store.rs:195:9
+    |
+195 |         builder.push_dataset(&dataset);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+195 |         let _ = builder.push_dataset(&dataset);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/validate/src/abductive.tests.rs:13:5
+   |
+13 |     builder.push_dataset(parsed.as_ref());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+13 |     let _ = builder.push_dataset(parsed.as_ref());
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/box_roles.rs:163:9
+    |
+163 |         builder.push_dataset(&dataset);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+163 |         let _ = builder.push_dataset(&dataset);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/dsl.rs:105:9
+    |
+105 |         builder.push_dataset(&dataset);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+105 |         let _ = builder.push_dataset(&dataset);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:751:9
+    |
+751 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+751 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:766:9
+    |
+766 |         builder.push_owned_reifier(&reifier);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+766 |         let _ = builder.push_owned_reifier(&reifier);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:771:9
+    |
+771 |         builder.push_owned_annotation(&annotation);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+771 |         let _ = builder.push_owned_annotation(&annotation);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:889:17
+    |
+889 |                 builder.push_owned_quad(&quad);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+889 |                 let _ = builder.push_owned_quad(&quad);
+    |                 +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:898:25
+    |
+898 |                         builder.push_owned_quad(&new_quad);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+898 |                         let _ = builder.push_owned_quad(&new_quad);
+    |                         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:905:9
+    |
+905 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+905 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:926:25
+    |
+926 |                         builder.push_owned_reifier(&reifier);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+926 |                         let _ = builder.push_owned_reifier(&reifier);
+    |                         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:936:9
+    |
+936 |         builder.push_owned_reifier(&reifier);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+936 |         let _ = builder.push_owned_reifier(&reifier);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.rs:942:9
+    |
+942 |         builder.push_owned_annotation(&annotation);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+942 |         let _ = builder.push_owned_annotation(&annotation);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.tests.rs:631:5
+    |
+631 |     builder.push_owned_quad(&RdfQuad::new(subject_term, predicate, object_term));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+631 |     let _ = builder.push_owned_quad(&RdfQuad::new(subject_term, predicate, object_term));
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.tests.rs:632:5
+    |
+632 |     builder.push_owned_reifier(&reifier);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+632 |     let _ = builder.push_owned_reifier(&reifier);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.tests.rs:633:5
+    |
+633 |     builder.push_owned_annotation(&annotation);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+633 |     let _ = builder.push_owned_annotation(&annotation);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.tests.rs:715:5
+    |
+715 | /     builder.push_owned_quad(&RdfQuad::new(
+716 | |         subject_term.clone(),
+717 | |         pred,
+718 | |         RdfTerm::Literal(en_lit),
+719 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+715 |     let _ = builder.push_owned_quad(&RdfQuad::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.tests.rs:720:5
+    |
+720 |     builder.push_owned_quad(&RdfQuad::new(subject_term, pred, RdfTerm::Literal(fr_lit)));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+720 |     let _ = builder.push_owned_quad(&RdfQuad::new(subject_term, pred, RdfTerm::Literal(fr_lit)));
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.tests.rs:721:5
+    |
+721 |     builder.push_owned_reifier(&reifier);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+721 |     let _ = builder.push_owned_reifier(&reifier);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/language_tags.tests.rs:722:5
+    |
+722 |     builder.push_owned_annotation(&annotation);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+722 |     let _ = builder.push_owned_annotation(&annotation);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/validate/src/lint.tests.rs:430:9
+    |
+430 | /         b.push_owned_quad(
+431 | |             &RdfQuad::new(RdfTerm::iri(subject.clone()), label, en.clone())
+432 | |                 .in_graph(RdfTerm::iri(graph.to_owned())),
+433 | |         );
+    | |_________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+430 |         let _ = b.push_owned_quad(
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+    --> crates/validate/src/shape_oracle.rs:1656:9
+     |
+1656 |         builder.push_dataset(data_graph);
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+     |
+1656 |         let _ = builder.push_dataset(data_graph);
+     |         +++++++
+
+error: unused `std::result::Result` that must be used
+    --> crates/validate/src/shape_oracle.rs:1657:9
+     |
+1657 |         builder.push_dataset(&witness_ds);
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+     |
+1657 |         let _ = builder.push_dataset(&witness_ds);
+     |         +++++++
+
+error: unused `std::result::Result` that must be used
+    --> crates/validate/src/validate_all.rs:1864:9
+     |
+1864 |         builder.push_dataset(ds);
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+     |
+1864 |         let _ = builder.push_dataset(ds);
+     |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/validate/src/validate_all.tests.rs:69:9
+   |
+69 |         builder.push_owned_quad(q);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+69 |         let _ = builder.push_owned_quad(q);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/validate/src/validate_all.tests.rs:71:5
+   |
+71 |     builder.push_dataset(&example);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+71 |     let _ = builder.push_dataset(&example);
+   |     +++++++
+
+error: could not compile `gmeow-validate` (lib test) due to 37 previous errors
+error: could not compile `gmeow-validate` (lib) due to 24 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

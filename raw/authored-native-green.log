@@ -1,0 +1,56 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & (test(native_rule_statement_layer_survives_the_production_gts_profile) | test(authored_base_quote_outside_a_native_binding_still_fails_closed))' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+error[E0425]: cannot find function `reject_quoted_triples` in this scope
+    --> crates/pipeline/src/stages/carrier/test_support.rs:374:5
+     |
+ 374 |     reject_quoted_triples(&quads, graph_name)?;
+     |     ^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+     |
+note: similarly named function `reject_base_quoted_triples` defined here
+    --> crates/pipeline/src/stages/carrier.rs:4264:1
+     |
+4264 | / fn reject_base_quoted_triples(
+4265 | |     dataset: &purrdf::RdfDataset,
+4266 | |     graph_name: &str,
+4267 | | ) -> Result<(), gmeow_errors::Diag> {
+...    |
+4277 | |     Ok(())
+4278 | | }
+     | |_^
+help: a function with a similar name exists
+     |
+ 374 |     reject_base_quoted_triples(&quads, graph_name)?;
+     |            +++++
+
+error[E0425]: cannot find function `reject_quoted_triples` in this scope
+    --> crates/pipeline/src/stages/carrier/test_support.rs:394:5
+     |
+ 394 |     reject_quoted_triples(&quads, "default")?;
+     |     ^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+     |
+note: similarly named function `reject_base_quoted_triples` defined here
+    --> crates/pipeline/src/stages/carrier.rs:4264:1
+     |
+4264 | / fn reject_base_quoted_triples(
+4265 | |     dataset: &purrdf::RdfDataset,
+4266 | |     graph_name: &str,
+4267 | | ) -> Result<(), gmeow_errors::Diag> {
+...    |
+4277 | |     Ok(())
+4278 | | }
+     | |_^
+help: a function with a similar name exists
+     |
+ 394 |     reject_base_quoted_triples(&quads, "default")?;
+     |            +++++
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `gmeow-pipeline` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:705: nextest-synthetic] Error 101

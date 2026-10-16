@@ -1,0 +1,96 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+error: this `if` statement can be collapsed
+   --> crates/pipeline/src/scheduler.rs:837:25
+    |
+837 | /                         if *remaining == 0 && !retained_carriers.contains(&producer) {
+838 | |                             if let Some(product) = products.remove(&producer) {
+839 | |                                 products.insert(producer, product.into_carrier_released()?);
+840 | |                             }
+841 | |                         }
+    | |_________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+837 ~                         if *remaining == 0 && !retained_carriers.contains(&producer)
+838 ~                             && let Some(product) = products.remove(&producer) {
+839 |                                 products.insert(producer, product.into_carrier_released()?);
+840 ~                             }
+    |
+
+error: this `if` statement can be collapsed
+   --> crates/pipeline/src/scheduler.rs:871:13
+    |
+871 | /             if let Err(error) = commit_result {
+872 | |                 if first_error.is_none() {
+873 | |                     first_error = Some(error);
+874 | |                 }
+875 | |             }
+    | |_____________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+help: collapse nested if block
+    |
+871 ~             if let Err(error) = commit_result
+872 ~                 && first_error.is_none() {
+873 |                     first_error = Some(error);
+874 ~                 }
+    |
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> crates/pipeline/src/stages/compile_logic.rs:777:29
+    |
+777 |         list_corpus::record(&catalog, &theory, &canonical_dataset, &mut artifacts)?;
+    |                             ^^^^^^^^ help: change this to: `catalog`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#needless_borrow
+    = note: `-D clippy::needless-borrow` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrow)]`
+
+error: this `if` statement can be collapsed
+   --> crates/pipeline/src/stages/conformance.rs:468:17
+    |
+468 | /                 if let Some(expected) = profile
+469 | |                     .get("source_admission_status")
+470 | |                     .and_then(serde_json::Value::as_str)
+...   |
+477 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+help: collapse nested if block
+    |
+470 ~                     .and_then(serde_json::Value::as_str)
+471 ~                     && expected != observation.admission.observation_status() {
+472 |                         return Err(stage_err(
+473 |                             "source-admission observation violates its declared expected status",
+474 |                         ));
+475 ~                     }
+    |
+
+error: could not compile `gmeow-pipeline` (lib) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: unnecessary use of `clone` to create a slice from a reference
+  --> crates/pipeline/src/stages/carrier_rooting_tests.rs:27:5
+   |
+27 | /     assert_eq!(
+28 | |         dataset.owned_named_graphs().collect::<Vec<_>>(),
+29 | |         [expected.clone()]
+30 | |     );
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#cloned_ref_to_slice_refs
+   = note: `-D clippy::cloned-ref-to-slice-refs` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::cloned_ref_to_slice_refs)]`
+
+error: could not compile `gmeow-pipeline` (lib test) due to 5 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

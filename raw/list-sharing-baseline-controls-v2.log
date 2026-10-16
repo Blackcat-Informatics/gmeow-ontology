@@ -1,0 +1,16 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(list_cell_bindings_) | test(list_cell_binding_limit_))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Finished `test` profile [optimized] target(s) in 2m 12s
+────────────
+ Nextest run ID 8c56b8e0-aa05-4b73-9192-d8685fbc654a with nextest profile: ci
+    Starting 3 tests across 26 binaries (2280 tests and 199 binaries skipped)
+        PASS [   0.016s] (1/3) gmeow-logic physical::seminaive::joint::input::admission::tests::list_cell_bindings_match_reachability_for_every_three_node_graph
+        PASS [   0.322s] (2/3) gmeow-logic physical::seminaive::joint::input::admission::tests::list_cell_binding_limit_is_inclusive_and_publication_is_atomic
+        PASS [   0.384s] (3/3) gmeow-logic physical::seminaive::joint::input::admission::tests::list_cell_bindings_share_a_branching_rest_only_cycle
+────────────
+     Summary [   0.444s] 3 tests run: 3 passed, 2280 skipped

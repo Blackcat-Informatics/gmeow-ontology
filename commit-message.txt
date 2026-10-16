@@ -1,0 +1,23 @@
+refactor: integrate pinned PurRDF APIs and native reasoning repairs
+
+Port compiler, carrier, pipeline, diagnostics and consumer callers to the
+authorized exact PurRDF main revision and propagate native failures through
+their typed boundaries. Keep source identities, world scopes, receipts, RDF 1.2
+rule statements, literal kinds and fail-closed admission intact.
+
+Integrate program-aware obligation checks, constructor-list admission, per-world
+chase certificates and source-bound FOF class/property interpretation. Recover
+ordinary alignment preservation and reciprocal-disjointness retraction from
+the existing correctness branch.
+
+Validation: 40 correspondence/retraction controls and 22 native artifact, source
+lookup, rule-carrier and certificate controls pass. Strict producer-independent
+workspace/all-target Clippy passes with warnings denied. Normal repository
+pre-commit verification is required for this commit.
+
+Authenticated producer and corpus acceptance, four dependent consumer crates,
+complete-canon consumer proof, the full local gate, hosted CI and final
+independent completion review remain unverified. This is source publication
+for the existing integration PR, not a completed production-verdict claim.
+
+Principles 2, 3, 4, 7, 12, 17, 18 and 19.

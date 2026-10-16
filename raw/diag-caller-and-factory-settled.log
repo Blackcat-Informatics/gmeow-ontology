@@ -1,0 +1,136 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-errors)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/errors)
+    Finished `test` profile [optimized] target(s) in 8.54s
+────────────
+ Nextest run ID 42df8131-5acb-4105-af55-19cc41eac838 with nextest profile: ci
+    Starting 120 tests across 1 binary (224 binaries skipped)
+        PASS [   0.007s] (  1/120) gmeow-errors diag::tests::both_from_paths_compose_through_question_mark
+        PASS [   0.007s] (  2/120) gmeow-errors diag::tests::define_diag_kind_binds_code_grade_message_and_registers
+        PASS [   0.008s] (  3/120) gmeow-errors dag::tests::unresolved_key_is_a_hard_fail
+        PASS [   0.009s] (  4/120) gmeow-errors diag::tests::result_ext_adds_context_and_display_walks_it
+        PASS [   0.009s] (  5/120) gmeow-errors diag::tests::diag_ref_index_roundtrips
+        PASS [   0.009s] (  6/120) gmeow-errors diag::tests::of_kind_preserves_code_grade_and_downcast
+        PASS [   0.009s] (  7/120) gmeow-errors diag::tests::collect_all_gathers_ok_and_sinks_err
+        PASS [   0.009s] (  8/120) gmeow-errors dag::tests::preorder_matches_dfs_current_then_children
+        PASS [   0.009s] (  9/120) gmeow-errors diag::tests::macros_build_and_bail
+        PASS [   0.009s] ( 10/120) gmeow-errors abox::tests::turtle_lines_render_the_prefixed_four_clause_skeleton
+        PASS [   0.009s] ( 11/120) gmeow-errors diag::tests::blanket_from_preserves_downcast
+        PASS [   0.009s] ( 12/120) gmeow-errors diag::tests::or_collect_pushes_and_continues
+        PASS [   0.009s] ( 13/120) gmeow-errors code::tests::register_is_idempotent
+        PASS [   0.009s] ( 14/120) gmeow-errors code::tests::seed_registers_a_batch
+        PASS [   0.010s] ( 15/120) gmeow-errors code::tests::register_then_intern_round_trips
+        PASS [   0.010s] ( 16/120) gmeow-errors abox::tests::annotate_nquads_escapes_literal_content
+        PASS [   0.010s] ( 17/120) gmeow-errors code::tests::global_registry_interns_after_registration
+        PASS [   0.010s] ( 18/120) gmeow-errors code::tests::option_code_is_one_word
+        PASS [   0.010s] ( 19/120) gmeow-errors code::tests::open_space_admits_arbitrary_static_codes
+        PASS [   0.010s] ( 20/120) gmeow-errors abox::tests::cross_substrate_parity_string_and_builder_emit_the_same_quad_set
+        PASS [   0.010s] ( 21/120) gmeow-errors abox::tests::annotate_nquads_literals_carry_the_carrier_language_tag
+        PASS [   0.010s] ( 22/120) gmeow-errors abox::tests::turtle_lines_escape_literal_content
+        PASS [   0.010s] ( 23/120) gmeow-errors abox::tests::annotate_nquads_emits_four_triples_in_fixed_order
+        PASS [   0.010s] ( 24/120) gmeow-errors abox::tests::annotate_nquads_is_deterministic
+        PASS [   0.010s] ( 25/120) gmeow-errors abox::tests::turtle_lines_honor_the_box_role_parameter
+        PASS [   0.009s] ( 26/120) gmeow-errors diag::tests::diag_is_one_word
+        PASS [   0.010s] ( 27/120) gmeow-errors code::tests::unregistered_code_is_a_hard_fail
+        PASS [   0.011s] ( 28/120) gmeow-errors abox::tests::annotate_nquads_isdefinedby_and_role_objects_are_correct
+        PASS [   0.010s] ( 29/120) gmeow-errors diag::tests::define_diag_kind_binds_the_optional_failure_class
+        PASS [   0.013s] ( 30/120) gmeow-errors dag::tests::cycle_is_a_hard_fail
+        PASS [   0.013s] ( 31/120) gmeow-errors diag::tests::declared_failure_class_survives_the_recorded_diagnostic_and_finding
+        PASS [   0.004s] ( 32/120) gmeow-errors grade::tests::truth_axis_lattices_obey_the_laws
+        PASS [   0.005s] ( 33/120) gmeow-errors ledger::tests::anchor_is_code_blind_and_trivial_when_locationless
+        PASS [   0.013s] ( 34/120) gmeow-errors dag::tests::diamond_is_not_a_cycle_backtracking_frees_the_visited_key
+        PASS [   0.005s] ( 35/120) gmeow-errors grade::tests::merge_is_order_independent
+        PASS [   0.005s] ( 36/120) gmeow-errors grade::tests::transient_chatter_never_gates_and_takes_no_stance
+        PASS [   0.006s] ( 37/120) gmeow-errors ledger::tests::fingerprint_iri_is_stable_and_addressable
+        PASS [   0.007s] ( 38/120) gmeow-errors grade::tests::unknown_severity_token_is_a_hard_fail
+        PASS [   0.007s] ( 39/120) gmeow-errors diag::tests::result_of_diag_is_pointer_sized
+        PASS [   0.007s] ( 40/120) gmeow-errors grade::tests::advisory_and_permitted_conflict_never_gate
+        PASS [   0.006s] ( 41/120) gmeow-errors grade::tests::gate_is_monotone_over_the_truth_order
+        PASS [   0.006s] ( 42/120) gmeow-errors ledger::tests::recorded_rejection_preserves_causal_closure_and_live_source_at_the_boundary
+        PASS [   0.007s] ( 43/120) gmeow-errors diag::tests::track_caller_captures_the_question_mark_site_not_crate_internals
+        PASS [   0.007s] ( 44/120) gmeow-errors grade::tests::contradictory_pair_merges_to_a_glut_not_to_either_side
+        PASS [   0.008s] ( 45/120) gmeow-errors grade::tests::agreeing_witnesses_do_not_glut
+        PASS [   0.009s] ( 46/120) gmeow-errors ledger::tests::hash_cons_identity_dedups_and_message_is_not_in_the_fingerprint
+        PASS [   0.009s] ( 47/120) gmeow-errors error::tests::every_errors_code_interns_with_no_collision
+        PASS [   0.009s] ( 48/120) gmeow-errors ledger::tests::annotate_by_fingerprint_is_idempotent_and_preserves_identity
+        PASS [   0.009s] ( 49/120) gmeow-errors ledger::tests::fresh_and_replayed_ledger_are_byte_identical_and_carry_no_arena_ref
+        PASS [   0.006s] ( 50/120) gmeow-errors model::tests::category_is_not_an_ordering_axis
+        PASS [   0.009s] ( 51/120) gmeow-errors ledger::tests::distinct_observed_slots_are_not_silently_collapsed
+        PASS [   0.006s] ( 52/120) gmeow-errors model::tests::empty_location_stays_empty_with_wire_fields
+        PASS [   0.011s] ( 53/120) gmeow-errors ledger::tests::self_referential_antecedent_is_a_hard_fail
+        PASS [   0.010s] ( 54/120) gmeow-errors grade::tests::knowledge_axis_belnap_obeys_the_laws
+        PASS [   0.010s] ( 55/120) gmeow-errors grade::tests::gate_fatal_exactly_on_the_principal_up_set
+        PASS [   0.007s] ( 56/120) gmeow-errors model::tests::finding_without_category_serializes_compactly
+        PASS [   0.007s] ( 57/120) gmeow-errors model::tests::legacy_report_preserves_error_warning_strings
+        PASS [   0.012s] ( 58/120) gmeow-errors ledger::tests::node_contradicting_its_pinned_digest_is_a_hard_fail
+        PASS [   0.010s] ( 59/120) gmeow-errors ledger::tests::verdict_is_the_join_fold_of_gate_over_every_witness
+        PASS [   0.012s] ( 60/120) gmeow-errors ledger::tests::hash_cons_merge_of_grades_is_order_independent
+        PASS [   0.013s] ( 61/120) gmeow-errors ledger::tests::length_prefixed_fingerprint_resists_delimiter_injection
+        PASS [   0.007s] ( 62/120) gmeow-errors project::tests::projected_subject_and_antecedent_object_iris_close
+        PASS [   0.013s] ( 63/120) gmeow-errors ledger::tests::cross_stage_merge_keeps_emit_sorted_attach_order_independent
+        PASS [   0.007s] ( 64/120) gmeow-errors model::tests::with_category_attaches_and_round_trips
+        PASS [   0.009s] ( 65/120) gmeow-errors model::tests::location_wire_coords_round_trip_and_display
+        PASS [   0.009s] ( 66/120) gmeow-errors project::tests::projected_finding_carries_the_grade_standpoint
+        PASS [   0.006s] ( 67/120) gmeow-errors render::tests::absent_category_leaves_outputs_unchanged
+        PASS [   0.007s] ( 68/120) gmeow-errors rdf::tests::losses_become_non_gating_projection_loss_children
+        PASS [   0.009s] ( 69/120) gmeow-errors project::tests::projected_finding_carries_antecedents_as_related_locations
+        PASS [   0.005s] ( 70/120) gmeow-errors render::tests::gmeow_rdf_emits_grade_axes_but_never_the_derived_gate_verdict
+        PASS [   0.007s] ( 71/120) gmeow-errors render::tests::gmeow_rdf_escapes_suggestion_specials
+        PASS [   0.009s] ( 72/120) gmeow-errors render::tests::a_finding_without_a_failure_class_renders_no_class_anywhere
+        PASS [   0.011s] ( 73/120) gmeow-errors project::tests::projected_finding_carries_labels_as_related_locations
+        PASS [   0.013s] ( 74/120) gmeow-errors rdf::tests::double_lowering_across_two_stages_is_idempotent
+        PASS [   0.015s] ( 75/120) gmeow-errors model::tests::normalize_orders_and_dedups_guidance
+        PASS [   0.017s] ( 76/120) gmeow-errors model::tests::finding_category_wire_values_round_trip
+        PASS [   0.007s] ( 77/120) gmeow-errors render::tests::gmeow_rdf_projects_into_the_diagnostics_graph
+        PASS [   0.008s] ( 78/120) gmeow-errors render::tests::gmeow_rdf_escapes_literals
+        PASS [   0.009s] ( 79/120) gmeow-errors render::tests::gmeow_rdf_emits_finding_standpoint_when_present
+        PASS [   0.008s] ( 80/120) gmeow-errors render::tests::gmeow_rdf_escapes_c0_control_characters
+        PASS [   0.015s] ( 81/120) gmeow-errors model::tests::location_without_wire_coords_serializes_compactly
+        PASS [   0.014s] ( 82/120) gmeow-errors project::tests::remediation_projects_onto_the_finding
+        PASS [   0.011s] ( 83/120) gmeow-errors render::tests::advisory_suggestions_are_properties_not_locations
+        PASS [   0.006s] ( 84/120) gmeow-errors render::tests::rdf_projects_finding_remediation
+        PASS [   0.011s] ( 85/120) gmeow-errors render::tests::html_emits_one_row_per_finding
+        PASS [   0.017s] ( 86/120) gmeow-errors project::tests::advice_standpoint_and_help_uri_survive_the_projection
+        PASS [   0.011s] ( 87/120) gmeow-errors render::tests::html_escapes_messages
+        PASS [   0.006s] ( 88/120) gmeow-errors render::tests::sarif_fingerprint_is_deterministic_and_distinct
+        PASS [   0.006s] ( 89/120) gmeow-errors render::tests::sarif_marks_synthetic_primary_location_for_logical_only_finding
+        PASS [   0.022s] ( 90/120) gmeow-errors model::tests::report_normalization_is_deterministic
+        PASS [   0.013s] ( 91/120) gmeow-errors render::tests::json_carries_the_antecedent_derivation_iris
+        PASS [   0.009s] ( 92/120) gmeow-errors render::tests::sarif_fingerprint_is_role_sensitive
+        PASS [   0.009s] ( 93/120) gmeow-errors render::tests::sarif_emits_fixes_from_remediation_and_omits_them_otherwise
+        PASS [   0.011s] ( 94/120) gmeow-errors render::tests::rdf_subject_and_antecedent_object_close
+        PASS [   0.007s] ( 95/120) gmeow-errors render::tests::text_joins_per_term_rule_guidance_once
+        PASS [   0.010s] ( 96/120) gmeow-errors render::tests::sarif_automation_details_omitted_without_category
+        PASS [   0.018s] ( 97/120) gmeow-errors render::tests::category_projects_to_sarif_property_and_rdf_individual
+        PASS [   0.016s] ( 98/120) gmeow-errors render::tests::gmeow_rdf_in_graph_projects_into_the_requested_graph
+        PASS [   0.010s] ( 99/120) gmeow-errors render::tests::sarif_emits_no_absolute_or_angle_bracket_uris
+        PASS [   0.009s] (100/120) gmeow-errors render::tests::sarif_prose_only_remediation_omits_artifact_changes
+        PASS [   0.005s] (101/120) gmeow-errors render::tests::text_renders_reasoner_meta_findings
+        PASS [   0.005s] (102/120) gmeow-errors render::tests::to_text_advisories_renders_only_notes_and_infos
+        PASS [   0.006s] (103/120) gmeow-errors render::tests::text_renders_the_witness_dag_derivation_section
+        PASS [   0.012s] (104/120) gmeow-errors render::tests::summarized_text_collapses_warnings_to_per_code_counts
+        PASS [   0.009s] (105/120) gmeow-errors render::tests::text_renders_per_term_guidance_and_derivation_citations
+        PASS [   0.009s] (106/120) gmeow-errors render::tests::the_typed_failure_class_reaches_every_rendered_surface
+        PASS [   0.038s] (107/120) gmeow-errors ledger::tests::union_is_commutative_associative_and_idempotent
+        PASS [   0.059s] (108/120) gmeow-errors ledger::tests::verdict_is_a_semilattice_homomorphism_over_union
+        PASS [   0.071s] (109/120) gmeow-errors render::tests::advisory_html_snapshot
+        PASS [   0.071s] (110/120) gmeow-errors render::tests::advisory_only_text_snapshot
+        PASS [   0.061s] (111/120) gmeow-errors render::tests::sarif_stale_cache_primary_promotion_snapshot
+        PASS [   0.068s] (112/120) gmeow-errors render::tests::gmeow_rdf_full_snapshot
+        PASS [   0.060s] (113/120) gmeow-errors render::tests::text_full_snapshot
+        PASS [   0.071s] (114/120) gmeow-errors render::tests::advisory_text_snapshot
+        PASS [   0.067s] (115/120) gmeow-errors render::tests::json_full_snapshot
+        PASS [   0.073s] (116/120) gmeow-errors render::tests::advisory_gmeow_rdf_snapshot
+        PASS [   0.068s] (117/120) gmeow-errors render::tests::html_full_snapshot
+        PASS [   0.063s] (118/120) gmeow-errors render::tests::sarif_full_snapshot
+        PASS [   0.074s] (119/120) gmeow-errors render::tests::advisory_sarif_snapshot
+        PASS [   0.064s] (120/120) gmeow-errors render::tests::sarif_multi_physical_location_emits_related_locations_snapshot
+────────────
+     Summary [   0.097s] 120 tests run: 120 passed, 0 skipped

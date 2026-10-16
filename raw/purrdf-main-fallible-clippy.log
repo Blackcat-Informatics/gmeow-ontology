@@ -1,0 +1,135 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/build-inputs)
+    Checking gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/license)
+    Checking gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/cost-measure)
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/test-batch-macros)
+    Checking purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-form)
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+    Checking purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/perf-evidence)
+    Checking purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/errors)
+error: unused `std::result::Result` that must be used
+   --> crates/errors/src/abox.rs:170:9
+    |
+170 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+170 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: could not compile `gmeow-errors` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-errors` (lib test) due to 1 previous error
+    Checking purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+    Checking gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/term-arena)
+    Checking gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/ns)
+    Checking gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/foundation-corpus)
+    Checking gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/query-wasm)
+error[E0308]: mismatched types
+   --> crates/foundation-corpus/src/importer.rs:159:9
+    |
+158 |     fn iri(&mut self, iri: &str) -> TermId {
+    |                                     ------ expected `purrdf::TermId` because of return type
+159 |         self.builder.intern_iri(iri)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+159 |         self.builder.intern_iri(iri).expect("REASON")
+    |                                     +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/foundation-corpus/src/importer.rs:162:9
+    |
+161 |       fn lang_lit(&mut self, text: &str) -> TermId {
+    |                                             ------ expected `purrdf::TermId` because of return type
+162 | /         self.builder
+163 | |             .intern_literal(RdfLiteral::language_tagged(text, LANG))
+    | |____________________________________________________________________^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+163 |             .intern_literal(RdfLiteral::language_tagged(text, LANG)).expect("REASON")
+    |                                                                     +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/foundation-corpus/src/importer.rs:166:9
+    |
+165 |     fn plain_lit(&mut self, text: &str) -> TermId {
+    |                                            ------ expected `purrdf::TermId` because of return type
+166 |         self.builder.intern_literal(RdfLiteral::simple(text))
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+166 |         self.builder.intern_literal(RdfLiteral::simple(text)).expect("REASON")
+    |                                                              +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/foundation-corpus/src/importer.rs:169:9
+    |
+168 |       fn typed_lit(&mut self, lexical: &str, datatype: &str) -> TermId {
+    |                                                                 ------ expected `purrdf::TermId` because of return type
+169 | /         self.builder
+170 | |             .intern_literal(RdfLiteral::typed(lexical, datatype))
+    | |_________________________________________________________________^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+170 |             .intern_literal(RdfLiteral::typed(lexical, datatype)).expect("REASON")
+    |                                                                  +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-foundation-corpus` (lib) due to 4 previous errors
+error: could not compile `gmeow-foundation-corpus` (lib test) due to 4 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

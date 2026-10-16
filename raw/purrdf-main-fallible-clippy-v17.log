@@ -1,0 +1,382 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect-ingest)
+error: function `parse_rational` is never used
+  --> crates/logic/src/reason/refute.rs:96:15
+   |
+96 | pub(crate) fn parse_rational(text: &str) -> Option<Rational> {
+   |               ^^^^^^^^^^^^^^
+   |
+   = note: `-D dead-code` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: large size difference between variants
+  --> crates/logic/src/correspondence_exec/axes.rs:44:1
+   |
+44 | /  pub enum AxisResult {
+45 | |      /// No rule for this axis was selected, and no composite value claimed.
+46 | |      NotSelected,
+   | |      ----------- the second-largest variant carries no data at all
+47 | |      /// The selected rule's premises did not derive a value; no value was claimed.
+...  |
+50 | |/     Computed {
+51 | ||         value: FiniteNumericLiteral,
+52 | ||         claimed: bool,
+53 | ||     },
+   | ||_____- the largest variant contains at least 209 bytes
+54 | |  }
+   | |__^ the entire enum is at least 224 bytes
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+   = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+   |
+51 -         value: FiniteNumericLiteral,
+51 +         value: Box<FiniteNumericLiteral>,
+   |
+
+error: returning the result of a `let` binding from a block
+   --> crates/logic/src/materialize.rs:571:9
+    |
+546 | /         let result = match profile {
+547 | |             gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
+548 | |                 crate::wellfounded::IncrementalWellFoundedSession::new(
+549 | |                     contract_hash,
+...   |
+570 | |         };
+    | |__________- unnecessary `let` binding
+571 |           result
+    |           ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#let_and_return
+    = note: `-D clippy::let-and-return` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::let_and_return)]`
+help: return the expression directly
+    |
+546 ~         
+547 ~         match profile {
+548 +             gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
+549 +                 crate::wellfounded::IncrementalWellFoundedSession::new(
+550 +                     contract_hash,
+551 +                     world,
+552 +                     edb,
+553 +                     rules,
+554 +                 )
+555 +                 .map(Self::WellFounded)
+556 +             }
+557 +             gmeow_logic_compile::ir::SemanticProfileId::StableModel => {
+558 +                 crate::stablemodel::IncrementalStableModelSession::new(
+559 +                     contract_hash,
+560 +                     world,
+561 +                     edb,
+562 +                     rules,
+563 +                 )
+564 +                 .map(Self::StableModel)
+565 +             }
+566 +             other => {
+567 +                 return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
+568 +                     "non-monotone materialization requires WellFoundedProfile or StableModelProfile, got {other}"
+569 +                 ))));
+570 +             }
+571 +         }
+    |
+
+error: useless conversion to the same type: `gmeow_errors::Diag`
+   --> crates/logic/src/operator.rs:377:26
+    |
+377 |         .map_err(|error| gmeow_errors::Diag::from(error).with_context("materialization failed"))?;
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `gmeow_errors::Diag::from()`: `error`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#useless_conversion
+    = note: `-D clippy::useless-conversion` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::useless_conversion)]`
+
+error: useless conversion to the same type: `gmeow_errors::Diag`
+   --> crates/logic/src/operator.rs:380:26
+    |
+380 |         .map_err(|error| gmeow_errors::Diag::from(error).with_context("materialization failed"))?;
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `gmeow_errors::Diag::from()`: `error`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#useless_conversion
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/entail.rs:663:9
+    |
+663 |         builder.push_owned_quad(&quad.in_graph(world.clone()));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+663 |         let _ = builder.push_owned_quad(&quad.in_graph(world.clone()));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/entail.rs:666:9
+    |
+666 |         builder.push_owned_reifier(&reifier.in_graph(Some(world.clone())));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+666 |         let _ = builder.push_owned_reifier(&reifier.in_graph(Some(world.clone())));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/entail.rs:669:9
+    |
+669 |         builder.push_owned_annotation(&annotation.in_graph(Some(world.clone())));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+669 |         let _ = builder.push_owned_annotation(&annotation.in_graph(Some(world.clone())));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/entail.rs:674:9
+    |
+674 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+674 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/enactment.rs:357:9
+    |
+357 |         builder.push_owned_quad(&promoted);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+357 |         let _ = builder.push_owned_quad(&promoted);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/enactment.rs:369:9
+    |
+369 |         builder.push_owned_quad(&promoted);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+369 |         let _ = builder.push_owned_quad(&promoted);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/math_gate.rs:204:9
+    |
+204 |         builder.push_owned_quad(&promoted);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+204 |         let _ = builder.push_owned_quad(&promoted);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/math_gate.rs:218:9
+    |
+218 |         builder.push_owned_quad(&promoted);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+218 |         let _ = builder.push_owned_quad(&promoted);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/reason/rl.rs:359:13
+    |
+359 |             builder.push_owned_quad(&lowered);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+359 |             let _ = builder.push_owned_quad(&lowered);
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/result_rdf.rs:786:13
+    |
+786 |             builder.push_owned_reifier(&purrdf::RdfReifier::new(subject, *statement));
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+786 |             let _ = builder.push_owned_reifier(&purrdf::RdfReifier::new(subject, *statement));
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/result_rdf.rs:788:13
+    |
+788 | /             builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
+789 | |                 subject,
+790 | |                 triple.predicate,
+791 | |                 object,
+792 | |             ));
+    | |______________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+788 |             let _ = builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/result_rdf.rs:794:13
+    |
+794 |             builder.push_owned_quad(&purrdf::RdfQuad::new(subject, triple.predicate, object));
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+794 |             let _ = builder.push_owned_quad(&purrdf::RdfQuad::new(subject, triple.predicate, object));
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic/src/runtime/session/facade.rs:239:13
+    |
+239 |             builder.push_owned_quad(&rdf_quad);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+239 |             let _ = builder.push_owned_quad(&rdf_quad);
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic/src/synth_corpus.rs:96:9
+   |
+96 | /         builder.push_owned_quad(
+97 | |             &RdfQuad::new(RdfTerm::iri(s.clone()), *p, RdfTerm::iri(o.clone()))
+98 | |                 .in_graph(RdfTerm::iri(WORLD)),
+99 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+96 |         let _ = builder.push_owned_quad(
+   |         +++++++
+
+error: could not compile `gmeow-logic` (lib) due to 19 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0308]: mismatched types
+    --> crates/logic/src/correspondence_exec/atomic_lens/tests.rs:173:9
+     |
+ 172 |     assert!(Arc::ptr_eq(
+     |             ----------- arguments to this function are incorrect
+ 173 |         deleted.augmented.complement.residual.base(),
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&Arc<RdfDataset>`, found `&DatasetHandle`
+     |
+     = note: expected reference `&std::sync::Arc<purrdf::RdfDataset>`
+                found reference `&purrdf_core::DatasetHandle`
+note: associated function defined here
+    --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/rcs/arc.rs:2265:12
+     |
+2265 |     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
+     |            ^^^^^^
+
+error[E0308]: arguments to this function are incorrect
+    --> crates/logic/src/correspondence_exec/atomic_lens/composition/tests.rs:196:9
+     |
+ 196 |         Arc::ptr_eq(
+     |         ^^^^^^^^^^^
+     |
+note: expected `&Arc<_, _>`, found `&DatasetHandle`
+    --> crates/logic/src/correspondence_exec/atomic_lens/composition/tests.rs:197:13
+     |
+ 197 |             left.stages[1].augmented.complement.residual.base(),
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: expected reference `&std::sync::Arc<_, _>`
+                found reference `&purrdf_core::DatasetHandle`
+note: expected `&Arc<_, _>`, found `&DatasetHandle`
+    --> crates/logic/src/correspondence_exec/atomic_lens/composition/tests.rs:198:13
+     |
+ 198 |             left.stages[2].augmented.complement.residual.base(),
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: expected reference `&std::sync::Arc<_, _>`
+                found reference `&purrdf_core::DatasetHandle`
+note: associated function defined here
+    --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/rcs/arc.rs:2265:12
+     |
+2265 |     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
+     |            ^^^^^^
+
+error[E0308]: mismatched types
+   --> crates/logic/src/correspondence_exec.tests.rs:41:49
+    |
+ 41 |                     object: TermPattern::Triple(Box::new(quoted)),
+    |                             ------------------- ^^^^^^^^^^^^^^^^ expected `Nested<TriplePattern, DropOwner>`, found `Box<TriplePattern>`
+    |                             |
+    |                             arguments to this enum variant are incorrect
+    |
+    = note: expected struct `purrdf_lex::walk::Nested<purrdf::sparql::TriplePattern, purrdf_sparql_algebra::owned::DropOwner>`
+               found struct `std::boxed::Box<purrdf::sparql::TriplePattern>`
+note: tuple variant defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/sparql-algebra/src/ast.rs:388:5
+    |
+388 |     Triple(Child<TriplePattern>),
+    |     ^^^^^^
+help: call `Into::into` on this expression to convert `std::boxed::Box<purrdf::sparql::TriplePattern>` into `purrdf_lex::walk::Nested<purrdf::sparql::TriplePattern, purrdf_sparql_algebra::owned::DropOwner>`
+    |
+ 41 |                     object: TermPattern::Triple(Box::new(quoted).into()),
+    |                                                                 +++++++
+
+error[E0308]: mismatched types
+   --> crates/logic/src/goal_directed.tests.rs:406:29
+    |
+406 |         sort_nodes.contains(&nat),
+    |                    -------- ^^^^ expected `&Id<Node>`, found `&Result<Id<Node>, Diag>`
+    |                    |
+    |                    arguments to this method are incorrect
+    |
+    = note: expected reference `&Id<_>`
+               found reference `&std::result::Result<Id<_>, gmeow_errors::Diag>`
+note: method defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/set.rs:806:12
+    |
+806 |     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+    |            ^^^^^^^^
+
+error[E0308]: mismatched types
+   --> crates/logic/src/goal_directed.tests.rs:411:29
+    |
+411 |         sort_nodes.contains(&real),
+    |                    -------- ^^^^^ expected `&Id<Node>`, found `&Result<Id<Node>, Diag>`
+    |                    |
+    |                    arguments to this method are incorrect
+    |
+    = note: expected reference `&Id<_>`
+               found reference `&std::result::Result<Id<_>, gmeow_errors::Diag>`
+note: method defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/set.rs:806:12
+    |
+806 |     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+    |            ^^^^^^^^
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-logic` (lib test) due to 5 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

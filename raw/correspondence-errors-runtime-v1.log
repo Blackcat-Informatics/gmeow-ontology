@@ -1,0 +1,107 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(correspondence_exec::tests::) | test(correspondence_exec::atomic_lens::tests::) | test(correspondence_exec::atomic_lens::composition::tests::) | (test(correspondence_law::tests::) & not test(sioc)) | test(stage_recovery_gates_consume_the_resolved_get_leg_body)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 4m 29s
+────────────
+ Nextest run ID 35b409d7-2857-4505-8611-70403a8d7850 with nextest profile: ci
+    Starting 71 tests across 224 binaries (7315 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.028s] ( 1/71) gmeow-logic correspondence_exec::tests::composite_path_is_unknown_without_a_complete_recovery_case
+        PASS [   0.041s] ( 2/71) gmeow-logic correspondence_exec::tests::correspondence_literal_keys_preserve_direction_and_lexical_boundaries
+        PASS [   0.066s] ( 3/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::stage_attribution_keeps_the_original_diagnostic_and_source_provenance
+        PASS [   0.077s] ( 4/71) gmeow-logic correspondence_exec::tests::atomic_inverse_recovers_the_real_source_predicate
+        PASS [   0.077s] ( 5/71) gmeow-logic correspondence_exec::tests::carrier_laws_compare_empty_blank_graphs_up_to_isomorphism
+        PASS [   0.077s] ( 6/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::update_reuses_the_checked_intermediate_and_executes_each_original_stage
+        PASS [   0.077s] ( 7/71) gmeow-logic correspondence_exec::tests::empty_context_graph_incidence_participates_in_the_law_isomorphism
+        PASS [   0.077s] ( 8/71) gmeow-logic correspondence_exec::atomic_lens::tests::nonempty_prior_retains_standpoint_provenance_and_loss_evidence
+        PASS [   0.077s] ( 9/71) gmeow-logic correspondence_exec::tests::branch_seed_derivation_covers_plain_and_union_queries
+        PASS [   0.077s] (10/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::augmented_recovery_does_not_retain_discarded_intermediate_payloads
+        PASS [   0.077s] (11/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::reuse_agrees_with_explicit_sequential_carrier_materialization
+        PASS [   0.036s] (12/71) gmeow-logic correspondence_exec::tests::full_dotted_iri_predicate_is_not_mis_split
+        PASS [   0.077s] (13/71) gmeow-logic correspondence_exec::atomic_lens::tests::recovery_retains_complement_after_original_state_is_dropped
+        PASS [   0.077s] (14/71) gmeow-logic correspondence_exec::atomic_lens::tests::edits_cannot_silently_change_scope_or_statement_metadata
+        PASS [   0.077s] (15/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::identity_steps_and_association_preserve_the_executable_sequence
+        PASS [   0.076s] (16/71) gmeow-logic correspondence_exec::atomic_lens::tests::four_laws_use_independent_edit_and_initial_state_domains
+        PASS [   0.077s] (17/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::reuse_witness_rejects_another_publication_and_rich_source_residue
+        PASS [   0.077s] (18/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::cancelling_inversions_cannot_erase_intermediate_admission_failures
+        PASS [   0.077s] (19/71) gmeow-logic correspondence_exec::atomic_lens::tests::deleting_focus_keeps_complement_without_retaining_edit_history
+        PASS [   0.077s] (20/71) gmeow-logic correspondence_exec::tests::dotted_literal_object_is_not_mis_split
+        PASS [   0.077s] (21/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::composed_laws_recover_rich_prior_state_and_independent_edits
+        PASS [   0.077s] (22/71) gmeow-logic correspondence_exec::atomic_lens::tests::edited_quoted_value_keeps_its_scoped_quality_identity_in_the_complement
+        PASS [   0.077s] (23/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::original_retention_limits_are_checked_at_their_own_stage
+        PASS [   0.077s] (24/71) gmeow-logic correspondence_exec::atomic_lens::composition::tests::mismatched_types_and_missing_or_reordered_complements_fail_closed
+        PASS [   0.077s] (25/71) gmeow-logic correspondence_exec::atomic_lens::tests::inverse_focus_updates_source_direction_and_preserves_residual
+        PASS [   0.079s] (26/71) gmeow-logic correspondence_exec::atomic_lens::tests::acquisition_requires_statement_classification_before_selecting_its_focus
+        PASS [   0.080s] (27/71) gmeow-logic correspondence_exec::tests::a_comparison_refusal_is_an_operational_error
+        PASS [   0.006s] (28/71) gmeow-logic correspondence_exec::tests::recovery_cannot_discard_an_empty_context_graph
+        PASS [   0.006s] (29/71) gmeow-logic correspondence_exec::tests::recovery_evidence_with_a_missing_resolved_leg_fails_closed
+        PASS [   0.006s] (30/71) gmeow-logic correspondence_exec::tests::recovery_seed_application_preserves_driver_aliases_in_quoted_terms_and_graphs
+        PASS [   0.006s] (31/71) gmeow-logic correspondence_exec::tests::recovery_admission_bounds_nested_algebra_without_truncating_it
+        PASS [   0.007s] (32/71) gmeow-logic correspondence_exec::tests::recovery_seed_optional_application_requires_only_its_driver
+        PASS [   0.007s] (33/71) gmeow-logic correspondence_exec::tests::triple_pattern_shared_outside_union_appears_in_every_branch
+        PASS [   0.011s] (34/71) gmeow-logic correspondence_exec::tests::recovery_case_colliding_with_the_reserved_recovery_namespace_never_discharges
+        PASS [   0.013s] (35/71) gmeow-logic correspondence_exec::tests::recovery_formula_literal_endpoints_fail_closed
+        PASS [   0.014s] (36/71) gmeow-logic correspondence_exec::tests::prepared_law_execution_refuses_non_carrier_query_forms
+        PASS [   0.014s] (37/71) gmeow-logic correspondence_exec::tests::quoted_recovery_seed_is_not_discarded_or_coerced_to_an_iri
+        PASS [   0.014s] (38/71) gmeow-logic correspondence_exec::tests::program_requires_both_recovery_evidence_and_the_resolved_leg_bodies
+        PASS [   0.014s] (39/71) gmeow-logic correspondence_exec::tests::malformed_recovery_formula_fails_closed_before_leg_execution
+        PASS [   0.092s] (40/71) gmeow-logic correspondence_exec::tests::failed_law_cases_cannot_be_disguised_by_a_successful_case
+        PASS [   0.014s] (41/71) gmeow-logic correspondence_exec::tests::native_mapping_law_admission_keeps_independent_view_domains_and_bounded_evidence
+        PASS [   0.015s] (42/71) gmeow-logic correspondence_exec::tests::independently_edited_view_refutes_put_get_when_source_recovery_passes
+        PASS [   0.026s] (43/71) gmeow-logic correspondence_exec::tests::inadmissible_recovery_queries_cannot_supply_an_empty_domain
+        PASS [   0.092s] (44/71) gmeow-logic correspondence_exec::tests::directional_literal_seed_round_trips_through_the_law_executor
+        PASS [   0.092s] (45/71) gmeow-logic correspondence_exec::tests::canonical_recovery_vocabulary_outside_the_execution_namespaces_remains_usable
+        PASS [   0.092s] (46/71) gmeow-logic correspondence_exec::tests::correspondence_graph_scope_is_executed_and_compared
+        PASS [   0.013s] (47/71) gmeow-logic correspondence_exec::tests::view_domain_can_be_empty_without_fabricating_put_get_evidence
+        PASS [   0.009s] (48/71) gmeow-pipeline correspondence_law::tests::derive_seeds_is_branch_covering_with_fresh_distinct_iris
+        PASS [   0.010s] (49/71) gmeow-logic correspondence_exec::tests::wrong_atomic_put_yields_a_real_missing_and_spurious_difference
+        PASS [   0.015s] (50/71) gmeow-logic correspondence_exec::tests::typed_recovery_admission_rejects_invalid_paths_before_native_execution
+        PASS [   0.016s] (51/71) gmeow-logic correspondence_exec::tests::native_law_inputs_retain_empty_standpoint_graphs_through_execution
+        PASS [   0.016s] (52/71) gmeow-logic correspondence_exec::tests::mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case
+        PASS [   0.016s] (53/71) gmeow-logic correspondence_exec::tests::recovery_formula_discharges_only_when_the_view_retains_every_source_variable
+        PASS [   0.093s] (54/71) gmeow-logic correspondence_exec::tests::complete_composite_recovery_executes_the_resolved_path_bodies
+        PASS [   0.064s] (55/71) gmeow-logic correspondence_exec::tests::failed_law_cases_cannot_hide_a_later_real_counterexample
+        PASS [   0.093s] (56/71) gmeow-logic correspondence_exec::tests::every_unavailable_law_case_survives_the_diagnostic_boundary
+        PASS [   0.016s] (57/71) gmeow-logic correspondence_exec::tests::shared_recovery_legs_do_not_reuse_another_cases_success_or_bindings
+        PASS [   0.017s] (58/71) gmeow-logic correspondence_exec::tests::native_mapping_branch_domain_catches_fabricated_guard_with_deterministic_countermodel
+        PASS [   0.012s] (59/71) gmeow-pipeline correspondence_law::tests::blank_node_in_the_carrier_round_trips_and_discharges
+        PASS [   0.012s] (60/71) gmeow-pipeline correspondence_law::tests::branch_covering_corpus_catches_the_fabricated_guard_atom
+        PASS [   0.013s] (61/71) gmeow-pipeline correspondence_law::tests::datatyped_literal_in_the_carrier_round_trips_and_discharges
+        PASS [   0.012s] (62/71) gmeow-pipeline correspondence_law::tests::discharge_laws_gates_claims_by_rung
+        PASS [   0.008s] (63/71) gmeow-pipeline correspondence_law::tests::distinct_quoted_triples_do_not_collapse_to_equal_atoms
+        PASS [   0.014s] (64/71) gmeow-pipeline correspondence_law::tests::discharge_is_deterministic_in_verdict_and_countermodel_bytes
+        PASS [   0.008s] (65/71) gmeow-pipeline correspondence_law::tests::empty_corpus_is_unknown_not_discharged
+        PASS [   0.021s] (66/71) gmeow-logic correspondence_exec::tests::recovery_admission_bounds_repeated_patterns_before_distribution
+        PASS [   0.007s] (67/71) gmeow-pipeline correspondence_law::tests::non_executable_leg_returns_the_original_operational_error
+        PASS [   0.008s] (68/71) gmeow-pipeline correspondence_law::tests::literal_object_in_the_carrier_round_trips_and_discharges
+        PASS [   0.008s] (69/71) gmeow-pipeline correspondence_law::tests::single_happy_path_seed_misses_the_fabricated_guard_atom
+        PASS [   0.016s] (70/71) gmeow-pipeline stages::compile_logic::tests::stage_recovery_gates_consume_the_resolved_get_leg_body
+        PASS [   0.064s] (71/71) gmeow-logic correspondence_exec::tests::recovery_admission_bounds_cartesian_branch_expansion
+────────────
+     Summary [   0.197s] 71 tests run: 71 passed, 7315 skipped

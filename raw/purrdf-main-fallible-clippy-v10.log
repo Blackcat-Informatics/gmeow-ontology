@@ -1,0 +1,572 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+error[E0277]: the `?` operator can only be used on `Result`s, not `Option`s, in a method that returns `Result`
+   --> crates/math-lift/src/proof/lift.rs:541:49
+    |
+534 | /     fn emit_statement(
+535 | |         &mut self,
+536 | |         step: &Step,
+537 | |         conclusion_iri: &str,
+538 | |         is_terminal: bool,
+539 | |     ) -> gmeow_errors::Result<Option<String>> {
+    | |_____________________________________________- this function returns a `Result`
+540 |           Ok({
+541 |               let role = statement_role(step.role)?;
+    |                                                   ^ use `.ok_or(...)?` to provide an error compatible with `std::result::Result<std::option::Option<std::string::String>, gmeow_errors::Diag>`
+
+error[E0277]: the `?` operator can only be used in a closure that returns `Result` or `Option` (or another type that implements `std::ops::FromResidual`)
+   --> crates/math-lift/src/proof/lift.rs:866:62
+    |
+866 |                     .map(|literal| self.emit_literal(literal)?)
+    |                          ---------                           ^ cannot use the `?` operator in a closure that returns `(gmeow_term_arena::StructNode, std::string::String)`
+    |                          |
+    |                          this function should return `Result` or `Option` to accept `?`
+
+error[E0277]: the `?` operator can only be used in a closure that returns `Result` or `Option` (or another type that implements `std::ops::FromResidual`)
+    --> crates/math-lift/src/proof/lift.rs:1223:73
+     |
+1223 |                         args.iter().map(|arg| self.emit_term(arg, scope)?).collect();
+     |                                         -----                           ^ cannot use the `?` operator in a closure that returns `(gmeow_term_arena::StructNode, std::string::String)`
+     |                                         |
+     |                                         this function should return `Result` or `Option` to accept `?`
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:401:70
+    |
+399 |     fn scan_nested(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
+    |                                                ------------------------ expected `std::result::Result<(), gmeow_errors::Diag>` because of return type
+400 |         match expr {
+401 |             RExpr::Function { body, .. } | RExpr::Repeat { body } => self.scan_body(body)?,
+    |                                                                      ^^^^^^^^^^^^^^^^^^^^^ expected `Result<(), Diag>`, found `()`
+    |
+    = note: `?` operator cannot convert from `()` to `std::result::Result<(), gmeow_errors::Diag>`
+    = note:   expected enum `std::result::Result<(), gmeow_errors::Diag>`
+            found unit type `()`
+help: try removing this `?`
+    |
+401 -             RExpr::Function { body, .. } | RExpr::Repeat { body } => self.scan_body(body)?,
+401 +             RExpr::Function { body, .. } | RExpr::Repeat { body } => self.scan_body(body),
+    |
+help: try wrapping the expression in `Ok`
+    |
+401 |             RExpr::Function { body, .. } | RExpr::Repeat { body } => Ok(self.scan_body(body)?),
+    |                                                                      +++                     +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:404:17
+    |
+399 |     fn scan_nested(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
+    |                                                ------------------------ expected `std::result::Result<(), gmeow_errors::Diag>` because of return type
+...
+404 |                 self.scan_body(body)?
+    |                 ^^^^^^^^^^^^^^^^^^^^^ expected `Result<(), Diag>`, found `()`
+    |
+    = note: `?` operator cannot convert from `()` to `std::result::Result<(), gmeow_errors::Diag>`
+    = note:   expected enum `std::result::Result<(), gmeow_errors::Diag>`
+            found unit type `()`
+help: try removing this `?`
+    |
+404 -                 self.scan_body(body)?
+404 +                 self.scan_body(body)
+    |
+help: try adding an expression at the end of the block
+    |
+404 ~                 self.scan_body(body)?;
+405 +                 Ok(())
+    |
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:408:17
+    |
+399 |     fn scan_nested(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
+    |                                                ------------------------ expected `std::result::Result<(), gmeow_errors::Diag>` because of return type
+...
+408 |                 self.scan_body(body)?
+    |                 ^^^^^^^^^^^^^^^^^^^^^ expected `Result<(), Diag>`, found `()`
+    |
+    = note: `?` operator cannot convert from `()` to `std::result::Result<(), gmeow_errors::Diag>`
+    = note:   expected enum `std::result::Result<(), gmeow_errors::Diag>`
+            found unit type `()`
+help: try removing this `?`
+    |
+408 -                 self.scan_body(body)?
+408 +                 self.scan_body(body)
+    |
+help: try adding an expression at the end of the block
+    |
+408 ~                 self.scan_body(body)?;
+409 +                 Ok(())
+    |
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:418:37
+    |
+399 |     fn scan_nested(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
+    |                                                ------------------------ expected `std::result::Result<(), gmeow_errors::Diag>` because of return type
+...
+418 |                     Some(branch) => self.scan_body(branch)?,
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<(), Diag>`, found `()`
+    |
+    = note: `?` operator cannot convert from `()` to `std::result::Result<(), gmeow_errors::Diag>`
+    = note:   expected enum `std::result::Result<(), gmeow_errors::Diag>`
+            found unit type `()`
+help: try removing this `?`
+    |
+418 -                     Some(branch) => self.scan_body(branch)?,
+418 +                     Some(branch) => self.scan_body(branch),
+    |
+help: try wrapping the expression in `Ok`
+    |
+418 |                     Some(branch) => Ok(self.scan_body(branch)?),
+    |                                     +++                       +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:440:20
+    |
+436 |     fn scan_body(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
+    |                                              ------------------------ expected `std::result::Result<(), gmeow_errors::Diag>` because of return type
+...
+440 |             return self.scan_nested(expr)?;
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<(), Diag>`, found `()`
+    |
+    = note: `?` operator cannot convert from `()` to `std::result::Result<(), gmeow_errors::Diag>`
+    = note:   expected enum `std::result::Result<(), gmeow_errors::Diag>`
+            found unit type `()`
+help: try removing this `?`
+    |
+440 -             return self.scan_nested(expr)?;
+440 +             return self.scan_nested(expr);
+    |
+help: try wrapping the expression in `Ok`
+    |
+440 |             return Ok(self.scan_nested(expr)?);
+    |                    +++                       +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:466:17
+    |
+447 |     fn value(&mut self, expr: &RExpr) -> gmeow_errors::Result<Binding> {
+    |                                          ----------------------------- expected `std::result::Result<r::lift::Binding, gmeow_errors::Diag>` because of return type
+...
+466 |                 self.value(&desugared)?
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<Binding, Diag>`, found `Binding`
+    |
+    = note: `?` operator cannot convert from `Binding` to `std::result::Result<Binding, gmeow_errors::Diag>`
+    = note: expected enum `std::result::Result<Binding, gmeow_errors::Diag>`
+               found enum `Binding`
+help: try removing this `?`
+    |
+466 -                 self.value(&desugared)?
+466 +                 self.value(&desugared)
+    |
+help: try wrapping the expression in `Ok`
+    |
+466 |                 Ok(self.value(&desugared)?)
+    |                 +++                       +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:479:45
+    |
+447 |     fn value(&mut self, expr: &RExpr) -> gmeow_errors::Result<Binding> {
+    |                                          ----------------------------- expected `std::result::Result<r::lift::Binding, gmeow_errors::Diag>` because of return type
+...
+479 |             RExpr::Call { callee, args } => self.call(callee, args)?,
+    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<Binding, Diag>`, found `Binding`
+    |
+    = note: `?` operator cannot convert from `Binding` to `std::result::Result<Binding, gmeow_errors::Diag>`
+    = note: expected enum `std::result::Result<Binding, gmeow_errors::Diag>`
+               found enum `Binding`
+help: try removing this `?`
+    |
+479 -             RExpr::Call { callee, args } => self.call(callee, args)?,
+479 +             RExpr::Call { callee, args } => self.call(callee, args),
+    |
+help: try wrapping the expression in `Ok`
+    |
+479 |             RExpr::Call { callee, args } => Ok(self.call(callee, args)?),
+    |                                             +++                        +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:542:20
+    |
+513 |     fn call(&mut self, callee: &RExpr, args: &[Arg]) -> gmeow_errors::Result<Binding> {
+    |                                                         ----------------------------- expected `std::result::Result<r::lift::Binding, gmeow_errors::Diag>` because of return type
+...
+542 |             return self.emit_two_sample_estimate(&name, spec, args)?;
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<Binding, Diag>`, found `Binding`
+    |
+    = note: `?` operator cannot convert from `Binding` to `std::result::Result<Binding, gmeow_errors::Diag>`
+    = note: expected enum `std::result::Result<Binding, gmeow_errors::Diag>`
+               found enum `Binding`
+help: try removing this `?`
+    |
+542 -             return self.emit_two_sample_estimate(&name, spec, args)?;
+542 +             return self.emit_two_sample_estimate(&name, spec, args);
+    |
+help: try wrapping the expression in `Ok`
+    |
+542 |             return Ok(self.emit_two_sample_estimate(&name, spec, args)?);
+    |                    +++                                                 +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:545:20
+    |
+513 |     fn call(&mut self, callee: &RExpr, args: &[Arg]) -> gmeow_errors::Result<Binding> {
+    |                                                         ----------------------------- expected `std::result::Result<r::lift::Binding, gmeow_errors::Diag>` because of return type
+...
+545 |             return self.emit_fit(&name, model_estimator(&name), args)?;
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<Binding, Diag>`, found `Binding`
+    |
+    = note: `?` operator cannot convert from `Binding` to `std::result::Result<Binding, gmeow_errors::Diag>`
+    = note: expected enum `std::result::Result<Binding, gmeow_errors::Diag>`
+               found enum `Binding`
+help: try removing this `?`
+    |
+545 -             return self.emit_fit(&name, model_estimator(&name), args)?;
+545 +             return self.emit_fit(&name, model_estimator(&name), args);
+    |
+help: try wrapping the expression in `Ok`
+    |
+545 |             return Ok(self.emit_fit(&name, model_estimator(&name), args)?);
+    |                    +++                                                   +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:681:20
+    |
+645 |     ) -> gmeow_errors::Result<Binding> {
+    |          ----------------------------- expected `std::result::Result<r::lift::Binding, gmeow_errors::Diag>` because of return type
+...
+681 |             return self.finish_fit(function, estimator, args, formula, dataset)?;
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<Binding, Diag>`, found `Binding`
+    |
+    = note: `?` operator cannot convert from `Binding` to `std::result::Result<Binding, gmeow_errors::Diag>`
+    = note: expected enum `std::result::Result<Binding, gmeow_errors::Diag>`
+               found enum `Binding`
+help: try removing this `?`
+    |
+681 -             return self.finish_fit(function, estimator, args, formula, dataset)?;
+681 +             return self.finish_fit(function, estimator, args, formula, dataset);
+    |
+help: try wrapping the expression in `Ok`
+    |
+681 |             return Ok(self.finish_fit(function, estimator, args, formula, dataset)?);
+    |                    +++                                                             +
+
+error[E0308]: `?` operator has incompatible types
+   --> crates/math-lift/src/r/lift.rs:692:9
+    |
+645 |     ) -> gmeow_errors::Result<Binding> {
+    |          ----------------------------- expected `std::result::Result<r::lift::Binding, gmeow_errors::Diag>` because of return type
+...
+692 |         self.finish_fit(function, estimator, args, formula, dataset)?
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<Binding, Diag>`, found `Binding`
+    |
+    = note: `?` operator cannot convert from `Binding` to `std::result::Result<Binding, gmeow_errors::Diag>`
+    = note: expected enum `std::result::Result<Binding, gmeow_errors::Diag>`
+               found enum `Binding`
+help: try removing this `?`
+    |
+692 -         self.finish_fit(function, estimator, args, formula, dataset)?
+692 +         self.finish_fit(function, estimator, args, formula, dataset)
+    |
+help: try wrapping the expression in `Ok`
+    |
+692 |         Ok(self.finish_fit(function, estimator, args, formula, dataset)?)
+    |         +++                                                             +
+
+error[E0277]: the `?` operator can only be used on `Result`s, not `Option`s, in a method that returns `Result`
+   --> crates/math-lift/src/r/lift.rs:755:53
+    |
+745 |     fn dataset_reference(&mut self, expr: &RExpr) -> gmeow_errors::Result<Option<String>> {
+    |     ------------------------------------------------------------------------------------- this function returns a `Result`
+...
+755 |                     let name = callable_name(callee)?;
+    |                                                     ^ use `.ok_or(...)?` to provide an error compatible with `std::result::Result<std::option::Option<std::string::String>, gmeow_errors::Diag>`
+
+error[E0308]: `?` operator has incompatible types
+    --> crates/math-lift/src/r/lift.rs:1035:18
+     |
+1023 |     fn emit_expression(&mut self, expr: &RExpr) -> gmeow_errors::Result<ExprRef> {
+     |                                                    ----------------------------- expected `std::result::Result<r::lift::ExprRef, gmeow_errors::Diag>` because of return type
+...
+1035 |             } => self.emit_expression(operand)?,
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<ExprRef, Diag>`, found `ExprRef`
+     |
+     = note: `?` operator cannot convert from `ExprRef` to `std::result::Result<ExprRef, gmeow_errors::Diag>`
+     = note: expected enum `std::result::Result<ExprRef, gmeow_errors::Diag>`
+              found struct `ExprRef`
+help: try removing this `?`
+     |
+1035 -             } => self.emit_expression(operand)?,
+1035 +             } => self.emit_expression(operand),
+     |
+help: try wrapping the expression in `Ok`
+     |
+1035 |             } => Ok(self.emit_expression(operand)?),
+     |                  +++                              +
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-math-lift` (lib) due to 16 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-math-lift` (lib test) due to 16 previous errors
+error: unused `std::result::Result` that must be used
+   --> crates/lang-bridge/src/gmn1_codec.rs:220:13
+    |
+220 |             builder.push_owned_quad(quad);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+220 |             let _ = builder.push_owned_quad(quad);
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/lang-bridge/src/gmn1_witness.rs:345:9
+    |
+345 |         builder.push_owned_quad(quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+345 |         let _ = builder.push_owned_quad(quad);
+    |         +++++++
+
+error: could not compile `gmeow-lang-bridge` (lib) due to 2 previous errors
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:13
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |             ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:23
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |                       ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:32
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |                                ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:43
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |                                           ^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 171 |     builder.push_quad(subject.expect("REASON"), predicate, addition, None);
+     |                              +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 171 |     builder.push_quad(subject, predicate.expect("REASON"), addition, None);
+     |                                         +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 171 |     builder.push_quad(subject, predicate, addition.expect("REASON"), None);
+     |                                                   +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:7
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |       ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:17
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |                 ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:20
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |                    ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:23
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |                       ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 674 |     b.push_quad(s.expect("REASON"), p, o, None);
+     |                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 674 |     b.push_quad(s, p.expect("REASON"), o, None);
+     |                     +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 674 |     b.push_quad(s, p, o.expect("REASON"), None);
+     |                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:7
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |       ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:17
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |                 ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:20
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |                    ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:23
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |                       ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 692 |     b.push_quad(s.expect("REASON"), p, o, None);
+     |                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 692 |     b.push_quad(s, p.expect("REASON"), o, None);
+     |                     +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 692 |     b.push_quad(s, p, o.expect("REASON"), None);
+     |                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:7
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |       ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:17
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |                 ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:20
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |                    ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:23
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |                       ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 777 |     b.push_quad(s.expect("REASON"), p, o, None);
+     |                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 777 |     b.push_quad(s, p.expect("REASON"), o, None);
+     |                     +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 777 |     b.push_quad(s, p, o.expect("REASON"), None);
+     |                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:17
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                 ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:27
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                           ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:36
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                                    ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:47
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                                               ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  54 |         builder.push_quad(subject.expect("REASON"), predicate, object, None);
+     |                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  54 |         builder.push_quad(subject, predicate.expect("REASON"), object, None);
+     |                                             +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  54 |         builder.push_quad(subject, predicate, object.expect("REASON"), None);
+     |                                                     +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-lang-bridge` (lib test) due to 5 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

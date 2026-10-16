@@ -1,0 +1,8 @@
+test(logic): pin native closure mismatch diagnostics
+
+Require the specific missing-committed-premise diagnostic in the native artifact
+regression and normalize the two restricted-admission assertion calls.
+
+Principles 7 and 18. Both affected tests pass in nextest run
+6aa7c004-ecab-4bb4-bd52-59c584e5e0d4. Formatting passes; production behavior and
+the prior 152-test implementation scope are unchanged.

@@ -1,0 +1,13 @@
+{
+  "baseRefName": "issue-1796-datalog-first",
+  "baseRefOid": "12e5c4f8a395971c49126dbcdb6d822eb04f635f",
+  "headRefName": "issue-1796-rja",
+  "headRefOid": "a465c997012fd77020dd692d7ea87f9c5d0c8e87",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1799,
+  "state": "OPEN",
+  "title": "feat(1796): certify restricted joint acyclicity",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1799"
+}

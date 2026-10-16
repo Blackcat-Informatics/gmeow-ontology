@@ -1,0 +1,182 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+    Checking gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+    Checking gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+error: redundant closure
+   --> crates/logic/src/correspondence_exec/atomic_lens/composition.rs:317:22
+    |
+317 |             .map_err(|error| gmeow_errors::Diag::from(error))?;
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the associated function itself: `gmeow_errors::Diag::from`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+    = note: `-D clippy::redundant-closure` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::redundant_closure)]`
+
+error: redundant closure
+   --> crates/logic/src/correspondence_exec/atomic_lens/composition.rs:433:18
+    |
+433 |         .map_err(|error| gmeow_errors::Diag::from(error))?;
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the associated function itself: `gmeow_errors::Diag::from`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/logic/src/correspondence_exec/atomic_lens/composition.rs:437:18
+    |
+437 |         .map_err(|error| gmeow_errors::Diag::from(error))?;
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the associated function itself: `gmeow_errors::Diag::from`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/logic/src/correspondence_exec/atomic_lens.rs:403:22
+    |
+403 |             .map_err(|error| gmeow_errors::Diag::from(error))?;
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the associated function itself: `gmeow_errors::Diag::from`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/logic/src/correspondence_exec/atomic_lens.rs:470:18
+    |
+470 |         .map_err(|error| gmeow_errors::Diag::from(error))?;
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the associated function itself: `gmeow_errors::Diag::from`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/logic/src/correspondence_exec/atomic_lens.rs:474:18
+    |
+474 |         .map_err(|error| gmeow_errors::Diag::from(error))?;
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the associated function itself: `gmeow_errors::Diag::from`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: could not compile `gmeow-logic` (lib) due to 6 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0609]: no field `verdict` on type `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>`
+   --> crates/logic/src/correspondence_exec.tests.rs:190:22
+    |
+190 |     assert_eq!(first.verdict, DischargeVerdict::ObligationViolated);
+    |                      ^^^^^^^ unknown field
+    |
+help: one of the expressions' fields has a field of the same name
+    |
+190 |     assert_eq!(first.unwrap().verdict, DischargeVerdict::ObligationViolated);
+    |                      +++++++++
+
+error[E0609]: no field `countermodel` on type `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>`
+   --> crates/logic/src/correspondence_exec.tests.rs:191:30
+    |
+191 |     let countermodel = first.countermodel.as_ref().unwrap();
+    |                              ^^^^^^^^^^^^ unknown field
+    |
+help: one of the expressions' fields has a field of the same name
+    |
+191 |     let countermodel = first.unwrap().countermodel.as_ref().unwrap();
+    |                              +++++++++
+
+error[E0369]: binary operation `==` cannot be applied to type `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>`
+   --> crates/logic/src/correspondence_exec.tests.rs:199:5
+    |
+199 | /     assert_eq!(
+200 | |         first,
+201 | |         prepared.roundtrip(sources.iter().map(LawCase::Seed), true)
+202 | |     );
+    | |     ^
+    | |     |
+    | |_____std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>
+    |       std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>
+    |
+note: `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>` does not implement `std::cmp::PartialEq`
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:558:1
+    |
+558 | pub enum Result<T, E> {
+    | ^^^^^^^^^^^^^^^^^^^^^ `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>` is defined in another crate
+
+error[E0369]: binary operation `==` cannot be applied to type `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>`
+   --> crates/logic/src/correspondence_exec.tests.rs:205:5
+    |
+205 | /     assert_eq!(
+206 | |         first,
+207 | |         again.roundtrip(sources.iter().map(LawCase::Seed), true)
+208 | |     );
+    | |     ^
+    | |     |
+    | |_____std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>
+    |       std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>
+    |
+note: `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>` does not implement `std::cmp::PartialEq`
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:558:1
+    |
+558 | pub enum Result<T, E> {
+    | ^^^^^^^^^^^^^^^^^^^^^ `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>` is defined in another crate
+
+error[E0308]: mismatched types
+   --> crates/logic/src/correspondence_exec.tests.rs:342:26
+    |
+342 |         discharge_domain(&prepared, &source, true).verdict,
+    |         ---------------- ^^^^^^^^^ expected `PreparedLawExecution`, found `&Result<PreparedLawExecution, Diag>`
+    |         |
+    |         arguments to this function are incorrect
+    |
+    = note: expected struct `PreparedLawExecution`
+            found reference `&std::result::Result<PreparedLawExecution, gmeow_errors::Diag>`
+note: function defined here
+   --> crates/logic/src/correspondence_exec.rs:574:4
+    |
+574 | fn discharge_domain(
+    |    ^^^^^^^^^^^^^^^^
+575 |     prepared: PreparedLawExecution,
+    |     ------------------------------
+
+error[E0609]: no field `verdict` on type `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>`
+   --> crates/logic/src/correspondence_exec.tests.rs:342:52
+    |
+342 |         discharge_domain(&prepared, &source, true).verdict,
+    |                                                    ^^^^^^^ unknown field
+    |
+help: one of the expressions' fields has a field of the same name
+    |
+342 |         discharge_domain(&prepared, &source, true).unwrap().verdict,
+    |                                                    +++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic/src/correspondence_exec.tests.rs:346:26
+    |
+346 |         discharge_domain(&prepared, &[], false).verdict,
+    |         ---------------- ^^^^^^^^^ expected `PreparedLawExecution`, found `&Result<PreparedLawExecution, Diag>`
+    |         |
+    |         arguments to this function are incorrect
+    |
+    = note: expected struct `PreparedLawExecution`
+            found reference `&std::result::Result<PreparedLawExecution, gmeow_errors::Diag>`
+note: function defined here
+   --> crates/logic/src/correspondence_exec.rs:574:4
+    |
+574 | fn discharge_domain(
+    |    ^^^^^^^^^^^^^^^^
+575 |     prepared: PreparedLawExecution,
+    |     ------------------------------
+
+error[E0609]: no field `verdict` on type `std::result::Result<correspondence_exec::DischargeOutcome, gmeow_errors::Diag>`
+   --> crates/logic/src/correspondence_exec.tests.rs:346:49
+    |
+346 |         discharge_domain(&prepared, &[], false).verdict,
+    |                                                 ^^^^^^^ unknown field
+    |
+help: one of the expressions' fields has a field of the same name
+    |
+346 |         discharge_domain(&prepared, &[], false).unwrap().verdict,
+    |                                                 +++++++++
+
+Some errors have detailed explanations: E0308, E0369, E0609.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-logic` (lib test) due to 8 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

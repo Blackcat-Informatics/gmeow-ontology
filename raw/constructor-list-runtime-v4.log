@@ -1,0 +1,61 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(reason::program::list_tests::) | test(physical::seminaive::joint::source_grammar::tests::)' --no-tests=fail
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 3m 31s
+────────────
+ Nextest run ID 24d24151-001a-424a-809e-7d613ecd4246 with nextest profile: ci
+    Starting 29 tests across 224 binaries (7354 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.012s] ( 1/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_alias_scan_visits_nested_quote_predicates_and_datatypes
+        PASS [   0.012s] ( 2/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_grammar_checks_closed_paths_and_shared_tails
+        PASS [   0.012s] ( 3/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_grammar_cannot_rewrite_a_source_cell_or_open_tail
+        PASS [   0.012s] ( 4/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_grammar_rejects_incomplete_or_ambiguous_cells
+        PASS [   0.012s] ( 5/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_grammar_retains_address_frontier_and_policy
+        PASS [   0.013s] ( 6/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_grammar_checks_the_prepared_allocation_route
+        PASS [   0.014s] ( 7/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_grammar_does_not_reject_compatible_repeated_heads
+        PASS [   0.015s] ( 8/29) gmeow-logic physical::seminaive::joint::source_grammar::tests::constructor_grammar_checks_external_writers_and_world_ownership
+        PASS [   0.031s] ( 9/29) gmeow-logic reason::program::list_tests::constructor_list_feedback_preserves_the_barrier_for_another_cell_writer
+        PASS [   0.031s] (10/29) gmeow-logic reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run
+        PASS [   0.040s] (11/29) gmeow-logic reason::program::list_tests::single_binary_existential_uses_one_witness_per_frontier_binding
+        PASS [   0.043s] (12/29) gmeow-logic reason::program::list_tests::a_shared_list_tail_is_an_independent_logical_reference
+        PASS [   0.049s] (13/29) gmeow-logic reason::program::list_tests::intersection_guard_finishes_before_negated_consumers
+        PASS [   0.050s] (14/29) gmeow-logic reason::program::list_tests::empty_intersection_admits_active_resource_terms_without_inventing_literal_subjects
+        PASS [   0.050s] (15/29) gmeow-logic reason::program::list_tests::late_distinctness_wakes_nominal_closure_and_its_rule_consumer
+        PASS [   0.050s] (16/29) gmeow-logic reason::program::list_tests::intersection_index_wakes_when_its_first_member_type_arrives_late
+        PASS [   0.051s] (17/29) gmeow-logic reason::program::list_tests::repeated_member_occurrences_preserve_all_different_counterevidence
+        PASS [   0.051s] (18/29) gmeow-logic reason::program::list_tests::property_chain_uses_derived_edges_and_retains_literal_and_full_path_evidence
+        PASS [   0.052s] (19/29) gmeow-logic reason::program::list_tests::an_inverse_back_edge_satisfies_the_reverse_restriction_under_datalog_first
+        PASS [   0.053s] (20/29) gmeow-logic reason::program::list_tests::an_inverse_pair_is_certified_and_runs_without_a_budget
+        PASS [   0.055s] (21/29) gmeow-logic reason::program::list_tests::list_cache_and_membership_are_local_to_their_source_world
+        PASS [   0.057s] (22/29) gmeow-logic reason::program::list_tests::universal_list_guards_never_join_types_across_worlds
+        PASS [   0.060s] (23/29) gmeow-logic reason::program::list_tests::derived_list_cells_wake_nominal_membership_and_its_consumer
+        PASS [   0.060s] (24/29) gmeow-logic reason::program::list_tests::intersection_membership_shares_late_type_feedback_and_complete_premises
+        PASS [   0.061s] (25/29) gmeow-logic reason::program::list_tests::nominal_closure_requires_every_explicit_difference_without_unique_names
+        PASS [   0.061s] (26/29) gmeow-logic reason::program::list_tests::constructor_list_feedback_supports_finite_multi_cell_heads
+        PASS [   0.063s] (27/29) gmeow-logic reason::program::list_tests::empty_nominal_guard_remains_in_joint_invention_admission
+        PASS [   0.064s] (28/29) gmeow-logic reason::program::list_tests::constructor_list_feedback_cannot_reuse_a_cached_proof_for_source_aliases
+        PASS [   0.074s] (29/29) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+────────────
+     Summary [   0.112s] 29 tests run: 29 passed, 7354 skipped

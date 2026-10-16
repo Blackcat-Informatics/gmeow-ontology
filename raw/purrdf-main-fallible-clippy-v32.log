@@ -1,0 +1,1050 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+    Checking gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+    Checking gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+    Checking gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+    Checking docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+    Checking gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+    Checking gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+    Checking gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+error: unused `std::result::Result` that must be used
+  --> crates/pipeline/tests/svo_lowering_reasoner.rs:51:9
+   |
+51 |         builder.push_owned_quad(&q);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+51 |         let _ = builder.push_owned_quad(&q);
+   |         +++++++
+
+error: could not compile `gmeow-pipeline` (test "svo_lowering_reasoner") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error[E0599]: no method named `quad_refs` found for enum `std::result::Result<T, E>` in the current scope
+    --> crates/pipeline/tests/support/authenticated_bundle.rs:58:10
+     |
+  57 |     scoped
+  58 |         .quad_refs()
+     |          ^^^^^^^^^
+     |
+note: the method `quad_refs` exists on the type `purrdf::RdfDataset`
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1646:5
+     |
+1646 |     pub fn quad_refs(&self) -> RdfDatasetIter<'_> {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `purrdf::RdfDataset` value, panicking if the value is a `Result::Err`
+     |
+  57 |     scoped.expect("REASON")
+     |           +++++++++++++++++
+help: there is a method `as_ref` with a similar name
+     |
+  58 -         .quad_refs()
+  58 +         .as_ref()
+     |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `gmeow-pipeline` (test "projection_purity") due to 1 previous error
+error: could not compile `gmeow-pipeline` (test "norm_claims_bundle") due to 1 previous error
+error: could not compile `gmeow-pipeline` (test "goal_directed_bundle") due to 1 previous error
+error[E0308]: mismatched types
+   --> crates/pipeline/tests/norm_claims_shacl.rs:24:49
+    |
+ 24 |     let mut quads = flat_rdf_quads_from_dataset(&scoped);
+    |                     --------------------------- ^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |                     |
+    |                     arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf/src/native_quads.rs:146:8
+    |
+146 | pub fn flat_rdf_quads_from_dataset(dataset: &RdfDataset) -> Vec<RdfQuad> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0308, E0599.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-pipeline` (test "norm_claims_shacl") due to 2 previous errors
+error: could not compile `gmeow-pipeline` (test "bundle_integrity") due to 1 previous error
+error: could not compile `gmeow-pipeline` (test "chase_certificate_golden") due to 1 previous error
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+error: could not compile `gmeow-pipeline` (test "correspondence_laws_bundle") due to 1 previous error
+error: could not compile `gmeow-pipeline` (test "medium_bundle") due to 1 previous error
+error[E0308]: mismatched types
+  --> crates/pipeline/tests/gts_sink_allocation.rs:45:81
+   |
+45 |         builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph));
+   |                                                                       --------- ^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+   |                                                                       |
+   |                                                                       arguments to this method are incorrect
+   |
+   = note: expected struct `TermId`
+                found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the return type of this call is `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+  --> crates/pipeline/tests/gts_sink_allocation.rs:45:55
+   |
+45 |         builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph));
+   |                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^-----^
+   |                                                                                 |
+   |                                                                                 this argument influences the return type of `then_some`
+note: method defined here
+  --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/bool.rs:36:18
+   |
+36 |     pub const fn then_some<T: [const] Destruct>(self, t: T) -> Option<T> {
+   |                  ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+   |
+45 |         builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph.expect("REASON")));
+   |                                                                                      +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:45:17
+     |
+  45 |         builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph));
+     |                 ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:45:27
+     |
+  45 |         builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph));
+     |                           ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:45:36
+     |
+  45 |         builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph));
+     |                                    ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:45:47
+     |
+  45 |         builder.push_quad(subject, predicate, object, (row % 11 == 0).then_some(graph));
+     |                                               ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  45 |         builder.push_quad(subject.expect("REASON"), predicate, object, (row % 11 == 0).then_some(graph));
+     |                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  45 |         builder.push_quad(subject, predicate.expect("REASON"), object, (row % 11 == 0).then_some(graph));
+     |                                             +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  45 |         builder.push_quad(subject, predicate, object.expect("REASON"), (row % 11 == 0).then_some(graph));
+     |                                                     +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:48:34
+     |
+  48 |             let triple = builder.intern_triple(subject, predicate, object);
+     |                                  ^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:48:48
+     |
+  48 |             let triple = builder.intern_triple(subject, predicate, object);
+     |                                                ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:48:57
+     |
+  48 |             let triple = builder.intern_triple(subject, predicate, object);
+     |                                                         ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:48:68
+     |
+  48 |             let triple = builder.intern_triple(subject, predicate, object);
+     |                                                                    ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1586:12
+     |
+1586 |     pub fn intern_triple(
+     |            ^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  48 |             let triple = builder.intern_triple(subject.expect("REASON"), predicate, object);
+     |                                                       +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  48 |             let triple = builder.intern_triple(subject, predicate.expect("REASON"), object);
+     |                                                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  48 |             let triple = builder.intern_triple(subject, predicate, object.expect("REASON"));
+     |                                                                          +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:51:21
+     |
+  51 |             builder.push_reifier(reifier, triple);
+     |                     ^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:51:34
+     |
+  51 |             builder.push_reifier(reifier, triple);
+     |                                  ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:51:43
+     |
+  51 |             builder.push_reifier(reifier, triple);
+     |                                           ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2628:12
+     |
+2628 |     pub fn push_reifier(&mut self, reifier: TermId, triple: TermId) -> Result<(), StorageError> {
+     |            ^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  51 |             builder.push_reifier(reifier.expect("REASON"), triple);
+     |                                         +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  51 |             builder.push_reifier(reifier, triple.expect("REASON"));
+     |                                                 +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:53:21
+     |
+  53 |             builder.push_annotation(reifier, annotation_predicate, confidence);
+     |                     ^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:53:37
+     |
+  53 |             builder.push_annotation(reifier, annotation_predicate, confidence);
+     |                                     ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:53:46
+     |
+  53 |             builder.push_annotation(reifier, annotation_predicate, confidence);
+     |                                              ^^^^^^^^^^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:53:68
+     |
+  53 |             builder.push_annotation(reifier, annotation_predicate, confidence);
+     |                                                                    ^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2694:12
+     |
+2694 |     pub fn push_annotation(
+     |            ^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  53 |             builder.push_annotation(reifier.expect("REASON"), annotation_predicate, confidence);
+     |                                            +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  53 |             builder.push_annotation(reifier, annotation_predicate.expect("REASON"), confidence);
+     |                                                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  53 |             builder.push_annotation(reifier, annotation_predicate, confidence.expect("REASON"));
+     |                                                                              +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/pipeline/tests/gts_sink_allocation.rs:87:31
+     |
+  87 |                 union.resolve(purrdf::TermId::from_index(*index as u32)),
+     |                       ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, CapacityError>`
+     |                       |
+     |                       arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::CapacityError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1675:12
+     |
+1675 |     pub fn resolve(&self, id: TermId) -> TermRef<'_> {
+     |            ^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::CapacityError>` value, panicking if the value is a `Result::Err`
+     |
+  87 |                 union.resolve(purrdf::TermId::from_index(*index as u32).expect("REASON")),
+     |                                                                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:147:17
+     |
+ 147 |         builder.push_quad(subject, rdf_type, logic_class, None);
+     |                 ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:147:27
+     |
+ 147 |         builder.push_quad(subject, rdf_type, logic_class, None);
+     |                           ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:147:36
+     |
+ 147 |         builder.push_quad(subject, rdf_type, logic_class, None);
+     |                                    ^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:147:46
+     |
+ 147 |         builder.push_quad(subject, rdf_type, logic_class, None);
+     |                                              ^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 147 |         builder.push_quad(subject.expect("REASON"), rdf_type, logic_class, None);
+     |                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 147 |         builder.push_quad(subject, rdf_type.expect("REASON"), logic_class, None);
+     |                                            +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 147 |         builder.push_quad(subject, rdf_type, logic_class.expect("REASON"), None);
+     |                                                         +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/tests/gts_sink_allocation.rs:148:70
+    |
+148 |         builder.push_quad(subject, logic_subclass, logic_thing, Some(graph));
+    |                                                                 ---- ^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                                                                 |
+    |                                                                 arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/pipeline/tests/gts_sink_allocation.rs:148:65
+    |
+148 |         builder.push_quad(subject, logic_subclass, logic_thing, Some(graph));
+    |                                                                 ^^^^^-----^
+    |                                                                      |
+    |                                                                      this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+148 |         builder.push_quad(subject, logic_subclass, logic_thing, Some(graph.expect("REASON")));
+    |                                                                           +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:148:17
+     |
+ 148 |         builder.push_quad(subject, logic_subclass, logic_thing, Some(graph));
+     |                 ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:148:27
+     |
+ 148 |         builder.push_quad(subject, logic_subclass, logic_thing, Some(graph));
+     |                           ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:148:36
+     |
+ 148 |         builder.push_quad(subject, logic_subclass, logic_thing, Some(graph));
+     |                                    ^^^^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:148:52
+     |
+ 148 |         builder.push_quad(subject, logic_subclass, logic_thing, Some(graph));
+     |                                                    ^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 148 |         builder.push_quad(subject.expect("REASON"), logic_subclass, logic_thing, Some(graph));
+     |                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 148 |         builder.push_quad(subject, logic_subclass.expect("REASON"), logic_thing, Some(graph));
+     |                                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 148 |         builder.push_quad(subject, logic_subclass, logic_thing.expect("REASON"), Some(graph));
+     |                                                               +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:150:34
+     |
+ 150 |             let triple = builder.intern_triple(subject, logic_subclass, logic_thing);
+     |                                  ^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:150:48
+     |
+ 150 |             let triple = builder.intern_triple(subject, logic_subclass, logic_thing);
+     |                                                ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:150:57
+     |
+ 150 |             let triple = builder.intern_triple(subject, logic_subclass, logic_thing);
+     |                                                         ^^^^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:150:73
+     |
+ 150 |             let triple = builder.intern_triple(subject, logic_subclass, logic_thing);
+     |                                                                         ^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1586:12
+     |
+1586 |     pub fn intern_triple(
+     |            ^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 150 |             let triple = builder.intern_triple(subject.expect("REASON"), logic_subclass, logic_thing);
+     |                                                       +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 150 |             let triple = builder.intern_triple(subject, logic_subclass.expect("REASON"), logic_thing);
+     |                                                                       +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 150 |             let triple = builder.intern_triple(subject, logic_subclass, logic_thing.expect("REASON"));
+     |                                                                                    +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/tests/gts_sink_allocation.rs:153:65
+    |
+153 |             builder.push_reifier_in_graph(reifier, triple, Some(graph));
+    |                                                            ---- ^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                                                            |
+    |                                                            arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/pipeline/tests/gts_sink_allocation.rs:153:60
+    |
+153 |             builder.push_reifier_in_graph(reifier, triple, Some(graph));
+    |                                                            ^^^^^-----^
+    |                                                                 |
+    |                                                                 this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+153 |             builder.push_reifier_in_graph(reifier, triple, Some(graph.expect("REASON")));
+    |                                                                      +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:153:21
+     |
+ 153 |             builder.push_reifier_in_graph(reifier, triple, Some(graph));
+     |                     ^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:153:43
+     |
+ 153 |             builder.push_reifier_in_graph(reifier, triple, Some(graph));
+     |                                           ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:153:52
+     |
+ 153 |             builder.push_reifier_in_graph(reifier, triple, Some(graph));
+     |                                                    ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2639:12
+     |
+2639 |     pub fn push_reifier_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 153 |             builder.push_reifier_in_graph(reifier.expect("REASON"), triple, Some(graph));
+     |                                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 153 |             builder.push_reifier_in_graph(reifier, triple.expect("REASON"), Some(graph));
+     |                                                          +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/tests/gts_sink_allocation.rs:158:22
+    |
+158 |                 Some(graph),
+    |                 ---- ^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                 |
+    |                 arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/pipeline/tests/gts_sink_allocation.rs:158:17
+    |
+158 |                 Some(graph),
+    |                 ^^^^^-----^
+    |                      |
+    |                      this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+158 |                 Some(graph.expect("REASON")),
+    |                           +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/pipeline/tests/gts_sink_allocation.rs:154:21
+     |
+ 154 |             builder.push_annotation_in_graph(
+     |                     ^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:155:17
+     |
+ 155 |                 reifier,
+     |                 ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:156:17
+     |
+ 156 |                 annotation_predicate,
+     |                 ^^^^^^^^^^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/pipeline/tests/gts_sink_allocation.rs:157:17
+     |
+ 157 |                 confidence,
+     |                 ^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2709:12
+     |
+2709 |     pub fn push_annotation_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 155 |                 reifier.expect("REASON"),
+     |                        +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 156 |                 annotation_predicate.expect("REASON"),
+     |                                     +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 157 |                 confidence.expect("REASON"),
+     |                           +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-pipeline` (test "gts_sink_allocation") due to 14 previous errors
+error[E0277]: the trait bound `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>: purrdf::DatasetView` is not satisfied
+   --> crates/gmeow-dev-cli/src/dev_feedback.rs:567:9
+    |
+566 |     let bytes = purrdf::serialize_dataset(
+    |                 ------------------------- required by a bound introduced by this call
+567 |         &merged,
+    |         ^^^^^^^ the trait `purrdf::DatasetView` is not implemented for `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+    |
+    = help: the following other types implement trait `purrdf::DatasetView`:
+              purrdf::CompositeDatasetView
+              purrdf::DeltaDatasetView
+              purrdf::PackView<'_>
+              purrdf::PagedDataset
+              purrdf::PagedQueryView<'_>
+              purrdf::PagedStackQueryView<'_>
+              purrdf::RdfDataset
+              purrdf::TripleRead<'_>
+            and 6 others
+note: required by a bound in `purrdf::serialize_dataset`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf/src/native_codecs/serialize.rs:119:29
+    |
+119 | pub fn serialize_dataset<D: DatasetView>(
+    |                             ^^^^^^^^^^^ required by this bound in `serialize_dataset`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-dev-cli` (lib) due to 1 previous error
+error[E0277]: the trait bound `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>: purrdf::DatasetView` is not satisfied
+   --> crates/gmeow-dev-cli/src/dev_reason.tests.rs:19:58
+    |
+ 19 |             gmeow_logic::reason::prepare_reasoning_input(&dataset)?,
+    |             -------------------------------------------- ^^^^^^^^ the trait `purrdf::DatasetView` is not implemented for `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+    |             |
+    |             required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `purrdf::DatasetView`:
+              purrdf::CompositeDatasetView
+              purrdf::DeltaDatasetView
+              purrdf::PackView<'_>
+              purrdf::PagedDataset
+              purrdf::PagedQueryView<'_>
+              purrdf::PagedStackQueryView<'_>
+              purrdf::RdfDataset
+              purrdf::TripleRead<'_>
+            and 6 others
+note: required by a bound in `gmeow_logic::reason::prepare_reasoning_input`
+   --> crates/logic/src/reason/program.rs:229:16
+    |
+228 | pub fn prepare_reasoning_input(
+229 |     edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `prepare_reasoning_input`
+
+error[E0308]: mismatched types
+   --> crates/gmeow-dev-cli/src/dev_reason.tests.rs:16:50
+    |
+ 16 |     let evaluation = evaluate_reason_verify_once(&dataset, &verification, || {
+    |                      --------------------------- ^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |                      |
+    |                      arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/gmeow-dev-cli/src/dev_reason.rs:327:4
+    |
+327 | fn evaluate_reason_verify_once<F>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+328 |     dataset: &purrdf::RdfDataset,
+    |     ----------------------------
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:14:13
+     |
+  14 |     builder.push_quad(subject, predicate, object, None);
+     |             ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:14:23
+     |
+  14 |     builder.push_quad(subject, predicate, object, None);
+     |                       ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:14:32
+     |
+  14 |     builder.push_quad(subject, predicate, object, None);
+     |                                ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:14:43
+     |
+  14 |     builder.push_quad(subject, predicate, object, None);
+     |                                           ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  14 |     builder.push_quad(subject.expect("REASON"), predicate, object, None);
+     |                              +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  14 |     builder.push_quad(subject, predicate.expect("REASON"), object, None);
+     |                                         +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  14 |     builder.push_quad(subject, predicate, object.expect("REASON"), None);
+     |                                                 +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:16:29
+     |
+  16 |     let statement = builder.intern_triple(quoted_only, predicate, object);
+     |                             ^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:16:43
+     |
+  16 |     let statement = builder.intern_triple(quoted_only, predicate, object);
+     |                                           ^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:16:56
+     |
+  16 |     let statement = builder.intern_triple(quoted_only, predicate, object);
+     |                                                        ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:16:67
+     |
+  16 |     let statement = builder.intern_triple(quoted_only, predicate, object);
+     |                                                                   ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1586:12
+     |
+1586 |     pub fn intern_triple(
+     |            ^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  16 |     let statement = builder.intern_triple(quoted_only.expect("REASON"), predicate, object);
+     |                                                      +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  16 |     let statement = builder.intern_triple(quoted_only, predicate.expect("REASON"), object);
+     |                                                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  16 |     let statement = builder.intern_triple(quoted_only, predicate, object.expect("REASON"));
+     |                                                                         +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:18:13
+     |
+  18 |     builder.push_reifier_in_graph(reifier, statement, None);
+     |             ^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:18:35
+     |
+  18 |     builder.push_reifier_in_graph(reifier, statement, None);
+     |                                   ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:18:44
+     |
+  18 |     builder.push_reifier_in_graph(reifier, statement, None);
+     |                                            ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2639:12
+     |
+2639 |     pub fn push_reifier_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  18 |     builder.push_reifier_in_graph(reifier.expect("REASON"), statement, None);
+     |                                          +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  18 |     builder.push_reifier_in_graph(reifier, statement.expect("REASON"), None);
+     |                                                     +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:21:13
+     |
+  21 |     builder.push_annotation_in_graph(reifier, provenance, source, None);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:21:38
+     |
+  21 |     builder.push_annotation_in_graph(reifier, provenance, source, None);
+     |                                      ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:21:47
+     |
+  21 |     builder.push_annotation_in_graph(reifier, provenance, source, None);
+     |                                               ^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:21:59
+     |
+  21 |     builder.push_annotation_in_graph(reifier, provenance, source, None);
+     |                                                           ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2709:12
+     |
+2709 |     pub fn push_annotation_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  21 |     builder.push_annotation_in_graph(reifier.expect("REASON"), provenance, source, None);
+     |                                             +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  21 |     builder.push_annotation_in_graph(reifier, provenance.expect("REASON"), source, None);
+     |                                                         +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  21 |     builder.push_annotation_in_graph(reifier, provenance, source.expect("REASON"), None);
+     |                                                                 +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:24:56
+    |
+ 24 |     builder.push_quad(subject, predicate, object, Some(other_world));
+    |                                                   ---- ^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                                                   |
+    |                                                   arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:24:51
+    |
+ 24 |     builder.push_quad(subject, predicate, object, Some(other_world));
+    |                                                   ^^^^^-----------^
+    |                                                        |
+    |                                                        this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+ 24 |     builder.push_quad(subject, predicate, object, Some(other_world.expect("REASON")));
+    |                                                                   +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:24:13
+     |
+  24 |     builder.push_quad(subject, predicate, object, Some(other_world));
+     |             ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:24:23
+     |
+  24 |     builder.push_quad(subject, predicate, object, Some(other_world));
+     |                       ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:24:32
+     |
+  24 |     builder.push_quad(subject, predicate, object, Some(other_world));
+     |                                ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:24:43
+     |
+  24 |     builder.push_quad(subject, predicate, object, Some(other_world));
+     |                                           ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  24 |     builder.push_quad(subject.expect("REASON"), predicate, object, Some(other_world));
+     |                              +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  24 |     builder.push_quad(subject, predicate.expect("REASON"), object, Some(other_world));
+     |                                         +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  24 |     builder.push_quad(subject, predicate, object.expect("REASON"), Some(other_world));
+     |                                                 +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:25:66
+    |
+ 25 |     builder.push_reifier_in_graph(other_reifier, statement, Some(other_world));
+    |                                                             ---- ^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                                                             |
+    |                                                             arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:25:61
+    |
+ 25 |     builder.push_reifier_in_graph(other_reifier, statement, Some(other_world));
+    |                                                             ^^^^^-----------^
+    |                                                                  |
+    |                                                                  this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+ 25 |     builder.push_reifier_in_graph(other_reifier, statement, Some(other_world.expect("REASON")));
+    |                                                                             +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:25:13
+     |
+  25 |     builder.push_reifier_in_graph(other_reifier, statement, Some(other_world));
+     |             ^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:25:35
+     |
+  25 |     builder.push_reifier_in_graph(other_reifier, statement, Some(other_world));
+     |                                   ^^^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:25:50
+     |
+  25 |     builder.push_reifier_in_graph(other_reifier, statement, Some(other_world));
+     |                                                  ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2639:12
+     |
+2639 |     pub fn push_reifier_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  25 |     builder.push_reifier_in_graph(other_reifier.expect("REASON"), statement, Some(other_world));
+     |                                                +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  25 |     builder.push_reifier_in_graph(other_reifier, statement.expect("REASON"), Some(other_world));
+     |                                                           +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:26:78
+    |
+ 26 |     builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world));
+    |                                                                         ---- ^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                                                                         |
+    |                                                                         arguments to this enum variant are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: the type constructed contains `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` due to the type of the argument passed
+   --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:26:73
+    |
+ 26 |     builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world));
+    |                                                                         ^^^^^-----------^
+    |                                                                              |
+    |                                                                              this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+ 26 |     builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world.expect("REASON")));
+    |                                                                                         +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:26:13
+     |
+  26 |     builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world));
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:26:38
+     |
+  26 |     builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world));
+     |                                      ^^^^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:26:53
+     |
+  26 |     builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world));
+     |                                                     ^^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/gmeow-dev-cli/src/dev_test_fixtures/bundle_artifacts/conformance_ontology.tests.rs:26:65
+     |
+  26 |     builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world));
+     |                                                                 ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2709:12
+     |
+2709 |     pub fn push_annotation_in_graph(
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  26 |     builder.push_annotation_in_graph(other_reifier.expect("REASON"), provenance, source, Some(other_world));
+     |                                                   +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  26 |     builder.push_annotation_in_graph(other_reifier, provenance.expect("REASON"), source, Some(other_world));
+     |                                                               +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  26 |     builder.push_annotation_in_graph(other_reifier, provenance, source.expect("REASON"), Some(other_world));
+     |                                                                       +++++++++++++++++
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-dev-cli` (lib test) due to 13 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

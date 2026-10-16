@@ -1,0 +1,76 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(projections::sssom::) | test(projections::correspondence_frontend::) | test(leave_one_out) | test(reciprocal_disjointness_) | test(disjoint_union_pair_is_certified_) | test(unrelated_union_does_not_force_) | test(property_chain_with_blank_list_keeps_disjointness_)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 6m 00s
+────────────
+ Nextest run ID c73a2abd-f19b-4653-a0d5-374c30aa95c8 with nextest profile: ci
+    Starting 40 tests across 224 binaries (7375 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.018s] ( 1/40) gmeow-logic-compile projections::sssom::tests::label_column_appears_only_when_populated
+        PASS [   0.021s] ( 2/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_lowers_to_the_same_typed_ir
+        PASS [   0.019s] ( 3/40) gmeow-logic-compile projections::sssom::tests::native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries
+        PASS [   0.020s] ( 4/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_accepts_an_honest_commitment_shift
+        PASS [   0.020s] ( 5/40) gmeow-logic-compile projections::sssom::tests::checked_mapping_rejects_tab_in_cell
+        PASS [   0.021s] ( 6/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_multiple_bindings
+        PASS [   0.021s] ( 7/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_a_commitment_shift_with_equivalence_relation
+        PASS [   0.021s] ( 8/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_requires_exactly_one_binding_target_form
+        PASS [   0.020s] ( 9/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_missing_metadata_and_target_drift
+        PASS [   0.021s] (10/40) gmeow-logic-compile projections::correspondence_frontend::tests::evidence_retains_full_identity_without_implicit_warrant_scores
+        PASS [   0.025s] (11/40) gmeow-logic-compile projections::correspondence_frontend::tests::divergent_duplicate_alignment_cell_fails_closed
+        PASS [   0.025s] (12/40) gmeow-logic-compile projections::correspondence_frontend::tests::same_fact_in_two_sssom_sets_collapses_not_conflicts
+        PASS [   0.023s] (13/40) gmeow-logic-compile projections::sssom::tests::bare_skos_exactmatch_without_sssomfile_is_ignored
+        PASS [   0.024s] (14/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_cannot_surface_exact_match
+        PASS [   0.024s] (15/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_keeps_typed_commitment_and_endpoints
+        PASS [   0.023s] (16/40) gmeow-logic-compile projections::sssom::tests::lower_sssom_emits_projection_binding_rows
+        PASS [   0.025s] (17/40) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_requires_explicit_judgments
+        PASS [   0.023s] (18/40) gmeow-logic-compile projections::sssom::tests::lower_sssom_extracts_over_dslview
+        PASS [   0.025s] (19/40) gmeow-logic-compile projections::correspondence_frontend::tests::correspondence_iris_are_content_stable
+        PASS [   0.023s] (20/40) gmeow-logic-compile projections::sssom::tests::malformed_native_alignment_fields_fail_instead_of_disappearing
+        PASS [   0.024s] (21/40) gmeow-logic-compile projections::correspondence_frontend::tests::same_assertion_keeps_each_declared_morphism_and_overclaim_gate
+        PASS [   0.024s] (22/40) gmeow-logic-compile projections::correspondence_frontend::tests::transpile_round_trips_with_no_extract_errors
+        PASS [   0.026s] (23/40) gmeow-logic-compile projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input
+        PASS [   0.006s] (24/40) gmeow-logic-compile projections::sssom::tests::native_cell_with_non_iri_object_hard_fails
+        PASS [   0.006s] (25/40) gmeow-logic-compile projections::sssom::tests::native_grounding_cell_preserves_all_fields_and_passes_invariants
+        PASS [   0.007s] (26/40) gmeow-logic-compile projections::sssom::tests::projection_binding_exactmatch_overclaim_is_rejected
+        PASS [   0.030s] (27/40) gmeow-logic reason::tests::disjoint_union_pair_is_certified_without_a_native_transaction
+        PASS [   0.030s] (28/40) gmeow-logic reason::tests::property_chain_with_blank_list_keeps_disjointness_on_the_native_path
+        PASS [   0.028s] (29/40) gmeow-logic reason::tests::leave_one_out_preserves_canonical_logic_subsumption
+        PASS [   0.028s] (30/40) gmeow-logic reason::tests::unrelated_union_does_not_force_a_native_taxonomy_transaction
+        PASS [   0.008s] (31/40) gmeow-logic-compile projections::sssom::tests::native_grounding_cell_missing_preservation_hard_fails
+        PASS [   0.029s] (32/40) gmeow-logic-compile projections::correspondence_frontend::tests::bridge_cell_surfacing_equivalence_fails_end_to_end
+        PASS [   0.008s] (33/40) gmeow-logic-compile projections::sssom::tests::native_owl_and_rdfs_alignment_predicates_are_read
+        PASS [   0.005s] (34/40) gmeow-logic-compile projections::sssom::tests::render_one_emits_canonical_tsv
+        PASS [   0.009s] (35/40) gmeow-logic-compile projections::sssom::tests::native_five_match_predicates_materialize_row_and_correspondence
+        PASS [   0.010s] (36/40) gmeow-slice-quality reasoner::tests::leave_one_out_preserves_blank_node_restrictions
+        PASS [   0.073s] (37/40) gmeow-logic reason::tests::reciprocal_disjointness_batch_matches_scratch_after_exact_retraction
+        PASS [   0.120s] (38/40) gmeow-logic reason::tests::incremental_leave_one_out_preserves_finite_dl_union_derivation
+        PASS [   0.152s] (39/40) gmeow-logic reason::tests::incremental_leave_one_out_matches_scratch_across_worlds_and_alternative_proofs
+        PASS [   0.447s] (40/40) gmeow-logic reason::tests::batched_leave_one_out_matches_scratch_for_every_fast_tbox_family
+────────────
+     Summary [   0.501s] 40 tests run: 40 passed, 7375 skipped

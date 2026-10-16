@@ -1,0 +1,482 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+error: useless conversion to the same type: `gmeow_errors::Diag`
+  --> crates/pipeline/src/stages/compile_logic/roundtrip.rs:56:62
+   |
+56 |     let canonical = rdf::project_canonical_rdf12_dataset(raw).map_err(gmeow_errors::Diag::from)?;
+   |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#useless_conversion
+   = note: `-D clippy::useless-conversion` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::useless_conversion)]`
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/loader.rs:188:13
+    |
+188 |             builder.push_dataset(&parsed);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+188 |             let _ = builder.push_dataset(&parsed);
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/conformance/diagnostics.rs:219:13
+    |
+219 | /             builder.push_owned_quad(
+220 | |                 &RdfQuad::new(
+221 | |                     RdfTerm::iri(&iri),
+222 | |                     format!("{GMEOW_NS}{predicate}"),
+...   |
+225 | |                 .in_graph(RdfTerm::iri(WORLD)),
+226 | |             );
+    | |_____________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+219 |             let _ = builder.push_owned_quad(
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/conformance/epistemics.rs:118:17
+    |
+118 |                 builder.push_dataset(source);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+118 |                 let _ = builder.push_dataset(source);
+    |                 +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/conformance/epistemics.rs:120:21
+    |
+120 |                     builder.push_owned_quad(quad);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+120 |                     let _ = builder.push_owned_quad(quad);
+    |                     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/conformance/expression_substrate.rs:259:13
+    |
+259 |             builder.push_owned_quad(quad);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+259 |             let _ = builder.push_owned_quad(quad);
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/conformance/gmn_dictionary.rs:116:5
+    |
+116 | /     builder.push_owned_quad(&RdfQuad::new(
+117 | |         iri("reifier1"),
+118 | |         "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
+119 | |         RdfTerm::triple(RdfTriple::new(
+...   |
+123 | |         )),
+124 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+116 |     let _ = builder.push_owned_quad(&RdfQuad::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/conformance/gmn_dictionary.rs:125:5
+    |
+125 | /     builder.push_owned_quad(&RdfQuad::new(
+126 | |         iri("reifier1"),
+127 | |         format!("{GMEOW}hasState"),
+128 | |         iri("open"),
+129 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+125 |     let _ = builder.push_owned_quad(&RdfQuad::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/correspondence_lower.rs:234:9
+    |
+234 |         dsl_b.push_dataset(&ds);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+234 |         let _ = dsl_b.push_dataset(&ds);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/correspondence_lower.rs:358:9
+    |
+358 |         b.push_dataset(&ds);
+    |         ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+358 |         let _ = b.push_dataset(&ds);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/correspondence_lower.rs:374:9
+    |
+374 |         b.push_dataset(&ds);
+    |         ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+374 |         let _ = b.push_dataset(&ds);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/correspondence_lower.rs:391:9
+    |
+391 |         b.push_dataset(&ds);
+    |         ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+391 |         let _ = b.push_dataset(&ds);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/gate_verdict.rs:314:5
+    |
+314 |     builder.push_owned_quad(&quad);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+314 |     let _ = builder.push_owned_quad(&quad);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/gmn_training_corpus.rs:201:13
+    |
+201 |             builder.push_owned_quad(&RdfQuad::new(s.clone(), p.clone(), o.clone()));
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+201 |             let _ = builder.push_owned_quad(&RdfQuad::new(s.clone(), p.clone(), o.clone()));
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/gmn_training_corpus.rs:537:9
+    |
+537 |         builder.push_owned_quad(quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+537 |         let _ = builder.push_owned_quad(quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/gmn_training_corpus.rs:540:9
+    |
+540 | /         builder.push_owned_quad(&RdfQuad::new(
+541 | |             RdfTerm::Iri(atom),
+542 | |             PRED_CONTENT_RING,
+543 | |             RdfTerm::Iri(ring.to_owned()),
+544 | |         ));
+    | |__________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+540 |         let _ = builder.push_owned_quad(&RdfQuad::new(
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/meta_findings.rs:597:5
+    |
+597 |     builder.push_owned_quad(&quad);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+597 |     let _ = builder.push_owned_quad(&quad);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/reason.rs:586:9
+    |
+586 |         builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+586 |         let _ = builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/reason.rs:590:9
+    |
+590 |         builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+590 |         let _ = builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/reason.rs:594:9
+    |
+594 |         builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+594 |         let _ = builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope));
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/pipeline/src/stages/skos_surface.rs:76:9
+   |
+76 |         builder.push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object_term));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+76 |         let _ = builder.push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object_term));
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/skos_surface.rs:97:5
+    |
+ 97 | /     builder.push_owned_quad(&RdfQuad::new(
+ 98 | |         scheme.clone(),
+ 99 | |         RDF_TYPE,
+100 | |         RdfTerm::iri(SKOS_CONCEPT_SCHEME.to_owned()),
+101 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+ 97 |     let _ = builder.push_owned_quad(&RdfQuad::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/skos_surface.rs:102:5
+    |
+102 | /     builder.push_owned_quad(&RdfQuad::new(
+103 | |         scheme.clone(),
+104 | |         RDF_TYPE,
+105 | |         RdfTerm::iri(OWL_NAMED_INDIVIDUAL.to_owned()),
+106 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+102 |     let _ = builder.push_owned_quad(&RdfQuad::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/skos_surface.rs:135:13
+    |
+135 | /             builder.push_owned_quad(&RdfQuad::new(
+136 | |                 subject_term.clone(),
+137 | |                 axiom.predicate.clone(),
+138 | |                 RdfTerm::literal(axiom.obj.as_literal().expect("literal annotation").clone()),
+139 | |             ));
+    | |______________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+135 |             let _ = builder.push_owned_quad(&RdfQuad::new(
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/skos_surface.rs:141:9
+    |
+141 | /         builder.push_owned_quad(&RdfQuad::new(
+142 | |             subject_term.clone(),
+143 | |             SKOS_IN_SCHEME,
+144 | |             scheme.clone(),
+145 | |         ));
+    | |__________^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+141 |         let _ = builder.push_owned_quad(&RdfQuad::new(
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:142:5
+    |
+142 |     builder.push_owned_quad(&seed);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+142 |     let _ = builder.push_owned_quad(&seed);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:143:5
+    |
+143 |     builder.push_owned_reifier(&r1_reifier);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+143 |     let _ = builder.push_owned_reifier(&r1_reifier);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:144:5
+    |
+144 |     builder.push_owned_annotation(&r1_annotation);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+144 |     let _ = builder.push_owned_annotation(&r1_annotation);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:145:5
+    |
+145 |     builder.push_owned_reifier(&r3_reifier);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+145 |     let _ = builder.push_owned_reifier(&r3_reifier);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:146:5
+    |
+146 |     builder.push_owned_annotation(&r3_annotation);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+146 |     let _ = builder.push_owned_annotation(&r3_annotation);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:147:5
+    |
+147 |     builder.push_owned_reifier(&r2_reifier);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+147 |     let _ = builder.push_owned_reifier(&r2_reifier);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:148:5
+    |
+148 |     builder.push_owned_annotation(&r2_annotation);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+148 |     let _ = builder.push_owned_annotation(&r2_annotation);
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/pipeline/src/stages/validate/norm_claims.tests.rs:11:5
+   |
+11 | /     builder.push_owned_quad(
+12 | |         &purrdf::RdfQuad::new(RdfTerm::iri(subject), RDF_TYPE, RdfTerm::iri(class))
+13 | |             .in_graph(RdfTerm::iri(graph)),
+14 | |     );
+   | |_____^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+11 |     let _ = builder.push_owned_quad(
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/pipeline/src/stages/validate/norm_claims.tests.rs:55:9
+   |
+55 | /         builder.push_owned_reifier(
+56 | |             &purrdf::RdfReifier::new(
+57 | |                 reifier.clone(),
+58 | |                 purrdf::RdfTriple::new(
+...  |
+64 | |             .in_graph(Some(RdfTerm::iri(GRAPH))),
+65 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+55 |         let _ = builder.push_owned_reifier(
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/pipeline/src/stages/validate/norm_claims.tests.rs:66:9
+   |
+66 | /         builder.push_owned_annotation(
+67 | |             &purrdf::RdfAnnotation::new(
+68 | |                 reifier,
+69 | |                 "http://www.w3.org/ns/prov#wasDerivedFrom",
+...  |
+72 | |             .in_graph(Some(RdfTerm::iri(GRAPH))),
+73 | |         );
+   | |_________^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+66 |         let _ = builder.push_owned_annotation(
+   |         +++++++
+
+error: could not compile `gmeow-pipeline` (lib) due to 25 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-pipeline` (lib test) due to 35 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

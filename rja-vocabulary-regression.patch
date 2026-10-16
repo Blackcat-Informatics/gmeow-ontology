@@ -1,0 +1,31 @@
+*** Begin Patch
+*** Update File: /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic/src/physical/chase.tests.rs
+@@
+ #[test]
++fn vocabulary_data_constants_cannot_fabricate_a_restricted_inverse() {
++    let mut rules = inverse_pair(false);
++    rules[0].body.push(atom(var("?x"), "http://ex/gate", EvalTerm::named("http://www.w3.org/2002/07/owl#Thing")));
++    rules.extend([
++        ExistentialRule {
++            numeric: vec![], rule_iri: "http://ex/rule/gate".into(),
++            body: vec![atom(var("?x"), TYPE, EvalTerm::named("http://ex/Entry"))],
++            head: vec![atom(var("?x"), "http://ex/gate", EvalTerm::named("http://www.w3.org/2002/07/owl#Thing"))],
++            distinct: vec![], witness_frontier: None, witness_policy: WitnessPolicy::FrontierSkolem,
++        },
++        ExistentialRule {
++            numeric: vec![], rule_iri: "http://ex/rule/inverse".into(),
++            body: vec![atom(var("?x"), "http://ex/post", var("?y")), atom(var("?x"), "http://ex/gate", EvalTerm::named("https://blackcatinformatics.ca/logic/Thing"))],
++            head: vec![atom(var("?y"), "http://ex/back", var("?x"))],
++            distinct: vec![], witness_frontier: None, witness_policy: WitnessPolicy::FrontierSkolem,
++        },
++    ]);
++    let bounded = decided(chase_world(W, &[fact("http://ex/entry", TYPE, "http://ex/Entry")], &rules, Some(40)).unwrap());
++    assert_eq!(bounded.status, BudgetStatus::Exhausted);
++    let statements: Vec<_> = rules.iter().map(StatementRule::from_binary).collect();
++    let admission = ChaseAdmission::certify_statements(&statements, crate::native_semantics::SemanticVocabulary::GroundedLogicV1, Ladder::Complete);
++    assert!(!admission.admits_native(), "data-valued marker spellings are distinct: {admission:?}");
++}
++
++#[test]
+ fn pair_projection_cannot_fabricate_an_inverse_for_restricted_blocking() {
+*** End Patch

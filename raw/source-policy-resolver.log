@@ -1,0 +1,73 @@
+cargo test --locked -p gmeow-build-inputs --all-targets
+    Blocking waiting for file lock on build directory
+   Compiling typenum v1.20.1
+   Compiling generic-array v0.14.7
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/build-inputs)
+    Finished `test` profile [optimized] target(s) in 4m 15s
+     Running unittests src/lib.rs (/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-build-inputs/9e91b1998a8ca66f/out/gmeow_build_inputs-9e91b1998a8ca66f)
+
+running 1 test
+test resolution::tests::resolution_environment_tracks_selection_without_cargo_injected_test_noise ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/extract-tests.rs (/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-build-inputs/4dc3c999de506530/out/extract_tests-4dc3c999de506530)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/extraction.rs (/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-build-inputs/82bcc5325d9ade28/out/extraction-82bcc5325d9ade28)
+
+running 6 tests
+test semantic_relocations_are_reviewed_explicitly_instead_of_rewritten_blindly ... ok
+test unicode_columns_preserve_the_original_utf8_body_bytes ... ok
+test changing_the_parent_declaration_or_production_bytes_refuses_application ... ok
+test module_extraction_preserves_exact_bodies_paths_and_module_names ... ok
+test changing_the_plan_body_or_original_input_refuses_application ... ok
+test formatter_evidence_accepts_spacing_but_rejects_assertion_or_path_changes ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s
+
+     Running tests/inventory.rs (/opt/.cargo/8c/3c26759a0eacd5/debug/build/gmeow-build-inputs/5afa0f667ae68140/out/inventory-5afa0f667ae68140)
+
+running 32 tests
+test a_symlink_is_rejected_even_when_followed_by_parent_navigation ... ok
+test compiler_artifact_binding_ignores_unselected_dep_info_and_normalizes_paths ... ok
+test cfg_attr_doc_assets_and_inline_module_path_attributes_have_real_owners ... ok
+test embedding_excluded_tests_is_not_accepted_as_production ... ok
+test development_cargo_changes_do_not_mask_production_manifest_changes ... ok
+test actual_compiler_reads_must_equal_declared_workspace_inputs ... ok
+test compiler_environment_requires_the_exact_selected_input_owner ... ok
+test complete_files_and_module_membership_are_portable_and_binding ... ok
+test negated_keyword_expressions_are_not_macro_invocations ... ok
+test production_cannot_embed_a_child_of_an_excluded_test_module ... ok
+test controller_profile_code_selection_is_owned_without_developer_optimization_churn ... ok
+test selected_registry_identity_and_feature_resolution_are_binding ... ok
+test development_cargo_config_and_unused_features_are_not_production_policy ... ok
+test source_policy_never_excludes_an_ambiguous_cfg_attr_production_branch ... ok
+test source_policy_follows_module_ownership_instead_of_test_like_names ... ok
+test test_reexport_wiring_is_hashed_but_external_helper_bodies_are_not ... ok
+test explicit_paths_nested_modules_and_assets_resolve_from_their_rust_owners ... ok
+test generated_compiler_inputs_are_bound_outside_the_checkout_to_their_owner ... ok
+test external_test_changes_do_not_change_producer_or_action_identity ... ok
+test local_macro_capabilities_follow_lexical_blocks_and_module_scopes ... ok
+test standard_output_macros_retain_nested_input_ownership ... ok
+test module_ambiguity_cycles_and_workspace_escape_are_errors ... ok
+test source_policy_cfg_requires_every_production_branch_to_be_excluded ... ok
+test selected_build_controller_bytes_are_owned_but_unselected_tools_are_not ... ok
+test generated_query_owner_tracks_only_query_contents_and_selected_membership ... ok
+test resolution_glob_membership_and_all_metadata_manifests_are_observed ... ok
+test production_module_named_tests_is_not_excluded ... ok
+test development_resolution_changes_require_readmission_without_identity_churn ... ok
+test inline_test_code_unknown_cfg_and_unowned_source_macros_fail_closed ... ok
+test native_semantic_contract_is_portable_and_omits_external_tests ... ok
+test resolution_configuration_is_relocatable_and_detects_changed_ancestor_policy ... ok
+test retained_dev_versions_cannot_authenticate_stale_normal_or_build_edges ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

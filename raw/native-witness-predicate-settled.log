@@ -1,0 +1,17 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(ifp_with_unrelated_subclass_keeps_identity_admission_and_clash_teeth) | test(entangled_cardinality_and_existential_share_native_proofs_and_budget) | test(unrelated_quoted_data_does_not_select_class_admission_and_empty_graphs_survive) | test(unqualified_object_and_some_value_obligations_share_the_witness_pipeline))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Finished `test` profile [optimized] target(s) in 2m 52s
+────────────
+ Nextest run ID c7e51c9d-9670-4837-9983-1d4e028f0d66 with nextest profile: ci
+    Starting 4 tests across 26 binaries (2275 tests and 199 binaries skipped)
+        PASS [   0.008s] (1/4) gmeow-logic reason::refute::casesplit::scope_tests::unrelated_quoted_data_does_not_select_class_admission_and_empty_graphs_survive
+        PASS [   0.060s] (2/4) gmeow-logic reason::refute::tests::entangled_cardinality_and_existential_share_native_proofs_and_budget
+        PASS [   0.069s] (3/4) gmeow-logic reason::refute::counting::tests::ifp_with_unrelated_subclass_keeps_identity_admission_and_clash_teeth
+        PASS [   0.088s] (4/4) gmeow-logic reason::program::minimum_tests::unqualified_object_and_some_value_obligations_share_the_witness_pipeline
+────────────
+     Summary [   0.114s] 4 tests run: 4 passed, 2275 skipped

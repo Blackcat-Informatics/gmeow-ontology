@@ -1,0 +1,57 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(tptp::tests::unselected_class_expression_does_not_block_selected_document)' --no-tests=fail
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 38.85s
+────────────
+ Nextest run ID 24474f0c-8d81-42de-b595-5be467ae45df with nextest profile: ci
+    Starting 1 test across 224 binaries (7395 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        FAIL [   0.005s] (1/1) gmeow-logic-compile tptp::tests::unselected_class_expression_does_not_block_selected_document
+  stdout ───
+
+    running 1 test
+    test tptp::tests::unselected_class_expression_does_not_block_selected_document ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::unselected_class_expression_does_not_block_selected_document
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 937 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::unselected_class_expression_does_not_block_selected_document' (902948) panicked at crates/logic-compile/src/tptp/tests.rs:477:5:
+    assertion `left == right` failed: FofProjection { status: Blocked, profile_id: "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v1", source_digest: "468d6d1f4706b61aedae9469e106da18d2fc0873c0477a027394f3c233f7765c", program_digest: "99af65f01b9cb23b3c27c26df27538e2c6b3c02f828a0ab1c0da3c9c9114a7a6", selection_digest: "05deb1c7e8aec060cddb0001f032d0b39e7fdb072ce234188c0bd363b169e332", sentences: [], blockers: [FofProjectionBlocker { unit_id: Some("16644f0fec4e508dfde1823e1133ccaf4d394ec97fdc7305223be6c45d38ee8c"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }, FofProjectionBlocker { unit_id: Some("52ad52e5c6f295fb028714dd188f52f49be4062b1cdcc80dd5feb146020a114d"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }, FofProjectionBlocker { unit_id: Some("900ae1f36e0bb954ed3abf2085675d7b092a220b3fc78533ab777d78d51cda27"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }, FofProjectionBlocker { unit_id: Some("0ebfbf569a5a92afb053fc473a0f10319d98fbc449cdd83f3527b3f8b5f7dd6b"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }], problem: None, problem_digest: None }
+      left: Blocked
+     right: Complete
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.059s] 1 test run: 0 passed, 1 failed, 7395 skipped
+        FAIL [   0.005s] (1/1) gmeow-logic-compile tptp::tests::unselected_class_expression_does_not_block_selected_document
+  stdout ───
+
+    running 1 test
+    test tptp::tests::unselected_class_expression_does_not_block_selected_document ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::unselected_class_expression_does_not_block_selected_document
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 937 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::unselected_class_expression_does_not_block_selected_document' (902948) panicked at crates/logic-compile/src/tptp/tests.rs:477:5:
+    assertion `left == right` failed: FofProjection { status: Blocked, profile_id: "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v1", source_digest: "468d6d1f4706b61aedae9469e106da18d2fc0873c0477a027394f3c233f7765c", program_digest: "99af65f01b9cb23b3c27c26df27538e2c6b3c02f828a0ab1c0da3c9c9114a7a6", selection_digest: "05deb1c7e8aec060cddb0001f032d0b39e7fdb072ce234188c0bd363b169e332", sentences: [], blockers: [FofProjectionBlocker { unit_id: Some("16644f0fec4e508dfde1823e1133ccaf4d394ec97fdc7305223be6c45d38ee8c"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }, FofProjectionBlocker { unit_id: Some("52ad52e5c6f295fb028714dd188f52f49be4062b1cdcc80dd5feb146020a114d"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }, FofProjectionBlocker { unit_id: Some("900ae1f36e0bb954ed3abf2085675d7b092a220b3fc78533ab777d78d51cda27"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }, FofProjectionBlocker { unit_id: Some("0ebfbf569a5a92afb053fc473a0f10319d98fbc449cdd83f3527b3f8b5f7dd6b"), code: "UNSUPPORTED_CLASS_EXPRESSION", reason: "class-expression lowering is not yet certified for the classical external profile" }], problem: None, problem_digest: None }
+      left: Blocked
+     right: Complete
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

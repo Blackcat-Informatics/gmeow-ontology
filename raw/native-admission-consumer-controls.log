@@ -1,0 +1,203 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(obligations::) | test(malformed_or_undefined_keys_cannot_certify_a_complete_native_result) | test(maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation) | test(undefined_value_comparison_cannot_become_a_complete_native_result) | test(invalid_positive_obligation_fields_fail_instead_of_becoming_absent) | test(invalid_active_qualified_bounds_refuse_instead_of_becoming_zero) | test(native_equality_refuses_unknown_datatype_comparison) | test(incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run) | test(list_membership_feedback_cannot_hide_an_existential_cycle))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Finished `test` profile [optimized] target(s) in 1m 34s
+────────────
+ Nextest run ID 8b61c86a-ff90-461c-b0cb-483d0f90be0a with nextest profile: ci
+    Starting 40 tests across 26 binaries (2257 tests and 199 binaries skipped)
+        PASS [   0.007s] ( 1/40) gmeow-logic obligations::tests::projected_translation_is_not_hashed
+        PASS [   0.007s] ( 2/40) gmeow-logic obligations::tests::edited_prose_surfaces_as_drift
+        PASS [   0.007s] ( 3/40) gmeow-logic obligations::tests::standing_obligations_discharge_on_the_real_strata
+        PASS [   0.008s] ( 4/40) gmeow-logic obligations::tests::arm_b_finite_closure_green_then_red
+        PASS [   0.008s] ( 5/40) gmeow-logic obligations::tests::single_category_candidate_produces_correct_coverage
+        PASS [   0.009s] ( 6/40) gmeow-logic obligations::tests::counterexample_survives_without_finite_closure_condition
+        PASS [   0.009s] ( 7/40) gmeow-logic obligations::tests::native_obligation_discovery_preserves_independent_document_blank_scopes
+        PASS [   0.010s] ( 8/40) gmeow-logic obligations::tests::missing_discharge_condition_is_a_hard_error
+        PASS [   0.012s] ( 9/40) gmeow-logic obligations::tests::advice_guidance_message_binds_usewhen_prose
+        PASS [   0.012s] (10/40) gmeow-logic obligations::tests::reachable_head_remains_unknown_without_a_counterexample
+        PASS [   0.014s] (11/40) gmeow-logic obligations::tests::duplicate_category_on_candidate_is_a_hard_error
+        PASS [   0.015s] (12/40) gmeow-logic obligations::tests::advisory_constraint_message_binds_avoidwhen_prose
+        PASS [   0.015s] (13/40) gmeow-logic obligations::tests::source_hash_matches_prose_no_drift
+        PASS [   0.016s] (14/40) gmeow-logic obligations::tests::canonical_candidate_typing_reaches_coverage_and_prose_drift_checks
+        PASS [   0.015s] (15/40) gmeow-logic obligations::tests::unwired_discharge_condition_is_a_hard_error
+        PASS [   0.016s] (16/40) gmeow-logic obligations::tests::candidate_without_harvest_link_is_skipped
+        PASS [   0.050s] (17/40) gmeow-logic obligations::tests::empty_selected_obligation_inventory_is_visible
+        PASS [   0.050s] (18/40) gmeow-logic obligations::program_tests::a_committed_schema_operator_cannot_bypass_admission_at_a_budget_cut
+        PASS [   0.042s] (19/40) gmeow-logic reason::program::list_tests::incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run
+        PASS [   0.055s] (20/40) gmeow-logic obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+        FAIL [   0.047s] (21/40) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3207937) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.061s] (22/40) gmeow-logic obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+        FAIL [   0.053s] (23/40) gmeow-logic reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+  stdout ───
+
+    running 1 test
+    test reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison' (3207931) panicked at crates/logic/src/reason/program/test_support.rs:57:5:
+    expected UnsupportedValue: []
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.071s] (24/40) gmeow-logic obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+        FAIL [   0.064s] (25/40) gmeow-logic reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result' (3207935) panicked at crates/logic/src/reason/program/test_support.rs:57:5:
+    expected UnsupportedValue: []
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.078s] (26/40) gmeow-logic obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+        PASS [   0.084s] (27/40) gmeow-logic obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+        PASS [   0.086s] (28/40) gmeow-logic obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+        PASS [   0.086s] (29/40) gmeow-logic obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+        PASS [   0.090s] (30/40) gmeow-logic obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+        PASS [   0.090s] (31/40) gmeow-logic reason::program::empty_class_tests::invalid_active_qualified_bounds_refuse_instead_of_becoming_zero
+        PASS [   0.101s] (32/40) gmeow-logic obligations::program_tests::changed_import_input_and_engine_recipe_invalidate_analysis
+        PASS [   0.119s] (33/40) gmeow-logic obligations::tests::finite_closure_can_discharge_a_reachable_head
+        PASS [   0.123s] (34/40) gmeow-logic obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+        PASS [   0.124s] (35/40) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+        FAIL [   0.135s] (36/40) gmeow-logic reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.12s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result' (3207939) panicked at crates/logic/src/reason/program/clash_tests.rs:309:10:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "native key agreement requires an undefined datatype value comparison", context: [], antecedents: [], source: Some(Physical { detail: "native key agreement requires an undefined datatype value comparison" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/physical/seminaive.rs", line: 89, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.150s] (37/40) gmeow-logic reason::program::empty_class_tests::bottom_property::invalid_positive_obligation_fields_fail_instead_of_becoming_absent
+        PASS [   0.163s] (38/40) gmeow-logic reason::program::clash_tests::maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncation
+        PASS [   0.179s] (39/40) gmeow-logic obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+        PASS [   1.487s] (40/40) gmeow-logic obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+────────────
+     Summary [   1.505s] 40 tests run: 36 passed, 4 failed, 2257 skipped
+        FAIL [   0.047s] (21/40) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3207937) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.053s] (23/40) gmeow-logic reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+  stdout ───
+
+    running 1 test
+    test reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'reason::program::equality_tests::native_equality_refuses_unknown_datatype_comparison' (3207931) panicked at crates/logic/src/reason/program/test_support.rs:57:5:
+    expected UnsupportedValue: []
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.064s] (25/40) gmeow-logic reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::undefined_value_comparison_cannot_become_a_complete_native_result' (3207935) panicked at crates/logic/src/reason/program/test_support.rs:57:5:
+    expected UnsupportedValue: []
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.135s] (36/40) gmeow-logic reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+  stdout ───
+
+    running 1 test
+    test reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.12s
+
+  stderr ───
+
+    thread 'reason::program::clash_tests::malformed_or_undefined_keys_cannot_certify_a_complete_native_result' (3207939) panicked at crates/logic/src/reason/program/clash_tests.rs:309:10:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "native key agreement requires an undefined datatype value comparison", context: [], antecedents: [], source: Some(Physical { detail: "native key agreement requires an undefined datatype value comparison" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/physical/seminaive.rs", line: 89, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

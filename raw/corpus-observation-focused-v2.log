@@ -1,0 +1,61 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-pipeline) & test(compile_logic::list_corpus::)) | (package(gmeow-logic) & test(goal_directed::) & !test(corpus_)) | (package(gmeow-docs-model) & test(reviewed_coverage::))' --no-tests=fail
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+error[E0277]: `?` couldn't convert the error: `Diag: StdError` is not satisfied
+   --> crates/docs-model/src/reviewed_coverage.rs:101:51
+    |
+ 86 | pub fn observe(root: &Path) -> Result<ReviewedCoverageObservation, Box<dyn std::error::Error>> {
+    |                                --------------------------------------------------------------- required `Diag: StdError` because of this
+...
+101 |             let language = language_from_po(&text)?.unwrap_or_else(|| stem_language(&path));
+    |                            -----------------------^ the trait `StdError` is not implemented for `Diag`
+    |                            |
+    |                            this has type `Result<_, Diag>`
+    |
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+    = note: required for `Box<dyn StdError>` to implement `From<Diag>`
+
+error[E0277]: `?` couldn't convert the error: `Diag: StdError` is not satisfied
+   --> crates/docs-model/src/reviewed_coverage.rs:128:42
+    |
+127 | ) -> Result<BTreeSet<String>, Box<dyn std::error::Error>> {
+    |      ---------------------------------------------------- required `Diag: StdError` because of this
+128 |     let language = language_from_po(text)?.unwrap_or_else(|| fallback_language.to_string());
+    |                    ----------------------^ the trait `StdError` is not implemented for `Diag`
+    |                    |
+    |                    this has type `Result<_, Diag>`
+    |
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+    = note: required for `Box<dyn StdError>` to implement `From<Diag>`
+
+error[E0277]: `?` couldn't convert the error: `Diag: StdError` is not satisfied
+   --> crates/docs-model/src/reviewed_coverage.rs:129:40
+    |
+127 | ) -> Result<BTreeSet<String>, Box<dyn std::error::Error>> {
+    |      ---------------------------------------------------- required `Diag: StdError` because of this
+128 |     let language = language_from_po(text)?.unwrap_or_else(|| fallback_language.to_string());
+129 |     let entries = parse_po(text, false)?;
+    |                   ---------------------^ the trait `StdError` is not implemented for `Diag`
+    |                   |
+    |                   this has type `Result<_, Diag>`
+    |
+    = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+    = note: required for `Box<dyn StdError>` to implement `From<Diag>`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-docs-model` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-docs-model` (lib test) due to 3 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:705: nextest-synthetic] Error 101

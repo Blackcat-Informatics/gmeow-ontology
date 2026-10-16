@@ -1,0 +1,8 @@
+fix(logic): compare admitted anyURI enumeration values after collapse
+
+Use the substrate's XML whitespace normalization for equal admitted anyURI
+values. Preserve unknown equality for unmatched or foreign opaque values.
+
+Principles 4, 7 and 18. Native datatype-plan membership tests cover whitespace,
+percent sequences, nonbreaking spaces and foreign datatypes. All pass in the
+152-test focused inventory; full production qualification remains open.

@@ -1,0 +1,44 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(program_analysis::tests::)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error[E0061]: this function takes 2 arguments but 1 argument was supplied
+   --> crates/logic/src/program_analysis.tests.rs:161:29
+    |
+161 |     let retained = Arc::new(PreparedProgram::lower(&program).expect("lower"));
+    |                             ^^^^^^^^^^^^^^^^^^^^^^---------- argument #2 of type `[u8; 32]` is missing
+    |
+note: associated function defined here
+   --> crates/logic/src/program_analysis.rs:151:8
+    |
+151 |     fn lower(program: &LogicProgram, identity: [u8; 32]) -> gmeow_errors::Result<Self> {
+    |        ^^^^^                         ------------------
+help: provide the argument
+    |
+161 |     let retained = Arc::new(PreparedProgram::lower(&program, /* [u8; 32] */).expect("lower"));
+    |                                                            ++++++++++++++++
+
+error[E0061]: this function takes 2 arguments but 1 argument was supplied
+   --> crates/logic/src/program_analysis.tests.rs:171:25
+    |
+171 |     let mut oversized = PreparedProgram::lower(&program).expect("lower large");
+    |                         ^^^^^^^^^^^^^^^^^^^^^^---------- argument #2 of type `[u8; 32]` is missing
+    |
+note: associated function defined here
+   --> crates/logic/src/program_analysis.rs:151:8
+    |
+151 |     fn lower(program: &LogicProgram, identity: [u8; 32]) -> gmeow_errors::Result<Self> {
+    |        ^^^^^                         ------------------
+help: provide the argument
+    |
+171 |     let mut oversized = PreparedProgram::lower(&program, /* [u8; 32] */).expect("lower large");
+    |                                                        ++++++++++++++++
+
+For more information about this error, try `rustc --explain E0061`.
+error: could not compile `gmeow-logic` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:709: nextest-synthetic] Error 101

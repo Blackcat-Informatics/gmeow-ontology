@@ -1,0 +1,57 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(authored_program_heads_are_unknown_until_finite_closure_is_selected)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Finished `test` profile [optimized] target(s) in 2m 21s
+────────────
+ Nextest run ID 37cd3703-7579-441e-b9b9-15671e21d83d with nextest profile: ci
+    Starting 1 test across 26 binaries (2284 tests and 199 binaries skipped)
+        FAIL [   0.067s] (1/1) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+  stdout ───
+
+    running 1 test
+    test obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2060 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected' (2336385) panicked at crates/logic/src/obligations.tests.rs:82:13:
+    assertion `left == right` failed: seed=false, finite=false: [Finding { severity: Note, code: "verify.non-entailment.inventory", message: "discovered and checked 1 distinct non-entailment obligation(s) in the selected default graph", tool: Some("verify"), locations: [], related_locations: [], related_labels: [], suggestions: [], advice: [], remediation: [], finding_iri: None, anchor_iri: None, anchor_non_trivial: false, antecedents: [], root_cause: None, cluster: None, cross_node_glut_with: [], tags: [], detail: None, failure_class: None, category: None, standpoint: None, attributions: [], documented_terms: [], guidance: [], derived_from_quads: [], cited_iris: ["https://example.org/obligation"] }]
+      left: false
+     right: true
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.094s] 1 test run: 0 passed, 1 failed, 2284 skipped
+        FAIL [   0.067s] (1/1) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+  stdout ───
+
+    running 1 test
+    test obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected ... FAILED
+
+    failures:
+
+    failures:
+        obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2060 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected' (2336385) panicked at crates/logic/src/obligations.tests.rs:82:13:
+    assertion `left == right` failed: seed=false, finite=false: [Finding { severity: Note, code: "verify.non-entailment.inventory", message: "discovered and checked 1 distinct non-entailment obligation(s) in the selected default graph", tool: Some("verify"), locations: [], related_locations: [], related_labels: [], suggestions: [], advice: [], remediation: [], finding_iri: None, anchor_iri: None, anchor_non_trivial: false, antecedents: [], root_cause: None, cluster: None, cross_node_glut_with: [], tags: [], detail: None, failure_class: None, category: None, standpoint: None, attributions: [], documented_terms: [], guidance: [], derived_from_quads: [], cited_iris: ["https://example.org/obligation"] }]
+      left: false
+     right: true
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

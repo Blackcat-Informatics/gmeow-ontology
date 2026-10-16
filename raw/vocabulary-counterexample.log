@@ -1,0 +1,71 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic) & test(vocabulary_data_constants)) | (package(gmeow-logic-compile) & test(derive_qualified_numeric))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+warning: unused dependency `csv`
+  --> crates/logic/Cargo.toml:81:1
+   |
+81 | csv = "1"
+   | ^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `csv`
+warning: unused dependency `flate2`
+  --> crates/logic/Cargo.toml:84:1
+   |
+84 | flate2 = "1"
+   | ^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `flate2`
+warning: `gmeow-logic` (manifest) generated 2 warnings
+    Finished `test` profile [optimized] target(s) in 1m 58s
+────────────
+ Nextest run ID 09d77193-6d52-48b1-a303-5fc3799a8e3d with nextest profile: ci
+    Starting 2 tests across 28 binaries (3191 tests and 197 binaries skipped)
+        FAIL [   0.015s] (1/2) gmeow-logic physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse
+  stdout ───
+
+    running 1 test
+    test physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse ... FAILED
+
+    failures:
+
+    failures:
+        physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2034 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse' (580971) panicked at crates/logic/src/physical/chase.tests.rs:1878:5:
+    data-valued marker spellings are distinct: RestrictedJointlyAcyclic { evidence: "joint statement value-flow abstraction of 4 native producer(s); restricted jointly acyclic: 2 existential variable(s), 1 dependency edge(s), 1 trigger(s) blocked by the Datalog-closed premise, no existential depends on itself" }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.026s] (2/2) gmeow-logic-compile frontend::tests::derive_qualified_numeric_data_ranges_retains_union_and_integer_bounds
+────────────
+     Summary [   0.055s] 2 tests run: 1 passed, 1 failed, 3191 skipped
+        FAIL [   0.015s] (1/2) gmeow-logic physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse
+  stdout ───
+
+    running 1 test
+    test physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse ... FAILED
+
+    failures:
+
+    failures:
+        physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2034 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'physical::chase::tests::vocabulary_data_constants_cannot_fabricate_a_restricted_inverse' (580971) panicked at crates/logic/src/physical/chase.tests.rs:1878:5:
+    data-valued marker spellings are distinct: RestrictedJointlyAcyclic { evidence: "joint statement value-flow abstraction of 4 native producer(s); restricted jointly acyclic: 2 existential variable(s), 1 dependency edge(s), 1 trigger(s) blocked by the Datalog-closed premise, no existential depends on itself" }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:705: nextest-synthetic] Error 100

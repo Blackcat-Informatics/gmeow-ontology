@@ -1,0 +1,114 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(list_membership_feedback_cannot_hide_an_existential_cycle)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 25s
+────────────
+ Nextest run ID 1187b0bb-2950-4b83-a655-6514d5a445f2 with nextest profile: ci
+    Starting 1 test across 26 binaries (2296 tests and 199 binaries skipped)
+        FAIL [   0.063s] (1/1) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.05s
+
+  stderr ───
+    native dependency diagnostic: DependencyCycle {
+        members: [
+            "producer:00000000000000000008:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-rule/9d6728ee858b715d498f1b6d3fadec4192445bf3",
+            "producer:00000000000000000009:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-existential/4bb4b4a62188c0d5cf51c728957cc37e9c3b7597",
+            "producer:00000000000000000011:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:dl:oneOf-member",
+        ],
+        head: "producer:00000000000000000011:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:dl:oneOf-member",
+        read: "producer:00000000000000000009:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-existential/4bb4b4a62188c0d5cf51c728957cc37e9c3b7597",
+        return_path: [
+            DependencyPathStep {
+                from: "producer:00000000000000000011:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:dl:oneOf-member",
+                to: "producer:00000000000000000008:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-rule/9d6728ee858b715d498f1b6d3fadec4192445bf3",
+                dependency: Positive,
+            },
+            DependencyPathStep {
+                from: "producer:00000000000000000008:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-rule/9d6728ee858b715d498f1b6d3fadec4192445bf3",
+                to: "producer:00000000000000000009:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-existential/4bb4b4a62188c0d5cf51c728957cc37e9c3b7597",
+                dependency: Positive,
+            },
+        ],
+    }
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3730766) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.087s] 1 test run: 0 passed, 1 failed, 2296 skipped
+        FAIL [   0.063s] (1/1) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2072 filtered out; finished in 0.05s
+
+  stderr ───
+    native dependency diagnostic: DependencyCycle {
+        members: [
+            "producer:00000000000000000008:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-rule/9d6728ee858b715d498f1b6d3fadec4192445bf3",
+            "producer:00000000000000000009:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-existential/4bb4b4a62188c0d5cf51c728957cc37e9c3b7597",
+            "producer:00000000000000000011:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:dl:oneOf-member",
+        ],
+        head: "producer:00000000000000000011:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:dl:oneOf-member",
+        read: "producer:00000000000000000009:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-existential/4bb4b4a62188c0d5cf51c728957cc37e9c3b7597",
+        return_path: [
+            DependencyPathStep {
+                from: "producer:00000000000000000011:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:dl:oneOf-member",
+                to: "producer:00000000000000000008:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-rule/9d6728ee858b715d498f1b6d3fadec4192445bf3",
+                dependency: Positive,
+            },
+            DependencyPathStep {
+                from: "producer:00000000000000000008:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-rule/9d6728ee858b715d498f1b6d3fadec4192445bf3",
+                to: "producer:00000000000000000009:53:https://blackcatinformatics.ca/gmeow/graph/rl-default:https://blackcatinformatics.ca/logic/formula-existential/4bb4b4a62188c0d5cf51c728957cc37e9c3b7597",
+                dependency: Positive,
+            },
+        ],
+    }
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (3730766) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

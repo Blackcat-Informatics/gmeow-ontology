@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "a631f73e6e39b4493d295bcd83b4deec80637f54",
+  "headRefName": "fix-logic-message-untag",
+  "headRefOid": "a794c70b3cba86870c41a302815fe92c7a4e09c7",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1804,
+  "state": "OPEN",
+  "title": "fix(slices): repair the corpus inconsistencies native reasoning exposed",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1804"
+}

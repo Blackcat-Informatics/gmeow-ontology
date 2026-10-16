@@ -1,0 +1,14 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(validation_flat_view_keeps_statement_metadata_and_original_worlds)' --no-tests=fail
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+    Finished `test` profile [optimized] target(s) in 22.45s
+────────────
+ Nextest run ID f1bbc507-6c4c-45b9-9b34-26660f7296ac with nextest profile: ci
+    Starting 1 test across 224 binaries (7371 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.005s] (1/1) gmeow-validate data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds
+────────────
+     Summary [   0.051s] 1 test run: 1 passed, 7371 skipped

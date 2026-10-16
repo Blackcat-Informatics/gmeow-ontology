@@ -1,0 +1,172 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic) & (test(reason::value::tests::) | test(recovery_seed_application_) | test(recovery_seed_optional_) | test(refinement_promotion_preserves_) | test(list_membership_feedback_cannot_hide_an_existential_cycle))) | (package(gmeow-conformance) & (test(external::tptp::lower_fol::tests::) | test(external::ontouml::lower::tests::))) | (package(gmeow-validate) & (test(native_deep_pass_refusal_) | test(validation_flat_view_keeps_)))' --no-tests=fail
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/errors)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/cli-core)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/xtask)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/helper-census)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gts-profile)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-import)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/foundation-corpus)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/query-wasm)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/music)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect-ingest)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 02s
+────────────
+ Nextest run ID 76c2ee99-85ec-44ac-b1e4-c1da48cf17be with nextest profile: ci
+    Starting 31 tests across 55 binaries (3270 tests and 170 binaries skipped)
+        PASS [   0.072s] ( 1/31) gmeow-validate data_validate::tests::native_deep_pass_refusal_is_a_hard_error_with_its_original_diagnostic
+        PASS [   0.074s] ( 2/31) gmeow-logic reason::value::tests::rational_interpretation_does_not_repair_a_malformed_decimal
+        PASS [   0.076s] ( 3/31) gmeow-logic reason::value::tests::cardinality_accepts_the_complete_native_count_domain
+        PASS [   0.077s] ( 4/31) gmeow-conformance external::ontouml::lower::tests::lowers_free_role_facts
+        PASS [   0.077s] ( 5/31) gmeow-conformance external::ontouml::lower::tests::unsupported_stereotype_is_a_lower_time_gap
+        PASS [   0.077s] ( 6/31) gmeow-conformance external::ontouml::lower::tests::lowers_functional_mediation_role_and_type_pun
+        PASS [   0.077s] ( 7/31) gmeow-conformance external::ontouml::lower::tests::invalid_native_world_is_execution_failure_not_fragment_gap
+        PASS [   0.080s] ( 8/31) gmeow-logic reason::value::tests::native_literal_membership_and_equality_preserve_large_exact_values
+        PASS [   0.098s] ( 9/31) gmeow-logic correspondence_exec::tests::recovery_seed_optional_application_requires_only_its_driver
+        PASS [   0.098s] (10/31) gmeow-logic correspondence_exec::tests::recovery_seed_application_preserves_driver_aliases_in_quoted_terms_and_graphs
+        PASS [   0.099s] (11/31) gmeow-conformance external::tptp::lower_fol::tests::negated_ground_conjecture_is_an_honest_gap
+        PASS [   0.099s] (12/31) gmeow-conformance external::tptp::lower_fol::tests::malformed_native_world_is_failure_not_capability_gap
+        PASS [   0.099s] (13/31) gmeow-conformance external::tptp::lower_fol::tests::world_scoped_edb_shape_matches_seed
+        PASS [   0.099s] (14/31) gmeow-conformance external::tptp::lower_fol::tests::direct_lowering_deduplicates_and_retains_the_selected_world
+        PASS [   0.099s] (15/31) gmeow-conformance external::tptp::lower_fol::tests::binary_predicate_conjecture_is_a_capability_gap
+        PASS [   0.099s] (16/31) gmeow-conformance external::tptp::lower_fol::tests::disjunctive_premise_is_a_capability_gap
+        PASS [   0.099s] (17/31) gmeow-conformance external::tptp::lower_fol::tests::cnf_two_positive_clause_is_a_capability_gap
+        PASS [   0.102s] (18/31) gmeow-conformance external::tptp::lower_fol::tests::reserved_vocabulary_is_failure_in_both_lowerers
+        PASS [   0.102s] (19/31) gmeow-logic reason::enactment::refine::tests::refinement_promotion_preserves_literal_identity_in_its_selected_world
+        PASS [   0.102s] (20/31) gmeow-conformance external::tptp::lower_fol::tests::the_lowered_program_identity_is_content_addressed_and_stable
+        PASS [   0.102s] (21/31) gmeow-conformance external::tptp::lower_fol::tests::native_evaluation_failure_has_no_semantic_verdict
+        FAIL [   0.102s] (22/31) gmeow-validate data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds
+  stdout ───
+
+    running 1 test
+    test data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds ... FAILED
+
+    failures:
+
+    failures:
+        data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 659 filtered out; finished in 0.09s
+
+  stderr ───
+
+    thread 'data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds' (2901683) panicked at crates/validate/src/data_validate.tests.rs:102:5:
+    assertion `left == right` failed
+      left: {Literal(RdfLiteral { lexical_form: "urn:world:b", datatype: None, language: None, direction: None }), Literal(RdfLiteral { lexical_form: "urn:world:a", datatype: None, language: None, direction: None })}
+     right: {Literal(RdfLiteral { lexical_form: "urn:world:a", datatype: Some("http://www.w3.org/2001/XMLSchema#string"), language: None, direction: None }), Literal(RdfLiteral { lexical_form: "urn:world:b", datatype: Some("http://www.w3.org/2001/XMLSchema#string"), language: None, direction: None })}
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.126s] (23/31) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2078 filtered out; finished in 0.12s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (2901673) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.137s] (24/31) gmeow-conformance external::tptp::lower_fol::tests::ground_unary_non_theorem_refutes_to_consistent
+        PASS [   0.137s] (25/31) gmeow-conformance external::tptp::lower_fol::tests::open_model_is_consistent
+        PASS [   0.138s] (26/31) gmeow-conformance external::tptp::lower_fol::tests::ground_unary_theorem_refutes_to_inconsistent
+        PASS [   0.138s] (27/31) gmeow-conformance external::tptp::lower_fol::tests::subclass_non_theorem_is_consistent
+        PASS [   0.138s] (28/31) gmeow-conformance external::tptp::lower_fol::tests::implication_to_negation_is_disjointness
+        PASS [   0.138s] (29/31) gmeow-conformance external::tptp::lower_fol::tests::cnf_disjointness_clash_is_inconsistent
+        PASS [   0.139s] (30/31) gmeow-conformance external::tptp::lower_fol::tests::disjointness_clash_is_inconsistent
+        PASS [   0.139s] (31/31) gmeow-conformance external::tptp::lower_fol::tests::subclass_theorem_refutes_via_fresh_witness
+────────────
+     Summary [   0.171s] 31 tests run: 29 passed, 2 failed, 3270 skipped
+        FAIL [   0.102s] (22/31) gmeow-validate data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds
+  stdout ───
+
+    running 1 test
+    test data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds ... FAILED
+
+    failures:
+
+    failures:
+        data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 659 filtered out; finished in 0.09s
+
+  stderr ───
+
+    thread 'data_validate::tests::validation_flat_view_keeps_statement_metadata_and_original_worlds' (2901683) panicked at crates/validate/src/data_validate.tests.rs:102:5:
+    assertion `left == right` failed
+      left: {Literal(RdfLiteral { lexical_form: "urn:world:b", datatype: None, language: None, direction: None }), Literal(RdfLiteral { lexical_form: "urn:world:a", datatype: None, language: None, direction: None })}
+     right: {Literal(RdfLiteral { lexical_form: "urn:world:a", datatype: Some("http://www.w3.org/2001/XMLSchema#string"), language: None, direction: None }), Literal(RdfLiteral { lexical_form: "urn:world:b", datatype: Some("http://www.w3.org/2001/XMLSchema#string"), language: None, direction: None })}
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.126s] (23/31) gmeow-logic reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+  stdout ───
+
+    running 1 test
+    test reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle ... FAILED
+
+    failures:
+
+    failures:
+        reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2078 filtered out; finished in 0.12s
+
+  stderr ───
+
+    thread 'reason::program::list_tests::list_membership_feedback_cannot_hide_an_existential_cycle' (2901673) panicked at crates/logic/src/reason/program/list_tests.rs:385:5:
+    native program preparation refused NonStratifiable
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

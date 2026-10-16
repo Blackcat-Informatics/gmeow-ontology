@@ -1,0 +1,15 @@
+fix(logic): keep restricted blocking on exact native premises
+
+Preserve ordinary distinct guards in exactness admission and separate the
+restricted blocking premises from the coarser vocabulary value-flow quotient.
+Fixed operator spellings may meet; ordinary data constants stay exact. Exclude
+relaxed producers and unknown-count summaries from guaranteed proof seeds.
+
+Keep role-sensitive marker alternatives out of frozen body assumptions and
+retain their exact emitted facts. The binary-only property entry point honors
+the selected semantic vocabulary instead of taking the exact-vocabulary shortcut.
+
+Principles 1, 4, 7, 17 and 18. The counterexample previously exhausted its runtime
+allowance while receiving a false termination certificate. The repair rejects
+it, retains valid mixed-spelling inverses and checks variable-count summaries.
+The combined focused inventory passes 152 tests; full qualification remains open.

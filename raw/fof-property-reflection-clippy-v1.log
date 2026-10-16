@@ -1,0 +1,32 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+error: this `if` statement can be collapsed
+   --> crates/logic-compile/src/tptp/writer.rs:502:5
+    |
+502 | /     if args.len() == 2 {
+503 | |         if let Some(meaning) = binary_meaning(relation, &args[0], &args[1]) {
+504 | |             return meaning;
+505 | |         }
+506 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+502 ~     if args.len() == 2
+503 ~         && let Some(meaning) = binary_meaning(relation, &args[0], &args[1]) {
+504 |             return meaning;
+505 ~         }
+    |
+
+error: could not compile `gmeow-logic-compile` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic-compile` (lib test) due to 1 previous error
+make: *** [Makefile:289: clippy-prebuild] Error 101

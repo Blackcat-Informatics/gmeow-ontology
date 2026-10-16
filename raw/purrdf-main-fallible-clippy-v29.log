@@ -1,0 +1,453 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+    Checking gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+    Checking gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+error[E0308]: mismatched types
+    --> crates/mcp/src/overlay_routing/tests.rs:39:29
+     |
+  39 |     builder.attach_location(row, location.clone());
+     |             --------------- ^^^ expected `QuadHandle`, found `Result<QuadHandle, StorageError>`
+     |             |
+     |             arguments to this method are incorrect
+     |
+     = note: expected struct `QuadHandle`
+                  found enum `std::result::Result<QuadHandle, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2732:12
+     |
+2732 |     pub fn attach_location(&mut self, handle: QuadHandle, loc: RdfLocation) {
+     |            ^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::QuadHandle, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  39 |     builder.attach_location(row.expect("REASON"), location.clone());
+     |                                +++++++++++++++++
+
+error[E0600]: cannot apply unary operator `!` to type `std::result::Result<bool, gmeow_errors::Diag>`
+    --> crates/mcp/src/tests.rs:7411:9
+     |
+7411 | /         assert!(
+7412 | |             gmn0_canonically_equal(&input_model, &re_model),
+7413 | |             "expand then re-encode equals the input under gmn0_canonically_equal: {out}"
+7414 | |         );
+     | |_________^ cannot apply unary operator `!`
+     |
+note: `std::result::Result<bool, gmeow_errors::Diag>` does not implement `std::ops::Not`
+    --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:558:1
+     |
+ 558 | pub enum Result<T, E> {
+     | ^^^^^^^^^^^^^^^^^^^^^ `std::result::Result<bool, gmeow_errors::Diag>` is defined in another crate
+
+Some errors have detailed explanations: E0308, E0600.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-mcp` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0277]: the trait bound `std::string::String: std::error::Error` is not satisfied
+   --> crates/pipeline/src/stages/conformance/inference_validation.rs:128:26
+    |
+128 |               let report = shapes
+    |  __________________________^
+129 | |                 .bind_projected_dataset(data)
+130 | |                 .map_err(|error| super::stage_err(&error.to_string()))?
+131 | |                 .validate()
+132 | |                 .map_err(gmeow_errors::Diag::from)?;
+    | |__________________________________________________^ the trait `std::error::Error` is not implemented for `std::string::String`
+    |
+    = note: required for `gmeow_errors::Diag` to implement `std::convert::From<std::string::String>`
+
+error[E0277]: the trait bound `std::string::String: std::error::Error` is not satisfied
+   --> crates/pipeline/src/stages/conformance/inference_validation.rs:132:18
+    |
+132 |                 .map_err(gmeow_errors::Diag::from)?;
+    |                  ^^^^^^^ the trait `std::error::Error` is not implemented for `std::string::String`
+    |
+    = note: required for `gmeow_errors::Diag` to implement `std::convert::From<std::string::String>`
+
+error[E0277]: the trait bound `std::string::String: std::error::Error` is not satisfied
+   --> crates/pipeline/src/stages/conformance/inference_validation.rs:132:26
+    |
+132 |                 .map_err(gmeow_errors::Diag::from)?;
+    |                          ^^^^^^^^^^^^^^^^^^ the trait `std::error::Error` is not implemented for `std::string::String`
+    |
+    = note: required for `gmeow_errors::Diag` to implement `std::convert::From<std::string::String>`
+
+error[E0308]: `?` operator has incompatible types
+    --> crates/pipeline/src/stages/carrier.rs:3825:28
+     |
+3825 |     normalize_dataset_xsd(&sources.imports_dataset()?)
+     |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RdfDataset`, found `Arc<RdfDataset>`
+     |
+     = note: `?` operator cannot convert from `std::sync::Arc<RdfDataset>` to `RdfDataset`
+     = note: expected struct `RdfDataset`
+                found struct `std::sync::Arc<RdfDataset>`
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-pipeline` (lib) due to 4 previous errors
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/compile_logic/native_carrier/tests.rs:42:33
+     |
+  42 |         builder.attach_location(row, RdfLocation::file("synthetic-projection.ttl"));
+     |                 --------------- ^^^ expected `QuadHandle`, found `Result<QuadHandle, StorageError>`
+     |                 |
+     |                 arguments to this method are incorrect
+     |
+     = note: expected struct `QuadHandle`
+                  found enum `std::result::Result<QuadHandle, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2732:12
+     |
+2732 |     pub fn attach_location(&mut self, handle: QuadHandle, loc: RdfLocation) {
+     |            ^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::QuadHandle, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  42 |         builder.attach_location(row.expect("REASON"), RdfLocation::file("synthetic-projection.ttl"));
+     |                                    +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/compile_logic/native_carrier/tests.rs:326:49
+     |
+ 326 |         crate::stages::carrier::rooted_in_graph(&diagnostics, GRAPH_DIAGNOSTICS).unwrap();
+     |         --------------------------------------- ^^^^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+     |         |
+     |         arguments to this function are incorrect
+     |
+     = note: expected reference `&RdfDataset`
+                found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+    --> crates/pipeline/src/stages/carrier.rs:3693:15
+     |
+3693 | pub(crate) fn rooted_in_graph(
+     |               ^^^^^^^^^^^^^^^
+3694 |     src: &purrdf::RdfDataset,
+     |     ------------------------
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier/test_support.rs:415:8
+    |
+415 |     Ok(purrdf::RdfDataset::union(&refs))
+    |     -- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RdfDataset`, found `Result<RdfDataset, RdfDiagnostic>`
+    |     |
+    |     arguments to this enum variant are incorrect
+    |
+    = note: expected struct `RdfDataset`
+                 found enum `std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+help: the type constructed contains `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>` due to the type of the argument passed
+   --> crates/pipeline/src/stages/carrier/test_support.rs:415:5
+    |
+415 |     Ok(purrdf::RdfDataset::union(&refs))
+    |     ^^^--------------------------------^
+    |        |
+    |        this argument influences the type of `Ok`
+note: tuple variant defined here
+   --> /kache/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:562:5
+    |
+562 |     Ok(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^
+help: use the `?` operator to extract the `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>` value, propagating a `Result::Err` value to the caller
+    |
+415 |     Ok(purrdf::RdfDataset::union(&refs)?)
+    |                                        +
+
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/carrier_rooting_tests.rs:124:29
+     |
+ 124 |     builder.attach_location(row, location.clone());
+     |             --------------- ^^^ expected `QuadHandle`, found `Result<QuadHandle, StorageError>`
+     |             |
+     |             arguments to this method are incorrect
+     |
+     = note: expected struct `QuadHandle`
+                  found enum `std::result::Result<QuadHandle, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2732:12
+     |
+2732 |     pub fn attach_location(&mut self, handle: QuadHandle, loc: RdfLocation) {
+     |            ^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::QuadHandle, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 124 |     builder.attach_location(row.expect("REASON"), location.clone());
+     |                                +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/carrier_rooting_tests.rs:226:38
+     |
+ 226 |         .pin_handle(GRAPH_LOGIC, (), expected)
+     |          ----------                  ^^^^^^^^ expected `ContentDigest`, found `Result<ContentDigest, _>`
+     |          |
+     |          arguments to this method are incorrect
+     |
+     = note: expected struct `ContentDigest`
+                  found enum `std::result::Result<ContentDigest, purrdf::PipelineBundleError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/pipeline_bundle.rs:94:16
+     |
+  94 |           pub fn pin_handle(
+     |                  ^^^^^^^^^^
+...
+1007 | /     pin_handle_method! { H;
+1008 | |     /// Attach a typed handle for the named graph `graph`, pinning `payload` to the
+1009 | |     /// canonical digest of that graph's subgraph.
+1010 | |     ///
+...    |
+1019 | |     /// with the backing graph.
+1020 | |     }
+     | |_____- in this macro invocation
+     = note: this error originates in the macro `pin_handle_method` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::ContentDigest, purrdf::PipelineBundleError>` value, panicking if the value is a `Result::Err`
+     |
+ 226 |         .pin_handle(GRAPH_LOGIC, (), expected.expect("REASON"))
+     |                                              +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier_rooting_tests.rs:228:68
+    |
+228 |     assert_eq!(bundle.handle(GRAPH_LOGIC).unwrap().content_digest, expected);
+    |                                                                    ^^^^^^^^ expected `ContentDigest`, found `Result<ContentDigest, _>`
+    |
+    = note: expected struct `ContentDigest`
+                 found enum `std::result::Result<ContentDigest, purrdf::PipelineBundleError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::ContentDigest, purrdf::PipelineBundleError>` value, panicking if the value is a `Result::Err`
+    |
+228 |     assert_eq!(bundle.handle(GRAPH_LOGIC).unwrap().content_digest, expected.expect("REASON"));
+    |                                                                            +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier_rooting_tests.rs:236:5
+    |
+236 |     assert_ne!(changed.graph_digest(GRAPH_LOGIC).unwrap(), expected);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     expected `ContentDigest`, found `Result<ContentDigest, _>`
+    |     expected because this is `purrdf::ContentDigest`
+    |
+    = note: expected struct `ContentDigest`
+                 found enum `std::result::Result<ContentDigest, purrdf::PipelineBundleError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::ContentDigest, purrdf::PipelineBundleError>` value, panicking if the value is a `Result::Err`
+    |
+236 |     assert_ne!(changed.graph_digest(GRAPH_LOGIC).unwrap(), expected).expect("REASON");
+    |                                                                     +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/carrier_rooting_tests.rs:238:45
+     |
+ 238 |         changed.pin_handle(GRAPH_LOGIC, (), expected),
+     |                 ----------                  ^^^^^^^^ expected `ContentDigest`, found `Result<ContentDigest, _>`
+     |                 |
+     |                 arguments to this method are incorrect
+     |
+     = note: expected struct `ContentDigest`
+                  found enum `std::result::Result<ContentDigest, purrdf::PipelineBundleError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/pipeline_bundle.rs:94:16
+     |
+  94 |           pub fn pin_handle(
+     |                  ^^^^^^^^^^
+...
+1007 | /     pin_handle_method! { H;
+1008 | |     /// Attach a typed handle for the named graph `graph`, pinning `payload` to the
+1009 | |     /// canonical digest of that graph's subgraph.
+1010 | |     ///
+...    |
+1019 | |     /// with the backing graph.
+1020 | |     }
+     | |_____- in this macro invocation
+     = note: this error originates in the macro `pin_handle_method` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::ContentDigest, purrdf::PipelineBundleError>` value, panicking if the value is a `Result::Err`
+     |
+ 238 |         changed.pin_handle(GRAPH_LOGIC, (), expected.expect("REASON")),
+     |                                                     +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier_rooting_tests.rs:248:68
+    |
+248 |     assert_eq!(diagnostic_only.graph_digest(GRAPH_LOGIC).unwrap(), expected);
+    |                                                                    ^^^^^^^^ expected `ContentDigest`, found `Result<ContentDigest, _>`
+    |
+    = note: expected struct `ContentDigest`
+                 found enum `std::result::Result<ContentDigest, purrdf::PipelineBundleError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::ContentDigest, purrdf::PipelineBundleError>` value, panicking if the value is a `Result::Err`
+    |
+248 |     assert_eq!(diagnostic_only.graph_digest(GRAPH_LOGIC).unwrap(), expected.expect("REASON"));
+    |                                                                            +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/carrier.xsd_canon_tests.rs:42:48
+     |
+  42 |                           match imported.resolve(purrdf::TermId::from_index(
+     |  ________________________________________-------_^
+     | |                                        |
+     | |                                        arguments to this method are incorrect
+  43 | |                             u32::try_from(index).expect("fixture term"),
+  44 | |                         )) {
+     | |_________________________^ expected `TermId`, found `Result<TermId, CapacityError>`
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::CapacityError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1675:12
+     |
+1675 |     pub fn resolve(&self, id: TermId) -> TermRef<'_> {
+     |            ^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::CapacityError>` value, panicking if the value is a `Result::Err`
+     |
+  44 |                         ).expect("REASON")) {
+     |                          +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.docs_try_it_golden.rs:340:48
+    |
+340 |     let full_edb = purrdf::RdfDataset::union(&[&reduced_seed, import_world.as_ref()]);
+    |                                                ^^^^^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.docs_try_it_golden.rs:348:59
+    |
+348 |     let base = crate::stages::reason::reason_test_dataset(&full_edb).expect("reason full-EDB base");
+    |                ------------------------------------------ ^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |                |
+    |                arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/pipeline/src/stages/reason_test_support.rs:12:15
+    |
+ 12 | pub(crate) fn reason_test_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
+    |               ^^^^^^^^^^^^^^^^^^^ ----------------
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.docs_try_it_golden.rs:365:48
+    |
+365 |     let reduced = executable_docs_from_sources(&reduced_seed, base.closure.as_bytes(), &sources)
+    |                   ---------------------------- ^^^^^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |                   |
+    |                   arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/pipeline/src/stages/carrier/test_support.rs:171:15
+    |
+171 | pub(crate) fn executable_docs_from_sources(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+172 |     reason_seed: &purrdf::RdfDataset,
+    |     --------------------------------
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.docs_try_it_golden.rs:370:45
+    |
+370 |     let full = executable_docs_from_sources(&full_edb, base.closure.as_bytes(), &sources)
+    |                ---------------------------- ^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |                |
+    |                arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/pipeline/src/stages/carrier/test_support.rs:171:15
+    |
+171 | pub(crate) fn executable_docs_from_sources(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+172 |     reason_seed: &purrdf::RdfDataset,
+    |     --------------------------------
+
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/carrier_playground_routing_tests.rs:28:33
+     |
+  28 |         builder.attach_location(row, location.clone());
+     |                 --------------- ^^^ expected `QuadHandle`, found `Result<QuadHandle, StorageError>`
+     |                 |
+     |                 arguments to this method are incorrect
+     |
+     = note: expected struct `QuadHandle`
+                  found enum `std::result::Result<QuadHandle, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2732:12
+     |
+2732 |     pub fn attach_location(&mut self, handle: QuadHandle, loc: RdfLocation) {
+     |            ^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::QuadHandle, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  28 |         builder.attach_location(row.expect("REASON"), location.clone());
+     |                                    +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/pipeline/src/stages/correspondence_soundness.tests.rs:19:40
+     |
+  19 |         .push_quad(subject, predicate, transferred, None)
+     |          ---------                     ^^^^^^^^^^^ expected `TermId`, found `Result<TermId, Diag>`
+     |          |
+     |          arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, gmeow_errors::Diag>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, gmeow_errors::Diag>` value, panicking if the value is a `Result::Err`
+     |
+  19 |         .push_quad(subject, predicate, transferred.expect("REASON"), None)
+     |                                                   +++++++++++++++++
+
+error[E0599]: no method named `owned_quads` found for enum `std::result::Result<T, E>` in the current scope
+    --> crates/pipeline/src/stages/reason.tests.rs:554:37
+     |
+ 554 |     let projected = reasoning_graph.owned_quads().collect::<Vec<_>>();
+     |                                     ^^^^^^^^^^^ method not found in `std::result::Result<purrdf::RdfDataset, purrdf::RdfDiagnostic>`
+     |
+note: the method `owned_quads` exists on the type `purrdf::RdfDataset`
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/dataset.rs:1176:5
+     |
+1176 |     pub fn owned_quads(&self) -> impl Iterator<Item = RdfQuad> + '_ {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `purrdf::RdfDataset` value, panicking if the value is a `Result::Err`
+     |
+ 554 |     let projected = reasoning_graph.expect("REASON").owned_quads().collect::<Vec<_>>();
+     |                                    +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/validate.tests.rs:713:42
+    |
+713 |     assert_compliance_assessment_present(&norm_claims);
+    |     ------------------------------------ ^^^^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |     |
+    |     arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/pipeline/src/stages/validate.tests.rs:563:4
+    |
+563 | fn assert_compliance_assessment_present(ds: &purrdf::RdfDataset) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -----------------------
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/validate.tests.rs:762:42
+    |
+762 |     assert_compliance_assessment_present(&norm_claims);
+    |     ------------------------------------ ^^^^^^^^^^^^ expected `&RdfDataset`, found `&Result<RdfDataset, RdfDiagnostic>`
+    |     |
+    |     arguments to this function are incorrect
+    |
+    = note: expected reference `&RdfDataset`
+               found reference `&std::result::Result<RdfDataset, purrdf::RdfDiagnostic>`
+note: function defined here
+   --> crates/pipeline/src/stages/validate.tests.rs:563:4
+    |
+563 | fn assert_compliance_assessment_present(ds: &purrdf::RdfDataset) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -----------------------
+
+Some errors have detailed explanations: E0277, E0308, E0599.
+error: could not compile `gmeow-pipeline` (lib test) due to 23 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

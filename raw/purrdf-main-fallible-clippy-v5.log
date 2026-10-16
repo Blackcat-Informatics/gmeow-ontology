@@ -1,0 +1,718 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+    Checking gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gts-profile)
+error[E0308]: arguments to this method are incorrect
+    --> crates/math-lift/src/sink.rs:50:22
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:32
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:35
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:38
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s.expect("REASON"), p, o, None);
+     |                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/math-lift/src/sink.rs:62:22
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:32
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:35
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:38
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s.expect("REASON"), p, o, None);
+     |                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-math-lift` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0425]: cannot find type `DatasetHandle` in crate `purrdf`
+  --> crates/logic-compile/src/projections/sparql/tests.rs:50:71
+   |
+50 | fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> purrdf::DatasetHandle {
+   |                                                                       ^^^^^^^^^^^^^ not found in `purrdf`
+   |
+help: consider importing one of these structs
+   |
+ 6 + use purrdf::backend::DatasetHandle;
+   |
+ 6 + use purrdf_core::DatasetHandle;
+   |
+help: if you import `DatasetHandle`, refer to it directly
+   |
+50 - fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> purrdf::DatasetHandle {
+50 + fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> DatasetHandle {
+   |
+
+error: could not compile `gmeow-math-lift` (lib test) due to 2 previous errors
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/presentation.rs:209:24
+    |
+204 |     fn blank(&mut self) -> TermId {
+    |                            ------ expected `purrdf_core::TermId` because of return type
+...
+209 |                 return self.g.builder.intern_blank(&label, BlankScope::DEFAULT);
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+209 |                 return self.g.builder.intern_blank(&label, BlankScope::DEFAULT).expect("REASON");
+    |                                                                                +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/presentation.rs:215:24
+    |
+215 |         self.type_node(node, class);
+    |              --------- ^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |              |
+    |              arguments to this method are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> crates/logic-compile/src/projections/presentation.rs:218:8
+    |
+218 |     fn type_node(&mut self, node: TermId, class: &str) {
+    |        ^^^^^^^^^            ------------
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+215 |         self.type_node(node.expect("REASON"), class);
+    |                            +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/presentation.rs:216:9
+    |
+213 |     fn record(&mut self, name: &str, class: &str) -> TermId {
+    |                                                      ------ expected `purrdf_core::TermId` because of return type
+...
+216 |         node
+    |         ^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+216 |         node.expect("REASON")
+    |             +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+   --> crates/logic-compile/src/projections/presentation.rs:221:24
+    |
+221 |         self.g.builder.push_quad(node, predicate, class, None);
+    |                        ^^^^^^^^^
+    |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+   --> crates/logic-compile/src/projections/presentation.rs:221:40
+    |
+221 |         self.g.builder.push_quad(node, predicate, class, None);
+    |                                        ^^^^^^^^^
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+   --> crates/logic-compile/src/projections/presentation.rs:221:51
+    |
+221 |         self.g.builder.push_quad(node, predicate, class, None);
+    |                                                   ^^^^^
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:11
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+221 |         self.g.builder.push_quad(node, predicate.expect("REASON"), class, None);
+    |                                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+221 |         self.g.builder.push_quad(node, predicate, class.expect("REASON"), None);
+    |                                                        +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/presentation.rs:225:40
+    |
+225 |         self.g.builder.push_quad(node, predicate, object, None);
+    |                        ---------       ^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                        |
+    |                        arguments to this method are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:11
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+225 |         self.g.builder.push_quad(node, predicate.expect("REASON"), object, None);
+    |                                                 +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/presentation.rs:229:35
+    |
+229 |         self.link(node, property, object);
+    |              ----                 ^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |              |
+    |              arguments to this method are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> crates/logic-compile/src/projections/presentation.rs:223:8
+    |
+223 |     fn link(&mut self, node: TermId, property: &str, object: TermId) {
+    |        ^^^^                                          --------------
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+229 |         self.link(node, property, object.expect("REASON"));
+    |                                         +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/presentation.rs:233:35
+    |
+233 |         self.link(node, property, object);
+    |              ----                 ^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |              |
+    |              arguments to this method are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> crates/logic-compile/src/projections/presentation.rs:223:8
+    |
+223 |     fn link(&mut self, node: TermId, property: &str, object: TermId) {
+    |        ^^^^                                          --------------
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+233 |         self.link(node, property, object.expect("REASON"));
+    |                                         +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:227:13
+    |
+221 |     fn intern_subject(&mut self, subject: &str) -> purrdf::TermId {
+    |                                                    -------------- expected `purrdf_core::TermId` because of return type
+...
+227 |             self.builder.intern_iri(subject)
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+227 |             self.builder.intern_iri(subject).expect("REASON")
+    |                                             +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:229:13
+    |
+221 |       fn intern_subject(&mut self, subject: &str) -> purrdf::TermId {
+    |                                                      -------------- expected `purrdf_core::TermId` because of return type
+...
+229 | /             self.builder.intern_blank(
+230 | |                 subject.trim_start_matches("_:"),
+231 | |                 purrdf::BlankScope::DEFAULT,
+232 | |             )
+    | |_____________^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+232 |             ).expect("REASON")
+    |              +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+   --> crates/logic-compile/src/projections/rdf.rs:240:22
+    |
+240 |         self.builder.push_quad(s, p, o, None);
+    |                      ^^^^^^^^^
+    |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+   --> crates/logic-compile/src/projections/rdf.rs:240:35
+    |
+240 |         self.builder.push_quad(s, p, o, None);
+    |                                   ^
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+   --> crates/logic-compile/src/projections/rdf.rs:240:38
+    |
+240 |         self.builder.push_quad(s, p, o, None);
+    |                                      ^
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:11
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+240 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+    |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+240 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+    |                                       +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+   --> crates/logic-compile/src/projections/rdf.rs:247:22
+    |
+247 |         self.builder.push_quad(s, p, o, None);
+    |                      ^^^^^^^^^
+    |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+   --> crates/logic-compile/src/projections/rdf.rs:247:35
+    |
+247 |         self.builder.push_quad(s, p, o, None);
+    |                                   ^
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+   --> crates/logic-compile/src/projections/rdf.rs:247:38
+    |
+247 |         self.builder.push_quad(s, p, o, None);
+    |                                      ^
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:11
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+247 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+    |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+247 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+    |                                       +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:255:41
+    |
+255 |         self.builder.push_quad(subject, predicate, object, None);
+    |                      ---------          ^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |                      |
+    |                      arguments to this method are incorrect
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:11
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+255 |         self.builder.push_quad(subject, predicate.expect("REASON"), object, None);
+    |                                                  +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:260:39
+    |
+258 |     fn intern_atomic(&mut self, object: &AtomicTerm) -> purrdf::TermId {
+    |                                                         -------------- expected `purrdf_core::TermId` because of return type
+259 |         match object {
+260 |             AtomicTerm::Var(value) => self.builder.intern_literal(RdfLiteral::simple(value)),
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+    |
+    = note: expected struct `TermId`
+                 found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+260 |             AtomicTerm::Var(value) => self.builder.intern_literal(RdfLiteral::simple(value)).expect("REASON"),
+    |                                                                                             +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:286:23
+    |
+286 |             |s, p, o| self.builder.push_quad(s, p, o, None),
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `()`, found `Result<(), StorageError>`
+    |
+    = note: expected unit type `()`
+                    found enum `std::result::Result<(), purrdf_lex::allocation::StorageError>`
+help: consider using a semicolon here
+    |
+286 |             |s, p, o| { self.builder.push_quad(s, p, o, None); },
+    |                       +                                      +++
+help: consider using `Result::expect` to unwrap the `std::result::Result<(), purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+    |
+286 |             |s, p, o| self.builder.push_quad(s, p, o, None).expect("REASON"),
+    |                                                            +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:284:13
+    |
+282 |         purrdf_core::build_rdf_list(
+    |         --------------------------- arguments to this function are incorrect
+283 |             values,
+284 |             &vocab,
+    |             ^^^^^^ expected `&ListVocab<TermId>`, found `&ListVocab<Result<TermId, StorageError>>`
+    |
+    = note: expected reference `&ListVocab<TermId>`
+               found reference `&ListVocab<std::result::Result<TermId, purrdf_lex::allocation::StorageError>>`
+note: function defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/collections.rs:517:7
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:580:15
+    |
+580 |     (value >= 0).then(|| {
+    |      -----    ^ expected `Integer`, found integer
+    |      |
+    |      expected because this is `purrdf::xsd::exact::Integer`
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/logic-compile/src/projections/rdf.rs:2060:28
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                            ^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2060:42
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                          ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2060:45
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                             ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2060:48
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1586:11
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2060 |     let triple = g.builder.intern_triple(s?, p, o);
+     |                                           +
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2060 |     let triple = g.builder.intern_triple(s, p?, o);
+     |                                              +
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o?);
+     |                                                 +
+
+error[E0308]: mismatched types
+    --> crates/logic-compile/src/projections/rdf.rs:2061:37
+     |
+2061 |     g.builder.push_reifier(reifier, triple);
+     |               ------------          ^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+     |               |
+     |               arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2628:11
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2061 |     g.builder.push_reifier(reifier, triple?);
+     |                                           +
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/logic-compile/src/projections/presentation.rs:221:24
+     |
+ 221 |         self.g.builder.push_quad(node, predicate, class, None);
+     |                        ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/presentation.rs:221:40
+     |
+ 221 |         self.g.builder.push_quad(node, predicate, class, None);
+     |                                        ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/presentation.rs:221:51
+     |
+ 221 |         self.g.builder.push_quad(node, predicate, class, None);
+     |                                                   ^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 221 |         self.g.builder.push_quad(node, predicate.expect("REASON"), class, None);
+     |                                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 221 |         self.g.builder.push_quad(node, predicate, class.expect("REASON"), None);
+     |                                                        +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/logic-compile/src/projections/presentation.rs:225:40
+     |
+ 225 |         self.g.builder.push_quad(node, predicate, object, None);
+     |                        ---------       ^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+     |                        |
+     |                        arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 225 |         self.g.builder.push_quad(node, predicate.expect("REASON"), object, None);
+     |                                                 +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/logic-compile/src/projections/rdf.rs:240:22
+     |
+ 240 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:240:35
+     |
+ 240 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:240:38
+     |
+ 240 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 240 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 240 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/logic-compile/src/projections/rdf.rs:247:22
+     |
+ 247 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:247:35
+     |
+ 247 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:247:38
+     |
+ 247 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 247 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 247 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+error[E0308]: mismatched types
+    --> crates/logic-compile/src/projections/rdf.rs:255:41
+     |
+ 255 |         self.builder.push_quad(subject, predicate, object, None);
+     |                      ---------          ^^^^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+     |                      |
+     |                      arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 255 |         self.builder.push_quad(subject, predicate.expect("REASON"), object, None);
+     |                                                  +++++++++++++++++
+
+error[E0308]: mismatched types
+   --> crates/logic-compile/src/projections/rdf.rs:284:13
+    |
+282 |         purrdf_core::build_rdf_list(
+    |         --------------------------- arguments to this function are incorrect
+283 |             values,
+284 |             &vocab,
+    |             ^^^^^^ expected `&ListVocab<TermId>`, found `&ListVocab<Result<TermId, StorageError>>`
+    |
+    = note: expected reference `&ListVocab<TermId>`
+               found reference `&ListVocab<std::result::Result<TermId, purrdf_lex::allocation::StorageError>>`
+note: function defined here
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/collections.rs:517:8
+    |
+517 | pub fn build_rdf_list<T, I>(
+    |        ^^^^^^^^^^^^^^
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/logic-compile/src/projections/rdf.rs:2060:28
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                            ^^^^^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2060:42
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                          ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2060:45
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                             ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/logic-compile/src/projections/rdf.rs:2060:48
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o);
+     |                                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:1586:12
+     |
+1586 |     pub fn intern_triple(
+     |            ^^^^^^^^^^^^^
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2060 |     let triple = g.builder.intern_triple(s?, p, o);
+     |                                           +
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2060 |     let triple = g.builder.intern_triple(s, p?, o);
+     |                                              +
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2060 |     let triple = g.builder.intern_triple(s, p, o?);
+     |                                                 +
+
+error[E0308]: mismatched types
+    --> crates/logic-compile/src/projections/rdf.rs:2061:37
+     |
+2061 |     g.builder.push_reifier(reifier, triple);
+     |               ------------          ^^^^^^ expected `TermId`, found `Result<TermId, StorageError>`
+     |               |
+     |               arguments to this method are incorrect
+     |
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2628:12
+     |
+2628 |     pub fn push_reifier(&mut self, reifier: TermId, triple: TermId) -> Result<(), StorageError> {
+     |            ^^^^^^^^^^^^
+help: use the `?` operator to extract the `std::result::Result<purrdf_core::TermId, purrdf_lex::allocation::StorageError>` value, propagating a `Result::Err` value to the caller
+     |
+2061 |     g.builder.push_reifier(reifier, triple?);
+     |                                           +
+
+error: could not compile `gmeow-logic-compile` (lib) due to 18 previous errors
+Some errors have detailed explanations: E0308, E0425.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-logic-compile` (lib test) due to 19 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

@@ -1,0 +1,34 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(test(reason::artifacts::) & !test(corpus_)) | test(source_lookup_preserves_exact_leaves_) | test(cached_source_lookup_rejects_) | test(native_rule_projection_round_trips_) | test(native_rule_statement_layer_survives_) | test(demonstrator_worlds_must_publish_) | test(each_demonstrator_world_publishes_)' --no-tests=fail
+    Finished `test` profile [optimized] target(s) in 0.80s
+────────────
+ Nextest run ID 4d569561-638b-4bcb-a02b-2bbcc5b1beec with nextest profile: ci
+    Starting 22 tests across 224 binaries (7393 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.022s] ( 1/22) gmeow-logic reason::artifacts::tests::proof_and_counterproof_derivation_ids_are_sanitized_by_bare_iri
+        PASS [   0.023s] ( 2/22) gmeow-logic reason::artifacts::tests::closure_missing_rule_name_fails_loud
+        PASS [   0.021s] ( 3/22) gmeow-logic reason::artifacts::tests::ledger_header_entries_gaps_and_counts
+        PASS [   0.023s] ( 4/22) gmeow-logic reason::artifacts::tests::native_closure_appends_without_aliasing_an_existing_carrier_blank
+        PASS [   0.025s] ( 5/22) gmeow-logic reason::artifacts::tests::explanations_emit_derivation_with_premise
+        PASS [   0.025s] ( 6/22) gmeow-logic reason::artifacts::tests::closure_omits_the_alpha_section_entirely_when_no_expression_is_decided
+        PASS [   0.025s] ( 7/22) gmeow-logic reason::artifacts::tests::closure_skips_edb_axioms
+        PASS [   0.025s] ( 8/22) gmeow-logic reason::refute::native::tests::source_lookup_preserves_exact_leaves_across_growth_and_ledger_replacement
+        PASS [   0.026s] ( 9/22) gmeow-logic reason::refute::native::tests::cached_source_lookup_rejects_an_identity_mismatched_ledger_position
+        PASS [   0.032s] (10/22) gmeow-logic reason::artifacts::tests::premise_object_preserves_iris_and_literals
+        PASS [   0.033s] (11/22) gmeow-logic reason::artifacts::tests::modal_artifacts_retain_the_exact_rule_sources_and_derivation_identity
+        PASS [   0.034s] (12/22) gmeow-logic reason::artifacts::tests::closure_emits_one_joinable_class_for_alpha_equivalent_expressions
+        PASS [   0.033s] (13/22) gmeow-logic reason::artifacts::tests::native_closure_keeps_duplicate_proofs_separate_from_quoted_data_blanks
+        PASS [   0.054s] (14/22) gmeow-pipeline stages::reason::tests::demonstrator_worlds_must_publish_their_declared_certificate_class
+        PASS [   0.059s] (15/22) gmeow-logic-compile frontend::native_statement_tests::native_rule_projection_round_trips_typed_atoms_and_guards
+        PASS [   0.080s] (16/22) gmeow-logic reason::artifacts::tests::closure_emits_triple_and_reifier_with_provenance
+        PASS [   0.079s] (17/22) gmeow-logic reason::artifacts::tests::reasoning_result_ttl_emits_status_fields_and_certificate
+        PASS [   0.080s] (18/22) gmeow-logic reason::artifacts::tests::reasoning_result_ttl_inconsistent_is_both_with_witness
+        PASS [   0.083s] (19/22) gmeow-logic reason::artifacts::tests::native_artifact_fixture_rejects_missing_or_mismatched_execution_evidence
+        PASS [   0.089s] (20/22) gmeow-pipeline stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+        PASS [   0.100s] (21/22) gmeow-logic reason::source_existentials::tests::each_demonstrator_world_publishes_its_own_certificate_class
+        PASS [   0.246s] (22/22) gmeow-logic reason::artifacts::tests::native_derived_objects_and_premises_keep_rdf12_types_in_both_artifacts
+────────────
+     Summary [   0.318s] 22 tests run: 22 passed, 7393 skipped

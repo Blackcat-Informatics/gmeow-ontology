@@ -1,0 +1,37 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+error: initializing a reference-counted pointer in `vec![elem; len]`
+   --> crates/logic/src/physical/seminaive/joint/input/admission.rs:967:25
+    |
+967 |     let mut reachable = vec![Arc::new(BTreeSet::new()); count];
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: each element will point to the same `Arc` instance
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#rc_clone_in_vec_init
+    = note: `-D clippy::rc-clone-in-vec-init` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::rc_clone_in_vec_init)]`
+help: consider initializing each `Arc` element individually
+    |
+967 ~     let mut reachable = {
+968 +         let mut v = Vec::with_capacity(count);
+969 +         (0..count).for_each(|_| v.push(Arc::new(..)));
+970 +         v
+971 ~     };
+    |
+help: or if this is intentional, consider extracting the `Arc` initialization to a variable
+    |
+967 ~     let mut reachable = {
+968 +         let data = Arc::new(..);
+969 +         vec![data; count]
+970 ~     };
+    |
+
+error: could not compile `gmeow-logic` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic` (lib test) due to 1 previous error
+make: *** [Makefile:289: clippy-prebuild] Error 101

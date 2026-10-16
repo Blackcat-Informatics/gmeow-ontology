@@ -1,0 +1,331 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+error[E0308]: arguments to this method are incorrect
+    --> crates/math-lift/src/sink.rs:50:22
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:32
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:35
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:50:38
+     |
+  50 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s.expect("REASON"), p, o, None);
+     |                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  50 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/math-lift/src/sink.rs:62:22
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                      ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:32
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:35
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                   ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/math-lift/src/sink.rs:62:38
+     |
+  62 |         self.builder.push_quad(s, p, o, None);
+     |                                      ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s.expect("REASON"), p, o, None);
+     |                                 +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s, p.expect("REASON"), o, None);
+     |                                    +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  62 |         self.builder.push_quad(s, p, o.expect("REASON"), None);
+     |                                       +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-math-lift` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-math-lift` (lib test) due to 2 previous errors
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/action_policy.rs:289:13
+    |
+289 |             builder.push_owned_quad(&row.native());
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+289 |             let _ = builder.push_owned_quad(&row.native());
+    |             +++++++
+
+error: could not compile `gmeow-logic-compile` (lib) due to 1 previous error
+error: unused `std::result::Result` that must be used
+  --> crates/logic-compile/src/action_policy.tests.rs:33:9
+   |
+33 |         builder.push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+33 |         let _ = builder.push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object));
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic-compile/src/action_policy.tests.rs:36:9
+   |
+36 |         builder.push_owned_quad(&quad);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+36 |         let _ = builder.push_owned_quad(&quad);
+   |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/ingest/dataset.tests.rs:114:5
+    |
+114 |     b.push_owned_reifier(&RdfReifier::new(reifier.clone(), base));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+114 |     let _ = b.push_owned_reifier(&RdfReifier::new(reifier.clone(), base));
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/ingest/dataset.tests.rs:117:5
+    |
+117 | /     b.push_owned_annotation(&RdfAnnotation::new(
+118 | |         reifier.clone(),
+119 | |         format!("{EX}justification"),
+120 | |         RdfTerm::iri("https://w3id.org/semapv/vocab/ManualMappingCuration"),
+121 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+117 |     let _ = b.push_owned_annotation(&RdfAnnotation::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/ingest/dataset.tests.rs:122:5
+    |
+122 | /     b.push_owned_annotation(&RdfAnnotation::new(
+123 | |         reifier.clone(),
+124 | |         format!("{EX}lossyDrop"),
+125 | |         RdfTerm::literal(RdfLiteral::simple("beta")),
+126 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+122 |     let _ = b.push_owned_annotation(&RdfAnnotation::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/ingest/dataset.tests.rs:127:5
+    |
+127 | /     b.push_owned_annotation(&RdfAnnotation::new(
+128 | |         reifier.clone(),
+129 | |         format!("{EX}lossyDrop"),
+130 | |         RdfTerm::literal(RdfLiteral::simple("alpha")),
+131 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+127 |     let _ = b.push_owned_annotation(&RdfAnnotation::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/ingest/dataset.tests.rs:132:5
+    |
+132 | /     b.push_owned_annotation(&RdfAnnotation::new(
+133 | |         reifier.clone(),
+134 | |         format!("{EX}confidence"),
+135 | |         RdfTerm::literal(RdfLiteral::simple("0.9")),
+136 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+132 |     let _ = b.push_owned_annotation(&RdfAnnotation::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/ingest/dataset.tests.rs:137:5
+    |
+137 | /     b.push_owned_annotation(&RdfAnnotation::new(
+138 | |         reifier.clone(),
+139 | |         RDF_TYPE,
+140 | |         RdfTerm::iri(format!("{EX}GroundingCorrespondence")),
+141 | |     ));
+    | |______^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+137 |     let _ = b.push_owned_annotation(&RdfAnnotation::new(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+  --> crates/logic-compile/src/projections/fno.tests.rs:53:5
+   |
+53 | /     db.push_dataset(
+54 | |         &parse_dataset(
+55 | |             dsl_ttl.as_bytes(),
+56 | |             NativeRdfFormat::Turtle.media_type(),
+...  |
+59 | |         .expect("parse dsl"),
+60 | |     );
+   | |_____^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+   |
+53 |     let _ = db.push_dataset(
+   |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/projections/fno.tests.rs:136:5
+    |
+136 | /     db.push_dataset(
+137 | |         &parse_dataset(
+138 | |             dsl_ttl.as_bytes(),
+139 | |             NativeRdfFormat::Turtle.media_type(),
+...   |
+142 | |         .expect("parse dsl"),
+143 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+136 |     let _ = db.push_dataset(
+    |     +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/relational_core/numeric/tests.rs:156:17
+    |
+156 |                 builder.push_owned_quad(&quad);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+156 |                 let _ = builder.push_owned_quad(&quad);
+    |                 +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/relational_core/numeric/tests.rs:169:9
+    |
+169 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+169 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/relational_core/projection_tests.rs:113:17
+    |
+113 |                 builder.push_owned_quad(&quad);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+113 |                 let _ = builder.push_owned_quad(&quad);
+    |                 +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/relational_core/projection_tests.rs:117:9
+    |
+117 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+117 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/logic-compile/src/relational_core/projection_tests.rs:231:9
+    |
+231 |         builder.push_owned_quad(&quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+231 |         let _ = builder.push_owned_quad(&quad);
+    |         +++++++
+
+error: could not compile `gmeow-logic-compile` (lib test) due to 16 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

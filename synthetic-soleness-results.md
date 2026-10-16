@@ -1,0 +1,7 @@
+The complete synthetic `gmeow-slicetest` inventory now passes: 40 cases in the affected-module run (nextest 0ba53111-20f1-44d1-b689-812bdfb4ab2c, exact run ID recorded in the local raw log). No fixture selector was admitted and no repository corpus was loaded or rebuilt by the soleness contract.
+
+The replacement uses two explicit synthetic laws that raise the same SPARQL component code and drives the actual conformance handler. It verifies the unbound-flag case, pinned rejection of a second law by name, unpinned configuration refusal and a correctly pinned sole-finding positive.
+
+The positive control exposed a genuine dependency defect: the source reader cached only by filename and returned stale data after a rewrite. The reader now reads the selected source before matching its content digest, reuses the frozen parse only for unchanged content, and refuses malformed or missing sources. A direct control verifies Arc reuse, changed content, original dataset immutability, parse failure and deletion refusal. The cache uses the existing SHA-256 dependency and an ordered map; no new dependency or source fallback was introduced.
+
+This repair is uncommitted and not full-qualified. The broader affected-module run passed 160/164 cases: all 40 slicetest cases passed; two composed-cfg controls and one stale binding-inventory expectation have since been repaired, while the complete repo-static test still reports the genuine remaining diagnostic findings. The required full gate and review remain open. Principles 4, 7, 12, 18.

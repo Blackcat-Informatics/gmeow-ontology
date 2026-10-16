@@ -1,0 +1,142 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(tptp::) | test(external_evidence::)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 28s
+────────────
+ Nextest run ID 08c7c535-7db3-42bf-bb88-44023d21baf9 with nextest profile: ci
+    Starting 103 tests across 224 binaries (7311 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.005s] (  1/103) gmeow-conformance external::tptp::parser::tests::defined_atom_is_a_capability_gap
+        PASS [   0.005s] (  2/103) gmeow-conformance external::tptp::parser::tests::include_directive_is_a_capability_gap
+        PASS [   0.005s] (  3/103) gmeow-conformance external::tptp::parser::tests::equality_is_a_capability_gap
+        PASS [   0.005s] (  4/103) gmeow-conformance external::tptp::parser::tests::leading_underscore_identifier_is_a_syntax_error
+        PASS [   0.006s] (  5/103) gmeow-conformance external::tptp::parser::tests::function_symbol_in_argument_is_a_capability_gap
+        PASS [   0.011s] (  6/103) gmeow-conformance external::tptp::parser::tests::parses_ground_atom
+        PASS [   0.017s] (  7/103) gmeow-conformance external::tptp::parser::tests::a_plain_problem_formula_carries_no_annotation
+        PASS [   0.018s] (  8/103) gmeow-conformance external::tptp::parser::tests::a_nested_inference_parent_is_a_capability_gap
+        PASS [   0.011s] (  9/103) gmeow-conformance external::tptp::parser::tests::parses_conjecture_role
+        PASS [   0.018s] ( 10/103) gmeow-conformance external::tptp::parser::tests::parses_an_inference_with_no_parents_and_a_quoted_rule_iri
+        PASS [   0.017s] ( 11/103) gmeow-conformance external::tptp::parser::tests::parses_a_universal_implication
+        PASS [   0.017s] ( 12/103) gmeow-conformance external::tptp::parser::tests::an_unrecognized_source_functor_is_a_capability_gap
+        PASS [   0.017s] ( 13/103) gmeow-conformance external::tptp::parser::tests::a_malformed_inference_arity_is_a_syntax_error
+        PASS [   0.017s] ( 14/103) gmeow-conformance external::tptp::parser::tests::parses_an_inference_source_with_status_and_parents
+        PASS [   0.018s] ( 15/103) gmeow-conformance external::tptp::parser::tests::missing_trailing_dot_is_a_syntax_error
+        PASS [   0.011s] ( 16/103) gmeow-conformance external::tptp::parser::tests::parses_iff_and_reverse_implication
+        PASS [   0.011s] ( 17/103) gmeow-conformance external::tptp::parser::tests::parses_file_bare_name_and_theory_sources
+        PASS [   0.013s] ( 18/103) gmeow-conformance external::tptp::parser::tests::parses_disjointness_as_negated_conjunction
+        PASS [   0.019s] ( 19/103) gmeow-conformance external::tptp::parser::tests::parses_cnf_clause_with_implicit_universal
+        PASS [   0.020s] ( 20/103) gmeow-conformance external::tptp::lower_fol::tests::malformed_native_world_is_failure_not_capability_gap
+        PASS [   0.020s] ( 21/103) gmeow-conformance external::tptp::lower_fol::tests::binary_predicate_conjecture_is_a_capability_gap
+        PASS [   0.021s] ( 22/103) gmeow-conformance external::tptp::lower_fol::tests::cnf_two_positive_clause_is_a_capability_gap
+        PASS [   0.021s] ( 23/103) gmeow-conformance external::tptp::lower_fol::tests::disjunctive_premise_is_a_capability_gap
+        PASS [   0.003s] ( 24/103) gmeow-conformance external::tptp::parser::tests::plain_role_is_a_derived_step_not_a_premise
+        PASS [   0.003s] ( 25/103) gmeow-conformance external::tptp::parser::tests::skips_comments_including_szs_status
+        PASS [   0.004s] ( 26/103) gmeow-conformance external::tptp::parser::tests::parses_negated_conjecture_role
+        PASS [   0.003s] ( 27/103) gmeow-conformance external::tptp::parser::tests::parses_the_useful_info_field
+        PASS [   0.003s] ( 28/103) gmeow-conformance external::tptp::parser::tests::quantifier_binds_only_a_unit_body_not_a_binary_formula
+        PASS [   0.004s] ( 29/103) gmeow-conformance external::tptp::parser::tests::parses_multiple_formulas_in_order
+        PASS [   0.004s] ( 30/103) gmeow-conformance external::tptp::parser::tests::parses_nested_alternating_quantifiers
+        PASS [   0.003s] ( 31/103) gmeow-conformance external::tptp::parser::tests::unknown_role_is_a_syntax_error
+        PASS [   0.004s] ( 32/103) gmeow-conformance external::tptp::parser::tests::tff_dialect_is_a_capability_gap
+        PASS [   0.023s] ( 33/103) gmeow-conformance external::tptp::lower_fol::tests::reserved_vocabulary_is_failure_in_both_lowerers
+        PASS [   0.024s] ( 34/103) gmeow-conformance external::tptp::lower_fol::tests::direct_lowering_deduplicates_and_retains_the_selected_world
+        PASS [   0.023s] ( 35/103) gmeow-conformance external::tptp::lower_fol::tests::world_scoped_edb_shape_matches_seed
+        PASS [   0.024s] ( 36/103) gmeow-conformance external::tptp::lower_fol::tests::native_evaluation_failure_has_no_semantic_verdict
+        PASS [   0.024s] ( 37/103) gmeow-conformance external::tptp::lower_fol::tests::negated_ground_conjecture_is_an_honest_gap
+        PASS [   0.024s] ( 38/103) gmeow-conformance external::tptp::lower_fol::tests::the_lowered_program_identity_is_content_addressed_and_stable
+        PASS [   0.007s] ( 39/103) gmeow-logic external_evidence::tests::structural_refutation_never_becomes_a_certificate_without_rule_replay
+        PASS [   0.008s] ( 40/103) gmeow-logic-compile tptp::protocol::tests::admits_repeated_bound_status_across_both_channels
+        PASS [   0.011s] ( 41/103) gmeow-logic external_evidence::tests::model_table_representation_overflow_is_typed_resource_evidence
+        PASS [   0.008s] ( 42/103) gmeow-logic-compile tptp::protocol::tests::status_without_problem_name_remains_bound_to_the_selected_child_invocation
+        PASS [   0.011s] ( 43/103) gmeow-logic external_evidence::tests::normalized_model_parse_failure_retains_original_and_exact_parsed_text
+        PASS [   0.010s] ( 44/103) gmeow-logic external_evidence::tests::model_that_falsifies_an_emitted_sentence_is_invalid
+        PASS [   0.008s] ( 45/103) gmeow-logic-compile tptp::protocol::tests::rejects_explicit_foreign_problem
+        PASS [   0.008s] ( 46/103) gmeow-logic-compile tptp::protocol::tests::rejects_missing_malformed_and_unknown_status
+        PASS [   0.013s] ( 47/103) gmeow-logic external_evidence::tests::artifact_problem_binding_accepts_the_exact_submitted_path_alias
+        PASS [   0.008s] ( 48/103) gmeow-logic-compile tptp::protocol::tests::rejects_conjecture_status_for_axiom_consistency
+        PASS [   0.012s] ( 49/103) gmeow-logic external_evidence::tests::framed_artifact_capture_is_exact_and_problem_bound
+        PASS [   0.008s] ( 50/103) gmeow-logic-compile tptp::protocol::tests::rejects_conflicting_statuses
+        PASS [   0.012s] ( 51/103) gmeow-logic external_evidence::tests::incomplete_table_diagnostic_retains_the_symbol_and_source
+        PASS [   0.010s] ( 52/103) gmeow-logic external_evidence::tests::unsupported_model_sort_retains_a_typed_refusal_instead_of_invalidity
+        PASS [   0.011s] ( 53/103) gmeow-logic external_evidence::tests::protocol_diagnostic_retains_channel_marker_and_expected_identity
+        PASS [   0.012s] ( 54/103) gmeow-logic external_evidence::tests::foreign_and_unbalanced_artifact_markers_are_protocol_failures
+        PASS [   0.013s] ( 55/103) gmeow-logic external_evidence::tests::domain_size_refusal_is_resource_evidence_not_a_false_model_claim
+        PASS [   0.012s] ( 56/103) gmeow-logic external_evidence::tests::foreign_refutation_leaf_is_invalid_even_with_a_false_terminal
+        PASS [   0.008s] ( 57/103) gmeow-logic external_evidence::tests::vampire_single_sorted_model_is_independently_checked
+        PASS [   0.011s] ( 58/103) gmeow-logic external_evidence::tests::partial_model_table_is_invalid_before_formula_evaluation
+        PASS [   0.012s] ( 59/103) gmeow-logic external_evidence::tests::model_budget_refusal_preserves_resource_class_usage_and_sentence_locus
+        PASS [   0.015s] ( 60/103) gmeow-logic external_evidence::tests::malformed_model_retains_the_typed_parser_cause_and_serialized_evidence
+        PASS [   0.014s] ( 61/103) gmeow-logic-compile tptp::tests::admission_identity_includes_empty_named_graph_declarations
+        PASS [   0.006s] ( 62/103) gmeow-logic-compile tptp::tests::native_rule_carriers_use_reflected_properties_in_both_head_and_body
+        PASS [   0.024s] ( 63/103) gmeow-logic external_evidence::tests::equal_property_objects_cannot_receive_a_split_predicate_countermodel
+        PASS [   0.013s] ( 64/103) gmeow-logic-compile tptp::tests::procedural_term_comparison_blocks_the_whole_problem
+        PASS [   0.013s] ( 65/103) gmeow-logic-compile tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+        PASS [   0.013s] ( 66/103) gmeow-logic-compile tptp::tests::exact_document_selection_uses_composition_bindings_without_reparsing
+        PASS [   0.013s] ( 67/103) gmeow-logic-compile tptp::tests::missing_required_atomic_arguments_remain_a_malformed_source_refusal
+        PASS [   0.013s] ( 68/103) gmeow-logic-compile tptp::tests::property_characteristic_record_emits_the_law_once
+        PASS [   0.013s] ( 69/103) gmeow-logic-compile tptp::tests::full_literal_identity_survives_as_an_ordinary_constant
+        PASS [   0.007s] ( 70/103) gmeow-logic-compile tptp::tests::scalar_formula_grammar_never_becomes_domain_predicates
+        PASS [   0.013s] ( 71/103) gmeow-logic-compile tptp::tests::property_object_equality_reaches_positive_and_negative_applications
+        PASS [   0.013s] ( 72/103) gmeow-logic-compile tptp::tests::quoted_payload_remains_unasserted
+        PASS [   0.014s] ( 73/103) gmeow-logic-compile tptp::tests::denotational_identity_uses_equality_without_a_unique_name_axiom
+        PASS [   0.013s] ( 74/103) gmeow-logic-compile tptp::tests::profile_class_laws_cannot_authorize_an_empty_source_selection
+        PASS [   0.014s] ( 75/103) gmeow-logic-compile tptp::tests::class_constraint_ambiguity_is_malformed_but_identical_repetition_is_not
+        PASS [   0.017s] ( 76/103) gmeow-logic-compile tptp::tests::blank_schema_class_support_does_not_admit_literal_class_objects
+        PASS [   0.007s] ( 77/103) gmeow-logic-compile tptp::tests::rewriting_an_admitted_assertion_cannot_reuse_its_old_source_unit_identity
+        PASS [   0.014s] ( 78/103) gmeow-logic-compile tptp::tests::intrinsic_operator_aliases_have_profile_meanings_for_every_direct_schema_lowering
+        PASS [   0.014s] ( 79/103) gmeow-logic-compile tptp::tests::class_restrictions_do_not_erase_context_datatypes_or_procedural_semantics
+        PASS [   0.013s] ( 80/103) gmeow-logic-compile tptp::tests::restriction_dependencies_are_class_laws_not_recursive_syntax_expansion
+        PASS [   0.014s] ( 81/103) gmeow-logic-compile tptp::tests::ordinary_domain_assertions_and_subclass_law_reach_the_problem
+        PASS [   0.014s] ( 82/103) gmeow-logic-compile tptp::tests::edited_profile_selection_and_symbol_tables_cannot_change_proof_semantics
+        PASS [   0.011s] ( 83/103) gmeow-logic-compile tptp::tests::restriction_roles_can_alias_intrinsic_schema_operators
+        PASS [   0.014s] ( 84/103) gmeow-logic-compile tptp::tests::class_dependencies_cannot_read_definitions_from_excluded_documents
+        PASS [   0.014s] ( 85/103) gmeow-logic-compile tptp::tests::deduplicated_class_axiom_remains_required_with_one_selected_contributor
+        PASS [   0.014s] ( 86/103) gmeow-logic-compile tptp::tests::reified_applications_preserve_property_identity_at_admitted_source_arities
+        PASS [   0.004s] ( 87/103) gmeow-logic-compile tptp::tests::selected_formula_with_term_equal_is_a_required_blocker
+        PASS [   0.004s] ( 88/103) gmeow-logic-compile tptp::tests::serialized_admission_is_observation_data_not_compiler_authority
+        PASS [   0.004s] ( 89/103) gmeow-logic-compile tptp::tests::top_and_bottom_class_membership_have_their_defined_meaning
+        PASS [   0.004s] ( 90/103) gmeow-logic-compile tptp::tests::source_identity_binds_the_complete_base_receipt
+        PASS [   0.005s] ( 91/103) gmeow-logic-compile tptp::tests::structural_owner_does_not_hide_an_unrelated_domain_assertion
+        PASS [   0.005s] ( 92/103) gmeow-logic-compile tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax
+        PASS [   0.004s] ( 93/103) gmeow-logic-compile tptp::tests::unselected_class_expression_does_not_block_selected_document
+        PASS [   0.004s] ( 94/103) gmeow-logic-compile tptp::tests::unary_application_and_membership_share_one_interpretation_without_a_declaration_switch
+        PASS [   0.004s] ( 95/103) gmeow-logic-compile tptp::tests::unselected_contextual_reification_does_not_block_selected_document
+        PASS [   0.066s] ( 96/103) gmeow-conformance external::tptp::lower_fol::tests::open_model_is_consistent
+        PASS [   0.066s] ( 97/103) gmeow-conformance external::tptp::lower_fol::tests::ground_unary_non_theorem_refutes_to_consistent
+        PASS [   0.066s] ( 98/103) gmeow-conformance external::tptp::lower_fol::tests::disjointness_clash_is_inconsistent
+        PASS [   0.066s] ( 99/103) gmeow-conformance external::tptp::lower_fol::tests::subclass_non_theorem_is_consistent
+        PASS [   0.066s] (100/103) gmeow-conformance external::tptp::lower_fol::tests::subclass_theorem_refutes_via_fresh_witness
+        PASS [   0.066s] (101/103) gmeow-conformance external::tptp::lower_fol::tests::ground_unary_theorem_refutes_to_inconsistent
+        PASS [   0.066s] (102/103) gmeow-conformance external::tptp::lower_fol::tests::implication_to_negation_is_disjointness
+        PASS [   0.067s] (103/103) gmeow-conformance external::tptp::lower_fol::tests::cnf_disjointness_clash_is_inconsistent
+────────────
+     Summary [   0.103s] 103 tests run: 103 passed, 7311 skipped

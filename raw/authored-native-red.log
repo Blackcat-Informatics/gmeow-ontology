@@ -1,0 +1,55 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & test(native_rule_statement_layer_survives_the_production_gts_profile)' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 26s
+────────────
+ Nextest run ID 3c3c34ce-4b16-4798-b4c5-868adec62bba with nextest profile: ci
+    Starting 1 test across 25 binaries (1031 tests and 200 binaries skipped)
+        FAIL [   0.015s] (1/1) gmeow-pipeline stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+  stdout ───
+
+    running 1 test
+    test stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile ... FAILED
+
+    failures:
+
+    failures:
+        stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 953 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile' (2930462) panicked at crates/pipeline/src/stages/carrier.logic_graph_golden_tests.rs:49:10:
+    the production authored-default boundary carries native rule quotations: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "stage stage-gts-sink failed: graph <default> carries a quoted-triple (<<>>) object that the base-quad fold would not represent; the RDF-1.2 statement layer must ride the reifier/annotation tables, not a base quad", context: [], antecedents: [], source: Some(StageFailed { stage: "stage-gts-sink", message: "graph <default> carries a quoted-triple (<<>>) object that the base-quad fold would not represent; the RDF-1.2 statement layer must ride the reifier/annotation tables, not a base quad" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/pipeline/src/stages/carrier.rs", line: 4440, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.072s] 1 test run: 0 passed, 1 failed, 1031 skipped
+        FAIL [   0.015s] (1/1) gmeow-pipeline stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+  stdout ───
+
+    running 1 test
+    test stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile ... FAILED
+
+    failures:
+
+    failures:
+        stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 953 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile' (2930462) panicked at crates/pipeline/src/stages/carrier.logic_graph_golden_tests.rs:49:10:
+    the production authored-default boundary carries native rule quotations: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "stage stage-gts-sink failed: graph <default> carries a quoted-triple (<<>>) object that the base-quad fold would not represent; the RDF-1.2 statement layer must ride the reifier/annotation tables, not a base quad", context: [], antecedents: [], source: Some(StageFailed { stage: "stage-gts-sink", message: "graph <default> carries a quoted-triple (<<>>) object that the base-quad fold would not represent; the RDF-1.2 statement layer must ride the reifier/annotation tables, not a base quad" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/pipeline/src/stages/carrier.rs", line: 4440, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:705: nextest-synthetic] Error 100

@@ -1,0 +1,277 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-bridge)
+error[E0308]: mismatched types
+   --> crates/math-lift/src/r/lift.rs:621:28
+    |
+612 |     fn resolve_fit(&self, expr: Option<&RExpr>) -> Option<FitInfo> {
+    |                                                    --------------- expected `std::option::Option<r::lift::FitInfo>` because of return type
+...
+621 |                     return Ok(None);
+    |                            ^^^^^^^^ expected `Option<FitInfo>`, found `Result<Option<_>, _>`
+    |
+    = note: expected enum `Option<r::lift::FitInfo>`
+               found enum `std::result::Result<Option<_>, _>`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-math-lift` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-math-lift` (lib test) due to 1 previous error
+error: unused `std::result::Result` that must be used
+   --> crates/lang-bridge/src/gmn1_codec.rs:220:13
+    |
+220 |             builder.push_owned_quad(quad);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `-D unused-must-use` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+    |
+220 |             let _ = builder.push_owned_quad(quad);
+    |             +++++++
+
+error: unused `std::result::Result` that must be used
+   --> crates/lang-bridge/src/gmn1_witness.rs:345:9
+    |
+345 |         builder.push_owned_quad(quad);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+345 |         let _ = builder.push_owned_quad(quad);
+    |         +++++++
+
+error: could not compile `gmeow-lang-bridge` (lib) due to 2 previous errors
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:13
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |             ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:23
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |                       ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:32
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |                                ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:171:43
+     |
+ 171 |     builder.push_quad(subject, predicate, addition, None);
+     |                                           ^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 171 |     builder.push_quad(subject.expect("REASON"), predicate, addition, None);
+     |                              +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 171 |     builder.push_quad(subject, predicate.expect("REASON"), addition, None);
+     |                                         +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 171 |     builder.push_quad(subject, predicate, addition.expect("REASON"), None);
+     |                                                   +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:7
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |       ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:17
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |                 ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:20
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |                    ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:674:23
+     |
+ 674 |     b.push_quad(s, p, o, None);
+     |                       ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 674 |     b.push_quad(s.expect("REASON"), p, o, None);
+     |                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 674 |     b.push_quad(s, p.expect("REASON"), o, None);
+     |                     +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 674 |     b.push_quad(s, p, o.expect("REASON"), None);
+     |                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:7
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |       ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:17
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |                 ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:20
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |                    ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:692:23
+     |
+ 692 |     b.push_quad(s, p, o, None);
+     |                       ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 692 |     b.push_quad(s.expect("REASON"), p, o, None);
+     |                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 692 |     b.push_quad(s, p.expect("REASON"), o, None);
+     |                     +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 692 |     b.push_quad(s, p, o.expect("REASON"), None);
+     |                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:7
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |       ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:17
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |                 ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:20
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |                    ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_codec.tests.rs:777:23
+     |
+ 777 |     b.push_quad(s, p, o, None);
+     |                       ^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 777 |     b.push_quad(s.expect("REASON"), p, o, None);
+     |                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 777 |     b.push_quad(s, p.expect("REASON"), o, None);
+     |                     +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+ 777 |     b.push_quad(s, p, o.expect("REASON"), None);
+     |                        +++++++++++++++++
+
+error[E0308]: arguments to this method are incorrect
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:17
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                 ^^^^^^^^^
+     |
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:27
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                           ^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:36
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                                    ^^^^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: expected `TermId`, found `Result<TermId, StorageError>`
+    --> crates/lang-bridge/src/gmn1_digest.tests.rs:54:47
+     |
+  54 |         builder.push_quad(subject, predicate, object, None);
+     |                                               ^^^^^^
+     = note: expected struct `TermId`
+                  found enum `std::result::Result<TermId, purrdf_lex::allocation::StorageError>`
+note: method defined here
+    --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/7734b01/crates/rdf-core/src/ir/builder.rs:2546:12
+     |
+2546 |     pub fn push_quad(
+     |            ^^^^^^^^^
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  54 |         builder.push_quad(subject.expect("REASON"), predicate, object, None);
+     |                                  +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  54 |         builder.push_quad(subject, predicate.expect("REASON"), object, None);
+     |                                             +++++++++++++++++
+help: consider using `Result::expect` to unwrap the `std::result::Result<purrdf::TermId, purrdf_lex::allocation::StorageError>` value, panicking if the value is a `Result::Err`
+     |
+  54 |         builder.push_quad(subject, predicate, object.expect("REASON"), None);
+     |                                                     +++++++++++++++++
+
+error: could not compile `gmeow-lang-bridge` (lib test) due to 5 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

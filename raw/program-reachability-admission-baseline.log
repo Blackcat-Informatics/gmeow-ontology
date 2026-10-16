@@ -1,0 +1,57 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Finished `test` profile [optimized] target(s) in 2m 01s
+────────────
+ Nextest run ID 93287724-f7f5-4a24-bb31-ae7869f0dde9 with nextest profile: ci
+    Starting 1 test across 26 binaries (2295 tests and 199 binaries skipped)
+        FAIL [   0.048s] (1/1) gmeow-logic obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source' (2956216) panicked at crates/logic/src/obligations/program_tests.rs:279:9:
+    assertion `left == right` failed: with_schema=true
+      left: SyntacticallyDischarged
+     right: Unknown
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.068s] 1 test run: 0 passed, 1 failed, 2295 skipped
+        FAIL [   0.048s] (1/1) gmeow-logic obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+  stdout ───
+
+    running 1 test
+    test obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source ... FAILED
+
+    failures:
+
+    failures:
+        obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2071 filtered out; finished in 0.04s
+
+  stderr ───
+
+    thread 'obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source' (2956216) panicked at crates/logic/src/obligations/program_tests.rs:279:9:
+    assertion `left == right` failed: with_schema=true
+      left: SyntacticallyDischarged
+     right: Unknown
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:709: nextest-synthetic] Error 100

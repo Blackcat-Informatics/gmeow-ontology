@@ -1,0 +1,314 @@
+{
+  "issue": 1757,
+  "branch": "paudley/1757-perf-logic-finish-merged-pipeline",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "a794c70b3cba86870c41a302815fe92c7a4e09c7",
+      "subject": "fix(slices): qualify datatype-property counts by a data range, not owl:Thing",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "f06f59e5c5b088b064344f11ca8e453a88c7c352",
+      "subject": "fix(slices): state logic:message values as the plain strings its range declares",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "5d43eb77fb87ab53f39fea4fe2f5971cac0aa6d3",
+      "subject": "refactor(1757): memoize class clashes through the map entry",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "4e5196fd03789322592e78e65163e82012884624",
+      "subject": "perf(1757): evaluate cardinality bound clashes once per class",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "a261317e24944f9d76d4c69694e537c37af4dcc9",
+      "subject": "fix(1757): report native family cost and an oversized receipt's composition",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "f0ae39bba4dc56f0588cac6847f770fff55a0217",
+      "subject": "fix(1757): count qualified-count qualifiers by meaning, not spelling",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "96b1ac63ae4fe2c08ee030d04f6145395bebd752",
+      "subject": "fix(1757): name the obstruction that withholds completed native reads",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "a66869a6505de1a66783dac453e2f854494cb628",
+      "subject": "fix(1757): keep blocked native reads visible on the reasoning verdict",
+      "date": "2026-10-05"
+    },
+    {
+      "oid": "2a942b70fb740c076d790e6dd1e07dddbc859951",
+      "subject": "fix(1757): admit xsd:anyURI as an intrinsic primitive datatype",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "f5b0c00df2d5083ca6970430c16c441ad6e34a16",
+      "subject": "fix(1757): name the datatype node that lacks a complete constructor",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "61fc549fbc10e648da0d98d68be8e928196f54fc",
+      "subject": "fix(1757): admit definition writes that only re-derive asserted statements",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "3238773a2ce428648feaa5ed6323596ecf837fd4",
+      "subject": "fix(1757): admit clash commitments under a source-bound contextual grammar",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "bce830888032bc6e3db396f6d28dd2f5c4a436c5",
+      "subject": "fix(1757): name the write that changes a selected definition grammar",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "a95adedf4825672788952232818c99fb80903068",
+      "subject": "fix(1796): read a Thing filler as any successor in restricted triggers",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "1f80fdcb01ba0b020e996a3c9e45cfa15b62dc35",
+      "subject": "perf(1796): trace why a restricted trigger closure does not block",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "c3e9669f0ba1033ae40c8a75b9a003f3928430ed",
+      "subject": "perf(1796): name the members of a remaining restricted cycle",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "d677fbe1b460bb3b35fc06e8479f259f80e87f92",
+      "subject": "fix(1796): read joint acyclicity off the weak-acyclicity position graph",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "e0cda306c7962582d8004d84b4b3a2a9de3528f3",
+      "subject": "perf(1796): report restricted-candidate sizes before the trigger checks",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "ce276d4e886fc646a33c52a4a6b6485bfff385be",
+      "subject": "perf(1796): skip restricted-trigger closures that cannot reach the head",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "4c6c7844e0626088911d7aa0081976fadcb827a1",
+      "subject": "perf(1796): check restricted triggers only inside joint-acyclicity components",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "770e4dcd8cecdd589f0c26c96515c96d1f942bb6",
+      "subject": "perf(1796): build restricted joint acyclicity on the shared joint graph",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "3093dfd1893449c66b9df19d5d3fa5a8ea0a7292",
+      "subject": "perf(1796): index restricted-trigger closures by body predicate",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "92068d6292b81aefe620564ffbbfbb59061b78b1",
+      "subject": "refactor(1757): name the joint-graph frontier type",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "895166f8b588b285a4ff50c325c3989aa90a6b3c",
+      "subject": "perf(1757): compute joint acyclicity in linear Horn propagation",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "c7c5a20c870809c69e3df414b68a642c638f7768",
+      "subject": "fix(1796): read witness-family summaries per rule on the position rungs",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "da8d326b42a3e3fb6bfbe2833b8fab7c0aa653b4",
+      "subject": "fix(1796): let exact count-1 witness families climb the polynomial ladder",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "4e7c7f2a7982004d21310002eb2cb20162a611e6",
+      "subject": "fix(1795): bind termination specializations from closed witness-free relations",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "7a285ccfb305d15a9272449108afdcc239aadee6",
+      "subject": "fix(1795): encode termination statements per atom with fresh-null keys",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "a465c997012fd77020dd692d7ea87f9c5d0c8e87",
+      "subject": "feat(1796): certify restricted joint acyclicity",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "12e5c4f8a395971c49126dbcdb6d822eb04f635f",
+      "subject": "feat(1796): apply Datalog-first to every chase executor and producer",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "0e9a889a4ee167f56cac1c2f46e5fd7a45f96c35",
+      "subject": "feat(1796): run the restricted chase Datalog-first",
+      "date": "2026-10-04"
+    },
+    {
+      "oid": "51b7abd40cbdccf79c525086a853a2ec132ffc1d",
+      "subject": "fix(1789): specialize termination analysis without combinatorial products",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "14e32bf7ea2c3c0a532e47296bf53b0f681a196d",
+      "subject": "wip(1789): project immutable join solutions before specializing",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "0c82e4d0809b1e0ef5823ef096a865b49a181910",
+      "subject": "fix(1789): size the input-specific termination certificate for production",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "71a47243e24a09ee42c1b0f6d1216fe199c20ca6",
+      "subject": "fix(1789): join wildcard class positions only along real flows",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "286d6aebf50c2b0933518970110a9c6fc569ef0f",
+      "subject": "fix(1789): restore source-constant enrichment from every selector row",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "fccef9ccb8e01c1f3495d65291c96cc2cf607dd8",
+      "subject": "feat(1789): name the heaviest predicates of an undecided termination bound",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "f65f12cb454728a1b90d39c406b7df8f4f11da3d",
+      "subject": "style(1757): clear the branch's clippy debt in value flow and chase",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "a5a0a0bb9f27bf6a49349e8cab3e1487fb4cf33f",
+      "subject": "fix(1789): decide the input-specific termination certificate at production scale",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "fee7e66b5663a0fc1a522397ff3f6e0828300a1f",
+      "subject": "perf(1757): hash-cons value-flow support rows",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "82f5c325048dcd4dea675f5651dc06ea6b69a3d7",
+      "subject": "feat(1757): trace support bytes and transposed dense rows per large head",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "1401ffbec1006c212ae2c3d2c9a300534c2c4359",
+      "subject": "feat(1757): trace the resident footprint of large value-flow closures",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "cbecc6f6e1e03446e3d4e6f4f6e64599997a7446",
+      "subject": "test(1757): the class-partitioned closure equals the per-candidate closure",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "01ee8f0d3b8fbd6bb115c2a59928ffc4ca0b3ed2",
+      "subject": "feat(1757): name the world and boundary of a refused native source",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "7934ff3a524730ad417b8e3e8a8c46295e33fd80",
+      "subject": "perf(1757): identify support rows by nonzero words, not members",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "5c8e931ca00dfddf7db782513e7fd296d6e2b6d8",
+      "subject": "perf(1757): refine value classes over live values only",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "2eb436874ef1d496796e7b2cbda2a7018dcb9368",
+      "subject": "perf(1757): keep dense value-flow rows word-level in refinement",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "9f9b2ac1453667ab6dd4e7bb06fa28130026a0ee",
+      "subject": "perf(1757): refine value classes by partition, not materialized signatures",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "40588d5d89b68b2c1f8f9bd74c1f2c92e27a20ff",
+      "subject": "perf(1757): evaluate one representative per exchangeable value class",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "fa479b8fc652e60948c32c119c507e59b9d95c7e",
+      "subject": "perf(1757): close value-flow refinement in topological component order",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "af3c6919016ca6fa1b6796753c03a6c60ba94dab",
+      "subject": "perf(1757): batch rectangle supports in value-flow refinement",
+      "date": "2026-10-03"
+    },
+    {
+      "oid": "74b9417d1dc5203f91741d296372eda940108f02",
+      "subject": "fix(1757): certify chase termination over firing producers only",
+      "date": "2026-10-02"
+    },
+    {
+      "oid": "8b5f885c06e124d6b22d7bfbbe08d95d5f9dc860",
+      "subject": "perf(1757): trace and restructure the native reasoner critical path",
+      "date": "2026-10-02"
+    }
+  ],
+  "files": [
+    "crates/logic/src/physical/chase.rs",
+    "crates/logic/src/physical/chase.tests.rs",
+    "crates/logic/src/physical/effects.rs",
+    "crates/logic/src/physical/effects/tests.rs",
+    "crates/logic/src/physical/effects/value_flow.rs",
+    "crates/logic/src/physical/seminaive/joint.rs",
+    "crates/logic/src/physical/seminaive/joint/families.rs",
+    "crates/logic/src/physical/seminaive/joint/families/analysis.rs",
+    "crates/logic/src/physical/seminaive/joint/input.rs",
+    "crates/logic/src/physical/seminaive/joint/input/admission.rs",
+    "crates/logic/src/physical/seminaive/joint/input/admission_tests.rs",
+    "crates/logic/src/physical/seminaive/joint/input/tests.rs",
+    "crates/logic/src/physical/seminaive/property.rs",
+    "crates/logic/src/physical/seminaive/property/datatype.rs",
+    "crates/logic/src/physical/seminaive/property/datatype.tests.rs",
+    "crates/logic/src/physical/seminaive/property/datatype/extent.rs",
+    "crates/logic/src/physical/seminaive/property/minimum.rs",
+    "crates/logic/src/reason/dl.rs",
+    "crates/logic/src/reason/program/list_tests.rs",
+    "crates/logic/src/reason/program/minimum_tests.rs",
+    "crates/logic/src/reason/refute/counting.rs",
+    "crates/logic/src/reason/refute/native/tests.rs",
+    "crates/logic/src/reason/value.rs",
+    "crates/logic/src/result.rs",
+    "crates/logic/src/result_rdf/native.rs",
+    "crates/pipeline/src/stages/docs_render.rs",
+    "slices/core/affect/module.ttl",
+    "slices/core/agentic/module.ttl",
+    "slices/core/calendar/module.ttl",
+    "slices/core/gts/module.ttl",
+    "slices/core/norms/module.ttl",
+    "slices/extensions/images/module.ttl",
+    "slices/grounding/lang/module.ttl",
+    "slices/grounding/logic/design/LOGIC-PERFORMANCE.md",
+    "slices/grounding/logic/module.ttl",
+    "slices/grounding/math/module.ttl",
+    "slices/vocabulary.ttl"
+  ],
+  "adrs_touched": [
+    "0042"
+  ]
+}

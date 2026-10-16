@@ -1,0 +1,39 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...............................................................Passed
+check json...............................................................Passed
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...............................................................Passed
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1757-perf-logic-finish-merged-pipeline eca80ae00] refactor: integrate pinned PurRDF APIs and native reasoning repairs
+ 509 files changed, 20088 insertions(+), 9222 deletions(-)
+ create mode 100644 crates/docs-model/src/reviewed_coverage.rs
+ create mode 100644 crates/docs-model/src/reviewed_coverage.tests.rs
+ create mode 100644 crates/errors/src/render/finding_rdf.tests.rs
+ create mode 100644 crates/gmeow-cli/src/commands/reasoning_input.rs
+ create mode 100644 crates/helper-census/src/error.rs
+ create mode 100644 crates/logic-compile/src/frontend/source_admission/classes.rs
+ create mode 100644 crates/logic/src/obligations/assessment.rs
+ create mode 100644 crates/logic/src/obligations/program_tests.rs
+ create mode 100644 crates/logic/src/obligations/reachability.rs
+ create mode 100644 crates/logic/src/physical/effects/reachability.rs
+ create mode 100644 crates/logic/src/physical/seminaive/joint/input/reachability.rs
+ create mode 100644 crates/logic/src/physical/seminaive/joint/source_grammar.rs
+ create mode 100644 crates/logic/src/physical/seminaive/joint/source_grammar.tests.rs
+ create mode 100644 crates/logic/src/reason/refute/native/source_support.rs
+ create mode 100644 crates/logic/src/reason/value.tests.rs
+ create mode 100644 crates/pipeline/src/stages/compile_logic/list_corpus.rs
+ create mode 100644 crates/pipeline/src/stages/compile_logic/list_corpus.tests.rs
+ create mode 100644 crates/pipeline/src/stages/conformance/reviewed_translations.rs

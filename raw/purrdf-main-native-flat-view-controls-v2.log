@@ -1,0 +1,57 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(validation_flat_view_keeps_statement_metadata_and_original_worlds)' --no-tests=fail
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+error[E0277]: the trait bound `std::result::Result<purrdf::TermValue, TermLookupError>: std::hash::Hash` is not satisfied
+    --> crates/validate/src/data_validate.tests.rs:114:10
+     |
+ 114 |         .collect();
+     |          ^^^^^^^ the trait `std::hash::Hash` is not implemented for `std::result::Result<purrdf::TermValue, TermLookupError>`
+     |
+help: the trait `std::hash::Hash` is conditionally implemented for `std::result::Result<T, E>`
+    --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/core/src/result.rs:553:23
+     |
+ 553 | #[derive(Copy, Debug, Hash)]
+     |                       ^^^^
+...
+ 558 | pub enum Result<T, E> {
+     |                    - unsatisfied requirement introduced here: `_: std::hash::Hash`
+     = note: required for `std::collections::HashSet<std::result::Result<purrdf::TermValue, TermLookupError>>` to implement `FromIterator<std::result::Result<purrdf::TermValue, TermLookupError>>`
+note: required by a bound in `std::iter::Iterator::collect`
+    --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/core/src/iter/traits/iterator.rs:2087:19
+     |
+  42 | pub const trait Iterator {
+...
+2087 |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+
+error[E0277]: the trait bound `std::result::Result<purrdf::TermValue, TermLookupError>: std::hash::Hash` is not satisfied
+    --> crates/validate/src/data_validate.tests.rs:118:10
+     |
+ 118 |         .collect();
+     |          ^^^^^^^ the trait `std::hash::Hash` is not implemented for `std::result::Result<purrdf::TermValue, TermLookupError>`
+     |
+help: the trait `std::hash::Hash` is conditionally implemented for `std::result::Result<T, E>`
+    --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/core/src/result.rs:553:23
+     |
+ 553 | #[derive(Copy, Debug, Hash)]
+     |                       ^^^^
+...
+ 558 | pub enum Result<T, E> {
+     |                    - unsatisfied requirement introduced here: `_: std::hash::Hash`
+     = note: required for `std::collections::HashSet<std::result::Result<purrdf::TermValue, TermLookupError>>` to implement `FromIterator<std::result::Result<purrdf::TermValue, TermLookupError>>`
+note: required by a bound in `std::iter::Iterator::collect`
+    --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/core/src/iter/traits/iterator.rs:2087:19
+     |
+  42 | pub const trait Iterator {
+...
+2087 |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-validate` (lib test) due to 2 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:709: nextest-synthetic] Error 101

@@ -1,0 +1,192 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets -- -D warnings
+    Blocking waiting for file lock on build directory
+    Checking purrdf-lex v3.0.0
+    Checking purrdf-deflate v3.0.0
+    Checking block-buffer v0.12.1
+    Checking inout v0.2.2
+    Checking regex v1.13.1
+    Checking bitflags v2.13.1
+    Checking indexmap v2.14.0
+    Checking universal-hash v0.6.1
+    Checking digest v0.10.7
+    Checking half v2.7.1
+    Checking toml_datetime v0.6.11
+    Checking serde_spanned v0.6.9
+    Checking serde_spanned v1.1.1
+    Checking toml_datetime v1.1.1+spec-1.1.0
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/build-inputs)
+    Checking percent-encoding v2.3.2
+    Checking similar v2.7.0
+    Checking num-bigint v0.4.8
+    Checking flate2 v1.1.9
+    Checking icu_properties_data v2.2.0
+    Checking tinystr v0.8.3
+    Checking potential_utf v0.1.5
+    Checking parking_lot v0.12.5
+    Checking ahash v0.8.12
+    Checking sha2 v0.10.9
+    Checking tinyvec_macros v0.1.1
+    Checking aead v0.6.1
+    Checking zeroize v1.9.0
+    Checking getrandom v0.2.17
+    Checking toml v1.1.3+spec-1.1.0
+    Checking untrusted v0.9.0
+    Checking polyval v0.7.3
+    Checking ref-cast v1.0.26
+    Checking num-iter v0.1.46
+    Checking num-complex v0.4.6
+    Checking tinyvec v1.12.0
+    Checking borrow-or-share v0.2.4
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+    Checking rustls-pki-types v1.15.1
+    Checking digest v0.11.3
+    Checking cipher v0.5.2
+    Checking icu_collections v2.2.0
+    Checking toml_edit v0.22.27
+    Checking petgraph v0.8.3
+    Checking icu_locale_core v2.2.0
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-import)
+    Checking bytes v1.12.1
+    Checking rustix v1.1.4
+    Checking foldhash v0.2.0
+    Checking gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/lang-form)
+    Checking ciborium-ll v0.2.2
+    Checking fluent-uri v0.4.1
+    Checking ghash v0.6.0
+    Checking aes v0.9.3
+    Checking ctr v0.10.1
+    Checking httparse v1.10.1
+    Checking vsimd v0.8.0
+    Checking num-rational v0.4.2
+    Checking ring v0.17.14
+    Checking cargo-config2 v0.1.45
+    Checking purrdf-iri v3.0.0
+    Checking purrdf-xsd v3.0.0
+    Checking micromap v0.3.0
+    Checking outref v0.5.2
+    Checking subtle v2.6.1
+    Checking http v1.4.2
+    Checking ciborium v0.2.2
+    Checking unicode-general-category v1.1.0
+    Checking fancy-regex v0.18.0
+    Checking email_address v0.2.9
+    Checking uuid-simd v0.8.0
+    Checking jsonschema-regex v0.46.10
+    Checking icu_provider v2.2.0
+    Checking num-cmp v0.1.0
+    Checking data-encoding v2.11.0
+    Checking utf8-zero v0.8.1
+    Checking num v0.4.3
+    Checking bytecount v0.6.9
+    Checking toml v0.8.23
+    Checking ureq-proto v0.6.0
+    Checking unicode-normalization v0.1.25
+    Checking console v0.16.4
+    Checking semver v1.0.28
+    Checking purrdf-cdt v3.0.0
+    Checking unicode-script v0.5.8
+    Checking rustc-hash v2.1.3
+    Checking bstr v1.13.0
+    Checking anyhow v1.0.104
+    Checking fancy-regex v0.17.0
+    Checking tempfile v3.27.0
+    Checking anstyle v1.0.14
+    Checking aes-gcm v0.11.1
+    Checking utf8parse v0.2.2
+    Checking is_terminal_polyfill v1.70.2
+    Checking anstyle-query v1.1.5
+    Checking colorchoice v1.0.5
+    Checking anstyle-parse v1.0.0
+    Checking same-file v1.0.6
+    Checking hashbrown v0.16.1
+    Checking clap_lex v1.1.0
+    Checking strsim v0.11.1
+    Checking walkdir v2.5.0
+    Checking ppv-lite86 v0.2.21
+    Checking fnv v1.0.7
+    Checking rustls-webpki v0.103.13
+    Checking webpki-roots v1.0.9
+    Checking gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/license)
+    Checking memmap2 v0.9.11
+    Checking pulldown-cmark-escape v0.11.0
+    Checking memo-map v0.3.3
+    Checking unicase v2.9.0
+    Checking gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/cost-measure)
+    Checking thiserror v2.0.19
+    Checking minijinja v2.21.0
+    Checking bytemuck v1.25.2
+    Checking libm v0.2.16
+    Checking yoke v0.7.5
+    Checking ryu v1.0.23
+    Checking sha2 v0.11.0
+    Checking wait-timeout v0.2.1
+    Checking fraction v0.15.4
+    Checking siphasher v1.0.3
+    Checking litemap v0.7.5
+    Checking unicode-segmentation v1.13.3
+    Checking icu_normalizer v2.2.0
+    Checking icu_properties v2.2.0
+    Checking tiktoken-rs v0.12.0
+    Checking core_maths v0.1.1
+    Checking anstyle-parse v0.2.7
+    Checking referencing v0.46.10
+    Checking rapidhash v4.5.1
+    Checking either-or-both v0.3.1
+    Checking itertools v0.10.5
+    Checking writeable v0.5.5
+    Checking insta v1.48.0
+    Checking cobs v0.3.0
+    Checking unicode-security v0.1.2
+    Checking pulldown-cmark v0.13.4
+    Checking unty-next v0.1.2
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/action-cache)
+    Checking cast v0.3.0
+    Checking postcard v1.1.3
+    Checking anstream v1.0.0
+    Checking anstream v0.6.21
+    Checking derive_more v2.1.1
+    Checking fdeflate v0.3.7
+    Checking zerovec v0.10.4
+    Checking purrdf-sparql-algebra v3.0.0
+    Checking tinytemplate v1.2.1
+    Checking is-terminal v0.4.17
+    Checking bincode-next v3.1.1
+    Checking clap_builder v4.6.2
+    Checking float-cmp v0.9.0
+    Checking gungraun-runner v0.19.4
+    Checking anes v0.1.6
+    Checking oorandom v11.1.5
+    Checking strict-num v0.1.1
+    Checking purrdf-core v3.0.0
+    Checking purrdf-ed25519 v3.0.0
+    Checking ttf-parser v0.24.1
+error: large size difference between variants
+   --> crates/action-cache/src/executable.rs:110:1
+    |
+110 | /  pub enum ReceiptDocument {
+111 | |      Current(ExecutableReceipt),
+    | |      -------------------------- the largest variant contains at least 624 bytes
+112 | |/     Unsupported {
+113 | ||         receipt_schema: u32,
+114 | ||         recipe_schema: u32,
+115 | ||     },
+    | ||_____- the second-largest variant contains at least 8 bytes
+116 | |  }
+    | |__^ the entire enum is at least 624 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+111 -     Current(ExecutableReceipt),
+111 +     Current(Box<ExecutableReceipt>),
+    |
+
+error: could not compile `gmeow-action-cache` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+make: *** [Makefile:289: clippy-prebuild] Error 101
