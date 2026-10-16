@@ -478,6 +478,7 @@ impl Stage for CompileLogicStage {
         // program would violate no-optionality.
         CachePolicy::Persistent
     }
+    /// Invalidate prior products that lack original complete-source admission evidence.
     fn impl_version(&self) -> &str {
         "compile-logic.v42-canon-proof-admission"
     }
@@ -499,6 +500,7 @@ impl Stage for CompileLogicStage {
         files.extend(projection_fixtures::input_files(root));
         Ok(files)
     }
+    /// Keep original-source admission separate from the augmented projection program.
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let catalog = crate::stages::parse_sources::catalog(&input)?;
         let theory = catalog.compiled_logic()?;

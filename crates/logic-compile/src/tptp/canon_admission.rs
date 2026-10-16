@@ -75,6 +75,7 @@ impl CanonAdmissionPublication {
     }
 }
 
+/// Preserve publication refusal under the shared frontend diagnostic code and grade.
 fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Frontend {
         detail: detail.into(),

@@ -61,6 +61,7 @@ fn repo_root() -> std::path::PathBuf {
 }
 
 #[test]
+/// Fold required reasoning observations from inert stage products and reject omissions.
 fn build_reasoning_blob_folds_the_report_artifacts() {
     // Construct a fake stage-reason product with the two report artifacts (avoids
     // running the reasoner); proves the wiring (rep, keys, fail-closed).

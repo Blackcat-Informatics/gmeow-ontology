@@ -373,6 +373,7 @@ struct AdmissionBuilder<'a> {
 }
 
 impl<'a> AdmissionBuilder<'a> {
+    /// Bind one immutable compilation and its occurrence index to the exact selection.
     fn new(theory: &'a CompiledTheory, selection: SourceSelection) -> Self {
         let selected_documents = match &selection.documents {
             DocumentSelection::AnonymousSource => BTreeSet::new(),
@@ -1133,6 +1134,7 @@ impl<'a> AdmissionBuilder<'a> {
         is_known_procedural(predicate) || self.declared_builtins.contains(predicate)
     }
 
+    /// Resolve provenance before document selection, preserving the statement carrier.
     fn statement_documents(&self, quad: QuadIds, carrier: SourceCarrier) -> BTreeSet<String> {
         self.origins.statement_documents(SourceStatementBinding {
             canonical: quad,
@@ -1145,6 +1147,7 @@ impl<'a> AdmissionBuilder<'a> {
         self.documents_selected(&documents)
     }
 
+    /// Resolve a native node's contributing documents without erasing its graph.
     fn node_documents(&self, node: SourceNode) -> BTreeSet<String> {
         self.origins.node_documents(node)
     }

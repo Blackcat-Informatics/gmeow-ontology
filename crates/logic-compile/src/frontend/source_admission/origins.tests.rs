@@ -4,6 +4,7 @@
 use super::*;
 use crate::frontend::{SourceCarrier, SourceDocument, SourceNodeBinding, SourceOccurrencePosition};
 
+/// Create repeated subject/object occurrences without collapsing carrier identities.
 fn receipt(
     path: &str,
     nodes: &[SourceNode],

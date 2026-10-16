@@ -9,11 +9,13 @@ use purrdf_lex::cbor::Value;
 use super::*;
 use crate::bundle_blobs::REP_REASONING;
 
+/// Package inert members through the real archive codec, without invoking producers.
 fn graph(members: &[(&str, &[u8])]) -> Graph {
     let bytes = purrdf::ustar::write_archive_borrowed(members.iter().copied()).unwrap();
     archive_graph(bytes)
 }
 
+/// Bind retained archive bytes to their actual digest and reasoning representation.
 fn archive_graph(bytes: Vec<u8>) -> Graph {
     let digest = format!("blake3:{}", blake3::hash(&bytes).to_hex());
     let mut graph = Graph::default();
@@ -28,6 +30,7 @@ fn archive_graph(bytes: Vec<u8>) -> Graph {
     graph
 }
 
+/// Give the reader an isolated retained bundle and an initially empty member cache.
 fn bundle(graph: Graph) -> Bundle {
     Bundle {
         view: GtsFoldView::new(graph).unwrap(),

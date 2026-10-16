@@ -23,6 +23,7 @@ mod contract_tests;
 #[path = "canon_admission.tests.rs"]
 mod canon_admission_tests;
 
+/// Compile only the supplied synthetic RDF source, with no corpus or repository inputs.
 fn compile(source: &str) -> crate::frontend::CompiledTheory {
     let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).expect("valid RDF 1.2");
     PreparedLogicSource::new(&dataset)
@@ -31,6 +32,7 @@ fn compile(source: &str) -> crate::frontend::CompiledTheory {
         .expect("compiled source")
 }
 
+/// Compose synthetic documents while retaining original-to-canonical term receipts.
 fn compile_documents(
     sources: &[(&str, &str, Option<SourceBase>)],
 ) -> crate::frontend::CompiledTheory {
@@ -82,6 +84,7 @@ fn compile_documents(
         .expect("compiled source selection")
 }
 
+/// Exercise complete-root admission and the real FOF writer over one tiny source.
 fn project(source: &str) -> (SourceAdmission, super::FofProjection) {
     let theory = compile(source);
     let selection = SourceSelection::all_classical_roots(&theory);
