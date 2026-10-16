@@ -253,7 +253,7 @@ pub fn materialize_reasoned_closure(
     result: &ReasoningResult,
 ) -> gmeow_errors::Result<ReasonedGraphOutcome> {
     match materialize_closure_base(edb, result)? {
-        ClosureBaseOutcome::Ready(base) => finalize_reasoned_graph(edb, base),
+        ClosureBaseOutcome::Ready(base) => finalize_reasoned_graph(edb, *base),
         ClosureBaseOutcome::IncompleteClosure(findings) => {
             Ok(ReasonedGraphOutcome::IncompleteClosure(findings))
         }
@@ -267,7 +267,7 @@ struct ClosureBase {
 }
 
 enum ClosureBaseOutcome {
-    Ready(ClosureBase),
+    Ready(Box<ClosureBase>),
     IncompleteClosure(Vec<Finding>),
 }
 
@@ -281,7 +281,7 @@ fn materialize_closure_base(
     //    statement layer (rdf:reifies reifiers + annotations) into the default
     //    graph, byte-for-byte the same set the oxigraph FlattenToDefaultGraph path
     //    produced.
-    let mut store = MutableDataset::new(Arc::new(RdfDataset::union(&[])));
+    let mut store = MutableDataset::new(purrdf::RdfDatasetBuilder::new().freeze()?);
     for quad in edb.flat_default_graph_quads() {
         store.insert(quad).map_err(reasoned_insert_err)?;
     }
@@ -409,11 +409,11 @@ fn materialize_closure_base(
     // the verify queries reason about like any other data.
     crate::reason::enactment::reject_banned_heads(&derived_rows)?;
 
-    Ok(ClosureBaseOutcome::Ready(ClosureBase {
+    Ok(ClosureBaseOutcome::Ready(Box::new(ClosureBase {
         store,
         derived_edges,
         derived_predicates,
-    }))
+    })))
 }
 
 fn finalize_reasoned_graph(
@@ -477,7 +477,7 @@ fn materialize_with_gates(
     gates: &PreparedReasonedGates,
 ) -> gmeow_errors::Result<ReasonedGraphOutcome> {
     let base = match materialize_closure_base(edb, result)? {
-        ClosureBaseOutcome::Ready(base) => base,
+        ClosureBaseOutcome::Ready(base) => *base,
         ClosureBaseOutcome::IncompleteClosure(findings) => {
             return Ok(ReasonedGraphOutcome::IncompleteClosure(findings));
         }
@@ -624,9 +624,14 @@ fn verify_prepared(
     prepared: &PreparedVerification<'_>,
 ) -> gmeow_errors::Result<Report> {
     let mut report = Report::new("verify");
+    // Governance consumes exact native scope even when an unrelated lane is
+    // incomplete. Positive counterexamples must survive the query gate's refusal.
+    for finding in crate::obligations::check_non_entailment_obligations(result)? {
+        report.add_finding(finding);
+    }
     let ReasonedGraph {
         dataset: reasoned,
-        derived_predicates,
+        derived_predicates: _,
     } = match prepared.materialize_reasoned_graph(edb, result)? {
         ReasonedGraphOutcome::Ready(graph) => graph,
         ReasonedGraphOutcome::IncompleteClosure(findings) => {
@@ -715,19 +720,8 @@ fn verify_prepared(
         report.add_finding(finding);
     }
 
-    // 4. Typed formalization governance (LOGIC-FOUNDATION.md, §Typed formalization
-    //    governance): the executable non-entailment obligation checks (Arm A —
-    //    syntactic reachability over the foundation rule strata, plus the
-    //    unwired-discharge hard error) and the per-category formalization-candidate
-    //    coverage report (with the uncategorized-candidate hard error). Arm B (finite
-    //    closure) is the non-entailment-*.rq negative tests already run above. These
-    //    read the reasoned `store` directly — Rust authority, surfaced through the
-    //    already-wired `make verify` gate.
-    for finding in
-        crate::obligations::check_non_entailment_obligations(&reasoned, &derived_predicates)?
-    {
-        report.add_finding(finding);
-    }
+    // 4. Presentation coverage and prose drift consume the reasoned query view.
+    // Program obligation authority was assessed above from retained native worlds.
     for finding in crate::obligations::formalization_coverage(&reasoned)? {
         report.add_finding(finding);
     }

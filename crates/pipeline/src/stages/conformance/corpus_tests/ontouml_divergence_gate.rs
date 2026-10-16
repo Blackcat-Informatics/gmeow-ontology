@@ -85,6 +85,10 @@ fn ontouml_divergence_cases_are_honest_gaps_never_a_reproduced_verdict() {
             .as_ref()
             .expect("producer observed valid source bytes");
         match observation {
+            Err(OntoumlError::Failure(diagnostic)) => panic!(
+                "{}: native execution failed, not a capability gap: {diagnostic:#}",
+                model_path.display()
+            ),
             // A lowering capability gap (an out-of-fragment stereotype/construct) is honest.
             Err(OntoumlError::Unsupported(_)) => {}
             Err(OntoumlError::Syntax(m)) => panic!(

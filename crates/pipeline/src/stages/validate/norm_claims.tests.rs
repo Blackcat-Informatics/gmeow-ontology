@@ -8,10 +8,12 @@ const ASSESSMENT_CLASS: &str = "https://blackcatinformatics.ca/gmeow/ComplianceA
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 fn add_assessment(builder: &mut RdfDatasetBuilder, subject: &str, class: &str, graph: &str) {
-    builder.push_owned_quad(
-        &purrdf::RdfQuad::new(RdfTerm::iri(subject), RDF_TYPE, RdfTerm::iri(class))
-            .in_graph(RdfTerm::iri(graph)),
-    );
+    builder
+        .push_owned_quad(
+            &purrdf::RdfQuad::new(RdfTerm::iri(subject), RDF_TYPE, RdfTerm::iri(class))
+                .in_graph(RdfTerm::iri(graph)),
+        )
+        .unwrap();
 }
 
 #[test]
@@ -52,25 +54,29 @@ fn shipped_claim_commitment_includes_statement_metadata() {
         let mut builder = RdfDatasetBuilder::new();
         add_assessment(&mut builder, ASSESSMENT, ASSESSMENT_CLASS, GRAPH);
         let reifier = RdfTerm::iri("https://blackcatinformatics.ca/gmeow/claim/evidence");
-        builder.push_owned_reifier(
-            &purrdf::RdfReifier::new(
-                reifier.clone(),
-                purrdf::RdfTriple::new(
-                    RdfTerm::iri(ASSESSMENT),
-                    RDF_TYPE,
-                    RdfTerm::iri(ASSESSMENT_CLASS),
-                ),
+        builder
+            .push_owned_reifier(
+                &purrdf::RdfReifier::new(
+                    reifier.clone(),
+                    purrdf::RdfTriple::new(
+                        RdfTerm::iri(ASSESSMENT),
+                        RDF_TYPE,
+                        RdfTerm::iri(ASSESSMENT_CLASS),
+                    ),
+                )
+                .in_graph(Some(RdfTerm::iri(GRAPH))),
             )
-            .in_graph(Some(RdfTerm::iri(GRAPH))),
-        );
-        builder.push_owned_annotation(
-            &purrdf::RdfAnnotation::new(
-                reifier,
-                "http://www.w3.org/ns/prov#wasDerivedFrom",
-                RdfTerm::iri(evidence),
+            .unwrap();
+        builder
+            .push_owned_annotation(
+                &purrdf::RdfAnnotation::new(
+                    reifier,
+                    "http://www.w3.org/ns/prov#wasDerivedFrom",
+                    RdfTerm::iri(evidence),
+                )
+                .in_graph(Some(RdfTerm::iri(GRAPH))),
             )
-            .in_graph(Some(RdfTerm::iri(GRAPH))),
-        );
+            .unwrap();
         builder.freeze().expect("synthetic claim provenance")
     }
     let first = observe_shipped(&claims("urn:evidence:first")).expect("first observation");

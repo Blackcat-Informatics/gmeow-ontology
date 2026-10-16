@@ -246,18 +246,17 @@ impl NativeContextualJudgment {
         &self,
         budget: &crate::result::BudgetUsage,
     ) -> gmeow_errors::Result<()> {
-        if let Some(stop) = &self.upstream_stop {
-            if self.provenance.consumed_budget.allowance
+        if let Some(stop) = &self.upstream_stop
+            && (self.provenance.consumed_budget.allowance
                 != budget
                     .allowance
                     .map(|limit| limit.saturating_sub(budget.consumed))
                 || (matches!(stop, NativeContextualUpstreamStop::InferenceExhausted)
-                    && budget.limit != Some(crate::result::BudgetLimit::Inference))
-            {
-                return Err(diagnostic(super::super::malformed(
-                    "contextual unvisited allowance changes the actual native inference frontier",
-                )));
-            }
+                    && budget.limit != Some(crate::result::BudgetLimit::Inference)))
+        {
+            return Err(diagnostic(super::super::malformed(
+                "contextual unvisited allowance changes the actual native inference frontier",
+            )));
         }
         Ok(())
     }

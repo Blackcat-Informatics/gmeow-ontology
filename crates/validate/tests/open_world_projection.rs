@@ -30,6 +30,75 @@ use gmeow_validate::instance::{InstanceFormat, validate_instance};
 use purrdf::parse_dataset;
 use purrdf::shapes::{engine, instance, json_schema};
 
+#[test]
+fn canonical_numeric_data_ranges_validate_the_generated_union() {
+    let prefixes = "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
+    let source = format!(
+        "{prefixes}\n\
+        math:ApproximateValue a logic:Class ; logic:subClassOf [\n\
+            a logic:Restriction ; logic:onProperty math:approximationError ;\n\
+            logic:minQualifiedCardinality 1 ;\n\
+            logic:onDataRange [ logic:unionOf (xsd:decimal xsd:double xsd:float) ] ] .\n\
+        math:RootSystem a logic:Class ; logic:subClassOf [\n\
+            a logic:Restriction ; logic:onProperty math:rootSystemRank ;\n\
+            logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ."
+    );
+    let source = parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(&source).unwrap();
+    let mut wire = String::from("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
+    for shape in &shapes {
+        wire.push_str(
+            &gmeow_logic_compile::projections::shapes::project_validation_shape_shacl(shape),
+        );
+    }
+    for (class, property, value, expected) in [
+        ("ApproximateValue", "approximationError", "0.25", true),
+        (
+            "ApproximateValue",
+            "approximationError",
+            "\"0.25\"^^xsd:double",
+            true,
+        ),
+        (
+            "ApproximateValue",
+            "approximationError",
+            "\"0.25\"^^xsd:float",
+            true,
+        ),
+        (
+            "ApproximateValue",
+            "approximationError",
+            "\"not numeric\"",
+            false,
+        ),
+        (
+            "RootSystem",
+            "rootSystemRank",
+            "\"8\"^^xsd:nonNegativeInteger",
+            true,
+        ),
+        (
+            "RootSystem",
+            "rootSystemRank",
+            "\"-1\"^^xsd:nonNegativeInteger",
+            false,
+        ),
+        ("RootSystem", "rootSystemRank", "\"eight\"", false),
+    ] {
+        let data = format!("{prefixes}<urn:instance> a math:{class} ; math:{property} {value} .");
+        assert_eq!(shacl_conforms(&wire, &data), expected, "{class} {value}");
+    }
+    for class in ["ApproximateValue", "RootSystem"] {
+        let data = format!("{prefixes}<urn:instance> a math:{class} .");
+        assert!(
+            !shacl_conforms(&wire, &data),
+            "missing required value on {class}"
+        );
+    }
+}
+
 /// The gmeow namespace table used by both the schema compiler and the JSON-LD
 /// projector — identical to the corpus sweep's, so CURIE compaction matches
 /// production exactly.

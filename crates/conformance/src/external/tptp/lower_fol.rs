@@ -91,7 +91,7 @@ pub enum DecisionError {
     /// Invalid lowered data or failed native execution; never a semantic verdict.
     Failure {
         /// Preserved diagnostic from invalid input or failed execution.
-        detail: String,
+        diagnostic: gmeow_errors::RecordedDiag,
     },
 }
 
@@ -99,7 +99,9 @@ impl std::fmt::Display for DecisionError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Gap(gap) => gap.fmt(formatter),
-            Self::Failure { detail } => write!(formatter, "TPTP execution failed: {detail}"),
+            Self::Failure { diagnostic } => {
+                write!(formatter, "TPTP execution failed: {diagnostic}")
+            }
         }
     }
 }
@@ -112,10 +114,18 @@ impl From<LoweringGap> for DecisionError {
     }
 }
 
-fn execution_failure(detail: impl std::fmt::Display) -> DecisionError {
-    DecisionError::Failure {
-        detail: detail.to_string(),
+impl From<gmeow_errors::Diag> for DecisionError {
+    fn from(error: gmeow_errors::Diag) -> Self {
+        Self::Failure {
+            diagnostic: gmeow_errors::DiagLedger::new()
+                .record(error, gmeow_errors::StageId::new("tptp-native-execution")),
+        }
     }
+}
+
+fn execution_failure(error: impl Into<gmeow_errors::Diag>) -> DecisionError {
+    let diagnostic: gmeow_errors::Diag = error.into();
+    diagnostic.into()
 }
 
 /// A TPTP problem lowered directly to a validated, world-scoped native dataset.
@@ -166,7 +176,7 @@ pub fn lower_problem(
         collect_formula_iris(&formula.formula, &mut vocab);
     }
     let minter = Minter::new(&vocab).map_err(execution_failure)?;
-    let mut edb = NativeEdb::new(world_iri);
+    let mut edb = NativeEdb::new(world_iri)?;
     for formula in formulas {
         match formula.role {
             TptpRole::Premise | TptpRole::NegatedConjecture => {
@@ -199,29 +209,37 @@ struct NativeEdb {
 }
 
 impl NativeEdb {
-    fn new(world_iri: &str) -> Self {
+    fn new(world_iri: &str) -> gmeow_errors::Result<Self> {
         let mut builder = purrdf::RdfDatasetBuilder::new();
-        let world = builder.intern_iri(world_iri);
-        Self {
+        let world = builder.intern_iri(world_iri)?;
+        Ok(Self {
             builder,
             world,
             emitted: false,
-        }
+        })
     }
 
-    fn push(&mut self, (subject, predicate, object): (String, String, String)) {
-        let subject = self.builder.intern_iri(&subject);
-        let predicate = self.builder.intern_iri(&predicate);
-        let object = self.builder.intern_iri(&object);
+    fn push(
+        &mut self,
+        (subject, predicate, object): (String, String, String),
+    ) -> gmeow_errors::Result<()> {
+        let subject = self.builder.intern_iri(&subject)?;
+        let predicate = self.builder.intern_iri(&predicate)?;
+        let object = self.builder.intern_iri(&object)?;
         self.builder
-            .push_quad(subject, predicate, object, Some(self.world));
+            .push_quad(subject, predicate, object, Some(self.world))?;
         self.emitted = true;
+        Ok(())
     }
 
-    fn extend(&mut self, triples: impl IntoIterator<Item = (String, String, String)>) {
+    fn extend(
+        &mut self,
+        triples: impl IntoIterator<Item = (String, String, String)>,
+    ) -> gmeow_errors::Result<()> {
         for triple in triples {
-            self.push(triple);
+            self.push(triple)?;
         }
+        Ok(())
     }
 }
 
@@ -311,18 +329,18 @@ const TPTP_PROGRAM_NS: &str = "https://blackcatinformatics.ca/gmeow/tptp/program
 ///
 /// # Errors
 ///
-/// [`LoweringGap`] when the problem carries no conjecture, more than one conjecture, or any
-/// construct outside the Horn fragment described above.
+/// [`DecisionError::Gap`] when the problem carries no conjecture, more than one
+/// conjecture, or a construct outside the Horn fragment described above.
+/// [`DecisionError::Failure`] retains execution diagnostics, including reserved-symbol
+/// collisions; these are never evidence of an unsupported fragment.
 pub fn lower_to_fol_program(
     formulas: &[AnnotatedFormula],
-) -> Result<ReasoningProgramIr, LoweringGap> {
+) -> Result<ReasoningProgramIr, DecisionError> {
     let mut vocab: BTreeSet<String> = BTreeSet::new();
     for af in formulas {
         collect_formula_iris(&af.formula, &mut vocab);
     }
-    let minter = Minter::new(&vocab).map_err(|e| LoweringGap {
-        reason: format!("entailment minter rejected the problem vocabulary: {e}"),
-    })?;
+    let minter = Minter::new(&vocab)?;
 
     let mut clauses: Vec<Formula> = Vec::new();
     let mut query: Option<Formula> = None;
@@ -332,19 +350,19 @@ pub fn lower_to_fol_program(
                 clauses.push(horn_clause(strip_universals(&af.formula))?);
             }
             TptpRole::Derived => {
-                return Err(gap(format!(
+                return Err(DecisionError::from(gap(format!(
                     "formula {:?} is a derived TSTP step (role `plain`); a derivation is not a \
                      problem and its steps must not be asserted as program clauses",
                     af.name
-                )));
+                ))));
             }
             TptpRole::Conjecture => {
                 if query.is_some() {
-                    return Err(gap(
+                    return Err(DecisionError::from(gap(
                         "the problem carries more than one conjecture; a backward program \
                          resolves exactly one goal"
                             .into(),
-                    ));
+                    )));
                 }
                 let (extra_fact, goal) = horn_goal(&af.formula, &minter)?;
                 if let Some(fact) = extra_fact {
@@ -355,18 +373,18 @@ pub fn lower_to_fol_program(
         }
     }
     let query = query.ok_or_else(|| {
-        gap(
+        DecisionError::from(gap(
             "the problem carries no conjecture, so there is no goal to derive (a backward \
              program is a clause set PLUS a goal)"
                 .into(),
-        )
+        ))
     })?;
     if clauses.is_empty() {
-        return Err(gap(
+        return Err(DecisionError::from(gap(
             "the problem lowered to zero program clauses; a goal with nothing to resolve \
              against derives nothing"
                 .into(),
-        ));
+        )));
     }
 
     // Content-addressed program identity: a pure function of the lowered clause set and
@@ -395,7 +413,11 @@ pub fn lower_to_fol_program(
         Vec::new(),
         Vec::new(),
     )
-    .map_err(|e| gap(format!("lowered backward program is not well-formed: {e}")))
+    .map_err(|e| {
+        DecisionError::from(gap(format!(
+            "lowered backward program is not well-formed: {e}"
+        )))
+    })
 }
 
 /// Peel every leading universal quantifier: a `logic:ReasoningProgram` clause's FREE
@@ -582,47 +604,51 @@ fn horn_goal(
 // ---------------------------------------------------------------------------
 
 /// Assert a premise / negated-conjecture formula as EDB triples.
-fn lower_assertion(f: &Formula, out: &mut NativeEdb) -> Result<(), LoweringGap> {
+fn lower_assertion(f: &Formula, out: &mut NativeEdb) -> Result<(), DecisionError> {
     match f {
         // Ground atom: `C(a)` (type) or `r(a,b)` (role).
         Formula::Atom { relation, args } => {
             let rel = iri_of(relation)?;
             match args.as_slice() {
                 [Term::Iri(a)] => {
-                    out.push((a.clone(), RDF_TYPE.to_string(), rel));
+                    out.push((a.clone(), RDF_TYPE.to_string(), rel))?;
                     Ok(())
                 }
                 [Term::Iri(a), Term::Iri(b)] => {
-                    out.push((a.clone(), rel, b.clone()));
+                    out.push((a.clone(), rel, b.clone()))?;
                     Ok(())
                 }
-                _ => Err(gap(format!(
+                _ => Err(DecisionError::from(gap(format!(
                     "non-ground or non-{{unary,binary}} atom on `{rel}` \
                      (only ground unary/binary atoms are EL-expressible)"
-                ))),
+                )))),
             }
         }
         // Universal rule shapes.
         Formula::Forall { vars, body } => {
             let [var] = vars.as_slice() else {
-                return Err(gap(
+                return Err(DecisionError::from(gap(
                     "multi-variable quantifier block (only single-variable EL axioms are \
                      expressible)"
                         .into(),
-                ));
+                )));
             };
             lower_universal_body(var, body, out)
         }
-        _ => Err(gap(format!(
+        _ => Err(DecisionError::from(gap(format!(
             "premise shape {} is not an EL axiom (expected a ground atom or a \
              single-variable universal rule)",
             shape_name(f)
-        ))),
+        )))),
     }
 }
 
 /// Lower the body of a single-variable `∀X. body` axiom.
-fn lower_universal_body(var: &str, body: &Formula, out: &mut NativeEdb) -> Result<(), LoweringGap> {
+fn lower_universal_body(
+    var: &str,
+    body: &Formula,
+    out: &mut NativeEdb,
+) -> Result<(), DecisionError> {
     match body {
         // `C(X) → D(X)` = subclass; `C(X) → ¬D(X)` = disjointness.
         Formula::Implies(ante, cons) => {
@@ -630,12 +656,12 @@ fn lower_universal_body(var: &str, body: &Formula, out: &mut NativeEdb) -> Resul
             match &**cons {
                 Formula::Not(inner) => {
                     let d = unary_class_over(inner, var)?;
-                    out.push((c, OWL_DISJOINTWITH.to_string(), d));
+                    out.push((c, OWL_DISJOINTWITH.to_string(), d))?;
                     Ok(())
                 }
                 other => {
                     let d = unary_class_over(other, var)?;
-                    out.push((c, RDFS_SUBCLASSOF.to_string(), d));
+                    out.push((c, RDFS_SUBCLASSOF.to_string(), d))?;
                     Ok(())
                 }
             }
@@ -645,14 +671,14 @@ fn lower_universal_body(var: &str, body: &Formula, out: &mut NativeEdb) -> Resul
             Formula::And(conjs) if conjs.len() == 2 => {
                 let c = unary_class_over(&conjs[0], var)?;
                 let d = unary_class_over(&conjs[1], var)?;
-                out.push((c, OWL_DISJOINTWITH.to_string(), d));
+                out.push((c, OWL_DISJOINTWITH.to_string(), d))?;
                 Ok(())
             }
-            _ => Err(gap(
+            _ => Err(DecisionError::from(gap(
                 "negated body is not a binary conjunction (only `¬(C(X) ∧ D(X))` \
                  disjointness is expressible)"
                     .into(),
-            )),
+            ))),
         },
         // A binary CNF clause: `¬C(X) ∨ D(X)` = subclass; `¬C(X) ∨ ¬D(X)` =
         // disjointness. A two-positive clause `C(X) ∨ D(X)` (`⊤ ⊑ C ⊔ D`) is a genuine
@@ -662,27 +688,27 @@ fn lower_universal_body(var: &str, body: &Formula, out: &mut NativeEdb) -> Resul
             let (p1, c1) = classify_literal(&lits[1], var)?;
             match (p0, p1) {
                 // ¬c0 ∨ c1 = c0 ⊑ c1.
-                (false, true) => out.push((c0, RDFS_SUBCLASSOF.to_string(), c1)),
+                (false, true) => out.push((c0, RDFS_SUBCLASSOF.to_string(), c1))?,
                 // c0 ∨ ¬c1 = c1 ⊑ c0.
-                (true, false) => out.push((c1, RDFS_SUBCLASSOF.to_string(), c0)),
+                (true, false) => out.push((c1, RDFS_SUBCLASSOF.to_string(), c0))?,
                 // ¬c0 ∨ ¬c1 = c0 ⊥ c1.
-                (false, false) => out.push((c0, OWL_DISJOINTWITH.to_string(), c1)),
+                (false, false) => out.push((c0, OWL_DISJOINTWITH.to_string(), c1))?,
                 // c0 ∨ c1 = ⊤ ⊑ c0 ⊔ c1 — a disjunctive head, not EL-expressible.
                 (true, true) => {
-                    return Err(gap(
+                    return Err(DecisionError::from(gap(
                         "two-positive clause (`⊤ ⊑ C ⊔ D`) is a disjunction outside the \
                          EL fragment"
                             .into(),
-                    ));
+                    )));
                 }
             }
             Ok(())
         }
-        _ => Err(gap(format!(
+        _ => Err(DecisionError::from(gap(format!(
             "universal body shape {} is not an EL axiom (expected `C(X) → D(X)`, \
              `C(X) → ¬D(X)`, `¬(C(X) ∧ D(X))`, or a binary CNF clause)",
             shape_name(body)
-        ))),
+        )))),
     }
 }
 
@@ -714,7 +740,7 @@ fn lower_negated_conjecture(
     // An admitted GroundType/SubClassOf must be negatable. Failure is an
     // implementation/input error, never evidence of an unsupported shape.
     let negation = entail::negate(&shape, minter).map_err(execution_failure)?;
-    out.extend(negation);
+    out.extend(negation)?;
     Ok(())
 }
 

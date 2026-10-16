@@ -135,6 +135,10 @@ pub(crate) struct PropertyLayout {
     pub(crate) source: PropertyRule,
     source_identity: [u8; 32],
     pub(crate) analysis_body: Vec<PropertyAtom>,
+    /// Each list-member cell `analysis_body` introduces, with the list head it is
+    /// read from. The body leaves the cell unconstrained for value flow; chase
+    /// admission may bind it to the cells actually reachable from that head.
+    pub(crate) analysis_list_cells: Vec<(EvalTerm, EvalTerm)>,
     pub(crate) analysis_heads: Vec<PropertyAtom>,
     /// Generative families depend on every body argument, including definition
     /// and count carriers that do not themselves appear in an emitted statement.
@@ -157,6 +161,13 @@ struct SourceSelection {
 pub(super) struct PropertyVisit {
     pub(super) complete: bool,
     pub(super) admission_blocked: bool,
+    pub(super) obstructions: Vec<GuardObstruction>,
+}
+
+/// A refused guard's actual positive premises, before native proof retention.
+pub(super) struct GuardObstruction {
+    pub(super) detail: String,
+    pub(super) premises: Vec<Fact>,
 }
 
 impl std::ops::Deref for PreparedPropertyRule {
@@ -204,6 +215,7 @@ impl SchemaValues {
 struct NativeCaches<'a> {
     admissions: &'a crate::reason::dl::SourceCoverageWorld,
     admission_blocked: bool,
+    obstructions: Vec<GuardObstruction>,
     datatypes: &'a mut datatype::DatatypeCache,
     lists: &'a mut ListCache,
     values: &'a mut NativeValues,
@@ -213,6 +225,7 @@ struct NativeCaches<'a> {
 /// The existing world-scoped execution and resource authority, borrowed by a
 /// dynamic witness operation; ordinary property joins do not mint anything.
 pub(super) struct NativeWitnesses<'a> {
+    pub(super) admissions: &'a crate::reason::dl::SourceCoverageWorld,
     pub(super) world: &'a str,
     pub(super) contract: WitnessContract,
     pub(super) registry: &'a mut SkolemRegistry,
@@ -377,7 +390,7 @@ impl PreparedPropertyRule {
                 })
             })
             .transpose()?;
-        let analysis_body = analysis_body(&source);
+        let (analysis_body, analysis_list_cells) = analysis_body(&source);
         let analysis_heads = match &source.operation {
             Some(PropertyOperation::Minimum(pattern)) => {
                 pattern.analysis_heads(variables.keys().cloned().collect())
@@ -420,6 +433,7 @@ impl PreparedPropertyRule {
             source_identity,
             source,
             analysis_body,
+            analysis_list_cells,
             analysis_heads,
             witness_frontier,
             head,
@@ -522,12 +536,12 @@ impl PreparedPropertyRule {
         lists: &mut ListCache,
         values: &mut SchemaValues,
         witnesses: NativeWitnesses<'_>,
-        admissions: &crate::reason::dl::SourceCoverageWorld,
         emit: &mut impl FnMut(&str, Fact, &[Fact]) -> gmeow_errors::Result<bool>,
     ) -> gmeow_errors::Result<PropertyVisit> {
         let mut caches = NativeCaches {
-            admissions,
+            admissions: witnesses.admissions,
             admission_blocked: false,
+            obstructions: Vec::new(),
             lists,
             values: &mut values.values,
             datatypes: &mut values.datatypes,
@@ -553,12 +567,14 @@ impl PreparedPropertyRule {
                 return Ok(PropertyVisit {
                     complete: false,
                     admission_blocked: caches.admission_blocked,
+                    obstructions: caches.obstructions,
                 });
             }
         }
         Ok(PropertyVisit {
             complete: true,
             admission_blocked: caches.admission_blocked,
+            obstructions: caches.obstructions,
         })
     }
 
@@ -631,6 +647,7 @@ impl PreparedPropertyRule {
         premises: &[Fact],
         values: &mut NativeValues,
         admission_blocked: &mut bool,
+        obstructions: &mut Vec<GuardObstruction>,
         emit: &mut impl FnMut(&str, Fact, &[Fact]) -> gmeow_errors::Result<bool>,
     ) -> gmeow_errors::Result<bool> {
         for guard in &self.guards {
@@ -673,6 +690,13 @@ impl PreparedPropertyRule {
             }
             let Some(equal) = values.same_value(left, right) else {
                 *admission_blocked = true;
+                obstructions.push(GuardObstruction {
+                    detail: format!(
+                        "{:?} requires an admitted datatype value comparison",
+                        guard.comparison
+                    ),
+                    premises: premises.to_vec(),
+                });
                 return Ok(true);
             };
             let accepted = match guard.comparison {
@@ -788,6 +812,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             );
             premises.truncate(body_premises);
@@ -814,6 +839,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             );
             premises.truncate(body_premises);
@@ -831,6 +857,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             );
         };
@@ -891,6 +918,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             )
         };
@@ -946,14 +974,15 @@ impl PreparedPropertyRule {
 
 /// Every concrete list match maps to these body facts. Connectivity between
 /// cells and between first/last chain edges is relaxed only in this analysis.
-fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
+fn analysis_body(source: &PropertyRule) -> (Vec<PropertyAtom>, Vec<(EvalTerm, EvalTerm)>) {
     // Cardinality and datatype constraints bind no new terms. Omitting their filtering is a
     // conservative term-flow abstraction; their actual relation reads remain
     // explicit in the signed producer effects and execution's delta pivot.
     let mut body = source.body.clone();
     let Some(PropertyOperation::List(list)) = &source.operation else {
-        return body;
+        return (body, Vec::new());
     };
+    let mut cells = Vec::new();
     let mut names: BTreeSet<_> = source
         .body
         .iter()
@@ -967,17 +996,19 @@ fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
         })
         .collect();
     match &list.operation {
-        ListOperation::Member(value) => member_effect(&mut body, &mut names, value.clone()),
+        ListOperation::Member(value) => {
+            cells.push(member_effect(&mut body, &mut names, value.clone()));
+        }
         ListOperation::Pair(left, right) => {
-            member_effect(&mut body, &mut names, left.clone());
-            member_effect(&mut body, &mut names, right.clone());
+            cells.push(member_effect(&mut body, &mut names, left.clone()));
+            cells.push(member_effect(&mut body, &mut names, right.clone()));
         }
         ListOperation::AllTypes(subject) => {
             // This operator admits only nonempty lists. Every concrete output has
             // at least one member type; relaxing the other member checks preserves
             // the complete term-flow over-approximation for joint chase admission.
             let member = fresh_analysis_var(&mut names);
-            member_effect(&mut body, &mut names, member.clone());
+            cells.push(member_effect(&mut body, &mut names, member.clone()));
             body.push(PropertyAtom([
                 subject.clone(),
                 EvalTerm::named(list::TYPE),
@@ -993,8 +1024,8 @@ fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
         ListOperation::Chain(start, end) => {
             let first = fresh_analysis_var(&mut names);
             let last = fresh_analysis_var(&mut names);
-            member_effect(&mut body, &mut names, first.clone());
-            member_effect(&mut body, &mut names, last.clone());
+            cells.push(member_effect(&mut body, &mut names, first.clone()));
+            cells.push(member_effect(&mut body, &mut names, last.clone()));
             body.push(PropertyAtom([
                 start.clone(),
                 first,
@@ -1007,7 +1038,11 @@ fn analysis_body(source: &PropertyRule) -> Vec<PropertyAtom> {
             ]));
         }
     }
-    body
+    let cells = cells
+        .into_iter()
+        .map(|cell| (list.head.clone(), cell))
+        .collect();
+    (body, cells)
 }
 
 fn fresh_analysis_var(names: &mut BTreeSet<String>) -> EvalTerm {
@@ -1021,7 +1056,12 @@ fn fresh_analysis_var(names: &mut BTreeSet<String>) -> EvalTerm {
     }
 }
 
-fn member_effect(body: &mut Vec<PropertyAtom>, names: &mut BTreeSet<String>, value: EvalTerm) {
+/// Read one member of a list through a fresh cell, and return that cell.
+fn member_effect(
+    body: &mut Vec<PropertyAtom>,
+    names: &mut BTreeSet<String>,
+    value: EvalTerm,
+) -> EvalTerm {
     let cell = fresh_analysis_var(names);
     body.push(PropertyAtom([
         cell.clone(),
@@ -1029,8 +1069,9 @@ fn member_effect(body: &mut Vec<PropertyAtom>, names: &mut BTreeSet<String>, val
         value,
     ]));
     body.push(PropertyAtom([
-        cell,
+        cell.clone(),
         EvalTerm::named(list::REST),
         fresh_analysis_var(names),
     ]));
+    cell
 }

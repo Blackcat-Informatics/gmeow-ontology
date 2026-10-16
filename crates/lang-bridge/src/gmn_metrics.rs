@@ -47,9 +47,7 @@
 //! tokenization is out of scope on-gate (the off-gate token-cost matrix owns that); this
 //! deterministic byte-fallback bound is the on-gate teeth.
 
-use crate::gmn1_codec::{
-    Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write, measure_coverage,
-};
+use crate::gmn1_codec::{Gmn0Model, GmnDictionary, gmn1_read, gmn1_write, measure_coverage};
 
 /// The measured GMN-1 token-metric 7-vector over a grounding corpus, plus the compression
 /// gate's two adversarial witness counts. Byte counts and glyph/compression aggregates are
@@ -168,21 +166,19 @@ fn count_glyph_chars(text: &str, glyphs: &[&str]) -> u64 {
     covered
 }
 
-/// Serialize `model`'s GMN-0 normal-form dataset to Turtle and JSON-LD, returning both byte
+/// Serialize the GMN-0 normal-form dataset to Turtle and JSON-LD, returning both byte
 /// lengths and the Turtle character count. Both serializations are over the SAME frozen
 /// dataset the GMN writer lowered, so the three surfaces compare like for like. Serialization
 /// of a deterministically-ordered dataset is itself deterministic (the emission's determinism
 /// test proves it end-to-end).
-fn serialize_sizes(model: &Gmn0Model) -> Option<(u64, u64, u64)> {
-    let dataset = model.to_dataset();
+fn serialize_sizes(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<(u64, u64, u64)> {
     let turtle =
-        purrdf::serialize_dataset_to_format(&*dataset, purrdf::NativeRdfFormat::Turtle, None)
-            .ok()?;
-    let jsonld = purrdf::serialize_dataset_to_jsonld(&*dataset).ok()?;
+        purrdf::serialize_dataset_to_format(dataset, purrdf::NativeRdfFormat::Turtle, None)?;
+    let jsonld = purrdf::serialize_dataset_to_jsonld(dataset)?;
     let turtle_bytes = turtle.bytes.len() as u64;
-    let turtle_chars = String::from_utf8(turtle.bytes).ok()?.chars().count() as u64;
+    let turtle_chars = String::from_utf8(turtle.bytes)?.chars().count() as u64;
     let jsonld_bytes = jsonld.len() as u64;
-    Some((turtle_bytes, turtle_chars, jsonld_bytes))
+    Ok((turtle_bytes, turtle_chars, jsonld_bytes))
 }
 
 /// Compute the [`TokenMetrics`] 7-vector over `sources` against the pinned `dict`.
@@ -192,12 +188,14 @@ fn serialize_sizes(model: &Gmn0Model) -> Option<(u64, u64, u64)> {
 /// metrics' denominator; only a source whose GMN emission round-trips exactly contributes
 /// its bytes/glyph/compression aggregates — those are the artifacts GMN actually ships, so
 /// the compression claim is scoped honestly to them.
-#[must_use]
+///
+/// # Errors
+/// Returns the original native construction or serialization failure.
 pub fn compute_token_metrics(
     sources: &[crate::registry::NamedSource],
     dict: &GmnDictionary,
-) -> TokenMetrics {
-    measure_token_metrics(sources, dict).aggregate()
+) -> gmeow_errors::Result<TokenMetrics> {
+    Ok(measure_token_metrics(sources, dict)?.aggregate())
 }
 
 /// Native per-source measurements retained for reductions over explicit source scopes.
@@ -288,30 +286,32 @@ impl MetricTotals {
 
 /// Measure each source once, retaining integer witnesses before any aggregate rounding.
 /// Parse failures remain outside the domain. Read success contributes to AST validity even
-/// when canonical equality or serialization fails; byte totals count only complete round trips.
-#[must_use]
+/// when canonical equality fails; byte totals count only complete round trips.
+///
+/// # Errors
+/// Returns the original native model-construction or serialization failure.
 pub fn measure_token_metrics(
     sources: &[crate::registry::NamedSource],
     dict: &GmnDictionary,
-) -> MeasuredTokenCorpus {
+) -> gmeow_errors::Result<MeasuredTokenCorpus> {
     let glyphs = dict.glyph_registry().glyph_tokens();
-    MeasuredTokenCorpus {
-        sources: sources
-            .iter()
-            .enumerate()
-            .filter_map(|(index, source)| {
-                measure_source(source, dict, &glyphs).map(|measured| (index, measured))
-            })
-            .collect(),
+    let mut measured = Vec::new();
+    for (index, source) in sources.iter().enumerate() {
+        if let Some(source) = measure_source(source, dict, &glyphs)? {
+            measured.push((index, source));
+        }
     }
+    Ok(MeasuredTokenCorpus { sources: measured })
 }
 
 fn measure_source(
     source: &crate::registry::NamedSource,
     dict: &GmnDictionary,
     glyphs: &[&str],
-) -> Option<MetricTotals> {
-    let dataset = purrdf::parse_dataset(&source.bytes, "text/turtle", None).ok()?;
+) -> gmeow_errors::Result<Option<MetricTotals>> {
+    let Ok(dataset) = purrdf::parse_dataset(&source.bytes, "text/turtle", None) else {
+        return Ok(None);
+    };
     let model = Gmn0Model::from_dataset(&dataset);
     let coverage = measure_coverage(&model, dict);
     let mut measured = MetricTotals {
@@ -321,18 +321,22 @@ fn measure_source(
         ..MetricTotals::default()
     };
     let Ok(doc) = gmn1_write(&model, dict) else {
-        return Some(measured);
+        return Ok(Some(measured));
     };
     let Ok(back) = gmn1_read(&doc, dict) else {
-        return Some(measured);
+        return Ok(Some(measured));
     };
     measured.valid_sources = 1;
-    if !gmn0_canonically_equal(&model, &back) {
-        return Some(measured);
+    // Reuse this exact normal-form dataset for equality and both serializers.
+    // The parsed source may still contain native statement tables, so it cannot
+    // substitute for the flattened GMN-0 model at this boundary.
+    let normalized = model.to_dataset()?;
+    let reconstructed = back.to_dataset()?;
+    if purrdf::canonicalize(&normalized).nquads != purrdf::canonicalize(&reconstructed).nquads {
+        return Ok(Some(measured));
     }
-    let Some((turtle_bytes, turtle_chars, jsonld_bytes)) = serialize_sizes(&model) else {
-        return Some(measured);
-    };
+    drop(reconstructed);
+    let (turtle_bytes, turtle_chars, jsonld_bytes) = serialize_sizes(&normalized)?;
     measured.roundtrip_sources = 1;
     measured.gmn_bytes = doc.text.len() as u64;
     measured.gmn_ascii_bytes = doc.text.bytes().filter(u8::is_ascii).count() as u64;
@@ -343,7 +347,7 @@ fn measure_source(
     measured.turtle_bytes = turtle_bytes;
     measured.turtle_chars = turtle_chars;
     measured.jsonld_bytes = jsonld_bytes;
-    Some(measured)
+    Ok(Some(measured))
 }
 
 #[path = "gmn_metrics.tests.rs"]

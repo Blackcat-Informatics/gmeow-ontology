@@ -299,6 +299,9 @@ fn gbnf_and_lark_hard_fail_when_the_version_major_is_absent() {
         let error = target(surface)
             .emit(&input)
             .expect_err("a version-keyed GMN surface cannot default its major");
+        let error = error
+            .downcast_ref::<gmeow_lang_bridge::IngestDiagnostic>()
+            .expect("typed ingestion refusal");
         assert_eq!(error.failure_class, LangFailure::SilentIngestDrop);
         assert!(
             error.construct.contains("dialect major is absent"),
@@ -374,6 +377,9 @@ fn gmn1_target_never_defaults_a_missing_current_codebook() {
     let error = target("gmn1")
         .emit(&input)
         .expect_err("a selected GMN target cannot run without its pinned dictionary");
+    let error = error
+        .downcast_ref::<gmeow_lang_bridge::IngestDiagnostic>()
+        .expect("typed ingestion refusal");
     assert_eq!(error.failure_class, LangFailure::SilentIngestDrop);
     assert!(
         error

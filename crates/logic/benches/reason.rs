@@ -20,12 +20,15 @@
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::cost::run_native_forward;
+use gmeow_logic::reason::refute::{
+    ClassDiagnosticOutcome, NativeFamilyCompletion, NativeProofOrigin, class_diagnostic,
+};
 use gmeow_logic::reason::{
     DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, el_closure,
     prepare_reasoning_input, reason_all,
 };
 use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 use std::sync::Arc;
 
 const W: &str = "http://gmeow.example/w";
@@ -56,7 +59,7 @@ fn hierarchy_store(num_classes: usize, instances: usize) -> Arc<RdfDataset> {
     }
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().expect("valid benchmark dataset")
 }
@@ -168,10 +171,139 @@ fn bench_native_forward(c: &mut Criterion) {
     group.finish();
 }
 
+/// Every descriptor has an independent property; only one has an asserted instance.
+fn restriction_store(count: usize) -> Arc<RdfDataset> {
+    let mut builder = RdfDatasetBuilder::new();
+    let mut add = |subject: &str, predicate: &str, object: RdfTerm| {
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(subject), predicate, object).in_graph(RdfTerm::iri(W)),
+            )
+            .unwrap();
+    };
+    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+    add(
+        "urn:class-bench:Filler",
+        RDF_TYPE,
+        RdfTerm::iri(format!("{LOGIC}Class")),
+    );
+    // A fixed complement engages the class model independently of descriptor
+    // count; an unselected family would measure only its no-op return path.
+    add(
+        "urn:class-bench:NotFiller",
+        RDF_TYPE,
+        RdfTerm::iri(format!("{LOGIC}Class")),
+    );
+    add(
+        "urn:class-bench:NotFiller",
+        &format!("{LOGIC}complementOf"),
+        RdfTerm::iri("urn:class-bench:Filler"),
+    );
+    for index in 0..count {
+        let restriction = format!("urn:class-bench:R{index}");
+        let property = format!("urn:class-bench:p{index}");
+        add(
+            &restriction,
+            RDF_TYPE,
+            RdfTerm::iri(format!("{LOGIC}Restriction")),
+        );
+        add(
+            &property,
+            RDF_TYPE,
+            RdfTerm::iri(format!("{LOGIC}ObjectProperty")),
+        );
+        add(
+            &restriction,
+            &format!("{LOGIC}onProperty"),
+            RdfTerm::iri(property),
+        );
+        add(
+            &restriction,
+            &format!("{LOGIC}onClass"),
+            RdfTerm::iri("urn:class-bench:Filler"),
+        );
+        add(
+            &restriction,
+            &format!("{LOGIC}minQualifiedCardinality"),
+            RdfTerm::literal(RdfLiteral::typed(
+                "1",
+                "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+            )),
+        );
+    }
+    add(
+        "urn:class-bench:instance",
+        RDF_TYPE,
+        RdfTerm::iri("urn:class-bench:R0"),
+    );
+    builder.freeze().expect("synthetic restriction dataset")
+}
+
+fn bench_class_evidence(c: &mut Criterion) {
+    let mut group = c.benchmark_group("class_restrictions");
+    group.sample_size(10);
+    for count in [1250, 2500, 5000] {
+        let store = restriction_store(count);
+        let prepared = prepare_reasoning_input(store.as_ref()).expect("class benchmark contexts");
+        let domains =
+            SelectedDomains::new(prepared.source_contexts().iter().map(|(world, graph)| {
+                let selection =
+                    blake3::hash(format!("{world}:qualified-restrictions:{count}").as_bytes());
+                SelectedLogicalWorld::new(
+                    LogicalGraph::from_graph(graph.clone()),
+                    DomainProfile::NonemptyObjectDomainV1,
+                    "gmeow.bench.class-restrictions.v1".to_owned(),
+                    *selection.as_bytes(),
+                )
+                .expect("class benchmark domain")
+            }))
+            .expect("all declared class benchmark contexts");
+        group.bench_function(format!("descriptors_{count}"), |b| {
+            b.iter(|| {
+                let input = prepare_reasoning_input(store.as_ref()).expect("class benchmark input");
+                let outcome = class_diagnostic(input, &domains, None).expect("class diagnostic");
+                let ClassDiagnosticOutcome::Executed { execution } = outcome else {
+                    panic!("the synthetic restrictions must execute, not refuse source admission");
+                };
+                assert!(!execution.classes.is_empty());
+                let class = execution
+                    .classes
+                    .iter()
+                    .find(|class| class.world == W)
+                    .expect("the descriptor world has a class outcome");
+                assert_ne!(class.completion, NativeFamilyCompletion::NotEngaged);
+                assert!(
+                    execution
+                        .proofs
+                        .iter()
+                        .any(|ledger| !ledger.proofs.is_empty())
+                );
+                assert_eq!(
+                    execution
+                        .proofs
+                        .iter()
+                        .flat_map(|ledger| &ledger.proofs)
+                        .filter(|proof| {
+                            proof.statement.predicate
+                                == "https://blackcatinformatics.ca/logic/onProperty"
+                                && matches!(&proof.origin, NativeProofOrigin::Asserted { .. })
+                        })
+                        .count(),
+                    count,
+                    "every synthetic descriptor must reach native source-support preparation"
+                );
+                std::hint::black_box(execution)
+            });
+        });
+    }
+    group.finish();
+}
+
 criterion_group!(
     benches,
     bench_reason_all,
     bench_el_closure,
-    bench_native_forward
+    bench_native_forward,
+    bench_class_evidence
 );
 criterion_main!(benches);

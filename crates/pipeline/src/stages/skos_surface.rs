@@ -64,7 +64,7 @@ fn push_abox_contract(
     label: &str,
     definition: &str,
     graph_iri: &str,
-) {
+) -> gmeow_errors::Result<()> {
     let subject = RdfTerm::iri(subject_iri.to_owned());
     for (predicate, object) in abox_annotations(subject_iri, label, definition, graph_iri) {
         let object_term = match object {
@@ -73,8 +73,9 @@ fn push_abox_contract(
                 RdfTerm::literal(RdfLiteral::language_tagged(value, X_GMEOW_ENGLISH))
             }
         };
-        builder.push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object_term));
+        builder.push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object_term))?;
     }
+    Ok(())
 }
 
 /// Render the SKOS concept-scheme surface as a PURE FUNCTION of the lifted annotation
@@ -98,19 +99,19 @@ pub fn render_skos_surface_from_axioms(
         scheme.clone(),
         RDF_TYPE,
         RdfTerm::iri(SKOS_CONCEPT_SCHEME.to_owned()),
-    ));
+    ))?;
     builder.push_owned_quad(&RdfQuad::new(
         scheme.clone(),
         RDF_TYPE,
         RdfTerm::iri(OWL_NAMED_INDIVIDUAL.to_owned()),
-    ));
+    ))?;
     push_abox_contract(
         &mut builder,
         &scheme_iri,
         "GMEOW Concept Scheme",
         "The generated SKOS concept scheme projecting every GMEOW-authored term's lifted RDFS/SKOS annotations.",
         &graph_iri,
-    );
+    )?;
 
     // Group the annotation axioms by subject (BTreeMap → deterministic subject order,
     // one `skos:inScheme` binding per subject).
@@ -136,13 +137,13 @@ pub fn render_skos_surface_from_axioms(
                 subject_term.clone(),
                 axiom.predicate.clone(),
                 RdfTerm::literal(axiom.obj.as_literal().expect("literal annotation").clone()),
-            ));
+            ))?;
         }
         builder.push_owned_quad(&RdfQuad::new(
             subject_term.clone(),
             SKOS_IN_SCHEME,
             scheme.clone(),
-        ));
+        ))?;
     }
 
     let dataset = builder

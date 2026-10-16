@@ -13,7 +13,7 @@ const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile"
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     for (s, p, o) in triples {
         store.insert_quad(W, s, p, o);
     }
@@ -356,7 +356,7 @@ fn dimension_composition_resolves_in_body_order() {
     // dimension transport surface.
     let base = "https://example.org/";
     let dim_dt = "urn:gmeow:transport:dimension";
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     // length = L¹ (index 0), time = T¹ (index 2), fixed SI order.
     let length = TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
     let time = TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);

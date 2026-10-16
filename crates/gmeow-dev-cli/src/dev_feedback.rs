@@ -534,7 +534,7 @@ fn compile_logic_report(source_ttl: &str) -> gmeow_errors::Result<Report> {
         &program,
         gmeow_logic::correspondence_exec::program_verdicts,
     )
-    .map_err(error::feedback)?;
+    .map_err(|error| error.with_context("compile logic feedback"))?;
     Ok(gmeow_logic::logic_diagnostics::diagnostics_report(
         &diagnostics,
     ))
@@ -562,7 +562,7 @@ fn merged_ontology_nt(root: &Path) -> gmeow_errors::Result<String> {
         );
     }
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    let merged = purrdf::RdfDataset::union(&refs);
+    let merged = purrdf::RdfDataset::union(&refs)?;
     let bytes = purrdf::serialize_dataset(
         &merged,
         "application/n-quads",

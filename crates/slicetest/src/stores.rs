@@ -87,7 +87,7 @@ fn build_merged_store() -> Result<Arc<RdfDataset>> {
     // question that queries either surface sees its answer. Doing it here also feeds
     // the projected `rdfs:subClassOf` / `rdfs:domain` edges to the RDFS-closure lane
     // ([`rdfs_closed_store`]), so rdfs2/3/9/11 fire on re-authored subsumption/typing.
-    Ok(native_query::with_owl_rdfs_projection(&raw))
+    native_query::with_owl_rdfs_projection(&raw)
 }
 
 /// Build the merged ontology and return it closed under **RDFS**.
@@ -201,7 +201,7 @@ fn build_native_closed_store() -> Result<Arc<RdfDataset>> {
     // against the OWL/RDFS surface. Project the closure AFTER reasoning so the reasoner
     // is untouched and the query still sees the `owl:`/`rdfs:` view (dual-write keeps
     // the canonical edges).
-    Ok(native_query::with_owl_rdfs_projection(&closure))
+    native_query::with_owl_rdfs_projection(&closure)
 }
 
 /// Join every native record of the selected competency source set into one
@@ -382,12 +382,14 @@ fn rdfs_close(mut dataset: Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
         // Materialize every rule's CONSTRUCT graph, then merge them all (plus the
         // base) into one re-frozen dataset, preserving blank identity so identical
         // derived quads collapse and the count is stable at fixpoint.
-        let mut round: Vec<Arc<RdfDataset>> = Vec::with_capacity(RDFS_RULES.len() + 1);
-        round.push(Arc::clone(&dataset));
+        let mut round = Vec::with_capacity(RDFS_RULES.len());
         for rule in RDFS_RULES {
             round.push(construct(&dataset, rule)?);
         }
-        dataset = merge_preserving_blanks(&round);
+        let refs: Vec<&RdfDataset> = std::iter::once(dataset.as_ref())
+            .chain(round.iter().map(AsRef::as_ref))
+            .collect();
+        dataset = merge_preserving_blanks(&refs)?;
         if dataset.quad_count() == before {
             return Ok(dataset);
         }
@@ -398,7 +400,7 @@ fn rdfs_close(mut dataset: Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
 }
 
 /// Run a CONSTRUCT query and return its derived graph as a frozen dataset.
-fn construct(dataset: &Arc<RdfDataset>, query: &str) -> Result<Arc<RdfDataset>> {
+fn construct(dataset: &Arc<RdfDataset>, query: &str) -> Result<purrdf::backend::DatasetHandle> {
     match native_query::query(dataset, query).map_err(|e| {
         Diag::of_kind(RdfsClosure {
             detail: format!("RDFS rule error: {e}"),

@@ -3189,7 +3189,7 @@ gmeow:ModelInferenceRun logic:subClassOf
 # forbidden-property obligation (sh:maxCount 0) is the reasoner-safe logic:maxQualifiedCardinality 0.
 # The gmeow:DerivedAffectIntensityNoStoredMagnitudeConstraint carries the same law in the logic: canon.
 gmeow:DerivedAffectIntensityObservation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 0 ; logic:onClass logic:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 0 ; logic:onDataRange rdfs:Literal ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

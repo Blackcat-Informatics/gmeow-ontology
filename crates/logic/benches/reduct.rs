@@ -34,7 +34,7 @@ const WORLD: &str = "https://example.org/b/world";
 
 /// Build a `WorldStore` with a `parent` chain of length `n`.
 fn build_parent_chain_store(n: usize) -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     for i in 0..n {
         store.insert_quad(
             WORLD,

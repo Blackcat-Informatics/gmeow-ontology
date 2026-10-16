@@ -146,13 +146,16 @@ pub fn annotate_nquads(
 /// `cross_substrate_parity` test below locks this adapter's output to the same
 /// logical quad set [`annotate_nquads`] produces for identical inputs, so a
 /// native RDF-IR consumer (e.g. `logic-compile`) gets the identical contract.
+///
+/// # Errors
+/// Returns the original native storage refusal when a required quad cannot be added.
 pub fn annotate_builder(
     builder: &mut purrdf_core::RdfDatasetBuilder,
     subject_iri: &str,
     label: &str,
     definition: &str,
     graph_iri: &str,
-) {
+) -> crate::Result<()> {
     let graph_term = purrdf_core::RdfTerm::iri(graph_iri.to_owned());
     for (predicate, object) in abox_annotations(subject_iri, label, definition, graph_iri) {
         let object_term = match object {
@@ -167,8 +170,9 @@ pub fn annotate_builder(
             object_term,
         )
         .in_graph(graph_term.clone());
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
+    Ok(())
 }
 
 /// `rdfs:` namespace IRI — for rendering the contract's fixed predicate IRIs as

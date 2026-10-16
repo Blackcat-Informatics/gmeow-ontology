@@ -64,35 +64,35 @@ impl ParsedAuthoredSources {
     }
 
     /// The full compile-input catalog, preserving the existing union contract.
-    pub(crate) fn merged_dataset(&self) -> Arc<RdfDataset> {
+    pub(crate) fn merged_dataset(&self) -> gmeow_errors::Result<Arc<RdfDataset>> {
         let datasets: Vec<&RdfDataset> = self
             .sources
             .iter()
             .map(|source| source.ingested.dataset.as_ref())
             .collect();
-        Arc::new(RdfDataset::union(&datasets))
+        Ok(Arc::new(RdfDataset::union(&datasets)?))
     }
 
     /// Root and module inputs only. Imports keep their independent graph role.
-    pub(crate) fn authored_dataset(&self) -> Arc<RdfDataset> {
+    pub(crate) fn authored_dataset(&self) -> gmeow_errors::Result<Arc<RdfDataset>> {
         let datasets: Vec<&RdfDataset> = self
             .sources
             .iter()
             .filter(|source| !matches!(source.kind, OriginKind::Import))
             .map(|source| source.ingested.dataset.as_ref())
             .collect();
-        Arc::new(RdfDataset::union(&datasets))
+        Ok(Arc::new(RdfDataset::union(&datasets)?))
     }
 
     /// The explicitly selected import partition, from those same native parses.
-    pub(crate) fn imports_dataset(&self) -> Arc<RdfDataset> {
+    pub(crate) fn imports_dataset(&self) -> gmeow_errors::Result<Arc<RdfDataset>> {
         let datasets: Vec<&RdfDataset> = self
             .sources
             .iter()
             .filter(|source| matches!(source.kind, OriginKind::Import))
             .map(|source| source.ingested.dataset.as_ref())
             .collect();
-        Arc::new(RdfDataset::union(&datasets))
+        Ok(Arc::new(RdfDataset::union(&datasets)?))
     }
 
     /// Public diagnostic policy: root/module spans are emitted; import spans

@@ -284,6 +284,10 @@ rust-build: test-corpus-purity $(RUST_READY_STAMP) ## Compile Rust workspace tes
 rust-prebuild: test-corpus-purity ## Compile producer-independent CI test units separately from the optimized corpus producer.
 	cargo nextest run --no-run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS)
 
+.PHONY: clippy-prebuild
+clippy-prebuild: test-corpus-purity ## Diagnose producer-independent Rust targets before corpus production; the full clippy gate remains required.
+	cargo clippy $(RUST_PREBUILD_WORKSPACE_ARGS) --all-targets --keep-going -- -D warnings
+
 rust-test: nextest doctests ## Run the Rust workspace tests (including carrier/coherence proofs) and doctests.
 
 gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with.
@@ -702,7 +706,7 @@ nextest-synthetic: test-corpus-purity ## Run an explicit NEXTEST_FILTER over syn
 	@# This diagnostic selection uses the producer-independent workspace build graph.
 	@# It grants no corpus access: selected corpus consumers fail in their authenticated
 	@# loader even if the invoking shell carried credentials from a previous full run.
-	env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+	unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
 	  cargo nextest run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS) $(NEXTEST_FILTER_ARG) --no-tests=fail
 
 nextest-evidence-tools: ## Build the exact report-only resource/JUnit tools shipped beside the test archive.
@@ -924,6 +928,11 @@ maint-refresh-wasm-assets: ## Prepare all browser assets, produce and gate once,
 		( cd "crates/$$engine-wasm/js" && node --test tests/*.test.mjs ); \
 	done
 	@echo "OK: all six browser assets passed the full gate and Node parity."
+
+.PHONY: maint-pin-purrdf
+maint-pin-purrdf: ## Resolve the authored exact PurRDF Git revision in production and fuzz locks; qualification is separate.
+	cargo update -p purrdf
+	cargo update --manifest-path fuzz/Cargo.toml -p purrdf
 
 maint-bump-purrdf: ## Select VERSION within the declared PurRDF requirements, update both locks, and gate every wasm engine.
 	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=3.0.0"; exit 1; }
@@ -1203,6 +1212,14 @@ fuzz-smoke: fuzz-substrate-check ## Run bounded coverage-guided fuzz smoke tests
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
 	cargo bench -p gmeow-logic -p gmeow-validate
+
+.PHONY: bench-class-evidence bench-class-evidence-build
+bench-class-evidence-build: ## Compile the class-evidence benchmark without running measurements.
+	cargo bench -p gmeow-logic --bench reason --no-run
+
+CLASS_EVIDENCE_FILTER ?= class_restrictions
+bench-class-evidence: ## Measure native class evidence; CLASS_EVIDENCE_FILTER selects cases.
+	cargo bench -p gmeow-logic --bench reason -- '$(CLASS_EVIDENCE_FILTER)'
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare

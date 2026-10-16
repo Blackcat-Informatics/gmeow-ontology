@@ -56,7 +56,7 @@ fn sioc_section_law_discharged_on_the_complete_over_cells() {
             ),
         ],
     );
-    let outcome = discharge_section_law(&get_rq, &put_rq, std::slice::from_ref(&seed));
+    let outcome = discharge_section_law(&get_rq, &put_rq, std::slice::from_ref(&seed)).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -90,7 +90,8 @@ fn literal_object_in_the_carrier_round_trips_and_discharges() {
             "http://o.example/y".to_owned(),
         )],
     );
-    let outcome = discharge_section_law(LITERAL_GET, LITERAL_PUT, std::slice::from_ref(&seed));
+    let outcome =
+        discharge_section_law(LITERAL_GET, LITERAL_PUT, std::slice::from_ref(&seed)).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -122,7 +123,8 @@ fn datatyped_literal_in_the_carrier_round_trips_and_discharges() {
         TYPED_LITERAL_GET,
         TYPED_LITERAL_PUT,
         std::slice::from_ref(&seed),
-    );
+    )
+    .unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -149,7 +151,7 @@ fn blank_node_in_the_carrier_round_trips_and_discharges() {
             "http://o.example/y".to_owned(),
         )],
     );
-    let outcome = discharge_section_law(BLANK_GET, BLANK_PUT, std::slice::from_ref(&seed));
+    let outcome = discharge_section_law(BLANK_GET, BLANK_PUT, std::slice::from_ref(&seed)).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -173,7 +175,7 @@ fn blank_node_in_the_carrier_round_trips_and_discharges() {
             ),
         ],
     };
-    let put_get = discharge_put_get_law(BLANK_GET, BLANK_PUT, &[view]);
+    let put_get = discharge_put_get_law(BLANK_GET, BLANK_PUT, &[view]).unwrap();
     assert_eq!(
         put_get.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -248,7 +250,7 @@ fn single_happy_path_seed_misses_the_fabricated_guard_atom() {
     // Branch-1 only: the fabricating put branch (keyed on ext:p2) never fires, so the seed
     // round-trips cleanly — a lone happy-path seed would wrongly report the law discharged.
     let seed = happy_path_branch1_seed();
-    let outcome = discharge_section_law(FAB_GET, FAB_PUT, std::slice::from_ref(&seed));
+    let outcome = discharge_section_law(FAB_GET, FAB_PUT, std::slice::from_ref(&seed)).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -265,7 +267,7 @@ fn branch_covering_corpus_catches_the_fabricated_guard_atom() {
         "expected one seed per branch plus combined, got {}: {seeds:#?}",
         seeds.len()
     );
-    let outcome = discharge_section_law(FAB_GET, FAB_PUT, &seeds);
+    let outcome = discharge_section_law(FAB_GET, FAB_PUT, &seeds).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationViolated,
@@ -288,8 +290,8 @@ fn branch_covering_corpus_catches_the_fabricated_guard_atom() {
 #[test]
 fn discharge_is_deterministic_in_verdict_and_countermodel_bytes() {
     let seeds = derive_seeds(FAB_GET).unwrap();
-    let a = discharge_section_law(FAB_GET, FAB_PUT, &seeds);
-    let b = discharge_section_law(FAB_GET, FAB_PUT, &seeds);
+    let a = discharge_section_law(FAB_GET, FAB_PUT, &seeds).unwrap();
+    let b = discharge_section_law(FAB_GET, FAB_PUT, &seeds).unwrap();
     assert_eq!(
         a, b,
         "same inputs must yield an identical outcome (verdict + countermodel)"
@@ -297,7 +299,7 @@ fn discharge_is_deterministic_in_verdict_and_countermodel_bytes() {
     // Countermodel bytes are stable across independent seed-derivation runs too.
     let seeds2 = derive_seeds(FAB_GET).unwrap();
     assert_eq!(seeds, seeds2, "seed derivation must be deterministic");
-    let c = discharge_section_law(FAB_GET, FAB_PUT, &seeds2);
+    let c = discharge_section_law(FAB_GET, FAB_PUT, &seeds2).unwrap();
     assert_eq!(a, c);
 }
 
@@ -330,21 +332,18 @@ fn derive_seeds_is_branch_covering_with_fresh_distinct_iris() {
 }
 
 #[test]
-fn non_executable_leg_is_violated_never_a_silent_pass() {
+fn non_executable_leg_returns_the_original_operational_error() {
     let seed = happy_path_branch1_seed();
     let broken = "this is not valid SPARQL {{{";
-    let outcome = discharge_section_law(broken, FAB_PUT, std::slice::from_ref(&seed));
-    assert_eq!(
-        outcome.verdict,
-        DischargeVerdict::ObligationViolated,
-        "a malformed get leg must hard-fail to Violated, never pass\n{outcome:#?}"
-    );
-    assert!(outcome.countermodel.is_some());
+    let error = discharge_section_law(broken, FAB_PUT, std::slice::from_ref(&seed))
+        .expect_err("malformed input must not fabricate a countermodel");
+    assert!(error.inner().source.is_some());
+    assert!(format!("{error:#}").contains("prepare correspondence get"));
 }
 
 #[test]
 fn empty_corpus_is_unknown_not_discharged() {
-    let outcome = discharge_section_law(FAB_GET, FAB_PUT, &[]);
+    let outcome = discharge_section_law(FAB_GET, FAB_PUT, &[]).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationUnknown,

@@ -15,6 +15,7 @@
 //! [`USAGE`] for the modes.
 
 mod census;
+mod error;
 mod layout;
 mod ledger;
 mod normalize;
@@ -25,6 +26,10 @@ mod toml;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
+
+use gmeow_errors::diag::Diag;
+
+use crate::error::{Operation, admission};
 
 use crate::normalize::MIN_TOKENS;
 use crate::source::{Disk, Memory, Tree, Workspace};
@@ -72,14 +77,14 @@ struct Arguments {
     mode: Mode,
 }
 
-fn parse_arguments(mut args: impl Iterator<Item = String>) -> Result<Arguments, String> {
+fn parse_arguments(mut args: impl Iterator<Item = String>) -> Result<Arguments, Diag> {
     // The workspace this binary was built from: crates/helper-census/../..
     let mut root = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."));
     let mut ledger = None;
     let mut mode = None;
     let set = |next: Mode, mode: &mut Option<Mode>| {
         if mode.replace(next).is_some() {
-            Err("give exactly one mode".to_owned())
+            Err(admission(Operation::Arguments, "give exactly one mode"))
         } else {
             Ok(())
         }
@@ -87,8 +92,19 @@ fn parse_arguments(mut args: impl Iterator<Item = String>) -> Result<Arguments, 
     let mut pending: Vec<String> = Vec::new();
     while let Some(arg) = pending.pop().or_else(|| args.next()) {
         match arg.as_str() {
-            "--root" => root = args.next().ok_or("--root needs a directory")?.into(),
-            "--ledger" => ledger = Some(args.next().ok_or("--ledger needs a file")?.into()),
+            "--root" => {
+                root = args
+                    .next()
+                    .ok_or_else(|| admission(Operation::Arguments, "--root needs a directory"))?
+                    .into()
+            }
+            "--ledger" => {
+                ledger = Some(
+                    args.next()
+                        .ok_or_else(|| admission(Operation::Arguments, "--ledger needs a file"))?
+                        .into(),
+                )
+            }
             "--baseline" => {
                 let path = match args.next() {
                     Some(next) if next.starts_with("--") => {
@@ -99,12 +115,19 @@ fn parse_arguments(mut args: impl Iterator<Item = String>) -> Result<Arguments, 
                 };
                 set(Mode::Baseline(path), &mut mode)?;
             }
-            "--census" => set(
-                Mode::Census(args.next().ok_or("--census needs a job id")?),
-                &mut mode,
-            )?,
+            "--census" => {
+                set(
+                    Mode::Census(args.next().ok_or_else(|| {
+                        admission(Operation::Arguments, "--census needs a job id")
+                    })?),
+                    &mut mode,
+                )?
+            }
             "--count" => set(
-                Mode::Count(args.next().ok_or("--count needs a job id")?),
+                Mode::Count(
+                    args.next()
+                        .ok_or_else(|| admission(Operation::Arguments, "--count needs a job id"))?,
+                ),
                 &mut mode,
             )?,
             "--check" => set(Mode::Check, &mut mode)?,
@@ -112,13 +135,18 @@ fn parse_arguments(mut args: impl Iterator<Item = String>) -> Result<Arguments, 
             "--dump-ledger" => set(Mode::DumpLedger, &mut mode)?,
             "--self-test" => set(Mode::SelfTest, &mut mode)?,
             "--help" | "-h" => set(Mode::Help, &mut mode)?,
-            other => return Err(format!("unknown argument `{other}`")),
+            other => {
+                return Err(admission(
+                    Operation::Arguments,
+                    format!("unknown argument `{other}`"),
+                ));
+            }
         }
     }
     Ok(Arguments {
         root,
         ledger,
-        mode: mode.ok_or("give a mode")?,
+        mode: mode.ok_or_else(|| admission(Operation::Arguments, "give a mode"))?,
     })
 }
 
@@ -126,20 +154,20 @@ fn main() -> ExitCode {
     let arguments = match parse_arguments(std::env::args().skip(1)) {
         Ok(arguments) => arguments,
         Err(error) => {
-            eprintln!("helper-census: {error}\n\n{USAGE}");
+            eprintln!("helper-census: {error:#}\n\n{USAGE}");
             return ExitCode::from(2);
         }
     };
     match run(&arguments) {
         Ok(code) => code,
         Err(error) => {
-            eprintln!("helper-census: {error}");
+            eprintln!("helper-census: {error:#}");
             ExitCode::FAILURE
         }
     }
 }
 
-fn run(arguments: &Arguments) -> Result<ExitCode, String> {
+fn run(arguments: &Arguments) -> Result<ExitCode, Diag> {
     match &arguments.mode {
         Mode::Help => {
             print!("{USAGE}");
@@ -151,29 +179,33 @@ fn run(arguments: &Arguments) -> Result<ExitCode, String> {
     let root = arguments
         .root
         .canonicalize()
-        .map_err(|error| format!("{}: {error}", arguments.root.display()))?;
+        .map_err(|error| Diag::from(error).with_context(arguments.root.display().to_string()))?;
     let ledger_path = arguments
         .ledger
         .clone()
         .unwrap_or_else(|| root.join("helpers-ledger.toml"));
     let ledger_text = std::fs::read_to_string(&ledger_path)
-        .map_err(|error| format!("{}: {error}", ledger_path.display()))?;
-    let ledger = ledger::parse(&ledger_text)?;
+        .map_err(|error| Diag::from(error).with_context(ledger_path.display().to_string()))?;
+    let ledger = ledger::parse(&ledger_text)
+        .map_err(|error| error.with_context(ledger_path.display().to_string()))?;
     if arguments.mode == Mode::DumpLedger {
         println!("{}", toml::Value::Table(ledger.document).to_json());
         return Ok(ExitCode::SUCCESS);
     }
     let workspace = Workspace::walk(&Disk { root: root.clone() });
     if !workspace.errors.is_empty() && arguments.mode != Mode::Index {
-        return Err(format!(
-            "the walk failed:\n  {}",
-            workspace.errors.join("\n  ")
+        return Err(admission(
+            Operation::Inventory,
+            format!("the walk failed:\n  {}", workspace.errors.join("\n  ")),
         ));
     }
     let job = |id: &str| {
-        ledger
-            .job(id)
-            .ok_or_else(|| format!("no job `{id}` in the ledger"))
+        ledger.job(id).ok_or_else(|| {
+            admission(
+                Operation::LedgerSchema,
+                format!("no job `{id}` in the ledger"),
+            )
+        })
     };
     match &arguments.mode {
         Mode::Baseline(path) => {
@@ -182,12 +214,13 @@ fn run(arguments: &Arguments) -> Result<ExitCode, String> {
                 .unwrap_or_else(|| root.join("target/helper-census/clone-baseline.json"));
             let document = census::baseline(&workspace, &ledger);
             if let Some(parent) = path.parent() {
-                std::fs::create_dir_all(parent)
-                    .map_err(|error| format!("{}: {error}", parent.display()))?;
+                std::fs::create_dir_all(parent).map_err(|error| {
+                    Diag::from(error).with_context(parent.display().to_string())
+                })?;
             }
             let text = purrdf_lex::json::write_pretty(&document);
             std::fs::write(&path, text + "\n")
-                .map_err(|error| format!("{}: {error}", path.display()))?;
+                .map_err(|error| Diag::from(error).with_context(path.display().to_string()))?;
             println!(
                 "{} units; {} isomorphic groups, {} shim groups, {} hex tables, {} shared constants -> {}",
                 workspace.units.len(),
@@ -287,7 +320,7 @@ fn distinct_findings(tree: &dyn Tree, members: &str, kind: &str, anchor: &str) -
         .replace("KIND", kind)
         .replace("ANCHOR", anchor);
     ledger::parse(&row).map_or_else(
-        |error| vec![error],
+        |error| vec![format!("{error:#}")],
         |ledger| census::check_findings(&Workspace::walk(tree), &ledger),
     )
 }
@@ -584,7 +617,7 @@ fn near_miss_cases() -> Vec<(&'static str, bool)> {
         })
         .map_or(0, |group| group.tokens);
     let findings = ledger::parse("").map_or_else(
-        |error| vec![error],
+        |error| vec![format!("{error:#}")],
         |ledger| census::check_findings(&workspace, &ledger),
     );
     vec![
@@ -716,7 +749,7 @@ fn self_test_cases() -> Vec<(&'static str, bool)> {
         ),
         (
             "the home resolves to its package",
-            home_package.as_deref() == Ok("fixture-alpha"),
+            matches!(home_package.as_deref(), Ok("fixture-alpha")),
         ),
         (
             "a decimal spelling of a forbidden hex constant is a copy outside the home",

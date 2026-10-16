@@ -70,8 +70,7 @@ pub(super) fn record(
                 .and_then(|source| compile_module(&source)),
         );
         let plan = product.as_ref().map_err(Clone::clone).and_then(|product| {
-            parse_shapes(&product.procedural_shacl, None)
-                .map_err(|message| super::record_failure(super::stage_err(message)))
+            parse_shapes(&product.procedural_shacl, None).map_err(super::record_failure)
         });
         plans.insert(module, plan);
         modules.insert(module.to_owned(), product);
@@ -89,8 +88,7 @@ pub(super) fn record(
             let bytes = std::fs::read(root.join(input)).map_err(super::record_failure)?;
             let data = purrdf::parse_dataset(&bytes, "text/turtle", None)
                 .map_err(super::record_failure)?;
-            let report = validate_dataset(&data, shapes)
-                .map_err(|message| super::record_failure(super::stage_err(message)))?;
+            let report = validate_dataset(&data, shapes).map_err(super::record_failure)?;
             Ok(report
                 .results
                 .iter()

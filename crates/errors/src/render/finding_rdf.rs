@@ -9,18 +9,24 @@ use super::{GMEOW, LOGIC, RDF_TYPE, XSD_ANY_URI, XSD_NNI, finding_definition, fi
 use crate::model::{Location, Report};
 
 trait Sink {
-    fn iri(&mut self, subject: &str, predicate: &str, object: &str);
-    fn literal(&mut self, subject: &str, predicate: &str, value: RdfLiteral);
+    type Error;
+    fn iri(&mut self, subject: &str, predicate: &str, object: &str) -> Result<(), Self::Error>;
+    fn literal(
+        &mut self,
+        subject: &str,
+        predicate: &str,
+        value: RdfLiteral,
+    ) -> Result<(), Self::Error>;
 
-    fn text(&mut self, subject: &str, local: &str, value: &str) {
+    fn text(&mut self, subject: &str, local: &str, value: &str) -> Result<(), Self::Error> {
         self.literal(
             subject,
             &format!("{GMEOW}{local}"),
             RdfLiteral::simple(value),
-        );
+        )
     }
 
-    fn location(&mut self, subject: &str, location: &Location) {
+    fn location(&mut self, subject: &str, location: &Location) -> Result<(), Self::Error> {
         for (local, value) in [
             ("gtsTermId", location.gts_term_id),
             ("gtsQuadIndex", location.gts_quad_index),
@@ -33,11 +39,11 @@ trait Sink {
                     subject,
                     &format!("{GMEOW}{local}"),
                     RdfLiteral::typed(value.to_string(), XSD_NNI),
-                );
+                )?;
             }
         }
         if let Some(path) = &location.path {
-            self.text(subject, "findingLocationPath", path);
+            self.text(subject, "findingLocationPath", path)?;
         }
         for (local, value) in [
             ("findingLocationLine", location.line),
@@ -48,9 +54,10 @@ trait Sink {
                     subject,
                     &format!("{GMEOW}{local}"),
                     RdfLiteral::typed(value.to_string(), XSD_NNI),
-                );
+                )?;
             }
         }
+        Ok(())
     }
 }
 
@@ -61,7 +68,9 @@ struct TextSink<'a> {
 }
 
 impl Sink for TextSink<'_> {
-    fn iri(&mut self, subject: &str, predicate: &str, object: &str) {
+    type Error = std::convert::Infallible;
+
+    fn iri(&mut self, subject: &str, predicate: &str, object: &str) -> Result<(), Self::Error> {
         use std::fmt::Write as _;
         writeln!(
             self.output,
@@ -69,9 +78,15 @@ impl Sink for TextSink<'_> {
             self.graph
         )
         .expect("writing to a String is infallible");
+        Ok(())
     }
 
-    fn literal(&mut self, subject: &str, predicate: &str, value: RdfLiteral) {
+    fn literal(
+        &mut self,
+        subject: &str,
+        predicate: &str,
+        value: RdfLiteral,
+    ) -> Result<(), Self::Error> {
         use std::fmt::Write as _;
         write!(
             self.output,
@@ -86,6 +101,7 @@ impl Sink for TextSink<'_> {
             write!(self.output, "^^<{datatype}>").expect("writing to a String is infallible");
         }
         writeln!(self.output, " <{}> .", self.graph).expect("writing to a String is infallible");
+        Ok(())
     }
 }
 
@@ -95,18 +111,22 @@ struct NativeSink<'a> {
 }
 
 impl Sink for NativeSink<'_> {
-    fn iri(&mut self, subject: &str, predicate: &str, object: &str) {
-        let s = self.builder.intern_iri(subject);
-        let p = self.builder.intern_iri(predicate);
-        let o = self.builder.intern_iri(object);
-        self.builder.push_quad(s, p, o, Some(self.graph));
+    type Error = crate::Diag;
+
+    fn iri(&mut self, subject: &str, predicate: &str, object: &str) -> crate::Result<()> {
+        let s = self.builder.intern_iri(subject)?;
+        let p = self.builder.intern_iri(predicate)?;
+        let o = self.builder.intern_iri(object)?;
+        self.builder.push_quad(s, p, o, Some(self.graph))?;
+        Ok(())
     }
 
-    fn literal(&mut self, subject: &str, predicate: &str, value: RdfLiteral) {
-        let s = self.builder.intern_iri(subject);
-        let p = self.builder.intern_iri(predicate);
-        let o = self.builder.intern_literal(value);
-        self.builder.push_quad(s, p, o, Some(self.graph));
+    fn literal(&mut self, subject: &str, predicate: &str, value: RdfLiteral) -> crate::Result<()> {
+        let s = self.builder.intern_iri(subject)?;
+        let p = self.builder.intern_iri(predicate)?;
+        let o = self.builder.intern_literal(value)?;
+        self.builder.push_quad(s, p, o, Some(self.graph))?;
+        Ok(())
     }
 }
 
@@ -115,12 +135,19 @@ pub(super) fn to_text(report: &Report, graph: &str) -> String {
         graph,
         output: String::new(),
     };
-    emit(report, graph, &mut sink);
+    match emit(report, graph, &mut sink) {
+        Ok(()) => {}
+        Err(error) => match error {},
+    }
     sink.output
 }
 
-pub(super) fn append(report: &Report, graph: &str, builder: &mut RdfDatasetBuilder) {
-    let graph_id = builder.intern_iri(graph);
+pub(super) fn append(
+    report: &Report,
+    graph: &str,
+    builder: &mut RdfDatasetBuilder,
+) -> crate::Result<()> {
+    let graph_id = builder.intern_iri(graph)?;
     emit(
         report,
         graph,
@@ -128,10 +155,10 @@ pub(super) fn append(report: &Report, graph: &str, builder: &mut RdfDatasetBuild
             builder,
             graph: graph_id,
         },
-    );
+    )
 }
 
-fn emit(report: &Report, graph: &str, sink: &mut impl Sink) {
+fn emit<S: Sink>(report: &Report, graph: &str, sink: &mut S) -> Result<(), S::Error> {
     let normalized = report.normalized();
     let rules = super::rule_map(&normalized);
     for (index, finding) in normalized.findings.iter().enumerate() {
@@ -142,7 +169,7 @@ fn emit(report: &Report, graph: &str, sink: &mut impl Sink) {
                 super::stable_fingerprint(finding)
             )
         });
-        sink.iri(&subject, RDF_TYPE, &format!("{GMEOW}Finding"));
+        sink.iri(&subject, RDF_TYPE, &format!("{GMEOW}Finding"))?;
         for (predicate, object) in crate::abox::abox_annotations(
             &subject,
             &finding_label(&finding.code, &finding.message),
@@ -150,67 +177,67 @@ fn emit(report: &Report, graph: &str, sink: &mut impl Sink) {
             graph,
         ) {
             match object {
-                crate::abox::AboxObject::Iri(iri) => sink.iri(&subject, predicate, &iri),
+                crate::abox::AboxObject::Iri(iri) => sink.iri(&subject, predicate, &iri)?,
                 crate::abox::AboxObject::CarrierLiteral(value) => sink.literal(
                     &subject,
                     predicate,
                     RdfLiteral::language_tagged(value, crate::abox::X_GMEOW_ENGLISH),
-                ),
+                )?,
             }
         }
         sink.iri(
             &subject,
             &format!("{GMEOW}findingSeverity"),
             &super::severity_individual(finding.severity),
-        );
-        sink.text(&subject, "findingCode", &finding.code);
-        sink.text(&subject, "findingMessage", &finding.message);
+        )?;
+        sink.text(&subject, "findingCode", &finding.code)?;
+        sink.text(&subject, "findingMessage", &finding.message)?;
         if let Some(tool) = &finding.tool {
-            sink.text(&subject, "findingTool", tool);
+            sink.text(&subject, "findingTool", tool)?;
         }
         if let Some(category) = finding.category {
             sink.iri(
                 &subject,
                 &format!("{GMEOW}findingCategory"),
                 &format!("{LOGIC}{}", category.iri_local()),
-            );
+            )?;
         }
         if let Some(standpoint) = finding.standpoint {
             sink.iri(
                 &subject,
                 &format!("{GMEOW}findingStandpoint"),
                 &format!("{GMEOW}{}", standpoint.iri_local()),
-            );
+            )?;
         }
         if let Some(class) = &finding.failure_class {
-            sink.iri(&subject, &format!("{GMEOW}findingFailureClass"), class);
+            sink.iri(&subject, &format!("{GMEOW}findingFailureClass"), class)?;
         }
         for antecedent in &finding.antecedents {
-            sink.iri(&subject, &format!("{GMEOW}findingAntecedent"), antecedent);
+            sink.iri(&subject, &format!("{GMEOW}findingAntecedent"), antecedent)?;
         }
         if let Some(anchor) = &finding.anchor_iri {
-            sink.iri(&subject, &format!("{GMEOW}findingAnchor"), anchor);
+            sink.iri(&subject, &format!("{GMEOW}findingAnchor"), anchor)?;
             if finding.anchor_non_trivial {
-                sink.iri(anchor, RDF_TYPE, &format!("{GMEOW}NonTrivialAnchor"));
+                sink.iri(anchor, RDF_TYPE, &format!("{GMEOW}NonTrivialAnchor"))?;
             }
         }
         for remediation in &finding.remediation {
-            sink.text(&subject, "findingRemediation", &remediation.text);
+            sink.text(&subject, "findingRemediation", &remediation.text)?;
         }
         for guidance in &finding.guidance {
             sink.text(
                 &subject,
                 guidance.modality.predicate_local(),
                 &guidance.text,
-            );
+            )?;
         }
         for quad in &finding.derived_from_quads {
-            sink.iri(&subject, &format!("{GMEOW}findingDerivedFromQuad"), quad);
+            sink.iri(&subject, &format!("{GMEOW}findingDerivedFromQuad"), quad)?;
         }
         // Only grade coordinates are projected. Authored native rules own the
         // gate verdict; this renderer never asserts their conclusion.
         for suggestion in &finding.suggestions {
-            sink.text(&subject, "findingSuggestion", suggestion);
+            sink.text(&subject, "findingSuggestion", suggestion)?;
         }
         if let Some(rule) = rules.get(finding.code.as_str())
             && let Some(uri) = &rule.help_uri
@@ -219,18 +246,23 @@ fn emit(report: &Report, graph: &str, sink: &mut impl Sink) {
                 &subject,
                 &format!("{GMEOW}findingHelpUri"),
                 RdfLiteral::typed(uri, XSD_ANY_URI),
-            );
+            )?;
         }
         for (index, location) in finding.locations.iter().enumerate() {
             let node = format!("{subject}/location/{index}");
-            sink.iri(&subject, &format!("{GMEOW}findingLocation"), &node);
-            sink.location(&node, location);
+            sink.iri(&subject, &format!("{GMEOW}findingLocation"), &node)?;
+            sink.location(&node, location)?;
         }
         for (index, label) in finding.related_labels.iter().enumerate() {
             let node = format!("{subject}/relatedLabel/{index}");
-            sink.iri(&subject, &format!("{GMEOW}relatedLabel"), &node);
-            sink.text(&node, "labelMessage", &label.message);
-            sink.location(&node, &label.location);
+            sink.iri(&subject, &format!("{GMEOW}relatedLabel"), &node)?;
+            sink.text(&node, "labelMessage", &label.message)?;
+            sink.location(&node, &label.location)?;
         }
     }
+    Ok(())
 }
+
+#[path = "finding_rdf.tests.rs"]
+#[cfg(test)]
+mod tests;

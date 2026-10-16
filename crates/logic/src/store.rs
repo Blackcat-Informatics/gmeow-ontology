@@ -11,7 +11,6 @@
 //! graph whose graph term is that IRI.
 
 use std::cell::RefCell;
-use std::sync::Arc;
 
 use purrdf::{
     DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, TermValue, parse_dataset,
@@ -42,11 +41,16 @@ pub struct WorldStore {
 
 impl WorldStore {
     /// Create a new, empty in-memory `WorldStore`.
-    pub fn new() -> Self {
-        Self {
-            inner: RefCell::new(MutableDataset::new(Arc::new(RdfDataset::union(&[])))),
+    ///
+    /// # Errors
+    /// Returns the original native failure to construct the empty dataset.
+    pub fn new() -> gmeow_errors::Result<Self> {
+        Ok(Self {
+            inner: RefCell::new(MutableDataset::new(
+                purrdf::RdfDatasetBuilder::new().freeze()?,
+            )),
             execution_worlds: RefCell::default(),
-        }
+        })
     }
 
     /// Construct a `WorldStore` folded from a caller-supplied frozen dataset,
@@ -72,7 +76,7 @@ impl WorldStore {
     ///
     /// Propagates any fold error from [`load_dataset`](Self::load_dataset).
     pub fn from_dataset(source: &RdfDataset) -> gmeow_errors::Result<Self> {
-        let store = Self::new();
+        let store = Self::new()?;
         store.load_dataset(source)?;
         Ok(store)
     }
@@ -337,12 +341,6 @@ impl WorldStore {
             }
         }
         seen.into_iter().collect()
-    }
-}
-
-impl Default for WorldStore {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

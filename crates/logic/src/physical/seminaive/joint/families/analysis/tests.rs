@@ -92,6 +92,7 @@ impl World {
             &mut self.lists,
             &mut self.ledger,
             &mut self.coverage,
+            None,
         )
         .unwrap();
         let input = input.with_admissions(&self.coverage);

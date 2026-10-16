@@ -748,7 +748,7 @@ where
             literal_rewrites.insert(key, new_lit.clone());
             quad.object = purrdf::RdfTerm::Literal(new_lit);
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
 
     // Second pass: copy reifiers, updating any whose statement object was rewritten.
@@ -763,12 +763,12 @@ where
                 reifier.statement.object = purrdf::RdfTerm::Literal(new_lit.clone());
             }
         }
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier)?;
     }
     // Annotations reference the reifier IRI (not the statement literal), so the
     // reifier identity is unchanged after a retag — copy all annotations verbatim.
     for annotation in dataset.owned_annotations() {
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation)?;
     }
 
     serialize_ntriples(builder)
@@ -886,7 +886,7 @@ pub fn filter_graph(
             let key = (quad.subject.to_string(), quad.predicate.clone());
             if group_skip.contains(&key) {
                 // Unchanged group: copy this object verbatim.
-                builder.push_owned_quad(&quad);
+                builder.push_owned_quad(&quad)?;
                 continue;
             }
             if let Some(chosen) = group_replacement.get(&key) {
@@ -895,14 +895,14 @@ pub fn filter_graph(
                     for new_lit in chosen {
                         let mut new_quad = quad.clone();
                         new_quad.object = purrdf::RdfTerm::Literal(new_lit.clone());
-                        builder.push_owned_quad(&new_quad);
+                        builder.push_owned_quad(&new_quad)?;
                     }
                 }
                 // Original language-tagged object of a replaced group is dropped.
                 continue;
             }
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
 
     // Handle the RDF 1.2 statement layer. For replaced groups:
@@ -923,7 +923,7 @@ pub fn filter_graph(
                     Some(new_lit) => {
                         // Retagged: update the statement object and keep the reifier.
                         reifier.statement.object = purrdf::RdfTerm::Literal(new_lit.clone());
-                        builder.push_owned_reifier(&reifier);
+                        builder.push_owned_reifier(&reifier)?;
                     }
                     None => {
                         // Dropped: record this reifier's ID so its annotations are pruned.
@@ -933,13 +933,13 @@ pub fn filter_graph(
                 continue;
             }
         }
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier)?;
     }
     for annotation in dataset.owned_annotations() {
         if dropped_reifier_ids.contains(&annotation.reifier.to_string()) {
             continue;
         }
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation)?;
     }
 
     serialize_ntriples(builder)
@@ -947,21 +947,13 @@ pub fn filter_graph(
 
 /// Freeze `builder` and serialize the result to N-Triples bytes (default graph).
 fn serialize_ntriples(builder: purrdf::RdfDatasetBuilder) -> gmeow_errors::Result<Vec<u8>> {
-    let dataset = builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Serialize {
-            detail: format!("dataset freeze error: {e}"),
-        })
-    })?;
+    let dataset = builder.freeze().map_err(gmeow_errors::Diag::from)?;
     purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Serialize {
-            detail: format!("RDF serialize error: {e}"),
-        })
-    })
+    .map_err(gmeow_errors::Diag::from)
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────────

@@ -230,9 +230,11 @@ pub fn pack_root_from_grammar_leaf(
 /// Two DIFFERENT GMN-1 surface encodings of one model (record form and tabular form) read
 /// back to the SAME [`Gmn0Model`] and therefore share this digest: it names the model, not
 /// the surface bytes. Returns `"blake3:<64-hex>"`.
-#[must_use]
-pub fn content_digest(model: &Gmn0Model) -> String {
-    canonical_content_digest(&model.canonical_nquads())
+///
+/// # Errors
+/// Returns the original native model-construction failure.
+pub fn content_digest(model: &Gmn0Model) -> gmeow_errors::Result<String> {
+    Ok(canonical_content_digest(&model.canonical_nquads()?))
 }
 
 /// Hash an already canonicalized model without rebuilding its native dataset.

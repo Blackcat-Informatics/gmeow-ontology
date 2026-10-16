@@ -80,31 +80,39 @@ fn program() -> CorrespondenceProgram {
 
 fn dataset() -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let source = builder.intern_iri("urn:data:source");
-    let p = builder.intern_iri(P);
-    let q = builder.intern_iri(Q);
-    let middle_one = builder.intern_blank("middle-one", BlankScope(7));
-    let middle_two = builder.intern_iri("urn:data:middle-two");
-    let target_one = builder.intern_iri("urn:data:target-one");
-    let target_two = builder.intern_iri("urn:data:target-two");
-    builder.push_quad(source, p, middle_one, None);
-    builder.push_quad(source, p, middle_two, None);
-    builder.push_quad(middle_one, q, target_one, None);
-    builder.push_quad(middle_two, q, target_one, None);
-    builder.push_quad(middle_two, q, target_two, None);
+    let source = builder.intern_iri("urn:data:source").unwrap();
+    let p = builder.intern_iri(P).unwrap();
+    let q = builder.intern_iri(Q).unwrap();
+    let middle_one = builder.intern_blank("middle-one", BlankScope(7)).unwrap();
+    let middle_two = builder.intern_iri("urn:data:middle-two").unwrap();
+    let target_one = builder.intern_iri("urn:data:target-one").unwrap();
+    let target_two = builder.intern_iri("urn:data:target-two").unwrap();
+    builder.push_quad(source, p, middle_one, None).unwrap();
+    builder.push_quad(source, p, middle_two, None).unwrap();
+    builder.push_quad(middle_one, q, target_one, None).unwrap();
+    builder.push_quad(middle_two, q, target_one, None).unwrap();
+    builder.push_quad(middle_two, q, target_two, None).unwrap();
 
     // Unselected carrier structure must remain part of the input identity even
     // though the default-graph relation query does not mutate or return it.
-    let graph = builder.intern_iri("urn:data:standpoint-graph");
-    let empty = builder.intern_iri("urn:data:empty-graph");
-    builder.declare_named_graph(empty);
-    let provenance = builder.intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom");
-    let origin = builder.intern_iri("urn:data:record");
-    builder.push_quad(source, provenance, origin, Some(graph));
-    let statement = builder.intern_triple(source, p, middle_two);
-    let reifier = builder.intern_iri("urn:data:claim");
-    builder.push_reifier_in_graph(reifier, statement, Some(graph));
-    builder.push_annotation_in_graph(reifier, provenance, origin, Some(graph));
+    let graph = builder.intern_iri("urn:data:standpoint-graph").unwrap();
+    let empty = builder.intern_iri("urn:data:empty-graph").unwrap();
+    builder.declare_named_graph(empty).unwrap();
+    let provenance = builder
+        .intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom")
+        .unwrap();
+    let origin = builder.intern_iri("urn:data:record").unwrap();
+    builder
+        .push_quad(source, provenance, origin, Some(graph))
+        .unwrap();
+    let statement = builder.intern_triple(source, p, middle_two).unwrap();
+    let reifier = builder.intern_iri("urn:data:claim").unwrap();
+    builder
+        .push_reifier_in_graph(reifier, statement, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(reifier, provenance, origin, Some(graph))
+        .unwrap();
     builder.freeze().unwrap()
 }
 

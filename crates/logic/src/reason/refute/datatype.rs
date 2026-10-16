@@ -647,18 +647,20 @@ pub(crate) fn analyze(
         for field in &fields {
             admitted &= input.admit_selector(field, &mut outcome, ledger)?;
         }
-        if ready && admitted && ledger.charge(1) {
-            if let Err(error) = model.prepare(root) {
-                let fields = DEFINITION_FIELDS
-                    .iter()
-                    .flat_map(|field| model.facts(root, field))
-                    .collect::<Vec<_>>();
-                outcome.obstruct(
-                    NativeObstructionKind::IncompleteDefinition,
-                    error.message(),
-                    input.support(&fields, ledger)?,
-                );
-            }
+        if ready
+            && admitted
+            && ledger.charge(1)
+            && let Err(error) = model.prepare(root)
+        {
+            let fields = DEFINITION_FIELDS
+                .iter()
+                .flat_map(|field| model.facts(root, field))
+                .collect::<Vec<_>>();
+            outcome.obstruct(
+                NativeObstructionKind::IncompleteDefinition,
+                error.message(),
+                input.support(&fields, ledger)?,
+            );
         }
         outcome.finish(input, definition_reads.clone(), ledger);
         ledger.outcomes.push(outcome);

@@ -12,47 +12,45 @@
 //! its purpose and is removed now that the loser is gone (a survivor-vs-survivor
 //! re-run would be a tautology).
 //!
-//! The durable pin is `reviewed_coverage_matches_frozen_golden`, which recomputes
-//! the survivor set and asserts it against a checked-in golden.
-
-use gmeow_docs::i18n_compile::parse_po as parse_po_survivor;
+//! The durable pin compares authenticated producer observations to the frozen
+//! golden. Tests never rediscover or reparse the repository translation corpus.
 
 #[path = "support/reviewed_coverage.rs"]
 mod reviewed_coverage;
 
-use reviewed_coverage::{
-    docs_template_pos, golden_path, live_slice_pos, repo_root, reviewed_coverage_map,
-};
+use reviewed_coverage::{golden_path, repo_root};
+
+fn observation() -> gmeow_docs_model::reviewed_coverage::ReviewedCoverageObservation {
+    let bytes = gmeow_action_cache::selection::source_artifacts::load(
+        &repo_root(),
+        "stage-conformance",
+        "pipeline/reviewed-translation-observation.json",
+    )
+    .expect("authenticated translation observation");
+    let observation: Result<_, gmeow_errors::RecordedDiag> =
+        serde_json::from_slice(&bytes).expect("typed translation observation");
+    observation.expect("producer parsed every declared translation catalog")
+}
 
 /// ENH-A: every live slice PO, every `ontology-docs-templates.*.po`, and the two
 /// fixtures parse cleanly under the survivor.
 #[test]
-fn all_live_po_files_parse_under_survivor() {
-    let root = repo_root();
-    let mut paths = live_slice_pos(&root).expect("walk live slice PO catalogs");
-    paths.extend(docs_template_pos(&root).expect("walk documentation template catalogs"));
-    paths.push(root.join("tests/fixtures/i18n/fr.po"));
-    paths.push(root.join("tests/fixtures/i18n/zh.po"));
-
-    for path in paths {
-        let text = std::fs::read_to_string(&path)
-            .unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
-        let parsed = parse_po_survivor(&text, false);
-        assert!(
-            parsed.is_ok(),
-            "survivor parse_po failed for {}: {:?}",
-            path.display(),
-            parsed.err()
-        );
+fn corpus_all_live_po_files_parse_under_survivor() {
+    let observation = observation();
+    assert!(observation.reviewed_coverage.len() > 50);
+    for path in observation.reviewed_coverage.keys() {
+        assert!(observation.parsed_catalogs.contains_key(path), "{path}");
+    }
+    for path in ["tests/fixtures/i18n/fr.po", "tests/fixtures/i18n/zh.po"] {
+        assert!(observation.parsed_catalogs.contains_key(path), "{path}");
     }
 }
 
 /// ENH-B pin (survives deletion): the survivor reviewed-coverage map equals the
 /// checked-in golden. The test is strictly read-only.
 #[test]
-fn reviewed_coverage_matches_frozen_golden() {
-    let root = repo_root();
-    let computed = reviewed_coverage_map(&root).expect("compute reviewed translation coverage");
+fn corpus_reviewed_coverage_matches_frozen_golden() {
+    let computed = observation().reviewed_coverage;
     let path = golden_path();
 
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {

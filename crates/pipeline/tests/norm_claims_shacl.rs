@@ -20,7 +20,9 @@ const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm
 const ADVICE_FAMILY: &str = "advice.";
 
 fn norm_claims_dataset() -> Arc<RdfDataset> {
-    let scoped = authenticated_bundle::dataset().project_named_graph(GRAPH_NORM_CLAIMS);
+    let scoped = authenticated_bundle::dataset()
+        .project_named_graph(GRAPH_NORM_CLAIMS)
+        .unwrap();
     let mut quads = flat_rdf_quads_from_dataset(&scoped);
     for quad in &mut quads {
         quad.graph_name = None;

@@ -152,7 +152,7 @@ pub enum FallibleViewMaterializationError<OperationalError, BackendEvidence> {
     /// Program lowering or native materialization failed while the view stayed ready.
     Materialization {
         /// Ordinary native materialization failure.
-        error: MaterializeError,
+        error: gmeow_errors::Diag,
         /// Backend and source-access evidence at the final ready checkpoint.
         evidence: QueryExecutionEvidence<BackendEvidence>,
         /// Source and engine identities for the failed attempt.
@@ -197,7 +197,7 @@ impl<OperationalError, BackendEvidence>
 
     /// Borrow the native materialization error, when the RDF view remained ready.
     #[must_use]
-    pub const fn materialization_error(&self) -> Option<&MaterializeError> {
+    pub const fn materialization_error(&self) -> Option<&gmeow_errors::Diag> {
         match self {
             Self::Materialization { error, .. } => Some(error),
             Self::Operational { .. } => None,
@@ -290,7 +290,7 @@ pub(crate) fn selected_materialization_contract_hash(
 
 fn selected_materialization_patterns(
     prepared: &crate::program_analysis::PreparedProgram,
-) -> Result<Vec<WorldFactPattern>, MaterializeError> {
+) -> gmeow_errors::Result<Vec<WorldFactPattern>> {
     fn source_term(term: &crate::rule_ir::EvalTerm) -> Option<TermValue> {
         match term {
             crate::rule_ir::EvalTerm::Var(_) => None,
@@ -325,10 +325,10 @@ fn selected_materialization_patterns(
         }
     }
     if patterns.is_empty() {
-        return Err(MaterializeError::Chase(
+        return Err(gmeow_errors::Diag::from(MaterializeError::Chase(
             "selected view materialization has no program predicate to push into the RDF source; use the existing whole-dataset materializer when the complete input echo is the intended output"
                 .to_owned(),
-        ));
+        )));
     }
     patterns.sort();
     Ok(patterns)
@@ -352,9 +352,8 @@ pub fn materialize_program_source(
     worlds: &[String],
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
-) -> Result<Materialization, MaterializeError> {
-    let prepared = crate::program_analysis::prepare_program(program)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+) -> gmeow_errors::Result<Materialization> {
+    let prepared = crate::program_analysis::prepare_program(program)?;
     admit_materialization(
         &prepared,
         match declared_profile {
@@ -366,12 +365,10 @@ pub fn materialize_program_source(
     let mut worlds = worlds.to_vec();
     worlds.sort();
     worlds.dedup();
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new()?;
     let mut source_provenance = std::collections::BTreeMap::new();
     for world in &worlds {
-        store
-            .select_world(world)
-            .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+        store.select_world(world)?;
         crate::physical::visit_edb_patterns(source, world, &patterns, &mut |quad| {
             source_provenance
                 .entry((
@@ -387,8 +384,7 @@ pub fn materialize_program_source(
                 TermValue::iri(&quad.predicate),
                 quad.object.clone(),
             )
-        })
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+        })?;
     }
     let mut materialization =
         materialize_program_store(program, &prepared, &store, limits, declared_profile)?;
@@ -416,7 +412,7 @@ pub fn materialize_program_view<V: DatasetView>(
     worlds: &[String],
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
-) -> Result<CompleteViewMaterialization<ResidentViewEvidence>, MaterializeError> {
+) -> gmeow_errors::Result<CompleteViewMaterialization<ResidentViewEvidence>> {
     let identity = QueryExecutionIdentity::for_contract(
         source_identity,
         selected_materialization_contract_hash(program, worlds, limits, declared_profile),
@@ -503,7 +499,7 @@ pub fn materialize_program_fallible_view<V: FallibleDatasetView>(
 
 fn program_profile(
     program: &gmeow_logic_compile::ir::LogicProgram,
-) -> Result<gmeow_logic_compile::ir::SemanticProfileId, MaterializeError> {
+) -> gmeow_errors::Result<gmeow_logic_compile::ir::SemanticProfileId> {
     let presets = program
         .contracts
         .iter()
@@ -512,9 +508,9 @@ fn program_profile(
     match presets.len() {
         0 => Ok(gmeow_logic_compile::ir::SemanticProfileId::PositiveHorn),
         1 => Ok(*presets.iter().next().expect("one profile")),
-        _ => Err(MaterializeError::Chase(format!(
+        _ => Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
             "materialize_program requires one semantic profile, found {presets:?}"
-        ))),
+        )))),
     }
 }
 
@@ -546,8 +542,8 @@ impl NonmonotoneWorldSession {
         world: &str,
         edb: impl IntoIterator<Item = crate::rule_ir::Fact>,
         rules: &[crate::rule_ir::EvalRule],
-    ) -> Result<Self, MaterializeError> {
-        let result = match profile {
+    ) -> gmeow_errors::Result<Self> {
+        match profile {
             gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
                 crate::wellfounded::IncrementalWellFoundedSession::new(
                     contract_hash,
@@ -566,13 +562,10 @@ impl NonmonotoneWorldSession {
                 )
                 .map(Self::StableModel)
             }
-            other => {
-                return Err(MaterializeError::Chase(format!(
-                    "non-monotone materialization requires WellFoundedProfile or StableModelProfile, got {other}"
-                )));
-            }
-        };
-        result.map_err(|error| MaterializeError::Chase(error.message().to_owned()))
+            other => Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
+                "non-monotone materialization requires WellFoundedProfile or StableModelProfile, got {other}"
+            )))),
+        }
     }
 
     fn rows(&self) -> &[crate::rule_ir::DerivedRow] {
@@ -592,7 +585,7 @@ impl NonmonotoneWorldSession {
 
 fn nonmonotone_solver(
     profile: gmeow_logic_compile::ir::SemanticProfileId,
-) -> Result<crate::reason::perf_ledger::NonmonotoneSolver, MaterializeError> {
+) -> gmeow_errors::Result<crate::reason::perf_ledger::NonmonotoneSolver> {
     match profile {
         gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
             Ok(crate::reason::perf_ledger::NonmonotoneSolver::WellFounded)
@@ -600,9 +593,9 @@ fn nonmonotone_solver(
         gmeow_logic_compile::ir::SemanticProfileId::StableModel => {
             Ok(crate::reason::perf_ledger::NonmonotoneSolver::StableModel)
         }
-        other => Err(MaterializeError::Chase(format!(
+        other => Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
             "non-monotone solver lookup received unsupported profile {other}"
-        ))),
+        )))),
     }
 }
 
@@ -611,7 +604,7 @@ fn materialize_nonmonotone(
     rules: &[crate::rule_ir::EvalRule],
     store: &crate::store::WorldStore,
     preservation: PreservationClaim,
-) -> Result<Materialization, MaterializeError> {
+) -> gmeow_errors::Result<Materialization> {
     let rule_hash = purrdf_hash::hex::encode(&crate::physical::canonical_rule_hash(rules));
     let contract_hash = format!(
         "gmeow-native-nonmonotone-materialize-v2:{}:{rule_hash}",
@@ -620,8 +613,7 @@ fn materialize_nonmonotone(
     let mut rows = Vec::new();
     let mut solve_runs = Vec::new();
     for world in store.worlds() {
-        let edb = crate::rule_ir::world_edb_facts(store, &world)
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        let edb = crate::rule_ir::world_edb_facts(store, &world)?;
         let session =
             NonmonotoneWorldSession::prepare(profile, &contract_hash, &world, edb, rules)?;
         solve_runs.push(WorldNonmonotoneSolveRun {
@@ -651,9 +643,8 @@ pub fn materialize_program(
     input: &RdfDataset,
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
-) -> Result<Materialization, MaterializeError> {
-    let prepared = crate::program_analysis::prepare_program(program)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+) -> gmeow_errors::Result<Materialization> {
+    let prepared = crate::program_analysis::prepare_program(program)?;
     admit_materialization(
         &prepared,
         match declared_profile {
@@ -661,10 +652,8 @@ pub fn materialize_program(
             None => program_profile(program)?,
         },
     )?;
-    let store = crate::store::WorldStore::new();
-    store
-        .load_dataset(input)
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+    let store = crate::store::WorldStore::new()?;
+    store.load_dataset(input)?;
     materialize_program_store(program, &prepared, &store, limits, declared_profile)
 }
 
@@ -672,17 +661,14 @@ pub fn materialize_program(
 fn admit_materialization(
     prepared: &crate::program_analysis::PreparedProgram,
     profile: gmeow_logic_compile::ir::SemanticProfileId,
-) -> Result<(), MaterializeError> {
-    prepared
-        .admission
-        .admit_world_local_template()
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+) -> gmeow_errors::Result<()> {
+    prepared.admission.admit_world_local_template()?;
     if prepared.rules.iter().any(|rule| rule.reduction.is_some())
         && profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf
     {
-        return Err(MaterializeError::Chase(format!(
+        return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
             "aggregate-aware completion requires StratifiedNAFProfile, got {profile}",
-        )));
+        ))));
     }
     Ok(())
 }
@@ -692,34 +678,25 @@ fn run_joint_program(
     prepared: &crate::program_analysis::PreparedProgram,
     store: &crate::store::WorldStore,
     limits: MaterializationLimits,
-) -> Result<
-    (
-        std::sync::Arc<crate::physical::JointProgram>,
-        crate::physical::JointMaterialization,
-    ),
-    MaterializeError,
-> {
-    let program = match prepared
-        .joint_program()
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
-    {
+) -> gmeow_errors::Result<(
+    std::sync::Arc<crate::physical::JointProgram>,
+    crate::physical::JointMaterialization,
+)> {
+    let program = match prepared.joint_program()? {
         crate::physical::NativeOutcome::Decided(program) => program,
         crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(MaterializeError::Chase(format!(
+            return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
                 "native joint materialization refused {kind:?}"
-            )));
+            ))));
         }
     };
-    let materialized = match program
-        .materialize(store, limits.max_steps)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
-    {
+    let materialized = match program.materialize(store, limits.max_steps)? {
         crate::physical::NativeOutcome::Decided(materialized) => materialized,
         crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(MaterializeError::Chase(format!(
+            return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
                 "native joint materialization refused {kind:?}: {:?}",
                 program.admission.capability_gap_rows()
-            )));
+            ))));
         }
     };
     Ok((program, materialized))
@@ -730,7 +707,7 @@ fn materialize_joint_program(
     prepared: &crate::program_analysis::PreparedProgram,
     store: &crate::store::WorldStore,
     limits: MaterializationLimits,
-) -> Result<Materialization, MaterializeError> {
+) -> gmeow_errors::Result<Materialization> {
     let (program, materialized) = run_joint_program(prepared, store, limits)?;
     let frontier = materialized.result.frontier();
     let status = materialized.result.status;
@@ -767,7 +744,7 @@ fn materialize_program_store(
     store: &crate::store::WorldStore,
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
-) -> Result<Materialization, MaterializeError> {
+) -> gmeow_errors::Result<Materialization> {
     let profile = match declared_profile {
         Some(profile) => profile,
         None => program_profile(program)?,
@@ -781,12 +758,10 @@ pub(crate) fn materialize_prepared(
     input: &RdfDataset,
     limits: MaterializationLimits,
     profile: gmeow_logic_compile::ir::SemanticProfileId,
-) -> Result<Materialization, MaterializeError> {
+) -> gmeow_errors::Result<Materialization> {
     admit_materialization(prepared, profile)?;
-    let store = crate::store::WorldStore::new();
-    store
-        .load_dataset(input)
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+    let store = crate::store::WorldStore::new()?;
+    store.load_dataset(input)?;
     materialize_prepared_store(prepared, &store, limits, profile)
 }
 
@@ -795,7 +770,7 @@ pub(crate) fn materialize_prepared_store(
     store: &crate::store::WorldStore,
     limits: MaterializationLimits,
     profile: gmeow_logic_compile::ir::SemanticProfileId,
-) -> Result<Materialization, MaterializeError> {
+) -> gmeow_errors::Result<Materialization> {
     admit_materialization(prepared, profile)?;
     let rules = &prepared.rules;
     let mut preservation = prepared.preservation.clone();
@@ -805,13 +780,12 @@ pub(crate) fn materialize_prepared_store(
         gmeow_logic_compile::ir::SemanticProfileId::WellFounded
             | gmeow_logic_compile::ir::SemanticProfileId::StableModel
     ) {
-        crate::rule_ir::admit_reduct_rules(rules)
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        crate::rule_ir::admit_reduct_rules(rules)?;
         if limits.max_steps.is_some() || !prepared.existential_rules.is_empty() {
-            return Err(MaterializeError::Chase(
+            return Err(gmeow_errors::Diag::from(MaterializeError::Chase(
                 "non-monotone materialization does not support step budgets or existential formula heads"
                     .to_owned(),
-            ));
+            )));
         }
         return materialize_nonmonotone(profile, rules, store, preservation);
     }
@@ -828,19 +802,17 @@ pub(crate) fn materialize_prepared_store(
         if profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf
             || rules.iter().any(|rule| rule.reduction.is_some())
         {
-            return Err(MaterializeError::Chase(
+            return Err(gmeow_errors::Diag::from(MaterializeError::Chase(
                 "native structured materialization refused a non-stratifiable program".to_owned(),
-            ));
+            )));
         }
         preservation =
             PreservationClaim::for_unsupported(rules.iter().map(|rule| rule.rule_iri.clone()));
         let mut quads = Vec::new();
         for world in store.worlds() {
-            let edb = crate::rule_ir::world_edb_facts(store, &world)
-                .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+            let edb = crate::rule_ir::world_edb_facts(store, &world)?;
             quads.extend(
-                crate::rule_ir::echo_asserted(&world, &edb)
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
+                crate::rule_ir::echo_asserted(&world, &edb)?
                     .into_iter()
                     .map(derived_row_to_quad),
             );
@@ -857,14 +829,12 @@ pub(crate) fn materialize_prepared_store(
     };
 
     let budgeted =
-        match crate::physical::materialize_native(store, executable.as_ref(), limits.max_steps)
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
-        {
+        match crate::physical::materialize_native(store, executable.as_ref(), limits.max_steps)? {
             crate::physical::NativeOutcome::Decided(result) => result,
             crate::physical::NativeOutcome::Unsupported(kind) => {
-                return Err(MaterializeError::Chase(format!(
+                return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
                     "native structured materialization refused {kind:?}"
-                )));
+                ))));
             }
         };
     let frontier = budgeted.frontier();
@@ -958,13 +928,12 @@ pub fn materialize_program_annotated<A, F>(
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
     annotation: AnnotationRequest<'_, A, F>,
-) -> Result<AnnotatedMaterialization<A::Element>, MaterializeError>
+) -> gmeow_errors::Result<AnnotatedMaterialization<A::Element>>
 where
     A: TupleAnnotationAlgebra,
     F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
 {
-    let prepared = crate::program_analysis::prepare_program(program)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    let prepared = crate::program_analysis::prepare_program(program)?;
     admit_materialization(
         &prepared,
         match declared_profile {
@@ -977,10 +946,8 @@ where
         Some(profile) => profile,
         None => program_profile(program)?,
     };
-    let store = crate::store::WorldStore::new();
-    store
-        .load_dataset(input)
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+    let store = crate::store::WorldStore::new()?;
+    store.load_dataset(input)?;
 
     if (!prepared.existential_rules.is_empty()
         || prepared.rules.iter().any(|rule| !rule.numeric.is_empty()))
@@ -1022,13 +989,12 @@ where
         gmeow_logic_compile::ir::SemanticProfileId::WellFounded
             | gmeow_logic_compile::ir::SemanticProfileId::StableModel
     ) {
-        crate::rule_ir::admit_reduct_rules(rules)
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        crate::rule_ir::admit_reduct_rules(rules)?;
         if limits.max_steps.is_some() || !prepared.existential_rules.is_empty() {
-            return Err(MaterializeError::Chase(
+            return Err(gmeow_errors::Diag::from(MaterializeError::Chase(
                 "non-monotone materialization does not support step budgets or existential formula heads"
                     .to_owned(),
-            ));
+            )));
         }
         let query_class = match profile {
             gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
@@ -1036,21 +1002,17 @@ where
             }
             _ => crate::annotation::AnnotationQueryClass::StableModel,
         };
-        let certification = annotation
-            .contract
-            .certify_physical_class(
-                query_class,
-                crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
-            )
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        let certification = annotation.contract.certify_physical_class(
+            query_class,
+            crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
+        )?;
         let rule_hash = purrdf_hash::hex::encode(&crate::physical::canonical_rule_hash(rules));
         let contract_hash = format!(
             "gmeow-native-nonmonotone-materialize-v2:{}:{rule_hash}",
             profile.as_str()
         );
         for world in store.worlds() {
-            let edb = crate::rule_ir::world_edb_facts(&store, &world)
-                .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+            let edb = crate::rule_ir::world_edb_facts(&store, &world)?;
             let session = NonmonotoneWorldSession::prepare(
                 profile,
                 &contract_hash,
@@ -1069,10 +1031,12 @@ where
             });
             let rows = session.rows().to_vec();
             let seeds = seed_for(&world, &edb);
-            let evaluated = annotation
-                .contract
-                .evaluate_selected_physical_lineage(&rows, &edb, &seeds, annotation.algebra)
-                .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+            let evaluated = annotation.contract.evaluate_selected_physical_lineage(
+                &rows,
+                &edb,
+                &seeds,
+                annotation.algebra,
+            )?;
             physical_rows.extend(rows);
             evaluations.insert(
                 world,
@@ -1090,30 +1054,27 @@ where
             if profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf
                 || rules.iter().any(|rule| rule.reduction.is_some())
             {
-                return Err(MaterializeError::Chase(
+                return Err(gmeow_errors::Diag::from(MaterializeError::Chase(
                     "native annotated materialization refused a non-stratifiable program"
                         .to_owned(),
-                ));
+                )));
             }
             preservation =
                 PreservationClaim::for_unsupported(rules.iter().map(|rule| rule.rule_iri.clone()));
-            let certification = annotation
-                .contract
-                .certify_physical_class(
-                    crate::annotation::AnnotationQueryClass::StratifiedNaf,
-                    crate::annotation::AnnotationLineageContract::AllPhysicalDerivations,
-                )
-                .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+            let certification = annotation.contract.certify_physical_class(
+                crate::annotation::AnnotationQueryClass::StratifiedNaf,
+                crate::annotation::AnnotationLineageContract::AllPhysicalDerivations,
+            )?;
             for world in store.worlds() {
-                let edb = crate::rule_ir::world_edb_facts(&store, &world)
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+                let edb = crate::rule_ir::world_edb_facts(&store, &world)?;
                 let seeds = seed_for(&world, &edb);
-                let rows = crate::rule_ir::echo_asserted(&world, &edb)
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-                let evaluated = annotation
-                    .contract
-                    .evaluate_selected_physical_lineage(&rows, &edb, &seeds, annotation.algebra)
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+                let rows = crate::rule_ir::echo_asserted(&world, &edb)?;
+                let evaluated = annotation.contract.evaluate_selected_physical_lineage(
+                    &rows,
+                    &edb,
+                    &seeds,
+                    annotation.algebra,
+                )?;
                 physical_rows.extend(rows);
                 evaluations.insert(
                     world,
@@ -1141,16 +1102,14 @@ where
                 crate::annotation::AnnotationQueryClass::ExistentialChase,
                 crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
             )
-        }
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        }?;
 
         let mut remaining = limits.max_steps;
         let mut completed = executable.stratum_count();
         let mut saturated: Option<std::collections::BTreeSet<String>> = None;
         let mut consumed = 0_u64;
         for world in store.worlds() {
-            let edb = crate::rule_ir::world_edb_facts(&store, &world)
-                .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+            let edb = crate::rule_ir::world_edb_facts(&store, &world)?;
             let seeds = seed_for(&world, &edb);
             let evaluated = crate::physical::evaluate_annotations(
                 &world,
@@ -1163,8 +1122,7 @@ where
                     annotation.algebra,
                     annotation.contract,
                 ),
-            )
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+            )?;
             if let Some(limit) = remaining.as_mut() {
                 *limit = limit.saturating_sub(evaluated.frontier.consumed_steps);
             }
@@ -1245,29 +1203,25 @@ fn materialize_joint_annotated<A, F>(
     store: &crate::store::WorldStore,
     limits: MaterializationLimits,
     annotation: AnnotationRequest<'_, A, F>,
-) -> Result<AnnotatedMaterialization<A::Element>, MaterializeError>
+) -> gmeow_errors::Result<AnnotatedMaterialization<A::Element>>
 where
     A: TupleAnnotationAlgebra,
     F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
 {
-    let certification = annotation
-        .contract
-        .certify_physical_class(
-            if prepared.rules.iter().any(|rule| rule.reduction.is_some()) {
-                crate::annotation::AnnotationQueryClass::StratifiedAggregateChase
-            } else {
-                crate::annotation::AnnotationQueryClass::ExistentialChase
-            },
-            crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
-        )
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    let certification = annotation.contract.certify_physical_class(
+        if prepared.rules.iter().any(|rule| rule.reduction.is_some()) {
+            crate::annotation::AnnotationQueryClass::StratifiedAggregateChase
+        } else {
+            crate::annotation::AnnotationQueryClass::ExistentialChase
+        },
+        crate::annotation::AnnotationLineageContract::SelectedPhysicalDerivation,
+    )?;
     let (program, materialized) = run_joint_program(prepared, store, limits)?;
     let frontier = materialized.result.frontier();
     let status = materialized.result.status;
     let mut evaluations = std::collections::BTreeMap::new();
     for world in store.worlds() {
-        let edb = crate::rule_ir::world_edb_facts(store, &world)
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        let edb = crate::rule_ir::world_edb_facts(store, &world)?;
         let seeds = edb
             .iter()
             .map(|fact| {
@@ -1292,10 +1246,12 @@ where
             .rows
             .partition_point(|row| row.graph <= world);
         let rows = &materialized.result.rows[start..end];
-        let folded = annotation
-            .contract
-            .evaluate_selected_physical_lineage(rows, &edb, &seeds, annotation.algebra)
-            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        let folded = annotation.contract.evaluate_selected_physical_lineage(
+            rows,
+            &edb,
+            &seeds,
+            annotation.algebra,
+        )?;
         evaluations.insert(
             world,
             MaterializedAnnotationWorld {
@@ -1342,7 +1298,7 @@ fn finish_annotated_materialization<E: Clone>(
     chase_admission: Option<ChaseAdmission>,
     nonmonotone_solve_runs: Vec<WorldNonmonotoneSolveRun>,
     certification: AnnotationCertification,
-) -> Result<AnnotatedMaterialization<E>, MaterializeError> {
+) -> gmeow_errors::Result<AnnotatedMaterialization<E>> {
     crate::rule_ir::sort_rows(&mut rows);
     let materialization = Materialization {
         quads: rows.into_iter().map(derived_row_to_quad).collect(),
@@ -1361,16 +1317,16 @@ fn finish_annotated_materialization<E: Clone>(
             quad.object.clone(),
         );
         let evaluation = evaluations.get(&quad.graph).ok_or_else(|| {
-            MaterializeError::Chase(format!(
+            gmeow_errors::Diag::from(MaterializeError::Chase(format!(
                 "annotation evaluation is missing materialized world {}",
                 quad.graph
-            ))
+            )))
         })?;
         let annotation = evaluation.annotations.get(&key).cloned().ok_or_else(|| {
-            MaterializeError::Chase(format!(
+            gmeow_errors::Diag::from(MaterializeError::Chase(format!(
                 "annotation evaluation is missing admitted fact {key:?} in {}",
                 quad.graph
-            ))
+            )))
         })?;
         let derivations = public_annotation_derivations(
             &quad.graph,
@@ -1402,29 +1358,23 @@ pub fn materialize_existential_rules(
     input: &RdfDataset,
     rules: &[StructuredExistentialRule],
     limits: MaterializationLimits,
-) -> Result<Materialization, MaterializeError> {
-    let store = crate::store::WorldStore::new();
-    store
-        .load_dataset(input)
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+) -> gmeow_errors::Result<Materialization> {
+    let store = crate::store::WorldStore::new()?;
+    store.load_dataset(input)?;
     let physical = rules
         .iter()
         .map(crate::physical::ExistentialRule::from)
         .collect::<Vec<_>>();
-    let program = match crate::physical::JointProgram::prepare(&[], &physical)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
-    {
+    let program = match crate::physical::JointProgram::prepare(&[], &physical)? {
         crate::physical::NativeOutcome::Decided(program) => program,
         crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(MaterializeError::Chase(format!(
+            return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
                 "native existential preparation refused {kind:?}"
-            )));
+            ))));
         }
     };
     let admission = program.admission.clone();
-    let outcome = program
-        .materialize(&store, limits.max_steps)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+    let outcome = program.materialize(&store, limits.max_steps)?;
     let budgeted = match outcome {
         crate::physical::NativeOutcome::Decided(result) => result,
         crate::physical::NativeOutcome::Unsupported(
@@ -1432,11 +1382,9 @@ pub fn materialize_existential_rules(
         ) => {
             let mut quads = Vec::new();
             for world in store.worlds() {
-                let edb = crate::rule_ir::world_edb_facts(&store, &world)
-                    .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+                let edb = crate::rule_ir::world_edb_facts(&store, &world)?;
                 quads.extend(
-                    crate::rule_ir::echo_asserted(&world, &edb)
-                        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?
+                    crate::rule_ir::echo_asserted(&world, &edb)?
                         .into_iter()
                         .map(derived_row_to_quad),
                 );
@@ -1454,10 +1402,10 @@ pub fn materialize_existential_rules(
             });
         }
         crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(MaterializeError::Chase(format!(
+            return Err(gmeow_errors::Diag::from(MaterializeError::Chase(format!(
                 "native typed existential materialization refused {kind:?}: {:?}",
                 admission.capability_gap_rows()
-            )));
+            ))));
         }
     };
     let witness_derivations = budgeted.witness_derivations;

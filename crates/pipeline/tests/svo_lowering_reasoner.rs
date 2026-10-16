@@ -48,7 +48,7 @@ fn quad(s: &str, p: &str, o: &str) -> RdfQuad {
 fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for q in quads {
-        builder.push_owned_quad(&q);
+        builder.push_owned_quad(&q).unwrap();
     }
     builder.freeze().expect("valid test dataset")
 }

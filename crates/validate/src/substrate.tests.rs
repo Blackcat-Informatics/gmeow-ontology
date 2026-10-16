@@ -210,3 +210,93 @@ fn a_single_locked_component_below_the_floor_is_refused() {
     std::fs::write(root.join("Cargo.lock"), mixed).unwrap();
     assert!(locked_purrdf_packages(&root.join("Cargo.lock")).is_err());
 }
+
+const REVISION: &str = "0123456789abcdef0123456789abcdef01234567";
+
+fn git_fixture() -> tempfile::TempDir {
+    let temp = fixture();
+    let dependency = format!("{{ version = '3', git = '{GIT_REPOSITORY}', rev = '{REVISION}' }}");
+    for (path, manifest) in [
+        (
+            "Cargo.toml",
+            format!(
+                "[workspace.dependencies]\npurrdf = {dependency}\npurrdf-core = {dependency}\n"
+            ),
+        ),
+        (
+            "fuzz/Cargo.toml",
+            format!("[workspace]\n[dependencies]\npurrdf = {dependency}\n"),
+        ),
+    ] {
+        std::fs::write(temp.path().join(path), manifest).unwrap();
+    }
+    let source = git_source(REVISION).unwrap();
+    let lock = format!(
+        "version = 4\n[[package]]\nname = 'purrdf'\nversion = '3.0.1'\nsource = '{source}'\n[[package]]\nname = 'purrdf-core'\nversion = '3.0.1'\nsource = '{source}'\n"
+    );
+    for path in ["Cargo.lock", "fuzz/Cargo.lock"] {
+        std::fs::write(temp.path().join(path), &lock).unwrap();
+    }
+    temp
+}
+
+#[test]
+fn exact_official_git_revision_is_authenticated_in_both_workspaces() {
+    let temp = git_fixture();
+    verify_fuzz_substrate(temp.path()).unwrap();
+    let resolution = resolve_purrdf(
+        &temp.path().join("Cargo.toml"),
+        &temp.path().join("Cargo.lock"),
+    )
+    .unwrap();
+    assert_eq!(resolution.version, "3.0.1");
+    let path = temp.path().join("fuzz/Cargo.lock");
+    let lock = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(
+        path,
+        lock.replace(REVISION, "1123456789abcdef0123456789abcdef01234567"),
+    )
+    .unwrap();
+    assert!(verify_fuzz_substrate(temp.path()).is_err());
+}
+
+#[test]
+fn git_pin_rejects_moving_refs_foreign_origins_and_source_drift() {
+    let temp = git_fixture();
+    let path = temp.path().join("Cargo.toml");
+    let manifest = std::fs::read_to_string(&path).unwrap();
+    for invalid in [
+        manifest.replace(REVISION, "01234567"),
+        manifest.replace("rev =", "branch ="),
+        manifest.replace(GIT_REPOSITORY, "https://example.org/purrdf"),
+        manifest.replace("purrdf-core = {", "purrdf-core = { branch = 'main',"),
+        manifest.replace(
+            &format!("git = '{GIT_REPOSITORY}', rev = '{REVISION}'"),
+            "default-features = true",
+        ),
+    ] {
+        std::fs::write(&path, invalid).unwrap();
+        assert!(verify_fuzz_substrate(temp.path()).is_err());
+    }
+}
+
+#[test]
+fn git_lock_rejects_wrong_resolved_commit_and_registry_checksum() {
+    let temp = git_fixture();
+    let path = temp.path().join("Cargo.lock");
+    let lock = std::fs::read_to_string(&path).unwrap();
+    for invalid in [
+        lock.replace(
+            &format!("#{REVISION}"),
+            "#1123456789abcdef0123456789abcdef01234567",
+        ),
+        lock.replace(
+            "[[package]]",
+            "[[package]]\nchecksum = 'not-a-registry-release'",
+        ),
+        lock.replace(GIT_REPOSITORY, "https://example.org/purrdf"),
+    ] {
+        std::fs::write(&path, invalid).unwrap();
+        assert!(verify_fuzz_substrate(temp.path()).is_err());
+    }
+}

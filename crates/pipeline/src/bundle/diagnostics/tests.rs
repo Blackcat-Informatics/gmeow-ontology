@@ -173,12 +173,15 @@ pub(crate) fn product(owner: DiagnosticReportOwner, report: Report) -> StageProd
 /// the same source publications and complete-owner admission as production.
 pub(crate) fn snapshot_product(upstream: &BTreeMap<String, StageProduct>) -> StageProduct {
     let publication = snapshot_diagnostics(upstream).unwrap();
-    let graph = Arc::new(purrdf::RdfDataset::union(
-        &upstream
-            .values()
-            .map(|product| product.dataset())
-            .collect::<Vec<_>>(),
-    ));
+    let graph = Arc::new(
+        purrdf::RdfDataset::union(
+            &upstream
+                .values()
+                .map(|product| product.dataset())
+                .collect::<Vec<_>>(),
+        )
+        .unwrap(),
+    );
     let mut bundle = crate::bundle::bundle_from_artifacts_over(
         graph,
         BTreeMap::new(),
@@ -240,8 +243,9 @@ fn native_diagnostics_publish_meta_enrichment_before_sealing() {
         @prefix ex: <https://example.org/> .
         ex:trace a logic:Rule, gmeow:DiagnosticMetaRule ;
             logic:provenance ex:source ;
-            logic:head [ rdf:subject ex:finding ;
-                rdf:predicate gmeow:findingRootCause ; rdf:object ex:derivedRoot ] .
+            logic:head [
+                rdf:reifies <<( ex:finding gmeow:findingRootCause ex:derivedRoot )>>
+            ] .
     "#,
         purrdf::NativeRdfFormat::Turtle,
     )
@@ -430,7 +434,7 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
     );
     let mut wrong = product(owner, rich_report(owner));
     let bundle = Arc::make_mut(&mut wrong.bundle);
-    let pin = bundle.graph_digest(GRAPH_DIAGNOSTICS);
+    let pin = bundle.graph_digest(GRAPH_DIAGNOSTICS).unwrap();
     bundle
         .pin_handle(
             GRAPH_DIAGNOSTICS,

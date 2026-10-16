@@ -19,9 +19,7 @@ use crate::loss_ledger::LossLedger;
 
 use super::super::ir::LogicProgram;
 use super::rdf::TripleSink;
-use super::{
-    GMEOW_NS, LOGIC_NS, OverclaimError, ProjectionResult, RDF_TYPE, XSD_NS, assert_no_overclaim,
-};
+use super::{GMEOW_NS, LOGIC_NS, ProjectionResult, RDF_TYPE, XSD_NS, assert_no_overclaim};
 
 /// The named graph the compiler's projection-report loss ledger is folded into
 /// downstream (mirrors `crates/pipeline::stages::carrier::GRAPH_PROJECTION_LEDGER`
@@ -50,17 +48,18 @@ fn emit_abox_annotations(
     label: &str,
     definition: &str,
     graph_iri: &str,
-) {
+) -> gmeow_errors::Result<()> {
     for (predicate, object) in abox_annotations(subject_iri, label, definition, graph_iri) {
         match object {
-            AboxObject::Iri(iri) => g.add_iri(subject_iri, predicate, &iri),
+            AboxObject::Iri(iri) => g.add_iri(subject_iri, predicate, &iri)?,
             AboxObject::CarrierLiteral(value) => g.add_lit(
                 subject_iri,
                 predicate,
                 RdfLiteral::language_tagged(value, X_GMEOW_ENGLISH),
-            ),
+            )?,
         }
     }
+    Ok(())
 }
 
 /// Percent-encode a projection-target name into a legal IRI path segment.
@@ -232,14 +231,14 @@ impl ReportHeader {
 ///
 /// # Errors
 ///
-/// Returns [`OverclaimError`] if any projection declares `ExactPreservation` but
+/// Returns [`super::OverclaimError`] if any projection declares `ExactPreservation` but
 /// produced drops, or declares `Unsupported` (the legalization floor) yet flagged no
-/// residue (a silent under-disclosure).
+/// residue (a silent under-disclosure). Storage and codec failures retain their native cause.
 pub fn build_projection_report(
     program: &LogicProgram,
     projections: &[ProjectionResult],
     ledger: &LossLedger,
-) -> Result<String, OverclaimError> {
+) -> gmeow_errors::Result<String> {
     build_projection_report_from(ReportHeader::of_program(program), projections, ledger)
 }
 
@@ -254,7 +253,7 @@ pub fn build_projection_report_from(
     header: ReportHeader,
     projections: &[ProjectionResult],
     ledger: &LossLedger,
-) -> Result<String, OverclaimError> {
+) -> gmeow_errors::Result<String> {
     build_projection_report_rows(
         header,
         projections.iter().map(ProjectionReportRowRef::from),
@@ -268,37 +267,38 @@ pub fn build_projection_report_from(
 ///
 /// # Errors
 /// Refuses exact overclaims and unsupported rows with no disclosed residue.
+/// Returns the original storage or codec failure if report emission fails.
 pub fn build_projection_report_rows<'a>(
     header: ReportHeader,
     projections: impl IntoIterator<Item = ProjectionReportRowRef<'a>>,
     ledgers: &[&LossLedger],
-) -> Result<String, OverclaimError> {
+) -> gmeow_errors::Result<String> {
     let ledger = crate::loss_ledger::ProjectionLossView::new(ledgers);
     let mut g = TripleSink::default();
 
     let report_iri = logic("projection-report");
-    g.add_iri(&report_iri, RDF_TYPE, &logic("ProjectionReport"));
+    g.add_iri(&report_iri, RDF_TYPE, &logic("ProjectionReport"))?;
     g.add_lit(
         &report_iri,
         &logic("axiomCount"),
         int_literal(header.axiom_count),
-    );
+    )?;
     g.add_lit(
         &report_iri,
         &logic("ruleCount"),
         int_literal(header.rule_count),
-    );
+    )?;
     g.add_lit(
         &report_iri,
         &logic("profileCount"),
         int_literal(header.profile_count),
-    );
+    )?;
     if header.formula_count > 0 {
         g.add_lit(
             &report_iri,
             &logic("formulaCount"),
             int_literal(header.formula_count),
-        );
+        )?;
     }
     // The derived liftability statistic (gate-verdict-derived, replacing the SSSOM
     // heuristic): emitted only when the program authors correspondences, so a
@@ -308,12 +308,12 @@ pub fn build_projection_report_rows<'a>(
             &report_iri,
             &logic("correspondenceCount"),
             int_literal(header.correspondence_count),
-        );
+        )?;
         g.add_lit(
             &report_iri,
             &logic("lawfulUpliftCount"),
             int_literal(header.lawful_uplift_count),
-        );
+        )?;
         // The claimed tier (asserted-but-not-proved up-lifts) — emitted only when non-zero so
         // a claim-free report stays byte-identical, while the proved/claimed split is never
         // collapsed when present.
@@ -322,7 +322,7 @@ pub fn build_projection_report_rows<'a>(
                 &report_iri,
                 &logic("claimedUpliftCount"),
                 int_literal(header.claimed_uplift_count),
-            );
+            )?;
         }
     }
 
@@ -342,7 +342,8 @@ pub fn build_projection_report_rows<'a>(
         // as gmeow:lossyDrop. The gate fires on an Exact overclaim OR an Unsupported silent
         // under-disclosure.
         let residue: Vec<&str> = drops.iter().map(String::as_str).collect();
-        assert_no_overclaim(proj.target, proj.preservation, &residue)?;
+        assert_no_overclaim(proj.target, proj.preservation, &residue)
+            .map_err(gmeow_errors::Diag::of_kind)?;
 
         // The target name is the IRI's local segment AND the human label. Whole-program
         // logic target names use only IRI-safe characters, so the encoder below is the
@@ -355,8 +356,8 @@ pub fn build_projection_report_rows<'a>(
         let target_key = proj.target;
 
         let target_iri = format!("{LOGIC_NS}target/{}", iri_safe_segment(proj.target));
-        g.add_iri(&report_iri, &logic("hasProjection"), &target_iri);
-        g.add_iri(&target_iri, RDF_TYPE, &logic("ProjectionTarget"));
+        g.add_iri(&report_iri, &logic("hasProjection"), &target_iri)?;
+        g.add_iri(&target_iri, RDF_TYPE, &logic("ProjectionTarget"))?;
         let target_definition = format!(
             "Projection to {target_key}: preservation {}, complexity {}.",
             proj.preservation.as_str(),
@@ -368,21 +369,21 @@ pub fn build_projection_report_rows<'a>(
             target_key,
             &target_definition,
             GRAPH_PROJECTION_LEDGER,
-        );
+        )?;
         g.add_iri(
             &target_iri,
             &logic("preservationKind"),
             &logic(proj.preservation.as_str()),
-        );
+        )?;
         g.add_lit(
             &target_iri,
             &logic("complexityClass"),
             RdfLiteral::simple(proj.complexity),
-        );
+        )?;
 
         let lossy_drop = format!("{GMEOW_NS}lossyDrop");
         for note in &drops {
-            g.add_lit(&target_iri, &lossy_drop, RdfLiteral::simple(note));
+            g.add_lit(&target_iri, &lossy_drop, RdfLiteral::simple(note))?;
         }
 
         // Per-term projection-loss attribution (additive; the `gmeow:lossyDrop` literals
@@ -408,9 +409,9 @@ pub fn build_projection_report_rows<'a>(
             // byte-stability gate (which pins the FIXED logic rows) is undisturbed; the
             // standalone term-loss blocks are stripped there by their `/termloss/` segment.
             let term_loss_iri = format!("{target_iri}/termloss/{}", iri_safe_segment(source_term));
-            g.add_iri(&term_loss_iri, RDF_TYPE, &logic("TermProjectionLoss"));
-            g.add_iri(&term_loss_iri, &logic("lossOfTarget"), &target_iri);
-            g.add_iri(&term_loss_iri, &lossy_source_term, source_term);
+            g.add_iri(&term_loss_iri, RDF_TYPE, &logic("TermProjectionLoss"))?;
+            g.add_iri(&term_loss_iri, &logic("lossOfTarget"), &target_iri)?;
+            g.add_iri(&term_loss_iri, &lossy_source_term, source_term)?;
             // The projection target this term-loss belongs to (the readable target name),
             // and the target's preservation kind + complexity — so the docs row is complete
             // without re-joining the parent target node. Label/definition are derived from
@@ -425,26 +426,26 @@ pub fn build_projection_report_rows<'a>(
                 &term_loss_label,
                 &term_loss_definition,
                 GRAPH_PROJECTION_LEDGER,
-            );
+            )?;
             g.add_iri(
                 &term_loss_iri,
                 &logic("preservationKind"),
                 &logic(proj.preservation.as_str()),
-            );
+            )?;
             g.add_lit(
                 &term_loss_iri,
                 &logic("complexityClass"),
                 RdfLiteral::simple(proj.complexity),
-            );
+            )?;
             for note in notes {
-                g.add_lit(&term_loss_iri, &lossy_drop, RdfLiteral::simple(note));
+                g.add_lit(&term_loss_iri, &lossy_drop, RdfLiteral::simple(note))?;
             }
         }
     }
 
     let banner = "# GENERATED by `gmeow logic compile` — DO NOT EDIT.\n\
                   # Preservation loss ledger for all logic: projections.\n";
-    Ok(g.serialize(banner))
+    g.serialize(banner)
 }
 
 #[path = "report.tests.rs"]

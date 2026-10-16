@@ -359,7 +359,7 @@ fn copying_program(predicates: &[(&str, &str)]) -> LogicProgram {
 fn source(rows: Vec<RdfQuad>) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(&row);
+        builder.push_owned_quad(&row).unwrap();
     }
     builder.freeze().unwrap()
 }

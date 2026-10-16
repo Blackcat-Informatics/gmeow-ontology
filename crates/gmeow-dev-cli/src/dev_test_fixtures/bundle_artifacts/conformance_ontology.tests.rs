@@ -8,27 +8,39 @@ use purrdf::{BlankScope, DatasetView, GraphMatch, TermValue};
 fn conformance_view_preserves_default_claims_and_excludes_other_worlds() {
     // gmeow-test-input: synthetic-only
     let mut builder = RdfDatasetBuilder::new();
-    let subject = builder.intern_blank("claim", BlankScope(17));
-    let predicate = builder.intern_iri(gmeow_ns::LOGIC_SUB_CLASS_OF);
-    let object = builder.intern_iri(gmeow_ns::LOGIC_THING);
-    builder.push_quad(subject, predicate, object, None);
-    let quoted_only = builder.intern_iri("urn:quoted-only");
-    let statement = builder.intern_triple(quoted_only, predicate, object);
-    let reifier = builder.intern_iri("urn:default-claim");
-    builder.push_reifier_in_graph(reifier, statement, None);
-    let provenance = builder.intern_iri("urn:source");
-    let source = builder.intern_iri("urn:default-source");
-    builder.push_annotation_in_graph(reifier, provenance, source, None);
-    let other_world = builder.intern_iri("urn:other-world");
-    let other_reifier = builder.intern_iri("urn:other-claim");
-    builder.push_quad(subject, predicate, object, Some(other_world));
-    builder.push_reifier_in_graph(other_reifier, statement, Some(other_world));
-    builder.push_annotation_in_graph(other_reifier, provenance, source, Some(other_world));
+    let subject = builder.intern_blank("claim", BlankScope(17)).unwrap();
+    let predicate = builder.intern_iri(gmeow_ns::LOGIC_SUB_CLASS_OF).unwrap();
+    let object = builder.intern_iri(gmeow_ns::LOGIC_THING).unwrap();
+    builder.push_quad(subject, predicate, object, None).unwrap();
+    let quoted_only = builder.intern_iri("urn:quoted-only").unwrap();
+    let statement = builder
+        .intern_triple(quoted_only, predicate, object)
+        .unwrap();
+    let reifier = builder.intern_iri("urn:default-claim").unwrap();
+    builder
+        .push_reifier_in_graph(reifier, statement, None)
+        .unwrap();
+    let provenance = builder.intern_iri("urn:source").unwrap();
+    let source = builder.intern_iri("urn:default-source").unwrap();
+    builder
+        .push_annotation_in_graph(reifier, provenance, source, None)
+        .unwrap();
+    let other_world = builder.intern_iri("urn:other-world").unwrap();
+    let other_reifier = builder.intern_iri("urn:other-claim").unwrap();
+    builder
+        .push_quad(subject, predicate, object, Some(other_world))
+        .unwrap();
+    builder
+        .push_reifier_in_graph(other_reifier, statement, Some(other_world))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(other_reifier, provenance, source, Some(other_world))
+        .unwrap();
     let source = builder.freeze().unwrap();
 
     let prepared = ConformanceOntology::new(&source).unwrap();
-    let reader = prepared.reader();
-    assert!(Arc::ptr_eq(reader, prepared.reader()));
+    let reader = prepared.reader().unwrap();
+    assert!(Arc::ptr_eq(reader, prepared.reader().unwrap()));
     assert_eq!(reader.named_graphs().count(), 0);
     let subject = reader
         .term_id_by_blank("claim", BlankScope(17))

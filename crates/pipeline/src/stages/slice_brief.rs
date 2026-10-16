@@ -188,7 +188,7 @@ impl Stage for SliceBriefStage {
             }
         }
         let refs: Vec<&RdfDataset> = graphs.iter().map(|g| g.as_ref()).collect();
-        let dataset = std::sync::Arc::new(RdfDataset::union(&refs));
+        let dataset = std::sync::Arc::new(RdfDataset::union(&refs)?);
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
             dataset,

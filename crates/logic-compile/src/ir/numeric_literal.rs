@@ -49,7 +49,7 @@ impl<const UNIT_INTERVAL: bool> NumericLiteral<UNIT_INTERVAL> {
         }
         if UNIT_INTERVAL {
             let integer = |value| XsdValue::Integer {
-                value,
+                value: purrdf::xsd::exact::Integer::from_i128(value),
                 datatype: XsdDatatype::Integer,
             };
             let below = purrdf::xsd::numeric::numeric_cmp(&value, &integer(0));
@@ -122,7 +122,7 @@ impl NumericLiteral<true> {
         match &self.value {
             // A unit-interval integer can only be zero or one.
             XsdValue::Integer { value, .. } => {
-                if *value == 0 {
+                if value.is_zero() {
                     0.0
                 } else {
                     1.0

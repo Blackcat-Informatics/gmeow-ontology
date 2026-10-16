@@ -128,7 +128,7 @@ pub fn fuzz_substrate_check() -> i32 {
             println!("fuzz and production PurRDF resolutions agree");
             0
         }
-        Err(error) => fail(&error.to_string()),
+        Err(error) => fail(error.to_string()),
     }
 }
 

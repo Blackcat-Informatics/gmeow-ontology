@@ -53,9 +53,11 @@ const INDIVIDUAL: &str = "http://gmeow.example/dispatch-1";
 fn scene(triples: &[(&str, &str, &str)]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (s, p, o) in triples {
-        builder.push_owned_quad(
-            &RdfQuad::new(RdfTerm::iri(*s), *p, RdfTerm::iri(*o)).in_graph(RdfTerm::iri(WORLD)),
-        );
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(*s), *p, RdfTerm::iri(*o)).in_graph(RdfTerm::iri(WORLD)),
+            )
+            .unwrap();
     }
     builder.freeze().expect("valid enactment-gate scene")
 }

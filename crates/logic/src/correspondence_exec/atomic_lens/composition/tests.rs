@@ -193,9 +193,9 @@ fn identity_steps_and_association_preserve_the_executable_sequence() {
         .acquire(source())
         .unwrap();
     assert!(
-        Arc::ptr_eq(
-            left.stages[1].augmented.complement.residual.base(),
-            left.stages[2].augmented.complement.residual.base(),
+        std::ptr::eq(
+            left.stages[1].augmented.complement.residual.base().as_ref(),
+            left.stages[2].augmented.complement.residual.base().as_ref(),
         ),
         "intermediate stages must share one native graph catalogue"
     );
@@ -227,13 +227,17 @@ fn identity_steps_and_association_preserve_the_executable_sequence() {
 
 fn literal_carrier(predicate: &str) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let subject = builder.intern_iri(SUBJECT);
-    let property = builder.intern_iri(predicate);
-    let value = builder.intern_literal(purrdf::RdfLiteral::simple("literal endpoint"));
-    let graph = builder.intern_iri(GRAPH);
-    let empty = builder.intern_iri(EMPTY_GRAPH);
-    builder.declare_named_graph(empty);
-    builder.push_quad(subject, property, value, Some(graph));
+    let subject = builder.intern_iri(SUBJECT).unwrap();
+    let property = builder.intern_iri(predicate).unwrap();
+    let value = builder
+        .intern_literal(purrdf::RdfLiteral::simple("literal endpoint"))
+        .unwrap();
+    let graph = builder.intern_iri(GRAPH).unwrap();
+    let empty = builder.intern_iri(EMPTY_GRAPH).unwrap();
+    builder.declare_named_graph(empty).unwrap();
+    builder
+        .push_quad(subject, property, value, Some(graph))
+        .unwrap();
     builder.freeze().unwrap()
 }
 

@@ -35,7 +35,7 @@ fn fact(subject: &str, predicate: &str, object: &str) -> RdfQuad {
 fn dataset(rows: &[RdfQuad]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(row);
+        builder.push_owned_quad(row).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -312,23 +312,29 @@ fn source_membership_does_not_cross_asserting_worlds_without_a_bridge() {
 fn asserted_annotation_sources_contribute_without_asserting_their_quoted_triples() {
     let rows = complement(true);
     let mut builder = RdfDatasetBuilder::new();
-    let world = builder.intern_iri(W);
-    let quoted_subject = builder.intern_iri(Z);
-    let quoted_predicate = builder.intern_iri(RDF_TYPE);
-    let quoted_object = builder.intern_iri(OWL_NOTHING);
-    let quoted = builder.intern_triple(quoted_subject, quoted_predicate, quoted_object);
+    let world = builder.intern_iri(W).unwrap();
+    let quoted_subject = builder.intern_iri(Z).unwrap();
+    let quoted_predicate = builder.intern_iri(RDF_TYPE).unwrap();
+    let quoted_object = builder.intern_iri(OWL_NOTHING).unwrap();
+    let quoted = builder
+        .intern_triple(quoted_subject, quoted_predicate, quoted_object)
+        .unwrap();
     let mut reifiers = BTreeSet::new();
     for row in &rows[..3] {
-        let subject = builder.intern_owned_term(&row.subject);
+        let subject = builder.intern_owned_term(&row.subject).unwrap();
         if reifiers.insert(subject) {
-            builder.push_reifier_in_graph(subject, quoted, Some(world));
+            builder
+                .push_reifier_in_graph(subject, quoted, Some(world))
+                .unwrap();
         }
-        let predicate = builder.intern_iri(&row.predicate);
-        let object = builder.intern_owned_term(&row.object);
-        builder.push_annotation_in_graph(subject, predicate, object, Some(world));
+        let predicate = builder.intern_iri(&row.predicate).unwrap();
+        let object = builder.intern_owned_term(&row.object).unwrap();
+        builder
+            .push_annotation_in_graph(subject, predicate, object, Some(world))
+            .unwrap();
     }
-    builder.push_owned_quad(&rows[0]);
-    builder.push_owned_quad(&rows[3]);
+    builder.push_owned_quad(&rows[0]).unwrap();
+    builder.push_owned_quad(&rows[3]).unwrap();
     let witness = contradiction(&builder.freeze().unwrap());
     assert_eq!(
         witness.evidence.contextual_conflicts[0].proof.premises(),
@@ -1075,8 +1081,8 @@ fn reconverging_selected_tails_are_ambiguous_without_a_cyclic_path() {
     assert_eq!(actual.into_iter().collect::<BTreeSet<_>>(), premises(&rows));
 }
 
-/// A quoted owner is an explicit unsupported selected expression, never its inner subject.
-/// Non-owning RDF data and empty graph declarations are retained without selecting a calculus.
+/// A quoted object remains unasserted data, never an assertion about its inner subject.
+/// Non-owning RDF data and empty graph declarations do not select a calculus.
 #[test]
 fn unrelated_quoted_data_does_not_select_class_admission_and_empty_graphs_survive() {
     let owner = RdfTerm::triple(purrdf::RdfTriple::new(
@@ -1085,11 +1091,13 @@ fn unrelated_quoted_data_does_not_select_class_admission_and_empty_graphs_surviv
         RdfTerm::iri(OWL_NOTHING),
     ));
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &RdfQuad::new(owner, "urn:ordinary-data", RdfTerm::iri(C)).in_graph(RdfTerm::iri(W)),
-    );
-    let empty = builder.intern_iri(OTHER);
-    builder.declare_named_graph(empty);
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(C), "urn:ordinary-data", owner).in_graph(RdfTerm::iri(W)),
+        )
+        .unwrap();
+    let empty = builder.intern_iri(OTHER).unwrap();
+    builder.declare_named_graph(empty).unwrap();
     let input = builder.freeze().unwrap();
     let prepared = PreparedClassAnalysis::new(input.as_ref()).unwrap();
     assert!(prepared.admission().outside_selection());

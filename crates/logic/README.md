@@ -14,9 +14,8 @@
 > **An LLM output is a claim, not a truth.**
 
 `gmeow-logic` is the Rust core of the **GMEOW reasoning engine**. It models
-possible worlds as [oxigraph](https://oxigraph.org/) named graphs and provides
-world-indexed entailment queries, gated against the same language-neutral
-conformance corpus as `gmeow-gts`.
+possible worlds as native RDF 1.2 statement partitions and provides world-indexed
+entailment queries, governed materialization and proof provenance.
 
 ---
 
@@ -56,6 +55,18 @@ admission as reified n-ary tuples. Termination and stratification include both
 producer families; mathematical builtins also declare the structural predicates
 they read. One sorted commit charges the shared budget across all worlds.
 A partial run exposes only completed predicate extensions in its frontier.
+
+Source grammar eligibility is distinct from extension completion. Ordinarily a
+structured interpretation waits for its grammar writers to finish. An input-bound
+constructor certificate can instead prove that every possible writer preserves
+closed `oneOf` lists: cells belong to fresh frontier-Skolem constructors, their
+field values respect witness reuse, all rest paths terminate, and source terms
+cannot alias those constructors. Ordinary, property and external grammar writers
+participate in that check. Admission still validates every committed selector and
+list premise; a partial firing cannot authorize an incomplete list. The recorded
+world-bound basis does not declare a predicate or world complete and does not
+certify chase termination. A generative feedback cycle can therefore be refused
+without a budget while its explicitly bounded execution remains incomplete.
 
 Prepared witness layouts and ordinary join plans are reused across selected
 datasets. Existential triggers are revisited when a body predicate changes;

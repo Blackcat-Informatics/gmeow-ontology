@@ -194,7 +194,7 @@ fn producer_hard_fails_exclusivity_guards_on_real_config() {
     assert!(
         matches!(
             produce(&cap, &cfg),
-            Err(IngestError::ExclusivityViolation { .. })
+            Err(error) if matches!(error.downcast_ref::<IngestError>(), Some(IngestError::ExclusivityViolation { .. }))
         ),
         "two crossings over an exclusive set must hard-fail"
     );
@@ -206,7 +206,7 @@ fn producer_hard_fails_exclusivity_guards_on_real_config() {
     assert!(
         matches!(
             produce(&cap, &cfg),
-            Err(IngestError::ScoreSemanticsDecisionMismatch { .. })
+            Err(error) if matches!(error.downcast_ref::<IngestError>(), Some(IngestError::ScoreSemanticsDecisionMismatch { .. }))
         ),
         "a sigmoid over an argmax set must hard-fail"
     );
@@ -219,7 +219,7 @@ fn producer_hard_fails_exclusivity_guards_on_real_config() {
     assert!(
         matches!(
             produce(&cap, &cfg),
-            Err(IngestError::NonNormalizedExclusiveScores { .. })
+            Err(error) if matches!(error.downcast_ref::<IngestError>(), Some(IngestError::NonNormalizedExclusiveScores { .. }))
         ),
         "an off-simplex softmax over an exclusive set must hard-fail"
     );
@@ -285,7 +285,7 @@ fn every_adapter_hard_fails_in_rust_on_rule2_and_rule7() {
         let mut cap = fixture(adapter.fixture);
         cap.model_revision = String::new();
         assert!(
-            matches!(produce(&cap, &cfg), Err(IngestError::MissingModelRevision)),
+            matches!(produce(&cap, &cfg), Err(error) if matches!(error.downcast_ref::<IngestError>(), Some(IngestError::MissingModelRevision))),
             "{}: rule 7",
             adapter.label_set_id
         );
@@ -298,7 +298,7 @@ fn every_adapter_hard_fails_in_rust_on_rule2_and_rule7() {
         assert!(
             matches!(
                 produce(&cap, &cfg),
-                Err(IngestError::UnregisteredLabel { .. })
+                Err(error) if matches!(error.downcast_ref::<IngestError>(), Some(IngestError::UnregisteredLabel { .. }))
             ),
             "{}: rule 2",
             adapter.label_set_id
@@ -365,7 +365,7 @@ fn zeroshot_hard_fails_without_run_scoped_provenance() {
     broken.hypothesis_template = None;
     assert!(matches!(
         produce(&broken, &cfg),
-        Err(IngestError::MissingHypothesisTemplate)
+        Err(error) if matches!(error.downcast_ref::<IngestError>(), Some(IngestError::MissingHypothesisTemplate))
     ));
 }
 

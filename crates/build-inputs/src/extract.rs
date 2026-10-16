@@ -333,7 +333,7 @@ impl FunctionBodies<'_> {
         let result = (|| {
             let start = offset(self.source, body.span().start())?;
             let end = offset(self.source, body.span().end())?;
-            Ok((name, digest(self.source[start..end].as_bytes())))
+            Ok((name, digest(&self.source.as_bytes()[start..end])))
         })();
         match result {
             Ok(entry) => self.entries.push(entry),

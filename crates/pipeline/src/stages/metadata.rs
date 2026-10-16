@@ -690,8 +690,7 @@ pub(crate) fn render_metadata_from_dataset(
 
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for ((path, native_path), quads) in NATIVE_PRODUCTS.into_iter().zip([void, dcat]) {
-        let dataset = dataset_from_quads(&quads)
-            .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Parse { message }))?;
+        let dataset = dataset_from_quads(&quads).map_err(gmeow_errors::Diag::from)?;
         artifacts.insert(path.to_owned(), serialize(&dataset)?);
         artifacts.insert(
             native_path.to_owned(),

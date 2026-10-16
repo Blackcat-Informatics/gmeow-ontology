@@ -184,7 +184,7 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
     let frame = frame;
 
     let mut sink = Sink::new();
-    frame.emit(&mut sink, rung);
+    frame.emit(&mut sink, rung)?;
 
     let mut lift = Lift {
         frame: &frame,
@@ -200,7 +200,7 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
         theory: String::new(),
         proof_structures: 0,
     };
-    lift.derivation(&derivation);
+    lift.derivation(&derivation)?;
 
     if lift.proof_structures == 0 {
         return Err(unliftable(format!(
@@ -344,17 +344,18 @@ impl Lift<'_> {
     ///
     /// The back edge `gmeow:wasGeneratedBy` is what the native `math:UnliftableIngest` lint
     /// enumerates, so it is attached HERE, once, for every node this lift creates.
-    fn mint(&mut self, role: &str, key: &str) -> (String, bool) {
+    fn mint(&mut self, role: &str, key: &str) -> gmeow_errors::Result<(String, bool)> {
         let iri = self.frame.node(role, key);
         let fresh = self.emitted.insert(iri.clone());
         if fresh {
-            self.frame.generated(&mut self.sink, &iri);
+            self.frame.generated(&mut self.sink, &iri)?;
         }
-        (iri, fresh)
+        Ok((iri, fresh))
     }
 
-    fn label(&mut self, subject: &str, text: &str) {
-        self.sink.string(subject, RDFS_LABEL, text);
+    fn label(&mut self, subject: &str, text: &str) -> gmeow_errors::Result<()> {
+        self.sink.string(subject, RDFS_LABEL, text)?;
+        Ok(())
     }
 
     fn key_of(&self, node: StructNode) -> ContentKey {
@@ -378,26 +379,30 @@ impl Lift<'_> {
     ///
     /// At top level (a CNF clause, or a `fof` formula outside any binder) the chain is empty
     /// and the IRI is the pure content address, exactly as before binders existed.
-    fn scoped_expression(&mut self, node: StructNode, scope: &[Binding]) -> (String, bool) {
+    fn scoped_expression(
+        &mut self,
+        node: StructNode,
+        scope: &[Binding],
+    ) -> gmeow_errors::Result<(String, bool)> {
         let key = self.key_of(node).into_string();
-        if scope.is_empty() {
-            self.mint("expr", &key)
+        Ok(if scope.is_empty() {
+            self.mint("expr", &key)?
         } else {
-            self.mint("expr", &format!("{key}@{}", scope_chain(scope)))
-        }
+            self.mint("expr", &format!("{key}@{}", scope_chain(scope)))?
+        })
     }
 
     // -- the whole derivation -------------------------------------------------
 
-    fn derivation(&mut self, derivation: &Derivation) {
+    fn derivation(&mut self, derivation: &Derivation) -> gmeow_errors::Result<()> {
         let key = derivation.render();
 
         // The theory context every statement role is scoped to. math:roleInTheory's own
         // definition makes it mandatory: "'this is a theorem' is always 'a theorem IN this
         // theory version', never an unconditional global fact". The derivation IS that
         // context, and it is versioned by its content address.
-        let (theory, _) = self.mint("theory", &key);
-        self.sink.typed(&theory, &math("MathematicalTheory"));
+        let (theory, _) = self.mint("theory", &key)?;
+        self.sink.typed(&theory, &math("MathematicalTheory"))?;
         self.label(
             &theory,
             &format!(
@@ -405,7 +410,7 @@ impl Lift<'_> {
                  formulas, content-addressed",
                 derivation.steps().len()
             ),
-        );
+        )?;
         self.theory = theory;
 
         // Dependency order, not source order: a derived step's proof term is built from its
@@ -414,14 +419,14 @@ impl Lift<'_> {
         for index in derivation.dependency_order() {
             let step = &derivation.steps()[index];
             let is_terminal = step.name == terminal;
-            self.step(step, is_terminal);
+            self.step(step, is_terminal)?;
         }
 
         let conclusion = derivation.conclusion();
         let rendered = conclusion.conclusion.render();
 
-        let (dag, _) = self.mint("dag", &key);
-        self.sink.typed(&dag, &math("ProofDependencyGraph"));
+        let (dag, _) = self.mint("dag", &key)?;
+        self.sink.typed(&dag, &math("ProofDependencyGraph"))?;
         self.label(
             &dag,
             &format!(
@@ -429,21 +434,21 @@ impl Lift<'_> {
                 derivation.steps().len(),
                 derivation.steps().iter().filter(|s| s.is_derived()).count()
             ),
-        );
+        )?;
 
-        let (proof, _) = self.mint("proof", &key);
-        self.sink.typed(&proof, &math("Proof"));
-        self.label(&proof, &format!("TSTP derivation of {rendered}"));
+        let (proof, _) = self.mint("proof", &key)?;
+        self.sink.typed(&proof, &math("Proof"))?;
+        self.label(&proof, &format!("TSTP derivation of {rendered}"))?;
 
         // The DAG names the proof it underlies. Without this edge the two would be related
         // only by co-generation from the same run, which is a run-scoped coincidence rather
         // than the structural fact the class definition asserts.
-        self.sink.iri(&dag, &math("dependencyGraphOf"), &proof);
+        self.sink.iri(&dag, &math("dependencyGraphOf"), &proof)?;
 
         // The proof discharges the goal its terminal step reaches, and decomposes into the
         // derived steps and the laws they rest on.
-        let goal = self.emit_goal(&rendered);
-        self.sink.iri(&proof, &math("provesGoal"), &goal);
+        let goal = self.emit_goal(&rendered)?;
+        self.sink.iri(&proof, &math("provesGoal"), &goal)?;
         // What the proof ESTABLISHES is the terminal step's role-bearing statement — the
         // node math:provesStatement's range names. A terminal in the `unknown` role has no
         // statement, so the proof names the conclusion expression instead rather than
@@ -454,14 +459,15 @@ impl Lift<'_> {
             .or_else(|| self.conclusion_iri.get(&conclusion.name))
             .cloned();
         if let Some(statement) = statement {
-            self.sink.iri(&proof, &math("provesStatement"), &statement);
+            self.sink
+                .iri(&proof, &math("provesStatement"), &statement)?;
         }
         for step in derivation.steps() {
             let node = self.step_node[&step.name].clone();
             if step.is_derived() {
-                self.sink.iri(&proof, &math("proofStep"), &node);
+                self.sink.iri(&proof, &math("proofStep"), &node)?;
             } else if self.law_names.contains(&step.name) {
-                self.sink.iri(&proof, &math("dependsOnAxiom"), &node);
+                self.sink.iri(&proof, &math("dependsOnAxiom"), &node)?;
             }
         }
 
@@ -474,17 +480,17 @@ impl Lift<'_> {
             .iter()
             .any(|s| s.role == Role::NegatedConjecture)
         {
-            let (method, fresh) = self.mint("method", "refutation");
+            let (method, fresh) = self.mint("method", "refutation")?;
             if fresh {
-                self.sink.typed(&method, &math("ProofMethod"));
+                self.sink.typed(&method, &math("ProofMethod"))?;
                 self.label(
                     &method,
                     "refutation (proof by contradiction): the derivation asserts the negation of \
                      the conjecture and derives a contradiction from it, which refutes the \
                      negation and thereby establishes the conjecture",
-                );
+                )?;
             }
-            self.sink.iri(&proof, &math("usesProofMethod"), &method);
+            self.sink.iri(&proof, &math("usesProofMethod"), &method)?;
         }
 
         let thm_verified = derivation
@@ -492,26 +498,28 @@ impl Lift<'_> {
             .iter()
             .filter(|s| matches!(s.source, Source::Inference { .. }))
             .all(Step::declares_thm_status);
-        self.emit_verification(&key, &proof, &rendered, thm_verified);
+        self.emit_verification(&key, &proof, &rendered, thm_verified)?;
+        Ok(())
     }
 
     // -- one step --------------------------------------------------------------
 
-    fn step(&mut self, step: &Step, is_terminal: bool) {
-        let (conclusion_node, conclusion_iri) = self.emit_conclusion(&step.conclusion);
+    fn step(&mut self, step: &Step, is_terminal: bool) -> gmeow_errors::Result<()> {
+        let (conclusion_node, conclusion_iri) = self.emit_conclusion(&step.conclusion)?;
         self.conclusion_iri
             .insert(step.name.clone(), conclusion_iri.clone());
-        let statement = self.emit_statement(step, &conclusion_iri, is_terminal);
+        let statement = self.emit_statement(step, &conclusion_iri, is_terminal)?;
         if let Some(statement) = &statement {
             self.statement_node
                 .insert(step.name.clone(), statement.clone());
         }
 
         if step.is_derived() {
-            self.emit_derived(step, statement.as_deref());
+            self.emit_derived(step, statement.as_deref())?;
         } else {
-            self.emit_leaf(step, conclusion_node, &conclusion_iri, statement.as_deref());
+            self.emit_leaf(step, conclusion_node, &conclusion_iri, statement.as_deref())?;
         }
+        Ok(())
     }
 
     /// The statement layer: the step's ROLE, held under the derivation's theory.
@@ -524,19 +532,22 @@ impl Lift<'_> {
         step: &Step,
         conclusion_iri: &str,
         is_terminal: bool,
-    ) -> Option<String> {
-        let role = statement_role(step.role)?;
-        let (statement, _) = self.mint("statement", &step.name);
-        self.sink.typed(&statement, &math("MathematicalStatement"));
+    ) -> gmeow_errors::Result<Option<String>> {
+        let Some(role) = statement_role(step.role) else {
+            return Ok(None);
+        };
+        let (statement, _) = self.mint("statement", &step.name)?;
+        self.sink
+            .typed(&statement, &math("MathematicalStatement"))?;
         // The RAW TPTP role word: `hypothesis` and `assumption` both map to math:roleAxiom,
         // so the mapped value alone does not recover what the prover wrote.
-        self.label(&statement, step.role.as_str());
+        self.label(&statement, step.role.as_str())?;
         self.sink
-            .iri(&statement, &math("statementRole"), &math(role));
+            .iri(&statement, &math("statementRole"), &math(role))?;
         let theory = self.theory.clone();
-        self.sink.iri(&statement, &math("roleInTheory"), &theory);
+        self.sink.iri(&statement, &math("roleInTheory"), &theory)?;
         self.sink
-            .iri(&statement, &math("hasConclusion"), conclusion_iri);
+            .iri(&statement, &math("hasConclusion"), conclusion_iri)?;
 
         // An `<external_source>` cited in the INFERENCE's parent list — `theory(equality)`
         // on E's every equality step, `file('SET001-1.p', ax7)` on an imported premise. It
@@ -545,14 +556,14 @@ impl Lift<'_> {
         // external, never both, so these can never be conflated with the arm below.
         for external in &step.external_parents {
             let rendered = external.rendered.clone();
-            let (warrant, fresh) = self.mint("warrant", &rendered);
+            let (warrant, fresh) = self.mint("warrant", &rendered)?;
             if fresh {
-                self.sink.typed(&warrant, &math("MathematicalObject"));
-                self.label(&warrant, &rendered);
+                self.sink.typed(&warrant, &math("MathematicalObject"))?;
+                self.label(&warrant, &rendered)?;
                 self.proof_structures += 1;
             }
             self.sink
-                .iri(&statement, &math("externalWarrant"), &warrant);
+                .iri(&statement, &math("externalWarrant"), &warrant)?;
         }
 
         if let Source::External(external) = &step.source {
@@ -561,14 +572,14 @@ impl Lift<'_> {
             // the reference rides verbatim because `file`, `theory`, `introduced` and
             // `creator` have different argument shapes with no common normal form.
             let rendered = external.rendered.clone();
-            let (warrant, fresh) = self.mint("warrant", &rendered);
+            let (warrant, fresh) = self.mint("warrant", &rendered)?;
             if fresh {
-                self.sink.typed(&warrant, &math("MathematicalObject"));
-                self.label(&warrant, &rendered);
+                self.sink.typed(&warrant, &math("MathematicalObject"))?;
+                self.label(&warrant, &rendered)?;
                 self.proof_structures += 1;
             }
             self.sink
-                .iri(&statement, &math("externalWarrant"), &warrant);
+                .iri(&statement, &math("externalWarrant"), &warrant)?;
         } else if role == "roleTheorem" && !is_terminal {
             // math:UngroundedTheoremClaim: a math:roleTheorem statement needs a theory
             // context AND either a math:Proof through math:provesStatement or a declared
@@ -577,15 +588,15 @@ impl Lift<'_> {
             // retains in band as its math:parseSource witness.
             let witness = self.frame.source_witness_iri.clone();
             self.sink
-                .iri(&statement, &math("externalWarrant"), &witness);
+                .iri(&statement, &math("externalWarrant"), &witness)?;
         }
 
         self.proof_structures += 1;
-        Some(statement)
+        Ok(Some(statement))
     }
 
     /// A step justified from inside the derivation: an `inference(…)` or a bare DAG parent.
-    fn emit_derived(&mut self, step: &Step, statement: Option<&str>) {
+    fn emit_derived(&mut self, step: &Step, statement: Option<&str>) -> gmeow_errors::Result<()> {
         let parents: Vec<StructNode> = step
             .parents
             .iter()
@@ -599,15 +610,15 @@ impl Lift<'_> {
                 // one term.
                 let rule = rule.to_owned();
                 let node = self.app(&format!("tstp:rule:{rule}"), &parents);
-                let (iri, fresh) = self.scoped_expression(node, &[]);
+                let (iri, fresh) = self.scoped_expression(node, &[])?;
                 if fresh {
-                    self.sink.typed(&iri, &math("ApplicationExpression"));
-                    let operation = self.emit_operation("rule", &rule, &rule);
-                    self.sink.iri(&iri, &math("operator"), &operation);
+                    self.sink.typed(&iri, &math("ApplicationExpression"))?;
+                    let operation = self.emit_operation("rule", &rule, &rule)?;
+                    self.sink.iri(&iri, &math("operator"), &operation)?;
                     // The kind the slice declares for exactly this case: an expression
                     // standing for a proof-term, carried as structured content.
                     self.sink
-                        .iri(&iri, &math("denotationKind"), &math("denotesProof"));
+                        .iri(&iri, &math("denotationKind"), &math("denotesProof"))?;
                     let operands: Vec<String> = parents
                         .iter()
                         .map(|&node| {
@@ -615,7 +626,7 @@ impl Lift<'_> {
                             self.frame.node("expr", &key)
                         })
                         .collect();
-                    self.emit_slots(&iri, &operands);
+                    self.emit_slots(&iri, &operands)?;
                     self.proof_structures += 1;
                 }
                 (node, iri)
@@ -636,39 +647,42 @@ impl Lift<'_> {
         self.proof_term_iri
             .insert(step.name.clone(), term_iri.clone());
 
-        let (node, _) = self.mint("step", &step.name);
-        self.sink.typed(&node, &math("ProofStep"));
+        let (node, _) = self.mint("step", &step.name)?;
+        self.sink.typed(&node, &math("ProofStep"))?;
         // The step's NAME — the identity a parent list cites.
-        self.label(&node, &step.name);
+        self.label(&node, &step.name)?;
         if let Some(statement) = statement {
             // math:hasConclusion's range is "an expression or STATEMENT"; a step draws its
             // conclusion as the role-bearing statement, which in turn draws the expression.
-            self.sink.iri(&node, &math("hasConclusion"), statement);
+            self.sink.iri(&node, &math("hasConclusion"), statement)?;
         } else {
             let conclusion = self.conclusion_iri[&step.name].clone();
-            self.sink.iri(&node, &math("hasConclusion"), &conclusion);
+            self.sink.iri(&node, &math("hasConclusion"), &conclusion)?;
         }
         self.sink
-            .iri(&node, &math("formalizesExpression"), &term_iri);
+            .iri(&node, &math("formalizesExpression"), &term_iri)?;
         if let Some(rule) = step.rule() {
             let rule = rule.to_owned();
-            let rule_iri = self.emit_operation("rule", &rule, &rule);
-            self.sink.iri(&node, &math("usesInferenceRule"), &rule_iri);
+            let rule_iri = self.emit_operation("rule", &rule, &rule)?;
+            self.sink
+                .iri(&node, &math("usesInferenceRule"), &rule_iri)?;
         }
         for parent in &step.parents {
             let parent_node = self.step_node[parent].clone();
-            self.sink.iri(&node, &math("hasPremise"), &parent_node);
+            self.sink.iri(&node, &math("hasPremise"), &parent_node)?;
             // A parent asserted as a LAW is a foundation the step rests on, which is
             // precisely what a proof dependency DAG records. A parent asserted in any other
             // role — a negated conjecture above all — is a premise and never a law.
             if self.law_names.contains(parent) {
-                self.sink.iri(&node, &math("dependsOnAxiom"), &parent_node);
+                self.sink
+                    .iri(&node, &math("dependsOnAxiom"), &parent_node)?;
             }
         }
-        let goal = self.emit_goal(&step.conclusion.render());
-        self.sink.iri(&node, &math("provesGoal"), &goal);
+        let goal = self.emit_goal(&step.conclusion.render())?;
+        self.sink.iri(&node, &math("provesGoal"), &goal)?;
         self.step_node.insert(step.name.clone(), node);
         self.proof_structures += 1;
+        Ok(())
     }
 
     /// A leaf: a formula the derivation asserts outright or imports from outside itself.
@@ -678,27 +692,27 @@ impl Lift<'_> {
         conclusion_node: StructNode,
         conclusion_iri: &str,
         statement: Option<&str>,
-    ) {
+    ) -> gmeow_errors::Result<()> {
         let law = step.role.is_foundational();
         let (node, _) = if law {
-            self.mint("axiom", &step.name)
+            self.mint("axiom", &step.name)?
         } else {
-            self.mint("premise", &step.name)
+            self.mint("premise", &step.name)?
         };
         if law {
             // math:Axiom's own definition rejects the amnesic reading ("never an opaque
             // string"), so the law names the AST it states rather than a rendering of it.
-            self.sink.typed(&node, &math("Axiom"));
+            self.sink.typed(&node, &math("Axiom"))?;
             self.law_names.insert(step.name.clone());
         } else {
             // A conjecture, a negated conjecture, a definition, a finite-interpretation
             // formula: the derivation takes it as given without holding it as a law of the
             // theory, so it is a mathematical object the proof draws on, not an axiom.
-            self.sink.typed(&node, &math("MathematicalObject"));
+            self.sink.typed(&node, &math("MathematicalObject"))?;
         }
-        self.label(&node, &step.name);
+        self.label(&node, &step.name)?;
         self.sink
-            .iri(&node, &math("formalizesExpression"), conclusion_iri);
+            .iri(&node, &math("formalizesExpression"), conclusion_iri)?;
         if let Some(statement) = statement {
             // math:Axiom is not in math:hasConclusion's domain, so the statement/leaf join
             // runs the other way — the shape theorem-proof-claim.ttl uses.
@@ -707,13 +721,14 @@ impl Lift<'_> {
             } else {
                 math("hasPremise")
             };
-            self.sink.iri(statement, &join, &node);
+            self.sink.iri(statement, &join, &node)?;
         }
         self.step_node.insert(step.name.clone(), node);
         self.proof_term.insert(step.name.clone(), conclusion_node);
         self.proof_term_iri
             .insert(step.name.clone(), conclusion_iri.to_owned());
         self.proof_structures += 1;
+        Ok(())
     }
 
     // -- the teleology seam ----------------------------------------------------
@@ -729,23 +744,23 @@ impl Lift<'_> {
     /// is exactly what deriving a conclusion is, and is the kind `math:provesGoal`'s own
     /// definition names. It is a VALUE carried by `logic:goalExpressionKind`, never a class
     /// the goal is typed with.
-    fn emit_goal(&mut self, rendered: &str) -> String {
-        let (goal, fresh) = self.mint("goal", rendered);
+    fn emit_goal(&mut self, rendered: &str) -> gmeow_errors::Result<String> {
+        let (goal, fresh) = self.mint("goal", rendered)?;
         if fresh {
-            self.sink.typed(&goal, &logic("GoalExpression"));
+            self.sink.typed(&goal, &logic("GoalExpression"))?;
             self.sink.iri(
                 &goal,
                 &logic("goalExpressionKind"),
                 &logic("AchievementGoal"),
-            );
-            self.label(&goal, &format!("derive {rendered}"));
-            let (situation, _) = self.mint("situation", rendered);
-            self.sink.typed(&situation, &logic("Situation"));
-            self.label(&situation, &format!("{rendered} is derived"));
+            )?;
+            self.label(&goal, &format!("derive {rendered}"))?;
+            let (situation, _) = self.mint("situation", rendered)?;
+            self.sink.typed(&situation, &logic("Situation"))?;
+            self.label(&situation, &format!("{rendered} is derived"))?;
             self.sink
-                .iri(&goal, &logic("boundSituationType"), &situation);
+                .iri(&goal, &logic("boundSituationType"), &situation)?;
         }
-        goal
+        Ok(goal)
     }
 
     // -- the QED triangle ------------------------------------------------------
@@ -758,21 +773,28 @@ impl Lift<'_> {
     /// not merely under-decorated. The three nodes stay distinct — the run is the process
     /// (`gmeow:wasGeneratedBy`), the result object carries the verdict, and the
     /// `gmeow:Observation` holds it from the checker's `gmeow:vantage`.
-    fn emit_verification(&mut self, key: &str, proof: &str, rendered: &str, thm_verified: bool) {
-        let (standpoint, fresh) = self.mint("checker", "tstp-structural-checker");
+    fn emit_verification(
+        &mut self,
+        key: &str,
+        proof: &str,
+        rendered: &str,
+        thm_verified: bool,
+    ) -> gmeow_errors::Result<()> {
+        let (standpoint, fresh) = self.mint("checker", "tstp-structural-checker")?;
         if fresh {
-            self.sink.typed(&standpoint, &gmeow("Standpoint"));
+            self.sink.typed(&standpoint, &gmeow("Standpoint"))?;
             self.label(
                 &standpoint,
                 "the gmeow-math-lift TSTP derivation checker: it accepts a derivation whose \
                  dependency graph is well-founded (every cited parent introduced, no cycle, one \
                  terminal conclusion), and reports it as verified only when every inference \
                  declares status(thm); it does NOT re-derive the inferences",
-            );
+            )?;
         }
 
-        let (result, _) = self.mint("verification", key);
-        self.sink.typed(&result, &math("FormalVerificationResult"));
+        let (result, _) = self.mint("verification", key)?;
+        self.sink
+            .typed(&result, &math("FormalVerificationResult"))?;
         let (outcome, verdict) = if thm_verified {
             (
                 "verificationPassed",
@@ -791,71 +813,76 @@ impl Lift<'_> {
                 ),
             )
         };
-        self.label(&result, &verdict);
+        self.label(&result, &verdict)?;
         self.sink
-            .iri(&result, &math("verificationResult"), &math(outcome));
+            .iri(&result, &math("verificationResult"), &math(outcome))?;
         // "Verified" always answers BY WHOM: the engine named on the result object is the
         // same standpoint the grounding observation holds the verdict from.
         self.sink
-            .iri(&result, &math("verifiedByEngine"), &standpoint);
+            .iri(&result, &math("verifiedByEngine"), &standpoint)?;
 
-        let (observation, _) = self.mint("observation", key);
-        self.sink.typed(&observation, &gmeow("Observation"));
+        let (observation, _) = self.mint("observation", key)?;
+        self.sink.typed(&observation, &gmeow("Observation"))?;
         self.sink
-            .iri(&observation, &gmeow("observedFeature"), proof);
+            .iri(&observation, &gmeow("observedFeature"), proof)?;
         self.sink
-            .iri(&observation, &gmeow("observationResult"), &result);
-        self.sink.iri(&observation, &gmeow("vantage"), &standpoint);
+            .iri(&observation, &gmeow("observationResult"), &result)?;
+        self.sink
+            .iri(&observation, &gmeow("vantage"), &standpoint)?;
+        Ok(())
     }
 
     // -- conclusions -----------------------------------------------------------
 
     /// A step's conclusion, as a `math:MathematicalExpression` AST.
-    fn emit_conclusion(&mut self, conclusion: &Conclusion) -> (StructNode, String) {
-        match conclusion {
-            Conclusion::Clause(clause) => self.emit_clause(clause),
+    fn emit_conclusion(
+        &mut self,
+        conclusion: &Conclusion,
+    ) -> gmeow_errors::Result<(StructNode, String)> {
+        Ok(match conclusion {
+            Conclusion::Clause(clause) => self.emit_clause(clause)?,
             Conclusion::Formula(formula) => {
                 let mut scope = Vec::new();
-                self.emit_formula(formula, &mut scope)
+                self.emit_formula(formula, &mut scope)?
             }
-        }
+        })
     }
 
     /// A CNF clause: a flat disjunction, with no binder — its universal closure is implicit.
-    fn emit_clause(&mut self, clause: &Clause) -> (StructNode, String) {
+    fn emit_clause(&mut self, clause: &Clause) -> gmeow_errors::Result<(StructNode, String)> {
         let [single] = clause.literals.as_slice() else {
             let parts: Vec<(StructNode, String)> = clause
                 .literals
                 .iter()
                 .map(|literal| self.emit_literal(literal))
-                .collect();
+                .collect::<gmeow_errors::Result<_>>()?;
             let nodes: Vec<StructNode> = parts.iter().map(|(node, _)| *node).collect();
             let node = self.app("tstp:connective:or", &nodes);
-            let (iri, fresh) = self.scoped_expression(node, &[]);
+            let (iri, fresh) = self.scoped_expression(node, &[])?;
             if fresh {
-                self.sink.typed(&iri, &math("ApplicationExpression"));
-                let operation = self.emit_operation("connective", "or", Connective::Or.label());
-                self.sink.iri(&iri, &math("operator"), &operation);
+                self.sink.typed(&iri, &math("ApplicationExpression"))?;
+                let operation = self.emit_operation("connective", "or", Connective::Or.label())?;
+                self.sink.iri(&iri, &math("operator"), &operation)?;
                 let operands: Vec<String> = parts.iter().map(|(_, iri)| iri.clone()).collect();
-                self.emit_slots(&iri, &operands);
-                self.label(&iri, &clause.render());
+                self.emit_slots(&iri, &operands)?;
+                self.label(&iri, &clause.render())?;
                 self.proof_structures += 1;
             }
-            return (node, iri);
+            return Ok((node, iri));
         };
         self.emit_literal(single)
     }
 
-    fn emit_literal(&mut self, literal: &Literal) -> (StructNode, String) {
+    fn emit_literal(&mut self, literal: &Literal) -> gmeow_errors::Result<(StructNode, String)> {
         let (base, base_iri) = match &literal.equated {
-            None => self.emit_term(&literal.atom, &[]),
+            None => self.emit_term(&literal.atom, &[])?,
             Some(right) => {
                 let rendered = format!("{} = {}", literal.atom.render(), right.render());
-                self.emit_equation(&literal.atom, right, &rendered, &[])
+                self.emit_equation(&literal.atom, right, &rendered, &[])?
             }
         };
         if !literal.negated {
-            return (base, base_iri);
+            return Ok((base, base_iri));
         }
         self.emit_negation(base, &base_iri, &literal.render(), &[])
     }
@@ -871,20 +898,20 @@ impl Lift<'_> {
         right: &Term,
         rendered: &str,
         scope: &[Binding],
-    ) -> (StructNode, String) {
-        let (left_node, left_iri) = self.emit_term(left, scope);
-        let (right_node, right_iri) = self.emit_term(right, scope);
+    ) -> gmeow_errors::Result<(StructNode, String)> {
+        let (left_node, left_iri) = self.emit_term(left, scope)?;
+        let (right_node, right_iri) = self.emit_term(right, scope)?;
         let node = self.app("tstp:connective:equal", &[left_node, right_node]);
-        let (iri, fresh) = self.scoped_expression(node, scope);
+        let (iri, fresh) = self.scoped_expression(node, scope)?;
         if fresh {
-            self.sink.typed(&iri, &math("ApplicationExpression"));
-            let operation = self.emit_operation("connective", "equal", "equality (=)");
-            self.sink.iri(&iri, &math("operator"), &operation);
-            self.emit_slots(&iri, &[left_iri, right_iri]);
-            self.label(&iri, rendered);
+            self.sink.typed(&iri, &math("ApplicationExpression"))?;
+            let operation = self.emit_operation("connective", "equal", "equality (=)")?;
+            self.sink.iri(&iri, &math("operator"), &operation)?;
+            self.emit_slots(&iri, &[left_iri, right_iri])?;
+            self.label(&iri, rendered)?;
             self.proof_structures += 1;
         }
-        (node, iri)
+        Ok((node, iri))
     }
 
     fn emit_negation(
@@ -893,18 +920,18 @@ impl Lift<'_> {
         inner_iri: &str,
         rendered: &str,
         scope: &[Binding],
-    ) -> (StructNode, String) {
+    ) -> gmeow_errors::Result<(StructNode, String)> {
         let node = self.app("tstp:connective:not", &[inner]);
-        let (iri, fresh) = self.scoped_expression(node, scope);
+        let (iri, fresh) = self.scoped_expression(node, scope)?;
         if fresh {
-            self.sink.typed(&iri, &math("ApplicationExpression"));
-            let operation = self.emit_operation("connective", "not", "logical negation (~)");
-            self.sink.iri(&iri, &math("operator"), &operation);
-            self.emit_slots(&iri, &[inner_iri.to_owned()]);
-            self.label(&iri, rendered);
+            self.sink.typed(&iri, &math("ApplicationExpression"))?;
+            let operation = self.emit_operation("connective", "not", "logical negation (~)")?;
+            self.sink.iri(&iri, &math("operator"), &operation)?;
+            self.emit_slots(&iri, &[inner_iri.to_owned()])?;
+            self.label(&iri, rendered)?;
             self.proof_structures += 1;
         }
-        (node, iri)
+        Ok((node, iri))
     }
 
     // -- first-order formulas --------------------------------------------------
@@ -913,45 +940,45 @@ impl Lift<'_> {
         &mut self,
         formula: &Formula,
         scope: &mut Vec<Binding>,
-    ) -> (StructNode, String) {
-        match formula {
-            Formula::Atom(term) => self.emit_term(term, scope),
+    ) -> gmeow_errors::Result<(StructNode, String)> {
+        Ok(match formula {
+            Formula::Atom(term) => self.emit_term(term, scope)?,
             Formula::Equation {
                 negated,
                 left,
                 right,
             } => {
                 let rendered = format!("{} = {}", left.render(), right.render());
-                let (node, iri) = self.emit_equation(left, right, &rendered, scope);
+                let (node, iri) = self.emit_equation(left, right, &rendered, scope)?;
                 if !*negated {
-                    return (node, iri);
+                    return Ok((node, iri));
                 }
-                self.emit_negation(node, &iri, &formula.render(), scope)
+                self.emit_negation(node, &iri, &formula.render(), scope)?
             }
             Formula::Not(inner) => {
-                let (node, iri) = self.emit_formula(inner, scope);
+                let (node, iri) = self.emit_formula(inner, scope)?;
                 let rendered = formula.render();
-                self.emit_negation(node, &iri, &rendered, scope)
+                self.emit_negation(node, &iri, &rendered, scope)?
             }
             Formula::Binary {
                 connective,
                 left,
                 right,
             } => {
-                let (left_node, left_iri) = self.emit_formula(left, scope);
-                let (right_node, right_iri) = self.emit_formula(right, scope);
+                let (left_node, left_iri) = self.emit_formula(left, scope)?;
+                let (right_node, right_iri) = self.emit_formula(right, scope)?;
                 let node = self.app(
                     &format!("tstp:connective:{}", connective.slug()),
                     &[left_node, right_node],
                 );
-                let (iri, fresh) = self.scoped_expression(node, scope);
+                let (iri, fresh) = self.scoped_expression(node, scope)?;
                 if fresh {
-                    self.sink.typed(&iri, &math("ApplicationExpression"));
+                    self.sink.typed(&iri, &math("ApplicationExpression"))?;
                     let operation =
-                        self.emit_operation("connective", connective.slug(), connective.label());
-                    self.sink.iri(&iri, &math("operator"), &operation);
-                    self.emit_slots(&iri, &[left_iri, right_iri]);
-                    self.label(&iri, &formula.render());
+                        self.emit_operation("connective", connective.slug(), connective.label())?;
+                    self.sink.iri(&iri, &math("operator"), &operation)?;
+                    self.emit_slots(&iri, &[left_iri, right_iri])?;
+                    self.label(&iri, &formula.render())?;
                     self.proof_structures += 1;
                 }
                 (node, iri)
@@ -960,8 +987,8 @@ impl Lift<'_> {
                 quantifier,
                 variables,
                 body,
-            } => self.emit_binder(*quantifier, variables, body, scope),
-        }
+            } => self.emit_binder(*quantifier, variables, body, scope)?,
+        })
     }
 
     /// One `math:BindingExpression` per bound variable.
@@ -976,7 +1003,7 @@ impl Lift<'_> {
         variables: &[String],
         body: &Formula,
         scope: &mut Vec<Binding>,
-    ) -> (StructNode, String) {
+    ) -> gmeow_errors::Result<(StructNode, String)> {
         let Some((first, rest)) = variables.split_first() else {
             return self.emit_formula(body, scope);
         };
@@ -991,9 +1018,9 @@ impl Lift<'_> {
         depth.pop();
         let node = self.binder_node(quantifier, inner);
 
-        let (iri, fresh) = self.scoped_expression(node, scope);
+        let (iri, fresh) = self.scoped_expression(node, scope)?;
         if !fresh {
-            return (node, iri);
+            return Ok((node, iri));
         }
 
         let key = self.key_of(node).into_string();
@@ -1002,10 +1029,10 @@ impl Lift<'_> {
         } else {
             format!("{}/{key}", scope_chain(scope))
         };
-        let (declaration, _) = self.mint("binder-declaration", &chain);
-        let (occurrence, _) = self.mint("binder-occurrence", &chain);
+        let (declaration, _) = self.mint("binder-declaration", &chain)?;
+        let (occurrence, _) = self.mint("binder-occurrence", &chain)?;
 
-        self.sink.typed(&iri, &math("BindingExpression"));
+        self.sink.typed(&iri, &math("BindingExpression"))?;
         self.label(
             &iri,
             &format!(
@@ -1014,19 +1041,20 @@ impl Lift<'_> {
                 variables.join(", "),
                 body.render()
             ),
-        );
-        let operation = self.emit_operation("quantifier", quantifier.slug(), quantifier.label());
-        self.sink.iri(&iri, &math("operator"), &operation);
+        )?;
+        let operation = self.emit_operation("quantifier", quantifier.slug(), quantifier.label())?;
+        self.sink.iri(&iri, &math("operator"), &operation)?;
         // A binder introduces its variable's scoped identity and binds the occurrences of
         // it, never the glyph — which is what makes shadowing resolvable.
-        self.sink.typed(&declaration, &math("VariableDeclaration"));
-        self.label(&declaration, first);
-        self.sink.typed(&occurrence, &math("VariableOccurrence"));
         self.sink
-            .iri(&occurrence, &math("declaredVariable"), &declaration);
-        self.sink.iri(&occurrence, &math("occursInScope"), &iri);
-        self.sink.iri(&iri, &math("boundVariable"), &declaration);
-        self.sink.iri(&iri, &math("bindsOccurrence"), &occurrence);
+            .typed(&declaration, &math("VariableDeclaration"))?;
+        self.label(&declaration, first)?;
+        self.sink.typed(&occurrence, &math("VariableOccurrence"))?;
+        self.sink
+            .iri(&occurrence, &math("declaredVariable"), &declaration)?;
+        self.sink.iri(&occurrence, &math("occursInScope"), &iri)?;
+        self.sink.iri(&iri, &math("boundVariable"), &declaration)?;
+        self.sink.iri(&iri, &math("bindsOccurrence"), &occurrence)?;
 
         scope.push(Binding {
             name: first.clone(),
@@ -1035,14 +1063,14 @@ impl Lift<'_> {
             occurrence,
         });
         let (_, body_iri) = if rest.is_empty() {
-            self.emit_formula(body, scope)
+            self.emit_formula(body, scope)?
         } else {
-            self.emit_binder(quantifier, rest, body, scope)
+            self.emit_binder(quantifier, rest, body, scope)?
         };
         scope.pop();
-        self.emit_slots(&iri, &[body_iri]);
+        self.emit_slots(&iri, &[body_iri])?;
         self.proof_structures += 1;
-        (node, iri)
+        Ok((node, iri))
     }
 
     /// The arena node of a binder over `body`, with no RDF.
@@ -1149,31 +1177,39 @@ impl Lift<'_> {
 
     // -- terms -----------------------------------------------------------------
 
-    fn emit_term(&mut self, term: &Term, scope: &[Binding]) -> (StructNode, String) {
-        match term {
+    fn emit_term(
+        &mut self,
+        term: &Term,
+        scope: &[Binding],
+    ) -> gmeow_errors::Result<(StructNode, String)> {
+        Ok(match term {
             Term::Variable(name) => match scope.iter().rposition(|b| b.name == *name) {
-                Some(index) => self.emit_bound_variable(name, scope.len() - 1 - index, scope),
-                None => self.emit_free_variable(name, scope),
+                Some(index) => self.emit_bound_variable(name, scope.len() - 1 - index, scope)?,
+                None => self.emit_free_variable(name, scope)?,
             },
-            Term::Apply { functor, args } if args.is_empty() => self.emit_constant(functor, scope),
+            Term::Apply { functor, args } if args.is_empty() => {
+                self.emit_constant(functor, scope)?
+            }
             Term::Apply { functor, args } => {
-                let parts: Vec<(StructNode, String)> =
-                    args.iter().map(|arg| self.emit_term(arg, scope)).collect();
+                let parts: Vec<(StructNode, String)> = args
+                    .iter()
+                    .map(|arg| self.emit_term(arg, scope))
+                    .collect::<gmeow_errors::Result<_>>()?;
                 let nodes: Vec<StructNode> = parts.iter().map(|(node, _)| *node).collect();
                 let node = self.app(&format!("tstp:sym:{functor}"), &nodes);
-                let (iri, fresh) = self.scoped_expression(node, scope);
+                let (iri, fresh) = self.scoped_expression(node, scope)?;
                 if fresh {
-                    self.sink.typed(&iri, &math("ApplicationExpression"));
-                    let operation = self.emit_operation("functor", functor, functor);
-                    self.sink.iri(&iri, &math("operator"), &operation);
+                    self.sink.typed(&iri, &math("ApplicationExpression"))?;
+                    let operation = self.emit_operation("functor", functor, functor)?;
+                    self.sink.iri(&iri, &math("operator"), &operation)?;
                     let operands: Vec<String> = parts.iter().map(|(_, iri)| iri.clone()).collect();
-                    self.emit_slots(&iri, &operands);
-                    self.label(&iri, &term.render());
+                    self.emit_slots(&iri, &operands)?;
+                    self.label(&iri, &term.render())?;
                     self.proof_structures += 1;
                 }
                 (node, iri)
             }
-        }
+        })
     }
 
     /// A nullary functor — a constant, or a defined atom such as the empty clause `$false`.
@@ -1183,21 +1219,26 @@ impl Lift<'_> {
     /// math:hasMathematicalSymbol edge to a local math:MathematicalSymbol", which is what a
     /// TPTP constant is. Emitting it as an application with no operands would claim a
     /// computation the source does not state.
-    fn emit_constant(&mut self, functor: &str, scope: &[Binding]) -> (StructNode, String) {
+    fn emit_constant(
+        &mut self,
+        functor: &str,
+        scope: &[Binding],
+    ) -> gmeow_errors::Result<(StructNode, String)> {
         let node = self.atom(&format!("tstp:sym:{functor}"));
-        let (iri, fresh) = self.scoped_expression(node, scope);
+        let (iri, fresh) = self.scoped_expression(node, scope)?;
         if fresh {
-            self.sink.typed(&iri, &math("SymbolReference"));
-            let (symbol, symbol_fresh) = self.mint("symbol", functor);
+            self.sink.typed(&iri, &math("SymbolReference"))?;
+            let (symbol, symbol_fresh) = self.mint("symbol", functor)?;
             if symbol_fresh {
-                self.sink.typed(&symbol, &math("MathematicalSymbol"));
-                self.label(&symbol, functor);
+                self.sink.typed(&symbol, &math("MathematicalSymbol"))?;
+                self.label(&symbol, functor)?;
             }
-            self.sink.iri(&iri, &math("hasMathematicalSymbol"), &symbol);
-            self.label(&iri, &render_atom(functor));
+            self.sink
+                .iri(&iri, &math("hasMathematicalSymbol"), &symbol)?;
+            self.label(&iri, &render_atom(functor))?;
             self.proof_structures += 1;
         }
-        (node, iri)
+        Ok((node, iri))
     }
 
     /// A variable no enclosing binder binds.
@@ -1210,28 +1251,32 @@ impl Lift<'_> {
     /// clause's universal closure is implicit in the source, and minting a
     /// `math:BindingExpression` for a binder the derivation never writes would state a scope
     /// it does not.
-    fn emit_free_variable(&mut self, name: &str, scope: &[Binding]) -> (StructNode, String) {
+    fn emit_free_variable(
+        &mut self,
+        name: &str,
+        scope: &[Binding],
+    ) -> gmeow_errors::Result<(StructNode, String)> {
         let node = self
             .arena
             .intern_free(TermValue::simple_literal(format!("tstp:var:{name}")));
-        let (iri, fresh) = self.scoped_expression(node, scope);
+        let (iri, fresh) = self.scoped_expression(node, scope)?;
         if fresh {
             let key = self.key_of(node).into_string();
-            self.sink.typed(&iri, &math("VariableExpression"));
-            self.label(&iri, name);
-            let (occurrence, _) = self.mint("occurrence", &key);
-            self.sink.typed(&occurrence, &math("VariableOccurrence"));
-            let (declaration, _) = self.mint("declaration", &key);
+            self.sink.typed(&iri, &math("VariableExpression"))?;
+            self.label(&iri, name)?;
+            let (occurrence, _) = self.mint("occurrence", &key)?;
+            self.sink.typed(&occurrence, &math("VariableOccurrence"))?;
+            let (declaration, _) = self.mint("declaration", &key)?;
             self.sink
-                .typed(&declaration, &math("FreeVariableDeclaration"));
-            self.label(&declaration, name);
+                .typed(&declaration, &math("FreeVariableDeclaration"))?;
+            self.label(&declaration, name)?;
             self.sink
-                .iri(&occurrence, &math("declaredVariable"), &declaration);
+                .iri(&occurrence, &math("declaredVariable"), &declaration)?;
             self.sink
-                .iri(&iri, &math("variableOccurrence"), &occurrence);
+                .iri(&iri, &math("variableOccurrence"), &occurrence)?;
             self.proof_structures += 1;
         }
-        (node, iri)
+        Ok((node, iri))
     }
 
     /// A variable an enclosing binder binds.
@@ -1243,20 +1288,20 @@ impl Lift<'_> {
         name: &str,
         distance: usize,
         scope: &[Binding],
-    ) -> (StructNode, String) {
+    ) -> gmeow_errors::Result<(StructNode, String)> {
         let node = self
             .arena
             .intern_bound(u32::try_from(distance).unwrap_or(u32::MAX), 0);
-        let (iri, fresh) = self.scoped_expression(node, scope);
+        let (iri, fresh) = self.scoped_expression(node, scope)?;
         if fresh {
             let occurrence = scope[scope.len() - 1 - distance].occurrence.clone();
-            self.sink.typed(&iri, &math("VariableExpression"));
-            self.label(&iri, name);
+            self.sink.typed(&iri, &math("VariableExpression"))?;
+            self.label(&iri, name)?;
             self.sink
-                .iri(&iri, &math("variableOccurrence"), &occurrence);
+                .iri(&iri, &math("variableOccurrence"), &occurrence)?;
             self.proof_structures += 1;
         }
-        (node, iri)
+        Ok((node, iri))
     }
 
     /// The `math:Operation` an application applies.
@@ -1266,13 +1311,18 @@ impl Lift<'_> {
     /// reconstruction of the derivation has to recover verbatim. `role` keeps the operator
     /// families apart, so a rule and a predicate that happen to share a spelling are never
     /// one individual.
-    fn emit_operation(&mut self, role: &str, token: &str, label: &str) -> String {
-        let (iri, fresh) = self.mint("operation", &format!("{role}|{token}"));
+    fn emit_operation(
+        &mut self,
+        role: &str,
+        token: &str,
+        label: &str,
+    ) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("operation", &format!("{role}|{token}"))?;
         if fresh {
-            self.sink.typed(&iri, &math("Operation"));
-            self.label(&iri, label);
+            self.sink.typed(&iri, &math("Operation"))?;
+            self.label(&iri, label)?;
         }
-        iri
+        Ok(iri)
     }
 
     /// Ordered, contiguous, zero-based `math:ArgumentSlot` cells over an application.
@@ -1280,15 +1330,16 @@ impl Lift<'_> {
     /// Contiguity is an OWL obligation, not a convention: a gap is
     /// `math:NonContiguousArgumentSlots`. The slots are also what preserve TSTP's operand
     /// ORDER, which the premise EDGES (a set) do not.
-    fn emit_slots(&mut self, application: &str, operands: &[String]) {
+    fn emit_slots(&mut self, application: &str, operands: &[String]) -> gmeow_errors::Result<()> {
         for (index, operand) in operands.iter().enumerate() {
-            let (slot, _) = self.mint("slot", &format!("{application}#{index}"));
-            self.sink.typed(&slot, &math("ArgumentSlot"));
+            let (slot, _) = self.mint("slot", &format!("{application}#{index}"))?;
+            self.sink.typed(&slot, &math("ArgumentSlot"))?;
             let position = i64::try_from(index).unwrap_or(i64::MAX);
-            self.sink.integer(&slot, &math("slotIndex"), position);
-            self.sink.iri(&slot, &math("slotExpression"), operand);
-            self.sink.iri(application, &math("argumentSlot"), &slot);
+            self.sink.integer(&slot, &math("slotIndex"), position)?;
+            self.sink.iri(&slot, &math("slotExpression"), operand)?;
+            self.sink.iri(application, &math("argumentSlot"), &slot)?;
         }
+        Ok(())
     }
 }
 

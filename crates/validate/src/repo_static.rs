@@ -113,6 +113,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     if root.join(".git").exists() || root.join(".deficiencies").exists() {
         check_deficiency_emergency_ledger(root, &mut report);
     }
+    let modules = ProductionModules::resolve(root, &mut report);
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
@@ -124,17 +125,17 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_authored_shex_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
     check_gmeow_shapes_drained(root, &mut report);
-    check_no_generated_read_in_pipeline_stages(root, &mut report);
+    check_no_generated_read_in_pipeline_stages(root, &mut report, &modules);
     check_no_first_party_error_crate_deps(root, &mut report);
-    check_no_string_result_error_type(root, &mut report);
-    check_gts_authorship_seals(root, &mut report);
-    check_diag_failure_class_binding(root, &mut report);
+    check_no_string_result_error_type(root, &mut report, &modules);
+    check_gts_authorship_seals(root, &mut report, &modules);
+    check_diag_failure_class_binding(root, &mut report, &modules);
     check_no_unmanaged_temp_dir(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
     check_slice_ttl_trailing_newline(root, &mut report);
     check_wasm_bindgen_pin_parity(root, &mut report);
-    check_gts_emit_chokepoint(root, &mut report);
+    check_gts_emit_chokepoint(root, &mut report, &modules);
     report
 }
 
@@ -1327,7 +1328,11 @@ fn slash_path(path: &Path) -> String {
 /// read, and the gitignored `.pipeline-cache` scratch dir. The textual gate catches literal +
 /// traceable const-indirected reads; the pipeline's update→strict-check fixed-point test
 /// is the semantic backstop for the rest.
-fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStaticReport) {
+fn check_no_generated_read_in_pipeline_stages(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) {
     let src = root.join("crates").join("pipeline").join("src");
     // Nothing to scan when the pipeline crate is absent (synthetic minimal-repo fixtures).
     // The real repo always carries it; `live_repo_static_passes` scans it on-gate.
@@ -1335,7 +1340,7 @@ fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStat
         return;
     }
     let mut files = Vec::new();
-    collect_rust_files(&src, report, &mut files);
+    collect_production_rust_files(&src, report, &mut files, modules);
     files.sort();
 
     // Pass 1: collect path constants whose value is under `generated/` (emit targets), across
@@ -1609,12 +1614,9 @@ fn blank_regions(text: &str) -> (String, String, String) {
     // brace-delimited body is the region from the next `{` to its matching `}` (fn / mod /
     // impl); items with no body before a `;` (a `use`/`const`) carry no read.
     //
-    // "Test-gated" is any `#[cfg(…)]` whose predicate names the `test` identifier — the bare
-    // `#[cfg(test)]` AND the composed forms real modules use, e.g.
-    // `#[cfg(all(test, not(target_arch = "wasm32")))]`. Matching only the literal
-    // `#[cfg(test)]` would leave a wasm-gated test module looking like production code to
-    // every gate built on this view. `not(test)` is excluded (it gates the NON-test build),
-    // and a `feature = "test"` cannot match because string contents are already blanked here.
+    // The first-party cfg resolver must prove there is no non-test configuration.
+    // `all(test, ...)` is test-only; `any(test, feature = "harness")` can run in
+    // production and must stay visible. Feature strings are not cfg identifiers.
     let open_marker: Vec<char> = "#[cfg(".chars().collect();
     let mut m = 0;
     while m + open_marker.len() <= skeleton.len() {
@@ -1642,7 +1644,9 @@ fn blank_regions(text: &str) -> (String, String, String) {
             m += open_marker.len();
             continue;
         }
-        let predicate: String = skeleton[predicate_start..k - 1].iter().collect();
+        // The skeleton locates delimiters; the cfg parser needs the original
+        // literal tokens, including target/feature strings.
+        let predicate: String = out[predicate_start..k - 1].iter().collect();
         if !cfg_predicate_is_test_gated(&predicate) {
             m += open_marker.len();
             continue;
@@ -1686,28 +1690,11 @@ fn blank_regions(text: &str) -> (String, String, String) {
     )
 }
 
-/// True when a `#[cfg(…)]` predicate gates its item to a TEST build: the `test` identifier
-/// appears as a whole word and is not negated by `not(test)`. Whitespace is stripped first so
-/// `not( test )` is recognised identically to `not(test)`.
+/// True only when every possible non-test configuration excludes the item.
 fn cfg_predicate_is_test_gated(predicate: &str) -> bool {
-    let compact: String = predicate.chars().filter(|c| !c.is_whitespace()).collect();
-    if compact.contains("not(test)") {
-        return false;
-    }
-    let bytes = compact.as_bytes();
-    let mut from = 0;
-    while let Some(rel) = compact[from..].find("test") {
-        let at = from + rel;
-        let end = at + 4;
-        let starts = at == 0 || !(bytes[at - 1].is_ascii_alphanumeric() || bytes[at - 1] == b'_');
-        let ends =
-            end >= compact.len() || !(bytes[end].is_ascii_alphanumeric() || bytes[end] == b'_');
-        if starts && ends {
-            return true;
-        }
-        from = end;
-    }
-    false
+    // Unresolved cfg can never authorize removing source from a seal. Retaining
+    // that item conservatively keeps every forbidden production call visible.
+    gmeow_build_inputs::cfg_excludes_production(predicate).unwrap_or(false)
 }
 
 /// Comments and TEST-GATED bodies blanked, string/char literal CONTENTS kept — the
@@ -2226,13 +2213,17 @@ fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut R
 /// to prove the profile's audit rejects it. The scan walks `crates/` — the standalone
 /// `fuzz/` workspace sits outside it by design: fuzz targets are harness code that drives
 /// the writer deliberately, the same exemption test crates get.
-fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
+fn check_gts_emit_chokepoint(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) {
     let crates_dir = root.join("crates");
     if !crates_dir.is_dir() {
         return;
     }
     let mut files: Vec<PathBuf> = Vec::new();
-    collect_rust_files(&crates_dir, report, &mut files);
+    collect_production_rust_files(&crates_dir, report, &mut files, modules);
     for file in files {
         // The profile crate IS the permitted entry.
         if file.starts_with(crates_dir.join("gts-profile")) {
@@ -2873,6 +2864,7 @@ fn purrdf_use_bindings(code: &str, item: &str) -> BTreeSet<String> {
 fn purrdf_gts_authorship_census(
     root: &Path,
     report: &mut RepoStaticReport,
+    modules: &ProductionModules,
 ) -> Vec<GtsAuthorshipHit> {
     let mut hits = Vec::new();
     let crates_dir = root.join("crates");
@@ -2895,6 +2887,7 @@ fn purrdf_gts_authorship_census(
     };
     crate_dirs.sort();
 
+    let excluded = &modules.test_only_files;
     for crate_dir in crate_dirs {
         let src = crate_dir.join("src");
         if !src.is_dir() {
@@ -2902,6 +2895,7 @@ fn purrdf_gts_authorship_census(
         }
         let mut files = Vec::new();
         collect_rust_files(&src, report, &mut files);
+        files.retain(|path| !excluded.contains(path));
         files.sort();
         for path in &files {
             let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
@@ -3065,17 +3059,21 @@ fn render_authorship_hits(hits: &[&GtsAuthorshipHit]) -> String {
         .join(", ")
 }
 
-fn check_gts_authorship_seals(root: &Path, report: &mut RepoStaticReport) {
+fn check_gts_authorship_seals(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) {
     // The seals bind only where the profile crate exists. A synthetic minimal-repo
     // fixture carries no `crates/` tree at all; the live repo always carries it,
     // and `live_repo_static_passes` runs both seals over it on-gate.
     if !root.join(GTS_PROFILE_CRATE_SRC).is_dir() {
         return;
     }
-    let hits = purrdf_gts_authorship_census(root, report);
+    let hits = purrdf_gts_authorship_census(root, report, modules);
     check_owned_snapshot_publication(root, &hits, report);
     check_no_bypassing_gts_authorship(&hits, report);
-    check_every_gts_producer_declares_a_medium(root, report);
+    check_every_gts_producer_declares_a_medium(root, report, modules);
 }
 
 // ── Seal C: every production GTS producer declares exactly one medium ────────
@@ -3149,7 +3147,11 @@ struct GtsProducerFile {
 /// comments, string/char literals and `#[cfg(test)]` bodies blanked — the same
 /// classifier [`purrdf_gts_authorship_census`] uses, so the two seals cannot disagree
 /// about what "production" means.
-fn gts_producer_census(root: &Path, report: &mut RepoStaticReport) -> Vec<GtsProducerFile> {
+fn gts_producer_census(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) -> Vec<GtsProducerFile> {
     let mut out: Vec<GtsProducerFile> = Vec::new();
     let crates_dir = root.join("crates");
     if !crates_dir.is_dir() {
@@ -3171,6 +3173,7 @@ fn gts_producer_census(root: &Path, report: &mut RepoStaticReport) -> Vec<GtsPro
     };
     crate_dirs.sort();
 
+    let excluded = &modules.test_only_files;
     for crate_dir in crate_dirs {
         let src = crate_dir.join("src");
         if !src.is_dir() {
@@ -3178,6 +3181,7 @@ fn gts_producer_census(root: &Path, report: &mut RepoStaticReport) -> Vec<GtsPro
         }
         let mut files = Vec::new();
         collect_rust_files(&src, report, &mut files);
+        files.retain(|path| !excluded.contains(path));
         files.sort();
         for path in &files {
             let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
@@ -3298,7 +3302,11 @@ fn declared_gts_producers(
 
 /// **Seal C** — the medium check's three-way split is TOTAL over production GTS
 /// producers.
-fn check_every_gts_producer_declares_a_medium(root: &Path, report: &mut RepoStaticReport) {
+fn check_every_gts_producer_declares_a_medium(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) {
     // The seal binds where the ontology it reads exists. A synthetic minimal-repo
     // fixture carries a `crates/` tree and no `slices/` one; an absent `slices/` in a
     // REAL repo is not silently tolerated here either — it is already a hard failure
@@ -3306,7 +3314,7 @@ fn check_every_gts_producer_declares_a_medium(root: &Path, report: &mut RepoStat
     if !root.join("slices").is_dir() {
         return;
     }
-    let census = gts_producer_census(root, report);
+    let census = gts_producer_census(root, report, modules);
     if census.len() < MIN_GTS_PRODUCER_FILES {
         report.error(format!(
             "gts-authorship Seal C: the production GTS-producer census found {} file(s), below \
@@ -3434,14 +3442,18 @@ struct DiagKindDecl {
 /// that shape; an invocation the scanner cannot close before the file ends is reported
 /// as a HARD FAIL rather than silently dropped, because a silently dropped kind is one
 /// the ratchet would stop watching.
-fn diag_kind_census(root: &Path, report: &mut RepoStaticReport) -> Vec<DiagKindDecl> {
+fn diag_kind_census(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) -> Vec<DiagKindDecl> {
     let mut found = Vec::new();
     let crates_dir = root.join("crates");
     if !crates_dir.is_dir() {
         return found;
     }
     let mut files = Vec::new();
-    collect_rust_files(&crates_dir, report, &mut files);
+    collect_production_rust_files(&crates_dir, report, &mut files, modules);
     files.sort();
     for path in &files {
         let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
@@ -3925,8 +3937,12 @@ fn check_diag_failure_class_ratchet(decls: &[DiagKindDecl], report: &mut RepoSta
     }
 }
 
-fn check_diag_failure_class_binding(root: &Path, report: &mut RepoStaticReport) {
-    let decls = diag_kind_census(root, report);
+fn check_diag_failure_class_binding(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) {
+    let decls = diag_kind_census(root, report, modules);
     if decls.is_empty() {
         // No `crates/` tree (a synthetic minimal-repo fixture) — nothing to bind.
         return;
@@ -3947,13 +3963,17 @@ fn check_diag_failure_class_binding(root: &Path, report: &mut RepoStaticReport) 
 /// `#[cfg(test)]`-blanking and file-collection machinery the generated/-read ban uses, but
 /// with string/char literal contents ALSO blanked so a `Result<_, String>` mention inside a
 /// diagnostic message string is never mistaken for a type occurrence).
-fn check_no_string_result_error_type(root: &Path, report: &mut RepoStaticReport) {
+fn check_no_string_result_error_type(
+    root: &Path,
+    report: &mut RepoStaticReport,
+    modules: &ProductionModules,
+) {
     let crates_dir = root.join("crates");
     if !crates_dir.is_dir() {
         return;
     }
     let mut files = Vec::new();
-    collect_rust_files(&crates_dir, report, &mut files);
+    collect_production_rust_files(&crates_dir, report, &mut files, modules);
     files.sort();
     for path in &files {
         let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
@@ -4094,6 +4114,162 @@ fn scan_unmanaged_temp_dir(
 }
 
 /// Recursively collect `.rs` files under `dir`.
+/// Source roots come from Cargo targets; module/test ownership comes from the
+/// same first-party resolver used by source admission. Orphan files stay in the
+/// census: only a proved test-only owner authorizes removing a physical file.
+fn collect_production_rust_files(
+    dir: &Path,
+    report: &mut RepoStaticReport,
+    out: &mut Vec<PathBuf>,
+    modules: &ProductionModules,
+) {
+    collect_rust_files(dir, report, out);
+    out.retain(|path| !modules.test_only_files.contains(path));
+}
+
+/// One read-only ownership result per check, shared by every production seal.
+/// It never survives the invocation or hides a failed resolution.
+struct ProductionModules {
+    test_only_files: BTreeSet<PathBuf>,
+}
+
+impl ProductionModules {
+    fn resolve(root: &Path, report: &mut RepoStaticReport) -> Self {
+        let test_only_files = match test_module_exclusions(root) {
+            Ok(excluded) => excluded,
+            Err(error) => {
+                report.error(format!("production module ownership: {error}"));
+                BTreeSet::new()
+            }
+        };
+        Self { test_only_files }
+    }
+}
+
+/// Preserve the real parser/admission cause under the existing policy code.
+#[track_caller]
+fn module_ownership_failure(
+    error: impl std::error::Error + Send + Sync + 'static,
+) -> gmeow_errors::Diag {
+    let mut diagnostic = gmeow_errors::Diag::new(
+        gmeow_errors::register_code(crate::codes::REPO_STATIC_VIOLATION),
+        gmeow_errors::Grade::new(
+            Severity::Error,
+            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
+            gmeow_errors::Standpoint::Binding,
+        ),
+        error.to_string(),
+    );
+    diagnostic.inner_mut().source = Some(Box::new(error));
+    diagnostic
+}
+
+fn test_module_exclusions(root: &Path) -> gmeow_errors::Result<BTreeSet<PathBuf>> {
+    let mut roots = BTreeSet::new();
+    let crates = root.join("crates");
+    if !crates.is_dir() {
+        return Ok(BTreeSet::new());
+    }
+    for entry in fs::read_dir(&crates)? {
+        let directory = entry?.path();
+        let manifest = directory.join("Cargo.toml");
+        if !manifest.is_file() {
+            continue;
+        }
+        let text = fs::read_to_string(&manifest)?;
+        let value: toml::Value = text.parse().map_err(|error| {
+            module_ownership_failure(error).with_context(manifest.display().to_string())
+        })?;
+        let package = value.get("package");
+        let mut select = |path: PathBuf, required: bool| -> gmeow_errors::Result<()> {
+            if path.is_file() {
+                roots.insert(slash_path(path.strip_prefix(root).unwrap_or(&path)));
+            } else if required {
+                return Err(std::io::Error::other(format!(
+                    "{} declares missing Rust source {}",
+                    manifest.display(),
+                    path.display()
+                ))
+                .into());
+            }
+            Ok(())
+        };
+        if value.get("lib").is_some()
+            || package
+                .and_then(|p| p.get("autolib"))
+                .and_then(toml::Value::as_bool)
+                != Some(false)
+        {
+            let path = value
+                .get("lib")
+                .and_then(|v| v.get("path"))
+                .and_then(toml::Value::as_str)
+                .unwrap_or("src/lib.rs");
+            select(directory.join(path), value.get("lib").is_some())?;
+        }
+        if let Some(bins) = value.get("bin").and_then(toml::Value::as_array) {
+            for bin in bins {
+                if let Some(path) = bin.get("path").and_then(toml::Value::as_str) {
+                    select(directory.join(path), true)?;
+                } else if let Some(name) = bin.get("name").and_then(toml::Value::as_str) {
+                    // Cargo's named conventional bin locations. Every existing
+                    // candidate is retained conservatively if a manifest is ambiguous.
+                    let flat = directory.join(format!("src/bin/{name}.rs"));
+                    let nested = directory.join(format!("src/bin/{name}/main.rs"));
+                    let main = directory.join("src/main.rs");
+                    let package_main = package
+                        .and_then(|p| p.get("name"))
+                        .and_then(toml::Value::as_str)
+                        == Some(name);
+                    if !flat.is_file() && !nested.is_file() && !(package_main && main.is_file()) {
+                        return Err(std::io::Error::other(format!(
+                            "{} declares bin {name} without a source path",
+                            manifest.display()
+                        ))
+                        .into());
+                    }
+                    select(flat, false)?;
+                    select(nested, false)?;
+                    if package
+                        .and_then(|p| p.get("name"))
+                        .and_then(toml::Value::as_str)
+                        == Some(name)
+                    {
+                        select(main, false)?;
+                    }
+                }
+            }
+        }
+        if package
+            .and_then(|p| p.get("autobins"))
+            .and_then(toml::Value::as_bool)
+            != Some(false)
+        {
+            select(directory.join("src/main.rs"), false)?;
+            let bins = directory.join("src/bin");
+            if bins.is_dir() {
+                for entry in fs::read_dir(bins)? {
+                    let path = entry?.path();
+                    if path.extension().is_some_and(|ext| ext == "rs") {
+                        select(path, true)?;
+                    } else if path.is_dir() {
+                        select(path.join("main.rs"), false)?;
+                    }
+                }
+            }
+        }
+        match package.and_then(|p| p.get("build")) {
+            Some(toml::Value::Boolean(false)) => {}
+            Some(toml::Value::String(path)) => select(directory.join(path), true)?,
+            _ => select(directory.join("build.rs"), false)?,
+        }
+    }
+    let roots: Vec<_> = roots.iter().map(String::as_str).collect();
+    gmeow_build_inputs::test_only_module_paths(root, &roots)
+        .map(|paths| paths.into_iter().map(|path| root.join(path)).collect())
+        .map_err(module_ownership_failure)
+}
+
 fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,

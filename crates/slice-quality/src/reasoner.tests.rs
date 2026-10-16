@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 fn parse(ttl: &str) -> Arc<RdfDataset> {
     let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse ttl");
     let mut b = RdfDatasetBuilder::new();
-    b.push_dataset(&ds);
+    b.push_dataset(&ds).unwrap();
     b.freeze().expect("freeze")
 }
 

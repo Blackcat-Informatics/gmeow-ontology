@@ -73,7 +73,14 @@ impl Graph {
 
         let terms: Vec<Term> = (0..ds.term_count())
             .map(|tid| {
-                let mut term = Term::from_ref(ds.resolve(TermId::from_index(tid as u32)));
+                let mut term = Term::from_ref(
+                    ds.resolve(
+                        TermId::from_index(
+                            u32::try_from(tid).expect("frozen term ordinal fits u32"),
+                        )
+                        .expect("frozen term ordinal is representable"),
+                    ),
+                );
                 if term.kind == TermKind::Triple {
                     term.reifier = reifier_of_triple.get(&tid).copied();
                 }

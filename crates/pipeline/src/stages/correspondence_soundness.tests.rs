@@ -12,10 +12,12 @@ fn target_axiom_object_transfer_preserves_rdf12_identity() {
     let object = source.quads().next().expect("one axiom").o;
     let expected = source.to_owned_term(object);
     let mut builder = RdfDatasetBuilder::new();
-    let subject = builder.intern_iri("http://example.org/s");
-    let predicate = builder.intern_iri("http://example.org/p");
-    let transferred = intern_object(&mut builder, &source, object);
-    builder.push_quad(subject, predicate, transferred, None);
+    let subject = builder.intern_iri("http://example.org/s").unwrap();
+    let predicate = builder.intern_iri("http://example.org/p").unwrap();
+    let transferred = intern_object(&mut builder, &source, object).unwrap();
+    builder
+        .push_quad(subject, predicate, transferred, None)
+        .unwrap();
     let target = builder.freeze().expect("transferred axiom");
     assert_eq!(
         target.to_owned_term(target.quads().next().expect("transferred axiom").o),

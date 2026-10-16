@@ -96,10 +96,10 @@ fn merged_dataset(rel_paths: &[String], abox: &[RdfQuad]) -> std::sync::Arc<purr
             .unwrap_or_else(|e| panic!("missing ontology source {}: {e}", path.display()));
         let dataset = parse_dataset(&bytes, "text/turtle", None)
             .unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
-        builder.push_dataset(&dataset);
+        builder.push_dataset(&dataset).unwrap();
     }
     for quad in abox {
-        builder.push_owned_quad(quad);
+        builder.push_owned_quad(quad).unwrap();
     }
     builder.freeze().expect("valid scoped test dataset")
 }

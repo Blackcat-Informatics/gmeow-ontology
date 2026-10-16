@@ -1001,6 +1001,16 @@ impl ReasoningResult {
                 .iter()
                 .map(|gap| format!("{}: {}", gap.code, gap.message)),
         );
+        // Reads a retained obstruction withheld are gaps on the same axis: name each.
+        if let crate::reason::refute::native::NativeClosureStatus::Blocked { reads } =
+            &execution.status
+        {
+            unsupported.extend(
+                reads
+                    .iter()
+                    .map(|read| format!("blocked native read: {read:?}")),
+            );
+        }
         let preservation = PreservationClaim::for_unsupported(unsupported);
         let evaluation = match &execution.status {
             crate::reason::refute::native::NativeClosureStatus::Completed => {

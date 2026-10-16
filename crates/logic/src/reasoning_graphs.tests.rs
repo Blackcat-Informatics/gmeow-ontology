@@ -6,26 +6,32 @@ use super::*;
 #[test]
 fn meta_record_exclusion_retains_declared_empty_worlds() {
     let mut builder = RdfDatasetBuilder::new();
-    let empty = builder.intern_iri(GRAPH_STATEMENTS);
-    builder.declare_named_graph(empty);
-    let blank = builder.intern_owned_term(&RdfTerm::blank_node("empty-world"));
-    builder.declare_named_graph(blank);
-    builder.push_owned_quad(
-        &RdfQuad::new(
-            RdfTerm::iri("urn:correspondence"),
-            LOGIC_SOURCE_ENDPOINT_IRI,
-            RdfTerm::iri("urn:source"),
+    let empty = builder.intern_iri(GRAPH_STATEMENTS).unwrap();
+    builder.declare_named_graph(empty).unwrap();
+    let blank = builder
+        .intern_owned_term(&RdfTerm::blank_node("empty-world"))
+        .unwrap();
+    builder.declare_named_graph(blank).unwrap();
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri("urn:correspondence"),
+                LOGIC_SOURCE_ENDPOINT_IRI,
+                RdfTerm::iri("urn:source"),
+            )
+            .in_graph(RdfTerm::iri(GRAPH_IMPORTS)),
         )
-        .in_graph(RdfTerm::iri(GRAPH_IMPORTS)),
-    );
-    builder.push_owned_quad(
-        &RdfQuad::new(
-            RdfTerm::iri("urn:correspondence"),
-            "https://blackcatinformatics.ca/logic/recoveryCase",
-            RdfTerm::iri("urn:recovery"),
+        .unwrap();
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri("urn:correspondence"),
+                "https://blackcatinformatics.ca/logic/recoveryCase",
+                RdfTerm::iri("urn:recovery"),
+            )
+            .in_graph(RdfTerm::iri(GRAPH_LOGIC)),
         )
-        .in_graph(RdfTerm::iri(GRAPH_LOGIC)),
-    );
+        .unwrap();
     let source = builder.freeze().expect("small GMEOW envelope");
     let graphs = source.owned_named_graphs().collect::<HashSet<_>>();
     for filtered in [
@@ -43,17 +49,19 @@ fn meta_record_exclusion_retains_declared_empty_worlds() {
 #[test]
 fn snapshot_projection_selects_declarations_without_erasing_provenance_values() {
     let mut builder = RdfDatasetBuilder::new();
-    let empty = builder.intern_iri(GRAPH_STATEMENTS);
-    builder.declare_named_graph(empty);
+    let empty = builder.intern_iri(GRAPH_STATEMENTS).unwrap();
+    builder.declare_named_graph(empty).unwrap();
     let former = "urn:former-source-graph";
-    let former_graph = builder.intern_iri(former);
-    builder.declare_named_graph(former_graph);
+    let former_graph = builder.intern_iri(former).unwrap();
+    builder.declare_named_graph(former_graph).unwrap();
     let subject = RdfTerm::iri("urn:claim");
     let provenance = "http://www.w3.org/ns/prov#wasDerivedFrom";
-    builder.push_owned_quad(
-        &RdfQuad::new(subject.clone(), provenance, RdfTerm::iri(former))
-            .in_graph(RdfTerm::iri(GRAPH_IMPORTS)),
-    );
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(subject.clone(), provenance, RdfTerm::iri(former))
+                .in_graph(RdfTerm::iri(GRAPH_IMPORTS)),
+        )
+        .unwrap();
     let source = builder.freeze().expect("small source envelope");
     let projected = project_object_level_edb(&source).expect("object-level projection");
     assert_eq!(

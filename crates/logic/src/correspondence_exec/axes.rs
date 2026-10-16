@@ -48,7 +48,7 @@ pub enum AxisResult {
     NotEvaluated,
     /// Native output, numerically checked against an authored value when present.
     Computed {
-        value: FiniteNumericLiteral,
+        value: Box<FiniteNumericLiteral>,
         claimed: bool,
     },
 }
@@ -546,7 +546,7 @@ pub fn execute(source: Arc<CompiledTheory>) -> gmeow_errors::Result<SourceAxes> 
         let (axes, prepared) = &preparations[&names];
         let mut values = BTreeMap::<(String, usize), FiniteNumericLiteral>::new();
         if !names.is_empty() {
-            let store = WorldStore::new();
+            let store = WorldStore::new()?;
             let mut members = BTreeSet::new();
             let mut admitted = BTreeSet::new();
             for c in &compositions {
@@ -620,7 +620,10 @@ pub fn execute(source: Arc<CompiledTheory>) -> gmeow_errors::Result<SourceAxes> 
                         axis,
                     )?;
                     let claimed = compare_claim(claim, axis, &value)?;
-                    AxisResult::Computed { value, claimed }
+                    AxisResult::Computed {
+                        value: Box::new(value),
+                        claimed,
+                    }
                 } else if coordinate(claim, axis).is_some() {
                     return Err(error(format!(
                         "<{}> claims {} without a derived value and its required premises",

@@ -12,13 +12,133 @@ fn obligation(iri: &str, pred: &str, conds: &[&str]) -> Obligation {
     }
 }
 
-fn governance_store(body: &str) -> Arc<RdfDataset> {
+pub(super) fn governance_store(body: &str) -> Arc<RdfDataset> {
     let source = format!(
         "@prefix logic: <{LOGIC_NS}> .\n\
              @prefix ex: <https://example.org/> .\n\
              @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n{body}"
     );
     purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).expect("governance fixture")
+}
+
+/// Supply actual native derivations for assessment API controls. This produces
+/// only this test's tiny synthetic store, never a repository corpus or receipt.
+fn reason_governance_store(
+    store: &Arc<RdfDataset>,
+    derived: &BTreeSet<String>,
+) -> crate::result::ReasoningResult {
+    use gmeow_logic_compile::ir::{Formula, LogicProgram, Term};
+    use purrdf::{DatasetMut, MutableDataset, QuadValues};
+
+    let mut source = MutableDataset::new(Arc::clone(store));
+    source
+        .insert(QuadValues {
+            s: TermValue::iri("urn:governance:subject"),
+            p: TermValue::iri("urn:governance:seed"),
+            o: TermValue::iri("urn:governance:object"),
+            g: None,
+        })
+        .unwrap();
+    let source = source.freeze().unwrap();
+    let atom = |predicate: &str| {
+        Formula::atom(
+            Term::iri(predicate).unwrap(),
+            vec![Term::var("x").unwrap(), Term::var("y").unwrap()],
+        )
+        .unwrap()
+    };
+    let formulas = derived
+        .iter()
+        .map(|predicate| Formula::Forall {
+            vars: vec!["x".into(), "y".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(atom("urn:governance:seed")),
+                Box::new(atom(predicate)),
+            )),
+        })
+        .collect();
+    let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(formulas);
+    crate::reason::reason_program(
+        &program,
+        crate::reason::prepare_reasoning_input(&source).unwrap(),
+        &crate::physical::SelectedDomains::new([]).unwrap(),
+    )
+    .unwrap()
+}
+
+fn check_store(
+    store: &Arc<RdfDataset>,
+    derived: &BTreeSet<String>,
+) -> gmeow_errors::Result<Vec<Finding>> {
+    check_non_entailment_obligations(&reason_governance_store(store, derived))
+}
+
+#[test]
+fn authored_program_heads_are_unknown_until_finite_closure_is_selected() {
+    use gmeow_logic_compile::ir::{Formula, LogicProgram, Term};
+
+    let atom = |predicate| {
+        Formula::atom(
+            Term::iri(predicate).unwrap(),
+            vec![Term::var("x").unwrap(), Term::var("y").unwrap()],
+        )
+        .unwrap()
+    };
+    let program =
+        LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![Formula::Forall {
+            vars: vec!["x".into(), "y".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(atom("https://example.org/seed")),
+                Box::new(atom("https://example.org/forbidden")),
+            )),
+        }]);
+    for seed in [false, true] {
+        for finite in [false, true] {
+            let store = governance_store(&format!(
+                "ex:obligation logic:instanceOf logic:NonEntailmentObligation ; \
+                 logic:obligationForbiddenPredicate ex:forbidden ; \
+                 logic:obligationDischargeCondition logic:DischargeSyntacticReachability{} . {}",
+                if finite {
+                    ", logic:DischargeFiniteClosure"
+                } else {
+                    ""
+                },
+                if seed {
+                    "ex:subject ex:seed ex:object ."
+                } else {
+                    ""
+                },
+            ));
+            let result = crate::reason::reason_program(
+                &program,
+                crate::reason::prepare_reasoning_input(&store).unwrap(),
+                &crate::physical::SelectedDomains::new([]).unwrap(),
+            )
+            .unwrap();
+            result.validate_native_closure().unwrap();
+            assert!(result.is_conclusive(), "{result:?}");
+            let derived = result
+                .inferred()
+                .iter()
+                .filter(|row| !row.is_edb)
+                .map(|row| row.predicate.clone())
+                .collect::<BTreeSet<_>>();
+            assert_eq!(derived.contains("https://example.org/forbidden"), seed);
+            let findings = check_non_entailment_obligations(&result).unwrap();
+            let unknown = findings
+                .iter()
+                .any(|finding| finding.code == "verify.non-entailment.not-discharged");
+            let violated = findings
+                .iter()
+                .any(|finding| finding.code == "verify.non-entailment.derived");
+            assert_eq!(
+                unknown,
+                !finite && !seed,
+                "seed={seed}, finite={finite}: {findings:?}"
+            );
+            assert_eq!(violated, seed);
+        }
+    }
 }
 
 #[test]
@@ -44,7 +164,7 @@ fn native_obligation_inventory_covers_both_typings_once_with_attribution() {
     let store = governance_store(&source);
     let obligations = parse_obligations(&store).expect("complete typed discovery");
     assert_eq!(obligations.len(), 3);
-    let findings = check_non_entailment_obligations(
+    let findings = check_store(
         &store,
         &BTreeSet::from(["https://example.org/forbidden".to_owned()]),
     )
@@ -97,11 +217,15 @@ fn malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value() 
             "; logic:obligationForbiddenPredicate ex:p ; logic:obligationDischargeCondition \"DischargeFiniteClosure\"",
             "non-IRI discharge condition",
         ),
+        (
+            "; logic:obligationForbiddenPredicate ex:p ; logic:obligationDischargeCondition []",
+            "non-IRI discharge condition",
+        ),
     ] {
         let store = governance_store(&format!(
             "ex:obligation logic:instanceOf logic:NonEntailmentObligation {fields} ."
         ));
-        let error = check_non_entailment_obligations(&store, &BTreeSet::new())
+        let error = check_store(&store, &BTreeSet::new())
             .expect_err("malformed declaration must fail admission");
         assert!(error.to_string().contains(expected), "{fields}: {error}");
     }
@@ -115,8 +239,8 @@ fn native_obligation_discovery_preserves_independent_document_blank_scopes() {
     let first = governance_store(source);
     let second = governance_store(source);
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    builder.push_dataset(&first);
-    builder.push_dataset(&second);
+    builder.push_dataset(&first).unwrap();
+    builder.push_dataset(&second).unwrap();
     let merged = builder.freeze().expect("merged authored fixture");
     let obligations = parse_obligations(&merged).expect("distinct scoped obligations");
     assert_eq!(obligations.len(), 2);
@@ -150,8 +274,7 @@ fn canonical_candidate_typing_reaches_coverage_and_prose_drift_checks() {
 #[test]
 fn empty_selected_obligation_inventory_is_visible() {
     let store = governance_store("ex:s ex:p ex:o .");
-    let findings = check_non_entailment_obligations(&store, &BTreeSet::new())
-        .expect("empty inventory is reported");
+    let findings = check_store(&store, &BTreeSet::new()).expect("empty inventory is reported");
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].severity, Severity::Note);
     assert_eq!(findings[0].code, "verify.non-entailment.inventory");
@@ -174,8 +297,22 @@ fn standing_obligations_discharge_on_the_real_strata() {
         &["DischargeSyntacticReachability", "DischargeFiniteClosure"],
     );
     let no_candidates = BTreeMap::new();
-    assert!(check_reachability(&counterpart, &heads, &no_candidates).is_none());
-    assert!(check_reachability(&deception, &heads, &no_candidates).is_none());
+    assert!(
+        check_reachability(
+            &counterpart,
+            heads.contains(&counterpart.forbidden_predicate),
+            &no_candidates
+        )
+        .is_none()
+    );
+    assert!(
+        check_reachability(
+            &deception,
+            heads.contains(&deception.forbidden_predicate),
+            &no_candidates
+        )
+        .is_none()
+    );
     assert!(check_discharge_conditions(&counterpart).is_empty());
     assert!(check_discharge_conditions(&deception).is_empty());
 }
@@ -192,7 +329,7 @@ fn reachable_head_remains_unknown_without_a_counterexample() {
         &["DischargeSyntacticReachability"],
     );
     let no_candidates = BTreeMap::new();
-    let finding = check_reachability(&counterpart, &heads, &no_candidates).expect("must fire");
+    let finding = check_reachability(&counterpart, true, &no_candidates).expect("must fire");
     assert_eq!(finding.severity, Severity::Error);
     assert_eq!(finding.code, "verify.non-entailment.not-discharged");
     assert!(finding.message.contains("logic:ObligationUnknown"));
@@ -202,7 +339,7 @@ fn reachable_head_remains_unknown_without_a_counterexample() {
         &counterpart.forbidden_predicate,
         &["DischargeFiniteClosure"],
     );
-    assert!(check_reachability(&finite_only, &heads, &no_candidates).is_none());
+    assert!(check_reachability(&finite_only, true, &no_candidates).is_none());
 }
 
 /// A completed finite closure is a sufficient discharge condition even when
@@ -219,16 +356,14 @@ fn finite_closure_can_discharge_a_reachable_head() {
              logic:obligationDischargeCondition logic:DischargeSyntacticReachability,
                  logic:DischargeFiniteClosure ."
     ));
-    let findings =
-        check_non_entailment_obligations(&store, &BTreeSet::new()).expect("complete empty closure");
+    let findings = check_store(&store, &BTreeSet::new()).expect("complete empty closure");
     assert!(
         findings
             .iter()
             .all(|finding| finding.severity != Severity::Error),
         "{findings:?}"
     );
-    let findings = check_non_entailment_obligations(&store, &BTreeSet::from([predicate]))
-        .expect("counterexample");
+    let findings = check_store(&store, &BTreeSet::from([predicate])).expect("counterexample");
     assert!(
         findings
             .iter()
@@ -263,15 +398,14 @@ fn arm_b_finite_closure_green_then_red() {
 }
 
 #[test]
-fn arm_b_skipped_without_finite_closure_condition() {
-    // counterpart declares only syntactic-reachability, so the derived-edge arm
-    // does NOT apply to it — its legitimate symmetric derivation must not trip it.
+fn counterexample_survives_without_finite_closure_condition() {
+    // A selected negative-proof arm cannot suppress a real positive counterexample.
     let pred = "https://blackcatinformatics.ca/gmeow/counterpartOf";
     let counterpart = obligation("ex:counterpart", pred, &["DischargeSyntacticReachability"]);
     let mut derived = BTreeSet::new();
     derived.insert(pred.to_owned());
     let no_candidates = BTreeMap::new();
-    assert!(check_finite_closure(&counterpart, &derived, &no_candidates).is_none());
+    assert!(check_finite_closure(&counterpart, &derived, &no_candidates).is_some());
 }
 
 #[test]
@@ -314,8 +448,7 @@ fn candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candi
 
     // Green: the forbidden predicate is not derived → the obligation is DISCHARGED. The
     // check runs and surfaces no error: checked-and-passed, not silently skipped.
-    let discharged =
-        check_non_entailment_obligations(&store, &BTreeSet::new()).expect("check runs");
+    let discharged = check_store(&store, &BTreeSet::new()).expect("check runs");
     assert!(
         !discharged.iter().any(|f| f.severity == Severity::Error),
         "a discharged non-entailment obligation must produce no error finding: {discharged:?}"
@@ -327,7 +460,7 @@ fn candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candi
     // `candidateNonEntailment` is removed from the store or not traversed.
     let mut derived = BTreeSet::new();
     derived.insert(forbidden.to_owned());
-    let surfaced = check_non_entailment_obligations(&store, &derived).expect("check runs");
+    let surfaced = check_store(&store, &derived).expect("check runs");
     let violation = surfaced
         .iter()
         .find(|f| f.code == "verify.non-entailment.derived" && f.severity == Severity::Error)
@@ -353,8 +486,7 @@ fn candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candi
              <https://ex/orphan-obl> <{logic}obligationDischargeCondition> <{logic}DischargeFiniteClosure> .\n"
     );
     let orphan_store = store_from_ntriples(&orphan_ntriples);
-    let orphan_surfaced =
-        check_non_entailment_obligations(&orphan_store, &derived).expect("check runs");
+    let orphan_surfaced = check_store(&orphan_store, &derived).expect("check runs");
     let orphan_violation = orphan_surfaced
         .iter()
         .find(|f| f.code == "verify.non-entailment.derived" && f.severity == Severity::Error)

@@ -680,13 +680,13 @@ fn provenance_stamps_capability_derived_origin() {
     use purrdf::provenance::{DatasetProvenance, OriginKind};
     let mut prov = DatasetProvenance::new();
     let source_caps = [SOURCE_ORIGIN.to_string()];
-    let load = register_stage_unit(&mut prov, "stage-source-load", &source_caps);
+    let load = register_stage_unit(&mut prov, "stage-source-load", &source_caps).unwrap();
     // A stage holding no SOURCE_ORIGIN capability (e.g. the reasoner) stamps Generated.
-    let reason = register_stage_unit(&mut prov, "stage-reason", &[]);
+    let reason = register_stage_unit(&mut prov, "stage-reason", &[]).unwrap();
     assert_eq!(prov.unit_kind(load), Some(&OriginKind::Source));
     assert_eq!(prov.unit_kind(reason), Some(&OriginKind::Generated));
     // Idempotent: re-registering the same id returns the same unit.
-    let load2 = register_stage_unit(&mut prov, "stage-source-load", &source_caps);
+    let load2 = register_stage_unit(&mut prov, "stage-source-load", &source_caps).unwrap();
     assert_eq!(load, load2);
 }
 
@@ -1469,7 +1469,7 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
     for source in [None, Some(""), Some("https://example.org/source")] {
         let mut bundle =
             bundle_from_artifacts_over(dataset.clone(), BTreeMap::new(), DatasetProvenance::new());
-        let pin = bundle.graph_digest(GRAPH);
+        let pin = bundle.graph_digest(GRAPH).unwrap();
         graph_digests.push(pin);
         bundle
             .pin_handle(
@@ -1674,8 +1674,10 @@ fn lane_product(
     let dataset = purrdf::parse_dataset(nquads, "application/n-quads", None).unwrap();
     let mut provenance = DatasetProvenance::new();
     if with_provenance {
-        let unit = provenance.register_unit("lane-source", OriginKind::Source);
-        let artifact = provenance.register_artifact("lane-source.ttl");
+        let unit = provenance
+            .register_unit("lane-source", OriginKind::Source)
+            .unwrap();
+        let artifact = provenance.register_artifact("lane-source.ttl").unwrap();
         provenance.record_occurrence(QuadHandle::from_index(0), unit, artifact, Some("1".into()));
     }
     let mut lookaside = RdfLookaside::default();

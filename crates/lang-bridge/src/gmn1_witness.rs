@@ -63,8 +63,11 @@ const ALGO_PREFIX: &str = "blake3:";
 pub fn per_claim_round_trip_check(
     model: &Gmn0Model,
     dict: &GmnDictionary,
-) -> Result<(), Gmn1Error> {
-    check_claims_and_reencoding(&RoundTrip::evaluate(model, dict)?, dict)
+) -> gmeow_errors::Result<()> {
+    Ok(check_claims_and_reencoding(
+        &RoundTrip::evaluate(model, dict)?,
+        dict,
+    )?)
 }
 
 /// Check whole-model equality, every canonical-subject claim and byte-exact
@@ -79,10 +82,10 @@ pub fn per_claim_round_trip_check(
 pub fn round_trip_with_claims_check(
     model: &Gmn0Model,
     dict: &GmnDictionary,
-) -> Result<(), Gmn1Error> {
+) -> gmeow_errors::Result<()> {
     let evaluated = RoundTrip::evaluate(model, dict)?;
     evaluated.check_canonical()?;
-    check_claims_and_reencoding(&evaluated, dict)
+    Ok(check_claims_and_reencoding(&evaluated, dict)?)
 }
 
 fn check_claims_and_reencoding(
@@ -285,7 +288,7 @@ pub struct StandaloneReport {
 pub fn per_claim_standalone_check(
     model: &Gmn0Model,
     dict: &GmnDictionary,
-) -> Result<StandaloneReport, Gmn1Error> {
+) -> gmeow_errors::Result<StandaloneReport> {
     // Group the MODEL's quads by their (original) subject rendering.
     let mut claims: BTreeMap<String, Vec<RdfQuad>> = BTreeMap::new();
     for quad in &model.quads {
@@ -322,13 +325,14 @@ pub fn per_claim_standalone_check(
         }
 
         // Ground or blank-closed: round-trip this claim's quads ALONE and compare.
-        let standalone = model_from_quads(quads);
+        let standalone = model_from_quads(quads)?;
         let doc = gmn1_write(&standalone, dict)?;
         let reconstructed = gmn1_read(&doc, dict)?;
-        if !gmn0_canonically_equal(&standalone, &reconstructed) {
+        if !gmn0_canonically_equal(&standalone, &reconstructed)? {
             return Err(Gmn1Error::PerClaimMismatch {
                 subject: subject.clone(),
-            });
+            }
+            .into());
         }
         report.checked.push(subject.clone());
     }
@@ -339,15 +343,13 @@ pub fn per_claim_standalone_check(
 /// A canonical, sorted [`Gmn0Model`] over exactly `quads` — re-interned through a fresh
 /// dataset so the model carries the SAME `from_dataset` sort/dedup discipline the whole
 /// model does.
-fn model_from_quads(quads: &[RdfQuad]) -> Gmn0Model {
+fn model_from_quads(quads: &[RdfQuad]) -> gmeow_errors::Result<Gmn0Model> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
-        builder.push_owned_quad(quad);
+        builder.push_owned_quad(quad)?;
     }
-    let dataset = builder
-        .freeze()
-        .expect("a claim's valid RdfQuads freeze cleanly");
-    Gmn0Model::from_dataset(&dataset)
+    let dataset = builder.freeze()?;
+    Ok(Gmn0Model::from_dataset(&dataset))
 }
 
 /// The grouping key for a subject term: its canonical rendering (`<iri>`, `_:label`, or the

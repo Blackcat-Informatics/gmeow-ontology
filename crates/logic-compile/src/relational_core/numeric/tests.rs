@@ -153,7 +153,7 @@ fn numeric_projection_cannot_drop_required_operands_or_invent_an_operator() {
         let mut builder = purrdf::RdfDatasetBuilder::new();
         for quad in dataset.owned_quads() {
             if quad.predicate != format!("https://blackcatinformatics.ca/logic/{field}") {
-                builder.push_owned_quad(&quad);
+                builder.push_owned_quad(&quad).unwrap();
             }
         }
         assert!(
@@ -166,7 +166,7 @@ fn numeric_projection_cannot_drop_required_operands_or_invent_an_operator() {
         if quad.predicate.ends_with("rcNumericOperator") {
             quad.object = purrdf::RdfTerm::iri("urn:unrecognized-numeric-relation");
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     assert!(parse_relational_core(&builder.freeze().unwrap()).is_err());
 }

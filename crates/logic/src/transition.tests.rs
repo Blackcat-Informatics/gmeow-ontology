@@ -21,7 +21,7 @@ fn fact() -> TransitionFact {
 
 #[test]
 fn ins_materializes_fact_only_in_successor_state() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let update = ElementaryUpdate::insert(UPDATE_INSERT, TX, fact());
 
     let report =
@@ -44,7 +44,7 @@ fn ins_materializes_fact_only_in_successor_state() {
 
 #[test]
 fn del_retires_support_without_erasing_base_state() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, S, P, O);
     let support = fact().reifier().unwrap();
     let update = ElementaryUpdate::delete(UPDATE_DELETE, TX, fact());
@@ -104,7 +104,7 @@ fn del_retires_support_without_erasing_base_state() {
 
 #[test]
 fn same_fact_conflict_uses_most_entrenched_update() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, S, P, O);
     store.insert_quad(BASE, UPDATE_INSERT, OVERRIDES, UPDATE_DELETE);
     let insert = ElementaryUpdate::insert(UPDATE_INSERT, TX, fact());
@@ -123,7 +123,7 @@ fn same_fact_conflict_uses_most_entrenched_update() {
 
 #[test]
 fn duplicate_conflict_candidates_do_not_create_false_ties() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, S, P, O);
     store.insert_quad(BASE, UPDATE_INSERT, OVERRIDES, UPDATE_DELETE);
     let insert = ElementaryUpdate::insert(UPDATE_INSERT, TX, fact());
@@ -142,7 +142,7 @@ fn duplicate_conflict_candidates_do_not_create_false_ties() {
 
 #[test]
 fn incomparable_conflicting_updates_are_illegal() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, S, P, O);
     let insert = ElementaryUpdate::insert(UPDATE_INSERT, TX, fact());
     let delete = ElementaryUpdate::delete(UPDATE_DELETE, TX, fact());
@@ -180,7 +180,7 @@ fn incomparable_conflicting_updates_are_illegal() {
 
 #[test]
 fn del_of_absent_support_is_illegal() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let update = ElementaryUpdate::delete(UPDATE_DELETE, TX, fact());
     let err = apply_elementary_transition(&store, BASE, NEXT, &[update], BASE)
         .expect_err("absent support cannot be retired");
@@ -194,7 +194,7 @@ fn del_of_absent_support_is_illegal() {
 
 #[test]
 fn successor_state_must_be_fresh() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(NEXT, S, P, O);
     let update = ElementaryUpdate::insert(UPDATE_INSERT, TX, fact());
     let err = apply_elementary_transition(&store, BASE, NEXT, &[update], BASE)

@@ -6,6 +6,23 @@ use super::*;
 
 const WORLD: &str = "https://example.org/onto/schema";
 
+#[test]
+fn invalid_native_world_is_execution_failure_not_fragment_gap() {
+    let model = parse_ontouml_model(
+        "@prefix ontouml: <https://w3id.org/ontouml#> . <urn:person> a ontouml:Class ; ontouml:stereotype ontouml:kind .",
+        None,
+    ).unwrap();
+    let error = lower_model_dataset(&model, "relative-world").unwrap_err();
+    assert!(
+        matches!(&error, OntoumlError::Failure(diagnostic) if diagnostic.root.grade.severity == gmeow_errors::Severity::Error)
+    );
+    let encoded = serde_json::to_vec(&error).unwrap();
+    assert_eq!(
+        serde_json::from_slice::<OntoumlError>(&encoded).unwrap(),
+        error
+    );
+}
+
 fn assert_fact(dataset: &RdfDataset, subject: &str, predicate: &str, object: &str) {
     let expected = RdfQuad::new(RdfTerm::iri(subject), predicate, RdfTerm::iri(object))
         .in_graph(RdfTerm::iri(WORLD));

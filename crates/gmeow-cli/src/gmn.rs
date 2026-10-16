@@ -28,7 +28,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_cli_core::Reporter;
+use gmeow_cli_core::{Reporter, report_diag};
 use gmeow_lang_bridge::{
     CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1Document, GmnDictionary, GmnMigration,
     RingLattice, codebook_digest, consume_project, content_digest, derive_target_inventory,
@@ -187,7 +187,16 @@ pub fn digest(
         Err(code) => return code,
     };
     let cb = codebook_digest(&codebook, &dict);
-    let cd = content_digest(&model);
+    let cd = match content_digest(&model) {
+        Ok(digest) => digest,
+        Err(error) => {
+            reporter.report(&report_diag(
+                error.with_context("computing GMN content digest"),
+                "gmeow",
+            ));
+            return 1;
+        }
+    };
     match format {
         DigestFormat::Text => {
             println!("codebook_digest {cb}");
@@ -272,11 +281,30 @@ pub fn decode(
     };
     match format {
         DecodeFormat::Nquads => {
-            print!("{}", model.canonical_nquads());
+            let text = match model.canonical_nquads() {
+                Ok(text) => text,
+                Err(error) => {
+                    reporter.report(&report_diag(
+                        error.with_context("rendering decoded GMN as N-Quads"),
+                        "gmeow",
+                    ));
+                    return 1;
+                }
+            };
+            print!("{text}");
             0
         }
         DecodeFormat::Turtle => {
-            let dataset = model.to_dataset();
+            let dataset = match model.to_dataset() {
+                Ok(dataset) => dataset,
+                Err(error) => {
+                    reporter.report(&report_diag(
+                        error.with_context("constructing decoded GMN dataset"),
+                        "gmeow",
+                    ));
+                    return 1;
+                }
+            };
             // GMN-0's domain is default-graph-only (a named-graph quad hard-fails
             // `lang:GmnGraphOutOfDomain` at encode), so a decoded model never carries a named
             // graph. Assert that invariant rather than let `SerializeGraph::DefaultGraph` silently
@@ -300,17 +328,23 @@ pub fn decode(
                         print!("{s}");
                         0
                     }
-                    Err(e) => fail(
-                        reporter,
-                        "gmeow-cli.gmn.decode-serialize",
-                        format!("decoded Turtle is not UTF-8: {e}"),
-                    ),
+                    Err(error) => {
+                        reporter.report(&report_diag(
+                            gmeow_errors::Diag::from(error)
+                                .with_context("decode GMN Turtle output as UTF-8"),
+                            "gmeow",
+                        ));
+                        1
+                    }
                 },
-                Err(e) => fail(
-                    reporter,
-                    "gmeow-cli.gmn.decode-serialize",
-                    format!("cannot serialize decoded model to Turtle: {e}"),
-                ),
+                Err(error) => {
+                    reporter.report(&report_diag(
+                        gmeow_errors::Diag::from(error)
+                            .with_context("serialize decoded GMN model as Turtle"),
+                        "gmeow",
+                    ));
+                    1
+                }
             }
         }
     }

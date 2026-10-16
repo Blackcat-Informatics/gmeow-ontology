@@ -325,9 +325,7 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
 ///
 /// # Errors
 /// Returns the native builder diagnostic if the projected dataset is invalid.
-pub fn to_gmeow_dataset(
-    report: &Report,
-) -> Result<std::sync::Arc<purrdf_core::RdfDataset>, purrdf_core::RdfDiagnostic> {
+pub fn to_gmeow_dataset(report: &Report) -> crate::Result<std::sync::Arc<purrdf_core::RdfDataset>> {
     to_gmeow_dataset_in_graph(report, DIAGNOSTICS_GRAPH)
 }
 
@@ -339,21 +337,24 @@ pub fn to_gmeow_dataset(
 pub fn to_gmeow_dataset_in_graph(
     report: &Report,
     graph_iri: &str,
-) -> Result<std::sync::Arc<purrdf_core::RdfDataset>, purrdf_core::RdfDiagnostic> {
+) -> crate::Result<std::sync::Arc<purrdf_core::RdfDataset>> {
     let mut builder = purrdf_core::RdfDatasetBuilder::new();
-    append_gmeow_findings(report, graph_iri, &mut builder);
-    builder.freeze()
+    append_gmeow_findings(report, graph_iri, &mut builder)?;
+    Ok(builder.freeze()?)
 }
 
 /// Append the native finding projection directly into an existing carrier builder.
 /// The caller must validate/freeze the builder before publishing it; invalid term
 /// identities fail that boundary. No dataset is frozen or serialized by this call.
+///
+/// # Errors
+/// Returns the original native storage refusal if any term or row cannot be added.
 pub fn append_gmeow_findings(
     report: &Report,
     graph_iri: &str,
     builder: &mut purrdf_core::RdfDatasetBuilder,
-) {
-    finding_rdf::append(report, graph_iri, builder);
+) -> crate::Result<()> {
+    finding_rdf::append(report, graph_iri, builder)
 }
 
 /// Build a `BTreeMap` from rule id to `&Rule` for O(log n) lookup by finding code.

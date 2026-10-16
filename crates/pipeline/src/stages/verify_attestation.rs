@@ -377,8 +377,8 @@ pub fn grade_shipped_attestation(
     let expected_graph = fresh
         .product
         .dataset()
-        .project_named_graph(crate::stages::carrier::GRAPH_VERIFY);
-    let shipped_graph = snapshot.project_named_graph(crate::stages::carrier::GRAPH_VERIFY);
+        .project_named_graph(crate::stages::carrier::GRAPH_VERIFY)?;
+    let shipped_graph = snapshot.project_named_graph(crate::stages::carrier::GRAPH_VERIFY)?;
     if shipped_graph.quad_count() == 0 {
         return Err(stage_err("snapshot carries no graph/verify attestation"));
     }

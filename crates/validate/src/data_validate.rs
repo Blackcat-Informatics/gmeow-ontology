@@ -68,6 +68,9 @@ use gmeow_errors::{Finding, Severity};
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 enum DeepPassError {
+    /// A native builder refused the selected deep pass; preserve its diagnostic
+    /// and report a hard failure rather than an unavailable-capability note.
+    Native(gmeow_errors::Diag),
     /// The declared contradiction-policy contract is garbled; this is INVALID
     /// INPUT and must cause a hard-fail `Severity::Error` finding.
     ContractResolution(String),
@@ -626,6 +629,17 @@ fn fold_deep_outcome(
     report: &mut Report,
 ) {
     match outcome {
+        Err(DeepPassError::Native(error)) => {
+            let mut ledger = gmeow_errors::DiagLedger::new();
+            ledger.attach(error, gmeow_errors::StageId::new("validate-deep"));
+            for mut finding in ledger.findings("validate") {
+                finding.add_location(Location {
+                    path: Some(origin.to_owned()),
+                    ..Location::default()
+                });
+                report.add_finding(finding);
+            }
+        }
         Ok(()) => {
             for finding in &mut report.findings[start..] {
                 if finding.locations.is_empty() {
@@ -769,17 +783,22 @@ fn deep_consistency_findings(
     // pipeline's own `make reason-verify` gate rather than also reasoning over
     // meta/report graphs (documentation, diagnostics, correspondence, …) that assert
     // no object-level axioms.
-    let bundle_edb =
-        gmeow_logic::reasoning_graphs::project_object_level_edb(bundle).map_err(|e| {
-            DeepPassError::Unavailable(format!("object-level EDB projection failed: {e}"))
-        })?;
+    let bundle_edb = gmeow_logic::reasoning_graphs::project_object_level_edb(bundle)
+        .map_err(DeepPassError::Native)?;
     let edb = {
         let mut builder = purrdf::RdfDatasetBuilder::new();
-        builder.push_dataset(bundle_edb.as_ref());
-        builder.push_dataset(user);
+        builder
+            .push_dataset(bundle_edb.as_ref())
+            .map_err(gmeow_errors::Diag::from)
+            .map_err(DeepPassError::Native)?;
+        builder
+            .push_dataset(user)
+            .map_err(gmeow_errors::Diag::from)
+            .map_err(DeepPassError::Native)?;
         builder
             .freeze()
-            .map_err(|e| DeepPassError::Unavailable(format!("freeze merged EDB: {e}")))?
+            .map_err(gmeow_errors::Diag::from)
+            .map_err(DeepPassError::Native)?
     };
     let result = (|| {
         use gmeow_logic::reason::{
@@ -806,7 +825,7 @@ fn deep_consistency_findings(
         }
         gmeow_logic::reason::reason_all(input, &SelectedDomains::new(roles)?)
     })()
-    .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
+    .map_err(DeepPassError::Native)?;
     // Build the faithful cited-quad-reifier derivation skeletons for the SAME result.
     // A build failure AFTER the reasoner produced a real verdict is an internal
     // invariant violation (a cycle or unresolved antecedent in the proof trace), NOT
@@ -899,21 +918,17 @@ pub(crate) fn flatten_to_default_graph(
     let mut builder = RdfDatasetBuilder::new();
     for mut quad in dataset.owned_quads() {
         quad.graph_name = None;
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
     for mut reifier in dataset.owned_reifiers() {
         reifier.graph = None;
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier)?;
     }
     for mut annotation in dataset.owned_annotations() {
         annotation.graph = None;
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation)?;
     }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Dataset {
-            detail: format!("flatten data graph to default graph: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Synthesize and merge the bundle's class-hierarchy shortcut edges for exactly the
@@ -977,15 +992,11 @@ fn inject_subclass_shortcuts(
     }
 
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    builder.push_dataset(&dataset);
+    builder.push_dataset(&dataset)?;
     for shortcut in shortcuts {
-        builder.push_owned_quad(&shortcut);
+        builder.push_owned_quad(&shortcut)?;
     }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Dataset {
-            detail: format!("subclass-shortcut merge failed: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Build the abductive producer's input graph: the bundle `ontology` (its authored
@@ -1001,13 +1012,9 @@ fn union_for_abductive(
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
     use purrdf::RdfDatasetBuilder;
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(ontology);
-    builder.push_dataset(data);
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Dataset {
-            detail: format!("union bundle ontology with user data for the abductive tier: {e}"),
-        })
-    })
+    builder.push_dataset(ontology)?;
+    builder.push_dataset(data)?;
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// True for the JSON-LD format ids (handled outside the native-codec router).

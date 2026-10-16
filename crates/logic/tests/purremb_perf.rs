@@ -232,7 +232,7 @@ fn ex(local: &str) -> String {
 /// A minimal single-anchor world; PURREMB retrieval needs no RDF facts, but the annotated
 /// evaluator still runs over a real world snapshot.
 fn anchor_store() -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     store
 }

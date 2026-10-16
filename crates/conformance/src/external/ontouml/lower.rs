@@ -41,8 +41,10 @@ use gmeow_ns::LOGIC_NS;
 pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usize), OntoumlError> {
     let dataset = lower_model_dataset(model, world_iri)?;
     let count = dataset.quads().count();
-    let text = purrdf::canonical_flat_nquads(&dataset)
-        .map_err(|error| OntoumlError::Syntax(format!("render lowered model: {error}")))?;
+    let text = purrdf::try_canonicalize_flat_view(dataset.as_ref(), purrdf::CanonHash::Sha256)
+        .map_err(gmeow_errors::Diag::from)
+        .map_err(OntoumlError::from)?
+        .nquads;
     Ok((text, count))
 }
 
@@ -58,10 +60,14 @@ pub fn lower_model_dataset(
     use std::collections::BTreeSet;
 
     let mut builder = RdfDatasetBuilder::new();
-    let mut push = |s: &str, p: &str, o: &str| {
-        builder.push_owned_quad(
-            &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(world_iri)),
-        );
+    let mut push = |s: &str, p: &str, o: &str| -> Result<(), OntoumlError> {
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o))
+                    .in_graph(RdfTerm::iri(world_iri)),
+            )
+            .map_err(gmeow_errors::Diag::from)
+            .map_err(OntoumlError::from)
     };
 
     let logic = |local: &str| format!("{LOGIC_NS}{local}");
@@ -74,14 +80,14 @@ pub fn lower_model_dataset(
     for class in &model.classes {
         for stereo in &class.stereotypes {
             let logic_local = logic_local_for_stereotype(stereo)?;
-            push(&class.iri, RDF_TYPE, &logic(logic_local));
+            push(&class.iri, RDF_TYPE, &logic(logic_local))?;
         }
     }
 
     // Generalizations: logic:subClassOf (the chase reads this, not rdfs:).
     let mut referenced: BTreeSet<&str> = BTreeSet::new();
     for edge in &model.generalizations {
-        push(&edge.specific, &p_sub_class_of, &edge.general);
+        push(&edge.specific, &p_sub_class_of, &edge.general)?;
         referenced.insert(edge.specific.as_str());
         referenced.insert(edge.general.as_str());
     }
@@ -96,7 +102,7 @@ pub fn lower_model_dataset(
     // where the bare NoStereo class is seen purely through its generalization).
     for class in &model.classes {
         if class.stereotypes.is_empty() && !referenced.contains(class.iri.as_str()) {
-            push(&class.iri, &p_sub_class_of, &class.iri);
+            push(&class.iri, &p_sub_class_of, &class.iri)?;
         }
     }
 
@@ -105,16 +111,17 @@ pub fn lower_model_dataset(
     for med in &model.mediations {
         for (idx, _relatum) in med.mediated.iter().enumerate() {
             let role = format!("{}#end{idx}", med.relation_iri);
-            push(&med.relator, &p_mediates, &role);
+            push(&med.relator, &p_mediates, &role)?;
             if med.functional {
-                push(&role, RDF_TYPE, OWL_FUNCTIONAL_PROPERTY);
+                push(&role, RDF_TYPE, OWL_FUNCTIONAL_PROPERTY)?;
             }
         }
     }
 
     builder
         .freeze()
-        .map_err(|error| OntoumlError::Syntax(format!("invalid lowered model: {error}")))
+        .map_err(gmeow_errors::Diag::from)
+        .map_err(OntoumlError::from)
 }
 
 #[path = "lower.tests.rs"]

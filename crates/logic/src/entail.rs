@@ -660,22 +660,20 @@ fn build_world_edb(
     let premise = admitted.dataset();
     let mut builder = RdfDatasetBuilder::new();
     for quad in premise.owned_quads() {
-        builder.push_owned_quad(&quad.in_graph(world.clone()));
+        builder.push_owned_quad(&quad.in_graph(world.clone()))?;
     }
     for reifier in premise.owned_reifiers() {
-        builder.push_owned_reifier(&reifier.in_graph(Some(world.clone())));
+        builder.push_owned_reifier(&reifier.in_graph(Some(world.clone())))?;
     }
     for annotation in premise.owned_annotations() {
-        builder.push_owned_annotation(&annotation.in_graph(Some(world.clone())));
+        builder.push_owned_annotation(&annotation.in_graph(Some(world.clone())))?;
     }
     for (s, p, o) in negation {
         let quad = RdfQuad::new(RdfTerm::iri(s.clone()), p.clone(), RdfTerm::iri(o.clone()))
             .in_graph(world.clone());
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
-    builder
-        .freeze()
-        .map_err(|e| entail_err(format!("reduced entailment EDB failed to build: {e}")))
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Execute one independently reduced goal in the admitted default-context profile.

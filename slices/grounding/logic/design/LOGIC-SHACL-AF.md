@@ -81,6 +81,9 @@ shapes the result/frame projections emit (those validate; these derive):
   The body/head lowering is the **same** rule-to-relational lowering the Datalog and
   N3 targets use ([`LOGIC-IR.md`](LOGIC-IR.md)); there is one lowering, reused, so the
   surfaces cannot drift from each other.
+- A rule's `logic:distinctBody` guard compares RDF term identity. Its two ordered
+  variable arguments lower to `FILTER(!sameTerm(?A, ?B))`, preserving distinctions
+  between RDF literals that have equal numeric values but different RDF terms.
 - A **reduce** rule lowers to an aggregating `CONSTRUCT` — `GROUP BY` over the group
   key, the aggregate function in the projection — inside the same `sh:SPARQLRule`. The
   map case is the non-aggregating special case of the same projector.

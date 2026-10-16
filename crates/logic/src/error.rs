@@ -70,6 +70,20 @@ define_diag_kind! {
     code = "logic.native-coverage";
     grade = logic_grade!();
     message = "profile {} source {} world {}: {}", profile, source, world, detail;
+    failure_class = "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal";
+}
+
+define_diag_kind! {
+    /// A native entailment service refused its selected operation. The typed
+    /// disposition and original upstream cause remain attached to the shared Diag.
+    pub struct DlService {
+        kind: crate::reasoner_services::DlServiceFailureKind,
+        cause: std::sync::Arc<purrdf::entail::EntailError>
+    }
+    code = "logic.dl-service";
+    grade = logic_grade!();
+    message = "purrdf entail service refused: {}", cause;
+    source = failure => Some(failure.cause.as_ref());
 }
 
 define_diag_kind! {
@@ -83,6 +97,7 @@ define_diag_kind! {
     code = "logic.native-source-admission";
     grade = logic_grade!();
     message = "selected native source admission refused before execution";
+    failure_class = "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal";
 }
 
 define_diag_kind! {
@@ -116,6 +131,33 @@ define_diag_kind! {
     grade = logic_grade!();
     message = "{}", detail;
 }
+
+/// Typed evidence for a numeric physical-execution failure.
+///
+/// This value is the downcastable source payload of the existing
+/// [`Physical`] diagnostic kind. It is never used as a function error type:
+/// every failing boundary returns [`gmeow_errors::Diag`], while cached plan
+/// preparation retains a clone solely to mint a fresh diagnostic per caller.
+#[derive(Debug, Clone)]
+pub struct Numeric {
+    pub rule: String,
+    pub operation: String,
+    pub operands: String,
+    pub datatype: String,
+    pub detail: String,
+}
+
+impl std::fmt::Display for Numeric {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "numeric rule {} operation {} operands {} datatype {}: {}; selected operation is incomplete",
+            self.rule, self.operation, self.operands, self.datatype, self.detail
+        )
+    }
+}
+
+impl std::error::Error for Numeric {}
 
 define_diag_kind! {
     /// A teleology derivation precondition does not hold: a goal, plan, outcome,
@@ -293,6 +335,9 @@ pub const LOGIC_DIAG_CODES: &[&str] = &[
     Ir::CODE,
     Query::CODE,
     Reason::CODE,
+    DlService::CODE,
+    NativeCoverage::CODE,
+    NativeSourceAdmission::CODE,
     Engine::CODE,
     ContractDrift::CODE,
     Physical::CODE,
@@ -322,6 +367,9 @@ pub fn register_all() -> Vec<Code> {
         Ir::register(),
         Query::register(),
         Reason::register(),
+        DlService::register(),
+        NativeCoverage::register(),
+        NativeSourceAdmission::register(),
         Engine::register(),
         ContractDrift::register(),
         Physical::register(),

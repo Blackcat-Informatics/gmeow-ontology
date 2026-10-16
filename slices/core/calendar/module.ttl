@@ -829,8 +829,8 @@ gmeow:Task logic:subClassOf
 gmeow:Reminder logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:reminderTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:reminderAction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
 gmeow:TimeZone logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:timeZoneIanaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
