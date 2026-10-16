@@ -43,7 +43,7 @@ const MAX_VERSION_OUTPUT_BYTES: usize = 65_536;
 const PROCESS_POLL_INTERVAL: Duration = Duration::from_millis(10);
 const VERSION_DEADLINE: Duration = Duration::from_secs(5);
 
-const FOF_PROFILE: &str = "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v1";
+const FOF_PROFILE: &str = gmeow_logic_compile::frontend::FOF_SOURCE_PROFILE;
 
 #[derive(Debug, Clone, Serialize)]
 struct ProjectionReceipt {
