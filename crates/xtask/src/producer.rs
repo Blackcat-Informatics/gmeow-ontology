@@ -790,6 +790,8 @@ fn explicit_package_id(id: &str, name: &str, version: &str) -> Result<String> {
     Ok(format!("{source}#{explicit}"))
 }
 
+/// Resolve Cargo's raw IDs to explicit identities validated against package
+/// names and versions. Malformed or repeated metadata identities fail.
 fn metadata_package_ids(root: &Path) -> Result<BTreeMap<String, String>> {
     let mut command = Command::new(cargo_program());
     command
@@ -855,6 +857,8 @@ fn capture_compiler_input(
     Ok(())
 }
 
+/// Select external source roots using the same explicit package identities as
+/// compiler selection. Contradictory metadata or missing selected roots fail.
 fn selected_external_package_roots(
     root: &Path,
     metadata: &Value,

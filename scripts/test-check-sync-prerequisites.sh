@@ -31,6 +31,8 @@ esac
 STUB
 chmod +x "$scratch/producer-stub"
 
+# Run the isolated recipe with the requested prerequisite exit statuses. Every
+# command uses the inert producer stub and records its call in the fixture log.
 run_probe() {
     CALL_LOG="$scratch/calls" FAIL_SYNC="$1" FAIL_BUILD="$2" \
         make --no-print-directory -C "$scratch" -f Makefile probe \
