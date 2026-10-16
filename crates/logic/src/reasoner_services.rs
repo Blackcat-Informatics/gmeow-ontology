@@ -21,8 +21,8 @@
 use gmeow_errors::Result;
 use purrdf::entail::{
     CertainAnswers, Certified, ClassHierarchy, CombinedMaterialization, DlAxiom, EntailError,
-    ImportMap, ModuleExtraction, ModuleMethod, ProfileCertificate, QTriple, Realization, Reasoner,
-    Regime, Verdict,
+    ImportMap, ModuleExtraction, ModuleMethod, ProfileCertificate, QTriple, Question, Realization,
+    Reasoner, Regime, Verdict,
 };
 use purrdf::{RdfDataset, TermValue};
 
@@ -112,8 +112,16 @@ impl DlReasoner {
             .map_err(map_entail_err)
     }
 
+    /// Prepare the exact checking question without performing another solver decision.
+    ///
+    /// # Errors
+    /// Original question preparation refusals, retained as typed diagnostics.
+    pub fn prepare(&mut self, question: &Question) -> Result<()> {
+        self.inner.prepare(question).map_err(map_entail_err)
+    }
+
     /// Consume this session into the native context for checking its selected question.
-    /// Question terms must first be prepared through the corresponding service.
+    /// Call [`Self::prepare`] with that question before consuming the session.
     ///
     /// # Errors
     /// A typed execution refusal if the session did not record proofs.

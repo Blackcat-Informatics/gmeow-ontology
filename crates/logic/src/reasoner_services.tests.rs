@@ -256,3 +256,40 @@ fn unrecorded_service_keeps_absence_distinct_from_an_empty_proof() {
         EntailError::ProofsNotRecorded
     ));
 }
+
+/// A consumer prepares fresh question terms without executing another service decision.
+#[test]
+fn native_proof_checker_prepares_the_selected_question_through_the_gmeow_adapter() {
+    let dataset = consistent_dataset();
+    let class = TermValue::iri("urn:proof-check:fresh-class");
+    let question = Question::ClassSatisfiability {
+        class: class.clone(),
+    };
+    let result = DlReasoner::with_proofs(&dataset)
+        .unwrap()
+        .class_satisfiability(&class)
+        .unwrap();
+    let proof = result.proof().expect("selected proof recording");
+    proof
+        .covers(&[ClaimSubject::ClassSatisfiable { class }])
+        .unwrap();
+    let mut checker = DlReasoner::with_proofs(&dataset).unwrap();
+    checker
+        .prepare(&question)
+        .expect("prepare the exact consumer question");
+    let context = checker.proof_context().unwrap();
+    proof
+        .verify(&dataset, &question, Some(result.certificate()), &context)
+        .expect("the GMEOW boundary preserves a checkable question-bound proof");
+    assert!(
+        proof
+            .verify(
+                &dataset,
+                &Question::Consistency,
+                Some(result.certificate()),
+                &context
+            )
+            .is_err(),
+        "a different question is not the selected proof task"
+    );
+}
