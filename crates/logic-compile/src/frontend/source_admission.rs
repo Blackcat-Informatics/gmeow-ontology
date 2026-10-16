@@ -12,6 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 mod classes;
+mod contracts;
 
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 
@@ -30,6 +31,10 @@ const LOGIC_INSTANCE_OF: &str = "https://blackcatinformatics.ca/logic/instanceOf
 const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
 const LOGIC_BUILTIN: &str = "https://blackcatinformatics.ca/logic/Builtin";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+
+/// Classical object-theory task with explicit metatheory catalogue accounting.
+pub const FOF_SOURCE_PROFILE: &str =
+    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v2";
 
 /// The only graph placement admitted by the initial external classical profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -76,8 +81,8 @@ pub struct SourceSelection {
 
 impl SourceSelection {
     /// Select every recorded document, every top-level formula, every Horn rule,
-    /// and every typed owner. A profile that cannot execute a selected owner must
-    /// report it as a required-unit blocker.
+    /// and every typed owner. Configuration declarations remain explicit
+    /// metatheory; unsupported required executable owners block the operation.
     #[must_use]
     pub fn all_classical_roots(theory: &CompiledTheory) -> Self {
         let documents = if theory.source().origins().is_empty() {
@@ -125,18 +130,20 @@ pub struct FofSemanticProfile {
     pub blank_nodes: String,
     pub free_variables: String,
     pub context: String,
+    pub contracts: String,
 }
 
 impl Default for FofSemanticProfile {
     fn default() -> Self {
         Self {
-            id: "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v1".into(),
+            id: FOF_SOURCE_PROFILE.into(),
             graph: "selected default-graph assertions only".into(),
             world: "open-world classical first-order theory".into(),
             equality: "denotational equality without a unique-name assumption".into(),
             blank_nodes: "source-scoped existential blanks skolemized for satisfiability".into(),
             free_variables: "top-level free variables universally closed".into(),
             context: "unscoped sentences only; no standpoint, time, modality, confidence, provenance, or module erasure".into(),
+            contracts: "configuration declarations are metatheory catalogue evidence; this classical object-theory task does not execute them or assert their grammar as object axioms".into(),
         }
     }
 }
@@ -205,6 +212,14 @@ pub struct SourceClassDefinition {
     pub constants: BTreeMap<String, AtomicTerm>,
 }
 
+/// An authored configuration declaration and its exact selected RDF facts. The
+/// native value remains evidence, never an implicit execution-profile switch.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct SourceContractDeclaration {
+    pub configuration: crate::ir::ReasoningContract,
+    pub facts: Vec<SourceAssertion>,
+}
+
 /// Payload carried by an admitted semantic unit. Program indices are valid only
 /// for the exact [`CompiledTheory`] whose digest the admission records.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -220,12 +235,30 @@ pub enum AdmittedSemanticUnit {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum SemanticUnitDisposition {
     Admitted(AdmittedSemanticUnit),
-    StructuralSupport { detail: String },
-    OutsideSelection { reason: String },
-    QuotedUnasserted { detail: String },
-    Blocked { code: String, reason: String },
-    Malformed { code: String, reason: String },
-    Observed { detail: String },
+    ConfigurationDeclaration {
+        declaration: Box<SourceContractDeclaration>,
+        reason: String,
+    },
+    StructuralSupport {
+        detail: String,
+    },
+    OutsideSelection {
+        reason: String,
+    },
+    QuotedUnasserted {
+        detail: String,
+    },
+    Blocked {
+        code: String,
+        reason: String,
+    },
+    Malformed {
+        code: String,
+        reason: String,
+    },
+    Observed {
+        detail: String,
+    },
 }
 
 impl SemanticUnitDisposition {
@@ -286,6 +319,18 @@ impl SourceAdmission {
 
     pub fn admitted(&self) -> impl Iterator<Item = &SemanticUnitAdmission> {
         self.units.iter().filter(|unit| unit.disposition.admitted())
+    }
+
+    /// Native configuration metadata retained outside the object-theory axioms.
+    pub fn configuration_declarations(&self) -> impl Iterator<Item = &SourceContractDeclaration> {
+        self.units
+            .iter()
+            .filter_map(|unit| match &unit.disposition {
+                SemanticUnitDisposition::ConfigurationDeclaration { declaration, .. } => {
+                    Some(declaration.as_ref())
+                }
+                _ => None,
+            })
     }
 
     /// Whether this is an unchanged live compiler decision for the exact source
@@ -816,19 +861,49 @@ impl<'a> AdmissionBuilder<'a> {
                     }
                 };
                 self.push(SemanticUnitKind::Rule, anchor, documents, disposition);
-            } else if selected && self.selection.owners.contains(&anchor) {
-                self.push(
-                    SemanticUnitKind::Owner,
-                    anchor,
-                    documents,
-                    blocked(
-                        "UNSUPPORTED_SELECTED_OWNER",
-                        format!(
-                            "the classical profile has no execution contract for owner family {:?}",
-                            lowering.family
+            } else {
+                let disposition = if !selected || !self.selection.owners.contains(&anchor) {
+                    outside("the owner root is outside the selected documents, graph, or root set")
+                } else {
+                    match &lowering.disposition {
+                        OwnerDisposition::Emitted { .. }
+                            if lowering.diagnostics.iter().any(|&index| {
+                                self.theory.diagnostics()[index].severity == Severity::Error
+                            }) =>
+                        {
+                            malformed(
+                                "MALFORMED_SELECTED_OWNER",
+                                format!(
+                                    "selected {:?} owner carries compiler errors at diagnostics {:?}",
+                                    lowering.family, lowering.diagnostics
+                                ),
+                            )
+                        }
+                        OwnerDisposition::Emitted { index }
+                            if lowering.family == OwnerFamily::Contract =>
+                        {
+                            self.contract_declaration(lowering.source, *index)
+                        }
+                        OwnerDisposition::Emitted { .. } => blocked(
+                            "UNSUPPORTED_SELECTED_OWNER",
+                            format!(
+                                "the classical profile has no execution contract for owner family {:?}",
+                                lowering.family
+                            ),
                         ),
-                    ),
-                );
+                        OwnerDisposition::Rejected => malformed(
+                            "MALFORMED_SELECTED_OWNER",
+                            format!(
+                                "selected {:?} owner failed compiler admission at diagnostics {:?}",
+                                lowering.family, lowering.diagnostics
+                            ),
+                        ),
+                        OwnerDisposition::OutsideDefaultGraph => {
+                            outside("owner is outside the selected default graph")
+                        }
+                    }
+                };
+                self.push(SemanticUnitKind::Owner, anchor, documents, disposition);
             }
         }
         for index in 0..self.theory.program().rules.len() {
