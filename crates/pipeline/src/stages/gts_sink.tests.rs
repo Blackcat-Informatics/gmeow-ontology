@@ -7,8 +7,8 @@ use super::*;
 fn terminal_product_commits_full_ingestion_evidence_beside_the_exact_gts() {
     let graph = "https://blackcatinformatics.ca/gmeow/graph/test-empty-terminal-role";
     let mut native = purrdf::RdfDatasetBuilder::new();
-    let role = native.intern_iri(graph);
-    native.declare_named_graph(role);
+    let role = native.intern_iri(graph).unwrap();
+    native.declare_named_graph(role).unwrap();
     let source = native.freeze().expect("selected empty role");
     // gmeow-test-input: synthetic-only
     let emission = gmeow_gts_profile::view_to_gmeow_gts(&source).expect("tiny terminal emission");

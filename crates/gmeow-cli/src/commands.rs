@@ -12,7 +12,10 @@ pub(crate) use correspondence::{
     correspondence_compose, correspondence_execute, correspondence_explain, correspondence_inspect,
     correspondence_merge, correspondence_project_plan, correspondence_recover_plan,
 };
+mod reasoning_input;
 mod reasoning_report;
+pub(crate) use reasoning_input::ReasoningInputFailure;
+use reasoning_input::load_reasoning_input;
 
 use reasoning_report::{
     DecisionClass, EngineIdentity, EvidenceGrade, GateAdmission, InputIdentity,
@@ -1512,30 +1515,39 @@ fn load_hybrid_query_facts(reporter: &dyn Reporter, facts: &Path) -> Result<Worl
         }
     };
     let bytes = read_bytes(reporter, facts)?;
-    let parsed = purrdf::parse_dataset(&bytes, media, None).map_err(|e| {
-        fail(
-            reporter,
-            "gmeow-cli.hybrid-query.facts-parse",
-            format!("cannot parse {}: {e}", facts.display()),
-        )
+    let parsed = purrdf::parse_dataset(&bytes, media, None).map_err(|error| {
+        reporter.report(&report_diag(
+            Diag::from(error)
+                .with_context("parse hybrid-query facts")
+                .with_focus(facts.display().to_string()),
+            "gmeow",
+        ));
+        1
     })?;
-    let dataset = place_world_dataset(parsed, HYBRID_QUERY_WORLD).map_err(|e| {
-        fail(
-            reporter,
-            "gmeow-cli.hybrid-query.facts-rehome",
-            format!(
-                "cannot re-home {} into the query world: {e}",
-                facts.display()
-            ),
-        )
+    let dataset = place_world_dataset(parsed, HYBRID_QUERY_WORLD).map_err(|error| {
+        reporter.report(&report_diag(
+            error
+                .with_context("place hybrid-query facts in the selected world")
+                .with_focus(facts.display().to_string()),
+            "gmeow",
+        ));
+        1
     })?;
-    let store = WorldStore::new();
-    store.load_dataset(&dataset).map_err(|e| {
-        fail(
-            reporter,
-            "gmeow-cli.hybrid-query.facts-load",
-            format!("cannot load {} into the query world: {e}", facts.display()),
-        )
+    let store = WorldStore::new().map_err(|error| {
+        reporter.report(&report_diag(
+            error.with_context("create hybrid-query world store"),
+            "gmeow",
+        ));
+        1
+    })?;
+    store.load_dataset(&dataset).map_err(|error| {
+        reporter.report(&report_diag(
+            error
+                .with_context("load hybrid-query facts")
+                .with_focus(facts.display().to_string()),
+            "gmeow",
+        ));
+        1
     })?;
     Ok(store)
 }
@@ -2377,66 +2389,16 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
 /// degraded empty graph).
 fn parse_rdf_file(
     reporter: &dyn Reporter,
-    prefix: &str,
+    prefix: &'static str,
     path: &Path,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
-    match load_reasoning_input(path, "rdf-input") {
+    match load_reasoning_input(path, "rdf-input", prefix) {
         Ok(loaded) => Ok(loaded.dataset),
-        Err(error) => Err(fail(
-            reporter,
-            &format!("{prefix}.{}", error.code.to_ascii_lowercase()),
-            error.detail,
-        )),
+        Err(error) => {
+            reporter.report(&report_diag(error, "gmeow"));
+            Err(1)
+        }
     }
-}
-
-struct LoadedReasoningInput {
-    dataset: std::sync::Arc<purrdf::RdfDataset>,
-    identity: InputIdentity,
-}
-
-struct ReasoningInputError {
-    code: &'static str,
-    detail: String,
-    identities: Vec<InputIdentity>,
-}
-
-fn load_reasoning_input(
-    path: &Path,
-    role: &'static str,
-) -> Result<LoadedReasoningInput, ReasoningInputError> {
-    let bytes = std::fs::read(path).map_err(|error| ReasoningInputError {
-        code: "INPUT_READ_FAILED",
-        detail: format!("cannot read {}: {error}", path.display()),
-        identities: Vec::new(),
-    })?;
-    let media = match path.extension().and_then(|e| e.to_str()) {
-        Some(ext) => ext.to_lowercase(),
-        None => {
-            let identity = InputIdentity::from_bytes(path, role, "unknown", None, &bytes);
-            return Err(ReasoningInputError {
-                code: "INPUT_SYNTAX_UNKNOWN",
-                detail: format!(
-                    "cannot infer RDF syntax for {} (no extension); expected one of \
-                     .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
-                    path.display()
-                ),
-                identities: vec![identity],
-            });
-        }
-    };
-    let base = std::path::absolute(path)
-        .ok()
-        .map(|abs| format!("file://{}", abs.display()));
-    let identity = InputIdentity::from_bytes(path, role, media.clone(), base.clone(), &bytes);
-    let dataset = purrdf::parse_dataset(&bytes, &media, base.as_deref()).map_err(|error| {
-        ReasoningInputError {
-            code: "INPUT_PARSE_FAILED",
-            detail: format!("cannot parse {} as {media}: {error}", path.display()),
-            identities: vec![identity.clone()],
-        }
-    })?;
-    Ok(LoadedReasoningInput { dataset, identity })
 }
 
 fn native_program(operation: ReasoningOperation, fragment: &str) -> ProgramIdentity {
@@ -2486,15 +2448,17 @@ fn publish_reasoning_failure(
     verdict: &str,
     input_status: &str,
     inputs: Vec<InputIdentity>,
-    code: &'static str,
-    detail: String,
+    diagnostic: ReportDiagnostic,
     format: OutputFormat,
     gate: bool,
 ) -> i32 {
     emit_error(
         reporter,
-        &format!("{diagnostic_prefix}.{}", code.to_ascii_lowercase()),
-        detail.clone(),
+        &format!(
+            "{diagnostic_prefix}.{}",
+            diagnostic.code.to_ascii_lowercase()
+        ),
+        diagnostic.detail.clone(),
     );
     NativeReasoningReport {
         common: ReasoningReportCore::refused(
@@ -2505,10 +2469,7 @@ fn publish_reasoning_failure(
             inputs,
             native_program(operation, fragment),
             reasoning_engine(operation),
-            ReportDiagnostic {
-                code: code.to_owned(),
-                detail,
-            },
+            diagnostic,
         ),
         result: ReasoningPayload::Empty,
     }
@@ -2521,14 +2482,35 @@ fn dl_service_failure_report(
     operation: ReasoningOperation,
     fragment: &str,
     input: InputIdentity,
-    error: gmeow_logic::reasoner_services::DlServiceError,
+    error: Diag,
     format: OutputFormat,
     gate: bool,
 ) -> i32 {
     use gmeow_logic::reasoner_services::DlServiceFailureKind;
 
-    let detail = error.detail().to_owned();
-    match error.kind() {
+    let kind = match error.downcast_ref::<gmeow_logic::error::DlService>() {
+        Some(failure) => failure.kind,
+        None => {
+            return publish_reasoning_failure(
+                reporter,
+                diagnostic_prefix,
+                operation,
+                fragment,
+                DecisionClass::ExecutionFailure,
+                "execution-failure",
+                "valid",
+                vec![input],
+                ReportDiagnostic::from_diag(
+                    &error.with_context("native DL failure has no service disposition"),
+                )
+                .with_operation_code("REASONER_FAILURE_CONTRACT_INVALID"),
+                format,
+                gate,
+            );
+        }
+    };
+    let detail = error.message().to_owned();
+    match kind {
         DlServiceFailureKind::NoModel => {
             let verdict = if operation == ReasoningOperation::Consistency {
                 "false"
@@ -2559,10 +2541,10 @@ fn dl_service_failure_report(
                     engine: reasoning_engine(operation),
                     metrics: ReasoningMetrics::default(),
                     boundaries: Vec::new(),
-                    diagnostics: vec![ReportDiagnostic {
-                        code: "ONTOLOGY_HAS_NO_MODEL".to_owned(),
-                        detail,
-                    }],
+                    diagnostics: vec![
+                        ReportDiagnostic::from_diag(&error)
+                            .with_operation_code("ONTOLOGY_HAS_NO_MODEL"),
+                    ],
                 },
                 result: if operation == ReasoningOperation::Consistency {
                     ReasoningPayload::Consistency {
@@ -2583,8 +2565,7 @@ fn dl_service_failure_report(
             "malformed",
             "invalid",
             vec![input],
-            "REASONER_INPUT_MALFORMED",
-            detail,
+            ReportDiagnostic::from_diag(&error).with_operation_code("REASONER_INPUT_MALFORMED"),
             format,
             gate,
         ),
@@ -2597,23 +2578,43 @@ fn dl_service_failure_report(
             "execution-failure",
             "valid",
             vec![input],
-            "REASONER_EXECUTION_FAILED",
-            detail,
+            ReportDiagnostic::from_diag(&error).with_operation_code("REASONER_EXECUTION_FAILED"),
             format,
             gate,
         ),
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn input_failure_report(
     reporter: &dyn Reporter,
     diagnostic_prefix: &str,
     operation: ReasoningOperation,
     fragment: &str,
-    error: ReasoningInputError,
+    error: Diag,
+    mut prior: Vec<InputIdentity>,
     format: OutputFormat,
     gate: bool,
 ) -> i32 {
+    let Some(failure) = error.downcast_ref::<ReasoningInputFailure>() else {
+        return publish_reasoning_failure(
+            reporter,
+            diagnostic_prefix,
+            operation,
+            fragment,
+            DecisionClass::ExecutionFailure,
+            "execution-failure",
+            "unknown",
+            prior,
+            ReportDiagnostic::from_diag(
+                &error.with_context("reasoning input failure has no input evidence"),
+            )
+            .with_operation_code("REASONING_INPUT_CONTRACT_INVALID"),
+            format,
+            gate,
+        );
+    };
+    prior.extend(failure.identities.iter().cloned());
     publish_reasoning_failure(
         reporter,
         diagnostic_prefix,
@@ -2622,9 +2623,8 @@ fn input_failure_report(
         DecisionClass::Malformed,
         "malformed",
         "invalid",
-        error.identities,
-        error.code,
-        error.detail,
+        prior,
+        ReportDiagnostic::from_diag(&error).with_operation_code(failure.code),
         format,
         gate,
     )
@@ -2705,7 +2705,7 @@ pub fn entails(
     gate: bool,
 ) -> i32 {
     const FRAGMENT: &str = "gmeow-native-default-context-dl-refutation-v1";
-    let premise_input = match load_reasoning_input(premise, "premise") {
+    let premise_input = match load_reasoning_input(premise, "premise", "gmeow-cli.entails") {
         Ok(input) => input,
         Err(error) => {
             return input_failure_report(
@@ -2714,21 +2714,24 @@ pub fn entails(
                 ReasoningOperation::Entailment,
                 FRAGMENT,
                 error,
+                Vec::new(),
                 format,
                 gate,
             );
         }
     };
-    let conclusion_input = match load_reasoning_input(conclusion, "conclusion") {
+    let conclusion_input = match load_reasoning_input(conclusion, "conclusion", "gmeow-cli.entails")
+    {
         Ok(input) => input,
-        Err(mut error) => {
-            error.identities.insert(0, premise_input.identity);
+        Err(error) => {
+            let prior = vec![premise_input.identity];
             return input_failure_report(
                 reporter,
                 "gmeow-cli.entails",
                 ReasoningOperation::Entailment,
                 FRAGMENT,
                 error,
+                prior,
                 format,
                 gate,
             );
@@ -2751,8 +2754,8 @@ pub fn entails(
                 "execution-failure",
                 "valid",
                 inputs,
-                "ENTAILMENT_EXECUTION_FAILED",
-                format!("entailment check failed: {e}"),
+                ReportDiagnostic::from_diag(&e.with_context("entailment check failed"))
+                    .with_operation_code("ENTAILMENT_EXECUTION_FAILED"),
                 format,
                 gate,
             );
@@ -2862,7 +2865,7 @@ pub fn consistency(
     gate: bool,
 ) -> i32 {
     const FRAGMENT: &str = "owl2-direct-semantics-dl-v1";
-    let input = match load_reasoning_input(ontology, "ontology") {
+    let input = match load_reasoning_input(ontology, "ontology", "gmeow-cli.consistency") {
         Ok(input) => input,
         Err(error) => {
             return input_failure_report(
@@ -2871,6 +2874,7 @@ pub fn consistency(
                 ReasoningOperation::Consistency,
                 FRAGMENT,
                 error,
+                Vec::new(),
                 format,
                 gate,
             );
@@ -2997,7 +3001,7 @@ fn render_term(term: &TermValue) -> String {
 /// emitting an empty answer.
 pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, gate: bool) -> i32 {
     const FRAGMENT: &str = "owl2-direct-semantics-dl-v1";
-    let input = match load_reasoning_input(ontology, "ontology") {
+    let input = match load_reasoning_input(ontology, "ontology", "gmeow-cli.classify") {
         Ok(input) => input,
         Err(error) => {
             return input_failure_report(
@@ -3006,6 +3010,7 @@ pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, 
                 ReasoningOperation::Classification,
                 FRAGMENT,
                 error,
+                Vec::new(),
                 format,
                 gate,
             );
@@ -3107,7 +3112,7 @@ pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, 
 /// answer.
 pub fn realize(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, gate: bool) -> i32 {
     const FRAGMENT: &str = "owl2-direct-semantics-dl-v1";
-    let input = match load_reasoning_input(ontology, "ontology") {
+    let input = match load_reasoning_input(ontology, "ontology", "gmeow-cli.realize") {
         Ok(input) => input,
         Err(error) => {
             return input_failure_report(
@@ -3116,6 +3121,7 @@ pub fn realize(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, g
                 ReasoningOperation::Realization,
                 FRAGMENT,
                 error,
+                Vec::new(),
                 format,
                 gate,
             );
@@ -3343,9 +3349,8 @@ fn fragments_graph_source(
 /// sorted by id (deterministic).
 fn extract_decidability_surface(
     dataset: &purrdf::RdfDataset,
-) -> Result<DecidabilitySurface, String> {
-    let registry = gmeow_logic::reason::NativeFragmentRegistry::observe(dataset)
-        .map_err(|error| error.to_string())?;
+) -> gmeow_errors::Result<DecidabilitySurface> {
+    let registry = gmeow_logic::reason::NativeFragmentRegistry::observe(dataset)?;
     let mut labels = BTreeMap::new();
     for quad in dataset.owned_quads() {
         if quad.predicate != RDFS_LABEL_IRI {
@@ -3364,7 +3369,11 @@ fn extract_decidability_surface(
             let label = labels
                 .get(id)
                 .filter(|label| !label.trim().is_empty())
-                .ok_or_else(|| format!("source admission {id} has no label"))?
+                .ok_or_else(|| {
+                    Diag::of_kind(crate::error::RdfPipelineFailed {
+                        detail: format!("source admission {id} has no label"),
+                    })
+                })?
                 .clone();
             Ok(SourceAdmissionRow {
                 id: id.clone(),
@@ -3372,7 +3381,7 @@ fn extract_decidability_surface(
                 requirement: registry.source_admission_requirements[id].clone(),
             })
         })
-        .collect::<Result<Vec<_>, String>>()?;
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
     let decided = registry
         .decided_ids
         .iter()
@@ -3496,11 +3505,11 @@ pub fn logic_fragments(
     };
     let surface = match extract_decidability_surface(dataset.as_ref()) {
         Ok(surface) => surface,
-        Err(message) => {
+        Err(diagnostic) => {
             return fail(
                 reporter,
                 "gmeow-cli.logic-fragments.invalid-surface",
-                message,
+                diagnostic.to_string(),
             );
         }
     };

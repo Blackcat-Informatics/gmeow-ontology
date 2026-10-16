@@ -15,6 +15,98 @@ fn native_test_triple(subject: &str, predicate: &str, object: TermPattern) -> Sp
 }
 
 #[test]
+fn recovery_seed_application_preserves_driver_aliases_in_quoted_terms_and_graphs() {
+    use purrdf::sparql::algebra::ApplicationPolicy;
+    let input = Variable::new("input");
+    let driver = Variable::new("driver");
+    let quoted = SparqlTriplePattern {
+        subject: TermPattern::Variable(input.clone()),
+        predicate: NamedNodePattern::Variable(input.clone()),
+        object: TermPattern::Variable(input.clone()),
+    };
+    let pattern = GraphPattern::Apply {
+        left: Child::new(GraphPattern::Bgp {
+            patterns: vec![native_test_triple(
+                "driver",
+                "urn:source",
+                TermPattern::Variable(Variable::new("value")),
+            )],
+        }),
+        right: Child::new(GraphPattern::Graph {
+            name: NamedNodePattern::Variable(input.clone()),
+            inner: Child::new(GraphPattern::Bgp {
+                patterns: vec![SparqlTriplePattern {
+                    subject: TermPattern::Variable(input.clone()),
+                    predicate: NamedNodePattern::Variable(input.clone()),
+                    object: TermPattern::Triple(Child::new(quoted)),
+                }],
+            }),
+        }),
+        policy: Box::new(ApplicationPolicy {
+            dataset_required: true,
+            row_pipeline: false,
+            reduced_adjacent: false,
+            group_domain: None,
+            inputs: vec![(input, driver)],
+            optional: None,
+        }),
+    };
+    let branches = dnf_branches(&pattern, 0).unwrap();
+    assert_eq!(branches.len(), 1);
+    let rows = instantiate_branch(&branches[0], &mut 0);
+    assert_eq!(rows.len(), 2);
+    assert_eq!(rows[1].subject, rows[0].subject);
+    assert_eq!(rows[1].graph_name.as_ref(), Some(&rows[0].subject));
+    let RdfTerm::Iri(driver) = &rows[0].subject else {
+        panic!("IRI seed")
+    };
+    assert_eq!(&rows[1].predicate, driver);
+    let RdfTerm::Triple(quoted) = &rows[1].object else {
+        panic!("quoted seed")
+    };
+    assert_eq!(quoted.subject, rows[0].subject);
+    assert_eq!(&quoted.predicate, driver);
+    assert_eq!(quoted.object, rows[0].subject);
+}
+
+#[test]
+fn recovery_seed_optional_application_requires_only_its_driver() {
+    use purrdf::sparql::algebra::{ApplicationPolicy, OptionalApplication};
+    let pattern = GraphPattern::Apply {
+        left: Child::new(GraphPattern::Bgp {
+            patterns: vec![native_test_triple(
+                "driver",
+                "urn:required",
+                TermPattern::Variable(Variable::new("value")),
+            )],
+        }),
+        right: Child::new(GraphPattern::Bgp {
+            patterns: vec![native_test_triple(
+                "driver",
+                "urn:optional",
+                TermPattern::Variable(Variable::new("other")),
+            )],
+        }),
+        policy: Box::new(ApplicationPolicy {
+            dataset_required: false,
+            row_pipeline: false,
+            reduced_adjacent: false,
+            group_domain: None,
+            inputs: Vec::new(),
+            optional: Some(OptionalApplication {
+                retry_inputs: Vec::new(),
+                forget_marker: Variable::new("forget"),
+            }),
+        }),
+    };
+    let branches = dnf_branches(&pattern, 0).unwrap();
+    assert_eq!(branches.len(), 1);
+    let rows = instantiate_branch(&branches[0], &mut 0);
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].predicate, "urn:required");
+}
+
+#[test]
 fn native_mapping_law_admission_keeps_independent_view_domains_and_bounded_evidence() {
     let term = |iri: &str| TermPattern::NamedNode(NamedNode::new(iri).unwrap());
     let source = native_test_triple("s", "urn:source", term("urn:value"));
@@ -94,7 +186,9 @@ fn native_mapping_branch_domain_catches_fabricated_guard_with_deterministic_coun
     let prepared = PreparedLawExecution::from_algebra(get.clone(), put.clone()).unwrap();
     let sources = derive_query_seeds(prepared.get.query()).unwrap();
     assert_eq!(sources.len(), 3);
-    let first = prepared.roundtrip(sources.iter().map(LawCase::Seed), true);
+    let first = prepared
+        .roundtrip(sources.iter().map(LawCase::Seed), true)
+        .unwrap();
     assert_eq!(first.verdict, DischargeVerdict::ObligationViolated);
     let countermodel = first.countermodel.as_ref().unwrap();
     assert!(
@@ -106,21 +200,27 @@ fn native_mapping_branch_domain_catches_fabricated_guard_with_deterministic_coun
     assert!(countermodel.missing.is_empty());
     assert_eq!(
         first,
-        prepared.roundtrip(sources.iter().map(LawCase::Seed), true)
+        prepared
+            .roundtrip(sources.iter().map(LawCase::Seed), true)
+            .unwrap()
     );
     let again = PreparedLawExecution::from_algebra(get, put).unwrap();
     let sources = derive_query_seeds(again.get.query()).unwrap();
     assert_eq!(
         first,
-        again.roundtrip(sources.iter().map(LawCase::Seed), true)
+        again
+            .roundtrip(sources.iter().map(LawCase::Seed), true)
+            .unwrap()
     );
 }
 
 #[test]
 fn native_law_inputs_retain_empty_standpoint_graphs_through_execution() {
     let mut dataset = purrdf::RdfDatasetBuilder::new();
-    let graph = dataset.intern_iri("https://example.org/standpoint/withheld");
-    dataset.declare_named_graph(graph);
+    let graph = dataset
+        .intern_iri("https://example.org/standpoint/withheld")
+        .unwrap();
+    dataset.declare_named_graph(graph).unwrap();
     let input = LawInput {
         identity: "withheld-context".into(),
         dataset: dataset.freeze().unwrap(),
@@ -129,8 +229,8 @@ fn native_law_inputs_retain_empty_standpoint_graphs_through_execution() {
     let prepared = PreparedLawExecution::new(query, query).unwrap();
     // Equality on an empty quad vector would falsely discharge both laws.
     for outcome in [
-        prepared.section(std::slice::from_ref(&input)),
-        prepared.put_get(std::slice::from_ref(&input)),
+        prepared.section(std::slice::from_ref(&input)).unwrap(),
+        prepared.put_get(std::slice::from_ref(&input)).unwrap(),
     ] {
         assert_eq!(outcome.verdict, DischargeVerdict::ObligationViolated);
         let countermodel = outcome.countermodel.unwrap();
@@ -201,7 +301,7 @@ fn independently_edited_view_refutes_put_get_when_source_recovery_passes() {
         )],
     );
     assert_eq!(
-        discharge_section_law(get, put, &[source]).verdict,
+        discharge_section_law(get, put, &[source]).unwrap().verdict,
         DischargeVerdict::ObligationDischarged
     );
     let view = |value: &str| {
@@ -215,10 +315,12 @@ fn independently_edited_view_refutes_put_get_when_source_recovery_passes() {
         )
     };
     assert_eq!(
-        discharge_put_get_law(get, put, &[view("https://example.org/default")]).verdict,
+        discharge_put_get_law(get, put, &[view("https://example.org/default")])
+            .unwrap()
+            .verdict,
         DischargeVerdict::ObligationDischarged
     );
-    let edited = discharge_put_get_law(get, put, &[view("https://example.org/edited")]);
+    let edited = discharge_put_get_law(get, put, &[view("https://example.org/edited")]).unwrap();
     assert_eq!(edited.verdict, DischargeVerdict::ObligationViolated);
     let countermodel = edited.countermodel.expect("edited value was discarded");
     assert_eq!(countermodel.seed_label, "edited-view");
@@ -240,14 +342,17 @@ fn view_domain_can_be_empty_without_fabricating_put_get_evidence() {
                    WHERE { ?s <https://example.org/source> ?o }";
     let put = "CONSTRUCT { ?s <https://example.org/source> ?o }
                    WHERE { ?s <https://example.org/view> ?o }";
-    let prepared = PreparedLawExecution::new(get, put);
+    let prepared = PreparedLawExecution::new(get, put).unwrap();
     let source = derive_seeds(get).unwrap();
     assert_eq!(
-        discharge_domain(&prepared, &source, true).verdict,
+        prepared
+            .roundtrip(source.iter().map(LawCase::Seed), true)
+            .unwrap()
+            .verdict,
         DischargeVerdict::ObligationDischarged
     );
     assert_eq!(
-        discharge_domain(&prepared, &[], false).verdict,
+        prepared.roundtrip([], false).unwrap().verdict,
         DischargeVerdict::ObligationUnknown
     );
 }
@@ -256,18 +361,26 @@ fn view_domain_can_be_empty_without_fabricating_put_get_evidence() {
 fn empty_context_graph_incidence_participates_in_the_law_isomorphism() {
     let carrier = |first| {
         let mut builder = purrdf::RdfDatasetBuilder::new();
-        let a = builder.intern_blank("a", purrdf::BlankScope::DEFAULT);
-        let b = builder.intern_blank("b", purrdf::BlankScope::DEFAULT);
-        let predicate = builder.intern_iri("https://example.org/claim");
+        let a = builder
+            .intern_blank("a", purrdf::BlankScope::DEFAULT)
+            .unwrap();
+        let b = builder
+            .intern_blank("b", purrdf::BlankScope::DEFAULT)
+            .unwrap();
+        let predicate = builder.intern_iri("https://example.org/claim").unwrap();
         // A source term occupying the first marker candidate must be preserved.
-        let object = builder.intern_iri("urn:gmeow:correspondence-carrier:0");
-        builder.push_quad(a, predicate, object, None);
-        builder.push_quad(b, predicate, object, None);
-        builder.declare_named_graph(if first { a } else { b });
+        let object = builder
+            .intern_iri("urn:gmeow:correspondence-carrier:0")
+            .unwrap();
+        builder.push_quad(a, predicate, object, None).unwrap();
+        builder.push_quad(b, predicate, object, None).unwrap();
+        builder
+            .declare_named_graph(if first { a } else { b })
+            .unwrap();
         builder.freeze().unwrap()
     };
     let seed = SeedGraph::from_iri_atoms("symmetric-context", Vec::new());
-    let outcome = compare_graphs(&seed, "SectionLaw", &carrier(true), &carrier(false));
+    let outcome = compare_graphs(&seed, "SectionLaw", &carrier(true), &carrier(false)).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -277,7 +390,7 @@ fn empty_context_graph_incidence_participates_in_the_law_isomorphism() {
 }
 
 #[test]
-fn a_comparison_refusal_is_unknown_without_a_fabricated_countermodel() {
+fn a_comparison_refusal_is_an_operational_error() {
     let carrier = |object| {
         SeedGraph::from_iri_atoms(
             "refused-comparison",
@@ -291,31 +404,116 @@ fn a_comparison_refusal_is_unknown_without_a_fabricated_countermodel() {
         .unwrap()
     };
     let seed = SeedGraph::from_iri_atoms("refused-comparison", Vec::new());
-    let outcome = compare_graphs(
+    let error = compare_graphs(
         &seed,
         "SectionLaw",
         &carrier("https://example.org/a".to_owned()),
         &carrier("https://example.org/b".to_owned()),
-    );
-    assert_eq!(outcome.verdict, DischargeVerdict::ObligationUnknown);
-    assert!(outcome.countermodel.is_none());
+    )
+    .expect_err("canonicalization refusal is not a law verdict");
     assert!(
-        outcome
-            .comparison_refusal
-            .as_deref()
-            .is_some_and(|reason| reason.contains("comparison refused"))
+        error.inner().source.is_some(),
+        "the native cause must survive"
+    );
+    assert!(format!("{error:#}").contains("canonicalize correspondence carrier"));
+}
+
+fn incomplete_law_seed(label: &str, subject: &str) -> SeedGraph {
+    SeedGraph::from_iri_atoms(
+        label,
+        vec![
+            (
+                subject.to_owned(),
+                "urn:source".to_owned(),
+                "urn:value".to_owned(),
+            ),
+            (
+                subject.to_owned(),
+                "urn:detail".to_owned(),
+                "urn:lost".to_owned(),
+            ),
+        ],
+    )
+}
+
+const RECOVERY_GET: &str = "CONSTRUCT { ?s <urn:view> ?o } WHERE { ?s <urn:source> ?o }";
+const RECOVERY_PUT: &str = "CONSTRUCT { ?s <urn:source> ?o } WHERE { ?s <urn:view> ?o }";
+
+#[test]
+fn failed_law_cases_cannot_hide_a_later_real_counterexample() {
+    let refused = incomplete_law_seed("a-refused", "urn:purrdf:rdfc:reserved");
+    let violated = incomplete_law_seed("b-counterexample", "urn:subject");
+    let outcome = discharge_section_law(RECOVERY_GET, RECOVERY_PUT, &[violated, refused])
+        .expect("a concrete refutation remains decisive");
+    assert_eq!(outcome.verdict, DischargeVerdict::ObligationViolated);
+    let countermodel = outcome.countermodel.unwrap();
+    assert_eq!(countermodel.seed_label, "b-counterexample");
+    assert_eq!(countermodel.missing.len(), 1);
+    assert_eq!(countermodel.missing[0].1, "urn:detail");
+    assert_eq!(outcome.prior_failures.len(), 1);
+    assert_eq!(outcome.prior_failures[0].case, "a-refused");
+    assert!(!outcome.prior_failures[0].diagnostic.root.frames.is_empty());
+}
+
+#[test]
+fn failed_law_cases_cannot_be_disguised_by_a_successful_case() {
+    let refused = incomplete_law_seed("a-refused", "urn:purrdf:rdfc:reserved");
+    let success = SeedGraph::from_iri_atoms(
+        "b-success",
+        vec![(
+            "urn:subject".to_owned(),
+            "urn:source".to_owned(),
+            "urn:value".to_owned(),
+        )],
+    );
+    let error = discharge_section_law(RECOVERY_GET, RECOVERY_PUT, &[success, refused])
+        .expect_err("one successful case cannot repair an unavailable case");
+    assert!(
+        error.inner().source.is_some(),
+        "single-case failure retains the live native cause"
+    );
+    assert!(format!("{error:#}").contains("a-refused"));
+}
+
+#[test]
+fn every_unavailable_law_case_survives_the_diagnostic_boundary() {
+    let first = incomplete_law_seed("a-refused", "urn:purrdf:rdfc:first");
+    let second = incomplete_law_seed("b-refused", "urn:purrdf:rdfc:second");
+    let error = discharge_section_law(RECOVERY_GET, RECOVERY_PUT, &[second, first])
+        .expect_err("unavailable cases never manufacture semantic verdicts");
+    let recorded = gmeow_errors::DiagLedger::new()
+        .record(error, gmeow_errors::StageId::new("law-test-consumer"));
+    let observed = recorded.root.observations[0].observed.as_ref().unwrap();
+    assert_eq!(
+        observed.datatype.as_deref(),
+        Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON")
+    );
+    let failures: Vec<LawCaseFailure> = serde_json::from_str(&observed.lexical).unwrap();
+    assert_eq!(
+        failures
+            .iter()
+            .map(|failure| failure.case.as_str())
+            .collect::<Vec<_>>(),
+        vec!["a-refused", "b-refused"]
+    );
+    assert!(
+        failures
+            .iter()
+            .all(|failure| !failure.diagnostic.root.frames.is_empty())
     );
 }
 
 #[test]
 fn recovery_cannot_discard_an_empty_context_graph() {
     let mut source = purrdf::RdfDatasetBuilder::new();
-    let graph = source.intern_iri("https://example.org/standpoint/withheld");
-    source.declare_named_graph(graph);
+    let graph = source
+        .intern_iri("https://example.org/standpoint/withheld")
+        .unwrap();
+    source.declare_named_graph(graph).unwrap();
     let source = source.freeze().unwrap();
     let recovered = purrdf::RdfDatasetBuilder::new().freeze().unwrap();
     let seed = SeedGraph::from_iri_atoms("empty-context", Vec::new());
-    let outcome = compare_graphs(&seed, "SectionLaw", &recovered, &source);
+    let outcome = compare_graphs(&seed, "SectionLaw", &recovered, &source).unwrap();
     assert_eq!(outcome.verdict, DischargeVerdict::ObligationViolated);
     let witness = outcome.countermodel.unwrap();
     assert_eq!(
@@ -324,6 +522,7 @@ fn recovery_cannot_discard_an_empty_context_graph() {
     );
     assert!(witness.missing.is_empty());
     let inverse = compare_graphs(&seed, "PutGet", &source, &recovered)
+        .unwrap()
         .countermodel
         .unwrap();
     assert_eq!(inverse.spurious_graphs, witness.missing_graphs);
@@ -333,12 +532,14 @@ fn recovery_cannot_discard_an_empty_context_graph() {
 fn carrier_laws_compare_empty_blank_graphs_up_to_isomorphism() {
     let carrier = |label| {
         let mut dataset = purrdf::RdfDatasetBuilder::new();
-        let graph = dataset.intern_blank(label, purrdf::BlankScope::DEFAULT);
-        dataset.declare_named_graph(graph);
+        let graph = dataset
+            .intern_blank(label, purrdf::BlankScope::DEFAULT)
+            .unwrap();
+        dataset.declare_named_graph(graph).unwrap();
         dataset.freeze().unwrap()
     };
     let seed = SeedGraph::from_iri_atoms("empty-context", Vec::new());
-    let outcome = compare_graphs(&seed, "GetPut", &carrier("old"), &carrier("new"));
+    let outcome = compare_graphs(&seed, "GetPut", &carrier("old"), &carrier("new")).unwrap();
     assert_eq!(outcome.verdict, DischargeVerdict::ObligationDischarged);
 }
 
@@ -350,7 +551,7 @@ fn directional_literal_seed_round_trips_through_the_law_executor() {
             WHERE { ?s <urn:view:label> "claim"@ar--rtl }"#;
     let seeds = derive_seeds(get).unwrap();
     assert!(!seeds.is_empty());
-    let outcome = discharge_section_law(get, put, &seeds);
+    let outcome = discharge_section_law(get, put, &seeds).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -358,7 +559,9 @@ fn directional_literal_seed_round_trips_through_the_law_executor() {
     );
     let wrong_direction = put.replace("--rtl", "--ltr");
     assert_eq!(
-        discharge_section_law(get, &wrong_direction, &seeds).verdict,
+        discharge_section_law(get, &wrong_direction, &seeds)
+            .unwrap()
+            .verdict,
         DischargeVerdict::ObligationViolated
     );
 }
@@ -377,12 +580,12 @@ fn correspondence_graph_scope_is_executed_and_compared() {
             .all(|seed| seed.quads.iter().all(|quad| quad.graph_name.is_some()))
     );
     assert_eq!(
-        discharge_section_law(get, put, &seeds).verdict,
+        discharge_section_law(get, put, &seeds).unwrap().verdict,
         DischargeVerdict::ObligationDischarged
     );
     let put_in_default = "CONSTRUCT { ?s <urn:source:p> ?o }
             WHERE { GRAPH ?g { ?s <urn:view:p> ?o } }";
-    let outcome = discharge_section_law(get, put_in_default, &seeds);
+    let outcome = discharge_section_law(get, put_in_default, &seeds).unwrap();
     assert_eq!(outcome.verdict, DischargeVerdict::ObligationViolated);
     let countermodel = outcome.countermodel.expect("graph loss witness");
     assert!(countermodel.missing.iter().all(|atom| atom.3.is_some()));
@@ -408,7 +611,7 @@ fn quoted_recovery_seed_is_not_discarded_or_coerced_to_an_iri() {
     let put = "CONSTRUCT { ?claim <urn:source:evidence> ?value }
             WHERE { ?claim <urn:view:evidence> ?value }";
     assert_eq!(
-        discharge_section_law(get, put, &seeds).verdict,
+        discharge_section_law(get, put, &seeds).unwrap().verdict,
         DischargeVerdict::ObligationViolated
     );
 }
@@ -510,7 +713,7 @@ fn recovery_correspondence(case: RecoveryCaseIr) -> Correspondence {
 fn atomic_inverse_recovers_the_real_source_predicate() {
     let get = step("https://example.org/source");
     assert_eq!(
-        leg_pair_verdict(&get, &get.invert()),
+        leg_pair_verdict(&get, &get.invert()).unwrap(),
         DischargeVerdict::ObligationDischarged
     );
 }
@@ -521,7 +724,8 @@ fn wrong_atomic_put_yields_a_real_missing_and_spurious_difference() {
         leg_pair_verdict(
             &step("https://example.org/source"),
             &step("https://example.org/wrong")
-        ),
+        )
+        .unwrap(),
         DischargeVerdict::ObligationViolated
     );
 }
@@ -533,7 +737,7 @@ fn composite_path_is_unknown_without_a_complete_recovery_case() {
         step("https://example.org/b"),
     ]);
     assert_eq!(
-        leg_pair_verdict(&get, &get.invert()),
+        leg_pair_verdict(&get, &get.invert()).unwrap(),
         DischargeVerdict::ObligationUnknown
     );
 }
@@ -542,14 +746,14 @@ fn composite_path_is_unknown_without_a_complete_recovery_case() {
 fn recovery_formula_discharges_only_when_the_view_retains_every_source_variable() {
     let get = step("https://example.org/sourceDetail");
     let put = get.invert();
-    let good = discharge_recovery_case(&recovery_case(true), &get, &put);
+    let good = discharge_recovery_case(&recovery_case(true), &get, &put).unwrap();
     assert_eq!(
         good.verdict,
         DischargeVerdict::ObligationDischarged,
         "{good:#?}"
     );
 
-    let bad = discharge_recovery_case(&recovery_case(false), &get, &put);
+    let bad = discharge_recovery_case(&recovery_case(false), &get, &put).unwrap();
     assert_eq!(
         bad.verdict,
         DischargeVerdict::ObligationViolated,
@@ -586,16 +790,16 @@ fn shared_recovery_legs_do_not_reuse_another_cases_success_or_bindings() {
 
     for case in [&good, &lossy, &unrelated, &good] {
         assert_eq!(
-            legs.discharge(case),
-            discharge_recovery_case(case, &get, &put),
+            legs.discharge(case).unwrap(),
+            discharge_recovery_case(case, &get, &put).unwrap(),
             "preparation reuse must preserve each case's evidence and countermodel"
         );
     }
     assert_eq!(
-        legs.discharge(&good).verdict,
+        legs.discharge(&good).unwrap().verdict,
         DischargeVerdict::ObligationDischarged
     );
-    let unrelated_result = legs.discharge(&unrelated);
+    let unrelated_result = legs.discharge(&unrelated).unwrap();
     assert_eq!(
         unrelated_result.verdict,
         DischargeVerdict::ObligationViolated
@@ -611,8 +815,8 @@ fn shared_recovery_legs_do_not_reuse_another_cases_success_or_bindings() {
         .with_recovery_cases(vec![lossy.clone(), good])
         .unwrap();
     assert_eq!(
-        discharge_recovery_cases(&correspondence, &get, &put),
-        legs.discharge(&lossy),
+        discharge_recovery_cases(&correspondence, &get, &put).unwrap(),
+        legs.discharge(&lossy).unwrap(),
         "one successful case cannot hide a later loss"
     );
 }
@@ -640,12 +844,13 @@ fn recovery_formula_literal_endpoints_fail_closed() {
     .expect("literal-endpoint recovery case");
     let get = step("https://example.org/sourceValue");
 
-    let outcome = discharge_recovery_case(&case, &get, &get.invert());
-    assert_eq!(
-        outcome.verdict,
-        DischargeVerdict::ObligationViolated,
-        "literal constants are outside the declared recovery-case RDF-atom fragment and \
-             must fail closed: {outcome:#?}"
+    let error = discharge_recovery_case(&case, &get, &get.invert())
+        .expect_err("inadmissible recovery input must not fabricate a countermodel");
+    assert!(
+        error
+            .message()
+            .contains("literals are outside the recovery-case RDF-atom fragment"),
+        "{error}"
     );
 }
 
@@ -675,12 +880,13 @@ fn recovery_case_colliding_with_the_reserved_recovery_namespace_never_discharges
     .expect("recovery case");
 
     let get = step("https://example.org/sourceKind");
-    let outcome = discharge_recovery_case(&case, &get, &get.invert());
-    assert_eq!(
-        outcome.verdict,
-        DischargeVerdict::ObligationViolated,
-        "a recovery case whose view predicate collides with the generated VIEW_PREDICATE \
-             must never discharge: {outcome:#?}"
+    let error = discharge_recovery_case(&case, &get, &get.invert())
+        .expect_err("inadmissible recovery input must not fabricate a countermodel");
+    assert!(
+        error
+            .message()
+            .contains("reserved recovery-execution namespace"),
+        "{error}"
     );
 }
 
@@ -701,7 +907,7 @@ fn canonical_recovery_vocabulary_outside_the_execution_namespaces_remains_usable
     .expect("recovery case");
 
     let get = step(predicate);
-    let outcome = discharge_recovery_case(&case, &get, &get.invert());
+    let outcome = discharge_recovery_case(&case, &get, &get.invert()).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,
@@ -725,7 +931,7 @@ fn program_requires_both_recovery_evidence_and_the_resolved_leg_bodies() {
             },
         ]);
     assert_eq!(
-        program_verdicts(&program)["https://example.org/correspondence"]
+        program_verdicts(&program).unwrap()["https://example.org/correspondence"]
             .section
             .verdict,
         DischargeVerdict::ObligationViolated,
@@ -751,7 +957,7 @@ fn mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case() {
         },
     ]);
     assert_eq!(
-        program_verdicts(&program)["https://example.org/correspondence"]
+        program_verdicts(&program).unwrap()["https://example.org/correspondence"]
             .section
             .verdict,
         DischargeVerdict::ObligationDischarged
@@ -765,7 +971,7 @@ fn mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case() {
         .expect("get body")
         .body = step("https://example.org/unrelatedSource");
     assert_eq!(
-        program_verdicts(&mutated)["https://example.org/correspondence"]
+        program_verdicts(&mutated).unwrap()["https://example.org/correspondence"]
             .section
             .verdict,
         DischargeVerdict::ObligationViolated,
@@ -784,11 +990,10 @@ fn recovery_evidence_with_a_missing_resolved_leg_fails_closed() {
         iri: "https://example.org/get".to_owned(),
         body: step("https://example.org/sourceDetail"),
     }]);
+    let error = program_verdicts(&program).expect_err("missing legs cannot produce verdicts");
     assert_eq!(
-        program_verdicts(&program)["https://example.org/correspondence"]
-            .section
-            .verdict,
-        DischargeVerdict::ObligationViolated
+        error.inner().source_ctx.focus.as_ref().unwrap().0,
+        "https://example.org/correspondence"
     );
 }
 
@@ -802,10 +1007,7 @@ fn malformed_recovery_formula_fails_closed_before_leg_execution() {
     )
     .expect("recovery case carrier");
     let get = step("https://example.org/sourceDetail");
-    assert_eq!(
-        discharge_recovery_case(&case, &get, &get.invert()).verdict,
-        DischargeVerdict::ObligationViolated
-    );
+    assert!(discharge_recovery_case(&case, &get, &get.invert()).is_err());
 }
 
 #[test]
@@ -837,7 +1039,7 @@ fn complete_composite_recovery_executes_the_resolved_path_bodies() {
         step("https://example.org/a"),
         step("https://example.org/b"),
     ]);
-    let outcome = discharge_recovery_case(&case, &get, &get.invert());
+    let outcome = discharge_recovery_case(&case, &get, &get.invert()).unwrap();
     assert_eq!(
         outcome.verdict,
         DischargeVerdict::ObligationDischarged,

@@ -40,7 +40,7 @@ fn literal(s: &str, p: &str, text: &str, datatype: &str) -> RdfQuad {
 fn source(quads: Vec<RdfQuad>) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -300,16 +300,27 @@ fn malformed_or_undefined_keys_cannot_certify_a_complete_native_result() {
         }
         let p = program(Vec::new());
         let prepared = crate::program_analysis::prepare_program(&p).unwrap();
-        assert!(
-            execute(
-                &prepared,
-                crate::reason::program::prepare_reasoning_input(&source(quads)).unwrap(),
-                &crate::physical::SelectedDomains::new([]).unwrap(),
-                None
-            )
-            .is_err(),
-            "{defect}"
+        let outcome = execute(
+            &prepared,
+            crate::reason::program::prepare_reasoning_input(&source(quads)).unwrap(),
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            None,
         );
+        if defect == "undefined-value" {
+            let error = outcome
+                .err()
+                .expect("key comparison must preserve its immediate typed refusal");
+            let cause = error
+                .downcast_ref::<crate::error::Physical>()
+                .expect("native physical cause is retained");
+            assert!(cause.detail.contains("undefined datatype value comparison"));
+        } else {
+            super::test_support::assert_obstructed(
+                &p,
+                outcome.unwrap(),
+                crate::reason::refute::NativeObstructionKind::SourceShape,
+            );
+        }
     }
 }
 
@@ -561,20 +572,19 @@ fn undefined_value_comparison_cannot_become_a_complete_native_result() {
         literal(SUBJECT, P, "first", "urn:uninterpreted-datatype"),
         literal(SUBJECT, Q, "second", "urn:uninterpreted-datatype"),
     ]);
-    let error = match execute(
+    let closure = execute(
         &prepared,
         crate::reason::program::prepare_reasoning_input(&data).unwrap(),
         &crate::physical::SelectedDomains::new([]).unwrap(),
         None,
-    ) {
-        Ok(_) => panic!("unknown values cannot silently decide the selected law"),
-        Err(error) => error,
-    };
-    assert!(
-        error
-            .to_string()
-            .contains("undefined datatype value comparison")
+    )
+    .unwrap();
+    let result = super::test_support::assert_obstructed(
+        &p,
+        closure,
+        crate::reason::refute::NativeObstructionKind::UnsupportedValue,
     );
+    assert!(result.provenance.contradiction_witnesses.is_empty());
 }
 
 const MAXIMUM: &str = "http://www.w3.org/2002/07/owl#maxCardinality";
@@ -816,16 +826,19 @@ fn maximum_bound_admission_matches_the_typed_projection_and_has_no_usize_truncat
     ] {
         let mut quads = maximum_source(MAXIMUM, count, datatype);
         quads.push(fact(SUBJECT, P, "urn:a"));
-        let prepared = crate::program_analysis::prepare_program(&program(Vec::new())).unwrap();
-        assert!(
-            execute(
-                &prepared,
-                crate::reason::program::prepare_reasoning_input(&source(quads)).unwrap(),
-                &crate::physical::SelectedDomains::new([]).unwrap(),
-                None
-            )
-            .is_err(),
-            "{count} {datatype}"
+        let p = program(Vec::new());
+        let prepared = crate::program_analysis::prepare_program(&p).unwrap();
+        let closure = execute(
+            &prepared,
+            crate::reason::program::prepare_reasoning_input(&source(quads)).unwrap(),
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            None,
+        )
+        .unwrap();
+        super::test_support::assert_obstructed(
+            &p,
+            closure,
+            crate::reason::refute::NativeObstructionKind::UnsupportedValue,
         );
     }
     for (count, datatype) in [

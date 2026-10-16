@@ -39,9 +39,10 @@ fn native_import_transport_preserves_lexical_normalization_and_refusal() {
                 let imported = imported.expect("normalized native import");
                 let literals: Vec<&str> = (0..imported.term_count())
                     .filter_map(|index| {
-                        match imported.resolve(purrdf::TermId::from_index(
-                            u32::try_from(index).expect("fixture term"),
-                        )) {
+                        match imported.resolve(
+                            purrdf::TermId::from_index(u32::try_from(index).expect("fixture term"))
+                                .unwrap(),
+                        ) {
                             purrdf::TermRef::Literal { lexical, .. } => Some(lexical),
                             _ => None,
                         }
@@ -61,7 +62,7 @@ fn native_import_transport_preserves_lexical_normalization_and_refusal() {
 /// canonical N-Quads as a string.
 fn nquads_of(quad: RdfQuad) -> String {
     let mut b = RdfDatasetBuilder::new();
-    b.push_owned_quad(&quad);
+    b.push_owned_quad(&quad).unwrap();
     let ds = b.freeze().expect("freeze");
     String::from_utf8(dataset_to_nquads(ds.as_ref()).expect("nquads")).expect("utf8")
 }
@@ -141,7 +142,8 @@ fn plain_string_literal_is_verbatim() {
 #[test]
 fn malformed_recognized_literal_hard_fails() {
     let mut b = RdfDatasetBuilder::new();
-    b.push_owned_quad(&typed_quad("not-a-decimal", XSD_DECIMAL));
+    b.push_owned_quad(&typed_quad("not-a-decimal", XSD_DECIMAL))
+        .unwrap();
     let ds = b.freeze().expect("freeze");
     let err = dataset_to_nquads(ds.as_ref())
         .expect_err("a malformed xsd:decimal must hard-fail, not pass through");

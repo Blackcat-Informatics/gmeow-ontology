@@ -131,12 +131,6 @@ impl SemanticVocabulary {
         }
     }
 
-    pub(crate) fn abstract_atom(self, atom: &mut crate::rule_ir::EvalAtom) {
-        atom.predicate = self.predicate(&atom.predicate).to_owned();
-        self.abstract_term(&mut atom.subject);
-        self.abstract_term(&mut atom.object);
-    }
-
     /// Conservative vocabulary inventory for effect selection, never a term rewrite.
     pub(crate) fn possible_spellings(self, iri: &str) -> impl Iterator<Item = &str> {
         std::iter::once(iri)

@@ -223,7 +223,9 @@ fn invented_witness_skeletons_land_in_diagnostics_and_certificate_cites_them() {
         "the existential obligation must mint at least one witness"
     );
     let dataset = Arc::clone(&reasoned.dataset);
-    let diagnostics = dataset.project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+    let diagnostics = dataset
+        .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS)
+        .unwrap();
     let quads: Vec<_> = diagnostics.owned_quads().collect();
 
     let iri = |term: &RdfTerm| match term {
@@ -340,7 +342,7 @@ ex:world {
             && quad.predicate == "https://blackcatinformatics.ca/logic/contextualResult"
     }));
     let dataset = &reasoned.dataset;
-    let graph = dataset.project_named_graph(GRAPH_REASONING);
+    let graph = dataset.project_named_graph(GRAPH_REASONING).unwrap();
     assert!(
         graph.owned_reifiers().next().is_some(),
         "native source receipts retain their quoted conclusions"
@@ -384,7 +386,7 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(GRAPH_REASONING);
+    let pinned = bundle.graph_digest(GRAPH_REASONING).unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
@@ -403,13 +405,19 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
     );
     // The graph/reasoning named graph is non-empty (the projection landed).
     assert_ne!(
-        bundle.graph_digest(GRAPH_REASONING),
-        bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
+        bundle.graph_digest(GRAPH_REASONING).unwrap(),
+        bundle
+            .graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent")
+            .unwrap(),
         "graph/reasoning carries the projection"
     );
     assert_ne!(
-        bundle.graph_digest(crate::stages::carrier::GRAPH_DIAGNOSTICS),
-        bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
+        bundle
+            .graph_digest(crate::stages::carrier::GRAPH_DIAGNOSTICS)
+            .unwrap(),
+        bundle
+            .graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent")
+            .unwrap(),
         "graph/diagnostics always carries the run's native contract evidence"
     );
 }
@@ -542,7 +550,10 @@ fn reason_product_projects_modal_verdict_and_counterexample_into_stage_reason() 
         assert!(artifact.contains("https://example.org/modal/frame"));
     }
     let product = reason_product(nq).expect("stage-reason product");
-    let reasoning_graph = product.dataset().project_named_graph(GRAPH_REASONING);
+    let reasoning_graph = product
+        .dataset()
+        .project_named_graph(GRAPH_REASONING)
+        .unwrap();
     let projected = reasoning_graph.owned_quads().collect::<Vec<_>>();
     assert!(projected.iter().any(|quad| {
         quad.predicate == "https://blackcatinformatics.ca/gmeow/viaRule"
@@ -639,4 +650,63 @@ fn pin_handle_hard_fails_on_a_digest_mismatch() {
         )
         .expect_err("a mismatched pin must hard-fail");
     let _ = err;
+}
+
+#[test]
+fn demonstrator_worlds_must_publish_their_declared_certificate_class() {
+    use gmeow_logic::materialize::ChaseAdmission;
+    let certificate =
+        |world: &str, admission: ChaseAdmission| gmeow_logic::reason::ChaseCertificate {
+            world: world.to_owned(),
+            input_contract: [0; 32],
+            admission,
+        };
+    let evidence = || "test".to_owned();
+    let earned = |world: &str, code: &str| {
+        let admission = match code {
+            "chase.certificate.jointly-acyclic" => ChaseAdmission::JointlyAcyclic {
+                evidence: evidence(),
+            },
+            "chase.certificate.super-weakly-acyclic" => ChaseAdmission::SuperWeaklyAcyclic {
+                evidence: evidence(),
+            },
+            "chase.certificate.model-summarizing-acyclic" => {
+                ChaseAdmission::ModelSummarizingAcyclic {
+                    evidence: evidence(),
+                }
+            }
+            other => panic!("undeclared class {other}"),
+        };
+        certificate(world, admission)
+    };
+    let declared = gmeow_logic::termination_demonstrators::termination_ladder_certificate_codes();
+    let certificates: Vec<_> = declared
+        .iter()
+        .map(|(world, code)| earned(world, code))
+        .collect();
+    assert!(require_demonstrator_classes(&certificates).is_ok());
+
+    // A copied joint admission is not the demonstrator's own class.
+    let copied: Vec<_> = declared
+        .iter()
+        .map(|(world, _)| {
+            certificate(
+                world,
+                ChaseAdmission::WeaklyAcyclic {
+                    evidence: evidence(),
+                },
+            )
+        })
+        .collect();
+    let error = require_demonstrator_classes(&copied)
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("must certify as chase.certificate.jointly-acyclic"),
+        "{error}"
+    );
+    // An input without the demonstrator worlds has nothing to certify for them.
+    assert!(require_demonstrator_classes(&[]).is_ok());
+    // A present demonstrator still must earn its own class.
+    assert!(require_demonstrator_classes(&copied[..1]).is_err());
 }

@@ -109,7 +109,7 @@ pub fn build_merged_ontology() -> Arc<RdfDataset> {
             .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
         let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None)
             .unwrap_or_else(|e| panic!("parse {}: {e:?}", path.display()));
-        builder.push_dataset(&ds);
+        builder.push_dataset(&ds).unwrap();
     }
     let merged = builder
         .freeze()
@@ -144,7 +144,7 @@ fn load_shape_files(files: &[PathBuf]) -> Shapes {
         prefixes.extend(document.prefixes);
     }
     let refs: Vec<&RdfDataset> = datasets.iter().map(AsRef::as_ref).collect();
-    let merged = Arc::new(RdfDataset::union(&refs));
+    let merged = Arc::new(RdfDataset::union(&refs).expect("benchmark shape union"));
     purrdf::shapes::shapes::from_dataset_with_prefixes(
         &merged,
         &prefixes.into_iter().collect::<Vec<_>>(),

@@ -19,6 +19,25 @@ use std::collections::{BTreeMap, BTreeSet};
 
 mod analysis;
 
+/// The immutable evidence frontier shared by source admission and one family round.
+pub(super) struct RoundEvidence<'a> {
+    pub(super) snapshot: RoundSnapshot<'a>,
+    pub(super) rows: &'a [crate::rule_ir::DerivedRow],
+    pub(super) registry: &'a crate::physical::SkolemRegistry,
+    pub(super) complete: &'a BTreeSet<String>,
+    pub(super) observed: &'a BTreeSet<NativeRead>,
+}
+
+/// The exact committed basis and scheduled terminal used by final observations.
+pub(super) struct FinalEvidence<'a> {
+    pub(super) store: &'a crate::rule_ir::FactStore,
+    pub(super) rel: &'a crate::physical::RelationStore,
+    pub(super) rows: &'a [crate::rule_ir::DerivedRow],
+    pub(super) registry: &'a crate::physical::SkolemRegistry,
+    pub(super) complete: &'a BTreeSet<String>,
+    pub(super) terminal: &'a crate::reason::refute::native::NativeClosureStatus,
+}
+
 pub(super) const ALL: [NativeRefutationFamily; 4] = [
     NativeRefutationFamily::Cardinality,
     NativeRefutationFamily::Identity,
@@ -144,6 +163,9 @@ fn producer_arm(
             heads: heads.clone(),
             frontier: None,
             position_only: false,
+            list_cells: Vec::new(),
+            witness_family: None,
+            rja_exact: false,
         },
         effect,
         flow: FlowRule {
@@ -400,6 +422,9 @@ pub(super) fn admission_arms(
                         heads: Vec::new(),
                         frontier: None,
                         position_only: false,
+                        list_cells: Vec::new(),
+                        witness_family: None,
+                        rja_exact: false,
                     },
                     flow: FlowRule {
                         body: vec![atom.0.clone()],
@@ -544,12 +569,14 @@ pub(super) struct State {
     domains: crate::physical::SelectedDomains,
     pub(super) coverage: crate::reason::dl::SourceCoverageWorld,
     coverage_rows: usize,
+    governance_rows: usize,
     proof_index: BTreeMap<crate::reason::refute::native::NativeProofId, usize>,
     indexed_proofs: usize,
     analyses: analysis::Observations,
     class: Option<crate::reason::refute::PreparedClassAnalysis>,
     pub(super) classes: Option<crate::reason::refute::ClassExecutionOutcome>,
     operation: super::JointOperation,
+    constructor_lists: Option<std::sync::Arc<super::source_grammar::ConstructorClosedLists>>,
 }
 impl State {
     pub(super) fn new(
@@ -605,6 +632,7 @@ impl State {
             class: Some(class),
             classes: Some(classes),
             operation,
+            constructor_lists: binding.constructor_lists.get(world).cloned(),
             evidence: None,
             sources: std::sync::Arc::clone(sources),
             domains: binding.domains.clone(),
@@ -614,6 +642,7 @@ impl State {
                 admissions: Vec::new(),
             },
             coverage_rows: 0,
+            governance_rows: 0,
             proof_index: BTreeMap::new(),
             indexed_proofs: 0,
             analyses: analysis::Observations::default(),
@@ -659,12 +688,14 @@ impl State {
             class: None,
             classes: None,
             operation: super::JointOperation::Relational,
+            constructor_lists: None,
             coverage: crate::reason::dl::SourceCoverageWorld {
                 graph: None,
                 constructs: Vec::new(),
                 admissions: Vec::new(),
             },
             coverage_rows: 0,
+            governance_rows: 0,
             proof_index: BTreeMap::new(),
             indexed_proofs: 0,
             analyses: analysis::Observations::default(),
@@ -692,7 +723,11 @@ impl State {
             .and_then(|index| self.ledger.proofs.get(*index))
     }
 
-    pub(super) fn admit(&mut self, store: &crate::rule_ir::FactStore) -> gmeow_errors::Result<()> {
+    pub(super) fn admit(
+        &mut self,
+        store: &crate::rule_ir::FactStore,
+        rel: &crate::physical::RelationStore,
+    ) -> gmeow_errors::Result<()> {
         if self.evidence.is_some() {
             return Err(super::seminaive_err(
                 "native source origins were admitted twice",
@@ -719,18 +754,45 @@ impl State {
                 )?
             }
         });
+        self.retain_governance(store, rel, &[])?;
+        Ok(())
+    }
+
+    /// Governance is demanded evidence even before a budgeted engine takes its
+    /// first step. Retain only selected fields from the new committed suffix.
+    fn retain_governance(
+        &mut self,
+        store: &crate::rule_ir::FactStore,
+        rel: &crate::physical::RelationStore,
+        rows: &[crate::rule_ir::DerivedRow],
+    ) -> gmeow_errors::Result<()> {
+        let evidence = self.evidence.as_ref().ok_or_else(|| {
+            super::seminaive_err("governance evidence precedes native source admission")
+        })?;
+        let completed = BTreeSet::new();
+        let input = NativeFamilyInput::new(store, rel, rows, evidence, &completed)?;
+        for fact in store.facts().iter().skip(self.governance_rows) {
+            if crate::obligations::governance_statement(&fact.predicate, &fact.object) {
+                input.support(std::slice::from_ref(fact), &mut self.ledger)?;
+            }
+        }
+        self.governance_rows = store.row_count();
+        self.index_proofs();
         Ok(())
     }
     pub(super) fn prepare_sources(
         &mut self,
-        snapshot: RoundSnapshot<'_>,
-        rows: &[crate::rule_ir::DerivedRow],
-        registry: &crate::physical::SkolemRegistry,
+        source: RoundEvidence<'_>,
         values: &mut crate::physical::SchemaValues,
         lists: &mut crate::physical::LogicalListCache,
-        complete: &BTreeSet<String>,
-        observed: &BTreeSet<NativeRead>,
     ) -> gmeow_errors::Result<()> {
+        let RoundEvidence {
+            snapshot,
+            rows,
+            registry,
+            complete,
+            observed,
+        } = source;
         let evidence = self.evidence.as_mut().ok_or_else(|| {
             super::seminaive_err("native execution has no admitted original source column")
         })?;
@@ -755,23 +817,62 @@ impl State {
                 lists,
                 &mut self.ledger,
                 &mut self.coverage,
+                self.constructor_lists.as_deref(),
             )?;
         }
+        Ok(())
+    }
+
+    /// Preserve a producer's refused guard and original supports without
+    /// changing the frozen store or inventing a refutation-family outcome.
+    pub(super) fn retain_guard_obstructions(
+        &mut self,
+        producer: &str,
+        obstructions: Vec<super::super::property::GuardObstruction>,
+        store: &crate::rule_ir::FactStore,
+        rel: &crate::physical::RelationStore,
+        rows: &[crate::rule_ir::DerivedRow],
+    ) -> gmeow_errors::Result<()> {
+        if obstructions.is_empty() {
+            return Ok(());
+        }
+        let evidence = self.evidence.as_ref().ok_or_else(|| {
+            super::seminaive_err("producer obstruction precedes native source admission")
+        })?;
+        let completed = BTreeSet::new();
+        let input = NativeFamilyInput::new(store, rel, rows, evidence, &completed)?;
+        for obstruction in obstructions {
+            let support = input.support(&obstruction.premises, &mut self.ledger)?;
+            self.ledger.producer_obstructions.insert(
+                crate::reason::refute::NativeProducerObstruction {
+                    producer: producer.to_owned(),
+                    reason: crate::reason::refute::NativeFamilyObstruction {
+                        kind: crate::reason::refute::NativeObstructionKind::UnsupportedValue,
+                        detail: obstruction.detail,
+                        support,
+                    },
+                },
+            );
+        }
+        self.index_proofs();
         Ok(())
     }
 
     pub(super) fn round(
         &mut self,
         producers: &[Producer],
-        snapshot: RoundSnapshot<'_>,
-        rows: &[crate::rule_ir::DerivedRow],
-        registry: &crate::physical::SkolemRegistry,
+        source: RoundEvidence<'_>,
         values: &mut crate::physical::SchemaValues,
         lists: &mut crate::physical::LogicalListCache,
-        complete: &BTreeSet<String>,
-        observed: &BTreeSet<NativeRead>,
         round: &mut RoundCandidateBuffer,
     ) -> gmeow_errors::Result<()> {
+        let RoundEvidence {
+            snapshot,
+            rows,
+            registry,
+            complete,
+            observed,
+        } = source;
         let evidence = self.evidence.as_mut().ok_or_else(|| {
             super::seminaive_err("native execution has no admitted original source column")
         })?;
@@ -826,6 +927,51 @@ impl State {
                 .is_some_and(|class| class.completion == NativeFamilyCompletion::Exhausted)
     }
 
+    /// Why [`Self::positive_blocked`] holds: each retained obstruction it found, by
+    /// owner, kind and detail.
+    pub(super) fn blocking_obstructions(&self, producers: &[Producer]) -> Vec<String> {
+        let mut found = Vec::new();
+        if producers.contains(&Producer::Class)
+            && let Some(classes) = &self.classes
+        {
+            found.extend(
+                classes
+                    .obstructions
+                    .iter()
+                    .map(|o| format!("class: {:?}: {}", o.kind, o.detail)),
+            );
+        }
+        for admission in &self.coverage.admissions {
+            if producers.contains(&Producer::Admission(admission.family))
+                && (admission.completion != NativeFamilyCompletion::Complete
+                    || !admission.obstructions.is_empty())
+            {
+                found.push(format!(
+                    "admission {:?} ({:?}): {}",
+                    admission.family,
+                    admission.completion,
+                    admission
+                        .obstructions
+                        .iter()
+                        .map(|o| format!("{:?}: {}", o.kind, o.detail))
+                        .collect::<Vec<_>>()
+                        .join("; ")
+                ));
+            }
+        }
+        for outcome in &self.ledger.outcomes {
+            if producers.contains(&Producer::Obligation(outcome.family)) {
+                found.extend(outcome.obstructions.iter().map(|o| {
+                    format!(
+                        "obligation {:?}: {:?}: {}",
+                        outcome.family, o.kind, o.detail
+                    )
+                }));
+            }
+        }
+        found
+    }
+
     /// Any retained source/value-space obstruction can hide positive conclusions.
     /// Pure source vocabulary membership is not a family obstruction: each actual
     /// construct is interpreted by its selected native owner.
@@ -853,15 +999,18 @@ impl State {
 
     pub(super) fn finish(
         &mut self,
-        store: &crate::rule_ir::FactStore,
-        rel: &crate::physical::RelationStore,
-        rows: &[crate::rule_ir::DerivedRow],
-        registry: &crate::physical::SkolemRegistry,
+        source: FinalEvidence<'_>,
         values: &mut crate::physical::SchemaValues,
         lists: &mut crate::physical::LogicalListCache,
-        complete: &BTreeSet<String>,
-        terminal: &crate::reason::refute::native::NativeClosureStatus,
     ) -> gmeow_errors::Result<()> {
+        let FinalEvidence {
+            store,
+            rel,
+            rows,
+            registry,
+            complete,
+            terminal,
+        } = source;
         let evidence = self.evidence.as_mut().ok_or_else(|| {
             super::seminaive_err("native finalization has no original source column")
         })?;
@@ -888,6 +1037,7 @@ impl State {
                 lists,
                 &mut self.ledger,
                 &mut self.coverage,
+                self.constructor_lists.as_deref(),
             )?;
         }
         let input = input.with_admissions(&self.coverage);
@@ -1019,6 +1169,7 @@ impl State {
     pub(super) fn observe_committed(
         &mut self,
         store: &crate::rule_ir::FactStore,
+        rel: &crate::physical::RelationStore,
         rows: &[crate::rule_ir::DerivedRow],
         registry: &crate::physical::SkolemRegistry,
     ) -> gmeow_errors::Result<()> {
@@ -1027,7 +1178,8 @@ impl State {
             .ok_or_else(|| {
                 super::seminaive_err("committed observation precedes native source admission")
             })?
-            .observe_registry(store, rows, registry)
+            .observe_registry(store, rows, registry)?;
+        self.retain_governance(store, rel, rows)
     }
 
     pub(super) fn snapshot<'a>(

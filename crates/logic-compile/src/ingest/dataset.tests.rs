@@ -12,11 +12,12 @@ fn dataset(triples: &[(&str, &str, &str)]) -> std::sync::Arc<RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
     let intern = |b: &mut RdfDatasetBuilder, t: &str| -> TermId {
         if let Some(rest) = t.strip_prefix("i:") {
-            b.intern_iri(rest)
+            b.intern_iri(rest).unwrap()
         } else if let Some(rest) = t.strip_prefix("b:") {
-            b.intern_blank(rest, BlankScope::DEFAULT)
+            b.intern_blank(rest, BlankScope::DEFAULT).unwrap()
         } else if let Some(rest) = t.strip_prefix("l:") {
             b.intern_literal(purrdf::RdfLiteral::simple(rest.to_owned()))
+                .unwrap()
         } else {
             panic!("bad test term {t}")
         }
@@ -24,11 +25,11 @@ fn dataset(triples: &[(&str, &str, &str)]) -> std::sync::Arc<RdfDataset> {
     for (s, p, o) in triples {
         let s = intern(&mut b, s);
         let pid = match p.strip_prefix("i:") {
-            Some(rest) => b.intern_iri(rest),
+            Some(rest) => b.intern_iri(rest).unwrap(),
             None => panic!("predicate must be i:<iri>"),
         };
         let o = intern(&mut b, o);
-        b.push_quad(s, pid, o, None);
+        b.push_quad(s, pid, o, None).unwrap();
     }
     b.freeze().expect("freeze")
 }
@@ -110,34 +111,40 @@ fn reified_statement_and_annotation_accessors_round_trip() {
     let base = RdfTriple::new(RdfTerm::iri(&subj), pred, RdfTerm::iri(&obj));
 
     let mut b = RdfDatasetBuilder::new();
-    b.push_owned_reifier(&RdfReifier::new(reifier.clone(), base));
+    b.push_owned_reifier(&RdfReifier::new(reifier.clone(), base))
+        .unwrap();
     // An IRI annotation, two literal annotations under one predicate (multi), a typed
     // annotation (the grounding flag), and a numeric literal.
     b.push_owned_annotation(&RdfAnnotation::new(
         reifier.clone(),
         format!("{EX}justification"),
         RdfTerm::iri("https://w3id.org/semapv/vocab/ManualMappingCuration"),
-    ));
+    ))
+    .unwrap();
     b.push_owned_annotation(&RdfAnnotation::new(
         reifier.clone(),
         format!("{EX}lossyDrop"),
         RdfTerm::literal(RdfLiteral::simple("beta")),
-    ));
+    ))
+    .unwrap();
     b.push_owned_annotation(&RdfAnnotation::new(
         reifier.clone(),
         format!("{EX}lossyDrop"),
         RdfTerm::literal(RdfLiteral::simple("alpha")),
-    ));
+    ))
+    .unwrap();
     b.push_owned_annotation(&RdfAnnotation::new(
         reifier.clone(),
         format!("{EX}confidence"),
         RdfTerm::literal(RdfLiteral::simple("0.9")),
-    ));
+    ))
+    .unwrap();
     b.push_owned_annotation(&RdfAnnotation::new(
         reifier.clone(),
         RDF_TYPE,
         RdfTerm::iri(format!("{EX}GroundingCorrespondence")),
-    ));
+    ))
+    .unwrap();
     let ds = b.freeze().expect("freeze rdf-1.2 dataset");
     let v = DslView::new(&ds);
 

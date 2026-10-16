@@ -52,9 +52,11 @@ fn compact_domain_literals_preserve_complete_native_values() {
 fn rule_variables_and_question_mark_literals_remain_distinct_through_every_codec() {
     let program = parse(
         r#"
-        <urn:rule> a logic:Rule ;
-            logic:head [ rdf:subject "?s" ; rdf:predicate logic:answer ; rdf:object [ logic:termLiteral "?x" ] ] ;
-            logic:body [ rdf:subject "?s" ; rdf:predicate logic:input ; rdf:object "?x" ] .
+        _:rule8f90877aS0_s a logic:TermCarrier ; logic:termVariable "s" .
+_:rule8f90877aS0_x a logic:TermCarrier ; logic:termVariable "x" .
+<urn:rule> a logic:Rule ;
+            logic:head [ rdf:reifies <<( _:rule8f90877aS0_s logic:answer "?x" )>> ] ;
+            logic:body [ rdf:reifies <<( _:rule8f90877aS0_s logic:input _:rule8f90877aS0_x )>> ] .
     "#,
     );
     assert!(matches!(program.rules[0].head.obj, AtomicTerm::Literal(_)));
@@ -171,7 +173,9 @@ fn contradictory_rule_term_carriers_reject_the_whole_rule() {
     ] {
         let text = format!(
             r#"@prefix logic: <https://blackcatinformatics.ca/logic/> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-            <urn:r> a logic:Rule ; logic:head [ rdf:subject "?s" ; rdf:predicate logic:p ; rdf:object [{carrier}] ] ."#
+            _:subject a logic:TermCarrier ; logic:termVariable "s" .
+            _:object a logic:TermCarrier ; {carrier} .
+            <urn:r> a logic:Rule ; logic:head [ rdf:reifies <<( _:subject logic:p _:object )>> ] ."#
         );
         let (program, diagnostics) = parse_logic_str(&text, None).unwrap();
         assert!(program.rules.is_empty());
@@ -210,9 +214,11 @@ fn compact_keys_distinguish_literal_datatype_language_and_direction() {
 fn datalog_omits_whole_rules_instead_of_equating_distinct_typed_literals() {
     let program = parse(
         r#"
-        <urn:r> a logic:Rule ;
-            logic:head [ rdf:subject "?s" ; rdf:predicate logic:answer ; rdf:object "?x" ] ;
-            logic:body [ rdf:subject "?s" ; rdf:predicate logic:input ; rdf:object "01"^^<http://www.w3.org/2001/XMLSchema#integer> ] .
+        _:ruleb05935abS0_s a logic:TermCarrier ; logic:termVariable "s" .
+_:ruleb05935abS0_x a logic:TermCarrier ; logic:termVariable "x" .
+<urn:r> a logic:Rule ;
+            logic:head [ rdf:reifies <<( _:ruleb05935abS0_s logic:answer _:ruleb05935abS0_x )>> ] ;
+            logic:body [ rdf:reifies <<( _:ruleb05935abS0_s logic:input "01"^^<http://www.w3.org/2001/XMLSchema#integer> )>> ] .
     "#,
     );
     let mut loss = crate::loss_ledger::LossLedger::new();

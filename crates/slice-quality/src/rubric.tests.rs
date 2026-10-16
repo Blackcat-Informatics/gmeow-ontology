@@ -30,7 +30,7 @@ fn load(ttl: &str) -> gmeow_errors::Result<Rubric> {
     let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .map_err(|e| super::rubric_err(e.to_string()))?;
     let mut b = purrdf::RdfDatasetBuilder::new();
-    b.push_dataset(&ds);
+    b.push_dataset(&ds).unwrap();
     let frozen = b.freeze().map_err(|e| super::rubric_err(e.to_string()))?;
     load_rubric(&frozen)
 }

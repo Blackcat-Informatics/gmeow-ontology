@@ -139,13 +139,13 @@ fn without_recovery_case_envelopes_prunes_annotations_on_pruned_reifiers() {
     .in_graph(None);
 
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&seed);
-    builder.push_owned_reifier(&r1_reifier);
-    builder.push_owned_annotation(&r1_annotation);
-    builder.push_owned_reifier(&r3_reifier);
-    builder.push_owned_annotation(&r3_annotation);
-    builder.push_owned_reifier(&r2_reifier);
-    builder.push_owned_annotation(&r2_annotation);
+    builder.push_owned_quad(&seed).unwrap();
+    builder.push_owned_reifier(&r1_reifier).unwrap();
+    builder.push_owned_annotation(&r1_annotation).unwrap();
+    builder.push_owned_reifier(&r3_reifier).unwrap();
+    builder.push_owned_annotation(&r3_annotation).unwrap();
+    builder.push_owned_reifier(&r2_reifier).unwrap();
+    builder.push_owned_annotation(&r2_annotation).unwrap();
     let dataset = builder.freeze().expect("valid RDF 1.2 fixture");
 
     let edb =

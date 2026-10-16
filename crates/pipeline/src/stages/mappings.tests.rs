@@ -40,7 +40,7 @@ fn mappings_require_and_borrow_complete_native_report_inputs() {
             BTreeMap::new(),
             DatasetProvenance::new(),
         );
-        let digest = bundle.graph_digest(GRAPH_LOGIC);
+        let digest = bundle.graph_digest(GRAPH_LOGIC).unwrap();
         bundle.pin_handle(GRAPH_LOGIC, handle, digest).unwrap();
         BTreeMap::from([(
             "stage-compile-logic".into(),

@@ -32,7 +32,7 @@ fn wf_rules() -> Vec<EvalRule> {
 }
 
 fn wf_store() -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         &format!("{WF}world-game"),
         &format!("{WF}p1"),

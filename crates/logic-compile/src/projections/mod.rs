@@ -185,9 +185,12 @@ pub struct LedgerEntry {
 /// The callback is invoked once for a correspondence-bearing program, never for an
 /// empty one. Every correspondence requires its own executed verdict; a missing
 /// entry hard-fails in the gates.
+/// An executor error propagates before any artifacts or law claims are returned.
 pub fn compile_program(
     program: &LogicProgram,
-    execute_laws: impl FnOnce(&CorrespondenceProgram) -> correspondence_gates::CorrespondenceVerdicts,
+    execute_laws: impl FnOnce(
+        &CorrespondenceProgram,
+    ) -> gmeow_errors::Result<correspondence_gates::CorrespondenceVerdicts>,
 ) -> gmeow_errors::Result<CompiledArtifacts> {
     if let crate::ir::PresentationProgramIr::Refused { focus, detail, .. } = &program.presentations
     {
@@ -206,28 +209,12 @@ pub fn compile_program(
     // so they never touch the store and keep their pure signatures.
     let mut loss = crate::loss_ledger::LossLedger::new();
 
-    let owl_dl = rdf::project_owl_dl_dataset(program, &mut loss).map_err(|e| {
-        Diag::of_kind(crate::error::Projection {
-            detail: e.to_string(),
-        })
-    })?;
-    let owl_el = rdf::project_owl_el_dataset(program, &mut loss).map_err(|e| {
-        Diag::of_kind(crate::error::Projection {
-            detail: e.to_string(),
-        })
-    })?;
+    let owl_dl = rdf::project_owl_dl_dataset(program, &mut loss)?;
+    let owl_el = rdf::project_owl_el_dataset(program, &mut loss)?;
     let datalog = text::project_datalog(program, &mut loss);
     let n3 = text::project_n3(program, &mut loss);
-    let gufo = rdf::project_gufo_dataset(program, &mut loss).map_err(|e| {
-        Diag::of_kind(crate::error::Projection {
-            detail: e.to_string(),
-        })
-    })?;
-    let canonical_rdf12 = rdf::project_canonical_rdf12_dataset(program).map_err(|e| {
-        Diag::of_kind(crate::error::Projection {
-            detail: e.to_string(),
-        })
-    })?;
+    let gufo = rdf::project_gufo_dataset(program, &mut loss)?;
+    let canonical_rdf12 = rdf::project_canonical_rdf12_dataset(program)?;
     let clif = crate::clif::project_clif(program)?;
     let cgif = crate::cgif::project_cgif(program)?;
     let xcl = crate::xcl::project_xcl(program)?;
@@ -385,7 +372,7 @@ pub fn compile_program(
             .with_leg_programs(program.transaction_programs.clone())
             .with_compositions(program.correspondence_compositions.clone());
             let (derived, outcomes) = assembled.with_derived_puts()?;
-            correspondence_verdicts = execute_laws(&derived);
+            correspondence_verdicts = execute_laws(&derived)?;
             let report =
                 correspondence_gates::evaluate_gates(&derived, &[], &correspondence_verdicts);
             (Some(report), outcomes, Some(derived))
@@ -406,12 +393,7 @@ pub fn compile_program(
             None => base,
         }
     };
-    let report =
-        report::build_projection_report_from(report_header, &owned, &loss).map_err(|e| {
-            Diag::of_kind(crate::error::Projection {
-                detail: e.to_string(),
-            })
-        })?;
+    let report = report::build_projection_report_from(report_header, &owned, &loss)?;
 
     // Preservation ledger: per-target (kind, complexity, combined lossy drops), each row's
     // `lossy_drops` READ BACK from the ONE loss store `loss` — the same instance the Turtle
@@ -1042,6 +1024,17 @@ impl std::fmt::Display for OverclaimError {
 }
 
 impl std::error::Error for OverclaimError {}
+
+impl gmeow_errors::DiagKind for OverclaimError {
+    fn code(&self) -> gmeow_errors::Code {
+        crate::error::Projection::register()
+    }
+}
+
+/// Preserve the semantic refusal as a typed cause inside the shared diagnostic.
+fn overclaim(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(OverclaimError(detail))
+}
 
 /// Enforce the legalization contract for one projection: a lowering is a total function
 /// into `⟨ legal output ⊕ flagged residue ⟩` (LOGIC-IR.md § IR commitments).  Both

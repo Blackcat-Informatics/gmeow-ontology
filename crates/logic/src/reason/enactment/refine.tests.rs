@@ -4,6 +4,29 @@
 use super::{MEANS_END_PREDICATES, OperationOutcome, RefineReport, RejectionKind};
 use purrdf::RdfDataset;
 
+#[test]
+fn refinement_promotion_preserves_literal_identity_in_its_selected_world() {
+    let input = dataset(
+        "<urn:method> <urn:weight> \"01\"^^<http://www.w3.org/2001/XMLSchema#integer> ; <urn:label> \"مرحبا\"@ar--rtl .",
+    );
+    let promoted = super::promote(&input).unwrap();
+    let before: std::collections::HashSet<_> = input
+        .owned_quads()
+        .map(|quad| (quad.predicate, quad.object))
+        .collect();
+    let after: std::collections::HashSet<_> = promoted
+        .owned_quads()
+        .map(|quad| {
+            assert_eq!(
+                quad.graph_name,
+                Some(purrdf::RdfTerm::iri(super::REFINE_WORLD))
+            );
+            (quad.predicate, quad.object)
+        })
+        .collect();
+    assert_eq!(after, before);
+}
+
 /// The eleven authored means–end rules, by IRI local name.
 ///
 /// Spelled out rather than counted, because a count alone would stay green if one rule

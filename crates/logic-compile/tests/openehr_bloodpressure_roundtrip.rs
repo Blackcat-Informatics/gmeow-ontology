@@ -275,7 +275,8 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
         .expect("native parse of the minted measuredValue leaves");
 
     // u(d(S)): union the re-lifted RM values with the parsed complement, canonicalize.
-    let reconstructed = RdfDataset::union(&[complement_ds.as_ref(), minted_ds.as_ref()]);
+    let reconstructed = RdfDataset::union(&[complement_ds.as_ref(), minted_ds.as_ref()])
+        .expect("the synthetic reconstructed graph must union successfully");
     let reconstructed_canon = purrdf::canonicalize(&reconstructed).nquads;
 
     // The golden: the standalone canonical source object S.

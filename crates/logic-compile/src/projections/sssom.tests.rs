@@ -428,29 +428,52 @@ logic:Individual skos:closeMatch gufo:Individual {{|
 fn native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries() {
     use purrdf::{BlankScope, RdfDatasetBuilder, RdfLiteral, TermRef};
     let mut builder = RdfDatasetBuilder::new();
-    let predicate = builder.intern_iri("http://www.w3.org/2004/02/skos/core#closeMatch");
-    let object = builder.intern_iri("https://schema.org/Thing");
-    let file = builder.intern_iri(GM_SSSOM_FILE);
-    let confidence = builder.intern_iri(GM_CONFIDENCE);
-    let loss = builder.intern_iri(GM_LOSSY_DROP);
-    let graph = builder.intern_iri("https://example.org/otherGraph");
+    let predicate = builder
+        .intern_iri("http://www.w3.org/2004/02/skos/core#closeMatch")
+        .unwrap();
+    let object = builder.intern_iri("https://schema.org/Thing").unwrap();
+    let file = builder.intern_iri(GM_SSSOM_FILE).unwrap();
+    let confidence = builder.intern_iri(GM_CONFIDENCE).unwrap();
+    let loss = builder.intern_iri(GM_LOSSY_DROP).unwrap();
+    let preservation = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/preservationKind")
+        .unwrap();
+    let under_approximation = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/SoundUnderApproximation")
+        .unwrap();
+    let graph = builder
+        .intern_iri("https://example.org/otherGraph")
+        .unwrap();
     for (scope, name, score) in [(11, "Alpha", "0.25"), (12, "Bravo", "0.75")] {
-        let subject = builder.intern_iri(&format!("{GMEOW}{name}"));
-        let reifier = builder.intern_blank("cell", BlankScope(scope));
-        let statement = builder.intern_triple(subject, predicate, object);
-        builder.push_reifier(reifier, statement);
-        let target = builder.intern_literal(RdfLiteral::simple(format!("{name}.sssom.tsv")));
-        builder.push_annotation(reifier, file, target);
-        builder.push_quad(reifier, file, target, None);
-        let other = builder.intern_literal(RdfLiteral::simple("wrong.sssom.tsv"));
-        builder.push_annotation_in_graph(reifier, file, other, Some(graph));
-        let score = builder.intern_literal(RdfLiteral::typed(
-            score,
-            "http://www.w3.org/2001/XMLSchema#decimal",
-        ));
-        builder.push_annotation(reifier, confidence, score);
-        let loss_value = builder.intern_literal(RdfLiteral::simple(format!("loss-of-{name}")));
-        builder.push_annotation(reifier, loss, loss_value);
+        let subject = builder.intern_iri(&format!("{GMEOW}{name}")).unwrap();
+        let reifier = builder.intern_blank("cell", BlankScope(scope)).unwrap();
+        let statement = builder.intern_triple(subject, predicate, object).unwrap();
+        builder.push_reifier(reifier, statement).unwrap();
+        let target = builder
+            .intern_literal(RdfLiteral::simple(format!("{name}.sssom.tsv")))
+            .unwrap();
+        builder.push_annotation(reifier, file, target).unwrap();
+        builder.push_quad(reifier, file, target, None).unwrap();
+        let other = builder
+            .intern_literal(RdfLiteral::simple("wrong.sssom.tsv"))
+            .unwrap();
+        builder
+            .push_annotation_in_graph(reifier, file, other, Some(graph))
+            .unwrap();
+        let score = builder
+            .intern_literal(RdfLiteral::typed(
+                score,
+                "http://www.w3.org/2001/XMLSchema#decimal",
+            ))
+            .unwrap();
+        builder.push_annotation(reifier, confidence, score).unwrap();
+        let loss_value = builder
+            .intern_literal(RdfLiteral::simple(format!("loss-of-{name}")))
+            .unwrap();
+        builder.push_annotation(reifier, loss, loss_value).unwrap();
+        builder
+            .push_annotation(reifier, preservation, under_approximation)
+            .unwrap();
     }
     let dataset = builder.freeze().unwrap();
     let view = DslView::new(&dataset);
@@ -494,19 +517,16 @@ fn native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries() {
         crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)
             .unwrap();
     assert_eq!(program.correspondences.len(), 2);
+    assert!(program.correspondences.iter().all(|correspondence| {
+        correspondence.preservation == Some(crate::ir::PreservationKind::SoundUnder)
+    }));
     assert_eq!(
         program.correspondences[0].loss_evidence,
-        vec![RdfLiteral::typed(
-            "loss-of-Alpha",
-            "http://www.w3.org/2001/XMLSchema#string"
-        )]
+        vec![RdfLiteral::simple("loss-of-Alpha")]
     );
     assert_eq!(
         program.correspondences[1].loss_evidence,
-        vec![RdfLiteral::typed(
-            "loss-of-Bravo",
-            "http://www.w3.org/2001/XMLSchema#string"
-        )]
+        vec![RdfLiteral::simple("loss-of-Bravo")]
     );
 }
 

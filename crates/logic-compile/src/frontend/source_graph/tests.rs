@@ -243,21 +243,34 @@ fn conflicting_term_fields_retain_the_original_formula_anchor() {
 #[test]
 fn native_statement_layer_keeps_reifier_module_and_standpoint_without_flattening() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let s = builder.intern_iri("https://example.org/s");
-    let p = builder.intern_iri("https://blackcatinformatics.ca/logic/subClassOf");
-    let o = builder.intern_iri("https://example.org/o");
-    builder.push_quad(s, p, o, None);
-    let triple = builder.intern_triple(s, p, o);
-    let reifier = builder.intern_blank("claim", purrdf::BlankScope(7));
-    let graph = builder.intern_iri("https://example.org/world");
-    let module_predicate = builder.intern_iri("https://blackcatinformatics.ca/logic/inModule");
-    let standpoint_predicate =
-        builder.intern_iri("https://blackcatinformatics.ca/logic/standpoint");
-    let module = builder.intern_iri("https://example.org/theory");
-    let observer = builder.intern_iri("https://example.org/observer");
-    builder.push_reifier_in_graph(reifier, triple, Some(graph));
-    builder.push_annotation_in_graph(reifier, module_predicate, module, Some(graph));
-    builder.push_annotation_in_graph(reifier, standpoint_predicate, observer, Some(graph));
+    let s = builder.intern_iri("https://example.org/s").unwrap();
+    let p = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/subClassOf")
+        .unwrap();
+    let o = builder.intern_iri("https://example.org/o").unwrap();
+    builder.push_quad(s, p, o, None).unwrap();
+    let triple = builder.intern_triple(s, p, o).unwrap();
+    let reifier = builder
+        .intern_blank("claim", purrdf::BlankScope(7))
+        .unwrap();
+    let graph = builder.intern_iri("https://example.org/world").unwrap();
+    let module_predicate = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/inModule")
+        .unwrap();
+    let standpoint_predicate = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/standpoint")
+        .unwrap();
+    let module = builder.intern_iri("https://example.org/theory").unwrap();
+    let observer = builder.intern_iri("https://example.org/observer").unwrap();
+    builder
+        .push_reifier_in_graph(reifier, triple, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(reifier, module_predicate, module, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(reifier, standpoint_predicate, observer, Some(graph))
+        .unwrap();
     let source = builder.freeze().unwrap();
     let prepared = PreparedLogicSource::new(&source).unwrap();
     let source_node = SourceNode {
@@ -306,11 +319,15 @@ fn native_statement_layer_keeps_reifier_module_and_standpoint_without_flattening
 #[test]
 fn one_invalid_use_in_two_native_carriers_is_one_defect_with_both_origins() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let owner = builder.intern_iri("https://example.org/undeclared");
-    let predicate = builder.intern_iri("https://blackcatinformatics.ca/logic/integrity");
-    let formula = builder.intern_iri("https://example.org/law");
-    builder.push_quad(owner, predicate, formula, None);
-    builder.push_annotation(owner, predicate, formula);
+    let owner = builder
+        .intern_iri("https://example.org/undeclared")
+        .unwrap();
+    let predicate = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/integrity")
+        .unwrap();
+    let formula = builder.intern_iri("https://example.org/law").unwrap();
+    builder.push_quad(owner, predicate, formula, None).unwrap();
+    builder.push_annotation(owner, predicate, formula).unwrap();
     let dataset = builder.freeze().unwrap();
     let graph = StructuralSourceGraph::new(&dataset);
     assert_eq!(

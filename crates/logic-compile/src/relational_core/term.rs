@@ -15,7 +15,7 @@ pub(super) fn error(detail: impl std::fmt::Display) -> gmeow_errors::Diag {
 
 pub(super) fn iri(builder: &mut RdfDatasetBuilder, value: &str) -> gmeow_errors::Result<TermId> {
     purrdf::iri::BaseIri::parse(value).map_err(error)?;
-    Ok(builder.intern_iri(value))
+    Ok(builder.intern_iri(value)?)
 }
 
 fn payload(
@@ -23,17 +23,17 @@ fn payload(
     term: &RcTerm,
 ) -> gmeow_errors::Result<(&'static str, TermId)> {
     match term {
-        RcTerm::Blank(label) => Ok(("blank", builder.intern_blank(label, BlankScope::DEFAULT))),
+        RcTerm::Blank(label) => Ok(("blank", builder.intern_blank(label, BlankScope::DEFAULT)?)),
         RcTerm::Iri(value) => Ok(("rcIri", iri(builder, value)?)),
         RcTerm::Var(name) => Ok((
             "rcVariable",
-            builder.intern_literal(RdfLiteral::simple(name)),
+            builder.intern_literal(RdfLiteral::simple(name))?,
         )),
         RcTerm::Literal(value) => {
             let mut value = value.clone();
             crate::ir::literal_serde::normalize(&mut value).map_err(error)?;
             purrdf::iri::BaseIri::parse(value.datatype_iri()).map_err(error)?;
-            Ok(("rcLiteral", builder.intern_literal(value)))
+            Ok(("rcLiteral", builder.intern_literal(value)?))
         }
     }
 }
@@ -48,9 +48,9 @@ pub(super) fn encode(
     if kind == "blank" {
         return Ok(value);
     }
-    let carrier = builder.intern_iri(&format!("{LOGIC_NAMESPACE}RelationalCoreTerm"));
-    let predicate = builder.intern_iri(&format!("{LOGIC_NAMESPACE}{kind}"));
-    Ok(builder.intern_triple(carrier, predicate, value))
+    let carrier = builder.intern_iri(&format!("{LOGIC_NAMESPACE}RelationalCoreTerm"))?;
+    let predicate = builder.intern_iri(&format!("{LOGIC_NAMESPACE}{kind}"))?;
+    Ok(builder.intern_triple(carrier, predicate, value)?)
 }
 
 /// Public projection uses typed term records compatible with GTS native tables.
@@ -66,12 +66,12 @@ pub(super) fn project(
     let record = builder.intern_iri(&format!(
         "{LOGIC_NAMESPACE}relational-core/term/{}",
         super::sha256_hex(&term.key())
-    ));
-    let class = builder.intern_iri(&format!("{LOGIC_NAMESPACE}RelationalCoreTerm"));
-    let rdf_type = builder.intern_iri(super::RDF_TYPE);
-    let predicate = builder.intern_iri(&format!("{LOGIC_NAMESPACE}{kind}"));
-    builder.push_quad(record, rdf_type, class, None);
-    builder.push_quad(record, predicate, value, None);
+    ))?;
+    let class = builder.intern_iri(&format!("{LOGIC_NAMESPACE}RelationalCoreTerm"))?;
+    let rdf_type = builder.intern_iri(super::RDF_TYPE)?;
+    let predicate = builder.intern_iri(&format!("{LOGIC_NAMESPACE}{kind}"))?;
+    builder.push_quad(record, rdf_type, class, None)?;
+    builder.push_quad(record, predicate, value, None)?;
     Ok(record)
 }
 

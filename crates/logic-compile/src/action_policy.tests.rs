@@ -30,10 +30,12 @@ fn tiny_source(extra: Option<RdfQuad>) -> Arc<RdfDataset> {
             RdfTerm::Literal(RdfLiteral::simple("a synthetic comment")),
         ),
     ] {
-        builder.push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object));
+        builder
+            .push_owned_quad(&RdfQuad::new(subject.clone(), predicate, object))
+            .unwrap();
     }
     if let Some(quad) = extra {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder
         .freeze()

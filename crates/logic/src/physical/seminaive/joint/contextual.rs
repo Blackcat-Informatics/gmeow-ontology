@@ -95,7 +95,7 @@ pub(super) fn publish(
         }
         world
             .family
-            .observe_committed(&world.store, &world.rows, registry)?;
+            .observe_committed(&world.store, &world.rel, &world.rows, registry)?;
         world.native_snapshot()?.retain_contextual(&receipt)?;
         world.family.index_proofs();
     }

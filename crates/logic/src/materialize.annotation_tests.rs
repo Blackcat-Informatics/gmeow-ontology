@@ -19,9 +19,11 @@ const Y: &str = "https://example.org/y";
 
 fn dataset() -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri(Y)).in_graph(RdfTerm::iri(WORLD)),
-    );
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(X), EDGE, RdfTerm::iri(Y)).in_graph(RdfTerm::iri(WORLD)),
+        )
+        .unwrap();
     builder.freeze().expect("valid annotation test dataset")
 }
 

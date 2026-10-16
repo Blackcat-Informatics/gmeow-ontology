@@ -33,6 +33,7 @@ pub(super) struct ProgramClosure {
     pub(super) witnesses: Vec<crate::physical::WitnessDerivation>,
     pub(super) selected_domains: crate::physical::SelectedDomains,
     pub(super) input_contract: [u8; 32],
+    pub(super) reachability: crate::obligations::ReachabilityEvidence,
     pub(super) graphs: WorldGraphs,
     pub(super) native_families: Vec<super::refute::native::NativeFamilyLedger>,
     pub(super) source_coverage: super::dl::SourceCoverageObservation,
@@ -583,6 +584,16 @@ pub(super) fn execute_transaction(
         "reason phase boundary",
     );
     let sources = sources.prepare()?;
+    // Retain each world's authored existential program for its own published
+    // termination certificate, independently of the joint execution admission.
+    let mut world_programs: BTreeMap<String, Vec<crate::physical::ExistentialRule>> =
+        BTreeMap::new();
+    for source in sources.rules.iter() {
+        world_programs
+            .entry(source.world.clone())
+            .or_default()
+            .push(source.rule.clone());
+    }
     let selected_potential: Vec<_> = possible.iter().chain(potential).cloned().collect();
     let properties = applicable_schema_laws(
         prepared,
@@ -679,6 +690,13 @@ pub(super) fn execute_transaction(
         elapsed_ms = planning_started.elapsed().as_millis(),
         "reason phase boundary",
     );
+    let writers = graphs
+        .keys()
+        .map(|world| Ok((world.clone(), admitted_input.writer_inventory(world)?)))
+        .collect::<gmeow_errors::Result<BTreeMap<_, _>>>()?;
+    let reachability = crate::obligations::ReachabilityEvidence::Program(Box::new(
+        crate::obligations::ProgramReachability::new(prepared, input_contract, writers),
+    ));
     let mut governor = crate::physical::StepGovernor::new(max_steps);
     let mut registry = crate::physical::SkolemRegistry::new();
     let materialize_started = Instant::now();
@@ -730,7 +748,15 @@ pub(super) fn execute_transaction(
         event = "start",
         "reason phase boundary",
     );
-    let result = publish(result, input_contract, graphs, domains, &program.admission)?;
+    let result = publish(
+        result,
+        input_contract,
+        graphs,
+        domains,
+        &program.admission,
+        &world_programs,
+        reachability,
+    )?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -751,7 +777,7 @@ pub(super) enum ClassDiagnosticRun {
         admission: super::refute::ClassAdmissionObservation,
     },
     Executed {
-        closure: ProgramClosure,
+        closure: Box<ProgramClosure>,
     },
 }
 
@@ -794,13 +820,15 @@ pub(super) fn class_diagnostic(
         ));
     };
     Ok(ClassDiagnosticRun::Executed {
-        closure: publish(
+        closure: Box::new(publish(
             result,
             input_contract,
             input.graphs,
             domains,
             &program.admission,
-        )?,
+            &BTreeMap::new(),
+            crate::obligations::ReachabilityEvidence::ClassDiagnostic,
+        )?),
     })
 }
 
@@ -810,6 +838,8 @@ fn publish(
     graphs: WorldGraphs,
     domains: &crate::physical::SelectedDomains,
     admission: &crate::physical::ChaseAdmission,
+    world_programs: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
+    reachability: crate::obligations::ReachabilityEvidence,
 ) -> gmeow_errors::Result<ProgramClosure> {
     let JointMaterialization {
         result,
@@ -832,7 +862,11 @@ fn publish(
         .map(|world| ChaseCertificate {
             world: world.clone(),
             input_contract,
-            admission: admission.clone(),
+            admission: world_programs
+                .get(world)
+                .map(|rules| crate::physical::ChaseAdmission::certify(rules))
+                .filter(crate::physical::ChaseAdmission::admits_native)
+                .unwrap_or_else(|| admission.clone()),
         })
         .collect();
     let inferred: Vec<_> = result
@@ -884,6 +918,7 @@ fn publish(
         selected_domains: domains.clone(),
         input_contract,
         graphs,
+        reachability,
         native_families,
         source_coverage: super::dl::SourceCoverageObservation {
             input_contract,

@@ -1,25 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Executable typed-formalization-governance checks over the reasoned graph.
+//! Executable typed-formalization governance over retained native worlds.
 //!
 //! Makes `design/LOGIC-FOUNDATION.md` §Typed formalization governance executable:
 //!
 //! * **Non-entailment obligations** — every `logic:NonEntailmentObligation` names a
-//!   forbidden predicate the foundation must never derive, checked by two arms:
-//!   - **Arm A — syntactic reachability** ([`foundation::head_predicate_iris`]): a
-//!     forbidden predicate that is no rule head is unreachable and the obligation is
-//!     `logic:ObligationDischarged`; a matching head prevents this discharge but is
-//!     not a witnessed derivation. It remains `logic:ObligationUnknown`.
-//!   - **Arm B — finite closure**: an obligation declaring
-//!     `logic:DischargeFiniteClosure` is checked against the *derived* (non-EDB) edge
-//!     set of the materialized closure — if its forbidden predicate was *derived*, the
-//!     obligation is violated. This deliberately inspects only DERIVED edges, so an
-//!     asserted, properly-attributed fact (e.g. a `gmeow:deceptiveIntentClaim` an
-//!     assessor stated) is never mistaken for an entailed one. (A predicate with a
-//!     legitimate derivation — e.g. the symmetric `gmeow:counterpartOf` — therefore
-//!     does NOT use this arm; its transitive-specific finite-closure check is the
-//!     `queries/verify/non-entailment-counterpart.rq` negative test in [`crate::verify`].)
+//!   forbidden predicate under the selected canonical program and native calculus.
+//!   Syntactic reachability reuses compiled flow metadata, retaining authored heads
+//!   even when their bodies have not fired and conservatively propagating native
+//!   schema effects. Possible writers prevent this proof but never invent a violation.
+//!   A selected certified complete finite closure is an alternative absence proof.
+//!   An actual committed derived counterexample violates the obligation regardless
+//!   of the selected negative-proof arm. Asserted edges never count as derivations.
 //!
 //!   An obligation declaring a discharge condition the engine does not wire (anything
 //!   other than syntactic-reachability or finite-closure) is a hard error, never a
@@ -37,8 +30,9 @@
 //!   reported per category (never one global %). A candidate with no closed-set
 //!   category is a hard error (fail-fast), never a silently dropped row.
 //!
-//! Both run native over the reasoned `Arc<RdfDataset>` the verify pass already
-//! builds — Rust authority, surfaced through the already-wired `make verify` gate.
+//! Non-entailment consumes exact program/input/engine/world evidence, with a small
+//! typed governance view per world. Query coverage and prose drift consume the
+//! verifier's presentation graph. Neither recompiles the selected program.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
@@ -50,7 +44,17 @@ use sha2::{Digest, Sha256};
 
 use gmeow_errors::{Finding, Severity};
 
+#[cfg(test)]
 use crate::foundation;
+
+mod reachability;
+pub use reachability::{ProgramReachability, ReachabilityEvidence};
+mod assessment;
+pub(crate) use assessment::governance_statement;
+pub use assessment::{
+    ObligationAssessment, ObligationDisposition, ObligationOutcome,
+    assess_non_entailment_obligations, check_non_entailment_obligations,
+};
 
 /// Wrap a governance-obligation condition message as a typed diagnostic on the
 /// shared substrate, preserving the authored text verbatim.
@@ -321,7 +325,7 @@ fn candidates_by_obligation(
 /// whether its body is satisfied requires evaluation and cannot be inferred here.
 fn check_reachability(
     obligation: &Obligation,
-    heads: &BTreeSet<String>,
+    may_write: bool,
     candidates_by_obligation: &BTreeMap<String, BTreeSet<String>>,
 ) -> Option<Finding> {
     if !obligation
@@ -330,7 +334,7 @@ fn check_reachability(
     {
         return None;
     }
-    if heads.contains(&obligation.forbidden_predicate) {
+    if may_write {
         let mut finding = Finding::new(
             Severity::Error,
             "verify.non-entailment.not-discharged",
@@ -352,8 +356,8 @@ fn check_reachability(
     None
 }
 
-/// Arm B — finite closure. For an obligation declaring `logic:DischargeFiniteClosure`,
-/// returns a violation finding iff its forbidden predicate appears among the DERIVED
+/// Positive counterexample shared by both arms: returns a violation finding iff
+/// the forbidden predicate appears among the DERIVED
 /// (non-EDB) edges of the materialized closure. Asserted edges are excluded by
 /// construction, so an attributed, hand-asserted fact never trips this — only an
 /// entailed one does.
@@ -362,12 +366,6 @@ fn check_finite_closure(
     derived_predicates: &BTreeSet<String>,
     candidates_by_obligation: &BTreeMap<String, BTreeSet<String>>,
 ) -> Option<Finding> {
-    if !obligation
-        .discharge_conditions
-        .contains("DischargeFiniteClosure")
-    {
-        return None;
-    }
     if derived_predicates.contains(&obligation.forbidden_predicate) {
         let mut finding = Finding::new(
             Severity::Error,
@@ -426,62 +424,6 @@ fn check_discharge_conditions(obligation: &Obligation) -> Vec<Finding> {
         }
     }
     findings
-}
-
-/// Run the executable non-entailment obligation checks over the reasoned store:
-/// Arm A (syntactic reachability over the foundation rule strata), Arm B (finite
-/// closure over the `derived_predicates` — the predicate IRIs of the materialized
-/// closure's DERIVED, non-EDB edges), and the unwired-discharge hard error. Findings
-/// are sorted by code+message for determinism.
-///
-/// # Errors
-///
-/// Returns `Err` if an obligation or candidate reference has malformed required
-/// fields. Declarations are discovered before their fields are validated.
-pub fn check_non_entailment_obligations(
-    store: &Arc<RdfDataset>,
-    derived_predicates: &BTreeSet<String>,
-) -> gmeow_errors::Result<Vec<Finding>> {
-    let obligations = parse_obligations(store)?;
-    let heads = foundation::head_predicate_iris();
-    let candidates_by_obligation = candidates_by_obligation(store)?;
-    let mut findings = Vec::new();
-    for obligation in &obligations {
-        findings.extend(check_discharge_conditions(obligation));
-        // Discharge conditions are alternative sufficient proofs. A complete finite
-        // closure can decide a predicate whose head is syntactically reachable; its
-        // absence of a firing must not be replaced with an unknown from the weaker arm.
-        if !obligation
-            .discharge_conditions
-            .contains("DischargeFiniteClosure")
-            && let Some(unresolved) =
-                check_reachability(obligation, &heads, &candidates_by_obligation)
-        {
-            findings.push(unresolved);
-        }
-        if let Some(violation) =
-            check_finite_closure(obligation, derived_predicates, &candidates_by_obligation)
-        {
-            findings.push(violation);
-        }
-    }
-    let mut inventory = Finding::new(
-        Severity::Note,
-        "verify.non-entailment.inventory",
-        format!(
-            "discovered and checked {} distinct non-entailment obligation(s) in the selected default graph",
-            obligations.len()
-        ),
-    )
-    .with_tool("verify");
-    inventory.cited_iris = obligations
-        .iter()
-        .filter(|obligation| !obligation.iri.starts_with("_:"))
-        .map(|obligation| obligation.iri.clone())
-        .collect();
-    findings.push(inventory);
-    findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
-    Ok(findings)
 }
 
 /// The eleven closed `logic:FormalizationCategory` local names, in lifecycle-narrative
@@ -942,3 +884,6 @@ pub fn check_advice_message_prose_binding(
 #[path = "obligations.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod program_tests;

@@ -246,7 +246,7 @@ fn typed_refutation_transport_keeps_native_source_and_context_proofs() {
             ] {
                 let mut row = RdfQuad::new(s, p, o);
                 row.graph_name = graph.clone();
-                builder.push_owned_quad(&row);
+                builder.push_owned_quad(&row).unwrap();
             }
             let source = builder.freeze().unwrap();
             let certificate = casesplit::decide(source.as_ref()).expect("selected complement");
@@ -297,6 +297,7 @@ fn entangled_cardinality_and_existential_share_native_proofs_and_budget() {
     use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
     const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+    const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
     const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
     const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
     const OWL_MIN_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#minCardinality";
@@ -313,6 +314,8 @@ fn entangled_cardinality_and_existential_share_native_proofs_and_budget() {
     for q in [
         // A populated class C with a min-1 cardinality restriction on p …
         iri_q("http://ex/C", RDF_TYPE, OWL_CLASS),
+        // Unqualified and someValuesFrom object witnesses require this role.
+        iri_q("http://ex/p", RDF_TYPE, OWL_OBJECT_PROPERTY),
         iri_q("http://ex/i", RDF_TYPE, "http://ex/C"),
         iri_q("http://ex/C", RDFS_SUBCLASSOF, "http://ex/r1"),
         iri_q("http://ex/r1", RDF_TYPE, OWL_RESTRICTION),
@@ -323,7 +326,7 @@ fn entangled_cardinality_and_existential_share_native_proofs_and_budget() {
         iri_q("http://ex/r2", OWL_ON_PROPERTY, "http://ex/p"),
         iri_q("http://ex/r2", OWL_SOME_VALUES_FROM, "http://ex/D"),
     ] {
-        b.push_owned_quad(&q);
+        b.push_owned_quad(&q).unwrap();
     }
     b.push_owned_quad(
         &RdfQuad::new(
@@ -332,7 +335,8 @@ fn entangled_cardinality_and_existential_share_native_proofs_and_budget() {
             RdfTerm::Literal(RdfLiteral::typed("1", XSD_NNI)),
         )
         .in_graph(RdfTerm::iri(W)),
-    );
+    )
+    .unwrap();
     let edb = b.freeze().expect("freeze the entangled edb");
 
     // This explicit synthetic operation selects each authored source context as
@@ -405,8 +409,7 @@ fn entangled_cardinality_and_existential_share_native_proofs_and_budget() {
                         && edge.statement.predicate == "http://ex/p"
                         && witness.heads.iter().any(|membership| {
                             membership.statement.subject == edge.statement.object
-                                && membership.statement.predicate
-                                    == "https://blackcatinformatics.ca/logic/instanceOf"
+                                && membership.statement.predicate == RDF_TYPE
                                 && membership.statement.object
                                     == purrdf::TermValue::iri("http://ex/D")
                         })
@@ -429,7 +432,7 @@ fn entangled_cardinality_and_existential_share_native_proofs_and_budget() {
             .heads
             .iter()
             .any(|head| head.statement.subject == edge.statement.object
-                && head.statement.predicate == "https://blackcatinformatics.ca/logic/instanceOf"
+                && head.statement.predicate == RDF_TYPE
                 && head.statement.object == purrdf::TermValue::iri("http://ex/D"))
     );
 
@@ -615,7 +618,9 @@ fn combined_source_refusals_preserve_invalid_and_unsupported_grades() {
             )),
         ),
     ] {
-        builder.push_owned_quad(&row.in_graph(RdfTerm::iri(WORLD)));
+        builder
+            .push_owned_quad(&row.in_graph(RdfTerm::iri(WORLD)))
+            .unwrap();
     }
     let source = builder.freeze().unwrap();
     let prepared = PreparedClassAnalysis::new(source.as_ref()).unwrap();

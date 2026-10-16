@@ -11,20 +11,36 @@ use super::{ENACTMENT_GATE_WORLD, RDF_TYPE, promote_to_single_world};
 fn enactment_gate_routes_native_lease_class_without_widening_the_law_domain() {
     let lease_class = "https://blackcatinformatics.ca/logic/ResourceLease";
     let mut builder = RdfDatasetBuilder::new();
-    let lease = builder.intern_iri("urn:enactment:lease");
-    let other = builder.intern_iri("urn:enactment:unrelated-record");
-    let relation = builder.intern_iri("urn:enactment:asserted-relation");
-    let statement = builder.intern_triple(lease, relation, lease);
-    let graph = builder.intern_iri("urn:enactment:source-world");
-    let rdf_type = builder.intern_iri(RDF_TYPE);
-    let class = builder.intern_iri(lease_class);
-    let other_class = builder.intern_iri("urn:enactment:unrelated-class");
-    let according_to = builder.intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo");
-    builder.push_reifier_in_graph(lease, statement, Some(graph));
-    builder.push_reifier_in_graph(other, statement, Some(graph));
-    builder.push_annotation_in_graph(lease, rdf_type, class, Some(graph));
-    builder.push_annotation_in_graph(other, rdf_type, other_class, Some(graph));
-    builder.push_annotation_in_graph(lease, according_to, graph, Some(graph));
+    let lease = builder.intern_iri("urn:enactment:lease").unwrap();
+    let other = builder
+        .intern_iri("urn:enactment:unrelated-record")
+        .unwrap();
+    let relation = builder
+        .intern_iri("urn:enactment:asserted-relation")
+        .unwrap();
+    let statement = builder.intern_triple(lease, relation, lease).unwrap();
+    let graph = builder.intern_iri("urn:enactment:source-world").unwrap();
+    let rdf_type = builder.intern_iri(RDF_TYPE).unwrap();
+    let class = builder.intern_iri(lease_class).unwrap();
+    let other_class = builder.intern_iri("urn:enactment:unrelated-class").unwrap();
+    let according_to = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo")
+        .unwrap();
+    builder
+        .push_reifier_in_graph(lease, statement, Some(graph))
+        .unwrap();
+    builder
+        .push_reifier_in_graph(other, statement, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(lease, rdf_type, class, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(other, rdf_type, other_class, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(lease, according_to, graph, Some(graph))
+        .unwrap();
     let source = builder.freeze().unwrap();
     assert_eq!(source.quad_count(), 0);
     let output = promote_to_single_world(

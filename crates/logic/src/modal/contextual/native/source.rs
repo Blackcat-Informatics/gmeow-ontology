@@ -118,7 +118,7 @@ impl SourceView {
                     "contextual source term inventory exceeds native IDs",
                 ))
             })?;
-        let id = TermId::from_index(index);
+        let id = TermId::from_index(index)?;
         self.ids.insert(value.clone(), id);
         self.values.push(value.clone());
         Ok(id)

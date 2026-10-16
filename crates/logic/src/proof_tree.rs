@@ -485,14 +485,14 @@ pub fn prove_reasoning_program(
         verdict_probes: _,
     } = built;
     let goal = render(&dag, fol.goal);
-    // `resolve_fol` returns a `FolControl` directly (no `Result`); grounding runs under the same
-    // determinism-preserving budget the flattened lane uses.
+    // Grounding uses the flattened lane's existing deterministic budget.
+    // Propagate native storage failures before interpreting the logical outcome.
     let outcome = match resolve_fol(
         &mut dag,
         &fol,
         &ctx,
         &crate::goal_directed::GROUNDING_BUDGET,
-    ) {
+    )? {
         FolControl::Decided(outcome) => outcome,
         FolControl::Unsupported(kind) => {
             return Err(tree_err(format!(

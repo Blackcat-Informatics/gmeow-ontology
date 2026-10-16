@@ -440,16 +440,18 @@ fn multi_graph_dataset(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
         panic!("generated math: Turtle must parse: {e}\n\n--- generated Turtle ---\n{ttl}")
     });
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    builder.push_dataset(&single);
+    builder.push_dataset(&single).unwrap();
     for quad in single.owned_quads() {
-        builder.push_owned_quad(
-            &purrdf::RdfQuad::new(
-                quad.subject.clone(),
-                quad.predicate.clone(),
-                quad.object.clone(),
+        builder
+            .push_owned_quad(
+                &purrdf::RdfQuad::new(
+                    quad.subject.clone(),
+                    quad.predicate.clone(),
+                    quad.object.clone(),
+                )
+                .in_graph(purrdf::RdfTerm::iri(PROBE_GRAPH)),
             )
-            .in_graph(purrdf::RdfTerm::iri(PROBE_GRAPH)),
-        );
+            .unwrap();
     }
     builder
         .freeze()

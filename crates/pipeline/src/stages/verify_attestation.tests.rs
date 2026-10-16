@@ -31,6 +31,7 @@ fn fixture() -> (Arc<RdfDataset>, gmeow_logic::result::ReasoningResult) {
 fn assessments(dataset: &RdfDataset) -> usize {
     dataset
         .project_named_graph(crate::stages::carrier::GRAPH_VERIFY)
+        .unwrap()
         .owned_quads()
         .filter(|quad| {
             quad.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"

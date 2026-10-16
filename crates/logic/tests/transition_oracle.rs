@@ -26,7 +26,7 @@ const NEW_OBJECT: &str = "https://example.org/value/current";
 
 #[test]
 fn elementary_transition_materializes_successor_and_retirement_provenance() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, SUBJECT, PREDICATE, OLD_OBJECT);
 
     let old_fact =

@@ -56,7 +56,8 @@ fn compiler_records_only_each_cells_actual_losses_and_context() {
     let program = LogicProgram::new(vec![], vec![], vec![], None)
         .with_correspondences(vec![first.clone(), second.clone()])
         .unwrap();
-    let artifacts = crate::projections::compile_program(&program, |_| Default::default()).unwrap();
+    let artifacts =
+        crate::projections::compile_program(&program, |_| Ok(Default::default())).unwrap();
     let rows: Vec<_> = artifacts
         .logic_projections
         .iter()

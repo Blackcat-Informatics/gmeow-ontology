@@ -275,10 +275,11 @@ fn select_profiles(
     controller: bool,
 ) {
     profiles.retain(|name, _| selected.contains(name) || (controller && name == "dev"));
-    if controller && !selected.contains("dev") {
-        if let Some(dev) = profiles.get_mut("dev") {
-            retain_controller_cfg(dev);
-        }
+    if controller
+        && !selected.contains("dev")
+        && let Some(dev) = profiles.get_mut("dev")
+    {
+        retain_controller_cfg(dev);
     }
 }
 fn retain_controller_cfg(value: &mut toml::Value) {
@@ -334,6 +335,23 @@ fn selected_inherited(
             selected_inherited(value, names, inherited);
         }
     }
+}
+
+/// Declared macro capability names for a portable source-policy traversal, not
+/// a selected Cargo feature/dependency identity. Every target branch is retained.
+pub(crate) fn declared_dependency_names(value: &toml::Value) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    for key in ["dependencies", "build-dependencies"] {
+        if let Some(dependencies) = value.get(key).and_then(toml::Value::as_table) {
+            names.extend(dependencies.keys().map(|name| name.replace('-', "_")));
+        }
+    }
+    if let Some(targets) = value.get("target").and_then(toml::Value::as_table) {
+        for target in targets.values() {
+            names.extend(declared_dependency_names(target));
+        }
+    }
+    names
 }
 
 /// Inspect declared local dependency ownership for structural controls. This is

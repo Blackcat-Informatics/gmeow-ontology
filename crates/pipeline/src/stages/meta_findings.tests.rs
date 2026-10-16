@@ -30,8 +30,8 @@ fn native_meta_projection_appends_one_symmetric_witness_and_keeps_source_rows() 
         "https://example.org/source",
         RdfTerm::iri(&root),
     );
-    builder.push_owned_quad(&source);
-    derivation.append_to(&mut builder, graph);
+    builder.push_owned_quad(&source).unwrap();
+    derivation.append_to(&mut builder, graph).unwrap();
     let dataset = builder.freeze().unwrap();
     let rows: Vec<_> = dataset.owned_quads().collect();
     assert_eq!(
@@ -81,9 +81,9 @@ fn tiny_theory(extra: &str) -> CompiledTheory {
             @prefix ex: <https://example.org/> .
             ex:selected a logic:Rule, gmeow:DiagnosticMetaRule ;
                 logic:provenance ex:document ;
-                logic:head [ rdf:subject ex:a ; rdf:predicate ex:selectedHead ; rdf:object ex:b ] .
+                logic:head [ rdf:reifies <<( ex:a ex:selectedHead ex:b )>> ] .
             ex:other a logic:Rule ; logic:provenance ex:selected ;
-                logic:head [ rdf:subject ex:a ; rdf:predicate ex:otherHead ; rdf:object ex:b ] .
+                logic:head [ rdf:reifies <<( ex:a ex:otherHead ex:b )>> ] .
             {extra}
         "#
     );
@@ -98,18 +98,22 @@ fn tiny_theory(extra: &str) -> CompiledTheory {
 fn native_meta_derivation_retains_annotated_facts_and_trace_evidence() {
     let theory = tiny_theory(
         r#"
-            ex:trace a logic:Rule, gmeow:DiagnosticMetaRule ;
-                logic:head [ rdf:subject "?x" ; rdf:predicate gmeow:findingTraces ; rdf:object "?y" ] ;
-                logic:body [ rdf:subject "?x" ; rdf:predicate ex:seed ; rdf:object "?y" ] .
+            _:ruleac57479bS0_x a logic:TermCarrier ; logic:termVariable "x" .
+_:ruleac57479bS0_y a logic:TermCarrier ; logic:termVariable "y" .
+ex:trace a logic:Rule, gmeow:DiagnosticMetaRule ;
+                logic:head [ rdf:reifies <<( _:ruleac57479bS0_x gmeow:findingTraces _:ruleac57479bS0_y )>> ] ;
+                logic:body [ rdf:reifies <<( _:ruleac57479bS0_x ex:seed _:ruleac57479bS0_y )>> ] .
         "#,
     );
     let meta = MetaProgram::from_compiled_theory(&theory).unwrap().unwrap();
     let mut builder = RdfDatasetBuilder::new();
-    let subject = builder.intern_iri("https://example.org/a");
-    let predicate = builder.intern_iri("https://example.org/seed");
-    let object = builder.intern_iri("https://example.org/b");
-    let world = builder.intern_iri("https://example.org/world");
-    builder.push_annotation_in_graph(subject, predicate, object, Some(world));
+    let subject = builder.intern_iri("https://example.org/a").unwrap();
+    let predicate = builder.intern_iri("https://example.org/seed").unwrap();
+    let object = builder.intern_iri("https://example.org/b").unwrap();
+    let world = builder.intern_iri("https://example.org/world").unwrap();
+    builder
+        .push_annotation_in_graph(subject, predicate, object, Some(world))
+        .unwrap();
     let dataset = builder.freeze().unwrap();
     let derived = meta.derive_dataset(&dataset).unwrap();
     assert_eq!(
@@ -175,10 +179,10 @@ fn compiled_meta_selection_rejects_a_partly_missing_fold() {
 #[test]
 fn compiled_meta_selection_sees_native_type_annotations() {
     let mut builder = RdfDatasetBuilder::new();
-    let subject = builder.intern_iri("https://example.org/missing");
-    let predicate = builder.intern_iri(RDF_TYPE);
-    let class = builder.intern_iri(DIAGNOSTIC_META_RULE);
-    builder.push_annotation(subject, predicate, class);
+    let subject = builder.intern_iri("https://example.org/missing").unwrap();
+    let predicate = builder.intern_iri(RDF_TYPE).unwrap();
+    let class = builder.intern_iri(DIAGNOSTIC_META_RULE).unwrap();
+    builder.push_annotation(subject, predicate, class).unwrap();
     let source = PreparedLogicSource::new(&builder.freeze().unwrap()).unwrap();
     let theory = source.into_compiled(None).unwrap();
     let error = MetaProgram::from_compiled_theory(&theory).err().unwrap();

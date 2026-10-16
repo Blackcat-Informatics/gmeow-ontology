@@ -108,7 +108,7 @@ pub struct ExecutableReceipt {
 /// unsupported receipt is never accepted as executable or corpus evidence.
 #[derive(Debug)]
 pub enum ReceiptDocument {
-    Current(ExecutableReceipt),
+    Current(Box<ExecutableReceipt>),
     Unsupported {
         receipt_schema: u32,
         recipe_schema: u32,
@@ -119,7 +119,7 @@ impl ExecutableReceipt {
     /// Admit only the current receipt format. Read-only consumers never repair it.
     pub fn read(path: &Path) -> Result<Self, ActionCacheError> {
         match Self::read_versioned(path)? {
-            ReceiptDocument::Current(receipt) => Ok(receipt),
+            ReceiptDocument::Current(receipt) => Ok(*receipt),
             ReceiptDocument::Unsupported { .. } => Err(ActionCacheError::message(
                 "unsupported executable receipt schema",
             )),
@@ -154,7 +154,9 @@ impl ExecutableReceipt {
                 recipe_schema: header.recipe.schema,
             });
         }
-        Ok(ReceiptDocument::Current(serde_json::from_slice(&bytes)?))
+        Ok(ReceiptDocument::Current(Box::new(serde_json::from_slice(
+            &bytes,
+        )?)))
     }
 
     /// Authenticate bytes and the recipe identity embedded in the executable.

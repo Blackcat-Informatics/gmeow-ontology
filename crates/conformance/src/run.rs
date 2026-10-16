@@ -227,13 +227,12 @@ pub fn run_case(
         if let Some(expected) = profile_value
             .get("source_admission_status")
             .and_then(serde_json::Value::as_str)
+            && expected != observation.admission.observation_status()
         {
-            if expected != observation.admission.observation_status() {
-                return Err(prefix(
-                    "source-admission observation does not satisfy the selected expected status"
-                        .to_owned(),
-                ));
-            }
+            return Err(prefix(
+                "source-admission observation does not satisfy the selected expected status"
+                    .to_owned(),
+            ));
         }
         let mut out = empty_outputs(case_id.clone());
         out.verdicts = serde_json::to_value(observation.admission)
@@ -290,7 +289,7 @@ pub fn run_case(
     // fixture (an authored put that is not the derived inverse) discharges as
     // ObligationViolated, matching its blessed-RED gate report.
     let arts = compile_program(&program, gmeow_logic::correspondence_exec::program_verdicts)
-        .map_err(|e| prefix(format!("compile failed: {e}")))?;
+        .map_err(|error| error.with_context("compile conformance case"))?;
     // ── Static certification against the declared profile ────────────────────
     // Thread the program's contract `logic:EvolutionMode` so a facet-direct case
     // (e.g. transaction-path) carries the right evolution_class; no facet selected
@@ -341,16 +340,16 @@ pub fn run_case(
     let mut rdf = BTreeMap::new();
     rdf.insert(
         "owl-dl".to_string(),
-        arts.owl_dl.clone().into_text().content,
+        arts.owl_dl.clone().into_text()?.content,
     );
     rdf.insert(
         "owl-el".to_string(),
-        arts.owl_el.clone().into_text().content,
+        arts.owl_el.clone().into_text()?.content,
     );
-    rdf.insert("gufo".to_string(), arts.gufo.clone().into_text().content);
+    rdf.insert("gufo".to_string(), arts.gufo.clone().into_text()?.content);
     rdf.insert(
         "canonical-rdf12".to_string(),
-        arts.canonical_rdf12.clone().into_text().content,
+        arts.canonical_rdf12.clone().into_text()?.content,
     );
     debug_assert!(RDF_TARGETS.iter().all(|t| rdf.contains_key(*t)));
     let mut text = BTreeMap::new();
@@ -985,7 +984,7 @@ fn materialize_foundation(
     let quads = if input_nq.trim().is_empty() {
         Vec::new()
     } else {
-        let store = WorldStore::new();
+        let store = WorldStore::new()?;
         store.load_nquads(input_nq).map_err(|e| {
             run_fail(format!(
                 "case {case_id}: foundation N-Quads parse failed: {e}"
@@ -1052,7 +1051,7 @@ fn materialize_teleology(
     let (quads, claim) = if input_nq.trim().is_empty() {
         (Vec::new(), PreservationClaim::exact())
     } else {
-        let store = WorldStore::new();
+        let store = WorldStore::new()?;
         store.load_nquads(input_nq).map_err(|e| {
             run_fail(format!(
                 "case {case_id}: teleology N-Quads parse failed: {e}"
@@ -1155,7 +1154,7 @@ fn resolve_answers(
         return Ok(BTreeMap::new());
     }
 
-    let store = WorldStore::new();
+    let store = WorldStore::new()?;
     store
         .load_nquads(world_nquads)
         .map_err(|e| run_fail(format!("case {case_id}: query failed: {e}")))?;

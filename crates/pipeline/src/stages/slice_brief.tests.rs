@@ -20,7 +20,7 @@ fn run_attaches_the_authoring_briefs_graph() {
     .outcome
     .product;
     let dataset = product.dataset();
-    let projected = dataset.project_named_graph(GRAPH_AUTHORING_BRIEFS);
+    let projected = dataset.project_named_graph(GRAPH_AUTHORING_BRIEFS).unwrap();
     assert!(
         projected.quad_count() > 0,
         "graph/authoring-briefs must carry the assembled packet corpus"

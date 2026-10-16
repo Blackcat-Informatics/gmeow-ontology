@@ -310,7 +310,10 @@ impl RunFrame {
     ///
     /// The caller then emits its own codomain, linking each produced node back with
     /// [`RunFrame::generated`].
-    pub fn emit(&self, sink: &mut Sink, rung: Rung) {
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn emit(&self, sink: &mut Sink, rung: Rung) -> gmeow_errors::Result<()> {
         // A run may only claim logic:mnemomorphic if its witness actually retains the
         // source. A digest references the artifact; it does not retain it. Deriving the flag
         // here rather than trusting the caller is the point: the previous version let a
@@ -323,11 +326,11 @@ impl RunFrame {
         rung.assert_coherent();
 
         let run = &self.run_iri;
-        sink.typed(run, &math(self.kind.run_class()));
-        sink.iri(run, &math("parseSource"), &self.source_witness_iri);
-        sink.iri(run, &logic("instantiatesSchema"), &self.schema_iri);
-        sink.iri(run, &logic("instantiatesPlan"), &self.plan_iri);
-        sink.iri(run, &math("ingestCorrespondence"), &self.correspondence_iri);
+        sink.typed(run, &math(self.kind.run_class()))?;
+        sink.iri(run, &math("parseSource"), &self.source_witness_iri)?;
+        sink.iri(run, &logic("instantiatesSchema"), &self.schema_iri)?;
+        sink.iri(run, &logic("instantiatesPlan"), &self.plan_iri)?;
+        sink.iri(run, &math("ingestCorrespondence"), &self.correspondence_iri)?;
 
         // The retained source witness. It is a NODE, not a literal: math:parseSource's
         // definition rejects "a bare droppable string — an opaque blob is the amnesic
@@ -340,15 +343,15 @@ impl RunFrame {
         // sentence already rejects. Since logic:mnemomorphic — asserted below — is what
         // discharges the section law, an empty witness would make that flag a decoration and
         // the proof bridge's SectionRetraction rung unearned.
-        sink.typed(&self.source_witness_iri, &math("MathematicalObject"));
-        sink.boolean(&self.source_witness_iri, &logic("loadBearing"), true);
+        sink.typed(&self.source_witness_iri, &math("MathematicalObject"))?;
+        sink.boolean(&self.source_witness_iri, &logic("loadBearing"), true)?;
         match &self.source {
             RetainedSource::Text(text) => {
-                sink.string(&self.source_witness_iri, &math("retainedSource"), text);
+                sink.string(&self.source_witness_iri, &math("retainedSource"), text)?;
             }
             RetainedSource::Digest(digest) => {
                 // A REFERENCE, not the source: the bytes stay out of the bundle.
-                sink.string(&self.source_witness_iri, &math("sourceDigest"), digest);
+                sink.string(&self.source_witness_iri, &math("sourceDigest"), digest)?;
             }
         }
         for construct in &self.unmapped {
@@ -356,40 +359,41 @@ impl RunFrame {
                 &self.source_witness_iri,
                 &math("unmappedConstruct"),
                 construct,
-            );
+            )?;
         }
 
         // The process layer: what the run is an instance of, and what it enacts.
         let capability = format!("{}capability", self.mint_base);
         let precondition = format!("{}source-available", self.mint_base);
-        sink.typed(&self.schema_iri, &logic("ActionSchema"));
-        sink.iri(&self.schema_iri, &logic("capability"), &capability);
-        sink.iri(&self.schema_iri, &logic("precondition"), &precondition);
+        sink.typed(&self.schema_iri, &logic("ActionSchema"))?;
+        sink.iri(&self.schema_iri, &logic("capability"), &capability)?;
+        sink.iri(&self.schema_iri, &logic("precondition"), &precondition)?;
 
         let goal = format!("{}ingest-goal", self.mint_base);
         let success = format!("{}all-steps-succeed", self.mint_base);
-        sink.typed(&self.plan_iri, &logic("Plan"));
-        sink.iri(&self.plan_iri, &logic("planGoal"), &goal);
-        sink.iri(&self.plan_iri, &logic("planSuccessMode"), &success);
-        sink.typed(&goal, &gmeow("Goal"));
-        sink.typed(&success, &logic("PlanSuccessMode"));
+        sink.typed(&self.plan_iri, &logic("Plan"))?;
+        sink.iri(&self.plan_iri, &logic("planGoal"), &goal)?;
+        sink.iri(&self.plan_iri, &logic("planSuccessMode"), &success)?;
+        sink.typed(&goal, &gmeow("Goal"))?;
+        sink.typed(&success, &logic("PlanSuccessMode"))?;
 
         // The law spine. Every law-bearing property lives HERE and nowhere else.
         let corr = &self.correspondence_iri;
-        sink.typed(corr, &logic("Correspondence"));
-        sink.iri(corr, &logic("morphismClass"), &logic(rung.morphism_class));
+        sink.typed(corr, &logic("Correspondence"))?;
+        sink.iri(corr, &logic("morphismClass"), &logic(rung.morphism_class))?;
         sink.iri(
             corr,
             &logic("preservationKind"),
             &logic(rung.preservation_kind),
-        );
+        )?;
         sink.iri(
             corr,
             &logic("correspondenceRelation"),
             &logic(rung.correspondence_relation),
-        );
-        sink.iri(corr, &logic("hasDeterminacy"), &logic(rung.determinacy));
-        sink.boolean(corr, &logic("mnemomorphic"), rung.mnemomorphic);
+        )?;
+        sink.iri(corr, &logic("hasDeterminacy"), &logic(rung.determinacy))?;
+        sink.boolean(corr, &logic("mnemomorphic"), rung.mnemomorphic)?;
+        Ok(())
     }
 
     /// Link a produced codomain node back to this run.
@@ -397,8 +401,12 @@ impl RunFrame {
     /// This is the edge the native `math:UnliftableIngest` lint looks for. Every node the
     /// lift creates carries it, so the run's product is enumerable by query rather than by
     /// IRI-prefix convention.
-    pub fn generated(&self, sink: &mut Sink, node_iri: &str) {
-        sink.iri(node_iri, &gmeow("wasGeneratedBy"), &self.run_iri);
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn generated(&self, sink: &mut Sink, node_iri: &str) -> gmeow_errors::Result<()> {
+        sink.iri(node_iri, &gmeow("wasGeneratedBy"), &self.run_iri)?;
+        Ok(())
     }
 }
 
@@ -435,7 +443,7 @@ impl Lifted {
         }
         Ok(Self {
             run_iri: frame.run_iri.clone(),
-            turtle: sink.serialize(),
+            turtle: sink.serialize()?,
             codomain_nodes,
         })
     }

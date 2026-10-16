@@ -95,7 +95,9 @@ fn proof_tree_derivation_iris_match_the_proof_projection() {
         &fol,
         &ctx,
         &crate::goal_directed::GROUNDING_BUDGET,
-    ) {
+    )
+    .unwrap()
+    {
         FolControl::Decided(o) => o,
         FolControl::Unsupported(kind) => panic!("unsupported: {kind:?}"),
     };

@@ -2754,7 +2754,7 @@ pub(crate) fn rule_parallel_probe() -> gmeow_errors::Result<RuleParallelProbe> {
         .ok_or_else(|| seminaive_err("rule-parallel evidence fixture is non-stratifiable"))?
         .plan()
         .into_executable();
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new()?;
     const SEED_ROWS: usize = 24;
     for index in 0..SEED_ROWS {
         let node = iri(&format!("node-{index:02}"));

@@ -498,10 +498,12 @@ impl<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> std::ops::De
 
 /// Request identity selects one graph. Repeating an identity in another graph
 /// is ambiguous and cannot silently choose whichever graph happens to sort first.
+type RequestSources<Id> = BTreeMap<String, (Id, Option<Id>)>;
+
 fn request_sources<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     dataset: &D,
     selected: Option<&str>,
-) -> Result<BTreeMap<String, (D::Id, Option<D::Id>)>, AdmissionError> {
+) -> Result<RequestSources<D::Id>, AdmissionError> {
     let (Some(predicate), Some(class)) = (
         iri_id(dataset, RDF_TYPE),
         iri_id(
@@ -727,6 +729,9 @@ fn context<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
 
 /// The indexed input is borrowed. Only selected context metadata and attributed
 /// evidence handles are retained; no cumulative closure is copied or regenerated.
+type AttributedClaims<Id> = BTreeMap<(String, Id, Id, Id), Evidence>;
+
+/// One borrowed metadata graph with its selected context and evidence indexes.
 pub(super) struct RdfFrame<
     'a,
     D: DatasetView<ReadError = std::convert::Infallible> + ?Sized = RdfDataset,
@@ -735,7 +740,7 @@ pub(super) struct RdfFrame<
     source_graph: Option<D::Id>,
     contexts: BTreeMap<String, Context>,
     evidence_closed: BTreeMap<String, bool>,
-    claims: BTreeMap<(String, D::Id, D::Id, D::Id), Evidence>,
+    claims: AttributedClaims<D::Id>,
     edges: BTreeMap<(String, Accessibility), Successors>,
     attribution_inferences: BTreeMap<String, ContextualInference>,
     native_evidence: BTreeMap<String, NativeEvidence>,

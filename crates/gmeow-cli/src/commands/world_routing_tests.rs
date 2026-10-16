@@ -8,17 +8,39 @@ use super::{HYBRID_QUERY_WORLD, load_hybrid_query_facts, place_world_dataset};
 #[test]
 fn command_world_placement_keeps_claim_layers_and_provenance_values() {
     let mut source = RdfDatasetBuilder::new();
-    let subject = source.intern_blank("member", BlankScope(7));
-    let object = source.intern_blank("member", BlankScope(9));
-    let predicate = source.intern_iri("urn:command:relation");
-    let claim = source.intern_blank("claim", BlankScope(7));
-    let old_world = source.intern_iri("urn:command:old-world");
-    let empty_world = source.intern_iri("urn:command:empty-old-world");
-    source.declare_named_graph(empty_world);
-    source.push_quad(subject, predicate, object, Some(old_world));
-    let triple = source.intern_triple(subject, predicate, object);
-    source.push_reifier_in_graph(claim, triple, None);
-    source.push_annotation_in_graph(claim, predicate, old_world, Some(old_world));
+    let subject = source
+        .intern_blank("member", BlankScope(7))
+        .expect("build the synthetic claim carrier");
+    let object = source
+        .intern_blank("member", BlankScope(9))
+        .expect("build the synthetic claim carrier");
+    let predicate = source
+        .intern_iri("urn:command:relation")
+        .expect("build the synthetic claim carrier");
+    let claim = source
+        .intern_blank("claim", BlankScope(7))
+        .expect("build the synthetic claim carrier");
+    let old_world = source
+        .intern_iri("urn:command:old-world")
+        .expect("build the synthetic claim carrier");
+    let empty_world = source
+        .intern_iri("urn:command:empty-old-world")
+        .expect("build the synthetic claim carrier");
+    source
+        .declare_named_graph(empty_world)
+        .expect("build the synthetic claim carrier");
+    source
+        .push_quad(subject, predicate, object, Some(old_world))
+        .expect("build the synthetic claim carrier");
+    let triple = source
+        .intern_triple(subject, predicate, object)
+        .expect("build the synthetic claim carrier");
+    source
+        .push_reifier_in_graph(claim, triple, None)
+        .expect("build the synthetic claim carrier");
+    source
+        .push_annotation_in_graph(claim, predicate, old_world, Some(old_world))
+        .expect("build the synthetic claim carrier");
     let source = source.freeze().unwrap();
     let original = source.owned_quads().next().unwrap();
 
@@ -51,8 +73,12 @@ fn command_world_placement_keeps_claim_layers_and_provenance_values() {
 #[test]
 fn command_empty_world_replaces_source_declaration() {
     let mut source = RdfDatasetBuilder::new();
-    let old_world = source.intern_iri("urn:command:old-world");
-    source.declare_named_graph(old_world);
+    let old_world = source
+        .intern_iri("urn:command:old-world")
+        .expect("build the synthetic claim carrier");
+    source
+        .declare_named_graph(old_world)
+        .expect("build the synthetic claim carrier");
     let output = place_world_dataset(source.freeze().unwrap(), HYBRID_QUERY_WORLD).unwrap();
     assert_eq!(output.quad_count(), 0);
     assert_eq!(

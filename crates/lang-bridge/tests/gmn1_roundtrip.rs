@@ -52,10 +52,10 @@ ex:membership a gmeow:VersionMembership ; gmeow:versionMember ex:latest ;
 #[test]
 fn single_claim_record_round_trips() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW}hasState"));
-    let o = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     round_trip_check(&model, &dict()).expect("single claim record round-trips");
@@ -78,10 +78,10 @@ fn single_claim_record_round_trips() {
 fn tabular_and_record_surfaces_canonicalize_to_the_same_gmn0() {
     let mut b = RdfDatasetBuilder::new();
     for (subj, obj) in [("gate1", "yardNorth"), ("gate2", "yardSouth")] {
-        let s = b.intern_iri(&format!("{GMEOW}{subj}"));
-        let p = b.intern_iri(&format!("{GMEOW}locatedIn"));
-        let o = b.intern_iri(&format!("{GMEOW}{obj}"));
-        b.push_quad(s, p, o, None);
+        let s = b.intern_iri(&format!("{GMEOW}{subj}")).unwrap();
+        let p = b.intern_iri(&format!("{GMEOW}locatedIn")).unwrap();
+        let o = b.intern_iri(&format!("{GMEOW}{obj}")).unwrap();
+        b.push_quad(s, p, o, None).unwrap();
     }
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -98,10 +98,10 @@ fn tabular_and_record_surfaces_canonicalize_to_the_same_gmn0() {
 
     let from_tabular = gmn1_read(&tabular_doc, &d).expect("read tabular");
     let from_record = gmn1_read(&record_doc, &d).expect("read record");
-    assert!(gmn0_canonically_equal(&from_tabular, &model));
-    assert!(gmn0_canonically_equal(&from_record, &model));
+    assert!(gmn0_canonically_equal(&from_tabular, &model).unwrap());
+    assert!(gmn0_canonically_equal(&from_record, &model).unwrap());
     assert!(
-        gmn0_canonically_equal(&from_tabular, &from_record),
+        gmn0_canonically_equal(&from_tabular, &from_record).unwrap(),
         "tabular and record surfaces must decode to the SAME GMN-0 model"
     );
 }
@@ -111,15 +111,17 @@ fn tabular_and_record_surfaces_canonicalize_to_the_same_gmn0() {
 #[test]
 fn iri_object_and_literal_value_both_round_trip() {
     let mut b = RdfDatasetBuilder::new();
-    let s1 = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p1 = b.intern_iri(&format!("{GMEOW}hasState"));
-    let o1 = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    b.push_quad(s1, p1, o1, None);
+    let s1 = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p1 = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let o1 = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    b.push_quad(s1, p1, o1, None).unwrap();
 
-    let s2 = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p2 = b.intern_iri(&format!("{GMEOW}statusLabel"));
-    let lit = b.intern_literal(RdfLiteral::typed("open", XSD_STRING));
-    b.push_quad(s2, p2, lit, None);
+    let s2 = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p2 = b.intern_iri(&format!("{GMEOW}statusLabel")).unwrap();
+    let lit = b
+        .intern_literal(RdfLiteral::typed("open", XSD_STRING))
+        .unwrap();
+    b.push_quad(s2, p2, lit, None).unwrap();
 
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -143,13 +145,17 @@ fn iri_object_and_literal_value_both_round_trip() {
 #[test]
 fn lang_tagged_literal_round_trips_the_language_tag() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}term1"));
-    let p = b.intern_iri("http://www.w3.org/2004/02/skos/core#definition");
-    let lit = b.intern_literal(RdfLiteral::language_tagged(
-        "a prose definition with spaces, punctuation, and \"quotes\"",
-        "x-gmeow-english",
-    ));
-    b.push_quad(s, p, lit, None);
+    let s = b.intern_iri(&format!("{GMEOW}term1")).unwrap();
+    let p = b
+        .intern_iri("http://www.w3.org/2004/02/skos/core#definition")
+        .unwrap();
+    let lit = b
+        .intern_literal(RdfLiteral::language_tagged(
+            "a prose definition with spaces, punctuation, and \"quotes\"",
+            "x-gmeow-english",
+        ))
+        .unwrap();
+    b.push_quad(s, p, lit, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     round_trip_check(&model, &dict()).expect("langString round-trips");
@@ -157,23 +163,27 @@ fn lang_tagged_literal_round_trips_the_language_tag() {
     // The language tag must NOT be silently dropped: the reconstructed model must
     // canonically differ from a same-text literal carrying a DIFFERENT language tag.
     let mut b2 = RdfDatasetBuilder::new();
-    let s2 = b2.intern_iri(&format!("{GMEOW}term1"));
-    let p2 = b2.intern_iri("http://www.w3.org/2004/02/skos/core#definition");
-    let lit2 = b2.intern_literal(RdfLiteral::language_tagged(
-        "a prose definition with spaces, punctuation, and \"quotes\"",
-        "fr",
-    ));
-    b2.push_quad(s2, p2, lit2, None);
+    let s2 = b2.intern_iri(&format!("{GMEOW}term1")).unwrap();
+    let p2 = b2
+        .intern_iri("http://www.w3.org/2004/02/skos/core#definition")
+        .unwrap();
+    let lit2 = b2
+        .intern_literal(RdfLiteral::language_tagged(
+            "a prose definition with spaces, punctuation, and \"quotes\"",
+            "fr",
+        ))
+        .unwrap();
+    b2.push_quad(s2, p2, lit2, None).unwrap();
     let other_lang_model = Gmn0Model::from_dataset(&b2.freeze().expect("freeze"));
     assert!(
-        !gmn0_canonically_equal(&model, &other_lang_model),
+        !gmn0_canonically_equal(&model, &other_lang_model).unwrap(),
         "sanity: two literals differing only in language tag must be distinct models"
     );
 
     let doc = gmn1_write(&model, &dict()).expect("write");
     let back = gmn1_read(&doc, &dict()).expect("read");
     assert!(
-        gmn0_canonically_equal(&back, &model),
+        gmn0_canonically_equal(&back, &model).unwrap(),
         "the language tag must round-trip byte-exactly, never silently dropped"
     );
 }
@@ -191,14 +201,14 @@ fn lang_tagged_literal_round_trips_the_language_tag() {
 #[test]
 fn nary_predication_reification_round_trips() {
     let mut b = RdfDatasetBuilder::new();
-    let reifier = b.intern_iri(&format!("{GMEOW}naryReifier1"));
-    let instance_of = b.intern_iri(&format!("{LOGIC}instanceOf"));
-    let rel = b.intern_iri(&format!("{GMEOW}betweenRelation"));
-    b.push_quad(reifier, instance_of, rel, None);
+    let reifier = b.intern_iri(&format!("{GMEOW}naryReifier1")).unwrap();
+    let instance_of = b.intern_iri(&format!("{LOGIC}instanceOf")).unwrap();
+    let rel = b.intern_iri(&format!("{GMEOW}betweenRelation")).unwrap();
+    b.push_quad(reifier, instance_of, rel, None).unwrap();
     for (i, arg) in ["a1", "a2", "a3"].iter().enumerate() {
-        let p = b.intern_iri(&format!("{LOGIC}naryArg{i}"));
-        let o = b.intern_iri(&format!("{GMEOW}{arg}"));
-        b.push_quad(reifier, p, o, None);
+        let p = b.intern_iri(&format!("{LOGIC}naryArg{i}")).unwrap();
+        let o = b.intern_iri(&format!("{GMEOW}{arg}")).unwrap();
+        b.push_quad(reifier, p, o, None).unwrap();
     }
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -221,10 +231,10 @@ fn nary_predication_reification_round_trips() {
 #[test]
 fn absent_optional_slots_round_trip_to_absence_not_a_default() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW}hasState"));
-    let o = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
 
@@ -244,7 +254,7 @@ fn absent_optional_slots_round_trip_to_absence_not_a_default() {
         );
     }
     let back = gmn1_read(&doc, &dict()).expect("read");
-    assert!(gmn0_canonically_equal(&back, &model));
+    assert!(gmn0_canonically_equal(&back, &model).unwrap());
     // Exactly one quad — no confidence/standpoint/evidence quad was ever synthesized.
     assert_eq!(back.quads.len(), 1);
 }
@@ -254,18 +264,20 @@ fn absent_optional_slots_round_trip_to_absence_not_a_default() {
 #[test]
 fn evidence_and_standpoint_record_round_trips() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW}hasState"));
-    let o = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
 
-    let according_to = b.intern_iri(&format!("{GMEOW}accordingTo"));
-    let standpoint = b.intern_iri(&format!("{GMEOW}sensorCrew"));
-    b.push_quad(s, according_to, standpoint, None);
+    let according_to = b.intern_iri(&format!("{GMEOW}accordingTo")).unwrap();
+    let standpoint = b.intern_iri(&format!("{GMEOW}sensorCrew")).unwrap();
+    b.push_quad(s, according_to, standpoint, None).unwrap();
 
-    let evidence_pred = b.intern_iri(&format!("{GMEOW}hasAvailableEvidence"));
-    let evidence = b.intern_iri(&format!("{GMEOW}e12"));
-    b.push_quad(s, evidence_pred, evidence, None);
+    let evidence_pred = b
+        .intern_iri(&format!("{GMEOW}hasAvailableEvidence"))
+        .unwrap();
+    let evidence = b.intern_iri(&format!("{GMEOW}e12")).unwrap();
+    b.push_quad(s, evidence_pred, evidence, None).unwrap();
 
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -296,18 +308,18 @@ fn evidence_and_standpoint_record_round_trips() {
 #[test]
 fn process_record_with_boundary_and_iteration_round_trips() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW}cycling"));
-    let o = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}cycling")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
 
-    let boundary_pred = b.intern_iri(&format!("{LOGIC}occurrentBoundary"));
-    let open = b.intern_iri(&format!("{LOGIC}Open"));
-    b.push_quad(s, boundary_pred, open, None);
+    let boundary_pred = b.intern_iri(&format!("{LOGIC}occurrentBoundary")).unwrap();
+    let open = b.intern_iri(&format!("{LOGIC}Open")).unwrap();
+    b.push_quad(s, boundary_pred, open, None).unwrap();
 
-    let series_pred = b.intern_iri(&format!("{GMEOW}occurrenceOfSeries"));
-    let series = b.intern_iri(&format!("{GMEOW}cycleSeries1"));
-    b.push_quad(s, series_pred, series, None);
+    let series_pred = b.intern_iri(&format!("{GMEOW}occurrenceOfSeries")).unwrap();
+    let series = b.intern_iri(&format!("{GMEOW}cycleSeries1")).unwrap();
+    b.push_quad(s, series_pred, series, None).unwrap();
 
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -336,19 +348,21 @@ fn process_record_with_boundary_and_iteration_round_trips() {
 #[test]
 fn high_precision_confidence_rides_by_reference() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW}hasState"));
-    let o = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
 
-    let confidence_pred = b.intern_iri(&format!("{GMEOW}confidence"));
+    let confidence_pred = b.intern_iri(&format!("{GMEOW}confidence")).unwrap();
     // A DERIVED confidence (product t-norm of two 2-digit values): 4 fractional digits,
     // outside the grammar's exactly-2-digit assertion rule — must ride by reference.
-    let confidence = b.intern_literal(RdfLiteral::typed(
-        "0.9025",
-        "http://www.w3.org/2001/XMLSchema#decimal",
-    ));
-    b.push_quad(s, confidence_pred, confidence, None);
+    let confidence = b
+        .intern_literal(RdfLiteral::typed(
+            "0.9025",
+            "http://www.w3.org/2001/XMLSchema#decimal",
+        ))
+        .unwrap();
+    b.push_quad(s, confidence_pred, confidence, None).unwrap();
 
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -372,13 +386,15 @@ fn high_precision_confidence_rides_by_reference() {
 #[test]
 fn prose_annotation_rides_by_reference() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}HowToUseExample"));
-    let p = b.intern_iri(&format!("{GMEOW}howToUse"));
-    let lit = b.intern_literal(RdfLiteral::typed(
-        "Mint one entry per aliased term; changelog and provenance notes ride by reference.",
-        XSD_STRING,
-    ));
-    b.push_quad(s, p, lit, None);
+    let s = b.intern_iri(&format!("{GMEOW}HowToUseExample")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}howToUse")).unwrap();
+    let lit = b
+        .intern_literal(RdfLiteral::typed(
+            "Mint one entry per aliased term; changelog and provenance notes ride by reference.",
+            XSD_STRING,
+        ))
+        .unwrap();
+    b.push_quad(s, p, lit, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     round_trip_check(&model, &dict()).expect("prose annotation round-trips by reference");
@@ -407,10 +423,12 @@ fn external_iri_reference_rides_by_reference() {
     // coverage over such URLs.
     let external = "https://mastodon.social";
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}account1"));
-    let p = b.intern_iri(&format!("{GMEOW}accountServiceHomepage"));
-    let o = b.intern_iri(external);
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW}account1")).unwrap();
+    let p = b
+        .intern_iri(&format!("{GMEOW}accountServiceHomepage"))
+        .unwrap();
+    let o = b.intern_iri(external).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let dictionary = dict();
@@ -435,7 +453,7 @@ fn external_iri_reference_rides_by_reference() {
     // Reconstruct and compare canonically, then assert byte-idempotence.
     let reconstructed = gmn1_read(&document, &dictionary).expect("external IRI reads back");
     assert!(
-        gmn0_canonically_equal(&model, &reconstructed),
+        gmn0_canonically_equal(&model, &reconstructed).unwrap(),
         "reconstructed model must be canonically equal to the original"
     );
     let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
@@ -454,12 +472,14 @@ fn distinct_external_iris_produce_distinct_tokens_and_models() {
     let one = "https://mastodon.social";
     let two = "https://bsky.app";
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}account1"));
-    let p = b.intern_iri(&format!("{GMEOW}accountServiceHomepage"));
-    let o1 = b.intern_iri(one);
-    let o2 = b.intern_iri(two);
-    b.push_quad(s, p, o1, None);
-    b.push_quad(s, p, o2, None);
+    let s = b.intern_iri(&format!("{GMEOW}account1")).unwrap();
+    let p = b
+        .intern_iri(&format!("{GMEOW}accountServiceHomepage"))
+        .unwrap();
+    let o1 = b.intern_iri(one).unwrap();
+    let o2 = b.intern_iri(two).unwrap();
+    b.push_quad(s, p, o1, None).unwrap();
+    b.push_quad(s, p, o2, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let dictionary = dict();
@@ -484,7 +504,7 @@ fn distinct_external_iris_produce_distinct_tokens_and_models() {
     // The reconstructed model must carry BOTH distinct external IRIs.
     let reconstructed = gmn1_read(&document, &dictionary).expect("reads back");
     assert!(
-        gmn0_canonically_equal(&model, &reconstructed),
+        gmn0_canonically_equal(&model, &reconstructed).unwrap(),
         "the reconstructed model must be canonically equal to the original"
     );
     let objects: std::collections::BTreeSet<String> = reconstructed
@@ -506,16 +526,18 @@ fn distinct_external_iris_produce_distinct_tokens_and_models() {
 #[test]
 fn every_task5_qualifier_slot_round_trips() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}gate1"));
-    let p = b.intern_iri(&format!("{GMEOW}hasState"));
-    let o = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    b.push_quad(s, p, o, None);
-    let modal_pred = b.intern_iri(&format!("{GMEOW}claimModalForce"));
-    let modal_val = b.intern_iri(&format!("{GMEOW}modalForcePossible"));
-    b.push_quad(s, modal_pred, modal_val, None);
-    let ek_pred = b.intern_iri(&format!("{GMEOW}observationMethod"));
-    let ek_val = b.intern_iri(&format!("{GMEOW}methodInstrumentalReading"));
-    b.push_quad(s, ek_pred, ek_val, None);
+    let s = b.intern_iri(&format!("{GMEOW}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
+    let modal_pred = b.intern_iri(&format!("{GMEOW}claimModalForce")).unwrap();
+    let modal_val = b.intern_iri(&format!("{GMEOW}modalForcePossible")).unwrap();
+    b.push_quad(s, modal_pred, modal_val, None).unwrap();
+    let ek_pred = b.intern_iri(&format!("{GMEOW}observationMethod")).unwrap();
+    let ek_val = b
+        .intern_iri(&format!("{GMEOW}methodInstrumentalReading"))
+        .unwrap();
+    b.push_quad(s, ek_pred, ek_val, None).unwrap();
 
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -543,13 +565,13 @@ fn quoted_triple_term_object_round_trips_losslessly() {
     // A quoted RDF 1.2 triple term as OBJECT — first-class model content the codec encodes
     // losslessly as the compact `( s p o )` surface (RDF 1.2 triple terms occur only as an
     // object; subjects are rejected by the dataset builder itself).
-    let s = b.intern_iri(&format!("{GMEOW}someAgent"));
-    let p = b.intern_iri(&format!("{GMEOW}asserts"));
-    let ta = b.intern_iri(&format!("{GMEOW}a"));
-    let tb = b.intern_iri(&format!("{GMEOW}b"));
-    let tc = b.intern_iri(&format!("{GMEOW}c"));
-    let o = b.intern_triple(ta, tb, tc);
-    b.push_quad(s, p, o, None);
+    let s = b.intern_iri(&format!("{GMEOW}someAgent")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}asserts")).unwrap();
+    let ta = b.intern_iri(&format!("{GMEOW}a")).unwrap();
+    let tb = b.intern_iri(&format!("{GMEOW}b")).unwrap();
+    let tc = b.intern_iri(&format!("{GMEOW}c")).unwrap();
+    let o = b.intern_triple(ta, tb, tc).unwrap();
+    b.push_quad(s, p, o, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let dictionary = dict();
@@ -569,7 +591,7 @@ fn quoted_triple_term_object_round_trips_losslessly() {
     // reproduces the SAME bytes).
     let reconstructed = gmn1_read(&document, &dictionary).expect("triple-term object reads back");
     assert!(
-        gmn0_canonically_equal(&model, &reconstructed),
+        gmn0_canonically_equal(&model, &reconstructed).unwrap(),
         "reconstructed model must be canonically equal to the original"
     );
     let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
@@ -584,21 +606,26 @@ fn reifier_with_folded_annotations_round_trips_losslessly() {
     let mut b = RdfDatasetBuilder::new();
     // The canonical RDF 1.2 reifier: `x rdf:reifies <<( s p o )>>`, with folded `st`/`ev`
     // annotations on the same reifier subject.
-    let reifier = b.intern_iri(&format!("{GMEOW}reifier1"));
-    let reifies = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies");
-    let ts = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    let tp = b.intern_iri(&format!("{GMEOW}hasState"));
-    let to = b.intern_iri(&format!("{LOGIC}Open"));
-    let triple = b.intern_triple(ts, tp, to);
-    b.push_quad(reifier, reifies, triple, None);
+    let reifier = b.intern_iri(&format!("{GMEOW}reifier1")).unwrap();
+    let reifies = b
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies")
+        .unwrap();
+    let ts = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    let tp = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let to = b.intern_iri(&format!("{LOGIC}Open")).unwrap();
+    let triple = b.intern_triple(ts, tp, to).unwrap();
+    b.push_quad(reifier, reifies, triple, None).unwrap();
 
     // Folded annotations: `accordingTo` → st slot, `hasAvailableEvidence` → ev slot.
-    let according_to = b.intern_iri(&format!("{GMEOW}accordingTo"));
-    let standpoint = b.intern_iri(&format!("{GMEOW}sensorStandpoint"));
-    b.push_quad(reifier, according_to, standpoint, None);
-    let evidence = b.intern_iri(&format!("{GMEOW}hasAvailableEvidence"));
-    let evidence_span = b.intern_iri(&format!("{GMEOW}span42"));
-    b.push_quad(reifier, evidence, evidence_span, None);
+    let according_to = b.intern_iri(&format!("{GMEOW}accordingTo")).unwrap();
+    let standpoint = b.intern_iri(&format!("{GMEOW}sensorStandpoint")).unwrap();
+    b.push_quad(reifier, according_to, standpoint, None)
+        .unwrap();
+    let evidence = b
+        .intern_iri(&format!("{GMEOW}hasAvailableEvidence"))
+        .unwrap();
+    let evidence_span = b.intern_iri(&format!("{GMEOW}span42")).unwrap();
+    b.push_quad(reifier, evidence, evidence_span, None).unwrap();
 
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
@@ -623,7 +650,7 @@ fn reifier_with_folded_annotations_round_trips_losslessly() {
 
     let reconstructed = gmn1_read(&document, &dictionary).expect("reifier reads back");
     assert!(
-        gmn0_canonically_equal(&model, &reconstructed),
+        gmn0_canonically_equal(&model, &reconstructed).unwrap(),
         "the reconstructed reifier model must be canonically equal to the original"
     );
     let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
@@ -695,7 +722,7 @@ fn turtle_authored_reifier_reaches_the_production_codec_path() {
 
     let reconstructed = gmn1_read(&document, &dictionary).expect("reifier reads back");
     assert!(
-        gmn0_canonically_equal(&model, &reconstructed),
+        gmn0_canonically_equal(&model, &reconstructed).unwrap(),
         "the reconstructed reifier model must be canonically equal to the source"
     );
     per_claim_round_trip_check(&model, &dictionary)
@@ -706,16 +733,16 @@ fn turtle_authored_reifier_reaches_the_production_codec_path() {
 fn nested_triple_term_object_round_trips_losslessly() {
     let mut b = RdfDatasetBuilder::new();
     // A nested triple term as object: `s p <<( a q <<( x y z )>> )>>`.
-    let inner_x = b.intern_iri(&format!("{GMEOW}x"));
-    let inner_y = b.intern_iri(&format!("{GMEOW}y"));
-    let inner_z = b.intern_iri(&format!("{GMEOW}z"));
-    let inner = b.intern_triple(inner_x, inner_y, inner_z);
-    let outer_a = b.intern_iri(&format!("{GMEOW}a"));
-    let outer_q = b.intern_iri(&format!("{GMEOW}q"));
-    let outer = b.intern_triple(outer_a, outer_q, inner);
-    let s = b.intern_iri(&format!("{GMEOW}someAgent"));
-    let p = b.intern_iri(&format!("{GMEOW}asserts"));
-    b.push_quad(s, p, outer, None);
+    let inner_x = b.intern_iri(&format!("{GMEOW}x")).unwrap();
+    let inner_y = b.intern_iri(&format!("{GMEOW}y")).unwrap();
+    let inner_z = b.intern_iri(&format!("{GMEOW}z")).unwrap();
+    let inner = b.intern_triple(inner_x, inner_y, inner_z).unwrap();
+    let outer_a = b.intern_iri(&format!("{GMEOW}a")).unwrap();
+    let outer_q = b.intern_iri(&format!("{GMEOW}q")).unwrap();
+    let outer = b.intern_triple(outer_a, outer_q, inner).unwrap();
+    let s = b.intern_iri(&format!("{GMEOW}someAgent")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}asserts")).unwrap();
+    b.push_quad(s, p, outer, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let dictionary = dict();
@@ -737,11 +764,11 @@ fn nested_triple_term_object_round_trips_losslessly() {
 #[test]
 fn named_graph_quad_raises_out_of_domain_not_uncovered() {
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}doorGate1"));
-    let p = b.intern_iri(&format!("{GMEOW}hasState"));
-    let o = b.intern_iri(&format!("{LOGIC}Open"));
-    let g = b.intern_iri(&format!("{GMEOW}graphA"));
-    b.push_quad(s, p, o, Some(g));
+    let s = b.intern_iri(&format!("{GMEOW}doorGate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW}hasState")).unwrap();
+    let o = b.intern_iri(&format!("{LOGIC}Open")).unwrap();
+    let g = b.intern_iri(&format!("{GMEOW}graphA")).unwrap();
+    b.push_quad(s, p, o, Some(g)).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
 
@@ -813,7 +840,7 @@ fn err_repair_record_round_trips_and_renders_id_and_class() {
 
     // Reconstruction is canonically the same GMN-0 model.
     let back = gmn1_read(&doc, &d).expect("read @err");
-    assert!(gmn0_canonically_equal(&back, &model));
+    assert!(gmn0_canonically_equal(&back, &model).unwrap());
     // The three reconstructed quads: the type, the target id, the failure class.
     assert_eq!(
         back.quads.len(),
@@ -861,7 +888,7 @@ fn patch_repair_record_round_trips_and_restates_the_q_slot() {
     );
 
     let back = gmn1_read(&doc, &d).expect("read @patch");
-    assert!(gmn0_canonically_equal(&back, &model));
+    assert!(gmn0_canonically_equal(&back, &model).unwrap());
     assert_eq!(
         back.quads.len(),
         3,
@@ -890,7 +917,7 @@ fn retract_repair_record_round_trips_carrying_just_the_id() {
     );
 
     let back = gmn1_read(&doc, &d).expect("read @retract");
-    assert!(gmn0_canonically_equal(&back, &model));
+    assert!(gmn0_canonically_equal(&back, &model).unwrap());
     assert_eq!(back.quads.len(), 2, "exactly type + id: {:?}", back.quads);
 
     let doc2 = gmn1_write(&back, &d).expect("re-write @retract");
@@ -905,13 +932,17 @@ fn iri_subject_repair_record_preserves_its_identity_via_the_s_slot() {
     // A repair record whose subject is an IRI (as the module.ttl `ex:err` example is)
     // must preserve that identity — it rides the `s` slot, and round-trips exactly.
     let mut b = RdfDatasetBuilder::new();
-    let s = b.intern_iri(&format!("{GMEOW}errRecord1"));
-    let ty = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-    let err = b.intern_iri(&format!("{GMEOW}GmnErr"));
-    b.push_quad(s, ty, err, None);
-    let repair_id = b.intern_iri(&format!("{GMEOW}gmnRepairId"));
-    let target = b.intern_literal(RdfLiteral::typed("c42", XSD_STRING));
-    b.push_quad(s, repair_id, target, None);
+    let s = b.intern_iri(&format!("{GMEOW}errRecord1")).unwrap();
+    let ty = b
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        .unwrap();
+    let err = b.intern_iri(&format!("{GMEOW}GmnErr")).unwrap();
+    b.push_quad(s, ty, err, None).unwrap();
+    let repair_id = b.intern_iri(&format!("{GMEOW}gmnRepairId")).unwrap();
+    let target = b
+        .intern_literal(RdfLiteral::typed("c42", XSD_STRING))
+        .unwrap();
+    b.push_quad(s, repair_id, target, None).unwrap();
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
     let d = dict();

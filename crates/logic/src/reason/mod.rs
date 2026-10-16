@@ -57,17 +57,20 @@ use purrdf::{
     RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermRef, TermValue,
 };
 
-/// One production existential-program admission certificate, scoped to the RDF
-/// world whose obligations were chased.
+/// A termination certificate published for an RDF world. When that world's
+/// authored rules certify on their own, the certificate covers only those rules,
+/// excluding schema laws and other worlds' rules. Otherwise, it records the
+/// joint admission that authorized execution.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ChaseCertificate {
-    /// Named-graph world whose existential program was certified and evaluated.
+    /// Named-graph world associated with this certificate.
     pub world: String,
     /// Native input-shape and immutable-definition contract used by a joint
     /// source-bound plan. This is admission scope, never an unrestricted rewrite
     /// certificate or a digest of an entire corpus.
     pub input_contract: [u8; 32],
-    /// The native chase termination certificate and its proof evidence.
+    /// Termination proof for this world's authored rules when independently
+    /// admitted, or the joint execution admission otherwise.
     pub admission: crate::materialize::ChaseAdmission,
 }
 
@@ -265,8 +268,8 @@ pub fn native_closure_to_dataset(
     for (world, graph) in &execution.worlds {
         let term = graph.graph().map(term_value_to_rdf_term).transpose()?;
         if let Some(term) = &term {
-            let id = builder.intern_owned_term(term);
-            builder.declare_named_graph(id);
+            let id = builder.intern_owned_term(term)?;
+            builder.declare_named_graph(id)?;
         }
         graphs.insert(world.clone(), term);
     }
@@ -283,11 +286,9 @@ pub fn native_closure_to_dataset(
             term_value_to_rdf_term(&axiom.object)?,
         );
         quad.graph_name = graph.clone();
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
-    builder
-        .freeze()
-        .map_err(|error| reason_err(format!("freeze native closure: {error}")))
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Materialize an already-computed closure ([`InferredAxiom`]s) into a frozen
@@ -327,11 +328,9 @@ pub fn inferred_axioms_to_dataset<'a>(
             };
             quad = quad.in_graph(graph);
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
-    builder
-        .freeze()
-        .map_err(|e| reason_err(format!("freeze reasoned closure dataset: {e}")))
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// One IRI-object axiom to probe through exact leave-one-out reasoning.
@@ -359,6 +358,23 @@ impl LeaveOneOutAxiom {
             object: object.into(),
         }
     }
+}
+
+fn inferred_matches_axiom(row: &InferredAxiom, axiom: &LeaveOneOutAxiom) -> bool {
+    const OWL_DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+
+    let predicate = calculus_term(&row.predicate);
+    if predicate != calculus_term(&axiom.predicate) {
+        return false;
+    }
+    let Some(object) = row.object.as_iri().map(calculus_term) else {
+        return false;
+    };
+    let subject = calculus_term(&row.subject);
+    let wanted_subject = calculus_term(&axiom.subject);
+    let wanted_object = calculus_term(&axiom.object);
+    (subject == wanted_subject && object == wanted_object)
+        || (predicate == OWL_DISJOINT && subject == wanted_object && object == wanted_subject)
 }
 
 /// Determine which authored axioms remain derivable after exact source retraction.
@@ -435,20 +451,17 @@ pub fn leave_one_out_rederived_observed(
         .flat_map(|(world, facts)| facts.iter().cloned().map(|fact| (world.clone(), fact)))
         .collect();
     let session = NativeReasoningSession::new(input, domains, potential)?;
-    let resolved =
-        slow.par_iter()
-            .map(|(index, axiom)| {
-                let result = session.retract(axiom)?;
-                let answer = result.inferred().iter().any(|row| {
-                    calculus_term(&row.subject) == calculus_term(&axiom.subject)
-                        && calculus_term(&row.predicate) == calculus_term(&axiom.predicate)
-                        && row.object.as_iri().is_some_and(|object| {
-                            calculus_term(object) == calculus_term(&axiom.object)
-                        })
-                });
-                Ok((*index, answer))
-            })
-            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let resolved = slow
+        .par_iter()
+        .map(|(index, axiom)| {
+            let result = session.retract(axiom)?;
+            let answer = result
+                .inferred()
+                .iter()
+                .any(|row| inferred_matches_axiom(row, axiom));
+            Ok((*index, answer))
+        })
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
     for (index, answer) in resolved {
         answers[index] = answer;
     }
@@ -591,6 +604,7 @@ fn result_from_closure(
     };
     let evidence = crate::result::NativeExecutionEvidence {
         input_contract: closure.input_contract,
+        reachability: closure.reachability,
         worlds: closure
             .graphs
             .into_iter()
@@ -713,9 +727,9 @@ pub fn reason_all_with_data(
     domains: &SelectedDomains,
 ) -> gmeow_errors::Result<ReasoningResult> {
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(bundle);
-    builder.push_dataset(user);
-    let merged = builder.freeze().map_err(|e| reason_err(e.to_string()))?;
+    builder.push_dataset(bundle)?;
+    builder.push_dataset(user)?;
+    let merged = builder.freeze().map_err(gmeow_errors::Diag::from)?;
     reason_all(prepare_reasoning_input(&merged)?, domains)
 }
 

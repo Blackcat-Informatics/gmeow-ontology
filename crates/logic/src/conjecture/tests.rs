@@ -32,7 +32,7 @@ fn kb(triples: &[(&str, &str, &str)]) -> std::sync::Arc<purrdf::RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (s, p, o) in triples {
         let quad = RdfQuad::new(RdfTerm::iri(*s), *p, RdfTerm::iri(*o)).in_graph(RdfTerm::iri(SCN));
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().expect("valid test dataset")
 }
@@ -63,7 +63,7 @@ fn literal_kb(subject: &str, predicate: &str, literal: RdfLiteral) -> std::sync:
     let mut builder = RdfDatasetBuilder::new();
     let quad = RdfQuad::new(RdfTerm::iri(subject), predicate, RdfTerm::literal(literal))
         .in_graph(RdfTerm::iri(SCN));
-    builder.push_owned_quad(&quad);
+    builder.push_owned_quad(&quad).unwrap();
     builder.freeze().expect("valid literal test dataset")
 }
 
@@ -374,7 +374,7 @@ fn literal_candidate_reaches_literal_aware_dl_refutation() {
         )
         .in_graph(RdfTerm::iri(SCN)),
     ] {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     let store = builder.freeze().expect("valid functional-literal KB");
     let candidate = literal_atom(NAME, IND_X, "Bob", Some(XSD_STRING));

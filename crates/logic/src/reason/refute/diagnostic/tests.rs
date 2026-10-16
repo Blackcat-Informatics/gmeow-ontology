@@ -11,7 +11,9 @@ use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 fn input(rows: &[(&str, &str, &str)]) -> PreparedReasoningInput {
     let mut builder = RdfDatasetBuilder::new();
     for &(s, p, o) in rows {
-        builder.push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
+        builder
+            .push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)))
+            .unwrap();
     }
     crate::reason::prepare_reasoning_input(builder.freeze().unwrap().as_ref()).unwrap()
 }
@@ -79,7 +81,7 @@ fn universal_empty_domain_conflict_uses_actual_intrinsic_witness_and_exact_sourc
             .find(|ledger| ledger.world == witness.scope.world)
             .unwrap();
         assert!(proof.native_support().iter().any(|id| ledger.proofs.iter().any(|node|
-            node.id == *id && matches!(&node.origin, NativeProofOrigin::Intrinsic { witness: owned } if owned == witness))));
+            node.id == *id && matches!(&node.origin, NativeProofOrigin::Intrinsic { witness: owned } if owned.as_ref() == witness))));
         let mut bytes = Vec::new();
         ciborium::into_writer(&outcome, &mut bytes).unwrap();
         let restored: ClassDiagnosticOutcome = ciborium::from_reader(bytes.as_slice()).unwrap();

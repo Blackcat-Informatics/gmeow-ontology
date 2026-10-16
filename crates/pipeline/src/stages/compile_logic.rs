@@ -65,6 +65,7 @@ use crate::stages::diag_render::{
 mod abduction;
 mod correspondence_roundtrip;
 mod formula_fixtures;
+pub(crate) mod list_corpus;
 mod native_carrier;
 mod projection_fixtures;
 mod roundtrip;
@@ -387,7 +388,7 @@ fn compile_source_projections(
         gmeow_logic::correspondence_exec::presentation::PresentationLimits::default(),
     )?;
     let artifacts = compile_program(program, gmeow_logic::correspondence_exec::program_verdicts)
-        .map_err(|error| stage_err(format!("compile: {error}")))?;
+        .map_err(|error| error.with_context("compile source projections"))?;
     if let Some(report) = &artifacts.correspondence_gates {
         assert_gates(report)
             .map_err(|error| stage_err(format!("authored correspondence gate: {error}")))?;
@@ -478,7 +479,7 @@ impl Stage for CompileLogicStage {
         CachePolicy::Persistent
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v40-leg-program-roundtrip"
+        "compile-logic.v41-native-rule-quotations"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
@@ -655,7 +656,7 @@ impl Stage for CompileLogicStage {
             .map_err(|e| stage_err(format!("derive correspondence put legs: {e}")))?;
         // Discharge executable lens laws engine-adjacent and gate on the resulting
         // per-correspondence verdicts — the gates themselves stay execution-free.
-        let gate_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+        let gate_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated)?;
         let gate_report = evaluate_gates(&gated, &[], &gate_verdicts);
         assert_gates(&gate_report).map_err(|e| stage_err(format!("correspondence gate: {e}")))?;
         let lift = liftability(&gate_report);
@@ -752,11 +753,11 @@ impl Stage for CompileLogicStage {
         // them (RDF targets are reconciled by graph isomorphism, text targets by bytes).
         artifacts.insert(
             OWL_DL_PATH.to_string(),
-            arts.owl_dl.into_text().content.into_bytes(),
+            arts.owl_dl.into_text()?.content.into_bytes(),
         );
         artifacts.insert(
             OWL_EL_PATH.to_string(),
-            arts.owl_el.into_text().content.into_bytes(),
+            arts.owl_el.into_text()?.content.into_bytes(),
         );
         artifacts.insert(DATALOG_PATH.to_string(), arts.datalog.into_bytes());
         artifacts.insert(N3_PATH.to_string(), arts.n3.into_bytes());
@@ -773,7 +774,8 @@ impl Stage for CompileLogicStage {
         // Keep the canonical RDF-1.2 projection: it is BOTH a committed artifact AND
         // the backing graph the typed Logic handle (C6) pins to.
         let canonical_dataset = Arc::clone(&arts.canonical_rdf12.dataset);
-        let canonical_rdf12 = arts.canonical_rdf12.into_text().content;
+        list_corpus::record(catalog, &theory, &canonical_dataset, &mut artifacts)?;
+        let canonical_rdf12 = arts.canonical_rdf12.into_text()?.content;
         artifacts.insert(
             CANONICAL_RDF12_PATH.to_string(),
             canonical_rdf12.into_bytes(),
@@ -1017,7 +1019,7 @@ fn build_logic_bundle(
             report,
         )?),
     )?;
-    let pinned = bundle.graph_digest(GRAPH_LOGIC);
+    let pinned = bundle.graph_digest(GRAPH_LOGIC)?;
     bundle
         .pin_handle(
             GRAPH_LOGIC,
@@ -1028,7 +1030,7 @@ fn build_logic_bundle(
     // The REAL typed RelationalCore handle (C8): the typed dialect, pinned to its
     // backing `graph/relational-core` projection. `pin_handle` HARD-fails on a digest
     // mismatch, so a handle that disagrees with its backing graph can never attach.
-    let pinned_rc = bundle.graph_digest(GRAPH_RELATIONAL_CORE);
+    let pinned_rc = bundle.graph_digest(GRAPH_RELATIONAL_CORE)?;
     bundle
         .pin_handle(
             GRAPH_RELATIONAL_CORE,
@@ -1043,7 +1045,7 @@ fn build_logic_bundle(
     // The REAL typed Correspondence handle (C10): the typed correspondence program,
     // pinned to its backing `graph/correspondence` projection. `pin_handle` HARD-fails on
     // a digest mismatch, so a handle that disagrees with its backing graph can never attach.
-    let pinned_corr = bundle.graph_digest(GRAPH_CORRESPONDENCE);
+    let pinned_corr = bundle.graph_digest(GRAPH_CORRESPONDENCE)?;
     bundle
         .pin_handle(
             GRAPH_CORRESPONDENCE,

@@ -32,7 +32,7 @@ fn store() -> std::sync::Arc<RdfDataset> {
     // A ⊑ B ⊑ C — the native EL closure derives A ⊑ C.
     let mut builder = RdfDatasetBuilder::new();
     for quad in [quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)] {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().expect("valid test dataset")
 }
@@ -181,21 +181,25 @@ fn dl_coverage_gap_makes_verify_fail() {
     // cannot act on it, so maxCardinality stays unsupported → a DL gap.
     let mut builder = RdfDatasetBuilder::new();
     for (s, p, o) in [(R, ON_PROPERTY, P), (X, TYPE, R)] {
-        builder.push_owned_quad(
-            &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W2)),
-        );
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W2)),
+            )
+            .unwrap();
     }
-    builder.push_owned_quad(
-        &RdfQuad::new(
-            RdfTerm::iri(R),
-            MAX_CARDINALITY,
-            RdfTerm::Literal(RdfLiteral::typed(
-                "not-a-number",
-                "http://www.w3.org/2001/XMLSchema#string",
-            )),
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(R),
+                MAX_CARDINALITY,
+                RdfTerm::Literal(RdfLiteral::typed(
+                    "not-a-number",
+                    "http://www.w3.org/2001/XMLSchema#string",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W2)),
         )
-        .in_graph(RdfTerm::iri(W2)),
-    );
+        .unwrap();
     let dataset = builder.freeze().expect("valid gap-trigger dataset");
 
     // Pass an empty query slice — we want to prove the gap fires BEFORE any
@@ -262,7 +266,7 @@ fn lg(local: &str) -> String {
 fn dataset(triples: &[(&str, &str, &str)]) -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (s, p, o) in triples {
-        builder.push_owned_quad(&quad(s, p, o));
+        builder.push_owned_quad(&quad(s, p, o)).unwrap();
     }
     builder.freeze().expect("valid test dataset")
 }
@@ -319,27 +323,33 @@ fn asserted_deceptive_intent_is_not_a_derived_violation() {
     let intent_pred = "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim";
     let mut builder = RdfDatasetBuilder::new();
     // The standing obligation, declaring finite-closure discharge.
-    builder.push_owned_quad(&quad(
-        "http://ex/obl",
-        RDF_TYPE,
-        &lg("NonEntailmentObligation"),
-    ));
-    builder.push_owned_quad(&quad(
-        "http://ex/obl",
-        &lg("obligationDischargeCondition"),
-        &lg("DischargeFiniteClosure"),
-    ));
-    builder.push_owned_quad(
-        &RdfQuad::new(
-            RdfTerm::iri("http://ex/obl"),
-            lg("obligationForbiddenPredicate"),
-            RdfTerm::Literal(RdfLiteral::typed(
-                intent_pred,
-                "http://www.w3.org/2001/XMLSchema#anyURI",
-            )),
+    builder
+        .push_owned_quad(&quad(
+            "http://ex/obl",
+            RDF_TYPE,
+            &lg("NonEntailmentObligation"),
+        ))
+        .unwrap();
+    builder
+        .push_owned_quad(&quad(
+            "http://ex/obl",
+            &lg("obligationDischargeCondition"),
+            &lg("DischargeFiniteClosure"),
+        ))
+        .unwrap();
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri("http://ex/obl"),
+                lg("obligationForbiddenPredicate"),
+                RdfTerm::Literal(RdfLiteral::typed(
+                    intent_pred,
+                    "http://www.w3.org/2001/XMLSchema#anyURI",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W)),
         )
-        .in_graph(RdfTerm::iri(W)),
-    );
+        .unwrap();
     // An ASSERTED, attributed deceptive-intent claim on a held≠projected gap.
     for (s, p, o) in [
         ("http://ex/ev", gm("heldStandpoint"), "http://ex/held"),
@@ -351,7 +361,7 @@ fn asserted_deceptive_intent_is_not_a_derived_violation() {
         ),
         ("http://ex/intent", gm("accordingTo"), "http://ex/assessor"),
     ] {
-        builder.push_owned_quad(&quad(s, &p, o));
+        builder.push_owned_quad(&quad(s, &p, o)).unwrap();
     }
     let dataset = builder.freeze().expect("valid test dataset");
     // A no-op query (the obligation checks run regardless of the query list).
@@ -457,20 +467,22 @@ fn reviewer_gate_literal_reviewer_is_a_violation() {
         (cand, lifecycle.as_str(), accepted.as_str()),
         (cand, category.as_str(), deriv.as_str()),
     ] {
-        builder.push_owned_quad(&quad(s, p, o));
+        builder.push_owned_quad(&quad(s, p, o)).unwrap();
     }
     // The only reviewedBy value is a plain string literal — not a node.
-    builder.push_owned_quad(
-        &RdfQuad::new(
-            RdfTerm::iri(cand),
-            reviewed_by.clone(),
-            RdfTerm::Literal(RdfLiteral::typed(
-                "alice",
-                "http://www.w3.org/2001/XMLSchema#string",
-            )),
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(cand),
+                reviewed_by.clone(),
+                RdfTerm::Literal(RdfLiteral::typed(
+                    "alice",
+                    "http://www.w3.org/2001/XMLSchema#string",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W)),
         )
-        .in_graph(RdfTerm::iri(W)),
-    );
+        .unwrap();
     let dataset = builder.freeze().expect("valid literal-reviewer dataset");
     let report = verify(
         dataset.as_ref(),

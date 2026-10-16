@@ -54,7 +54,7 @@ fn native_projection_retains_signs_typed_terms_and_occurrences() {
     let native = project_relational_core_dataset(&source).unwrap();
     let restored = parse_relational_core(&native).unwrap();
     assert_eq!(restored, source);
-    let exported = project_relational_core(&source);
+    let exported = project_relational_core(&source).unwrap();
     let parsed = purrdf::parse_dataset(exported.as_bytes(), "application/n-triples", None).unwrap();
     assert_eq!(parse_relational_core(&parsed).unwrap(), source);
 }
@@ -110,11 +110,11 @@ fn change_field(
     for mut quad in dataset.owned_quads() {
         if quad.predicate == format!("{LOGIC_NAMESPACE}{field}") {
             if duplicate {
-                builder.push_owned_quad(&quad);
+                builder.push_owned_quad(&quad).unwrap();
             }
             quad.object = replacement.clone();
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -228,7 +228,7 @@ fn named_graph_fields_cannot_repair_missing_default_graph_fields() {
         if quad.predicate == p_rc_subject() {
             quad.graph_name = Some(RdfTerm::iri("urn:unrelated-standpoint"));
         }
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     let corrupt = builder.freeze().unwrap();
     let failure = parse_relational_core(&corrupt).unwrap_err();

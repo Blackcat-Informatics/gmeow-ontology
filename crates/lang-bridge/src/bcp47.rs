@@ -84,13 +84,14 @@ impl LangProjectionTarget for Bcp47Target {
         "bcp47"
     }
 
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    fn emit(&self, input: &LangProjectionInput) -> gmeow_errors::Result<Vec<LangEmission>> {
         // Walk every LanguageVariety surface, aggregating derivations into ONE tag-set emission
         // (one committed `bcp47-tags.ttl`), so the projection presents a single registry surface
         // rather than a file per variety.
         let mut derivations: Vec<Bcp47Derivation> = Vec::new();
         for source in &input.varieties {
-            let ds = parse_lang_turtle(&source.bytes, &source.name)?;
+            let ds = parse_lang_turtle(&source.bytes, &source.name)
+                .map_err(IngestDiagnostic::into_diag)?;
             for v in subjects_of_type(&ds, &format!("{LANG_NS}LanguageVariety")) {
                 derivations.push(derive_bcp47_tag(&ds, v));
             }
@@ -112,7 +113,7 @@ impl LangProjectionTarget for Bcp47Target {
                 "lang:LanguageVariety <{}> yields conflicting BCP-47 derivations across the scanned \
                  surfaces; a variety must derive exactly one registry tag",
                 conflict[0].variety_iri
-            )));
+            )).into_diag());
         }
         Ok(vec![emit_tag_set(&derivations)])
     }

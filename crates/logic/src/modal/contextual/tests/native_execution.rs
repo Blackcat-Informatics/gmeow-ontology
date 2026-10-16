@@ -423,6 +423,10 @@ fn a_request_writer_in_an_admitted_empty_world_is_rejected_before_execution() {
     let program = LogicProgram::new(vec![], vec![rule], vec![], None);
     let error = crate::reason::reason_program(&program, input, &domains)
         .expect_err("a selected empty world must not permit a late first request");
+    assert_eq!(
+        error.inner().failure_class.as_deref(),
+        crate::error::NativeCoverage::FAILURE_CLASS
+    );
     let refusal = error
         .downcast_ref::<crate::error::NativeCoverage>()
         .expect("typed immutable contextual source refusal");

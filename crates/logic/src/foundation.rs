@@ -1971,17 +1971,9 @@ const STRATA: [&[Rule]; 5] = [STRATUM_0, STRATUM_1, STRATUM_2, STRATUM_3, STRATU
 /// The set of constant predicate IRIs that appear as a rule HEAD anywhere in the
 /// foundation program.
 ///
-/// This is the syntactic-reachability oracle for a [`crate::obligations`]
-/// non-entailment check: a predicate the chase can ever derive must be the head of
-/// some rule, so a predicate absent from this set is *unreachable* — no rule head
-/// unifies with it, directly or through any chain of rule applications (every
-/// derived fact is some rule's head). A `logic:NonEntailmentObligation` whose
-/// forbidden predicate is not in this set is discharged by syntactic reachability;
-/// a matching head prevents this syntactic discharge but is not a witnessed violation.
-/// The foundation heads are all
-/// `logic:`-namespaced, so an assertion-only `gmeow:` predicate (e.g.
-/// `gmeow:counterpartOf`, `gmeow:deceptiveIntentClaim`) is discharged today and trips
-/// only if a future rule introduces it as a head.
+/// This is only the fixed foundation inventory. Absence here says nothing about
+/// an authored program, native schema producer or another selected context. The
+/// obligation assessment uses the complete retained program-aware analysis.
 #[must_use]
 pub fn head_predicate_iris() -> std::collections::BTreeSet<String> {
     let mut set = std::collections::BTreeSet::new();
@@ -1993,6 +1985,32 @@ pub fn head_predicate_iris() -> std::collections::BTreeSet<String> {
         }
     }
     set
+}
+
+/// The complete immutable foundation catalogue, inspected once without lowering
+/// another executable. Variable predicates remain explicitly unbounded.
+pub(crate) fn writer_inventory() -> &'static crate::physical::WriterInventory {
+    static INVENTORY: std::sync::OnceLock<crate::physical::WriterInventory> =
+        std::sync::OnceLock::new();
+    INVENTORY.get_or_init(|| {
+        let mut inventory = crate::physical::WriterInventory::new(
+            crate::physical::metadata_identity("gmeow-foundation-writers-v1", &STRATA),
+        );
+        for (stratum, rules) in STRATA.iter().enumerate() {
+            for (index, rule) in rules.iter().enumerate() {
+                inventory
+                    .producers
+                    .push(format!("foundation/{stratum}/{index}"));
+                match rule.head.predicate {
+                    TermPat::Const(predicate) => {
+                        inventory.predicates.insert(predicate.to_owned());
+                    }
+                    TermPat::Var(_) => inventory.unbounded = true,
+                }
+            }
+        }
+        inventory
+    })
 }
 
 // ── Lowering onto the single native chase ───────────────────────────────────────

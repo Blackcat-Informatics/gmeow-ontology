@@ -251,13 +251,13 @@ pub fn render_diagnostics_artifacts(
     // (the derived root-cause/cluster/glut fields the enrichment adds are ignored by
     // `to_gmeow_rdf`, so this projection is identical to the enriched report's).
     let mut projected = purrdf::RdfDatasetBuilder::new();
-    let graph = projected.intern_iri(crate::stages::carrier::GRAPH_DIAGNOSTICS);
-    projected.declare_named_graph(graph);
+    let graph = projected.intern_iri(crate::stages::carrier::GRAPH_DIAGNOSTICS)?;
+    projected.declare_named_graph(graph)?;
     gmeow_errors::render::append_gmeow_findings(
         &report,
         crate::stages::carrier::GRAPH_DIAGNOSTICS,
         &mut projected,
-    );
+    )?;
     let projected = projected
         .freeze()
         .map_err(|e| stage_err("RDF", format!("project native findings: {e}")))?;
@@ -328,12 +328,12 @@ pub fn render_diagnostics_artifacts(
         projected
     } else {
         let mut combined = purrdf::RdfDatasetBuilder::new();
-        combined.push_dataset(&projected);
+        combined.push_dataset(&projected)?;
         if let Some(derived) = gate_dataset {
-            combined.push_dataset(&derived);
+            combined.push_dataset(&derived)?;
         }
         // Append directly into the final union; no intermediate meta dataset.
-        derivation.append_to(&mut combined, crate::stages::carrier::GRAPH_DIAGNOSTICS);
+        derivation.append_to(&mut combined, crate::stages::carrier::GRAPH_DIAGNOSTICS)?;
         combined
             .freeze()
             .map_err(|e| stage_err("RDF", format!("freeze diagnostic union: {e}")))?

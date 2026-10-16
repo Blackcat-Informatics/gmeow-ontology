@@ -151,7 +151,7 @@ fn projection_round_trips_through_the_graph() {
     // Dual carriage: the typed program → graph → typed program is identity (the
     // cache-hit re-derivation the handle relies on).
     let lowered = lower_program(&horn_program());
-    let nt = project_relational_core(&lowered);
+    let nt = project_relational_core(&lowered).unwrap();
     let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("parse projection");
     let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
@@ -174,7 +174,7 @@ fn residue_round_trips_through_the_graph() {
             "sequence marker (variadic) is not representable in the relational core",
         ],
     );
-    let nt = project_relational_core(&lowered);
+    let nt = project_relational_core(&lowered).unwrap();
     let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("parse projection");
     let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
@@ -186,8 +186,8 @@ fn residue_round_trips_through_the_graph() {
 #[test]
 fn projection_is_byte_deterministic() {
     let lowered = lower_program(&horn_program());
-    let a = project_relational_core(&lowered);
-    let b = project_relational_core(&lower_program(&horn_program()));
+    let a = project_relational_core(&lowered).unwrap();
+    let b = project_relational_core(&lower_program(&horn_program())).unwrap();
     assert_eq!(
         a, b,
         "the projection is a byte-stable function of the program"
@@ -234,7 +234,7 @@ fn repeated_body_atom_round_trips_with_distinct_indices() {
     let program = LogicProgram::new(vec![], vec![rule], vec![], None);
     let lowered = lower_program(&program);
     // Project then re-derive: must reconstruct 2 body atoms, not 1.
-    let nt = project_relational_core(&lowered);
+    let nt = project_relational_core(&lowered).unwrap();
     let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("parse projection");
     let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
@@ -606,7 +606,7 @@ fn nary_head_rule_round_trips_through_the_graph() {
     let lowered = lower_program_with_formulas(&program);
     assert_eq!(lowered.rules.len(), 1);
     assert_eq!(lowered.rules[0].head_conjuncts.len(), 3);
-    let nt = project_relational_core(&lowered);
+    let nt = project_relational_core(&lowered).unwrap();
     let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("parse projection");
     let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
@@ -642,7 +642,7 @@ fn nary_head_rule_with_duplicate_rc_index_is_rejected() {
     };
     let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
     let lowered = lower_program_with_formulas(&program);
-    let nt = project_relational_core(&lowered);
+    let nt = project_relational_core(&lowered).unwrap();
     // Rewrite the head conjunct at positional index 2 to a DUPLICATE of index 0. Only the
     // one `/headconjunct/` node carries rcIndex "2" (body atoms live under `/body/`).
     let corrupted: String = nt
@@ -680,7 +680,7 @@ fn formula_derived_rules_round_trip_through_the_graph() {
     let program =
         LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![transitivity_formula()]);
     let lowered = lower_program_with_formulas(&program);
-    let nt = project_relational_core(&lowered);
+    let nt = project_relational_core(&lowered).unwrap();
     let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("parse projection");
     let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");

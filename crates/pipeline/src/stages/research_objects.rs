@@ -143,7 +143,7 @@ fn load_instance_graph(root: &Path, scores_ttl: &[u8]) -> Result<Store, gmeow_er
         parsed.push(parse_into(bytes, label)?);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    Ok(Store::from_dataset(&RdfDataset::union(&refs)))
+    Ok(Store::from_dataset(&RdfDataset::union(&refs)?))
 }
 
 // ── instance-graph reads (mirror the Python `_text`/`_label` helpers) ──────────
@@ -725,11 +725,17 @@ fn ro_crate_config(
 }
 
 /// Intern `(subject, predicate, object)` IRIs and push the default-graph relation.
-fn push_rel(builder: &mut purrdf::RdfDatasetBuilder, subject: &str, predicate: &str, object: &str) {
-    let subject = builder.intern_iri(subject);
-    let predicate = builder.intern_iri(predicate);
-    let object = builder.intern_iri(object);
-    builder.push_quad(subject, predicate, object, None);
+fn push_rel(
+    builder: &mut purrdf::RdfDatasetBuilder,
+    subject: &str,
+    predicate: &str,
+    object: &str,
+) -> gmeow_errors::Result<()> {
+    let subject = builder.intern_iri(subject)?;
+    let predicate = builder.intern_iri(predicate)?;
+    let object = builder.intern_iri(object)?;
+    builder.push_quad(subject, predicate, object, None)?;
+    Ok(())
 }
 
 /// Push a typed-literal `(subject, predicate, value^^datatype)` default-graph statement.
@@ -739,16 +745,17 @@ fn push_lit(
     predicate: &str,
     value: &str,
     datatype: &str,
-) {
-    let subject = builder.intern_iri(subject);
-    let predicate = builder.intern_iri(predicate);
+) -> gmeow_errors::Result<()> {
+    let subject = builder.intern_iri(subject)?;
+    let predicate = builder.intern_iri(predicate)?;
     let object = builder.intern_literal(purrdf::RdfLiteral {
         lexical_form: value.to_string(),
         datatype: Some(datatype.to_string()),
         language: None,
         direction: None,
-    });
-    builder.push_quad(subject, predicate, object, None);
+    })?;
+    builder.push_quad(subject, predicate, object, None)?;
+    Ok(())
 }
 
 /// True when `url` is an absolute HTTP(S) IRI (safe to emit as an RDF IRI object).
@@ -780,8 +787,8 @@ fn build_research_source(
         dsi,
         roles.iri(RR::RdfType),
         roles.iri(RR::DatasetClass),
-    );
-    push_lit(&mut b, dsi, roles.iri(RR::Title), &ds.title, &xsd_string);
+    )?;
+    push_lit(&mut b, dsi, roles.iri(RR::Title), &ds.title, &xsd_string)?;
     if !ds.description.is_empty() {
         push_lit(
             &mut b,
@@ -789,7 +796,7 @@ fn build_research_source(
             roles.iri(RR::Description),
             &ds.description,
             &xsd_string,
-        );
+        )?;
     }
     if !ds.date_published.is_empty() {
         push_lit(
@@ -798,16 +805,16 @@ fn build_research_source(
             roles.iri(RR::Issued),
             &ds.date_published,
             &xsd_string,
-        );
+        )?;
     }
     if let Some(v) = &ds.version {
-        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string);
+        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string)?;
     }
     if let Some(c) = &ds.cite_as {
-        push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string);
+        push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string)?;
     }
     if is_http_iri(&ds.landing_page) {
-        push_rel(&mut b, dsi, roles.iri(RR::LandingPage), &ds.landing_page);
+        push_rel(&mut b, dsi, roles.iri(RR::LandingPage), &ds.landing_page)?;
     } else if !ds.landing_page.is_empty() {
         push_lit(
             &mut b,
@@ -815,26 +822,26 @@ fn build_research_source(
             roles.iri(RR::LandingPage),
             &ds.landing_page,
             &xsd_string,
-        );
+        )?;
     }
     if let Some(license) = value_node(store, dsi, &g("hasLicense")) {
-        push_rel(&mut b, dsi, roles.iri(RR::License), &license);
+        push_rel(&mut b, dsi, roles.iri(RR::License), &license)?;
     }
     // The attributed organisation is projected as BOTH creator and publisher (the
     // catalog projections carried the same org into each slot); DataCite/Frictionless
     // require a named agent in both roles.
     if let Some(org) = value_node(store, dsi, &g("wasAttributedTo")) {
-        push_rel(&mut b, dsi, roles.iri(RR::Creator), &org);
-        push_rel(&mut b, dsi, roles.iri(RR::Publisher), &org);
+        push_rel(&mut b, dsi, roles.iri(RR::Creator), &org)?;
+        push_rel(&mut b, dsi, roles.iri(RR::Publisher), &org)?;
         push_rel(
             &mut b,
             &org,
             roles.iri(RR::RdfType),
             roles.iri(RR::AgentClass),
-        );
+        )?;
         let name = label(store, &org);
         if !name.is_empty() {
-            push_lit(&mut b, &org, roles.iri(RR::AgentName), &name, &xsd_string);
+            push_lit(&mut b, &org, roles.iri(RR::AgentName), &name, &xsd_string)?;
         }
     }
 
@@ -849,13 +856,13 @@ fn build_research_source(
             disambiguate += 1;
         }
         let rid = format!("{NS}{name}");
-        push_rel(&mut b, dsi, roles.iri(RR::HasResource), &rid);
+        push_rel(&mut b, dsi, roles.iri(RR::HasResource), &rid)?;
         push_rel(
             &mut b,
             &rid,
             roles.iri(RR::RdfType),
             roles.iri(RR::ResourceClass),
-        );
+        )?;
         if !doc.name.is_empty() {
             push_lit(
                 &mut b,
@@ -863,10 +870,10 @@ fn build_research_source(
                 roles.iri(RR::ResourceName),
                 &doc.name,
                 &xsd_string,
-            );
+            )?;
         }
         if is_http_iri(&doc.content_url) {
-            push_rel(&mut b, &rid, roles.iri(RR::ResourceUrl), &doc.content_url);
+            push_rel(&mut b, &rid, roles.iri(RR::ResourceUrl), &doc.content_url)?;
         } else if !doc.content_url.is_empty() {
             push_lit(
                 &mut b,
@@ -874,25 +881,25 @@ fn build_research_source(
                 roles.iri(RR::ResourcePath),
                 &doc.content_url,
                 &xsd_string,
-            );
+            )?;
         }
         for (algo, hex) in &doc.digests {
             let cid = format!("{NS}checksum/{name}/{algo}");
-            push_rel(&mut b, &rid, roles.iri(RR::Checksum), &cid);
+            push_rel(&mut b, &rid, roles.iri(RR::Checksum), &cid)?;
             push_rel(
                 &mut b,
                 &cid,
                 roles.iri(RR::RdfType),
                 roles.iri(RR::ChecksumClass),
-            );
+            )?;
             push_lit(
                 &mut b,
                 &cid,
                 roles.iri(RR::ChecksumAlgorithm),
                 algo,
                 &xsd_string,
-            );
-            push_lit(&mut b, &cid, roles.iri(RR::ChecksumValue), hex, &xsd_string);
+            )?;
+            push_lit(&mut b, &cid, roles.iri(RR::ChecksumValue), hex, &xsd_string)?;
         }
     }
 
@@ -902,27 +909,29 @@ fn build_research_source(
                            name: &str,
                            description: &str,
                            fields: &[(&str, &str)],
-                           rows: &[String]| {
-        push_rel(b, dsi, roles.iri(RR::HasRecordSet), id);
-        push_rel(b, id, roles.iri(RR::RdfType), roles.iri(RR::RecordSetClass));
-        push_lit(b, id, roles.iri(RR::RecordSetName), name, &xsd_string);
+                           rows: &[String]|
+     -> gmeow_errors::Result<()> {
+        push_rel(b, dsi, roles.iri(RR::HasRecordSet), id)?;
+        push_rel(b, id, roles.iri(RR::RdfType), roles.iri(RR::RecordSetClass))?;
+        push_lit(b, id, roles.iri(RR::RecordSetName), name, &xsd_string)?;
         push_lit(
             b,
             id,
             roles.iri(RR::RecordSetDescription),
             description,
             &xsd_string,
-        );
+        )?;
         for (fname, dtype) in fields {
             let fid = format!("{NS}field/{name}/{fname}");
-            push_rel(b, id, roles.iri(RR::HasField), &fid);
-            push_rel(b, &fid, roles.iri(RR::RdfType), roles.iri(RR::FieldClass));
-            push_lit(b, &fid, roles.iri(RR::FieldName), fname, &xsd_string);
-            push_lit(b, &fid, roles.iri(RR::FieldDataType), dtype, &xsd_string);
+            push_rel(b, id, roles.iri(RR::HasField), &fid)?;
+            push_rel(b, &fid, roles.iri(RR::RdfType), roles.iri(RR::FieldClass))?;
+            push_lit(b, &fid, roles.iri(RR::FieldName), fname, &xsd_string)?;
+            push_lit(b, &fid, roles.iri(RR::FieldDataType), dtype, &xsd_string)?;
         }
         for row in rows {
-            push_lit(b, id, roles.iri(RR::HasRow), row, &json_dt);
+            push_lit(b, id, roles.iri(RR::HasRow), row, &json_dt)?;
         }
+        Ok(())
     };
     let row_json = |value: &serde_json::Value| -> Result<String, gmeow_errors::Diag> {
         serde_json::to_string(value).map_err(|e| ro_err(format!("record-set row JSON: {e}")))
@@ -953,7 +962,7 @@ fn build_research_source(
                 ("digest", "sc:Text"),
             ],
             &rows,
-        );
+        )?;
     }
 
     let claims = subjects_of_type(store, &g("StandpointClaim"));
@@ -979,7 +988,7 @@ fn build_research_source(
                 ("grounded", "sc:Boolean"),
             ],
             &rows,
-        );
+        )?;
     }
 
     let mut score_rows: Vec<String> = Vec::new();
@@ -1016,7 +1025,7 @@ fn build_research_source(
                 ("score", "sc:Float"),
             ],
             &score_rows,
-        );
+        )?;
     }
 
     b.freeze()
@@ -1054,8 +1063,8 @@ fn build_ro_crate_source(
         dsi,
         roles.iri(RR::RdfType),
         roles.iri(RR::DatasetClass),
-    );
-    push_lit(&mut b, dsi, roles.iri(RR::Title), &ds.title, &xsd_string);
+    )?;
+    push_lit(&mut b, dsi, roles.iri(RR::Title), &ds.title, &xsd_string)?;
     if !ds.description.is_empty() {
         push_lit(
             &mut b,
@@ -1063,7 +1072,7 @@ fn build_ro_crate_source(
             roles.iri(RR::Description),
             &ds.description,
             &xsd_string,
-        );
+        )?;
     }
     if !ds.date_published.is_empty() {
         push_lit(
@@ -1072,16 +1081,16 @@ fn build_ro_crate_source(
             roles.iri(RR::Issued),
             &ds.date_published,
             &xsd_string,
-        );
+        )?;
     }
     if let Some(v) = &ds.version {
-        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string);
+        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string)?;
     }
     if let Some(c) = &ds.cite_as {
-        push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string);
+        push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string)?;
     }
     if is_http_iri(&ds.landing_page) {
-        push_rel(&mut b, dsi, roles.iri(RR::LandingPage), &ds.landing_page);
+        push_rel(&mut b, dsi, roles.iri(RR::LandingPage), &ds.landing_page)?;
     } else if !ds.landing_page.is_empty() {
         push_lit(
             &mut b,
@@ -1089,23 +1098,23 @@ fn build_ro_crate_source(
             roles.iri(RR::LandingPage),
             &ds.landing_page,
             &xsd_string,
-        );
+        )?;
     }
     if let Some(license) = value_node(store, dsi, &g("hasLicense")) {
-        push_rel(&mut b, dsi, roles.iri(RR::License), &license);
+        push_rel(&mut b, dsi, roles.iri(RR::License), &license)?;
     }
     if let Some(org) = value_node(store, dsi, &g("wasAttributedTo")) {
-        push_rel(&mut b, dsi, roles.iri(RR::Creator), &org);
-        push_rel(&mut b, dsi, roles.iri(RR::Publisher), &org);
+        push_rel(&mut b, dsi, roles.iri(RR::Creator), &org)?;
+        push_rel(&mut b, dsi, roles.iri(RR::Publisher), &org)?;
         push_rel(
             &mut b,
             &org,
             roles.iri(RR::RdfType),
             roles.iri(RR::AgentClass),
-        );
+        )?;
         let name = label(store, &org);
         if !name.is_empty() {
-            push_lit(&mut b, &org, roles.iri(RR::AgentName), &name, &xsd_string);
+            push_lit(&mut b, &org, roles.iri(RR::AgentName), &name, &xsd_string)?;
         }
     }
 
@@ -1114,22 +1123,22 @@ fn build_ro_crate_source(
         // Mint under the entity base so `config.native_id` strips the prefix back to
         // the bare `<filename>` — the crate-relative path the asset is keyed by.
         let rid = format!("{NS}{name}");
-        push_rel(&mut b, dsi, roles.iri(RR::HasResource), &rid);
+        push_rel(&mut b, dsi, roles.iri(RR::HasResource), &rid)?;
         push_rel(
             &mut b,
             &rid,
             roles.iri(RR::RdfType),
             roles.iri(RR::ResourceClass),
-        );
-        push_lit(&mut b, &rid, roles.iri(RR::ResourceName), name, &xsd_string);
-        push_lit(&mut b, &rid, roles.iri(RR::ResourcePath), name, &xsd_string);
+        )?;
+        push_lit(&mut b, &rid, roles.iri(RR::ResourceName), name, &xsd_string)?;
+        push_lit(&mut b, &rid, roles.iri(RR::ResourcePath), name, &xsd_string)?;
         push_lit(
             &mut b,
             &rid,
             roles.iri(RR::ByteSize),
             &len.to_string(),
             &xsd_nn,
-        );
+        )?;
     }
 
     b.freeze()
@@ -1201,7 +1210,7 @@ fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, gmeow_errors::D
     let bytes = std::fs::read(&onto)?;
     parsed.push(parse_into(&bytes, "ontology/gmeow.ttl")?);
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    let store = Store::from_dataset(&RdfDataset::union(&refs));
+    let store = Store::from_dataset(&RdfDataset::union(&refs)?);
 
     let mut map: BTreeMap<String, String> = BTreeMap::new();
     for q in store.triples() {
@@ -1295,7 +1304,7 @@ fn render_source_turtle_payload(
     // `nt` is already bytes from the native serializer, so pass it by reference.
     purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
         .map(String::into_bytes)
-        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
+        .map_err(gmeow_errors::Diag::from)
 }
 
 /// Retag a native literal's `@x-gmeow-*` language tag to its public BCP-47 form.
@@ -1474,7 +1483,7 @@ fn render_dcat(
         parsed.push(parse_into(&bytes, label)?);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    let dataset = Arc::new(RdfDataset::union(&refs));
+    let dataset = Arc::new(RdfDataset::union(&refs)?);
 
     let graph = match native_query::query(&dataset, dcat_rq)? {
         SparqlResult::Graph(graph) => graph,
@@ -1510,7 +1519,7 @@ fn render_dcat(
     // IS `render(graph)`, the bytes the superset gate reconstructs from the bundle.
     // `nt` is already bytes from the native serializer, so pass it by reference.
     purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
-        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
+        .map_err(gmeow_errors::Diag::from)
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────

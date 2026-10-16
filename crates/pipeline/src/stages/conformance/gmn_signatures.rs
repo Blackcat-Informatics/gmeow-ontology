@@ -82,7 +82,7 @@ fn raw(path: &str, digest: String) -> ActionInput {
 /// original admitted native documents without another authored-source parse.
 /// The union is materialized only once, only when an observation actually misses.
 fn grounding_graph(catalog: &SourceCatalog) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let mut merged = MutableDataset::new(Arc::new(RdfDataset::union(&[])));
+    let mut merged = MutableDataset::new(Arc::new(RdfDataset::union(&[])?));
     for path in MODULES {
         let document = catalog.document(path)?;
         for quad in document.flat_default_graph_quads() {

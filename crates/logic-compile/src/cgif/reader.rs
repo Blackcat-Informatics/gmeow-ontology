@@ -161,6 +161,19 @@ fn nt_term(expr: &CExpr) -> Result<String, LogicParseError> {
                 Ok(format!("<{}>", nt_escape_iri(name)))
             }
         }
+        CExpr::Paren(items) if items.first().and_then(sym_of) == Some("triple") => {
+            let [_, subject, predicate, object] = items.as_slice() else {
+                return Err(LogicParseError(
+                    "CGIF triple term requires exactly three operands".into(),
+                ));
+            };
+            Ok(format!(
+                "<<( {} {} {} )>>",
+                nt_term(subject)?,
+                nt_term(predicate)?,
+                nt_term(object)?
+            ))
+        }
         CExpr::Paren(items) => {
             // A `(lit "lex")` / `(lit "lex" "dt")` / `(lit "lex" @lang)` reserved form.
             let lit = parse_lit_form(items)?;

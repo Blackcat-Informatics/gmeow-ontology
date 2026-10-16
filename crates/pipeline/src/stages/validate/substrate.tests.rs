@@ -6,24 +6,42 @@ use super::*;
 #[test]
 fn validation_substrate_keeps_native_evidence_inside_its_exact_role() {
     let mut builder = RdfDatasetBuilder::new();
-    let selected = builder.intern_iri(&format!("{SUBSTRATE_IRI_PREFIX}selected"));
-    let unrelated = builder.intern_iri("https://example.org/unrelated");
-    let predicate = builder.intern_iri("https://example.org/evidence");
-    let graph = builder.intern_iri(GRAPH_PROVENANCE);
-    let outside = builder.intern_iri("https://example.org/outside");
-    let literal = builder.intern_literal(purrdf::RdfLiteral {
-        lexical_form: "witness".into(),
-        datatype: None,
-        language: Some("ar".into()),
-        direction: Some(purrdf::RdfTextDirection::Rtl),
-    });
-    let quote = builder.intern_triple(unrelated, predicate, literal);
-    builder.push_quad(selected, predicate, literal, Some(graph));
-    builder.push_reifier_in_graph(selected, quote, Some(graph));
-    builder.push_annotation_in_graph(selected, predicate, quote, Some(graph));
-    builder.push_quad(unrelated, predicate, literal, Some(graph));
-    builder.push_quad(selected, predicate, outside, Some(outside));
-    builder.push_annotation(selected, predicate, outside);
+    let selected = builder
+        .intern_iri(&format!("{SUBSTRATE_IRI_PREFIX}selected"))
+        .unwrap();
+    let unrelated = builder.intern_iri("https://example.org/unrelated").unwrap();
+    let predicate = builder.intern_iri("https://example.org/evidence").unwrap();
+    let graph = builder.intern_iri(GRAPH_PROVENANCE).unwrap();
+    let outside = builder.intern_iri("https://example.org/outside").unwrap();
+    let literal = builder
+        .intern_literal(purrdf::RdfLiteral {
+            lexical_form: "witness".into(),
+            datatype: None,
+            language: Some("ar".into()),
+            direction: Some(purrdf::RdfTextDirection::Rtl),
+        })
+        .unwrap();
+    let quote = builder
+        .intern_triple(unrelated, predicate, literal)
+        .unwrap();
+    builder
+        .push_quad(selected, predicate, literal, Some(graph))
+        .unwrap();
+    builder
+        .push_reifier_in_graph(selected, quote, Some(graph))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(selected, predicate, quote, Some(graph))
+        .unwrap();
+    builder
+        .push_quad(unrelated, predicate, literal, Some(graph))
+        .unwrap();
+    builder
+        .push_quad(selected, predicate, outside, Some(outside))
+        .unwrap();
+    builder
+        .push_annotation(selected, predicate, outside)
+        .unwrap();
     let source = builder.freeze().unwrap();
     let projected = project(&source).unwrap();
     assert_eq!(projected.quad_count(), 1);

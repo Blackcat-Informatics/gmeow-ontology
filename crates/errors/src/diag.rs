@@ -444,14 +444,16 @@ impl Diag {
         }))
     }
 
-    /// Build a diagnostic from a [`DiagKind`], preserving its code and grade and
-    /// keeping the typed value downcastable off the source.
+    /// Build a diagnostic from a [`DiagKind`], preserving its code, grade and
+    /// declared failure class, with the typed value downcastable off the source.
     #[track_caller]
     pub fn of_kind<K: DiagKind>(kind: K) -> Self {
         let code = kind.code();
         let grade = kind.grade();
+        let failure_class = kind.failure_class().map(str::to_owned);
         let message = kind.to_string();
         let mut diag = Diag::new(code, grade, message);
+        diag.0.failure_class = failure_class;
         diag.0.source = Some(Box::new(kind));
         diag
     }
@@ -848,6 +850,10 @@ macro_rules! ensure {
 ///     failure_class = "https://blackcatinformatics.ca/gmeow/MediumUnknownSchema";
 /// }
 /// ```
+///
+/// An optional `source = kind => expression;` clause supplies the original
+/// typed cause through `std::error::Error::source`. The expression borrows the
+/// generated kind as `kind` and returns an optional error reference.
 #[macro_export]
 macro_rules! define_diag_kind {
     (
@@ -857,6 +863,7 @@ macro_rules! define_diag_kind {
         grade = $grade:expr;
         message = $msg:literal $(, $marg:ident)* $(,)?;
         $(failure_class = $failure_class:literal;)?
+        $(source = $source_self:ident => $source:expr;)?
     ) => {
         $(#[$meta])*
         #[derive(::std::fmt::Debug, ::std::clone::Clone)]
@@ -902,7 +909,12 @@ macro_rules! define_diag_kind {
             }
         }
 
-        impl ::std::error::Error for $name {}
+        impl ::std::error::Error for $name {
+            $(fn source(&self) -> ::core::option::Option<&(dyn ::std::error::Error + 'static)> {
+                let $source_self = self;
+                $source
+            })?
+        }
 
         impl $crate::diag::DiagKind for $name {
             fn code(&self) -> $crate::code::Code {

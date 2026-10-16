@@ -105,11 +105,14 @@ fn sources(literal: &str) -> [(&'static str, String); 4] {
         (
             "rule",
             format!(
-                r#"<urn:rule> a logic:Rule;
-                  logic:head [ rdf:subject "?s"; rdf:predicate logic:payload;
-                               rdf:object {literal} ];
-                  logic:body [ rdf:subject "?s"; rdf:predicate logic:payload;
-                               rdf:object {literal} ] ."#
+                r#"_:rule5a02022fS0_s a logic:TermCarrier ; logic:termVariable "s" .
+<urn:rule> a logic:Rule;
+                  logic:head [
+                      rdf:reifies <<( _:rule5a02022fS0_s logic:payload {literal} )>>
+                  ];
+                  logic:body [
+                      rdf:reifies <<( _:rule5a02022fS0_s logic:payload {literal} )>>
+                  ] ."#
             ),
         ),
     ]
