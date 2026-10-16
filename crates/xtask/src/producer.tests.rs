@@ -26,6 +26,142 @@ fn implicit_git_package_identity_uses_cargo_metadata_without_guessing_a_name() {
     );
 }
 
+/// Exercise Cargo message binding and the compiler-read seal without running a producer.
+#[test]
+fn compiler_messages_bind_implicit_and_explicit_package_owners_to_selected_inputs() {
+    let scratch = tempfile::tempdir().unwrap();
+    let root = scratch.path();
+    let recipe = publication_recipe(root);
+    let explicit = format!("path+file://{}#fixture@1", root.display());
+    let implicit = format!("path+file://{}#1", root.display());
+    std::fs::create_dir(root.join("output")).unwrap();
+    std::fs::write(
+        root.join("output/fixture.d"),
+        "output/libfixture.rlib: lib.rs\n",
+    )
+    .unwrap();
+    for id in [implicit, explicit.clone()] {
+        let packages = BTreeMap::from([(id.clone(), explicit.clone())]);
+        let mut artifacts = Vec::new();
+        let mut generated = Vec::new();
+        let artifact = json!({
+            "reason": "compiler-artifact", "package_id": id,
+            "filenames": [root.join("output/libfixture.rlib")],
+            "target": {"src_path": root.join("lib.rs"), "kind": ["lib"]}
+        });
+        capture_compiler_input(
+            root,
+            &packages,
+            &recipe.source_inventory.selection,
+            &artifact,
+            &mut artifacts,
+            &mut generated,
+        )
+        .unwrap();
+        assert_eq!(
+            artifacts.len(),
+            1,
+            "implicit IDs must not silently drop a selected compiler artifact"
+        );
+        assert_eq!(
+            artifacts[0].package,
+            recipe.source_inventory.selection.units[0].package
+        );
+        let inputs = CompilerInputs::from_artifacts(root, &artifacts).unwrap();
+        inputs
+            .verify(
+                root,
+                &recipe.source_inventory,
+                &publication_resolution(root, &recipe),
+                &[],
+                &[],
+            )
+            .unwrap();
+        let script = json!({
+            "reason": "build-script-executed", "package_id": id,
+            "out_dir": root.join("output/generated")
+        });
+        capture_compiler_input(
+            root,
+            &packages,
+            &recipe.source_inventory.selection,
+            &script,
+            &mut artifacts,
+            &mut generated,
+        )
+        .unwrap();
+        assert_eq!(generated.len(), 1);
+        assert_eq!(generated[0].package, artifacts[0].package);
+
+        let mut unselected = recipe.source_inventory.selection.clone();
+        unselected.units.clear();
+        let mut omitted = Vec::new();
+        capture_compiler_input(
+            root,
+            &packages,
+            &unselected,
+            &artifact,
+            &mut omitted,
+            &mut generated,
+        )
+        .unwrap();
+        assert!(
+            omitted.is_empty(),
+            "unselected artifacts must remain excluded"
+        );
+        assert!(
+            capture_compiler_input(
+                root,
+                &BTreeMap::new(),
+                &recipe.source_inventory.selection,
+                &artifact,
+                &mut omitted,
+                &mut generated
+            )
+            .is_err(),
+            "unknown IDs must fail closed"
+        );
+        assert!(
+            capture_compiler_input(
+                root,
+                &BTreeMap::new(),
+                &recipe.source_inventory.selection,
+                &script,
+                &mut omitted,
+                &mut generated
+            )
+            .is_err()
+        );
+    }
+}
+
+/// External source admission must recognize Cargo's version-only IDs too.
+#[test]
+fn compiler_messages_external_roots_use_the_same_metadata_identity() {
+    let scratch = tempfile::tempdir().unwrap();
+    let mut selection = publication_recipe(scratch.path())
+        .source_inventory
+        .selection;
+    selection.units[0].manifest = None;
+    selection.units[0].package =
+        "git+https://example.test/repository?rev=pinned#actual-package@1.0.0".into();
+    for id in [
+        "git+https://example.test/repository?rev=pinned#1.0.0",
+        "git+https://example.test/repository?rev=pinned#actual-package@1.0.0",
+    ] {
+        let metadata = json!({"packages": [
+            {"id": id, "name": "actual-package", "version": "1.0.0", "manifest_path": "/selected/src/Cargo.toml"},
+            {"id": "registry+https://example.test/index#other@2", "name": "other", "version": "2", "manifest_path": "/excluded/src/Cargo.toml"}
+        ]});
+        assert_eq!(
+            selected_external_package_roots(scratch.path(), &metadata, &selection).unwrap(),
+            vec![PathBuf::from("/selected/src")]
+        );
+    }
+    let contradictory = json!({"packages": [{"id": "git+https://example.test/repository#wrong@1.0.0", "name": "actual-package", "version": "1.0.0"}]});
+    assert!(selected_external_package_roots(scratch.path(), &contradictory, &selection).is_err());
+}
+
 /// Create an admitted synthetic runtime unit with the selected workspace check policy.
 fn runtime_unit(workspace: bool) -> CompilationUnit {
     CompilationUnit {
