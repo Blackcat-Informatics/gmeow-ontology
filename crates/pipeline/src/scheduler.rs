@@ -764,9 +764,9 @@ pub fn run_without(
                     stage_receipts.push(receipt);
                 }
                 run_ledger.replay(std::mem::take(&mut run.diags));
-                register_stage_unit(provenance, &run.id, stage.capabilities());
+                register_stage_unit(provenance, &run.id, stage.capabilities())?;
                 let mut stage_prov = run.product.bundle.provenance().clone();
-                register_stage_unit(&mut stage_prov, &run.id, stage.capabilities());
+                register_stage_unit(&mut stage_prov, &run.id, stage.capabilities())?;
                 set_bundle_provenance(&mut run.product.bundle, stage_prov);
 
                 let level_timing = &mut level_timings[level];
@@ -834,10 +834,11 @@ pub fn run_without(
                         *remaining = remaining
                             .checked_sub(1)
                             .expect("completed carrier reader was counted");
-                        if *remaining == 0 && !retained_carriers.contains(&producer) {
-                            if let Some(product) = products.remove(&producer) {
-                                products.insert(producer, product.into_carrier_released()?);
-                            }
+                        if *remaining == 0
+                            && !retained_carriers.contains(&producer)
+                            && let Some(product) = products.remove(&producer)
+                        {
+                            products.insert(producer, product.into_carrier_released()?);
                         }
                     }
                     if logically_consumed.contains(&stage_id)
@@ -868,10 +869,10 @@ pub fn run_without(
                 }
                 Ok(())
             })();
-            if let Err(error) = commit_result {
-                if first_error.is_none() {
-                    first_error = Some(error);
-                }
+            if let Err(error) = commit_result
+                && first_error.is_none()
+            {
+                first_error = Some(error);
             }
         }
 
@@ -1410,7 +1411,7 @@ fn check_lane(
 trait ActionIdentity {
     fn producer_id(&self) -> &str;
     fn product_digest(&self) -> &str;
-    fn entity_digest(&self, entity: &str) -> Option<String>;
+    fn entity_digest(&self, entity: &str) -> gmeow_errors::Result<Option<String>>;
 }
 
 impl ActionIdentity for StageProduct {
@@ -1422,15 +1423,16 @@ impl ActionIdentity for StageProduct {
         &self.digest
     }
 
-    fn entity_digest(&self, entity: &str) -> Option<String> {
-        crate::handle_identity::contains_graph(self.bundle(), entity).then(|| {
-            crate::handle_identity::entity_digest(
-                &self.bundle().graph_digest(entity).to_hex(),
-                self.handle_commitments()
-                    .get(entity)
-                    .map(|binding| (binding.identity.as_str(), binding.digest.as_str())),
-            )
-        })
+    fn entity_digest(&self, entity: &str) -> gmeow_errors::Result<Option<String>> {
+        if !crate::handle_identity::contains_graph(self.bundle(), entity) {
+            return Ok(None);
+        }
+        Ok(Some(crate::handle_identity::entity_digest(
+            &self.bundle().graph_digest(entity)?.to_hex(),
+            self.handle_commitments()
+                .get(entity)
+                .map(|binding| (binding.identity.as_str(), binding.digest.as_str())),
+        )))
     }
 }
 
@@ -1443,8 +1445,9 @@ impl ActionIdentity for StageReceipt {
         &self.product_digest
     }
 
-    fn entity_digest(&self, entity: &str) -> Option<String> {
-        self.graphs
+    fn entity_digest(&self, entity: &str) -> gmeow_errors::Result<Option<String>> {
+        Ok(self
+            .graphs
             .iter()
             .find(|row| row.identity == entity)
             .map(|row| {
@@ -1456,7 +1459,7 @@ impl ActionIdentity for StageReceipt {
                             .then_some((binding.identity.as_str(), binding.digest.as_str()))
                     }),
                 )
-            })
+            }))
     }
 }
 
@@ -1487,7 +1490,7 @@ fn action_key_context_from_identities<T: ActionIdentity>(
         match entities.get(producer.as_str()) {
             Some(selected) if !selected.is_empty() => {
                 for entity in *selected {
-                    let digest = identity.entity_digest(entity).ok_or_else(|| {
+                    let digest = identity.entity_digest(entity)?.ok_or_else(|| {
                         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                             stage: stage.id().to_string(),
                             message: format!(

@@ -61,6 +61,8 @@ gmeow-logic-compile = { path = "../logic-compile" }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # One bounded receipt/blob authority shared with the producer DAG.
 gmeow-action-cache = { path = "../action-cache" }
+# Resolve actual Rust module/cfg ownership for native repository-static seals.
+gmeow-build-inputs = { path = "../build-inputs" }
 # Regex engine for the native-only lint / constitution / repo-static gate modules
 # (version pin kept in lockstep with shacl).
 regex.workspace = true

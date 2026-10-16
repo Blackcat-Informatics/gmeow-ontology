@@ -25,6 +25,9 @@ use crate::rule_ir::EvalRule;
 /// An immutable preparation shared by predicate selection and native execution.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub(crate) struct PreparedProgram {
+    /// Complete typed-program identity, computed once before cache lookup.
+    /// Includes source context and IR families not present in executable rules.
+    pub(crate) identity: [u8; 32],
     /// Source ownership and scope captured before relational lowering.
     pub(crate) admission: crate::native_semantics::ProgramAdmission,
     /// Ordinary Horn rules, followed by the evaluable full-formula rules.
@@ -133,6 +136,7 @@ impl PreparedProgram {
     /// Execution caches are process-local and never serialized into a preparation.
     pub(crate) fn publication(&self) -> Self {
         Self {
+            identity: self.identity,
             admission: self.admission.clone(),
             rules: self.rules.clone(),
             existential_rules: self.existential_rules.clone(),
@@ -144,12 +148,13 @@ impl PreparedProgram {
         }
     }
 
-    fn lower(program: &LogicProgram) -> gmeow_errors::Result<Self> {
+    fn lower(program: &LogicProgram, identity: [u8; 32]) -> gmeow_errors::Result<Self> {
         let admission = crate::native_semantics::ProgramAdmission::capture(program);
         let lowering = crate::relational_core::lower_formulas(program);
         let mut rules = crate::lower::prepare_rule_templates(program)?;
         rules.extend(lowering.rules);
         Ok(Self {
+            identity,
             admission,
             rules,
             existential_rules: lowering.existential_rules,
@@ -238,7 +243,7 @@ impl PreparedProgram {
                 Some(sources.contract()),
                 domains,
             )?
-            .with_witness_source(&self.admission),
+            .with_witness_source(&self.admission, self.identity, self.rules.len()),
         );
         if trace_large_input {
             tracing::info!(
@@ -403,7 +408,7 @@ pub(crate) fn prepare_program(
     {
         return Ok(prepared);
     }
-    let prepared = Arc::new(PreparedProgram::lower(program)?);
+    let prepared = Arc::new(PreparedProgram::lower(program, key)?);
     if !prepared.cacheable() {
         return Ok(prepared);
     }

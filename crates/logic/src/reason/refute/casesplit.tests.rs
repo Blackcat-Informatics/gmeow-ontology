@@ -16,7 +16,7 @@ fn bnode_quad(s: &str, p: &str, o: RdfTerm) -> RdfQuad {
 fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
     for q in quads {
-        b.push_owned_quad(&q);
+        b.push_owned_quad(&q).unwrap();
     }
     b.freeze().expect("freeze")
 }

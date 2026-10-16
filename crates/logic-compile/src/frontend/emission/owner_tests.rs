@@ -30,8 +30,8 @@ fn rule_contract_path_and_sugar_bindings_follow_their_actual_sorted_values() {
     let source = prepared(
         r#"
         @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-        ex:firstRule a logic:Rule ; logic:head [ rdf:subject ex:Zulu ; rdf:predicate ex:p ; rdf:object ex:v ] .
-        ex:lastRule a logic:Rule ; logic:head [ rdf:subject ex:Alfa ; rdf:predicate ex:p ; rdf:object ex:v ] .
+        ex:firstRule a logic:Rule ; logic:head [ rdf:reifies <<( ex:Zulu ex:p ex:v )>> ] .
+        ex:lastRule a logic:Rule ; logic:head [ rdf:reifies <<( ex:Alfa ex:p ex:v )>> ] .
         ex:contract a logic:ReasoningContract ; logic:modelSemantics logic:StableModelSemantics ; logic:negationOperator logic:DefaultNegation .
         logic:StableModelSemantics a logic:ModelSemantics .
         logic:DefaultNegation a logic:NegationOperator .
@@ -185,32 +185,48 @@ fn emitted_unsupported_contract_keeps_its_admission_error() {
 #[test]
 fn native_correspondence_owners_and_shared_leg_use_only_selected_graph_fields() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let ty = builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-    let class = builder.intern_iri("https://blackcatinformatics.ca/logic/Correspondence");
-    let named = builder.intern_iri("https://example.org/named");
+    let ty = builder
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        .unwrap();
+    let class = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/Correspondence")
+        .unwrap();
+    let named = builder.intern_iri("https://example.org/named").unwrap();
     for name in ["first", "second"] {
-        let subject = builder.intern_iri(&format!("https://example.org/{name}"));
-        builder.push_annotation(subject, ty, class);
+        let subject = builder
+            .intern_iri(&format!("https://example.org/{name}"))
+            .unwrap();
+        builder.push_annotation(subject, ty, class).unwrap();
         for (field, value) in [
             ("correspondenceRelation", "Subsumes"),
             ("morphismClass", "LossyLens"),
             ("morphismKind", "InstitutionMorphism"),
         ] {
-            let p = builder.intern_iri(&format!("https://blackcatinformatics.ca/logic/{field}"));
-            let o = builder.intern_iri(&format!("https://blackcatinformatics.ca/logic/{value}"));
-            builder.push_annotation(subject, p, o);
-            builder.push_quad(subject, p, o, None);
-            let invalid = builder.intern_iri("https://example.org/unselected");
-            builder.push_quad(subject, p, invalid, Some(named));
+            let p = builder
+                .intern_iri(&format!("https://blackcatinformatics.ca/logic/{field}"))
+                .unwrap();
+            let o = builder
+                .intern_iri(&format!("https://blackcatinformatics.ca/logic/{value}"))
+                .unwrap();
+            builder.push_annotation(subject, p, o).unwrap();
+            builder.push_quad(subject, p, o, None).unwrap();
+            let invalid = builder
+                .intern_iri("https://example.org/unselected")
+                .unwrap();
+            builder.push_quad(subject, p, invalid, Some(named)).unwrap();
         }
-        let get = builder.intern_iri("https://blackcatinformatics.ca/logic/getLeg");
-        let leg = builder.intern_iri("https://example.org/sharedLeg");
-        builder.push_annotation(subject, get, leg);
+        let get = builder
+            .intern_iri("https://blackcatinformatics.ca/logic/getLeg")
+            .unwrap();
+        let leg = builder.intern_iri("https://example.org/sharedLeg").unwrap();
+        builder.push_annotation(subject, get, leg).unwrap();
     }
-    let leg = builder.intern_iri("https://example.org/sharedLeg");
-    let path = builder.intern_iri("https://blackcatinformatics.ca/gmeow/path");
-    let step = builder.intern_iri("https://example.org/p");
-    builder.push_annotation(leg, path, step);
+    let leg = builder.intern_iri("https://example.org/sharedLeg").unwrap();
+    let path = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/path")
+        .unwrap();
+    let step = builder.intern_iri("https://example.org/p").unwrap();
+    builder.push_annotation(leg, path, step).unwrap();
     let source = PreparedLogicSource::new(&builder.freeze().unwrap()).unwrap();
     let compiled = source.compile_with_sources(None).unwrap();
     assert!(

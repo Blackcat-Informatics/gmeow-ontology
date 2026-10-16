@@ -160,7 +160,7 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
     }
     let frame = frame;
     let mut sink = Sink::new();
-    frame.emit(&mut sink, Rung::lossy_crisp_with_witness());
+    frame.emit(&mut sink, Rung::lossy_crisp_with_witness())?;
 
     let mut lift = Lift {
         frame: &frame,
@@ -216,17 +216,18 @@ impl Lift<'_> {
     ///
     /// The back edge `gmeow:wasGeneratedBy` is what the native `math:UnliftableIngest` lint
     /// enumerates, so it is attached HERE, once, for every node this lift creates.
-    fn mint(&mut self, role: &str, key: &str) -> (String, bool) {
+    fn mint(&mut self, role: &str, key: &str) -> gmeow_errors::Result<(String, bool)> {
         let iri = self.frame.node(role, key);
         let fresh = self.emitted.insert(iri.clone());
         if fresh {
-            self.frame.generated(&mut self.sink, &iri);
+            self.frame.generated(&mut self.sink, &iri)?;
         }
-        (iri, fresh)
+        Ok((iri, fresh))
     }
 
-    fn label(&mut self, subject: &str, text: &str) {
-        self.sink.string(subject, RDFS_LABEL, text);
+    fn label(&mut self, subject: &str, text: &str) -> gmeow_errors::Result<()> {
+        self.sink.string(subject, RDFS_LABEL, text)?;
+        Ok(())
     }
 
     fn key_of(&self, node: StructNode) -> ContentKey {
@@ -254,26 +255,26 @@ impl Lift<'_> {
     // -- the whole model -----------------------------------------------------
 
     fn model(&mut self, model: &ModelProto, graph: &GraphProto) -> gmeow_errors::Result<()> {
-        self.provenance(model);
+        self.provenance(model)?;
 
         // The operator vocabulary: one math:MathematicalTheory per imported operator set.
         let mut theories: BTreeMap<String, String> = BTreeMap::new();
         for opset in &model.opset_import {
             let domain = opset.spelled_domain().to_owned();
             let key = format!("{domain}|{}", opset.version);
-            let (iri, fresh) = self.mint("opset", &key);
+            let (iri, fresh) = self.mint("opset", &key)?;
             if fresh {
-                self.sink.typed(&iri, &math("MathematicalTheory"));
+                self.sink.typed(&iri, &math("MathematicalTheory"))?;
                 self.label(
                     &iri,
                     &format!("ONNX operator set {domain} v{}", opset.version),
-                );
+                )?;
             }
             // A model may import the same domain twice; ONNX takes the first. So does this.
             theories.entry(domain).or_insert(iri);
         }
 
-        let model_iri = self.emit_learned_model(graph);
+        let model_iri = self.emit_learned_model(graph)?;
 
         // The leaves: graph inputs and initializers, before any node can read them.
         let initializers: BTreeSet<&str> =
@@ -285,7 +286,7 @@ impl Lift<'_> {
                 // leaf — it would fork the value's identity.
                 continue;
             }
-            let value = self.emit_leaf(&info.name);
+            let value = self.emit_leaf(&info.name)?;
             let expr = self.expression_iri(value.node);
             let declared =
                 self.require_type(info.value_type.as_ref(), "graph input", &info.name)?;
@@ -293,7 +294,7 @@ impl Lift<'_> {
             self.env.insert(info.name.clone(), value);
         }
         for tensor in &graph.initializer {
-            let value = self.emit_leaf(&tensor.name);
+            let value = self.emit_leaf(&tensor.name)?;
             let expr = self.expression_iri(value.node);
             self.attach_initializer_type(&expr, tensor)?;
             self.env.insert(tensor.name.clone(), value);
@@ -337,7 +338,7 @@ impl Lift<'_> {
             self.attach_type(&expr, declared)?;
         }
 
-        self.emit_computation_graph(graph, &model_iri, &node_iris);
+        self.emit_computation_graph(graph, &model_iri, &node_iris)?;
         Ok(())
     }
 
@@ -376,22 +377,22 @@ impl Lift<'_> {
     /// The annotations land on the retained `math:parseSource` witness, never on a lifted
     /// `math:` object: an annotation stamped onto the codomain would be the amnesic
     /// string-placeholder pattern the ingestion rules forbid.
-    fn provenance(&mut self, model: &ModelProto) {
+    fn provenance(&mut self, model: &ModelProto) -> gmeow_errors::Result<()> {
         let witness = self.frame.source_witness_iri.clone();
 
         if !model.producer_name.is_empty() {
             let key = format!("{}|{}", model.producer_name, model.producer_version);
-            let (agent, fresh) = self.mint("producer", &key);
+            let (agent, fresh) = self.mint("producer", &key)?;
             if fresh {
-                self.sink.typed(&agent, &gmeow("SoftwareAgent"));
+                self.sink.typed(&agent, &gmeow("SoftwareAgent"))?;
                 let label = if model.producer_version.is_empty() {
                     model.producer_name.clone()
                 } else {
                     format!("{} {}", model.producer_name, model.producer_version)
                 };
-                self.label(&agent, &label);
+                self.label(&agent, &label)?;
             }
-            self.sink.iri(&witness, &gmeow("wasAttributedTo"), &agent);
+            self.sink.iri(&witness, &gmeow("wasAttributedTo"), &agent)?;
         }
 
         let mut entries: Vec<(String, String)> =
@@ -415,28 +416,29 @@ impl Lift<'_> {
         // One math:SourceAnnotation per entry, content-addressed on the pair so a model that
         // repeats a key/value pair names one node twice rather than minting two.
         for (key, value) in entries {
-            let (iri, fresh) = self.mint("annotation", &format!("{key}\u{0}{value}"));
+            let (iri, fresh) = self.mint("annotation", &format!("{key}\u{0}{value}"))?;
             if fresh {
-                self.sink.typed(&iri, &math("SourceAnnotation"));
-                self.sink.string(&iri, &math("annotationKey"), &key);
+                self.sink.typed(&iri, &math("SourceAnnotation"))?;
+                self.sink.string(&iri, &math("annotationKey"), &key)?;
                 // Verbatim, empty string included: an annotation present with an empty value
                 // is a different fact from an annotation that is absent.
-                self.sink.string(&iri, &math("annotationValue"), &value);
-                self.label(&iri, &format!("{key}={value}"));
+                self.sink.string(&iri, &math("annotationValue"), &value)?;
+                self.label(&iri, &format!("{key}={value}"))?;
             }
-            self.sink.iri(&witness, &math("sourceAnnotation"), &iri);
+            self.sink.iri(&witness, &math("sourceAnnotation"), &iri)?;
         }
+        Ok(())
     }
 
     // -- the model and its graph ---------------------------------------------
 
-    fn emit_learned_model(&mut self, graph: &GraphProto) -> String {
-        let (iri, fresh) = self.mint("model", &graph_label(graph));
+    fn emit_learned_model(&mut self, graph: &GraphProto) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("model", &graph_label(graph))?;
         if fresh {
-            self.sink.typed(&iri, &math("LearnedModel"));
-            self.label(&iri, &graph_label(graph));
+            self.sink.typed(&iri, &math("LearnedModel"))?;
+            self.label(&iri, &graph_label(graph))?;
         }
-        iri
+        Ok(iri)
     }
 
     fn emit_computation_graph(
@@ -444,17 +446,18 @@ impl Lift<'_> {
         graph: &GraphProto,
         model_iri: &str,
         node_iris: &[String],
-    ) {
-        let (iri, fresh) = self.mint("graph", &graph_label(graph));
+    ) -> gmeow_errors::Result<()> {
+        let (iri, fresh) = self.mint("graph", &graph_label(graph))?;
         if fresh {
-            self.sink.typed(&iri, &math("TensorComputationGraph"));
-            self.sink.iri(&iri, &math("architectureOf"), model_iri);
-            self.label(&iri, &graph_label(graph));
+            self.sink.typed(&iri, &math("TensorComputationGraph"))?;
+            self.sink.iri(&iri, &math("architectureOf"), model_iri)?;
+            self.label(&iri, &graph_label(graph))?;
             self.tensor_structures += 1;
         }
         for node_iri in node_iris {
-            self.sink.iri(&iri, &math("computationNode"), node_iri);
+            self.sink.iri(&iri, &math("computationNode"), node_iri)?;
         }
+        Ok(())
     }
 
     // -- expression leaves ---------------------------------------------------
@@ -466,27 +469,27 @@ impl Lift<'_> {
     /// `math:VariableExpression`'s own definition insists "there is no implicit free
     /// variable": an occurrence resolving to no declaration is
     /// `math:UnscopedVariableOccurrence`.
-    fn emit_leaf(&mut self, name: &str) -> Value {
+    fn emit_leaf(&mut self, name: &str) -> gmeow_errors::Result<Value> {
         let node = self
             .arena
             .intern_free(TermValue::simple_literal(format!("onnx:value:{name}")));
         let key = self.key_of(node).into_string();
-        let (iri, fresh) = self.mint("expr", &key);
+        let (iri, fresh) = self.mint("expr", &key)?;
         if fresh {
-            self.sink.typed(&iri, &math("VariableExpression"));
-            self.label(&iri, name);
-            let (occurrence, _) = self.mint("occurrence", &key);
-            self.sink.typed(&occurrence, &math("VariableOccurrence"));
-            let (declaration, _) = self.mint("declaration", &key);
+            self.sink.typed(&iri, &math("VariableExpression"))?;
+            self.label(&iri, name)?;
+            let (occurrence, _) = self.mint("occurrence", &key)?;
+            self.sink.typed(&occurrence, &math("VariableOccurrence"))?;
+            let (declaration, _) = self.mint("declaration", &key)?;
             self.sink
-                .typed(&declaration, &math("FreeVariableDeclaration"));
-            self.label(&declaration, name);
+                .typed(&declaration, &math("FreeVariableDeclaration"))?;
+            self.label(&declaration, name)?;
             self.sink
-                .iri(&occurrence, &math("declaredVariable"), &declaration);
+                .iri(&occurrence, &math("declaredVariable"), &declaration)?;
             self.sink
-                .iri(&iri, &math("variableOccurrence"), &occurrence);
+                .iri(&iri, &math("variableOccurrence"), &occurrence)?;
         }
-        Value { node }
+        Ok(Value { node })
     }
 
     /// A boundary value's declared type must be present — that is what "typed tensor slot"
@@ -537,7 +540,7 @@ impl Lift<'_> {
             .shape
             .as_ref()
             .map(|dims| dims.iter().map(AxisSpec::of_dim).collect());
-        self.attach_tensor_type(expr_iri, element, axes.as_deref());
+        self.attach_tensor_type(expr_iri, element, axes.as_deref())?;
         Ok(())
     }
 
@@ -565,7 +568,7 @@ impl Lift<'_> {
         // `TensorProto::element_count` already words.
         tensor.element_count()?;
         let axes: Vec<AxisSpec> = tensor.dims.iter().copied().map(AxisSpec::Extent).collect();
-        self.attach_tensor_type(expr_iri, element, Some(&axes));
+        self.attach_tensor_type(expr_iri, element, Some(&axes))?;
         Ok(())
     }
 
@@ -576,23 +579,29 @@ impl Lift<'_> {
     /// values of the same tensor type share ONE type individual rather than minting a copy per
     /// mention — and the structured element type and shape hang off that shared node, emitted
     /// exactly once.
-    fn attach_tensor_type(&mut self, expr_iri: &str, element: &str, axes: Option<&[AxisSpec]>) {
+    fn attach_tensor_type(
+        &mut self,
+        expr_iri: &str,
+        element: &str,
+        axes: Option<&[AxisSpec]>,
+    ) -> gmeow_errors::Result<()> {
         let rendered = render_tensor_type(element, axes);
-        let (iri, fresh) = self.mint("type", &rendered);
+        let (iri, fresh) = self.mint("type", &rendered)?;
         if fresh {
-            self.sink.typed(&iri, &math("ExpressionType"));
+            self.sink.typed(&iri, &math("ExpressionType"))?;
             // The human label stays: it is how a reader recognizes the type at a glance. What
             // changes is that it is no longer the ONLY place the shape lives.
-            self.label(&iri, &rendered);
-            let element_iri = self.emit_element_type(element);
+            self.label(&iri, &rendered)?;
+            let element_iri = self.emit_element_type(element)?;
             self.sink
-                .iri(&iri, &math("tensorElementType"), &element_iri);
+                .iri(&iri, &math("tensorElementType"), &element_iri)?;
             if let Some(axes) = axes {
-                let shape_iri = self.emit_shape(axes);
-                self.sink.iri(&iri, &math("tensorShape"), &shape_iri);
+                let shape_iri = self.emit_shape(axes)?;
+                self.sink.iri(&iri, &math("tensorShape"), &shape_iri)?;
             }
         }
-        self.sink.iri(expr_iri, &math("expressionType"), &iri);
+        self.sink.iri(expr_iri, &math("expressionType"), &iri)?;
+        Ok(())
     }
 
     /// The `math:TensorElementType` term for one ONNX element format.
@@ -600,13 +609,13 @@ impl Lift<'_> {
     /// Content-addressed on the format's spelling, so every `float` tensor in the run names
     /// ONE node — which is the point of the class: "every float16 tensor in this model" is a
     /// graph query rather than a substring match over rendered labels.
-    fn emit_element_type(&mut self, element: &str) -> String {
-        let (iri, fresh) = self.mint("element-type", element);
+    fn emit_element_type(&mut self, element: &str) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("element-type", element)?;
         if fresh {
-            self.sink.typed(&iri, &math("TensorElementType"));
-            self.label(&iri, element);
+            self.sink.typed(&iri, &math("TensorElementType"))?;
+            self.label(&iri, element)?;
         }
-        iri
+        Ok(iri)
     }
 
     /// The `math:TensorShape` for one axis list: its rank, and one indexed `math:TensorAxis`
@@ -615,50 +624,50 @@ impl Lift<'_> {
     /// Content-addressed on the axes, so the `math:ExpressionType` typing an initializer's
     /// leaf and the `math:WeightTensor` filling it name the SAME shape object rather than two
     /// coincidentally equal ones.
-    fn emit_shape(&mut self, axes: &[AxisSpec]) -> String {
+    fn emit_shape(&mut self, axes: &[AxisSpec]) -> gmeow_errors::Result<String> {
         let key = shape_key(axes);
-        let (iri, fresh) = self.mint("shape", &key);
+        let (iri, fresh) = self.mint("shape", &key)?;
         if !fresh {
-            return iri;
+            return Ok(iri);
         }
-        self.sink.typed(&iri, &math("TensorShape"));
-        self.label(&iri, &render_axes(axes));
+        self.sink.typed(&iri, &math("TensorShape"))?;
+        self.label(&iri, &render_axes(axes))?;
         // Explicit, never left to be counted: rank 0 (a scalar) has to be positively
         // assertable, and the native constraint fragment cannot express a count.
         let rank = i64::try_from(axes.len()).unwrap_or(i64::MAX);
-        self.sink.integer(&iri, &math("tensorRank"), rank);
+        self.sink.integer(&iri, &math("tensorRank"), rank)?;
 
         for (index, axis) in axes.iter().enumerate() {
-            let (axis_iri, _) = self.mint("axis", &format!("{key}#{index}"));
-            self.sink.typed(&axis_iri, &math("TensorAxis"));
+            let (axis_iri, _) = self.mint("axis", &format!("{key}#{index}"))?;
+            self.sink.typed(&axis_iri, &math("TensorAxis"))?;
             let position = i64::try_from(index).unwrap_or(i64::MAX);
-            self.sink.integer(&axis_iri, &math("axisIndex"), position);
-            self.label(&axis_iri, &axis.render());
+            self.sink.integer(&axis_iri, &math("axisIndex"), position)?;
+            self.label(&axis_iri, &axis.render())?;
             match axis {
                 AxisSpec::Extent(extent) => {
-                    self.sink.integer(&axis_iri, &math("axisExtent"), *extent);
+                    self.sink.integer(&axis_iri, &math("axisExtent"), *extent)?;
                 }
                 AxisSpec::Symbolic(name) => {
                     // A DECLARATION, not a string: two axes spelled `batch` denote the same
                     // unknown length, and sharing one math:FreeVariableDeclaration is what
                     // makes that co-identity a graph fact rather than a string coincidence.
-                    let (declaration, declaration_fresh) = self.mint("extent-symbol", name);
+                    let (declaration, declaration_fresh) = self.mint("extent-symbol", name)?;
                     if declaration_fresh {
                         self.sink
-                            .typed(&declaration, &math("FreeVariableDeclaration"));
-                        self.label(&declaration, name);
+                            .typed(&declaration, &math("FreeVariableDeclaration"))?;
+                        self.label(&declaration, name)?;
                     }
                     self.sink
-                        .iri(&axis_iri, &math("symbolicExtent"), &declaration);
+                        .iri(&axis_iri, &math("symbolicExtent"), &declaration)?;
                 }
                 // ONNX's `oneof` left unset: the rank counts this axis and the source states
                 // nothing about its length. Both extent properties stay off — math:axisExtent
                 // forbids a placeholder 0 or -1 standing in for "unknown".
                 AxisSpec::Unstated => {}
             }
-            self.sink.iri(&iri, &math("shapeAxis"), &axis_iri);
+            self.sink.iri(&iri, &math("shapeAxis"), &axis_iri)?;
         }
-        iri
+        Ok(iri)
     }
 
     // -- nodes ---------------------------------------------------------------
@@ -718,12 +727,12 @@ impl Lift<'_> {
             attribute_signature(&node.attribute)
         );
         let structure = self.app(&arena_key, &operands);
-        let iri = self.emit_application(structure, &operator, &operands, node);
+        let iri = self.emit_application(structure, &operator, &operands, node)?;
 
         // Every initializer this node consumes is the weight of THIS layer. First consumer
         // wins: a weight shared by two layers belongs to the earlier one in graph order, and
         // math:weightOf is not the place to record sharing.
-        let layer = self.emit_layer(index, node, &iri);
+        let layer = self.emit_layer(index, node, &iri)?;
         for input in &node.input {
             if initializers.contains(input.as_str()) {
                 self.weight_layer
@@ -741,7 +750,7 @@ impl Lift<'_> {
                 .insert(outputs[0].clone(), Value { node: structure });
         } else {
             for (position, name) in outputs.iter().enumerate() {
-                let projected = self.emit_projection(structure, position);
+                let projected = self.emit_projection(structure, position)?;
                 self.env.insert((*name).clone(), projected);
             }
         }
@@ -774,26 +783,27 @@ impl Lift<'_> {
         let domain = spelled_node_domain(node);
         let signature = attribute_signature(&node.attribute);
         let key = format!("{domain}|{}|{signature}", node.op_type);
-        let (iri, fresh) = self.mint("operation", &key);
+        let (iri, fresh) = self.mint("operation", &key)?;
         if fresh {
-            self.sink.typed(&iri, &math("Operation"));
+            self.sink.typed(&iri, &math("Operation"))?;
             let label = if signature.is_empty() {
                 node.op_type.clone()
             } else {
                 format!("{}({signature})", node.op_type)
             };
-            self.label(&iri, &label);
+            self.label(&iri, &label)?;
 
             // The opset IS the operator vocabulary: the operator resolves through one
             // math:MathematicalSymbol whose meaning is scoped by the imported operator set.
             let symbol_key = format!("{domain}|{}", node.op_type);
-            let (symbol, symbol_fresh) = self.mint("symbol", &symbol_key);
+            let (symbol, symbol_fresh) = self.mint("symbol", &symbol_key)?;
             if symbol_fresh {
-                self.sink.typed(&symbol, &math("MathematicalSymbol"));
-                self.label(&symbol, &node.op_type);
-                self.sink.iri(&symbol, &math("definedInTheory"), theory);
+                self.sink.typed(&symbol, &math("MathematicalSymbol"))?;
+                self.label(&symbol, &node.op_type)?;
+                self.sink.iri(&symbol, &math("definedInTheory"), theory)?;
             }
-            self.sink.iri(&iri, &math("hasMathematicalSymbol"), &symbol);
+            self.sink
+                .iri(&iri, &math("hasMathematicalSymbol"), &symbol)?;
         }
         Ok(iri)
     }
@@ -803,13 +813,18 @@ impl Lift<'_> {
     /// Keyed on the node's own `math:ApplicationExpression` IRI, so two structurally identical
     /// nodes are one layer — the same collapse the expression AST makes, carried through to
     /// the layer that names it.
-    fn emit_layer(&mut self, index: usize, node: &NodeProto, node_iri: &str) -> String {
-        let (iri, fresh) = self.mint("layer", node_iri);
+    fn emit_layer(
+        &mut self,
+        index: usize,
+        node: &NodeProto,
+        node_iri: &str,
+    ) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("layer", node_iri)?;
         if fresh {
-            self.sink.typed(&iri, &math("NeuralLayer"));
-            self.label(&iri, &node_label(index, node));
+            self.sink.typed(&iri, &math("NeuralLayer"))?;
+            self.label(&iri, &node_label(index, node))?;
         }
-        iri
+        Ok(iri)
     }
 
     /// Emit a `math:ApplicationExpression`: exactly one operator, contiguous zero-based slots.
@@ -819,14 +834,14 @@ impl Lift<'_> {
         operator: &str,
         operands: &[StructNode],
         node: &NodeProto,
-    ) -> String {
+    ) -> gmeow_errors::Result<String> {
         let key = self.key_of(structure).into_string();
-        let (iri, fresh) = self.mint("expr", &key);
+        let (iri, fresh) = self.mint("expr", &key)?;
         if !fresh {
-            return iri;
+            return Ok(iri);
         }
-        self.sink.typed(&iri, &math("ApplicationExpression"));
-        self.sink.iri(&iri, &math("operator"), operator);
+        self.sink.typed(&iri, &math("ApplicationExpression"))?;
+        self.sink.iri(&iri, &math("operator"), operator)?;
 
         // math:tensorOperation names the TENSOR operator the node applies. Where the ONNX
         // operator IS one the slice already declares as an individual, that individual is
@@ -841,48 +856,52 @@ impl Lift<'_> {
             .flatten();
         let tensor_operation = canonical.unwrap_or_else(|| operator.to_owned());
         self.sink
-            .iri(&iri, &math("tensorOperation"), &tensor_operation);
+            .iri(&iri, &math("tensorOperation"), &tensor_operation)?;
 
         for (index, operand) in operands.iter().enumerate() {
             let operand_iri = self.expression_iri(*operand);
             let slot_key = format!("{key}#{index}");
-            let (slot_iri, _) = self.mint("slot", &slot_key);
-            self.sink.typed(&slot_iri, &math("ArgumentSlot"));
+            let (slot_iri, _) = self.mint("slot", &slot_key)?;
+            self.sink.typed(&slot_iri, &math("ArgumentSlot"))?;
             let position = i64::try_from(index).unwrap_or(i64::MAX);
-            self.sink.integer(&slot_iri, &math("slotIndex"), position);
+            self.sink.integer(&slot_iri, &math("slotIndex"), position)?;
             self.sink
-                .iri(&slot_iri, &math("slotExpression"), &operand_iri);
-            self.sink.iri(&iri, &math("argumentSlot"), &slot_iri);
+                .iri(&slot_iri, &math("slotExpression"), &operand_iri)?;
+            self.sink.iri(&iri, &math("argumentSlot"), &slot_iri)?;
         }
         self.tensor_structures += 1;
-        iri
+        Ok(iri)
     }
 
     /// The i-th result of a multi-output node, as an explicit projection application.
-    fn emit_projection(&mut self, structure: StructNode, position: usize) -> Value {
+    fn emit_projection(
+        &mut self,
+        structure: StructNode,
+        position: usize,
+    ) -> gmeow_errors::Result<Value> {
         let projection = self.app(&format!("onnx:output-projection:{position}"), &[structure]);
         let key = self.key_of(projection).into_string();
-        let (iri, fresh) = self.mint("expr", &key);
+        let (iri, fresh) = self.mint("expr", &key)?;
         if fresh {
             let (operator, operator_fresh) =
-                self.mint("operation", &format!("onnx-output-projection|{position}"));
+                self.mint("operation", &format!("onnx-output-projection|{position}"))?;
             if operator_fresh {
-                self.sink.typed(&operator, &math("Operation"));
-                self.label(&operator, &format!("output projection at index {position}"));
+                self.sink.typed(&operator, &math("Operation"))?;
+                self.label(&operator, &format!("output projection at index {position}"))?;
             }
-            self.sink.typed(&iri, &math("ApplicationExpression"));
-            self.sink.iri(&iri, &math("operator"), &operator);
-            self.sink.iri(&iri, &math("tensorOperation"), &operator);
+            self.sink.typed(&iri, &math("ApplicationExpression"))?;
+            self.sink.iri(&iri, &math("operator"), &operator)?;
+            self.sink.iri(&iri, &math("tensorOperation"), &operator)?;
             let source_iri = self.expression_iri(structure);
-            let (slot_iri, _) = self.mint("slot", &format!("{key}#0"));
-            self.sink.typed(&slot_iri, &math("ArgumentSlot"));
-            self.sink.integer(&slot_iri, &math("slotIndex"), 0);
+            let (slot_iri, _) = self.mint("slot", &format!("{key}#0"))?;
+            self.sink.typed(&slot_iri, &math("ArgumentSlot"))?;
+            self.sink.integer(&slot_iri, &math("slotIndex"), 0)?;
             self.sink
-                .iri(&slot_iri, &math("slotExpression"), &source_iri);
-            self.sink.iri(&iri, &math("argumentSlot"), &slot_iri);
+                .iri(&slot_iri, &math("slotExpression"), &source_iri)?;
+            self.sink.iri(&iri, &math("argumentSlot"), &slot_iri)?;
             self.tensor_structures += 1;
         }
-        Value { node: projection }
+        Ok(Value { node: projection })
     }
 
     // -- the parameter block -------------------------------------------------
@@ -914,30 +933,32 @@ impl Lift<'_> {
             ))
         })?;
 
-        let (iri, fresh) = self.mint("parameter-space", &graph_label(graph));
+        let (iri, fresh) = self.mint("parameter-space", &graph_label(graph))?;
         if fresh {
-            self.sink.typed(&iri, &math("ParameterSpace"));
-            self.sink.iri(&iri, &math("parameterSpaceOf"), model_iri);
-            self.label(&iri, &format!("{} parameter space", graph_label(graph)));
+            self.sink.typed(&iri, &math("ParameterSpace"))?;
+            self.sink.iri(&iri, &math("parameterSpaceOf"), model_iri)?;
+            self.label(&iri, &format!("{} parameter space", graph_label(graph)))?;
             // math:spaceDimension is the LINEAR dimension of an explicitly linear object —
             // distinct from the physical math:hasDimension. It is a shape fact read off the
             // initializer headers, never a value read out of a payload.
-            self.sink.integer(&iri, &math("spaceDimension"), dimension);
+            self.sink
+                .integer(&iri, &math("spaceDimension"), dimension)?;
 
-            let (carrier, _) = self.mint("parameter-set", &graph_label(graph));
-            self.sink.typed(&carrier, &math("Set"));
-            self.label(&carrier, "the set of parameter vectors");
-            self.sink.iri(&iri, &math("underlyingSet"), &carrier);
+            let (carrier, _) = self.mint("parameter-set", &graph_label(graph))?;
+            self.sink.typed(&carrier, &math("Set"))?;
+            self.label(&carrier, "the set of parameter vectors")?;
+            self.sink.iri(&iri, &math("underlyingSet"), &carrier)?;
 
-            let (addition, _) = self.mint("parameter-operation", &graph_label(graph));
-            self.sink.typed(&addition, &math("Operation"));
-            self.label(&addition, "parameter-vector addition");
-            self.sink.iri(&iri, &math("structureOperation"), &addition);
+            let (addition, _) = self.mint("parameter-operation", &graph_label(graph))?;
+            self.sink.typed(&addition, &math("Operation"))?;
+            self.label(&addition, "parameter-vector addition")?;
+            self.sink
+                .iri(&iri, &math("structureOperation"), &addition)?;
 
-            let (axiom, _) = self.mint("parameter-axiom", &graph_label(graph));
-            self.sink.typed(&axiom, &math("Axiom"));
-            self.label(&axiom, "the vector-space axioms");
-            self.sink.iri(&iri, &math("satisfiesAxiom"), &axiom);
+            let (axiom, _) = self.mint("parameter-axiom", &graph_label(graph))?;
+            self.sink.typed(&axiom, &math("Axiom"))?;
+            self.label(&axiom, "the vector-space axioms")?;
+            self.sink.iri(&iri, &math("satisfiesAxiom"), &axiom)?;
         }
         Ok(Some(iri))
     }
@@ -963,23 +984,23 @@ impl Lift<'_> {
             ))
         })?;
 
-        let (iri, fresh) = self.mint("weight", &tensor.name);
+        let (iri, fresh) = self.mint("weight", &tensor.name)?;
         if !fresh {
             return Ok(());
         }
-        self.sink.typed(&iri, &math("WeightTensor"));
+        self.sink.typed(&iri, &math("WeightTensor"))?;
         // Exactly one, always: the max-1 qualified restriction on math:ParameterSpace.
-        self.sink.iri(&iri, &math("inParameterSpace"), space);
+        self.sink.iri(&iri, &math("inParameterSpace"), space)?;
 
         // The weight's own shape and element format, as the SAME terms its leaf's
         // math:ExpressionType names — both are content-addressed, so "the slot and the tensor
         // filling it have the same shape" is node identity rather than label equality.
         let axes: Vec<AxisSpec> = tensor.dims.iter().copied().map(AxisSpec::Extent).collect();
-        let element_iri = self.emit_element_type(element);
+        let element_iri = self.emit_element_type(element)?;
         self.sink
-            .iri(&iri, &math("tensorElementType"), &element_iri);
-        let shape_iri = self.emit_shape(&axes);
-        self.sink.iri(&iri, &math("tensorShape"), &shape_iri);
+            .iri(&iri, &math("tensorElementType"), &element_iri)?;
+        let shape_iri = self.emit_shape(&axes)?;
+        self.sink.iri(&iri, &math("tensorShape"), &shape_iri)?;
 
         self.label(
             &iri,
@@ -988,9 +1009,9 @@ impl Lift<'_> {
                 tensor.name,
                 render_tensor_type(element, Some(&axes))
             ),
-        );
+        )?;
         if let Some(layer) = self.weight_layer.get(&tensor.name).cloned() {
-            self.sink.iri(&iri, &math("weightOf"), &layer);
+            self.sink.iri(&iri, &math("weightOf"), &layer)?;
         }
         self.tensor_structures += 1;
         Ok(())

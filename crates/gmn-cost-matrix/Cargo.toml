@@ -39,6 +39,7 @@ blake3.workspace = true
 # tokenizer families over the SAME emitted GMN / Turtle / JSON-LD bytes the on-gate
 # byte-fallback estimator measures, never a re-derived surface.
 gmeow-lang-bridge = { path = "../lang-bridge" }
+gmeow-errors = { path = "../errors" }
 # The ONE canonical RDF parser + Turtle/JSON-LD serializers (never a second, hand-rolled
 # path), matching every other crate's `purrdf` dependency.
 purrdf.workspace = true

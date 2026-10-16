@@ -17,7 +17,7 @@ fn gm(local: &str) -> String {
 
 #[test]
 fn overrides_axis_orders_norms() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("constitution"), OVERRIDES, &ex("bylaw"));
     let e = Entrenchment::read_from_world(&store, W).unwrap();
     assert_eq!(
@@ -35,7 +35,7 @@ fn overrides_axis_orders_norms() {
 
 #[test]
 fn stronger_than_axis_orders_levels() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         W,
         &gm("authorityAbsolute"),
@@ -60,7 +60,7 @@ fn stronger_than_axis_orders_levels() {
 
 #[test]
 fn authority_level_inheritance_orders_norms_by_level() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         W,
         &gm("authorityAbsolute"),
@@ -87,7 +87,7 @@ fn authority_inheritance_uses_strongerthan_only_not_other_edges() {
     // A non-strongerThan edge between two level individuals (here `overrides`)
     // must NOT be read as authority-level precedence: norms carrying those
     // levels stay incomparable unless a `strongerThan` chain links the levels.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     // overrides edge directly between the *level* individuals (not strongerThan).
     store.insert_quad(W, &gm("authorityHigh"), OVERRIDES, &gm("authorityMedium"));
     store.insert_quad(W, &ex("policy"), HAS_AUTHORITY_LEVEL, &gm("authorityHigh"));
@@ -114,7 +114,7 @@ fn authority_inheritance_uses_strongerthan_only_not_other_edges() {
 
 #[test]
 fn conflicting_authority_level_is_rejected() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         W,
         &ex("treaty"),
@@ -133,7 +133,7 @@ fn conflicting_authority_level_is_rejected() {
 
 #[test]
 fn more_severe_than_axis_orders_levels() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("catastrophic"), MORE_SEVERE_THAN, &ex("minor"));
     let e = Entrenchment::read_from_world(&store, W).unwrap();
     assert_eq!(
@@ -146,7 +146,7 @@ fn more_severe_than_axis_orders_levels() {
 
 #[test]
 fn sharpens_axis_orders_standpoints() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("cityCouncilView"), SHARPENS, &ex("regionalView"));
     let e = Entrenchment::read_from_world(&store, W).unwrap();
     assert_eq!(
@@ -160,7 +160,7 @@ fn sharpens_axis_orders_standpoints() {
 
 #[test]
 fn incomparable_iris_are_a_tie() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     store.insert_quad(W, &ex("c"), OVERRIDES, &ex("d"));
     let e = Entrenchment::read_from_world(&store, W).unwrap();
@@ -172,7 +172,7 @@ fn incomparable_iris_are_a_tie() {
 
 #[test]
 fn least_entrenched_unique_on_total_chain() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     store.insert_quad(W, &ex("b"), OVERRIDES, &ex("c"));
     let e = Entrenchment::read_from_world(&store, W).unwrap();
@@ -185,7 +185,7 @@ fn least_entrenched_unique_on_total_chain() {
 
 #[test]
 fn least_entrenched_tie_on_incomparable() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     store.insert_quad(W, &ex("c"), OVERRIDES, &ex("d"));
     let e = Entrenchment::read_from_world(&store, W).unwrap();
@@ -200,7 +200,7 @@ fn least_entrenched_tie_on_incomparable() {
 
 #[test]
 fn most_entrenched_unique_and_tie() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     let e = Entrenchment::read_from_world(&store, W).unwrap();
     // a ≻ b: the most entrenched is a (unique).
@@ -210,7 +210,7 @@ fn most_entrenched_unique_and_tie() {
     );
 
     // Two incomparable values → tie for most entrenched.
-    let store2 = WorldStore::new();
+    let store2 = WorldStore::new().unwrap();
     store2.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     store2.insert_quad(W, &ex("c"), OVERRIDES, &ex("d"));
     let e2 = Entrenchment::read_from_world(&store2, W).unwrap();
@@ -234,7 +234,7 @@ fn least_entrenched_empty_and_singleton() {
 
 #[test]
 fn cycle_in_edges_is_rejected() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     store.insert_quad(W, &ex("b"), OVERRIDES, &ex("a"));
     let err = Entrenchment::read_from_world(&store, W).unwrap_err();
@@ -245,18 +245,18 @@ fn cycle_in_edges_is_rejected() {
 
 #[test]
 fn hash_is_deterministic_and_order_sensitive() {
-    let store1 = WorldStore::new();
+    let store1 = WorldStore::new().unwrap();
     store1.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     let e1 = Entrenchment::read_from_world(&store1, W).unwrap();
 
     // Same content, inserted again — identical hash.
-    let store2 = WorldStore::new();
+    let store2 = WorldStore::new().unwrap();
     store2.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
     let e2 = Entrenchment::read_from_world(&store2, W).unwrap();
     assert_eq!(e1.hash(), e2.hash());
 
     // Different ordering — different hash.
-    let store3 = WorldStore::new();
+    let store3 = WorldStore::new().unwrap();
     store3.insert_quad(W, &ex("b"), OVERRIDES, &ex("a"));
     let e3 = Entrenchment::read_from_world(&store3, W).unwrap();
     assert_ne!(e1.hash(), e3.hash());
@@ -264,7 +264,7 @@ fn hash_is_deterministic_and_order_sensitive() {
 
 #[test]
 fn empty_world_yields_empty_ordering() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let e = Entrenchment::read_from_world(&store, W).unwrap();
     assert!(e.entities().is_empty());
     assert_eq!(e.compare(&ex("a"), &ex("b")), None);

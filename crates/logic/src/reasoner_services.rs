@@ -13,9 +13,9 @@
 //!
 //! These wrappers add exactly two things and remove nothing:
 //!
-//! * they classify OWL-DL service refusals as [`DlServiceError`] so no-model,
-//!   malformed-input and execution failures remain distinct, while non-service
-//!   operations map foreign errors onto the shared [`gmeow_errors`] substrate; and
+//! * they classify OWL-DL service refusals as [`crate::error::DlService`] so no-model,
+//!   malformed-input and execution failures remain distinct on the shared
+//!   [`gmeow_errors`] substrate, retaining their native causes; and
 //! * they carry every [`purrdf::entail::Certified`] answer WITH its
 //!   [`purrdf::entail::DlCertificate`] completeness verdict and construct boundaries
 //!   as one value, [`CertifiedAnswer`](crate::reasoner_services::CertifiedAnswer), so a service's answer is never read apart
@@ -65,7 +65,8 @@ use purrdf::{RdfDataset, TermValue};
 /// The category is deliberately separate from rendered diagnostics. In particular,
 /// an unsatisfiable ontology is a decided negative result for classification and
 /// realization, while malformed reverse-mapping input and an engine failure are not.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum DlServiceFailureKind {
     /// The ontology has no model, so the requested model-relative product is undefined.
     NoModel,
@@ -75,59 +76,34 @@ pub enum DlServiceFailureKind {
     Execution,
 }
 
-/// Typed failure from an OWL Direct-Semantics reasoning service.
-#[derive(Debug)]
-pub struct DlServiceError {
-    kind: DlServiceFailureKind,
-    detail: String,
-}
-
-impl DlServiceError {
-    /// Machine-stable failure category.
-    #[must_use]
-    pub const fn kind(&self) -> DlServiceFailureKind {
-        self.kind
-    }
-
-    /// Complete human-readable upstream detail.
-    #[must_use]
-    pub fn detail(&self) -> &str {
-        &self.detail
-    }
-}
-
-impl std::fmt::Display for DlServiceError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(&self.detail)
-    }
-}
-
-impl std::error::Error for DlServiceError {}
-
-/// Lower a purrdf [`EntailError`] onto the shared reasoning-core diagnostic
-/// substrate, preserving its rendered text verbatim.
-///
-/// The reasoning core admits no degraded fallback, so every purrdf entail refusal —
-/// an unsatisfiable ontology, a malformed class-expression graph, a budget the
-/// datalog evaluator passed, an inconsistency witness — becomes a hard
-/// [`Reason`](crate::error::Reason) diagnostic rather than a bare string or a
-/// silently swallowed `None`.
+/// Attach an original native entailment refusal to the sole diagnostic substrate.
+/// Logical no-model, malformed source and physical execution remain distinct.
 fn map_entail_err(error: EntailError) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Reason {
-        detail: format!("purrdf entail service refused: {error}"),
-    })
-}
-
-fn map_dl_service_err(error: EntailError) -> DlServiceError {
     let kind = match &error {
         EntailError::Unsatisfiable => DlServiceFailureKind::NoModel,
         EntailError::Parse(_) | EntailError::MalformedList(_) => DlServiceFailureKind::Malformed,
+        EntailError::RoleHierarchy(role) => {
+            use purrdf::entail::RoleHierarchyError;
+            let mut original = role;
+            while let RoleHierarchyError::Witness {
+                original: cause, ..
+            } = original
+            {
+                original = cause;
+            }
+            match original {
+                RoleHierarchyError::Storage(_)
+                | RoleHierarchyError::Graph(_)
+                | RoleHierarchyError::Stopped => DlServiceFailureKind::Execution,
+                _ => DlServiceFailureKind::Malformed,
+            }
+        }
         _ => DlServiceFailureKind::Execution,
     };
-    DlServiceError {
+    gmeow_errors::Diag::of_kind(crate::error::DlService {
         kind,
-        detail: format!("purrdf entail service refused: {error}"),
-    }
+        cause: std::sync::Arc::new(error),
+    })
 }
 
 /// A DL reasoning answer together with the completeness verdict and construct
@@ -218,12 +194,12 @@ impl DlReasoner {
     ///
     /// # Errors
     ///
-    /// A typed [`DlServiceError`] if reverse mapping sees malformed input, execution
+    /// A typed [`crate::error::DlService`] if reverse mapping sees malformed input, execution
     /// fails, or an `owl:hasKey` axiom proves the ontology has no model.
-    pub fn new(dataset: &RdfDataset) -> std::result::Result<Self, DlServiceError> {
+    pub fn new(dataset: &RdfDataset) -> Result<Self> {
         Reasoner::new(dataset)
             .map(|inner| Self { inner })
-            .map_err(map_dl_service_err)
+            .map_err(map_entail_err)
     }
 
     /// Open the reasoning services over `dataset` with the per-decision step cap
@@ -236,15 +212,12 @@ impl DlReasoner {
     /// # Errors
     ///
     /// As [`new`](Self::new).
-    pub fn with_step_cap(
-        dataset: &RdfDataset,
-        cap: u64,
-    ) -> std::result::Result<Self, DlServiceError> {
+    pub fn with_step_cap(dataset: &RdfDataset, cap: u64) -> Result<Self> {
         Reasoner::new(dataset)
             .map(|reasoner| Self {
                 inner: reasoner.with_step_cap(cap),
             })
-            .map_err(map_dl_service_err)
+            .map_err(map_entail_err)
     }
 
     /// The per-decision step cap every tableau run of this reasoner runs under.
@@ -281,30 +254,27 @@ impl DlReasoner {
     ///
     /// # Errors
     ///
-    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model at all — every class is then vacuously unsatisfiable and the answer
     /// would say nothing.
-    pub fn class_satisfiability(
-        &mut self,
-        class: &TermValue,
-    ) -> std::result::Result<CertifiedAnswer<Verdict>, DlServiceError> {
+    pub fn class_satisfiability(&mut self, class: &TermValue) -> Result<CertifiedAnswer<Verdict>> {
         self.inner
             .class_satisfiability(class)
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_dl_service_err)
+            .map_err(map_entail_err)
     }
 
     /// The subsumption hierarchy over the ontology's named classes.
     ///
     /// # Errors
     ///
-    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model.
-    pub fn classify(&self) -> std::result::Result<CertifiedAnswer<ClassHierarchy>, DlServiceError> {
+    pub fn classify(&self) -> Result<CertifiedAnswer<ClassHierarchy>> {
         self.inner
             .classify()
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_dl_service_err)
+            .map_err(map_entail_err)
     }
 
     /// The entailed types of the ontology's named individuals, and the most specific
@@ -312,46 +282,40 @@ impl DlReasoner {
     ///
     /// # Errors
     ///
-    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model.
-    pub fn realize(&self) -> std::result::Result<CertifiedAnswer<Realization>, DlServiceError> {
+    pub fn realize(&self) -> Result<CertifiedAnswer<Realization>> {
         self.inner
             .realize()
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_dl_service_err)
+            .map_err(map_entail_err)
     }
 
     /// The named individuals entailed to be instances of `class`, sorted.
     ///
     /// # Errors
     ///
-    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model.
-    pub fn instances(
-        &mut self,
-        class: &TermValue,
-    ) -> std::result::Result<CertifiedAnswer<Vec<TermValue>>, DlServiceError> {
+    pub fn instances(&mut self, class: &TermValue) -> Result<CertifiedAnswer<Vec<TermValue>>> {
         self.inner
             .instances(class)
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_dl_service_err)
+            .map_err(map_entail_err)
     }
 
     /// Whether the ontology entails `axiom`, decided by refutation.
     ///
     /// # Errors
     ///
-    /// [`DlServiceError`] with [`DlServiceFailureKind::NoModel`] if the ontology has
+    /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model, in which case every axiom is entailed and the answer would be
     /// worthless.
-    pub fn entails(
-        &mut self,
-        axiom: &DlAxiom,
-    ) -> std::result::Result<CertifiedAnswer<Verdict>, DlServiceError> {
+    pub fn entails(&mut self, axiom: &DlAxiom) -> Result<CertifiedAnswer<Verdict>> {
         self.inner
             .entails(axiom)
             .map(CertifiedAnswer::from_certified)
-            .map_err(map_dl_service_err)
+            .map_err(map_entail_err)
     }
 }
 
@@ -372,7 +336,7 @@ pub fn certify_profiles(dataset: &RdfDataset) -> ProfileCertificate {
 ///
 /// # Errors
 ///
-/// A [`Reason`](crate::error::Reason) diagnostic if the extracted module cannot be
+/// A [`DlService`](crate::error::DlService) diagnostic if the extracted module cannot be
 /// frozen into a dataset.
 pub fn extract_module(
     dataset: &RdfDataset,
@@ -393,7 +357,7 @@ pub fn extract_module(
 ///
 /// # Errors
 ///
-/// A [`Reason`](crate::error::Reason) diagnostic propagating any purrdf refusal from
+/// A [`DlService`](crate::error::DlService) diagnostic propagating any purrdf refusal from
 /// the reverse mapping or the restricted chase (e.g. an inconsistent knowledge base).
 pub fn materialize_combined(
     dataset: &RdfDataset,
@@ -412,7 +376,7 @@ pub fn materialize_combined(
 ///
 /// # Errors
 ///
-/// A [`Reason`](crate::error::Reason) diagnostic for a regime the service is not
+/// A [`DlService`](crate::error::DlService) diagnostic for a regime the service is not
 /// total over, an unresolved import, an inconsistent premise, an exhausted match
 /// budget, or any refusal the underlying materialization returns.
 pub fn certain_answers(

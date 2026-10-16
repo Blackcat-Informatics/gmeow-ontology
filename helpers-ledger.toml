@@ -1171,4 +1171,3 @@ enforced = true
 constants = []
 fingerprints = ["rule:wasm-import-reflect-get"]
 names = []
-

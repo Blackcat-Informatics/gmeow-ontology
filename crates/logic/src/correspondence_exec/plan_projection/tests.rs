@@ -17,103 +17,159 @@ const TRACKED: &str = "urn:gmeow:state:platelets";
 fn plan_dataset() -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     let scope = BlankScope(42);
-    let rdf_type = builder.intern_iri(RDF_TYPE);
-    let rdf_first = builder.intern_iri(RDF_FIRST);
-    let rdf_rest = builder.intern_iri(RDF_REST);
-    let rdf_nil = builder.intern_iri(RDF_NIL);
-    let plan = builder.intern_iri(PLAN);
-    let cycle = builder.intern_iri(CYCLE);
-    let plan_class = builder.intern_iri(&logic("Plan"));
-    let body_pred = builder.intern_iri(&logic("body"));
-    let loop_class = builder.intern_iri(&logic("Loop"));
-    let loop_count_pred = builder.intern_iri(&logic("loopCount"));
-    let loop_period_pred = builder.intern_iri(&logic("loopPeriod"));
-    let loop_body_pred = builder.intern_iri(&logic("loopBody"));
-    let serial_pred = builder.intern_iri(&logic("serial"));
-    let loop_node = builder.intern_blank("loop", scope);
-    let loop_list = builder.intern_blank("loop-list", scope);
-    let count = builder.intern_literal(RdfLiteral::typed(
-        "2",
-        "http://www.w3.org/2001/XMLSchema#integer",
-    ));
-    let period = builder.intern_literal(RdfLiteral::typed(
-        "P3W",
-        "http://www.w3.org/2001/XMLSchema#duration",
-    ));
-    builder.push_quad(plan, rdf_type, plan_class, None);
-    builder.push_quad(plan, body_pred, loop_node, None);
-    builder.push_quad(loop_node, rdf_type, loop_class, None);
-    builder.push_quad(loop_node, loop_count_pred, count, None);
-    builder.push_quad(loop_node, loop_period_pred, period, None);
-    builder.push_quad(loop_node, loop_body_pred, loop_list, None);
-    builder.push_quad(loop_list, rdf_first, cycle, None);
-    builder.push_quad(loop_list, rdf_rest, rdf_nil, None);
-    builder.push_quad(cycle, rdf_type, plan_class, None);
+    let rdf_type = builder.intern_iri(RDF_TYPE).unwrap();
+    let rdf_first = builder.intern_iri(RDF_FIRST).unwrap();
+    let rdf_rest = builder.intern_iri(RDF_REST).unwrap();
+    let rdf_nil = builder.intern_iri(RDF_NIL).unwrap();
+    let plan = builder.intern_iri(PLAN).unwrap();
+    let cycle = builder.intern_iri(CYCLE).unwrap();
+    let plan_class = builder.intern_iri(&logic("Plan")).unwrap();
+    let body_pred = builder.intern_iri(&logic("body")).unwrap();
+    let loop_class = builder.intern_iri(&logic("Loop")).unwrap();
+    let loop_count_pred = builder.intern_iri(&logic("loopCount")).unwrap();
+    let loop_period_pred = builder.intern_iri(&logic("loopPeriod")).unwrap();
+    let loop_body_pred = builder.intern_iri(&logic("loopBody")).unwrap();
+    let serial_pred = builder.intern_iri(&logic("serial")).unwrap();
+    let loop_node = builder.intern_blank("loop", scope).unwrap();
+    let loop_list = builder.intern_blank("loop-list", scope).unwrap();
+    let count = builder
+        .intern_literal(RdfLiteral::typed(
+            "2",
+            "http://www.w3.org/2001/XMLSchema#integer",
+        ))
+        .unwrap();
+    let period = builder
+        .intern_literal(RdfLiteral::typed(
+            "P3W",
+            "http://www.w3.org/2001/XMLSchema#duration",
+        ))
+        .unwrap();
+    builder.push_quad(plan, rdf_type, plan_class, None).unwrap();
+    builder.push_quad(plan, body_pred, loop_node, None).unwrap();
+    builder
+        .push_quad(loop_node, rdf_type, loop_class, None)
+        .unwrap();
+    builder
+        .push_quad(loop_node, loop_count_pred, count, None)
+        .unwrap();
+    builder
+        .push_quad(loop_node, loop_period_pred, period, None)
+        .unwrap();
+    builder
+        .push_quad(loop_node, loop_body_pred, loop_list, None)
+        .unwrap();
+    builder
+        .push_quad(loop_list, rdf_first, cycle, None)
+        .unwrap();
+    builder
+        .push_quad(loop_list, rdf_rest, rdf_nil, None)
+        .unwrap();
+    builder
+        .push_quad(cycle, rdf_type, plan_class, None)
+        .unwrap();
 
-    let serial = builder.intern_blank("serial-1", scope);
-    let serial_2 = builder.intern_blank("serial-2", scope);
-    let serial_3 = builder.intern_blank("serial-3", scope);
-    let prepare = builder.intern_iri(PREPARE);
-    let guard = builder.intern_iri(GUARD);
-    let observe = builder.intern_iri(OBSERVE);
-    builder.push_quad(cycle, serial_pred, serial, None);
-    builder.push_quad(serial, rdf_first, prepare, None);
-    builder.push_quad(serial, rdf_rest, serial_2, None);
-    builder.push_quad(serial_2, rdf_first, guard, None);
-    builder.push_quad(serial_2, rdf_rest, serial_3, None);
-    builder.push_quad(serial_3, rdf_first, observe, None);
-    builder.push_quad(serial_3, rdf_rest, rdf_nil, None);
+    let serial = builder.intern_blank("serial-1", scope).unwrap();
+    let serial_2 = builder.intern_blank("serial-2", scope).unwrap();
+    let serial_3 = builder.intern_blank("serial-3", scope).unwrap();
+    let prepare = builder.intern_iri(PREPARE).unwrap();
+    let guard = builder.intern_iri(GUARD).unwrap();
+    let observe = builder.intern_iri(OBSERVE).unwrap();
+    builder.push_quad(cycle, serial_pred, serial, None).unwrap();
+    builder.push_quad(serial, rdf_first, prepare, None).unwrap();
+    builder.push_quad(serial, rdf_rest, serial_2, None).unwrap();
+    builder.push_quad(serial_2, rdf_first, guard, None).unwrap();
+    builder
+        .push_quad(serial_2, rdf_rest, serial_3, None)
+        .unwrap();
+    builder
+        .push_quad(serial_3, rdf_first, observe, None)
+        .unwrap();
+    builder
+        .push_quad(serial_3, rdf_rest, rdf_nil, None)
+        .unwrap();
 
-    let action_class = builder.intern_iri(&logic("ActionSchema"));
-    let resource_pred = builder.intern_iri(&logic("resource"));
-    let nurse = builder.intern_iri("urn:gmeow:resource:nurse");
+    let action_class = builder.intern_iri(&logic("ActionSchema")).unwrap();
+    let resource_pred = builder.intern_iri(&logic("resource")).unwrap();
+    let nurse = builder.intern_iri("urn:gmeow:resource:nurse").unwrap();
     for action in [prepare, observe] {
-        builder.push_quad(action, rdf_type, action_class, None);
+        builder
+            .push_quad(action, rdf_type, action_class, None)
+            .unwrap();
     }
-    builder.push_quad(prepare, resource_pred, nurse, None);
+    builder
+        .push_quad(prepare, resource_pred, nurse, None)
+        .unwrap();
 
-    let guard_class = builder.intern_iri(&logic("GuardedBranch"));
-    let guard_pred = builder.intern_iri(&logic("guard"));
-    let then_pred = builder.intern_iri(&logic("then"));
-    let else_pred = builder.intern_iri(&logic("else"));
-    let and_pred = builder.intern_iri(&logic("and"));
-    let condition = builder.intern_blank("condition", scope);
-    let condition_list = builder.intern_blank("condition-list", scope);
-    let tracked = builder.intern_iri(TRACKED);
-    let administer = builder.intern_iri(ADMINISTER);
-    let defer = builder.intern_iri(DEFER);
-    builder.push_quad(guard, rdf_type, guard_class, None);
-    builder.push_quad(guard, guard_pred, condition, None);
-    builder.push_quad(guard, then_pred, administer, None);
-    builder.push_quad(guard, else_pred, defer, None);
-    builder.push_quad(condition, and_pred, condition_list, None);
-    builder.push_quad(condition_list, rdf_first, tracked, None);
-    builder.push_quad(condition_list, rdf_rest, rdf_nil, None);
-    builder.push_quad(administer, rdf_type, action_class, None);
-    builder.push_quad(defer, rdf_type, action_class, None);
+    let guard_class = builder.intern_iri(&logic("GuardedBranch")).unwrap();
+    let guard_pred = builder.intern_iri(&logic("guard")).unwrap();
+    let then_pred = builder.intern_iri(&logic("then")).unwrap();
+    let else_pred = builder.intern_iri(&logic("else")).unwrap();
+    let and_pred = builder.intern_iri(&logic("and")).unwrap();
+    let condition = builder.intern_blank("condition", scope).unwrap();
+    let condition_list = builder.intern_blank("condition-list", scope).unwrap();
+    let tracked = builder.intern_iri(TRACKED).unwrap();
+    let administer = builder.intern_iri(ADMINISTER).unwrap();
+    let defer = builder.intern_iri(DEFER).unwrap();
+    builder
+        .push_quad(guard, rdf_type, guard_class, None)
+        .unwrap();
+    builder
+        .push_quad(guard, guard_pred, condition, None)
+        .unwrap();
+    builder
+        .push_quad(guard, then_pred, administer, None)
+        .unwrap();
+    builder.push_quad(guard, else_pred, defer, None).unwrap();
+    builder
+        .push_quad(condition, and_pred, condition_list, None)
+        .unwrap();
+    builder
+        .push_quad(condition_list, rdf_first, tracked, None)
+        .unwrap();
+    builder
+        .push_quad(condition_list, rdf_rest, rdf_nil, None)
+        .unwrap();
+    builder
+        .push_quad(administer, rdf_type, action_class, None)
+        .unwrap();
+    builder
+        .push_quad(defer, rdf_type, action_class, None)
+        .unwrap();
 
-    let tracked_class = builder.intern_iri(&gmeow("TrackedState"));
-    let currency_pred = builder.intern_iri(&logic("currency"));
-    let currency = builder.intern_literal(RdfLiteral::typed(
-        "PT12H",
-        "http://www.w3.org/2001/XMLSchema#duration",
-    ));
-    builder.push_quad(tracked, rdf_type, tracked_class, None);
-    builder.push_quad(tracked, currency_pred, currency, None);
+    let tracked_class = builder.intern_iri(&gmeow("TrackedState")).unwrap();
+    let currency_pred = builder.intern_iri(&logic("currency")).unwrap();
+    let currency = builder
+        .intern_literal(RdfLiteral::typed(
+            "PT12H",
+            "http://www.w3.org/2001/XMLSchema#duration",
+        ))
+        .unwrap();
+    builder
+        .push_quad(tracked, rdf_type, tracked_class, None)
+        .unwrap();
+    builder
+        .push_quad(tracked, currency_pred, currency, None)
+        .unwrap();
     builder.freeze().unwrap()
 }
 
 fn observed_dataset(schemas: &[&str], missing_last_schema: bool) -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let instantiates_plan = builder.intern_iri(&logic("instantiatesPlan"));
-    let instantiates_schema = builder.intern_iri(&logic("instantiatesSchema"));
-    let plan = builder.intern_iri(PLAN);
+    let instantiates_plan = builder.intern_iri(&logic("instantiatesPlan")).unwrap();
+    let instantiates_schema = builder.intern_iri(&logic("instantiatesSchema")).unwrap();
+    let plan = builder.intern_iri(PLAN).unwrap();
     for (index, schema) in schemas.iter().enumerate() {
-        let occurrence = builder.intern_iri(&format!("urn:gmeow:observed:{index}"));
-        builder.push_quad(occurrence, instantiates_plan, plan, None);
+        let occurrence = builder
+            .intern_iri(&format!("urn:gmeow:observed:{index}"))
+            .unwrap();
+        builder
+            .push_quad(occurrence, instantiates_plan, plan, None)
+            .unwrap();
         if !missing_last_schema || index + 1 != schemas.len() {
-            let schema = builder.intern_iri(*schema);
-            builder.push_quad(occurrence, instantiates_schema, schema, None);
+            let schema = builder.intern_iri(schema).unwrap();
+            builder
+                .push_quad(occurrence, instantiates_schema, schema, None)
+                .unwrap();
         }
     }
     builder.freeze().unwrap()

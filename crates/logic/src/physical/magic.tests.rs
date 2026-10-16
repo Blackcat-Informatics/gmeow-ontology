@@ -23,7 +23,7 @@ fn exe(rules: &[EvalRule]) -> crate::physical::plan::Executable {
 }
 
 fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     for (s, p, o) in triples {
         store.insert_quad(W, s, p, o);
     }
@@ -215,7 +215,7 @@ fn partially_bound_dimension_generator_still_flounders() {
 /// A world with two SI-dimension EDB facts on `ex:a`: length (L¹) and time (T¹).
 fn dimension_world() -> (WorldStore, String) {
     let dim_dt = "urn:gmeow:transport:dimension";
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let length = TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
     let time = TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
     store
@@ -1932,7 +1932,7 @@ fn leading_idb_world() -> (WorldStore, String) {
 /// EDB store: it is inserted via [`WorldStore::insert_quad_terms`] (term-preserving),
 /// while the other three triples still go through the IRI-only [`WorldStore::insert_quad`].
 fn leading_idb_world_literal_name() -> (WorldStore, String) {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         W,
         &format!("{BASE}self"),
@@ -2272,7 +2272,7 @@ fn prepare_incremental_query_declines_ground_naf() {
 /// literals), so an end-to-end evaluation proves the builtin reaches production
 /// authored data rather than only a fabricated resolver.
 fn metric_world() -> (WorldStore, String) {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let m = |l: &str| format!("https://blackcatinformatics.ca/math/{l}");
     let t = |l: &str| format!("urn:gmeow:test:metric:{l}");
     let iri_q = |s: String, p: String, o: String| {

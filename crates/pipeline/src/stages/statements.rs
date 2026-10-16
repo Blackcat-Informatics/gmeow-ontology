@@ -250,7 +250,7 @@ fn invariant_findings(
         "application/n-triples",
         "ontology N-Triples",
     )?;
-    let ds = RdfDataset::union(&[owl.as_ref(), ontology.as_ref()]);
+    let ds = RdfDataset::union(&[owl.as_ref(), ontology.as_ref()])?;
     Ok(gmeow_validate::statement::check_statement_invariants_dataset(&ds))
 }
 
@@ -301,7 +301,7 @@ fn parse_statement_dsl(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Dia
         parsed.push(dataset);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(|d| d.as_ref()).collect();
-    Ok(Arc::new(RdfDataset::union(&refs)))
+    Ok(Arc::new(RdfDataset::union(&refs)?))
 }
 
 /// Extract every `gmeow:StatementMetadata` cell from the dataset.

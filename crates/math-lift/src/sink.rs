@@ -43,32 +43,48 @@ impl Sink {
     }
 
     /// `<s> <p> <o> .`
-    pub fn iri(&mut self, s: &str, p: &str, o: &str) {
-        let s = self.builder.intern_iri(s);
-        let p = self.builder.intern_iri(p);
-        let o = self.builder.intern_iri(o);
-        self.builder.push_quad(s, p, o, None);
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn iri(&mut self, s: &str, p: &str, o: &str) -> gmeow_errors::Result<()> {
+        let s = self.builder.intern_iri(s)?;
+        let p = self.builder.intern_iri(p)?;
+        let o = self.builder.intern_iri(o)?;
+        self.builder.push_quad(s, p, o, None)?;
+        Ok(())
     }
 
     /// `<s> rdf:type <class> .`
-    pub fn typed(&mut self, s: &str, class: &str) {
-        self.iri(s, RDF_TYPE, class);
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn typed(&mut self, s: &str, class: &str) -> gmeow_errors::Result<()> {
+        self.iri(s, RDF_TYPE, class)?;
+        Ok(())
     }
 
-    fn lit(&mut self, s: &str, p: &str, lit: RdfLiteral) {
-        let s = self.builder.intern_iri(s);
-        let p = self.builder.intern_iri(p);
-        let o = self.builder.intern_literal(lit);
-        self.builder.push_quad(s, p, o, None);
+    fn lit(&mut self, s: &str, p: &str, lit: RdfLiteral) -> gmeow_errors::Result<()> {
+        let s = self.builder.intern_iri(s)?;
+        let p = self.builder.intern_iri(p)?;
+        let o = self.builder.intern_literal(lit)?;
+        self.builder.push_quad(s, p, o, None)?;
+        Ok(())
     }
 
     /// A plain (untyped, untagged) string literal.
-    pub fn string(&mut self, s: &str, p: &str, value: &str) {
-        self.lit(s, p, RdfLiteral::simple(value));
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn string(&mut self, s: &str, p: &str, value: &str) -> gmeow_errors::Result<()> {
+        self.lit(s, p, RdfLiteral::simple(value))?;
+        Ok(())
     }
 
     /// An `xsd:boolean` literal.
-    pub fn boolean(&mut self, s: &str, p: &str, value: bool) {
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn boolean(&mut self, s: &str, p: &str, value: bool) -> gmeow_errors::Result<()> {
         self.lit(
             s,
             p,
@@ -76,44 +92,51 @@ impl Sink {
                 if value { "true" } else { "false" }.to_owned(),
                 XSD_BOOLEAN.to_owned(),
             ),
-        );
+        )?;
+        Ok(())
     }
 
     /// An `xsd:integer` literal.
-    pub fn integer(&mut self, s: &str, p: &str, value: i64) {
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn integer(&mut self, s: &str, p: &str, value: i64) -> gmeow_errors::Result<()> {
         self.lit(
             s,
             p,
             RdfLiteral::typed(value.to_string(), XSD_INTEGER.to_owned()),
-        );
+        )?;
+        Ok(())
     }
 
     /// An `xsd:decimal` literal.
     ///
     /// Never emits scientific notation — `1e-7` is not a valid `xsd:decimal` lexical
     /// form, so a bare `{f64}` Display would silently produce an ill-typed literal.
-    pub fn decimal(&mut self, s: &str, p: &str, value: f64) {
+    ///
+    /// # Errors
+    /// Returns the original storage failure.
+    pub fn decimal(&mut self, s: &str, p: &str, value: f64) -> gmeow_errors::Result<()> {
         self.lit(
             s,
             p,
             RdfLiteral::typed(format_decimal(value), XSD_DECIMAL.to_owned()),
-        );
+        )?;
+        Ok(())
     }
 
     /// Freeze and serialize as canonical Turtle.
-    #[must_use]
-    pub fn serialize(self) -> String {
-        let dataset = self
-            .builder
-            .freeze()
-            .expect("well-formed triple set freezes");
+    ///
+    /// # Errors
+    /// Returns the original storage, codec or UTF-8 failure.
+    pub fn serialize(self) -> gmeow_errors::Result<String> {
+        let dataset = self.builder.freeze()?;
         let bytes = serialize_dataset(
             dataset.as_ref(),
             "text/turtle",
             SerializeGraph::DefaultGraph,
-        )
-        .expect("turtle serialization");
-        String::from_utf8(bytes).expect("utf-8 turtle")
+        )?;
+        Ok(String::from_utf8(bytes)?)
     }
 }
 

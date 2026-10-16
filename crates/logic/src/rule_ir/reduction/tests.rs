@@ -69,10 +69,12 @@ fn program(function: &str) -> LogicProgram {
 fn input(rows: &[(&str, &str, &str, RdfTerm)]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (world, subject, predicate, object) in rows {
-        builder.push_owned_quad(
-            &RdfQuad::new(RdfTerm::iri(*subject), *predicate, object.clone())
-                .in_graph(RdfTerm::iri(*world)),
-        );
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(*subject), *predicate, object.clone())
+                    .in_graph(RdfTerm::iri(*world)),
+            )
+            .unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -205,7 +207,7 @@ fn reduce_waits_for_transitive_writers_and_never_publishes_partial_counts() {
     let crate::physical::NativeOutcome::Decided(joint) = prepared.joint_program().unwrap() else {
         panic!("finite aggregate schedule must be admitted");
     };
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new().unwrap();
     store.load_dataset(&input).unwrap();
     let crate::physical::NativeOutcome::Decided(result) = joint.materialize(&store, None).unwrap()
     else {

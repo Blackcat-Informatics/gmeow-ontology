@@ -43,6 +43,7 @@ mod cursor;
 mod dependency;
 pub(crate) use dependency::ReadDependency;
 mod effects;
+pub(crate) use effects::reachability::WriterInventory;
 pub(crate) use effects::{
     CompletedWorldReads, ProducerEffect, WorldProducerEffect, WorldStatementObservation,
 };
@@ -223,6 +224,7 @@ pub(crate) use builtin_eval::{
 };
 
 // One indexed fixed point and governor for ordinary and existential producers.
+pub(crate) use seminaive::joint::source_grammar::ConstructorClosedLists;
 pub(crate) use seminaive::joint::{
     DefinitionContract, JointInput, JointMaterialization, JointProgram, JointTemplate,
     NativeWorldSnapshot, RetainedJoint, schema_identity,

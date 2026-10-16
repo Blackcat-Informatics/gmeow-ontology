@@ -90,18 +90,22 @@ fn node(i: usize) -> String {
 /// [`purrdf::RdfDataset`] EDB. The triples are pushed in the given order and the frozen
 /// dataset's internal order is deterministic, so the EDB is a pure function of the
 /// triple sequence.
-fn edb_from_triples(triples: &[(String, &str, String)]) -> RdfDataset {
+fn edb_from_triples(triples: &[(String, &str, String)]) -> gmeow_errors::Result<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (s, p, o) in triples {
         builder.push_owned_quad(
             &RdfQuad::new(RdfTerm::iri(s.clone()), *p, RdfTerm::iri(o.clone()))
                 .in_graph(RdfTerm::iri(WORLD)),
-        );
+        )?;
     }
-    let frozen = builder.freeze().expect("synthetic EDB is a valid dataset");
+    let frozen = builder.freeze()?;
     // The builder is the sole owner immediately after `freeze`, so unwrapping the
     // Arc yields the owned dataset without a clone (RdfDataset is not Clone).
-    std::sync::Arc::try_unwrap(frozen).expect("frozen synthetic EDB is uniquely owned")
+    std::sync::Arc::try_unwrap(frozen).map_err(|_| {
+        gmeow_errors::Diag::of_kind(crate::error::Physical {
+            detail: "freshly frozen synthetic EDB unexpectedly has another owner".into(),
+        })
+    })
 }
 
 /// The `edge` EDB predicate IRI.
@@ -122,8 +126,10 @@ fn path_p() -> String {
 ///
 /// # Panics
 /// Panics if `n == 0` (an empty program derives nothing to benchmark).
-#[must_use]
-pub fn transitive_closure(n: usize) -> SynthWorkload {
+///
+/// # Errors
+/// Returns the original native EDB construction failure.
+pub fn transitive_closure(n: usize) -> gmeow_errors::Result<SynthWorkload> {
     assert!(n >= 1, "transitive_closure needs n >= 1");
     let edge = edge_p();
     let path = path_p();
@@ -132,7 +138,7 @@ pub fn transitive_closure(n: usize) -> SynthWorkload {
     for i in 0..n {
         triples.push((node(i), edge.as_str(), node(i + 1)));
     }
-    let edb = edb_from_triples(&triples);
+    let edb = edb_from_triples(&triples)?;
 
     let program = program(vec![
         rule(
@@ -148,11 +154,11 @@ pub fn transitive_closure(n: usize) -> SynthWorkload {
     ]);
 
     let expected_rows = (n as u64) * (n as u64 + 1) / 2;
-    SynthWorkload {
+    Ok(SynthWorkload {
         program,
         edb,
         expected_rows,
-    }
+    })
 }
 
 /// **Strongly connected** — a single directed `n`-cycle
@@ -167,8 +173,10 @@ pub fn transitive_closure(n: usize) -> SynthWorkload {
 ///
 /// # Panics
 /// Panics if `n == 0`.
-#[must_use]
-pub fn strongly_connected(n: usize) -> SynthWorkload {
+///
+/// # Errors
+/// Returns the original native EDB construction failure.
+pub fn strongly_connected(n: usize) -> gmeow_errors::Result<SynthWorkload> {
     assert!(n >= 1, "strongly_connected needs n >= 1");
     let edge = edge_p();
     let path = path_p();
@@ -178,7 +186,7 @@ pub fn strongly_connected(n: usize) -> SynthWorkload {
     for i in 0..n {
         triples.push((node(i), edge.as_str(), node((i + 1) % n)));
     }
-    let edb = edb_from_triples(&triples);
+    let edb = edb_from_triples(&triples)?;
 
     let program = program(vec![
         rule(
@@ -200,11 +208,11 @@ pub fn strongly_connected(n: usize) -> SynthWorkload {
 
     let n2 = (n as u64) * (n as u64);
     let expected_rows = 2 * n2;
-    SynthWorkload {
+    Ok(SynthWorkload {
         program,
         edb,
         expected_rows,
-    }
+    })
 }
 
 /// **Same generation** — the classic same-generation program over a small two-level
@@ -218,8 +226,10 @@ pub fn strongly_connected(n: usize) -> SynthWorkload {
 ///
 /// # Panics
 /// Panics if `n == 0`.
-#[must_use]
-pub fn same_generation(n: usize) -> SynthWorkload {
+///
+/// # Errors
+/// Returns the original native EDB construction failure.
+pub fn same_generation(n: usize) -> gmeow_errors::Result<SynthWorkload> {
     assert!(n >= 1, "same_generation needs n >= 1");
     let parent = format!("{BASE}/parent");
     let sg = format!("{BASE}/same_gen");
@@ -235,7 +245,7 @@ pub fn same_generation(n: usize) -> SynthWorkload {
             triples.push((c_ij, parent.as_str(), p_i.clone()));
         }
     }
-    let edb = edb_from_triples(&triples);
+    let edb = edb_from_triples(&triples)?;
 
     let program = program(vec![
         rule(
@@ -256,11 +266,11 @@ pub fn same_generation(n: usize) -> SynthWorkload {
 
     let n2 = (n as u64) * (n as u64);
     let expected_rows = n2 + n2 * n2;
-    SynthWorkload {
+    Ok(SynthWorkload {
         program,
         edb,
         expected_rows,
-    }
+    })
 }
 
 /// **Reachability** — single-source reachability from `v0` along a length-`n` edge
@@ -272,8 +282,10 @@ pub fn same_generation(n: usize) -> SynthWorkload {
 ///
 /// # Panics
 /// Panics if `n == 0`.
-#[must_use]
-pub fn reachability(n: usize) -> SynthWorkload {
+///
+/// # Errors
+/// Returns the original native EDB construction failure.
+pub fn reachability(n: usize) -> gmeow_errors::Result<SynthWorkload> {
     assert!(n >= 1, "reachability needs n >= 1");
     let edge = edge_p();
     let reach = format!("{BASE}/reach");
@@ -283,7 +295,7 @@ pub fn reachability(n: usize) -> SynthWorkload {
     for i in 0..n {
         triples.push((node(i), edge.as_str(), node(i + 1)));
     }
-    let edb = edb_from_triples(&triples);
+    let edb = edb_from_triples(&triples)?;
 
     // The source `v0` is a constant in both the base and step rules, so `reach` is
     // seeded and extended only from that single source.
@@ -301,9 +313,9 @@ pub fn reachability(n: usize) -> SynthWorkload {
     ]);
 
     let expected_rows = n as u64;
-    SynthWorkload {
+    Ok(SynthWorkload {
         program,
         edb,
         expected_rows,
-    }
+    })
 }

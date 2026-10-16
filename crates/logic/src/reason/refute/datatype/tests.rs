@@ -38,7 +38,7 @@ fn literal(s: &str, p: &str, value: &str, datatype: &str) -> RdfQuad {
 fn source(facts: Vec<RdfQuad>) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for fact in facts {
-        builder.push_owned_quad(&fact);
+        builder.push_owned_quad(&fact).unwrap();
     }
     builder.freeze().unwrap()
 }

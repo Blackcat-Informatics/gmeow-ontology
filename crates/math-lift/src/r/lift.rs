@@ -193,7 +193,7 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
     for construct in unmapped {
         frame.record_unmapped(construct);
     }
-    frame.emit(&mut sink, Rung::lossy_vague_with_witness());
+    frame.emit(&mut sink, Rung::lossy_vague_with_witness())?;
 
     Lifted::seal(&frame, sink, emitted.len())
 }
@@ -296,13 +296,13 @@ impl Lift<'_> {
     /// The back edge `gmeow:wasGeneratedBy` is what the native `math:UnliftableIngest` lint
     /// enumerates, so it is attached HERE, once, for every node this lift creates — never
     /// left to a caller to remember.
-    fn mint(&mut self, role: &str, key: &str) -> (String, bool) {
+    fn mint(&mut self, role: &str, key: &str) -> gmeow_errors::Result<(String, bool)> {
         let iri = self.frame.node(role, key);
         let fresh = self.emitted.insert(iri.clone());
         if fresh {
-            self.frame.generated(&mut self.sink, &iri);
+            self.frame.generated(&mut self.sink, &iri)?;
         }
-        (iri, fresh)
+        Ok((iri, fresh))
     }
 
     /// The run-scoped `math:Set` every lifted free variable is declared over, minted once.
@@ -314,20 +314,21 @@ impl Lift<'_> {
     /// obligation by asserting something the parser never established. This set says exactly
     /// what IS known — the variable ranges over the values of this R run — and leaves the
     /// narrowing to whoever has the data.
-    fn value_domain(&mut self) -> String {
-        let (iri, fresh) = self.mint("value-domain", "");
+    fn value_domain(&mut self) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("value-domain", "")?;
         if fresh {
-            self.sink.typed(&iri, &math("Set"));
+            self.sink.typed(&iri, &math("Set"))?;
             self.label(
                 &iri,
                 "R value domain — the unconstrained set an R binding ranges over",
-            );
+            )?;
         }
-        iri
+        Ok(iri)
     }
 
-    fn label(&mut self, subject: &str, text: &str) {
-        self.sink.string(subject, RDFS_LABEL, text);
+    fn label(&mut self, subject: &str, text: &str) -> gmeow_errors::Result<()> {
+        self.sink.string(subject, RDFS_LABEL, text)?;
+        Ok(())
     }
 
     fn key_of(&self, node: StructNode) -> ContentKey {
@@ -451,7 +452,7 @@ impl Lift<'_> {
             // Routing the whole form to logic: and stopping made that fit invisible, so a
             // script whose every model lives in a function lifted NOTHING. Lower the form,
             // then walk into it for the content that does have an image.
-            self.lower_to_logic(expr);
+            self.lower_to_logic(expr)?;
             self.scan_nested(expr)?;
             return Ok(Binding::Opaque);
         }
@@ -480,7 +481,7 @@ impl Lift<'_> {
                 if let Some(binding) = self.component(expr)? {
                     return Ok(binding);
                 }
-                self.lower_to_logic(expr);
+                self.lower_to_logic(expr)?;
                 Ok(Binding::Opaque)
             }
             RExpr::Ident(name) => Ok(self.env.get(name).cloned().unwrap_or(Binding::Opaque)),
@@ -497,7 +498,7 @@ impl Lift<'_> {
                     self.emit_expression(other)?;
                     return Ok(Binding::Expression);
                 }
-                self.lower_to_logic(other);
+                self.lower_to_logic(other)?;
                 Ok(Binding::Opaque)
             }
         }
@@ -510,7 +511,7 @@ impl Lift<'_> {
             self.lower_to_logic(&RExpr::Call {
                 callee: Box::new(callee.clone()),
                 args: args.to_vec(),
-            });
+            })?;
             return Ok(Binding::Opaque);
         };
 
@@ -544,7 +545,7 @@ impl Lift<'_> {
                 callee: Box::new(callee.clone()),
                 args: args.to_vec(),
             });
-            let iri = self.emit_dataset(&label, &label);
+            let iri = self.emit_dataset(&label, &label)?;
             return Ok(Binding::Dataset(iri));
         }
         if let Some(family) = distribution_family(&name) {
@@ -554,19 +555,19 @@ impl Lift<'_> {
         if ESTIMATE_FUNCTIONS.contains(&name.as_str())
             && let Some(fit) = self.resolve_fit(args.first().and_then(|a| a.value.as_ref()))
         {
-            self.emit_estimates(&fit);
+            self.emit_estimates(&fit)?;
             return Ok(Binding::Opaque);
         }
         if RESIDUAL_FUNCTIONS.contains(&name.as_str())
             && let Some(fit) = self.resolve_fit(args.first().and_then(|a| a.value.as_ref()))
         {
-            self.emit_residual(&fit);
+            self.emit_residual(&fit)?;
             return Ok(Binding::Opaque);
         }
         if SUMMARY_FUNCTIONS.contains(&name.as_str())
             && let Some(fit) = self.resolve_fit(args.first().and_then(|a| a.value.as_ref()))
         {
-            self.emit_summary_observation(&fit);
+            self.emit_summary_observation(&fit)?;
             return Ok(Binding::Opaque);
         }
 
@@ -578,7 +579,7 @@ impl Lift<'_> {
             self.emit_expression(&call)?;
             return Ok(Binding::Expression);
         }
-        self.lower_to_logic(&call);
+        self.lower_to_logic(&call)?;
         Ok(Binding::Opaque)
     }
 
@@ -590,11 +591,11 @@ impl Lift<'_> {
         if !*slot && let Some(fit) = self.resolve_fit(Some(object)) {
             match name.as_str() {
                 "coefficients" | "coef" => {
-                    self.emit_estimates(&fit);
+                    self.emit_estimates(&fit)?;
                     return Ok(Some(Binding::Opaque));
                 }
                 "residuals" | "resid" => {
-                    self.emit_residual(&fit);
+                    self.emit_residual(&fit)?;
                     return Ok(Some(Binding::Opaque));
                 }
                 _ => {}
@@ -667,7 +668,7 @@ impl Lift<'_> {
             let dataset = self.emit_dataset(
                 &format!("{function}|calling-environment"),
                 "the calling environment (variables resolved from the enclosing scope)",
-            );
+            )?;
             self.record_unmapped(&format!(
                 "R call `{function}`: no `data =` binding, so the fit resolves its variables \
                  from the calling environment; WHICH frame and columns those are is not stated \
@@ -675,7 +676,7 @@ impl Lift<'_> {
             ));
             return self.finish_fit(function, estimator, args, formula, dataset);
         };
-        let Some(dataset) = self.dataset_reference(data) else {
+        let Some(dataset) = self.dataset_reference(data)? else {
             return Err(unliftable(format!(
                 "the `data =` argument of `{function}(…)` is `{}`, which names no dataset this \
                  lift can hold by reference; inlining it, or emitting a string placeholder for \
@@ -703,15 +704,16 @@ impl Lift<'_> {
         let (formula_iri, formula_key) = self.formula_iri(formula_node);
 
         let fit_key = format!("fit|{function}|{formula_key}|{dataset}");
-        let (fit_iri, fresh) = self.mint("fit", &fit_key);
+        let (fit_iri, fresh) = self.mint("fit", &fit_key)?;
         if fresh {
-            self.sink.typed(&fit_iri, &math("FittedModel"));
-            self.sink.iri(&fit_iri, &math("modelFormula"), &formula_iri);
-            self.sink.iri(&fit_iri, &math("fittedToData"), &dataset);
+            self.sink.typed(&fit_iri, &math("FittedModel"))?;
+            self.sink
+                .iri(&fit_iri, &math("modelFormula"), &formula_iri)?;
+            self.sink.iri(&fit_iri, &math("fittedToData"), &dataset)?;
             self.label(
                 &fit_iri,
                 &format!("{function}({})", render_formula(&formula)),
-            );
+            )?;
             self.statistical += 1;
         }
 
@@ -722,7 +724,7 @@ impl Lift<'_> {
             && let Some(name) = family_link_name(family_arg)
             && let Some(family) = distribution_family(&format!("d{name}"))
         {
-            self.emit_family_only_distribution(family);
+            self.emit_family_only_distribution(family)?;
         }
 
         Ok(Binding::Fit(FitInfo {
@@ -736,40 +738,42 @@ impl Lift<'_> {
 
     /// Resolve a `data =` argument to a `math:DatasetMatrix` IRI, minting one if the name
     /// is an unbound R dataset (`mtcars`, `iris`, a package dataset).
-    fn dataset_reference(&mut self, expr: &RExpr) -> Option<String> {
-        match expr.unparenthesized() {
+    fn dataset_reference(&mut self, expr: &RExpr) -> gmeow_errors::Result<Option<String>> {
+        Ok(match expr.unparenthesized() {
             RExpr::Ident(name) => match self.env.get(name) {
                 Some(Binding::Dataset(iri)) => Some(iri.clone()),
                 Some(Binding::Fit(_) | Binding::Expression) => None,
-                _ => Some(self.emit_dataset(name, name)),
+                _ => Some(self.emit_dataset(name, name)?),
             },
-            RExpr::Str(path) => Some(self.emit_dataset(path, path)),
+            RExpr::Str(path) => Some(self.emit_dataset(path, path)?),
             call @ RExpr::Call { callee, .. } => {
-                let name = callable_name(callee)?;
+                let Some(name) = callable_name(callee) else {
+                    return Ok(None);
+                };
                 if !DATASET_FUNCTIONS.contains(&name.as_str()) {
-                    return None;
+                    return Ok(None);
                 }
                 let label = render(call);
-                Some(self.emit_dataset(&label, &label))
+                Some(self.emit_dataset(&label, &label)?)
             }
             RExpr::Namespace { package, name, .. } => {
                 let label = format!("{package}::{name}");
-                Some(self.emit_dataset(&label, &label))
+                Some(self.emit_dataset(&label, &label)?)
             }
             _ => None,
-        }
+        })
     }
 
     /// A `math:DatasetMatrix` held BY REFERENCE: the node names and frames the data, and
     /// no column payload is ever walked.
-    fn emit_dataset(&mut self, key: &str, label: &str) -> String {
-        let (iri, fresh) = self.mint("data", key);
+    fn emit_dataset(&mut self, key: &str, label: &str) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("data", key)?;
         if fresh {
-            self.sink.typed(&iri, &math("DatasetMatrix"));
-            self.label(&iri, label);
+            self.sink.typed(&iri, &math("DatasetMatrix"))?;
+            self.label(&iri, label)?;
             self.statistical += 1;
         }
-        iri
+        Ok(iri)
     }
 
     // -- the model formula ---------------------------------------------------
@@ -810,7 +814,7 @@ impl Lift<'_> {
         if !formula.intercept {
             // `- 1` / `+ 0`: the suppression is recorded structurally as an explicit zero
             // intercept slot rather than silently dropped.
-            let node = self.emit_number("0.0", false);
+            let node = self.emit_number("0.0", false)?;
             let iri = self.expression_iri(node.node);
             slots.push((node.node, iri));
         }
@@ -835,31 +839,33 @@ impl Lift<'_> {
 
         let (formula_iri, formula_key) = self.formula_iri(node);
         if self.emitted.insert(formula_iri.clone()) {
-            self.frame.generated(&mut self.sink, &formula_iri);
-            self.sink.typed(&formula_iri, &math("ModelFormula"));
+            self.frame.generated(&mut self.sink, &formula_iri)?;
+            self.sink.typed(&formula_iri, &math("ModelFormula"))?;
             // The ~ is a BINDER: it names its binder operator, its bound variable (the
             // observation index the terms are evaluated at), and its body through indexed
             // slots. MATHEMATICS-BRIDGES.md: "the ~ is a binder, not a string".
-            self.sink.typed(&formula_iri, &math("BindingExpression"));
-            let operator = self.emit_operation("tilde", "~");
-            self.sink.iri(&formula_iri, &math("operator"), &operator);
-            let (bound, bound_fresh) = self.mint("bound", &formula_key);
+            self.sink.typed(&formula_iri, &math("BindingExpression"))?;
+            let operator = self.emit_operation("tilde", "~")?;
+            self.sink.iri(&formula_iri, &math("operator"), &operator)?;
+            let (bound, bound_fresh) = self.mint("bound", &formula_key)?;
             if bound_fresh {
-                self.sink.typed(&bound, &math("VariableDeclaration"));
-                self.label(&bound, "observation index bound by ~");
+                self.sink.typed(&bound, &math("VariableDeclaration"))?;
+                self.label(&bound, "observation index bound by ~")?;
             }
-            self.sink.iri(&formula_iri, &math("boundVariable"), &bound);
-            self.label(&formula_iri, &render_formula(formula));
+            self.sink
+                .iri(&formula_iri, &math("boundVariable"), &bound)?;
+            self.label(&formula_iri, &render_formula(formula))?;
 
             for (index, (_, expr_iri)) in slots.iter().enumerate() {
                 let slot_key = format!("{formula_key}#{index}");
-                let (slot_iri, _) = self.mint("slot", &slot_key);
-                self.sink.typed(&slot_iri, &math("ArgumentSlot"));
+                let (slot_iri, _) = self.mint("slot", &slot_key)?;
+                self.sink.typed(&slot_iri, &math("ArgumentSlot"))?;
                 let position = i64::try_from(index).unwrap_or(i64::MAX);
-                self.sink.integer(&slot_iri, &math("slotIndex"), position);
-                self.sink.iri(&slot_iri, &math("slotExpression"), expr_iri);
+                self.sink.integer(&slot_iri, &math("slotIndex"), position)?;
                 self.sink
-                    .iri(&formula_iri, &math("argumentSlot"), &slot_iri);
+                    .iri(&slot_iri, &math("slotExpression"), expr_iri)?;
+                self.sink
+                    .iri(&formula_iri, &math("argumentSlot"), &slot_iri)?;
             }
             self.statistical += 1;
         }
@@ -890,7 +896,7 @@ impl Lift<'_> {
                         "r-random-effect",
                         "random effect | grouping factor",
                         &[left.node, right.node],
-                    );
+                    )?;
                     return Ok((node, iri));
                 }
                 if !self.liftable_in_formula(factor) {
@@ -917,7 +923,7 @@ impl Lift<'_> {
                     operands.push(node.node);
                 }
                 let node = self.app("r:interaction", &operands);
-                let iri = self.emit_application(node, "interaction", ":", &operands);
+                let iri = self.emit_application(node, "interaction", ":", &operands)?;
                 Ok((node, iri))
             }
             TermKind::Dot => {
@@ -938,7 +944,7 @@ impl Lift<'_> {
                     }
                 }
                 let node = self.app("r:dot-expansion", &operands);
-                let iri = self.emit_application(node, "dot-expansion", ".", &operands);
+                let iri = self.emit_application(node, "dot-expansion", ".", &operands)?;
                 Ok((node, iri))
             }
         }
@@ -1011,11 +1017,11 @@ impl Lift<'_> {
     fn emit_expression(&mut self, expr: &RExpr) -> gmeow_errors::Result<ExprRef> {
         let expr = expr.unparenthesized();
         match expr {
-            RExpr::Number { text, integer, .. } => Ok(self.emit_number(text, *integer)),
-            RExpr::Ident(name) => Ok(self.emit_variable(name)),
+            RExpr::Number { text, integer, .. } => self.emit_number(text, *integer),
+            RExpr::Ident(name) => self.emit_variable(name),
             RExpr::Component { object, name, .. } => {
                 let label = format!("{}${name}", render(object));
-                Ok(self.emit_variable(&label))
+                self.emit_variable(&label)
             }
             RExpr::Unary {
                 op: UnaryOp::Plus,
@@ -1027,7 +1033,7 @@ impl Lift<'_> {
             } => {
                 let inner = self.emit_expression(operand)?;
                 let node = self.app("r:negate", &[inner.node]);
-                self.emit_application(node, "negate", "-", &[inner.node]);
+                self.emit_application(node, "negate", "-", &[inner.node])?;
                 Ok(ExprRef { node })
             }
             RExpr::Binary { op, lhs, rhs } => {
@@ -1036,7 +1042,7 @@ impl Lift<'_> {
                 let operands = [l.node, r.node];
                 let slug = binary_operator_slug(*op);
                 let node = self.app(&format!("r:{slug}"), &operands);
-                self.emit_application(node, slug, op.spelling(), &operands);
+                self.emit_application(node, slug, op.spelling(), &operands)?;
                 Ok(ExprRef { node })
             }
             RExpr::Call { callee, args } => {
@@ -1062,7 +1068,7 @@ impl Lift<'_> {
                     .map_or(name.as_str(), |(_, slug)| *slug)
                     .to_owned();
                 let node = self.app(&format!("r:{slug}"), &operands);
-                self.emit_application(node, &slug, &name, &operands);
+                self.emit_application(node, &slug, &name, &operands)?;
                 Ok(ExprRef { node })
             }
             other => Err(unliftable(format!(
@@ -1072,67 +1078,68 @@ impl Lift<'_> {
         }
     }
 
-    fn emit_number(&mut self, text: &str, integer: bool) -> ExprRef {
+    fn emit_number(&mut self, text: &str, integer: bool) -> gmeow_errors::Result<ExprRef> {
         let node = self
             .arena
             .intern_leaf(TermValue::simple_literal(format!("r:num:{text}:{integer}")));
         let key = self.key_of(node).into_string();
-        let (iri, fresh) = self.mint("expr", &key);
+        let (iri, fresh) = self.mint("expr", &key)?;
         if fresh {
-            self.sink.typed(&iri, &math("NumberLiteral"));
-            let (number, _) = self.mint("number", &key);
-            self.sink.typed(&number, &math("Number"));
+            self.sink.typed(&iri, &math("NumberLiteral"))?;
+            let (number, _) = self.mint("number", &key)?;
+            self.sink.typed(&number, &math("Number"))?;
             self.sink
-                .iri(&number, &math("inNumberSystem"), &math("realNumbers"));
-            self.sink.boolean(&number, &math("isExact"), true);
-            self.sink.iri(&iri, &math("literalValue"), &number);
+                .iri(&number, &math("inNumberSystem"), &math("realNumbers"))?;
+            self.sink.boolean(&number, &math("isExact"), true)?;
+            self.sink.iri(&iri, &math("literalValue"), &number)?;
             // R's numeric vector is IEEE-754: the source decimal is the approximation that
             // stands in for the exact number, which is precisely math:ApproximateValue's job.
-            let (approx, _) = self.mint("approx", &key);
-            self.sink.typed(&approx, &math("ApproximateValue"));
-            self.sink.iri(&approx, &math("approximates"), &number);
+            let (approx, _) = self.mint("approx", &key)?;
+            self.sink.typed(&approx, &math("ApproximateValue"))?;
+            self.sink.iri(&approx, &math("approximates"), &number)?;
             if let Ok(value) = text.parse::<f64>() {
-                self.sink.decimal(&approx, &math("quantityValue"), value);
+                self.sink.decimal(&approx, &math("quantityValue"), value)?;
                 // math:ApproximateValue carries a min-1 math:approximationError: an
                 // approximation that does not say how far it may deviate is not an
                 // approximation, it is an unlabelled number. R numerics ARE IEEE-754
                 // doubles, so the bound is exactly half an ULP at this magnitude — a
                 // derived fact about the representation, not an invented tolerance.
                 self.sink
-                    .decimal(&approx, &math("approximationError"), half_ulp(value));
+                    .decimal(&approx, &math("approximationError"), half_ulp(value))?;
                 // …and the datatype that bound is relative to.
-                self.sink.iri(&approx, &math("numericDatatype"), XSD_DOUBLE);
+                self.sink
+                    .iri(&approx, &math("numericDatatype"), XSD_DOUBLE)?;
             }
-            self.label(&iri, text);
+            self.label(&iri, text)?;
         }
-        ExprRef { node }
+        Ok(ExprRef { node })
     }
 
-    fn emit_variable(&mut self, name: &str) -> ExprRef {
+    fn emit_variable(&mut self, name: &str) -> gmeow_errors::Result<ExprRef> {
         let node = self.free_atom(&format!("r:var:{name}"));
         let key = self.key_of(node).into_string();
-        let (iri, fresh) = self.mint("expr", &key);
+        let (iri, fresh) = self.mint("expr", &key)?;
         if fresh {
-            self.sink.typed(&iri, &math("VariableExpression"));
-            self.label(&iri, name);
+            self.sink.typed(&iri, &math("VariableExpression"))?;
+            self.label(&iri, name)?;
             // math:VariableExpression's definition: it stands for one math:VariableOccurrence,
             // and "there is no implicit free variable" — an occurrence that resolves to no
             // declaration is math:UnscopedVariableOccurrence. Both are emitted.
-            let (occurrence, _) = self.mint("occurrence", &key);
-            self.sink.typed(&occurrence, &math("VariableOccurrence"));
-            let (declaration, _) = self.mint("declaration", &key);
+            let (occurrence, _) = self.mint("occurrence", &key)?;
+            self.sink.typed(&occurrence, &math("VariableOccurrence"))?;
+            let (declaration, _) = self.mint("declaration", &key)?;
             self.sink
-                .typed(&declaration, &math("FreeVariableDeclaration"));
-            self.label(&declaration, name);
-            let domain = self.value_domain();
+                .typed(&declaration, &math("FreeVariableDeclaration"))?;
+            self.label(&declaration, name)?;
+            let domain = self.value_domain()?;
             self.sink
-                .iri(&declaration, &math("variableDomain"), &domain);
+                .iri(&declaration, &math("variableDomain"), &domain)?;
             self.sink
-                .iri(&occurrence, &math("declaredVariable"), &declaration);
+                .iri(&occurrence, &math("declaredVariable"), &declaration)?;
             self.sink
-                .iri(&iri, &math("variableOccurrence"), &occurrence);
+                .iri(&iri, &math("variableOccurrence"), &occurrence)?;
         }
-        ExprRef { node }
+        Ok(ExprRef { node })
     }
 
     /// Emit a `math:ApplicationExpression`: exactly one operator, contiguous zero-based
@@ -1143,36 +1150,38 @@ impl Lift<'_> {
         operator_slug: &str,
         operator_label: &str,
         operands: &[StructNode],
-    ) -> String {
+    ) -> gmeow_errors::Result<String> {
         let key = self.key_of(node).into_string();
-        let (iri, fresh) = self.mint("expr", &key);
+        let (iri, fresh) = self.mint("expr", &key)?;
         if !fresh {
-            return iri;
+            return Ok(iri);
         }
-        self.sink.typed(&iri, &math("ApplicationExpression"));
-        let operator = self.emit_operation(operator_slug, operator_label);
-        self.sink.iri(&iri, &math("operator"), &operator);
+        self.sink.typed(&iri, &math("ApplicationExpression"))?;
+        let operator = self.emit_operation(operator_slug, operator_label)?;
+        self.sink.iri(&iri, &math("operator"), &operator)?;
         for (index, operand) in operands.iter().enumerate() {
             let operand_iri = self.expression_iri(*operand);
             let slot_key = format!("{key}#{index}");
-            let (slot_iri, _) = self.mint("slot", &slot_key);
-            self.sink.typed(&slot_iri, &math("ArgumentSlot"));
+            let (slot_iri, _) = self.mint("slot", &slot_key)?;
+            self.sink.typed(&slot_iri, &math("ArgumentSlot"))?;
             let position = i64::try_from(index).unwrap_or(i64::MAX);
-            self.sink.integer(&slot_iri, &math("slotIndex"), position);
+            self.sink.integer(&slot_iri, &math("slotIndex"), position)?;
             self.sink
-                .iri(&slot_iri, &math("slotExpression"), &operand_iri);
-            self.sink.iri(&iri, &math("argumentSlot"), &slot_iri);
+                .iri(&slot_iri, &math("slotExpression"), &operand_iri)?;
+            self.sink.iri(&iri, &math("argumentSlot"), &slot_iri)?;
         }
-        // An application does NOT count toward the "has statistical content" gate. Both
-        // `paste0(...)` and `remaining - 1L` are applications; neither is what the R bridge
-        // exists to lift. The gate is satisfied by genuinely statistical structure — a
-        // fitted model, a model formula, an estimate, a residual, a distribution, a dataset
-        // matrix — which the emitters for those count directly.
-        //
-        // Before the lift walked into function and loop bodies this was invisible: a
-        // string-munging script's incidental arithmetic sat inside a `while` body that was
-        // never reached, so the over-count never fired. Walking the bodies exposed it.
-        iri
+        Ok(
+            // An application does NOT count toward the "has statistical content" gate. Both
+            // `paste0(...)` and `remaining - 1L` are applications; neither is what the R bridge
+            // exists to lift. The gate is satisfied by genuinely statistical structure — a
+            // fitted model, a model formula, an estimate, a residual, a distribution, a dataset
+            // matrix — which the emitters for those count directly.
+            //
+            // Before the lift walked into function and loop bodies this was invisible: a
+            // string-munging script's incidental arithmetic sat inside a `while` body that was
+            // never reached, so the over-count never fired. Walking the bodies exposed it.
+            iri,
+        )
     }
 
     /// The operator individual an application applies.
@@ -1181,16 +1190,16 @@ impl Lift<'_> {
     /// individuals the slice already declares; everything else mints a `math:Operation`
     /// (NOT a `math:ArithmeticOperation`, whose exactly-one signature restriction this lift
     /// has no grounds to fill).
-    fn emit_operation(&mut self, slug: &str, label: &str) -> String {
+    fn emit_operation(&mut self, slug: &str, label: &str) -> gmeow_errors::Result<String> {
         if let Some(named) = NAMED_OPERATIONS.iter().find(|(s, _)| *s == slug) {
-            return math(named.1);
+            return Ok(math(named.1));
         }
-        let (iri, fresh) = self.mint("operation", slug);
+        let (iri, fresh) = self.mint("operation", slug)?;
         if fresh {
-            self.sink.typed(&iri, &math("Operation"));
-            self.label(&iri, label);
+            self.sink.typed(&iri, &math("Operation"))?;
+            self.label(&iri, label)?;
         }
-        iri
+        Ok(iri)
     }
 
     // -- estimates, residuals, observations -----------------------------------
@@ -1211,22 +1220,22 @@ impl Lift<'_> {
         let right = render(positional_argument(args, 1).unwrap_or(&RExpr::Null));
         let key = format!("{function}|{left}|{right}");
 
-        let (parameter, fresh) = self.mint("parameter", &key);
+        let (parameter, fresh) = self.mint("parameter", &key)?;
         if fresh {
-            self.sink.typed(&parameter, &math("MathematicalObject"));
+            self.sink.typed(&parameter, &math("MathematicalObject"))?;
             self.label(
                 &parameter,
                 &format!("the contrast between {left} and {right}"),
-            );
+            )?;
         }
-        let estimator = self.emit_estimator(None, function);
-        let (estimate, fresh) = self.mint("estimate", &key);
+        let estimator = self.emit_estimator(None, function)?;
+        let (estimate, fresh) = self.mint("estimate", &key)?;
         if fresh {
-            self.sink.typed(&estimate, &math("Estimate"));
+            self.sink.typed(&estimate, &math("Estimate"))?;
             self.sink
-                .iri(&estimate, &math("estimatedParameter"), &parameter);
-            self.sink.iri(&estimate, &math("estimator"), &estimator);
-            self.label(&estimate, &format!("{function}({left}, {right}) — {spec}"));
+                .iri(&estimate, &math("estimatedParameter"), &parameter)?;
+            self.sink.iri(&estimate, &math("estimator"), &estimator)?;
+            self.label(&estimate, &format!("{function}({left}, {right}) — {spec}"))?;
             self.statistical += 1;
         }
         // The samples themselves are values in the calling environment, not a framed
@@ -1239,29 +1248,30 @@ impl Lift<'_> {
     }
 
     /// One `math:Estimate` per model coefficient.
-    fn emit_estimates(&mut self, fit: &FitInfo) {
-        let estimator = self.emit_estimator(fit.estimator, &fit.function);
+    fn emit_estimates(&mut self, fit: &FitInfo) -> gmeow_errors::Result<()> {
+        let estimator = self.emit_estimator(fit.estimator, &fit.function)?;
         for coefficient in &fit.coefficients {
             let key = format!("{}|{coefficient}", fit.key);
-            let (parameter, parameter_fresh) = self.mint("parameter", &key);
+            let (parameter, parameter_fresh) = self.mint("parameter", &key)?;
             if parameter_fresh {
-                self.sink.typed(&parameter, &math("MathematicalObject"));
-                self.label(&parameter, coefficient);
+                self.sink.typed(&parameter, &math("MathematicalObject"))?;
+                self.label(&parameter, coefficient)?;
             }
-            let (estimate, fresh) = self.mint("estimate", &key);
+            let (estimate, fresh) = self.mint("estimate", &key)?;
             if fresh {
-                self.sink.typed(&estimate, &math("Estimate"));
+                self.sink.typed(&estimate, &math("Estimate"))?;
                 // math:Estimate rdfs:subClassOf owl:unionOf(estimatesEstimand,
                 // estimatedParameter) AND names its estimator. The parameter arm is what an
                 // R script determines; an estimand needs six framing coordinates the script
                 // never states, so claiming one would be fabrication.
                 self.sink
-                    .iri(&estimate, &math("estimatedParameter"), &parameter);
-                self.sink.iri(&estimate, &math("estimator"), &estimator);
-                self.label(&estimate, &format!("estimate of {coefficient}"));
+                    .iri(&estimate, &math("estimatedParameter"), &parameter)?;
+                self.sink.iri(&estimate, &math("estimator"), &estimator)?;
+                self.label(&estimate, &format!("estimate of {coefficient}"))?;
                 self.statistical += 1;
             }
         }
+        Ok(())
     }
 
     /// Whether an unrecognised call is a model FIT.
@@ -1296,7 +1306,11 @@ impl Lift<'_> {
     /// the graph says "this was fitted by coxph" rather than claiming a method the lift did
     /// not determine. Inventing OLS here would be fabrication; omitting the estimator would
     /// leave math:Estimate short of its own obligation.
-    fn emit_estimator(&mut self, estimator: Option<Estimator>, function: &str) -> String {
+    fn emit_estimator(
+        &mut self,
+        estimator: Option<Estimator>,
+        function: &str,
+    ) -> gmeow_errors::Result<String> {
         let (slug, label) = match estimator {
             Some(e) => (e.slug().to_owned(), e.label().to_owned()),
             None => (
@@ -1304,69 +1318,78 @@ impl Lift<'_> {
                 format!("the estimator `{function}(…)` applies"),
             ),
         };
-        let (iri, fresh) = self.mint("estimator", &slug);
+        let (iri, fresh) = self.mint("estimator", &slug)?;
         if fresh {
-            self.sink.typed(&iri, &math("Estimator"));
-            self.label(&iri, &label);
+            self.sink.typed(&iri, &math("Estimator"))?;
+            self.label(&iri, &label)?;
         }
-        iri
+        Ok(iri)
     }
 
-    fn emit_residual(&mut self, fit: &FitInfo) {
-        let (iri, fresh) = self.mint("residual", &fit.key);
+    fn emit_residual(&mut self, fit: &FitInfo) -> gmeow_errors::Result<()> {
+        let (iri, fresh) = self.mint("residual", &fit.key)?;
         if fresh {
-            self.sink.typed(&iri, &math("Residual"));
-            self.sink.iri(&iri, &math("residualOf"), &fit.iri);
+            self.sink.typed(&iri, &math("Residual"))?;
+            self.sink.iri(&iri, &math("residualOf"), &fit.iri)?;
             self.statistical += 1;
         }
+        Ok(())
     }
 
     /// `summary(fit)` is a READ of the fit: a vantage-grounded `gmeow:Observation`, never
     /// an intrinsic property of the model.
-    fn emit_summary_observation(&mut self, fit: &FitInfo) {
-        let (observation, fresh) = self.mint("observation", &fit.key);
+    fn emit_summary_observation(&mut self, fit: &FitInfo) -> gmeow_errors::Result<()> {
+        let (observation, fresh) = self.mint("observation", &fit.key)?;
         if !fresh {
-            return;
+            return Ok(());
         }
-        self.sink.typed(&observation, &gmeow("Observation"));
+        self.sink.typed(&observation, &gmeow("Observation"))?;
         self.sink
-            .iri(&observation, &gmeow("observedFeature"), &fit.iri);
-        let (result, _) = self.mint("summary", &fit.key);
-        self.sink.typed(&result, &math("MathematicalObject"));
+            .iri(&observation, &gmeow("observedFeature"), &fit.iri)?;
+        let (result, _) = self.mint("summary", &fit.key)?;
+        self.sink.typed(&result, &math("MathematicalObject"))?;
         self.sink
-            .iri(&observation, &gmeow("observationResult"), &result);
-        let (vantage, vantage_fresh) = self.mint("vantage", "r-engine");
+            .iri(&observation, &gmeow("observationResult"), &result)?;
+        let (vantage, vantage_fresh) = self.mint("vantage", "r-engine")?;
         if vantage_fresh {
-            self.sink.typed(&vantage, &gmeow("Standpoint"));
-            self.label(&vantage, "the R evaluator");
+            self.sink.typed(&vantage, &gmeow("Standpoint"))?;
+            self.label(&vantage, "the R evaluator")?;
         }
-        self.sink.iri(&observation, &gmeow("vantage"), &vantage);
+        self.sink.iri(&observation, &gmeow("vantage"), &vantage)?;
         self.statistical += 1;
+        Ok(())
     }
 
     // -- distributions -------------------------------------------------------
 
-    fn emit_family_only_distribution(&mut self, family: &'static DistributionSpec) {
+    fn emit_family_only_distribution(
+        &mut self,
+        family: &'static DistributionSpec,
+    ) -> gmeow_errors::Result<()> {
         let key = format!("dist|{}|family-only", family.family);
-        let (iri, fresh) = self.mint("distribution", &key);
+        let (iri, fresh) = self.mint("distribution", &key)?;
         if !fresh {
-            return;
+            return Ok(());
         }
-        let family_iri = self.emit_distribution_family(family);
-        self.sink.typed(&iri, &math("Distribution"));
+        let family_iri = self.emit_distribution_family(family)?;
+        self.sink.typed(&iri, &math("Distribution"))?;
         self.sink
-            .iri(&iri, &math("distributionFamily"), &family_iri);
-        self.label(&iri, family.family);
+            .iri(&iri, &math("distributionFamily"), &family_iri)?;
+        self.label(&iri, family.family)?;
         self.statistical += 1;
+        Ok(())
     }
 
-    fn emit_distribution_family(&mut self, family: &'static DistributionSpec) -> String {
-        let (iri, fresh) = self.mint("family", family.family);
+    fn emit_distribution_family(
+        &mut self,
+        family: &'static DistributionSpec,
+    ) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("family", family.family)?;
         if fresh {
-            self.sink.typed(&iri, &math("DistributionFamily"));
-            self.label(&iri, family.family);
+            self.sink.typed(&iri, &math("DistributionFamily"))?;
+            self.label(&iri, family.family)?;
         }
-        iri
+        Ok(iri)
     }
 
     fn emit_distribution(
@@ -1440,79 +1463,82 @@ impl Lift<'_> {
             .map(|(index, value)| format!("{}={}", spec.roles[*index].name, value.key()))
             .collect();
         let key = format!("dist|{}|{}", spec.family, value_key.join(","));
-        let (iri, fresh) = self.mint("distribution", &key);
+        let (iri, fresh) = self.mint("distribution", &key)?;
         if !fresh {
             return Ok(iri);
         }
 
-        let family_iri = self.emit_distribution_family(spec);
+        let family_iri = self.emit_distribution_family(spec)?;
         let (parameterization, parameterization_fresh) =
-            self.mint("parameterization", spec.parameterization);
+            self.mint("parameterization", spec.parameterization)?;
         if parameterization_fresh {
             self.sink
-                .typed(&parameterization, &math("DistributionParameterization"));
-            self.label(&parameterization, spec.parameterization);
+                .typed(&parameterization, &math("DistributionParameterization"))?;
+            self.label(&parameterization, spec.parameterization)?;
         }
 
-        self.sink.typed(&iri, &math("Distribution"));
+        self.sink.typed(&iri, &math("Distribution"))?;
         self.sink
-            .iri(&iri, &math("distributionFamily"), &family_iri);
+            .iri(&iri, &math("distributionFamily"), &family_iri)?;
         self.sink.iri(
             &iri,
             &math("distributionParameterization"),
             &parameterization,
-        );
-        self.label(&iri, spec.family);
+        )?;
+        self.label(&iri, spec.family)?;
 
         for (index, value) in resolved {
             let role = &spec.roles[index];
             let role_key = format!("{}|{}", spec.parameterization, role.name);
-            let (role_iri, role_fresh) = self.mint("role", &role_key);
+            let (role_iri, role_fresh) = self.mint("role", &role_key)?;
             if role_fresh {
                 self.sink
-                    .typed(&role_iri, &math("DistributionParameterRole"));
+                    .typed(&role_iri, &math("DistributionParameterRole"))?;
                 self.sink.iri(
                     &role_iri,
                     &math("roleWithinParameterization"),
                     &parameterization,
-                );
+                )?;
                 self.sink
-                    .boolean(&role_iri, &math("requiresPositiveValue"), role.positive);
+                    .boolean(&role_iri, &math("requiresPositiveValue"), role.positive)?;
                 self.sink.iri(
                     &role_iri,
                     &math("quantityDimension"),
                     &math("dimensionless"),
-                );
-                self.label(&role_iri, role.name);
+                )?;
+                self.label(&role_iri, role.name)?;
             }
             self.sink
-                .iri(&parameterization, &math("requiresParameterRole"), &role_iri);
+                .iri(&parameterization, &math("requiresParameterRole"), &role_iri)?;
 
             let parameter_key = format!("{key}|{}", role.name);
-            let (parameter, _) = self.mint("parameter", &parameter_key);
-            self.sink.typed(&parameter, &math("DistributionParameter"));
-            self.sink.iri(&parameter, &math("parameterRole"), &role_iri);
+            let (parameter, _) = self.mint("parameter", &parameter_key)?;
+            self.sink
+                .typed(&parameter, &math("DistributionParameter"))?;
+            self.sink
+                .iri(&parameter, &math("parameterRole"), &role_iri)?;
             match value {
                 ParameterValue::Literal(text) => {
-                    let (quantity, _) = self.mint("quantity", &parameter_key);
-                    self.sink.typed(&quantity, &math("Quantity"));
+                    let (quantity, _) = self.mint("quantity", &parameter_key)?;
+                    self.sink.typed(&quantity, &math("Quantity"))?;
                     self.sink
-                        .iri(&quantity, &math("hasDimension"), &math("dimensionless"));
+                        .iri(&quantity, &math("hasDimension"), &math("dimensionless"))?;
                     if let Ok(number) = text.parse::<f64>() {
-                        self.sink.decimal(&quantity, &math("quantityValue"), number);
+                        self.sink
+                            .decimal(&quantity, &math("quantityValue"), number)?;
                     }
                     self.sink
-                        .iri(&parameter, &math("parameterQuantity"), &quantity);
+                        .iri(&parameter, &math("parameterQuantity"), &quantity)?;
                 }
                 ParameterValue::Symbolic(expr) => {
                     let lifted = self.emit_expression(&expr)?;
                     let expr_iri = self.expression_iri(lifted.node);
                     self.sink
-                        .iri(&parameter, &math("parameterExpression"), &expr_iri);
+                        .iri(&parameter, &math("parameterExpression"), &expr_iri)?;
                 }
             }
             self.sink
-                .iri(&iri, &math("hasDistributionParameter"), &parameter);
+                .iri(&iri, &math("hasDistributionParameter"), &parameter)?;
         }
         self.statistical += 1;
         Ok(iri)
@@ -1542,31 +1568,32 @@ impl Lift<'_> {
     /// recovered rides in the `logic:` formula tree [`Lift::lower_formula`] builds beneath
     /// it. The `rdfs:label` is a full rendering for readability and carries no meaning that
     /// the structure does not already carry.
-    fn lower_to_logic(&mut self, expr: &RExpr) {
+    fn lower_to_logic(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
         let key = expr.structure_key();
-        let (iri, fresh) = self.mint("computation", &key);
+        let (iri, fresh) = self.mint("computation", &key)?;
         if !fresh {
-            return;
+            return Ok(());
         }
-        let formula = self.lower_formula(expr);
+        let formula = self.lower_formula(expr)?;
         // A math:MathematicalStatement, NOT a math:MathematicalExpression. This node denotes a
         // PROPOSITION (see the math:denotationKind below) and, as the doc above says, is an
         // anchor whose content rides entirely in the logic: formula tree beneath it — it carries
         // no math:argumentSlot / boundVariable / symbol / literal child of its own. Typed as an
         // expression it is exactly the anti-pattern math:StringOnlyComputableExpression exists to
         // forbid: an expression whose only self-contained content is its rendered source string.
-        self.sink.typed(&iri, &math("MathematicalStatement"));
+        self.sink.typed(&iri, &math("MathematicalStatement"))?;
         self.sink
-            .iri(&iri, &math("compilesToLogicFormula"), &formula);
+            .iri(&iri, &math("compilesToLogicFormula"), &formula)?;
         self.sink
-            .iri(&iri, &math("denotationKind"), &math("denotesProposition"));
+            .iri(&iri, &math("denotationKind"), &math("denotesProposition"))?;
         self.sink.iri(
             &iri,
             &math("logicLoweringPreservation"),
             &logic("SoundUnderApproximation"),
-        );
-        self.label(&iri, &render(expr));
+        )?;
+        self.label(&iri, &render(expr))?;
         self.lowerings += 1;
+        Ok(())
     }
 
     // -- logic: formulae -----------------------------------------------------
@@ -1584,48 +1611,48 @@ impl Lift<'_> {
     /// construct's PER-EXECUTION reading survives while its operational envelope does not:
     /// a loop's repetition, a block's ordering, and an assignment's store update are
     /// enumerated as `math:unmappedConstruct` residue rather than silently discarded.
-    fn lower_formula(&mut self, expr: &RExpr) -> String {
+    fn lower_formula(&mut self, expr: &RExpr) -> gmeow_errors::Result<String> {
         let expr = expr.unparenthesized();
         let key = expr.structure_key();
-        match expr {
+        Ok(match expr {
             RExpr::If {
                 condition,
                 then_branch,
                 else_branch,
-            } => self.lower_if(&key, condition, then_branch, else_branch.as_deref()),
+            } => self.lower_if(&key, condition, then_branch, else_branch.as_deref())?,
             RExpr::For {
                 variable,
                 sequence,
                 body,
-            } => self.lower_for(&key, variable, sequence, body),
+            } => self.lower_for(&key, variable, sequence, body)?,
             RExpr::While { condition, body } => {
                 self.record_unmapped(
                     "R `while` repetition: the lowered implication states the guard-to-body \
                      relation of ONE iteration; unbounded re-entry has no logic: formula image",
                 );
-                let guard = self.lower_formula(condition);
-                let consequent = self.lower_formula(body);
+                let guard = self.lower_formula(condition)?;
+                let consequent = self.lower_formula(body)?;
                 self.emit_implication(
                     &format!("while|{key}"),
                     &guard,
                     &consequent,
                     "R `while` loop: one iteration's guard implies its body",
-                )
+                )?
             }
             RExpr::Repeat { body } => {
                 self.record_unmapped(
                     "R `repeat` repetition: the lowered predication names the body; unbounded \
                      re-entry has no logic: formula image",
                 );
-                let body_term = self.lower_term(body);
+                let body_term = self.lower_term(body)?;
                 self.emit_atom(
                     &format!("repeat|{key}"),
                     "r-repeat",
                     &[body_term],
                     &render(expr),
-                )
+                )?
             }
-            RExpr::Block(statements) => self.lower_block(&key, statements),
+            RExpr::Block(statements) => self.lower_block(&key, statements)?,
             RExpr::Break | RExpr::Next => {
                 let word = if matches!(expr, RExpr::Break) {
                     "break"
@@ -1636,35 +1663,37 @@ impl Lift<'_> {
                     "R `{word}` non-local control transfer: a logic: formula has no jump \
                      semantics, so the atom names the transfer without discharging it"
                 ));
-                self.emit_atom(&format!("keyword|{key}"), &format!("r-{word}"), &[], word)
+                self.emit_atom(&format!("keyword|{key}"), &format!("r-{word}"), &[], word)?
             }
-            RExpr::Function { params, body } => self.lower_function(&key, params, body, expr),
-            RExpr::Assign { target, value, .. } => self.lower_assignment(target, value),
+            RExpr::Function { params, body } => self.lower_function(&key, params, body, expr)?,
+            RExpr::Assign { target, value, .. } => self.lower_assignment(target, value)?,
             RExpr::Pipe { lhs, rhs, native } => {
                 let desugared = desugar_pipe(lhs, rhs, *native);
-                self.lower_formula(&desugared)
+                self.lower_formula(&desugared)?
             }
-            RExpr::Call { callee, args } => self.lower_call_atom(&key, callee, args, expr),
+            RExpr::Call { callee, args } => self.lower_call_atom(&key, callee, args, expr)?,
             RExpr::Unary {
                 op: UnaryOp::Not,
                 operand,
             } => {
-                let inner = self.lower_formula(operand);
-                self.emit_negation(&format!("not|{key}"), &inner, &render(expr))
+                let inner = self.lower_formula(operand)?;
+                self.emit_negation(&format!("not|{key}"), &inner, &render(expr))?
             }
-            RExpr::Binary { op, lhs, rhs } => self.lower_binary_formula(&key, *op, lhs, rhs, expr),
+            RExpr::Binary { op, lhs, rhs } => {
+                self.lower_binary_formula(&key, *op, lhs, rhs, expr)?
+            }
             RExpr::Special { operator, lhs, rhs } => {
-                let l = self.lower_term(lhs);
-                let r = self.lower_term(rhs);
+                let l = self.lower_term(lhs)?;
+                let r = self.lower_term(rhs)?;
                 self.emit_atom(
                     &format!("special|{key}"),
                     &format!("r-special:{operator}"),
                     &[l, r],
                     &render(expr),
-                )
+                )?
             }
-            other => self.lower_value_atom(&key, other),
-        }
+            other => self.lower_value_atom(&key, other)?,
+        })
     }
 
     /// `if (c) t` → `c → t`; `if (c) t else e` → `(c → t) ∧ (¬c → e)`.
@@ -1678,9 +1707,9 @@ impl Lift<'_> {
         condition: &RExpr,
         then_branch: &RExpr,
         else_branch: Option<&RExpr>,
-    ) -> String {
-        let guard = self.lower_formula(condition);
-        let consequent = self.lower_formula(then_branch);
+    ) -> gmeow_errors::Result<String> {
+        let guard = self.lower_formula(condition)?;
+        let consequent = self.lower_formula(then_branch)?;
         let Some(else_branch) = else_branch else {
             return self.emit_implication(
                 &format!("if|{key}"),
@@ -1689,24 +1718,24 @@ impl Lift<'_> {
                 "R `if` without an `else` arm: the condition implies the consequent",
             );
         };
-        let alternative = self.lower_formula(else_branch);
+        let alternative = self.lower_formula(else_branch)?;
         let negated = self.emit_negation(
             &format!("if-not|{key}"),
             &guard,
             "the negated condition of an R `if`/`else`",
-        );
+        )?;
         let positive = self.emit_implication(
             &format!("if-then|{key}"),
             &guard,
             &consequent,
             "R `if` consequent arm",
-        );
+        )?;
         let negative = self.emit_implication(
             &format!("if-else|{key}"),
             &negated,
             &alternative,
             "R `if` alternative arm",
-        );
+        )?;
         self.emit_conjunction(
             &format!("if|{key}"),
             &[positive, negative],
@@ -1720,42 +1749,48 @@ impl Lift<'_> {
     /// variable becomes a real `logic:quantifiedVariable` and the membership guard a real
     /// antecedent. What does not survive is the ORDER the elements are visited in, which is
     /// enumerated as residue.
-    fn lower_for(&mut self, key: &str, variable: &str, sequence: &RExpr, body: &RExpr) -> String {
+    fn lower_for(
+        &mut self,
+        key: &str,
+        variable: &str,
+        sequence: &RExpr,
+        body: &RExpr,
+    ) -> gmeow_errors::Result<String> {
         self.record_unmapped(
             "R `for` iteration order: the lowered universal quantification binds every element \
              of the sequence, not the order in which they are visited",
         );
         let bound = LogicTerm::Variable(variable.to_owned());
-        let sequence_term = self.lower_term(sequence);
+        let sequence_term = self.lower_term(sequence)?;
         let guard = self.emit_atom(
             &format!("for-in|{key}"),
             "r-for-in",
             &[bound.clone(), sequence_term],
             "R `for` loop membership guard",
-        );
-        let consequent = self.lower_formula(body);
+        )?;
+        let consequent = self.lower_formula(body)?;
         let implication = self.emit_implication(
             &format!("for-body|{key}"),
             &guard,
             &consequent,
             "R `for` body, guarded by sequence membership",
-        );
+        )?;
         let quantifier_key = format!("for|{key}");
-        let (iri, fresh) = self.mint("logic-formula", &quantifier_key);
+        let (iri, fresh) = self.mint("logic-formula", &quantifier_key)?;
         if fresh {
-            self.sink.typed(&iri, &logic("Formula"));
-            self.emit_carrier(&iri, "quantifiedVariable", &quantifier_key, 0, &bound);
-            self.sink.iri(&iri, &logic("forall"), &implication);
-            self.label(&iri, &format!("R `for` loop binding `{variable}`"));
+            self.sink.typed(&iri, &logic("Formula"))?;
+            self.emit_carrier(&iri, "quantifiedVariable", &quantifier_key, 0, &bound)?;
+            self.sink.iri(&iri, &logic("forall"), &implication)?;
+            self.label(&iri, &format!("R `for` loop binding `{variable}`"))?;
         }
-        iri
+        Ok(iri)
     }
 
     /// `{ s1; s2; … }` → the conjunction of its lowered statements.
-    fn lower_block(&mut self, key: &str, statements: &[RStmt]) -> String {
-        match statements {
-            [] => self.emit_atom(&format!("block|{key}"), "r-empty-block", &[], "{ }"),
-            [only] => self.lower_statement_formula(only),
+    fn lower_block(&mut self, key: &str, statements: &[RStmt]) -> gmeow_errors::Result<String> {
+        Ok(match statements {
+            [] => self.emit_atom(&format!("block|{key}"), "r-empty-block", &[], "{ }")?,
+            [only] => self.lower_statement_formula(only)?,
             many => {
                 self.record_unmapped(
                     "R `{ }` statement sequencing: conjunction is commutative, so the order the \
@@ -1763,34 +1798,34 @@ impl Lift<'_> {
                 );
                 let mut operands = Vec::with_capacity(many.len());
                 for statement in many {
-                    let lowered = self.lower_statement_formula(statement);
+                    let lowered = self.lower_statement_formula(statement)?;
                     operands.push(lowered);
                 }
                 self.emit_conjunction(
                     &format!("block|{key}"),
                     &operands,
                     "R `{ }` block: every statement, conjoined",
-                )
+                )?
             }
-        }
+        })
     }
 
-    fn lower_statement_formula(&mut self, statement: &RStmt) -> String {
-        match &statement.kind {
-            RStmtKind::Assign { target, value, .. } => self.lower_assignment(target, value),
-            RStmtKind::Expr(expr) => self.lower_formula(expr),
-        }
+    fn lower_statement_formula(&mut self, statement: &RStmt) -> gmeow_errors::Result<String> {
+        Ok(match &statement.kind {
+            RStmtKind::Assign { target, value, .. } => self.lower_assignment(target, value)?,
+            RStmtKind::Expr(expr) => self.lower_formula(expr)?,
+        })
     }
 
     /// `x <- v` → `r-assign(x, v)`.
-    fn lower_assignment(&mut self, target: &RExpr, value: &RExpr) -> String {
+    fn lower_assignment(&mut self, target: &RExpr, value: &RExpr) -> gmeow_errors::Result<String> {
         self.record_unmapped(
             "R `<-` assignment as state mutation: the lowered predication relates the target to \
              the value it was bound to; it does not update a store, so a later rebinding of the \
              same name is a second predication rather than an overwrite",
         );
-        let target_term = self.lower_term(target);
-        let value_term = self.lower_term(value);
+        let target_term = self.lower_term(target)?;
+        let value_term = self.lower_term(value)?;
         let key = format!(
             "assign|{}|{}",
             target.structure_key(),
@@ -1811,14 +1846,14 @@ impl Lift<'_> {
         params: &[Param],
         body: &RExpr,
         expr: &RExpr,
-    ) -> String {
+    ) -> gmeow_errors::Result<String> {
         self.record_unmapped(
             "R `function` closure: the lowered predication names the formals and the body, \
              not a first-class function value, its lexical environment, or its lazy-promise \
              argument evaluation",
         );
-        let mut args = self.lower_params(params);
-        let body_term = self.lower_term(body);
+        let mut args = self.lower_params(params)?;
+        let body_term = self.lower_term(body)?;
         args.push(body_term);
         self.emit_atom(
             &format!("function|{key}"),
@@ -1828,7 +1863,7 @@ impl Lift<'_> {
         )
     }
 
-    fn lower_params(&mut self, params: &[Param]) -> Vec<LogicTerm> {
+    fn lower_params(&mut self, params: &[Param]) -> gmeow_errors::Result<Vec<LogicTerm>> {
         let mut out = Vec::with_capacity(params.len());
         for param in params {
             if param.name == "..." {
@@ -1843,15 +1878,18 @@ impl Lift<'_> {
             match &param.default {
                 None => out.push(name),
                 Some(default) => {
-                    let default_term = self.lower_term(default);
+                    let default_term = self.lower_term(default)?;
                     let key = format!("t|default|{}|{}", param.name, default.structure_key());
-                    let term =
-                        self.emit_function_term(&key, "r-parameter-default", &[name, default_term]);
+                    let term = self.emit_function_term(
+                        &key,
+                        "r-parameter-default",
+                        &[name, default_term],
+                    )?;
                     out.push(term);
                 }
             }
         }
-        out
+        Ok(out)
     }
 
     /// A call in proposition position: ONE reified relation per callee.
@@ -1859,13 +1897,19 @@ impl Lift<'_> {
     /// `library(stats)` and `set.seed(20260725)` therefore predicate DIFFERENT relations —
     /// the relation identity includes the function name, so the predicate carries which call
     /// it was instead of collapsing every call in the script onto one `r-call` node.
-    fn lower_call_atom(&mut self, key: &str, callee: &RExpr, args: &[Arg], expr: &RExpr) -> String {
-        let mut terms = self.lower_arguments(args);
+    fn lower_call_atom(
+        &mut self,
+        key: &str,
+        callee: &RExpr,
+        args: &[Arg],
+        expr: &RExpr,
+    ) -> gmeow_errors::Result<String> {
+        let mut terms = self.lower_arguments(args)?;
         let key = format!("call|{key}");
-        match callable_name(callee) {
+        Ok(match callable_name(callee) {
             Some(name) => {
                 self.record_uninterpreted_call(&name);
-                self.emit_atom(&key, &format!("r-call:{name}"), &terms, &render(expr))
+                self.emit_atom(&key, &format!("r-call:{name}"), &terms, &render(expr))?
             }
             None => {
                 // A computed callee (`handlers[[i]](x)`): the callee itself becomes the first
@@ -1874,11 +1918,11 @@ impl Lift<'_> {
                     "R computed callee: the applied function is a value the script computes, so \
                      the lowered relation is a generic application rather than a named one",
                 );
-                let callee_term = self.lower_term(callee);
+                let callee_term = self.lower_term(callee)?;
                 terms.insert(0, callee_term);
-                self.emit_atom(&key, "r-apply", &terms, &render(expr))
+                self.emit_atom(&key, "r-apply", &terms, &render(expr))?
             }
-        }
+        })
     }
 
     /// Name an R function whose OWN semantics the lift does not interpret.
@@ -1903,17 +1947,17 @@ impl Lift<'_> {
         lhs: &RExpr,
         rhs: &RExpr,
         expr: &RExpr,
-    ) -> String {
-        match op {
+    ) -> gmeow_errors::Result<String> {
+        Ok(match op {
             BinaryOp::And | BinaryOp::AndAnd => {
-                let l = self.lower_formula(lhs);
-                let r = self.lower_formula(rhs);
-                self.emit_conjunction(&format!("and|{key}"), &[l, r], &render(expr))
+                let l = self.lower_formula(lhs)?;
+                let r = self.lower_formula(rhs)?;
+                self.emit_conjunction(&format!("and|{key}"), &[l, r], &render(expr))?
             }
             BinaryOp::Or | BinaryOp::OrOr => {
-                let l = self.lower_formula(lhs);
-                let r = self.lower_formula(rhs);
-                self.emit_disjunction(&format!("or|{key}"), &[l, r], &render(expr))
+                let l = self.lower_formula(lhs)?;
+                let r = self.lower_formula(rhs)?;
+                self.emit_disjunction(&format!("or|{key}"), &[l, r], &render(expr))?
             }
             BinaryOp::Less
             | BinaryOp::Greater
@@ -1921,26 +1965,26 @@ impl Lift<'_> {
             | BinaryOp::GreaterEqual
             | BinaryOp::Equal
             | BinaryOp::NotEqual => {
-                let l = self.lower_term(lhs);
-                let r = self.lower_term(rhs);
+                let l = self.lower_term(lhs)?;
+                let r = self.lower_term(rhs)?;
                 self.emit_atom(
                     &format!("compare|{key}"),
                     &format!("r-{}", binary_operator_slug(op)),
                     &[l, r],
                     &render(expr),
-                )
+                )?
             }
             // Arithmetic and `:` are not propositions. R coerces the value to a condition at
             // run time; the lowering says only that this expression's VALUE is the statement's
             // content, and the value's own structure rides in the term.
-            _ => self.lower_value_atom(key, expr),
-        }
+            _ => self.lower_value_atom(key, expr)?,
+        })
     }
 
     /// An expression with no propositional reading: `r-value(<term>)`, over its FULL term
     /// structure.
-    fn lower_value_atom(&mut self, key: &str, expr: &RExpr) -> String {
-        let term = self.lower_term(expr);
+    fn lower_value_atom(&mut self, key: &str, expr: &RExpr) -> gmeow_errors::Result<String> {
+        let term = self.lower_term(expr)?;
         self.emit_atom(&format!("value|{key}"), "r-value", &[term], &render(expr))
     }
 
@@ -1951,10 +1995,10 @@ impl Lift<'_> {
     /// Every arm produces exactly one `logic:TermCarrier` value kind. A compound expression
     /// becomes a `logic:FunctionTerm` reached through `logic:termApplication`, so a nested
     /// call such as `nrow(cars)` round-trips as a real application rather than a string.
-    fn lower_term(&mut self, expr: &RExpr) -> LogicTerm {
+    fn lower_term(&mut self, expr: &RExpr) -> gmeow_errors::Result<LogicTerm> {
         let expr = expr.unparenthesized();
         let key = format!("t|{}", expr.structure_key());
-        match expr {
+        Ok(match expr {
             RExpr::Number { text, integer, .. } => number_term(text, *integer),
             RExpr::Str(text) => LogicTerm::Literal {
                 lexical: text.clone(),
@@ -1979,14 +2023,14 @@ impl Lift<'_> {
                     "R `NULL`: its zero-length-vector semantics have no logic: term image, so \
                      the constant rides as a named individual rather than as an absent argument",
                 );
-                self.language_constant("NULL")
+                self.language_constant("NULL")?
             }
             RExpr::Na => {
                 self.record_unmapped(
                     "R `NA`: three-valued missingness has no logic: truth value, so the constant \
                      rides as a named individual and propagation is not modelled",
                 );
-                self.language_constant("NA")
+                self.language_constant("NA")?
             }
             RExpr::Break | RExpr::Next => {
                 let word = if matches!(expr, RExpr::Break) {
@@ -1998,7 +2042,7 @@ impl Lift<'_> {
                     "R `{word}` non-local control transfer: a logic: formula has no jump \
                      semantics, so the atom names the transfer without discharging it"
                 ));
-                self.language_constant(word)
+                self.language_constant(word)?
             }
             RExpr::Ident(name) => LogicTerm::Variable(name.clone()),
             RExpr::Namespace {
@@ -2012,33 +2056,33 @@ impl Lift<'_> {
                     "r-namespace"
                 };
                 let args = [plain_literal(package), plain_literal(name)];
-                self.emit_function_term(&key, symbol, &args)
+                self.emit_function_term(&key, symbol, &args)?
             }
             RExpr::Component { object, name, slot } => {
-                let object_term = self.lower_term(object);
+                let object_term = self.lower_term(object)?;
                 let symbol = if *slot { "r-slot" } else { "r-component" };
-                self.emit_function_term(&key, symbol, &[object_term, plain_literal(name)])
+                self.emit_function_term(&key, symbol, &[object_term, plain_literal(name)])?
             }
             RExpr::Index {
                 object,
                 args,
                 double,
             } => {
-                let mut terms = vec![self.lower_term(object)];
-                terms.extend(self.lower_arguments(args));
+                let mut terms = vec![self.lower_term(object)?];
+                terms.extend(self.lower_arguments(args)?);
                 let symbol = if *double {
                     "r-subscript-double"
                 } else {
                     "r-subscript"
                 };
-                self.emit_function_term(&key, symbol, &terms)
+                self.emit_function_term(&key, symbol, &terms)?
             }
             RExpr::Call { callee, args } => {
-                let mut terms = self.lower_arguments(args);
+                let mut terms = self.lower_arguments(args)?;
                 match callable_name(callee) {
                     Some(name) => {
                         self.record_uninterpreted_call(&name);
-                        self.emit_function_term(&key, &format!("r-call:{name}"), &terms)
+                        self.emit_function_term(&key, &format!("r-call:{name}"), &terms)?
                     }
                     None => {
                         self.record_unmapped(
@@ -2046,40 +2090,40 @@ impl Lift<'_> {
                              computes, so the lowered term is a generic application rather than a \
                              named one",
                         );
-                        let callee_term = self.lower_term(callee);
+                        let callee_term = self.lower_term(callee)?;
                         terms.insert(0, callee_term);
-                        self.emit_function_term(&key, "r-apply", &terms)
+                        self.emit_function_term(&key, "r-apply", &terms)?
                     }
                 }
             }
             RExpr::Pipe { lhs, rhs, native } => {
                 let desugared = desugar_pipe(lhs, rhs, *native);
-                self.lower_term(&desugared)
+                self.lower_term(&desugared)?
             }
             RExpr::Unary { op, operand } => {
-                let operand_term = self.lower_term(operand);
-                self.emit_function_term(&key, unary_operator_symbol(*op), &[operand_term])
+                let operand_term = self.lower_term(operand)?;
+                self.emit_function_term(&key, unary_operator_symbol(*op), &[operand_term])?
             }
             RExpr::Binary { op, lhs, rhs } => {
-                let l = self.lower_term(lhs);
-                let r = self.lower_term(rhs);
-                self.emit_function_term(&key, &format!("r-{}", binary_operator_slug(*op)), &[l, r])
+                let l = self.lower_term(lhs)?;
+                let r = self.lower_term(rhs)?;
+                self.emit_function_term(&key, &format!("r-{}", binary_operator_slug(*op)), &[l, r])?
             }
             RExpr::Special { operator, lhs, rhs } => {
-                let l = self.lower_term(lhs);
-                let r = self.lower_term(rhs);
-                self.emit_function_term(&key, &format!("r-special:{operator}"), &[l, r])
+                let l = self.lower_term(lhs)?;
+                let r = self.lower_term(rhs)?;
+                self.emit_function_term(&key, &format!("r-special:{operator}"), &[l, r])?
             }
-            RExpr::Formula(formula) => self.lower_model_formula_term(&key, formula),
+            RExpr::Formula(formula) => self.lower_model_formula_term(&key, formula)?,
             RExpr::Assign { target, value, .. } => {
                 self.record_unmapped(
                     "R `<-` assignment as state mutation: the lowered predication relates the \
                      target to the value it was bound to; it does not update a store, so a later \
                      rebinding of the same name is a second predication rather than an overwrite",
                 );
-                let target_term = self.lower_term(target);
-                let value_term = self.lower_term(value);
-                self.emit_function_term(&key, "r-assign", &[target_term, value_term])
+                let target_term = self.lower_term(target)?;
+                let value_term = self.lower_term(value)?;
+                self.emit_function_term(&key, "r-assign", &[target_term, value_term])?
             }
             RExpr::Function { params, body } => {
                 self.record_unmapped(
@@ -2087,10 +2131,10 @@ impl Lift<'_> {
                      body, not a first-class function value, its lexical environment, or its \
                      lazy-promise argument evaluation",
                 );
-                let mut args = self.lower_params(params);
-                let body_term = self.lower_term(body);
+                let mut args = self.lower_params(params)?;
+                let body_term = self.lower_term(body)?;
                 args.push(body_term);
-                self.emit_function_term(&key, "r-function", &args)
+                self.emit_function_term(&key, "r-function", &args)?
             }
             RExpr::Block(statements) => {
                 if statements.len() > 1 {
@@ -2103,8 +2147,8 @@ impl Lift<'_> {
                 for statement in statements {
                     let term = match &statement.kind {
                         RStmtKind::Assign { target, value, .. } => {
-                            let target_term = self.lower_term(target);
-                            let value_term = self.lower_term(value);
+                            let target_term = self.lower_term(target)?;
+                            let value_term = self.lower_term(value)?;
                             self.emit_function_term(
                                 &format!(
                                     "t|assign|{}|{}",
@@ -2113,28 +2157,28 @@ impl Lift<'_> {
                                 ),
                                 "r-assign",
                                 &[target_term, value_term],
-                            )
+                            )?
                         }
-                        RStmtKind::Expr(expr) => self.lower_term(expr),
+                        RStmtKind::Expr(expr) => self.lower_term(expr)?,
                     };
                     terms.push(term);
                 }
                 if terms.is_empty() {
-                    return LogicTerm::SequenceMarker("r-empty-block".to_owned());
+                    return Ok(LogicTerm::SequenceMarker("r-empty-block".to_owned()));
                 }
-                self.emit_function_term(&key, "r-block", &terms)
+                self.emit_function_term(&key, "r-block", &terms)?
             }
             RExpr::If {
                 condition,
                 then_branch,
                 else_branch,
             } => {
-                let mut terms = vec![self.lower_term(condition), self.lower_term(then_branch)];
+                let mut terms = vec![self.lower_term(condition)?, self.lower_term(then_branch)?];
                 if let Some(else_branch) = else_branch {
-                    let alternative = self.lower_term(else_branch);
+                    let alternative = self.lower_term(else_branch)?;
                     terms.push(alternative);
                 }
-                self.emit_function_term(&key, "r-if", &terms)
+                self.emit_function_term(&key, "r-if", &terms)?
             }
             RExpr::For {
                 variable,
@@ -2145,42 +2189,42 @@ impl Lift<'_> {
                     "R `for` iteration order: the lowered universal quantification binds every \
                      element of the sequence, not the order in which they are visited",
                 );
-                let sequence_term = self.lower_term(sequence);
-                let body_term = self.lower_term(body);
+                let sequence_term = self.lower_term(sequence)?;
+                let body_term = self.lower_term(body)?;
                 let terms = [
                     LogicTerm::Variable(variable.clone()),
                     sequence_term,
                     body_term,
                 ];
-                self.emit_function_term(&key, "r-for", &terms)
+                self.emit_function_term(&key, "r-for", &terms)?
             }
             RExpr::While { condition, body } => {
                 self.record_unmapped(
                     "R `while` repetition: the lowered implication states the guard-to-body \
                      relation of ONE iteration; unbounded re-entry has no logic: formula image",
                 );
-                let guard = self.lower_term(condition);
-                let body_term = self.lower_term(body);
-                self.emit_function_term(&key, "r-while", &[guard, body_term])
+                let guard = self.lower_term(condition)?;
+                let body_term = self.lower_term(body)?;
+                self.emit_function_term(&key, "r-while", &[guard, body_term])?
             }
             RExpr::Repeat { body } => {
                 self.record_unmapped(
                     "R `repeat` repetition: the lowered predication names the body; unbounded \
                      re-entry has no logic: formula image",
                 );
-                let body_term = self.lower_term(body);
-                self.emit_function_term(&key, "r-repeat", &[body_term])
+                let body_term = self.lower_term(body)?;
+                self.emit_function_term(&key, "r-repeat", &[body_term])?
             }
             RExpr::Paren(_) => unreachable!("the expression was unparenthesized above"),
-        }
+        })
     }
 
     /// Call and subscript arguments, in source order, with the argument NAMES retained.
-    fn lower_arguments(&mut self, args: &[Arg]) -> Vec<LogicTerm> {
+    fn lower_arguments(&mut self, args: &[Arg]) -> gmeow_errors::Result<Vec<LogicTerm>> {
         let mut out = Vec::with_capacity(args.len());
         for arg in args {
             let value = match &arg.value {
-                Some(value) => self.lower_term(value),
+                Some(value) => self.lower_term(value)?,
                 None => {
                     // R's genuinely EMPTY argument (`x[, 1]`) means "the whole extent of this
                     // margin": a SEQUENCE of indices, not a missing one.
@@ -2204,34 +2248,38 @@ impl Lift<'_> {
                         &key,
                         "r-named-argument",
                         &[plain_literal(name), value],
-                    );
+                    )?;
                     out.push(term);
                 }
             }
         }
-        out
+        Ok(out)
     }
 
     /// A model formula reaching the `logic:` seam (`plot(y ~ x)`): a real application over
     /// its response, its surviving terms, its explicitly removed terms, and its intercept
     /// flag — never a rendering of the `~`.
-    fn lower_model_formula_term(&mut self, key: &str, formula: &Formula) -> LogicTerm {
+    fn lower_model_formula_term(
+        &mut self,
+        key: &str,
+        formula: &Formula,
+    ) -> gmeow_errors::Result<LogicTerm> {
         let mut args = Vec::with_capacity(formula.terms.len() + formula.removed.len() + 2);
         args.push(match &formula.response {
-            Some(response) => self.lower_term(response),
+            Some(response) => self.lower_term(response)?,
             None => LogicTerm::SequenceMarker("r-no-response".to_owned()),
         });
         for term in &formula.terms {
-            let lowered = self.lower_formula_factor(term);
+            let lowered = self.lower_formula_factor(term)?;
             args.push(lowered);
         }
         for removed in &formula.removed {
-            let inner = self.lower_formula_factor(removed);
+            let inner = self.lower_formula_factor(removed)?;
             let term = self.emit_function_term(
                 &format!("t|removed|{}", removed.structure_key()),
                 "r-removed",
                 &[inner],
-            );
+            )?;
             args.push(term);
         }
         args.push(LogicTerm::Literal {
@@ -2241,13 +2289,13 @@ impl Lift<'_> {
         self.emit_function_term(key, "r-model-formula", &args)
     }
 
-    fn lower_formula_factor(&mut self, term: &FormulaTerm) -> LogicTerm {
+    fn lower_formula_factor(&mut self, term: &FormulaTerm) -> gmeow_errors::Result<LogicTerm> {
         if let [only] = term.factors.as_slice() {
             return self.lower_term(only);
         }
         let mut factors = Vec::with_capacity(term.factors.len());
         for factor in &term.factors {
-            let lowered = self.lower_term(factor);
+            let lowered = self.lower_term(factor)?;
             factors.push(lowered);
         }
         self.emit_function_term(
@@ -2265,13 +2313,13 @@ impl Lift<'_> {
     /// predicating over a reified relation keeps the object level first-order rather than
     /// admitting a predicate variable. ONE individual per relation NAME, so two calls to the
     /// same R function share a relation and two calls to different ones never do.
-    fn emit_relation(&mut self, slug: &str) -> String {
-        let (iri, fresh) = self.mint("logic-relation", slug);
+    fn emit_relation(&mut self, slug: &str) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("logic-relation", slug)?;
         if fresh {
-            self.sink.typed(&iri, &logic("Type"));
-            self.label(&iri, slug);
+            self.sink.typed(&iri, &logic("Type"))?;
+            self.label(&iri, slug)?;
         }
-        iri
+        Ok(iri)
     }
 
     /// The reified `logic:Type` individual a `logic:FunctionTerm` applies.
@@ -2279,13 +2327,13 @@ impl Lift<'_> {
     /// Minted under a DIFFERENT role than [`Lift::emit_relation`]: `f` used as a relation and
     /// `f` used as a function symbol are different things, and giving them one IRI would
     /// assert that a truth value and a term are the same node.
-    fn emit_symbol(&mut self, slug: &str) -> String {
-        let (iri, fresh) = self.mint("logic-symbol", slug);
+    fn emit_symbol(&mut self, slug: &str) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("logic-symbol", slug)?;
         if fresh {
-            self.sink.typed(&iri, &logic("Type"));
-            self.label(&iri, slug);
+            self.sink.typed(&iri, &logic("Type"))?;
+            self.label(&iri, slug)?;
         }
-        iri
+        Ok(iri)
     }
 
     /// An R language constant (`NULL`, `NA`, `break`, `next`) as a named individual.
@@ -2296,13 +2344,13 @@ impl Lift<'_> {
     /// the crate's existing type for a bare individual in a lifted run's domain — rather
     /// than left untyped, and what its R semantics actually MEAN is enumerated as residue by
     /// the caller.
-    fn language_constant(&mut self, name: &str) -> LogicTerm {
-        let (iri, fresh) = self.mint("r-constant", name);
+    fn language_constant(&mut self, name: &str) -> gmeow_errors::Result<LogicTerm> {
+        let (iri, fresh) = self.mint("r-constant", name)?;
         if fresh {
-            self.sink.typed(&iri, &math("MathematicalObject"));
-            self.label(&iri, name);
+            self.sink.typed(&iri, &math("MathematicalObject"))?;
+            self.label(&iri, name)?;
         }
-        LogicTerm::Iri(iri)
+        Ok(LogicTerm::Iri(iri))
     }
 
     /// An atomic predication: one reified relation over ordered argument carriers.
@@ -2312,14 +2360,14 @@ impl Lift<'_> {
         relation_slug: &str,
         args: &[LogicTerm],
         label: &str,
-    ) -> String {
-        let relation = self.emit_relation(relation_slug);
-        let (iri, fresh) = self.mint("logic-formula", key);
+    ) -> gmeow_errors::Result<String> {
+        let relation = self.emit_relation(relation_slug)?;
+        let (iri, fresh) = self.mint("logic-formula", key)?;
         if !fresh {
-            return iri;
+            return Ok(iri);
         }
-        self.sink.typed(&iri, &logic("Formula"));
-        self.sink.iri(&iri, &logic("relation"), &relation);
+        self.sink.typed(&iri, &logic("Formula"))?;
+        self.sink.iri(&iri, &logic("relation"), &relation)?;
         if args.is_empty() {
             // An atomic predication carries at least one argument carrier (the typed-IR
             // frontend rejects a nullary atom), and an empty R argument list IS a sequence —
@@ -2331,13 +2379,13 @@ impl Lift<'_> {
                 key,
                 0,
                 &LogicTerm::SequenceMarker("r-empty-argument-list".to_owned()),
-            );
+            )?;
         }
         for (index, arg) in args.iter().enumerate() {
-            self.emit_carrier(&iri, "argument", key, index, arg);
+            self.emit_carrier(&iri, "argument", key, index, arg)?;
         }
-        self.label(&iri, label);
-        iri
+        self.label(&iri, label)?;
+        Ok(iri)
     }
 
     /// A `logic:FunctionTerm`, or — for a zero-arity symbol — the reified symbol itself.
@@ -2346,23 +2394,23 @@ impl Lift<'_> {
         key: &str,
         symbol_slug: &str,
         args: &[LogicTerm],
-    ) -> LogicTerm {
-        let symbol = self.emit_symbol(symbol_slug);
+    ) -> gmeow_errors::Result<LogicTerm> {
+        let symbol = self.emit_symbol(symbol_slug)?;
         if args.is_empty() {
             // `logic:FunctionTermArityConstraint` forbids a nullary application: a 0-ary
             // function symbol is a constant and belongs on `logic:termIri`.
-            return LogicTerm::Iri(symbol);
+            return Ok(LogicTerm::Iri(symbol));
         }
-        let (iri, fresh) = self.mint("logic-term", key);
+        let (iri, fresh) = self.mint("logic-term", key)?;
         if !fresh {
-            return LogicTerm::Application(iri);
+            return Ok(LogicTerm::Application(iri));
         }
-        self.sink.typed(&iri, &logic("FunctionTerm"));
-        self.sink.iri(&iri, &logic("functionSymbol"), &symbol);
+        self.sink.typed(&iri, &logic("FunctionTerm"))?;
+        self.sink.iri(&iri, &logic("functionSymbol"), &symbol)?;
         for (index, arg) in args.iter().enumerate() {
-            self.emit_carrier(&iri, "argument", key, index, arg);
+            self.emit_carrier(&iri, "argument", key, index, arg)?;
         }
-        LogicTerm::Application(iri)
+        Ok(LogicTerm::Application(iri))
     }
 
     /// One ordered `logic:TermCarrier`: a zero-based index and EXACTLY one value kind.
@@ -2373,37 +2421,38 @@ impl Lift<'_> {
         key: &str,
         index: usize,
         term: &LogicTerm,
-    ) {
-        let (carrier, fresh) = self.mint("logic-argument", &format!("{key}|{link}|{index}"));
+    ) -> gmeow_errors::Result<()> {
+        let (carrier, fresh) = self.mint("logic-argument", &format!("{key}|{link}|{index}"))?;
         if fresh {
-            self.sink.typed(&carrier, &logic("TermCarrier"));
+            self.sink.typed(&carrier, &logic("TermCarrier"))?;
             let position = i64::try_from(index).unwrap_or(i64::MAX);
-            self.sink.integer(&carrier, &logic("termIndex"), position);
+            self.sink.integer(&carrier, &logic("termIndex"), position)?;
             match term {
-                LogicTerm::Iri(target) => self.sink.iri(&carrier, &logic("termIri"), target),
+                LogicTerm::Iri(target) => self.sink.iri(&carrier, &logic("termIri"), target)?,
                 LogicTerm::Variable(name) => {
-                    self.sink.string(&carrier, &logic("termVariable"), name);
+                    self.sink.string(&carrier, &logic("termVariable"), name)?;
                 }
                 LogicTerm::Literal { lexical, datatype } => {
                     // The lexical form rides on `logic:termLiteral` as a PLAIN literal and the
                     // datatype on the companion `logic:termLiteralDatatype`, exactly as
                     // `crates/logic-compile/src/projections/rdf.rs` serializes a typed term.
-                    self.sink.string(&carrier, &logic("termLiteral"), lexical);
+                    self.sink.string(&carrier, &logic("termLiteral"), lexical)?;
                     if let Some(datatype) = datatype {
                         self.sink
-                            .iri(&carrier, &logic("termLiteralDatatype"), datatype);
+                            .iri(&carrier, &logic("termLiteralDatatype"), datatype)?;
                     }
                 }
                 LogicTerm::Application(target) => {
-                    self.sink.iri(&carrier, &logic("termApplication"), target);
+                    self.sink.iri(&carrier, &logic("termApplication"), target)?;
                 }
                 LogicTerm::SequenceMarker(marker) => {
                     self.sink
-                        .string(&carrier, &logic("termSequenceMarker"), marker);
+                        .string(&carrier, &logic("termSequenceMarker"), marker)?;
                 }
             }
         }
-        self.sink.iri(parent, &logic(link), &carrier);
+        self.sink.iri(parent, &logic(link), &carrier)?;
+        Ok(())
     }
 
     fn emit_implication(
@@ -2412,32 +2461,47 @@ impl Lift<'_> {
         antecedent: &str,
         consequent: &str,
         label: &str,
-    ) -> String {
-        let (iri, fresh) = self.mint("logic-formula", key);
+    ) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("logic-formula", key)?;
         if fresh {
-            self.sink.typed(&iri, &logic("Formula"));
-            self.sink.iri(&iri, &logic("antecedent"), antecedent);
-            self.sink.iri(&iri, &logic("consequent"), consequent);
-            self.label(&iri, label);
+            self.sink.typed(&iri, &logic("Formula"))?;
+            self.sink.iri(&iri, &logic("antecedent"), antecedent)?;
+            self.sink.iri(&iri, &logic("consequent"), consequent)?;
+            self.label(&iri, label)?;
         }
-        iri
+        Ok(iri)
     }
 
-    fn emit_negation(&mut self, key: &str, inner: &str, label: &str) -> String {
-        let (iri, fresh) = self.mint("logic-formula", key);
+    fn emit_negation(
+        &mut self,
+        key: &str,
+        inner: &str,
+        label: &str,
+    ) -> gmeow_errors::Result<String> {
+        let (iri, fresh) = self.mint("logic-formula", key)?;
         if fresh {
-            self.sink.typed(&iri, &logic("Formula"));
-            self.sink.iri(&iri, &logic("not"), inner);
-            self.label(&iri, label);
+            self.sink.typed(&iri, &logic("Formula"))?;
+            self.sink.iri(&iri, &logic("not"), inner)?;
+            self.label(&iri, label)?;
         }
-        iri
+        Ok(iri)
     }
 
-    fn emit_conjunction(&mut self, key: &str, operands: &[String], label: &str) -> String {
+    fn emit_conjunction(
+        &mut self,
+        key: &str,
+        operands: &[String],
+        label: &str,
+    ) -> gmeow_errors::Result<String> {
         self.emit_junction(key, "and", operands, label)
     }
 
-    fn emit_disjunction(&mut self, key: &str, operands: &[String], label: &str) -> String {
+    fn emit_disjunction(
+        &mut self,
+        key: &str,
+        operands: &[String],
+        label: &str,
+    ) -> gmeow_errors::Result<String> {
         self.emit_junction(key, "or", operands, label)
     }
 
@@ -2452,7 +2516,7 @@ impl Lift<'_> {
         connective: &str,
         operands: &[String],
         label: &str,
-    ) -> String {
+    ) -> gmeow_errors::Result<String> {
         let mut distinct: Vec<&String> = Vec::with_capacity(operands.len());
         for operand in operands {
             if !distinct.contains(&operand) {
@@ -2460,18 +2524,18 @@ impl Lift<'_> {
             }
         }
         if let [only] = distinct.as_slice() {
-            return (*only).clone();
+            return Ok((*only).clone());
         }
         let distinct: Vec<String> = distinct.into_iter().cloned().collect();
-        let (iri, fresh) = self.mint("logic-formula", key);
+        let (iri, fresh) = self.mint("logic-formula", key)?;
         if fresh {
-            self.sink.typed(&iri, &logic("Formula"));
+            self.sink.typed(&iri, &logic("Formula"))?;
             for operand in &distinct {
-                self.sink.iri(&iri, &logic(connective), operand);
+                self.sink.iri(&iri, &logic(connective), operand)?;
             }
-            self.label(&iri, label);
+            self.label(&iri, label)?;
         }
-        iri
+        Ok(iri)
     }
 }
 

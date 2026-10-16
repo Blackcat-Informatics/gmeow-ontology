@@ -65,13 +65,13 @@ pub fn attributed_base_provenance(
     root: &Path,
 ) -> Result<(DatasetProvenance, Vec<QuadHandle>), gmeow_errors::Diag> {
     let sources = ParsedAuthoredSources::load(root)?;
-    Ok(attributed_parsed_provenance(&sources))
+    attributed_parsed_provenance(&sources)
 }
 
 /// Attribute the original parsed documents without another read or parse.
 pub(crate) fn attributed_parsed_provenance(
     sources: &ParsedAuthoredSources,
-) -> (DatasetProvenance, Vec<QuadHandle>) {
+) -> gmeow_errors::Result<(DatasetProvenance, Vec<QuadHandle>)> {
     let mut prov = DatasetProvenance::new();
     // Content key (the per-file-scoped native quad, location stripped so two identical
     // triples on different source lines collapse exactly as the old oxigraph quad key
@@ -82,8 +82,8 @@ pub(crate) fn attributed_parsed_provenance(
 
     for source in sources.sources() {
         let scope = source.path.display().to_string();
-        let unit = prov.register_unit(source.relative_path.clone(), source.kind.clone());
-        let artifact = prov.register_artifact(source.relative_path.clone());
+        let unit = prov.register_unit(source.relative_path.clone(), source.kind.clone())?;
+        let artifact = prov.register_artifact(source.relative_path.clone())?;
         let dataset = &source.ingested.dataset;
         // SCOPE blank labels by the source path: each authored file is a distinct RDF
         // document whose anonymous blanks restart per parse, so a structurally-distinct
@@ -105,7 +105,7 @@ pub(crate) fn attributed_parsed_provenance(
 
     let mut expected: Vec<QuadHandle> = handle_of.into_values().collect();
     expected.sort_unstable_by_key(|h| h.index());
-    (prov, expected)
+    Ok((prov, expected))
 }
 
 /// A stable (FNV-1a) blank-node label prefix for a source document — the native twin
@@ -179,7 +179,7 @@ pub fn build_source_span_index(
 /// anonymous blanks stay disjoint. The union canonicalizes on freeze, so the result is
 /// order-independent.
 pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    Ok(ParsedAuthoredSources::load(root)?.merged_dataset())
+    ParsedAuthoredSources::load(root)?.merged_dataset()
 }
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
@@ -276,7 +276,7 @@ pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors
             // Owned by graph/correspondence-laws, not the object-level graph/examples corpus.
             continue;
         }
-        builder.push_dataset(parsed.as_ref());
+        builder.push_dataset(parsed.as_ref())?;
     }
     let unioned = builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -492,7 +492,7 @@ impl Stage for SourceLoadStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "source_load.v13-shared-native-catalog"
+        "source_load.v14-native-authored-quotations"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -606,7 +606,7 @@ impl Stage for SourceLoadStage {
             base.as_ref(),
             self_desc.as_ref(),
             examples.as_ref(),
-        ]));
+        ])?);
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
         artifacts.insert(

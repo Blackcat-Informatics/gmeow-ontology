@@ -107,15 +107,16 @@ impl SeedGraph {
     }
 
     fn dataset(&self) -> gmeow_errors::Result<Arc<RdfDataset>> {
-        purrdf::native_quads::flat_dataset_from_quads(&self.quads)
-            .map_err(|error| exec_error(format!("freeze correspondence seed: {error}")))
+        purrdf::native_quads::flat_dataset_from_quads(&self.quads).map_err(|error| {
+            gmeow_errors::Diag::from(error).with_context("freeze correspondence seed")
+        })
     }
 }
 
 /// A concrete refutation of one correspondence law.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Countermodel {
-    /// Seed on which execution failed.
+    /// Seed on which a concrete law difference was observed.
     pub seed_label: String,
     /// Deterministic human-readable summary.
     pub reason: String,
@@ -136,8 +137,72 @@ pub struct DischargeOutcome {
     pub verdict: DischargeVerdict,
     /// The first deterministic countermodel when violated.
     pub countermodel: Option<Countermodel>,
-    /// Why carrier comparison could not decide a law; this is not a countermodel.
-    pub comparison_refusal: Option<String>,
+    /// Earlier unavailable cases, retained beside a decisive real countermodel.
+    /// A discharged result never contains failures.
+    pub prior_failures: Vec<LawCaseFailure>,
+}
+
+/// An operational refusal on a selected case, never a logical counterexample.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct LawCaseFailure {
+    pub case: String,
+    pub diagnostic: gmeow_errors::RecordedDiag,
+}
+
+fn record_failures(failures: Vec<(String, gmeow_errors::Diag)>) -> Vec<LawCaseFailure> {
+    failures
+        .into_iter()
+        .map(|(case, error)| LawCaseFailure {
+            case,
+            diagnostic: gmeow_errors::DiagLedger::new().record(
+                error,
+                gmeow_errors::StageId::new("correspondence-law-execution"),
+            ),
+        })
+        .collect()
+}
+
+/// Refutations are existential: a later concrete difference remains decisive
+/// even if an earlier case was unavailable. No unavailable case can prove a law.
+fn discharge_cases(
+    cases: impl IntoIterator<Item = (String, gmeow_errors::Result<DischargeOutcome>)>,
+) -> gmeow_errors::Result<DischargeOutcome> {
+    let mut aggregate = discharged();
+    let mut any = false;
+    let mut failures = Vec::new();
+    for (case, result) in cases {
+        any = true;
+        match result {
+            Ok(mut outcome) if outcome.verdict == DischargeVerdict::ObligationViolated => {
+                outcome
+                    .prior_failures
+                    .splice(0..0, record_failures(failures));
+                return Ok(outcome);
+            }
+            Ok(outcome) => {
+                if outcome.verdict == DischargeVerdict::ObligationUnknown {
+                    aggregate = outcome;
+                }
+            }
+            Err(error) => failures.push((case, error)),
+        }
+    }
+    if failures.len() == 1 {
+        let (case, error) = failures.pop().expect("one failed law case");
+        return Err(error.with_context(format!("correspondence law case {case}")));
+    }
+    if !failures.is_empty() {
+        let failures = record_failures(failures);
+        return Err(
+            exec_error("selected correspondence law cases could not execute").with_observed(
+                gmeow_errors::Slot::typed(
+                    serde_json::to_string(&failures).map_err(gmeow_errors::Diag::from)?,
+                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON",
+                ),
+            ),
+        );
+    }
+    Ok(if any { aggregate } else { unknown() })
 }
 
 /// The executable lowering of one canonical recovery formula.
@@ -200,15 +265,13 @@ fn quad_atom(quad: &RdfQuad) -> Atom {
 
 fn run_construct(
     engine: &NativeSparqlEngine,
-    dataset: &Arc<RdfDataset>,
+    dataset: &RdfDataset,
     query: &PreparedQuery,
-) -> gmeow_errors::Result<Arc<RdfDataset>> {
+) -> gmeow_errors::Result<purrdf::backend::DatasetHandle> {
     let result = engine
-        .query_prepared(dataset, query, &[], QueryOptions::EMPTY)
+        .query_prepared_view(dataset, query, &[], QueryOptions::EMPTY)
         .map_err(|error| {
-            exec_error(format!(
-                "correspondence CONSTRUCT evaluation failed: {error}"
-            ))
+            gmeow_errors::Diag::from(error).with_context("correspondence CONSTRUCT evaluation")
         })?;
     let SparqlResult::Graph(dataset) = result else {
         return Err(exec_error(
@@ -251,23 +314,23 @@ impl CarrierAtoms {
             // graph name also occurs in an otherwise symmetric assertion graph.
             let mut builder = purrdf::RdfDatasetBuilder::new();
             let graphs = {
-                let mut importer = DatasetImporter::new(&mut builder, dataset);
-                importer.append();
+                let mut importer = DatasetImporter::new(&mut builder, dataset)?;
+                importer.append()?;
                 dataset
                     .named_graphs()
                     .map(|graph| importer.term(graph))
-                    .collect::<Vec<_>>()
+                    .collect::<Result<Vec<_>, _>>()?
             };
-            let marker_id = builder.intern_iri(marker);
+            let marker_id = builder.intern_iri(marker)?;
             for graph in graphs {
-                builder.push_quad(graph, marker_id, marker_id, Some(marker_id));
+                builder.push_quad(graph, marker_id, marker_id, Some(marker_id))?;
             }
-            let augmented = builder.freeze().map_err(|error| {
-                exec_error(format!("index carrier graph declarations: {error}"))
-            })?;
+            let augmented = builder.freeze()?;
             canonical_relabel(&augmented)
         }
-        .map_err(|error| exec_error(format!("canonicalize correspondence carrier: {error}")))?;
+        .map_err(|error| {
+            gmeow_errors::Diag::from(error).with_context("canonicalize correspondence carrier")
+        })?;
         let mut atoms = Self::read(&canonical);
         atoms
             .assertions
@@ -291,7 +354,7 @@ fn comparison_marker(actual: &RdfDataset, expected: &RdfDataset) -> gmeow_errors
 fn violated(seed: &SeedGraph, reason: String) -> DischargeOutcome {
     DischargeOutcome {
         verdict: DischargeVerdict::ObligationViolated,
-        comparison_refusal: None,
+        prior_failures: Vec::new(),
         countermodel: Some(Countermodel {
             seed_label: seed.label.clone(),
             reason,
@@ -306,7 +369,7 @@ fn violated(seed: &SeedGraph, reason: String) -> DischargeOutcome {
 fn discharged() -> DischargeOutcome {
     DischargeOutcome {
         verdict: DischargeVerdict::ObligationDischarged,
-        comparison_refusal: None,
+        prior_failures: Vec::new(),
         countermodel: None,
     }
 }
@@ -316,27 +379,19 @@ fn compare_graphs(
     law: &str,
     actual: &RdfDataset,
     expected: &RdfDataset,
-) -> DischargeOutcome {
+) -> gmeow_errors::Result<DischargeOutcome> {
     if CarrierAtoms::read(actual) == CarrierAtoms::read(expected) {
-        return discharged();
+        return Ok(discharged());
     }
     let canonical = comparison_marker(actual, expected).and_then(|marker| {
         CarrierAtoms::canonical(actual, &marker).and_then(|actual| {
             CarrierAtoms::canonical(expected, &marker).map(|expected| (actual, expected))
         })
     });
-    let (actual, expected) = match canonical {
-        Ok(sets) => sets,
-        Err(error) => {
-            return DischargeOutcome {
-                verdict: DischargeVerdict::ObligationUnknown,
-                countermodel: None,
-                comparison_refusal: Some(format!("{law} comparison refused: {error}")),
-            };
-        }
-    };
+    let (actual, expected) =
+        canonical.map_err(|error| error.with_context(format!("{law} carrier comparison")))?;
     if actual == expected {
-        return discharged();
+        return Ok(discharged());
     }
     let spurious: Vec<Atom> = actual
         .assertions
@@ -358,9 +413,9 @@ fn compare_graphs(
         .difference(&actual.graphs)
         .cloned()
         .collect();
-    DischargeOutcome {
+    Ok(DischargeOutcome {
         verdict: DischargeVerdict::ObligationViolated,
-        comparison_refusal: None,
+        prior_failures: Vec::new(),
         countermodel: Some(Countermodel {
             seed_label: seed.label.clone(),
             reason: format!(
@@ -376,7 +431,7 @@ fn compare_graphs(
             spurious_graphs,
             missing_graphs,
         }),
-    }
+    })
 }
 
 /// One explicitly supplied law case, retaining the complete immutable RDF 1.2
@@ -425,7 +480,7 @@ pub struct PreparedLawExecution {
 fn unknown() -> DischargeOutcome {
     DischargeOutcome {
         verdict: DischargeVerdict::ObligationUnknown,
-        comparison_refusal: None,
+        prior_failures: Vec::new(),
         countermodel: None,
     }
 }
@@ -437,12 +492,12 @@ impl PreparedLawExecution {
     /// Refuses malformed queries and query forms that do not produce a carrier.
     pub fn new(get_query: &str, put_query: &str) -> gmeow_errors::Result<Self> {
         let engine = NativeSparqlEngine::new();
-        let get = engine
-            .prepare_query(get_query, None)
-            .map_err(|error| exec_error(format!("prepare correspondence get: {error}")))?;
-        let put = engine
-            .prepare_query(put_query, None)
-            .map_err(|error| exec_error(format!("prepare correspondence put: {error}")))?;
+        let get = engine.prepare_query(get_query, None).map_err(|error| {
+            gmeow_errors::Diag::from(error).with_context("prepare correspondence get")
+        })?;
+        let put = engine.prepare_query(put_query, None).map_err(|error| {
+            gmeow_errors::Diag::from(error).with_context("prepare correspondence put")
+        })?;
         Self::from_prepared(engine, get, put)
     }
 
@@ -457,7 +512,9 @@ impl PreparedLawExecution {
         let prepare = |query| {
             engine
                 .prepare_algebra(query, QueryOptions::EMPTY)
-                .map_err(|error| exec_error(format!("admit correspondence algebra: {error}")))
+                .map_err(|error| {
+                    gmeow_errors::Diag::from(error).with_context("admit correspondence algebra")
+                })
         };
         let get = prepare(get)?;
         let put = prepare(put)?;
@@ -478,12 +535,12 @@ impl PreparedLawExecution {
     }
 
     /// Check complete source recovery on exactly these native source inputs.
-    pub fn section(&self, sources: &[LawInput]) -> DischargeOutcome {
+    pub fn section(&self, sources: &[LawInput]) -> gmeow_errors::Result<DischargeOutcome> {
         self.roundtrip(sources.iter().map(LawCase::Native), true)
     }
 
     /// Check update faithfulness on exactly these independently supplied views.
-    pub fn put_get(&self, views: &[LawInput]) -> DischargeOutcome {
+    pub fn put_get(&self, views: &[LawInput]) -> gmeow_errors::Result<DischargeOutcome> {
         self.roundtrip(views.iter().map(LawCase::Native), false)
     }
 
@@ -491,62 +548,26 @@ impl PreparedLawExecution {
         &self,
         inputs: impl IntoIterator<Item = LawCase<'a>>,
         source_domain: bool,
-    ) -> DischargeOutcome {
+    ) -> gmeow_errors::Result<DischargeOutcome> {
         let mut ordered: Vec<LawCase<'_>> = inputs.into_iter().collect();
         ordered.sort_by(|left, right| left.identity().cmp(right.identity()));
-        if ordered.is_empty() {
-            return unknown();
-        }
         let (first, second, law) = if source_domain {
             (&self.get, &self.put, "put∘get = id_source")
         } else {
             (&self.put, &self.get, "get∘put = id_independent_view")
         };
-        // A refusal on one case must not conceal a concrete refutation on a later case.
-        let mut aggregate = discharged();
-        for input in ordered {
+        discharge_cases(ordered.into_iter().map(|input| {
             let seed = SeedGraph {
                 label: input.identity().to_owned(),
                 quads: Vec::new(),
             };
-            let outcome = match input.dataset().and_then(|dataset| {
+            let result = input.dataset().and_then(|dataset| {
                 let intermediate = run_construct(&self.engine, &dataset, first)?;
                 let recovered = run_construct(&self.engine, &intermediate, second)?;
-                Ok((dataset, recovered))
-            }) {
-                Ok((dataset, recovered)) => compare_graphs(&seed, law, &recovered, &dataset),
-                Err(error) => violated(&seed, format!("correspondence execution failed: {error}")),
-            };
-            match outcome.verdict {
-                DischargeVerdict::ObligationViolated => return outcome,
-                DischargeVerdict::ObligationUnknown
-                    if aggregate.verdict == DischargeVerdict::ObligationDischarged =>
-                {
-                    aggregate = outcome;
-                }
-                _ => {}
-            }
-        }
-        aggregate
-    }
-}
-
-fn discharge_domain(
-    prepared: &gmeow_errors::Result<PreparedLawExecution>,
-    seeds: &[SeedGraph],
-    source_domain: bool,
-) -> DischargeOutcome {
-    match prepared {
-        Ok(legs) => legs.roundtrip(seeds.iter().map(LawCase::Seed), source_domain),
-        Err(error) => seeds
-            .iter()
-            .min_by(|left, right| left.label.cmp(&right.label))
-            .map_or_else(unknown, |seed| {
-                violated(
-                    seed,
-                    format!("correspondence leg is not executable: {error}"),
-                )
-            }),
+                compare_graphs(&seed, law, &recovered, &dataset)
+            });
+            (seed.label, result)
+        }))
     }
 }
 
@@ -556,12 +577,9 @@ pub fn discharge_section_law(
     get_query: &str,
     put_query: &str,
     seeds: &[SeedGraph],
-) -> DischargeOutcome {
-    discharge_domain(
-        &PreparedLawExecution::new(get_query, put_query),
-        seeds,
-        true,
-    )
+) -> gmeow_errors::Result<DischargeOutcome> {
+    PreparedLawExecution::new(get_query, put_query)?
+        .roundtrip(seeds.iter().map(LawCase::Seed), true)
 }
 
 /// Execute `get ∘ put = id_view` on independently supplied view seeds.
@@ -572,12 +590,9 @@ pub fn discharge_put_get_law(
     get_query: &str,
     put_query: &str,
     views: &[SeedGraph],
-) -> DischargeOutcome {
-    discharge_domain(
-        &PreparedLawExecution::new(get_query, put_query),
-        views,
-        false,
-    )
+) -> gmeow_errors::Result<DischargeOutcome> {
+    PreparedLawExecution::new(get_query, put_query)?
+        .roundtrip(views.iter().map(LawCase::Seed), false)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -695,8 +710,9 @@ fn variables(patterns: &[TriplePattern]) -> BTreeSet<String> {
 
 /// Validate a compiler-produced IRI before handing algebra to the native engine.
 fn algebra_iri(iri: &str) -> gmeow_errors::Result<NamedNode> {
-    NamedNode::new(iri)
-        .map_err(|error| exec_error(format!("invalid recovery IRI <{iri}>: {error}")))
+    NamedNode::new(iri).map_err(|error| {
+        gmeow_errors::Diag::from(error).with_context(format!("invalid recovery IRI <{iri}>"))
+    })
 }
 
 fn algebra_variable(variable: &str) -> gmeow_errors::Result<Variable> {
@@ -950,7 +966,7 @@ fn relation_mismatch(
     let expected = as_atoms(expected);
     DischargeOutcome {
         verdict: DischargeVerdict::ObligationViolated,
-        comparison_refusal: None,
+        prior_failures: Vec::new(),
         countermodel: Some(Countermodel {
             seed_label: seed.label.clone(),
             reason,
@@ -977,7 +993,9 @@ impl PreparedRecoveryLegs {
         let prepare = |path| {
             engine
                 .prepare_algebra(leg_relation_algebra(path)?, QueryOptions::EMPTY)
-                .map_err(|error| exec_error(format!("prepare resolved recovery leg: {error}")))
+                .map_err(|error| {
+                    gmeow_errors::Diag::from(error).with_context("prepare resolved recovery leg")
+                })
         };
         let get = prepare(get)?;
         let put = prepare(put)?;
@@ -985,89 +1003,58 @@ impl PreparedRecoveryLegs {
     }
 
     /// Run a complete formula recovery and both already-prepared resolved legs.
-    fn discharge(&self, case: &RecoveryCaseIr) -> DischargeOutcome {
-        let execution = match lower_recovery_case(case) {
-            Ok(execution) => execution,
-            Err(reason) => {
-                return violated(
-                    &SeedGraph {
-                        label: case.iri.clone(),
-                        quads: Vec::new(),
-                    },
-                    format!("recovery case is not executable: {reason}"),
-                );
-            }
-        };
+    fn discharge(&self, case: &RecoveryCaseIr) -> gmeow_errors::Result<DischargeOutcome> {
+        let execution = lower_recovery_case(case)
+            .map_err(|error| error.with_context(format!("recovery case {}", case.iri)))?;
         let engine = &self.engine;
         let graphs = execution.seed.dataset().and_then(|source| {
             let get = engine
                 .prepare_algebra(execution.get, QueryOptions::EMPTY)
-                .map_err(|error| exec_error(format!("prepare recovery get: {error}")))?;
+                .map_err(|error| {
+                    gmeow_errors::Diag::from(error).with_context("prepare recovery get")
+                })?;
             let put = engine
                 .prepare_algebra(execution.put, QueryOptions::EMPTY)
-                .map_err(|error| exec_error(format!("prepare recovery put: {error}")))?;
+                .map_err(|error| {
+                    gmeow_errors::Diag::from(error).with_context("prepare recovery put")
+                })?;
             let view = run_construct(engine, &source, &get)?;
             let recovered = run_construct(engine, &view, &put)?;
             Ok((source, view, recovered))
         });
-        let (source, formula_view, recovered) = match graphs {
-            Ok(graphs) => graphs,
-            Err(error) => {
-                return violated(
-                    &execution.seed,
-                    format!("recovery case execution failed: {error}"),
-                );
-            }
-        };
+        let (source, formula_view, recovered) = graphs?;
         let formula_outcome =
-            compare_graphs(&execution.seed, "put∘get = id_source", &recovered, &source);
+            compare_graphs(&execution.seed, "put∘get = id_source", &recovered, &source)?;
         if formula_outcome.verdict != DischargeVerdict::ObligationDischarged {
-            return formula_outcome;
+            return Ok(formula_outcome);
         }
-
-        let get_relation = match execute_leg_relation(engine, &source, &self.get) {
-            Ok(relation) => relation,
-            Err(error) => {
-                return violated(
-                    &execution.seed,
-                    format!("resolved get leg body is not executable: {error}"),
-                );
-            }
-        };
+        let get_relation = execute_leg_relation(engine, &source, &self.get)?;
         if get_relation.is_empty() {
-            return violated(
+            return Ok(violated(
                 &execution.seed,
                 "resolved get leg body produced no relation on the recovery seed".to_owned(),
-            );
+            ));
         }
 
-        let put_relation = match execute_leg_relation(engine, &source, &self.put) {
-            Ok(relation) => relation,
-            Err(error) => {
-                return violated(
-                    &execution.seed,
-                    format!("resolved put leg body is not executable: {error}"),
-                );
-            }
-        };
+        let put_relation = execute_leg_relation(engine, &source, &self.put)?;
         if put_relation.is_empty() {
-            return violated(
+            return Ok(violated(
                 &execution.seed,
                 "resolved put leg body produced no relation on the recovery seed".to_owned(),
-            );
+            ));
         }
         let recovered_get: EndpointRelation = put_relation
             .into_iter()
             .map(|(subject, object)| (object, subject))
             .collect();
         if recovered_get != get_relation {
-            return relation_mismatch(
+            return Ok(relation_mismatch(
                 &execution.seed,
                 "resolved get and put leg bodies disagree under inversion on the recovery seed"
                     .to_owned(),
                 &get_relation,
                 &recovered_get,
-            );
+            ));
         }
 
         let formula_view_terms: BTreeSet<String> =
@@ -1082,7 +1069,7 @@ impl PreparedRecoveryLegs {
             .cloned()
             .collect();
         if !unwitnessed_bindings.is_empty() {
-            return violated(
+            return Ok(violated(
                 &execution.seed,
                 format!(
                     "resolved get leg binds recovery variables absent from the formula view: {}",
@@ -1091,73 +1078,47 @@ impl PreparedRecoveryLegs {
                         .collect::<Vec<_>>()
                         .join(", ")
                 ),
-            );
+            ));
         }
 
-        DischargeOutcome {
+        Ok(DischargeOutcome {
             verdict: DischargeVerdict::ObligationDischarged,
-            comparison_refusal: None,
+            prior_failures: Vec::new(),
             countermodel: None,
-        }
+        })
     }
 }
 
 /// Execute one recovery case and cross-check it against the correspondence's actual resolved
-/// leg bodies.  An out-of-fragment formula, an unexecutable or empty leg relation, or any
-/// formula/body disagreement is an explicit violated obligation with a countermodel reason,
-/// never a silently skipped case.
+/// leg bodies. Invalid formulas and execution failures return diagnostics. A
+/// successfully evaluated empty relation or formula/body difference is a real
+/// violated obligation, carrying its concrete countermodel.
 pub fn discharge_recovery_case(
     case: &RecoveryCaseIr,
     get: &LegPath,
     put: &LegPath,
-) -> DischargeOutcome {
-    match PreparedRecoveryLegs::new(get, put) {
-        Ok(legs) => legs.discharge(case),
-        Err(error) => violated(
-            &SeedGraph {
-                label: case.iri.clone(),
-                quads: Vec::new(),
-            },
-            format!("resolved recovery legs are not executable: {error}"),
-        ),
-    }
+) -> gmeow_errors::Result<DischargeOutcome> {
+    PreparedRecoveryLegs::new(get, put)?.discharge(case)
 }
 
-/// Require every attached recovery case to discharge against the same resolved leg bodies.
+/// Require each selected recovery case, retaining actual refutations even when
+/// an earlier case could not execute. Preparation never manufactures a verdict.
 fn discharge_recovery_cases(
     correspondence: &Correspondence,
     get: &LegPath,
     put: &LegPath,
-) -> DischargeOutcome {
-    let Some(first) = correspondence.recovery_cases.first() else {
-        return unknown();
-    };
-    let legs = match PreparedRecoveryLegs::new(get, put) {
-        Ok(legs) => legs,
-        Err(error) => {
-            return violated(
-                &SeedGraph {
-                    label: first.iri.clone(),
-                    quads: Vec::new(),
-                },
-                format!("resolved recovery legs are not executable: {error}"),
-            );
-        }
-    };
-    let mut aggregate = discharged();
-    for case in &correspondence.recovery_cases {
-        let outcome = legs.discharge(case);
-        match outcome.verdict {
-            DischargeVerdict::ObligationViolated => return outcome,
-            DischargeVerdict::ObligationUnknown
-                if aggregate.verdict == DischargeVerdict::ObligationDischarged =>
-            {
-                aggregate = outcome;
-            }
-            _ => {}
-        }
+) -> gmeow_errors::Result<DischargeOutcome> {
+    if correspondence.recovery_cases.is_empty() {
+        return Ok(unknown());
     }
-    aggregate
+    let legs = PreparedRecoveryLegs::new(get, put)?;
+    let mut ordered: Vec<_> = correspondence.recovery_cases.iter().collect();
+    ordered.sort_by(|left, right| left.iri.cmp(&right.iri));
+    discharge_cases(
+        ordered
+            .into_iter()
+            .map(|case| (case.iri.clone(), legs.discharge(case))),
+    )
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -1180,24 +1141,19 @@ fn atomic_path(path: &LegPath) -> Option<AtomicPath<'_>> {
 /// Execute the synthesized complete one-triple recovery case for a pure atomic rename.
 /// Composite paths return `ObligationUnknown`: their hidden intermediate graph is not
 /// recoverable from endpoint equality and must be supplied by a first-class recovery case.
-pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> DischargeVerdict {
+pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> gmeow_errors::Result<DischargeVerdict> {
     let recovered = put.invert();
     let (Some(get_path), Some(recovered_path)) = (atomic_path(get), atomic_path(&recovered)) else {
-        return DischargeVerdict::ObligationUnknown;
+        return Ok(DischargeVerdict::ObligationUnknown);
     };
-    // The atomic get/put predicates are authored constants.  If either collides with the
-    // reserved recovery-execution namespaces (`RECOVERY_VIEW_NS` / `RECOVERY_SEED_NS`), the
-    // synthesized atomic seed (`ATOMIC_SEED_SUBJECT`/`ATOMIC_SEED_OBJECT`) or its
-    // `VIEW_PREDICATE` carrier could collapse with an authored term and FALSELY discharge.
-    // `ObligationUnknown` is not acceptable here — the gates below treat Unknown as "honest and
-    // passes", which would let the collision through silently.  `ObligationViolated` fails
-    // closed: it reds the Law, Round-trip, and Mnemomorphism gates exactly like a genuine put∘get
-    // counterexample, and is diagnosable because the gates' fixed-template refutation clause
-    // already names the failing correspondence IRI.
+    // Authored constants may not alias synthesized execution identities. A
+    // namespace collision is an invalid input, not a recovered-graph difference.
     if is_reserved_recovery_iri(get_path.predicate)
         || is_reserved_recovery_iri(recovered_path.predicate)
     {
-        return DischargeVerdict::ObligationViolated;
+        return Err(exec_error(
+            "atomic recovery predicate collides with an execution namespace",
+        ));
     }
     let source_atom = if get_path.inverse {
         (
@@ -1235,22 +1191,12 @@ pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> DischargeVerdict {
         let recovered = put
             .acquire(empty)?
             .put_shared_scopes(Arc::clone(projected.dataset()))?;
-        let actual = recovered
-            .carrier()
-            .materialize()
-            .map_err(|error| exec_error(format!("compare atomic recovery: {error}")))?;
-        Ok(compare_graphs(
-            &seed,
-            "put∘get = id_source",
-            &actual,
-            &source,
-        ))
+        let actual = recovered.carrier().materialize().map_err(|error| {
+            gmeow_errors::Diag::from(error).with_context("compare atomic recovery")
+        })?;
+        compare_graphs(&seed, "put∘get = id_source", &actual, &source)
     })();
-    executed
-        .unwrap_or_else(|error| {
-            violated(&seed, format!("atomic recovery execution failed: {error}"))
-        })
-        .verdict
+    Ok(executed?.verdict)
 }
 
 /// Compute the executed recovery verdict for every correspondence.
@@ -1258,9 +1204,11 @@ pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> DischargeVerdict {
 /// First-class recovery cases are authoritative evidence, but never an independent semantic
 /// source: their formula execution is cross-checked against both resolved leg bodies.  When no
 /// cases are authored, only a complete atomic path rename can synthesize its one-triple case.
-/// Missing/unresolvable or composite legs remain Unknown without evidence; missing legs are a
-/// violated obligation when recovery evidence claims that executable bodies exist.
-pub fn program_verdicts(program: &CorrespondenceProgram) -> CorrespondenceVerdicts {
+/// Missing/unresolvable or composite legs remain Unknown without evidence.
+/// Recovery evidence requiring missing executable legs is an input error.
+pub fn program_verdicts(
+    program: &CorrespondenceProgram,
+) -> gmeow_errors::Result<CorrespondenceVerdicts> {
     let mut verdicts = BTreeMap::new();
     for correspondence in &program.correspondences {
         let get = correspondence
@@ -1272,19 +1220,24 @@ pub fn program_verdicts(program: &CorrespondenceProgram) -> CorrespondenceVerdic
             .as_deref()
             .and_then(|iri| program.resolve_leg(iri));
         let verdict = match (correspondence.recovery_cases.is_empty(), get, put) {
-            (true, Some(get), Some(put)) => leg_pair_verdict(get, put),
+            (true, Some(get), Some(put)) => leg_pair_verdict(get, put)?,
             (true, _, _) => DischargeVerdict::ObligationUnknown,
             (false, Some(get), Some(put)) => {
-                discharge_recovery_cases(correspondence, get, put).verdict
+                discharge_recovery_cases(correspondence, get, put)?.verdict
             }
-            (false, _, _) => DischargeVerdict::ObligationViolated,
+            (false, _, _) => {
+                return Err(
+                    exec_error("recovery evidence has no executable resolved leg pair")
+                        .with_focus(correspondence.iri.clone()),
+                );
+            }
         };
         verdicts.insert(
             correspondence.iri.clone(),
             ExecutedCorrespondenceLaws::section_only(verdict),
         );
     }
-    verdicts
+    Ok(verdicts)
 }
 
 // Mapping-cell branch-covering seed derivation.  The `get` leg is a SPARQL `CONSTRUCT`; its
@@ -1324,10 +1277,65 @@ fn seed_pattern_count(branches: &[Vec<SeedPattern>]) -> usize {
     branches.iter().map(Vec::len).sum()
 }
 
+/// Distribute mandatory positive inputs under the existing seed admission contract.
+fn join_seed_branches(
+    left: Vec<Vec<SeedPattern>>,
+    right: Vec<Vec<SeedPattern>>,
+) -> gmeow_errors::Result<Vec<Vec<SeedPattern>>> {
+    match (left.is_empty(), right.is_empty()) {
+        (true, true) => Ok(Vec::new()),
+        (true, false) => Ok(right),
+        (false, true) => Ok(left),
+        (false, false) => {
+            let branch_count = left.len() * right.len();
+            let pattern_count =
+                seed_pattern_count(&left) * right.len() + seed_pattern_count(&right) * left.len();
+            admit_seed_dimensions(branch_count, pattern_count)?;
+            let mut out = Vec::with_capacity(branch_count);
+            for left_branch in &left {
+                for right_branch in &right {
+                    let mut combined = left_branch.clone();
+                    combined.extend(right_branch.iter().cloned());
+                    out.push(combined);
+                }
+            }
+            Ok(out)
+        }
+    }
+}
+
+/// Application inputs name the driver's binding, not a fresh RHS seed variable.
+fn remap_seed_variable(variable: &mut Variable, inputs: &[(Variable, Variable)]) {
+    if let Some((_, driver)) = inputs.iter().find(|(input, _)| input == variable) {
+        *variable = driver.clone();
+    }
+}
+
+fn remap_seed_named(pattern: &mut NamedNodePattern, inputs: &[(Variable, Variable)]) {
+    if let NamedNodePattern::Variable(variable) = pattern {
+        remap_seed_variable(variable, inputs);
+    }
+}
+
+fn remap_seed_term(pattern: &mut TermPattern, inputs: &[(Variable, Variable)]) {
+    match pattern {
+        TermPattern::Variable(variable) => remap_seed_variable(variable, inputs),
+        TermPattern::Triple(triple) => {
+            remap_seed_term(&mut triple.subject, inputs);
+            remap_seed_named(&mut triple.predicate, inputs);
+            remap_seed_term(&mut triple.object, inputs);
+        }
+        TermPattern::NamedNode(_) | TermPattern::BlankNode(_) | TermPattern::Literal(_) => {}
+    }
+}
+
 /// Recursively enumerate the `WHERE` algebra into disjunctive branches: one `Vec` of triple
 /// patterns per top-level `UNION` disjunct.  `Join`/`Lateral` distribute as a cartesian
 /// product, so a pattern joined OUTSIDE a `UNION` — the shared-atom case the old text splitter
-/// dropped — appears in every resulting branch.  `LeftJoin` (`OPTIONAL`) keeps only its
+/// dropped — appears in every resulting branch. A mandatory `Apply` joins its branches
+/// after substituting its declared input variables with the driver variables, including
+/// variables in quoted terms and graph positions. An optional `Apply`, like `LeftJoin`,
+/// contributes only its required driver. `LeftJoin` (`OPTIONAL`) keeps only its
 /// required (left) side: SPARQL OPTIONAL semantics do not require the right side to match, so
 /// its content is not a positive obligation the seed corpus must recover — forcing it into
 /// every seed would wrongly demand round-tripping data that is, by construction, optional.
@@ -1361,30 +1369,30 @@ fn dnf_branches(
             ]
         }
         GraphPattern::Join { left, right } | GraphPattern::Lateral { left, right } => {
-            let left_branches = dnf_branches(left, depth + 1)?;
-            let right_branches = dnf_branches(right, depth + 1)?;
-            match (left_branches.is_empty(), right_branches.is_empty()) {
-                (true, true) => Vec::new(),
-                (true, false) => right_branches,
-                (false, true) => left_branches,
-                (false, false) => {
-                    // Both inputs were admitted, so these products fit usize on
-                    // supported targets. Bound the expanded corpus before cloning.
-                    let branch_count = left_branches.len() * right_branches.len();
-                    let pattern_count = seed_pattern_count(&left_branches) * right_branches.len()
-                        + seed_pattern_count(&right_branches) * left_branches.len();
-                    admit_seed_dimensions(branch_count, pattern_count)?;
-                    let mut out = Vec::with_capacity(branch_count);
-                    for left_branch in &left_branches {
-                        for right_branch in &right_branches {
-                            let mut combined = left_branch.clone();
-                            combined.extend(right_branch.iter().cloned());
-                            out.push(combined);
-                        }
-                    }
-                    out
+            join_seed_branches(
+                dnf_branches(left, depth + 1)?,
+                dnf_branches(right, depth + 1)?,
+            )?
+        }
+        GraphPattern::Apply { left, policy, .. } if policy.optional.is_some() => {
+            dnf_branches(left, depth + 1)?
+        }
+        GraphPattern::Apply {
+            left,
+            right,
+            policy,
+        } => {
+            let left = dnf_branches(left, depth + 1)?;
+            let mut right = dnf_branches(right, depth + 1)?;
+            for pattern in right.iter_mut().flatten() {
+                remap_seed_term(&mut pattern.triple.subject, &policy.inputs);
+                remap_seed_named(&mut pattern.triple.predicate, &policy.inputs);
+                remap_seed_term(&mut pattern.triple.object, &policy.inputs);
+                if let Some(graph) = &mut pattern.graph {
+                    remap_seed_named(graph, &policy.inputs);
                 }
             }
+            join_seed_branches(left, right)?
         }
         GraphPattern::Union { arms } => {
             let mut out = Vec::new();
@@ -1415,6 +1423,7 @@ fn dnf_branches(
         | GraphPattern::Unfold { inner, .. }
         | GraphPattern::OrderBy { inner, .. }
         | GraphPattern::Project { inner, .. }
+        | GraphPattern::ProjectStar { inner, .. }
         | GraphPattern::Distinct { inner }
         | GraphPattern::Reduced { inner }
         | GraphPattern::Slice { inner, .. }
@@ -1518,7 +1527,9 @@ fn instantiate_branch(branch: &[SeedPattern], counter: &mut usize) -> Vec<RdfQua
 pub fn derive_seeds(get_query: &str) -> gmeow_errors::Result<Vec<SeedGraph>> {
     let query = SparqlParser::new()
         .parse_query(get_query)
-        .map_err(|error| exec_error(format!("parse correspondence recovery query: {error}")))?;
+        .map_err(|error| {
+            gmeow_errors::Diag::from(error).with_context("parse correspondence recovery query")
+        })?;
     derive_query_seeds(&query)
 }
 
@@ -1602,8 +1613,8 @@ impl PreparedLawExecution {
         }
         let sources = derive_query_seeds(self.get.query())?;
         let views = derive_query_seeds(self.put.query())?;
-        let section = self.roundtrip(sources.iter().map(LawCase::Seed), true);
-        let put_get = self.roundtrip(views.iter().map(LawCase::Seed), false);
+        let section = self.roundtrip(sources.iter().map(LawCase::Seed), true)?;
+        let put_get = self.roundtrip(views.iter().map(LawCase::Seed), false)?;
         Ok(vec![
             claim_from(CorrespondenceLaw::SectionLaw, &section),
             claim_from(CorrespondenceLaw::PutGet, &put_get),

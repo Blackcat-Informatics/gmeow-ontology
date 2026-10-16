@@ -94,5 +94,11 @@ ex:w0 rdfs:label "x" .
     let err = TeiBridge
         .emit(&input)
         .expect_err("non-integer slot index must hard-fail");
-    assert!(err.construct.contains("not an integer"), "{err:?}");
+    assert!(
+        err.downcast_ref::<crate::bridge::IngestDiagnostic>()
+            .expect("typed ingestion refusal")
+            .construct
+            .contains("not an integer"),
+        "{err:?}"
+    );
 }

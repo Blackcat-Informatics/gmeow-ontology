@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::frontend::{
     AdmittedSemanticUnit, CompiledTheory, PropertyCharacteristic, SemanticUnitDisposition,
-    SourceAdmission, SourceAdmissionStatus, SourceAssertion,
+    SourceAdmission, SourceAdmissionStatus, SourceAssertion, SourceClassDefinition,
 };
 use crate::ir::{AtomicTerm, Formula, LogicAxiom, LogicRule, Term};
 
@@ -37,7 +37,8 @@ pub enum FofProjectionStatus {
     Blocked,
 }
 
-/// One emitted sentence and every admitted source unit it represents.
+/// One emitted sentence and every admitted source unit it represents. An empty
+/// source-unit set identifies a law of the explicit semantic profile itself.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct FofSentence {
     pub name: String,
@@ -76,14 +77,15 @@ pub struct FofProjection {
 /// is [`FofProjectionStatus::Complete`] and `problem` is present.
 #[must_use]
 pub fn project_tptp_fof(theory: &CompiledTheory, admission: &SourceAdmission) -> FofProjection {
-    let mut blockers = admission_blockers(admission);
-    if !admission.matches(theory) {
-        blockers.push(FofProjectionBlocker {
+    let mut blockers = if admission.matches(theory) {
+        admission_blockers(admission)
+    } else {
+        vec![FofProjectionBlocker {
             unit_id: None,
             code: "ADMISSION_THEORY_IDENTITY_MISMATCH".into(),
-            reason: "the source admission does not belong to this immutable compiled theory".into(),
-        });
-    }
+            reason: "projection requires an unchanged live compiler admission for this exact source and program; deserialized receipts require source re-admission".into(),
+        }]
+    };
     if admission.status != SourceAdmissionStatus::Complete && blockers.is_empty() {
         blockers.push(FofProjectionBlocker {
             unit_id: None,
@@ -104,7 +106,7 @@ pub fn project_tptp_fof(theory: &CompiledTheory, admission: &SourceAdmission) ->
             let SemanticUnitDisposition::Admitted(payload) = &unit.disposition else {
                 unreachable!("SourceAdmission::admitted returned a non-admitted row");
             };
-            match bodies_for(payload, theory, admission) {
+            match bodies_for(payload, theory) {
                 Ok(projected) => {
                     for body in projected {
                         bodies.entry(body).or_default().insert(unit.id.clone());
@@ -124,6 +126,21 @@ pub fn project_tptp_fof(theory: &CompiledTheory, admission: &SourceAdmission) ->
             code: "EMPTY_PROJECTED_THEORY".into(),
             reason: "the complete admission produced no classical sentence".into(),
         });
+    }
+
+    if blockers.is_empty() {
+        match profile_semantic_laws() {
+            Ok(laws) => {
+                for law in laws {
+                    bodies.entry(law).or_default();
+                }
+            }
+            Err((code, reason)) => blockers.push(FofProjectionBlocker {
+                unit_id: None,
+                code,
+                reason,
+            }),
+        }
     }
 
     let sentences: Vec<_> = bodies
@@ -176,25 +193,27 @@ fn admission_blockers(admission: &SourceAdmission) -> Vec<FofProjectionBlocker> 
 fn bodies_for(
     payload: &AdmittedSemanticUnit,
     theory: &CompiledTheory,
-    admission: &SourceAdmission,
 ) -> Result<Vec<String>, (String, String)> {
     match payload {
         AdmittedSemanticUnit::Assertion(assertion) => {
             assertion_body(assertion).map(|body| vec![body])
+        }
+        AdmittedSemanticUnit::ClassDefinition(definition) => {
+            class_definition_body(definition).map(|body| vec![body])
         }
         AdmittedSemanticUnit::Formula { index } => theory
             .program()
             .formulas
             .get(*index)
             .ok_or_else(|| missing("formula", *index))
-            .and_then(|formula| formula_body(formula, &admission.declared_classes))
+            .and_then(formula_body)
             .map(|body| vec![body]),
         AdmittedSemanticUnit::Rule { index } => theory
             .program()
             .rules
             .get(*index)
             .ok_or_else(|| missing("rule", *index))
-            .and_then(|rule| rule_body(rule, &admission.declared_classes))
+            .and_then(rule_body)
             .map(|body| vec![body]),
         AdmittedSemanticUnit::PropertyCharacteristic(characteristic) => {
             property_characteristic_body(characteristic).map(|body| vec![body])
@@ -205,76 +224,86 @@ fn bodies_for(
 fn assertion_body(assertion: &SourceAssertion) -> Result<String, (String, String)> {
     let subject = constant_term(&assertion.subject)?;
     let object = constant_term(&assertion.object)?;
-    let member = |value: &str, class: &str| format!("{}({value},{class})", member_symbol());
-    let binary = |property: &str, left: &str, right: &str| {
-        format!("{}({left},{right})", predicate_symbol(property, 2))
-    };
     match assertion.predicate.as_str() {
-        RDF_TYPE | concat_logic!("instanceOf") => Ok(member(&subject, &object)),
-        RDFS_SUBCLASS | concat_logic!("subClassOf") => Ok(format!(
-            "(! [V_x] : ({} => {}))",
-            member("V_x", &subject),
-            member("V_x", &object)
-        )),
-        OWL_EQUIVALENT_CLASS | concat_logic!("equivalentClass") => Ok(format!(
-            "(! [V_x] : ({} <=> {}))",
-            member("V_x", &subject),
-            member("V_x", &object)
-        )),
-        OWL_DISJOINT_WITH | concat_logic!("disjointWith") => Ok(format!(
-            "(! [V_x] : (~ ({} & {})))",
-            member("V_x", &subject),
-            member("V_x", &object)
-        )),
-        RDFS_SUBPROPERTY | concat_logic!("subPropertyOf") => {
-            let (left, right) = property_pair(assertion)?;
-            Ok(format!(
-                "(! [V_x,V_y] : ({} => {}))",
-                binary(left, "V_x", "V_y"),
-                binary(right, "V_x", "V_y")
-            ))
+        RDFS_SUBPROPERTY
+        | concat_logic!("subPropertyOf")
+        | OWL_EQUIVALENT_PROPERTY
+        | concat_logic!("equivalentProperty")
+        | OWL_INVERSE_OF
+        | concat_logic!("inverseOf") => {
+            property_pair(assertion)?;
         }
-        OWL_EQUIVALENT_PROPERTY | concat_logic!("equivalentProperty") => {
-            let (left, right) = property_pair(assertion)?;
-            Ok(format!(
-                "(! [V_x,V_y] : ({} <=> {}))",
-                binary(left, "V_x", "V_y"),
-                binary(right, "V_x", "V_y")
-            ))
+        RDFS_DOMAIN | concat_logic!("domain") | RDFS_RANGE | concat_logic!("range") => {
+            property_subject(assertion)?;
+            require_class_resource(assertion)?;
         }
-        OWL_INVERSE_OF | concat_logic!("inverseOf") => {
-            let (left, right) = property_pair(assertion)?;
-            Ok(format!(
-                "(! [V_x,V_y] : ({} <=> {}))",
-                binary(left, "V_x", "V_y"),
-                binary(right, "V_y", "V_x")
-            ))
-        }
-        RDFS_DOMAIN | concat_logic!("domain") => {
-            let (property, class) = property_pair(assertion)?;
-            Ok(format!(
-                "(! [V_x,V_y] : ({} => {}))",
-                binary(property, "V_x", "V_y"),
-                member("V_x", &iri_constant(class))
-            ))
-        }
-        RDFS_RANGE | concat_logic!("range") => {
-            let (property, class) = property_pair(assertion)?;
-            Ok(format!(
-                "(! [V_x,V_y] : ({} => {}))",
-                binary(property, "V_x", "V_y"),
-                member("V_y", &iri_constant(class))
-            ))
-        }
-        OWL_SAME_AS | concat_logic!("sameAs") => Ok(format!("({subject} = {object})")),
-        OWL_DIFFERENT_FROM | concat_logic!("differentFrom") => {
-            Ok(format!("({subject} != {object})"))
-        }
-        predicate => Ok(binary(predicate, &subject, &object)),
+        _ => {}
     }
+    Ok(relation_atom(&assertion.predicate, &[subject, object]))
+}
+
+/// Canonical extensional meaning, shared by direct assertions, formula atoms and
+/// the interpretation laws for reified schema-predicate objects.
+fn schema_constraint(predicate: &str, left: &str, right: &str) -> Option<String> {
+    let binary = |property: &str, x: &str, y: &str| application_atom(property, &[x, y]);
+    let member = member_atom;
+    Some(match predicate {
+        RDFS_SUBCLASS | concat_logic!("subClassOf") => format!(
+            "(! [V_x] : ({} => {}))",
+            member("V_x", left),
+            member("V_x", right)
+        ),
+        OWL_EQUIVALENT_CLASS | concat_logic!("equivalentClass") => format!(
+            "(! [V_x] : ({} <=> {}))",
+            member("V_x", left),
+            member("V_x", right)
+        ),
+        OWL_DISJOINT_WITH | concat_logic!("disjointWith") => format!(
+            "(! [V_x] : (~ ({} & {})))",
+            member("V_x", left),
+            member("V_x", right)
+        ),
+        RDFS_SUBPROPERTY | concat_logic!("subPropertyOf") => format!(
+            "(! [V_x,V_y] : ({} => {}))",
+            binary(left, "V_x", "V_y"),
+            binary(right, "V_x", "V_y")
+        ),
+        OWL_EQUIVALENT_PROPERTY | concat_logic!("equivalentProperty") => format!(
+            "(! [V_x,V_y] : ({} <=> {}))",
+            binary(left, "V_x", "V_y"),
+            binary(right, "V_x", "V_y")
+        ),
+        OWL_INVERSE_OF | concat_logic!("inverseOf") => format!(
+            "(! [V_x,V_y] : ({} <=> {}))",
+            binary(left, "V_x", "V_y"),
+            binary(right, "V_y", "V_x")
+        ),
+        RDFS_DOMAIN | concat_logic!("domain") => format!(
+            "(! [V_x,V_y] : ({} => {}))",
+            binary(left, "V_x", "V_y"),
+            member("V_x", right)
+        ),
+        RDFS_RANGE | concat_logic!("range") => format!(
+            "(! [V_x,V_y] : ({} => {}))",
+            binary(left, "V_x", "V_y"),
+            member("V_y", right)
+        ),
+        _ => return None,
+    })
 }
 
 fn property_pair(assertion: &SourceAssertion) -> Result<(&str, &str), (String, String)> {
+    let subject = property_subject(assertion)?;
+    let AtomicTerm::Iri(object) = &assertion.object else {
+        return Err((
+            "NON_IRI_SCHEMA_OBJECT".into(),
+            format!("{} requires an IRI property object", assertion.predicate),
+        ));
+    };
+    Ok((subject, object))
+}
+
+fn property_subject(assertion: &SourceAssertion) -> Result<&str, (String, String)> {
     let AtomicTerm::Iri(subject) = &assertion.subject else {
         return Err((
             "NON_IRI_SCHEMA_SUBJECT".into(),
@@ -284,27 +313,27 @@ fn property_pair(assertion: &SourceAssertion) -> Result<(&str, &str), (String, S
             ),
         ));
     };
-    let AtomicTerm::Iri(object) = &assertion.object else {
-        return Err((
-            "NON_IRI_SCHEMA_OBJECT".into(),
+    Ok(subject)
+}
+
+fn require_class_resource(assertion: &SourceAssertion) -> Result<(), (String, String)> {
+    if matches!(assertion.object, AtomicTerm::Iri(_) | AtomicTerm::Blank(_)) {
+        Ok(())
+    } else {
+        Err((
+            "NON_RESOURCE_SCHEMA_CLASS".into(),
             format!(
-                "{} requires an IRI property/class object",
+                "{} requires an IRI or blank class object",
                 assertion.predicate
             ),
-        ));
-    };
-    Ok((subject, object))
+        ))
+    }
 }
 
 fn property_characteristic_body(
     characteristic: &PropertyCharacteristic,
 ) -> Result<String, (String, String)> {
-    let p = |left: &str, right: &str| {
-        format!(
-            "{}({left},{right})",
-            predicate_symbol(&characteristic.property, 2)
-        )
-    };
+    let p = |left: &str, right: &str| binary_application(&characteristic.property, left, right);
     let body = match characteristic.characteristic.strip_prefix(LOGIC) {
         Some("functionalProperty") => format!(
             "(! [V_x,V_y,V_z] : (({} & {}) => (V_y = V_z)))",
@@ -349,18 +378,15 @@ fn property_characteristic_body(
     Ok(body)
 }
 
-fn rule_body(
-    rule: &LogicRule,
-    declared_classes: &BTreeSet<String>,
-) -> Result<String, (String, String)> {
+fn rule_body(rule: &LogicRule) -> Result<String, (String, String)> {
     let mut variables = VariableEnv::default();
     let body: Result<Vec<_>, _> = rule
         .body
         .iter()
-        .map(|atom| rule_atom(atom, declared_classes, &mut variables))
+        .map(|atom| rule_atom(atom, &mut variables))
         .collect();
     let body = body?;
-    let head = rule_atom(&rule.head, declared_classes, &mut variables)?;
+    let head = rule_atom(&rule.head, &mut variables)?;
     let sentence = if body.is_empty() {
         head
     } else {
@@ -369,24 +395,17 @@ fn rule_body(
     Ok(variables.close_all(sentence))
 }
 
-fn rule_atom(
-    atom: &LogicAxiom,
-    declared_classes: &BTreeSet<String>,
-    variables: &mut VariableEnv,
-) -> Result<String, (String, String)> {
+fn rule_atom(atom: &LogicAxiom, variables: &mut VariableEnv) -> Result<String, (String, String)> {
     let subject = compact_term(&AtomicTerm::resource(atom.subject.clone()), variables)?;
     let object = compact_term(&atom.obj, variables)?;
-    relation_atom(&atom.predicate, &[subject, object], declared_classes)
+    Ok(relation_atom(&atom.predicate, &[subject, object]))
 }
 
-fn formula_body(
-    formula: &Formula,
-    declared_classes: &BTreeSet<String>,
-) -> Result<String, (String, String)> {
+fn formula_body(formula: &Formula) -> Result<String, (String, String)> {
     let free = free_variables(formula);
     let mut env = VariableEnv::default();
     let free_tokens: Vec<_> = free.iter().map(|name| env.push(name.clone())).collect();
-    let body = render_formula(formula, declared_classes, &mut env)?;
+    let body = render_formula(formula, &mut env)?;
     for name in free.iter().rev() {
         env.pop(name);
     }
@@ -397,11 +416,26 @@ fn formula_body(
     }
 }
 
-fn render_formula(
-    formula: &Formula,
-    declared_classes: &BTreeSet<String>,
-    env: &mut VariableEnv,
-) -> Result<String, (String, String)> {
+fn class_definition_body(definition: &SourceClassDefinition) -> Result<String, (String, String)> {
+    let free = free_variables(&definition.formula);
+    if free.len() != definition.constants.len()
+        || free
+            .iter()
+            .any(|name| !definition.constants.contains_key(name))
+    {
+        return Err((
+            "INVALID_CLASS_CONSTANT_BINDINGS".into(),
+            "a class formula requires an exact ground binding for each free term".into(),
+        ));
+    }
+    let mut env = VariableEnv::default();
+    for (name, value) in &definition.constants {
+        env.bindings.push((name.clone(), constant_term(value)?));
+    }
+    render_formula(&definition.formula, &mut env)
+}
+
+fn render_formula(formula: &Formula, env: &mut VariableEnv) -> Result<String, (String, String)> {
     match formula {
         Formula::Atom { relation, args } => {
             let Term::Iri(relation) = relation else {
@@ -411,12 +445,9 @@ fn render_formula(
                 ));
             };
             let args: Result<Vec<_>, _> = args.iter().map(|term| formula_term(term, env)).collect();
-            relation_atom(relation, &args?, declared_classes)
+            Ok(relation_atom(relation, &args?))
         }
-        Formula::Not(inner) => Ok(format!(
-            "(~ {})",
-            render_formula(inner, declared_classes, env)?
-        )),
+        Formula::Not(inner) => Ok(format!("(~ {})", render_formula(inner, env)?)),
         Formula::And(parts) | Formula::Or(parts) => {
             if parts.len() < 2 {
                 return Err((
@@ -429,10 +460,8 @@ fn render_formula(
             } else {
                 " | "
             };
-            let rendered: Result<Vec<_>, _> = parts
-                .iter()
-                .map(|part| render_formula(part, declared_classes, env))
-                .collect();
+            let rendered: Result<Vec<_>, _> =
+                parts.iter().map(|part| render_formula(part, env)).collect();
             Ok(format!("({})", rendered?.join(operator)))
         }
         Formula::Implies(left, right) | Formula::Iff(left, right) => {
@@ -443,8 +472,8 @@ fn render_formula(
             };
             Ok(format!(
                 "({} {operator} {})",
-                render_formula(left, declared_classes, env)?,
-                render_formula(right, declared_classes, env)?
+                render_formula(left, env)?,
+                render_formula(right, env)?
             ))
         }
         Formula::Forall { vars, body } | Formula::Exists { vars, body } => {
@@ -455,7 +484,7 @@ fn render_formula(
                 ));
             }
             let tokens: Vec<_> = vars.iter().map(|name| env.push(name.clone())).collect();
-            let body = render_formula(body, declared_classes, env)?;
+            let body = render_formula(body, env)?;
             for name in vars.iter().rev() {
                 env.pop(name);
             }
@@ -469,41 +498,117 @@ fn render_formula(
     }
 }
 
-fn relation_atom(
-    relation: &str,
-    args: &[String],
-    declared_classes: &BTreeSet<String>,
-) -> Result<String, (String, String)> {
-    if args.len() == 2 && matches!(relation, RDF_TYPE | concat_logic!("instanceOf")) {
-        return Ok(format!("{}({},{})", member_symbol(), args[0], args[1]));
+fn relation_atom(relation: &str, args: &[String]) -> String {
+    if args.len() == 2
+        && let Some(meaning) = binary_meaning(relation, &args[0], &args[1])
+    {
+        return meaning;
     }
-    if args.len() == 1 && declared_classes.contains(relation) {
-        return Ok(format!(
-            "{}({},{})",
-            member_symbol(),
-            args[0],
-            iri_constant(relation)
+    application_atom(&iri_constant(relation), args)
+}
+
+fn binary_meaning(relation: &str, left: &str, right: &str) -> Option<String> {
+    Some(match relation {
+        RDF_TYPE | concat_logic!("instanceOf") => member_atom(left, right),
+        OWL_SAME_AS | concat_logic!("sameAs") => format!("({left} = {right})"),
+        OWL_DIFFERENT_FROM | concat_logic!("differentFrom") => format!("({left} != {right})"),
+        _ => return schema_constraint(relation, left, right),
+    })
+}
+
+/// The relation object is an ordinary first-order argument at every arity,
+/// including zero-argument IR applications. Source grammar admission remains
+/// separate. Equality therefore supplies congruence
+/// without a quadratic catalogue of conditional predicate-pair axioms.
+fn application_atom(property: &str, args: &[impl AsRef<str>]) -> String {
+    let mut body = format!("'A|{}'({property}", args.len());
+    for argument in args {
+        body.push(',');
+        body.push_str(argument.as_ref());
+    }
+    body.push(')');
+    body
+}
+
+fn binary_application(property: &str, left: &str, right: &str) -> String {
+    application_atom(&iri_constant(property), &[left, right])
+}
+
+fn member_atom(value: &str, class: &str) -> String {
+    const RELATION: &str = concat!("'I|", concat_logic!("instanceOf"), "'");
+    application_atom(RELATION, &[value, class])
+}
+
+fn profile_class_laws() -> Result<Vec<String>, (String, String)> {
+    [
+        (concat_logic!("Thing"), true),
+        (concat_logic!("Nothing"), false),
+        ("http://www.w3.org/2002/07/owl#Thing", true),
+        ("http://www.w3.org/2002/07/owl#Nothing", false),
+    ]
+    .into_iter()
+    .map(|(class, universal)| {
+        let membership = Formula::Atom {
+            relation: Term::Iri(concat_logic!("instanceOf").into()),
+            args: vec![Term::Var("profile_member".into()), Term::Iri(class.into())],
+        };
+        formula_body(&Formula::Forall {
+            vars: vec!["profile_member".into()],
+            body: Box::new(if universal {
+                membership
+            } else {
+                Formula::Not(Box::new(membership))
+            }),
+        })
+    })
+    .collect()
+}
+
+/// The applicative representation must agree with intrinsic operators, including
+/// when an ordinary property object is equal to one of their reified names.
+/// These fixed profile laws replace pairwise predicate-congruence expansion.
+fn profile_semantic_laws() -> Result<Vec<String>, (String, String)> {
+    let mut laws = profile_class_laws()?;
+    let left = "V_profile_left";
+    let right = "V_profile_right";
+    let unary = application_atom(left, &[right]);
+    let membership = member_atom(right, left);
+    laws.push(format!("(! [{left},{right}] : ({unary} <=> {membership}))"));
+    for relation in [
+        RDF_TYPE,
+        concat_logic!("sameAs"),
+        OWL_SAME_AS,
+        concat_logic!("differentFrom"),
+        OWL_DIFFERENT_FROM,
+        concat_logic!("subClassOf"),
+        RDFS_SUBCLASS,
+        concat_logic!("equivalentClass"),
+        OWL_EQUIVALENT_CLASS,
+        concat_logic!("disjointWith"),
+        OWL_DISJOINT_WITH,
+        concat_logic!("subPropertyOf"),
+        RDFS_SUBPROPERTY,
+        concat_logic!("equivalentProperty"),
+        OWL_EQUIVALENT_PROPERTY,
+        concat_logic!("inverseOf"),
+        OWL_INVERSE_OF,
+        concat_logic!("domain"),
+        RDFS_DOMAIN,
+        concat_logic!("range"),
+        RDFS_RANGE,
+    ] {
+        let application = binary_application(relation, left, right);
+        let meaning = binary_meaning(relation, left, right).ok_or_else(|| {
+            (
+                "PROFILE_OPERATOR_WITHOUT_MEANING".into(),
+                format!("the required profile operator {relation} has no canonical interpretation"),
+            )
+        })?;
+        laws.push(format!(
+            "(! [{left},{right}] : ({application} <=> {meaning}))"
         ));
     }
-    if args.len() == 2 && matches!(relation, OWL_SAME_AS | concat_logic!("sameAs")) {
-        return Ok(format!("({} = {})", args[0], args[1]));
-    }
-    if args.len() == 2
-        && matches!(
-            relation,
-            OWL_DIFFERENT_FROM | concat_logic!("differentFrom")
-        )
-    {
-        return Ok(format!("({} != {})", args[0], args[1]));
-    }
-    if args.is_empty() {
-        return Ok(predicate_symbol(relation, 0));
-    }
-    Ok(format!(
-        "{}({})",
-        predicate_symbol(relation, args.len()),
-        args.join(",")
-    ))
+    Ok(laws)
 }
 
 fn constant_term(term: &AtomicTerm) -> Result<String, (String, String)> {
@@ -681,14 +786,6 @@ fn render_problem(admission: &SourceAdmission, sentences: &[FofSentence]) -> Str
     }
     lines.push(String::new());
     lines.join("\n")
-}
-
-fn member_symbol() -> String {
-    predicate_symbol("https://blackcatinformatics.ca/logic/instanceOf", 2)
-}
-
-fn predicate_symbol(iri: &str, arity: usize) -> String {
-    quote_atom(&format!("P|{arity}|{iri}"))
 }
 
 fn function_symbol(iri: &str, arity: usize) -> String {

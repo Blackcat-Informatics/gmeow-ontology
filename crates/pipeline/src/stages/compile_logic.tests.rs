@@ -169,11 +169,12 @@ fn clean_program() -> LogicProgram {
 #[test]
 fn canonical_rdf12_round_trips_to_equal_canonical_key() {
     let program = clean_program();
-    let arts = compile_program(&program, |_| Default::default()).expect("compile clean program");
+    let arts =
+        compile_program(&program, |_| Ok(Default::default())).expect("compile clean program");
 
     // Via the string reverse parser.
     let (rp_str, diags) = parse_logic_str(
-        &arts.canonical_rdf12.clone().into_text().content,
+        &arts.canonical_rdf12.clone().into_text().unwrap().content,
         program.source_iri.clone(),
     )
     .expect("reparse str");
@@ -218,7 +219,7 @@ fn stage_pins_logic_handle_re_derivable_to_isomorphic_ir() {
     // The pin is digest-valid: the pinned digest equals the live graph/logic digest.
     assert_eq!(
         entry.content_digest,
-        bundle.graph_digest(GRAPH_LOGIC),
+        bundle.graph_digest(GRAPH_LOGIC).unwrap(),
         "the Logic handle is digest-pinned to its backing graph/logic"
     );
     let PipelineHandle::CompiledLogic(publication) = &entry.payload else {
@@ -289,7 +290,8 @@ fn stage_pins_logic_handle_re_derivable_to_isomorphic_ir() {
 #[test]
 fn pin_logic_handle_hard_fails_on_digest_mismatch() {
     let program = clean_program();
-    let arts = compile_program(&program, |_| Default::default()).expect("compile clean program");
+    let arts =
+        compile_program(&program, |_| Ok(Default::default())).expect("compile clean program");
     let dataset =
         crate::stages::carrier::rooted_in_graph(&arts.canonical_rdf12.dataset, GRAPH_LOGIC)
             .expect("graph/logic dataset");
@@ -325,7 +327,7 @@ fn stage_pins_relational_core_handle_re_derivable_to_equal_dialect() {
     // The pin is digest-valid: the pinned digest equals the live backing digest.
     assert_eq!(
         entry.content_digest,
-        bundle.graph_digest(GRAPH_RELATIONAL_CORE),
+        bundle.graph_digest(GRAPH_RELATIONAL_CORE).unwrap(),
         "the RelationalCore handle is digest-pinned to its backing graph/relational-core"
     );
     let PipelineHandle::RelationalCore(program) = &entry.payload else {
@@ -460,7 +462,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
     // The pin is digest-valid: the pinned digest equals the live backing digest.
     assert_eq!(
         entry.content_digest,
-        bundle.graph_digest(GRAPH_CORRESPONDENCE),
+        bundle.graph_digest(GRAPH_CORRESPONDENCE).unwrap(),
         "the Correspondence handle is digest-pinned to its backing graph/correspondence"
     );
     let PipelineHandle::Correspondence(program) = &entry.payload else {
@@ -674,7 +676,7 @@ fn stage_asserts_five_correspondence_gates_as_hard_fail() {
     let (gated, _) = synthetic_affine_program()
         .with_derived_puts()
         .expect("derive affine put legs");
-    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated).unwrap();
     assert_gates(&evaluate_gates(&gated, &[], &verdicts))
         .expect("the §14 affine triangle is lawful");
 
@@ -699,7 +701,7 @@ fn stage_asserts_five_correspondence_gates_as_hard_fail() {
     )
     .expect("well-formed bridge correspondence");
     let red = CorrespondenceProgram::new(vec![bridge], PreservationKind::SoundUnder);
-    let red_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&red);
+    let red_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&red).unwrap();
     assert_gates(&evaluate_gates(&red, &[], &red_verdicts))
         .expect_err("a bridge-view equivalence overclaim must HARD-fail the build");
 }
@@ -776,6 +778,17 @@ ex:transform a logic:Formula ;
     compile_source_projections(&baseline_theory, baseline_theory.program())
         .expect("the production boundary accepts the body-aligned recovery");
     assert!(baseline.correspondences[0].put_leg.is_none());
+    let refused = compile_program(&baseline, |_| {
+        Err(gmeow_errors::Diag::from(std::io::Error::new(
+            std::io::ErrorKind::PermissionDenied,
+            "selected correspondence operation was refused",
+        )))
+    })
+    .expect_err("a failed executor cannot publish compiled law claims");
+    assert_eq!(
+        refused.downcast_ref::<std::io::Error>().unwrap().kind(),
+        std::io::ErrorKind::PermissionDenied
+    );
     let mut executed_program = None;
     let baseline_artifacts = compile_program(&baseline, |derived| {
         let put = derived.correspondences[0]
@@ -844,7 +857,7 @@ fn native_relational_carrier_and_terminal_share_the_complete_program() {
     let projection = project_relational_core_dataset(&program).unwrap();
     let carrier =
         crate::stages::carrier::rooted_in_graph(&projection, GRAPH_RELATIONAL_CORE).unwrap();
-    let carried = carrier.project_named_graph(GRAPH_RELATIONAL_CORE);
+    let carried = carrier.project_named_graph(GRAPH_RELATIONAL_CORE).unwrap();
     let restored = gmeow_logic_compile::relational_core::parse_relational_core(&carried).unwrap();
     assert_eq!(restored, program);
     assert_eq!(
@@ -863,7 +876,7 @@ fn native_correspondence_carrier_and_terminal_share_the_complete_program() {
     assert_eq!(restored.compositions, program.compositions);
     let carrier = crate::stages::carrier::rooted_in_graph(&projection, GRAPH_CORRESPONDENCE)
         .expect("native carrier placement");
-    let carried = carrier.project_named_graph(GRAPH_CORRESPONDENCE);
+    let carried = carrier.project_named_graph(GRAPH_CORRESPONDENCE).unwrap();
     assert_eq!(
         parse_correspondence(&carried).unwrap().correspondences,
         program.correspondences

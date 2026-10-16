@@ -497,8 +497,9 @@ the substrate does not.
   Compact axiom and rule objects share the relational core's atomic term algebra: variable,
   IRI, blank node, or complete RDF 1.2 literal. Literal datatype, language and direction
   participate in content identity and remain native across lowering and projection. Plain
-  `"?x"` is variable syntax only at the authored rule-field ingress; an explicit
-  `logic:termLiteral` carrier denotes a question-mark literal there. A domain literal never
+  Rule atoms use `rdf:reifies` over native triple terms. Variables occupy resource
+  positions through typed `logic:TermCarrier` nodes with `logic:termVariable "x"`;
+  a literal `"?x"` remains a literal. A domain literal never
   becomes a variable by lexical inspection. A target unable to express a typed literal must
   disclose and omit its whole affected axiom or rule; collapsing it to an untyped value does
   not establish sound under-approximation. Binary assertions using an external predicate

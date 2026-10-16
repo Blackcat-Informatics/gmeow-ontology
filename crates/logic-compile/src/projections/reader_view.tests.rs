@@ -24,7 +24,7 @@ fn shared_axiom_projection_preserves_context_and_quoted_claims() {
         None,
     )
     .unwrap();
-    let projected = with_owl_rdfs_projection(&source);
+    let projected = with_owl_rdfs_projection(&source).unwrap();
     let quads: HashSet<_> = projected.owned_quads().collect();
     assert!(source.owned_quads().all(|quad| quads.contains(&quad)));
     assert!(quads.iter().any(
@@ -63,7 +63,7 @@ fn shared_axiom_projection_preserves_context_and_quoted_claims() {
     );
 
     let separately_projected = purrdf::shapes::engine::project_dataset(&projected).unwrap();
-    let fused = shacl_reader_view(&source);
+    let fused = shacl_reader_view(&source).unwrap();
     assert_eq!(
         separately_projected.owned_quads().collect::<HashSet<_>>(),
         fused.owned_quads().collect()
@@ -79,30 +79,44 @@ fn annotation_complements_keep_native_ownership_and_project_class_operands() {
     const PROVENANCE: &str = "http://www.w3.org/ns/prov#wasDerivedFrom";
     const STANDPOINT: &str = "https://blackcatinformatics.ca/logic/accordingTo";
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let complement = builder.intern_iri(COMPLEMENT);
-    let endpoint = builder.intern_iri(ENDPOINT);
-    let provenance = builder.intern_iri(PROVENANCE);
-    let standpoint = builder.intern_iri(STANDPOINT);
-    let attributed = builder.intern_iri("urn:complement:standpoint");
-    let quoted_subject = builder.intern_iri("urn:complement:quoted-only");
-    let thing = builder.intern_iri(gmeow_ns::LOGIC_THING);
-    let quoted = builder.intern_triple(quoted_subject, complement, thing);
+    let complement = builder.intern_iri(COMPLEMENT).unwrap();
+    let endpoint = builder.intern_iri(ENDPOINT).unwrap();
+    let provenance = builder.intern_iri(PROVENANCE).unwrap();
+    let standpoint = builder.intern_iri(STANDPOINT).unwrap();
+    let attributed = builder.intern_iri("urn:complement:standpoint").unwrap();
+    let quoted_subject = builder.intern_iri("urn:complement:quoted-only").unwrap();
+    let thing = builder.intern_iri(gmeow_ns::LOGIC_THING).unwrap();
+    let quoted = builder
+        .intern_triple(quoted_subject, complement, thing)
+        .unwrap();
     for (scope, world, operand) in [
         (71, "urn:complement:world-a", gmeow_ns::LOGIC_THING),
         (72, "urn:complement:world-b", gmeow_ns::LOGIC_NOTHING),
     ] {
-        let reifier = builder.intern_blank("class", purrdf::BlankScope(scope));
-        let graph = builder.intern_iri(world);
-        let operand = builder.intern_iri(operand);
-        builder.push_reifier_in_graph(reifier, quoted, Some(graph));
-        builder.push_annotation_in_graph(reifier, complement, operand, Some(graph));
-        builder.push_annotation_in_graph(reifier, endpoint, operand, Some(graph));
-        builder.push_annotation_in_graph(reifier, provenance, quoted, Some(graph));
-        builder.push_annotation_in_graph(reifier, standpoint, attributed, Some(graph));
+        let reifier = builder
+            .intern_blank("class", purrdf::BlankScope(scope))
+            .unwrap();
+        let graph = builder.intern_iri(world).unwrap();
+        let operand = builder.intern_iri(operand).unwrap();
+        builder
+            .push_reifier_in_graph(reifier, quoted, Some(graph))
+            .unwrap();
+        builder
+            .push_annotation_in_graph(reifier, complement, operand, Some(graph))
+            .unwrap();
+        builder
+            .push_annotation_in_graph(reifier, endpoint, operand, Some(graph))
+            .unwrap();
+        builder
+            .push_annotation_in_graph(reifier, provenance, quoted, Some(graph))
+            .unwrap();
+        builder
+            .push_annotation_in_graph(reifier, standpoint, attributed, Some(graph))
+            .unwrap();
     }
     let source = builder.freeze().unwrap();
     let original: Vec<_> = source.owned_annotations().collect();
-    let projected = with_owl_rdfs_projection(&source);
+    let projected = with_owl_rdfs_projection(&source).unwrap();
     let annotations: Vec<_> = projected.owned_annotations().collect();
     assert_eq!(original.len(), 8);
     assert_eq!(
@@ -143,7 +157,7 @@ fn annotation_complements_keep_native_ownership_and_project_class_operands() {
         "data endpoints, standpoint and quoted provenance must not acquire aliases"
     );
 
-    let flat = shacl_reader_view(&source);
+    let flat = shacl_reader_view(&source).unwrap();
     let flat_rows: HashSet<_> = flat.owned_quads().collect();
     for annotation in annotations {
         let expected =

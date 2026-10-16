@@ -232,7 +232,7 @@ impl GateProgram {
                     RdfTerm::iri(GATE_FATAL),
                 )
                 .in_graph(RdfTerm::iri(graph_iri)),
-            );
+            )?;
         }
         output
             .freeze()
@@ -255,12 +255,12 @@ impl GateProgram {
         }
         let mut builder = RdfDatasetBuilder::new();
         for (cat, b) in &self.category_blocking {
-            push_triple(&mut builder, cat, CATEGORY_BLOCKING, b);
+            push_triple(&mut builder, cat, CATEGORY_BLOCKING, b)?;
         }
         for (f, sev, cat, sp) in &tuples {
-            push_triple(&mut builder, f, &format!("{GMEOW_NS}findingSeverity"), sev);
-            push_triple(&mut builder, f, &format!("{GMEOW_NS}findingCategory"), cat);
-            push_triple(&mut builder, f, &format!("{GMEOW_NS}findingStandpoint"), sp);
+            push_triple(&mut builder, f, &format!("{GMEOW_NS}findingSeverity"), sev)?;
+            push_triple(&mut builder, f, &format!("{GMEOW_NS}findingCategory"), cat)?;
+            push_triple(&mut builder, f, &format!("{GMEOW_NS}findingStandpoint"), sp)?;
         }
         let edb = builder.freeze().map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
@@ -309,9 +309,15 @@ fn iri_of(term: &TermValue) -> Option<String> {
 }
 
 /// Push one IRI triple into the chase world graph.
-fn push_triple(builder: &mut RdfDatasetBuilder, s: &str, p: &str, o: &str) {
+fn push_triple(
+    builder: &mut RdfDatasetBuilder,
+    s: &str,
+    p: &str,
+    o: &str,
+) -> gmeow_errors::Result<()> {
     let quad = RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(WORLD));
-    builder.push_owned_quad(&quad);
+    builder.push_owned_quad(&quad)?;
+    Ok(())
 }
 
 /// Extract every `(finding, severity, category, standpoint)` grade tuple SPARQL sees in

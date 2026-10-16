@@ -67,6 +67,7 @@ pub(crate) fn fixtures(
             &mut lists,
             &mut ledger,
             &mut coverage,
+            None,
         )
         .unwrap();
         analyze(

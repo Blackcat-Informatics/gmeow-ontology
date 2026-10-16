@@ -159,7 +159,9 @@ pub fn authenticated_bundle_dataset() -> &'static Arc<RdfDataset> {
 /// Select one exact named graph from the authenticated bundle as a native default
 /// view for validation. A missing graph fails; no RDF text is emitted or reparsed.
 pub fn authenticated_named_graph_dataset(graph_iri: &str) -> Arc<RdfDataset> {
-    let graph = authenticated_bundle_dataset().project_named_graph(graph_iri);
+    let graph = authenticated_bundle_dataset()
+        .project_named_graph(graph_iri)
+        .expect("select authenticated named graph");
     assert!(
         graph.quad_count() > 0,
         "authenticated bundle omitted required named graph <{graph_iri}>"

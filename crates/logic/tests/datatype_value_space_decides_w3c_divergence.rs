@@ -88,7 +88,7 @@ fn lit_quad(s: &str, p: &str, value: &str, dt: &str) -> RdfQuad {
 fn build(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
     for q in quads {
-        b.push_owned_quad(&q);
+        b.push_owned_quad(&q).unwrap();
     }
     b.freeze().expect("freeze the synthetic dataset")
 }

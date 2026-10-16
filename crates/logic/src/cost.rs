@@ -458,7 +458,7 @@ impl RepeatForwardSession {
     ) -> gmeow_errors::Result<Self> {
         let eval_rules = crate::lower::lower_eval_rules(program)?;
         let strata = crate::certify::predicate_strata(&eval_rules);
-        let store = crate::store::WorldStore::new();
+        let store = crate::store::WorldStore::new()?;
         store.load_dataset(edb)?;
         Ok(Self {
             store,

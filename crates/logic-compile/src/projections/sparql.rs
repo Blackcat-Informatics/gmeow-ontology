@@ -345,7 +345,7 @@ fn injected_guards(
         .atoms
         .iter()
         .filter_map(|item| match item {
-            Item::Atom(atom) if !atom.optional => Some(atom),
+            Item::Atom(atom) if !atom.optional => Some(atom.as_ref()),
             _ => None,
         })
         .collect::<Vec<_>>();

@@ -355,9 +355,9 @@ pub fn derive(
 ) -> gmeow_errors::Result<Derivation> {
     let world = cli_world_dataset(parsed)?;
     let edb = &world.edb;
-    let full_store = crate::store::WorldStore::new();
+    let full_store = crate::store::WorldStore::new()?;
     full_store.load_dataset(edb)?;
-    let audit_store = crate::store::WorldStore::new();
+    let audit_store = crate::store::WorldStore::new()?;
     for quad in edb.quads() {
         if matches!(
             edb.resolve(quad.p),
@@ -374,10 +374,10 @@ pub fn derive(
     }
     let mat = rules
         .materialize_store(&full_store)
-        .map_err(|error| gmeow_errors::Diag::from(error).with_context("materialization failed"))?;
+        .map_err(|error| error.with_context("materialization failed"))?;
     let audit = rules
         .materialize_store(&audit_store)
-        .map_err(|error| gmeow_errors::Diag::from(error).with_context("materialization failed"))?;
+        .map_err(|error| error.with_context("materialization failed"))?;
     // A row can be reached twice — once as an assertion, once as a conclusion — so the
     // flags are OR-merged per triple rather than the rows being pushed twice and deduped.
     // Deduping tagged rows would keep both copies and make an agreeing label look like a
@@ -512,7 +512,7 @@ fn bears_triple_term(term: &RdfTerm) -> bool {
 
 fn cli_world_dataset(parsed: &purrdf::RdfDataset) -> gmeow_errors::Result<CliWorld> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let world = builder.intern_iri(CLI_WORLD);
+    let world = builder.intern_iri(CLI_WORLD)?;
 
     let mut named_graphs: BTreeSet<String> = BTreeSet::new();
     let mut unreasoned: Vec<(RdfTerm, String, RdfTerm)> = Vec::new();
@@ -520,15 +520,17 @@ fn cli_world_dataset(parsed: &purrdf::RdfDataset) -> gmeow_errors::Result<CliWor
                 unreasoned: &mut Vec<(RdfTerm, String, RdfTerm)>,
                 subject: RdfTerm,
                 predicate: String,
-                object: RdfTerm| {
+                object: RdfTerm|
+     -> gmeow_errors::Result<()> {
         if bears_triple_term(&subject) || bears_triple_term(&object) {
             unreasoned.push((subject, predicate, object));
-            return;
+            return Ok(());
         }
-        let s = builder.intern_owned_term(&subject);
-        let p = builder.intern_iri(&predicate);
-        let o = builder.intern_owned_term(&object);
-        builder.push_quad(s, p, o, Some(world));
+        let s = builder.intern_owned_term(&subject)?;
+        let p = builder.intern_iri(&predicate)?;
+        let o = builder.intern_owned_term(&object)?;
+        builder.push_quad(s, p, o, Some(world))?;
+        Ok(())
     };
 
     for q in parsed.owned_quads() {
@@ -542,7 +544,7 @@ fn cli_world_dataset(parsed: &purrdf::RdfDataset) -> gmeow_errors::Result<CliWor
             q.subject,
             q.predicate,
             q.object,
-        );
+        )?;
     }
     for reifier in parsed.owned_reifiers() {
         if let Some(g) = &reifier.graph {
@@ -555,7 +557,7 @@ fn cli_world_dataset(parsed: &purrdf::RdfDataset) -> gmeow_errors::Result<CliWor
             reifier.reifier,
             RDF_REIFIES.to_owned(),
             RdfTerm::Triple(Box::new(reifier.statement)),
-        );
+        )?;
     }
     // The statement-metadata LOWERING (Principle 17): the `rdf:reifies` term above stays
     // withheld — a term is not a fact — while its three components enter the world as
@@ -563,7 +565,7 @@ fn cli_world_dataset(parsed: &purrdf::RdfDataset) -> gmeow_errors::Result<CliWor
     // authored dataset is untouched; this is derived from it, on the way in.
     let lowering = crate::statement_lowering::lower_reifiers(parsed);
     for (subject, predicate, object) in lowering.rows {
-        push(&mut builder, &mut unreasoned, subject, predicate, object);
+        push(&mut builder, &mut unreasoned, subject, predicate, object)?;
     }
     let nested_statements = lowering.nested;
     for annotation in parsed.owned_annotations() {
@@ -577,7 +579,7 @@ fn cli_world_dataset(parsed: &purrdf::RdfDataset) -> gmeow_errors::Result<CliWor
             annotation.reifier,
             annotation.predicate,
             annotation.object,
-        );
+        )?;
     }
 
     if !named_graphs.is_empty() {

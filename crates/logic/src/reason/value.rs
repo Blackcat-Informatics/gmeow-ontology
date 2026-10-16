@@ -5,8 +5,9 @@
 //! RDF term identity is retained independently of the interpreted value. Parsing
 //! happens at admission to an analysis, never in its pairwise comparison loop.
 
-use purrdf::xsd::{XsdValue, rational::Rational};
+use purrdf::xsd::{XsdValue, exact::Rational};
 use purrdf::{RdfTextDirection, TermValue};
+use purrdf_hash::fixed::FixedState;
 
 const OWL_RATIONAL: &str = "http://www.w3.org/2002/07/owl#rational";
 const OWL_REAL: &str = "http://www.w3.org/2002/07/owl#real";
@@ -21,8 +22,9 @@ pub(crate) enum LiteralMeaning {
         language: String,
         direction: Option<RdfTextDirection>,
     },
-    /// No datatype interpretation was admitted. Only identical RDF terms are
-    /// known equal; different lexical forms are not evidence of unequal values.
+    /// No general native value representation was admitted. Identical RDF terms
+    /// are known equal; admitted anyURI values also share XML whitespace collapse.
+    /// Other lexical differences are not evidence of unequal values.
     Opaque(Box<TermValue>),
 }
 
@@ -37,6 +39,24 @@ impl LiteralValue {
     /// residue stays in the shared GMEOW value algebra. Unknown is never false.
     pub(crate) fn named_datatype(&self, datatype: &str) -> Option<bool> {
         let meaning = &self.meaning;
+        if datatype == purrdf::xsd::datatype::XSD_ANY_URI {
+            // `xsd:anyURI` is an XSD 1.1 primitive: its value space is disjoint from
+            // every other primitive's, and every string of XML characters is one of
+            // its lexical forms. PurRDF interprets no anyURI value, so a literal
+            // typed anyURI arrives uninterpreted and every interpreted value lies
+            // outside it; an uninterpreted literal of any other datatype is unknown.
+            return match meaning {
+                LiteralMeaning::Opaque(term) => match term.as_ref() {
+                    TermValue::Literal { datatype, .. }
+                        if datatype == purrdf::xsd::datatype::XSD_ANY_URI =>
+                    {
+                        Some(true)
+                    }
+                    _ => None,
+                },
+                _ => Some(false),
+            };
+        }
         if matches!(meaning, LiteralMeaning::Opaque(_)) {
             return None;
         }
@@ -58,19 +78,23 @@ impl LiteralValue {
         let datatype = purrdf::xsd::XsdDatatype::from_iri(datatype)?;
         match meaning {
             LiteralMeaning::Rational(value) => {
-                if let Some((lo, hi)) = datatype.integer_range() {
-                    return Some(
-                        value.denominator() == 1 && (lo..=hi).contains(&value.numerator()),
+                if datatype.integer_range().is_some() {
+                    if !value.is_integer() {
+                        return Some(false);
+                    }
+                    let integer = XsdValue::from_exact_integer(
+                        value.numerator().clone(),
+                        purrdf::xsd::XsdDatatype::Integer,
                     );
+                    use purrdf::xsd::range::{DataRange, Known, contains};
+                    return match contains(&DataRange::Datatype(datatype), &integer) {
+                        Known::Yes => Some(true),
+                        Known::No => Some(false),
+                        Known::Unknown => None,
+                    };
                 }
                 if datatype == purrdf::xsd::XsdDatatype::Decimal {
-                    let mut denominator = value.denominator();
-                    for factor in [2, 5] {
-                        while denominator % factor == 0 {
-                            denominator /= factor;
-                        }
-                    }
-                    return Some(denominator == 1);
+                    return Some(value.is_terminating());
                 }
                 Some(false)
             }
@@ -119,6 +143,18 @@ impl LiteralValue {
         match &self.meaning {
             LiteralMeaning::Native(XsdValue::String(value)) => Some(value.chars().count() as u128),
             LiteralMeaning::Native(XsdValue::Binary { bytes, .. }) => Some(bytes.len() as u128),
+            LiteralMeaning::Opaque(term) => match term.as_ref() {
+                TermValue::Literal {
+                    lexical_form,
+                    datatype,
+                    ..
+                } if datatype == purrdf::xsd::datatype::XSD_ANY_URI => Some(
+                    purrdf::xsd::normalize_whitespace_collapse(lexical_form)
+                        .chars()
+                        .count() as u128,
+                ),
+                _ => None,
+            },
             _ => None,
         }
     }
@@ -191,6 +227,29 @@ impl LiteralValue {
     pub(crate) fn same_value(&self, other: &Self) -> Option<bool> {
         match (&self.meaning, &other.meaning) {
             (LiteralMeaning::Opaque(a), LiteralMeaning::Opaque(b)) if a == b => Some(true),
+            (LiteralMeaning::Opaque(a), LiteralMeaning::Opaque(b)) => {
+                match (a.as_ref(), b.as_ref()) {
+                    (
+                        TermValue::Literal {
+                            lexical_form: a,
+                            datatype: ad,
+                            ..
+                        },
+                        TermValue::Literal {
+                            lexical_form: b,
+                            datatype: bd,
+                            ..
+                        },
+                    ) if ad == purrdf::xsd::datatype::XSD_ANY_URI
+                        && bd == purrdf::xsd::datatype::XSD_ANY_URI =>
+                    {
+                        (purrdf::xsd::normalize_whitespace_collapse(a)
+                            == purrdf::xsd::normalize_whitespace_collapse(b))
+                        .then_some(true)
+                    }
+                    _ => None,
+                }
+            }
             (LiteralMeaning::Opaque(_), _) | (_, LiteralMeaning::Opaque(_)) => None,
             (LiteralMeaning::Rational(a), LiteralMeaning::Rational(b)) => Some(a == b),
             (
@@ -228,8 +287,8 @@ impl LiteralValue {
 /// the same source-payload limit. No facts, worlds or complete datasets are cached.
 #[derive(Default)]
 pub(crate) struct NativeValues {
-    entries: std::collections::HashMap<TermValue, std::sync::Arc<LiteralValue>>,
-    counts: std::collections::HashMap<TermValue, u128>,
+    entries: std::collections::HashMap<TermValue, std::sync::Arc<LiteralValue>, FixedState>,
+    counts: std::collections::HashMap<TermValue, u128, FixedState>,
 }
 
 impl NativeValues {
@@ -240,6 +299,7 @@ impl NativeValues {
                 datatype,
                 OWL_REAL
                     | OWL_RATIONAL
+                    | purrdf::xsd::datatype::XSD_ANY_URI
                     | "http://www.w3.org/2000/01/rdf-schema#Literal"
                     | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
                     | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
@@ -268,7 +328,16 @@ impl NativeValues {
         else {
             return None;
         };
-        u128::try_from(value).ok()
+        if value.is_zero() {
+            Some(0)
+        } else if value.is_negative() {
+            None
+        } else {
+            // Native parsing already validated the datatype and integer value.
+            // Convert the count's own u128 representation without an i128 limit
+            // or an intermediate arbitrary-precision magnitude allocation.
+            lexical_form.trim().parse().ok()
+        }
     }
 
     pub(crate) fn cardinality(&mut self, source: &TermValue) -> Option<u128> {
@@ -339,14 +408,14 @@ mod native_cache_tests;
 pub(crate) fn rational(lexical: &str) -> Option<Rational> {
     let lexical = lexical.trim();
     if lexical.contains('/') {
-        return Rational::parse(lexical).ok();
+        return lexical.parse().ok();
     }
-    let value = purrdf::xsd::parse_by_iri(lexical, XSD_DECIMAL)
+    purrdf::xsd::parse_by_iri(lexical, XSD_DECIMAL)
         .ok()
         .flatten()
-        .and_then(|value| Rational::from_xsd(&value));
-    value.or_else(|| {
-        let value = super::refute::parse_rational(lexical)?;
-        Rational::new(value.numerator(), value.denominator()).ok()
-    })
+        .and_then(|value| Rational::from_xsd(&value))
 }
+
+#[path = "value.tests.rs"]
+#[cfg(test)]
+mod tests;

@@ -192,13 +192,9 @@ pub fn dataset_from_paths(paths: &[PathBuf]) -> gmeow_errors::Result<Arc<RdfData
                 detail: format!("syntax error in {path_str}: {e}"),
             })
         })?;
-        builder.push_dataset(&dataset);
+        builder.push_dataset(&dataset)?;
     }
-    builder.freeze().map_err(|e| {
-        Diag::of_kind(crate::error::Serialize {
-            detail: format!("dataset freeze failed: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Build a frozen native [`RdfDataset`] from an N-Triples document, flattening any

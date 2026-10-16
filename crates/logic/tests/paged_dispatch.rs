@@ -45,10 +45,12 @@ fn identity(generation: u64) -> WorldSourceIdentity {
 fn page(quads: &[(&str, &str, &str)]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (subject, predicate, object) in quads {
-        builder.push_owned_quad(
-            &RdfQuad::new(RdfTerm::iri(*subject), *predicate, RdfTerm::iri(*object))
-                .in_graph(RdfTerm::iri(WORLD)),
-        );
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(*subject), *predicate, RdfTerm::iri(*object))
+                    .in_graph(RdfTerm::iri(WORLD)),
+            )
+            .unwrap();
     }
     builder.freeze().expect("valid page")
 }
@@ -106,7 +108,7 @@ fn reachability_program() -> gmeow_logic::query_ir::QProgram {
 #[test]
 fn resident_paged_and_pack_views_produce_identical_recursive_answers() {
     let pages = graph_pages();
-    let resident = RdfDataset::union(&pages.iter().map(AsRef::as_ref).collect::<Vec<_>>());
+    let resident = RdfDataset::union(&pages.iter().map(AsRef::as_ref).collect::<Vec<_>>()).unwrap();
     let paged = PagedDataset::from_provider(Arc::new(InMemoryPageProvider::with_generation(
         pages,
         PageGeneration(7),
@@ -381,7 +383,7 @@ fn generic_triple_dispatch_pushes_predicate_as_data_and_bound_terms() {
 #[test]
 fn selected_materialization_matches_resident_semantics_without_noise_page() {
     let pages = graph_pages();
-    let resident = RdfDataset::union(&pages.iter().map(AsRef::as_ref).collect::<Vec<_>>());
+    let resident = RdfDataset::union(&pages.iter().map(AsRef::as_ref).collect::<Vec<_>>()).unwrap();
     let paged = PagedDataset::from_provider(Arc::new(InMemoryPageProvider::with_generation(
         pages,
         PageGeneration(14),
@@ -629,25 +631,31 @@ fn rdf12_dataset() -> Arc<RdfDataset> {
     );
     let reifier = RdfTerm::iri(format!("{EX}statement"));
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(
-        &RdfQuad::new(
-            RdfTerm::iri(format!("{EX}holder")),
-            format!("{EX}mentions"),
-            RdfTerm::triple(embedded.clone()),
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(format!("{EX}holder")),
+                format!("{EX}mentions"),
+                RdfTerm::triple(embedded.clone()),
+            )
+            .in_graph(RdfTerm::iri(WORLD)),
         )
-        .in_graph(RdfTerm::iri(WORLD)),
-    );
-    builder.push_owned_reifier(
-        &RdfReifier::new(reifier.clone(), embedded).in_graph(Some(RdfTerm::iri(WORLD))),
-    );
-    builder.push_owned_annotation(
-        &RdfAnnotation::new(
-            reifier,
-            format!("{EX}confidence"),
-            RdfTerm::iri(format!("{EX}high")),
+        .unwrap();
+    builder
+        .push_owned_reifier(
+            &RdfReifier::new(reifier.clone(), embedded).in_graph(Some(RdfTerm::iri(WORLD))),
         )
-        .in_graph(Some(RdfTerm::iri(WORLD))),
-    );
+        .unwrap();
+    builder
+        .push_owned_annotation(
+            &RdfAnnotation::new(
+                reifier,
+                format!("{EX}confidence"),
+                RdfTerm::iri(format!("{EX}high")),
+            )
+            .in_graph(Some(RdfTerm::iri(WORLD))),
+        )
+        .unwrap();
     builder.freeze().expect("valid RDF 1.2 dataset")
 }
 

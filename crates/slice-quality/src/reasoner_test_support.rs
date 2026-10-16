@@ -50,9 +50,11 @@ pub(super) fn edb_without_triple(
         {
             continue; // the triple under test — leave it out
         }
-        builder.push_owned_quad(&quad);
+        builder
+            .push_owned_quad(&quad)
+            .expect("retained synthetic quad");
     }
     builder
         .freeze()
-        .unwrap_or_else(|_| Arc::new(RdfDataset::union(&[])))
+        .expect("retracted test dataset must remain valid")
 }

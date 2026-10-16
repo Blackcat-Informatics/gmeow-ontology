@@ -185,7 +185,7 @@ impl PipelineSpec {
                     message: format!("syntax error in pipeline-spec: {e}"),
                 })
             })?;
-            builder.push_dataset(&parsed);
+            builder.push_dataset(&parsed)?;
         }
         let ds = builder.freeze().map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {

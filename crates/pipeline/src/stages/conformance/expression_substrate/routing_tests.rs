@@ -13,17 +13,29 @@ const PROBE: &str = "https://blackcatinformatics.ca/gmeow/graph/probe";
 #[test]
 fn expression_probe_keeps_both_complete_placements_and_shared_expression_identity() {
     let mut builder = RdfDatasetBuilder::new();
-    let expression = builder.intern_blank("expression", BlankScope(7));
-    let operator = builder.intern_iri("https://blackcatinformatics.ca/math/operator");
-    let multiplication = builder.intern_iri("https://blackcatinformatics.ca/math/Multiplication");
-    let claim = builder.intern_blank("claim", BlankScope(9));
-    let source_graph = builder.intern_iri("urn:expression:source-world");
-    let according_to = builder.intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo");
-    let triple = builder.intern_triple(expression, operator, multiplication);
-    builder.push_quad(expression, operator, multiplication, None);
-    builder.push_reifier_in_graph(claim, triple, None);
-    builder.push_annotation_in_graph(claim, according_to, source_graph, None);
-    builder.declare_named_graph(source_graph);
+    let expression = builder.intern_blank("expression", BlankScope(7)).unwrap();
+    let operator = builder
+        .intern_iri("https://blackcatinformatics.ca/math/operator")
+        .unwrap();
+    let multiplication = builder
+        .intern_iri("https://blackcatinformatics.ca/math/Multiplication")
+        .unwrap();
+    let claim = builder.intern_blank("claim", BlankScope(9)).unwrap();
+    let source_graph = builder.intern_iri("urn:expression:source-world").unwrap();
+    let according_to = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/accordingTo")
+        .unwrap();
+    let triple = builder
+        .intern_triple(expression, operator, multiplication)
+        .unwrap();
+    builder
+        .push_quad(expression, operator, multiplication, None)
+        .unwrap();
+    builder.push_reifier_in_graph(claim, triple, None).unwrap();
+    builder
+        .push_annotation_in_graph(claim, according_to, source_graph, None)
+        .unwrap();
+    builder.declare_named_graph(source_graph).unwrap();
     let source = builder.freeze().unwrap();
     let original = source.owned_quads().next().unwrap();
     let output = probe_graph_dataset(&source).unwrap();
@@ -61,8 +73,8 @@ fn expression_probe_keeps_both_complete_placements_and_shared_expression_identit
 #[test]
 fn expression_empty_probe_preserves_original_declarations_and_adds_the_selected_role() {
     let mut builder = RdfDatasetBuilder::new();
-    let original = builder.intern_iri("urn:expression:empty-original");
-    builder.declare_named_graph(original);
+    let original = builder.intern_iri("urn:expression:empty-original").unwrap();
+    builder.declare_named_graph(original).unwrap();
     let output = probe_graph_dataset(&builder.freeze().unwrap()).unwrap();
     assert_eq!(output.rdf_row_count(), 0);
     let graphs = output.owned_named_graphs().collect::<Vec<_>>();

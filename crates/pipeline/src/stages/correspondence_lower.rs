@@ -231,7 +231,7 @@ pub fn discharged_section_cells_from_cells(
     for ttl in projection_ttls {
         let ds = parse_dataset(ttl.as_bytes(), NativeRdfFormat::Turtle.media_type(), None)
             .map_err(|e| up(format!("parse projection cell: {e}")))?;
-        dsl_b.push_dataset(&ds);
+        dsl_b.push_dataset(&ds)?;
     }
     let dsl = dsl_b.freeze().map_err(|e| up(e.to_string()))?;
     let onto = parse_dataset(ontology_nt.as_bytes(), "application/n-triples", None)
@@ -355,7 +355,7 @@ fn merge_slice_artifacts(
     artifacts.sort_by(|a, c| a.0.cmp(&c.0));
     for (path, bytes) in &artifacts {
         let ds = parse_turtle(bytes, &path.display().to_string())?;
-        b.push_dataset(&ds);
+        b.push_dataset(&ds)?;
     }
     Ok(())
 }
@@ -371,7 +371,7 @@ fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDatas
     for path in &files {
         let bytes = std::fs::read(path).map_err(SliceError::Io)?;
         let ds = parse_turtle(&bytes, &path.display().to_string())?;
-        b.push_dataset(&ds);
+        b.push_dataset(&ds)?;
     }
     merge_slice_artifacts(catalog, ArtifactRole::Mapping, &mut b)?;
     b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
@@ -388,7 +388,7 @@ fn merge_ontology(
     if onto.is_file() {
         let bytes = std::fs::read(&onto).map_err(SliceError::Io)?;
         let ds = parse_turtle(&bytes, "ontology/gmeow.ttl")?;
-        b.push_dataset(&ds);
+        b.push_dataset(&ds)?;
     }
     merge_slice_artifacts(catalog, ArtifactRole::Module, &mut b)?;
     b.freeze().map_err(|e| SliceError::Parse(e.to_string()))

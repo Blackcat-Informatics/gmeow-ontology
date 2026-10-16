@@ -285,6 +285,9 @@ pub fn transpile_correspondences_indexed(
             "logic:preservationKind",
             PreservationKind::from_local,
         )?;
+        // Ordinary cells inherit the lane's SoundUnder contract. Grounding cells
+        // must still author their own judgment before this default is applied.
+        let effective_preservation = preservation.or(Some(PreservationKind::SoundUnder));
         if cell.grounding && cell.justification.is_none() {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
@@ -423,7 +426,7 @@ pub fn transpile_correspondences_indexed(
             None,
             // Ordinary cells inherit the lane polarity; grounding cells author their own
             // preservation judgment explicitly.
-            preservation,
+            effective_preservation,
         )?
         .with_endpoints(
             cell.source_endpoint

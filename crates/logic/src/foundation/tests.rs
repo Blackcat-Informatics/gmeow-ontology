@@ -17,7 +17,7 @@ const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 
 /// Build a `WorldStore` from N-Quads text.
 fn store_from(nquads: &str) -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.load_nquads(nquads).expect("valid N-Quads");
     store
 }

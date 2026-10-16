@@ -256,7 +256,7 @@ fn expression_reasoning_context(math: &RdfDataset) -> Result<Arc<RdfDataset>, gm
         let closure =
             matches!(&quad.subject, RdfTerm::BlankNode(label) if selected_blanks.contains(label));
         if root_edge || closure {
-            builder.push_owned_quad(quad);
+            builder.push_owned_quad(quad)?;
         }
     }
     builder.freeze().map_err(fail)

@@ -27,6 +27,7 @@ use crate::physical::plan::RuleLayouts;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
 
 mod admission;
+mod reachability;
 
 /// A digest-only formatter for immutable native rule metadata. No serialized RDF
 /// or temporary text buffer is produced; the executable source remains native IR.
@@ -224,6 +225,8 @@ pub(crate) struct JointTemplate {
     rules: RuleLayouts,
     producers: Vec<Arc<PreparedChaseRule>>,
     properties: Vec<PreparedPropertyRule>,
+    core_flows: Arc<[FlowRule]>,
+    authored_ordinary: std::ops::Range<usize>,
     effects: Vec<ProducerEffect>,
     flow: Arc<ValueFlow>,
     semantics: SemanticVocabulary,
@@ -251,6 +254,12 @@ struct CachedEffects {
     effects: Arc<Vec<ProducerEffect>>,
 }
 
+/// Source-owned templates and their immutable-definition admission contract.
+struct SourceTemplates<'a> {
+    rules: &'a [crate::physical::chase::SourceExistentialRule],
+    definitions: Option<DefinitionContract>,
+}
+
 impl std::fmt::Debug for JointTemplate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("JointTemplate")
@@ -268,15 +277,51 @@ fn statement(atom: &EvalAtom) -> [EvalTerm; 3] {
     ]
 }
 
+/// Reuse the prepared property's native analysis metadata for both analyses.
+fn property_flow(rule: &PreparedPropertyRule) -> FlowRule {
+    let mut reads: Vec<_> = rule
+        .source
+        .body
+        .iter()
+        .map(|atom| Some(atom.0.clone()))
+        .collect();
+    reads.extend(rule.reads().skip(rule.source.body.len()).map(|_| None));
+    reads.extend(rule.admission_reads().iter().map(|_| None));
+    FlowRule {
+        body: rule
+            .analysis_body
+            .iter()
+            .map(|atom| atom.0.clone())
+            .collect(),
+        heads: rule
+            .analysis_heads
+            .iter()
+            .map(|head| head.0.clone())
+            .collect(),
+        native_witnesses: flow_native_witnesses(rule),
+        reads,
+        cardinality_guards: flow_cardinality_guards(rule),
+        list_reads: flow_list_reads(rule),
+        selected_reads: flow_selected_reads(rule),
+    }
+}
+
 impl JointTemplate {
     pub(crate) fn with_witness_source(
         mut self,
         source: &crate::native_semantics::ProgramAdmission,
+        program_identity: [u8; 32],
+        source_rule_count: usize,
     ) -> Self {
+        let total = self.rules.keys().len();
+        self.authored_ordinary = total
+            .checked_sub(source_rule_count)
+            .expect("authored rule suffix must belong to the compiled native rule inventory")
+            ..total;
         self.witness_contract = self.witness_contract.with_source(source);
         self.identity = crate::physical::store::metadata_identity(
-            "gmeow-joint-source-contract-v1",
-            &(self.identity, self.witness_contract),
+            "gmeow-joint-source-contract-v2",
+            &(self.identity, self.witness_contract, program_identity),
         );
         self
     }
@@ -292,8 +337,10 @@ impl JointTemplate {
             producers,
             properties,
             semantics,
-            &[],
-            None,
+            SourceTemplates {
+                rules: &[],
+                definitions: None,
+            },
             &crate::physical::SelectedDomains::new([])?,
             super::JointOperation::Relational,
         )
@@ -313,8 +360,10 @@ impl JointTemplate {
             templates,
             properties,
             semantics,
-            sources,
-            definitions,
+            SourceTemplates {
+                rules: sources,
+                definitions,
+            },
             domains,
             super::JointOperation::Forward,
         )
@@ -328,8 +377,10 @@ impl JointTemplate {
             &[],
             &[],
             SemanticVocabulary::GroundedLogicV1,
-            &[],
-            None,
+            SourceTemplates {
+                rules: &[],
+                definitions: None,
+            },
             domains,
             super::JointOperation::ClassDiagnostic,
         )
@@ -340,11 +391,14 @@ impl JointTemplate {
         templates: &[ExistentialRule],
         properties: &[PreparedPropertyRule],
         semantics: SemanticVocabulary,
-        sources: &[crate::physical::chase::SourceExistentialRule],
-        definitions: Option<DefinitionContract>,
+        source: SourceTemplates<'_>,
         domains: &crate::physical::SelectedDomains,
         operation: super::JointOperation,
     ) -> gmeow_errors::Result<Self> {
+        let SourceTemplates {
+            rules: sources,
+            definitions,
+        } = source;
         if !sources.is_empty() && definitions.is_none() {
             return Err(seminaive_err(
                 "source-owned producers require their immutable-definition contract",
@@ -426,33 +480,8 @@ impl JointTemplate {
             list_reads: Vec::new(),
             selected_reads: Vec::new(),
         }));
-        flows.extend(properties.iter().map(|rule| {
-            let mut reads: Vec<_> = rule
-                .source
-                .body
-                .iter()
-                .map(|atom| Some(atom.0.clone()))
-                .collect();
-            reads.extend(rule.reads().skip(rule.source.body.len()).map(|_| None));
-            reads.extend(rule.admission_reads().iter().map(|_| None));
-            FlowRule {
-                body: rule
-                    .analysis_body
-                    .iter()
-                    .map(|atom| atom.0.clone())
-                    .collect(),
-                heads: rule
-                    .analysis_heads
-                    .iter()
-                    .map(|head| head.0.clone())
-                    .collect(),
-                native_witnesses: flow_native_witnesses(rule),
-                reads,
-                cardinality_guards: flow_cardinality_guards(rule),
-                list_reads: flow_list_reads(rule),
-                selected_reads: flow_selected_reads(rule),
-            }
-        }));
+        let core_flows: Arc<[FlowRule]> = Arc::from(flows.as_slice());
+        flows.extend(properties.iter().map(property_flow));
         flows.extend(families.iter().map(|arm| arm.flow.clone()));
         let protected_definitions = definitions
             .as_ref()
@@ -496,7 +525,11 @@ impl JointTemplate {
         .expect("digest-only formatter");
         // All retained analyses participate in the same payload bound. The fixed
         // native source admission arms can outnumber the selected property joins.
-        write!(digest, "{effects:?}:{flows:?}:{family_reads:?}").expect("digest-only formatter");
+        write!(
+            digest,
+            "{effects:?}:{flows:?}:{core_flows:?}:{family_reads:?}"
+        )
+        .expect("digest-only formatter");
         for arm in &families {
             write!(digest, "{:?}:{:?}", arm.family, arm.statement).expect("digest-only formatter");
         }
@@ -525,6 +558,8 @@ impl JointTemplate {
             rules: RuleLayouts::new(rules)?,
             producers: prepared_producers,
             properties: properties.to_vec(),
+            core_flows,
+            authored_ordinary: 0..rules.len(),
             effects,
             flow,
             semantics,
@@ -692,6 +727,7 @@ impl JointTemplate {
             );
         }
         let mut world_effects = BTreeMap::new();
+        let mut constructor_lists = BTreeMap::new();
         let mut world_shapes = Vec::new();
         for (world, local) in facts {
             let world_started = std::time::Instant::now();
@@ -724,7 +760,7 @@ impl JointTemplate {
             for (index, producer) in self.producers.iter().enumerate() {
                 enabled[self.rules.keys().len() + index] = producer.owns_world(world)?;
             }
-            let scoped = flow.refine_enabled(&self.effects, &summary, &enabled);
+            let mut scoped = flow.refine_enabled(&self.effects, &summary, &enabled);
             if let Some(contract) = &self.definitions {
                 for pattern in &contract.patterns {
                     if let Some(writer) = flow.overlapping_writer(pattern, &scoped) {
@@ -743,6 +779,22 @@ impl JointTemplate {
                         }));
                     }
                 }
+            }
+            if let Some(proof) = super::source_grammar::ConstructorClosedLists::certify(
+                super::source_grammar::GrammarInput {
+                    world,
+                    facts: local,
+                    possible: &possible,
+                    external: contextual_effects,
+                    ordinary: self.rules.keys().len(),
+                    producers: &self.producers,
+                    properties: &self.properties,
+                    families: &self.families,
+                    effects: &mut scoped,
+                    flow: &flow,
+                },
+            ) {
+                constructor_lists.insert(world.clone(), Arc::new(proof));
             }
             world_shapes.push((summary.identity(&flow_contract), enabled));
             world_effects.insert(world.clone(), Arc::new(scoped));
@@ -803,7 +855,7 @@ impl JointTemplate {
         world_shapes.sort();
         let mut identity = crate::physical::metadata_identity(
             "gmeow-native-world-input-shape-v1",
-            &(shape, world_shapes, contextual_effects),
+            &(shape, world_shapes, contextual_effects, &constructor_lists),
         );
         if let Some(Ok(evidence)) = &evidence {
             let mut digest = blake3::Hasher::new();
@@ -821,8 +873,10 @@ impl JointTemplate {
             flow,
             effects,
             world_effects,
+            constructor_lists,
             evidence,
             identity,
+            syntactic: Mutex::new(None),
         })
     }
 
@@ -877,8 +931,10 @@ pub(crate) struct JointInput<'a> {
     flow: Arc<ValueFlow>,
     effects: Arc<Vec<ProducerEffect>>,
     world_effects: BTreeMap<String, Arc<Vec<ProducerEffect>>>,
+    constructor_lists: BTreeMap<String, Arc<super::source_grammar::ConstructorClosedLists>>,
     evidence: Option<Result<admission::Evidence<'a>, admission::EvidenceGap>>,
     identity: [u8; 32],
+    syntactic: Mutex<Option<Arc<reachability::SyntacticPlan>>>,
 }
 
 /// Exact original native occurrences for one selected execution. Source statements
@@ -886,6 +942,8 @@ pub(crate) struct JointInput<'a> {
 pub(crate) struct NativeInputBinding<'a> {
     pub(super) template: [u8; 32],
     pub(super) world_effects: &'a BTreeMap<String, Arc<Vec<ProducerEffect>>>,
+    pub(super) constructor_lists:
+        &'a BTreeMap<String, Arc<super::source_grammar::ConstructorClosedLists>>,
     pub(super) flow: &'a ValueFlow,
     pub(super) sources: &'a BTreeMap<String, Arc<[crate::reason::refute::RefutationPremise]>>,
     pub(super) graphs: &'a BTreeMap<String, Option<purrdf::TermValue>>,
@@ -1063,11 +1121,13 @@ impl JointInput<'_> {
                 graphs,
                 sources,
                 crate::reason::refute::native::NativeSourceTerms::RdfSkolem,
+                &self.constructor_lists,
             ),
         );
         Ok(NativeInputBinding {
             template: self.template.identity,
             world_effects: &self.world_effects,
+            constructor_lists: &self.constructor_lists,
             flow: &self.flow,
             sources,
             graphs,
@@ -1167,24 +1227,16 @@ impl JointInput<'_> {
             // it is not, the template certificate decides alone and its refusal
             // names why, never passing off the template ledger as the input's.
             let refinement = match &self.evidence {
-                Some(Ok(evidence)) => termination
-                    .certify(
-                        evidence,
-                        &self.certificate_flow,
-                        self.facts,
-                        &self.possible,
-                        &self.contextual_effects,
-                        template.semantics,
-                    )?
-                    .ok_or_else(|| {
-                        format!(
-                            "the input-specific analysis exhausted its bound of {} specialized \
-                             statements",
-                            admission::ANALYSIS_BOUND
-                        )
-                    }),
-                Some(Err(gap)) => Err(gap.to_string()),
-                None => Err("no input-specific evidence was observed".to_owned()),
+                Some(Ok(evidence)) => termination.certify(
+                    evidence,
+                    &self.certificate_flow,
+                    self.facts,
+                    &self.possible,
+                    &self.contextual_effects,
+                    template.semantics,
+                )?,
+                Some(Err(gap)) => Err(gap.clone()),
+                None => Err(admission::EvidenceGap::Unobserved),
             };
             match refinement {
                 Ok(refined) if refined.admits_native() || !admission.admits_native() => {
@@ -1201,16 +1253,18 @@ impl JointInput<'_> {
                 }
             }
         }
-        let mut program = JointProgram::from_schedule(
-            &template.rules,
-            &template.producers,
-            &template.properties,
-            &template.families,
-            &template.family_reads,
+        let mut program = JointProgram::with_layout(
+            Arc::new(super::JointLayout {
+                rules: template.rules.clone(),
+                producers: template.producers.clone(),
+                properties: template.properties.clone(),
+                family_arms: template.families.clone(),
+                family_reads: template.family_reads.clone(),
+            }),
+            Arc::clone(&self.effects),
             template.operation,
             template.semantics,
             schedule,
-            Arc::clone(&self.effects),
             Some(self.identity),
             admission,
         );

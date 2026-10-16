@@ -22,5 +22,6 @@ purrdf.workspace = true
 # first_literal/has_type/subjects) the get leg and the bundle-driven label-set +
 # closeMatch loader reuse — same reader the affect crate reads its geometry with.
 gmeow-math = { path = "../math" }
+gmeow-errors = { path = "../errors" }
 serde.workspace = true
 serde_json.workspace = true

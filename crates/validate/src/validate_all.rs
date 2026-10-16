@@ -552,12 +552,8 @@ impl ValidationRun {
             || match &options.shape_union_root {
                 Some(root) => purrdf::shapes::shape_union::load_shapes(root)
                     .map(|(_, shapes)| shapes)
-                    .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
-                None => purrdf::shapes::engine::parse_shapes(shapes_ttl, None).map_err(|e| {
-                    Diag::of_kind(crate::error::Parse {
-                        detail: e.to_string(),
-                    })
-                }),
+                    .map_err(Diag::from),
+                None => purrdf::shapes::engine::parse_shapes(shapes_ttl, None).map_err(Diag::from),
             },
         )?;
 
@@ -1865,13 +1861,9 @@ fn merge_parsed_sources(parsed: &[ParsedSource]) -> gmeow_errors::Result<Arc<Rdf
                 detail: format!("syntax error in {}: {}", path.display(), e.message()),
             })
         })?;
-        builder.push_dataset(ds);
+        builder.push_dataset(ds)?;
     }
-    builder.freeze().map_err(|e| {
-        Diag::of_kind(crate::error::Serialize {
-            detail: format!("dataset freeze failed: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Phase 1: report syntax errors from the already-parsed per-file results.
@@ -2036,7 +2028,7 @@ fn check_examples(
     }
 
     let start = Instant::now();
-    let base_projected = gmeow_logic_compile::projections::reader_view::shacl_reader_view(dataset);
+    let base_projected = gmeow_logic_compile::projections::reader_view::shacl_reader_view(dataset)?;
     let base_projection_us = start.elapsed().as_micros();
     let start = Instant::now();
     let prepared_shapes = PreparedShapes::new(Arc::new(shapes.clone()));
@@ -2160,7 +2152,7 @@ fn run_example_shacl(
     };
     let start = Instant::now();
     let example_projected =
-        gmeow_logic_compile::projections::reader_view::shacl_reader_view(&example_ds);
+        gmeow_logic_compile::projections::reader_view::shacl_reader_view(&example_ds)?;
     work.projection_us = start.elapsed().as_micros();
     let start = Instant::now();
     let limits = ViewLimits::default();

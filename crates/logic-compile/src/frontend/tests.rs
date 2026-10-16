@@ -27,18 +27,13 @@ fn native_structural_typing_extracts_rules_contracts_and_constraints_without_ali
 {
     for typing in ["a", "logic:instanceOf"] {
         let source = format!(
-            "ex:r {typing} logic:Rule ; \
-             logic:head [ rdf:subject \"?x\" ; rdf:predicate ex:q ; rdf:object ex:b ] ; \
-             logic:body [ rdf:subject \"?x\" ; rdf:predicate ex:p ; rdf:object ex:a ] .\n\
-             ex:contract {typing} logic:ReasoningContract ; \
-             logic:modelSemantics logic:StableModelSemantics ; \
-             logic:negationOperator logic:DefaultNegation .\n\
-             logic:StableModelSemantics {typing} logic:ModelSemantics .\n\
-             logic:DefaultNegation {typing} logic:NegationOperator .\n\
-             ex:range {typing} logic:ValueRangeConstraint ; logic:onClass ex:Probability ; \
-             logic:valuePath ex:magnitude ; logic:minInclusiveBound 0 ; \
-             logic:maxInclusiveBound 1 ; logic:formalizes ex:Probability .\n\
-             ex:subject logic:instanceOf ex:DomainType ."
+            r#"_:rule5bae99cdS0_x a logic:TermCarrier ; logic:termVariable "x" .
+ex:r {typing} logic:Rule ; logic:head [ rdf:reifies <<( _:rule5bae99cdS0_x ex:q ex:b )>> ] ; logic:body [ rdf:reifies <<( _:rule5bae99cdS0_x ex:p ex:a )>> ] .
+ex:contract {typing} logic:ReasoningContract ; logic:modelSemantics logic:StableModelSemantics ; logic:negationOperator logic:DefaultNegation .
+logic:StableModelSemantics {typing} logic:ModelSemantics .
+logic:DefaultNegation {typing} logic:NegationOperator .
+ex:range {typing} logic:ValueRangeConstraint ; logic:onClass ex:Probability ; logic:valuePath ex:magnitude ; logic:minInclusiveBound 0 ; logic:maxInclusiveBound 1 ; logic:formalizes ex:Probability .
+ex:subject logic:instanceOf ex:DomainType ."#
         );
         let (program, diagnostics) = parse(&source);
         assert!(diagnostics.is_empty(), "{typing}: {diagnostics:?}");
@@ -119,11 +114,12 @@ fn native_member_condition_stays_owned_and_exposes_its_evaluation_boundary() {
 #[test]
 fn dual_typing_does_not_duplicate_rules_or_promote_rdf_reification() {
     let (program, diagnostics) = parse(
-        "ex:r a logic:Rule ; logic:instanceOf logic:Rule ;
-             logic:head [ rdf:subject \"?x\" ; rdf:predicate ex:q ; rdf:object ex:b ] ;
-             logic:body [ rdf:subject \"?x\" ; rdf:predicate ex:p ; rdf:object ex:a ] .
+        r#"_:rule4d484603S0_x a logic:TermCarrier ; logic:termVariable "x" .
+ex:r a logic:Rule ; logic:instanceOf logic:Rule ;
+             logic:head [ rdf:reifies <<( _:rule4d484603S0_x ex:q ex:b )>> ] ;
+             logic:body [ rdf:reifies <<( _:rule4d484603S0_x ex:p ex:a )>> ] .
          ex:statement logic:instanceOf rdf:Statement ;
-             rdf:subject ex:s ; rdf:predicate logic:subClassOf ; rdf:object ex:C .",
+             rdf:subject ex:s ; rdf:predicate logic:subClassOf ; rdf:object ex:C ."#,
     );
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     assert_eq!(program.rules.len(), 1);
@@ -489,17 +485,50 @@ fn closed_world_closure_under_counterfactual_revision_is_a_hard_compile_failure(
 
 #[test]
 fn probabilistic_measure_with_declared_model_is_supported() {
-    // With a declared logic:ProbabilityModel the probabilistic measure is fine.
-    let (_, diags) = parse(
-        "ex:ProbContract a logic:ReasoningContract ;
-            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
-         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .
-         ex:myModel a logic:ProbabilityModel .",
-    );
-    assert!(
-        !diags.iter().any(|d| d.code == "UNSUPPORTED_CONTRACT"),
-        "probabilistic measure with a declared model is supported; got: {diags:?}"
-    );
+    // Both source spellings admit the declared contract. This structural check
+    // does not select a model for, or execute, a probabilistic query.
+    for typing in ["a", "logic:instanceOf"] {
+        let (program, diagnostics) = parse(&format!(
+            "ex:ProbContract {typing} logic:ReasoningContract ;
+                logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure .
+             ex:myModel {typing} logic:ProbabilityModel ."
+        ));
+        assert!(diagnostics.is_empty(), "{typing}: {diagnostics:?}");
+        assert_eq!(program.contracts.len(), 1, "{typing}");
+        assert!(
+            program.contracts[0]
+                .uncertainty_measures
+                .contains("ProbabilisticMeasure"),
+            "{typing}: the selected measure must survive compilation"
+        );
+    }
+}
+
+#[test]
+fn probability_model_in_unselected_graph_does_not_admit_default_contract() {
+    for typing in ["a", "logic:instanceOf"] {
+        let source = format!(
+            "{PREFIXES}
+             ex:ProbContract {typing} logic:ReasoningContract ;
+                 logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure .
+             GRAPH ex:unselected {{ ex:myModel {typing} logic:ProbabilityModel . }}"
+        );
+        let dataset = purrdf::parse_dataset(source.as_bytes(), "application/trig", None)
+            .expect("synthetic scoped contract source");
+        let (_, diagnostics) =
+            parse_logic_dataset(&dataset, None).expect("compile the synthetic source");
+        assert!(
+            diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "UNSUPPORTED_CONTRACT"
+                    && diagnostic.severity == Severity::Error
+                    && diagnostic.subject.as_deref()
+                        == Some("https://example.org/test/ProbContract")
+            }),
+            "{typing}: an unselected model cannot admit the contract: {diagnostics:?}"
+        );
+    }
 }
 
 // ── Meta-config does not leak into domain axioms ───────────────────────
@@ -689,9 +718,10 @@ fn no_rule_nodes_yields_empty_rules() {
 #[test]
 fn rule_node_extracted() {
     let (prog, diags) = parse(
-        "ex:r1 a logic:Rule ;
-            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Animal ] ;
-            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Bird ] .",
+        r#"_:ruledf798fb2S0_x a logic:TermCarrier ; logic:termVariable "x" .
+ex:r1 a logic:Rule ;
+            logic:head [ rdf:reifies <<( _:ruledf798fb2S0_x logic:isA ex:Animal )>> ] ;
+            logic:body [ rdf:reifies <<( _:ruledf798fb2S0_x logic:isA ex:Bird )>> ] ."#,
     );
     assert!(diags.is_empty(), "unexpected diags: {diags:?}");
     assert_eq!(prog.rules.len(), 1);
@@ -704,8 +734,9 @@ fn rule_node_extracted() {
 #[test]
 fn rule_missing_head_emits_diagnostic() {
     let (prog, diags) = parse(
-        "ex:r1 a logic:Rule ;
-            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Bird ] .",
+        r#"_:rule02f107f4S0_x a logic:TermCarrier ; logic:termVariable "x" .
+ex:r1 a logic:Rule ;
+            logic:body [ rdf:reifies <<( _:rule02f107f4S0_x logic:isA ex:Bird )>> ] ."#,
     );
     assert!(prog.rules.is_empty());
     assert!(diags.iter().any(|d| d.code == "MISSING_RULE_HEAD"));
@@ -714,10 +745,11 @@ fn rule_missing_head_emits_diagnostic() {
 #[test]
 fn negated_body_atom_yields_negated_axiom() {
     let (prog, _) = parse(
-        "ex:r1 a logic:Rule ;
-            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Live ] ;
-            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Bird ] ;
-            logic:negatedBody [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Dead ] .",
+        r#"_:rulef14e645cS0_x a logic:TermCarrier ; logic:termVariable "x" .
+ex:r1 a logic:Rule ;
+            logic:head [ rdf:reifies <<( _:rulef14e645cS0_x logic:isA ex:Live )>> ] ;
+            logic:body [ rdf:reifies <<( _:rulef14e645cS0_x logic:isA ex:Bird )>> ] ;
+            logic:negatedBody [ rdf:reifies <<( _:rulef14e645cS0_x logic:isA ex:Dead )>> ] ."#,
     );
     assert_eq!(prog.rules.len(), 1);
     let rule = &prog.rules[0];
@@ -736,10 +768,12 @@ fn negated_body_atom_yields_negated_axiom() {
 #[test]
 fn distinct_body_guard_requires_variables() {
     let (prog, diags) = parse(
-        "ex:r1 a logic:Rule ;
-            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
-            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
-            logic:distinctBody [ rdf:subject \"?x\" ; rdf:object \"?y\" ] .",
+        r#"_:rule9c8d4740S0_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rule9c8d4740S0_y a logic:TermCarrier ; logic:termVariable "y" .
+ex:r1 a logic:Rule ;
+            logic:head [ rdf:reifies <<( _:rule9c8d4740S0_x logic:rel _:rule9c8d4740S0_y )>> ] ;
+            logic:body [ rdf:reifies <<( _:rule9c8d4740S0_x logic:rel _:rule9c8d4740S0_y )>> ] ;
+            logic:distinctBody [ logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "x" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "y" ] ] ."#,
     );
     assert_eq!(prog.rules.len(), 1);
     assert_eq!(
@@ -752,9 +786,11 @@ fn distinct_body_guard_requires_variables() {
 #[test]
 fn distinct_body_constant_term_rejected() {
     let (prog, diags) = parse(
-        "ex:r1 a logic:Rule ;
-            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
-            logic:distinctBody [ rdf:subject \"?x\" ; rdf:object ex:constant ] .",
+        r#"_:rulebf1f628eS0_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rulebf1f628eS0_y a logic:TermCarrier ; logic:termVariable "y" .
+ex:r1 a logic:Rule ;
+            logic:head [ rdf:reifies <<( _:rulebf1f628eS0_x logic:rel _:rulebf1f628eS0_y )>> ] ;
+            logic:distinctBody [ logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "x" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:constant ] ] ."#,
     );
     assert!(prog.rules.is_empty());
     assert!(
@@ -2980,6 +3016,53 @@ fn derive_qualified_cardinality_on_data_range_emits_plain_datatype_and_count() {
 }
 
 #[test]
+fn derive_qualified_numeric_data_ranges_retains_union_and_integer_bounds() {
+    let ds = shape_dataset(
+        "g:Approximation a logic:Class ; logic:subClassOf \
+         [ a logic:Restriction ; logic:onProperty g:error ; \
+           logic:minQualifiedCardinality 1 ; \
+           logic:onDataRange [ logic:unionOf ( xsd:decimal xsd:double xsd:float ) ] ] . \
+         g:RootSystem a logic:Class ; logic:subClassOf \
+         [ a logic:Restriction ; logic:onProperty g:rank ; \
+           logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).unwrap();
+    let property = |name: &str| {
+        shapes
+            .iter()
+            .flat_map(|shape| &shape.properties)
+            .find(|property| property.path.ends_with(name))
+            .unwrap()
+    };
+    let error = property("error");
+    assert_eq!(error.min_count, Some(1));
+    let union = error
+        .components
+        .iter()
+        .find_map(|component| match component {
+            ConstraintComponent::Or(branches) => Some(branches),
+            _ => None,
+        })
+        .expect("the numeric data range must survive projection");
+    assert_eq!(union.len(), 3);
+    for datatype in ["decimal", "double", "float"] {
+        assert!(union.contains(&ConstraintComponent::Datatype(format!(
+            "http://www.w3.org/2001/XMLSchema#{datatype}"
+        ))));
+    }
+    let rank = property("rank");
+    assert_eq!(rank.min_count, Some(1));
+    assert!(rank.components.contains(&ConstraintComponent::Datatype(
+        "http://www.w3.org/2001/XMLSchema#nonNegativeInteger".into()
+    )));
+    for shape in &shapes {
+        let wire = crate::projections::shapes::project_validation_shape_shacl(shape);
+        assert!(wire.contains("sh:datatype"), "{wire}");
+        assert!(!wire.contains("sh:Literal"), "{wire}");
+    }
+}
+
+#[test]
 fn derive_qualified_cardinality_omits_plain_class_without_a_backing_universal() {
     // `owl:maxQualifiedCardinality 1 ; owl:onClass g:C` counts ONLY the values that ARE a C; it
     // does NOT entail that EVERY value of the property is a C. So the faithful projection is the
@@ -4900,30 +4983,39 @@ fn modal_over_accessibleFrom_is_hard_error() {
 #[test]
 fn malformed_rule_parts_exclude_the_entire_rule() {
     let cases = [
-        r#"logic:body [ rdf:subject "?x"; rdf:object "?y" ]"#,
-        r#"logic:body [ rdf:subject "?x"; rdf:predicate ex:p ]"#,
-        r#"logic:body [ rdf:predicate ex:p; rdf:object "?y" ]"#,
-        r#"logic:body [ rdf:subject "?x"; rdf:predicate ex:p, ex:q; rdf:object "?y" ]"#,
-        r#"logic:body [ rdf:subject "?x"; rdf:predicate "ex:p"; rdf:object "?y" ]"#,
+        r#"logic:body []"#,
+        r#"logic:body [ rdf:reifies "not a triple" ]"#,
+        r#"logic:body [ rdf:reifies ex:notATriple ]"#,
+        r#"logic:body [ rdf:reifies <<( ex:s ex:p ex:o )>>, <<( ex:s ex:q ex:o )>> ]"#,
+        r#"logic:body [ rdf:reifies <<( ex:literalSubject ex:p ex:o )>> ]"#,
+        r#"logic:body [ rdf:reifies <<( ex:emptyCarrier ex:p ex:o )>> ]"#,
+        r#"logic:body [ rdf:reifies <<( ex:s ex:emptyCarrier ex:o )>> ]"#,
+        r#"logic:body [ rdf:reifies <<( ex:s ex:p ex:emptyCarrier )>> ]"#,
         r#"logic:negatedBody "broken""#,
-        r#"logic:body [ rdf:subject "?x"; rdf:predicate ex:p; rdf:object <<( ex:s ex:p ex:o )>> ]"#,
-        r#"logic:distinctBody [ rdf:subject <<( ex:s ex:p ex:o )>>; rdf:object "?y" ]"#,
+        r#"logic:body [ rdf:reifies <<( ex:s ex:p <<( ex:s ex:p ex:o )>> )>> ]"#,
+        r#"logic:distinctBody [ logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:constant ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "y" ] ]"#,
         r#"logic:aggregateFunction <<( ex:s ex:p ex:o )>>; logic:aggregateVariable "?y"; logic:aggregateResult "?total""#,
         r#"logic:distinctBody "broken""#,
-        r#"logic:distinctBody [ rdf:subject "?x", "?z"; rdf:object "?y" ]"#,
+        r#"logic:distinctBody [ logic:argument [ logic:termIndex 0; logic:termVariable "x" ], [ logic:termIndex 0; logic:termVariable "y" ] ]"#,
         r#"logic:aggregateFunction "SUM""#,
         r#"logic:groupKey "?x""#,
         r#"logic:aggregateFunction "SUM", "COUNT"; logic:aggregateVariable "?y"; logic:aggregateResult "?total""#,
-        r#"logic:head [ rdf:subject "?x"; rdf:predicate ex:other; rdf:object "?y" ]"#,
+        r#"logic:head [ rdf:reifies <<( _:rulede2f30d5S0_x ex:other _:rulede2f30d5S0_y )>> ]"#,
     ];
     for broken in cases {
         let (program, diagnostics) = parse(&format!(
-            r#"ex:broken logic:instanceOf logic:Rule;
-                logic:head [ rdf:subject "?x"; rdf:predicate ex:forbidden; rdf:object "?y" ];
+            r#"ex:literalSubject a logic:TermCarrier ; logic:termLiteral "subject" .
+ex:emptyCarrier a logic:TermCarrier .
+_:rulede2f30d5S0_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rulede2f30d5S0_y a logic:TermCarrier ; logic:termVariable "y" .
+ex:broken logic:instanceOf logic:Rule;
+                logic:head [ rdf:reifies <<( _:rulede2f30d5S0_x ex:forbidden _:rulede2f30d5S0_y )>> ];
                 {broken} .
-               ex:valid logic:instanceOf logic:Rule;
-                logic:head [ rdf:subject "?x"; rdf:predicate ex:allowed; rdf:object "?y" ];
-                logic:body [ rdf:subject "?x"; rdf:predicate ex:given; rdf:object "?y" ] ."#
+               _:rulede2f30d5S1_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rulede2f30d5S1_y a logic:TermCarrier ; logic:termVariable "y" .
+ex:valid logic:instanceOf logic:Rule;
+                logic:head [ rdf:reifies <<( _:rulede2f30d5S1_x ex:allowed _:rulede2f30d5S1_y )>> ];
+                logic:body [ rdf:reifies <<( _:rulede2f30d5S1_x ex:given _:rulede2f30d5S1_y )>> ] ."#
         ));
         assert_eq!(program.rules.len(), 1, "{broken}: {diagnostics:?}");
         assert!(program.rules[0].head.predicate.ends_with("/allowed"));
@@ -4944,9 +5036,11 @@ fn malformed_rule_parts_exclude_the_entire_rule() {
 fn rule_source_declaration_has_one_semantic_home_on_round_trip() {
     let (program, diagnostics) = parse(
         r#"
-        ex:r a logic:Rule; logic:provenance ex:r;
-            logic:head [ rdf:subject "?x"; rdf:predicate ex:derived; rdf:object "?y" ];
-            logic:body [ rdf:subject "?x"; rdf:predicate ex:given; rdf:object "?y" ] .
+        _:rulee9905b70S0_x a logic:TermCarrier ; logic:termVariable "x" .
+_:rulee9905b70S0_y a logic:TermCarrier ; logic:termVariable "y" .
+ex:r a logic:Rule; logic:provenance ex:r;
+            logic:head [ rdf:reifies <<( _:rulee9905b70S0_x ex:derived _:rulee9905b70S0_y )>> ];
+            logic:body [ rdf:reifies <<( _:rulee9905b70S0_x ex:given _:rulee9905b70S0_y )>> ] .
     "#,
     );
     assert!(diagnostics.is_empty(), "{diagnostics:?}");

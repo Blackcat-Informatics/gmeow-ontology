@@ -226,13 +226,12 @@ every class that uses the property.
 closed-world condition has **no ordinary-OWL antecedent**: "every `K`→`P`→value assertion must be
 reified, and the reifier of that statement must conform to shape `C`." OWL cannot say it, and
 minting a hand-authored shape predicate for it would reintroduce the parallel shape vocabulary this
-layer forbids. It is therefore derived from the **classic RDF reification form the frontend already
-reads** — no new authoring term: a slice authors a reifier `?r` (`a rdf:Statement`) typed with a
-GMEOW class `C` that reifies the schema-level triple via `rdf:subject K` / `rdf:predicate P` /
-`rdf:object O`. The classic form is used rather than the native RDF-1.2 `rdf:reifies <<( K P O )>>`
-term on purpose: a quoted-triple object cannot ride the base-quad fold to the `gmeow.gts` terminal
-(the statement layer travels the reifier/annotation tables), so the schema-level obligation is
-authored as plain base triples. The derivation lowers this to a property shape on path `P` (targeting
+layer forbids. The schema-obligation reader currently recognizes existing classic RDF records:
+a reifier `?r` (`a rdf:Statement`) typed with a GMEOW class `C`, with `rdf:subject K`,
+`rdf:predicate P`, and `rdf:object O`. This reader is separate from the native rule-atom
+grammar. Native RDF 1.2 quotations travel losslessly through the reifier/annotation layer
+to `gmeow.gts`; transport does not require classic reification. The derivation lowers the
+recognized schema record to a property shape on path `P` (targeting
 `K`) carrying `sh:reifierShape {C}-shape` + `sh:reificationRequired true`. Two rules make it
 well-formed: (1) `K`, `P`, and `C` must all be GMEOW-owned (the same dogfooding guard every family
 applies); and (2) `C` must be a **constrained** GMEOW class so FAMILY 1 independently derives the

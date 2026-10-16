@@ -189,7 +189,7 @@ pub fn project_decoded_bundle(
                 "reconstruction graph {iri} maps to {path} but no gmeow:fanoutExtracts row"
             ))
         })?;
-        let folded = reconstruct_graph(dataset, &rep).ok_or_else(|| {
+        let folded = reconstruct_graph(dataset, &rep)?.ok_or_else(|| {
             stage_err(&format!(
                 "reconstruction graph {iri} is present but folds to no bytes"
             ))
@@ -1174,33 +1174,34 @@ fn sweep_against_materialized(
 /// `None` if the graph carries no quads (no representative present). The fold is
 /// the canonical-Turtle render of the projected graph (no graph label), the same
 /// serializer the producing stage emits the committed file with.
-fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
-    let projected = dataset.project_named_graph(&rep.iri);
+fn reconstruct_graph(
+    dataset: &RdfDataset,
+    rep: &GraphRep,
+) -> gmeow_errors::Result<Option<Vec<u8>>> {
+    let projected = dataset.project_named_graph(&rep.iri)?;
     if projected.quad_count() == 0 {
-        return None;
+        return Ok(None);
     }
-    match rep.form {
+    let bytes = match rep.form {
         GraphForm::Turtle => {
-            Some(purrdf::turtle_normalize::render(&projected, &rdf_prefixes()).into_bytes())
+            purrdf::turtle_normalize::render(&projected, &rdf_prefixes()).into_bytes()
         }
-        GraphForm::NTriples => canonical_ntriples(&projected).ok(),
+        GraphForm::NTriples => canonical_ntriples(&projected)?,
         GraphForm::NQuads(label) => {
-            // `project_named_graph` drops the graph label; restamp to the embedded
-            // label so the RDFC-canonical N-Quads 4th column matches the committed file.
-            let rooted = crate::stages::carrier::rooted_in_graph(&projected, label).ok()?;
-            canonical_ntriples(&rooted).ok()
+            let rooted = crate::stages::carrier::rooted_in_graph(&projected, label)?;
+            canonical_ntriples(&rooted)?
         }
         GraphForm::NQuadsSelf => {
-            // The committed 4th column is the fanout IRI itself — restamp back to it.
-            let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri).ok()?;
-            canonical_ntriples(&rooted).ok()
+            let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri)?;
+            canonical_ntriples(&rooted)?
         }
-        // Unreachable in practice: an opaque or header-dict row never yields a `GraphRep`
-        // (`graph_rep_for_path` skips both families), so neither the `Blob` nor the
-        // `HeaderDict` form is ever handed to a graph fold. Fail closed rather than panic
-        // if the invariant is ever violated.
-        GraphForm::Blob | GraphForm::HeaderDict => None,
-    }
+        GraphForm::Blob | GraphForm::HeaderDict => {
+            return Err(stage_err(
+                "non-graph representation reached graph reconstruction",
+            ));
+        }
+    };
+    Ok(Some(bytes))
 }
 
 /// The project's single prefix authority for the canonical Turtle renderer — shared

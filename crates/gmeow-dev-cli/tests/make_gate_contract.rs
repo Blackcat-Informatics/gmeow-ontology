@@ -450,8 +450,6 @@ fn target_recipe(source: &str, target: &str) -> String {
         .join("\n")
 }
 
-/// Every real-DAG medium refresh must enter through the admitted producer.
-
 /// Release-authority publication must use the same admitted producer as synchronization.
 #[test]
 fn term_release_authority_has_only_the_authenticated_producer_entry_point() {

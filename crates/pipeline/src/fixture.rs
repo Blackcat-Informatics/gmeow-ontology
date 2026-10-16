@@ -62,6 +62,7 @@ pub const AUTHENTICATED_TEST_STAGE_IDS: &[&str] = &[
     "stage-validate",
     "stage-source-load",
     "stage-compile-logic",
+    "stage-goal-directed",
     "stage-export-constraint-shapes",
     "stage-mappings",
     "stage-slice-brief",
@@ -841,6 +842,18 @@ pub fn verify_stage_fixtures(
 
 /// Compact original-source observations explicitly exported before test processes start.
 pub const AUTHENTICATED_SOURCE_ARTIFACTS: &[(&str, &str)] = &[
+    (
+        "stage-conformance",
+        crate::stages::conformance::reviewed_translations::CHANNEL,
+    ),
+    (
+        "stage-goal-directed",
+        crate::stages::goal_directed::OBSERVATION_CHANNEL,
+    ),
+    (
+        "stage-compile-logic",
+        crate::stages::compile_logic::list_corpus::CHANNEL,
+    ),
     (
         "stage-validate",
         crate::stages::validate::norm_claims::CHANNEL,

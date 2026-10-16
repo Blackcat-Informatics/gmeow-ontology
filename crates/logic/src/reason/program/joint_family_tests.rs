@@ -25,7 +25,7 @@ fn quad(s: &str, p: &str, o: &str) -> RdfQuad {
 fn source(rows: &[RdfQuad]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(row);
+        builder.push_owned_quad(row).unwrap();
     }
     builder.freeze().unwrap()
 }

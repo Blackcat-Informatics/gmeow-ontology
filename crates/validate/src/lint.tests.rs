@@ -430,7 +430,8 @@ fn lang_tag_exempts_external_publication_fanout_graph_but_not_internal() {
         b.push_owned_quad(
             &RdfQuad::new(RdfTerm::iri(subject.clone()), label, en.clone())
                 .in_graph(RdfTerm::iri(graph.to_owned())),
-        );
+        )
+        .unwrap();
         b.freeze().expect("valid dataset")
     };
 

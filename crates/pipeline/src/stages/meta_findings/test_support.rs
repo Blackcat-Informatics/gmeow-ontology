@@ -9,7 +9,7 @@ impl MetaDerivation {
     #[cfg(test)]
     pub(super) fn to_dataset(&self, graph_iri: &str) -> Arc<RdfDataset> {
         let mut builder = RdfDatasetBuilder::new();
-        self.append_to(&mut builder, graph_iri);
+        self.append_to(&mut builder, graph_iri).unwrap();
         builder.freeze().expect("native meta-findings")
     }
 

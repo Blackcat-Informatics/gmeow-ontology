@@ -334,8 +334,7 @@ fn execute_put_legs_graph(
 
     let mut all_quads = fact_quads;
     all_quads.extend(claim_quads);
-    let dataset = purrdf::flat_dataset_from_quads(&all_quads)
-        .map_err(|message| Diag::of_kind(Put { message }))?;
+    let dataset = purrdf::flat_dataset_from_quads(&all_quads).map_err(Diag::from)?;
 
     let residue = build_residue(
         value_rule_dropped,

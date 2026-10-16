@@ -293,7 +293,7 @@ pub fn check_gmn1_shipped_projections(
         // out-of-band store): clean ⇒ Ok.
         match gmn1_read(&doc, &dictionary) {
             Ok(back) => {
-                if gmn0_canonically_equal(&model, &back) {
+                if gmn0_canonically_equal(&model, &back)? {
                     verified += 1;
                 } else {
                     failures.push(Gmn1ShippedFailure {

@@ -381,11 +381,11 @@ fn templated_cell(
         pattern: MappingPattern {
             anchor: "s".to_owned(),
             value: None,
-            atoms: vec![Item::Atom(plain_atom(
+            atoms: vec![Item::Atom(Box::new(plain_atom(
                 "s",
                 &format!("{GM}{source_pred}"),
                 "v",
-            ))],
+            )))],
             suppress_when: Vec::new(),
             project_when: Vec::new(),
             exclude_when: Vec::new(),

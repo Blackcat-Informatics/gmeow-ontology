@@ -220,7 +220,12 @@ impl<'a> Reader<'a> {
                 else {
                     return Err(term::error("rcIndex requires an integer"));
                 };
-                let index = usize::try_from(value).map_err(term::error)?;
+                let index = value
+                    .as_i128()
+                    .and_then(|value| usize::try_from(value).ok())
+                    .ok_or_else(|| {
+                        term::error("rcIndex must fit a non-negative native position")
+                    })?;
                 Ok((index, node))
             })
             .collect::<gmeow_errors::Result<Vec<_>>>()?;

@@ -84,7 +84,7 @@ fn composition_source_ownership_and_all_common_logic_round_trips() {
         .unwrap()
         .with_correspondence_compositions(expected.clone());
     let cp = typed_program();
-    let projected = project_correspondence(&cp);
+    let projected = project_correspondence(&cp).unwrap();
     let backing =
         purrdf::parse_dataset(projected.as_bytes(), "application/n-triples", None).unwrap();
     assert_eq!(parse_correspondence(&backing).unwrap(), cp);

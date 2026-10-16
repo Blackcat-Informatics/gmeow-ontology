@@ -400,84 +400,89 @@ impl CorrespondenceOwnership {
 /// total function for well-formed input. The gate is exercised independently by
 /// [`assert_no_overclaim_correspondence`] (a caller asking an alignment back-end for an
 /// equivalence surface).
-pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
-    let dataset = project_correspondence_dataset(program).expect("valid correspondence projection");
+///
+/// # Errors
+/// Returns a typed correspondence refusal or the original storage/codec failure.
+pub fn project_correspondence(program: &CorrespondenceProgram) -> gmeow_errors::Result<String> {
+    let dataset = project_correspondence_dataset(program)?;
     let bytes = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
-    )
-    .expect("serialize correspondence projection");
-    let text = String::from_utf8(bytes).expect("N-Triples is UTF-8");
+    )?;
+    let text = String::from_utf8(bytes)?;
     let mut lines: Vec<_> = text.lines().filter(|line| !line.is_empty()).collect();
     lines.sort_unstable();
     lines.dedup();
-    format!("{}\n", lines.join("\n"))
+    Ok(format!("{}\n", lines.join("\n")))
 }
 
 /// Build the complete correspondence projection once in native RDF. Downstream
 /// stages share this dataset; only a terminal text consumer invokes its codec.
+///
+/// # Errors
+/// Returns a typed correspondence refusal or the original storage failure.
 pub fn project_correspondence_dataset(
     program: &CorrespondenceProgram,
 ) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
     let prog = program_iri();
     let mut g = super::rdf::TripleSink::default();
 
-    g.add_iri(&prog, RDF_TYPE, &class_program());
-    g.add_iri(&prog, &p_has_preservation(), &program.preservation.iri());
+    g.add_iri(&prog, RDF_TYPE, &class_program())?;
+    g.add_iri(&prog, &p_has_preservation(), &program.preservation.iri())?;
     for c in &program.correspondences {
         validate_loss_evidence(c)?;
-        g.add_iri(&prog, &p_has_correspondence(), &c.iri);
-        g.add_iri(&c.iri, RDF_TYPE, &class_correspondence());
+        g.add_iri(&prog, &p_has_correspondence(), &c.iri)?;
+        g.add_iri(&c.iri, RDF_TYPE, &class_correspondence())?;
         if c.grounding {
-            g.add_iri(&c.iri, RDF_TYPE, &class_grounding_correspondence());
+            g.add_iri(&c.iri, RDF_TYPE, &class_grounding_correspondence())?;
         }
-        g.add_iri(&c.iri, &p_relation(), &c.relation.iri());
-        g.add_iri(&c.iri, &p_morphism_class(), &c.morphism_class.iri());
-        g.add_iri(&c.iri, &p_morphism_kind(), &c.morphism_kind.iri());
+        g.add_iri(&c.iri, &p_relation(), &c.relation.iri())?;
+        g.add_iri(&c.iri, &p_morphism_class(), &c.morphism_class.iri())?;
+        g.add_iri(&c.iri, &p_morphism_kind(), &c.morphism_kind.iri())?;
         if c.mnemomorphic {
             g.add_lit(
                 &c.iri,
                 &p_mnemomorphic(),
                 purrdf::RdfLiteral::typed("true", XSD_BOOLEAN),
-            );
+            )?;
         }
         if let Some(det) = c.determinacy {
-            g.add_iri(&c.iri, &p_determinacy(), &det.iri());
+            g.add_iri(&c.iri, &p_determinacy(), &det.iri())?;
         }
         if let Some(leg) = &c.get_leg {
-            g.add_iri(&c.iri, &p_get_leg(), leg);
+            g.add_iri(&c.iri, &p_get_leg(), leg)?;
         }
         if let Some(leg) = &c.put_leg {
-            g.add_iri(&c.iri, &p_put_leg(), leg);
+            g.add_iri(&c.iri, &p_put_leg(), leg)?;
         }
         if let (Some(source), Some(target)) = (&c.source_endpoint, &c.target_endpoint) {
-            g.add_iri(&c.iri, &p_source_endpoint(), source);
-            g.add_iri(&c.iri, &p_target_endpoint(), target);
+            g.add_iri(&c.iri, &p_source_endpoint(), source)?;
+            g.add_iri(&c.iri, &p_target_endpoint(), target)?;
         }
         if let Some(v) = &c.confidence {
-            g.add_lit(&c.iri, &p_confidence(), v.literal().clone());
+            g.add_lit(&c.iri, &p_confidence(), v.literal().clone())?;
         }
         if let Some(v) = &c.evidence_strength {
-            g.add_lit(&c.iri, &p_evidence_strength(), v.literal().clone());
+            g.add_lit(&c.iri, &p_evidence_strength(), v.literal().clone())?;
         }
         if let Some(v) = &c.weight {
-            g.add_lit(&c.iri, &p_weight(), v.literal().clone());
+            g.add_lit(&c.iri, &p_weight(), v.literal().clone())?;
         }
         if let Some(v) = &c.probability {
-            g.add_lit(&c.iri, &p_probability(), v.literal().clone());
+            g.add_lit(&c.iri, &p_probability(), v.literal().clone())?;
         }
         if let Some(at) = &c.according_to {
-            g.add_iri(&c.iri, &p_according_to(), at);
+            g.add_iri(&c.iri, &p_according_to(), at)?;
         }
         // The per-correspondence preservation judgment (`logic:preservationKind`): the
         // Principle-17 loss residue this cell carries. Emitted only when authored, so a
         // preservation-free correspondence round-trips byte-identically (append-only).
         if let Some(pres) = c.preservation {
-            g.add_iri(&c.iri, &p_preservation_kind(), &pres.iri());
+            g.add_iri(&c.iri, &p_preservation_kind(), &pres.iri())?;
         }
         for evidence in &c.loss_evidence {
-            g.add_lit(&c.iri, &p_lossy_drop(), evidence.clone());
+            g.add_lit(&c.iri, &p_lossy_drop(), evidence.clone())?;
         }
         // The relation-sound SSSOM alignment surface (the load-bearing decision): the
         // legs co-project onto a shared apex, so the alignment links the two legs to the
@@ -488,18 +493,18 @@ pub fn project_correspondence_dataset(
                 .into_iter()
                 .flatten()
             {
-                g.add_iri(leg, pred, &c.iri);
+                g.add_iri(leg, pred, &c.iri)?;
             }
         }
         // Law claims, each as a content-IRI node.
         for (index, claim) in c.law_claims.iter().enumerate() {
             let claim_iri = law_claim_iri(&c.iri, index);
-            g.add_iri(&c.iri, &p_has_law_claim(), &claim_iri);
-            g.add_iri(&claim_iri, RDF_TYPE, &class_law_claim());
-            g.add_iri(&claim_iri, &p_law_claimed(), &claim.law.iri());
-            g.add_iri(&claim_iri, &p_law_verdict(), &claim.verdict.iri());
+            g.add_iri(&c.iri, &p_has_law_claim(), &claim_iri)?;
+            g.add_iri(&claim_iri, RDF_TYPE, &class_law_claim())?;
+            g.add_iri(&claim_iri, &p_law_claimed(), &claim.law.iri())?;
+            g.add_iri(&claim_iri, &p_law_verdict(), &claim.verdict.iri())?;
             if let Some(cond) = claim.condition {
-                g.add_iri(&claim_iri, &p_law_condition(), &cond.iri());
+                g.add_iri(&claim_iri, &p_law_condition(), &cond.iri())?;
             }
         }
         // First-class, correspondence-owned recovery evidence.  The formula tree uses the
@@ -507,10 +512,10 @@ pub fn project_correspondence_dataset(
         // differs, so it can round-trip without becoming a second top-level assertion.
         for case in &c.recovery_cases {
             let transform_iri = format!("{}/transform", case.iri);
-            g.add_iri(&c.iri, &p_recovery_case(), &case.iri);
-            g.add_iri(&case.iri, RDF_TYPE, &class_recovery_case());
-            g.add_iri(&case.iri, &p_recovery_transform(), &transform_iri);
-            super::rdf::emit_formula(&mut g, &transform_iri, &case.transform);
+            g.add_iri(&c.iri, &p_recovery_case(), &case.iri)?;
+            g.add_iri(&case.iri, RDF_TYPE, &class_recovery_case())?;
+            g.add_iri(&case.iri, &p_recovery_transform(), &transform_iri)?;
+            super::rdf::emit_formula(&mut g, &transform_iri, &case.transform)?;
         }
         // Caveats for this correspondence.
         for evidence in &c.axis_evidence.sources {
@@ -518,7 +523,7 @@ pub fn project_correspondence_dataset(
                 &c.iri,
                 &format!("{LOGIC_NAMESPACE}evidenceSource"),
                 evidence,
-            );
+            )?;
         }
         for (predicate, value) in [
             ("evidenceScale", &c.axis_evidence.scale),
@@ -528,14 +533,14 @@ pub fn project_correspondence_dataset(
             ),
         ] {
             if let Some(value) = value {
-                g.add_iri(&c.iri, &format!("{LOGIC_NAMESPACE}{predicate}"), value);
+                g.add_iri(&c.iri, &format!("{LOGIC_NAMESPACE}{predicate}"), value)?;
             }
         }
         for caveat in &c.caveats {
-            g.add_iri(&c.iri, &p_has_caveat(), &caveat.iri);
-            g.add_iri(&caveat.iri, RDF_TYPE, &class_caveat());
+            g.add_iri(&c.iri, &p_has_caveat(), &caveat.iri)?;
+            g.add_iri(&caveat.iri, RDF_TYPE, &class_caveat())?;
             for comment in &caveat.comments {
-                g.add_lit(&caveat.iri, RDFS_COMMENT, comment.clone());
+                g.add_lit(&caveat.iri, RDFS_COMMENT, comment.clone())?;
             }
         }
     }
@@ -545,18 +550,18 @@ pub fn project_correspondence_dataset(
             &prog,
             &format!("{LOGIC_NAMESPACE}hasComposition"),
             &composition.iri,
-        );
+        )?;
         g.add_iri(
             &composition.iri,
             RDF_TYPE,
             &format!("{LOGIC_NAMESPACE}CorrespondenceComposition"),
-        );
+        )?;
         for rule in &composition.axis_rules {
             g.add_iri(
                 &composition.iri,
                 &format!("{LOGIC_NAMESPACE}compositionAxisRule"),
                 rule,
-            );
+            )?;
         }
         for (predicate, value) in [
             (
@@ -573,7 +578,7 @@ pub fn project_correspondence_dataset(
                     &composition.iri,
                     &format!("{LOGIC_NAMESPACE}{predicate}"),
                     value,
-                );
+                )?;
             }
         }
         for (predicate, value) in [
@@ -585,7 +590,7 @@ pub fn project_correspondence_dataset(
                 &composition.iri,
                 &format!("{LOGIC_NAMESPACE}{predicate}"),
                 value,
-            );
+            )?;
         }
     }
 
@@ -595,14 +600,10 @@ pub fn project_correspondence_dataset(
     for leg in &program.leg_programs {
         let mut counter = 0;
         let body = emit_leg_path(&mut g, &leg.iri, &leg.body, &mut counter)?;
-        g.add_iri(&leg.iri, &gm("path"), &body);
+        g.add_iri(&leg.iri, &gm("path"), &body)?;
     }
 
-    g.builder.freeze().map_err(|error| {
-        gmeow_errors::Diag::of_kind(crate::error::Projection {
-            detail: format!("freeze correspondence projection: {error}"),
-        })
-    })
+    Ok(g.builder.freeze()?)
 }
 
 // --------------------------------------------------------------------------- //
@@ -1190,9 +1191,9 @@ fn emit_leg_path(
         LegPath::Inverse(inner) => {
             let node = format!("{base}/legnode/{counter}");
             *counter += 1;
-            sink.add_iri(&node, RDF_TYPE, &gm("InversePath"));
+            sink.add_iri(&node, RDF_TYPE, &gm("InversePath"))?;
             let inner = emit_leg_path(sink, base, inner, counter)?;
-            sink.add_iri(&node, &gm("pathStep"), &inner);
+            sink.add_iri(&node, &gm("pathStep"), &inner)?;
             Ok(node)
         }
         LegPath::Seq(members) => emit_leg_list(
@@ -1231,7 +1232,7 @@ fn emit_leg_list(
     }
     let node = format!("{base}/legnode/{counter}");
     *counter += 1;
-    sink.add_iri(&node, RDF_TYPE, path_type);
+    sink.add_iri(&node, RDF_TYPE, path_type)?;
     let cells: Vec<_> = members
         .iter()
         .map(|_| {
@@ -1242,12 +1243,12 @@ fn emit_leg_list(
         .collect();
     for (index, member) in members.iter().enumerate() {
         let item = emit_leg_path(sink, base, member, counter)?;
-        sink.add_iri(&cells[index], &gm("pathItem"), &item);
+        sink.add_iri(&cells[index], &gm("pathItem"), &item)?;
         if let Some(next) = cells.get(index + 1) {
-            sink.add_iri(&cells[index], &gm("pathNext"), next);
+            sink.add_iri(&cells[index], &gm("pathNext"), next)?;
         }
     }
-    sink.add_iri(&node, head_predicate, &cells[0]);
+    sink.add_iri(&node, head_predicate, &cells[0])?;
     Ok(node)
 }
 

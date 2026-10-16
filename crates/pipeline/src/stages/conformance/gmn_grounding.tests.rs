@@ -14,7 +14,7 @@ _:a__b gmeow:predicate gmeow:object .
         None,
     )
     .unwrap();
-    let source = observe(&dataset, &GmnDictionary::default());
+    let source = observe(&dataset, &GmnDictionary::default()).unwrap();
     let path = "slices/grounding/math/module.ttl";
     let observations = Observations {
         sources: BTreeMap::from([(path.to_owned(), source)]),
@@ -61,7 +61,7 @@ _:claim gmeow:label "porte"@fr .
         None,
     )
     .unwrap();
-    let source = observe(&dataset, &GmnDictionary::default());
+    let source = observe(&dataset, &GmnDictionary::default()).unwrap();
     assert!(source.roundtrip.is_ok());
     assert_eq!(source.quads, source.retained_quads);
     assert_eq!(source.coverage, source.without_decimal);
@@ -79,7 +79,7 @@ _:claim gmeow:confidence "0.25"^^xsd:decimal ; gmeow:label "porte"@fr .
         None,
     )
     .unwrap();
-    let source = observe(&dataset, &GmnDictionary::default());
+    let source = observe(&dataset, &GmnDictionary::default()).unwrap();
     assert!(source.roundtrip.is_ok(), "{:?}", source.roundtrip);
     assert_eq!(source.quads, 2);
     assert!(source.coverage.count(Gmn1ConstructCategory::LiteralDecimal) > 0);
@@ -98,7 +98,7 @@ fn source_observation_retains_domain_failure_through_observation_encoding() {
     let dataset = parse_dataset(br#"
 <https://blackcatinformatics.ca/gmeow/a> <https://blackcatinformatics.ca/gmeow/p> <https://blackcatinformatics.ca/gmeow/b> <urn:standpoint> .
 "#, "application/n-quads", None).unwrap();
-    let source = observe(&dataset, &GmnDictionary::default());
+    let source = observe(&dataset, &GmnDictionary::default()).unwrap();
     assert!(matches!(
         source.roundtrip,
         Err(Gmn1Error::NamedGraphOutOfDomain { .. })

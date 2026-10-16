@@ -354,7 +354,7 @@ fn promote_to_single_world(
         }
         let promoted = RdfQuad::new(quad.subject, quad.predicate, quad.object)
             .in_graph(RdfTerm::iri(ENACTMENT_GATE_WORLD));
-        builder.push_owned_quad(&promoted);
+        builder.push_owned_quad(&promoted)?;
     }
     for quad in derived {
         if !keep(&quad.predicate, &quad.object) {
@@ -366,13 +366,9 @@ fn promote_to_single_world(
             quad.object.clone(),
         )
         .in_graph(RdfTerm::iri(ENACTMENT_GATE_WORLD));
-        builder.push_owned_quad(&promoted);
+        builder.push_owned_quad(&promoted)?;
     }
-    builder.freeze().map_err(|e| {
-        enactment_gate_err(format!(
-            "promote the reasoned closure into the enactment-gate scratch world: {e}"
-        ))
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Decode a materialized row's subject to a bare IRI.
