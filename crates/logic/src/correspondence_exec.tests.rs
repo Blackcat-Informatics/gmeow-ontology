@@ -981,6 +981,45 @@ fn mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case() {
 }
 
 #[test]
+fn honest_lossy_recovery_requires_legs_and_keeps_its_refutation() {
+    use gmeow_logic_compile::projections::correspondence_gates::{assert_gates, evaluate_gates};
+
+    let mut correspondence = recovery_correspondence(recovery_case(false));
+    correspondence.relation = CorrespondenceRelation::RelatedMatch;
+    correspondence.morphism_class = MorphismClass::LossyLens;
+    correspondence.mnemomorphic = false;
+    let incomplete = CorrespondenceProgram::new(vec![correspondence], PreservationKind::SoundUnder);
+    assert!(program_verdicts(&incomplete).is_err());
+
+    let get = step("https://example.org/sourceKind");
+    let complete = incomplete.with_leg_programs(vec![
+        TransactionProgramIr {
+            iri: "https://example.org/get".to_owned(),
+            body: get.clone(),
+        },
+        TransactionProgramIr {
+            iri: "https://example.org/put".to_owned(),
+            body: get.invert(),
+        },
+    ]);
+    let verdicts = program_verdicts(&complete).expect("execute the lossy recovery case");
+    assert_eq!(
+        verdicts["https://example.org/correspondence"]
+            .section
+            .verdict,
+        DischargeVerdict::ObligationViolated,
+        "supplying executable paths must not erase the lost source detail"
+    );
+    assert_gates(&evaluate_gates(&complete, &[], &verdicts))
+        .expect("an honestly declared lossy mapping may retain a recovery refutation");
+
+    let mut overclaim = complete;
+    overclaim.correspondences[0].morphism_class = MorphismClass::SectionRetraction;
+    overclaim.correspondences[0].mnemomorphic = true;
+    assert!(assert_gates(&evaluate_gates(&overclaim, &[], &verdicts)).is_err());
+}
+
+#[test]
 fn recovery_evidence_with_a_missing_resolved_leg_fails_closed() {
     let program = CorrespondenceProgram::new(
         vec![recovery_correspondence(recovery_case(true))],
