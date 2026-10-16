@@ -6,6 +6,8 @@
 
 use super::*;
 
+mod cardinality;
+
 struct ClassLowering {
     definition: SourceClassDefinition,
     support: Vec<QuadIds>,
@@ -28,6 +30,8 @@ impl From<ClassRefusal> for SemanticUnitDisposition {
 }
 
 impl AdmissionBuilder<'_> {
+    /// Certify selected class laws and propagate refused dependencies before
+    /// their source syntax is marked consumed.
     pub(super) fn admit_classes(&mut self) {
         let dataset = self.theory.source().dataset();
         let mut roots: BTreeSet<_> = self
@@ -143,6 +147,8 @@ impl AdmissionBuilder<'_> {
         }
     }
 
+    /// Lower one unscoped definition with its exact selected support. Independent
+    /// count bounds are conjunctive; ambiguous property/qualifier roles fail.
     fn lower_class(
         &self,
         node: SourceNode,
@@ -171,6 +177,7 @@ impl AdmissionBuilder<'_> {
             });
         }
         let mut fields: BTreeMap<String, TermId> = BTreeMap::new();
+        let mut cardinalities: BTreeMap<String, Vec<TermId>> = BTreeMap::new();
         let mut support = Vec::new();
         for quad in dataset.quads_for_pattern(Some(node.term), None, None, GraphMatch::Default) {
             let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
@@ -195,7 +202,12 @@ impl AdmissionBuilder<'_> {
                     "class-definition support is outside the selected documents",
                 ));
             }
-            if let Some(previous) = fields.insert(local.to_owned(), quad.o)
+            if cardinality::BOUNDS.contains(&local) {
+                cardinalities
+                    .entry(local.to_owned())
+                    .or_default()
+                    .push(quad.o);
+            } else if let Some(previous) = fields.insert(local.to_owned(), quad.o)
                 && previous != quad.o
             {
                 return Err(ClassRefusal::Malformed {
@@ -211,12 +223,22 @@ impl AdmissionBuilder<'_> {
                 "unionOf" | "intersectionOf" | "complementOf" | "oneOf" | "disjointUnionOf"
             )
         }) {
+            if !cardinalities.is_empty() {
+                return Err(unsupported_class(
+                    "combined Boolean and property constructors require separate certified laws",
+                ));
+            }
             return self.lower_boolean_class(node, &fields, support, roots);
         }
         if let Some(unsupported) = fields.keys().find(|local| {
             !matches!(
                 local.as_str(),
-                "onProperty" | "someValuesFrom" | "allValuesFrom" | "hasValue" | "hasSelf"
+                "onProperty"
+                    | "someValuesFrom"
+                    | "allValuesFrom"
+                    | "hasValue"
+                    | "hasSelf"
+                    | "onClass"
             )
         }) {
             return Err(unsupported_class(format!(
@@ -307,26 +329,7 @@ impl AdmissionBuilder<'_> {
                 parts.push(atom(property, vec![x.clone(), bind(*value)?]));
                 continue;
             }
-            if data_resource(dataset, *value) {
-                return Err(unsupported_class(
-                    "datatype membership requires a certified datatype interpretation",
-                ));
-            }
-            if let TermRef::Iri(iri) = dataset.resolve(*value)
-                && (iri.starts_with("http://www.w3.org/2001/XMLSchema#")
-                    || iri == "http://www.w3.org/2000/01/rdf-schema#Literal")
-            {
-                return Err(unsupported_class(
-                    "datatype membership requires a certified datatype interpretation",
-                ));
-            }
-            let target = SourceNode {
-                term: *value,
-                graph: None,
-            };
-            if roots.contains(&target) {
-                dependencies.insert(target);
-            }
+            class_dependency(dataset, *value, roots, &mut dependencies)?;
             let membership = atom(LOGIC_INSTANCE_OF, vec![y.clone(), bind(*value)?]);
             let relation = atom(property, vec![x.clone(), y.clone()]);
             let body = if local == "someValuesFrom" {
@@ -341,6 +344,50 @@ impl AdmissionBuilder<'_> {
                 }
             };
             parts.push(body);
+        }
+        let has_bound = !cardinalities.is_empty();
+        if has_bound {
+            let qualifier = fields
+                .get("onClass")
+                .ok_or_else(|| ClassRefusal::Malformed {
+                    code: "MISSING_CLASS_QUALIFIER",
+                    reason: "qualified object cardinality requires logic:onClass".into(),
+                })?;
+            class_dependency(dataset, *qualifier, roots, &mut dependencies)?;
+            for name in cardinality::BOUNDS {
+                let Some(counts) = cardinalities.get(name) else {
+                    continue;
+                };
+                // Equal native count values denote the same law, while every
+                // original lexical statement remains in source support.
+                let counts = counts
+                    .iter()
+                    .map(|count| cardinality::count(dataset, *count))
+                    .collect::<Result<BTreeSet<_>, _>>()?;
+                for count in counts {
+                    if count == 0 && name == "minQualifiedCardinality" {
+                        parts.push(cardinality::zero_minimum(&x));
+                        continue;
+                    }
+                    let qualifier = bind(*qualifier)?;
+                    if name != "maxQualifiedCardinality" {
+                        parts.push(cardinality::minimum(property, &x, &qualifier, count)?);
+                    }
+                    if name != "minQualifiedCardinality" {
+                        let excess = count
+                            .checked_add(1)
+                            .ok_or_else(cardinality::unrepresentable)?;
+                        parts.push(Formula::Not(Box::new(cardinality::minimum(
+                            property, &x, &qualifier, excess,
+                        )?)));
+                    }
+                }
+            }
+        } else if fields.contains_key("onClass") {
+            return Err(ClassRefusal::Malformed {
+                code: "ORPHAN_CLASS_QUALIFIER",
+                reason: "logic:onClass requires a qualified cardinality constraint".into(),
+            });
         }
         let condition = match parts.len() {
             0 => {
@@ -365,6 +412,8 @@ impl AdmissionBuilder<'_> {
         })
     }
 
+    /// Lower a Boolean or nominal constructor, retaining source bindings and
+    /// all required partition exclusions.
     fn lower_boolean_class(
         &self,
         node: SourceNode,
@@ -484,6 +533,8 @@ impl AdmissionBuilder<'_> {
         })
     }
 
+    /// Read a nonempty strict collection and require every support edge to be
+    /// part of the selected source documents.
     fn selected_class_list(
         &self,
         head: TermId,
@@ -545,6 +596,41 @@ fn atom(relation: &str, args: Vec<Term>) -> Formula {
         relation: Term::Iri(relation.to_owned()),
         args,
     }
+}
+
+/// Require an object-class interpretation and retain dependencies on source
+/// definitions. Datatypes cannot silently become uninterpreted object classes.
+fn class_dependency(
+    dataset: &RdfDataset,
+    value: TermId,
+    roots: &BTreeSet<SourceNode>,
+    dependencies: &mut BTreeSet<SourceNode>,
+) -> Result<(), ClassRefusal> {
+    if !matches!(
+        dataset.resolve(value),
+        TermRef::Iri(_) | TermRef::Blank { .. }
+    ) {
+        return Err(unsupported_class(
+            "literal and quoted class terms require a certified value interpretation",
+        ));
+    }
+    if data_resource(dataset, value)
+        || matches!(dataset.resolve(value), TermRef::Iri(iri)
+            if iri.starts_with("http://www.w3.org/2001/XMLSchema#")
+                || iri == "http://www.w3.org/2000/01/rdf-schema#Literal")
+    {
+        return Err(unsupported_class(
+            "datatype membership requires a certified datatype interpretation",
+        ));
+    }
+    let target = SourceNode {
+        term: value,
+        graph: None,
+    };
+    if roots.contains(&target) {
+        dependencies.insert(target);
+    }
+    Ok(())
 }
 
 fn unsupported_class(reason: impl Into<String>) -> ClassRefusal {

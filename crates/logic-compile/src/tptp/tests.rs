@@ -11,6 +11,9 @@ use crate::frontend::{
     SourceBaseOrigin, SourceDocument, SourceSelection,
 };
 
+#[path = "cardinality.tests.rs"]
+mod cardinality_tests;
+
 fn compile(source: &str) -> crate::frontend::CompiledTheory {
     let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).expect("valid RDF 1.2");
     PreparedLogicSource::new(&dataset)
@@ -472,7 +475,7 @@ fn unselected_class_expression_does_not_block_selected_document() {
                @prefix ex: <https://example.org/> .
                ex:Whole logic:subClassOf [ a logic:Restriction ;
                    logic:onProperty ex:part ; logic:someValuesFrom ex:Part ;
-                   logic:minQualifiedCardinality 1 ; logic:onClass ex:Part ] ."#,
+                   logic:minQualifiedCardinality 1 ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#integer> ] ."#,
             None,
         ),
     ]);
@@ -520,7 +523,7 @@ fn deduplicated_class_axiom_remains_required_with_one_selected_contributor() {
                    @prefix ex: <https://example.org/> .
                    ex:Whole logic:subClassOf [ a logic:Restriction ;
                        logic:onProperty ex:part ; logic:someValuesFrom ex:Part ;
-                       logic:minQualifiedCardinality 1 ; logic:onClass ex:Part ] ."#;
+                       logic:minQualifiedCardinality 1 ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#integer> ] ."#;
     let theory = compile_documents(&[("first.ttl", source, None), ("second.ttl", source, None)]);
     assert!(
         theory.axiom_sources().iter().any(|sources| {
@@ -812,8 +815,8 @@ fn boolean_classes_refuse_malformed_uninterpreted_and_excluded_support() {
         "ex:C logic:unionOf (xsd:integer ex:A) .",
         "ex:C a logic:Datarange ; logic:unionOf (ex:A ex:B) .",
         "ex:C logic:unionOf (ex:A ex:B) ; logic:standpoint ex:observer .",
-        "ex:C logic:unionOf (ex:Unsupported) . ex:Unsupported logic:onProperty ex:p ; logic:minQualifiedCardinality 2 ; logic:onClass ex:A .",
-        "ex:C logic:disjointUnionOf (ex:A ex:Unsupported) . ex:Unsupported logic:onProperty ex:p ; logic:minQualifiedCardinality 2 ; logic:onClass ex:A .",
+        "ex:C logic:unionOf (ex:Unsupported) . ex:Unsupported logic:onProperty ex:p ; logic:minQualifiedCardinality 2 ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#integer> .",
+        "ex:C logic:disjointUnionOf (ex:A ex:Unsupported) . ex:Unsupported logic:onProperty ex:p ; logic:minQualifiedCardinality 2 ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#integer> .",
     ] {
         let (_, projection) = project(&format!(
             "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
@@ -1185,7 +1188,7 @@ fn restriction_dependencies_are_class_laws_not_recursive_syntax_expansion() {
            ex:middle a logic:Restriction ; logic:onProperty ex:part ;
                logic:someValuesFrom ex:inner .
            ex:inner a logic:Restriction ; logic:onProperty ex:part ;
-               logic:minQualifiedCardinality 2 ; logic:onClass ex:Part ."#,
+               logic:minQualifiedCardinality 2 ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#integer> ."#,
     );
     assert_eq!(refused.status, FofProjectionStatus::Blocked);
     assert!(refused.problem.is_none());

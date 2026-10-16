@@ -29,6 +29,9 @@
 //! unsupported dependencies, value interpretations and contexts refuse admission.
 //! Local self restrictions use an admitted true native XSD boolean and define
 //! membership by the property's self-edge; they do not assert global reflexivity.
+//! Qualified object counts require their explicit class. Minima use distinct
+//! denoting witnesses, maxima exclude an excessive witness set, and exact counts
+//! retain both bounds. Independent bounds remain conjunctive.
 
 mod writer;
 
