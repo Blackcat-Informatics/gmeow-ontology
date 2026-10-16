@@ -2753,7 +2753,7 @@
   "cli-shared-stdin": 1,
   "counting-allocator": 2,
   "escape-decode": 8,
-  "fixed-hasher-everywhere": 702,
+  "fixed-hasher-everywhere": 701,
   "fnv1a64": 5,
   "frame-le": 52,
   "grammar-ws": 14,
