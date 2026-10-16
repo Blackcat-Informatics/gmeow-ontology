@@ -12,6 +12,9 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+const PROGRAM_IDENTITY_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-reasoning-program-v1");
+
 use crate::OutputFormat;
 
 pub(crate) const EXIT_NEGATIVE: i32 = 1;
@@ -147,10 +150,13 @@ impl ProgramIdentity {
     pub(crate) fn selected(profile: impl Into<String>, components: &[&str]) -> Self {
         let profile = profile.into();
         let mut hasher = blake3::Hasher::new();
-        frame(&mut hasher, b"gmeow-reasoning-program-v1");
-        frame(&mut hasher, profile.as_bytes());
-        for component in components {
-            frame(&mut hasher, component.as_bytes());
+        for field in std::iter::once(PROGRAM_IDENTITY_DOMAIN.as_bytes())
+            .chain(std::iter::once(profile.as_bytes()))
+            .chain(components.iter().map(|component| component.as_bytes()))
+        {
+            purrdf_hash::frame::frame_le_with(field, &mut |part| {
+                hasher.update(part);
+            });
         }
         Self {
             profile,
@@ -629,14 +635,35 @@ fn current_executable_identity() -> Option<ExecutableIdentity> {
     })
 }
 
-fn frame(hasher: &mut blake3::Hasher, bytes: &[u8]) {
-    hasher.update(&u64::try_from(bytes.len()).unwrap_or(u64::MAX).to_le_bytes());
-    hasher.update(bytes);
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn shared_framing_preserves_program_identity_and_field_boundaries() {
+        for (profile, components) in [
+            ("", vec![]),
+            ("native", vec!["", "é", "a\0b"]),
+            ("🦊", vec!["proof", "model"]),
+        ] {
+            let mut preimage = Vec::new();
+            for field in std::iter::once(b"gmeow-reasoning-program-v1".as_slice())
+                .chain(std::iter::once(profile.as_bytes()))
+                .chain(components.iter().map(|value| value.as_bytes()))
+            {
+                preimage.extend_from_slice(&(field.len() as u64).to_le_bytes());
+                preimage.extend_from_slice(field);
+            }
+            assert_eq!(
+                ProgramIdentity::selected(profile, &components).content_digest,
+                blake3::hash(&preimage).to_hex().to_string()
+            );
+        }
+        assert_ne!(
+            ProgramIdentity::selected("a", &["bc"]).content_digest,
+            ProgramIdentity::selected("ab", &["c"]).content_digest
+        );
+    }
 
     fn core(
         decision: DecisionClass,

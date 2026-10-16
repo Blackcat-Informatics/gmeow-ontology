@@ -871,6 +871,43 @@ macro_rules! define_diag_kind {
             $( pub $field: $fty ),*
         }
 
+        $crate::impl_diag_kind! {
+            $name;
+            code = $code;
+            grade = $grade;
+            $(failure_class = $failure_class;)?
+        }
+
+        impl ::std::fmt::Display for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                let Self { $( $field ),* } = self;
+                $( let _ = &$field; )*
+                ::std::write!(f, $msg $(, $marg)*)
+            }
+        }
+
+        impl ::std::error::Error for $name {
+            $(fn source(&self) -> ::core::option::Option<&(dyn ::std::error::Error + 'static)> {
+                let $source_self = self;
+                $source
+            })?
+        }
+    };
+}
+
+/// Bind an existing diagnostic payload to its registered code and grade.
+///
+/// This is the same registration authority used by [`define_diag_kind!`]. Use it
+/// when a payload owns non-cloneable evidence or a custom display/source chain;
+/// it does not replace those implementations or flatten their causes.
+#[macro_export]
+macro_rules! impl_diag_kind {
+    (
+        $name:ty;
+        code = $code:literal;
+        grade = $grade:expr;
+        $(failure_class = $failure_class:literal;)?
+    ) => {
         impl $name {
             /// This kind's registered code string. (Not every caller reads it;
             /// generated API items carry `allow(dead_code)`.)
@@ -900,31 +937,15 @@ macro_rules! define_diag_kind {
             }
         }
 
-        impl ::std::fmt::Display for $name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                let Self { $( $field ),* } = self;
-                // Suppress "unused binding" for fields not named in the message.
-                $( let _ = &$field; )*
-                ::std::write!(f, $msg $(, $marg)*)
-            }
-        }
-
-        impl ::std::error::Error for $name {
-            $(fn source(&self) -> ::core::option::Option<&(dyn ::std::error::Error + 'static)> {
-                let $source_self = self;
-                $source
-            })?
-        }
-
         impl $crate::diag::DiagKind for $name {
             fn code(&self) -> $crate::code::Code {
-                $name::register()
+                Self::register()
             }
             fn grade(&self) -> $crate::grade::Grade {
                 $grade
             }
             fn failure_class(&self) -> ::core::option::Option<&'static str> {
-                $name::FAILURE_CLASS
+                Self::FAILURE_CLASS
             }
         }
     };

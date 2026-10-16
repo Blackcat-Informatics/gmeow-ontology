@@ -7,7 +7,7 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_errors::{Code, Diag, DiagKind, FindingCategory, Grade, Severity, Standpoint};
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
 
 use super::reasoning_report::InputIdentity;
 
@@ -25,12 +25,14 @@ pub(crate) struct ReasoningInputFailure {
     pub cause: Arc<crate::error::PreservedDiagnostic>,
 }
 
-impl ReasoningInputFailure {
-    pub(crate) const CODE: &'static str = "gmeow-cli.reasoning.input-failed";
-
-    pub(crate) fn register() -> Code {
-        gmeow_errors::register_code(Self::CODE)
-    }
+gmeow_errors::impl_diag_kind! {
+    ReasoningInputFailure;
+    code = "gmeow-cli.reasoning.input-failed";
+    grade = Grade::new(
+        Severity::Error,
+        FindingCategory::DataShapeViolation,
+        Standpoint::Binding,
+    );
 }
 
 impl std::fmt::Display for ReasoningInputFailure {
@@ -42,20 +44,6 @@ impl std::fmt::Display for ReasoningInputFailure {
 impl std::error::Error for ReasoningInputFailure {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(self.cause.as_ref())
-    }
-}
-
-impl DiagKind for ReasoningInputFailure {
-    fn code(&self) -> Code {
-        Self::register()
-    }
-
-    fn grade(&self) -> Grade {
-        Grade::new(
-            Severity::Error,
-            FindingCategory::DataShapeViolation,
-            Standpoint::Binding,
-        )
     }
 }
 
@@ -136,4 +124,52 @@ pub(super) fn load_reasoning_input(
         )
     })?;
     Ok(LoadedReasoningInput { dataset, identity })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn input_refusal_retains_registered_grade_identity_and_original_diagnostic() {
+        let cause = Diag::of_kind(crate::error::SourceReadFailed {
+            detail: "selected input is unavailable".to_owned(),
+        })
+        .with_context("read selected theory");
+        let cause_code = cause.code();
+        let identity = InputIdentity::from_bytes(
+            Path::new("theory.ttl"),
+            "theory",
+            "ttl",
+            None,
+            b"selected bytes",
+        );
+        let diag = refused(
+            Path::new("theory.ttl"),
+            "classify",
+            "INPUT_READ_FAILED",
+            vec![identity.clone()],
+            cause,
+        );
+        assert_eq!(diag.code(), ReasoningInputFailure::register());
+        assert_eq!(diag.grade().category, FindingCategory::DataShapeViolation);
+        let payload = diag
+            .downcast_ref::<ReasoningInputFailure>()
+            .expect("typed refusal");
+        assert_eq!(payload.code, "INPUT_READ_FAILED");
+        assert_eq!(payload.operation, "classify");
+        assert_eq!(
+            payload.identities[0].content_digest,
+            identity.content_digest
+        );
+        assert_eq!(payload.cause.0.code(), cause_code);
+        assert!(
+            payload
+                .cause
+                .0
+                .downcast_ref::<crate::error::SourceReadFailed>()
+                .is_some()
+        );
+        assert!(std::error::Error::source(payload).is_some());
+    }
 }

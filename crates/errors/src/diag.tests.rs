@@ -11,6 +11,51 @@ use std::io;
 assert_not_impl_all!(Diag: std::error::Error);
 assert_not_impl_all!(Diag: serde::Serialize);
 
+#[derive(Debug)]
+struct EvidenceFailure {
+    source: io::Error,
+}
+
+impl fmt::Display for EvidenceFailure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "evidence unavailable: {}", self.source)
+    }
+}
+
+impl StdError for EvidenceFailure {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        Some(&self.source)
+    }
+}
+
+crate::impl_diag_kind! {
+    EvidenceFailure;
+    code = "test.diagkind.evidence-failure";
+    grade = Grade::new(Severity::Error, FindingCategory::IncompleteCheck, Standpoint::Binding);
+    failure_class = "urn:test:evidence-failure";
+}
+
+#[test]
+fn existing_payload_registration_preserves_noncloneable_evidence() {
+    let diag = Diag::of_kind(EvidenceFailure {
+        source: io::Error::new(io::ErrorKind::NotFound, "receipt missing"),
+    });
+    assert_eq!(diag.code(), EvidenceFailure::register());
+    assert_eq!(diag.code(), register_code(EvidenceFailure::CODE));
+    assert_eq!(diag.grade().category, FindingCategory::IncompleteCheck);
+    let payload = diag
+        .downcast_ref::<EvidenceFailure>()
+        .expect("original payload");
+    let source = payload
+        .source()
+        .expect("original cause")
+        .downcast_ref::<io::Error>()
+        .expect("typed IO cause");
+    assert_eq!(source.kind(), io::ErrorKind::NotFound);
+    assert_eq!(payload.failure_class(), Some("urn:test:evidence-failure"));
+    assert_eq!(payload.to_string(), "evidence unavailable: receipt missing");
+}
+
 #[test]
 fn diag_ref_index_roundtrips() {
     for i in [0usize, 1, 7, 4096, u32::MAX as usize - 1] {
