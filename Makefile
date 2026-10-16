@@ -256,7 +256,7 @@ test-corpus-scanner: ## Verify the corpus-purity scanner with inert source fixtu
 test-corpus-purity: test-corpus-scanner ## Reject every direct or indirect corpus producer reachable from tests.
 	./scripts/lint-test-corpus-producers.sh
 
-lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, and source-policy seals).
+lint: check-sync-prerequisite-test ## Run fast source hygiene and inert docs prerequisite controls.
 	pre-commit run --all-files --show-diff-on-failure
 
 # Clippy is deliberately not a commit hook: it is a compiled whole-workspace gate owned
@@ -264,7 +264,7 @@ lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets,
 # fast source hygiene with no skip environment or hidden second Rust build.
 # `check-lint` reads only the git-tracked tree (`/generated/` is gitignored in full),
 # which is why the DAG starts it immediately rather than after `sync`.
-check-lint:
+check-lint: check-sync-prerequisite-test
 	pre-commit run --all-files --show-diff-on-failure
 
 validate: ## Validate syntax, term annotations, merged SHACL, and central mapping/statement/test DSL SHACL.
@@ -440,10 +440,14 @@ check-sync: ## The one pipeline producer: materialize (SYNC_MODE=update) or read
 	@# narrower `SYNC_OUTPUTS=docs` selection skips that pipeline-level dist/ write, so
 	@# it alone needs an explicit materialize-then-build prerequisite here.
 	@if [ "$(SYNC_OUTPUTS)" = "docs" ]; then \
-		$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
+		$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE) && \
 		$(MAKE) build; \
 	fi
 	$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,) $(if $(strip $(SYNC_TIMINGS_JSON)),--timings-json $(SYNC_TIMINGS_JSON),)
+
+.PHONY: check-sync-prerequisite-test
+check-sync-prerequisite-test: ## Verify docs prerequisite failure propagation using inert producer stubs.
+	./scripts/test-check-sync-prerequisites.sh
 
 i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 	$(GMEOW_DEV) i18n lint
