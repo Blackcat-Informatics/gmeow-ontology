@@ -25,8 +25,8 @@ use purrdf::gts_compose::emit_gts;
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
 use purrdf::provenance::DatasetProvenance;
 use purrdf::{
-    RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SerializeGraph, flat_rdf_quads_from_dataset,
-    parse_dataset, serialize_dataset,
+    RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, flat_rdf_quads_from_dataset, parse_dataset,
+    serialize_dataset,
 };
 // The archive reps the `archive-blobs` stage owns. The presenter reads them ONLY to
 // answer the superset gate's "which rep carries which committed `generated/` path"
@@ -42,7 +42,7 @@ use crate::stages::archive_blobs::{
 #[cfg(test)]
 use crate::stages::archive_blobs::AXIOM_FILES;
 
-use gmeow_ns::{GMEOW_NS, LOGIC_NS};
+use gmeow_ns::GMEOW_NS;
 
 #[cfg(test)]
 mod test_support;
@@ -2801,246 +2801,122 @@ fn build_reasoning_blob(
     archive_blob(REP_REASONING, &members)
 }
 
-/// One reasoner-derivation's raw shape, accumulated per resource subject while
-/// walking the explanations Turtle (see [`term_entailments_from_explanations`]).
-#[derive(Default)]
-struct RawDerivation {
-    /// Whether an `rdf:type gmeow:Derivation` triple was seen for this subject — a
-    /// defensive check so a stray resource in the explanations graph (there should
-    /// be none) can never masquerade as a derivation.
-    is_derivation: bool,
-    /// Every distinct `gmeow:concludes` quoted-triple object seen. A derivation
-    /// identifies one rule firing from one exact source set, so a multi-head firing
-    /// legitimately carries more than one conclusion under the same identity.
-    conclusions: Vec<RdfTriple>,
-    /// Every `gmeow:hasPremise` quoted-triple object seen (zero or more).
-    premises: Vec<RdfTriple>,
-    /// The `gmeow:viaRule` object IRI, if seen.
-    via_rule: Option<String>,
-    /// The `logic:derivationIdentifier` literal, which must repeat the resource IRI.
-    identifier: Option<String>,
-}
-
-/// Whether any documented term IRI appears in `triple`'s subject, predicate, or
-/// object position, added to `out` (a term appearing twice in one triple is recorded
-/// once — `out` is a set).
-fn collect_term_matches(
-    triple: &RdfTriple,
-    term_iris: &std::collections::BTreeSet<String>,
-    out: &mut std::collections::BTreeSet<String>,
+/// Match documented IRIs in a native RDF 1.2 value without serializing it.
+fn collect_native_term_matches(
+    value: &purrdf::TermValue,
+    terms: &std::collections::BTreeSet<String>,
+    matched: &mut std::collections::BTreeSet<String>,
 ) {
-    if let RdfTerm::Iri(iri) = &triple.subject
-        && term_iris.contains(iri)
-    {
-        out.insert(iri.clone());
-    }
-    if term_iris.contains(&triple.predicate) {
-        out.insert(triple.predicate.clone());
-    }
-    if let RdfTerm::Iri(iri) = &triple.object
-        && term_iris.contains(iri)
-    {
-        out.insert(iri.clone());
+    let mut pending = vec![value];
+    while let Some(value) = pending.pop() {
+        match value {
+            purrdf::TermValue::Iri(iri) if terms.contains(iri) => {
+                matched.insert(iri.clone());
+            }
+            purrdf::TermValue::Triple { s, p, o } => {
+                pending.extend([s.as_ref(), p.as_ref(), o.as_ref()])
+            }
+            _ => {}
+        }
     }
 }
 
-/// Fetch `stage-reason`'s materialized `reasoning-explanations` artifact off the
-/// upstream product and fold it into the B3 per-term entailment digest. HARD-fails if
-/// `stage-reason` (or its explanations artifact) is absent — the pipeline path never
-/// falls back to an empty digest silently; only the model-only
-/// `ExecutableDocsData::default()` seam is allowed to be empty (F-2).
+/// Project term panels from the authenticated native result, retaining source worlds.
+/// Explanation Turtle is an outward artifact and is never reparsed as pipeline input.
 pub(crate) fn term_entailments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     term_iris: &std::collections::BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
-    let bytes = upstream
-        .get("stage-reason")
-        .and_then(|p| p.artifact(crate::stages::reason::EXPLANATIONS_PATH))
-        .ok_or_else(|| {
-            stage_err(&format!(
-                "missing stage-reason artifact {} for term entailments",
-                crate::stages::reason::EXPLANATIONS_PATH
-            ))
-        })?;
-    term_entailments_from_explanations(bytes, term_iris)
-}
-
-/// Parse `stage-reason`'s materialized `reasoning-explanations` proof skeletons
-/// (RDF 1.2 Turtle; see `crate::stages::reason::EXPLANATIONS_PATH` and
-/// `gmeow_logic::reason::artifacts::build_explanations_ttl`) into the B3 per-term
-/// entailment digest.
-///
-/// For every `gmeow:Derivation`, any IRI in `term_iris` that appears in the subject,
-/// predicate, or object position of EITHER a `gmeow:concludes` conclusion OR any
-/// `gmeow:hasPremise` premise gets that derivation's rule + a display of each
-/// conclusion + displays of its premises appended to its panel. Pure function of the
-/// bytes + the term-IRI set — independently testable without a pipeline product map
-/// (mirrors [`executable_docs_from_sources`]'s fixture-only core).
-fn term_entailments_from_explanations(
-    explanations_bytes: &[u8],
-    term_iris: &std::collections::BTreeSet<String>,
-) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    let dataset = parse_dataset(explanations_bytes, "text/turtle", None).map_err(|e| {
-        stage_err(&format!(
-            "parse reasoning-explanations for term entailments: {e}"
-        ))
-    })?;
-
-    // `gmeow_logic::reason::artifacts::build_explanations_ttl` emits each
-    // `gmeow:concludes` / `gmeow:hasPremise` object in canonical parenthesized RDF 1.2
-    // triple-term form, `<<( s p o )>>`, which parses directly as `RdfTerm::Triple`.
-    // The equivalent bare reifying-triple syntax, `<< s p o >>`, instead puts its minted
-    // reifier in the object position and records the statement in
-    // `dataset.owned_reifiers()`. Resolve that RDF-level spelling to the same typed triple
-    // so syntax alone cannot change a term's entailment digest.
-    let reifier_triples: std::collections::HashMap<RdfTerm, RdfTriple> = dataset
-        .owned_reifiers()
-        .map(|r| (r.reifier, r.statement))
-        .collect();
-    let resolve_triple = |term: &RdfTerm| -> Option<RdfTriple> {
-        match term {
-            RdfTerm::Triple(t) => Some((**t).clone()),
-            other => reifier_triples.get(other).cloned(),
-        }
-    };
-
-    let derivation_ty = format!("{GMEOW_NS}Derivation");
-    let concludes_p = format!("{GMEOW_NS}concludes");
-    let has_premise_p = format!("{GMEOW_NS}hasPremise");
-    let via_rule_p = format!("{GMEOW_NS}viaRule");
-    let derivation_identifier_p = format!("{LOGIC_NS}derivationIdentifier");
-
-    // Production explanations name every derivation with its content-addressed IRI.
-    // A blank node or an unrelated IRI would erase that identity at the documentation
-    // seam, so reject either instead of accepting an alternate representation.
-    let derivation_prefix = gmeow_logic::provenance::DERIVATION_PREFIX;
-    let mut raw: BTreeMap<String, RawDerivation> = BTreeMap::new();
-    for q in dataset.owned_quads() {
-        let is_derivation_type = q.predicate == RDF_TYPE
-            && matches!(&q.object, RdfTerm::Iri(iri) if iri == &derivation_ty);
-        let RdfTerm::Iri(subject) = &q.subject else {
-            if is_derivation_type {
-                return Err(stage_err(
-                    "reasoning explanation derivation must be named by its content-addressed IRI",
-                ));
+    // The snapshot retains the original native result after the reason carrier
+    // reaches its last reader. Do not retain that large producer just for panels.
+    let snapshot = upstream
+        .get("stage-snapshot")
+        .ok_or_else(|| stage_err("missing stage-snapshot product for term entailments"))?;
+    let result =
+        crate::stages::docs_render::reasoning_result_from_product(snapshot, "stage-snapshot")?;
+    let mut entailments: BTreeMap<String, Vec<gmeow_docs::Entailment>> = BTreeMap::new();
+    for axiom in result.inferred().iter().filter(|axiom| !axiom.is_edb) {
+        let raw_rule = axiom
+            .rule_name
+            .as_deref()
+            .filter(|rule| !rule.is_empty())
+            .ok_or_else(|| stage_err("a native inferred term entailment has no firing rule"))?;
+        let mut matched = std::collections::BTreeSet::new();
+        for iri in [&axiom.subject, &axiom.predicate] {
+            if term_iris.contains(iri) {
+                matched.insert(iri.clone());
             }
-            continue;
+        }
+        collect_native_term_matches(&axiom.object, term_iris, &mut matched);
+        let modal_premises = axiom
+            .modal_evaluation
+            .as_ref()
+            .map(|evidence| evidence.positive_premises());
+        let source_premises: Vec<(&str, &str, &str, &str)> = match &modal_premises {
+            Some(premises) => premises
+                .iter()
+                .map(|p| {
+                    (
+                        p.context.as_str(),
+                        p.subject.as_str(),
+                        p.predicate.as_str(),
+                        p.object.as_str(),
+                    )
+                })
+                .collect(),
+            None => axiom
+                .premises
+                .iter()
+                .map(|(s, p, o)| (axiom.world.as_str(), s.as_str(), p.as_str(), o.as_str()))
+                .collect(),
         };
-        if is_derivation_type && !subject.starts_with(derivation_prefix) {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {subject} is outside the content-addressed \
-                 {derivation_prefix} namespace"
-            )));
+        let mut premises = Vec::with_capacity(source_premises.len());
+        for (world, subject, predicate, object) in source_premises {
+            // The native premise object is already its canonical display value;
+            // compare its resource spelling directly rather than parsing RDF.
+            let object_iri = object
+                .strip_prefix('<')
+                .and_then(|o| o.strip_suffix('>'))
+                .unwrap_or(object);
+            for iri in [subject, predicate, object_iri] {
+                if term_iris.contains(iri) {
+                    matched.insert(iri.to_owned());
+                }
+            }
+            premises.push(format!(
+                "[{}] {} {} {}",
+                compact_iri(world),
+                compact_iri(subject),
+                compact_iri(predicate),
+                object
+            ));
         }
-        let entry = raw.entry(subject.clone()).or_default();
-        if is_derivation_type {
-            entry.is_derivation = true;
-        } else if q.predicate == concludes_p {
-            let Some(triple) = resolve_triple(&q.object) else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-triple conclusion"
-                )));
-            };
-            if !entry.conclusions.contains(&triple) {
-                entry.conclusions.push(triple);
-            }
-        } else if q.predicate == has_premise_p {
-            let Some(triple) = resolve_triple(&q.object) else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-triple premise"
-                )));
-            };
-            entry.premises.push(triple);
-        } else if q.predicate == via_rule_p {
-            let RdfTerm::Iri(iri) = &q.object else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-IRI firing rule"
-                )));
-            };
-            if let Some(previous) = entry.via_rule.replace(iri.clone())
-                && previous != iri.as_str()
-            {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has conflicting firing rules"
-                )));
-            }
-        } else if q.predicate == derivation_identifier_p {
-            let RdfTerm::Literal(literal) = &q.object else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-literal derivation identifier"
-                )));
-            };
-            if let Some(previous) = entry.identifier.replace(literal.lexical_form.clone())
-                && previous != literal.lexical_form.as_str()
-            {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has conflicting derivation identifiers"
-                )));
-            }
-        }
-    }
-
-    let mut term_entailments: BTreeMap<String, Vec<gmeow_docs::Entailment>> = BTreeMap::new();
-    for (derivation_iri, derivation) in raw {
-        if !derivation.is_derivation {
+        if matched.is_empty() {
             continue;
         }
-        if derivation.conclusions.is_empty() {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {derivation_iri} has no conclusion"
-            )));
-        }
-        let Some(rule) = derivation.via_rule.as_deref() else {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {derivation_iri} has no firing rule"
-            )));
-        };
-        let Some(identifier) = derivation.identifier.as_deref() else {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {derivation_iri} has no derivation identifier"
-            )));
-        };
-        if identifier != derivation_iri.as_str() {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation identifier {identifier} does not match its resource IRI {derivation_iri}"
-            )));
-        }
-        let rule = compact_iri(rule);
-        let mut premises: Vec<String> = derivation
-            .premises
-            .iter()
-            .map(|p| triple_display(&p.subject, &p.predicate, &p.object))
-            .collect();
         premises.sort();
         premises.dedup();
-        for conclusion in &derivation.conclusions {
-            let mut matched: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-            collect_term_matches(conclusion, term_iris, &mut matched);
-            for premise in &derivation.premises {
-                collect_term_matches(premise, term_iris, &mut matched);
-            }
-            if matched.is_empty() {
-                continue;
-            }
-            let entailment = gmeow_docs::Entailment {
-                rule: rule.clone(),
-                conclusion: triple_display(
-                    &conclusion.subject,
-                    &conclusion.predicate,
-                    &conclusion.object,
-                ),
-                premises: premises.clone(),
-            };
-            for term_iri in matched {
-                term_entailments
-                    .entry(term_iri)
-                    .or_default()
-                    .push(entailment.clone());
-            }
+        let object = axiom
+            .object
+            .as_iri()
+            .map(compact_iri)
+            .unwrap_or_else(|| gmeow_logic::provenance::term_display(&axiom.object));
+        let entailment = gmeow_docs::Entailment {
+            rule: compact_iri(&gmeow_logic::explain::canonical_rule_iri(raw_rule)),
+            conclusion: format!(
+                "[{}] {} {} {}",
+                compact_iri(&axiom.world),
+                compact_iri(&axiom.subject),
+                compact_iri(&axiom.predicate),
+                object
+            ),
+            premises,
+        };
+        for iri in matched {
+            entailments.entry(iri).or_default().push(entailment.clone());
         }
     }
-    for entries in term_entailments.values_mut() {
+    for entries in entailments.values_mut() {
         entries.sort_by(|a, b| {
             a.conclusion
                 .cmp(&b.conclusion)
@@ -3049,21 +2925,7 @@ fn term_entailments_from_explanations(
         });
         entries.dedup();
     }
-    Ok(term_entailments)
-}
-
-/// The shared `s p o` compact display form (CURIE-compacted subject/predicate/object)
-/// underlying [`format_triple`] and the B3 entailment displays
-/// ([`term_entailments_from_explanations`]) — a `gmeow:Derivation`'s `gmeow:concludes`
-/// / `gmeow:hasPremise` quoted triple has the identical `(subject, predicate, object)`
-/// shape as an owned quad, so both render through this one function.
-fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
-    format!(
-        "{} {} {}",
-        term_display(subject),
-        compact_iri(predicate),
-        term_display(object)
-    )
+    Ok(entailments)
 }
 
 // The canonical prefix registry (generated from the ontology's prefix config,
@@ -3088,35 +2950,6 @@ fn compact_iri(iri: &str) -> String {
         }
     }
     format!("<{iri}>")
-}
-
-/// A compact display form for a term (IRI as CURIE, literal with datatype/lang, blank).
-fn term_display(term: &RdfTerm) -> String {
-    match term {
-        RdfTerm::Iri(iri) => compact_iri(iri),
-        RdfTerm::BlankNode(label) => format!("_:{label}"),
-        RdfTerm::Literal(lit) => format_literal(lit),
-        RdfTerm::Triple(t) => format!(
-            "<< {} {} {} >>",
-            term_display(&t.subject),
-            compact_iri(&t.predicate),
-            term_display(&t.object)
-        ),
-    }
-}
-
-/// A Turtle-ish display form for a literal.
-fn format_literal(lit: &RdfLiteral) -> String {
-    let lex = lit.lexical_form.replace('"', "\\\"");
-    if let Some(lang) = &lit.language {
-        return format!("\"{lex}\"@{lang}");
-    }
-    match &lit.datatype {
-        Some(dt) if dt != "http://www.w3.org/2001/XMLSchema#string" => {
-            format!("\"{lex}\"^^{}", compact_iri(dt))
-        }
-        _ => format!("\"{lex}\""),
-    }
 }
 
 /// Every `*.<ext>` directly under `dir`, sorted by path (empty if the dir is absent).

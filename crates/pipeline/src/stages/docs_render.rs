@@ -37,21 +37,16 @@ pub(crate) fn reasoning_verdict_from_reason(
     reasoning_verdict_from_product(reason, "stage-reason")
 }
 
-/// Borrow the docs verdict from an explicitly selected, retained native owner.
+/// Borrow the complete result from an explicitly selected, retained native owner.
 ///
-/// Both documentation surfaces share the complete inferred payload and the DL
-/// reader's role-sensitive empty-class interpretation. The native information
-/// axis decides consistency; an empty class alone is not a witnessed clash.
-/// Missing identities and wrong payloads refuse. Inconclusive native results
-/// remain explicit observations, never fabricated positive verdicts. Native hashing verifies the immutable
-/// publication contract without rendering, parsing or reasoning over RDF.
-pub(crate) fn reasoning_verdict_from_product(
-    reason: &StageProduct,
+/// Verify the retained owner, graph pin, complete native publication identity and
+/// result invariants. Valid inferred input is mandatory. This neither renders nor
+/// parses RDF and never constructs another reasoning closure.
+pub(crate) fn reasoning_result_from_product<'a>(
+    reason: &'a StageProduct,
     expected_owner: &str,
-) -> Result<ReasoningVerdict, gmeow_errors::Diag> {
-    use gmeow_logic::result::{
-        CompletenessStatus, EvaluationStatus, InformationState, InputStatus, ResultPayload,
-    };
+) -> Result<&'a gmeow_logic::result::ReasoningResult, gmeow_errors::Diag> {
+    use gmeow_logic::result::{InputStatus, ResultPayload};
     use gmeow_logic::result_rdf::GRAPH_REASONING;
 
     let fail = reasoning_verdict_error;
@@ -93,7 +88,7 @@ pub(crate) fn reasoning_verdict_from_product(
         ));
     }
     result.validate()?;
-    let ResultPayload::Inferred(inferred) = &result.payload else {
+    let ResultPayload::Inferred(_) = &result.payload else {
         return Err(fail(
             "the reasoning verdict requires a complete native Inferred payload".into(),
         ));
@@ -103,6 +98,19 @@ pub(crate) fn reasoning_verdict_from_product(
             "the reasoning observation requires valid native input".into(),
         ));
     }
+    Ok(result.as_ref())
+}
+
+/// Derive documentation observations through the shared authenticated native reader.
+/// Native axes decide consistency; an empty class alone is not a witnessed clash.
+/// Inconclusive results remain observations rather than fabricated positive verdicts.
+pub(crate) fn reasoning_verdict_from_product(
+    reason: &StageProduct,
+    expected_owner: &str,
+) -> Result<ReasoningVerdict, gmeow_errors::Diag> {
+    use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, InformationState};
+    let result = reasoning_result_from_product(reason, expected_owner)?;
+    let inferred = result.inferred();
     let consistency = match result.information {
         InformationState::Supported
             if result.is_conclusive()
@@ -1043,7 +1051,7 @@ impl Stage for DocsRenderStage {
 }
 
 #[cfg(test)]
-mod reasoning_tests;
+pub(crate) mod reasoning_tests;
 
 #[path = "docs_render.tests.rs"]
 #[cfg(test)]

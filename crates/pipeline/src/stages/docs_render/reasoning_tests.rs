@@ -55,7 +55,7 @@ fn result(inferred: Vec<InferredAxiom>) -> ReasoningResult {
 }
 
 /// Build a genuine governed native summary and pin the complete payload to it.
-fn product(result: ReasoningResult) -> StageProduct {
+pub(crate) fn product(result: ReasoningResult) -> StageProduct {
     let summary = project_reasoning_dataset(&result).expect("valid tiny native result");
     product_over(result, &summary)
 }

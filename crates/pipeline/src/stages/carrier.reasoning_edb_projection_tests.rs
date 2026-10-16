@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use purrdf::RdfTriple;
 
 #[test]
 fn termination_demonstrators_are_complete_object_level_worlds() {
