@@ -574,6 +574,7 @@ impl Scanner<'_> {
             | "thread_local"
             | "json"
             | "define_diag_kind"
+            | "impl_diag_kind"
             | "assert_not_impl_all"
             | "info"
             | "warn"
