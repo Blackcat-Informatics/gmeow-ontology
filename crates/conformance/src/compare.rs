@@ -268,12 +268,10 @@ pub fn nquads_by_named_graph(nquads_text: &str) -> gmeow_errors::Result<BTreeMap
         // it as N-Triples via the native codecs (oxigraph-free). The per-world bucket
         // is re-parsed downstream by `compare_rdf`, so any valid N-Triples document of
         // the graph's content suffices.
-        let projected = dataset.project_named_graph(&iri);
+        let projected = dataset.project_named_graph(&iri)?;
         let bytes = purrdf::serialize_dataset(&projected, NTRIPLES, SerializeGraph::DefaultGraph)
             .map_err(|e| {
-            Diag::of_kind(RdfCompare {
-                detail: format!("named graph <{iri}> N-Triples serialize error: {e}"),
-            })
+            Diag::from(e).with_context(format!("serialize named graph <{iri}> as N-Triples"))
         })?;
         let doc = String::from_utf8(bytes).map_err(|e| {
             Diag::of_kind(RdfCompare {

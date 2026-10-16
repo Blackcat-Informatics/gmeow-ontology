@@ -650,6 +650,7 @@ fn resolve_source_selection(
     rustc: &str,
     flags: &str,
 ) -> Result<ProductionSelection> {
+    let package_ids = metadata_package_ids(root)?;
     // This is the actual default-profile controller target used by the xtask
     // alias, resolved independently of the O3 corpus-producing executable.
     let mut controller = Command::new(cargo_program());
@@ -688,6 +689,9 @@ fn resolve_source_selection(
             .ok_or_else(|| fail("missing selected units"))?
         {
             let id = string(unit, "pkg_id")?;
+            let package_id = package_ids.get(id).ok_or_else(|| {
+                fail(format!("selected Cargo unit has no package metadata: {id}"))
+            })?;
             let manifest = manifests
                 .get(id)
                 .map(|path| workspace_relative(root, Path::new(path)))
@@ -741,7 +745,7 @@ fn resolve_source_selection(
                 .map(|dependency| string(dependency, "extern_crate_name").map(str::to_owned))
                 .collect::<Result<_>>()?;
             selection.units.push(UnitSelection {
-                package: id.replace(root.to_string_lossy().as_ref(), "<workspace>"),
+                package: package_id.replace(root.to_string_lossy().as_ref(), "<workspace>"),
                 manifest,
                 source,
                 target: string(&unit["target"], "name")?.to_owned(),
@@ -767,6 +771,44 @@ fn resolve_source_selection(
     canonicalize_source_graph(&mut selection.units, &mut selection.roots)?;
     selection.validate().map_err(fail)?;
     Ok(selection)
+}
+
+/// Cargo may omit the name from an ID whose URL already implies it. Recover the
+/// explicit identity from Cargo's own fields, never from a repository basename or
+/// a target's underscored Rust name. Keep the source URL and selectors opaque.
+fn explicit_package_id(id: &str, name: &str, version: &str) -> Result<String> {
+    let (source, fragment) = id
+        .rsplit_once('#')
+        .filter(|(source, _)| !source.is_empty())
+        .ok_or_else(|| fail(format!("invalid Cargo package identity {id}")))?;
+    let explicit = format!("{name}@{version}");
+    if name.is_empty() || version.is_empty() || (fragment != version && fragment != explicit) {
+        return Err(fail(format!(
+            "Cargo package metadata contradicts identity {id}"
+        )));
+    }
+    Ok(format!("{source}#{explicit}"))
+}
+
+fn metadata_package_ids(root: &Path) -> Result<BTreeMap<String, String>> {
+    let mut command = Command::new(cargo_program());
+    command
+        .current_dir(root)
+        .args(["metadata", "--format-version", "1", "--locked"]);
+    let metadata: Value = serde_json::from_str(&checked_output(command)?).map_err(fail)?;
+    let mut packages = BTreeMap::new();
+    for package in metadata["packages"]
+        .as_array()
+        .ok_or_else(|| fail("Cargo metadata has no packages"))?
+    {
+        let id = string(package, "id")?;
+        let explicit =
+            explicit_package_id(id, string(package, "name")?, string(package, "version")?)?;
+        if packages.insert(id.to_owned(), explicit).is_some() {
+            return Err(fail(format!("Cargo metadata repeats package {id}")));
+        }
+    }
+    Ok(packages)
 }
 
 fn metadata_manifests(root: &Path) -> Result<BTreeMap<String, String>> {
@@ -1034,10 +1076,10 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     .lines()
     {
         let value: Value = serde_json::from_str(&line.map_err(fail)?).map_err(fail)?;
-        if value["reason"] == "compiler-message" {
-            if let Some(message) = value["message"]["rendered"].as_str() {
-                eprint!("{message}");
-            }
+        if value["reason"] == "compiler-message"
+            && let Some(message) = value["message"]["rendered"].as_str()
+        {
+            eprint!("{message}");
         }
         if value["reason"] == "build-script-executed" {
             generated_roots.push(GeneratedInputs {

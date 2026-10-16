@@ -23,7 +23,7 @@ fn fact(s: &str, p: &str, o: &str) -> RdfQuad {
 fn source(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -142,15 +142,49 @@ fn a_shared_list_tail_is_an_independent_logical_reference() {
 
 #[test]
 fn incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run() {
+    use crate::reason::refute::{ClassSourceRefusal, FragmentBoundary, RefutationSourceIssue};
+    fn contains_issue(boundary: &FragmentBoundary, expected: &RefutationSourceIssue) -> bool {
+        match boundary {
+            FragmentBoundary::SourceAdmission { issue, .. } => issue == expected,
+            FragmentBoundary::Combined(boundaries) => boundaries
+                .iter()
+                .any(|boundary| contains_issue(boundary, expected)),
+            FragmentBoundary::Uncertified { .. } => false,
+        }
+    }
     let prepared = crate::program_analysis::prepare_program(&member_consumer()).unwrap();
     for (tail, extra, expected) in [
-        ("urn:missing", None, "incomplete selected logical list"),
-        ("urn:list", None, "cyclic RDF list"),
-        (NIL, Some(fact("urn:list", FIRST, "urn:y")), "multiple"),
+        (
+            "urn:missing",
+            None,
+            RefutationSourceIssue::IncompleteList {
+                owner: "urn:class".into(),
+                head: "urn:list".into(),
+            },
+        ),
+        (
+            "urn:list",
+            None,
+            RefutationSourceIssue::CyclicList {
+                owner: "urn:class".into(),
+                head: "urn:list".into(),
+            },
+        ),
+        (
+            NIL,
+            Some(fact("urn:list", FIRST, "urn:y")),
+            RefutationSourceIssue::ConflictingListField {
+                subject: "urn:list".into(),
+                predicate: FIRST.into(),
+            },
+        ),
         (
             NIL,
             Some(fact("urn:list", REST, "urn:other-tail")),
-            "multiple",
+            RefutationSourceIssue::ConflictingListField {
+                subject: "urn:list".into(),
+                predicate: REST.into(),
+            },
         ),
     ] {
         let mut quads = vec![
@@ -167,7 +201,23 @@ fn incomplete_or_ambiguous_nominals_cannot_certify_a_complete_run() {
         )
         .err()
         .expect("malformed nominal must refuse closure");
-        assert!(error.message().contains(expected), "{error}");
+        let refusal = error
+            .downcast_ref::<crate::error::NativeSourceAdmission>()
+            .expect("original source refusal retains typed admission");
+        assert_eq!(
+            refusal.admission.refusal_class().unwrap(),
+            Some(ClassSourceRefusal::Invalid)
+        );
+        assert!(
+            refusal
+                .admission
+                .selected_worlds
+                .values()
+                .filter_map(|world| world.refusal.as_ref())
+                .any(|boundary| contains_issue(boundary, &expected)),
+            "expected {expected:?}: {:?}",
+            refusal.admission
+        );
     }
 }
 
@@ -298,8 +348,7 @@ fn list_cache_and_membership_are_local_to_their_source_world() {
     );
 }
 
-#[test]
-fn list_membership_feedback_cannot_hide_an_existential_cycle() {
+fn constructor_feedback_rules() -> Vec<(Formula, Formula)> {
     let head = Formula::Exists {
         vars: vec!["z".to_owned()],
         body: Box::new(Formula::And(vec![
@@ -309,13 +358,18 @@ fn list_membership_feedback_cannot_hide_an_existential_cycle() {
             atom("urn:class", ONE_OF, "?z"),
         ])),
     };
-    let p = program(vec![
+    vec![
         (atom("?x", "urn:seed", "?y"), head),
         (
             atom("?x", TYPE, "urn:class"),
             atom("?x", "urn:seed", "urn:unit"),
         ),
-    ]);
+    ]
+}
+
+#[test]
+fn list_membership_feedback_cannot_hide_an_existential_cycle() {
+    let p = program(constructor_feedback_rules());
     let prepared = crate::program_analysis::prepare_program(&p).unwrap();
     let data = source(vec![fact("urn:x", "urn:seed", "urn:unit")]);
     assert!(prepared.preservation.unsupported_constructs.is_empty());
@@ -351,6 +405,123 @@ fn list_membership_feedback_cannot_hide_an_existential_cycle() {
             .iter()
             .all(|certificate| !certificate.admission.admits_native())
     );
+    assert!(bounded.source_coverage.worlds.iter().any(|(world, coverage)| coverage.admissions.iter().any(|admission| {
+        matches!(&admission.grammar_basis, super::super::dl::NativeSourceGrammarBasis::ConstructorClosedLists { world: owner, producers, .. } if owner == world && !producers.is_empty())
+    })));
+    let worlds = bounded
+        .graphs
+        .iter()
+        .map(|(world, graph)| {
+            (
+                world.clone(),
+                match graph {
+                    Some(graph) => crate::physical::LogicalGraph::Named(graph.clone()),
+                    None => crate::physical::LogicalGraph::Default,
+                },
+            )
+        })
+        .collect();
+    bounded
+        .source_coverage
+        .validate(bounded.input_contract, &worlds, &bounded.native_families)
+        .unwrap();
+    let mut copied = bounded.source_coverage.clone();
+    for coverage in copied.worlds.values_mut() {
+        for admission in &mut coverage.admissions {
+            if let super::super::dl::NativeSourceGrammarBasis::ConstructorClosedLists {
+                world,
+                ..
+            } = &mut admission.grammar_basis
+            {
+                *world = "urn:wrong-world".to_owned();
+            }
+        }
+    }
+    assert!(
+        copied
+            .validate(bounded.input_contract, &worlds, &bounded.native_families)
+            .is_err()
+    );
+}
+
+#[test]
+fn constructor_list_feedback_preserves_the_barrier_for_another_cell_writer() {
+    let mut rules = constructor_feedback_rules();
+    rules.push((
+        atom("?x", "urn:witness", "?z"),
+        atom("?z", FIRST, "urn:conflict"),
+    ));
+    let prepared = crate::program_analysis::prepare_program(&program(rules)).unwrap();
+    let data = source(vec![fact("urn:x", "urn:seed", "urn:unit")]);
+    let error = execute(
+        &prepared,
+        prepare_reasoning_input(&data).unwrap(),
+        &crate::physical::SelectedDomains::new([]).unwrap(),
+        Some(32),
+    )
+    .err()
+    .expect("mutable generated cells cannot establish closed grammar");
+    assert!(error.message().contains("NonStratifiable"), "{error}");
+}
+
+#[test]
+fn constructor_list_feedback_cannot_reuse_a_cached_proof_for_source_aliases() {
+    let prepared =
+        crate::program_analysis::prepare_program(&program(constructor_feedback_rules())).unwrap();
+    let clean = source(vec![fact("urn:x", "urn:seed", "urn:unit")]);
+    let domains = crate::physical::SelectedDomains::new([]).unwrap();
+    let result = execute(
+        &prepared,
+        prepare_reasoning_input(&clean).unwrap(),
+        &domains,
+        Some(32),
+    )
+    .unwrap();
+    assert_eq!(result.status, crate::seam::BudgetStatus::Exhausted);
+    let ambiguous = source(vec![
+        fact("urn:x", "urn:seed", "urn:unit"),
+        fact(
+            "urn:source",
+            "urn:mentions",
+            &format!("{}source-alias", crate::facts::SKOLEM_PREFIX),
+        ),
+    ]);
+    let error = execute(
+        &prepared,
+        prepare_reasoning_input(&ambiguous).unwrap(),
+        &domains,
+        Some(32),
+    )
+    .err()
+    .expect("the original source can alias a constructor address");
+    assert!(error.message().contains("NonStratifiable"), "{error}");
+}
+
+#[test]
+fn constructor_list_feedback_supports_finite_multi_cell_heads() {
+    let mut rules = constructor_feedback_rules();
+    rules[0].1 = Formula::Exists {
+        vars: vec!["z".to_owned(), "tail".to_owned()],
+        body: Box::new(Formula::And(vec![
+            atom("?x", "urn:witness", "?z"),
+            atom("?z", FIRST, "?x"),
+            atom("?z", REST, "?tail"),
+            atom("?tail", FIRST, "?tail"),
+            atom("?tail", REST, NIL),
+            atom("urn:class", ONE_OF, "?z"),
+        ])),
+    };
+    let prepared = crate::program_analysis::prepare_program(&program(rules)).unwrap();
+    let data = source(vec![fact("urn:x", "urn:seed", "urn:unit")]);
+    let result = execute(
+        &prepared,
+        prepare_reasoning_input(&data).unwrap(),
+        &crate::physical::SelectedDomains::new([]).unwrap(),
+        Some(32),
+    )
+    .unwrap();
+    assert_eq!(result.status, crate::seam::BudgetStatus::Exhausted);
+    assert!(result.witnesses.len() > 1);
 }
 
 #[test]

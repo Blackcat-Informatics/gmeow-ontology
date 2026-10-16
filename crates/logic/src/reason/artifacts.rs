@@ -309,20 +309,32 @@ fn closure_reifier_scope(
 }
 
 trait ClosureSink {
+    type Error: Into<gmeow_errors::Diag>;
     fn section(&mut self, text: &str);
-    fn quad(&mut self, quad: &RdfQuad);
-    fn reifier(&mut self, reifier: &RdfReifier, annotations: &[(String, RdfTerm)]);
+    fn quad(&mut self, quad: &RdfQuad) -> Result<(), Self::Error>;
+    fn reifier(
+        &mut self,
+        reifier: &RdfReifier,
+        annotations: &[(String, RdfTerm)],
+    ) -> Result<(), Self::Error>;
 }
 
 impl ClosureSink for String {
+    type Error = std::convert::Infallible;
     fn section(&mut self, text: &str) {
         self.push_str(text);
     }
-    fn quad(&mut self, quad: &RdfQuad) {
+    fn quad(&mut self, quad: &RdfQuad) -> Result<(), Self::Error> {
         self.push_str(&emit_quad(quad));
+        Ok(())
     }
-    fn reifier(&mut self, reifier: &RdfReifier, annotations: &[(String, RdfTerm)]) {
+    fn reifier(
+        &mut self,
+        reifier: &RdfReifier,
+        annotations: &[(String, RdfTerm)],
+    ) -> Result<(), Self::Error> {
         self.push_str(&emit_reifier(reifier, annotations));
+        Ok(())
     }
 }
 
@@ -334,29 +346,36 @@ struct NativeClosureSink<'a> {
 }
 
 impl ClosureSink for NativeClosureSink<'_> {
+    type Error = gmeow_errors::Diag;
     fn section(&mut self, text: &str) {
         self.text.section(text);
     }
-    fn quad(&mut self, quad: &RdfQuad) {
-        self.text.quad(quad);
-        self.builder.push_owned_quad(quad);
+    fn quad(&mut self, quad: &RdfQuad) -> gmeow_errors::Result<()> {
+        self.builder.push_owned_quad(quad)?;
+        self.text.push_str(&emit_quad(quad));
+        Ok(())
     }
-    fn reifier(&mut self, reifier: &RdfReifier, annotations: &[(String, RdfTerm)]) {
-        self.text.reifier(reifier, annotations);
-        let s = self.builder.intern_owned_term(&reifier.statement.subject);
-        let p = self.builder.intern_iri(&reifier.statement.predicate);
-        let o = self.builder.intern_owned_term(&reifier.statement.object);
-        let triple = self.builder.intern_triple(s, p, o);
+    fn reifier(
+        &mut self,
+        reifier: &RdfReifier,
+        annotations: &[(String, RdfTerm)],
+    ) -> gmeow_errors::Result<()> {
+        let s = self.builder.intern_owned_term(&reifier.statement.subject)?;
+        let p = self.builder.intern_iri(&reifier.statement.predicate)?;
+        let o = self.builder.intern_owned_term(&reifier.statement.object)?;
+        let triple = self.builder.intern_triple(s, p, o)?;
         let id = self
             .builder
-            .intern_blank(&format!("proof{}", self.ordinal), self.scope);
+            .intern_blank(&format!("proof{}", self.ordinal), self.scope)?;
         self.ordinal += 1;
-        self.builder.push_reifier(id, triple);
+        self.builder.push_reifier(id, triple)?;
         for (predicate, object) in annotations {
-            let p = self.builder.intern_iri(predicate);
-            let o = self.builder.intern_owned_term(object);
-            self.builder.push_annotation(id, p, o);
+            let p = self.builder.intern_iri(predicate)?;
+            let o = self.builder.intern_owned_term(object)?;
+            self.builder.push_annotation(id, p, o)?;
         }
+        self.text.push_str(&emit_reifier(reifier, annotations));
+        Ok(())
     }
 }
 
@@ -378,7 +397,8 @@ fn project_closure(
                 triple.subject.clone(),
                 triple.predicate.clone(),
                 triple.object.clone(),
-            ));
+            ))
+            .map_err(Into::<gmeow_errors::Diag>::into)?;
         }
         let reifier = RdfReifier::new(RdfTerm::blank_node("r"), triple);
         let mut annotations = vec![
@@ -410,9 +430,10 @@ fn project_closure(
                 .into_iter()
                 .map(|source| (PROV_WAS_DERIVED_FROM.to_owned(), RdfTerm::iri(source))),
         );
-        out.reifier(&reifier, &annotations);
+        out.reifier(&reifier, &annotations)
+            .map_err(Into::<gmeow_errors::Diag>::into)?;
     }
-    alpha_equivalence_section(alpha_edges, out);
+    alpha_equivalence_section(alpha_edges, out)?;
     Ok(())
 }
 
@@ -421,9 +442,12 @@ fn project_closure(
 /// Empty — not even a banner — when there are no edges: an EDB carrying no `math:`
 /// expression decides no identities, and a bare section header would read as a claim that
 /// it did.
-fn alpha_equivalence_section(alpha_edges: &[(String, String)], out: &mut impl ClosureSink) {
+fn alpha_equivalence_section(
+    alpha_edges: &[(String, String)],
+    out: &mut impl ClosureSink,
+) -> gmeow_errors::Result<()> {
     if alpha_edges.is_empty() {
-        return;
+        return Ok(());
     }
     let rule = RdfTerm::iri(rule_iri(RULE_IRI_BASE, MATH_EXPRESSION_IDENTITY_RULE));
     out.section("\n# --- derived math: expression alpha-equivalence identity ---\n");
@@ -438,7 +462,8 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)], out: &mut impl Cl
             triple.subject.clone(),
             triple.predicate.clone(),
             triple.object.clone(),
-        ));
+        ))
+        .map_err(Into::<gmeow_errors::Diag>::into)?;
         let reifier = RdfReifier::new(RdfTerm::blank_node("r"), triple);
         out.reifier(
             &reifier,
@@ -447,7 +472,8 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)], out: &mut impl Cl
                 (gmeow("viaRule"), rule.clone()),
                 (gmeow("inferenceKind"), RdfTerm::iri(gmeow("Deduction"))),
             ],
-        );
+        )
+        .map_err(Into::<gmeow_errors::Diag>::into)?;
         typed.insert(alpha_class.as_str());
     }
     for alpha_class in typed {
@@ -455,8 +481,10 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)], out: &mut impl Cl
             RdfTerm::iri(alpha_class.to_owned()),
             RDF_TYPE.to_owned(),
             RdfTerm::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE.to_owned()),
-        ));
+        ))
+        .map_err(Into::<gmeow_errors::Diag>::into)?;
     }
+    Ok(())
 }
 
 // ── reasoning-explanations ──────────────────────────────────────────────────────

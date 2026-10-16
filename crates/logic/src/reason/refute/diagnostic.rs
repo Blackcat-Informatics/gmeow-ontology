@@ -24,7 +24,7 @@ pub enum ClassDiagnosticOutcome {
     /// Intrinsic domains and the class producer used the shared native governor.
     Executed {
         /// Complete evidence for that explicit operation.
-        execution: ClassDiagnosticObservation,
+        execution: Box<ClassDiagnosticObservation>,
     },
 }
 
@@ -258,7 +258,9 @@ pub fn class_diagnostic(
                 witnesses: closure.witnesses,
             };
             execution.validate()?;
-            Ok(ClassDiagnosticOutcome::Executed { execution })
+            Ok(ClassDiagnosticOutcome::Executed {
+                execution: Box::new(execution),
+            })
         }
     }
 }

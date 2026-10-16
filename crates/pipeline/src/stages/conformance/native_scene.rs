@@ -122,7 +122,7 @@ fn modal_product(dataset: &RdfDataset) -> Result<ModalProduct, gmeow_errors::Dia
         stage_id: product.stage_id.clone(),
         product_digest: product.digest.clone(),
         graph_iri: GRAPH_REASONING.to_owned(),
-        graph_digest: product.bundle().graph_digest(GRAPH_REASONING).to_hex(),
+        graph_digest: product.bundle().graph_digest(GRAPH_REASONING)?.to_hex(),
         pinned_graph_digest: handle.content_digest.to_hex(),
         payload_digest: crate::handle_identity::handle_payload_digest(&handle.payload),
         result: result.as_ref().clone(),

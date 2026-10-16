@@ -3624,3 +3624,30 @@ gmeow:gtsSegmentHeadKey
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:GTSSegment and nothing else. It is not a definition of gmeow:GTSSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:gtsSegmentHeadKey logic:keyClass gmeow:GTSSegment ; logic:keyProperty gmeow:gtsHeadId ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:SnapshotInputRefusal
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    rdfs:label "snapshot input refusal"@x-gmeow-english ;
+    skos:definition "The native snapshot producer refuses a selected source that cannot be completely and faithfully ingested. The typed cause retains source readiness failures, unrepresentable term positions, blank encoding collisions or prior builder poison; an accepted prefix cannot stand for the selected input."@x-gmeow-english ;
+    gmeow:useWhen "Use when native snapshot input admission fails before a publishable snapshot exists."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a read-side parse failure or a frame-compression violation for this producer input refusal."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original typed ingestion error, including its checkpoint, term position or colliding blank identities."@x-gmeow-english ;
+    skos:scopeNote "The refusal governs input fidelity and producer readiness, independently of the mandated compression profile of emitted frames."@x-gmeow-english ;
+    skos:example "An incomplete source view is refused at its ingestion checkpoint instead of publishing the rows read before its failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NativeSnapshotInputAdmission
+    a logic:NamedIndividual, logic:SourceAdmissionContract ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:enforcesFailureClass gmeow:SnapshotInputRefusal ;
+    logic:sourceAdmissionRequirement "All selected native RDF sources must remain operationally ready through every ingestion checkpoint. Every term and complete native statement layer must be representable without information loss; blank identities must remain distinct, and any failed ingestion prohibits publication of its accepted prefix." ;
+    rdfs:label "native snapshot input admission"@x-gmeow-english ;
+    skos:definition "The producer input contract requiring complete source access, ready operational checkpoints and lossless representation of every selected native RDF term, reifier and annotation before a snapshot can be published."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the native ingestion contract realized by the GMEOW snapshot authorship profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not interpret successful prefix ingestion as permission to publish after any selected source has failed."@x-gmeow-english ;
+    gmeow:howToUse "Ingest every selected source through the native writer, check completion and retain its full ingestion receipt before publishing."@x-gmeow-english ;
+    skos:scopeNote "Native statement bindings and annotations retain their own tables; the contract never authorizes flattening away their information."@x-gmeow-english ;
+    skos:example "A native rule source retains its reifier bindings when admitted to the snapshot alongside ordinary RDF statements."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

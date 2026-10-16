@@ -31,6 +31,7 @@ mod contextual;
 mod families;
 mod input;
 mod retained;
+pub(crate) mod source_grammar;
 pub(crate) use families::NativeWorldSnapshot;
 pub(crate) use retained::RetainedJoint;
 
@@ -151,50 +152,21 @@ impl JointProgram {
         );
         let layouts = RuleLayouts::new(rules)?;
         let producers = prepare_producers(producers)?;
-        Ok(NativeOutcome::Decided(Self::from_schedule(
-            &layouts,
-            &producers,
-            properties,
-            &families,
-            &admission_reads,
+        Ok(NativeOutcome::Decided(Self::with_layout(
+            Arc::new(JointLayout {
+                rules: layouts,
+                producers,
+                properties: properties.to_vec(),
+                family_arms: families,
+                family_reads: admission_reads,
+            }),
+            Arc::new(effects),
             JointOperation::Relational,
             semantics,
             schedule,
-            Arc::new(effects),
             None,
             admission,
         )))
-    }
-
-    fn from_schedule(
-        rules: &RuleLayouts,
-        producers: &[Arc<PreparedChaseRule>],
-        properties: &[PreparedPropertyRule],
-        family_arms: &[families::Arm],
-        family_reads: &[crate::reason::refute::native::NativeRead],
-        operation: JointOperation,
-        semantics: crate::native_semantics::SemanticVocabulary,
-        schedule: EffectSchedule,
-        local_effects: Arc<Vec<ProducerEffect>>,
-        source_contract: Option<[u8; 32]>,
-        admission: ChaseAdmission,
-    ) -> Self {
-        let layout = Arc::new(JointLayout {
-            rules: rules.clone(),
-            producers: producers.to_vec(),
-            properties: properties.to_vec(),
-            family_arms: family_arms.to_vec(),
-            family_reads: family_reads.to_vec(),
-        });
-        Self::with_layout(
-            layout,
-            local_effects,
-            operation,
-            semantics,
-            schedule,
-            source_contract,
-            admission,
-        )
     }
 
     fn with_layout(
@@ -378,7 +350,7 @@ impl JointProgram {
         governor: &mut StepGovernor,
         registry: &mut SkolemRegistry,
         mut native: Option<input::NativeInputBinding<'_>>,
-        mut retention: Option<&mut RetainedJoint>,
+        retention: Option<&mut RetainedJoint>,
     ) -> gmeow_errors::Result<NativeOutcome<JointMaterialization>> {
         let setup_started = Instant::now();
         tracing::info!(
@@ -727,6 +699,14 @@ impl JointProgram {
             // round that follows a Datalog-only round with nothing left to add, so every
             // trigger is checked against the Datalog closure of what already exists.
             // A witness obligation that derived facts already satisfy is never minted.
+            let has_minting = plans.values().any(|plan| {
+                let stratum = &plan.strata[index];
+                stratum.producers.iter().any(|producer| producer.mints())
+                    || stratum
+                        .properties
+                        .iter()
+                        .any(|property| property.witness_frontier.is_some())
+            });
             let mut generative = false;
             let mut round_index = 0usize;
             loop {
@@ -866,7 +846,7 @@ impl JointProgram {
                     contextual_rows != 0 || rounds.values().any(|round| !round.entries.is_empty());
                 // Blocked reads wait on completion, not on witnesses: a stratum concludes
                 // blocked only after its witness producers have had their round as well.
-                if !any && !generative && !truncated && !draining_retained {
+                if !any && !generative && has_minting && !truncated && !draining_retained {
                     // Datalog has reached its fixpoint: let the witness producers fire.
                     generative = true;
                     continue;
@@ -880,6 +860,7 @@ impl JointProgram {
                         registry.commit_heads(world, &runtime.rel);
                         runtime.family.observe_committed(
                             &runtime.store,
+                            &runtime.rel,
                             &runtime.rows,
                             registry,
                         )?;
@@ -940,9 +921,12 @@ impl JointProgram {
                     reuse.install_ready_introductions(index, &runtimes, registry)?;
                 }
                 for runtime in runtimes.values_mut() {
-                    runtime
-                        .family
-                        .observe_committed(&runtime.store, &runtime.rows, registry)?;
+                    runtime.family.observe_committed(
+                        &runtime.store,
+                        &runtime.rel,
+                        &runtime.rows,
+                        registry,
+                    )?;
                 }
                 if commit_cut || truncated {
                     inference_exhausted |= commit_cut || inference_cut;
@@ -973,14 +957,16 @@ impl JointProgram {
         // analysis exhaustion only after every required observation finishes.
         for runtime in runtimes.values_mut() {
             runtime.family.finish(
-                &runtime.store,
-                &runtime.rel,
-                &runtime.rows,
-                registry,
+                families::FinalEvidence {
+                    store: &runtime.store,
+                    rel: &runtime.rel,
+                    rows: &runtime.rows,
+                    registry,
+                    complete: &runtime.progress.saturated_preds,
+                    terminal: &terminal,
+                },
                 &mut runtime.values,
                 &mut runtime.lists,
-                &runtime.progress.saturated_preds,
-                &terminal,
             )?;
         }
         if runtimes
@@ -1087,7 +1073,7 @@ impl JointProgram {
         sort_rows(&mut asserted);
         // A cut can leave retained higher-stratum introductions unpublished.
         // Only evidence for actual committed rows may escape this transaction.
-        if let Some(retained) = retention.as_deref_mut() {
+        if let Some(retained) = retention {
             registry.retain_committed_facts(&asserted);
             let binding = native.as_ref().expect("retention admitted a native source");
             retained.capture(
@@ -1338,7 +1324,7 @@ impl WorldRuntime {
                 depth.push(ProofHeight::ASSERTED);
             }
         }
-        family.admit(&store)?;
+        family.admit(&store, &rel)?;
         Ok(Self {
             store,
             rel,
@@ -1512,13 +1498,15 @@ impl JointStratum {
             "reason phase boundary",
         );
         state.family.prepare_sources(
-            snapshot,
-            &state.rows,
-            registry,
+            families::RoundEvidence {
+                snapshot,
+                rows: &state.rows,
+                registry,
+                complete: &state.progress.saturated_preds,
+                observed: &state.completed_reads,
+            },
             &mut state.values,
             &mut state.lists,
-            &state.progress.saturated_preds,
-            &state.completed_reads,
         )?;
         tracing::info!(
             target: "pipeline_phase",
@@ -1600,12 +1588,12 @@ impl JointStratum {
                 &mut state.lists,
                 &mut state.values,
                 super::property::NativeWitnesses {
+                    admissions: &state.family.coverage,
                     world,
                     contract,
                     registry,
                     limit: governor.solution_cap(),
                 },
-                &state.family.coverage,
                 &mut |rule, head, premises| {
                     if !state.store.contains_key(&head.key()) {
                         round.insert(
@@ -1616,6 +1604,13 @@ impl JointStratum {
                     }
                     Ok(round.entries.len() <= governor.solution_cap())
                 },
+            )?;
+            state.family.retain_guard_obstructions(
+                &property.source.rule_iri,
+                visit.obstructions,
+                &state.store,
+                &state.rel,
+                &state.rows,
             )?;
             if visit.admission_blocked && !property_blocked {
                 tracing::warn!(
@@ -1722,13 +1717,15 @@ impl JointStratum {
         );
         state.family.round(
             &self.families,
-            snapshot,
-            &state.rows,
-            registry,
+            families::RoundEvidence {
+                snapshot,
+                rows: &state.rows,
+                registry,
+                complete: &state.progress.saturated_preds,
+                observed: &state.completed_reads,
+            },
             &mut state.values,
             &mut state.lists,
-            &state.progress.saturated_preds,
-            &state.completed_reads,
             &mut round,
         )?;
         tracing::info!(

@@ -146,7 +146,7 @@ pub(super) fn record(
                 ],
                 || {
                     let dataset = catalog.document(relative)?;
-                    let mut observed = observe(dataset, dictionary()?);
+                    let mut observed = observe(dataset, dictionary()?)?;
                     observed.native_scene = super::native_scene::observe(relative, dataset);
                     observed.gufo_superset = super::gufo_superset::observe(relative, dataset);
                     observed.math_lowering = super::math_lowering::observe(relative, dataset);
@@ -175,7 +175,7 @@ pub(super) fn record(
                     })?;
                     let dictionary = dictionary()?;
                     let model = Gmn0Model::from_dataset(&dataset);
-                    let mut observed = observe_model(&model, dictionary);
+                    let mut observed = observe_model(&model, dictionary)?;
                     observed.native_scene = super::native_scene::observe(relative, &dataset);
                     observed.gufo_superset = super::gufo_superset::observe(relative, &dataset);
                     observed.math_lowering = super::math_lowering::observe(relative, &dataset);
@@ -210,13 +210,21 @@ pub(super) fn record(
     Ok(operator_scenes)
 }
 
-fn observe(dataset: &RdfDataset, dictionary: &GmnDictionary) -> SourceObservation {
+fn observe(
+    dataset: &RdfDataset,
+    dictionary: &GmnDictionary,
+) -> gmeow_errors::Result<SourceObservation> {
     let model = Gmn0Model::from_dataset(dataset);
     observe_model(&model, dictionary)
 }
 
-fn observe_model(model: &Gmn0Model, dictionary: &GmnDictionary) -> SourceObservation {
-    let roundtrip = round_trip_with_claims_check(model, dictionary);
+fn observe_model(
+    model: &Gmn0Model,
+    dictionary: &GmnDictionary,
+) -> gmeow_errors::Result<SourceObservation> {
+    let roundtrip = gmeow_lang_bridge::gmn_conformance::codec_verdict(
+        round_trip_with_claims_check(model, dictionary),
+    )?;
     let mut coverage = ConstructCoverageTally::default();
     let classifications = classify_model(model, dictionary);
     let decimal = |classified: &QuadCoverage| {
@@ -245,7 +253,7 @@ fn observe_model(model: &Gmn0Model, dictionary: &GmnDictionary) -> SourceObserva
         }
         None => (coverage.clone(), model.quads.len()),
     };
-    SourceObservation {
+    Ok(SourceObservation {
         quads: model.quads.len(),
         roundtrip,
         coverage,
@@ -257,7 +265,7 @@ fn observe_model(model: &Gmn0Model, dictionary: &GmnDictionary) -> SourceObserva
         gufo_superset: None,
         math_lowering: None,
         operator_scene: None,
-    }
+    })
 }
 
 pub(crate) fn from_bytes(bytes: &[u8]) -> gmeow_errors::Result<Observations> {

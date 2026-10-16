@@ -70,7 +70,7 @@ fn reason_scene(scene: &str) -> (usize, gmeow_errors::Result<ProgramClosure>) {
     for text in [CONTEXT, scene] {
         let parsed = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
         for quad in parsed.owned_quads() {
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad).unwrap();
         }
     }
     let dataset = builder.freeze().unwrap();

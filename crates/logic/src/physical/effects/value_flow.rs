@@ -645,10 +645,9 @@ fn operator_inputs(
                         .predicate
                         .as_ref()
                         .is_none_or(|required| required == &predicate)
+                        && let Some(name) = variable(&head[input.column])
                     {
-                        if let Some(name) = variable(&head[input.column]) {
-                            variables.insert(name.to_owned());
-                        }
+                        variables.insert(name.to_owned());
                     }
                 }
             }
@@ -3184,6 +3183,45 @@ impl ValueFlow {
         effects
             .flat_map(|effect| &effect.writes)
             .all(|write| !read.reads_write(write, self.universe.semantics))
+    }
+
+    /// Export only predicate possibilities, preserving an explicit unknown cell.
+    /// Fixed predicate roles retain their declared alternate operator spelling;
+    /// ordinary data terms and object markers are never rewritten here.
+    pub(crate) fn writer_predicates(&self, pattern: &StatementPattern) -> (BTreeSet<String>, bool) {
+        let domains = pattern
+            .ranges
+            .clone()
+            .unwrap_or_else(|| self.pattern_domains(pattern));
+        if domains
+            .iter()
+            .any(|domain| domain.indices().next().is_none())
+        {
+            return (BTreeSet::new(), false);
+        }
+        let mut predicates = BTreeSet::new();
+        let mut include = |predicate: &str| {
+            predicates.insert(predicate.to_owned());
+            predicates.extend(
+                self.universe
+                    .semantics
+                    .alternate_predicate(predicate)
+                    .map(str::to_owned),
+            );
+        };
+        if let Some(predicate) = pattern.predicate.as_deref() {
+            include(predicate);
+            return (predicates, false);
+        }
+        let mut unbounded = false;
+        for value in domains[1].indices() {
+            if value == self.universe.other() {
+                unbounded = true;
+            } else if let Some(TermValue::Iri(predicate)) = self.universe.values.get(value) {
+                include(predicate);
+            }
+        }
+        (predicates, unbounded)
     }
 
     /// Name the first reachable producer that may write this exact protected

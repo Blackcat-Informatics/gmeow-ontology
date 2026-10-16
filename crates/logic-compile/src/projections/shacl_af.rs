@@ -24,7 +24,7 @@
 //! The faithfully projectable fragment is the **stratified Horn-with-stratified-negation**
 //! fragment a SHACL-AF SPARQL rule can carry: a positive body lowers to graph patterns, a
 //! negation-as-failure body atom to `FILTER NOT EXISTS`, an inequality guard to
-//! `FILTER(?a != ?b)`. Within it the projection is sound (`SoundUnderApproximation`).
+//! `FILTER(!sameTerm(?a, ?b))`. Within it the projection is sound (`SoundUnderApproximation`).
 //! Outside it — full first-order formula bodies (`program.formulas`), existential
 //! (value-inventing) heads, and the modal / world / standpoint context of a
 //! contextualized rule — has no faithful SHACL-AF rule form: a context-scoped rule is NOT
@@ -114,7 +114,7 @@ fn positive_body_vars(rule: &LogicRule) -> std::collections::BTreeSet<String> {
 }
 
 /// Render the shared `WHERE { … }` group body of a rule: positive atoms as graph
-/// patterns, NAF atoms as `FILTER NOT EXISTS`, inequality guards as `FILTER(?a != ?b)`.
+/// patterns, NAF atoms as `FILTER NOT EXISTS`, term guards as `FILTER(!sameTerm(?a, ?b))`.
 /// `focus_render` distinguishes the target SELECT (`?this`) from the rule CONSTRUCT
 /// (`$this`).
 fn render_where(rule: &LogicRule, focus_var: Option<&str>, focus_render: &str) -> String {
@@ -140,7 +140,7 @@ fn render_where(rule: &LogicRule, focus_var: Option<&str>, focus_render: &str) -
         } else {
             b.as_str()
         };
-        parts.push(format!("FILTER ( {ra} != {rb} )"));
+        parts.push(format!("FILTER ( !sameTerm({ra}, {rb}) )"));
     }
     parts.join(" ")
 }

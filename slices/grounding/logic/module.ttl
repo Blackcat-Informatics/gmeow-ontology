@@ -3007,7 +3007,7 @@ logic:distinctBody
     rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "distinct body"@x-gmeow-english ;
-    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."@x-gmeow-english .
+    skos:definition "Relates a logic:Rule to an RDF-term inequality guard with exactly two ordered logic:argument carriers at logic:termIndex 0 and 1, each carrying one logic:termVariable. Both variables must be bound by the positive body and must denote different RDF terms for the rule to fire. This is term identity, not SPARQL value inequality: differently typed numeric literals can be distinct RDF terms with equal values. The guard introduces no negative dependency edge and leaves stratification unchanged. It projects to Datalog term inequality and SPARQL FILTER(!sameTerm(?A, ?B))."@x-gmeow-english .
 
 logic:aggregateFunction
     a logic:DatatypeProperty ;
@@ -3233,7 +3233,7 @@ logic:negatedBody
     rdfs:comment "Negation-as-failure body atom of a logic:Rule. Default-absent: a positive Horn rule has only logic:body atoms and no logic:negatedBody, so the existing positive corpus is unaffected."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "negated body"@x-gmeow-english ;
-    skos:definition "Relates a logic:Rule to a negated (negation-as-failure) body atom: the antecedent literal that must NOT be derivable for the rule to fire. Parallel to logic:body (the positive antecedent atoms) but read under closed-world negation, so a rule with any logic:negatedBody atom requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. The atom itself is a reified rdf:subject/rdf:predicate/rdf:object triple exactly as for logic:body; only its polarity differs."@x-gmeow-english .
+    skos:definition "Relates a logic:Rule to a negation-as-failure body atom: an RDF 1.2 reifier whose rdf:reifies target is the quoted triple term, exactly as for logic:body. Typed logic:TermCarrier resources represent variables in any triple-term position; literals remain literal values. The atom must not be derivable for the rule to fire. A rule with a negated body requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. Quoting an atom never asserts its proposition."@x-gmeow-english .
 
 logic:negationOperator
     a logic:ObjectProperty ;
@@ -8564,6 +8564,14 @@ logic:ladderRowTransferMastery
 # and threshold from the profile row; the gmeow:hasMastered rung conjoins the two
 # rows (procedural AND transfer), so both halves must clear.
 
+_:logic_ruleProjectIsAwareOf_agent a logic:TermCarrier ; logic:termVariable "agent" .
+_:logic_ruleProjectIsAwareOf_subject a logic:TermCarrier ; logic:termVariable "subject" .
+_:logic_ruleProjectIsAwareOf_profile a logic:TermCarrier ; logic:termVariable "profile" .
+_:logic_ruleProjectIsAwareOf_row a logic:TermCarrier ; logic:termVariable "row" .
+_:logic_ruleProjectIsAwareOf_dim a logic:TermCarrier ; logic:termVariable "dim" .
+_:logic_ruleProjectIsAwareOf_threshold a logic:TermCarrier ; logic:termVariable "threshold" .
+_:logic_ruleProjectIsAwareOf_assessment a logic:TermCarrier ; logic:termVariable "assessment" .
+_:logic_ruleProjectIsAwareOf_level a logic:TermCarrier ; logic:termVariable "level" .
 logic:ruleProjectIsAwareOf
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -8571,48 +8579,36 @@ logic:ruleProjectIsAwareOf
     skos:definition "Emits gmeow:isAwareOf from an assessment whose dimension and level clear the gmeow:isAwareOf row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile, not hard-coded."@x-gmeow-english ;
     logic:provenance logic:ruleProjectIsAwareOf ;
     logic:head [
-        rdf:subject   "?agent" ;
-        rdf:predicate gmeow:isAwareOf ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_agent gmeow:isAwareOf _:logic_ruleProjectIsAwareOf_subject )>>
     ] ;
     logic:body [
-        rdf:subject   "?profile" ;
-        rdf:predicate logic:hasThresholdRow ;
-        rdf:object    "?row"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_profile logic:hasThresholdRow _:logic_ruleProjectIsAwareOf_row )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:projectsLadderEdge ;
-        rdf:object    gmeow:isAwareOf
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_row logic:projectsLadderEdge gmeow:isAwareOf )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:sourceDimension ;
-        rdf:object    "?dim"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_row logic:sourceDimension _:logic_ruleProjectIsAwareOf_dim )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:thresholdLevel ;
-        rdf:object    "?threshold"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_row logic:thresholdLevel _:logic_ruleProjectIsAwareOf_threshold )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentDimension ;
-        rdf:object    "?dim"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_assessment logic:assessmentDimension _:logic_ruleProjectIsAwareOf_dim )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessedAgent ;
-        rdf:object    "?agent"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_assessment logic:assessedAgent _:logic_ruleProjectIsAwareOf_agent )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentSubject ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_assessment logic:assessmentSubject _:logic_ruleProjectIsAwareOf_subject )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentLevel ;
-        rdf:object    "?level"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_assessment logic:assessmentLevel _:logic_ruleProjectIsAwareOf_level )>>
     ] , [
-        rdf:subject   "?level" ;
-        rdf:predicate logic:levelAtOrAbove ;
-        rdf:object    "?threshold"
+        rdf:reifies <<( _:logic_ruleProjectIsAwareOf_level logic:levelAtOrAbove _:logic_ruleProjectIsAwareOf_threshold )>>
     ] .
 
+_:logic_ruleProjectKnowsAbout_agent a logic:TermCarrier ; logic:termVariable "agent" .
+_:logic_ruleProjectKnowsAbout_subject a logic:TermCarrier ; logic:termVariable "subject" .
+_:logic_ruleProjectKnowsAbout_profile a logic:TermCarrier ; logic:termVariable "profile" .
+_:logic_ruleProjectKnowsAbout_row a logic:TermCarrier ; logic:termVariable "row" .
+_:logic_ruleProjectKnowsAbout_dim a logic:TermCarrier ; logic:termVariable "dim" .
+_:logic_ruleProjectKnowsAbout_threshold a logic:TermCarrier ; logic:termVariable "threshold" .
+_:logic_ruleProjectKnowsAbout_assessment a logic:TermCarrier ; logic:termVariable "assessment" .
+_:logic_ruleProjectKnowsAbout_level a logic:TermCarrier ; logic:termVariable "level" .
 logic:ruleProjectKnowsAbout
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -8620,48 +8616,36 @@ logic:ruleProjectKnowsAbout
     skos:definition "Emits gmeow:knowsAbout from an assessment whose dimension and level clear the gmeow:knowsAbout row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile. The canonical source of a gmeow:knowsAbout edge — never gmeow:hasSkill."@x-gmeow-english ;
     logic:provenance logic:ruleProjectKnowsAbout ;
     logic:head [
-        rdf:subject   "?agent" ;
-        rdf:predicate gmeow:knowsAbout ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_agent gmeow:knowsAbout _:logic_ruleProjectKnowsAbout_subject )>>
     ] ;
     logic:body [
-        rdf:subject   "?profile" ;
-        rdf:predicate logic:hasThresholdRow ;
-        rdf:object    "?row"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_profile logic:hasThresholdRow _:logic_ruleProjectKnowsAbout_row )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:projectsLadderEdge ;
-        rdf:object    gmeow:knowsAbout
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_row logic:projectsLadderEdge gmeow:knowsAbout )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:sourceDimension ;
-        rdf:object    "?dim"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_row logic:sourceDimension _:logic_ruleProjectKnowsAbout_dim )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:thresholdLevel ;
-        rdf:object    "?threshold"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_row logic:thresholdLevel _:logic_ruleProjectKnowsAbout_threshold )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentDimension ;
-        rdf:object    "?dim"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_assessment logic:assessmentDimension _:logic_ruleProjectKnowsAbout_dim )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessedAgent ;
-        rdf:object    "?agent"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_assessment logic:assessedAgent _:logic_ruleProjectKnowsAbout_agent )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentSubject ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_assessment logic:assessmentSubject _:logic_ruleProjectKnowsAbout_subject )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentLevel ;
-        rdf:object    "?level"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_assessment logic:assessmentLevel _:logic_ruleProjectKnowsAbout_level )>>
     ] , [
-        rdf:subject   "?level" ;
-        rdf:predicate logic:levelAtOrAbove ;
-        rdf:object    "?threshold"
+        rdf:reifies <<( _:logic_ruleProjectKnowsAbout_level logic:levelAtOrAbove _:logic_ruleProjectKnowsAbout_threshold )>>
     ] .
 
+_:logic_ruleProjectUnderstands_agent a logic:TermCarrier ; logic:termVariable "agent" .
+_:logic_ruleProjectUnderstands_subject a logic:TermCarrier ; logic:termVariable "subject" .
+_:logic_ruleProjectUnderstands_profile a logic:TermCarrier ; logic:termVariable "profile" .
+_:logic_ruleProjectUnderstands_row a logic:TermCarrier ; logic:termVariable "row" .
+_:logic_ruleProjectUnderstands_dim a logic:TermCarrier ; logic:termVariable "dim" .
+_:logic_ruleProjectUnderstands_threshold a logic:TermCarrier ; logic:termVariable "threshold" .
+_:logic_ruleProjectUnderstands_assessment a logic:TermCarrier ; logic:termVariable "assessment" .
+_:logic_ruleProjectUnderstands_level a logic:TermCarrier ; logic:termVariable "level" .
 logic:ruleProjectUnderstands
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -8669,48 +8653,39 @@ logic:ruleProjectUnderstands
     skos:definition "Emits gmeow:understands from an assessment whose dimension and level clear the gmeow:understands row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile."@x-gmeow-english ;
     logic:provenance logic:ruleProjectUnderstands ;
     logic:head [
-        rdf:subject   "?agent" ;
-        rdf:predicate gmeow:understands ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_agent gmeow:understands _:logic_ruleProjectUnderstands_subject )>>
     ] ;
     logic:body [
-        rdf:subject   "?profile" ;
-        rdf:predicate logic:hasThresholdRow ;
-        rdf:object    "?row"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_profile logic:hasThresholdRow _:logic_ruleProjectUnderstands_row )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:projectsLadderEdge ;
-        rdf:object    gmeow:understands
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_row logic:projectsLadderEdge gmeow:understands )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:sourceDimension ;
-        rdf:object    "?dim"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_row logic:sourceDimension _:logic_ruleProjectUnderstands_dim )>>
     ] , [
-        rdf:subject   "?row" ;
-        rdf:predicate logic:thresholdLevel ;
-        rdf:object    "?threshold"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_row logic:thresholdLevel _:logic_ruleProjectUnderstands_threshold )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentDimension ;
-        rdf:object    "?dim"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_assessment logic:assessmentDimension _:logic_ruleProjectUnderstands_dim )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessedAgent ;
-        rdf:object    "?agent"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_assessment logic:assessedAgent _:logic_ruleProjectUnderstands_agent )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentSubject ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_assessment logic:assessmentSubject _:logic_ruleProjectUnderstands_subject )>>
     ] , [
-        rdf:subject   "?assessment" ;
-        rdf:predicate logic:assessmentLevel ;
-        rdf:object    "?level"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_assessment logic:assessmentLevel _:logic_ruleProjectUnderstands_level )>>
     ] , [
-        rdf:subject   "?level" ;
-        rdf:predicate logic:levelAtOrAbove ;
-        rdf:object    "?threshold"
+        rdf:reifies <<( _:logic_ruleProjectUnderstands_level logic:levelAtOrAbove _:logic_ruleProjectUnderstands_threshold )>>
     ] .
 
+_:logic_ruleProjectHasMastered_agent a logic:TermCarrier ; logic:termVariable "agent" .
+_:logic_ruleProjectHasMastered_subject a logic:TermCarrier ; logic:termVariable "subject" .
+_:logic_ruleProjectHasMastered_profile a logic:TermCarrier ; logic:termVariable "profile" .
+_:logic_ruleProjectHasMastered_rowProc a logic:TermCarrier ; logic:termVariable "rowProc" .
+_:logic_ruleProjectHasMastered_rowTransfer a logic:TermCarrier ; logic:termVariable "rowTransfer" .
+_:logic_ruleProjectHasMastered_thresholdProc a logic:TermCarrier ; logic:termVariable "thresholdProc" .
+_:logic_ruleProjectHasMastered_assessProc a logic:TermCarrier ; logic:termVariable "assessProc" .
+_:logic_ruleProjectHasMastered_levelProc a logic:TermCarrier ; logic:termVariable "levelProc" .
+_:logic_ruleProjectHasMastered_thresholdTransfer a logic:TermCarrier ; logic:termVariable "thresholdTransfer" .
+_:logic_ruleProjectHasMastered_assessTransfer a logic:TermCarrier ; logic:termVariable "assessTransfer" .
+_:logic_ruleProjectHasMastered_levelTransfer a logic:TermCarrier ; logic:termVariable "levelTransfer" .
 logic:ruleProjectHasMastered
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -8718,82 +8693,44 @@ logic:ruleProjectHasMastered
     skos:definition "Emits gmeow:hasMastered only when BOTH a procedural-competence assessment and a transfer assessment of the same agent on the same subject clear their gmeow:hasMastered rows, where both rows belong to the SAME logic:LadderProjectionProfile. The two-row conjunction is why mastery of one narrow task no longer implies broad command — transfer must clear too — and the shared-profile join is why a procedural threshold from one profile can never be mixed with a transfer threshold from another. Positive Horn; thresholds read from the profile."@x-gmeow-english ;
     logic:provenance logic:ruleProjectHasMastered ;
     logic:head [
-        rdf:subject   "?agent" ;
-        rdf:predicate gmeow:hasMastered ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_agent gmeow:hasMastered _:logic_ruleProjectHasMastered_subject )>>
     ] ;
     logic:body [
-        rdf:subject   "?profile" ;
-        rdf:predicate logic:hasThresholdRow ;
-        rdf:object    "?rowProc"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_profile logic:hasThresholdRow _:logic_ruleProjectHasMastered_rowProc )>>
     ] , [
-        rdf:subject   "?profile" ;
-        rdf:predicate logic:hasThresholdRow ;
-        rdf:object    "?rowTransfer"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_profile logic:hasThresholdRow _:logic_ruleProjectHasMastered_rowTransfer )>>
     ] , [
-        rdf:subject   "?rowProc" ;
-        rdf:predicate logic:projectsLadderEdge ;
-        rdf:object    gmeow:hasMastered
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_rowProc logic:projectsLadderEdge gmeow:hasMastered )>>
     ] , [
-        rdf:subject   "?rowProc" ;
-        rdf:predicate logic:sourceDimension ;
-        rdf:object    logic:dimensionProceduralCompetence
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_rowProc logic:sourceDimension logic:dimensionProceduralCompetence )>>
     ] , [
-        rdf:subject   "?rowProc" ;
-        rdf:predicate logic:thresholdLevel ;
-        rdf:object    "?thresholdProc"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_rowProc logic:thresholdLevel _:logic_ruleProjectHasMastered_thresholdProc )>>
     ] , [
-        rdf:subject   "?assessProc" ;
-        rdf:predicate logic:assessmentDimension ;
-        rdf:object    logic:dimensionProceduralCompetence
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessProc logic:assessmentDimension logic:dimensionProceduralCompetence )>>
     ] , [
-        rdf:subject   "?assessProc" ;
-        rdf:predicate logic:assessedAgent ;
-        rdf:object    "?agent"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessProc logic:assessedAgent _:logic_ruleProjectHasMastered_agent )>>
     ] , [
-        rdf:subject   "?assessProc" ;
-        rdf:predicate logic:assessmentSubject ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessProc logic:assessmentSubject _:logic_ruleProjectHasMastered_subject )>>
     ] , [
-        rdf:subject   "?assessProc" ;
-        rdf:predicate logic:assessmentLevel ;
-        rdf:object    "?levelProc"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessProc logic:assessmentLevel _:logic_ruleProjectHasMastered_levelProc )>>
     ] , [
-        rdf:subject   "?levelProc" ;
-        rdf:predicate logic:levelAtOrAbove ;
-        rdf:object    "?thresholdProc"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_levelProc logic:levelAtOrAbove _:logic_ruleProjectHasMastered_thresholdProc )>>
     ] , [
-        rdf:subject   "?rowTransfer" ;
-        rdf:predicate logic:projectsLadderEdge ;
-        rdf:object    gmeow:hasMastered
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_rowTransfer logic:projectsLadderEdge gmeow:hasMastered )>>
     ] , [
-        rdf:subject   "?rowTransfer" ;
-        rdf:predicate logic:sourceDimension ;
-        rdf:object    logic:dimensionTransfer
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_rowTransfer logic:sourceDimension logic:dimensionTransfer )>>
     ] , [
-        rdf:subject   "?rowTransfer" ;
-        rdf:predicate logic:thresholdLevel ;
-        rdf:object    "?thresholdTransfer"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_rowTransfer logic:thresholdLevel _:logic_ruleProjectHasMastered_thresholdTransfer )>>
     ] , [
-        rdf:subject   "?assessTransfer" ;
-        rdf:predicate logic:assessmentDimension ;
-        rdf:object    logic:dimensionTransfer
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessTransfer logic:assessmentDimension logic:dimensionTransfer )>>
     ] , [
-        rdf:subject   "?assessTransfer" ;
-        rdf:predicate logic:assessedAgent ;
-        rdf:object    "?agent"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessTransfer logic:assessedAgent _:logic_ruleProjectHasMastered_agent )>>
     ] , [
-        rdf:subject   "?assessTransfer" ;
-        rdf:predicate logic:assessmentSubject ;
-        rdf:object    "?subject"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessTransfer logic:assessmentSubject _:logic_ruleProjectHasMastered_subject )>>
     ] , [
-        rdf:subject   "?assessTransfer" ;
-        rdf:predicate logic:assessmentLevel ;
-        rdf:object    "?levelTransfer"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_assessTransfer logic:assessmentLevel _:logic_ruleProjectHasMastered_levelTransfer )>>
     ] , [
-        rdf:subject   "?levelTransfer" ;
-        rdf:predicate logic:levelAtOrAbove ;
-        rdf:object    "?thresholdTransfer"
+        rdf:reifies <<( _:logic_ruleProjectHasMastered_levelTransfer logic:levelAtOrAbove _:logic_ruleProjectHasMastered_thresholdTransfer )>>
     ] .
 
 # ── Defeasible evidence: support that can come apart ────────────────────────────
@@ -11300,6 +11237,8 @@ logic:refinementRejectedOnApproval
 # refinement structure, never logic:violatedLaw, so nothing here competes with the
 # enactment-integrity laws for a head tuple.
 
+_:logic_ruleMethodYieldCellHead_method a logic:TermCarrier ; logic:termVariable "method" .
+_:logic_ruleMethodYieldCellHead_cell a logic:TermCarrier ; logic:termVariable "cell" .
 logic:ruleMethodYieldCellHead
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11307,16 +11246,15 @@ logic:ruleMethodYieldCellHead
     skos:definition "Derives logic:methodYieldCell for the cell a method's logic:methodYields names directly — the base case of the ordered-carrier walk. Positive Horn. Without it the walk has nowhere to start, and a method's sequence would be reachable only by a reader who already knew where the list began."@x-gmeow-english ;
     logic:provenance logic:ruleMethodYieldCellHead ;
     logic:head [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodYieldCell ;
-        rdf:object    "?cell"
+        rdf:reifies <<( _:logic_ruleMethodYieldCellHead_method logic:methodYieldCell _:logic_ruleMethodYieldCellHead_cell )>>
     ] ;
     logic:body [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodYields ;
-        rdf:object    "?cell"
+        rdf:reifies <<( _:logic_ruleMethodYieldCellHead_method logic:methodYields _:logic_ruleMethodYieldCellHead_cell )>>
     ] .
 
+_:logic_ruleMethodYieldCellRest_method a logic:TermCarrier ; logic:termVariable "method" .
+_:logic_ruleMethodYieldCellRest_next a logic:TermCarrier ; logic:termVariable "next" .
+_:logic_ruleMethodYieldCellRest_cell a logic:TermCarrier ; logic:termVariable "cell" .
 logic:ruleMethodYieldCellRest
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11324,20 +11262,17 @@ logic:ruleMethodYieldCellRest
     skos:definition "Derives logic:methodYieldCell for the rdf:rest of any cell already reached — the recursive case that walks the ordered carrier to rdf:nil. Positive Horn and recursive. This is where the SEQUENCE stops being a parser's private business: the whole list is in the closure, so the steps past the head are as visible to a query as the first one."@x-gmeow-english ;
     logic:provenance logic:ruleMethodYieldCellRest ;
     logic:head [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodYieldCell ;
-        rdf:object    "?next"
+        rdf:reifies <<( _:logic_ruleMethodYieldCellRest_method logic:methodYieldCell _:logic_ruleMethodYieldCellRest_next )>>
     ] ;
     logic:body [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodYieldCell ;
-        rdf:object    "?cell"
+        rdf:reifies <<( _:logic_ruleMethodYieldCellRest_method logic:methodYieldCell _:logic_ruleMethodYieldCellRest_cell )>>
     ] , [
-        rdf:subject   "?cell" ;
-        rdf:predicate rdf:rest ;
-        rdf:object    "?next"
+        rdf:reifies <<( _:logic_ruleMethodYieldCellRest_cell rdf:rest _:logic_ruleMethodYieldCellRest_next )>>
     ] .
 
+_:logic_ruleMethodStep_method a logic:TermCarrier ; logic:termVariable "method" .
+_:logic_ruleMethodStep_step a logic:TermCarrier ; logic:termVariable "step" .
+_:logic_ruleMethodStep_cell a logic:TermCarrier ; logic:termVariable "cell" .
 logic:ruleMethodStep
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11345,20 +11280,17 @@ logic:ruleMethodStep
     skos:definition "Derives logic:methodStep for the subtask carried by each logic:methodYieldCell. Positive Horn. It projects the ordered carrier into the membership relation joins need, while leaving the order where it was authored — so a join never has to pretend a set is a sequence."@x-gmeow-english ;
     logic:provenance logic:ruleMethodStep ;
     logic:head [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodStep ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleMethodStep_method logic:methodStep _:logic_ruleMethodStep_step )>>
     ] ;
     logic:body [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodYieldCell ;
-        rdf:object    "?cell"
+        rdf:reifies <<( _:logic_ruleMethodStep_method logic:methodYieldCell _:logic_ruleMethodStep_cell )>>
     ] , [
-        rdf:subject   "?cell" ;
-        rdf:predicate rdf:first ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleMethodStep_cell rdf:first _:logic_ruleMethodStep_step )>>
     ] .
 
+_:logic_ruleRefinementExpands_task a logic:TermCarrier ; logic:termVariable "task" .
+_:logic_ruleRefinementExpands_step a logic:TermCarrier ; logic:termVariable "step" .
+_:logic_ruleRefinementExpands_method a logic:TermCarrier ; logic:termVariable "method" .
 logic:ruleRefinementExpands
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11366,20 +11298,16 @@ logic:ruleRefinementExpands
     skos:definition "Derives logic:refinementExpands from a method that decomposes a task and yields a step — ONE means-end application, made a fact. Positive Horn. This is the smallest unit of the search, and having it in the closure is what lets 'why is this subtask here' be answered by the graph rather than by reading an evaluator."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementExpands ;
     logic:head [
-        rdf:subject   "?task" ;
-        rdf:predicate logic:refinementExpands ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementExpands_task logic:refinementExpands _:logic_ruleRefinementExpands_step )>>
     ] ;
     logic:body [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodDecomposes ;
-        rdf:object    "?task"
+        rdf:reifies <<( _:logic_ruleRefinementExpands_method logic:methodDecomposes _:logic_ruleRefinementExpands_task )>>
     ] , [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodStep ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementExpands_method logic:methodStep _:logic_ruleRefinementExpands_step )>>
     ] .
 
+_:logic_ruleRefinementReachesBase_task a logic:TermCarrier ; logic:termVariable "task" .
+_:logic_ruleRefinementReachesBase_step a logic:TermCarrier ; logic:termVariable "step" .
 logic:ruleRefinementReachesBase
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11387,16 +11315,15 @@ logic:ruleRefinementReachesBase
     skos:definition "Derives logic:refinementReaches from a single logic:refinementExpands — the base case of the expansion closure. Positive Horn."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementReachesBase ;
     logic:head [
-        rdf:subject   "?task" ;
-        rdf:predicate logic:refinementReaches ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementReachesBase_task logic:refinementReaches _:logic_ruleRefinementReachesBase_step )>>
     ] ;
     logic:body [
-        rdf:subject   "?task" ;
-        rdf:predicate logic:refinementExpands ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementReachesBase_task logic:refinementExpands _:logic_ruleRefinementReachesBase_step )>>
     ] .
 
+_:logic_ruleRefinementReachesTransitive_task a logic:TermCarrier ; logic:termVariable "task" .
+_:logic_ruleRefinementReachesTransitive_far a logic:TermCarrier ; logic:termVariable "far" .
+_:logic_ruleRefinementReachesTransitive_mid a logic:TermCarrier ; logic:termVariable "mid" .
 logic:ruleRefinementReachesTransitive
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11404,20 +11331,16 @@ logic:ruleRefinementReachesTransitive
     skos:definition "Derives logic:refinementReaches transitively, so the whole expansion of a task is a single derived relation. Positive Horn and recursive, and it TERMINATES on every method set because the closure is a finite relation over the tasks the data names — a cyclic method set yields a self-edge rather than a divergence, which is precisely what makes the cycle reportable instead of fatal."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementReachesTransitive ;
     logic:head [
-        rdf:subject   "?task" ;
-        rdf:predicate logic:refinementReaches ;
-        rdf:object    "?far"
+        rdf:reifies <<( _:logic_ruleRefinementReachesTransitive_task logic:refinementReaches _:logic_ruleRefinementReachesTransitive_far )>>
     ] ;
     logic:body [
-        rdf:subject   "?task" ;
-        rdf:predicate logic:refinementReaches ;
-        rdf:object    "?mid"
+        rdf:reifies <<( _:logic_ruleRefinementReachesTransitive_task logic:refinementReaches _:logic_ruleRefinementReachesTransitive_mid )>>
     ] , [
-        rdf:subject   "?mid" ;
-        rdf:predicate logic:refinementReaches ;
-        rdf:object    "?far"
+        rdf:reifies <<( _:logic_ruleRefinementReachesTransitive_mid logic:refinementReaches _:logic_ruleRefinementReachesTransitive_far )>>
     ] .
 
+_:logic_ruleRefinementCandidateMethod_task a logic:TermCarrier ; logic:termVariable "task" .
+_:logic_ruleRefinementCandidateMethod_method a logic:TermCarrier ; logic:termVariable "method" .
 logic:ruleRefinementCandidateMethod
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11425,16 +11348,15 @@ logic:ruleRefinementCandidateMethod
     skos:definition "Derives logic:refinementCandidateMethod for each logic:DecompositionMethod decomposing a task, orienting the roster on the TASK so a refinement can be asked of the thing being refined. Positive Horn. Every method is a member: applicability is reported by the typed rejections alongside the roster rather than by silently shortening it, because a candidate removed without a reason is indistinguishable from one nobody thought of."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementCandidateMethod ;
     logic:head [
-        rdf:subject   "?task" ;
-        rdf:predicate logic:refinementCandidateMethod ;
-        rdf:object    "?method"
+        rdf:reifies <<( _:logic_ruleRefinementCandidateMethod_task logic:refinementCandidateMethod _:logic_ruleRefinementCandidateMethod_method )>>
     ] ;
     logic:body [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodDecomposes ;
-        rdf:object    "?task"
+        rdf:reifies <<( _:logic_ruleRefinementCandidateMethod_method logic:methodDecomposes _:logic_ruleRefinementCandidateMethod_task )>>
     ] .
 
+_:logic_ruleRefinementRejectedOnPrecondition_step a logic:TermCarrier ; logic:termVariable "step" .
+_:logic_ruleRefinementRejectedOnPrecondition_situation a logic:TermCarrier ; logic:termVariable "situation" .
+_:logic_ruleRefinementRejectedOnPrecondition_probe a logic:TermCarrier ; logic:termVariable "probe" .
 logic:ruleRefinementRejectedOnPrecondition
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11442,24 +11364,20 @@ logic:ruleRefinementRejectedOnPrecondition
     skos:definition "Derives logic:refinementRejectedOnPrecondition for a step whose logic:GateProbe returned logic:GateDenied, witnessed by the step's own logic:precondition. Positive Horn: the gate is the authority on whether the situation obtained, and this rule projects its verdict onto the refinement roster rather than re-deciding it. The witness is the CONDITION, not the probe, because 'establish this' is the actionable form and 'a probe was denied' is not."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementRejectedOnPrecondition ;
     logic:head [
-        rdf:subject   "?step" ;
-        rdf:predicate logic:refinementRejectedOnPrecondition ;
-        rdf:object    "?situation"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnPrecondition_step logic:refinementRejectedOnPrecondition _:logic_ruleRefinementRejectedOnPrecondition_situation )>>
     ] ;
     logic:body [
-        rdf:subject   "?probe" ;
-        rdf:predicate logic:probesSchema ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnPrecondition_probe logic:probesSchema _:logic_ruleRefinementRejectedOnPrecondition_step )>>
     ] , [
-        rdf:subject   "?probe" ;
-        rdf:predicate logic:gateVerdict ;
-        rdf:object    logic:GateDenied
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnPrecondition_probe logic:gateVerdict logic:GateDenied )>>
     ] , [
-        rdf:subject   "?step" ;
-        rdf:predicate logic:precondition ;
-        rdf:object    "?situation"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnPrecondition_step logic:precondition _:logic_ruleRefinementRejectedOnPrecondition_situation )>>
     ] .
 
+_:logic_ruleRefinementRejectedOnCapability_step a logic:TermCarrier ; logic:termVariable "step" .
+_:logic_ruleRefinementRejectedOnCapability_capability a logic:TermCarrier ; logic:termVariable "capability" .
+_:logic_ruleRefinementRejectedOnCapability_gap a logic:TermCarrier ; logic:termVariable "gap" .
+_:logic_ruleRefinementRejectedOnCapability_proposal a logic:TermCarrier ; logic:termVariable "proposal" .
 logic:ruleRefinementRejectedOnCapability
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11467,24 +11385,20 @@ logic:ruleRefinementRejectedOnCapability
     skos:definition "Derives logic:refinementRejectedOnCapability for a step a logic:OperationalCapabilityGap blocks, witnessed by the logic:proposalMissingCapability of the proposal standing on the SAME step. Positive Horn. Joining gap and proposal on the blocked step is what keeps the answer specific: a deployment with several gaps must not attribute one gap's missing capability to another gap's step."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementRejectedOnCapability ;
     logic:head [
-        rdf:subject   "?step" ;
-        rdf:predicate logic:refinementRejectedOnCapability ;
-        rdf:object    "?capability"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnCapability_step logic:refinementRejectedOnCapability _:logic_ruleRefinementRejectedOnCapability_capability )>>
     ] ;
     logic:body [
-        rdf:subject   "?gap" ;
-        rdf:predicate logic:gapBlockedStep ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnCapability_gap logic:gapBlockedStep _:logic_ruleRefinementRejectedOnCapability_step )>>
     ] , [
-        rdf:subject   "?proposal" ;
-        rdf:predicate logic:proposalBlockedStep ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnCapability_proposal logic:proposalBlockedStep _:logic_ruleRefinementRejectedOnCapability_step )>>
     ] , [
-        rdf:subject   "?proposal" ;
-        rdf:predicate logic:proposalMissingCapability ;
-        rdf:object    "?capability"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnCapability_proposal logic:proposalMissingCapability _:logic_ruleRefinementRejectedOnCapability_capability )>>
     ] .
 
+_:logic_ruleRefinementRejectedOnResource_step a logic:TermCarrier ; logic:termVariable "step" .
+_:logic_ruleRefinementRejectedOnResource_lease a logic:TermCarrier ; logic:termVariable "lease" .
+_:logic_ruleRefinementRejectedOnResource_entry a logic:TermCarrier ; logic:termVariable "entry" .
+_:logic_ruleRefinementRejectedOnResource_resource a logic:TermCarrier ; logic:termVariable "resource" .
 logic:ruleRefinementRejectedOnResource
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11492,24 +11406,18 @@ logic:ruleRefinementRejectedOnResource
     skos:definition "Derives logic:refinementRejectedOnResource for a step whose frontier entry awaits something a logic:ResourceLease scopes, witnessed by that lease. Positive Horn. The join is on the AWAITED thing rather than on the step, because a lease knows nothing about plans: what makes it the obstruction is that its scope covers precisely what the step is waiting for."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementRejectedOnResource ;
     logic:head [
-        rdf:subject   "?step" ;
-        rdf:predicate logic:refinementRejectedOnResource ;
-        rdf:object    "?lease"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnResource_step logic:refinementRejectedOnResource _:logic_ruleRefinementRejectedOnResource_lease )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAction ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnResource_entry logic:entryAction _:logic_ruleRefinementRejectedOnResource_step )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAwaits ;
-        rdf:object    "?resource"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnResource_entry logic:entryAwaits _:logic_ruleRefinementRejectedOnResource_resource )>>
     ] , [
-        rdf:subject   "?lease" ;
-        rdf:predicate logic:leaseScope ;
-        rdf:object    "?resource"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnResource_lease logic:leaseScope _:logic_ruleRefinementRejectedOnResource_resource )>>
     ] .
 
+_:logic_ruleRefinementRejectedOnApproval_step a logic:TermCarrier ; logic:termVariable "step" .
+_:logic_ruleRefinementRejectedOnApproval_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleRefinementRejectedOnApproval
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11517,18 +11425,12 @@ logic:ruleRefinementRejectedOnApproval
     skos:definition "Derives logic:refinementRejectedOnApproval for a step whose frontier entry sits at logic:ApprovalCreated, witnessed by that entry. Positive Horn. Created-and-undetached is the one approval position that blocks WITHOUT anything being wrong, which is why it must be reported rather than left to a reader to notice that a ready step never ran."@x-gmeow-english ;
     logic:provenance logic:ruleRefinementRejectedOnApproval ;
     logic:head [
-        rdf:subject   "?step" ;
-        rdf:predicate logic:refinementRejectedOnApproval ;
-        rdf:object    "?entry"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnApproval_step logic:refinementRejectedOnApproval _:logic_ruleRefinementRejectedOnApproval_entry )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAction ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnApproval_entry logic:entryAction _:logic_ruleRefinementRejectedOnApproval_step )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:ApprovalCreated
+        rdf:reifies <<( _:logic_ruleRefinementRejectedOnApproval_entry logic:entryAxisWitness logic:ApprovalCreated )>>
     ] .
 
 # ── The pin half of refinement: validate the selection, and PIN it ────────────────────
@@ -11559,6 +11461,10 @@ logic:ruleRefinementRejectedOnApproval
 # and each names itself in logic:provenance so a derived pin's every triple carries the rule
 # that concluded it.
 
+_:logic_rulePinnedSubgraphFromAuthorizedCandidate_candidate a logic:TermCarrier ; logic:termVariable "candidate" .
+_:logic_rulePinnedSubgraphFromAuthorizedCandidate_episode a logic:TermCarrier ; logic:termVariable "episode" .
+_:logic_rulePinnedSubgraphFromAuthorizedCandidate_roster a logic:TermCarrier ; logic:termVariable "roster" .
+_:logic_rulePinnedSubgraphFromAuthorizedCandidate_proof a logic:TermCarrier ; logic:termVariable "proof" .
 logic:rulePinnedSubgraphFromAuthorizedCandidate
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11566,28 +11472,23 @@ logic:rulePinnedSubgraphFromAuthorizedCandidate
     skos:definition "Types a logic:refinementCandidate of an episode's roster as a logic:PinnedExecutableSubgraph once a logic:AuthorizationProof establishes it. Positive Horn. The authorization is the act that turns a candidate into a commitment, so it is the guard rather than an annotation: a roster member nobody licensed stays a candidate, and typing it a pin would assert a freeze that never happened."@x-gmeow-english ;
     logic:provenance logic:rulePinnedSubgraphFromAuthorizedCandidate ;
     logic:head [
-        rdf:subject   "?candidate" ;
-        rdf:predicate rdf:type ;
-        rdf:object    logic:PinnedExecutableSubgraph
+        rdf:reifies <<( _:logic_rulePinnedSubgraphFromAuthorizedCandidate_candidate rdf:type logic:PinnedExecutableSubgraph )>>
     ] ;
     logic:body [
-        rdf:subject   "?episode" ;
-        rdf:predicate logic:producedCandidateSet ;
-        rdf:object    "?roster"
+        rdf:reifies <<( _:logic_rulePinnedSubgraphFromAuthorizedCandidate_episode logic:producedCandidateSet _:logic_rulePinnedSubgraphFromAuthorizedCandidate_roster )>>
     ] , [
-        rdf:subject   "?roster" ;
-        rdf:predicate logic:refinementCandidate ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinnedSubgraphFromAuthorizedCandidate_roster logic:refinementCandidate _:logic_rulePinnedSubgraphFromAuthorizedCandidate_candidate )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate rdf:type ;
-        rdf:object    logic:AuthorizationProof
+        rdf:reifies <<( _:logic_rulePinnedSubgraphFromAuthorizedCandidate_proof rdf:type logic:AuthorizationProof )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate logic:proofEstablishes ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinnedSubgraphFromAuthorizedCandidate_proof logic:proofEstablishes _:logic_rulePinnedSubgraphFromAuthorizedCandidate_candidate )>>
     ] .
 
+_:logic_rulePinInstantiatesAuthorizedMethod_candidate a logic:TermCarrier ; logic:termVariable "candidate" .
+_:logic_rulePinInstantiatesAuthorizedMethod_method a logic:TermCarrier ; logic:termVariable "method" .
+_:logic_rulePinInstantiatesAuthorizedMethod_episode a logic:TermCarrier ; logic:termVariable "episode" .
+_:logic_rulePinInstantiatesAuthorizedMethod_roster a logic:TermCarrier ; logic:termVariable "roster" .
+_:logic_rulePinInstantiatesAuthorizedMethod_proof a logic:TermCarrier ; logic:termVariable "proof" .
 logic:rulePinInstantiatesAuthorizedMethod
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11595,32 +11496,26 @@ logic:rulePinInstantiatesAuthorizedMethod
     skos:definition "Derives logic:pinInstantiatesMethod for an authorized candidate from the logic:candidateInstantiatesMethod edge the search recorded when it produced the candidate. Positive Horn. The method is not chosen at pin time — it is the one whose application produced this candidate — so deriving it closes the gap a hand-authored pin leaves open: naming a method the frozen steps never came from."@x-gmeow-english ;
     logic:provenance logic:rulePinInstantiatesAuthorizedMethod ;
     logic:head [
-        rdf:subject   "?candidate" ;
-        rdf:predicate logic:pinInstantiatesMethod ;
-        rdf:object    "?method"
+        rdf:reifies <<( _:logic_rulePinInstantiatesAuthorizedMethod_candidate logic:pinInstantiatesMethod _:logic_rulePinInstantiatesAuthorizedMethod_method )>>
     ] ;
     logic:body [
-        rdf:subject   "?episode" ;
-        rdf:predicate logic:producedCandidateSet ;
-        rdf:object    "?roster"
+        rdf:reifies <<( _:logic_rulePinInstantiatesAuthorizedMethod_episode logic:producedCandidateSet _:logic_rulePinInstantiatesAuthorizedMethod_roster )>>
     ] , [
-        rdf:subject   "?roster" ;
-        rdf:predicate logic:refinementCandidate ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinInstantiatesAuthorizedMethod_roster logic:refinementCandidate _:logic_rulePinInstantiatesAuthorizedMethod_candidate )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate rdf:type ;
-        rdf:object    logic:AuthorizationProof
+        rdf:reifies <<( _:logic_rulePinInstantiatesAuthorizedMethod_proof rdf:type logic:AuthorizationProof )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate logic:proofEstablishes ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinInstantiatesAuthorizedMethod_proof logic:proofEstablishes _:logic_rulePinInstantiatesAuthorizedMethod_candidate )>>
     ] , [
-        rdf:subject   "?candidate" ;
-        rdf:predicate logic:candidateInstantiatesMethod ;
-        rdf:object    "?method"
+        rdf:reifies <<( _:logic_rulePinInstantiatesAuthorizedMethod_candidate logic:candidateInstantiatesMethod _:logic_rulePinInstantiatesAuthorizedMethod_method )>>
     ] .
 
+_:logic_rulePinnedStepSequenceFromMethod_candidate a logic:TermCarrier ; logic:termVariable "candidate" .
+_:logic_rulePinnedStepSequenceFromMethod_cell a logic:TermCarrier ; logic:termVariable "cell" .
+_:logic_rulePinnedStepSequenceFromMethod_episode a logic:TermCarrier ; logic:termVariable "episode" .
+_:logic_rulePinnedStepSequenceFromMethod_roster a logic:TermCarrier ; logic:termVariable "roster" .
+_:logic_rulePinnedStepSequenceFromMethod_proof a logic:TermCarrier ; logic:termVariable "proof" .
+_:logic_rulePinnedStepSequenceFromMethod_method a logic:TermCarrier ; logic:termVariable "method" .
 logic:rulePinnedStepSequenceFromMethod
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11628,36 +11523,28 @@ logic:rulePinnedStepSequenceFromMethod
     skos:definition "Derives logic:pinnedStepSequence for an authorized candidate as the very logic:methodYields list of the method that produced it. Positive Horn. It is the rule that makes logic:PinStepsMatchInstantiatedMethodConstraint unviolatable by a DERIVED pin: the frozen list and the instantiated method are read off one join, so the two cannot disagree. The law keeps its teeth against hand-authored pins, which is where the mismatch was ever possible."@x-gmeow-english ;
     logic:provenance logic:rulePinnedStepSequenceFromMethod ;
     logic:head [
-        rdf:subject   "?candidate" ;
-        rdf:predicate logic:pinnedStepSequence ;
-        rdf:object    "?cell"
+        rdf:reifies <<( _:logic_rulePinnedStepSequenceFromMethod_candidate logic:pinnedStepSequence _:logic_rulePinnedStepSequenceFromMethod_cell )>>
     ] ;
     logic:body [
-        rdf:subject   "?episode" ;
-        rdf:predicate logic:producedCandidateSet ;
-        rdf:object    "?roster"
+        rdf:reifies <<( _:logic_rulePinnedStepSequenceFromMethod_episode logic:producedCandidateSet _:logic_rulePinnedStepSequenceFromMethod_roster )>>
     ] , [
-        rdf:subject   "?roster" ;
-        rdf:predicate logic:refinementCandidate ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinnedStepSequenceFromMethod_roster logic:refinementCandidate _:logic_rulePinnedStepSequenceFromMethod_candidate )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate rdf:type ;
-        rdf:object    logic:AuthorizationProof
+        rdf:reifies <<( _:logic_rulePinnedStepSequenceFromMethod_proof rdf:type logic:AuthorizationProof )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate logic:proofEstablishes ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinnedStepSequenceFromMethod_proof logic:proofEstablishes _:logic_rulePinnedStepSequenceFromMethod_candidate )>>
     ] , [
-        rdf:subject   "?candidate" ;
-        rdf:predicate logic:candidateInstantiatesMethod ;
-        rdf:object    "?method"
+        rdf:reifies <<( _:logic_rulePinnedStepSequenceFromMethod_candidate logic:candidateInstantiatesMethod _:logic_rulePinnedStepSequenceFromMethod_method )>>
     ] , [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodYields ;
-        rdf:object    "?cell"
+        rdf:reifies <<( _:logic_rulePinnedStepSequenceFromMethod_method logic:methodYields _:logic_rulePinnedStepSequenceFromMethod_cell )>>
     ] .
 
+_:logic_rulePinDigestFromMethodDigest_candidate a logic:TermCarrier ; logic:termVariable "candidate" .
+_:logic_rulePinDigestFromMethodDigest_digest a logic:TermCarrier ; logic:termVariable "digest" .
+_:logic_rulePinDigestFromMethodDigest_episode a logic:TermCarrier ; logic:termVariable "episode" .
+_:logic_rulePinDigestFromMethodDigest_roster a logic:TermCarrier ; logic:termVariable "roster" .
+_:logic_rulePinDigestFromMethodDigest_proof a logic:TermCarrier ; logic:termVariable "proof" .
+_:logic_rulePinDigestFromMethodDigest_method a logic:TermCarrier ; logic:termVariable "method" .
 logic:rulePinDigestFromMethodDigest
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11665,36 +11552,26 @@ logic:rulePinDigestFromMethodDigest
     skos:definition "Derives logic:pinDigest for an authorized candidate from the logic:methodDigest of the method that produced it. Positive Horn. A derived pin freezes exactly one thing — the method's yielded sequence — so the address of that content is the address of the method version, and computing a second one would create two names for one fragment. A method carrying no digest therefore yields no pin digest and the pin is REFUSED by the completeness law rather than quietly addressed by a fabricated value, which is the honest failure: 'content-addressed' is a claim about the method, and a method that never made it cannot lend it."@x-gmeow-english ;
     logic:provenance logic:rulePinDigestFromMethodDigest ;
     logic:head [
-        rdf:subject   "?candidate" ;
-        rdf:predicate logic:pinDigest ;
-        rdf:object    "?digest"
+        rdf:reifies <<( _:logic_rulePinDigestFromMethodDigest_candidate logic:pinDigest _:logic_rulePinDigestFromMethodDigest_digest )>>
     ] ;
     logic:body [
-        rdf:subject   "?episode" ;
-        rdf:predicate logic:producedCandidateSet ;
-        rdf:object    "?roster"
+        rdf:reifies <<( _:logic_rulePinDigestFromMethodDigest_episode logic:producedCandidateSet _:logic_rulePinDigestFromMethodDigest_roster )>>
     ] , [
-        rdf:subject   "?roster" ;
-        rdf:predicate logic:refinementCandidate ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinDigestFromMethodDigest_roster logic:refinementCandidate _:logic_rulePinDigestFromMethodDigest_candidate )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate rdf:type ;
-        rdf:object    logic:AuthorizationProof
+        rdf:reifies <<( _:logic_rulePinDigestFromMethodDigest_proof rdf:type logic:AuthorizationProof )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate logic:proofEstablishes ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinDigestFromMethodDigest_proof logic:proofEstablishes _:logic_rulePinDigestFromMethodDigest_candidate )>>
     ] , [
-        rdf:subject   "?candidate" ;
-        rdf:predicate logic:candidateInstantiatesMethod ;
-        rdf:object    "?method"
+        rdf:reifies <<( _:logic_rulePinDigestFromMethodDigest_candidate logic:candidateInstantiatesMethod _:logic_rulePinDigestFromMethodDigest_method )>>
     ] , [
-        rdf:subject   "?method" ;
-        rdf:predicate logic:methodDigest ;
-        rdf:object    "?digest"
+        rdf:reifies <<( _:logic_rulePinDigestFromMethodDigest_method logic:methodDigest _:logic_rulePinDigestFromMethodDigest_digest )>>
     ] .
 
+_:logic_rulePinAuthorityFromEstablishingProof_candidate a logic:TermCarrier ; logic:termVariable "candidate" .
+_:logic_rulePinAuthorityFromEstablishingProof_proof a logic:TermCarrier ; logic:termVariable "proof" .
+_:logic_rulePinAuthorityFromEstablishingProof_episode a logic:TermCarrier ; logic:termVariable "episode" .
+_:logic_rulePinAuthorityFromEstablishingProof_roster a logic:TermCarrier ; logic:termVariable "roster" .
 logic:rulePinAuthorityFromEstablishingProof
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11702,28 +11579,22 @@ logic:rulePinAuthorityFromEstablishingProof
     skos:definition "Derives logic:pinAuthority for an authorized candidate as the logic:AuthorizationProof whose logic:proofEstablishes named it. Positive Horn. The guard requires the licensing record to BE an authorization proof, so a logic:Advisory pointed at a candidate derives no authority at all — advice can motivate a pin and never licenses one. An advisory ALSO typed a proof still derives, and is still condemned, by logic:AdvisoryNeverAuthorityConstraint: the derivation does not launder the double typing, it inherits it."@x-gmeow-english ;
     logic:provenance logic:rulePinAuthorityFromEstablishingProof ;
     logic:head [
-        rdf:subject   "?candidate" ;
-        rdf:predicate logic:pinAuthority ;
-        rdf:object    "?proof"
+        rdf:reifies <<( _:logic_rulePinAuthorityFromEstablishingProof_candidate logic:pinAuthority _:logic_rulePinAuthorityFromEstablishingProof_proof )>>
     ] ;
     logic:body [
-        rdf:subject   "?episode" ;
-        rdf:predicate logic:producedCandidateSet ;
-        rdf:object    "?roster"
+        rdf:reifies <<( _:logic_rulePinAuthorityFromEstablishingProof_episode logic:producedCandidateSet _:logic_rulePinAuthorityFromEstablishingProof_roster )>>
     ] , [
-        rdf:subject   "?roster" ;
-        rdf:predicate logic:refinementCandidate ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinAuthorityFromEstablishingProof_roster logic:refinementCandidate _:logic_rulePinAuthorityFromEstablishingProof_candidate )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate rdf:type ;
-        rdf:object    logic:AuthorizationProof
+        rdf:reifies <<( _:logic_rulePinAuthorityFromEstablishingProof_proof rdf:type logic:AuthorizationProof )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate logic:proofEstablishes ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_rulePinAuthorityFromEstablishingProof_proof logic:proofEstablishes _:logic_rulePinAuthorityFromEstablishingProof_candidate )>>
     ] .
 
+_:logic_ruleEpisodeSelectsItsAuthorizedPin_episode a logic:TermCarrier ; logic:termVariable "episode" .
+_:logic_ruleEpisodeSelectsItsAuthorizedPin_candidate a logic:TermCarrier ; logic:termVariable "candidate" .
+_:logic_ruleEpisodeSelectsItsAuthorizedPin_roster a logic:TermCarrier ; logic:termVariable "roster" .
+_:logic_ruleEpisodeSelectsItsAuthorizedPin_proof a logic:TermCarrier ; logic:termVariable "proof" .
 logic:ruleEpisodeSelectsItsAuthorizedPin
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11731,26 +11602,16 @@ logic:ruleEpisodeSelectsItsAuthorizedPin
     skos:definition "Derives logic:selectedPin from the episode that produced the roster to the authorized candidate inside it. Positive Horn. It is what makes logic:RefinementPinComesFromCandidateSetConstraint true by construction for a derived pin: the selection is read out of the roster rather than asserted next to it, so an episode cannot be recorded as committing to something its own search never found. The law keeps its teeth against an authored logic:selectedPin, which is the only place a pin from outside the roster could ever enter."@x-gmeow-english ;
     logic:provenance logic:ruleEpisodeSelectsItsAuthorizedPin ;
     logic:head [
-        rdf:subject   "?episode" ;
-        rdf:predicate logic:selectedPin ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_ruleEpisodeSelectsItsAuthorizedPin_episode logic:selectedPin _:logic_ruleEpisodeSelectsItsAuthorizedPin_candidate )>>
     ] ;
     logic:body [
-        rdf:subject   "?episode" ;
-        rdf:predicate logic:producedCandidateSet ;
-        rdf:object    "?roster"
+        rdf:reifies <<( _:logic_ruleEpisodeSelectsItsAuthorizedPin_episode logic:producedCandidateSet _:logic_ruleEpisodeSelectsItsAuthorizedPin_roster )>>
     ] , [
-        rdf:subject   "?roster" ;
-        rdf:predicate logic:refinementCandidate ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_ruleEpisodeSelectsItsAuthorizedPin_roster logic:refinementCandidate _:logic_ruleEpisodeSelectsItsAuthorizedPin_candidate )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate rdf:type ;
-        rdf:object    logic:AuthorizationProof
+        rdf:reifies <<( _:logic_ruleEpisodeSelectsItsAuthorizedPin_proof rdf:type logic:AuthorizationProof )>>
     ] , [
-        rdf:subject   "?proof" ;
-        rdf:predicate logic:proofEstablishes ;
-        rdf:object    "?candidate"
+        rdf:reifies <<( _:logic_ruleEpisodeSelectsItsAuthorizedPin_proof logic:proofEstablishes _:logic_ruleEpisodeSelectsItsAuthorizedPin_candidate )>>
     ] .
 
 logic:CapabilityGapProposalCompletenessConstraint
@@ -13716,6 +13577,7 @@ logic:FrontierCancelledWithInFlightEffects a logic:NamedIndividual , logic:Front
 # guard that is purely relational, because exclusivity is a relation between two
 # candidates and belongs on no axis at all.
 
+_:logic_ruleFrontierReadyAuthorized_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierReadyAuthorized
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13723,20 +13585,15 @@ logic:ruleFrontierReadyAuthorized
     skos:definition "Derives logic:FrontierReadyAuthorized for a frontier entry whose step axis is ready and whose approval axis is null — the policy already authorizes the effect, so no operator gate stands between the action and its dispatch. Positive Horn. This is the rule that makes policy-maximal automation a derivation rather than a habit: an entry is authorized because its axis tuple says so, not because nobody remembered to gate it."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierReadyAuthorized ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReadyAuthorized
+        rdf:reifies <<( _:logic_ruleFrontierReadyAuthorized_entry logic:entryLabel logic:FrontierReadyAuthorized )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepReady
+        rdf:reifies <<( _:logic_ruleFrontierReadyAuthorized_entry logic:entryAxisWitness logic:StepReady )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:ApprovalNull
+        rdf:reifies <<( _:logic_ruleFrontierReadyAuthorized_entry logic:entryAxisWitness logic:ApprovalNull )>>
     ] .
 
+_:logic_ruleFrontierReadyApprovalRequired_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierReadyApprovalRequired
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13744,20 +13601,15 @@ logic:ruleFrontierReadyApprovalRequired
     skos:definition "Derives logic:FrontierReadyApprovalRequired for a frontier entry whose step axis is ready and whose approval axis is created but not yet detached. Readiness and approval are separate axes, and this rule is where that separation earns its keep: the same entry is simultaneously ready to run and gated, which a single blended state could only express by minting a combined value for every such pairing."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierReadyApprovalRequired ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReadyApprovalRequired
+        rdf:reifies <<( _:logic_ruleFrontierReadyApprovalRequired_entry logic:entryLabel logic:FrontierReadyApprovalRequired )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepReady
+        rdf:reifies <<( _:logic_ruleFrontierReadyApprovalRequired_entry logic:entryAxisWitness logic:StepReady )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:ApprovalCreated
+        rdf:reifies <<( _:logic_ruleFrontierReadyApprovalRequired_entry logic:entryAxisWitness logic:ApprovalCreated )>>
     ] .
 
+_:logic_ruleFrontierReconciliationRequired_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierReconciliationRequired
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13765,16 +13617,15 @@ logic:ruleFrontierReconciliationRequired
     skos:definition "Derives logic:FrontierReconciliationRequired for a frontier entry whose effect axis sits at attempted — an effect was dispatched and no receipt settled it. This is the no-blind-retry law stated positively: rather than only forbidding a retry, the frontier NAMES the one action that is licensed from an undetermined position, so an operator reading it is told what to do instead of merely what not to do."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierReconciliationRequired ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReconciliationRequired
+        rdf:reifies <<( _:logic_ruleFrontierReconciliationRequired_entry logic:entryLabel logic:FrontierReconciliationRequired )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectAttempted
+        rdf:reifies <<( _:logic_ruleFrontierReconciliationRequired_entry logic:entryAxisWitness logic:EffectAttempted )>>
     ] .
 
+_:logic_ruleFrontierBlockedCapability_entry a logic:TermCarrier ; logic:termVariable "entry" .
+_:logic_ruleFrontierBlockedCapability_step a logic:TermCarrier ; logic:termVariable "step" .
+_:logic_ruleFrontierBlockedCapability_gap a logic:TermCarrier ; logic:termVariable "gap" .
 logic:ruleFrontierBlockedCapability
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13782,24 +13633,17 @@ logic:ruleFrontierBlockedCapability
     skos:definition "Derives logic:FrontierBlockedCapabilityOrResource for a frontier entry whose step axis is waiting and whose action is the blocked step of an operational capability gap. The gap is an operational one — a capability the deployment does not have — and never a reasoning-profile gap, so this rule is also where the non-conflation is enforced by construction rather than by a reviewer noticing."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierBlockedCapability ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierBlockedCapabilityOrResource
+        rdf:reifies <<( _:logic_ruleFrontierBlockedCapability_entry logic:entryLabel logic:FrontierBlockedCapabilityOrResource )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepWaiting
+        rdf:reifies <<( _:logic_ruleFrontierBlockedCapability_entry logic:entryAxisWitness logic:StepWaiting )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAction ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleFrontierBlockedCapability_entry logic:entryAction _:logic_ruleFrontierBlockedCapability_step )>>
     ] , [
-        rdf:subject   "?gap" ;
-        rdf:predicate logic:gapBlockedStep ;
-        rdf:object    "?step"
+        rdf:reifies <<( _:logic_ruleFrontierBlockedCapability_gap logic:gapBlockedStep _:logic_ruleFrontierBlockedCapability_step )>>
     ] .
 
+_:logic_ruleFrontierCompensationEligible_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierCompensationEligible
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13807,16 +13651,13 @@ logic:ruleFrontierCompensationEligible
     skos:definition "Derives logic:FrontierCompensationEligible for a frontier entry whose effect axis sits at receipted — a forward effect is known to have committed, so a counteraction is now permissible. Eligibility is all this derives: it asserts no compensation attempt, no compensation outcome, and no claim that compensating will succeed, because compensation is a new action with its own possibility of failing."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierCompensationEligible ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompensationEligible
+        rdf:reifies <<( _:logic_ruleFrontierCompensationEligible_entry logic:entryLabel logic:FrontierCompensationEligible )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectReceipted
+        rdf:reifies <<( _:logic_ruleFrontierCompensationEligible_entry logic:entryAxisWitness logic:EffectReceipted )>>
     ] .
 
+_:logic_ruleFrontierBlockedPrecondition_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierBlockedPrecondition
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13824,16 +13665,14 @@ logic:ruleFrontierBlockedPrecondition
     skos:definition "Derives logic:FrontierBlockedPrecondition for a frontier entry whose step axis is pending — the step belongs to the enactment and its preconditions have not been evaluated as met, which is exactly the position the step axis mints for an unmet precondition. Positive Horn, and disjoint from every other rule by the step axis alone. The label matters because its remedy differs from every neighbouring obstruction: a precondition is remediable by changing the world, where a missing capability is not, and telling an operator to wait when the answer is to change the world is the failure this separation prevents."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierBlockedPrecondition ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierBlockedPrecondition
+        rdf:reifies <<( _:logic_ruleFrontierBlockedPrecondition_entry logic:entryLabel logic:FrontierBlockedPrecondition )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepPending
+        rdf:reifies <<( _:logic_ruleFrontierBlockedPrecondition_entry logic:entryAxisWitness logic:StepPending )>>
     ] .
 
+_:logic_ruleFrontierWaitingOnEventTimeOrInput_entry a logic:TermCarrier ; logic:termVariable "entry" .
+_:logic_ruleFrontierWaitingOnEventTimeOrInput_awaited a logic:TermCarrier ; logic:termVariable "awaited" .
 logic:ruleFrontierWaitingOnEventTimeOrInput
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13841,20 +13680,16 @@ logic:ruleFrontierWaitingOnEventTimeOrInput
     skos:definition "Derives logic:FrontierWaitingOnEventTimeOrInput for a frontier entry whose step axis is waiting and which names, through logic:entryAwaits, the thing it is blocked pending. The awaited witness is what makes the label a derivation rather than a shrug: the step axis says THAT the step waits, and only the witness says what would end the wait. It is also what keeps this rule disjoint from the capability-gap rule, which shares the waiting position — a step blocked by a capability the deployment does not have awaits nothing, because what is absent does not arrive, and its remedy is a capability-gap proposal rather than patience."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierWaitingOnEventTimeOrInput ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierWaitingOnEventTimeOrInput
+        rdf:reifies <<( _:logic_ruleFrontierWaitingOnEventTimeOrInput_entry logic:entryLabel logic:FrontierWaitingOnEventTimeOrInput )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepWaiting
+        rdf:reifies <<( _:logic_ruleFrontierWaitingOnEventTimeOrInput_entry logic:entryAxisWitness logic:StepWaiting )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAwaits ;
-        rdf:object    "?awaited"
+        rdf:reifies <<( _:logic_ruleFrontierWaitingOnEventTimeOrInput_entry logic:entryAwaits _:logic_ruleFrontierWaitingOnEventTimeOrInput_awaited )>>
     ] .
 
+_:logic_ruleFrontierMutuallyExclusive_entry a logic:TermCarrier ; logic:termVariable "entry" .
+_:logic_ruleFrontierMutuallyExclusive_other a logic:TermCarrier ; logic:termVariable "other" .
 logic:ruleFrontierMutuallyExclusive
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13862,16 +13697,13 @@ logic:ruleFrontierMutuallyExclusive
     skos:definition "Derives logic:FrontierMutuallyExclusive for a frontier entry that logic:entryExcludes another entry. This is the one guard in the set that reads no axis, and deliberately: exclusivity is a relation between two candidates and not a position either of them occupies, so putting it on an axis would be the conflation the seven-axis discipline exists to refuse. It becomes visible only when local frontiers are glued, which is also why the withheld candidate carries no readiness position — being ready is a claim about a frontier on which the excluding candidate was not taken."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierMutuallyExclusive ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierMutuallyExclusive
+        rdf:reifies <<( _:logic_ruleFrontierMutuallyExclusive_entry logic:entryLabel logic:FrontierMutuallyExclusive )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryExcludes ;
-        rdf:object    "?other"
+        rdf:reifies <<( _:logic_ruleFrontierMutuallyExclusive_entry logic:entryExcludes _:logic_ruleFrontierMutuallyExclusive_other )>>
     ] .
 
+_:logic_ruleFrontierCompensationRequired_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierCompensationRequired
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13879,24 +13711,17 @@ logic:ruleFrontierCompensationRequired
     skos:definition "Derives logic:FrontierCompensationRequired for a frontier entry whose effect axis sits at reconciled, whose commitment knowledge is supported, and whose enactment axis is failed — a probe settled that the forward effect committed, and the occurrence it belonged to will not complete, so the committed effect has to be counteracted for the run to reach a consistent terminal position. Three axes carry this and none of them could alone: the effect position says the question was answered, the knowledge value says which way, and the enactment position is what turns permission into obligation. That is precisely what separates it from compensation-eligible, where declining costs nothing."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierCompensationRequired ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompensationRequired
+        rdf:reifies <<( _:logic_ruleFrontierCompensationRequired_entry logic:entryLabel logic:FrontierCompensationRequired )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectReconciled
+        rdf:reifies <<( _:logic_ruleFrontierCompensationRequired_entry logic:entryAxisWitness logic:EffectReconciled )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoSupported
+        rdf:reifies <<( _:logic_ruleFrontierCompensationRequired_entry logic:entryAxisWitness logic:InfoSupported )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentFailed
+        rdf:reifies <<( _:logic_ruleFrontierCompensationRequired_entry logic:entryAxisWitness logic:EnactmentFailed )>>
     ] .
 
+_:logic_ruleFrontierCompensationFailedForwardCommitted_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierCompensationFailedForwardCommitted
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13904,28 +13729,19 @@ logic:ruleFrontierCompensationFailedForwardCommitted
     skos:definition "Derives logic:FrontierCompensationFailedForwardCommitted for a frontier entry whose exchange sits in its compensating leg, whose step axis is failed, whose commitment knowledge is still supported, and whose enactment is still running. Read together those four positions say the whole thing: a compensating action was launched, the step carrying it terminally failed, the forward effect it was launched against remains committed, and the occurrence has not given up. The last position is what separates this from terminally-failed — the enactment is still running because escalation is a continuation, and escalation rather than retry is the only move this position licenses."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierCompensationFailedForwardCommitted ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompensationFailedForwardCommitted
+        rdf:reifies <<( _:logic_ruleFrontierCompensationFailedForwardCommitted_entry logic:entryLabel logic:FrontierCompensationFailedForwardCommitted )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepFailed
+        rdf:reifies <<( _:logic_ruleFrontierCompensationFailedForwardCommitted_entry logic:entryAxisWitness logic:StepFailed )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectCompensating
+        rdf:reifies <<( _:logic_ruleFrontierCompensationFailedForwardCommitted_entry logic:entryAxisWitness logic:EffectCompensating )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoSupported
+        rdf:reifies <<( _:logic_ruleFrontierCompensationFailedForwardCommitted_entry logic:entryAxisWitness logic:InfoSupported )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentRunning
+        rdf:reifies <<( _:logic_ruleFrontierCompensationFailedForwardCommitted_entry logic:entryAxisWitness logic:EnactmentRunning )>>
     ] .
 
+_:logic_ruleFrontierReconciliationImpossible_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierReconciliationImpossible
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13933,16 +13749,13 @@ logic:ruleFrontierReconciliationImpossible
     skos:definition "Derives logic:FrontierReconciliationImpossible for a frontier entry whose effect axis sits at abandoned — the exchange was given up without an authoritative determination because no reconciliation semantics remain available. The effect axis mints exactly one position for that, so the guard needs nothing else. The label is the honest counterpart of reconciliation-required: there, probing is still available and the frontier names it; here it is foreclosed, and naming another probe would send an operator after evidence that cannot be obtained."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierReconciliationImpossible ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReconciliationImpossible
+        rdf:reifies <<( _:logic_ruleFrontierReconciliationImpossible_entry logic:entryLabel logic:FrontierReconciliationImpossible )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectAbandoned
+        rdf:reifies <<( _:logic_ruleFrontierReconciliationImpossible_entry logic:entryAxisWitness logic:EffectAbandoned )>>
     ] .
 
+_:logic_ruleFrontierCompleted_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierCompleted
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13950,16 +13763,14 @@ logic:ruleFrontierCompleted
     skos:definition "Derives logic:FrontierCompleted for a frontier entry whose step axis is completed — the step carried out its prescribed work and reached a terminal position, so nothing further is owed on it. The guard reads that one axis and stops there on purpose: the label asserts nothing about whether the enactment's goal is met, which is the goal-evaluation axis, and nothing about whether an external effect the step dispatched actually committed, which is the commitment-knowledge axis carried by the exchange's own entry."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierCompleted ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompleted
+        rdf:reifies <<( _:logic_ruleFrontierCompleted_entry logic:entryLabel logic:FrontierCompleted )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepCompleted
+        rdf:reifies <<( _:logic_ruleFrontierCompleted_entry logic:entryAxisWitness logic:StepCompleted )>>
     ] .
 
+_:logic_ruleFrontierSkippedWithTypedReason_entry a logic:TermCarrier ; logic:termVariable "entry" .
+_:logic_ruleFrontierSkippedWithTypedReason_reason a logic:TermCarrier ; logic:termVariable "reason" .
 logic:ruleFrontierSkippedWithTypedReason
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13967,20 +13778,15 @@ logic:ruleFrontierSkippedWithTypedReason
     skos:definition "Derives logic:FrontierSkippedWithTypedReason for a frontier entry whose step axis is skipped and which carries a logic:skipReason. The typed reason is a guard and not a decoration: the label's whole content is that the omission was deliberate and attributable, so an entry claiming a skip without one derives nothing rather than deriving a label it cannot support — which is the correct outcome, because an untyped skip is indistinguishable from an oversight and the frontier must not present the two alike."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierSkippedWithTypedReason ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierSkippedWithTypedReason
+        rdf:reifies <<( _:logic_ruleFrontierSkippedWithTypedReason_entry logic:entryLabel logic:FrontierSkippedWithTypedReason )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepSkipped
+        rdf:reifies <<( _:logic_ruleFrontierSkippedWithTypedReason_entry logic:entryAxisWitness logic:StepSkipped )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:skipReason ;
-        rdf:object    "?reason"
+        rdf:reifies <<( _:logic_ruleFrontierSkippedWithTypedReason_entry logic:skipReason _:logic_ruleFrontierSkippedWithTypedReason_reason )>>
     ] .
 
+_:logic_ruleFrontierCancelled_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierCancelled
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -13988,24 +13794,17 @@ logic:ruleFrontierCancelled
     skos:definition "Derives logic:FrontierCancelled for a frontier entry whose step and enactment axes are both cancelled and whose commitment knowledge was never evaluated — the quiescent cancellation, where stopping by decision settles the matter because no external effect was ever in question. The knowledge position is the load-bearing conjunct: it is what distinguishes this from cancellation with in-flight effects, and reading a bare cancelled position as quiescent is exactly how an outstanding exchange gets closed on paper while remaining open at the provider."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierCancelled ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCancelled
+        rdf:reifies <<( _:logic_ruleFrontierCancelled_entry logic:entryLabel logic:FrontierCancelled )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepCancelled
+        rdf:reifies <<( _:logic_ruleFrontierCancelled_entry logic:entryAxisWitness logic:StepCancelled )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentCancelled
+        rdf:reifies <<( _:logic_ruleFrontierCancelled_entry logic:entryAxisWitness logic:EnactmentCancelled )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoNotEvaluated
+        rdf:reifies <<( _:logic_ruleFrontierCancelled_entry logic:entryAxisWitness logic:InfoNotEvaluated )>>
     ] .
 
+_:logic_ruleFrontierCancelledWithInFlightEffects_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierCancelledWithInFlightEffects
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -14013,24 +13812,17 @@ logic:ruleFrontierCancelledWithInFlightEffects
     skos:definition "Derives logic:FrontierCancelledWithInFlightEffects for a frontier entry whose step and enactment axes are both cancelled while its commitment knowledge remains undetermined. Cancellation is a decision about the occurrence and it does not resolve knowledge about the world, so the outstanding exchange still demands reconciliation; the sibling entry that positions that exchange reads reconciliation-required. It differs from plain cancelled on the commitment-knowledge axis and on nothing else, which is exactly why the two cannot share a slot — and it is arguably the hardest real position an operator meets, which a bare cancelled label hides."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierCancelledWithInFlightEffects ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCancelledWithInFlightEffects
+        rdf:reifies <<( _:logic_ruleFrontierCancelledWithInFlightEffects_entry logic:entryLabel logic:FrontierCancelledWithInFlightEffects )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepCancelled
+        rdf:reifies <<( _:logic_ruleFrontierCancelledWithInFlightEffects_entry logic:entryAxisWitness logic:StepCancelled )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentCancelled
+        rdf:reifies <<( _:logic_ruleFrontierCancelledWithInFlightEffects_entry logic:entryAxisWitness logic:EnactmentCancelled )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoUndetermined
+        rdf:reifies <<( _:logic_ruleFrontierCancelledWithInFlightEffects_entry logic:entryAxisWitness logic:InfoUndetermined )>>
     ] .
 
+_:logic_ruleFrontierTerminallyFailed_entry a logic:TermCarrier ; logic:termVariable "entry" .
 logic:ruleFrontierTerminallyFailed
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -14038,18 +13830,12 @@ logic:ruleFrontierTerminallyFailed
     skos:definition "Derives logic:FrontierTerminallyFailed for a frontier entry whose step axis is failed and whose enactment axis is failed — the step attempted its work and failed, and the occurrence stopped because no continuation is available, which is the enactment axis's own definition of failure. Both conjuncts are needed: a failed step inside a still-running enactment has a continuation somewhere, and the enactment position is what says there is none. That is also what separates it from compensation-failed-forward-committed, where the run is still going because escalation remains open."@x-gmeow-english ;
     logic:provenance logic:ruleFrontierTerminallyFailed ;
     logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierTerminallyFailed
+        rdf:reifies <<( _:logic_ruleFrontierTerminallyFailed_entry logic:entryLabel logic:FrontierTerminallyFailed )>>
     ] ;
     logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepFailed
+        rdf:reifies <<( _:logic_ruleFrontierTerminallyFailed_entry logic:entryAxisWitness logic:StepFailed )>>
     ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentFailed
+        rdf:reifies <<( _:logic_ruleFrontierTerminallyFailed_entry logic:entryAxisWitness logic:EnactmentFailed )>>
     ] .
 
 logic:SkipReason
@@ -15890,7 +15676,7 @@ logic:TermCarrier
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Carrier"@x-gmeow-english ;
-    skos:definition "An ordered slot in an atomic formula's logic:argument list, a function term's logic:argument list, or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication (a nested compound function term). It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."@x-gmeow-english ;
+    skos:definition "A structural RDF resource preserving one term value and its kind: logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication. An ordered argument or quantified-variable carrier has exactly one zero-based logic:termIndex. A carrier occupying a native RDF 1.2 triple-term position needs no index because that position already fixes its role. It is not the term value itself and never asserts a domain membership for that value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:FunctionTerm
@@ -15909,7 +15695,7 @@ logic:ArgumentStructure
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Argument Structure"@x-gmeow-english ;
-    skos:definition "A node that applies a reified operator to an ordered list of logic:argument term-carriers: an atomic-predication logic:Formula (operator = logic:relation) or a logic:FunctionTerm (operator = logic:functionSymbol). It is the shared rdfs:domain of logic:argument, so the ordered argument-carrier machinery is reused across both without asserting that a function term is a formula or that a formula is a term."@x-gmeow-english ;
+    skos:definition "A node applying an operator to an ordered list of logic:argument term-carriers. The operator is explicit as logic:relation on an atomic logic:Formula or logic:functionSymbol on a logic:FunctionTerm, or supplied structurally by a rule’s logic:distinctBody link. It is the shared domain of logic:argument; sharing the ordered carrier machinery does not assert that a guard or function term is a formula."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:SequenceMarker
@@ -16963,7 +16749,7 @@ logic:argument
     rdfs:range logic:TermCarrier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "argument"@x-gmeow-english ;
-    skos:definition "Relates a logic:ArgumentStructure — an atomic-predication logic:Formula (over logic:relation) or a logic:FunctionTerm (over logic:functionSymbol) — to one of its argument term-carriers. The SAME property carries both, so a function term's operands reuse the predication argument machinery. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication), so a variadic argument list — including sequence markers and nested compound function terms — round-trips with its order and term kinds intact. It is not a direct link to the term value and carries no ordering by triple position."@x-gmeow-english ;
+    skos:definition "Relates a logic:ArgumentStructure to an ordered argument term-carrier. Atomic formulas, function terms and rule inequality guards share this structural link. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property, preserving order and term kinds independently of RDF statement order. It is not a direct link to the term value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:quantifiedVariable
@@ -17679,6 +17465,7 @@ logic:sourceAdmissionRequirement
 
 logic:nativeClassExpressionListAdmission
     a logic:NamedIndividual, logic:SourceAdmissionContract ;
+    gmeow:enforcesFailureClass logic:NativeSourceAdmissionRefusal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     logic:sourceAdmissionRequirement "Selected class-expression operators and typed distinct-member declarations own their operands and reachable finite lists in one native world. Owned lists require an unambiguous first/rest path to rdf:nil, with no fields on that terminator; unrelated list-shaped data selects no admission contract. Malformed selected grammar fails admission; well-formed constructs outside the selected operand or definition fragment remain explicit capability refusals. Every refusal retains its exact owner and reachable source path; none is an object-level contradiction or a claim of semantic completeness." ;
     rdfs:label "native class-expression list admission"@x-gmeow-english ;
@@ -18058,6 +17845,11 @@ logic:contestedByAttribution
     skos:scopeNote "Derived, never asserted. The two attributions must reify the SAME statement — same subject, same predicate, same object — because two vantages disagreeing about different claims are not in conflict at all."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+_:logic_ruleAttributionContestedByOpposingVantage_affirming a logic:TermCarrier ; logic:termVariable "affirming" .
+_:logic_ruleAttributionContestedByOpposingVantage_opposing a logic:TermCarrier ; logic:termVariable "opposing" .
+_:logic_ruleAttributionContestedByOpposingVantage_s a logic:TermCarrier ; logic:termVariable "s" .
+_:logic_ruleAttributionContestedByOpposingVantage_p a logic:TermCarrier ; logic:termVariable "p" .
+_:logic_ruleAttributionContestedByOpposingVantage_o a logic:TermCarrier ; logic:termVariable "o" .
 logic:ruleAttributionContestedByOpposingVantage
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -18065,46 +17857,27 @@ logic:ruleAttributionContestedByOpposingVantage
     skos:definition "Derives logic:contestedByAttribution between two DISTINCT reifiers of the SAME statement whose gmeow:standpointSupportStatus values are gmeow:supportSupported and gmeow:supportOpposed. Positive Horn, joined over the three lowered statement components. It is the proof that the statement-metadata lowering is not decorative: the join is over logic:reifiedStatementSubject / Predicate / Object, none of which existed before it, and without them the rule's body cannot be written at all — the two attributions have no shared variable, and a rule that dropped the join would declare every affirmation in the graph contested by every opposition anywhere in it."@x-gmeow-english ;
     logic:provenance logic:ruleAttributionContestedByOpposingVantage ;
     logic:head [
-        rdf:subject   "?affirming" ;
-        rdf:predicate logic:contestedByAttribution ;
-        rdf:object    "?opposing"
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_affirming logic:contestedByAttribution _:logic_ruleAttributionContestedByOpposingVantage_opposing )>>
     ] ;
     logic:body [
-        rdf:subject   "?affirming" ;
-        rdf:predicate gmeow:standpointSupportStatus ;
-        rdf:object    gmeow:supportSupported
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_affirming gmeow:standpointSupportStatus gmeow:supportSupported )>>
     ] , [
-        rdf:subject   "?opposing" ;
-        rdf:predicate gmeow:standpointSupportStatus ;
-        rdf:object    gmeow:supportOpposed
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_opposing gmeow:standpointSupportStatus gmeow:supportOpposed )>>
     ] , [
-        rdf:subject   "?affirming" ;
-        rdf:predicate logic:reifiedStatementSubject ;
-        rdf:object    "?s"
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_affirming logic:reifiedStatementSubject _:logic_ruleAttributionContestedByOpposingVantage_s )>>
     ] , [
-        rdf:subject   "?opposing" ;
-        rdf:predicate logic:reifiedStatementSubject ;
-        rdf:object    "?s"
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_opposing logic:reifiedStatementSubject _:logic_ruleAttributionContestedByOpposingVantage_s )>>
     ] , [
-        rdf:subject   "?affirming" ;
-        rdf:predicate logic:reifiedStatementPredicate ;
-        rdf:object    "?p"
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_affirming logic:reifiedStatementPredicate _:logic_ruleAttributionContestedByOpposingVantage_p )>>
     ] , [
-        rdf:subject   "?opposing" ;
-        rdf:predicate logic:reifiedStatementPredicate ;
-        rdf:object    "?p"
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_opposing logic:reifiedStatementPredicate _:logic_ruleAttributionContestedByOpposingVantage_p )>>
     ] , [
-        rdf:subject   "?affirming" ;
-        rdf:predicate logic:reifiedStatementObject ;
-        rdf:object    "?o"
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_affirming logic:reifiedStatementObject _:logic_ruleAttributionContestedByOpposingVantage_o )>>
     ] , [
-        rdf:subject   "?opposing" ;
-        rdf:predicate logic:reifiedStatementObject ;
-        rdf:object    "?o"
+        rdf:reifies <<( _:logic_ruleAttributionContestedByOpposingVantage_opposing logic:reifiedStatementObject _:logic_ruleAttributionContestedByOpposingVantage_o )>>
     ] ;
     logic:distinctBody [
-        rdf:subject "?affirming" ;
-        rdf:object  "?opposing"
+        logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "affirming" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "opposing" ]
     ] .
 
 # ── Retained-withhold records (constructs the kernel deliberately does NOT decide) ─
@@ -18721,6 +18494,9 @@ logic:candidateBullshitTruthIndifference
 # produced it. The paired non-entailment obligation forbids the derived edge from
 # ever collapsing into asserted-direct gmeow:wasAttributedTo.
 
+_:logic_ruleIndirectContributor_entity a logic:TermCarrier ; logic:termVariable "entity" .
+_:logic_ruleIndirectContributor_agent a logic:TermCarrier ; logic:termVariable "agent" .
+_:logic_ruleIndirectContributor_activity a logic:TermCarrier ; logic:termVariable "activity" .
 logic:ruleIndirectContributor
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -18729,18 +18505,12 @@ logic:ruleIndirectContributor
     logic:provenance logic:ruleIndirectContributor ;
     logic:formalizes gmeow:indirectContributor ;
     logic:head [
-        rdf:subject   "?entity" ;
-        rdf:predicate gmeow:indirectContributor ;
-        rdf:object    "?agent"
+        rdf:reifies <<( _:logic_ruleIndirectContributor_entity gmeow:indirectContributor _:logic_ruleIndirectContributor_agent )>>
     ] ;
     logic:body [
-        rdf:subject   "?entity" ;
-        rdf:predicate gmeow:wasGeneratedBy ;
-        rdf:object    "?activity"
+        rdf:reifies <<( _:logic_ruleIndirectContributor_entity gmeow:wasGeneratedBy _:logic_ruleIndirectContributor_activity )>>
     ] , [
-        rdf:subject   "?activity" ;
-        rdf:predicate gmeow:wasAssociatedWith ;
-        rdf:object    "?agent"
+        rdf:reifies <<( _:logic_ruleIndirectContributor_activity gmeow:wasAssociatedWith _:logic_ruleIndirectContributor_agent )>>
     ] .
 
 logic:IndirectContributorNotAttributionObligation
@@ -18793,6 +18563,10 @@ logic:candidateIndirectContributor
 # The full WEMI spine composed into a direct copy-to-Work edge, materialized only
 # when all three R-relations hold (a broken spine derives nothing).
 
+_:logic_ruleInstantiatesWork_item a logic:TermCarrier ; logic:termVariable "item" .
+_:logic_ruleInstantiatesWork_work a logic:TermCarrier ; logic:termVariable "work" .
+_:logic_ruleInstantiatesWork_manifestation a logic:TermCarrier ; logic:termVariable "manifestation" .
+_:logic_ruleInstantiatesWork_expression a logic:TermCarrier ; logic:termVariable "expression" .
 logic:ruleInstantiatesWork
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -18801,22 +18575,14 @@ logic:ruleInstantiatesWork
     logic:provenance logic:ruleInstantiatesWork ;
     logic:formalizes gmeow:instantiatesWork ;
     logic:head [
-        rdf:subject   "?item" ;
-        rdf:predicate gmeow:instantiatesWork ;
-        rdf:object    "?work"
+        rdf:reifies <<( _:logic_ruleInstantiatesWork_item gmeow:instantiatesWork _:logic_ruleInstantiatesWork_work )>>
     ] ;
     logic:body [
-        rdf:subject   "?item" ;
-        rdf:predicate gmeow:exemplifies ;
-        rdf:object    "?manifestation"
+        rdf:reifies <<( _:logic_ruleInstantiatesWork_item gmeow:exemplifies _:logic_ruleInstantiatesWork_manifestation )>>
     ] , [
-        rdf:subject   "?manifestation" ;
-        rdf:predicate gmeow:embodies ;
-        rdf:object    "?expression"
+        rdf:reifies <<( _:logic_ruleInstantiatesWork_manifestation gmeow:embodies _:logic_ruleInstantiatesWork_expression )>>
     ] , [
-        rdf:subject   "?expression" ;
-        rdf:predicate gmeow:realizes ;
-        rdf:object    "?work"
+        rdf:reifies <<( _:logic_ruleInstantiatesWork_expression gmeow:realizes _:logic_ruleInstantiatesWork_work )>>
     ] .
 
 logic:cqInstantiatesWorkHolds
@@ -18860,6 +18626,9 @@ logic:candidateInstantiatesWork
 # the propagation that the slice's OWL chain carries (the harvest pattern), not a
 # divergent second reading.
 
+_:logic_ruleOrgMembershipPropagation_agent a logic:TermCarrier ; logic:termVariable "agent" .
+_:logic_ruleOrgMembershipPropagation_parent a logic:TermCarrier ; logic:termVariable "parent" .
+_:logic_ruleOrgMembershipPropagation_org a logic:TermCarrier ; logic:termVariable "org" .
 logic:ruleOrgMembershipPropagation
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -18868,18 +18637,12 @@ logic:ruleOrgMembershipPropagation
     logic:provenance logic:ruleOrgMembershipPropagation ;
     logic:formalizes gmeow:memberOf ;
     logic:head [
-        rdf:subject   "?agent" ;
-        rdf:predicate gmeow:memberOf ;
-        rdf:object    "?parent"
+        rdf:reifies <<( _:logic_ruleOrgMembershipPropagation_agent gmeow:memberOf _:logic_ruleOrgMembershipPropagation_parent )>>
     ] ;
     logic:body [
-        rdf:subject   "?agent" ;
-        rdf:predicate gmeow:memberOf ;
-        rdf:object    "?org"
+        rdf:reifies <<( _:logic_ruleOrgMembershipPropagation_agent gmeow:memberOf _:logic_ruleOrgMembershipPropagation_org )>>
     ] , [
-        rdf:subject   "?org" ;
-        rdf:predicate gmeow:subOrganizationOf ;
-        rdf:object    "?parent"
+        rdf:reifies <<( _:logic_ruleOrgMembershipPropagation_org gmeow:subOrganizationOf _:logic_ruleOrgMembershipPropagation_parent )>>
     ] .
 
 logic:cqOrgMembershipPropagationHolds
@@ -18927,6 +18690,8 @@ logic:candidateOrgMembershipPropagation
 # special case. The diagnostics conformance lane proves the derived Fatal set
 # equals gate()'s over every grade.
 
+_:logic_ruleGateFatalVerdict_finding a logic:TermCarrier ; logic:termVariable "finding" .
+_:logic_ruleGateFatalVerdict_category a logic:TermCarrier ; logic:termVariable "category" .
 logic:ruleGateFatalVerdict
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -18935,26 +18700,16 @@ logic:ruleGateFatalVerdict
     logic:provenance logic:ruleGateFatalVerdict ;
     logic:formalizes gmeow:findingGateVerdict ;
     logic:head [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingGateVerdict ;
-        rdf:object    gmeow:gateFatal
+        rdf:reifies <<( _:logic_ruleGateFatalVerdict_finding gmeow:findingGateVerdict gmeow:gateFatal )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingSeverity ;
-        rdf:object    gmeow:severityError
+        rdf:reifies <<( _:logic_ruleGateFatalVerdict_finding gmeow:findingSeverity gmeow:severityError )>>
     ] , [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingCategory ;
-        rdf:object    "?category"
+        rdf:reifies <<( _:logic_ruleGateFatalVerdict_finding gmeow:findingCategory _:logic_ruleGateFatalVerdict_category )>>
     ] , [
-        rdf:subject   "?category" ;
-        rdf:predicate gmeow:categoryBlocking ;
-        rdf:object    gmeow:blockingBlocking
+        rdf:reifies <<( _:logic_ruleGateFatalVerdict_category gmeow:categoryBlocking gmeow:blockingBlocking )>>
     ] , [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingStandpoint ;
-        rdf:object    gmeow:standpointBinding
+        rdf:reifies <<( _:logic_ruleGateFatalVerdict_finding gmeow:findingStandpoint gmeow:standpointBinding )>>
     ] .
 
 logic:cqGateFatalVerdictHolds
@@ -19012,6 +18767,8 @@ logic:candidateGateFatalVerdict
 # derived gmeow:crossNodeGlutWith edge (Supported-polarity → Opposed-polarity).
 
 # ── Root-cause step 1/2: the transitive closure of gmeow:findingAntecedent ──────
+_:logic_ruleFindingTracesBase_finding a logic:TermCarrier ; logic:termVariable "finding" .
+_:logic_ruleFindingTracesBase_antecedent a logic:TermCarrier ; logic:termVariable "antecedent" .
 logic:ruleFindingTracesBase
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19021,17 +18778,16 @@ logic:ruleFindingTracesBase
     logic:provenance logic:ruleFindingTracesBase ;
     logic:formalizes gmeow:findingTraces ;
     logic:head [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingTraces ;
-        rdf:object    "?antecedent"
+        rdf:reifies <<( _:logic_ruleFindingTracesBase_finding gmeow:findingTraces _:logic_ruleFindingTracesBase_antecedent )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingAntecedent ;
-        rdf:object    "?antecedent"
+        rdf:reifies <<( _:logic_ruleFindingTracesBase_finding gmeow:findingAntecedent _:logic_ruleFindingTracesBase_antecedent )>>
     ] .
 
 # ── Root-cause step 2/2: the recursive step of the closure ──────────────────────
+_:logic_ruleFindingTracesStep_finding a logic:TermCarrier ; logic:termVariable "finding" .
+_:logic_ruleFindingTracesStep_root a logic:TermCarrier ; logic:termVariable "root" .
+_:logic_ruleFindingTracesStep_intermediate a logic:TermCarrier ; logic:termVariable "intermediate" .
 logic:ruleFindingTracesStep
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19041,18 +18797,12 @@ logic:ruleFindingTracesStep
     logic:provenance logic:ruleFindingTracesStep ;
     logic:formalizes gmeow:findingTraces ;
     logic:head [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingTraces ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingTracesStep_finding gmeow:findingTraces _:logic_ruleFindingTracesStep_root )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingAntecedent ;
-        rdf:object    "?intermediate"
+        rdf:reifies <<( _:logic_ruleFindingTracesStep_finding gmeow:findingAntecedent _:logic_ruleFindingTracesStep_intermediate )>>
     ] , [
-        rdf:subject   "?intermediate" ;
-        rdf:predicate gmeow:findingTraces ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingTracesStep_intermediate gmeow:findingTraces _:logic_ruleFindingTracesStep_root )>>
     ] .
 
 logic:cqFindingTracesHolds
@@ -19088,6 +18838,8 @@ logic:candidateFindingTraces
     logic:candidateSourceField logic:ProseFieldDefinition .
 
 # ── Root-cause helper: mark every finding that carries an antecedent ─────────────
+_:logic_ruleFindingHasAntecedent_finding a logic:TermCarrier ; logic:termVariable "finding" .
+_:logic_ruleFindingHasAntecedent_antecedent a logic:TermCarrier ; logic:termVariable "antecedent" .
 logic:ruleFindingHasAntecedent
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19097,17 +18849,15 @@ logic:ruleFindingHasAntecedent
     logic:provenance logic:ruleFindingHasAntecedent ;
     logic:formalizes gmeow:findingHasAntecedent ;
     logic:head [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingHasAntecedent ;
-        rdf:object    "?finding"
+        rdf:reifies <<( _:logic_ruleFindingHasAntecedent_finding gmeow:findingHasAntecedent _:logic_ruleFindingHasAntecedent_finding )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingAntecedent ;
-        rdf:object    "?antecedent"
+        rdf:reifies <<( _:logic_ruleFindingHasAntecedent_finding gmeow:findingAntecedent _:logic_ruleFindingHasAntecedent_antecedent )>>
     ] .
 
 # ── Root cause: a traced antecedent that itself has no antecedent (NAF) ──────────
+_:logic_ruleFindingRootCause_finding a logic:TermCarrier ; logic:termVariable "finding" .
+_:logic_ruleFindingRootCause_root a logic:TermCarrier ; logic:termVariable "root" .
 logic:ruleFindingRootCause
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19117,19 +18867,13 @@ logic:ruleFindingRootCause
     logic:provenance logic:ruleFindingRootCause ;
     logic:formalizes gmeow:findingRootCause ;
     logic:head [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingRootCause ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingRootCause_finding gmeow:findingRootCause _:logic_ruleFindingRootCause_root )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingTraces ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingRootCause_finding gmeow:findingTraces _:logic_ruleFindingRootCause_root )>>
     ] ;
     logic:negatedBody [
-        rdf:subject   "?root" ;
-        rdf:predicate gmeow:findingHasAntecedent ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingRootCause_root gmeow:findingHasAntecedent _:logic_ruleFindingRootCause_root )>>
     ] .
 
 logic:cqFindingRootCauseHolds
@@ -19169,6 +18913,8 @@ logic:candidateFindingRootCause
 # cluster is IDENTIFIED BY its shared root finding: the root doubles as the
 # gmeow:FindingCluster node, carrying gmeow:clusterRoot to itself, and every
 # finding sharing that root links to it through gmeow:findingCluster.
+_:logic_ruleFindingCluster_finding a logic:TermCarrier ; logic:termVariable "finding" .
+_:logic_ruleFindingCluster_root a logic:TermCarrier ; logic:termVariable "root" .
 logic:ruleFindingCluster
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19178,16 +18924,14 @@ logic:ruleFindingCluster
     logic:provenance logic:ruleFindingCluster ;
     logic:formalizes gmeow:findingCluster ;
     logic:head [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingCluster ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingCluster_finding gmeow:findingCluster _:logic_ruleFindingCluster_root )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingRootCause ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingCluster_finding gmeow:findingRootCause _:logic_ruleFindingCluster_root )>>
     ] .
 
+_:logic_ruleClusterRoot_root a logic:TermCarrier ; logic:termVariable "root" .
+_:logic_ruleClusterRoot_finding a logic:TermCarrier ; logic:termVariable "finding" .
 logic:ruleClusterRoot
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19197,16 +18941,14 @@ logic:ruleClusterRoot
     logic:provenance logic:ruleClusterRoot ;
     logic:formalizes gmeow:clusterRoot ;
     logic:head [
-        rdf:subject   "?root" ;
-        rdf:predicate gmeow:clusterRoot ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleClusterRoot_root gmeow:clusterRoot _:logic_ruleClusterRoot_root )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingRootCause ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleClusterRoot_finding gmeow:findingRootCause _:logic_ruleClusterRoot_root )>>
     ] .
 
+_:logic_ruleFindingClusterType_root a logic:TermCarrier ; logic:termVariable "root" .
+_:logic_ruleFindingClusterType_finding a logic:TermCarrier ; logic:termVariable "finding" .
 logic:ruleFindingClusterType
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19216,14 +18958,10 @@ logic:ruleFindingClusterType
     logic:provenance logic:ruleFindingClusterType ;
     logic:formalizes gmeow:FindingCluster ;
     logic:head [
-        rdf:subject   "?root" ;
-        rdf:predicate rdf:type ;
-        rdf:object    gmeow:FindingCluster
+        rdf:reifies <<( _:logic_ruleFindingClusterType_root rdf:type gmeow:FindingCluster )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingRootCause ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleFindingClusterType_finding gmeow:findingRootCause _:logic_ruleFindingClusterType_root )>>
     ] .
 
 logic:cqFindingClusterHolds
@@ -19259,6 +18997,11 @@ logic:candidateFindingCluster
     logic:candidateSourceField logic:ProseFieldDefinition .
 
 # ── Cross-node glut: two opposing-polarity findings at one non-trivial anchor ────
+_:logic_ruleCrossNodeGlut_f1 a logic:TermCarrier ; logic:termVariable "f1" .
+_:logic_ruleCrossNodeGlut_f2 a logic:TermCarrier ; logic:termVariable "f2" .
+_:logic_ruleCrossNodeGlut_anchor a logic:TermCarrier ; logic:termVariable "anchor" .
+_:logic_ruleCrossNodeGlut_category1 a logic:TermCarrier ; logic:termVariable "category1" .
+_:logic_ruleCrossNodeGlut_category2 a logic:TermCarrier ; logic:termVariable "category2" .
 logic:ruleCrossNodeGlut
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19268,42 +19011,25 @@ logic:ruleCrossNodeGlut
     logic:provenance logic:ruleCrossNodeGlut ;
     logic:formalizes gmeow:crossNodeGlutWith ;
     logic:head [
-        rdf:subject   "?f1" ;
-        rdf:predicate gmeow:crossNodeGlutWith ;
-        rdf:object    "?f2"
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_f1 gmeow:crossNodeGlutWith _:logic_ruleCrossNodeGlut_f2 )>>
     ] ;
     logic:body [
-        rdf:subject   "?f1" ;
-        rdf:predicate gmeow:findingAnchor ;
-        rdf:object    "?anchor"
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_f1 gmeow:findingAnchor _:logic_ruleCrossNodeGlut_anchor )>>
     ] , [
-        rdf:subject   "?f2" ;
-        rdf:predicate gmeow:findingAnchor ;
-        rdf:object    "?anchor"
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_f2 gmeow:findingAnchor _:logic_ruleCrossNodeGlut_anchor )>>
     ] , [
-        rdf:subject   "?anchor" ;
-        rdf:predicate rdf:type ;
-        rdf:object    gmeow:NonTrivialAnchor
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_anchor rdf:type gmeow:NonTrivialAnchor )>>
     ] , [
-        rdf:subject   "?f1" ;
-        rdf:predicate gmeow:findingCategory ;
-        rdf:object    "?category1"
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_f1 gmeow:findingCategory _:logic_ruleCrossNodeGlut_category1 )>>
     ] , [
-        rdf:subject   "?category1" ;
-        rdf:predicate gmeow:categoryPolarity ;
-        rdf:object    logic:InfoSupported
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_category1 gmeow:categoryPolarity logic:InfoSupported )>>
     ] , [
-        rdf:subject   "?f2" ;
-        rdf:predicate gmeow:findingCategory ;
-        rdf:object    "?category2"
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_f2 gmeow:findingCategory _:logic_ruleCrossNodeGlut_category2 )>>
     ] , [
-        rdf:subject   "?category2" ;
-        rdf:predicate gmeow:categoryPolarity ;
-        rdf:object    logic:InfoOpposed
+        rdf:reifies <<( _:logic_ruleCrossNodeGlut_category2 gmeow:categoryPolarity logic:InfoOpposed )>>
     ] ;
     logic:distinctBody [
-        rdf:subject "?f1" ;
-        rdf:object  "?f2"
+        logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "f1" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "f2" ]
     ] .
 
 logic:cqCrossNodeGlutHolds
@@ -19350,6 +19076,8 @@ logic:candidateCrossNodeGlut
 # SAME gmeow:DiagnosticMetaRule class selection as the rules above, with zero
 # engine change — the proof that a new meta-finding is added by authoring a tagged
 # rule, not by touching the reasoner (design-decision-2).
+_:logic_ruleRootFinding_root a logic:TermCarrier ; logic:termVariable "root" .
+_:logic_ruleRootFinding_finding a logic:TermCarrier ; logic:termVariable "finding" .
 logic:ruleRootFinding
     a logic:Rule ,
         gmeow:DiagnosticMetaRule ;
@@ -19359,14 +19087,10 @@ logic:ruleRootFinding
     logic:provenance logic:ruleRootFinding ;
     logic:formalizes gmeow:RootFinding ;
     logic:head [
-        rdf:subject   "?root" ;
-        rdf:predicate rdf:type ;
-        rdf:object    gmeow:RootFinding
+        rdf:reifies <<( _:logic_ruleRootFinding_root rdf:type gmeow:RootFinding )>>
     ] ;
     logic:body [
-        rdf:subject   "?finding" ;
-        rdf:predicate gmeow:findingRootCause ;
-        rdf:object    "?root"
+        rdf:reifies <<( _:logic_ruleRootFinding_finding gmeow:findingRootCause _:logic_ruleRootFinding_root )>>
     ] .
 
 logic:cqRootFindingHolds
@@ -19409,6 +19133,9 @@ logic:candidateDiagnosticMetaExtensibility
 # StandpointTenure prose documents, now derived so generic observation consumers
 # read a tenure's claim on the universal observation spine uniformly.
 
+_:logic_ruleTenureClaimVantage_claim a logic:TermCarrier ; logic:termVariable "claim" .
+_:logic_ruleTenureClaimVantage_standpoint a logic:TermCarrier ; logic:termVariable "standpoint" .
+_:logic_ruleTenureClaimVantage_tenure a logic:TermCarrier ; logic:termVariable "tenure" .
 logic:ruleTenureClaimVantage
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -19417,20 +19144,17 @@ logic:ruleTenureClaimVantage
     logic:provenance logic:ruleTenureClaimVantage ;
     logic:formalizes gmeow:StandpointTenure ;
     logic:head [
-        rdf:subject   "?claim" ;
-        rdf:predicate gmeow:vantage ;
-        rdf:object    "?standpoint"
+        rdf:reifies <<( _:logic_ruleTenureClaimVantage_claim gmeow:vantage _:logic_ruleTenureClaimVantage_standpoint )>>
     ] ;
     logic:body [
-        rdf:subject   "?tenure" ;
-        rdf:predicate gmeow:standpointClaim ;
-        rdf:object    "?claim"
+        rdf:reifies <<( _:logic_ruleTenureClaimVantage_tenure gmeow:standpointClaim _:logic_ruleTenureClaimVantage_claim )>>
     ] , [
-        rdf:subject   "?tenure" ;
-        rdf:predicate gmeow:tenureStandpoint ;
-        rdf:object    "?standpoint"
+        rdf:reifies <<( _:logic_ruleTenureClaimVantage_tenure gmeow:tenureStandpoint _:logic_ruleTenureClaimVantage_standpoint )>>
     ] .
 
+_:logic_ruleTenureClaimObservedFeature_claim a logic:TermCarrier ; logic:termVariable "claim" .
+_:logic_ruleTenureClaimObservedFeature_position a logic:TermCarrier ; logic:termVariable "position" .
+_:logic_ruleTenureClaimObservedFeature_tenure a logic:TermCarrier ; logic:termVariable "tenure" .
 logic:ruleTenureClaimObservedFeature
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -19439,18 +19163,12 @@ logic:ruleTenureClaimObservedFeature
     logic:provenance logic:ruleTenureClaimObservedFeature ;
     logic:formalizes gmeow:StandpointTenure ;
     logic:head [
-        rdf:subject   "?claim" ;
-        rdf:predicate gmeow:observedFeature ;
-        rdf:object    "?position"
+        rdf:reifies <<( _:logic_ruleTenureClaimObservedFeature_claim gmeow:observedFeature _:logic_ruleTenureClaimObservedFeature_position )>>
     ] ;
     logic:body [
-        rdf:subject   "?tenure" ;
-        rdf:predicate gmeow:standpointClaim ;
-        rdf:object    "?claim"
+        rdf:reifies <<( _:logic_ruleTenureClaimObservedFeature_tenure gmeow:standpointClaim _:logic_ruleTenureClaimObservedFeature_claim )>>
     ] , [
-        rdf:subject   "?tenure" ;
-        rdf:predicate gmeow:tenurePosition ;
-        rdf:object    "?position"
+        rdf:reifies <<( _:logic_ruleTenureClaimObservedFeature_tenure gmeow:tenurePosition _:logic_ruleTenureClaimObservedFeature_position )>>
     ] .
 
 logic:cqTenureClaimSurfacingHolds
@@ -24091,3 +23809,70 @@ logic:finite-journal-infinite-trace
     gmeow:howToUse "Retain the exact prefix and open or finalized boundary with the result; do not extrapolate from those positions to an infinite continuation."@x-gmeow-english ;
     skos:scopeNote "FirstOrder names the expressibility class of the relational standard translation. It does not certify finite observations as evidence for an infinite temporal domain."@x-gmeow-english ;
     skos:example "ex:observation logic:journalBoundary logic:OpenJournalBoundary ."@x-gmeow-english .
+
+logic:NativeSourceCoverageRefusal
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:label "native source coverage refusal"@x-gmeow-english ;
+    skos:definition "An operational refusal when a selected native source cannot supply the complete, immutable definition evidence required by its profile and world. The refusal retains the source owner and unmet capability without deriving a semantic verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use when native definition collection or producer-effect analysis refuses its selected source contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not classify this operational refusal as a contradiction or as source data disproving a proposition."@x-gmeow-english ;
+    gmeow:howToUse "Retain the selected profile, source owner, world and exact unmet requirement from the native diagnostic."@x-gmeow-english ;
+    skos:scopeNote "Coverage is relative to the requested native operation and its immutable source boundary."@x-gmeow-english ;
+    skos:example "A reachable producer that can rewrite selected modal definition grammar causes a source coverage refusal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:NativeSourceAdmissionRefusal
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:label "native source admission refusal"@x-gmeow-english ;
+    skos:definition "The pre-execution refusal of an exact selected native class-expression source. Its original admission observation distinguishes malformed owned grammar from a well-formed construct outside the selected fragment and preserves every source path and input contract."@x-gmeow-english ;
+    gmeow:useWhen "Use when the original selected class-expression admission refuses before native writers execute."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse malformed input and unsupported evaluation into one semantic truth value."@x-gmeow-english ;
+    gmeow:howToUse "Carry the complete typed admission observation with its exact input contract into the diagnostic ledger."@x-gmeow-english ;
+    skos:scopeNote "This class names failure of the selected operation to admit its source, independently of whether that source is logically consistent."@x-gmeow-english ;
+    skos:example "An owned enumeration whose selected rdf:nil terminator has list fields is refused with its original source path."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:NativeDefinitionSourceAdmission
+    a logic:NamedIndividual, logic:SourceAdmissionContract ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:NativeSourceCoverageRefusal ;
+    logic:sourceAdmissionRequirement "Every selected native definition must retain its complete original source and world. Native providers must be materialized before dependent execution requests them, and reachable producers must not rewrite grammar declared immutable by the selected profile." ;
+    rdfs:label "native definition source admission"@x-gmeow-english ;
+    skos:definition "The operational source contract for complete native definition evidence and immutable selected grammar across one requested profile and world. Native collection and producer-effect analysis realize this contract before dependent execution."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the contract enforced by native definition coverage diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer source completeness from a digest alone or permit a later writer to redefine an admitted source grammar."@x-gmeow-english ;
+    gmeow:howToUse "Select the profile and world, retain every original definition, and reject producer effects that violate its required source boundary."@x-gmeow-english ;
+    skos:scopeNote "The contract governs operational source admission; it makes no object-level consistency claim."@x-gmeow-english ;
+    skos:example "A selected contextual definition must already have its complete source before native execution requests it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:HelperSourceAdmissionRefusal
+    a logic:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "helper source admission refusal"@x-gmeow-english ;
+    skos:definition "An operational refusal of a helper census request, policy ledger or source inventory that cannot satisfy the declared admission contract. The diagnostic retains the input boundary, original cause and available source location."@x-gmeow-english ;
+    gmeow:useWhen "Use when census arguments, ledger syntax, ledger schema or a declared source home cannot be admitted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a discovered duplicate implementation or relabel an actual file access error as a schema defect."@x-gmeow-english ;
+    gmeow:howToUse "Retain the typed operation and parser cause, include the ledger row context, and repair the refused input before repeating the census."@x-gmeow-english ;
+    skos:scopeNote "Input admission precedes the policy verdict; refusal establishes neither compliance nor a measured duplication count."@x-gmeow-english ;
+    skos:example "A malformed forbidden-name regular expression retains its original parser error and the owning job context."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:HelperSourceAdmission
+    a logic:NamedIndividual, logic:SourceAdmissionContract ;
+    gmeow:enforcesFailureClass logic:HelperSourceAdmissionRefusal ;
+    logic:sourceAdmissionRequirement "The selected census request must declare exactly one mode. Its policy ledger must satisfy the declared syntax and complete schema, and every selected source home must resolve under the inventory contract. Invalid syntax, unknown policy keys and unresolved homes refuse before a policy verdict." ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "helper source admission"@x-gmeow-english ;
+    skos:definition "The operational admission contract for a structural helper census request and its complete policy and source inputs, realized by the native census argument, ledger and home resolvers."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the input contract enforced by helper census admission diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not accept a partial ledger, an unresolved home or an unknown mode as a successful policy check."@x-gmeow-english ;
+    gmeow:howToUse "Select one census mode, parse every declared policy field, and resolve source ownership before interpreting the policy result."@x-gmeow-english ;
+    skos:scopeNote "This contract governs operational input admission; the admitted census separately evaluates duplication and forbidden implementations."@x-gmeow-english ;
+    skos:example "A ledger job naming a missing source implementation is refused before its copy count can be reported."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

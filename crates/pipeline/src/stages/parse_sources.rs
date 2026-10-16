@@ -441,14 +441,14 @@ fn source_catalog_product(catalog: Arc<SourceCatalog>) -> gmeow_errors::Result<S
     ] {
         let mut quad = purrdf::RdfQuad::new(subject.clone(), predicate, object);
         quad.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
     let dataset = builder
         .freeze()
         .map_err(|error| stage_error(error.to_string()))?;
     let mut bundle =
         crate::bundle::bundle_from_artifacts_over(dataset, Default::default(), Default::default());
-    let pin = bundle.graph_digest(GRAPH_SOURCE_CATALOG);
+    let pin = bundle.graph_digest(GRAPH_SOURCE_CATALOG)?;
     bundle
         .pin_handle(
             GRAPH_SOURCE_CATALOG,

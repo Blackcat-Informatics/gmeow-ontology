@@ -263,7 +263,7 @@ fn range_selected_class_declaration_does_not_turn_type_into_the_ranged_property(
     const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
     const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
     let template = Arc::new(
-        JointTemplate::build(
+        JointTemplate::with_sources(
             &[],
             &[],
             crate::reason::schema_laws(),
@@ -271,7 +271,6 @@ fn range_selected_class_declaration_does_not_turn_type_into_the_ranged_property(
             &[],
             None,
             &crate::physical::SelectedDomains::new([]).unwrap(),
-            super::super::JointOperation::Forward,
         )
         .unwrap(),
     );
@@ -312,7 +311,7 @@ fn minimum_witness_selector_does_not_accept_unrelated_class_output() {
     const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
     const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
     let template = Arc::new(
-        JointTemplate::build(
+        JointTemplate::with_sources(
             &[],
             &[],
             crate::reason::schema_laws(),
@@ -320,7 +319,6 @@ fn minimum_witness_selector_does_not_accept_unrelated_class_output() {
             &[],
             None,
             &crate::physical::SelectedDomains::new([]).unwrap(),
-            super::super::JointOperation::Forward,
         )
         .unwrap(),
     );
@@ -382,7 +380,7 @@ fn property_chain_input(
     const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
     const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
     let template = Arc::new(
-        JointTemplate::build(
+        JointTemplate::with_sources(
             &[],
             &[],
             crate::reason::schema_laws(),
@@ -390,7 +388,6 @@ fn property_chain_input(
             &[],
             None,
             &crate::physical::SelectedDomains::new([]).unwrap(),
-            super::super::JointOperation::Forward,
         )
         .unwrap(),
     );
@@ -473,7 +470,7 @@ fn intersection_membership_uses_only_its_selected_list_classes() {
     const CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
     const PROPERTY: &str = "https://blackcatinformatics.ca/logic/variableSort";
     let template = Arc::new(
-        JointTemplate::build(
+        JointTemplate::with_sources(
             &[],
             &[],
             crate::reason::schema_laws(),
@@ -481,7 +478,6 @@ fn intersection_membership_uses_only_its_selected_list_classes() {
             &[],
             None,
             &crate::physical::SelectedDomains::new([]).unwrap(),
-            super::super::JointOperation::Forward,
         )
         .unwrap(),
     );
@@ -737,7 +733,7 @@ fn changing_strata_share_layouts_and_preserve_witnesses_and_absence() {
 /// The shipped schema laws as one forward joint template.
 fn schema_template() -> Arc<JointTemplate> {
     Arc::new(
-        JointTemplate::build(
+        JointTemplate::with_sources(
             &[],
             &[],
             crate::reason::schema_laws(),
@@ -745,7 +741,6 @@ fn schema_template() -> Arc<JointTemplate> {
             &[],
             None,
             &crate::physical::SelectedDomains::new([]).unwrap(),
-            super::super::JointOperation::Forward,
         )
         .unwrap(),
     )
@@ -945,7 +940,7 @@ fn restricted_population() -> Vec<Fact> {
 /// shipped schema laws, as the production reasoner composes them.
 fn el_schema_template() -> Arc<JointTemplate> {
     Arc::new(
-        JointTemplate::build(
+        JointTemplate::with_sources(
             &crate::reason::el::structured_el_rules(),
             &[],
             crate::reason::schema_laws(),
@@ -953,7 +948,6 @@ fn el_schema_template() -> Arc<JointTemplate> {
             &[],
             None,
             &crate::physical::SelectedDomains::new([]).unwrap(),
-            super::super::JointOperation::Forward,
         )
         .unwrap(),
     )

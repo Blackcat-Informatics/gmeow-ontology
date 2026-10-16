@@ -10,7 +10,7 @@ use crate::result::NativeExecutionEvidence;
 
 use super::result_err;
 
-const SCHEMA: &str = "gmeow-native-execution-v1";
+const SCHEMA: &str = "gmeow-native-execution-v2";
 const MAX_RECEIPT_BYTES: usize = 256 * 1024 * 1024;
 const MAX_RECEIPT_DEPTH: usize = 64;
 

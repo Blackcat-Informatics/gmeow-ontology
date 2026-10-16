@@ -3,12 +3,12 @@
 
 //! Serde record model for the JSONL corpus.
 //!
-//! Every field is optional (the Python uses `dict.get(...)` throughout). The two
+//! Every field is optional at deserialization (the Python uses `dict.get(...)` throughout). The
 //! load-bearing required-in-practice fields (`section_id`, `title`,
 //! `chapter_index`, character `name`, concept `name`) are still modeled as
-//! `Option`/raw `Value` so a malformed record degrades the way the Python does
-//! (a `KeyError` there; here a controlled `expect`/`unwrap` at the use site) rather
-//! than failing to deserialize the whole corpus.
+//! `Option`/raw `Value` so the importer can report an actionable `InvalidData`
+//! error for the selected record and required field, rather than panicking or
+//! failing before the record's operation is selected.
 
 use serde::Deserialize;
 use serde_json::Value;

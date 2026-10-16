@@ -98,13 +98,9 @@ pub fn dataset_from_paths(paths: &[&Path]) -> gmeow_errors::Result<Arc<RdfDatase
                 detail: format!("{}: {e}", path.display()),
             })
         })?;
-        builder.push_dataset(&ds);
+        builder.push_dataset(&ds)?;
     }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(error::Io {
-            detail: format!("dataset freeze failed: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Parse and UNION N LABELLED in-memory Turtle documents into one dataset, in the
@@ -128,13 +124,9 @@ pub fn dataset_from_documents(docs: &[(&str, &[u8])]) -> gmeow_errors::Result<Ar
                 detail: format!("{label}: {e}"),
             })
         })?;
-        builder.push_dataset(&ds);
+        builder.push_dataset(&ds)?;
     }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(error::Io {
-            detail: format!("dataset freeze failed: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Parse and UNION N in-memory Turtle documents into one dataset — the in-memory
@@ -153,13 +145,9 @@ pub fn dataset_from_texts(texts: &[&str]) -> gmeow_errors::Result<Arc<RdfDataset
                 detail: format!("in-memory turtle document #{i}: {e}"),
             })
         })?;
-        builder.push_dataset(&ds);
+        builder.push_dataset(&ds)?;
     }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(error::Io {
-            detail: format!("dataset freeze failed: {e}"),
-        })
-    })
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// The canonical rubric module, relative to `repo_root` — the single on-disk file

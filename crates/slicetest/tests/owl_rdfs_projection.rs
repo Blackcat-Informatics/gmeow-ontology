@@ -43,7 +43,7 @@ fn class_position_marker_projects_but_endpoint_data_does_not() {
         "ex:corr logic:sourceEndpoint logic:Thing .\n",
     );
     let ds = dataset_from_turtle(ttl).expect("parse fixture turtle");
-    let projected = with_owl_rdfs_projection(&ds);
+    let projected = with_owl_rdfs_projection(&ds).unwrap();
 
     // (1) `rdfs:range logic:Thing` — an already-view class-position predicate with the
     //     canonical marker object — GAINS `rdfs:range owl:Thing`, and keeps the canonical edge.

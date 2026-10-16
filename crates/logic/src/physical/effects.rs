@@ -17,6 +17,7 @@ use super::dependency::{DependencyCycle, ReadDependency, SignedDependencies};
 use crate::native_semantics::SemanticVocabulary;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 
+pub(crate) mod reachability;
 pub(super) mod value_flow;
 
 /// Unknown slots are explicit over-approximations, never evidence of no effects.

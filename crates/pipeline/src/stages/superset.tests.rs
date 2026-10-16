@@ -77,11 +77,11 @@ fn reconstruct_graph_folds_turtle_without_the_graph_label() {
     const O: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#Alignment";
 
     let mut b = RdfDatasetBuilder::new();
-    let g = b.intern_iri(G);
-    let s = b.intern_iri(S);
-    let p = b.intern_iri(P);
-    let o = b.intern_iri(O);
-    b.push_quad(s, p, o, Some(g));
+    let g = b.intern_iri(G).unwrap();
+    let s = b.intern_iri(S).unwrap();
+    let p = b.intern_iri(P).unwrap();
+    let o = b.intern_iri(O).unwrap();
+    b.push_quad(s, p, o, Some(g)).unwrap();
     let dataset = b.freeze().expect("freeze");
 
     let turtle = reconstruct_graph(
@@ -91,7 +91,8 @@ fn reconstruct_graph_folds_turtle_without_the_graph_label() {
             form: GraphForm::Turtle,
         },
     )
-    .expect("turtle reconstruction");
+    .expect("successful graph reconstruction")
+    .expect("turtle representation");
     let turtle = String::from_utf8(turtle).expect("utf8");
     assert!(turtle.contains("align:Alignment") || turtle.contains(O));
     assert!(
@@ -108,6 +109,7 @@ fn reconstruct_graph_folds_turtle_without_the_graph_label() {
                 form: GraphForm::Turtle,
             },
         )
+        .unwrap()
         .is_none()
     );
 }

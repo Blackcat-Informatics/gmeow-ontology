@@ -270,7 +270,22 @@ pub(crate) fn skolemize_restrictions(
             graph: None,
         };
         let node_label = subject_str(&node);
-        let on_properties = objects(store, &node, &on_property_pred);
+        let on_properties: Vec<_> = store
+            .term_id_by_iri(on_property_pred.as_str())
+            .map(|predicate| {
+                crate::graphutil::default_graph_pattern(
+                    store,
+                    Some(source.term),
+                    Some(predicate),
+                    None,
+                )
+                .map(|quad| quad.o)
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .map(|id| crate::graphutil::node_of(store, id))
+                .collect()
+            })
+            .unwrap_or_default();
         let on_property = match on_properties.as_slice() {
             // No onProperty is authored-input malformedness: disclose and skip.
             [] => {
@@ -284,14 +299,14 @@ pub(crate) fn skolemize_restrictions(
                 ));
                 continue;
             }
-            // Two or more onProperty values is a wiring contradiction, not a
-            // disclosable malformedness — pick-first would silently drop a slot, so
-            // hard-fail (the No-optionality invariant).
-            [_, _, ..] => panic!(
-                "restriction node {node_label:?} has {} onProperty values (a \
-                 single-property restriction is required)",
-                on_properties.len()
-            ),
+            // Contradictory authored input is a hard compiler error, not a Rust
+            // invariant panic. Never select one property or authorize partial IR.
+            [_, _, ..] => {
+                diagnostics.push(Diagnostic::error("AMBIGUOUS_RESTRICTION_PROPERTY",
+                    format!("restriction node {node_label:?} has {} distinct onProperty values; a single-property restriction is required", on_properties.len()),
+                    Some(node_label)));
+                continue;
+            }
             [only] => term_str(only),
         };
         let constraints = match collect_constraints(store, &node, vocab) {

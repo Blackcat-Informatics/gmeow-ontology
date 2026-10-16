@@ -254,17 +254,23 @@ fn equal_blank_labels_in_distinct_scopes_do_not_create_cycles_or_merge_owners() 
     "#,
     );
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    builder.push_dataset(&leaf);
-    let outer = builder.intern_blank("sameLabel", purrdf::BlankScope(1));
-    let inner = builder.intern_blank("sameLabel", purrdf::BlankScope(2));
-    let atom = builder.intern_iri("https://example.org/atom");
-    let negation = builder.intern_iri(&logic_iri("not"));
-    let typing = builder.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-    let formula = builder.intern_iri(&logic_iri("Formula"));
-    builder.push_quad(outer, typing, formula, None);
-    builder.push_quad(inner, typing, formula, None);
-    builder.push_quad(outer, negation, inner, None);
-    builder.push_quad(inner, negation, atom, None);
+    builder.push_dataset(&leaf).unwrap();
+    let outer = builder
+        .intern_blank("sameLabel", purrdf::BlankScope(1))
+        .unwrap();
+    let inner = builder
+        .intern_blank("sameLabel", purrdf::BlankScope(2))
+        .unwrap();
+    let atom = builder.intern_iri("https://example.org/atom").unwrap();
+    let negation = builder.intern_iri(&logic_iri("not")).unwrap();
+    let typing = builder
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        .unwrap();
+    let formula = builder.intern_iri(&logic_iri("Formula")).unwrap();
+    builder.push_quad(outer, typing, formula, None).unwrap();
+    builder.push_quad(inner, typing, formula, None).unwrap();
+    builder.push_quad(outer, negation, inner, None).unwrap();
+    builder.push_quad(inner, negation, atom, None).unwrap();
     let source = builder.freeze().unwrap();
     let mut reader = FormulaReader::new(source.as_ref());
     let mut diagnostics = Vec::new();
@@ -592,39 +598,47 @@ fn named_annotation_formula_fields_preserve_source_selection_and_literal_facets(
 
     for duplicate in [false, true] {
         let mut builder = purrdf::RdfDatasetBuilder::new();
-        let graph = builder.intern_iri("https://example.org/source");
-        let root = builder.intern_iri("https://example.org/root");
-        let relation = builder.intern_iri(&logic_iri("relation"));
-        let predicate = builder.intern_iri("https://example.org/p");
-        let argument = builder.intern_blank("argument", purrdf::BlankScope(31));
-        let argument_link = builder.intern_iri(&logic_iri("argument"));
-        let index = builder.intern_iri(&logic_iri("termIndex"));
-        let zero = builder.intern_literal(purrdf::RdfLiteral::simple("0"));
-        let value_link = builder.intern_iri(&logic_iri("termLiteral"));
+        let graph = builder.intern_iri("https://example.org/source").unwrap();
+        let root = builder.intern_iri("https://example.org/root").unwrap();
+        let relation = builder.intern_iri(&logic_iri("relation")).unwrap();
+        let predicate = builder.intern_iri("https://example.org/p").unwrap();
+        let argument = builder
+            .intern_blank("argument", purrdf::BlankScope(31))
+            .unwrap();
+        let argument_link = builder.intern_iri(&logic_iri("argument")).unwrap();
+        let index = builder.intern_iri(&logic_iri("termIndex")).unwrap();
+        let zero = builder
+            .intern_literal(purrdf::RdfLiteral::simple("0"))
+            .unwrap();
+        let value_link = builder.intern_iri(&logic_iri("termLiteral")).unwrap();
         let literal = purrdf::RdfLiteral {
             lexical_form: "مرحبا".into(),
             datatype: None,
             language: Some("ar".into()),
             direction: Some(purrdf::RdfTextDirection::Rtl),
         };
-        let value = builder.intern_literal(literal.clone());
+        let value = builder.intern_literal(literal.clone()).unwrap();
         for (s, p, o) in [
             (root, relation, predicate),
             (root, argument_link, argument),
             (argument, index, zero),
             (argument, value_link, value),
         ] {
-            builder.push_annotation_in_graph(s, p, o, Some(graph));
+            builder
+                .push_annotation_in_graph(s, p, o, Some(graph))
+                .unwrap();
             if duplicate {
-                builder.push_quad(s, p, o, Some(graph));
+                builder.push_quad(s, p, o, Some(graph)).unwrap();
             }
         }
-        let quoted = builder.intern_iri("https://example.org/quoted");
-        let quoted_statement = builder.intern_triple(quoted, relation, predicate);
-        let reifier = builder.intern_iri("https://example.org/quotation");
-        builder.push_reifier_in_graph(reifier, quoted_statement, Some(graph));
-        let negation = builder.intern_iri(&logic_iri("not"));
-        builder.push_quad(root, negation, root, None);
+        let quoted = builder.intern_iri("https://example.org/quoted").unwrap();
+        let quoted_statement = builder.intern_triple(quoted, relation, predicate).unwrap();
+        let reifier = builder.intern_iri("https://example.org/quotation").unwrap();
+        builder
+            .push_reifier_in_graph(reifier, quoted_statement, Some(graph))
+            .unwrap();
+        let negation = builder.intern_iri(&logic_iri("not")).unwrap();
+        builder.push_quad(root, negation, root, None).unwrap();
         let source = builder.freeze().unwrap();
         let formula = reconstruct_formula_in_named_context(
             &source,

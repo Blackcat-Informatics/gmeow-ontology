@@ -15,7 +15,7 @@ fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct
     let dataset = rooted_in_graph(&reasoning, GRAPH_REASONING)
         .expect("route the complete reasoning projection");
     let mut bundle = bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
-    let pinned = bundle.graph_digest(GRAPH_REASONING);
+    let pinned = bundle.graph_digest(GRAPH_REASONING).unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
@@ -43,7 +43,9 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
     let composed = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
     let folded = fold_coherence_certificate(composed, &upstream).expect("fold certificate");
 
-    let attestations = folded.project_named_graph(crate::stages::release::GRAPH_ATTESTATIONS);
+    let attestations = folded
+        .project_named_graph(crate::stages::release::GRAPH_ATTESTATIONS)
+        .unwrap();
     let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     let coherence_typed = attestations.owned_quads().any(|q| {
         q.predicate == rdf_type && matches!(&q.object, RdfTerm::Iri(o) if o.contains("Coherence"))

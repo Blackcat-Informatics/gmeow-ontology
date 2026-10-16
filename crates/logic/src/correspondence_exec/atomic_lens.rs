@@ -133,11 +133,9 @@ impl AtomicPropertyLens {
                 });
             }
         }
-        let residual = Arc::new(
-            residual
-                .snapshot_view_with_limits(self.limits)
-                .map_err(|error| exec_error(format!("retain atomic complement: {error}")))?,
-        );
+        let residual = Arc::new(residual.snapshot_view_with_limits(self.limits).map_err(
+            |error| gmeow_errors::Diag::from(error).with_context("retain atomic complement"),
+        )?);
         self.finish_acquisition(source, residual, None, ComplementOrigin::Source)
     }
 
@@ -163,7 +161,7 @@ impl AtomicPropertyLens {
         let residual = MutableDataset::new(graphs)
             .snapshot_view_with_limits(self.limits)
             .map_err(|error| {
-                exec_error(format!("retain intermediate graph complement: {error}"))
+                gmeow_errors::Diag::from(error).with_context("retain intermediate graph complement")
             })?;
         self.finish_acquisition(
             Arc::clone(&source),
@@ -195,7 +193,7 @@ impl AtomicPropertyLens {
         // Acquisition already owns this exact source. Do not reconstruct it from
         // the just-derived view merely to create the first state.
         let carrier = CompositeDatasetView::with_shared_scopes(vec![source], self.limits)
-            .map_err(|error| exec_error(format!("admit atomic source: {error}")))?;
+            .map_err(|error| gmeow_errors::Diag::from(error).with_context("admit atomic source"))?;
         Ok(AtomicLensState {
             augmented: AugmentedAtomicView { view, complement },
             carrier: Arc::new(carrier),
@@ -228,15 +226,16 @@ fn graph_catalogue(dataset: &RdfDataset) -> BTreeSet<TermValue> {
 
 fn graph_catalogue_dataset(source: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
-    let mut importer = DatasetImporter::new(&mut builder, source);
-    let graphs: Vec<_> = source.named_graphs().map(|id| importer.term(id)).collect();
+    let mut importer = DatasetImporter::new(&mut builder, source)?;
+    let graphs = source
+        .named_graphs()
+        .map(|id| importer.term(id))
+        .collect::<Result<Vec<_>, _>>()?;
     drop(importer);
     for graph in graphs {
-        builder.declare_named_graph(graph);
+        builder.declare_named_graph(graph)?;
     }
-    builder
-        .freeze()
-        .map_err(|error| exec_error(format!("publish graph complement: {error}")))
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Transfer only the selected focus and graph catalogue. Native term import is
@@ -248,8 +247,8 @@ fn rename_focus(
     inverse: bool,
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
-    let predicate = builder.intern_iri(to);
-    let mut importer = DatasetImporter::new(&mut builder, source);
+    let predicate = builder.intern_iri(to)?;
+    let mut importer = DatasetImporter::new(&mut builder, source)?;
     let mut rows = Vec::new();
     if let Some(selected) = source.term_id_by_iri(from) {
         for quad in source.quads_for_pattern(None, Some(selected), None, GraphMatch::Any) {
@@ -264,24 +263,25 @@ fn rename_focus(
                 ));
             }
             rows.push(QuadIds {
-                s: importer.term(subject),
+                s: importer.term(subject)?,
                 p: predicate,
-                o: importer.term(object),
-                g: quad.g.map(|graph| importer.term(graph)),
+                o: importer.term(object)?,
+                g: quad.g.map(|graph| importer.term(graph)).transpose()?,
             });
         }
     }
-    let graphs: Vec<_> = source.named_graphs().map(|id| importer.term(id)).collect();
+    let graphs = source
+        .named_graphs()
+        .map(|id| importer.term(id))
+        .collect::<Result<Vec<_>, _>>()?;
     drop(importer);
     for quad in rows {
-        builder.push_quad(quad.s, quad.p, quad.o, quad.g);
+        builder.push_quad(quad.s, quad.p, quad.o, quad.g)?;
     }
     for graph in graphs {
-        builder.declare_named_graph(graph);
+        builder.declare_named_graph(graph)?;
     }
-    builder
-        .freeze()
-        .map_err(|error| exec_error(format!("publish atomic focus: {error}")))
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 impl AugmentedAtomicView {
@@ -341,7 +341,7 @@ impl AugmentedAtomicView {
             ],
             lens.limits,
         )
-        .map_err(|error| exec_error(format!("restore atomic source: {error}")))?;
+        .map_err(|error| gmeow_errors::Diag::from(error).with_context("restore atomic source"))?;
         Ok(AtomicLensState {
             augmented: self.clone(),
             carrier: Arc::new(carrier),
@@ -400,7 +400,7 @@ impl AtomicLensState {
         let source = updated
             .carrier
             .materialize()
-            .map_err(|error| exec_error(error.to_string()))?;
+            .map_err(gmeow_errors::Diag::from)?;
         let lens = &self.augmented.complement.lens;
         let actual = rename_focus(
             &source,
@@ -408,12 +408,7 @@ impl AtomicLensState {
             &lens.view_predicate,
             lens.inverse,
         )?;
-        Ok(compare_graphs(
-            &case(identity),
-            "get(put(v, s)) = v",
-            &actual,
-            &view,
-        ))
+        compare_graphs(&case(identity), "get(put(v, s)) = v", &actual, &view)
     }
 
     /// Execute PutPut on two independently supplied successive edits.
@@ -472,10 +467,10 @@ fn compare_states(
     let actual = actual
         .carrier
         .materialize()
-        .map_err(|error| exec_error(error.to_string()))?;
+        .map_err(gmeow_errors::Diag::from)?;
     let expected = expected
         .carrier
         .materialize()
-        .map_err(|error| exec_error(error.to_string()))?;
-    Ok(compare_graphs(&case(identity), law, &actual, &expected))
+        .map_err(gmeow_errors::Diag::from)?;
+    compare_graphs(&case(identity), law, &actual, &expected)
 }

@@ -97,7 +97,7 @@ pub fn numeric_oracle(bytes: &[u8]) -> gmeow_errors::Result<NumericOutcome> {
     const WORLD: &str = "https://example.org/1428/world";
     let input: NumericInput = serde_json::from_slice(bytes).map_err(gmeow_errors::Diag::from)?;
     let program = parse_query_program(&input.program)?;
-    let store = WorldStore::new();
+    let store = WorldStore::new()?;
     for fact in input.facts {
         store.insert_quad_terms(
             WORLD,
@@ -177,19 +177,17 @@ pub fn tptp(bytes: &[u8], world: &str) -> gmeow_errors::Result<Result<TptpObserv
 }
 
 fn observe_proof(formulas: &[AnnotatedFormula]) -> Result<ProofObservation, DecisionError> {
-    let failure = |error: String| DecisionError::Failure { detail: error };
     let program = lower_to_fol_program(formulas)?;
     let result = gmeow_logic::proof_tree::prove_reasoning_program(&program, &[])
-        .map_err(|error| failure(error.to_string()))?;
+        .map_err(DecisionError::from)?;
     let answers = result
         .answers
         .into_iter()
         .map(|answer| {
-            let tstp = answer
-                .tree
-                .to_tstp()
-                .map_err(|error| failure(error.to_string()))?;
-            let parsed = parse_tptp(&tstp).map_err(|error| failure(error.to_string()))?;
+            let tstp = answer.tree.to_tstp().map_err(DecisionError::from)?;
+            let parsed = parse_tptp(&tstp)
+                .map_err(gmeow_errors::Diag::from)
+                .map_err(DecisionError::from)?;
             Ok(ProofAnswer {
                 atom: answer.atom,
                 bindings: answer.bindings,

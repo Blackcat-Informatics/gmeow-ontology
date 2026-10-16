@@ -94,7 +94,7 @@ fn bench_closure(c: &mut Criterion) {
     group.sample_size(20);
     group.bench_function(format!("overrides_dag_{edge_count}edges"), |b| {
         b.iter(|| {
-            let store = WorldStore::new();
+            let store = WorldStore::new().unwrap();
             store.load_nquads(&nq).expect("load_nquads");
             let e = Entrenchment::read_from_world(&store, world).expect("read_from_world");
             std::hint::black_box(e)

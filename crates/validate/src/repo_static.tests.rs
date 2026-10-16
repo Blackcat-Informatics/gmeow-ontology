@@ -256,7 +256,8 @@ fn gts_chokepoint_rejects_a_direct_production_emit_gts_call() {
         "pub fn ship(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
     );
     let mut report = RepoStaticReport::default();
-    check_gts_emit_chokepoint(tmp.path(), &mut report);
+    let modules = ProductionModules::resolve(tmp.path(), &mut report);
+    check_gts_emit_chokepoint(tmp.path(), &mut report, &modules);
     assert!(
         report
             .errors
@@ -288,7 +289,8 @@ fn gts_chokepoint_permits_the_profile_crate_and_test_code() {
         "#[cfg(test)]\nuse purrdf::gts_compose::emit_gts;\n",
     );
     let mut report = RepoStaticReport::default();
-    check_gts_emit_chokepoint(tmp.path(), &mut report);
+    let modules = ProductionModules::resolve(tmp.path(), &mut report);
+    check_gts_emit_chokepoint(tmp.path(), &mut report, &modules);
     assert!(
         report.errors.is_empty(),
         "the profile crate and test code are the permitted callers: {:?}",
@@ -1332,7 +1334,8 @@ fn stage_file(root: &Path, name: &str, body: &str) {
 
 fn ban_errors(root: &Path) -> Vec<String> {
     let mut report = RepoStaticReport::default();
-    check_no_generated_read_in_pipeline_stages(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    check_no_generated_read_in_pipeline_stages(root, &mut report, &modules);
     report.errors
 }
 
@@ -1774,7 +1777,8 @@ fn crate_src(root: &Path, crate_name: &str, file: &str, body: &str) {
 
 fn string_result_errors(root: &Path) -> Vec<String> {
     let mut report = RepoStaticReport::default();
-    check_no_string_result_error_type(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    check_no_string_result_error_type(root, &mut report, &modules);
     report.errors
 }
 
@@ -1884,14 +1888,16 @@ fn write_gts_profile_crate(root: &Path) {
 
 fn gts_hits(root: &Path) -> Vec<GtsAuthorshipHit> {
     let mut report = RepoStaticReport::default();
-    let hits = purrdf_gts_authorship_census(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    let hits = purrdf_gts_authorship_census(root, &mut report, &modules);
     assert!(report.ok(), "census must not error: {:?}", report.errors);
     hits
 }
 
 fn gts_seal_errors(root: &Path) -> Vec<String> {
     let mut report = RepoStaticReport::default();
-    check_gts_authorship_seals(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    check_gts_authorship_seals(root, &mut report, &modules);
     report.errors
 }
 
@@ -1942,7 +1948,8 @@ fn producer_fixture_paths() -> Vec<String> {
 
 fn producer_seal_errors(root: &Path) -> Vec<String> {
     let mut report = RepoStaticReport::default();
-    check_every_gts_producer_declares_a_medium(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    check_every_gts_producer_declares_a_medium(root, &mut report, &modules);
     report.errors
 }
 
@@ -2073,7 +2080,8 @@ fn live_repo_producer_map_is_total_and_exercises_all_three_source_kinds() {
         .and_then(Path::parent)
         .expect("workspace root");
     let mut report = RepoStaticReport::default();
-    let census = gts_producer_census(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    let census = gts_producer_census(root, &mut report, &modules);
     assert!(report.ok(), "census must not error: {:?}", report.errors);
     let files: BTreeSet<&str> = census.iter().map(|p| p.file.as_str()).collect();
     for known in [
@@ -2475,12 +2483,143 @@ fn cfg_predicate_test_gating_is_recognised_in_composed_forms() {
     assert!(cfg_predicate_is_test_gated(
         "all(test, not(target_arch = \"wasm32\"))"
     ));
-    assert!(cfg_predicate_is_test_gated(
+    assert!(!cfg_predicate_is_test_gated(
         "any(test, feature = \"harness\")"
     ));
     assert!(!cfg_predicate_is_test_gated("not(test)"));
     assert!(!cfg_predicate_is_test_gated("feature = \"testing\""));
     assert!(!cfg_predicate_is_test_gated("target_arch = \"wasm32\""));
+}
+
+#[test]
+fn extracted_test_ownership_keeps_all_production_seals_armed() {
+    for (declaration, filename, should_fail) in [
+        (
+            "#[cfg(test)] #[path = \"arbitrary.rs\"] mod checks;",
+            "arbitrary.rs",
+            false,
+        ),
+        (
+            "#[path = \"production.tests.rs\"] mod production;",
+            "production.tests.rs",
+            true,
+        ),
+        (
+            "#[cfg(any(test, feature = \"harness\"))] #[path = \"arbitrary.rs\"] mod checks;",
+            "arbitrary.rs",
+            true,
+        ),
+        (
+            "#[cfg(test)] #[path = \"arbitrary.rs\"] mod checks; #[path = \"arbitrary.rs\"] mod production;",
+            "arbitrary.rs",
+            true,
+        ),
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        write(
+            &root.join("crates/pipeline/Cargo.toml"),
+            "[package]\nname='example'\nversion='1.0.0'\n",
+        );
+        crate_src(root, "pipeline", "lib.rs", declaration);
+        // gmeow-test-input: synthetic-only
+        crate_src(
+            root,
+            "pipeline",
+            filename,
+            r#"
+            fn fixture(root: &std::path::Path) {
+                let _ = root.join("generated/shapes/example.ttl");
+                // gmeow-test-input: synthetic-only
+                let _ = purrdf::gts_compose::emit_gts(&builder);
+                // gmeow-test-input: synthetic-only
+                let _ = gmeow_gts_profile::emit_gmeow_gts(builder);
+            }
+        "#,
+        );
+        let errors = gts_seal_errors(root);
+        assert_eq!(
+            errors.iter().any(|error| error.contains("Seal A")),
+            should_fail,
+            "{declaration}: {errors:?}"
+        );
+        assert_eq!(
+            errors.iter().any(|error| error.contains("Seal B")),
+            should_fail,
+            "{declaration}: {errors:?}"
+        );
+        let mut census_report = RepoStaticReport::default();
+        let modules = ProductionModules::resolve(root, &mut census_report);
+        let producers = gts_producer_census(root, &mut census_report, &modules);
+        assert!(census_report.ok(), "{:?}", census_report.errors);
+        assert_eq!(
+            producers
+                .iter()
+                .any(|producer| producer.file.ends_with(filename)),
+            should_fail
+        );
+        let mut report = RepoStaticReport::default();
+        let modules = ProductionModules::resolve(root, &mut report);
+        check_no_generated_read_in_pipeline_stages(root, &mut report, &modules);
+        assert_eq!(
+            !report.errors.is_empty(),
+            should_fail,
+            "{declaration}: {:?}",
+            report.errors
+        );
+    }
+}
+
+#[test]
+fn feature_enabled_inline_module_cannot_hide_a_raw_gts_writer() {
+    let temp = tempfile::tempdir().unwrap();
+    write_gts_profile_crate(temp.path());
+    // gmeow-test-input: synthetic-only
+    crate_src(
+        temp.path(),
+        "example",
+        "lib.rs",
+        r#"
+        #[cfg(any(test, feature = "harness"))]
+        mod production {
+            // gmeow-test-input: synthetic-only
+            fn write() { let _ = purrdf::gts_compose::emit_gts(&builder); }
+        }
+    "#,
+    );
+    let errors = gts_seal_errors(temp.path());
+    assert!(
+        errors.iter().any(|error| error.contains("Seal A")),
+        "{errors:?}"
+    );
+}
+
+#[test]
+fn unresolved_module_ownership_retains_the_typed_policy_failure() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        &temp.path().join("crates/example/Cargo.toml"),
+        "[package]\nname='example'\nversion='1.0.0'\n",
+    );
+    crate_src(
+        temp.path(),
+        "example",
+        "lib.rs",
+        "foreign::opaque!(Contract);",
+    );
+    let error = test_module_exclusions(temp.path()).unwrap_err();
+    assert_eq!(
+        error.code(),
+        gmeow_errors::register_code(crate::codes::REPO_STATIC_VIOLATION)
+    );
+    assert_eq!(error.grade().severity, Severity::Error);
+    assert!(
+        error
+            .downcast_ref::<gmeow_build_inputs::InputError>()
+            .is_some()
+    );
+    assert!(error.to_string().contains("macro opaque!"));
 }
 
 /// The blanker must blank a COMPOSED test-gate's body, not just the bare
@@ -2535,7 +2674,8 @@ fn diag_kind_source(name: &str, code: &str, failure_class: Option<&str>) -> Stri
 
 fn failure_class_errors(root: &Path) -> Vec<String> {
     let mut report = RepoStaticReport::default();
-    check_diag_failure_class_binding(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    check_diag_failure_class_binding(root, &mut report, &modules);
     report.errors
 }
 
@@ -2562,7 +2702,8 @@ fn census_reads_code_and_failure_class_through_a_multiline_struct_body() {
              }\n",
     );
     let mut report = RepoStaticReport::default();
-    let decls = diag_kind_census(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    let decls = diag_kind_census(root, &mut report, &modules);
     assert!(report.errors.is_empty(), "{:?}", report.errors);
     assert_eq!(
         decls,
@@ -2682,7 +2823,8 @@ fn a_new_kind_without_a_failure_class_fails_the_ratchet() {
         &diag_kind_source("Freshly", "pipeline.freshly-invented", None),
     );
     let mut report = RepoStaticReport::default();
-    let decls = diag_kind_census(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    let decls = diag_kind_census(root, &mut report, &modules);
     check_diag_failure_class_ratchet(&decls, &mut report);
     assert!(
         report
@@ -2717,7 +2859,8 @@ fn annotating_a_pinned_kind_without_trimming_the_pin_still_passes() {
         ),
     );
     let mut report = RepoStaticReport::default();
-    let decls = diag_kind_census(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    let decls = diag_kind_census(root, &mut report, &modules);
     check_diag_failure_class_ratchet(&decls, &mut report);
     assert!(report.errors.is_empty(), "{:?}", report.errors);
 }
@@ -2736,7 +2879,8 @@ fn annotating_a_pinned_kind_without_trimming_the_pin_still_passes() {
 fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
     let root = live_repo_root();
     let mut report = RepoStaticReport::default();
-    let decls = diag_kind_census(root, &mut report);
+    let modules = ProductionModules::resolve(root, &mut report);
+    let decls = diag_kind_census(root, &mut report, &modules);
     assert!(report.errors.is_empty(), "{:?}", report.errors);
     let bound: BTreeMap<&str, &str> = decls
         .iter()
@@ -2751,8 +2895,17 @@ fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
             "bundle-view.rdf.parse",
             "docs-catalog.concept-lattice",
             "docs-catalog.distribution",
+            "gts-profile.archive",
             "gts-profile.frame",
+            "gts-profile.snapshot-admission",
+            "helper-census.admission",
+            "lang-bridge.gmn1.native-codebook",
             "lang-bridge.gmn1.unpinned-glyph-cost",
+            "logic-compile.formula-admission",
+            "logic.contextual-fragment",
+            "logic.native-coverage",
+            "logic.native-source-admission",
+            "logic.temporal-journal-admission",
             "math.lift.empty-codomain",
             "math.lift.onnx.unliftable",
             "math.lift.onnx.wire",

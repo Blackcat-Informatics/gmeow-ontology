@@ -8,15 +8,19 @@ use crate::ns::math;
 fn emission_order_does_not_change_the_bytes() {
     let a = {
         let mut sink = Sink::new();
-        sink.typed("http://example.org/x", &math("FittedModel"));
-        sink.integer("http://example.org/x", &math("slotIndex"), 0);
-        sink.serialize()
+        sink.typed("http://example.org/x", &math("FittedModel"))
+            .unwrap();
+        sink.integer("http://example.org/x", &math("slotIndex"), 0)
+            .unwrap();
+        sink.serialize().unwrap()
     };
     let b = {
         let mut sink = Sink::new();
-        sink.integer("http://example.org/x", &math("slotIndex"), 0);
-        sink.typed("http://example.org/x", &math("FittedModel"));
-        sink.serialize()
+        sink.integer("http://example.org/x", &math("slotIndex"), 0)
+            .unwrap();
+        sink.typed("http://example.org/x", &math("FittedModel"))
+            .unwrap();
+        sink.serialize().unwrap()
     };
     assert_eq!(a, b, "the codec canonicalizes; emission order is free");
 }
@@ -31,8 +35,8 @@ fn a_decimal_never_serializes_in_exponent_form() {
 #[test]
 fn duplicate_triples_collapse() {
     let mut sink = Sink::new();
-    sink.typed("http://example.org/x", &math("Proof"));
-    sink.typed("http://example.org/x", &math("Proof"));
-    let ttl = sink.serialize();
+    sink.typed("http://example.org/x", &math("Proof")).unwrap();
+    sink.typed("http://example.org/x", &math("Proof")).unwrap();
+    let ttl = sink.serialize().unwrap();
     assert_eq!(ttl.matches("Proof").count(), 1, "C0.5 duplicate collapse");
 }

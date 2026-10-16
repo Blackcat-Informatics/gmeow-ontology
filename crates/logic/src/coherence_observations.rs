@@ -123,7 +123,7 @@ fn failure(detail: impl Into<String>) -> gmeow_errors::Diag {
 fn native_dataset(facts: &BTreeSet<IriQuad>) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     for fact in facts {
-        builder.push_owned_quad(&fact.quad());
+        builder.push_owned_quad(&fact.quad())?;
     }
     builder.freeze().map_err(gmeow_errors::Diag::from)
 }
@@ -135,7 +135,7 @@ pub fn evaluate_characteristic_facts(
     facts: &BTreeSet<IriQuad>,
 ) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     let dataset = native_dataset(facts)?;
-    let store = WorldStore::new();
+    let store = WorldStore::new()?;
     store.load_dataset(&dataset)?;
     foundation_evaluate(&store, AntiRigidityPolicy::WitnessObligation)
 }
@@ -239,29 +239,29 @@ pub fn observe_disjoint_clash(snapshot: &RdfDataset) -> gmeow_errors::Result<Dis
     let mut builder = RdfDatasetBuilder::new();
     for graph in snapshot.owned_named_graphs() {
         if admitted_reasoning_graph(&Some(graph.clone())) {
-            let graph = builder.intern_owned_term(&graph);
-            builder.declare_named_graph(graph);
+            let graph = builder.intern_owned_term(&graph)?;
+            builder.declare_named_graph(graph)?;
         }
     }
     for quad in snapshot.owned_quads() {
         if admitted_reasoning_graph(&quad.graph_name) {
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad)?;
         }
     }
     for reifier in snapshot.owned_reifiers() {
         if admitted_reasoning_graph(&reifier.graph) {
-            builder.push_owned_reifier(&reifier);
+            builder.push_owned_reifier(&reifier)?;
         }
     }
     for annotation in snapshot.owned_annotations() {
         if admitted_reasoning_graph(&annotation.graph) {
-            builder.push_owned_annotation(&annotation);
+            builder.push_owned_annotation(&annotation)?;
         }
     }
     for class in [AGENT, SOCIAL_OBJECT] {
         let mut quad = RdfQuad::new(RdfTerm::iri(X), RDF_TYPE, RdfTerm::iri(class));
         quad.graph_name = disjoint_world.clone();
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
     let poisoned = builder.freeze().map_err(gmeow_errors::Diag::from)?;
     let input = crate::reason::prepare_reasoning_input(&poisoned)?;

@@ -60,6 +60,7 @@ fn collect_selected(
             macros: BTreeSet::new(),
             semantic: false,
             extraction_planning,
+            ownership_only: false,
             error: None,
         };
         scanner.file(&path, true)?;
@@ -78,7 +79,7 @@ fn collect_selected(
     Ok(())
 }
 pub(crate) fn semantic_sources(workspace: &Path, roots: &[&str]) -> Result<crate::NativeSources> {
-    let (inventory, excluded) = semantic_inventory(workspace, roots, false)?;
+    let (inventory, excluded) = semantic_inventory(workspace, roots, false, false)?;
     Ok(crate::NativeSources {
         files: inventory
             .files
@@ -96,7 +97,7 @@ pub(crate) fn semantic_sources(workspace: &Path, roots: &[&str]) -> Result<crate
 /// module resolver is used, while existing inline test implementation is left for
 /// the syntax-directed planner to relocate or report as a blocker.
 pub(crate) fn extraction_paths(workspace: &Path, roots: &[&str]) -> Result<Vec<String>> {
-    let (inventory, _) = semantic_inventory(workspace, roots, true)?;
+    let (inventory, _) = semantic_inventory(workspace, roots, true, false)?;
     Ok(inventory
         .files
         .into_iter()
@@ -105,10 +106,21 @@ pub(crate) fn extraction_paths(workspace: &Path, roots: &[&str]) -> Result<Vec<S
         .collect())
 }
 
+/// A source-policy query, never a producer or semantic identity. A file shared
+/// by test and production declarations remains production-owned.
+pub(crate) fn test_only_module_paths(workspace: &Path, roots: &[&str]) -> Result<BTreeSet<String>> {
+    let (inventory, excluded) = semantic_inventory(workspace, roots, true, true)?;
+    Ok(excluded
+        .into_iter()
+        .filter(|path| !inventory.files.contains_key(path))
+        .collect())
+}
+
 fn semantic_inventory(
     workspace: &Path,
     roots: &[&str],
     extraction_planning: bool,
+    ownership_only: bool,
 ) -> Result<(InputInventory, BTreeSet<String>)> {
     let selection = crate::ProductionSelection {
         schema: crate::SCHEMA,
@@ -130,10 +142,23 @@ fn semantic_inventory(
     for source in roots {
         let path = checked_path(workspace, Path::new(source))?;
         let manifest = path
-            .parent()
-            .and_then(Path::parent)
-            .ok_or_else(|| fail("kernel root has no manifest owner"))?
-            .join("Cargo.toml");
+            .ancestors()
+            .skip(1)
+            .take_while(|parent| parent.starts_with(workspace))
+            .map(|parent| parent.join("Cargo.toml"))
+            .find(|candidate| candidate.is_file())
+            .ok_or_else(|| fail("kernel root has no manifest owner"))?;
+        let dependency_names = if ownership_only {
+            let value = std::fs::read_to_string(&manifest)
+                .map_err(fail)?
+                .parse::<toml::Value>()
+                .map_err(fail)?;
+            crate::cargo::declared_dependency_names(&value)
+                .into_iter()
+                .collect()
+        } else {
+            vec![]
+        };
         let unit = UnitSelection {
             package: "native-semantic-kernel".into(),
             manifest: Some(relative(workspace, &manifest)?),
@@ -142,7 +167,7 @@ fn semantic_inventory(
             kinds: vec!["lib".into()],
             cfg: crate::CfgContext::from_rustc("", &[], true)?,
             dependencies: vec![],
-            dependency_names: vec![],
+            dependency_names,
             controller: false,
         };
         let mut scanner = Scanner {
@@ -158,12 +183,13 @@ fn semantic_inventory(
             macros: BTreeSet::new(),
             semantic: true,
             extraction_planning,
+            ownership_only,
             error: None,
         };
         scanner.file(&path, true)?;
     }
     for path in &excluded {
-        if inventory.files.contains_key(path) {
+        if !ownership_only && inventory.files.contains_key(path) {
             return Err(fail(format!(
                 "semantic kernel embeds excluded test/doc source {path}"
             )));
@@ -185,6 +211,7 @@ struct Scanner<'a> {
     macros: BTreeSet<String>,
     semantic: bool,
     extraction_planning: bool,
+    ownership_only: bool,
     error: Option<crate::InputError>,
 }
 impl Scanner<'_> {
@@ -269,6 +296,20 @@ impl Scanner<'_> {
                     .map_err(fail)?
                     .into_iter();
                 let condition = values.next().ok_or_else(|| fail("empty cfg_attr"))?;
+                if self.ownership_only {
+                    let possible = self.unit.cfg.portable(&condition)?;
+                    if possible.yes
+                        && possible.no
+                        && values.clone().any(|value| {
+                            value.path().is_ident("path") || value.path().is_ident("cfg")
+                        })
+                    {
+                        return Err(fail(format!(
+                            "ambiguous production module cfg_attr in {}",
+                            self.file.display()
+                        )));
+                    }
+                }
                 if self.condition(&condition)? {
                     pending.extend(values.collect::<Vec<_>>().into_iter().rev());
                 }
@@ -419,7 +460,19 @@ impl Scanner<'_> {
                     && syn::parse2::<syn::Ident>(TokenStream::from(TokenTree::Ident(name.clone())))
                         .is_ok()
                 {
-                    self.macro_input(&name.to_string(), group.stream())?;
+                    let registry_collect = name == "collect"
+                        && index >= 3
+                        && matches!(&tokens[index - 3], TokenTree::Ident(owner) if owner == "inventory")
+                        && matches!(&tokens[index - 2], TokenTree::Punct(colon) if colon.as_char() == ':')
+                        && matches!(&tokens[index - 1], TokenTree::Punct(colon) if colon.as_char() == ':')
+                        && (index == 3
+                            || !matches!(&tokens[index - 4], TokenTree::Punct(colon) if colon.as_char() == ':'));
+                    let name = if registry_collect {
+                        "inventory::collect".to_owned()
+                    } else {
+                        name.to_string()
+                    };
+                    self.macro_input(&name, group.stream())?;
                     index += 3;
                     continue;
                 }
@@ -432,7 +485,20 @@ impl Scanner<'_> {
         Ok(())
     }
     fn macro_input(&mut self, name: &str, tokens: TokenStream) -> Result<()> {
+        // Embedded data and compile-time scalar values do not add Rust modules.
+        // The authenticated producer traversal still records every such input.
+        if self.ownership_only
+            && matches!(name, "include_str" | "include_bytes" | "env" | "option_env")
+        {
+            return Ok(());
+        }
         match name {
+            // inventory's registry declaration accepts one type and creates no
+            // file input. Nested type macros still pass through the same scanner.
+            "inventory::collect" => {
+                syn::parse2::<syn::Type>(tokens.clone()).map_err(fail)?;
+                self.tokens(tokens)
+            }
             "include" | "include_str" | "include_bytes" => self.included(name, tokens),
             "env" | "option_env" => {
                 let arguments = Punctuated::<Expr, Token![,]>::parse_terminated
@@ -534,23 +600,18 @@ impl Scanner<'_> {
             if matches!(item, Item::Use(_)) {
                 return Ok(());
             }
-            if let Item::Mod(module) = item {
-                if module.content.is_none() {
-                    let active: Vec<_> = attrs
-                        .iter()
-                        .filter(|attr| !attr.path().is_ident("cfg"))
-                        .map(|attr| attr.meta.clone())
-                        .collect();
-                    if let Ok(path) = self.module_path(module, &active) {
-                        excluded_module(
-                            self.workspace,
-                            &path,
-                            self.excluded,
-                            &mut BTreeSet::new(),
-                        )?;
-                    }
-                    return Ok(());
+            if let Item::Mod(module) = item
+                && module.content.is_none()
+            {
+                let active: Vec<_> = attrs
+                    .iter()
+                    .filter(|attr| !attr.path().is_ident("cfg"))
+                    .map(|attr| attr.meta.clone())
+                    .collect();
+                if let Ok(path) = self.module_path(module, &active) {
+                    excluded_module(self.workspace, &path, self.excluded, &mut BTreeSet::new())?;
                 }
+                return Ok(());
             }
             if self.extraction_planning {
                 return Ok(());
@@ -591,10 +652,10 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         match self.attributes(attrs) {
             Ok(Some(effective)) => {
                 for meta in effective {
-                    if let Meta::NameValue(pair) = meta {
-                        if pair.path.is_ident("doc") {
-                            self.visit_expr(&pair.value);
-                        }
+                    if let Meta::NameValue(pair) = meta
+                        && pair.path.is_ident("doc")
+                    {
+                        self.visit_expr(&pair.value);
                     }
                 }
                 visit::visit_item(self, item)
@@ -655,10 +716,10 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         self.macros = previous;
     }
     fn visit_item_macro(&mut self, item: &'ast syn::ItemMacro) {
-        if item.mac.path.is_ident("macro_rules") {
-            if let Some(name) = &item.ident {
-                self.macros.insert(name.to_string());
-            }
+        if item.mac.path.is_ident("macro_rules")
+            && let Some(name) = &item.ident
+        {
+            self.macros.insert(name.to_string());
         }
         visit::visit_item_macro(self, item);
     }
@@ -666,12 +727,18 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         if self.error.is_some() {
             return;
         }
-        let name = mac
+        let mut name = mac
             .path
             .segments
             .last()
             .map(|part| part.ident.to_string())
             .unwrap_or_default();
+        if mac.path.segments.len() == 2
+            && mac.path.segments[0].ident == "inventory"
+            && name == "collect"
+        {
+            name = "inventory::collect".into();
+        }
         if let Err(e) = self.macro_input(&name, mac.tokens.clone()) {
             self.error = Some(e);
         }
@@ -706,10 +773,10 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
                 _ => {}
             }
         }
-        if attr.path().is_ident("doc") {
-            if let Meta::NameValue(pair) = &attr.meta {
-                self.visit_expr(&pair.value);
-            }
+        if attr.path().is_ident("doc")
+            && let Meta::NameValue(pair) = &attr.meta
+        {
+            self.visit_expr(&pair.value);
         }
     }
     fn visit_expr(&mut self, expression: &'ast Expr) {
@@ -843,12 +910,12 @@ fn contains_source_declaration(tokens: TokenStream) -> bool {
                 return true;
             }
             TokenTree::Group(group) if contains_source_declaration(group.stream()) => return true,
-            TokenTree::Punct(dollar) if dollar.as_char() == '$' => {
-                if matches!(tokens.get(index + 1), Some(TokenTree::Ident(_)))
-                    && matches!(tokens.get(index + 2), Some(TokenTree::Punct(bang)) if bang.as_char() == '!')
-                {
-                    return true;
-                }
+            TokenTree::Punct(dollar)
+                if dollar.as_char() == '$'
+                    && matches!(tokens.get(index + 1), Some(TokenTree::Ident(_)))
+                    && matches!(tokens.get(index + 2), Some(TokenTree::Punct(bang)) if bang.as_char() == '!') =>
+            {
+                return true;
             }
             _ => {}
         }

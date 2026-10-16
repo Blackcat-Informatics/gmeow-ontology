@@ -183,6 +183,19 @@ fn consistency_retains_a_constructor_no_model_as_a_negative_verdict() {
     assert_eq!(report["evidence_grade"], "certificate");
     assert_eq!(report["result"]["has_model"], false);
     assert_eq!(report["diagnostics"][0]["code"], "ONTOLOGY_HAS_NO_MODEL");
+    assert_eq!(
+        report["diagnostics"][0]["diagnostic"]["code"],
+        "logic.dl-service"
+    );
+    assert_eq!(
+        report["diagnostics"][0]["diagnostic"]["fields"]["service_failure_kind"],
+        "no-model"
+    );
+    assert!(
+        report["diagnostics"][0]["diagnostic"]["causes"]
+            .as_array()
+            .is_some_and(|causes| !causes.is_empty())
+    );
 }
 
 #[test]
@@ -256,6 +269,12 @@ fn malformed_reasoning_json_uses_the_dedicated_exit_and_report_shape() {
     assert_eq!(report["input_status"], "invalid");
     assert_eq!(report["gate_admission"], "refused");
     assert_eq!(report["diagnostics"][0]["code"], "INPUT_PARSE_FAILED");
+    assert!(report["diagnostics"][0]["diagnostic"]["source_context"]["focus"].is_string());
+    assert!(
+        report["diagnostics"][0]["diagnostic"]["causes"]
+            .as_array()
+            .is_some_and(|causes| !causes.is_empty())
+    );
 }
 
 #[test]

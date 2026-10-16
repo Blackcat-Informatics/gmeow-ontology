@@ -367,7 +367,7 @@ fn chase_materialize_echoes_later_worlds_asserted_facts_after_budget_exhaustion(
     // with the derivations.
     let w1 = "http://ex/world/1";
     let w2 = "http://ex/world/2";
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new().unwrap();
     // Two obligations in world 1 exhaust a 1-step budget before world 2 is reached.
     store.insert_quad(w1, "http://ex/a1", TYPE, C);
     store.insert_quad(w1, "http://ex/a2", TYPE, C);

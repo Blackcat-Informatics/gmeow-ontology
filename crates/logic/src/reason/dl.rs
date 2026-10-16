@@ -662,12 +662,30 @@ pub struct SourceCoverageWorld {
     pub graph: Option<TermValue>,
     /// Every selected original or committed construct occurrence.
     pub constructs: Vec<NativeConstructOccurrence>,
-    /// Completed-grammar admission for every selected owner, from shared caches.
+    /// Grammar eligibility of every selected owner, with its checked basis.
     pub admissions: Vec<NativeConstructAdmission>,
 }
 
-/// Eligibility of one source construct owner after its grammar writers finish.
+/// Eligibility of one source owner under its recorded grammar invariant or frontier.
 /// This is source/capability evidence, never an inferred RDF contradiction.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum NativeSourceGrammarBasis {
+    /// At least one required writer has not yet saturated.
+    AwaitingWriters,
+    /// Every potentially intersecting writer has saturated.
+    CompletedWriters,
+    /// A checked, source-bound constructor invariant preserves closed lists.
+    /// This is observation data, not a deserializable execution capability.
+    ConstructorClosedLists {
+        /// Exact source and checked producer-inventory commitment.
+        commitment: [u8; 32],
+        /// The one selected world owning the proof.
+        world: String,
+        /// Every native producer that may extend this grammar.
+        producers: Vec<String>,
+    },
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct NativeConstructAdmission {
     /// The exact selected operator family.
@@ -679,6 +697,8 @@ pub struct NativeConstructAdmission {
     pub selectors: Vec<NativeProofId>,
     /// Exact selected fields and available traversed list evidence.
     pub support: Vec<NativeProofId>,
+    /// Why validation may inspect the current immutable grammar fields.
+    pub grammar_basis: NativeSourceGrammarBasis,
     /// Actual completion of the required grammar and value checks.
     pub completion: NativeFamilyCompletion,
     /// Every observed refusal, independently of positive semantic conclusions.
@@ -773,6 +793,27 @@ impl SourceCoverageObservation {
                     .insert(occurrence.support);
             }
             for admission in &observations.admissions {
+                if let NativeSourceGrammarBasis::ConstructorClosedLists {
+                    world: owner,
+                    producers,
+                    ..
+                } = &admission.grammar_basis
+                    && (owner != world
+                        || admission.family != DlConstructFamily::OneOf
+                        || producers.is_empty()
+                        || producers.windows(2).any(|pair| pair[0] >= pair[1]))
+                {
+                    return Err(invalid(
+                        "constructor grammar evidence changes its world, family or writer inventory",
+                    ));
+                }
+                if admission.grammar_basis == NativeSourceGrammarBasis::AwaitingWriters
+                    && admission.completion == NativeFamilyCompletion::Complete
+                {
+                    return Err(invalid(
+                        "source eligibility claims completion while its grammar is awaiting writers",
+                    ));
+                }
                 let selectors = admission.selectors.iter().copied().collect::<BTreeSet<_>>();
                 if expected.remove(&(admission.family, &admission.owner)) != Some(selectors.clone())
                     || selectors.len() != admission.selectors.len()
@@ -1034,7 +1075,7 @@ pub(crate) fn source_operand_issue(
 /// Interpret operator and marker positions only; neither data mentions nor
 /// embedded triple terms select a native construct family. The immutable role
 /// index is shared; each native row performs only its applicable indexed lookups.
-fn construct_families(
+pub(crate) fn construct_families(
     predicate: &str,
     subject: &TermValue,
     object: &TermValue,
@@ -1277,6 +1318,7 @@ pub(crate) fn admit_source_constructs(
     lists: &mut crate::physical::LogicalListCache,
     ledger: &mut NativeFamilyLedger,
     world: &mut SourceCoverageWorld,
+    constructor_lists: Option<&crate::physical::ConstructorClosedLists>,
 ) -> gmeow_errors::Result<()> {
     if world.graph.as_ref() != input.graph() || ledger.world != input.world() {
         return Err(invalid(
@@ -1310,10 +1352,12 @@ pub(crate) fn admit_source_constructs(
     }
     let mut admissions = Vec::with_capacity(groups.len());
     for ((family, owner), occurrences) in groups {
+        let constructor_basis =
+            constructor_lists.and_then(|proof| proof.basis(input.world(), family));
         let pending = pending_by_family.entry(family).or_insert_with(|| {
             source_admission_reads_for(family)
                 .into_iter()
-                .filter(|read| !input.completed(read))
+                .filter(|read| constructor_basis.is_none() && !input.completed(read))
                 .collect::<Vec<_>>()
         });
         let selectors: Vec<_> = occurrences
@@ -1334,6 +1378,11 @@ pub(crate) fn admit_source_constructs(
             owner: owner.clone(),
             selectors: selectors.clone(),
             support: selectors,
+            grammar_basis: constructor_basis.unwrap_or(if pending.is_empty() {
+                NativeSourceGrammarBasis::CompletedWriters
+            } else {
+                NativeSourceGrammarBasis::AwaitingWriters
+            }),
             completion: if pending.is_empty() {
                 NativeFamilyCompletion::Complete
             } else {
@@ -1825,6 +1874,17 @@ pub(crate) fn verdict_from_validated_native(
         });
     };
     for ledger in &execution.families {
+        for obstruction in &ledger.producer_obstructions {
+            record(
+                "native-producer-obstruction".to_owned(),
+                &ledger.world,
+                format!(
+                    "{}: {:?}: {}",
+                    obstruction.producer, obstruction.reason.kind, obstruction.reason.detail
+                ),
+                super::refute::FragmentFamily::DatatypeValueSpace,
+            );
+        }
         for outcome in &ledger.outcomes {
             if !complete(&outcome.completion) || !outcome.obstructions.is_empty() {
                 let detail = format!(

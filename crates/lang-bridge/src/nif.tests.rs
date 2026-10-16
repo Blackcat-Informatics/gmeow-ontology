@@ -104,7 +104,13 @@ fn inverted_span_hard_fails() {
     let err = NifBridge
         .emit(&input)
         .expect_err("an inverted span must hard-fail");
-    assert!(err.construct.contains("inverted"), "{err:?}");
+    assert!(
+        err.downcast_ref::<crate::bridge::IngestDiagnostic>()
+            .expect("typed ingestion refusal")
+            .construct
+            .contains("inverted"),
+        "{err:?}"
+    );
 }
 
 #[test]
@@ -120,7 +126,13 @@ fn out_of_range_span_hard_fails() {
     let err = NifBridge
         .emit(&input)
         .expect_err("an out-of-range span must hard-fail");
-    assert!(err.construct.contains("exceeds"), "{err:?}");
+    assert!(
+        err.downcast_ref::<crate::bridge::IngestDiagnostic>()
+            .expect("typed ingestion refusal")
+            .construct
+            .contains("exceeds"),
+        "{err:?}"
+    );
 }
 
 #[test]

@@ -150,7 +150,7 @@ pub(crate) fn pin_diagnostics(
             "{stage} has no declared diagnostic graph for its native report"
         )));
     }
-    let pin = bundle.graph_digest(GRAPH_DIAGNOSTICS);
+    let pin = bundle.graph_digest(GRAPH_DIAGNOSTICS)?;
     bundle
         .pin_handle(
             GRAPH_DIAGNOSTICS,
@@ -182,7 +182,7 @@ pub(crate) fn diagnostics_from_product<'a>(
     };
     publication.validate_binding(expected_stage, GRAPH_DIAGNOSTICS)?;
     if !crate::handle_identity::contains_graph(bundle, GRAPH_DIAGNOSTICS)
-        || entry.content_digest != bundle.graph_digest(GRAPH_DIAGNOSTICS)
+        || entry.content_digest != bundle.graph_digest(GRAPH_DIAGNOSTICS)?
     {
         return Err(error(
             "native Diagnostics handle disagrees with its graph pin".into(),

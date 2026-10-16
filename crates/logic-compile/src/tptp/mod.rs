@@ -7,6 +7,17 @@
 //! not a detached [`LogicProgram`](crate::ir::LogicProgram). This prevents ordinary
 //! selected domain assertions, graph placement, owned formulas, compiler failures or
 //! unsupported procedural relations from disappearing before the proof problem is built.
+//! Projection additionally requires the unchanged live compiler decision. Serialized
+//! admissions are observation receipts and must be re-admitted from the selected
+//! source; editing refusals, profile or symbol data cannot authorize execution.
+//!
+//! Relation objects occupy the first argument of an application family at each
+//! source arity. Their denotational equality therefore propagates through facts,
+//! rules, formulas and class laws by ordinary first-order congruence. A fixed
+//! semantic-profile prelude links applications to membership, identity and the
+//! canonical schema constraints. Unary interpretation does not depend on whether
+//! a class declaration happens to accompany the selected source. Profile laws
+//! cannot authorize an empty or refused source selection.
 
 mod writer;
 

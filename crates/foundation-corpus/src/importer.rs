@@ -120,6 +120,12 @@ fn parse_score(goal_id: &str, score: &serde_json::Value) -> io::Result<f64> {
     }
 }
 
+struct ChapterProjection {
+    frame: String,
+    positions: BTreeMap<i64, String>,
+    segments: BTreeMap<i64, String>,
+}
+
 /// The importer: builds the dataset and records the budget.
 pub struct FoundationImporter {
     builder: RdfDatasetBuilder,
@@ -155,61 +161,77 @@ impl FoundationImporter {
 
     // -- low-level interning helpers ------------------------------------- //
 
-    fn iri(&mut self, iri: &str) -> TermId {
-        self.builder.intern_iri(iri)
+    fn iri(&mut self, iri: &str) -> io::Result<TermId> {
+        self.builder.intern_iri(iri).map_err(io::Error::other)
     }
-    fn lang_lit(&mut self, text: &str) -> TermId {
+    fn lang_lit(&mut self, text: &str) -> io::Result<TermId> {
         self.builder
             .intern_literal(RdfLiteral::language_tagged(text, LANG))
+            .map_err(io::Error::other)
     }
-    fn plain_lit(&mut self, text: &str) -> TermId {
-        self.builder.intern_literal(RdfLiteral::simple(text))
+    fn plain_lit(&mut self, text: &str) -> io::Result<TermId> {
+        self.builder
+            .intern_literal(RdfLiteral::simple(text))
+            .map_err(io::Error::other)
     }
-    fn typed_lit(&mut self, lexical: &str, datatype: &str) -> TermId {
+    fn typed_lit(&mut self, lexical: &str, datatype: &str) -> io::Result<TermId> {
         self.builder
             .intern_literal(RdfLiteral::typed(lexical, datatype))
+            .map_err(io::Error::other)
     }
 
     /// `g.add((s, rdf:type, o))`.
-    fn add_type(&mut self, s: &str, ty: &str) {
-        let s = self.iri(s);
-        let p = self.iri(RDF_TYPE);
-        let o = self.iri(ty);
-        self.builder.push_quad(s, p, o, None);
+    fn add_type(&mut self, s: &str, ty: &str) -> io::Result<()> {
+        let s = self.iri(s)?;
+        let p = self.iri(RDF_TYPE)?;
+        let o = self.iri(ty)?;
+        self.builder
+            .push_quad(s, p, o, None)
+            .map_err(io::Error::other)?;
+        Ok(())
     }
     /// `g.add((s, rdfs:label, Literal(text, lang=LANG)))`.
-    fn add_label(&mut self, s: &str, text: &str) {
-        let s = self.iri(s);
-        let p = self.iri(RDFS_LABEL);
-        let o = self.lang_lit(text);
-        self.builder.push_quad(s, p, o, None);
+    fn add_label(&mut self, s: &str, text: &str) -> io::Result<()> {
+        let s = self.iri(s)?;
+        let p = self.iri(RDFS_LABEL)?;
+        let o = self.lang_lit(text)?;
+        self.builder
+            .push_quad(s, p, o, None)
+            .map_err(io::Error::other)?;
+        Ok(())
     }
     /// `g.add((s, p, o))` with `o` an IRI.
-    fn add_iri(&mut self, s: &str, p: &str, o: &str) {
-        let s = self.iri(s);
-        let p = self.iri(p);
-        let o = self.iri(o);
-        self.builder.push_quad(s, p, o, None);
+    fn add_iri(&mut self, s: &str, p: &str, o: &str) -> io::Result<()> {
+        let s = self.iri(s)?;
+        let p = self.iri(p)?;
+        let o = self.iri(o)?;
+        self.builder
+            .push_quad(s, p, o, None)
+            .map_err(io::Error::other)?;
+        Ok(())
     }
     /// `g.add((s, p, lang-literal))`.
-    fn add_lang(&mut self, s: &str, p: &str, text: &str) {
-        let s = self.iri(s);
-        let p = self.iri(p);
-        let o = self.lang_lit(text);
-        self.builder.push_quad(s, p, o, None);
+    fn add_lang(&mut self, s: &str, p: &str, text: &str) -> io::Result<()> {
+        let s = self.iri(s)?;
+        let p = self.iri(p)?;
+        let o = self.lang_lit(text)?;
+        self.builder
+            .push_quad(s, p, o, None)
+            .map_err(io::Error::other)?;
+        Ok(())
     }
 
     // -- scaffolding ----------------------------------------------------- //
 
-    fn scaffold(&mut self, source_path: &str) {
+    fn scaffold(&mut self, source_path: &str) -> io::Result<()> {
         let pipeline = self.pipeline_iri.clone();
         let rubric = self.rubric_iri.clone();
-        self.add_type(&pipeline, &gm("SoftwareAgent"));
-        self.add_label(&pipeline, "foundation corpus pipeline");
+        self.add_type(&pipeline, &gm("SoftwareAgent"))?;
+        self.add_label(&pipeline, "foundation corpus pipeline")?;
 
         let activity = corp("activity/import");
-        self.add_type(&activity, &gm("ImportActivity"));
-        self.add_iri(&activity, &gm("wasAssociatedWith"), &pipeline);
+        self.add_type(&activity, &gm("ImportActivity"))?;
+        self.add_iri(&activity, &gm("wasAssociatedWith"), &pipeline)?;
         // Basename only: raw local paths leak usernames/layout (review).
         let basename = if source_path.is_empty() {
             String::new()
@@ -220,73 +242,80 @@ impl FoundationImporter {
                 .unwrap_or_default()
         };
         {
-            let s = self.iri(&activity);
-            let p = self.iri(&gm("sourceLocation"));
-            let o = self.plain_lit(&basename);
-            self.builder.push_quad(s, p, o, None);
+            let s = self.iri(&activity)?;
+            let p = self.iri(&gm("sourceLocation"))?;
+            let o = self.plain_lit(&basename)?;
+            self.builder
+                .push_quad(s, p, o, None)
+                .map_err(io::Error::other)?;
         }
 
-        self.add_type(&rubric, &gm("Rubric"));
-        self.add_label(&rubric, "principia goal rubric");
-        self.add_iri(&rubric, &gm("normIssuer"), &pipeline);
+        self.add_type(&rubric, &gm("Rubric"))?;
+        self.add_label(&rubric, "principia goal rubric")?;
+        self.add_iri(&rubric, &gm("normIssuer"), &pipeline)?;
 
         let scale = corp("scale/unit");
-        self.add_type(&scale, &gm("ScoreScale"));
+        self.add_type(&scale, &gm("ScoreScale"))?;
         {
-            let s = self.iri(&scale);
-            let p = self.iri(&gm("scaleMin"));
-            let o = self.typed_lit("0.0", XSD_DECIMAL);
-            self.builder.push_quad(s, p, o, None);
+            let s = self.iri(&scale)?;
+            let p = self.iri(&gm("scaleMin"))?;
+            let o = self.typed_lit("0.0", XSD_DECIMAL)?;
+            self.builder
+                .push_quad(s, p, o, None)
+                .map_err(io::Error::other)?;
         }
         {
-            let s = self.iri(&scale);
-            let p = self.iri(&gm("scaleMax"));
-            let o = self.typed_lit("1.0", XSD_DECIMAL);
-            self.builder.push_quad(s, p, o, None);
+            let s = self.iri(&scale)?;
+            let p = self.iri(&gm("scaleMax"))?;
+            let o = self.typed_lit("1.0", XSD_DECIMAL)?;
+            self.builder
+                .push_quad(s, p, o, None)
+                .map_err(io::Error::other)?;
         }
-        self.add_iri(&rubric, &gm("usesScale"), &scale);
+        self.add_iri(&rubric, &gm("usesScale"), &scale)?;
+        Ok(())
     }
 
-    fn narrated_event_type(&mut self) -> String {
+    fn narrated_event_type(&mut self) -> io::Result<String> {
         let iri = corp("event-type/narrated-event");
         if !self.narrated_event_type_minted {
-            self.add_type(&iri, &gm("EventType"));
-            self.add_label(&iri, "narrated event");
+            self.add_type(&iri, &gm("EventType"))?;
+            self.add_label(&iri, "narrated event")?;
             self.narrated_event_type_minted = true;
         }
-        iri
+        Ok(iri)
     }
 
-    fn criterion(&mut self, goal_id: &str) -> String {
+    fn criterion(&mut self, goal_id: &str) -> io::Result<String> {
         if let Some(existing) = self.criteria.get(goal_id) {
-            return existing.clone();
+            return Ok(existing.clone());
         }
         let iri = corp(&format!("criterion/{}", slug(goal_id)));
-        self.add_type(&iri, &gm("Criterion"));
-        self.add_label(&iri, goal_id);
+        self.add_type(&iri, &gm("Criterion"))?;
+        self.add_label(&iri, goal_id)?;
         let rubric = self.rubric_iri.clone();
-        self.add_iri(&rubric, &gm("hasCriterion"), &iri);
+        self.add_iri(&rubric, &gm("hasCriterion"), &iri)?;
         // Named poles are the rubric contract; minted as placeholders.
         let up = corp(&format!("pole/{}-embodiment", slug(goal_id)));
         let down = corp(&format!("pole/{}-antithesis", slug(goal_id)));
         for (pole, label) in [(&up, "embodiment"), (&down, "antithesis")] {
-            self.add_type(pole, &gm("CriterionPole"));
-            self.add_label(pole, &format!("{goal_id} {label}"));
+            self.add_type(pole, &gm("CriterionPole"))?;
+            self.add_label(pole, &format!("{goal_id} {label}"))?;
         }
-        self.add_iri(&iri, &gm("rewardPole"), &up);
-        self.add_iri(&iri, &gm("penaltyPole"), &down);
+        self.add_iri(&iri, &gm("rewardPole"), &up)?;
+        self.add_iri(&iri, &gm("penaltyPole"), &down)?;
         self.criteria.insert(goal_id.to_string(), iri.clone());
-        iri
+        Ok(iri)
     }
 
     // -- per-record mapping ---------------------------------------------- //
 
     /// Map all records (sections first, then books) into the dataset.
     pub fn import_corpus(&mut self, records: &[Record], source_path: &str) -> io::Result<()> {
-        self.scaffold(source_path);
+        self.scaffold(source_path)?;
         for record in records {
             if record.record_type.as_deref() == Some("section") {
-                self.import_section(record);
+                self.import_section(record)?;
             }
         }
         for record in records {
@@ -297,15 +326,18 @@ impl FoundationImporter {
         Ok(())
     }
 
-    fn import_section(&mut self, record: &Record) {
-        let section_id = record
-            .section_id
-            .as_deref()
-            .expect("section record needs section_id");
+    fn import_section(&mut self, record: &Record) -> io::Result<()> {
+        let section_id = record.section_id.as_deref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "section record needs section_id",
+            )
+        })?;
         let iri = corp(&format!("section/{}", slug(section_id)));
-        self.add_type(&iri, &gm("SocialObject"));
+        self.add_type(&iri, &gm("SocialObject"))?;
         let label = record.title.as_deref().unwrap_or(section_id);
-        self.add_label(&iri, label);
+        self.add_label(&iri, label)?;
+        Ok(())
     }
 
     /// Work-scoped character IRI (the corpus .nq convention).
@@ -319,25 +351,28 @@ impl FoundationImporter {
     }
 
     fn import_book(&mut self, record: &Record) -> io::Result<()> {
+        let title = record
+            .title
+            .as_deref()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "book record needs title"))?;
         let work = self.book_iri(record);
         let expression = format!("{work}/expression");
         let release = format!("{work}/release");
-        let title = record.title.as_deref().expect("book record needs title");
 
-        self.add_type(&work, &gm("Work"));
-        self.add_label(&work, title);
-        self.add_type(&expression, &gm("Expression"));
-        self.add_label(&expression, &format!("{title} (text)"));
-        self.add_iri(&expression, &gm("realizes"), &work);
-        self.add_type(&release, &gm("BookRelease"));
-        self.add_label(&release, &format!("{title} (release)"));
-        self.add_iri(&release, &gm("embodies"), &expression);
+        self.add_type(&work, &gm("Work"))?;
+        self.add_label(&work, title)?;
+        self.add_type(&expression, &gm("Expression"))?;
+        self.add_label(&expression, &format!("{title} (text)"))?;
+        self.add_iri(&expression, &gm("realizes"), &work)?;
+        self.add_type(&release, &gm("BookRelease"))?;
+        self.add_label(&release, &format!("{title} (release)"))?;
+        self.add_iri(&release, &gm("embodies"), &expression)?;
 
         if let Some(section_id) = record.section_id.as_deref()
             && !section_id.is_empty()
         {
             let section = corp(&format!("section/{}", slug(section_id)));
-            self.add_iri(&work, &gm("partOf"), &section);
+            self.add_iri(&work, &gm("partOf"), &section)?;
         }
 
         let authors_raw = record.author_s.clone().unwrap_or_default();
@@ -345,18 +380,22 @@ impl FoundationImporter {
             let author = author.trim();
             if !author.is_empty() {
                 let agent = corp(&format!("person/{}", slug(author)));
-                self.add_type(&agent, &gm("Person"));
-                self.add_label(&agent, author);
-                self.add_iri(&work, &gm("hasContributor"), &agent);
+                self.add_type(&agent, &gm("Person"))?;
+                self.add_label(&agent, author)?;
+                self.add_iri(&work, &gm("hasContributor"), &agent)?;
                 self.budget.add_flat("contributor", 1);
             }
         }
 
         self.import_scores(record, &work)?;
-        let (frame, positions, segments) = self.import_chapters(record, &work, &expression);
-        self.add_iri(&expression, &gm("hasReferenceFrame"), &frame);
-        let characters = self.import_characters(record, &work, &frame, &positions, &segments);
-        self.import_concepts(record, &segments);
+        let ChapterProjection {
+            frame,
+            positions,
+            segments,
+        } = self.import_chapters(record, &work, &expression)?;
+        self.add_iri(&expression, &gm("hasReferenceFrame"), &frame)?;
+        let characters = self.import_characters(record, &work, &frame, &positions, &segments)?;
+        self.import_concepts(record, &segments)?;
 
         // thematic_tags (unpromoted — heuristic): count across chapters.
         let mut tag_total: u64 = 0;
@@ -381,21 +420,23 @@ impl FoundationImporter {
                 continue;
             }
             let assessment = format!("{work}/score/{}", slug(goal_id));
-            self.add_type(&assessment, &gm("Assessment"));
+            self.add_type(&assessment, &gm("Assessment"))?;
             let pipeline = self.pipeline_iri.clone();
-            self.add_iri(&assessment, &gm("vantage"), &pipeline);
-            self.add_iri(&assessment, &gm("assessmentTarget"), work);
-            let criterion = self.criterion(goal_id);
-            self.add_iri(&assessment, &gm("assessmentCriterion"), &criterion);
+            self.add_iri(&assessment, &gm("vantage"), &pipeline)?;
+            self.add_iri(&assessment, &gm("assessmentTarget"), work)?;
+            let criterion = self.criterion(goal_id)?;
+            self.add_iri(&assessment, &gm("assessmentCriterion"), &criterion)?;
             let rubric = self.rubric_iri.clone();
-            self.add_iri(&assessment, &gm("assessmentRubric"), &rubric);
+            self.add_iri(&assessment, &gm("assessmentRubric"), &rubric)?;
             let value = parse_score(goal_id, score)?;
             let lex = canonical_decimal(value);
             {
-                let s = self.iri(&assessment);
-                let p = self.iri(&gm("assessmentScoreValue"));
-                let o = self.typed_lit(&lex, XSD_DECIMAL);
-                self.builder.push_quad(s, p, o, None);
+                let s = self.iri(&assessment)?;
+                let p = self.iri(&gm("assessmentScoreValue"))?;
+                let o = self.typed_lit(&lex, XSD_DECIMAL)?;
+                self.builder
+                    .push_quad(s, p, o, None)
+                    .map_err(io::Error::other)?;
             }
             self.budget
                 .add_reified("goal-score assessments (zeros are scores)", 1);
@@ -403,20 +444,20 @@ impl FoundationImporter {
         Ok(())
     }
 
-    /// Returns `(frame_iri, index→position_iri, index→segment_iri)`.
+    /// Return the frame and its position/segment indexes.
     fn import_chapters(
         &mut self,
         record: &Record,
         work: &str,
         expression: &str,
-    ) -> (String, BTreeMap<i64, String>, BTreeMap<i64, String>) {
+    ) -> io::Result<ChapterProjection> {
         let frame = format!("{work}/discourse-frame");
-        self.add_type(&frame, &gm("NarrativeTimeFrame"));
-        self.add_label(&frame, "discourse order");
-        self.add_iri(&frame, &gm("narrativeTimeAxis"), &gm("axisDiscourseTime"));
-        self.add_iri(&frame, &gm("discourseTimeOf"), work);
-        self.add_iri(&frame, &gm("frameRealm"), &gm("frameRealmNarrative"));
-        self.add_iri(&frame, &gm("frameKind"), &gm("frameKindNarrative"));
+        self.add_type(&frame, &gm("NarrativeTimeFrame"))?;
+        self.add_label(&frame, "discourse order")?;
+        self.add_iri(&frame, &gm("narrativeTimeAxis"), &gm("axisDiscourseTime"))?;
+        self.add_iri(&frame, &gm("discourseTimeOf"), work)?;
+        self.add_iri(&frame, &gm("frameRealm"), &gm("frameRealmNarrative"))?;
+        self.add_iri(&frame, &gm("frameKind"), &gm("frameKindNarrative"))?;
         // The single coordinate axis of the discourse frame. It MUST be typed
         // gmeow:Axis: gmeow:NarrativeTimeFrame ⊑ gmeow:ReferenceFrame, so the
         // closed-world FrameProfileShape requires every gmeow:hasAxis value to be
@@ -424,27 +465,35 @@ impl FoundationImporter {
         // SHACL runs fixture-alone (no subclass closure); under the whole-ontology
         // merged validation it is a genuine violation.
         let axis = format!("{frame}/axis");
-        self.add_type(&axis, &gm("Axis"));
-        self.add_iri(&frame, &gm("hasAxis"), &axis);
+        self.add_type(&axis, &gm("Axis"))?;
+        self.add_iri(&frame, &gm("hasAxis"), &axis)?;
         {
-            let s = self.iri(&frame);
-            let p = self.iri(&gm("dimensionCount"));
-            let o = self.typed_lit("1", XSD_NNINT);
-            self.builder.push_quad(s, p, o, None);
+            let s = self.iri(&frame)?;
+            let p = self.iri(&gm("dimensionCount"))?;
+            let o = self.typed_lit("1", XSD_NNINT)?;
+            self.builder
+                .push_quad(s, p, o, None)
+                .map_err(io::Error::other)?;
         }
         {
-            let s = self.iri(&frame);
-            let p = self.iri(&gm("requiresHost"));
-            let o = self.typed_lit("false", XSD_BOOLEAN);
-            self.builder.push_quad(s, p, o, None);
+            let s = self.iri(&frame)?;
+            let p = self.iri(&gm("requiresHost"))?;
+            let o = self.typed_lit("false", XSD_BOOLEAN)?;
+            self.builder
+                .push_quad(s, p, o, None)
+                .map_err(io::Error::other)?;
         }
-        self.add_iri(&frame, &gm("determinacyModel"), &gm("determinacyCrisp"));
+        self.add_iri(&frame, &gm("determinacyModel"), &gm("determinacyCrisp"))?;
 
         let mut positions: BTreeMap<i64, String> = BTreeMap::new();
         let mut segments: BTreeMap<i64, String> = BTreeMap::new();
 
         let Some(chapters) = &record.corpus_db_chapter_summaries else {
-            return (frame, positions, segments);
+            return Ok(ChapterProjection {
+                frame,
+                positions,
+                segments,
+            });
         };
         // Clone to detach the borrow; chapters are small.
         let chapters = chapters.clone();
@@ -453,33 +502,42 @@ impl FoundationImporter {
                 .chapter_index
                 .as_ref()
                 .and_then(value_to_index)
-                .expect("chapter needs chapter_index");
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("chapter in {work} needs a valid chapter_index"),
+                    )
+                })?;
             let pos = format!("{frame}/pos/{index}");
-            self.add_type(&pos, &gm("NarrativePosition"));
-            self.add_iri(&pos, &gm("positionFrame"), &frame);
+            self.add_type(&pos, &gm("NarrativePosition"))?;
+            self.add_iri(&pos, &gm("positionFrame"), &frame)?;
             {
-                let s = self.iri(&pos);
-                let p = self.iri(&gm("positionOrdinal"));
-                let o = self.typed_lit(&index.to_string(), XSD_INTEGER);
-                self.builder.push_quad(s, p, o, None);
+                let s = self.iri(&pos)?;
+                let p = self.iri(&gm("positionOrdinal"))?;
+                let o = self.typed_lit(&index.to_string(), XSD_INTEGER)?;
+                self.builder
+                    .push_quad(s, p, o, None)
+                    .map_err(io::Error::other)?;
             }
             if let Some(ct) = chapter.chapter_title.as_deref()
                 && !ct.is_empty()
             {
-                let s = self.iri(&pos);
-                let p = self.iri(&gm("positionLabel"));
-                let o = self.plain_lit(ct);
-                self.builder.push_quad(s, p, o, None);
+                let s = self.iri(&pos)?;
+                let p = self.iri(&gm("positionLabel"))?;
+                let o = self.plain_lit(ct)?;
+                self.builder
+                    .push_quad(s, p, o, None)
+                    .map_err(io::Error::other)?;
             }
             let segment = format!("{work}/chapter/{index}");
-            self.add_type(&segment, &gm("ContentSegment"));
+            self.add_type(&segment, &gm("ContentSegment"))?;
             let seg_label = chapter
                 .chapter_title
                 .clone()
                 .unwrap_or_else(|| index.to_string());
-            self.add_label(&segment, &seg_label);
-            self.add_iri(&segment, &gm("segmentOf"), expression);
-            self.add_iri(&segment, &gm("atNarrativePosition"), &pos);
+            self.add_label(&segment, &seg_label)?;
+            self.add_iri(&segment, &gm("segmentOf"), expression)?;
+            self.add_iri(&segment, &gm("atNarrativePosition"), &pos)?;
             positions.insert(index, pos.clone());
             segments.insert(index, segment.clone());
 
@@ -490,23 +548,27 @@ impl FoundationImporter {
                         "{segment}/event/{event_no}-{}",
                         slug(&char_prefix(event_text, 48))
                     );
-                    self.add_type(&event, &gm("Event"));
-                    self.add_lang(&event, RDFS_LABEL, &char_prefix(event_text, 120));
-                    let et = self.narrated_event_type();
-                    self.add_iri(&event, &gm("eventType"), &et);
-                    self.add_iri(&segment, &gm("narrates"), &event);
+                    self.add_type(&event, &gm("Event"))?;
+                    self.add_lang(&event, RDFS_LABEL, &char_prefix(event_text, 120))?;
+                    let et = self.narrated_event_type()?;
+                    self.add_iri(&event, &gm("eventType"), &et)?;
+                    self.add_iri(&segment, &gm("narrates"), &event)?;
                     self.budget.add_flat("narrates → key event", 1);
                 }
             }
             if let Some(actives) = &chapter.active_characters {
                 for name in actives {
                     let char_iri = self.character_iri(record, name);
-                    self.add_iri(&segment, &gm("narrates"), &char_iri);
+                    self.add_iri(&segment, &gm("narrates"), &char_iri)?;
                     self.budget.add_flat("narrates → active character", 1);
                 }
             }
         }
-        (frame, positions, segments)
+        Ok(ChapterProjection {
+            frame,
+            positions,
+            segments,
+        })
     }
 
     fn import_characters(
@@ -516,22 +578,27 @@ impl FoundationImporter {
         frame: &str,
         positions: &BTreeMap<i64, String>,
         segments: &BTreeMap<i64, String>,
-    ) -> BTreeMap<String, String> {
+    ) -> io::Result<BTreeMap<String, String>> {
         let mut characters: BTreeMap<String, String> = BTreeMap::new();
         let chars = record.corpus_db_characters.clone().unwrap_or_default();
         for char in &chars {
-            let name = char.name.as_deref().expect("character needs name");
+            let name = char.name.as_deref().ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("character in {work} needs name"),
+                )
+            })?;
             let iri = self.character_iri(record, name);
             characters.insert(name.to_string(), iri.clone());
-            self.add_type(&iri, &gm("Person"));
-            self.add_label(&iri, name);
+            self.add_type(&iri, &gm("Person"))?;
+            self.add_label(&iri, name)?;
 
             if let Some(appearances) = &char.chapter_appearances {
                 for idx_v in appearances {
                     if let Some(index) = value_to_index(idx_v)
                         && let Some(segment) = segments.get(&index)
                     {
-                        self.add_iri(&iri, &gm("narratedIn"), segment);
+                        self.add_iri(&iri, &gm("narratedIn"), segment)?;
                         self.budget.add_flat("narratedIn ← appearance", 1);
                     }
                 }
@@ -543,16 +610,16 @@ impl FoundationImporter {
                     Some(v) => v,
                     None => {
                         let v = corp(&format!("role/{}", slug(&role_text)));
-                        self.add_type(&v, &gm("NarrativeRole"));
-                        self.add_label(&v, &role_text);
+                        self.add_type(&v, &gm("NarrativeRole"))?;
+                        self.add_label(&v, &role_text)?;
                         v
                     }
                 };
                 let claim = format!("{iri}/role-in/{}", char_suffix(&slug(work), 24));
-                self.add_type(&claim, &gm("RoleInNarrative"));
-                self.add_iri(&claim, &gm("narrativeRoleBearer"), &iri);
-                self.add_iri(&claim, &gm("narrativeRoleScope"), work);
-                self.add_iri(&claim, &gm("narrativeRoleValue"), &role_value);
+                self.add_type(&claim, &gm("RoleInNarrative"))?;
+                self.add_iri(&claim, &gm("narrativeRoleBearer"), &iri)?;
+                self.add_iri(&claim, &gm("narrativeRoleScope"), work)?;
+                self.add_iri(&claim, &gm("narrativeRoleValue"), &role_value)?;
                 self.budget
                     .add_reified("role claims (scoped, interpretive)", 1);
             }
@@ -560,53 +627,57 @@ impl FoundationImporter {
             if let Some(principia) = &char.exemplar_principia {
                 for goal_id in principia {
                     let exemplar = format!("{iri}/exemplifies/{}", slug(goal_id));
-                    self.add_type(&exemplar, &gm("Exemplar"));
+                    self.add_type(&exemplar, &gm("Exemplar"))?;
                     let rubric = self.rubric_iri.clone();
-                    self.add_iri(&exemplar, &gm("citingEntity"), &rubric);
-                    self.add_iri(&exemplar, &gm("citedEntity"), work);
-                    self.add_iri(&exemplar, &gm("citationIntent"), &gm("intentSupports"));
-                    self.add_iri(&exemplar, &gm("exemplarSubject"), &iri);
-                    self.add_iri(&exemplar, &gm("exemplarPolarity"), &gm("polarityPositive"));
+                    self.add_iri(&exemplar, &gm("citingEntity"), &rubric)?;
+                    self.add_iri(&exemplar, &gm("citedEntity"), work)?;
+                    self.add_iri(&exemplar, &gm("citationIntent"), &gm("intentSupports"))?;
+                    self.add_iri(&exemplar, &gm("exemplarSubject"), &iri)?;
+                    self.add_iri(&exemplar, &gm("exemplarPolarity"), &gm("polarityPositive"))?;
                     if let Some(rationale) = char.exemplar_rationale.as_deref()
                         && !rationale.is_empty()
                     {
-                        self.add_lang(&exemplar, &gm("exemplarRationale"), rationale);
+                        self.add_lang(&exemplar, &gm("exemplarRationale"), rationale)?;
                     }
-                    let anchor = self.anchor(goal_id, &exemplar);
-                    let criterion = self.criterion(goal_id);
-                    self.add_iri(&criterion, &gm("hasScoreAnchor"), &anchor);
+                    let anchor = self.anchor(goal_id, &exemplar)?;
+                    let criterion = self.criterion(goal_id)?;
+                    self.add_iri(&criterion, &gm("hasScoreAnchor"), &anchor)?;
                     self.budget
                         .add_reified("entity exemplars (exemplarSubject)", 1);
                 }
             }
         }
-        self.import_arcs(record, &characters, frame, positions);
-        characters
+        self.import_arcs(record, &characters, frame, positions)?;
+        Ok(characters)
     }
 
-    fn anchor(&mut self, goal_id: &str, exemplar: &str) -> String {
+    fn anchor(&mut self, goal_id: &str, exemplar: &str) -> io::Result<String> {
         let anchor = format!("{exemplar}/anchor");
-        self.add_type(&anchor, &gm("ScoreAnchor"));
+        self.add_type(&anchor, &gm("ScoreAnchor"))?;
         {
-            let s = self.iri(&anchor);
-            let p = self.iri(&gm("anchorRangeMin"));
-            let o = self.typed_lit("0.8", XSD_DECIMAL);
-            self.builder.push_quad(s, p, o, None);
+            let s = self.iri(&anchor)?;
+            let p = self.iri(&gm("anchorRangeMin"))?;
+            let o = self.typed_lit("0.8", XSD_DECIMAL)?;
+            self.builder
+                .push_quad(s, p, o, None)
+                .map_err(io::Error::other)?;
         }
         {
-            let s = self.iri(&anchor);
-            let p = self.iri(&gm("anchorRangeMax"));
+            let s = self.iri(&anchor)?;
+            let p = self.iri(&gm("anchorRangeMax"))?;
             // "1.0" canonicalizes to "1" in rdflib's decimal value space.
-            let o = self.typed_lit("1", XSD_DECIMAL);
-            self.builder.push_quad(s, p, o, None);
+            let o = self.typed_lit("1", XSD_DECIMAL)?;
+            self.builder
+                .push_quad(s, p, o, None)
+                .map_err(io::Error::other)?;
         }
         self.add_lang(
             &anchor,
             &gm("anchorMeaning"),
             &format!("Conduct embodying {goal_id} across the work."),
-        );
-        self.add_iri(&anchor, &gm("anchorExemplar"), exemplar);
-        anchor
+        )?;
+        self.add_iri(&anchor, &gm("anchorExemplar"), exemplar)?;
+        Ok(anchor)
     }
 
     fn import_arcs(
@@ -615,7 +686,7 @@ impl FoundationImporter {
         characters: &BTreeMap<String, String>,
         _frame: &str,
         positions: &BTreeMap<i64, String>,
-    ) {
+    ) -> io::Result<()> {
         let chapters = record
             .corpus_db_chapter_summaries
             .clone()
@@ -641,54 +712,60 @@ impl FoundationImporter {
                     .unwrap_or_else(|| self.character_iri(record, name));
                 let sample = format!("{subject}/sample/{index}/{}", slug(state_text));
                 let state = corp(&format!("emotion/{}", slug(state_text)));
-                self.add_type(&state, &gm("EmotionType"));
-                self.add_label(&state, state_text);
-                self.add_type(&sample, &gm("ArcSample"));
+                self.add_type(&state, &gm("EmotionType"))?;
+                self.add_label(&state, state_text)?;
+                self.add_type(&sample, &gm("ArcSample"))?;
                 let pipeline = self.pipeline_iri.clone();
-                self.add_iri(&sample, &gm("vantage"), &pipeline);
-                self.add_iri(&sample, &gm("sampleSubject"), &subject);
+                self.add_iri(&sample, &gm("vantage"), &pipeline)?;
+                self.add_iri(&sample, &gm("sampleSubject"), &subject)?;
                 let pos = positions.get(&index).cloned().unwrap();
-                self.add_iri(&sample, &gm("samplePosition"), &pos);
-                self.add_iri(&sample, &gm("sampleState"), &state);
+                self.add_iri(&sample, &gm("samplePosition"), &pos)?;
+                self.add_iri(&sample, &gm("sampleState"), &state)?;
                 if let Some(signals) = &entry.development_signals {
                     for signal in signals {
-                        self.add_lang(&sample, &gm("developmentSignalText"), signal);
+                        self.add_lang(&sample, &gm("developmentSignalText"), signal)?;
                     }
                 }
                 self.budget.add_reified("arc samples (vantage is data)", 1);
             }
         }
+        Ok(())
     }
 
-    fn import_concepts(&mut self, record: &Record, segments: &BTreeMap<i64, String>) {
+    fn import_concepts(
+        &mut self,
+        record: &Record,
+        segments: &BTreeMap<i64, String>,
+    ) -> io::Result<()> {
         let concepts = record.corpus_db_concepts.clone().unwrap_or_default();
         for concept in &concepts {
-            let name = concept.name.as_deref().expect("concept needs name");
+            let name = concept
+                .name
+                .as_deref()
+                .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "concept needs name"))?;
             let motif = corp(&format!("motif/{}", slug(name)));
-            self.add_type(&motif, &gm("Motif"));
-            self.add_label(&motif, name);
-            self.add_iri(&motif, &gm("motifKind"), &gm("motifKindTheme"));
+            self.add_type(&motif, &gm("Motif"))?;
+            self.add_label(&motif, name)?;
+            self.add_iri(&motif, &gm("motifKind"), &gm("motifKindTheme"))?;
             if let Some(appearances) = &concept.chapter_appearances {
                 for idx_v in appearances {
                     if let Some(index) = value_to_index(idx_v)
                         && let Some(segment) = segments.get(&index)
                     {
-                        self.add_iri(&motif, &gm("motifOccursIn"), segment);
+                        self.add_iri(&motif, &gm("motifOccursIn"), segment)?;
                         self.budget
                             .add_flat("motifOccursIn ← concept appearance", 1);
                     }
                 }
             }
         }
+        Ok(())
     }
 
     /// Freeze the built dataset.
     pub fn freeze(self) -> std::io::Result<(Arc<RdfDataset>, BudgetReport)> {
         let budget = self.budget.clone();
-        let dataset = self
-            .builder
-            .freeze()
-            .map_err(|d| std::io::Error::other(format!("freeze failed: {d:?}")))?;
+        let dataset = self.builder.freeze().map_err(io::Error::other)?;
         Ok((dataset, budget))
     }
 }

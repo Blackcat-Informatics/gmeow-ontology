@@ -23,6 +23,8 @@ use crate::result::{BudgetUsage, result_err};
 pub struct NativeExecutionEvidence {
     /// Exact prepared native input and source-definition contract.
     pub input_contract: [u8; 32],
+    /// Complete selected-program writer analysis, or the explicit class-only profile.
+    pub reachability: crate::obligations::ReachabilityEvidence,
     /// Original native graph for each execution key, including selected empty worlds.
     pub worlds: BTreeMap<String, LogicalGraph>,
     /// Caller-admitted intrinsic domains; graph presence never supplies this selection.
@@ -85,6 +87,9 @@ impl NativeExecutionEvidence {
     pub fn validate_structure(&self) -> gmeow_errors::Result<()> {
         self.selected_domains.validate()?;
         self.class_admission.validate()?;
+        if let crate::obligations::ReachabilityEvidence::Program(analysis) = &self.reachability {
+            analysis.validate(self.input_contract, &self.worlds)?;
+        }
         if self.frontier.completed > self.frontier.total {
             return Err(result_err(
                 "native result has an invalid completion frontier".into(),

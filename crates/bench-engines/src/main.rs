@@ -678,7 +678,7 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
     let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
-    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()])?;
 
     // Bootstrap and base scratch evaluation are intentionally outside the measured
     // transaction. The optimized consumer is a loop over one stable base session.
@@ -875,7 +875,7 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
         .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
     let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
-    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()])?;
     let updated_edb_count = updated.quads().count() as u64;
 
     let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &program)
@@ -1224,7 +1224,7 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         })
     })?;
 
-    let store = WorldStore::new();
+    let store = WorldStore::new()?;
     store
         .load_nquads(&case.edb_nq)
         .map_err(|e| run_err(case, format!("EDB load failed: {e}")))?;
@@ -2040,7 +2040,7 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
             let delta =
                 purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
                     .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
-            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()])?;
             let base_scratch = run_native_forward(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
             let updated_scratch = run_native_forward(&updated, &program)
@@ -2084,7 +2084,7 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
             let delta =
                 purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
                     .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
-            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()])?;
             let updated_edb_count = updated.quads().count() as u64;
             let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
@@ -2155,7 +2155,7 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                     ),
                 })
             })?;
-            let store = WorldStore::new();
+            let store = WorldStore::new()?;
             store
                 .load_nquads(&case.edb_nq)
                 .map_err(|e| run_err(case, format!("EDB load failed: {e}")))?;

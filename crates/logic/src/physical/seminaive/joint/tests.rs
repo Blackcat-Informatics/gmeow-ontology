@@ -22,7 +22,7 @@ pub(super) fn atom(subject: &str, predicate: &str, object: &str) -> EvalAtom {
 }
 
 fn seed(worlds: &[&str]) -> crate::store::WorldStore {
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new().unwrap();
     for world in worlds {
         store
             .insert_quad_terms(

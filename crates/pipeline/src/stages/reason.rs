@@ -97,7 +97,7 @@ fn reason_product_from_artifacts(
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(GRAPH_REASONING);
+    let pinned = bundle.graph_digest(GRAPH_REASONING)?;
     bundle
         .pin_handle(
             GRAPH_REASONING,
@@ -245,6 +245,7 @@ fn reason_prepared_input(
         )
         .with_tool("reason"),
     );
+    require_demonstrator_classes(&native.chase_certificates)?;
     for certificate in &native.chase_certificates {
         let world = certificate.world.clone();
         let mut finding = certificate.to_finding();
@@ -460,10 +461,10 @@ fn resolve_witness_projections(
 fn intern_witness_term(
     builder: &mut RdfDatasetBuilder,
     value: &purrdf::TermValue,
-) -> purrdf::TermId {
-    match value {
-        purrdf::TermValue::Iri(iri) => builder.intern_iri(iri),
-        purrdf::TermValue::Blank { label, scope } => builder.intern_blank(label, *scope),
+) -> gmeow_errors::Result<purrdf::TermId> {
+    Ok(match value {
+        purrdf::TermValue::Iri(iri) => builder.intern_iri(iri)?,
+        purrdf::TermValue::Blank { label, scope } => builder.intern_blank(label, *scope)?,
         purrdf::TermValue::Literal {
             lexical_form,
             datatype,
@@ -474,51 +475,54 @@ fn intern_witness_term(
             datatype: Some(datatype.clone()),
             language: language.clone(),
             direction: *direction,
-        }),
+        })?,
         purrdf::TermValue::Triple { s, p, o } => {
-            let s = intern_witness_term(builder, s);
-            let p = intern_witness_term(builder, p);
-            let o = intern_witness_term(builder, o);
-            builder.intern_triple(s, p, o)
+            let s = intern_witness_term(builder, s)?;
+            let p = intern_witness_term(builder, p)?;
+            let o = intern_witness_term(builder, o)?;
+            builder.intern_triple(s, p, o)?
         }
-    }
+    })
 }
 
 /// Publish exact head skeletons and the versioned native witness receipt. The
 /// receipt carries complete scope/frontier/head/position/premise identities;
 /// RDF metadata retains the owning world and individual derivation evidence.
-fn witness_projection_into(projections: &[WitnessProjection], builder: &mut RdfDatasetBuilder) {
+fn witness_projection_into(
+    projections: &[WitnessProjection],
+    builder: &mut RdfDatasetBuilder,
+) -> gmeow_errors::Result<()> {
     const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
     const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
     if projections.is_empty() {
-        return;
+        return Ok(());
     }
-    let graph = builder.intern_iri(crate::stages::carrier::GRAPH_DIAGNOSTICS);
-    let subject = builder.intern_iri(&format!("{RDF}subject"));
-    let predicate = builder.intern_iri(&format!("{RDF}predicate"));
-    let object = builder.intern_iri(&format!("{RDF}object"));
-    let via_rule = builder.intern_iri(&format!("{GMEOW}viaRule"));
-    let in_world = builder.intern_iri(&format!("{GMEOW}inWorld"));
-    let rdf_type = builder.intern_iri(&format!("{RDF}type"));
-    let invented = builder.intern_iri(&format!("{GMEOW}InventedWitness"));
-    let ordinal = builder.intern_iri(&format!("{GMEOW}existentialOrdinal"));
-    let value = builder.intern_iri("http://www.w3.org/ns/prov#value");
-    let derived_from = builder.intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom");
+    let graph = builder.intern_iri(crate::stages::carrier::GRAPH_DIAGNOSTICS)?;
+    let subject = builder.intern_iri(&format!("{RDF}subject"))?;
+    let predicate = builder.intern_iri(&format!("{RDF}predicate"))?;
+    let object = builder.intern_iri(&format!("{RDF}object"))?;
+    let via_rule = builder.intern_iri(&format!("{GMEOW}viaRule"))?;
+    let in_world = builder.intern_iri(&format!("{GMEOW}inWorld"))?;
+    let rdf_type = builder.intern_iri(&format!("{RDF}type"))?;
+    let invented = builder.intern_iri(&format!("{GMEOW}InventedWitness"))?;
+    let ordinal = builder.intern_iri(&format!("{GMEOW}existentialOrdinal"))?;
+    let value = builder.intern_iri("http://www.w3.org/ns/prov#value")?;
+    let derived_from = builder.intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom")?;
     let derivation =
-        builder.intern_iri("https://blackcatinformatics.ca/logic/derivationIdentifier");
+        builder.intern_iri("https://blackcatinformatics.ca/logic/derivationIdentifier")?;
     let mut recorded = BTreeSet::new();
     for projection in projections {
-        let r = builder.intern_iri(&projection.r_head);
-        let s = intern_witness_term(builder, &projection.subject);
-        let p = builder.intern_iri(&projection.predicate);
-        let o = intern_witness_term(builder, &projection.object);
-        let n = builder.intern_iri(&projection.witness);
-        let rule = builder.intern_iri(&projection.rule_iri);
-        let world = builder.intern_iri(&projection.world);
-        let proof = builder.intern_literal(RdfLiteral::simple(&projection.derivation_id));
+        let r = builder.intern_iri(&projection.r_head)?;
+        let s = intern_witness_term(builder, &projection.subject)?;
+        let p = builder.intern_iri(&projection.predicate)?;
+        let o = intern_witness_term(builder, &projection.object)?;
+        let n = builder.intern_iri(&projection.witness)?;
+        let rule = builder.intern_iri(&projection.rule_iri)?;
+        let world = builder.intern_iri(&projection.world)?;
+        let proof = builder.intern_literal(RdfLiteral::simple(&projection.derivation_id))?;
         let ord =
-            builder.intern_literal(RdfLiteral::typed(projection.ordinal.to_string(), XSD_NNI));
+            builder.intern_literal(RdfLiteral::typed(projection.ordinal.to_string(), XSD_NNI))?;
         for (s, p, o) in [
             (r, subject, s),
             (r, predicate, p),
@@ -530,17 +534,19 @@ fn witness_projection_into(projections: &[WitnessProjection], builder: &mut RdfD
             (n, ordinal, ord),
             (n, in_world, world),
         ] {
-            builder.push_quad(s, p, o, Some(graph));
+            builder.push_quad(s, p, o, Some(graph))?;
         }
         if recorded.insert(projection.witness.as_str()) {
-            let receipt = builder.intern_literal(RdfLiteral::simple(projection.receipt.as_ref()));
-            builder.push_quad(n, value, receipt, Some(graph));
+            let receipt =
+                builder.intern_literal(RdfLiteral::simple(projection.receipt.as_ref()))?;
+            builder.push_quad(n, value, receipt, Some(graph))?;
         }
         for source in &projection.source_reifiers {
-            let source = builder.intern_iri(source);
-            builder.push_quad(r, derived_from, source, Some(graph));
+            let source = builder.intern_iri(source)?;
+            builder.push_quad(r, derived_from, source, Some(graph))?;
         }
     }
+    Ok(())
 }
 
 /// Finish the native closure carrier with the deterministic
@@ -577,28 +583,28 @@ fn reason_dataset(
     let graph = RdfTerm::Iri(GRAPH_REASONING.to_owned());
     for mut routed in reasoning_ds.owned_quads() {
         routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope));
+        builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope))?;
     }
     for mut routed in reasoning_ds.owned_reifiers() {
         routed.graph = Some(graph.clone());
-        builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope));
+        builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope))?;
     }
     for mut routed in reasoning_ds.owned_annotations() {
         routed.graph = Some(graph.clone());
-        builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope));
+        builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope))?;
     }
-    let graph_id = builder.intern_owned_term(&graph);
-    builder.declare_named_graph(graph_id);
+    let graph_id = builder.intern_owned_term(&graph)?;
+    builder.declare_named_graph(graph_id)?;
     gmeow_errors::render::append_gmeow_findings(
         chase_report,
         crate::stages::carrier::GRAPH_DIAGNOSTICS,
         &mut builder,
-    );
+    )?;
     // Chase-invented nulls: project every retained committed minting head
     // and its scoped native receipt; type the value gmeow:InventedWitness,
     // routed into graph/diagnostics so the offline `gmeow explain` CLI can decompose
     // an invented individual. Byte-stable: content-addressed null IRIs, sorted.
-    witness_projection_into(projections, &mut builder);
+    witness_projection_into(projections, &mut builder)?;
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("freeze reason dual-carriage dataset: {e}"),
@@ -719,9 +725,9 @@ impl Stage for ReasonStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        // Explicit domain selection and retained single-run native evidence are
-        // part of both the result identity and every projected witness receipt.
-        "reason.v13-selected-native-execution"
+        // Retain selected-domain native evidence and each world's independently
+        // certified authored program; enforce the demonstrators' declared classes.
+        "reason.v15-program-reachability"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let mut timings = Vec::with_capacity(3);
@@ -854,7 +860,7 @@ impl Stage for ReasonStage {
             "application/json",
             diag_blob,
         );
-        let pinned = bundle.graph_digest(GRAPH_REASONING);
+        let pinned = bundle.graph_digest(GRAPH_REASONING)?;
         bundle
             .pin_handle(
                 GRAPH_REASONING,
@@ -911,3 +917,32 @@ pub(crate) use test_support::reason_artifacts;
 pub(crate) use test_support::reason_product;
 #[cfg(test)]
 pub(crate) use test_support::reason_test_dataset;
+
+/// Each termination-ladder demonstrator world present in this reasoning input must
+/// publish its declared class: the shipped bundle carries that certification power only
+/// if the reasoner proves it. The producer always roots the demonstrators into the
+/// object-level EDB, and the shipped-bundle golden test requires their findings.
+fn require_demonstrator_classes(
+    certificates: &[gmeow_logic::reason::ChaseCertificate],
+) -> Result<(), gmeow_errors::Diag> {
+    for (world, code) in
+        gmeow_logic::termination_demonstrators::termination_ladder_certificate_codes()
+    {
+        let Some(certificate) = certificates
+            .iter()
+            .find(|certificate| certificate.world == world)
+        else {
+            continue;
+        };
+        let published = certificate.to_finding().code;
+        if published != code {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_string(),
+                message: format!(
+                    "termination demonstrator {world} must certify as {code}, got {published}"
+                ),
+            }));
+        }
+    }
+    Ok(())
+}

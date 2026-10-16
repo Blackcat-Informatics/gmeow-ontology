@@ -161,6 +161,13 @@ struct SourceSelection {
 pub(super) struct PropertyVisit {
     pub(super) complete: bool,
     pub(super) admission_blocked: bool,
+    pub(super) obstructions: Vec<GuardObstruction>,
+}
+
+/// A refused guard's actual positive premises, before native proof retention.
+pub(super) struct GuardObstruction {
+    pub(super) detail: String,
+    pub(super) premises: Vec<Fact>,
 }
 
 impl std::ops::Deref for PreparedPropertyRule {
@@ -208,6 +215,7 @@ impl SchemaValues {
 struct NativeCaches<'a> {
     admissions: &'a crate::reason::dl::SourceCoverageWorld,
     admission_blocked: bool,
+    obstructions: Vec<GuardObstruction>,
     datatypes: &'a mut datatype::DatatypeCache,
     lists: &'a mut ListCache,
     values: &'a mut NativeValues,
@@ -217,6 +225,7 @@ struct NativeCaches<'a> {
 /// The existing world-scoped execution and resource authority, borrowed by a
 /// dynamic witness operation; ordinary property joins do not mint anything.
 pub(super) struct NativeWitnesses<'a> {
+    pub(super) admissions: &'a crate::reason::dl::SourceCoverageWorld,
     pub(super) world: &'a str,
     pub(super) contract: WitnessContract,
     pub(super) registry: &'a mut SkolemRegistry,
@@ -527,12 +536,12 @@ impl PreparedPropertyRule {
         lists: &mut ListCache,
         values: &mut SchemaValues,
         witnesses: NativeWitnesses<'_>,
-        admissions: &crate::reason::dl::SourceCoverageWorld,
         emit: &mut impl FnMut(&str, Fact, &[Fact]) -> gmeow_errors::Result<bool>,
     ) -> gmeow_errors::Result<PropertyVisit> {
         let mut caches = NativeCaches {
-            admissions,
+            admissions: witnesses.admissions,
             admission_blocked: false,
+            obstructions: Vec::new(),
             lists,
             values: &mut values.values,
             datatypes: &mut values.datatypes,
@@ -558,12 +567,14 @@ impl PreparedPropertyRule {
                 return Ok(PropertyVisit {
                     complete: false,
                     admission_blocked: caches.admission_blocked,
+                    obstructions: caches.obstructions,
                 });
             }
         }
         Ok(PropertyVisit {
             complete: true,
             admission_blocked: caches.admission_blocked,
+            obstructions: caches.obstructions,
         })
     }
 
@@ -636,6 +647,7 @@ impl PreparedPropertyRule {
         premises: &[Fact],
         values: &mut NativeValues,
         admission_blocked: &mut bool,
+        obstructions: &mut Vec<GuardObstruction>,
         emit: &mut impl FnMut(&str, Fact, &[Fact]) -> gmeow_errors::Result<bool>,
     ) -> gmeow_errors::Result<bool> {
         for guard in &self.guards {
@@ -678,6 +690,13 @@ impl PreparedPropertyRule {
             }
             let Some(equal) = values.same_value(left, right) else {
                 *admission_blocked = true;
+                obstructions.push(GuardObstruction {
+                    detail: format!(
+                        "{:?} requires an admitted datatype value comparison",
+                        guard.comparison
+                    ),
+                    premises: premises.to_vec(),
+                });
                 return Ok(true);
             };
             let accepted = match guard.comparison {
@@ -793,6 +812,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             );
             premises.truncate(body_premises);
@@ -819,6 +839,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             );
             premises.truncate(body_premises);
@@ -836,6 +857,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             );
         };
@@ -896,6 +918,7 @@ impl PreparedPropertyRule {
                 premises,
                 caches.values,
                 &mut caches.admission_blocked,
+                &mut caches.obstructions,
                 emit,
             )
         };

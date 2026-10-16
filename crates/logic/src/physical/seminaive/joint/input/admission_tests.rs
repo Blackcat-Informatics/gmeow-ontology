@@ -17,11 +17,162 @@ const OWL: &str = "http://www.w3.org/2002/07/owl#";
 const WORLD: &str = "urn:world";
 const SEMANTICS: SemanticVocabulary = SemanticVocabulary::GroundedLogicV1;
 
+#[test]
+fn inconclusive_refinement_retains_rule_and_counts_on_the_shared_diagnostic() {
+    let gap = EvidenceGap::SpecializationBound {
+        rule: "urn:selected-rule".into(),
+        settled_matches: 17,
+        distinct_specializations: 11,
+        total_statements: 23,
+    };
+    let diagnostic = gmeow_errors::Diag::of_kind(gap.clone());
+    assert_eq!(diagnostic.code(), crate::error::Physical::register());
+    assert_eq!(diagnostic.grade().severity, gmeow_errors::Severity::Error);
+    assert_eq!(diagnostic.downcast_ref::<EvidenceGap>(), Some(&gap));
+    assert!(diagnostic.message().contains("urn:selected-rule (17 settled matches, 11 distinct specializations; 23 statements in total)"));
+}
+
 fn fact(subject: &str, predicate: &str, object: &str) -> Fact {
     Fact {
         subject: TermValue::iri(subject),
         predicate: predicate.to_owned(),
         object: TermValue::iri(object),
+    }
+}
+
+#[test]
+fn list_cell_bindings_match_reachability_for_every_three_node_graph() {
+    let nodes = ["urn:list:a", "urn:list:b", "urn:list:c"];
+    for edges in 0..(1usize << 9) {
+        for members in 0..(1usize << 3) {
+            let mut facts = Vec::new();
+            for (i, node) in nodes.iter().enumerate() {
+                if members & (1 << i) != 0 {
+                    facts.push(fact(node, LIST_FIRST, "urn:member"));
+                }
+                for (j, tail) in nodes.iter().enumerate() {
+                    if edges & (1 << (3 * i + j)) != 0 {
+                        facts.push(fact(node, LIST_REST, tail));
+                    }
+                }
+            }
+            let facts = facts.iter().collect::<Vec<_>>();
+            let mut rel = RelationStore::with_semantics(SEMANTICS);
+            assert!(bind_list_cells(&mut rel, &facts, SEMANTICS));
+            for (i, &head) in nodes.iter().enumerate() {
+                // Independent Boolean transitive closure includes the zero-length
+                // path and passes through nodes with no rdf:first of their own.
+                let mut reachable = [false; 3];
+                reachable[i] = true;
+                for _ in 0..3 {
+                    for from in 0..3 {
+                        for to in 0..3 {
+                            reachable[to] |= reachable[from] && edges & (1 << (3 * from + to)) != 0;
+                        }
+                    }
+                }
+                for (j, &cell) in nodes.iter().enumerate() {
+                    assert_eq!(
+                        rel.contains(LIST_CELL, &TermValue::iri(head), &TermValue::iri(cell)),
+                        members & (1 << i) != 0 && members & (1 << j) != 0 && reachable[j],
+                        "edges={edges}, members={members}, head={i}, cell={j}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn list_cell_bindings_share_a_branching_rest_only_cycle() {
+    let mut facts = vec![fact("urn:tail", LIST_FIRST, "urn:tail-member")];
+    for head in 0..512 {
+        let head = format!("urn:head:{head}");
+        facts.push(fact(&head, LIST_FIRST, "urn:head-member"));
+        facts.push(fact(&head, LIST_REST, "urn:rest:0"));
+    }
+    for cell in 0..1024 {
+        for offset in [1, 7] {
+            facts.push(fact(
+                &format!("urn:rest:{cell}"),
+                LIST_REST,
+                &format!("urn:rest:{}", (cell + offset) % 1024),
+            ));
+        }
+    }
+    facts.push(fact("urn:rest:1023", LIST_REST, "urn:tail"));
+    let facts = facts.iter().collect::<Vec<_>>();
+    let mut rel = RelationStore::with_semantics(SEMANTICS);
+    assert!(bind_list_cells(&mut rel, &facts, SEMANTICS));
+    assert_eq!(rel.row_count(), 1025);
+    for head in 0..512 {
+        let head = TermValue::iri(format!("urn:head:{head}"));
+        assert!(rel.contains(LIST_CELL, &head, &head));
+        assert!(rel.contains(LIST_CELL, &head, &TermValue::iri("urn:tail")));
+        assert!(!rel.contains(LIST_CELL, &head, &TermValue::iri("urn:rest:0")));
+    }
+}
+
+#[test]
+fn list_cell_bindings_do_not_follow_incoming_rest_only_components() {
+    let mut facts = Vec::new();
+    for head in 0..64 {
+        facts.push(fact(&format!("urn:head:{head}"), LIST_FIRST, "urn:member"));
+    }
+    for cell in 0..512 {
+        let subject = format!("urn:incoming:{cell}");
+        facts.push(fact(
+            &subject,
+            LIST_REST,
+            &format!("urn:incoming:{}", (cell + 1) % 512),
+        ));
+        facts.push(fact(
+            &subject,
+            LIST_REST,
+            &format!("urn:head:{}", cell % 64),
+        ));
+    }
+    let facts = facts.iter().collect::<Vec<_>>();
+    let mut rel = RelationStore::with_semantics(SEMANTICS);
+    assert!(bind_list_cells(&mut rel, &facts, SEMANTICS));
+    assert_eq!(rel.row_count(), 64);
+    for head in 0..64 {
+        let head = TermValue::iri(format!("urn:head:{head}"));
+        assert!(rel.contains(LIST_CELL, &head, &head));
+    }
+}
+
+#[test]
+fn list_cell_binding_limit_is_inclusive_and_publication_is_atomic() {
+    for count in [512usize, 513] {
+        let mut facts = Vec::new();
+        for cell in 0..count {
+            let cell_name = format!("urn:cell:{cell}");
+            facts.push(fact(&cell_name, LIST_FIRST, "urn:member"));
+            facts.push(fact(
+                &cell_name,
+                LIST_REST,
+                &format!("urn:cell:{}", (cell + 1) % count),
+            ));
+        }
+        let facts = facts.iter().collect::<Vec<_>>();
+        let mut rel = RelationStore::with_semantics(SEMANTICS);
+        rel.insert(
+            "urn:existing",
+            &TermValue::iri("urn:s"),
+            &TermValue::iri("urn:o"),
+        );
+        let admitted = count * count <= MAX_BINDINGS;
+        assert_eq!(bind_list_cells(&mut rel, &facts, SEMANTICS), admitted);
+        assert_eq!(
+            rel.row_count(),
+            if admitted { 1 + count * count } else { 1 }
+        );
+        assert!(rel.contains(
+            "urn:existing",
+            &TermValue::iri("urn:s"),
+            &TermValue::iri("urn:o")
+        ));
     }
 }
 
@@ -45,7 +196,7 @@ fn restriction(class: &str) -> Vec<Fact> {
 
 fn template(rules: &[EvalRule]) -> Arc<JointTemplate> {
     Arc::new(
-        JointTemplate::build(
+        JointTemplate::with_sources(
             rules,
             &[],
             crate::reason::schema_laws(),
@@ -53,7 +204,6 @@ fn template(rules: &[EvalRule]) -> Arc<JointTemplate> {
             &[],
             None,
             &crate::physical::SelectedDomains::new([]).unwrap(),
-            super::super::super::JointOperation::Forward,
         )
         .unwrap(),
     )

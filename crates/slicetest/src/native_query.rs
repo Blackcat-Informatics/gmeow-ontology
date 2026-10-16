@@ -29,6 +29,7 @@ use purrdf::ir::RdfDatasetBuilder;
 use purrdf::parse_dataset;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
+use sha2::{Digest, Sha256};
 
 use crate::error::{DatasetRead, SparqlEval, UnexpectedResultForm};
 
@@ -39,40 +40,49 @@ pub struct Solutions {
     pub rows: Vec<Vec<Option<TermValue>>>,
 }
 
-/// Memoized parse results, keyed by path. A slice test file runs many cells that each
-/// rebuild the same scoped module/example datasets; parsing a multi-thousand-triple
-/// `module.ttl` once per cell dominates the test wall-clock. The fixtures are immutable
-/// for the life of a test run and a frozen [`RdfDataset`] is read-only + `Arc`-shared,
-/// so caching by path is sound and turns O(cells x parse) back into O(files x parse).
+struct ParsedFile {
+    digest: [u8; 32],
+    dataset: Arc<RdfDataset>,
+}
+
+/// One parse per unchanged file content. Every lookup reads the selected source
+/// before checking its digest, so a changed, malformed or deleted source cannot
+/// retain stale success. The frozen dataset remains shared across unchanged reads.
 static PARSE_CACHE: std::sync::LazyLock<
-    std::sync::Mutex<std::collections::HashMap<std::path::PathBuf, Arc<RdfDataset>>>,
-> = std::sync::LazyLock::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+    std::sync::Mutex<std::collections::BTreeMap<std::path::PathBuf, ParsedFile>>,
+> = std::sync::LazyLock::new(|| std::sync::Mutex::new(std::collections::BTreeMap::new()));
 
 /// Parse one Turtle file into a frozen dataset (the native codec, lenient on the
 /// private-use `@x-gmeow-*` language tags, exactly as `gmeow_validate`'s `parse_file`).
-/// Results are memoized by path (see [`PARSE_CACHE`]).
+/// Unchanged content reuses its frozen parse (see [`PARSE_CACHE`]).
 ///
 /// # Errors
 /// Hard-fails if the file cannot be read or parsed.
 pub fn dataset_from_file(path: &std::path::Path) -> Result<Arc<RdfDataset>> {
     let key = path.to_path_buf();
-    if let Some(ds) = PARSE_CACHE.lock().expect("parse cache mutex").get(&key) {
-        return Ok(Arc::clone(ds));
-    }
     let bytes = std::fs::read(path).map_err(|e| {
         Diag::of_kind(DatasetRead {
             detail: format!("read {}: {e}", path.display()),
         })
     })?;
+    let digest = Sha256::digest(&bytes).into();
+    if let Some(parsed) = PARSE_CACHE.lock().expect("parse cache mutex").get(&key)
+        && parsed.digest == digest
+    {
+        return Ok(Arc::clone(&parsed.dataset));
+    }
     let ds = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
         Diag::of_kind(DatasetRead {
             detail: format!("parse {}: {e}", path.display()),
         })
     })?;
-    PARSE_CACHE
-        .lock()
-        .expect("parse cache mutex")
-        .insert(key, Arc::clone(&ds));
+    PARSE_CACHE.lock().expect("parse cache mutex").insert(
+        key,
+        ParsedFile {
+            digest,
+            dataset: Arc::clone(&ds),
+        },
+    );
     Ok(ds)
 }
 
@@ -86,20 +96,24 @@ pub fn dataset_from_files(paths: &[PathBuf]) -> Result<Arc<RdfDataset>> {
         .iter()
         .map(|p| dataset_from_file(p))
         .collect::<Result<_>>()?;
-    Ok(union(&parsed))
+    let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+    union(&refs)
 }
 
 /// Union a set of frozen datasets into one (blank scopes are standardized apart by
 /// `RdfDataset::union`). An empty input yields an empty dataset.
-#[must_use]
-pub fn union(datasets: &[Arc<RdfDataset>]) -> Arc<RdfDataset> {
-    let refs: Vec<&RdfDataset> = datasets.iter().map(AsRef::as_ref).collect();
-    Arc::new(RdfDataset::union(&refs))
+///
+/// # Errors
+/// Returns the native diagnostic if union construction fails.
+pub fn union(datasets: &[&RdfDataset]) -> Result<Arc<RdfDataset>> {
+    Ok(Arc::new(RdfDataset::union(datasets)?))
 }
 
 /// Materialize the shared canonical-axiom OWL/RDFS reader view.
-#[must_use]
-pub fn with_owl_rdfs_projection(dataset: &Arc<RdfDataset>) -> Arc<RdfDataset> {
+///
+/// # Errors
+/// Returns the original storage failure if projection construction fails.
+pub fn with_owl_rdfs_projection(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
     gmeow_logic_compile::projections::reader_view::with_owl_rdfs_projection(dataset)
 }
 
@@ -113,23 +127,23 @@ pub fn with_owl_rdfs_projection(dataset: &Arc<RdfDataset>) -> Arc<RdfDataset> {
 /// mint a fresh blank each round, which `union`'s re-scoping does, defeating
 /// termination). The inputs here are all derived FROM one base dataset (its blanks
 /// share a scope), so their qualified labels coincide and identity is preserved.
-#[must_use]
-pub fn merge_preserving_blanks(datasets: &[Arc<RdfDataset>]) -> Arc<RdfDataset> {
+///
+/// # Errors
+/// Returns the first native insertion or freeze diagnostic.
+pub fn merge_preserving_blanks(datasets: &[&RdfDataset]) -> Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     for ds in datasets {
         for quad in ds.owned_quads() {
-            builder.push_owned_quad(&quad);
+            builder.push_owned_quad(&quad)?;
         }
         for reifier in ds.owned_reifiers() {
-            builder.push_owned_reifier(&reifier);
+            builder.push_owned_reifier(&reifier)?;
         }
         for annotation in ds.owned_annotations() {
-            builder.push_owned_annotation(&annotation);
+            builder.push_owned_annotation(&annotation)?;
         }
     }
-    builder
-        .freeze()
-        .expect("merge of valid datasets re-freezes successfully")
+    builder.freeze().map_err(Diag::from)
 }
 
 /// Parse inline Turtle into a frozen dataset (the native codec).

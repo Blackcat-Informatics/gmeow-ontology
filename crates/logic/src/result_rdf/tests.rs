@@ -136,11 +136,13 @@ fn projection_is_byte_deterministic() {
 fn native_conflict_result() -> ReasoningResult {
     use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
     let mut source = purrdf::RdfDatasetBuilder::new();
-    source.push_owned_quad(&purrdf::RdfQuad::new(
-        purrdf::RdfTerm::iri("urn:gmeow:test:conflicting-individual"),
-        "https://blackcatinformatics.ca/logic/instanceOf",
-        purrdf::RdfTerm::iri("https://blackcatinformatics.ca/logic/Nothing"),
-    ));
+    source
+        .push_owned_quad(&purrdf::RdfQuad::new(
+            purrdf::RdfTerm::iri("urn:gmeow:test:conflicting-individual"),
+            "https://blackcatinformatics.ca/logic/instanceOf",
+            purrdf::RdfTerm::iri("https://blackcatinformatics.ca/logic/Nothing"),
+        ))
+        .unwrap();
     let source = source.freeze().unwrap();
     let input = crate::reason::prepare_reasoning_input(&source).unwrap();
     let domains = SelectedDomains::new([SelectedLogicalWorld::new(
@@ -253,6 +255,32 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
         native::decode(&changed).is_err(),
         "unknown execution evidence must never disappear during admission"
     );
+}
+
+#[test]
+fn native_execution_requires_the_selected_program_analysis_and_current_schema() {
+    let result = native_conflict_result();
+    let wire = native::encode(result.native_execution().unwrap()).unwrap();
+    let bytes = purrdf_hash::hex::decode(&wire).unwrap();
+    for missing_field in [false, true] {
+        let mut envelope: ciborium::Value = ciborium::de::from_reader(bytes.as_slice()).unwrap();
+        let ciborium::Value::Array(fields) = &mut envelope else {
+            panic!("native receipt envelope");
+        };
+        if missing_field {
+            let ciborium::Value::Map(execution) = &mut fields[1] else {
+                panic!("native execution record");
+            };
+            let before = execution.len();
+            execution.retain(|(key, _)| key != &ciborium::Value::Text("reachability".into()));
+            assert_eq!(execution.len() + 1, before);
+        } else {
+            fields[0] = ciborium::Value::Text("gmeow-native-execution-v1".into());
+        }
+        let mut changed = Vec::new();
+        ciborium::ser::into_writer(&envelope, &mut changed).unwrap();
+        assert!(native::decode(&purrdf_hash::hex::encode(&changed)).is_err());
+    }
 }
 
 #[test]

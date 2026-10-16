@@ -236,7 +236,7 @@ impl ReasoningSession {
             let object = crate::reason::term_value_to_rdf_term(&quad.object)?;
             let rdf_quad = RdfQuad::new(subject, quad.predicate.clone(), object)
                 .in_graph(RdfTerm::iri(world.to_owned()));
-            builder.push_owned_quad(&rdf_quad);
+            builder.push_owned_quad(&rdf_quad)?;
             Ok(())
         });
         // A page fault surfaces through the fallible view's operation status (not

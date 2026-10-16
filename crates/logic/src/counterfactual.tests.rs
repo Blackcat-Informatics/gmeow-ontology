@@ -66,7 +66,7 @@ fn is_counterfactual_detects_declaration() {
 
 #[test]
 fn construct_and_resolve_rejects_plain_program() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let err = construct_and_resolve(&store, &plain_program(), HORN, &Budget::default(), 4, None)
         .unwrap_err();
     assert!(err.message().contains("non-counterfactual"), "got: {err}");
@@ -78,7 +78,7 @@ fn construct_and_resolve_rejects_plain_program() {
 // Rule: alert(X, fired) :- status(X, down). Goal: alert(server, Z) -> {fired}.
 #[test]
 fn consequent_is_yielded_after_overwrite() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         BASE,
         "https://ex/server",
@@ -162,7 +162,7 @@ fn functional_revision_is_identical_for_incremental_and_scratch_paths() {
 // fragment lives in `physical::parity`.
 #[test]
 fn counterfactual_native_resolves_recursion_in_constructed_world() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, "https://ex/b", "https://ex/edge", "https://ex/c");
     store.insert_quad(BASE, "https://ex/c", "https://ex/edge", "https://ex/d");
     let prog = parse_query_program(
@@ -195,7 +195,7 @@ fn counterfactual_native_resolves_recursion_in_constructed_world() {
 // ── AC-2: no leakage — the base store is never mutated ────────────────────
 #[test]
 fn no_leakage_base_store_unchanged() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         BASE,
         "https://ex/server",
@@ -241,7 +241,7 @@ fn no_leakage_base_store_unchanged() {
 // Over-determined antecedent {primary, backup} with primary ≻ backup -> primary wins.
 #[test]
 fn comparable_over_determination_is_deterministic() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, "https://ex/primary", OVERRIDES, "https://ex/backup");
     let prog = parse_query_program(
         ":- prefix(ex, 'https://ex/').\n\
@@ -264,7 +264,7 @@ fn comparable_over_determination_is_deterministic() {
 #[test]
 fn incomparable_over_determination_is_unknown() {
     // No entrenchment edge between blue and green -> incomparable.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, "https://ex/seed", "https://ex/p", "https://ex/o");
     let prog = parse_query_program(
         ":- prefix(ex, 'https://ex/').\n\
@@ -282,7 +282,7 @@ fn incomparable_over_determination_is_unknown() {
 // ── depth budget trip ─────────────────────────────────────────────────────
 #[test]
 fn depth_budget_zero_is_incomplete() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, "https://ex/s", "https://ex/p", "https://ex/o");
     let prog = parse_query_program(
         ":- prefix(ex, 'https://ex/').\n\
@@ -298,7 +298,7 @@ fn depth_budget_zero_is_incomplete() {
 // ── memoization: identical key -> cache hit, identical answer ─────────────
 #[test]
 fn memoization_hit_on_identical_construction() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         BASE,
         "https://ex/server",
@@ -391,7 +391,7 @@ fn two_world_program() -> QProgram {
 }
 
 fn seeded_base() -> WorldStore {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(BASE, "https://ex/seed", "https://ex/p", "https://ex/o");
     store
 }
@@ -472,7 +472,7 @@ fn lewis_branch_budget_trips_to_incomplete() {
 #[test]
 fn lewis_does_not_change_deterministic_single_world() {
     // A single-valued antecedent is one world even under a Lewis profile.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         BASE,
         "https://ex/server",
@@ -503,7 +503,7 @@ fn declared_schema_matching_attaches_row_schema() {
         ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
     };
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         BASE,
         "https://ex/server",
@@ -546,7 +546,7 @@ fn declared_schema_mismatch_returns_err() {
         ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
     };
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         BASE,
         "https://ex/server",

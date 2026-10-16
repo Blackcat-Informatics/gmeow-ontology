@@ -223,7 +223,7 @@ fn gate_observation(gate: &GateProgram) -> Result<GateObservation, gmeow_errors:
                     RdfTerm::iri(object),
                 )
                 .in_graph(RdfTerm::iri(WORLD)),
-            );
+            )?;
         }
     }
     let dataset = builder.freeze().map_err(gmeow_errors::Diag::from)?;

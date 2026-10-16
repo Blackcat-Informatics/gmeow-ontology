@@ -44,7 +44,7 @@ const SUPPORTED_TTL: &str = "\
 
 #[test]
 fn shared_query_world_keeps_goals_and_counterfactual_assumptions_independent() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad("urn:test:world", "urn:test:s", "urn:test:p", "urn:test:o");
     let world = QueryWorld {
         store: &store,
@@ -163,8 +163,8 @@ const SYNTHETIC_LIBRARY: &str = r#"
         @prefix logic: <https://blackcatinformatics.ca/logic/> .
         <urn:test:library-rule> a logic:Rule ;
             logic:provenance <urn:test:library-rule> ;
-            logic:head [ rdf:subject <urn:test:entry> ; rdf:predicate logic:entryLabel ; rdf:object logic:FrontierReadyAuthorized ] ;
-            logic:body [ rdf:subject <urn:test:entry> ; rdf:predicate logic:entryAxisWitness ; rdf:object logic:StepReady ] .
+            logic:head [ rdf:reifies <<( <urn:test:entry> logic:entryLabel logic:FrontierReadyAuthorized )>> ] ;
+            logic:body [ rdf:reifies <<( <urn:test:entry> logic:entryAxisWitness logic:StepReady )>> ] .
     "#;
 
 fn synthetic_library() -> gmeow_logic_compile::ir::LogicProgram {

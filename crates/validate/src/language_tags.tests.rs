@@ -628,9 +628,11 @@ fn build_nt_with_reifier(
     );
 
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&RdfQuad::new(subject_term, predicate, object_term));
-    builder.push_owned_reifier(&reifier);
-    builder.push_owned_annotation(&annotation);
+    builder
+        .push_owned_quad(&RdfQuad::new(subject_term, predicate, object_term))
+        .unwrap();
+    builder.push_owned_reifier(&reifier).unwrap();
+    builder.push_owned_annotation(&annotation).unwrap();
 
     let dataset = builder.freeze().expect("freeze");
     purrdf::serialize_dataset(
@@ -712,14 +714,18 @@ fn filter_graph_drops_reifier_for_dropped_literal() {
     );
 
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_owned_quad(&RdfQuad::new(
-        subject_term.clone(),
-        pred,
-        RdfTerm::Literal(en_lit),
-    ));
-    builder.push_owned_quad(&RdfQuad::new(subject_term, pred, RdfTerm::Literal(fr_lit)));
-    builder.push_owned_reifier(&reifier);
-    builder.push_owned_annotation(&annotation);
+    builder
+        .push_owned_quad(&RdfQuad::new(
+            subject_term.clone(),
+            pred,
+            RdfTerm::Literal(en_lit),
+        ))
+        .unwrap();
+    builder
+        .push_owned_quad(&RdfQuad::new(subject_term, pred, RdfTerm::Literal(fr_lit)))
+        .unwrap();
+    builder.push_owned_reifier(&reifier).unwrap();
+    builder.push_owned_annotation(&annotation).unwrap();
 
     let dataset = builder.freeze().expect("freeze");
     let input = purrdf::serialize_dataset(

@@ -18,7 +18,8 @@ pub(super) fn load_rubric_from_ttl(text: &str, source_label: &str) -> gmeow_erro
     let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
         .map_err(|e| sqe(format!("{source_label}: parse failed: {e}")))?;
     let mut b = purrdf::RdfDatasetBuilder::new();
-    b.push_dataset(&ds);
+    b.push_dataset(&ds)
+        .expect("synthetic slice-quality source dataset");
     let frozen = b
         .freeze()
         .map_err(|e| sqe(format!("{source_label}: dataset freeze failed: {e}")))?;

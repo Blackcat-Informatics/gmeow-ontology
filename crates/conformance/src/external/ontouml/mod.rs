@@ -45,7 +45,7 @@ pub const VIOLATION_PRED: &str = "https://blackcatinformatics.ca/logic/violation
 ///
 /// Returns the derived foundation quads, the lowered N-Quads text, and its quad
 /// count. A lowering that produces non-loadable N-Quads is an internal defect, so
-/// a native load or evaluate error is reported as [`OntoumlError::Syntax`] (a lowering
+/// a native load or evaluate error is reported as [`OntoumlError::Failure`] (a lowering
 /// gap is [`OntoumlError::Unsupported`], raised earlier by [`lower_model`]).
 pub fn lower_and_evaluate(
     model: &OntoumlModel,
@@ -54,8 +54,10 @@ pub fn lower_and_evaluate(
 ) -> Result<(Vec<FoundationQuad>, String, usize), OntoumlError> {
     let (quads, dataset) = evaluate_model(model, world_iri, policy)?;
     let count = dataset.quads().count();
-    let text = purrdf::canonical_flat_nquads(&dataset)
-        .map_err(|error| OntoumlError::Syntax(format!("render lowered model: {error}")))?;
+    let text = purrdf::try_canonicalize_flat_view(dataset.as_ref(), purrdf::CanonHash::Sha256)
+        .map_err(gmeow_errors::Diag::from)
+        .map_err(OntoumlError::from)?
+        .nquads;
     Ok((quads, text, count))
 }
 
@@ -69,10 +71,8 @@ pub fn evaluate_model(
     policy: AntiRigidityPolicy,
 ) -> Result<(Vec<FoundationQuad>, std::sync::Arc<purrdf::RdfDataset>), OntoumlError> {
     let dataset = lower_model_dataset(model, world_iri)?;
-    let store = WorldStore::from_dataset(&dataset)
-        .map_err(|error| OntoumlError::Syntax(error.message().to_owned()))?;
-    let quads = evaluate(&store, policy)
-        .map_err(|error| OntoumlError::Syntax(error.message().to_owned()))?;
+    let store = WorldStore::from_dataset(&dataset).map_err(OntoumlError::from)?;
+    let quads = evaluate(&store, policy).map_err(OntoumlError::from)?;
     Ok((quads, dataset))
 }
 

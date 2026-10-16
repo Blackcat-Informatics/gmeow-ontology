@@ -33,7 +33,7 @@ fn axiom(s: &str, p: &str, o: &str, rule: Option<&str>) -> InferredAxiom {
 /// Compare RDF terms independently of the optional explicit xsd:string spelling.
 fn native_term(term: &RdfTerm) -> TermValue {
     let mut builder = RdfDatasetBuilder::new();
-    let id = builder.intern_owned_term(term);
+    let id = builder.intern_owned_term(term).unwrap();
     builder.freeze().unwrap().term_value(id)
 }
 
@@ -144,7 +144,7 @@ fn native_derived_objects_and_premises_keep_rdf12_types_in_both_artifacts() {
 #[test]
 fn corpus_verifier_preserves_native_derived_rdf12_objects() {
     for (object, result) in native_typed_results() {
-        let empty = RdfDataset::union(&[]);
+        let empty = RdfDataset::union(&[]).unwrap();
         let crate::verify::ReasonedGraphOutcome::Ready(verified) =
             crate::verify::materialize_reasoned_graph(&empty, &result)
                 .expect("the downstream verifier accepts typed derived objects")
@@ -183,7 +183,8 @@ fn corpus_malformed_artifact_objects_fail_without_iri_reinterpretation() {
         );
         assert!(build_explanations_ttl(&result).is_err(), "{object}");
         assert!(
-            crate::verify::materialize_reasoned_graph(&RdfDataset::union(&[]), &result).is_err(),
+            crate::verify::materialize_reasoned_graph(&RdfDataset::union(&[]).unwrap(), &result)
+                .is_err(),
             "the verifier must reject malformed objects: {object}",
         );
     }
@@ -243,7 +244,9 @@ fn native_program_result(
     const WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/imports";
     let mut source = RdfDatasetBuilder::new();
     for quad in quads {
-        source.push_owned_quad(&quad.in_graph(RdfTerm::iri(WORLD)));
+        source
+            .push_owned_quad(&quad.in_graph(RdfTerm::iri(WORLD)))
+            .unwrap();
     }
     let source = source.freeze().unwrap();
     let input = crate::reason::prepare_reasoning_input(&source).unwrap();
@@ -584,10 +587,10 @@ fn native_closure_appends_without_aliasing_an_existing_carrier_blank() {
         Some("projection:test-rule"),
     )]);
     let mut builder = RdfDatasetBuilder::new();
-    let existing = builder.intern_blank("proof0", BlankScope(1));
-    let p = builder.intern_iri("urn:projection:existing");
-    let o = builder.intern_iri("urn:projection:value");
-    builder.push_quad(existing, p, o, None);
+    let existing = builder.intern_blank("proof0", BlankScope(1)).unwrap();
+    let p = builder.intern_iri("urn:projection:existing").unwrap();
+    let o = builder.intern_iri("urn:projection:value").unwrap();
+    builder.push_quad(existing, p, o, None).unwrap();
     build_inferred_closure_into(&result, &[], &mut builder).unwrap();
     let native = builder.freeze().unwrap();
     let proof = native.owned_reifiers().next().unwrap().reifier;

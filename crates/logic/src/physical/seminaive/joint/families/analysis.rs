@@ -178,8 +178,7 @@ fn retain_supported_conclusions(
     // New owners are allowed; changing an admitted owner violates the prepared
     // grammar frontier and cannot lend its old semantic interpretation.
     if previous.admissions.iter().any(|prior| {
-        prior.completion == NativeFamilyCompletion::Complete
-            && !admissions.iter().any(|current| *current == prior)
+        prior.completion == NativeFamilyCompletion::Complete && !admissions.contains(&prior)
     }) {
         return Err(super::super::seminaive_err(
             "retained family conclusion lost its completed source admission",

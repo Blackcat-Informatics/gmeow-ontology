@@ -70,7 +70,8 @@ mod source_admission;
 pub use source_admission::{
     AdmittedSemanticUnit, DocumentSelection, FofSemanticProfile, PropertyCharacteristic,
     RootSelection, SemanticUnitAdmission, SemanticUnitDisposition, SemanticUnitKind,
-    SourceAdmission, SourceAdmissionStatus, SourceAssertion, SourceGraphSelection, SourceSelection,
+    SourceAdmission, SourceAdmissionStatus, SourceAssertion, SourceClassDefinition,
+    SourceGraphSelection, SourceSelection,
 };
 
 use super::compat;
@@ -1214,11 +1215,26 @@ fn extract_scoped_axioms(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<AxiomEmission> {
     let mut axioms: Vec<AxiomEmission> = Vec::new();
+    let mut rule_atoms = BTreeSet::new();
+    for rule in subjects_of_structural_class(store, &Node::iri(logic_iri("Rule"))) {
+        for link in ["head", "body", "negatedBody"] {
+            for atom in objects(store, &rule, &nn(&logic_iri(link))) {
+                if let Some(atom) = term_as_subject(&atom)
+                    && let Some(id) = subject_id(store, &atom)
+                {
+                    rule_atoms.insert(id);
+                }
+            }
+        }
+    }
 
     // RDF 1.2 style: reifier node with rdf:reifies → triple term.
     if let Some(predicate) = store.term_id_by_iri(RDF_REIFIES) {
         for quad in crate::graphutil::default_graph_pattern(store, None, Some(predicate), None) {
             let reifier = crate::graphutil::subject_of(store, quad.s);
+            if rule_atoms.contains(&quad.s) {
+                continue;
+            }
             let Some(scope) = scope_from_node(store, &reifier, diagnostics) else {
                 continue;
             };
@@ -1228,7 +1244,6 @@ fn extract_scoped_axioms(
                 continue;
             }
             if let Node::Triple(triple) = crate::graphutil::node_of(store, quad.o) {
-                let t_p = triple.predicate.as_str();
                 if matches!(triple.object, Node::Triple(_)) {
                     diagnostics.push(Diagnostic::error(
                         "UNSUPPORTED_SCOPED_TERM",
@@ -1238,8 +1253,7 @@ fn extract_scoped_axioms(
                     ));
                     continue;
                 }
-                let t_s = subject_str(&triple.subject);
-                match native_axiom(t_s, t_p, &triple.object, false, scope) {
+                match native_quoted_axiom(store, &reifier, &triple, false, scope) {
                     Ok(ax) => axioms.push(AxiomEmission::new(
                         ax,
                         AxiomSource::Reification(SourceNode {
@@ -1260,6 +1274,9 @@ fn extract_scoped_axioms(
     // Classic reification: rdf:Statement nodes with logic: scope annotations.
     let rdf_type_term = Node::iri(RDF_STATEMENT);
     for stmt in subjects_with(store, &nn(RDF_TYPE), &rdf_type_term) {
+        if subject_id(store, &stmt).is_some_and(|id| rule_atoms.contains(&id)) {
+            continue;
+        }
         let Some(scope) = scope_from_node(store, &stmt, diagnostics) else {
             continue;
         };
@@ -1720,44 +1737,63 @@ fn native_axiom(
     )
 }
 
-/// Read an entire reified atom. Missing or ambiguous fields and a non-IRI predicate
-/// are errors; accepting a shorter atom would alter the authored rule.
+/// Read a resource-valued rule term through the shared, typed carrier reader.
+fn rule_resource_term(
+    store: &RdfDataset,
+    owner: &Subject,
+    resource: &Subject,
+) -> gmeow_errors::Result<String> {
+    match formula_reader::read_atomic_carrier(store, owner, resource)? {
+        Some(crate::ir::AtomicTerm::Var(value) | crate::ir::AtomicTerm::Iri(value)) => Ok(value),
+        Some(crate::ir::AtomicTerm::Blank(value)) => Ok(format!("_:{value}")),
+        Some(crate::ir::AtomicTerm::Literal(_)) => Err(Diag::of_kind(crate::error::Frontend {
+            detail: "a rule subject or predicate cannot be a literal".into(),
+        })),
+        None => Ok(subject_str(resource)),
+    }
+}
+
+/// Read one RDF 1.2 statement-layer target. Missing or ambiguous targets are
+/// errors; quotation preserves the atom without asserting its proposition.
 fn read_reified_axiom(
     store: &RdfDataset,
     node: &Subject,
     negated: bool,
+    diagnostics: &mut Vec<Diagnostic>,
 ) -> gmeow_errors::Result<LogicAxiom> {
-    let s = required_atom_field(store, node, RDF_SUBJECT)?;
-    let p = required_atom_field(store, node, RDF_PREDICATE)?;
-    let o = required_atom_field(store, node, RDF_OBJECT)?;
-    let Node::Iri(predicate) = p else {
+    let target = required_atom_field(store, node, RDF_REIFIES)?;
+    let Node::Triple(triple) = target else {
         return Err(Diag::of_kind(crate::error::Frontend {
-            detail: "reified atom rdf:predicate must be an IRI".to_owned(),
+            detail: "rule atom rdf:reifies must target a triple term".into(),
         }));
     };
-    let object = match &o {
-        Node::Lit(literal)
-            if literal.language.is_none()
-                && literal.direction.is_none()
-                && literal.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string"
-                && literal.lexical_form.starts_with('?') =>
-        {
-            crate::ir::AtomicTerm::Var(literal.lexical_form.clone())
-        }
+    let scope = scope_from_node(store, node, diagnostics).ok_or_else(|| {
+        Diag::of_kind(crate::error::Frontend {
+            detail: "invalid rule atom scope".into(),
+        })
+    })?;
+    native_quoted_axiom(store, node, &triple, negated, scope)
+}
+
+fn native_quoted_axiom(
+    store: &RdfDataset,
+    node: &Subject,
+    triple: &crate::graphutil::TripleTerm,
+    negated: bool,
+    scope: ContextualScope,
+) -> gmeow_errors::Result<LogicAxiom> {
+    let subject = rule_resource_term(store, node, &triple.subject)?;
+    let predicate =
+        rule_resource_term(store, node, &Subject::Iri(triple.predicate.as_str().into()))?;
+    let object = match &triple.object {
         Node::Iri(_) | Node::Blank { .. } => {
-            let carrier = term_as_subject(&o).expect("resource term");
+            let carrier = term_as_subject(&triple.object).expect("resource term");
             formula_reader::read_atomic_carrier(store, node, &carrier)?
-                .unwrap_or(crate::graphutil::atomic_object(&o)?)
+                .unwrap_or(crate::graphutil::atomic_object(&triple.object)?)
         }
-        _ => crate::graphutil::atomic_object(&o)?,
+        _ => crate::graphutil::atomic_object(&triple.object)?,
     };
-    LogicAxiom::new(
-        rule_field_text(&s)?,
-        predicate,
-        object,
-        negated,
-        ContextualScope::default(),
-    )
+    LogicAxiom::new(subject, predicate, object, negated, scope)
 }
 
 fn extract_rules(
@@ -1806,12 +1842,12 @@ fn extract_rules(
                 let Some(head_node) = term_as_subject(head_term) else {
                     diagnostics.push(Diagnostic::error(
                         "MALFORMED_RULE_HEAD",
-                        "logic:head node has no rdf:predicate; skipped",
+                        "logic:head must name an RDF 1.2 reifier; skipped",
                         Some(subject_str(&rule_node)),
                     ));
                     return Err(Vec::new());
                 };
-                let head_axiom = match read_reified_axiom(store, &head_node, false) {
+                let head_axiom = match read_reified_axiom(store, &head_node, false, diagnostics) {
                     Ok(ax) => ax,
                     Err(msg) => {
                         let message = msg.message().to_owned();
@@ -1832,12 +1868,12 @@ fn extract_rules(
                         let Some(body_node) = term_as_subject(&body_term) else {
                             diagnostics.push(Diagnostic::error(
                                 "MALFORMED_RULE_BODY",
-                                "logic:body node has no rdf:predicate; entire rule excluded",
+                                "logic:body must name an RDF 1.2 reifier; entire rule excluded",
                                 Some(subject_str(&rule_node)),
                             ));
                             continue;
                         };
-                        match read_reified_axiom(store, &body_node, negated) {
+                        match read_reified_axiom(store, &body_node, negated, diagnostics) {
                             Ok(ax) => body_axioms.push(ax),
                             Err(msg) => {
                                 let message = msg.message().to_owned();
@@ -1851,51 +1887,31 @@ fn extract_rules(
                     }
                 }
 
-                // Inequality guards: logic:distinctBody nodes carry rdf:subject /
-                // rdf:object variable Literals and NO rdf:predicate.
+                // Ordered variable pairs retain RDF-term identity inequality. The
+                // procedural termDistinct relation instead compares SPARQL values.
                 let mut distinct_pairs: Vec<(String, String)> = Vec::new();
                 for distinct_term in objects(store, &rule_node, &logic_distinct_body) {
                     let Some(distinct_node) = term_as_subject(&distinct_term) else {
                         diagnostics.push(Diagnostic::error(
                             "MALFORMED_RULE_BODY",
-                            "logic:distinctBody must name a reified guard; entire rule excluded",
+                            "logic:distinctBody must name a guard argument structure; entire rule excluded",
                             Some(subject_str(&rule_node)),
                         ));
                         continue;
                     };
-                    let d_s = required_atom_field(store, &distinct_node, RDF_SUBJECT);
-                    let d_o = required_atom_field(store, &distinct_node, RDF_OBJECT);
-                    let (Ok(d_s), Ok(d_o)) = (d_s, d_o) else {
-                        diagnostics.push(Diagnostic::error(
-                            "MALFORMED_RULE_BODY",
-                            "logic:distinctBody requires exactly one rdf:subject and rdf:object; \
-                     entire rule excluded",
-                            Some(subject_str(&rule_node)),
-                        ));
-                        continue;
+                    let pair = match formula_reader::read_rule_distinct_pair(store, &distinct_node)
+                    {
+                        Ok(guard) => guard,
+                        Err(error) => {
+                            diagnostics.push(Diagnostic::error(
+                                "MALFORMED_RULE_BODY",
+                                error.message(),
+                                Some(subject_str(&rule_node)),
+                            ));
+                            continue;
+                        }
                     };
-                    let (Ok(d_s_str), Ok(d_o_str)) = (rule_field_text(&d_s), rule_field_text(&d_o))
-                    else {
-                        diagnostics.push(Diagnostic::error(
-                            "MALFORMED_RULE_BODY",
-                            "distinct guard fields must be variables; entire rule excluded",
-                            Some(subject_str(&rule_node)),
-                        ));
-                        continue;
-                    };
-                    if !d_s_str.starts_with('?') || !d_o_str.starts_with('?') {
-                        diagnostics.push(Diagnostic::error(
-                    "MALFORMED_RULE_BODY",
-                    format!(
-                        "logic:distinctBody guard terms must both be variables (?-prefixed); \
-                         got {:?}; entire rule excluded",
-                        (d_s_str.clone(), d_o_str.clone())
-                    ),
-                    Some(subject_str(&rule_node)),
-                ));
-                        continue;
-                    }
-                    distinct_pairs.push((d_s_str, d_o_str));
+                    distinct_pairs.push(pair);
                 }
 
                 let mut rule = LogicRule::new(head_axiom, body_axioms, distinct_pairs, scope);
@@ -2982,13 +2998,26 @@ pub fn derive_validation_shapes(
                                     .2
                                     .push(pc);
                             }
-                            // Neither `owl:onClass` nor `owl:onDataRange` — a qualified cardinality
-                            // REQUIRES a qualifying filler; absent → hard-fail. An anonymous
-                            // (blank / literal / quoted-triple) data range is carried in the canon,
-                            // never a bare blank shape — skip (do not emit).
-                            Some(Node::Blank { .. })
-                            | Some(Node::Lit(purrdf::RdfLiteral { .. }))
-                            | Some(Node::Triple(_)) => {}
+                            Some(filler @ Node::Blank { .. }) => {
+                                let subject = term_as_subject(&filler).expect("blank data range");
+                                let comps = classify_filler(&subject)
+                                    .map(|component| vec![component])
+                                    .unwrap_or_else(|| datatype_facets(&subject));
+                                if !comps.is_empty() {
+                                    let pc = PropertyConstraintIr::new(
+                                        &on,
+                                        qlo,
+                                        qhi,
+                                        Some(ConstraintProvenance::OwlRestriction),
+                                        comps,
+                                    )?;
+                                    entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                        .2
+                                        .push(pc);
+                                }
+                            }
+                            // Non-resource fillers cannot name a datatype definition.
+                            Some(Node::Lit(purrdf::RdfLiteral { .. })) | Some(Node::Triple(_)) => {}
                             None => {
                                 return Err(Diag::of_kind(crate::error::Frontend {
                                     detail: format!(
@@ -3415,10 +3444,9 @@ pub fn derive_validation_shapes(
     // The one closed-world condition with NO ordinary-OWL antecedent: "every K→P→value assertion
     // must be reified, and its reifier must conform to shape C." A slice declares it with the
     // classic RDF reification form (`rdf:Statement` + `rdf:subject`/`rdf:predicate`/`rdf:object`),
-    // which the frontend already reads (see `extract_scoped_axioms`). The classic form is used
-    // rather than the native `rdf:reifies <<( K P O )>>` term deliberately: a quoted-triple object
-    // cannot ride the base-quad fold to the `gmeow.gts` terminal (the statement layer travels the
-    // reifier/annotation tables), so the schema-level obligation is authored as plain base triples.
+    // which this schema-obligation reader currently recognizes. This is separate from native
+    // rule-atom authoring: RDF 1.2 reifiers travel through the statement layer to gmeow.gts,
+    // and that transport does not require a base-quad reification scaffold.
     // No parallel shape vocabulary is minted; `C` must be a constrained GMEOW class so FAMILY 1
     // derives the `{C}-shape` node the `sh:reifierShape` reference resolves to. Lowered to a
     // property shape on path `P` carrying `sh:reifierShape {C}-shape` + `sh:reificationRequired true`.

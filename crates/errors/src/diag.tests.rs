@@ -107,22 +107,17 @@ fn of_kind_preserves_code_grade_and_downcast() {
 
 #[test]
 fn track_caller_captures_the_question_mark_site_not_crate_internals() {
-    // R3: the emit location captured through the blanket From must be THIS
-    // function's file, not diag.rs.
-    fn boom() -> Result<(), Diag> {
+    // The blanket From must capture the question-mark site in this test file,
+    // not its own implementation in diag.rs.
+    fn boom(expected_line: &mut u32) -> Result<(), Diag> {
+        *expected_line = line!() + 1;
         Err(io::Error::other("x"))?;
         Ok(())
     }
-    let diag = boom().unwrap_err();
-    let file = diag.emitted_at().file();
-    assert!(
-        file.ends_with("diag.rs") || file.contains("diag"),
-        "unexpected emit file {file}"
-    );
-    // More precisely: it must NOT point at the From impl line region; the
-    // captured line is the `?` site inside `boom`, which lives in this test
-    // module. We assert the file is this source file.
-    assert!(file.ends_with("src/diag.rs"));
+    let mut expected_line = 0;
+    let diag = boom(&mut expected_line).unwrap_err();
+    assert_eq!(diag.emitted_at().file(), file!());
+    assert_eq!(diag.emitted_at().line(), expected_line);
 }
 
 #[test]
@@ -182,6 +177,7 @@ fn define_diag_kind_binds_code_grade_message_and_registers() {
     assert_eq!(diag.code(), UnknownStageImpl::register());
     assert_eq!(diag.gate(), GateVerdict::Fatal);
     assert!(diag.downcast_ref::<UnknownStageImpl>().is_some());
+    assert!(diag.inner().failure_class.is_none());
 }
 
 crate::define_diag_kind! {
@@ -227,6 +223,26 @@ fn define_diag_kind_binds_the_optional_failure_class() {
         }
         .failure_class(),
         None
+    );
+}
+
+#[test]
+fn declared_failure_class_survives_the_recorded_diagnostic_and_finding() {
+    let diagnostic = Diag::of_kind(FailureClassBound {
+        detail: "source refusal".into(),
+    });
+    assert!(diagnostic.downcast_ref::<FailureClassBound>().is_some());
+    let recorded = crate::DiagLedger::new().record(diagnostic, StageId::new("test-admission"));
+    let bytes = serde_json::to_vec(&recorded).expect("record diagnostic");
+    let restored: crate::RecordedDiag = serde_json::from_slice(&bytes).expect("restore diagnostic");
+    assert_eq!(
+        restored.root.failure_class.as_deref(),
+        FailureClassBound::FAILURE_CLASS
+    );
+    let finding = restored.root.to_finding("test-admission");
+    assert_eq!(
+        finding.failure_class.as_deref(),
+        FailureClassBound::FAILURE_CLASS
     );
 }
 

@@ -4674,6 +4674,10 @@ gmeow:gmnRingPresetDefault
 # FILTER(?x != ?y) does the job instead, a code path proven to work
 # correctly elsewhere in this slice's own shapes.ttl SPARQL constraints.
 
+_:gmeow_ruleGmnRingCompartmentGap_x a logic:TermCarrier ; logic:termVariable "x" .
+_:gmeow_ruleGmnRingCompartmentGap_y a logic:TermCarrier ; logic:termVariable "y" .
+_:gmeow_ruleGmnRingCompartmentGap_lx a logic:TermCarrier ; logic:termVariable "lx" .
+_:gmeow_ruleGmnRingCompartmentGap_c a logic:TermCarrier ; logic:termVariable "c" .
 gmeow:ruleGmnRingCompartmentGap
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -4682,25 +4686,21 @@ gmeow:ruleGmnRingCompartmentGap
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:provenance gmeow:ruleGmnRingCompartmentGap ;
     logic:head [
-        rdf:subject   "?x" ;
-        rdf:predicate gmeow:gmnRingCompartmentGap ;
-        rdf:object    "?y"
+        rdf:reifies <<( _:gmeow_ruleGmnRingCompartmentGap_x gmeow:gmnRingCompartmentGap _:gmeow_ruleGmnRingCompartmentGap_y )>>
     ] ;
     logic:body [
-        rdf:subject   "?x" ;
-        rdf:predicate gmeow:gmnRingLevel ;
-        rdf:object    "?lx"
+        rdf:reifies <<( _:gmeow_ruleGmnRingCompartmentGap_x gmeow:gmnRingLevel _:gmeow_ruleGmnRingCompartmentGap_lx )>>
     ] , [
-        rdf:subject   "?y" ;
-        rdf:predicate gmeow:gmnRingCompartment ;
-        rdf:object    "?c"
+        rdf:reifies <<( _:gmeow_ruleGmnRingCompartmentGap_y gmeow:gmnRingCompartment _:gmeow_ruleGmnRingCompartmentGap_c )>>
     ] ;
     logic:negatedBody [
-        rdf:subject   "?x" ;
-        rdf:predicate gmeow:gmnRingCompartment ;
-        rdf:object    "?c"
+        rdf:reifies <<( _:gmeow_ruleGmnRingCompartmentGap_x gmeow:gmnRingCompartment _:gmeow_ruleGmnRingCompartmentGap_c )>>
     ] .
 
+_:gmeow_ruleGmnRingWithinDerive_x a logic:TermCarrier ; logic:termVariable "x" .
+_:gmeow_ruleGmnRingWithinDerive_y a logic:TermCarrier ; logic:termVariable "y" .
+_:gmeow_ruleGmnRingWithinDerive_lx a logic:TermCarrier ; logic:termVariable "lx" .
+_:gmeow_ruleGmnRingWithinDerive_ly a logic:TermCarrier ; logic:termVariable "ly" .
 gmeow:ruleGmnRingWithinDerive
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -4709,27 +4709,17 @@ gmeow:ruleGmnRingWithinDerive
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:provenance gmeow:ruleGmnRingWithinDerive ;
     logic:head [
-        rdf:subject   "?x" ;
-        rdf:predicate gmeow:gmnRingWithin ;
-        rdf:object    "?y"
+        rdf:reifies <<( _:gmeow_ruleGmnRingWithinDerive_x gmeow:gmnRingWithin _:gmeow_ruleGmnRingWithinDerive_y )>>
     ] ;
     logic:body [
-        rdf:subject   "?x" ;
-        rdf:predicate gmeow:gmnRingLevel ;
-        rdf:object    "?lx"
+        rdf:reifies <<( _:gmeow_ruleGmnRingWithinDerive_x gmeow:gmnRingLevel _:gmeow_ruleGmnRingWithinDerive_lx )>>
     ] , [
-        rdf:subject   "?y" ;
-        rdf:predicate gmeow:gmnRingLevel ;
-        rdf:object    "?ly"
+        rdf:reifies <<( _:gmeow_ruleGmnRingWithinDerive_y gmeow:gmnRingLevel _:gmeow_ruleGmnRingWithinDerive_ly )>>
     ] , [
-        rdf:subject   "?lx" ;
-        rdf:predicate gmeow:gmnRingLevelDominates ;
-        rdf:object    "?ly"
+        rdf:reifies <<( _:gmeow_ruleGmnRingWithinDerive_lx gmeow:gmnRingLevelDominates _:gmeow_ruleGmnRingWithinDerive_ly )>>
     ] ;
     logic:negatedBody [
-        rdf:subject   "?x" ;
-        rdf:predicate gmeow:gmnRingCompartmentGap ;
-        rdf:object    "?y"
+        rdf:reifies <<( _:gmeow_ruleGmnRingWithinDerive_x gmeow:gmnRingCompartmentGap _:gmeow_ruleGmnRingWithinDerive_y )>>
     ] .
 
 # --- GMN dialect individuals (the three-level dialect stack + its apparatus) -- #

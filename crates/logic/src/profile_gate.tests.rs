@@ -139,7 +139,7 @@ fn evolution_mode_unknown_and_empty_are_none() {
 
 #[test]
 fn rejected_cut_program_leaves_store_unchanged() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         WORLD,
         &format!("{BASE}a"),

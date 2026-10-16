@@ -4,6 +4,28 @@
 use super::*;
 use serde_json::json;
 
+#[test]
+fn implicit_git_package_identity_uses_cargo_metadata_without_guessing_a_name() {
+    let source = "git+https://example.test/different-repository?rev=locked";
+    assert_eq!(
+        explicit_package_id(&format!("{source}#3.0.1"), "actual-facade", "3.0.1").unwrap(),
+        format!("{source}#actual-facade@3.0.1")
+    );
+    let explicit = format!("{source}#member-crate@3.0.1");
+    assert_eq!(
+        explicit_package_id(&explicit, "member-crate", "3.0.1").unwrap(),
+        explicit
+    );
+    assert!(explicit_package_id(&explicit, "another-member", "3.0.1").is_err());
+    assert!(explicit_package_id(&format!("{source}#3.0.1"), "actual-facade", "3.0.2").is_err());
+    assert!(explicit_package_id(&format!("{source}#3.0.1"), "", "3.0.1").is_err());
+    let registry = "registry+https://example.test/index#external@1.0.0";
+    assert_eq!(
+        explicit_package_id(registry, "external", "1.0.0").unwrap(),
+        registry
+    );
+}
+
 /// Create an admitted synthetic runtime unit with the selected workspace check policy.
 fn runtime_unit(workspace: bool) -> CompilationUnit {
     CompilationUnit {

@@ -95,7 +95,7 @@ pub fn validate_flagship_manifest(slice_dir: &Path, canonical: &[&str]) -> Resul
         .map_err(|error| fail(format!("parse {}: {error}", manifest_path.display())))?;
     let competency = dataset_from_file(&competency_path)
         .map_err(|error| fail(format!("parse {}: {error}", competency_path.display())))?;
-    let dataset = union(&[manifest, competency]);
+    let dataset = union(&[manifest.as_ref(), competency.as_ref()])?;
 
     // Every scenario and its five realizing/enforcing links, in one pass. The producer is a
     // REQUIRED column: a scenario missing gmeow:demonstratedByProducer will not bind and so

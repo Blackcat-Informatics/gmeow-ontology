@@ -6,6 +6,110 @@ use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
 
 const GRAPH_LOGIC: &str = crate::stages::compile_logic::GRAPH_LOGIC;
 
+#[test]
+fn authored_base_quote_outside_a_native_binding_still_fails_closed() {
+    let source = b"<urn:owner> <urn:metadata> <<( <urn:s> <urn:p> <urn:o> )>> .\n";
+    let error = canonical_authored_base(source).unwrap_err();
+    let detail = error.to_string();
+    assert!(
+        detail.contains("base-quad fold would not represent"),
+        "{detail}"
+    );
+    assert!(detail.contains("urn:metadata"), "{detail}");
+}
+
+#[test]
+fn native_rule_statement_layer_survives_the_production_gts_profile() {
+    use gmeow_logic_compile::frontend::{parse_logic_dataset, parse_logic_str};
+    use gmeow_logic_compile::projections::rdf::project_canonical_rdf12_dataset;
+
+    let source = r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix ex: <https://example.org/> .
+        ex:x a logic:TermCarrier; logic:termVariable "x" .
+        ex:y a logic:TermCarrier; logic:termVariable "y" .
+        ex:predicate a logic:TermCarrier; logic:termVariable "predicate" .
+        ex:rule a logic:Rule;
+            logic:head [ rdf:reifies <<( ex:x ex:predicate "مرحبا"@ar--rtl )>> ];
+            logic:body [ rdf:reifies <<( ex:x ex:predicate ex:y )>> ];
+            logic:negatedBody [ rdf:reifies <<( ex:x ex:blocked "?literal" )>> ];
+            logic:distinctBody [ logic:argument
+                [ logic:termIndex 0; logic:termVariable "x" ],
+                [ logic:termIndex 1; logic:termVariable "y" ] ];
+            logic:standpoint ex:observer;
+            logic:provenance ex:source .
+    "#;
+    let (program, diagnostics) = parse_logic_str(source, None).expect("native rule source");
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(program.rules.len(), 1);
+    assert!(
+        program.axioms.is_empty(),
+        "structural carriers must not leak"
+    );
+    let projection = project_canonical_rdf12_dataset(&program).expect("canonical rule");
+    let reifier_count = projection.dataset.owned_reifiers().count();
+    assert_eq!(reifier_count, 3);
+    let mut builder = SnapshotBuilder::new();
+    add_base_nq(
+        &mut builder,
+        b"<https://blackcatinformatics.ca/gmeow/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n",
+        "base",
+    )
+    .expect("ontology header");
+    let authored = canonical_authored_base(&dataset_to_nquads(&projection.dataset).unwrap())
+        .expect("the production authored-default boundary carries native rule quotations");
+    let authored_ingestion = builder
+        .add_view(authored.as_ref())
+        .expect("fold authored default");
+    assert!(authored_ingestion.declarations_omitted.is_empty());
+    let carrier = rooted_in_graph(&projection.dataset, GRAPH_LOGIC)
+        .expect("root the full statement layer in the shipped graph");
+    let ingestion = builder
+        .add_view(&carrier)
+        .expect("fold full statement layer");
+    assert!(ingestion.declarations_omitted.is_empty());
+    // gmeow-test-input: synthetic-only
+    let emission = gmeow_gts_profile::emit_gmeow_gts(
+        builder,
+        Vec::new(),
+        Vec::new(),
+        None,
+        &gmeow_gts_profile::baseline_medium_plan(),
+    )
+    .expect("emit tiny native rule through the production profile");
+    gmeow_gts_profile::validate_mandated_frames(&emission.bytes).expect("mandated frames");
+    let imported = purrdf::import_gts_graph(
+        purrdf::gts::read_graph(&emission.bytes, true).expect("read native GTS"),
+    )
+    .expect("import complete statement layer");
+    let graph = imported.dataset.project_named_graph(GRAPH_LOGIC).unwrap();
+    assert_eq!(
+        imported
+            .dataset
+            .owned_reifiers()
+            .filter(|binding| binding.graph.is_none())
+            .count(),
+        reifier_count
+    );
+    let (authored_rule, diagnostics) = parse_logic_dataset(&imported.dataset, None)
+        .expect("read the shipped authored-default rule");
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(
+        serde_json::to_vec(&authored_rule.rules).unwrap(),
+        serde_json::to_vec(&program.rules).unwrap()
+    );
+    assert_eq!(graph.owned_reifiers().count(), reifier_count);
+    let (restored, diagnostics) = parse_logic_dataset(&graph, None).expect("read folded rule");
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(
+        serde_json::to_vec(&restored.rules).unwrap(),
+        serde_json::to_vec(&program.rules).unwrap(),
+        "the shipped named graph must preserve the exact typed rule"
+    );
+    assert!(restored.axioms.is_empty());
+}
+
 /// A small, FIXED clean program — its canonical RDF-1.2 projection is the byte
 /// golden subject. Deliberately synthetic (not the real module) so the golden is
 /// stable and the per-graph fold is regression-pinned independent of the full
@@ -64,11 +168,19 @@ fn folded_graph_ntriples(gts: &[u8], graph_iri: &str) -> String {
 /// byte-identical (determinism).
 #[test]
 fn graph_logic_fold_byte_golden() {
-    let arts =
-        gmeow_logic_compile::projections::compile_program(&fixed_program(), |_| Default::default())
-            .expect("compile fixed program");
-    let logic_nq = turtle_to_nquads(arts.canonical_rdf12.clone().into_text().content.as_bytes())
-        .expect("turtle → nq");
+    let arts = gmeow_logic_compile::projections::compile_program(&fixed_program(), |_| {
+        Ok(Default::default())
+    })
+    .expect("compile fixed program");
+    let logic_nq = turtle_to_nquads(
+        arts.canonical_rdf12
+            .clone()
+            .into_text()
+            .unwrap()
+            .content
+            .as_bytes(),
+    )
+    .expect("turtle → nq");
 
     let build = || {
         let mut builder = SnapshotBuilder::new();
@@ -281,7 +393,10 @@ fn graph_relational_core_fold_byte_golden() {
     let gts = build();
     let folded = folded_graph_ntriples(&gts, GRAPH_RELATIONAL_CORE);
     let imported = purrdf::import_gts_graph(purrdf::gts::read_graph(&gts, true).unwrap()).unwrap();
-    let graph = imported.dataset.project_named_graph(GRAPH_RELATIONAL_CORE);
+    let graph = imported
+        .dataset
+        .project_named_graph(GRAPH_RELATIONAL_CORE)
+        .unwrap();
     let restored = gmeow_logic_compile::relational_core::parse_relational_core(&graph).unwrap();
     assert_eq!(
         program.projection_key().unwrap(),
@@ -316,7 +431,8 @@ const GRAPH_CORRESPONDENCE: &str = crate::stages::compile_logic::GRAPH_CORRESPON
 fn graph_correspondence_fold_byte_golden() {
     let correspondence = crate::stages::compile_logic::synthetic_affine_program();
     let corr_nt =
-        gmeow_logic_compile::projections::correspondence::project_correspondence(&correspondence);
+        gmeow_logic_compile::projections::correspondence::project_correspondence(&correspondence)
+            .unwrap();
 
     let build = || {
         let mut builder = SnapshotBuilder::new();

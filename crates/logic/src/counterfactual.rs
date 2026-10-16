@@ -617,7 +617,7 @@ fn resolve_in_world(
         ));
     }
 
-    let cf_store = WorldStore::new();
+    let cf_store = WorldStore::new()?;
     for (s, p, o) in revision.retained_base {
         cf_store.insert_quad(world_iri, s, p, o);
     }
@@ -657,7 +657,7 @@ fn incremental_base_session(
     }
 
     const BASE: &str = "urn:gmeow:counterfactual-incremental-base";
-    let base_store = WorldStore::new();
+    let base_store = WorldStore::new()?;
     for (subject, predicate, object) in base_facts {
         base_store.insert_quad(BASE, subject, predicate, object);
     }

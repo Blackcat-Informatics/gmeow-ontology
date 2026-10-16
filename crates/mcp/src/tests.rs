@@ -6257,8 +6257,8 @@ gmeow_test_batch_macros::batch_mcp_items! {
     #[test]
     fn tool_doc_card_json_determinism_and_tier_fields() {
         let server = consumer_server();
-        let docs_a = server.view.documentation();
-        let docs_b = server.view.documentation();
+        let docs_a = server.view.documentation().unwrap();
+        let docs_b = server.view.documentation().unwrap();
         assert!(
             Arc::ptr_eq(docs_a, docs_b),
             "documentation queries must share one projected graph"
@@ -6555,7 +6555,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
     fn search_documentation_matches_facets_ranks_and_is_deterministic() {
         let dataset_arc = synthetic_docs_dataset();
         let dataset = Arc::new(
-            dataset_arc.project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION),
+            dataset_arc.project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION).unwrap(),
         );
         let cat_iri = "https://blackcatinformatics.ca/gmeow/Cat";
         let feline_iri = "https://blackcatinformatics.ca/gmeow/Feline";
@@ -7409,7 +7409,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
         let re_model = gmn1_read(&Gmn1Document::from_text(reencoded.to_owned()), dict)
             .expect("re-encoded reads");
         assert!(
-            gmn0_canonically_equal(&input_model, &re_model),
+            gmn0_canonically_equal(&input_model, &re_model).unwrap(),
             "expand then re-encode equals the input under gmn0_canonically_equal: {out}"
         );
     }

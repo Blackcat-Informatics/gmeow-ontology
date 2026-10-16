@@ -122,8 +122,8 @@ pub(crate) fn record(
                 .map_err(gmeow_errors::Diag::from)?;
             let instance = flatten(&instance)?;
             let mut builder = RdfDatasetBuilder::new();
-            builder.push_dataset(module);
-            builder.push_dataset(&instance);
+            builder.push_dataset(module)?;
+            builder.push_dataset(&instance)?;
             let data = builder.freeze().map_err(gmeow_errors::Diag::from)?;
             let report = shapes
                 .bind_projected_dataset(data)
@@ -159,7 +159,7 @@ fn flatten(source: &RdfDataset) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     for quad in &mut quads {
         quad.graph_name = None;
     }
-    purrdf::flat_dataset_from_quads(&quads).map_err(|message| super::stage_err(&message))
+    purrdf::flat_dataset_from_quads(&quads).map_err(gmeow_errors::Diag::from)
 }
 
 fn fail(error: impl std::fmt::Display) -> gmeow_errors::Diag {

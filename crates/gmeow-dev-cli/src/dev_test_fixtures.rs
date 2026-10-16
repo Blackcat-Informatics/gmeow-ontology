@@ -147,8 +147,9 @@ fn require_bundle_args<'a>(
 }
 
 fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
+    use gmeow_lang_bridge::gmn1_codec::native;
     use std::io::Read as _;
-    let path = gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH;
+    let path = native::GENERATED_PATH;
     gmeow_pipeline::fixture::verify_stage_fixtures(root, &["stage-mappings"])?;
     let expected =
         gmeow_action_cache::selection::source_artifacts::load(root, "stage-mappings", path)
@@ -164,6 +165,9 @@ fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
             "generated native codebook differs from the authenticated producer selection",
         ));
     }
+    // Match both browser consumers' admission, including their exact source pin,
+    // before compiling an otherwise authenticated but unusable embedded packet.
+    native::decode(&actual, native::SOURCE_BLAKE3)?;
     println!(
         "native wasm codebook verified: artifact={path} bytes={}",
         actual.len()

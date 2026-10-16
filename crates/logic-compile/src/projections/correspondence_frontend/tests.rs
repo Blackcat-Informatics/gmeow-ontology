@@ -162,14 +162,14 @@ fn projection_grounding_dsl_with_binding(
     let mut b = RdfDatasetBuilder::new();
     let triple =
         |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
-            let s = b.intern_iri(s);
-            let p = b.intern_iri(p);
+            let s = b.intern_iri(s).unwrap();
+            let p = b.intern_iri(p).unwrap();
             let o = match (o_iri, o_lit) {
-                (Some(o), _) => b.intern_iri(o),
-                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
+                (Some(o), _) => b.intern_iri(o).unwrap(),
+                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())).unwrap(),
                 _ => unreachable!(),
             };
-            b.push_quad(s, p, o, None);
+            b.push_quad(s, p, o, None).unwrap();
         };
 
     let cell = format!("{GMEOW}projectionGrounding");
@@ -353,7 +353,7 @@ fn transpile_round_trips_with_no_extract_errors() {
     );
 
     // Project the typed program to its backing graph, then re-extract the bare nodes.
-    let nt = project_correspondence(&program);
+    let nt = project_correspondence(&program).unwrap();
     let backing = parse_nt(&nt);
     let (extracted, errors) = extract_correspondences(&backing);
 
@@ -600,14 +600,14 @@ fn projection_bridge_dsl(bridge: bool) -> std::sync::Arc<purrdf::RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
     let triple =
         |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
-            let s = b.intern_iri(s);
-            let p = b.intern_iri(p);
+            let s = b.intern_iri(s).unwrap();
+            let p = b.intern_iri(p).unwrap();
             let o = match (o_iri, o_lit) {
-                (Some(o), _) => b.intern_iri(o),
-                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
+                (Some(o), _) => b.intern_iri(o).unwrap(),
+                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())).unwrap(),
                 _ => unreachable!(),
             };
-            b.push_quad(s, p, o, None);
+            b.push_quad(s, p, o, None).unwrap();
         };
 
     let pm = format!("{GMEOW}pmBridge");
@@ -798,7 +798,7 @@ fn mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input() {
                 .all(|corr| corr.confidence.as_ref() == Some(&alignment))
         );
         let (restored, errors) =
-            extract_correspondences(&parse_nt(&project_correspondence(&program)));
+            extract_correspondences(&parse_nt(&project_correspondence(&program).unwrap()));
         assert!(errors.is_empty());
         assert_eq!(restored, program.correspondences);
     }

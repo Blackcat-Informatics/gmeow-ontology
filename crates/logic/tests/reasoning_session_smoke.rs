@@ -123,14 +123,16 @@ fn transitive_program_with_formula() -> LogicProgram {
 fn edge_page(edges: &[(&str, &str)]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (s, o) in edges {
-        builder.push_owned_quad(
-            &RdfQuad::new(
-                RdfTerm::iri(format!("{EX}{s}")),
-                format!("{EX}edge"),
-                RdfTerm::iri(format!("{EX}{o}")),
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(
+                    RdfTerm::iri(format!("{EX}{s}")),
+                    format!("{EX}edge"),
+                    RdfTerm::iri(format!("{EX}{o}")),
+                )
+                .in_graph(RdfTerm::iri(WORLD)),
             )
-            .in_graph(RdfTerm::iri(WORLD)),
-        );
+            .unwrap();
     }
     builder.freeze().expect("valid page")
 }

@@ -64,7 +64,7 @@ fn fixed_policy_emits_source_and_root_suppresses_imports_through_the_fold() {
     let index = build_source_span_index(root).expect("build span index");
     let blob = serde_json::to_vec(&index).expect("encode");
     let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
-        Arc::new(RdfDataset::union(&[])),
+        Arc::new(RdfDataset::union(&[]).unwrap()),
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
         crate::stages::carrier::REP_SPAN_TABLE,

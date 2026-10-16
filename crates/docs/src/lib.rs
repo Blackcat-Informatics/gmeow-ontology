@@ -28,7 +28,7 @@ pub mod rendered_book;
 // its original paths so every `gmeow_docs::<module>` caller is unchanged.
 pub use gmeow_docs_model::{
     badge, card, coverage, describe, error, exec, formats, gmn1_primer, i18n, i18n_compile, llms,
-    maturity, model, prose, rdf, slug, source_map, surface_lattice, svg,
+    maturity, model, prose, rdf, reviewed_coverage, slug, source_map, surface_lattice, svg,
 };
 
 pub mod render;

@@ -8,6 +8,7 @@
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
+use std::sync::Arc;
 
 use super::{BTreeMap, MetadataDigest, PreparedPropertyRule, SemanticVocabulary};
 use crate::physical::chase::{
@@ -183,6 +184,7 @@ impl Template {
             .collect();
         let mut closable_rows = Some(Vec::new());
         let mut closable_bytes = 0usize;
+        let mut closable_facts = 0usize;
         let mut selected = Vec::new();
         let mut enrichment = Some(Vec::new());
         let mut enrichment_bytes = 0usize;
@@ -219,6 +221,7 @@ impl Template {
                 // A candidate closed relation's source rows seed its exact closure,
                 // under the same bound as the immutable rows.
                 if candidates.holds(predicate, constant_value_iri(&fact.object), semantics) {
+                    closable_facts += 1;
                     closable_bytes = closable_bytes.saturating_add(size.1);
                     if let Some(rows) = &mut closable_rows {
                         if rows.len() < MAX_BINDINGS && closable_bytes <= MAX_BYTES {
@@ -263,11 +266,9 @@ impl Template {
             enrichment,
             closable: closable_rows
                 .map(|facts| Closable { candidates, facts })
-                .ok_or_else(|| {
-                    format!(
-                        "their source rows exceed the {MAX_BINDINGS}-row / {MAX_BYTES}-byte \
-                         analysis bound"
-                    )
+                .ok_or(EvidenceGap::ClosureSourceBound {
+                    facts: closable_facts,
+                    bytes: closable_bytes,
                 }),
             identity: *digest.0.finalize().as_bytes(),
         })
@@ -283,7 +284,7 @@ impl Template {
         possible: &[(String, Fact)],
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
-    ) -> gmeow_errors::Result<Result<ChaseAdmission, String>> {
+    ) -> gmeow_errors::Result<Result<ChaseAdmission, EvidenceGap>> {
         let Settled { admission, notes } =
             match self.certify_settled(evidence, facts, possible, external, semantics)? {
                 Ok(settled) => settled,
@@ -389,7 +390,7 @@ impl Template {
         possible: &[(String, Fact)],
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
-    ) -> gmeow_errors::Result<Result<Settled, String>> {
+    ) -> gmeow_errors::Result<Result<Settled, EvidenceGap>> {
         // Only producers that can fire on this admitted input bear on its termination.
         let seeds = firing_seeds(facts, possible, external, semantics);
         // Close the witness-free relations first, so their final extension binds
@@ -520,7 +521,7 @@ impl Template {
         evidence: &Evidence<'_>,
         closable: &Closable<'_>,
         semantics: SemanticVocabulary,
-    ) -> gmeow_errors::Result<Result<(Closure, RelationStore, bool), String>> {
+    ) -> gmeow_errors::Result<Result<(Closure, RelationStore, bool), EvidenceGap>> {
         let mut closure = closable.candidates.clone();
         loop {
             let rows: Vec<&Fact> = closable
@@ -606,7 +607,7 @@ impl Template {
         closure: &Closure,
         list_cells_bound: bool,
         semantics: SemanticVocabulary,
-    ) -> gmeow_errors::Result<Result<Vec<StatementRule>, String>> {
+    ) -> gmeow_errors::Result<Result<Vec<StatementRule>, EvidenceGap>> {
         let mut analysis = Vec::new();
         let mut bytes = 0usize;
         for rule in &self.rules {
@@ -646,7 +647,8 @@ impl Template {
                     .flat_map(|atom| [&atom.subject, &atom.object])
                     .any(|term| matches!(term, EvalTerm::Var(var) if var == name))
             });
-            let mut projections = std::collections::HashSet::new();
+            let mut projections =
+                std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::new());
             let mut matches = 0usize;
             let outcome = join::walk(
                 &immutable_atoms,
@@ -676,14 +678,12 @@ impl Template {
             )?;
             let witnessed = ground && outcome == join::Outcome::Stopped && projections.len() == 1;
             if outcome != join::Outcome::Complete && !witnessed {
-                return Ok(Err(format!(
-                    "the input-specific analysis exhausted its bound of {MAX_BINDINGS} \
-                     specialized statements at {} ({matches} settled matches, {} distinct \
-                     specializations; {} statements in total)",
-                    rule.name,
-                    projections.len(),
-                    analysis.len()
-                )));
+                return Ok(Err(EvidenceGap::SpecializationBound {
+                    rule: rule.name.clone(),
+                    settled_matches: matches,
+                    distinct_specializations: projections.len(),
+                    total_statements: analysis.len(),
+                }));
             }
         }
         Ok(Ok(analysis))
@@ -745,6 +745,8 @@ fn push_analysis(
 /// names this gap rather than presenting the template's ledger as the input's.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum EvidenceGap {
+    /// No input-specific observation was supplied.
+    Unobserved,
     /// The retained rule metadata exceeds the cacheable bound.
     Uncacheable { metadata_bytes: usize },
     /// The proved-immutable selector rows exceed the analysis bound.
@@ -754,11 +756,27 @@ pub(super) enum EvidenceGap {
         /// The predicates retaining the most rows, heaviest first.
         heaviest: Vec<(String, usize)>,
     },
+    /// Candidate closed-relation source rows exceeded the declared envelope.
+    ClosureSourceBound { facts: usize, bytes: usize },
+    /// A witness-free closure stopped before all joins/derived rows completed.
+    ClosureBound {
+        rule: Option<String>,
+        committed_rows: usize,
+        pending_rows: usize,
+    },
+    /// Specialization stopped with its exact rule and observed inventory.
+    SpecializationBound {
+        rule: String,
+        settled_matches: usize,
+        distinct_specializations: usize,
+        total_statements: usize,
+    },
 }
 
 impl std::fmt::Display for EvidenceGap {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Unobserved => f.write_str("no input-specific evidence was observed"),
             Self::Uncacheable { metadata_bytes } => write!(
                 f,
                 "the joint template's rule metadata ({metadata_bytes} bytes) exceeds the \
@@ -779,7 +797,39 @@ impl std::fmt::Display for EvidenceGap {
                 }
                 Ok(())
             }
+            Self::ClosureSourceBound { facts, bytes } => write!(
+                f,
+                "their source rows exceed the {MAX_BINDINGS}-row / {MAX_BYTES}-byte analysis bound ({facts} rows, {bytes} bytes observed)"
+            ),
+            Self::ClosureBound {
+                rule,
+                committed_rows,
+                pending_rows,
+            } => write!(
+                f,
+                "the closure of witness-free relations exceeded its bound of {MAX_BINDINGS} matches or derived rows (rule {rule:?}, {committed_rows} committed rows, {pending_rows} pending rows)"
+            ),
+            Self::SpecializationBound {
+                rule,
+                settled_matches,
+                distinct_specializations,
+                total_statements,
+            } => write!(
+                f,
+                "the input-specific analysis exhausted its bound of {MAX_BINDINGS} specialized statements at {rule} ({settled_matches} settled matches, {distinct_specializations} distinct specializations; {total_statements} statements in total)"
+            ),
         }
+    }
+}
+
+// This is an inconclusive proof-analysis outcome. Genuine operational errors
+// continue through the outer Diag result; callers can preserve this typed
+// outcome on that same substrate when reporting an unsuccessful operation.
+impl std::error::Error for EvidenceGap {}
+
+impl gmeow_errors::DiagKind for EvidenceGap {
+    fn code(&self) -> gmeow_errors::Code {
+        crate::error::Physical::register()
     }
 }
 
@@ -796,7 +846,7 @@ pub(super) struct Evidence<'a> {
     enrichment: Option<Vec<&'a Fact>>,
     /// The candidate closed relations and their source rows, or why they exceed
     /// the analysis bound.
-    closable: Result<Closable<'a>, String>,
+    closable: Result<Closable<'a>, EvidenceGap>,
     pub(super) identity: [u8; 32],
 }
 
@@ -868,26 +918,84 @@ fn bind_list_cells(
             next.entry(&fact.subject).or_default().push(&fact.object);
         }
     }
-    let mut rows = Vec::new();
-    for &head in &cells {
-        let mut seen = BTreeSet::from([head]);
-        let mut pending = vec![head];
-        while let Some(cell) = pending.pop() {
-            if cells.contains(cell) {
-                rows.push((head, cell));
-                if rows.len() > MAX_BINDINGS {
-                    return false;
-                }
-            }
-            for &tail in next.get(cell).into_iter().flatten() {
-                if seen.insert(tail) {
-                    pending.push(tail);
-                }
+    if cells.is_empty() {
+        return true;
+    }
+    // Discover the union of all heads' reachable nodes once. Incoming or
+    // disconnected rest-only components cannot contribute a head/cell row.
+    let mut nodes = cells.clone();
+    let mut pending: Vec<_> = cells.iter().copied().collect();
+    while let Some(node) = pending.pop() {
+        for &tail in next.get(node).into_iter().flatten() {
+            if nodes.insert(tail) {
+                pending.push(tail);
             }
         }
     }
-    for (head, cell) in rows {
-        rel.insert(LIST_CELL, head, cell);
+    let nodes: Vec<_> = nodes.into_iter().collect();
+    let index: BTreeMap<_, _> = nodes
+        .iter()
+        .enumerate()
+        .map(|(index, &node)| (node, index))
+        .collect();
+    let edges: Vec<Vec<usize>> = nodes
+        .iter()
+        .map(|node| {
+            next.get(*node)
+                .into_iter()
+                .flatten()
+                .map(|tail| index[*tail])
+                .collect()
+        })
+        .collect();
+    let component = purrdf_core::graph::scc_component_index(&edges);
+    let count = component.iter().copied().max().map_or(0, |last| last + 1);
+    let mut members = vec![BTreeSet::new(); count];
+    for &cell in &cells {
+        let node = index[cell];
+        members[component[node]].insert(node);
+    }
+    let mut successors = vec![BTreeSet::new(); count];
+    for (node, tails) in edges.iter().enumerate() {
+        for &tail in tails {
+            if component[node] != component[tail] {
+                successors[component[node]].insert(component[tail]);
+            }
+        }
+    }
+    // The upstream component IDs are reverse topological: every successor is
+    // already settled. Shared rest-only paths reuse their immutable cell sets;
+    // only a branch or a new first-cell member requires a union.
+    let empty_cells = Arc::new(BTreeSet::new());
+    let mut reachable = vec![empty_cells; count];
+    let mut rows = 0usize;
+    for current in 0..count {
+        let mut known = Arc::new(members[current].clone());
+        for &tail in &successors[current] {
+            if known.is_subset(&reachable[tail]) {
+                known = Arc::clone(&reachable[tail]);
+            } else if !reachable[tail].is_subset(&known) {
+                Arc::make_mut(&mut known).extend(reachable[tail].iter().copied());
+            }
+        }
+        let Some(total) = members[current]
+            .len()
+            .checked_mul(known.len())
+            .and_then(|added| rows.checked_add(added))
+        else {
+            return false;
+        };
+        if total > MAX_BINDINGS {
+            return false;
+        }
+        rows = total;
+        reachable[current] = known;
+    }
+    // Publish only after the complete association count has been admitted.
+    for &head in &cells {
+        for &cell in reachable[component[index[head]]].iter() {
+            rel.insert(LIST_CELL, head, nodes[cell]);
+        }
     }
     true
 }
@@ -1043,7 +1151,7 @@ fn derive(
     eligible: &[(usize, Vec<EvalAtom>)],
     closure: &Closure,
     semantics: SemanticVocabulary,
-) -> gmeow_errors::Result<Result<(), String>> {
+) -> gmeow_errors::Result<Result<(), EvidenceGap>> {
     let empty = Solution {
         bindings: Vec::new(),
         source_facts: Vec::new(),
@@ -1053,11 +1161,10 @@ fn derive(
         distinct: &[],
         retain_sources: false,
     };
-    let exhausted = || {
-        format!(
-            "the closure of witness-free relations exceeded its bound of {MAX_BINDINGS} \
-             matches or derived rows"
-        )
+    let exhausted = |rule: Option<&str>, committed_rows, pending_rows| EvidenceGap::ClosureBound {
+        rule: rule.map(str::to_owned),
+        committed_rows,
+        pending_rows,
     };
     let emit =
         |store: &RelationStore, rule: &StatementRule, solution: &Solution, out: &mut Vec<Fact>| {
@@ -1091,7 +1198,7 @@ fn derive(
             Ok(true)
         })?;
         if outcome != join::Outcome::Complete {
-            return Ok(Err(exhausted()));
+            return Ok(Err(exhausted(Some(&rule.name), 0, pending.len())));
         }
     }
     let mut derived = 0usize;
@@ -1107,7 +1214,7 @@ fn derive(
             }
         }
         if derived > MAX_BINDINGS {
-            return Ok(Err(exhausted()));
+            return Ok(Err(exhausted(None, derived, pending.len())));
         }
         if fresh.is_empty() {
             return Ok(Ok(()));
@@ -1130,7 +1237,7 @@ fn derive(
                         Ok(true)
                     })?;
                     if outcome != join::Outcome::Complete {
-                        return Ok(Err(exhausted()));
+                        return Ok(Err(exhausted(Some(&rule.name), derived, pending.len())));
                     }
                 }
             }
@@ -1141,7 +1248,13 @@ fn derive(
 /// Settled-column values of producer variables, for proving that a producer cannot
 /// write a closure member. Cached per producer, body atom and slot for one store.
 #[derive(Default)]
-struct Columns(std::collections::HashMap<(usize, usize, bool), Option<Vec<purrdf::TermValue>>>);
+struct Columns(
+    std::collections::HashMap<
+        (usize, usize, bool),
+        Option<Vec<purrdf::TermValue>>,
+        purrdf_hash::fixed::FixedState,
+    >,
+);
 
 impl Columns {
     /// Whether `head` of producer `rule` may write member `(predicate, object)`:

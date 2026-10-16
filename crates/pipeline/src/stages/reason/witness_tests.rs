@@ -51,7 +51,8 @@ fn subject_only_witness_projects_its_actual_type_head_without_an_incoming_edge()
     ));
     let diagnostics = result
         .dataset
-        .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+        .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS)
+        .unwrap();
     assert!(diagnostics.owned_quads().any(|row| row.predicate
         == "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
         && row.object == RdfTerm::iri(&witness.witness)));
@@ -62,7 +63,8 @@ fn witness_diagnostics_preserve_the_complete_native_scope_head_and_premise_recei
     let result = existential();
     let diagnostics = result
         .dataset
-        .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+        .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS)
+        .unwrap();
     let receipts: Vec<_> = diagnostics
         .owned_quads()
         .filter_map(|row| {

@@ -15,9 +15,11 @@ fn gmeow(local: &str) -> String {
     format!("{GMEOW_NS}{local}")
 }
 fn push(builder: &mut RdfDatasetBuilder, s: &str, p: &str, o: &str) {
-    builder.push_owned_quad(
-        &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(WORLD)),
-    );
+    builder
+        .push_owned_quad(
+            &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(WORLD)),
+        )
+        .unwrap();
 }
 
 /// An unstratifiable program (a negative cycle `pingA :- Seed, ~pingB` and
@@ -33,17 +35,19 @@ fn unstratifiable_program_hard_fails() {
 @prefix logic: <{LOGIC_NS}> .
 @prefix gmeow: <{GMEOW_NS}> .
 
+_:logic_ruleUnstratA_x a logic:TermCarrier ; logic:termVariable "x" .
 logic:ruleUnstratA a logic:Rule ;
     logic:provenance logic:ruleUnstratA ;
-    logic:head [ rdf:subject "?x" ; rdf:predicate gmeow:pingA ; rdf:object "?x" ] ;
-    logic:body [ rdf:subject "?x" ; rdf:predicate rdf:type ; rdf:object gmeow:UnstratSeed ] ;
-    logic:negatedBody [ rdf:subject "?x" ; rdf:predicate gmeow:pingB ; rdf:object "?x" ] .
+    logic:head [ rdf:reifies <<( _:logic_ruleUnstratA_x gmeow:pingA _:logic_ruleUnstratA_x )>> ] ;
+    logic:body [ rdf:reifies <<( _:logic_ruleUnstratA_x rdf:type gmeow:UnstratSeed )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:logic_ruleUnstratA_x gmeow:pingB _:logic_ruleUnstratA_x )>> ] .
 
+_:logic_ruleUnstratB_x a logic:TermCarrier ; logic:termVariable "x" .
 logic:ruleUnstratB a logic:Rule ;
     logic:provenance logic:ruleUnstratB ;
-    logic:head [ rdf:subject "?x" ; rdf:predicate gmeow:pingB ; rdf:object "?x" ] ;
-    logic:body [ rdf:subject "?x" ; rdf:predicate rdf:type ; rdf:object gmeow:UnstratSeed ] ;
-    logic:negatedBody [ rdf:subject "?x" ; rdf:predicate gmeow:pingA ; rdf:object "?x" ] .
+    logic:head [ rdf:reifies <<( _:logic_ruleUnstratB_x gmeow:pingB _:logic_ruleUnstratB_x )>> ] ;
+    logic:body [ rdf:reifies <<( _:logic_ruleUnstratB_x rdf:type gmeow:UnstratSeed )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:logic_ruleUnstratB_x gmeow:pingA _:logic_ruleUnstratB_x )>> ] .
 "#
     );
     let dataset =

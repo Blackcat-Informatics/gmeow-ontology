@@ -39,9 +39,9 @@ fn shared_inputs_keep_document_occurrences_and_import_roles() {
     };
     // These paths do not exist. Every consumer must use the admitted native
     // inputs, with no source reread, parse or corpus-producer invocation.
-    assert_eq!(sources.merged_dataset().quads().count(), 5);
-    let authored = sources.authored_dataset();
-    let imports = sources.imports_dataset();
+    assert_eq!(sources.merged_dataset().unwrap().quads().count(), 5);
+    let authored = sources.authored_dataset().unwrap();
+    let imports = sources.imports_dataset().unwrap();
     assert_eq!(authored.quads().count(), 3);
     assert_eq!(imports.quads().count(), 3);
     assert!(
@@ -55,7 +55,7 @@ fn shared_inputs_keep_document_occurrences_and_import_roles() {
             .is_some()
     );
 
-    let (provenance, expected) = super::super::attributed_parsed_provenance(&sources);
+    let (provenance, expected) = super::super::attributed_parsed_provenance(&sources).unwrap();
     purrdf::provenance::check_provenance(&provenance, &expected)
         .expect("all occurrences attributed");
     assert_eq!(expected.len(), 5);
@@ -193,7 +193,7 @@ fn catalog_compiles_every_document_once_for_concurrent_consumers() {
             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix ex: <https://example.org/> .
             ex:{name} a logic:Rule ;
-                logic:head [ rdf:subject ex:{name} ; rdf:predicate ex:p ; rdf:object ex:value ] .
+                logic:head [ rdf:reifies <<( ex:{name} ex:p ex:value )>> ] .
         "#
             ),
         )
@@ -388,7 +388,7 @@ fn persistent_cache_refuses_the_ephemeral_native_source_catalog() {
     .unwrap();
     let mut bundle =
         crate::bundle::bundle_from_artifacts_over(receipt, Default::default(), Default::default());
-    let pin = bundle.graph_digest(GRAPH_SOURCE_CATALOG);
+    let pin = bundle.graph_digest(GRAPH_SOURCE_CATALOG).unwrap();
     bundle
         .pin_handle(
             GRAPH_SOURCE_CATALOG,

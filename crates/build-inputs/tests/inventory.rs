@@ -51,6 +51,84 @@ fn fixture(source: &str) -> tempfile::TempDir {
     write(root.path(), "crate/src/lib.rs", source);
     root
 }
+
+#[test]
+fn source_policy_follows_module_ownership_instead_of_test_like_names() {
+    let root = fixture(
+        r#"
+        #[cfg(all(test, not(target_arch = "wasm32")))]
+        #[path = "arbitrary.rs"] mod checks;
+        #[path = "production.tests.rs"] mod production;
+        #[cfg(test)] #[path = "shared.rs"] mod test_shared;
+        #[path = "shared.rs"] mod production_shared;
+        #[cfg(any(test, feature = "harness"))]
+        #[path = "feature.tests.rs"] mod feature_production;
+    "#,
+    );
+    write(root.path(), "crate/src/arbitrary.rs", "mod nested;\n");
+    write(
+        root.path(),
+        "crate/src/arbitrary/nested.rs",
+        "fn test_helper() {}\n",
+    );
+    for name in ["production.tests.rs", "shared.rs", "feature.tests.rs"] {
+        write(
+            root.path(),
+            &format!("crate/src/{name}"),
+            "pub fn production() {}\n",
+        );
+    }
+    let excluded =
+        gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]).unwrap();
+    assert_eq!(
+        excluded.into_iter().collect::<Vec<_>>(),
+        ["crate/src/arbitrary.rs", "crate/src/arbitrary/nested.rs",]
+    );
+}
+
+#[test]
+fn source_policy_never_excludes_an_ambiguous_cfg_attr_production_branch() {
+    let root = fixture("#[cfg_attr(feature = \"harness\", cfg(test))] mod shared;\n");
+    write(
+        root.path(),
+        "crate/src/shared.rs",
+        "pub fn production() {}\n",
+    );
+    let error =
+        gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("ambiguous production module cfg_attr")
+    );
+}
+
+#[test]
+fn source_policy_cfg_requires_every_production_branch_to_be_excluded() {
+    use gmeow_build_inputs::cfg_excludes_production;
+    assert!(cfg_excludes_production("all(test, not(target_arch = \"wasm32\"))").unwrap());
+    assert!(!cfg_excludes_production("any(test, feature = \"harness\")").unwrap());
+    assert!(!cfg_excludes_production("not(test)").unwrap());
+    assert!(cfg_excludes_production("custom_unknown_axis").is_err());
+}
+
+#[test]
+fn source_policy_registry_type_capability_never_admits_an_unowned_macro() {
+    for (source, accepted) in [
+        (
+            "fn registry() { let _ = quote! { inventory::collect!(Contract); }; }",
+            true,
+        ),
+        ("inventory::collect!(Contract);", true),
+        ("other::collect!(Contract);", false),
+        ("collect!(Contract);", false),
+        ("inventory::collect!(include!(\"missing.rs\"));", false),
+    ] {
+        let root = fixture(source);
+        let result = gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]);
+        assert_eq!(result.is_ok(), accepted, "{source}: {result:?}");
+    }
+}
 fn inventory(root: &Path) -> InputInventory {
     InputInventory::collect(root, &selection()).unwrap()
 }
@@ -509,6 +587,50 @@ fn selected_registry_identity_and_feature_resolution_are_binding() {
     assert_ne!(original.selection, selected);
     write(root.path(), "Cargo.lock", "version=4\npackage=[]\n");
     assert!(InputInventory::collect(root.path(), &selected).is_err());
+}
+
+#[test]
+fn explicit_git_package_identity_binds_the_unique_resolved_lock_revision() {
+    let root = fixture("pub fn production() {}\n");
+    let mut selected = selection();
+    let mut external = selected.units[0].clone();
+    let source = "git+https://example.test/repository?rev=locked";
+    external.package = format!("{source}#actual-facade@3.0.1");
+    external.manifest = None;
+    external.source = None;
+    external.target = "actual_facade".into();
+    selected.units.push(external);
+    selected.units[0].dependencies.push(1);
+    let record = |revision: &str| {
+        format!(
+            "[[package]]\nname='actual-facade'\nversion='3.0.1'\nsource='{source}#{revision}'\n"
+        )
+    };
+    write(
+        root.path(),
+        "Cargo.lock",
+        &format!("version=4\n{}", record("first")),
+    );
+    let first = InputInventory::collect(root.path(), &selected).unwrap();
+    write(
+        root.path(),
+        "Cargo.lock",
+        &format!("version=4\n{}", record("second")),
+    );
+    let second = InputInventory::collect(root.path(), &selected).unwrap();
+    assert_ne!(
+        first.packages, second.packages,
+        "the resolved Git object remains binding after metadata normalization"
+    );
+    write(
+        root.path(),
+        "Cargo.lock",
+        &format!("version=4\n{}{}", record("first"), record("second")),
+    );
+    assert!(
+        InputInventory::collect(root.path(), &selected).is_err(),
+        "an ambiguous source is not authority to select either lock record"
+    );
 }
 
 #[test]

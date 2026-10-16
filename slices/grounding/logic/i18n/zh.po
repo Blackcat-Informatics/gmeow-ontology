@@ -5259,16 +5259,16 @@ msgid "Relates a logic:ReasoningContract to the logic:ArgumentationSemantics it 
 msgstr "将一个 logic:ReasoningContract 关联到它所选择的 logic:ArgumentationSemantics——可废止论证之间的冲突如何被消解。在契约上单值。定义域 logic:ReasoningContract，值域 logic:ArgumentationSemantics（以散文表述，与模块的定义域/值域约定一致）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/argument|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:ArgumentStructure — an atomic-predication logic:Formula (over logic:relation) or a logic:FunctionTerm (over logic:functionSymbol) — to one of its argument term-carriers. The SAME property carries both, so a function term's operands reuse the predication argument machinery. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication), so a variadic argument list — including sequence markers and nested compound function terms — round-trips with its order and term kinds intact. It is not a direct link to the term value and carries no ordering by triple position."
-msgstr "将一个 logic:ArgumentStructure——一个原子谓述 logic:Formula（在 logic:relation 上）或一个 logic:FunctionTerm（在 logic:functionSymbol 上）——关联到它的某个论元词项载体。同一个属性承载两者，因此函数项的操作数复用谓述论元机制。每个载体以 logic:termIndex 固定其位置，以恰好一个词项值属性（logic:termIri、logic:termVariable、logic:termLiteral、logic:termSequenceMarker 或 logic:termApplication）固定其值，从而一个可变元论元列表——包括序列标记与嵌套的复合函数项——能在保持其顺序与词项种类完好的情况下往返。它不是通向词项值的直接链接，也不按三元组位置携带任何排序。"
+msgid "Relates a logic:ArgumentStructure to an ordered argument term-carrier. Atomic formulas, function terms and rule inequality guards share this structural link. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property, preserving order and term kinds independently of RDF statement order. It is not a direct link to the term value."
+msgstr "将 logic:ArgumentStructure 关联到有序参数项载体。原子公式、函数项和规则不等守卫共享此结构链接。每个载体通过 logic:termIndex 确定位置，并通过恰好一个项值属性确定值，从而独立于 RDF 语句顺序保留参数顺序和项种类。它不是指向项值的直接链接。"
 
 msgctxt "https://blackcatinformatics.ca/logic/argument|http://www.w3.org/2004/02/skos/core#example"
 msgid "The atom ex:knows(alice,bob) uses carriers at indices 0 and 1 linked through logic:argument."
 msgstr "原子 ex:knows(alice,bob) 使用索引 0 和 1 处的载体，二者通过 logic:argument 相连。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ArgumentStructure|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A node that applies a reified operator to an ordered list of logic:argument term-carriers: an atomic-predication logic:Formula (operator = logic:relation) or a logic:FunctionTerm (operator = logic:functionSymbol). It is the shared rdfs:domain of logic:argument, so the ordered argument-carrier machinery is reused across both without asserting that a function term is a formula or that a formula is a term."
-msgstr "一个将具体化算子作用于 logic:argument 词项载体有序列表的节点：一个原子谓述 logic:Formula（算子 = logic:relation）或一个 logic:FunctionTerm（算子 = logic:functionSymbol）。它是 logic:argument 的共享 rdfs:domain，因此有序的论元载体机制在两者间复用，而不断言函数项是公式或公式是词项。"
+msgid "A node applying an operator to an ordered list of logic:argument term-carriers. The operator is explicit as logic:relation on an atomic logic:Formula or logic:functionSymbol on a logic:FunctionTerm, or supplied structurally by a rule’s logic:distinctBody link. It is the shared domain of logic:argument; sharing the ordered carrier machinery does not assert that a guard or function term is a formula."
+msgstr "对有序 logic:argument 项载体列表应用运算符的节点。运算符可由原子 logic:Formula 上的 logic:relation 或 logic:FunctionTerm 上的 logic:functionSymbol 显式给出，也可由规则的 logic:distinctBody 链接从结构上给出。它是 logic:argument 的共同定义域；共享有序载体机制并不意味着守卫或函数项就是公式。"
 
 msgctxt "https://blackcatinformatics.ca/logic/Aspect|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A moment (trope): an endurant that exists only by inhering in a bearer on which it existentially depends — a colour, a belief, a marriage's commitment. The counterpart of gufo:Aspect, covering its intrinsic/extrinsic split (gufo:IntrinsicAspect inheres in a single bearer, gufo:ExtrinsicAspect depends on several): logic: carries that distinction on the inherence/dependence relation rather than as separate classes. The dependent counterpart of logic:Substantial. Qualities and modes are aspects (stated in prose, not as a subclass edge)."
@@ -6715,8 +6715,8 @@ msgid "Inequality body guard of a logic:Rule. Default-absent: a rule that needs 
 msgstr "logic:Rule 的不等式体部守卫。默认缺省：无需不等式的规则不携带 logic:distinctBody，因此现有语料库在字节层面完全一致。"
 
 msgctxt "https://blackcatinformatics.ca/logic/distinctBody|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."
-msgstr "将一个 logic:Rule 关联到一个不等式体守卫:一个携带 rdf:subject 与 rdf:object(两个规则变量,且——不同于 logic:body——没有 rdf:predicate)的具体化节点,它们必须绑定到不同的取值,规则方可触发,投影为 Datalog 不等式约束 ?A != ?B。作为一种加性的规则结构表面,与 logic:negatedBody 平行:它使一条规则能够检测“至少两个不同取值”(例如一个携带多于一个刻板印象的类,或一个中介两个不同 relata 的关系子),这是集合语义的 Datalog 否则无法表达的。一个不等式守卫不引入任何负依赖边,因此它使一条规则的分层类保持不变。"
+msgid "Relates a logic:Rule to an RDF-term inequality guard with exactly two ordered logic:argument carriers at logic:termIndex 0 and 1, each carrying one logic:termVariable. Both variables must be bound by the positive body and must denote different RDF terms for the rule to fire. This is term identity, not SPARQL value inequality: differently typed numeric literals can be distinct RDF terms with equal values. The guard introduces no negative dependency edge and leaves stratification unchanged. It projects to Datalog term inequality and SPARQL FILTER(!sameTerm(?A, ?B))."
+msgstr "将 logic:Rule 关联到 RDF 项不等守卫。该守卫恰有两个有序的 logic:argument 载体，其 logic:termIndex 分别为 0 和 1，每个载体携带一个 logic:termVariable。两个变量必须由正向规则体绑定，且表示不同的 RDF 项，规则才会触发。这里比较项的同一性，而非 SPARQL 值不等：类型不同的数值字面量可以是不同的 RDF 项，却具有相等的值。该守卫不引入负依赖边，也不改变分层。它投影为 Datalog 项不等和 SPARQL FILTER(!sameTerm(?A, ?B))。"
 
 msgctxt "https://blackcatinformatics.ca/logic/distinctnessRole|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:RelatumDistinctnessAssertion to one of the two roles that must bind distinct values on a focus node. Exactly two are asserted per record; the native coherence gate raises a violation when both roles bind the same value on one focus node. Domain logic:RelatumDistinctnessAssertion; two-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
@@ -8351,8 +8351,8 @@ msgid "Negation-as-failure body atom of a logic:Rule. Default-absent: a positive
 msgstr "logic:Rule 的失败即否定体部原子。默认缺省：正的 Horn 规则仅有 logic:body 原子而无 logic:negatedBody，因此现有的正语料库不受影响。"
 
 msgctxt "https://blackcatinformatics.ca/logic/negatedBody|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:Rule to a negated (negation-as-failure) body atom: the antecedent literal that must NOT be derivable for the rule to fire. Parallel to logic:body (the positive antecedent atoms) but read under closed-world negation, so a rule with any logic:negatedBody atom requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. The atom itself is a reified rdf:subject/rdf:predicate/rdf:object triple exactly as for logic:body; only its polarity differs."
-msgstr "将一条 logic:Rule 关联到一个被否定的（否定即失败）体原子：为使规则触发而必须不可推导的前件文字。它与 logic:body（正前件原子）平行，但在封闭世界否定下被读取，因此含有任何 logic:negatedBody 原子的规则至少需要 logic:StratifiedNAFProfile，而非 logic:PositiveHornProfile。该原子本身是一个被具体化的 rdf:subject/rdf:predicate/rdf:object 三元组，与 logic:body 完全一致；仅其极性不同。"
+msgid "Relates a logic:Rule to a negation-as-failure body atom: an RDF 1.2 reifier whose rdf:reifies target is the quoted triple term, exactly as for logic:body. Typed logic:TermCarrier resources represent variables in any triple-term position; literals remain literal values. The atom must not be derivable for the rule to fire. A rule with a negated body requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. Quoting an atom never asserts its proposition."
+msgstr "将 logic:Rule 关联到失败即否定的规则体原子：它是 RDF 1.2 具体化节点，其 rdf:reifies 目标是引用的三元组项，与 logic:body 的表示相同。类型为 logic:TermCarrier 的资源在三元组项的任意位置表示变量；字面量仍保留为字面量值。只有该原子不可推导时，规则才会触发。含否定规则体的规则至少需要 logic:StratifiedNAFProfile，而非 logic:PositiveHornProfile。引用原子绝不等于断言其命题。"
 
 msgctxt "https://blackcatinformatics.ca/logic/negationOperator|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:ReasoningContract to a logic:NegationOperator its programs may use. Set-valued on the contract: a program may legitimately use explicit (strong) negation and negation-as-failure together, so this records the permitted operator set, not a single chosen operator. Domain logic:ReasoningContract, range logic:NegationOperator (stated in prose, matching the module's convention)."
@@ -10639,8 +10639,8 @@ msgid "A central record asserting that a class is identified by a KEY: the value
 msgstr "一条核心记录,断言某个类由一个键(KEY)来标识:单一键属性的值唯一确定该类的实例,因此两个在键值上一致的实例即为同一个体——而两个被断言为不同却又一致的实例则构成矛盾。它用 logic:keyClass 命名该类,用 logic:keyProperty 命名键属性,原生DL一致性检查门正是通过这一对来判定键一致性冲突,并携带一个指向其所编码的领域属性的 logic:formalizes 反向引用。这是数据类型/单属性键的规范 logic: 载体:独立铸造(是 OWL 2 DL OWL hasKey 公理的 logic: 类比,该公理在数据类型属性上是 OWL 2 Full OWL InverseFunctionalProperty 的DL安全替代方案),因此该键是原生的推理义务,而非源头的 OWL hasKey 三元组。推理权威在此命名并强制执行它;OWL OWL hasKey 公理是其有损的DL视图,派生出的反向 sh:maxCount 1 是其SHACL投影。"
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An ordered slot in an atomic formula's logic:argument list, a function term's logic:argument list, or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication (a nested compound function term). It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."
-msgstr "原子公式的 logic:argument 列表、函数项的 logic:argument 列表或量词的 logic:quantifiedVariable 块中的一个有序槽位。它恰好携带一个从零开始的 logic:termIndex 和恰好一种值类型:logic:termIri、logic:termVariable、logic:termLiteral、logic:termSequenceMarker,或 logic:termApplication(一个嵌套的复合函数项)。它本身并非项值;而是独立于三元组顺序、保存该值的类型与位置的RDF节点。"
+msgid "A structural RDF resource preserving one term value and its kind: logic:termIri, logic:termVariable, logic:termLiteral, logic:termSequenceMarker, or logic:termApplication. An ordered argument or quantified-variable carrier has exactly one zero-based logic:termIndex. A carrier occupying a native RDF 1.2 triple-term position needs no index because that position already fixes its role. It is not the term value itself and never asserts a domain membership for that value."
+msgstr "一种结构性 RDF 资源，保留一个项值及其种类：logic:termIri、logic:termVariable、logic:termLiteral、logic:termSequenceMarker 或 logic:termApplication。有序参数或量化变量载体恰有一个从零开始的 logic:termIndex。占据原生 RDF 1.2 三元组项位置的载体无需索引，因为该位置已确定其角色。载体本身不是项值，也绝不为该值断言领域成员关系。"
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, sequence marker, or compound function-term application. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."
@@ -22720,3 +22720,143 @@ msgstr "该项限定溯源与证据范围，独立于五个正交的结果维度
 msgctxt "https://blackcatinformatics.ca/logic/resultNativeExecution|http://www.w3.org/2004/02/skos/core#example"
 msgid "A terminal receipt retains both a supported conflict and an independently exhausted sibling obligation."
 msgstr "终端凭据同时保留得到支持的冲突和独立耗尽资源的同级义务。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native source coverage refusal"
+msgstr "原生源覆盖拒绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal when a selected native source cannot supply the complete, immutable definition evidence required by its profile and world. The refusal retains the source owner and unmet capability without deriving a semantic verdict."
+msgstr "当选定的原生源无法提供其配置和世界所要求的完整、不可变定义证据时产生的操作拒绝。该拒绝保留源所有者及未满足的能力，不推导语义判定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when native definition collection or producer-effect analysis refuses its selected source contract."
+msgstr "在原生定义收集或生产者效果分析拒绝所选源合同时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify this operational refusal as a contradiction or as source data disproving a proposition."
+msgstr "不要将此操作拒绝归类为矛盾，也不要将其视为源数据对命题的反证。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected profile, source owner, world and exact unmet requirement from the native diagnostic."
+msgstr "保留原生诊断中的所选配置、源所有者、世界及确切的未满足要求。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Coverage is relative to the requested native operation and its immutable source boundary."
+msgstr "覆盖范围相对于所请求的原生操作及其不可变源边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceCoverageRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reachable producer that can rewrite selected modal definition grammar causes a source coverage refusal."
+msgstr "可达的生产者若能重写选定的模态定义语法，就会导致源覆盖拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native source admission refusal"
+msgstr "原生源准入拒绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The pre-execution refusal of an exact selected native class-expression source. Its original admission observation distinguishes malformed owned grammar from a well-formed construct outside the selected fragment and preserves every source path and input contract."
+msgstr "对确切选定的原生类表达式源在执行前作出的拒绝。其原始准入观测区分格式错误的所属语法与超出所选片段的格式正确构造，并保留每条源路径及输入合同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the original selected class-expression admission refuses before native writers execute."
+msgstr "在原始选定类表达式的准入于原生写入器执行前被拒绝时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse malformed input and unsupported evaluation into one semantic truth value."
+msgstr "不要将格式错误的输入和不受支持的求值合并为同一个语义真值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry the complete typed admission observation with its exact input contract into the diagnostic ledger."
+msgstr "将完整的类型化准入观测及其确切输入合同传递到诊断账本。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class names failure of the selected operation to admit its source, independently of whether that source is logically consistent."
+msgstr "此类表示所选操作未能准入其源，与该源在逻辑上是否一致无关。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "An owned enumeration whose selected rdf:nil terminator has list fields is refused with its original source path."
+msgstr "所属枚举的选定 rdf:nil 终止节点若携带列表字段，就会被拒绝，并保留其原始源路径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native definition source admission"
+msgstr "原生定义源准入"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational source contract for complete native definition evidence and immutable selected grammar across one requested profile and world. Native collection and producer-effect analysis realize this contract before dependent execution."
+msgstr "针对一个请求配置和世界，要求完整的原生定义证据及不可变选定语法的操作源合同。原生收集和生产者效果分析在依赖执行前实现此合同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the contract enforced by native definition coverage diagnostics."
+msgstr "用于标识原生定义覆盖诊断所执行的合同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer source completeness from a digest alone or permit a later writer to redefine an admitted source grammar."
+msgstr "不要仅凭摘要推断源的完整性，也不要允许后续写入器重新定义已准入的源语法。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the profile and world, retain every original definition, and reject producer effects that violate its required source boundary."
+msgstr "选择配置和世界，保留每个原始定义，并拒绝违反所需源边界的生产者效果。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The contract governs operational source admission; it makes no object-level consistency claim."
+msgstr "此合同约束操作层面的源准入，不作对象层面的一致性声明。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeDefinitionSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected contextual definition must already have its complete source before native execution requests it."
+msgstr "选定的上下文定义必须在原生执行请求它之前就具有完整的源。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "helper source admission refusal"
+msgstr "辅助代码源准入拒绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal of a helper census request, policy ledger or source inventory that cannot satisfy the declared admission contract. The diagnostic retains the input boundary, original cause and available source location."
+msgstr "对无法满足已声明准入契约的辅助代码普查请求、策略台账或源清单作出的操作性拒绝。诊断保留输入边界、原始原因及可用的源位置。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when census arguments, ledger syntax, ledger schema or a declared source home cannot be admitted."
+msgstr "用于普查参数、台账语法、台账模式或声明的源实现归属无法获准的情况。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for a discovered duplicate implementation or relabel an actual file access error as a schema defect."
+msgstr "不要用于已发现的重复实现，也不要将实际文件访问错误改称模式缺陷。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the typed operation and parser cause, include the ledger row context, and repair the refused input before repeating the census."
+msgstr "保留类型化操作和解析器原因，包含台账行的上下文，并在重新普查前修复被拒绝的输入。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Input admission precedes the policy verdict; refusal establishes neither compliance nor a measured duplication count."
+msgstr "输入准入先于策略判定；拒绝既不证明合规，也不构成已测得的重复数量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmissionRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed forbidden-name regular expression retains its original parser error and the owning job context."
+msgstr "格式错误的禁用名称正则表达式保留其原始解析错误及所属任务上下文。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "helper source admission"
+msgstr "辅助代码源准入"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational admission contract for a structural helper census request and its complete policy and source inputs, realized by the native census argument, ledger and home resolvers."
+msgstr "结构化辅助代码普查请求及其完整策略和源输入的操作性准入契约，由原生普查的参数、台账及实现归属解析器执行。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the input contract enforced by helper census admission diagnostics."
+msgstr "用于标识辅助代码普查准入诊断所执行的输入契约。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not accept a partial ledger, an unresolved home or an unknown mode as a successful policy check."
+msgstr "不要将不完整台账、无法解析的实现归属或未知模式视为成功的策略检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one census mode, parse every declared policy field, and resolve source ownership before interpreting the policy result."
+msgstr "选择一种普查模式，解析每个已声明策略字段，并在解释策略结果前解析源的归属。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This contract governs operational input admission; the admitted census separately evaluates duplication and forbidden implementations."
+msgstr "此契约约束操作性输入准入；获准的普查另行评估重复和被禁止的实现。"
+
+msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
+msgstr "台账任务若指定缺失的源实现，则在报告其副本数前被拒绝。"

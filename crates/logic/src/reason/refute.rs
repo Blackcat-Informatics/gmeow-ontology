@@ -27,7 +27,6 @@ use std::collections::{BTreeMap, BTreeSet};
 use gmeow_errors::{
     Diag, DiagLedger, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
 };
-use gmeow_math::Rational;
 use purrdf::RdfTerm;
 use serde::{Deserialize, Serialize};
 
@@ -46,8 +45,9 @@ pub(crate) mod native;
 pub use native::{
     NativeAnalysisUsage, NativeBoundEvidence, NativeClosureStatus, NativeFamilyCompletion,
     NativeFamilyLedger, NativeFamilyObstruction, NativeFamilyOutcome, NativeObligationScope,
-    NativeObstructionKind, NativeProofId, NativeProofNode, NativeProofOrigin, NativeRead,
-    NativeReadKind, NativeRefutationFamily, NativeSourceTerms, NativeSupportedClash,
+    NativeObstructionKind, NativeProducerObstruction, NativeProofId, NativeProofNode,
+    NativeProofOrigin, NativeRead, NativeReadKind, NativeRefutationFamily, NativeSourceTerms,
+    NativeSupportedClash,
 };
 mod diagnostic;
 pub use diagnostic::{ClassDiagnosticObservation, ClassDiagnosticOutcome, class_diagnostic};
@@ -87,18 +87,6 @@ pub(crate) fn world_key(graph: &Option<RdfTerm>) -> String {
         Some(RdfTerm::Iri(iri)) => iri.clone(),
         Some(RdfTerm::BlankNode(id)) => skolem_iri(id),
         _ => crate::reason::rl::DEFAULT_WORLD.to_owned(),
-    }
-}
-
-/// Parse an `owl:rational` lexical form (`num/den` or an integer) into an exact
-/// [`Rational`].
-pub(crate) fn parse_rational(text: &str) -> Option<Rational> {
-    if let Some((num, den)) = text.split_once('/') {
-        let num: i128 = num.trim().parse().ok()?;
-        let den: i128 = den.trim().parse().ok()?;
-        Rational::new(num, den).ok()
-    } else {
-        Rational::parse_decimal(text).ok()
     }
 }
 

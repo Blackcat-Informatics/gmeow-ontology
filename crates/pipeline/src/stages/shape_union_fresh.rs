@@ -403,7 +403,7 @@ pub fn load_shapes_fresh(
             .map_err(|e| union_err(format!("failed to build empty shapes dataset: {e}")))?
     } else {
         let refs: Vec<&RdfDataset> = per_file.iter().map(AsRef::as_ref).collect();
-        Arc::new(RdfDataset::union(&refs))
+        Arc::new(RdfDataset::union(&refs)?)
     };
     let doc_prefixes: Vec<(String, String)> = prefix_map.into_iter().collect();
     let shapes = from_dataset_with_base(&merged, None, &doc_prefixes, None, None, &imports)

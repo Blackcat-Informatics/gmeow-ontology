@@ -393,9 +393,12 @@ impl Reader<'_> {
                 let purrdf::xsd::XsdValue::Integer { value, .. } = self.scalar(value)? else {
                     return Err(self.error(node, "symbol arity requires an integer-family literal"));
                 };
-                let arity = usize::try_from(value).map_err(|_| {
-                    self.error(node, "symbol arity must fit a nonnegative native index")
-                })?;
+                let arity = value
+                    .as_i128()
+                    .and_then(|value| usize::try_from(value).ok())
+                    .ok_or_else(|| {
+                        self.error(node, "symbol arity must fit a nonnegative native index")
+                    })?;
                 roles.insert(if function {
                     PresentationSymbolRole::Function(arity)
                 } else {
@@ -505,8 +508,10 @@ impl Reader<'_> {
             let purrdf::xsd::XsdValue::Integer { value, .. } = self.scalar(scope)? else {
                 return Err(self.error(node, "source blank scope must be an integer"));
             };
-            let scope = u32::try_from(value)
-                .map_err(|_| self.error(node, "source blank scope must fit a u32"))?;
+            let scope = value
+                .as_i128()
+                .and_then(|value| u32::try_from(value).ok())
+                .ok_or_else(|| self.error(node, "source blank scope must fit a u32"))?;
             return Ok(PresentationTerm(TermValue::Blank {
                 label,
                 scope: purrdf::BlankScope(scope),

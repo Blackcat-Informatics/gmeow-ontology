@@ -100,7 +100,7 @@ pub(crate) fn native_forward_eval_rules_with_frontier(
     crate::seam::BudgetStatus,
 )> {
     let interner = facts.interner();
-    let store = crate::store::WorldStore::new();
+    let store = crate::store::WorldStore::new()?;
     for fact in facts.facts() {
         if fact.args.len() != 3 {
             return Err(oracle_err(format!(

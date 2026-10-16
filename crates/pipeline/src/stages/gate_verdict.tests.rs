@@ -5,7 +5,7 @@ use super::*;
 
 #[test]
 fn compiled_gate_borrows_separate_wiring_and_rejects_missing_selected_wiring() {
-    let source = dataset_from_bytes(SOURCE_GRAPH.as_bytes(), NativeRdfFormat::NQuads).unwrap();
+    let source = dataset_from_bytes(SOURCE_GRAPH.as_bytes(), NativeRdfFormat::Turtle).unwrap();
     let theory = PreparedLogicSource::new(&source)
         .unwrap()
         .into_compiled(None)
@@ -28,15 +28,23 @@ fn compiled_gate_borrows_separate_wiring_and_rejects_missing_selected_wiring() {
 
 #[test]
 fn compiled_gate_reads_native_wiring_in_its_selected_graph() {
-    let original = dataset_from_bytes(SOURCE_GRAPH.as_bytes(), NativeRdfFormat::NQuads).unwrap();
+    let original = dataset_from_bytes(SOURCE_GRAPH.as_bytes(), NativeRdfFormat::Turtle).unwrap();
     let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(&original);
-    let category = builder.intern_iri("https://example.org/NativeCategory");
-    let property = builder.intern_iri(CATEGORY_BLOCKING);
-    let blocking = builder.intern_iri("https://blackcatinformatics.ca/gmeow/blockingBlocking");
-    builder.push_annotation(category, property, blocking);
-    let outside = builder.intern_iri("https://example.org/outside");
-    builder.push_annotation_in_graph(category, property, outside, Some(outside));
+    builder.push_dataset(&original).unwrap();
+    let category = builder
+        .intern_iri("https://example.org/NativeCategory")
+        .unwrap();
+    let property = builder.intern_iri(CATEGORY_BLOCKING).unwrap();
+    let blocking = builder
+        .intern_iri("https://blackcatinformatics.ca/gmeow/blockingBlocking")
+        .unwrap();
+    builder
+        .push_annotation(category, property, blocking)
+        .unwrap();
+    let outside = builder.intern_iri("https://example.org/outside").unwrap();
+    builder
+        .push_annotation_in_graph(category, property, outside, Some(outside))
+        .unwrap();
     let dataset = builder.freeze().unwrap();
     let theory = PreparedLogicSource::new(&dataset)
         .unwrap()
@@ -71,60 +79,34 @@ fn declared_gate_rule_cannot_disappear_on_lowering_failure() {
 /// mirrors the authored `logic:head`/`logic:body` reified-triple shape of
 /// `slices/grounding/logic/module.ttl`'s `logic:ruleGateFatalVerdict` (never a
 /// string body).
-const SOURCE_GRAPH: &str = concat!(
-    // categoryBlocking wiring: one blocking category (DataShapeViolation) and one
-    // coherent (PolicyWarning), enough to drive both a gating and a non-gating case.
-    "<https://blackcatinformatics.ca/logic/FindingDataShapeViolation> ",
-    "<https://blackcatinformatics.ca/gmeow/categoryBlocking> ",
-    "<https://blackcatinformatics.ca/gmeow/blockingBlocking> .\n",
-    "<https://blackcatinformatics.ca/logic/FindingPolicyWarning> ",
-    "<https://blackcatinformatics.ca/gmeow/categoryBlocking> ",
-    "<https://blackcatinformatics.ca/gmeow/blockingCoherent> .\n",
-    // The authored up-set derivation rule: logic:Rule with a reified head and four
-    // reified body atoms (severity, category, categoryBlocking join, standpoint).
-    "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-    "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
-    "<https://blackcatinformatics.ca/logic/Rule> .\n",
-    // head: findingGateVerdict(?finding, gateFatal)
-    "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-    "<https://blackcatinformatics.ca/logic/head> _:h .\n",
-    "_:h <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-    "_:h <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-    "<https://blackcatinformatics.ca/gmeow/findingGateVerdict> .\n",
-    "_:h <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-    "<https://blackcatinformatics.ca/gmeow/gateFatal> .\n",
-    // body atom 1: findingSeverity(?finding, severityError)
-    "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-    "<https://blackcatinformatics.ca/logic/body> _:b1 .\n",
-    "_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-    "_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-    "<https://blackcatinformatics.ca/gmeow/findingSeverity> .\n",
-    "_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-    "<https://blackcatinformatics.ca/gmeow/severityError> .\n",
-    // body atom 2: findingCategory(?finding, ?category)
-    "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-    "<https://blackcatinformatics.ca/logic/body> _:b2 .\n",
-    "_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-    "_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-    "<https://blackcatinformatics.ca/gmeow/findingCategory> .\n",
-    "_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> \"?category\" .\n",
-    // body atom 3: categoryBlocking(?category, blockingBlocking)
-    "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-    "<https://blackcatinformatics.ca/logic/body> _:b3 .\n",
-    "_:b3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?category\" .\n",
-    "_:b3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-    "<https://blackcatinformatics.ca/gmeow/categoryBlocking> .\n",
-    "_:b3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-    "<https://blackcatinformatics.ca/gmeow/blockingBlocking> .\n",
-    // body atom 4: findingStandpoint(?finding, standpointBinding)
-    "<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ",
-    "<https://blackcatinformatics.ca/logic/body> _:b4 .\n",
-    "_:b4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> \"?finding\" .\n",
-    "_:b4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ",
-    "<https://blackcatinformatics.ca/gmeow/findingStandpoint> .\n",
-    "_:b4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ",
-    "<https://blackcatinformatics.ca/gmeow/standpointBinding> .\n",
-);
+const SOURCE_GRAPH: &str = r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+logic:FindingDataShapeViolation gmeow:categoryBlocking gmeow:blockingBlocking .
+logic:FindingPolicyWarning gmeow:categoryBlocking gmeow:blockingCoherent .
+
+_:finding a logic:TermCarrier ; logic:termVariable "finding" .
+_:category a logic:TermCarrier ; logic:termVariable "category" .
+logic:ruleGateFatalVerdict a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:finding gmeow:findingGateVerdict gmeow:gateFatal )>> ] ;
+    logic:body
+        [ rdf:reifies <<( _:finding gmeow:findingSeverity gmeow:severityError )>> ],
+        [ rdf:reifies <<( _:finding gmeow:findingCategory _:category )>> ],
+        [ rdf:reifies <<( _:category gmeow:categoryBlocking gmeow:blockingBlocking )>> ],
+        [ rdf:reifies <<( _:finding gmeow:findingStandpoint gmeow:standpointBinding )>> ] .
+"#;
+
+fn source_nquads(source: &str) -> Vec<u8> {
+    let dataset = dataset_from_bytes(source.as_bytes(), NativeRdfFormat::Turtle).unwrap();
+    purrdf::serialize_dataset(
+        &dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::DefaultGraph,
+    )
+    .expect("serialize the complete native source for the production N-Quads reader")
+}
 
 /// Two findings in the graph/diagnostics named graph: one up-set (Error /
 /// DataShapeViolation / Binding) that MUST derive gateFatal, and one non-up-set
@@ -147,7 +129,7 @@ fn finding_nq() -> String {
 
 #[test]
 fn derives_gatefatal_only_for_the_upset_finding() {
-    let gate = GateProgram::from_source(SOURCE_GRAPH.as_bytes())
+    let gate = GateProgram::from_source(&source_nquads(SOURCE_GRAPH))
         .expect("gate source is valid")
         .expect("the source graph carries the authored logic:ruleGateFatalVerdict + wiring");
     let graph = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
@@ -185,7 +167,7 @@ fn derives_gatefatal_only_for_the_upset_finding() {
 fn diagnostic_renderer_preserves_projection_bytes_and_native_gate_union() {
     use crate::stages::diag_render::{DiagnosticsPaths, render_diagnostics_artifacts};
     use gmeow_errors::{Finding, FindingCategory, Report, Severity};
-    let gate = GateProgram::from_source(SOURCE_GRAPH.as_bytes())
+    let gate = GateProgram::from_source(&source_nquads(SOURCE_GRAPH))
         .unwrap()
         .unwrap();
     let mut report = Report::new("validate");
@@ -243,13 +225,12 @@ fn absent_rule_yields_none() {
 #[test]
 fn malformed_or_incomplete_gate_semantics_fail_closed() {
     assert!(GateProgram::from_source(b"not RDF").is_err());
-    let predicate = format!("<{CATEGORY_BLOCKING}>");
     let without_wiring = SOURCE_GRAPH
         .lines()
-        .filter(|line| line.split_whitespace().nth(1) != Some(predicate.as_str()))
+        .filter(|line| line.split_whitespace().nth(1) != Some("gmeow:categoryBlocking"))
         .collect::<Vec<_>>()
         .join("\n");
-    let error = GateProgram::from_source(without_wiring.as_bytes())
+    let error = GateProgram::from_source(&source_nquads(&without_wiring))
         .err()
         .unwrap();
     assert!(

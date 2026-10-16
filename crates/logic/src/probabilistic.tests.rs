@@ -26,7 +26,7 @@ fn marginal_for(ans: &ProbAnswer, var: &str, local: &str) -> Option<f64> {
 fn independent_or_marginal_is_noisy_or() {
     // wet :- rain.  wet :- sprinkler.   rain=0.5 (indep), sprinkler=0.5 (indep).
     // P(wet) = 1 - (1-0.5)(1-0.5) = 0.75.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\
@@ -46,7 +46,7 @@ fn independent_or_marginal_is_noisy_or() {
 #[test]
 fn independent_and_marginal_is_product() {
     // both :- a, b.   a=0.5, b=0.4 independent → P(both) = 0.2.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\
@@ -66,7 +66,7 @@ fn independent_and_marginal_is_product() {
 fn dependency_joint_marginal_uses_the_joint() {
     // a and b are perfectly correlated: joint(0.5, a, b), joint(0.5).
     // both :- a, b.  P(both) = 0.5  (vs 0.5*0.5=0.25 under independence).
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(dependency).\n\
@@ -90,7 +90,7 @@ fn dependency_joint_marginal_uses_the_joint() {
 fn confidence_is_not_a_probability_guard() {
     // diagnosis is asserted with confidence 0.9 — under ProbabilisticProfile with
     // a declared model, its marginal MUST be 1.0 (an asserted fact), NEVER 0.9.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\
@@ -115,7 +115,7 @@ fn confidence_is_not_a_probability_guard() {
 fn no_declared_model_refuses_with_unknown() {
     // A probability fact with NO probability_model → unknown (never assume independence).
     // The parser allows this; the evaluator refuses.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability(ex:rain(ex:today, ex:true), 0.5).\n\
@@ -171,7 +171,7 @@ fn prob_unknown_is_unsupported_not_evaluated() {
 
 #[test]
 fn edb_fact_is_deterministic_probability_one() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         WORLD,
         &format!("{BASE}s"),
@@ -194,7 +194,7 @@ fn edb_fact_is_deterministic_probability_one() {
 fn duplicate_probability_fact_is_rejected() {
     // The same fact declared twice would be counted as two independent
     // variables, corrupting the marginal — must hard-fail.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\
@@ -216,7 +216,7 @@ fn duplicate_probability_fact_is_rejected() {
 fn too_many_independent_facts_is_rejected() {
     // 2^N enumeration is capped: over MAX_INDEPENDENT_FACTS hard-fails with a
     // clear message rather than overflowing the shift or exhausting memory.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let mut src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n"
@@ -237,7 +237,7 @@ fn too_many_independent_facts_is_rejected() {
 
 #[test]
 fn cut_is_rejected() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\
@@ -253,7 +253,7 @@ fn cut_is_rejected() {
 
 #[test]
 fn joint_probabilities_must_sum_to_one() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(dependency).\n\
@@ -367,7 +367,7 @@ fn declared_schema_matching_attaches_row_schema() {
         ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
     };
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\
@@ -403,7 +403,7 @@ fn declared_schema_mismatch_returns_err() {
         ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
     };
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\

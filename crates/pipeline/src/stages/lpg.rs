@@ -176,7 +176,7 @@ pub(crate) fn render_from_dataset(
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     // Scope to the business-layer statements graph ONLY — see the module doc
     // for why the whole carrier is never projected here.
-    let scoped = dataset.project_named_graph(STATEMENTS_GRAPH);
+    let scoped = dataset.project_named_graph(STATEMENTS_GRAPH)?;
     let config = lpg_config()?;
 
     let csv = purrdf::project_lpg_csv(&scoped, &config)

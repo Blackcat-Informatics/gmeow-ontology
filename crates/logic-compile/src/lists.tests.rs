@@ -453,7 +453,7 @@ fn set_lists_are_minted_from_sorted_members_and_sequences_are_not() {
 #[test]
 fn every_projection_and_common_logic_dialect_carries_the_lists() {
     let (program, _) = compile(ALL_SHAPES);
-    let artifacts = crate::projections::compile_program(&program, |_| Default::default())
+    let artifacts = crate::projections::compile_program(&program, |_| Ok(Default::default()))
         .expect("every projection passes its overclaim gate");
     assert!(
         artifacts.datalog.contains("first("),

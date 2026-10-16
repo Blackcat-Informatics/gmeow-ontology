@@ -159,8 +159,8 @@ fn fold(
 fn release_retains_original_declaration_loss_without_fabricating_current_counts() {
     let empty_role = "https://blackcatinformatics.ca/gmeow/graph/test-empty-release-role";
     let mut declarations = purrdf::RdfDatasetBuilder::new();
-    let name = declarations.intern_iri(empty_role);
-    declarations.declare_named_graph(name);
+    let name = declarations.intern_iri(empty_role).unwrap();
+    declarations.declare_named_graph(name).unwrap();
     let mut builder = builder_from(
         "<https://e/s> <https://e/p> <https://e/o> .",
         "application/n-triples",

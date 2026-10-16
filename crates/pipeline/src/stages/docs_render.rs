@@ -69,7 +69,7 @@ pub(crate) fn reasoning_verdict_from_product(
         ));
     };
     if !crate::handle_identity::contains_graph(bundle, GRAPH_REASONING)
-        || entry.content_digest != bundle.graph_digest(GRAPH_REASONING)
+        || entry.content_digest != bundle.graph_digest(GRAPH_REASONING)?
     {
         return Err(fail(
             "the Reasoning handle does not match its declared graph pin".into(),

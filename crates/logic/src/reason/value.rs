@@ -5,8 +5,9 @@
 //! RDF term identity is retained independently of the interpreted value. Parsing
 //! happens at admission to an analysis, never in its pairwise comparison loop.
 
-use purrdf::xsd::{XsdValue, rational::Rational};
+use purrdf::xsd::{XsdValue, exact::Rational};
 use purrdf::{RdfTextDirection, TermValue};
+use purrdf_hash::fixed::FixedState;
 
 const OWL_RATIONAL: &str = "http://www.w3.org/2002/07/owl#rational";
 const OWL_REAL: &str = "http://www.w3.org/2002/07/owl#real";
@@ -77,19 +78,23 @@ impl LiteralValue {
         let datatype = purrdf::xsd::XsdDatatype::from_iri(datatype)?;
         match meaning {
             LiteralMeaning::Rational(value) => {
-                if let Some((lo, hi)) = datatype.integer_range() {
-                    return Some(
-                        value.denominator() == 1 && (lo..=hi).contains(&value.numerator()),
+                if datatype.integer_range().is_some() {
+                    if !value.is_integer() {
+                        return Some(false);
+                    }
+                    let integer = XsdValue::from_exact_integer(
+                        value.numerator().clone(),
+                        purrdf::xsd::XsdDatatype::Integer,
                     );
+                    use purrdf::xsd::range::{DataRange, Known, contains};
+                    return match contains(&DataRange::Datatype(datatype), &integer) {
+                        Known::Yes => Some(true),
+                        Known::No => Some(false),
+                        Known::Unknown => None,
+                    };
                 }
                 if datatype == purrdf::xsd::XsdDatatype::Decimal {
-                    let mut denominator = value.denominator();
-                    for factor in [2, 5] {
-                        while denominator % factor == 0 {
-                            denominator /= factor;
-                        }
-                    }
-                    return Some(denominator == 1);
+                    return Some(value.is_terminating());
                 }
                 Some(false)
             }
@@ -282,8 +287,8 @@ impl LiteralValue {
 /// the same source-payload limit. No facts, worlds or complete datasets are cached.
 #[derive(Default)]
 pub(crate) struct NativeValues {
-    entries: std::collections::HashMap<TermValue, std::sync::Arc<LiteralValue>>,
-    counts: std::collections::HashMap<TermValue, u128>,
+    entries: std::collections::HashMap<TermValue, std::sync::Arc<LiteralValue>, FixedState>,
+    counts: std::collections::HashMap<TermValue, u128, FixedState>,
 }
 
 impl NativeValues {
@@ -323,7 +328,16 @@ impl NativeValues {
         else {
             return None;
         };
-        u128::try_from(value).ok()
+        if value.is_zero() {
+            Some(0)
+        } else if value.is_negative() {
+            None
+        } else {
+            // Native parsing already validated the datatype and integer value.
+            // Convert the count's own u128 representation without an i128 limit
+            // or an intermediate arbitrary-precision magnitude allocation.
+            lexical_form.trim().parse().ok()
+        }
     }
 
     pub(crate) fn cardinality(&mut self, source: &TermValue) -> Option<u128> {
@@ -394,14 +408,14 @@ mod native_cache_tests;
 pub(crate) fn rational(lexical: &str) -> Option<Rational> {
     let lexical = lexical.trim();
     if lexical.contains('/') {
-        return Rational::parse(lexical).ok();
+        return lexical.parse().ok();
     }
-    let value = purrdf::xsd::parse_by_iri(lexical, XSD_DECIMAL)
+    purrdf::xsd::parse_by_iri(lexical, XSD_DECIMAL)
         .ok()
         .flatten()
-        .and_then(|value| Rational::from_xsd(&value));
-    value.or_else(|| {
-        let value = super::refute::parse_rational(lexical)?;
-        Rational::new(value.numerator(), value.denominator()).ok()
-    })
+        .and_then(|value| Rational::from_xsd(&value))
 }
+
+#[path = "value.tests.rs"]
+#[cfg(test)]
+mod tests;

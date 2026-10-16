@@ -261,7 +261,7 @@ pub(crate) struct SourceExistentialRule {
 #[derive(Debug)]
 enum ChaseOwnership {
     Template,
-    Source(SourceExistentialRule),
+    Source(Box<SourceExistentialRule>),
     Domain(crate::physical::SelectedLogicalWorld),
 }
 
@@ -294,6 +294,12 @@ impl PreparedChaseRule {
         !self.existentials.is_empty() || !self.reifier_groups.is_empty()
     }
 
+    /// List ownership requires every invented cell to use its frontier address.
+    /// Tuple reifiers instead share relation/argument identity across firings.
+    pub(super) fn uses_only_frontier_skolems(&self) -> bool {
+        self.rule.witness_policy == WitnessPolicy::FrontierSkolem && self.reifier_groups.is_empty()
+    }
+
     /// Exact execution ownership also governs source/effect admission.
     pub(super) fn owns_world(&self, world: &str) -> gmeow_errors::Result<bool> {
         self.ownership.owns_world(world)
@@ -302,7 +308,7 @@ impl PreparedChaseRule {
     pub(super) fn new(rule: ExistentialRule) -> gmeow_errors::Result<Self> {
         Ok(Self {
             numeric: super::numeric::Plan::for_body(&rule.numeric, &rule.body)
-                .map_err(|detail| super::numeric::error(&rule.rule_iri, &detail))?,
+                .map_err(|diagnostic| super::numeric::with_rule(&rule.rule_iri, diagnostic))?,
             existentials: rule.existentials(),
             frontier_vars: rule.frontier_vars(),
             reifier_groups: reified_nary_head_groups(&rule)?,
@@ -325,7 +331,7 @@ impl PreparedChaseRule {
                 &source.rule,
             ),
         );
-        prepared.ownership = ChaseOwnership::Source(source);
+        prepared.ownership = ChaseOwnership::Source(Box::new(source));
         Ok(prepared)
     }
 
@@ -623,6 +629,7 @@ fn chase_world_into(
         .cloned()
         .map(PreparedChaseRule::new)
         .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let has_minting = prepared.iter().any(PreparedChaseRule::mints);
 
     let contract = WitnessContract::native(crate::native_semantics::SemanticVocabulary::Exact);
 
@@ -716,7 +723,7 @@ fn chase_world_into(
             break 'fixpoint;
         }
         if !progressed {
-            if !generative {
+            if !generative && has_minting {
                 // Datalog has reached its fixpoint: let the minting rules fire.
                 generative = true;
                 continue;
@@ -2260,8 +2267,8 @@ impl ChaseAdmission {
         // Dedup the constant domain directly on `TermValue` (no `term_display` String
         // allocation per term), keeping `domain_terms` in deterministic first-seen order.
         let mut predicates: BTreeSet<String> = BTreeSet::new();
-        let mut seen: std::collections::HashSet<purrdf::TermValue> =
-            std::collections::HashSet::new();
+        let mut seen: std::collections::HashSet<purrdf::TermValue, purrdf_hash::fixed::FixedState> =
+            std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::new());
         let mut domain_terms: Vec<purrdf::TermValue> = Vec::new();
         {
             let star = purrdf::TermValue::iri(STAR);
