@@ -176,6 +176,7 @@ mod tests {
     use std::collections::HashSet;
 
     #[test]
+    /// Registration remains idempotent and distinct for the complete CLI catalog.
     fn every_gmeow_cli_code_interns_with_no_collision() {
         let handles = register_all();
         assert_eq!(

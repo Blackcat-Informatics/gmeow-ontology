@@ -640,6 +640,7 @@ mod tests {
     use super::*;
 
     #[test]
+    /// Shared framing preserves existing preimages and keeps concatenated fields distinct.
     fn shared_framing_preserves_program_identity_and_field_boundaries() {
         for (profile, components) in [
             ("", vec![]),

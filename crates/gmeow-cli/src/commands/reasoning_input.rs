@@ -131,6 +131,7 @@ mod tests {
     use super::*;
 
     #[test]
+    /// An input refusal keeps its operation identity, registered grade and typed cause.
     fn input_refusal_retains_registered_grade_identity_and_original_diagnostic() {
         let cause = Diag::of_kind(crate::error::SourceReadFailed {
             detail: "selected input is unavailable".to_owned(),
