@@ -205,11 +205,11 @@ impl Stage for GoalDirectedStage {
         &self.consumes
     }
     fn cache_policy(&self) -> CachePolicy {
-        // The backward engine rebuilds this small proof-carrying result faster than a
-        // structural cache hydrate would reparse + re-key its named graph, and Recompute
-        // keeps the proof-check gate live on every run (an unchecked answer HARD-fails in
-        // the façade). Mirrors stage-reason's Recompute rationale.
-        CachePolicy::Recompute
+        // Only this stage's proof-checked graph and observation are published: no
+        // upstream carrier or typed handle is retained. Persist that contribution
+        // so test processes can authenticate it without executing the producer.
+        // The action identity binds both authored programs and reasoned subsorts.
+        CachePolicy::Persistent
     }
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
@@ -226,7 +226,7 @@ impl Stage for GoalDirectedStage {
         // (read off the stage-reason Reasoning handle) via
         // gmeow_logic::goal_directed::evaluate_reasoning_programs, instead of calling
         // evaluate_shipped_demonstrators() over the hand-interned Rust constants.
-        "goal-directed.v3-authenticated-observations"
+        "goal-directed.v4-persistent-observations"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Read the compiled authored demonstrator corpus and the reasoned subsort closure
