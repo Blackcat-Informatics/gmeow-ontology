@@ -84,7 +84,7 @@ pub(crate) const FACET_LOCALS: &[&str] = &[
 /// local names (shared verbatim by the `owl:` and `logic:` namespaces).  A restriction
 /// node carries `onProperty` plus one or more of these:
 ///
-/// * value constraints — `someValuesFrom`, `allValuesFrom`, `hasValue`;
+/// * value/self constraints — `someValuesFrom`, `allValuesFrom`, `hasValue`, `hasSelf`;
 /// * unqualified cardinality — `minCardinality`, `maxCardinality`, `cardinality`;
 /// * qualified cardinality — `qualifiedCardinality`, `minQualifiedCardinality`,
 ///   `maxQualifiedCardinality` (the OWL 2 standard local names), each paired with
@@ -97,6 +97,7 @@ pub(crate) const CONSTRAINT_LOCALS: &[&str] = &[
     "someValuesFrom",
     "allValuesFrom",
     "hasValue",
+    "hasSelf",
     "minCardinality",
     "maxCardinality",
     "cardinality",

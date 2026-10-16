@@ -656,6 +656,125 @@ fn boolean_source_class_laws_define_membership_without_asserting_list_syntax() {
 }
 
 #[test]
+fn disjoint_union_class_law_carries_covering_and_every_pairwise_exclusion() {
+    use crate::frontend::{AdmittedSemanticUnit, SemanticUnitDisposition};
+    use crate::ir::{Formula, Term};
+
+    let (admission, projection) = project(
+        r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+           @prefix ex: <https://example.org/> .
+           ex:Partition logic:disjointUnionOf (ex:A ex:B ex:C) ."#,
+    );
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{projection:?}"
+    );
+    let definition = admission
+        .admitted()
+        .find_map(|unit| {
+            if let SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::ClassDefinition(
+                definition,
+            )) = &unit.disposition
+            {
+                Some(definition)
+            } else {
+                None
+            }
+        })
+        .expect("certified partition law");
+    let Formula::Forall { vars, body } = &definition.formula else {
+        panic!("partition is universally scoped")
+    };
+    assert_eq!(vars, &["class_member"]);
+    let Formula::And(laws) = body.as_ref() else {
+        panic!("a cover alone is not a partition")
+    };
+    assert_eq!(laws.len(), 4);
+    let Formula::Iff(root_membership, cover) = &laws[0] else {
+        panic!("partition membership must be an equivalence")
+    };
+    let class_name = |membership: &Formula| {
+        let Formula::Atom { relation, args } = membership else {
+            panic!("class membership atom")
+        };
+        assert_eq!(
+            relation,
+            &Term::Iri("https://blackcatinformatics.ca/logic/instanceOf".into())
+        );
+        assert_eq!(args.len(), 2);
+        assert_eq!(args[0], Term::Var("class_member".into()));
+        let Term::Var(binding) = &args[1] else {
+            panic!("exact source class binding")
+        };
+        definition.constants[binding].as_iri().unwrap().to_owned()
+    };
+    let iri = |local| format!("https://example.org/{local}");
+    assert_eq!(class_name(root_membership), iri("Partition"));
+    let Formula::Or(cover_members) = cover.as_ref() else {
+        panic!("cover is a disjunction")
+    };
+    assert_eq!(cover_members.len(), 3);
+    assert_eq!(
+        cover_members
+            .iter()
+            .map(&class_name)
+            .collect::<BTreeSet<_>>(),
+        BTreeSet::from([iri("A"), iri("B"), iri("C")])
+    );
+    let mut pairs = BTreeSet::new();
+    for law in &laws[1..] {
+        let Formula::Not(overlap) = law else {
+            panic!("overlaps must be forbidden")
+        };
+        let Formula::And(memberships) = overlap.as_ref() else {
+            panic!("each overlap has two memberships")
+        };
+        assert_eq!(memberships.len(), 2);
+        pairs.insert(memberships.iter().map(&class_name).collect::<BTreeSet<_>>());
+    }
+    assert_eq!(
+        pairs,
+        BTreeSet::from([
+            BTreeSet::from([iri("A"), iri("B")]),
+            BTreeSet::from([iri("A"), iri("C")]),
+            BTreeSet::from([iri("B"), iri("C")]),
+        ])
+    );
+    let sentence = projection
+        .sentences
+        .iter()
+        .find(|sentence| sentence.body.contains("I|https://example.org/Partition"))
+        .unwrap();
+    assert_eq!(sentence.body.matches('~').count(), 3, "{sentence:?}");
+}
+
+#[test]
+fn disjoint_union_repetition_does_not_create_self_disjointness() {
+    for members in ["ex:A", "ex:A ex:A"] {
+        let (_, projection) = project(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
+             @prefix ex: <https://example.org/> . ex:Partition logic:disjointUnionOf ({members}) ."
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Complete,
+            "{projection:?}"
+        );
+        let sentence = projection
+            .sentences
+            .iter()
+            .find(|sentence| sentence.body.contains("I|https://example.org/Partition"))
+            .unwrap();
+        assert!(sentence.body.contains("<=>"));
+        assert!(
+            !sentence.body.contains('~'),
+            "a repeated set member is not self-disjoint: {sentence:?}"
+        );
+    }
+}
+
+#[test]
 fn singleton_boolean_classes_keep_formula_arity() {
     for (constructor, members, expected) in [
         ("unionOf", "(ex:Only)", "I|https://example.org/Only"),
@@ -694,6 +813,7 @@ fn boolean_classes_refuse_malformed_uninterpreted_and_excluded_support() {
         "ex:C a logic:Datarange ; logic:unionOf (ex:A ex:B) .",
         "ex:C logic:unionOf (ex:A ex:B) ; logic:standpoint ex:observer .",
         "ex:C logic:unionOf (ex:Unsupported) . ex:Unsupported logic:onProperty ex:p ; logic:minQualifiedCardinality 2 ; logic:onClass ex:A .",
+        "ex:C logic:disjointUnionOf (ex:A ex:Unsupported) . ex:Unsupported logic:onProperty ex:p ; logic:minQualifiedCardinality 2 ; logic:onClass ex:A .",
     ] {
         let (_, projection) = project(&format!(
             "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
@@ -766,7 +886,7 @@ fn boolean_class_lists_fail_closed_instead_of_admitting_a_prefix() {
             "{projection:?}"
         );
     }
-    for constructor in ["unionOf", "intersectionOf", "oneOf"] {
+    for constructor in ["unionOf", "intersectionOf", "oneOf", "disjointUnionOf"] {
         let (_, projection) = project(&format!(
             "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
              <https://example.org/C> logic:{constructor} () ."
@@ -871,6 +991,100 @@ fn shared_boolean_list_cells_keep_each_selected_class_owner() {
             "{problem}"
         );
         assert!(problem.contains("I|https://example.org/Member"));
+    }
+}
+
+#[test]
+fn source_self_restrictions_are_local_laws_with_native_boolean_flags() {
+    use crate::frontend::{AdmittedSemanticUnit, SemanticUnitDisposition};
+    use crate::ir::{Formula, Term};
+
+    for flag in ["true", "\"1\"^^xsd:boolean"] {
+        let theory = compile(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
+             @prefix xsd: <http://www.w3.org/2001/XMLSchema#> . \
+             @prefix ex: <https://example.org/> . \
+             ex:Agent logic:subClassOf _:self . \
+             _:self a logic:Restriction ; logic:onProperty ex:knows ; logic:hasSelf {flag} ."
+        ));
+        assert!(
+            theory
+                .program()
+                .axioms
+                .iter()
+                .any(|axiom| axiom.predicate == "https://blackcatinformatics.ca/logic/hasSelf"),
+            "the canonical compiler must retain the self constructor"
+        );
+        let admission =
+            SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));
+        let projection = project_tptp_fof(&theory, &admission);
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Complete,
+            "{flag}: {projection:?}"
+        );
+        let definition = admission
+            .admitted()
+            .find_map(|unit| {
+                if let SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::ClassDefinition(
+                    definition,
+                )) = &unit.disposition
+                {
+                    Some(definition)
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+        let Formula::Forall { vars, body } = &definition.formula else {
+            panic!("universally scoped class definition")
+        };
+        assert_eq!(vars, &["class_member"]);
+        let Formula::Iff(_, self_edge) = body.as_ref() else {
+            panic!("local class equivalence, not global reflexivity")
+        };
+        let Formula::Atom { relation, args } = self_edge.as_ref() else {
+            panic!("self-edge condition")
+        };
+        assert_eq!(relation, &Term::Iri("https://example.org/knows".into()));
+        assert_eq!(
+            args,
+            &vec![
+                Term::Var("class_member".into()),
+                Term::Var("class_member".into())
+            ]
+        );
+    }
+}
+
+#[test]
+fn source_self_restrictions_refuse_false_untyped_invalid_and_scoped_flags() {
+    for (flag, extra) in [
+        ("false", ""),
+        ("\"0\"^^xsd:boolean", ""),
+        ("\"true\"", ""),
+        ("\"true\"@en", ""),
+        ("\"yes\"^^xsd:boolean", ""),
+        ("\" true \"^^xsd:boolean", ""),
+        ("\"TRUE\"^^xsd:boolean", ""),
+        ("true", "; logic:standpoint ex:observer"),
+    ] {
+        let (_, projection) = project(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . \
+             @prefix xsd: <http://www.w3.org/2001/XMLSchema#> . \
+             @prefix ex: <https://example.org/> . \
+             ex:Self logic:onProperty ex:knows ; logic:hasSelf {flag} {extra} ."
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Blocked,
+            "{flag} {extra}: {projection:?}"
+        );
+        assert!(projection.problem.is_none());
+        assert!(projection.blockers.iter().any(|blocker| matches!(
+            blocker.code.as_str(),
+            "UNSUPPORTED_CLASS_EXPRESSION" | "CONTEXT_ERASURE_FORBIDDEN"
+        )));
     }
 }
 

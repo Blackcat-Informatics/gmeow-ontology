@@ -208,7 +208,7 @@ impl AdmissionBuilder<'_> {
         if fields.keys().any(|local| {
             matches!(
                 local.as_str(),
-                "unionOf" | "intersectionOf" | "complementOf" | "oneOf"
+                "unionOf" | "intersectionOf" | "complementOf" | "oneOf" | "disjointUnionOf"
             )
         }) {
             return self.lower_boolean_class(node, &fields, support, roots);
@@ -216,7 +216,7 @@ impl AdmissionBuilder<'_> {
         if let Some(unsupported) = fields.keys().find(|local| {
             !matches!(
                 local.as_str(),
-                "onProperty" | "someValuesFrom" | "allValuesFrom" | "hasValue"
+                "onProperty" | "someValuesFrom" | "allValuesFrom" | "hasValue" | "hasSelf"
             )
         }) {
             return Err(unsupported_class(format!(
@@ -270,6 +270,35 @@ impl AdmissionBuilder<'_> {
         let y = Term::Var("class_value".into());
         let mut parts = Vec::new();
         let mut dependencies = BTreeSet::new();
+        if let Some(flag) = fields.get("hasSelf") {
+            let TermRef::Literal {
+                lexical,
+                datatype,
+                language: None,
+                direction: None,
+            } = dataset.resolve(*flag)
+            else {
+                return Err(unsupported_class(
+                    "hasSelf requires an admitted true native boolean",
+                ));
+            };
+            let TermRef::Iri("http://www.w3.org/2001/XMLSchema#boolean") =
+                dataset.resolve(datatype)
+            else {
+                return Err(unsupported_class(
+                    "hasSelf requires an admitted true native boolean",
+                ));
+            };
+            if !matches!(
+                purrdf::xsd::parse_by_iri(lexical, "http://www.w3.org/2001/XMLSchema#boolean"),
+                Ok(Some(purrdf::xsd::XsdValue::Boolean(true)))
+            ) {
+                return Err(unsupported_class(
+                    "hasSelf requires an admitted true native boolean",
+                ));
+            }
+            parts.push(atom(property, vec![x.clone(), x.clone()]));
+        }
         for local in ["someValuesFrom", "allValuesFrom", "hasValue"] {
             let Some(value) = fields.get(local) else {
                 continue;
@@ -355,11 +384,17 @@ impl AdmissionBuilder<'_> {
             ));
         }
         let (constructor, value) = fields.first_key_value().expect("one constructor");
-        let members = if constructor == "complementOf" {
+        let mut members = if constructor == "complementOf" {
             vec![*value]
         } else {
             self.selected_class_list(*value, &mut support)?
         };
+        if constructor == "disjointUnionOf" {
+            // This constructor takes a set. Repeating a source member must not
+            // manufacture a self-disjointness law that forces it to be empty.
+            let mut distinct = BTreeSet::new();
+            members.retain(|member| distinct.insert(*member));
+        }
         let mut constants = BTreeMap::new();
         let mut bind = |id| -> Result<Term, ClassRefusal> {
             if !matches!(dataset.resolve(id), TermRef::Iri(_) | TermRef::Blank { .. }) {
@@ -408,20 +443,39 @@ impl AdmissionBuilder<'_> {
                 vec![x.clone(), bind(member)?],
             ));
         }
+        let mut disjointness = Vec::new();
+        if constructor == "disjointUnionOf" {
+            for (index, left) in parts.iter().enumerate() {
+                for right in &parts[index + 1..] {
+                    disjointness.push(Formula::Not(Box::new(Formula::And(vec![
+                        left.clone(),
+                        right.clone(),
+                    ]))));
+                }
+            }
+        }
         let condition = match constructor.as_str() {
             "complementOf" => Formula::Not(Box::new(parts.pop().expect("one complement"))),
             _ if parts.len() == 1 => parts.pop().expect("one member"),
             "intersectionOf" => Formula::And(parts),
             _ => Formula::Or(parts),
         };
+        let membership = Formula::Iff(
+            Box::new(atom(LOGIC_INSTANCE_OF, vec![x, root])),
+            Box::new(condition),
+        );
+        let body = if disjointness.is_empty() {
+            membership
+        } else {
+            let mut laws = vec![membership];
+            laws.extend(disjointness);
+            Formula::And(laws)
+        };
         Ok(ClassLowering {
             definition: SourceClassDefinition {
                 formula: Formula::Forall {
                     vars: vec!["class_member".into()],
-                    body: Box::new(Formula::Iff(
-                        Box::new(atom(LOGIC_INSTANCE_OF, vec![x, root])),
-                        Box::new(condition),
-                    )),
+                    body: Box::new(body),
                 },
                 constants,
             },

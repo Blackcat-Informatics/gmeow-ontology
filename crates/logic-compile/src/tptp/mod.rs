@@ -22,9 +22,13 @@
 //! Certified source-class laws cover object-property restrictions, Boolean
 //! membership and resource enumeration. Nonempty union/intersection lists lower
 //! to disjunction/conjunction, complement to classical negation, and resource
-//! enumeration to denotational equality without a unique-name assumption. Exact
+//! enumeration to denotational equality without a unique-name assumption.
+//! Disjoint unions carry both the covering law and every pairwise disjointness
+//! law, with repeated source members interpreted as a set. Exact
 //! source constants and selected list support remain attached to these laws;
 //! unsupported dependencies, value interpretations and contexts refuse admission.
+//! Local self restrictions use an admitted true native XSD boolean and define
+//! membership by the property's self-edge; they do not assert global reflexivity.
 
 mod writer;
 
