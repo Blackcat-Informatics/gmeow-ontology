@@ -13,6 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 mod classes;
 mod contracts;
+mod origins;
 
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 
@@ -361,6 +362,7 @@ impl SourceAdmission {
 
 struct AdmissionBuilder<'a> {
     theory: &'a CompiledTheory,
+    origins: origins::OriginIndex<'a>,
     selection: SourceSelection,
     selected_documents: BTreeSet<String>,
     units: Vec<SemanticUnitAdmission>,
@@ -378,6 +380,7 @@ impl<'a> AdmissionBuilder<'a> {
         };
         Self {
             theory,
+            origins: origins::OriginIndex::new(theory.source().origins()),
             selection,
             selected_documents,
             units: Vec::new(),
@@ -1131,21 +1134,10 @@ impl<'a> AdmissionBuilder<'a> {
     }
 
     fn statement_documents(&self, quad: QuadIds, carrier: SourceCarrier) -> BTreeSet<String> {
-        self.theory
-            .source()
-            .origins()
-            .iter()
-            .filter(|origin| {
-                origin
-                    .statements
-                    .binary_search(&SourceStatementBinding {
-                        canonical: quad,
-                        carrier,
-                    })
-                    .is_ok()
-            })
-            .map(|origin| origin.document.path.clone())
-            .collect()
+        self.origins.statement_documents(SourceStatementBinding {
+            canonical: quad,
+            carrier,
+        })
     }
 
     fn statement_selected(&self, quad: QuadIds, carrier: SourceCarrier) -> bool {
@@ -1154,18 +1146,7 @@ impl<'a> AdmissionBuilder<'a> {
     }
 
     fn node_documents(&self, node: SourceNode) -> BTreeSet<String> {
-        self.theory
-            .source()
-            .origins()
-            .iter()
-            .filter(|origin| {
-                origin
-                    .bindings
-                    .iter()
-                    .any(|binding| binding.canonical == node)
-            })
-            .map(|origin| origin.document.path.clone())
-            .collect()
+        self.origins.node_documents(node)
     }
 
     fn documents_selected(&self, documents: &BTreeSet<String>) -> bool {

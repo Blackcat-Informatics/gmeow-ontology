@@ -42,6 +42,11 @@
 
 mod writer;
 
+mod canon_admission;
+pub use canon_admission::{
+    CANON_ADMISSION_CHANNEL, CANON_ADMISSION_MEMBER, CanonAdmissionPublication,
+};
+
 mod protocol;
 pub use protocol::{
     FofTask, SzsAdmission, SzsOutcome, SzsProtocolError, SzsStatusObservation,

@@ -479,7 +479,7 @@ impl Stage for CompileLogicStage {
         CachePolicy::Persistent
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v41-native-rule-quotations"
+        "compile-logic.v42-canon-proof-admission"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
@@ -719,6 +719,13 @@ impl Stage for CompileLogicStage {
         arts.report_header.claimed_uplift_count = 0;
 
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        // Use the original compiled catalog, not the OPT/example-augmented
+        // projection program. Retain refusals as evidence, not a weaker theory.
+        artifacts.insert(
+            gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL.into(),
+            gmeow_logic_compile::tptp::CanonAdmissionPublication::from_compiled_source(&theory)
+                .to_bytes()?,
+        );
         artifacts.insert(
             CORRESPONDENCE_PLANS_PATH.into(),
             physical_plans.report_json()?,

@@ -2758,6 +2758,16 @@ fn build_reasoning_blob(
     // owned by `stage-export-logic`.
     let members = vec![
         (
+            gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER.to_owned(),
+            upstream
+                .get("stage-compile-logic")
+                .and_then(|product| {
+                    product.artifact(gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL)
+                })
+                .ok_or_else(|| stage_err("missing stage-compile-logic canon proof admission"))?
+                .to_vec(),
+        ),
+        (
             gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER.to_owned(),
             upstream
                 .get("stage-conformance")
@@ -3480,7 +3490,7 @@ impl Stage for SnapshotStage {
         // v35 ships the three termination-ladder EDB worlds that stage-reason consumes,
         // so repo-free object-level projection reconstructs the producer's exact EDB.
         // v36 shares both final native diagnostic reports for retained docs consumers.
-        "snapshot.v36-native-diagnostic-reports"
+        "snapshot.v37-canon-proof-admission"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

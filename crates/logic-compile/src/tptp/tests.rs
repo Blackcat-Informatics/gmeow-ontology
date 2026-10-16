@@ -20,6 +20,9 @@ mod owner_tests;
 #[path = "contracts.tests.rs"]
 mod contract_tests;
 
+#[path = "canon_admission.tests.rs"]
+mod canon_admission_tests;
+
 fn compile(source: &str) -> crate::frontend::CompiledTheory {
     let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).expect("valid RDF 1.2");
     PreparedLogicSource::new(&dataset)

@@ -79,6 +79,16 @@ fn build_reasoning_blob_folds_the_report_artifacts() {
     );
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     upstream.insert(
+        "stage-compile-logic".into(),
+        StageProduct::from_artifacts(
+            "stage-compile-logic",
+            BTreeMap::from([(
+                gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL.into(),
+                b"synthetic canon admission observation".to_vec(),
+            )]),
+        ),
+    );
+    upstream.insert(
         "stage-reason".to_string(),
         StageProduct::from_artifacts("stage-reason", artifacts),
     );
@@ -118,6 +128,7 @@ fn build_reasoning_blob_folds_the_report_artifacts() {
         [
             "reason/dl-el-crosscheck-report.ttl",
             "reason/perf-ledger.ttl",
+            gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
             gmeow_bundle_view::bundle_blobs::REASONED_GATES_MEMBER,
             gmeow_logic_compile::action_policy::BUNDLE_MEMBER,
             gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER,
@@ -128,6 +139,12 @@ fn build_reasoning_blob_folds_the_report_artifacts() {
         "REP_REASONING carries the report artifacts under bundle-relative keys"
     );
     // Missing artifact HARD-fails (no-optionality, fail-closed).
+    let compile_logic = upstream.remove("stage-compile-logic").unwrap();
+    assert!(
+        build_reasoning_blob(&upstream).is_err(),
+        "canon admission is required"
+    );
+    upstream.insert("stage-compile-logic".into(), compile_logic);
     upstream.remove("stage-verify-attestation");
     assert!(
         build_reasoning_blob(&upstream).is_err(),
