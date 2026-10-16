@@ -33,6 +33,27 @@ sufficient strategy and pays for heavy machinery only on the genuine residue (de
 projection applied to performance). One typed object, two roles: soundness and plan. See
 [`LOGIC-RUNTIME.md` § The native physical engine](LOGIC-RUNTIME.md#the-native-physical-engine--execution-and-optimization).
 
+### Declaration and execution
+
+A contract or preset declared in the selected ontology describes a configuration;
+its presence does not request execution under that configuration. A classical
+proof task retains the native configuration and its authored facet and closure
+support facts in a typed metatheory catalogue, outside the object-theory axioms.
+Several declared disciplines may coexist without installing their evaluation
+laws or asserting their configuration grammar as domain facts. A catalogue alone
+does not authorize an empty proof. In particular, a declared closed-world setting
+does not install a global negation-as-failure rule for the proof task.
+
+Execution requires the operation's explicit contract selection. Its capabilities
+and compatibility checks remain mandatory. The declaration's compiler errors,
+scoped meaning and dependencies on excluded source facts cannot be erased by
+classifying it as data.
+
+Single-valued facets reject conflicting declarations, including conflicts between
+a direct property and an expanded facet bundle. A closure-map key likewise
+rejects different closure values. Repeated identical values are idempotent;
+set-valued facets retain all selected values.
+
 ## The facets
 
 A `logic:ReasoningContract` makes a selection on each facet below. Each facet draws from an open

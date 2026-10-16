@@ -70,8 +70,8 @@ pub(super) fn record(
                     "expected exactly one store_conjecture name to remove",
                 ));
             }
-            let missing = purrdf::flat_dataset_from_quads(&missing)
-                .map_err(|message| super::stage_err(&message))?;
+            let missing =
+                purrdf::flat_dataset_from_quads(&missing).map_err(gmeow_errors::Diag::from)?;
             let mut orphan = original;
             let subject = RdfTerm::iri(format!(
                 "{}teleportOntology",
@@ -103,8 +103,8 @@ pub(super) fn record(
             ] {
                 orphan.push(RdfQuad::new(subject.clone(), predicate, object));
             }
-            let orphan = purrdf::flat_dataset_from_quads(&orphan)
-                .map_err(|message| super::stage_err(&message))?;
+            let orphan =
+                purrdf::flat_dataset_from_quads(&orphan).map_err(gmeow_errors::Diag::from)?;
             Ok(BTreeMap::from([
                 (
                     "missing_store_conjecture".to_owned(),

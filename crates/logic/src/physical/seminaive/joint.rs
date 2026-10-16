@@ -16,9 +16,7 @@ use super::{
     RoundCandidateBuffer, RoundExecution, RoundSnapshot, StepGovernor, StrataProgress,
     UnsupportedKind, commit_round, evaluate_round_candidates, record_candidate, seminaive_err,
 };
-use crate::physical::chase::{
-    ChaseAdmission, ExistentialRule, PreparedChaseRule, WitnessPolicy, chase_round,
-};
+use crate::physical::chase::{ChaseAdmission, ExistentialRule, PreparedChaseRule, chase_round};
 use crate::physical::dependency::ReadDependency;
 use crate::physical::effects::{EffectSchedule, ProducerEffect, StatementPattern};
 use crate::physical::plan::{Executable, RuleLayouts, compile_certified_stratum};
@@ -33,6 +31,7 @@ mod contextual;
 mod families;
 mod input;
 mod retained;
+pub(crate) mod source_grammar;
 pub(crate) use families::NativeWorldSnapshot;
 pub(crate) use retained::RetainedJoint;
 
@@ -153,50 +152,21 @@ impl JointProgram {
         );
         let layouts = RuleLayouts::new(rules)?;
         let producers = prepare_producers(producers)?;
-        Ok(NativeOutcome::Decided(Self::from_schedule(
-            &layouts,
-            &producers,
-            properties,
-            &families,
-            &admission_reads,
+        Ok(NativeOutcome::Decided(Self::with_layout(
+            Arc::new(JointLayout {
+                rules: layouts,
+                producers,
+                properties: properties.to_vec(),
+                family_arms: families,
+                family_reads: admission_reads,
+            }),
+            Arc::new(effects),
             JointOperation::Relational,
             semantics,
             schedule,
-            Arc::new(effects),
             None,
             admission,
         )))
-    }
-
-    fn from_schedule(
-        rules: &RuleLayouts,
-        producers: &[Arc<PreparedChaseRule>],
-        properties: &[PreparedPropertyRule],
-        family_arms: &[families::Arm],
-        family_reads: &[crate::reason::refute::native::NativeRead],
-        operation: JointOperation,
-        semantics: crate::native_semantics::SemanticVocabulary,
-        schedule: EffectSchedule,
-        local_effects: Arc<Vec<ProducerEffect>>,
-        source_contract: Option<[u8; 32]>,
-        admission: ChaseAdmission,
-    ) -> Self {
-        let layout = Arc::new(JointLayout {
-            rules: rules.clone(),
-            producers: producers.to_vec(),
-            properties: properties.to_vec(),
-            family_arms: family_arms.to_vec(),
-            family_reads: family_reads.to_vec(),
-        });
-        Self::with_layout(
-            layout,
-            local_effects,
-            operation,
-            semantics,
-            schedule,
-            source_contract,
-            admission,
-        )
     }
 
     fn with_layout(
@@ -380,7 +350,7 @@ impl JointProgram {
         governor: &mut StepGovernor,
         registry: &mut SkolemRegistry,
         mut native: Option<input::NativeInputBinding<'_>>,
-        mut retention: Option<&mut RetainedJoint>,
+        retention: Option<&mut RetainedJoint>,
     ) -> gmeow_errors::Result<NativeOutcome<JointMaterialization>> {
         let setup_started = Instant::now();
         tracing::info!(
@@ -563,33 +533,61 @@ impl JointProgram {
         // contextual publications capable of activating ordinary consumers.
         if let Some(modal) = &modal {
             for definition in modal.definition_patterns() {
-                if let Some(writer) = crate::physical::effects::scoped_definition_writer(
-                    native.as_ref().expect("native modal binding").flow,
+                let flow = native.as_ref().expect("native modal binding").flow;
+                let asserted = |fact: &crate::rule_ir::Fact| {
+                    runtimes
+                        .get(&definition.world)
+                        .is_some_and(|runtime| runtime.store.contains_key(&fact.key()))
+                };
+                if let Some((writer, write)) = crate::physical::effects::scoped_definition_writer(
+                    flow,
                     &effects,
                     &definition,
+                    false,
+                    &asserted,
                 ) {
                     return Err(gmeow_errors::Diag::of_kind(crate::error::NativeCoverage {
                         profile: "native-immutable-modal-source-v1".to_owned(),
                         source: writer.to_owned(),
-                        world: definition.world,
-                        detail:
-                            "reachable native producer can change selected modal definition grammar"
-                                .to_owned(),
+                        world: definition.world.clone(),
+                        detail: format!(
+                            "reachable native producer can change selected modal definition \
+                             grammar: its write {} overlaps the definition {}",
+                            flow.describe_pattern(write),
+                            flow.describe_pattern(&flow.ranged_pattern(definition.pattern.clone()))
+                        ),
                     }));
                 }
             }
         }
         if let Some(contextual) = &contextual {
             for definition in contextual.definition_patterns(runtimes.keys()) {
-                if let Some(writer) = crate::physical::effects::scoped_definition_writer(
-                    native.as_ref().expect("native contextual binding").flow,
+                let flow = native.as_ref().expect("native contextual binding").flow;
+                // Contextual frames bind their grammar from source once and re-read
+                // only attribution metadata at evaluation, so a clash on a basis
+                // subject changes nothing they read.
+                let asserted = |fact: &crate::rule_ir::Fact| {
+                    runtimes
+                        .get(&definition.world)
+                        .is_some_and(|runtime| runtime.store.contains_key(&fact.key()))
+                };
+                if let Some((writer, write)) = crate::physical::effects::scoped_definition_writer(
+                    flow,
                     &effects,
                     &definition,
+                    true,
+                    &asserted,
                 ) {
                     return Err(gmeow_errors::Diag::of_kind(crate::error::NativeCoverage {
                         profile: "native-immutable-contextual-source-v1".to_owned(),
-                        source: writer.to_owned(), world: definition.world.clone(),
-                        detail: "reachable native producer can change selected contextual definition grammar".to_owned(),
+                        source: writer.to_owned(),
+                        world: definition.world.clone(),
+                        detail: format!(
+                            "reachable native producer can change selected contextual definition \
+                             grammar: its write {} overlaps the definition {}",
+                            flow.describe_pattern(write),
+                            flow.describe_pattern(&flow.ranged_pattern(definition.pattern.clone()))
+                        ),
                     }));
                 }
             }
@@ -697,6 +695,19 @@ impl JointProgram {
             // stratum can still publish through successive frozen rounds. This
             // never advances a completed-read frontier or exposes a later stratum.
             let mut draining_retained = false;
+            // Datalog-first restricted chase: witness-minting producers fire only in a
+            // round that follows a Datalog-only round with nothing left to add, so every
+            // trigger is checked against the Datalog closure of what already exists.
+            // A witness obligation that derived facts already satisfy is never minted.
+            let has_minting = plans.values().any(|plan| {
+                let stratum = &plan.strata[index];
+                stratum.producers.iter().any(|producer| producer.mints())
+                    || stratum
+                        .properties
+                        .iter()
+                        .any(|property| property.witness_frontier.is_some())
+            });
+            let mut generative = false;
             let mut round_index = 0usize;
             loop {
                 let current_round = round_index;
@@ -729,6 +740,7 @@ impl JointProgram {
                         registry,
                         world,
                         self.witness_contract,
+                        generative,
                     )?;
                     truncated |= round.truncated;
                     inference_cut |= round.inference_cut;
@@ -832,6 +844,14 @@ impl JointProgram {
                 };
                 let any =
                     contextual_rows != 0 || rounds.values().any(|round| !round.entries.is_empty());
+                // Blocked reads wait on completion, not on witnesses: a stratum concludes
+                // blocked only after its witness producers have had their round as well.
+                if !any && !generative && has_minting && !truncated && !draining_retained {
+                    // Datalog has reached its fixpoint: let the witness producers fire.
+                    generative = true;
+                    continue;
+                }
+                generative = false;
                 if !any {
                     if let Some(reuse) = &mut reuse {
                         reuse.install_ready_introductions(index, &runtimes, registry)?;
@@ -840,6 +860,7 @@ impl JointProgram {
                         registry.commit_heads(world, &runtime.rel);
                         runtime.family.observe_committed(
                             &runtime.store,
+                            &runtime.rel,
                             &runtime.rows,
                             registry,
                         )?;
@@ -886,6 +907,9 @@ impl JointProgram {
                             .map(|row| row.predicate.clone())
                             .collect(),
                     );
+                    if let Some(pending) = &mut runtime.generative_changed {
+                        pending.extend(runtime.changed.iter().flatten().cloned());
+                    }
                     runtime.delta = Delta {
                         lo,
                         hi: runtime.rel.row_count(),
@@ -897,9 +921,12 @@ impl JointProgram {
                     reuse.install_ready_introductions(index, &runtimes, registry)?;
                 }
                 for runtime in runtimes.values_mut() {
-                    runtime
-                        .family
-                        .observe_committed(&runtime.store, &runtime.rows, registry)?;
+                    runtime.family.observe_committed(
+                        &runtime.store,
+                        &runtime.rel,
+                        &runtime.rows,
+                        registry,
+                    )?;
                 }
                 if commit_cut || truncated {
                     inference_exhausted |= commit_cut || inference_cut;
@@ -930,14 +957,16 @@ impl JointProgram {
         // analysis exhaustion only after every required observation finishes.
         for runtime in runtimes.values_mut() {
             runtime.family.finish(
-                &runtime.store,
-                &runtime.rel,
-                &runtime.rows,
-                registry,
+                families::FinalEvidence {
+                    store: &runtime.store,
+                    rel: &runtime.rel,
+                    rows: &runtime.rows,
+                    registry,
+                    complete: &runtime.progress.saturated_preds,
+                    terminal: &terminal,
+                },
                 &mut runtime.values,
                 &mut runtime.lists,
-                &runtime.progress.saturated_preds,
-                &terminal,
             )?;
         }
         if runtimes
@@ -1044,7 +1073,7 @@ impl JointProgram {
         sort_rows(&mut asserted);
         // A cut can leave retained higher-stratum introductions unpublished.
         // Only evidence for actual committed rows may escape this transaction.
-        if let Some(retained) = retention.as_deref_mut() {
+        if let Some(retained) = retention {
             registry.retain_committed_facts(&asserted);
             let binding = native.as_ref().expect("retention admitted a native source");
             retained.capture(
@@ -1126,37 +1155,23 @@ fn producer_admission(
     semantics: crate::native_semantics::SemanticVocabulary,
     ladder: crate::physical::chase::Ladder,
 ) -> ChaseAdmission {
-    // Dropping filters/NAF is a conservative producer over-approximation for
-    // termination. Arithmetic generation requires its own range certificate.
-    let mut termination_rules = producers.to_vec();
-    // A stratified reduction runs once on completed finite predecessors. Its
-    // output is a finite seed for later strata, never a recursive value inventor.
-    // Execution still requires the complete strict dependency certificate.
-    termination_rules.extend(rules.iter().filter(|r| r.reduction.is_none()).map(|r| {
-        ExistentialRule {
-            numeric: r.numeric.clone(),
-            rule_iri: r.rule_iri.clone(),
-            body: r.body.iter().filter(|a| !a.negated).cloned().collect(),
-            head: vec![r.head.clone()],
-            distinct: Vec::new(),
-            witness_frontier: None,
-            witness_policy: WitnessPolicy::FrontierSkolem,
-        }
-    }));
     let arithmetic: Vec<_> = rules
         .iter()
         .filter(|r| !r.builtins.is_empty() && head_generates_value(r))
         .map(|r| format!("{} has no certified arithmetic producer range", r.rule_iri))
         .collect();
-    for rule in &mut termination_rules {
-        for atom in rule.body.iter_mut().chain(&mut rule.head) {
-            semantics.abstract_atom(atom);
-        }
-    }
     if arithmetic.is_empty() {
-        let statements: Vec<_> = termination_rules
+        // Skolem flow may relax filters, but restricted blocking also needs the
+        // original clause's exactness. Preserve it before lowering either path.
+        let statements: Vec<_> = producers
             .iter()
             .map(crate::physical::chase::StatementRule::from_binary)
+            .chain(
+                rules
+                    .iter()
+                    .filter(|rule| rule.reduction.is_none())
+                    .map(crate::physical::chase::StatementRule::from_ordinary),
+            )
             .chain(
                 properties
                     .iter()
@@ -1286,6 +1301,12 @@ pub(crate) struct WorldRuntime {
     progress: StrataProgress,
     delta: Delta,
     changed: Option<BTreeSet<String>>,
+    /// Rows the witness-minting producers have not yet read: they run only in a
+    /// generative round, so their semi-naive span starts where they last gathered.
+    generative_lo: usize,
+    /// Predicates changed since the witness-minting producers last gathered;
+    /// `None` reads every predicate.
+    generative_changed: Option<BTreeSet<String>>,
     completed_reads: BTreeSet<crate::reason::refute::native::NativeRead>,
 }
 impl WorldRuntime {
@@ -1303,7 +1324,7 @@ impl WorldRuntime {
                 depth.push(ProofHeight::ASSERTED);
             }
         }
-        family.admit(&store)?;
+        family.admit(&store, &rel)?;
         Ok(Self {
             store,
             rel,
@@ -1320,6 +1341,8 @@ impl WorldRuntime {
             },
             delta: Delta::all(0),
             changed: None,
+            generative_lo: 0,
+            generative_changed: None,
             completed_reads: BTreeSet::new(),
         })
     }
@@ -1335,6 +1358,8 @@ impl WorldRuntime {
     fn start_stratum(&mut self, plan: &JointProgram, index: usize) {
         self.delta = Delta::all(self.rel.row_count());
         self.changed = None;
+        self.generative_lo = 0;
+        self.generative_changed = None;
         self.completed_reads = plan
             .read_completion
             .iter()
@@ -1452,6 +1477,7 @@ impl JointStratum {
         registry: &mut SkolemRegistry,
         world: &str,
         contract: WitnessContract,
+        generative: bool,
     ) -> gmeow_errors::Result<WorldRound> {
         let snapshot = RoundSnapshot {
             store: &state.store,
@@ -1472,13 +1498,15 @@ impl JointStratum {
             "reason phase boundary",
         );
         state.family.prepare_sources(
-            snapshot,
-            &state.rows,
-            registry,
+            families::RoundEvidence {
+                snapshot,
+                rows: &state.rows,
+                registry,
+                complete: &state.progress.saturated_preds,
+                observed: &state.completed_reads,
+            },
             &mut state.values,
             &mut state.lists,
-            &state.progress.saturated_preds,
-            &state.completed_reads,
         )?;
         tracing::info!(
             target: "pipeline_phase",
@@ -1536,21 +1564,36 @@ impl JointStratum {
             candidate_rows = round.entries.len(),
             "reason phase boundary",
         );
+        // Witness-minting producers read every row committed since they last gathered,
+        // however many Datalog-only rounds ran in between.
+        let generative_delta = Delta {
+            lo: state.generative_lo,
+            hi: state.rel.row_count(),
+        };
+        let generative_changed = state.generative_changed.clone();
         let mut property_truncated = false;
         let mut property_blocked = false;
         for property in &self.properties {
+            let minting = property.witness_frontier.is_some();
+            if minting && !generative {
+                continue;
+            }
             let visit = property.visit(
                 &state.rel,
-                state.delta,
+                if minting {
+                    generative_delta
+                } else {
+                    state.delta
+                },
                 &mut state.lists,
                 &mut state.values,
                 super::property::NativeWitnesses {
+                    admissions: &state.family.coverage,
                     world,
                     contract,
                     registry,
                     limit: governor.solution_cap(),
                 },
-                &state.family.coverage,
                 &mut |rule, head, premises| {
                     if !state.store.contains_key(&head.key()) {
                         round.insert(
@@ -1562,6 +1605,21 @@ impl JointStratum {
                     Ok(round.entries.len() <= governor.solution_cap())
                 },
             )?;
+            state.family.retain_guard_obstructions(
+                &property.source.rule_iri,
+                visit.obstructions,
+                &state.store,
+                &state.rel,
+                &state.rows,
+            )?;
+            if visit.admission_blocked && !property_blocked {
+                tracing::warn!(
+                    target: "native_obstruction",
+                    world,
+                    rule = property.source.rule_iri.as_str(),
+                    "native property admission withholds completed reads"
+                );
+            }
             property_blocked |= visit.admission_blocked;
             if !visit.complete {
                 property_truncated = true;
@@ -1591,24 +1649,50 @@ impl JointStratum {
             candidate_rows = round.entries.len(),
             "reason phase boundary",
         );
-        let chase_truncated = chase_round(
-            self.producers.iter().map(Arc::as_ref),
-            &state.rel,
-            governor.solution_cap(),
-            registry,
-            (world, contract),
-            state.changed.as_ref(),
-            |head, premises| {
-                if !state.store.contains_key(&head.key()) {
-                    round.insert(
-                        head.key(),
-                        record_candidate(premises.rule_iri, head, premises.source_facts, snapshot)?,
-                        ProvenanceMode::Record,
-                    )?;
-                }
-                Ok(())
-            },
-        )?;
+        // Non-minting producers run every round against this round's delta; minting
+        // producers run only in a generative round, against every change since they
+        // last gathered. Datalog-first needs the whole non-generating closure in place
+        // before any trigger is checked.
+        let mut chase_truncated = false;
+        for (minting, changed) in [
+            (false, state.changed.clone()),
+            (true, generative_changed.clone()),
+        ] {
+            if minting && !generative {
+                continue;
+            }
+            chase_truncated |= chase_round(
+                self.producers
+                    .iter()
+                    .map(Arc::as_ref)
+                    .filter(|producer| producer.mints() == minting),
+                &state.rel,
+                governor.solution_cap(),
+                registry,
+                (world, contract),
+                changed.as_ref(),
+                |head, premises| {
+                    if !state.store.contains_key(&head.key()) {
+                        round.insert(
+                            head.key(),
+                            record_candidate(
+                                premises.rule_iri,
+                                head,
+                                premises.source_facts,
+                                snapshot,
+                            )?,
+                            ProvenanceMode::Record,
+                        )?;
+                    }
+                    Ok(())
+                },
+            )?;
+        }
+        if generative {
+            // The minting producers have now read every row up to this snapshot.
+            state.generative_lo = generative_delta.hi;
+            state.generative_changed = Some(BTreeSet::new());
+        }
         tracing::info!(
             target: "pipeline_phase",
             stage = "stage-reason",
@@ -1633,13 +1717,15 @@ impl JointStratum {
         );
         state.family.round(
             &self.families,
-            snapshot,
-            &state.rows,
-            registry,
+            families::RoundEvidence {
+                snapshot,
+                rows: &state.rows,
+                registry,
+                complete: &state.progress.saturated_preds,
+                observed: &state.completed_reads,
+            },
             &mut state.values,
             &mut state.lists,
-            &state.progress.saturated_preds,
-            &state.completed_reads,
             &mut round,
         )?;
         tracing::info!(
@@ -1656,6 +1742,15 @@ impl JointStratum {
         let inference_cut = property_truncated || chase_truncated;
         let truncated = inference_cut || state.family.analysis_exhausted();
         let blocked = if property_blocked || state.family.positive_blocked(&self.families) {
+            let obstructions = state.family.blocking_obstructions(&self.families);
+            tracing::warn!(
+                target: "native_obstruction",
+                world,
+                property_admission_blocked = property_blocked,
+                obstructions = obstructions.len(),
+                detail = %obstructions.iter().take(12).cloned().collect::<Vec<_>>().join(" | "),
+                "retained native obstruction withholds completed reads"
+            );
             if self.blocked_reads.is_empty() {
                 return Err(seminaive_err(
                     "obstructed native producer has no declared completion dependency",

@@ -65,7 +65,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, TermRef, TermValue};
+use purrdf::{RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
 
 use crate::annotation::AnnotationContract;
 use crate::runtime::{
@@ -437,7 +437,7 @@ fn input_triples(input: &RdfDataset) -> Vec<(String, String, String)> {
 /// Returns `Err` if the promoted dataset fails its freeze-time structural contract.
 fn promote(input: &RdfDataset) -> gmeow_errors::Result<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let world = builder.intern_iri(REFINE_WORLD);
+    let world = builder.intern_iri(REFINE_WORLD)?;
     for quad in input.quads() {
         let (TermRef::Iri(subject), TermRef::Iri(predicate)) =
             (input.resolve(quad.s), input.resolve(quad.p))
@@ -446,26 +446,14 @@ fn promote(input: &RdfDataset) -> gmeow_errors::Result<RdfDataset> {
         };
         let (subject, predicate) = (subject.to_owned(), predicate.to_owned());
         let object = match input.resolve(quad.o) {
-            TermRef::Iri(iri) => {
-                let iri = iri.to_owned();
-                builder.intern_iri(&iri)
-            }
-            TermRef::Literal {
-                lexical, language, ..
-            } => {
-                let literal = RdfLiteral {
-                    lexical_form: lexical.to_owned(),
-                    datatype: None,
-                    language: language.map(str::to_owned),
-                    direction: None,
-                };
-                builder.intern_literal(literal)
+            TermRef::Iri(_) | TermRef::Literal { .. } => {
+                builder.intern_owned_term(&input.to_owned_term(quad.o))?
             }
             _ => continue,
         };
-        let s = builder.intern_iri(&subject);
-        let p = builder.intern_iri(&predicate);
-        builder.push_quad(s, p, object, Some(world));
+        let s = builder.intern_iri(&subject)?;
+        let p = builder.intern_iri(&predicate)?;
+        builder.push_quad(s, p, object, Some(world))?;
     }
     own(builder)
 }
@@ -477,20 +465,18 @@ fn promote(input: &RdfDataset) -> gmeow_errors::Result<RdfDataset> {
 /// Returns `Err` if the seed dataset fails its freeze-time structural contract.
 fn seed_edb(task: &str, fragment: &str) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
-    let world = builder.intern_iri(REFINE_WORLD);
-    let operation = builder.intern_iri(REFINE_OPERATION);
+    let world = builder.intern_iri(REFINE_WORLD)?;
+    let operation = builder.intern_iri(REFINE_OPERATION)?;
     for (predicate, object) in [
         (RDF_TYPE, format!("{LOGIC_NS}RefinementEpisode")),
         (&format!("{LOGIC_NS}refinesStep"), task.to_owned()),
         (&format!("{LOGIC_NS}searchFragment"), fragment.to_owned()),
     ] {
-        let p = builder.intern_iri(predicate);
-        let o = builder.intern_iri(&object);
-        builder.push_quad(operation, p, o, Some(world));
+        let p = builder.intern_iri(predicate)?;
+        let o = builder.intern_iri(&object)?;
+        builder.push_quad(operation, p, o, Some(world))?;
     }
-    builder
-        .freeze()
-        .map_err(|e| refine_err(format!("freeze the refinement world: {e}")))
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Freeze a builder into an OWNED dataset (the session façade takes owned datasets).
@@ -500,9 +486,7 @@ fn seed_edb(task: &str, fragment: &str) -> gmeow_errors::Result<std::sync::Arc<R
 /// Returns `Err` if the freeze fails, or if the freshly-frozen dataset is unexpectedly
 /// shared — an internal-invariant failure, never a degraded success.
 fn own(builder: RdfDatasetBuilder) -> gmeow_errors::Result<RdfDataset> {
-    let frozen = builder
-        .freeze()
-        .map_err(|e| refine_err(format!("freeze the refinement world: {e}")))?;
+    let frozen = builder.freeze().map_err(gmeow_errors::Diag::from)?;
     std::sync::Arc::try_unwrap(frozen).map_err(|_| {
         refine_err(
             "means–end refinement: a freshly-frozen refinement dataset was unexpectedly shared"

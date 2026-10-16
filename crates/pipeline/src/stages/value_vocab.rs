@@ -395,7 +395,7 @@ pub(crate) fn load_ontology_store(root: &Path) -> Result<Arc<RdfDataset>, gmeow_
         parsed.push(ds);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    Ok(Arc::new(RdfDataset::union(&refs)))
+    Ok(Arc::new(RdfDataset::union(&refs)?))
 }
 
 fn err(message: impl Into<String>) -> gmeow_errors::Diag {

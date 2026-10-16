@@ -125,6 +125,8 @@ sub record_transform {
         ? 'decode'
         : undef;
     if (defined $kind) {
+        $state->{nodes}[$result]{read} = 1
+            if $name =~ /(?:^|::)parse_\w+_path$/;
         push @{$state->{sinks}}, [$result, $offset, $name, $kind];
     }
 }
@@ -166,7 +168,7 @@ sub invocation {
 }
 
 sub call {
-    my ($state, $context, $name, $offset, $method, @arguments) = @_;
+    my ($state, $context, $name, $offset, $method, $mutable, @arguments) = @_;
     if (my $function = $method ? undef : local_function($state, $context, $name)) {
         # Moving a test beside its parser cannot erase the parsing boundary.
         # Follow local returns as before, and independently record authored bytes
@@ -176,6 +178,11 @@ sub call {
         for my $i (0 .. $#arguments) {
             edge($state, $instance->{params}[$i], $arguments[$i])
                 if defined $instance->{params}[$i];
+            # A mutable output parameter also carries callee writes back to its
+            # caller, including recursive path collectors returning unit.
+            edge($state, $mutable->[$i], $instance->{params}[$i])
+                if $function->{param_mutable}[$i]
+                    && defined $mutable->[$i] && defined $instance->{params}[$i];
         }
         record_corpus_reader($state, $instance->{result}, $name);
         return $instance->{result};
@@ -264,11 +271,24 @@ sub expression {
                 my $close = $state->{tokens}[$open]{close};
                 my @spans = parts($state, $open + 1, $close, ',');
                 my @arguments = map { expression($state, $context, @$_) } @spans;
+                my @mutable = map {
+                    my ($first, $last) = @$_;
+                    $last == $first + 3 && text_at($state, $first) eq '&'
+                        && text_at($state, $first + 1) eq 'mut'
+                        ? binding($state, $context, text_at($state, $first + 2))
+                        : $last == $first + 1 && text_at($state, $first) =~ /^[A-Za-z_]\w*$/
+                        ? binding($state, $context, text_at($state, $first)) : undef
+                } @spans;
                 # A method's receiver carries source origin too (source.as_bytes(),
                 # File::open(path).read_to_string(...), grammar_source.parse(), ...).
                 my $method = $i > $start && text_at($state, $i - 1) eq '.';
                 unshift @arguments, node($state, @values) if $method;
-                my $result = call($state, $context, $name, $token->{offset}, $method, @arguments);
+                my $result = call($state, $context, $name, $token->{offset}, $method,
+                    \@mutable, @arguments);
+                if ($method && $name =~ /^(?:push|extend|insert)$/ && @values) {
+                    edge($state, $values[-1], @arguments[1 .. $#arguments])
+                        if @arguments > 1;
+                }
                 if ($method && $name =~ /^read_to_(?:string|end)$/) {
                     for my $span (@spans) {
                         my ($first, $last) = @$span;
@@ -382,17 +402,21 @@ sub scan {
         $cursor++ while $cursor <= $#$tokens && text_at($state, $cursor) !~ /^[({;]$/;
         next unless text_at($state, $cursor) eq '(';
         my $close = $tokens->[$cursor]{close};
-        my @param_names;
+        my (@param_names, @param_mutable);
         for my $part (parts($state, $cursor + 1, $close, ',')) {
             my ($first, $last) = @$part;
             $first++ while $first < $last && text_at($state, $first) =~ /^(?:&|mut|ref)$/;
             push @param_names, text_at($state, $first);
+            push @param_mutable, scalar grep {
+                text_at($state, $_) eq '&' && text_at($state, $_ + 1) eq 'mut'
+            } $first .. $last - 1;
         }
         $cursor = $close + 1;
         $cursor++ while $cursor <= $#$tokens && text_at($state, $cursor) !~ /^[{;]$/;
         next unless text_at($state, $cursor) eq '{';
         @$context{qw(start end param_names key)} =
             ($cursor + 1, $tokens->[$cursor]{close}, \@param_names, join '::', @scope, $name);
+        $context->{param_mutable} = \@param_mutable;
         $state->{functions}{$context->{key}} = $context;
         if ($test_file || grep { $_->[0] <= $i && $_->[1] > $i } @tests) {
             push @roots, $context;

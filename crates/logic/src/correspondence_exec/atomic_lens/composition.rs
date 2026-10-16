@@ -208,7 +208,9 @@ impl<'a> CompleteFocus<'a> {
             .named_graphs()
             .map(|id| state.carrier.term_value(id))
             .collect::<Result<std::collections::BTreeSet<_>, _>>()
-            .map_err(|error| exec_error(format!("resolve published graph: {error}")))?;
+            .map_err(|error| {
+                gmeow_errors::Diag::from(error).with_context("resolve published graph")
+            })?;
         if !published_focus || state.augmented.complement.graphs != published_graphs {
             return Err(exec_error(
                 "intermediate focus is not its bound complete publication",
@@ -312,14 +314,14 @@ impl AtomicCompositionState {
         let source = updated
             .carrier()
             .materialize()
-            .map_err(|error| exec_error(error.to_string()))?;
+            .map_err(gmeow_errors::Diag::from)?;
         let actual = self.program.acquire(source)?.get();
-        Ok(compare_graphs(
+        compare_graphs(
             &case(identity),
             "composed get(put(v, s)) = v",
             actual.dataset(),
             &view,
-        ))
+        )
     }
 
     /// Check two independently selected successive edits against their direct put.
@@ -428,10 +430,10 @@ fn compare_states(
     let actual = actual
         .carrier()
         .materialize()
-        .map_err(|error| exec_error(error.to_string()))?;
+        .map_err(gmeow_errors::Diag::from)?;
     let expected = expected
         .carrier()
         .materialize()
-        .map_err(|error| exec_error(error.to_string()))?;
-    Ok(compare_graphs(&case(identity), law, &actual, &expected))
+        .map_err(gmeow_errors::Diag::from)?;
+    compare_graphs(&case(identity), law, &actual, &expected)
 }

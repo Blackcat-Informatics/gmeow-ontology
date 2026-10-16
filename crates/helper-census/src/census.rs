@@ -221,12 +221,15 @@ pub(crate) const EXTERN_PACKAGE: &str = "<dependency>";
 ///
 /// An [`EXTERN_HOME`] path is taken as written: the dependency is not scanned, and
 /// no workspace definition may stand in for it.
-pub(crate) fn home(job: &Job, workspace: &Workspace) -> Result<Home, String> {
+pub(crate) fn home(job: &Job, workspace: &Workspace) -> Result<Home, gmeow_errors::diag::Diag> {
     if let Some(path) = job.home.strip_prefix(EXTERN_HOME) {
         if path.trim().is_empty() || !path.contains("::") {
-            return Err(format!(
-                "job `{}`: external home `{}` must name a dependency item path",
-                job.id, job.home
+            return Err(crate::error::admission(
+                crate::error::Operation::ResolveHome,
+                format!(
+                    "job `{}`: external home `{}` must name a dependency item path",
+                    job.id, job.home
+                ),
             ));
         }
         return Ok(Home {
@@ -235,9 +238,12 @@ pub(crate) fn home(job: &Job, workspace: &Workspace) -> Result<Home, String> {
         });
     }
     let symbol = workspace.resolve(&job.home).ok_or_else(|| {
-        format!(
-            "job `{}`: home `{}` does not resolve to a defined item",
-            job.id, job.home
+        crate::error::admission(
+            crate::error::Operation::ResolveHome,
+            format!(
+                "job `{}`: home `{}` does not resolve to a defined item",
+                job.id, job.home
+            ),
         )
     })?;
     let package = workspace.definitions[&symbol].package.clone();
@@ -780,7 +786,7 @@ pub(crate) fn check_findings(workspace: &Workspace, ledger: &Ledger) -> Vec<Stri
     }
     for job in &ledger.jobs {
         match home(job, workspace) {
-            Err(error) => findings.push(error),
+            Err(error) => findings.push(format!("{error:#}")),
             Ok(resolved) => {
                 for found in matches(job, workspace, &resolved.package) {
                     if !found.in_home && !found.variant {
@@ -802,7 +808,10 @@ pub(crate) fn check_findings(workspace: &Workspace, ledger: &Ledger) -> Vec<Stri
 }
 
 /// The human `--census` listing for one job.
-pub(crate) fn census_lines(job: &Job, workspace: &Workspace) -> Result<Vec<String>, String> {
+pub(crate) fn census_lines(
+    job: &Job,
+    workspace: &Workspace,
+) -> Result<Vec<String>, gmeow_errors::diag::Diag> {
     let resolved = home(job, workspace)?;
     let found = matches(job, workspace, &resolved.package);
     let mut lines = vec![format!(

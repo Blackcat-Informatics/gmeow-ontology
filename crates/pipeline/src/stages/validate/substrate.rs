@@ -138,7 +138,7 @@ pub(super) fn project(source: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDatase
         graph: source.term_id_by_iri(GRAPH_PROVENANCE),
     };
     let mut builder = RdfDatasetBuilder::new();
-    DatasetImporter::new(&mut builder, &view).append();
+    DatasetImporter::new(&mut builder, &view)?.append()?;
     builder.freeze().map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("native substrate A-Box projection: {error}"),

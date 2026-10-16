@@ -78,7 +78,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// proof checker re-derives as exactly that atom. Every field is RDF-serializable
 /// (strings), so the
 /// pipeline can fold it without reaching into the engine's private term handles.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GoalDirectedAnswer {
     /// The ground answer atom rendered to its functional surface, e.g.
     /// `add(s(s(zero)),s(zero),s(s(s(zero))))`.
@@ -98,7 +98,7 @@ pub struct GoalDirectedAnswer {
 /// the observable surface that makes three-valued negation a SHIPPED behaviour. Unlike a
 /// two-valued proof-checked answer, a verdict can be `undefined` (an atom trapped in a
 /// negative loop), so it is a plain three-valued string surface, never an `xsd:boolean`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GoalDirectedVerdict {
     /// The probed ground atom rendered to its functional surface, e.g. `win(a)`.
     pub atom: String,
@@ -108,7 +108,7 @@ pub struct GoalDirectedVerdict {
 
 /// One evaluated goal-directed demonstrator: its stable name, prose description, rendered
 /// goal template, budget status, every proof-checked answer, and any probed WFS verdicts.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GoalDirectedEvaluation {
     /// The FULL authored `logic:ReasoningProgram` IRI — the demonstrator's collision-free
     /// identity. Every minted resource IRI (query / answer / verdict / program node) folds
@@ -202,9 +202,9 @@ fn evaluate_demonstrator(
         .iter()
         .map(|probe| render(&dag, *probe))
         .collect();
-    // `resolve_fol` returns a `FolControl` directly (no `Result`): an `Unsupported` decision is a
-    // structural refusal of the backward engine, mapped here to a hard `Physical` diagnostic.
-    let outcome = match resolve_fol(&mut dag, &program, &ctx, &GROUNDING_BUDGET) {
+    // Native storage failures propagate separately from the backward engine's
+    // structural Unsupported decision, which remains a hard Physical diagnostic.
+    let outcome = match resolve_fol(&mut dag, &program, &ctx, &GROUNDING_BUDGET)? {
         FolControl::Decided(outcome) => outcome,
         FolControl::Unsupported(kind) => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
@@ -343,8 +343,8 @@ fn render_clause(dag: &TermDag, clause: &FolClause) -> String {
 }
 
 /// Intern an atomic IRI leaf under a program-local surface name.
-fn leaf(dag: &mut TermDag, s: &str) -> NodeId {
-    dag.intern_leaf(s)
+fn leaf(dag: &mut TermDag, s: &str) -> gmeow_errors::Result<NodeId> {
+    Ok(dag.intern_leaf(s)?)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────
@@ -404,24 +404,24 @@ fn lower_term(
     scope: &mut VarScope,
 ) -> gmeow_errors::Result<NodeId> {
     Ok(match term {
-        Term::Iri(s) => dag.intern_leaf(s),
-        Term::Literal(literal) => dag.intern_leaf(&encode_literal(literal)),
+        Term::Iri(s) => dag.intern_leaf(s)?,
+        Term::Literal(literal) => dag.intern_leaf(&encode_literal(literal))?,
         Term::Var(name) => {
             if let Some((_, node)) = scope.get(name) {
                 *node
             } else {
-                let (meta, node) = dag.fresh_meta();
+                let (meta, node) = dag.fresh_meta()?;
                 scope.insert(name.clone(), (meta, node));
                 node
             }
         }
         Term::App { symbol, args } => {
-            let op = dag.intern_leaf(symbol);
+            let op = dag.intern_leaf(symbol)?;
             let mut arg_nodes = Vec::with_capacity(args.len());
             for a in args {
                 arg_nodes.push(lower_term(dag, a, scope)?);
             }
-            dag.intern_app(op, arg_nodes)
+            dag.intern_app(op, arg_nodes)?
         }
         Term::SequenceMarker(name) => {
             return Err(reasoning_program_err(format!(
@@ -449,7 +449,7 @@ fn lower_atom(
             for a in args {
                 arg_nodes.push(lower_term(dag, a, scope)?);
             }
-            Ok(dag.intern_app(op, arg_nodes))
+            Ok(dag.intern_app(op, arg_nodes)?)
         }
         other => Err(reasoning_program_err(format!(
             "reasoning-program atom position requires an atomic logic:Formula (a single \
@@ -634,7 +634,7 @@ pub(crate) fn lower_reasoning_program(
         let clause_sorts = sorts_in_scope(&VariableSortScope::Clause { key, occurrence });
         for (name, (meta, _)) in &scope {
             if let Some(sort_iri) = clause_sorts.get(name.as_str()) {
-                let sort_node = leaf(&mut dag, sort_iri);
+                let sort_node = leaf(&mut dag, sort_iri)?;
                 meta_sorts.insert(*meta, sort_node);
             }
         }
@@ -646,7 +646,7 @@ pub(crate) fn lower_reasoning_program(
     let query_sorts = sorts_in_scope(&VariableSortScope::Query);
     for (name, (meta, _)) in &query_scope {
         if let Some(sort_iri) = query_sorts.get(name.as_str()) {
-            let sort_node = leaf(&mut dag, sort_iri);
+            let sort_node = leaf(&mut dag, sort_iri)?;
             meta_sorts.insert(*meta, sort_node);
         }
     }
@@ -678,7 +678,7 @@ pub(crate) fn lower_reasoning_program(
     // computes its own reflexive-transitive closure — nothing about the lattice is hardcoded.
     let mut edges: Vec<(NodeId, NodeId)> = Vec::with_capacity(subsort_edges.len());
     for (sub, sup) in subsort_edges {
-        edges.push((leaf(&mut dag, sub), leaf(&mut dag, sup)));
+        edges.push((leaf(&mut dag, sub)?, leaf(&mut dag, sup)?));
     }
 
     // CONSTANT order-sort tagging (`SortContext::term_sorts`): `program.constant_sorts` is
@@ -710,9 +710,9 @@ pub(crate) fn lower_reasoning_program(
     }
     let mut term_sorts: BTreeMap<NodeId, NodeId> = BTreeMap::new();
     for (const_iri, sort_iris) in &const_types {
-        let const_node = leaf(&mut dag, const_iri);
+        let const_node = leaf(&mut dag, const_iri)?;
         let tagged = if let [single] = sort_iris.as_slice() {
-            leaf(&mut dag, single)
+            leaf(&mut dag, single)?
         } else {
             // A synthetic bottom sort, content-addressed on the constant IRI (deterministic and
             // never colliding with an authored sort), made a subsort of every asserted type.
@@ -720,9 +720,9 @@ pub(crate) fn lower_reasoning_program(
                 "{GMEOW}goal-directed/const-meet-sort/{}",
                 blake3::hash(const_iri.as_bytes()).to_hex()
             );
-            let synth_node = leaf(&mut dag, &synth_iri);
+            let synth_node = leaf(&mut dag, &synth_iri)?;
             for sort_iri in sort_iris {
-                let sort_node = leaf(&mut dag, sort_iri);
+                let sort_node = leaf(&mut dag, sort_iri)?;
                 edges.push((synth_node, sort_node));
             }
             synth_node

@@ -749,13 +749,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_logic::obligations::check_finite_closure",
-    "gmeow_logic::obligations::check_reachability"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_logic::physical::chase::collect_var",
     "gmeow_logic::physical::incremental_grounding::collect_vars"
    ]
@@ -1881,16 +1874,6 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_docs::example_crate::refresh_reviewed_coverage_golden::reviewed_coverage::fail",
-    "gmeow_mcp::example_crate::refresh_witness_describe::explorer_describe::fail",
-    "gmeow_mcp::example_crate::refresh_witness_describe::fail",
-    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail",
-    "gmeow_reason_wasm::example_crate::refresh_witness_conjecture::conjecture_witness::fail"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
     "gmeow_docs::render::concern_display",
     "gmeow_docs_model::slug::concern_display"
    ]
@@ -2447,6 +2430,15 @@
   {
    "kind": "shim",
    "members": [
+    "gmeow_mcp::example_crate::refresh_witness_describe::explorer_describe::fail",
+    "gmeow_mcp::example_crate::refresh_witness_describe::fail",
+    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail",
+    "gmeow_reason_wasm::example_crate::refresh_witness_conjecture::conjecture_witness::fail"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
     "gmeow_mcp::extension::ResourceRegistration::new",
     "gmeow_mcp::extension::ToolRegistration::new"
    ]
@@ -2811,7 +2803,7 @@
   "cli-shared-stdin": 1,
   "counting-allocator": 2,
   "escape-decode": 8,
-  "fixed-hasher-everywhere": 705,
+  "fixed-hasher-everywhere": 702,
   "fnv1a64": 5,
   "frame-le": 52,
   "grammar-ws": 14,

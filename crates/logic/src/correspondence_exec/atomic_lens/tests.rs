@@ -14,40 +14,62 @@ pub(super) const REIFIER: &str = "urn:gmeow:example:claim";
 
 pub(super) fn source() -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let subject = builder.intern_iri(SUBJECT);
-    let property = builder.intern_iri(SOURCE);
-    let old = builder.intern_iri("urn:gmeow:example:old");
-    let graph = builder.intern_iri(GRAPH);
-    let empty = builder.intern_iri(EMPTY_GRAPH);
-    builder.declare_named_graph(empty);
-    builder.push_quad(subject, property, old, Some(graph));
-    let quality = builder.intern_iri("urn:gmeow:example:persistent-quality");
-    let inheres = builder.intern_iri("urn:gmeow:example:inheresIn");
-    builder.push_quad(quality, inheres, subject, Some(graph));
-    let statement = builder.intern_triple(subject, property, old);
-    let reifier = builder.intern_iri(REIFIER);
-    builder.push_reifier_in_graph(reifier, statement, Some(graph));
-    let standpoint = builder.intern_iri("https://blackcatinformatics.ca/logic/standpoint");
-    builder.push_annotation_in_graph(reifier, standpoint, graph, Some(graph));
-    let provenance = builder.intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom");
-    let origin = builder.intern_iri("urn:gmeow:example:original-record");
-    builder.push_annotation_in_graph(reifier, provenance, origin, Some(graph));
-    let loss = builder.intern_iri("urn:gmeow:example:loss-evidence");
-    builder.push_quad(subject, loss, quality, None);
+    let subject = builder.intern_iri(SUBJECT).unwrap();
+    let property = builder.intern_iri(SOURCE).unwrap();
+    let old = builder.intern_iri("urn:gmeow:example:old").unwrap();
+    let graph = builder.intern_iri(GRAPH).unwrap();
+    let empty = builder.intern_iri(EMPTY_GRAPH).unwrap();
+    builder.declare_named_graph(empty).unwrap();
+    builder
+        .push_quad(subject, property, old, Some(graph))
+        .unwrap();
+    let quality = builder
+        .intern_iri("urn:gmeow:example:persistent-quality")
+        .unwrap();
+    let inheres = builder.intern_iri("urn:gmeow:example:inheresIn").unwrap();
+    builder
+        .push_quad(quality, inheres, subject, Some(graph))
+        .unwrap();
+    let statement = builder.intern_triple(subject, property, old).unwrap();
+    let reifier = builder.intern_iri(REIFIER).unwrap();
+    builder
+        .push_reifier_in_graph(reifier, statement, Some(graph))
+        .unwrap();
+    let standpoint = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/standpoint")
+        .unwrap();
+    builder
+        .push_annotation_in_graph(reifier, standpoint, graph, Some(graph))
+        .unwrap();
+    let provenance = builder
+        .intern_iri("http://www.w3.org/ns/prov#wasDerivedFrom")
+        .unwrap();
+    let origin = builder
+        .intern_iri("urn:gmeow:example:original-record")
+        .unwrap();
+    builder
+        .push_annotation_in_graph(reifier, provenance, origin, Some(graph))
+        .unwrap();
+    let loss = builder
+        .intern_iri("urn:gmeow:example:loss-evidence")
+        .unwrap();
+    builder.push_quad(subject, loss, quality, None).unwrap();
     builder.freeze().unwrap()
 }
 
 pub(super) fn edit(subject: &str, predicate: &str, value: Option<&str>) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let graph = builder.intern_iri(GRAPH);
-    let empty = builder.intern_iri(EMPTY_GRAPH);
-    builder.declare_named_graph(graph);
-    builder.declare_named_graph(empty);
+    let graph = builder.intern_iri(GRAPH).unwrap();
+    let empty = builder.intern_iri(EMPTY_GRAPH).unwrap();
+    builder.declare_named_graph(graph).unwrap();
+    builder.declare_named_graph(empty).unwrap();
     if let Some(value) = value {
-        let subject = builder.intern_iri(subject);
-        let predicate = builder.intern_iri(predicate);
-        let value = builder.intern_iri(value);
-        builder.push_quad(subject, predicate, value, Some(graph));
+        let subject = builder.intern_iri(subject).unwrap();
+        let predicate = builder.intern_iri(predicate).unwrap();
+        let value = builder.intern_iri(value).unwrap();
+        builder
+            .push_quad(subject, predicate, value, Some(graph))
+            .unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -147,9 +169,9 @@ fn deleting_focus_keeps_complement_without_retaining_edit_history() {
         &state.augmented.complement,
         &deleted.augmented.complement
     ));
-    assert!(Arc::ptr_eq(
-        deleted.augmented.complement.residual.base(),
-        &original
+    assert!(std::ptr::eq(
+        deleted.augmented.complement.residual.base().as_ref(),
+        original.as_ref()
     ));
     assert_eq!(deleted.carrier.stats().work.materializations, 0);
     assert_eq!(
@@ -242,20 +264,28 @@ fn acquisition_requires_statement_classification_before_selecting_its_focus() {
 fn edited_quoted_value_keeps_its_scoped_quality_identity_in_the_complement() {
     fn carrier(predicate: &str, lexical: &str, with_complement: bool) -> Arc<RdfDataset> {
         let mut builder = RdfDatasetBuilder::new();
-        let quality = builder.intern_blank("quality", purrdf::BlankScope(7));
-        let observation = builder.intern_iri(SUBJECT);
-        let property = builder.intern_iri(predicate);
-        let empty = builder.intern_blank("empty-context", purrdf::BlankScope(9));
-        builder.declare_named_graph(empty);
-        let quoted_property = builder.intern_iri("urn:gmeow:example:reportedLabel");
+        let quality = builder
+            .intern_blank("quality", purrdf::BlankScope(7))
+            .unwrap();
+        let observation = builder.intern_iri(SUBJECT).unwrap();
+        let property = builder.intern_iri(predicate).unwrap();
+        let empty = builder
+            .intern_blank("empty-context", purrdf::BlankScope(9))
+            .unwrap();
+        builder.declare_named_graph(empty).unwrap();
+        let quoted_property = builder
+            .intern_iri("urn:gmeow:example:reportedLabel")
+            .unwrap();
         let mut label = purrdf::RdfLiteral::language_tagged(lexical, "ar");
         label.direction = Some(purrdf::RdfTextDirection::Rtl);
-        let label = builder.intern_literal(label);
-        let quoted = builder.intern_triple(quality, quoted_property, label);
-        builder.push_quad(quality, property, quoted, None);
+        let label = builder.intern_literal(label).unwrap();
+        let quoted = builder
+            .intern_triple(quality, quoted_property, label)
+            .unwrap();
+        builder.push_quad(quality, property, quoted, None).unwrap();
         if with_complement {
-            let owns = builder.intern_iri("urn:gmeow:example:hasQuality");
-            builder.push_quad(observation, owns, quality, None);
+            let owns = builder.intern_iri("urn:gmeow:example:hasQuality").unwrap();
+            builder.push_quad(observation, owns, quality, None).unwrap();
         }
         builder.freeze().unwrap()
     }

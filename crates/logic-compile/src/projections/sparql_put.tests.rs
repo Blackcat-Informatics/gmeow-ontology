@@ -37,7 +37,7 @@ fn class_cell(
     let pattern = MappingPattern {
         anchor: "x".to_owned(),
         value: None,
-        atoms: vec![Item::Atom(type_atom("x", GM_MODEL_ARTIFACT))],
+        atoms: vec![Item::Atom(Box::new(type_atom("x", GM_MODEL_ARTIFACT)))],
         suppress_when: Vec::new(),
         project_when: Vec::new(),
         exclude_when: Vec::new(),
@@ -147,9 +147,11 @@ fn has(triples: &[TriplePattern], predicate: &str, object: TermPattern) -> bool 
 #[test]
 fn complete_over_multi_atom_emits_every_source_atom_bare_and_no_envelope() {
     let mut cell = class_cell("=", true, None);
-    cell.pattern
-        .atoms
-        .push(Item::Atom(predicate_atom("x", "urn:related", "y")));
+    cell.pattern.atoms.push(Item::Atom(Box::new(predicate_atom(
+        "x",
+        "urn:related",
+        "y",
+    ))));
     let (query, text) = emitted(&[cell]).unwrap();
     assert_eq!(
         template(&query),
@@ -265,7 +267,7 @@ fn mixed_profile_asserts_recovery_bare_and_reifies_the_lossy_lift_under_one_impo
     let recovery = class_cell("=", true, None);
     let mut lossy = class_cell("<=", false, Some(put_get_claim()));
     lossy.pattern.anchor = "y".into();
-    lossy.pattern.atoms = vec![Item::Atom(type_atom("y", GM_MODEL_ARTIFACT))];
+    lossy.pattern.atoms = vec![Item::Atom(Box::new(type_atom("y", GM_MODEL_ARTIFACT)))];
     let (query, text) = emitted(&[recovery, lossy]).unwrap();
     let triples = template(&query);
     assert!(
@@ -383,7 +385,7 @@ fn candidate_literal_claim_retains_datatype_and_direction_without_assertion() {
         let mut atom = predicate_atom("x", "urn:observed", "value");
         atom.object_var = None;
         atom.object_literal = Some(literal.clone());
-        cell.pattern.atoms = vec![Item::Atom(atom)];
+        cell.pattern.atoms = vec![Item::Atom(Box::new(atom))];
         let (query, _) = emitted(&[cell.clone()]).unwrap();
         let triples = template(&query);
         assert!(has(

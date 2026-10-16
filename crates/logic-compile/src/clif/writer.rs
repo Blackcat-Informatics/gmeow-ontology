@@ -580,11 +580,11 @@ fn path_shape_predications(shape: &crate::ir::PathShapeIr) -> Vec<String> {
 
 /// Render the native metadata view directly; no intermediate Turtle or parser.
 fn dataset_predications(ds: &RdfDataset) -> Vec<String> {
-    ds.quad_refs()
+    crate::graphutil::default_graph_pattern(ds, None, None, None)
         .map(|q| {
-            let s = term_ref_to_clif(ds, q.s);
-            let p = term_ref_to_clif(ds, q.p);
-            let o = term_ref_to_clif(ds, q.o);
+            let s = term_ref_to_clif(ds, ds.resolve(q.s));
+            let p = term_ref_to_clif(ds, ds.resolve(q.p));
+            let o = term_ref_to_clif(ds, ds.resolve(q.o));
             format!("({p} {s} {o})")
         })
         .collect()
@@ -625,8 +625,7 @@ fn term_ref_to_clif(ds: &RdfDataset, term: TermRef<'_>) -> String {
                 }
             }
         }
-        // A triple term (RDF 1.2 quoted triple) — the canonical projection uses classic
-        // reification, not `<<>>`, so this should not occur; if it does, recurse faithfully.
+        // Native quotation stays a term in the metadata channel, never an assertion.
         TermRef::Triple { s, p, o } => {
             let st = term_ref_to_clif(ds, ds.resolve(s));
             let pt = term_ref_to_clif(ds, ds.resolve(p));

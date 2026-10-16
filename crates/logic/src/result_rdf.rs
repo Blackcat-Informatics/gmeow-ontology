@@ -783,20 +783,18 @@ fn native_dataset(sink: Sink) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>
                     "native contextual reifier requires a quoted statement".into(),
                 ));
             };
-            builder.push_owned_reifier(&purrdf::RdfReifier::new(subject, *statement));
+            builder.push_owned_reifier(&purrdf::RdfReifier::new(subject, *statement))?;
         } else if annotation {
             builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
                 subject,
                 triple.predicate,
                 object,
-            ));
+            ))?;
         } else {
-            builder.push_owned_quad(&purrdf::RdfQuad::new(subject, triple.predicate, object));
+            builder.push_owned_quad(&purrdf::RdfQuad::new(subject, triple.predicate, object))?;
         }
     }
-    builder
-        .freeze()
-        .map_err(|error| result_err(error.to_string()))
+    builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 fn reasoning_sink(result: &ReasoningResult) -> gmeow_errors::Result<Sink> {

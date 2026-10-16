@@ -189,51 +189,69 @@ impl ListDefect {
 /// A walked list: each source cell paired with its `rdf:first` member, in order.
 type WalkedCells = Vec<(Node, Node)>;
 
-fn node_key(node: &Subject) -> String {
-    match node {
-        Subject::Iri(iri) => format!("I{iri}"),
-        Subject::Blank { label, .. } => format!("B{label}"),
-    }
-}
-
 /// Walk an `rdf:first`/`rdf:rest` chain from `head`. A literal cell, a cell without
 /// exactly one `rdf:first` and one `rdf:rest`, a revisited cell, and an `rdf:nil`
 /// carrying list fields are each a [`ListDefect::Malformed`], never a truncation.
 pub(crate) fn walk(store: &RdfDataset, head: &Node) -> Result<WalkedCells, ListDefect> {
-    let first = nn(RDF_FIRST);
-    let rest = nn(RDF_REST);
-    let malformed = |why: &str| Err(ListDefect::Malformed(why.to_owned()));
+    use purrdf_core::{ListErrorKind, SoleObject};
+    let Some(subject) = term_as_subject(head) else {
+        return Err(ListDefect::Malformed(
+            "a list cell is a literal, not a resource".into(),
+        ));
+    };
+    let Some(head_id) = subject_id(store, &subject) else {
+        return if matches!(head, Node::Iri(iri) if iri == RDF_NIL) {
+            Ok(Vec::new())
+        } else {
+            Err(ListDefect::Malformed("a list cell has no rdf:first".into()))
+        };
+    };
+    let first = store.term_id_by_iri(RDF_FIRST);
+    let rest = store.term_id_by_iri(RDF_REST);
+    let nil = store.term_id_by_iri(RDF_NIL);
+    let edge = |cell: purrdf::TermId, predicate: Option<purrdf::TermId>| {
+        predicate.map_or(SoleObject::None, |predicate| {
+            SoleObject::of(
+                default_graph_pattern(store, Some(cell), Some(predicate), None).map(|q| q.o),
+            )
+        })
+    };
     let mut out = Vec::new();
-    let mut seen = BTreeSet::new();
-    let mut cursor = head.clone();
-    loop {
-        let Some(cell) = term_as_subject(&cursor) else {
-            return malformed("a list cell is a literal, not a resource");
-        };
-        let firsts = objects(store, &cell, &first);
-        let rests = objects(store, &cell, &rest);
-        if matches!(&cell, Subject::Iri(iri) if iri == RDF_NIL) {
-            if !firsts.is_empty() || !rests.is_empty() {
-                return malformed("rdf:nil carries rdf:first/rdf:rest fields");
+    purrdf_core::walk_rdf_list(
+        head_id,
+        nil,
+        |cell| {
+            let value = edge(cell, first);
+            if let SoleObject::One(member) = value {
+                out.push((node_of(store, cell), node_of(store, member)));
             }
-            return Ok(out);
-        }
-        if !seen.insert(node_key(&cell)) {
-            return malformed("the list is cyclic");
-        }
-        let member = match firsts.as_slice() {
-            [] => return malformed("a list cell has no rdf:first"),
-            [only] => only.clone(),
-            _ => return malformed("a list cell branches: it has more than one rdf:first"),
+            value
+        },
+        |cell| edge(cell, rest),
+    )
+    .map_err(|error| {
+        let detail = if term_as_subject(&node_of(store, error.node)).is_none() {
+            "a list cell is a literal, not a resource"
+        } else {
+            match error.kind {
+                ListErrorKind::Cycle => "the list is cyclic",
+                ListErrorKind::MissingFirst => "a list cell has no rdf:first",
+                ListErrorKind::MultipleFirst => {
+                    "a list cell branches: it has more than one rdf:first"
+                }
+                ListErrorKind::MissingRest => {
+                    "the list is not nil-terminated (a cell has no rdf:rest)"
+                }
+                ListErrorKind::MultipleRest => {
+                    "a list cell branches: it has more than one rdf:rest"
+                }
+                ListErrorKind::NonEmptyNil => "rdf:nil carries rdf:first/rdf:rest fields",
+                _ => "the native RDF list is malformed",
+            }
         };
-        let next = match rests.as_slice() {
-            [] => return malformed("the list is not nil-terminated (a cell has no rdf:rest)"),
-            [only] => only.clone(),
-            _ => return malformed("a list cell branches: it has more than one rdf:rest"),
-        };
-        out.push((cursor, member));
-        cursor = next;
-    }
+        ListDefect::Malformed(detail.into())
+    })?;
+    Ok(out)
 }
 
 /// Whether `node` is the head of an RDF list: `rdf:nil`, or a resource carrying
@@ -316,17 +334,32 @@ pub(crate) fn lower(
             .collect()
     };
     let mut cells = Vec::with_capacity(members.len() * 2);
-    for (index, member) in members.iter().enumerate() {
-        let next = names.get(index + 1).map_or(RDF_NIL, String::as_str);
-        cells.push((names[index].clone(), RDF_FIRST, member.clone()));
-        cells.push((
-            names[index].clone(),
-            RDF_REST,
-            AtomicTerm::Iri(next.to_owned()),
-        ));
-    }
+    let vocab = purrdf_core::ListVocab {
+        first: AtomicTerm::Iri(RDF_FIRST.into()),
+        rest: AtomicTerm::Iri(RDF_REST.into()),
+        nil: AtomicTerm::Iri(RDF_NIL.into()),
+    };
+    let head = purrdf_core::build_rdf_list(
+        members.iter().cloned(),
+        &vocab,
+        |index| AtomicTerm::Iri(names[index].clone()),
+        |cell, predicate, member| {
+            let AtomicTerm::Iri(cell) = cell else {
+                unreachable!("lowered list cells are minted or authored IRIs")
+            };
+            let predicate = match predicate.as_iri() {
+                Some(RDF_FIRST) => RDF_FIRST,
+                Some(RDF_REST) => RDF_REST,
+                _ => unreachable!("the native builder uses the supplied list vocabulary"),
+            };
+            cells.push((cell, predicate, member));
+        },
+    );
+    let AtomicTerm::Iri(head) = head else {
+        unreachable!("lowered list heads are IRIs")
+    };
     Ok(LoweredList {
-        head: names[0].clone(),
+        head,
         members,
         cells,
     })

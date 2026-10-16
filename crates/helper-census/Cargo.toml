@@ -15,6 +15,7 @@ name = "helper-census"
 path = "src/main.rs"
 
 [dependencies]
+gmeow-errors = { path = "../errors" }
 # Fingerprints are BLAKE3 digests of normalised token streams, so a body's id is
 # the same on every host and every build.
 purrdf-hash.workspace = true

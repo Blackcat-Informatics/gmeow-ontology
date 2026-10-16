@@ -223,7 +223,7 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
                 detail: format!("building module dataset: {e}"),
             })
         })?,
-    );
+    )?;
     // The shape set is the GENERATED SHACL projection, written against the OWL/RDFS
     // surface; the module is the CANONICAL authored surface. Lower the module's
     // canonical `logic:` vocabulary into its complete `owl:`/`rdfs:` projection
@@ -237,7 +237,7 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
                 })
             },
         )?,
-    );
+    )?;
     // The module's own constant reading of the two whole-dataset native channels,
     // measured ONCE and subtracted per cell (see `NativeChannelBaseline`).
     let baseline = NativeChannelBaseline::measure(&module)?;
@@ -351,7 +351,7 @@ fn run_competency_cell(
                     detail: format!("parsing cqDataFile {}: {e}", fixture_path.display()),
                 })
             })?;
-            union(&[Arc::clone(store), fixture])
+            union(&[store.as_ref(), fixture.as_ref()])?
         }
     };
 
@@ -375,7 +375,7 @@ fn run_competency_cell(
                     detail: format!("cqProject query error: {e}"),
                 })
             })? {
-                SparqlResult::Graph(g) => union(&[base, g]),
+                SparqlResult::Graph(g) => union(&[base.as_ref(), g.as_ref()])?,
                 _ => {
                     return Err(Diag::of_kind(CompetencyMismatch {
                         detail: format!(
@@ -640,7 +640,7 @@ fn run_structural_cell(
             // (`gmeow:Agreement a owl:Class ; rdfs:subClassOf …`), so lower the
             // canonical `logic:` module onto its complete `owl:`/`rdfs:` projection —
             // the same view the conformance cells validate against.
-            let built = native_query::with_owl_rdfs_projection(&raw);
+            let built = native_query::with_owl_rdfs_projection(&raw)?;
             *cache = Some(Arc::clone(&built));
             built
         }
@@ -687,7 +687,7 @@ fn run_structural_cell(
         // Same OWL/RDFS projection the module cell uses, so the witnessed run and the
         // primary run evaluate the ASK over the SAME surface (an owl:/rdfs:-spelled
         // ban must trip on the projected witness, not read a bare `logic:` graph).
-        let witnessed = native_query::with_owl_rdfs_projection(&witnessed_raw);
+        let witnessed = native_query::with_owl_rdfs_projection(&witnessed_raw)?;
         let witness_holds = run_ask(&witnessed, pattern)?;
         let tripped = match sa.polarity {
             Polarity::Must => !witness_holds,
@@ -832,13 +832,13 @@ fn run_conformance_cell(
                 detail: format!("parsing example {}: {e}", example_path.display()),
             })
         })?,
-    );
+    )?;
 
     // Validate (module + example) against the slice shapes. The IR is immutable, so
     // instead of an in-place insert/remove overlay we UNION the module and example
     // into a fresh dataset (blanks standardized apart) and validate that — exactly
     // the validation-path example idiom, no shared store to restore.
-    let data = union(&[module.clone(), example]);
+    let data = union(&[module.as_ref(), example.as_ref()])?;
     let mut report = validate_dataset(&data, shapes).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("native SHACL validation failed: {e}"),

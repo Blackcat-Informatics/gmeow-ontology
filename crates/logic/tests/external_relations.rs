@@ -87,14 +87,16 @@ fn row(query: &str, document: &str, annotation: i64, order_key: &str) -> Relatio
 fn resident_hybrid_dataset() -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (document, status) in [("doc/one", "active"), ("doc/two", "inactive")] {
-        builder.push_owned_quad(
-            &RdfQuad::new(
-                RdfTerm::iri(ex(document)),
-                ex("status"),
-                RdfTerm::iri(ex(status)),
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(
+                    RdfTerm::iri(ex(document)),
+                    ex("status"),
+                    RdfTerm::iri(ex(status)),
+                )
+                .in_graph(RdfTerm::iri(WORLD)),
             )
-            .in_graph(RdfTerm::iri(WORLD)),
-        );
+            .unwrap();
     }
     builder.freeze().expect("valid resident hybrid dataset")
 }
@@ -266,7 +268,7 @@ fn bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint() {
         &NEVER_CANCELLED,
     )
     .unwrap();
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("doc/one"), &ex("status"), &ex("active"));
     store.insert_quad(WORLD, &ex("doc/two"), &ex("status"), &ex("inactive"));
     let program = parse_query_program(
@@ -388,7 +390,7 @@ fn duplicate_tuple_delivered_by_two_distinct_provider_requests_both_contribute()
         &NEVER_CANCELLED,
     )
     .unwrap();
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     let program = parse_query_program(
         ":- prefix(ex, 'https://example.org/').\n\
@@ -484,7 +486,7 @@ fn lexical_and_vector_alternatives_aggregate_and_repeat_deterministically() {
         &NEVER_CANCELLED,
     )
     .unwrap();
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     let source = snapshot(&store);
     let program = parse_query_program(
@@ -533,7 +535,7 @@ fn provider_seed_participates_in_positive_recursion_with_transitive_lineage() {
         &NEVER_CANCELLED,
     )
     .unwrap();
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("doc/one"), &ex("link"), &ex("doc/four"));
     store.insert_quad(WORLD, &ex("doc/four"), &ex("link"), &ex("doc/five"));
     let program = parse_query_program(
@@ -600,12 +602,12 @@ fn bounded_provider_matches_equivalent_scratch_world_without_materializing_noise
     )
     .expect("direct provider goal");
 
-    let provider_store = WorldStore::new();
+    let provider_store = WorldStore::new().unwrap();
     provider_store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     let provider_result =
         query(&snapshot(&provider_store), &program, &providers).expect("provider query");
 
-    let scratch = WorldStore::new();
+    let scratch = WorldStore::new().unwrap();
     for (query, document) in [("cat", "doc/one"), ("cat", "doc/two"), ("dog", "doc/three")] {
         scratch.insert_quad(WORLD, &ex(query), LEXICAL, &ex(document));
     }
@@ -667,7 +669,7 @@ fn unbound_calls_keep_total_order_and_merge_provider_preservation() {
          ?- ex:relation/lexical(Q, D).\n",
     )
     .expect("unbound provider goal");
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     let result = query(&snapshot(&store), &program, &providers).expect("complete unbound prefix");
 
@@ -706,7 +708,7 @@ fn incomplete_provider_is_typed_and_registration_does_not_escape_the_query() {
         &NEVER_CANCELLED,
     )
     .unwrap();
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     let source = snapshot(&store);
     let program = parse_query_program(
@@ -762,7 +764,7 @@ fn provider_failure_after_row_preparation_exposes_no_partial_answer() {
         &NEVER_CANCELLED,
     )
     .unwrap();
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     let program = parse_query_program(
         ":- prefix(ex, 'https://example.org/').\n\
@@ -806,7 +808,7 @@ fn provider_head_collision_wrong_algebra_and_rdf12_triple_terms_are_explicit() {
         &NEVER_CANCELLED,
     )
     .unwrap();
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(WORLD, &ex("anchor"), &ex("present"), &ex("yes"));
     let source = snapshot(&store);
     let direct = parse_query_program(

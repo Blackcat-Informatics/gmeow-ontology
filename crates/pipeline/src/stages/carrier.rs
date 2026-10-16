@@ -728,12 +728,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
     quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root, sources)?;
-    let authored_canon = canonicalize_nq(&authored, "base")?;
-    reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
-    // The authored default rides its own named graph (re-rooted to default by the
-    // presenter).
-    let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
-        .map_err(|e| stage_err(&format!("base parse: {e}")))?;
+    let base = canonical_authored_base(&authored)?;
 
     let imports = load_imports(root, sources)?;
     let metadata = load_metadata(root)?;
@@ -791,7 +786,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
         )?,
     ];
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)?))
 }
 
 /// The `stage-source-load` product's carrier dataset (the authored base default graph
@@ -817,7 +812,7 @@ fn source_load_graph(
     graph_iri: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     rooted_in_graph(
-        &source_load_dataset(upstream)?.project_named_graph(graph_iri),
+        &source_load_dataset(upstream)?.project_named_graph(graph_iri)?,
         graph_iri,
     )
 }
@@ -845,7 +840,7 @@ pub(crate) fn producer_graph(
         ))
     })?;
     rooted_in_graph(
-        &product.bundle().dataset().project_named_graph(graph_iri),
+        &product.bundle().dataset().project_named_graph(graph_iri)?,
         graph_iri,
     )
 }
@@ -861,8 +856,8 @@ fn assemble_carrier(
     // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
     // graph (label dropped).
     let base = with_owl_rdfs_projection(
-        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
-    );
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
+    )?;
     // ── the first-class carrier graphs ride in from their producers' datasets ───
     // Each is read off the PRODUCER's attached named graph (a pure keyed fold), NOT
     // re-parsed from the producer's byte artifact (PIPELINE_SPINE §4 — the presenter
@@ -888,7 +883,7 @@ fn assemble_carrier(
         producer_graph(upstream, "stage-validate", GRAPH_DIAGNOSTICS)?.as_ref(),
         producer_graph(upstream, "stage-compile-logic", GRAPH_DIAGNOSTICS)?.as_ref(),
         producer_graph(upstream, "stage-reason", GRAPH_DIAGNOSTICS)?.as_ref(),
-    ]);
+    ])?;
     let conformance = producer_graph(upstream, "stage-conformance", GRAPH_CONFORMANCE)?;
     let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;
     let lang_translation_corpus =
@@ -1024,7 +1019,10 @@ fn assemble_carrier(
     datasets.extend(termination_demonstrator_graphs()?);
     datasets.extend(compile_logic_carrier_graphs(upstream)?);
     datasets.push(rooted_in_graph(
-        &reason.bundle().dataset().project_named_graph(reasoning_iri),
+        &reason
+            .bundle()
+            .dataset()
+            .project_named_graph(reasoning_iri)?,
         reasoning_iri,
     )?);
     // graph/goal-directed ← the native proof-carrying backward engine's checked answers +
@@ -1041,7 +1039,7 @@ fn assemble_carrier(
         &goal_directed
             .bundle()
             .dataset()
-            .project_named_graph(goal_directed_iri),
+            .project_named_graph(goal_directed_iri)?,
         goal_directed_iri,
     )?);
     // graph/gmn-training-corpus ← the rejection-sampled, proof-carrying GMN training corpus
@@ -1057,7 +1055,7 @@ fn assemble_carrier(
         &gmn_training
             .bundle()
             .dataset()
-            .project_named_graph(gmn_training_iri),
+            .project_named_graph(gmn_training_iri)?,
         gmn_training_iri,
     )?);
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
@@ -1075,7 +1073,7 @@ fn assemble_carrier(
     // memory — a source input, not the bundle being produced), so the carrier's attach set
     // and the superset gate's claim set read ONE inventory (no hand-list to drift).
     let rdf_fanout_classes = crate::stages::superset::RdfFanoutClasses::from_source(
-        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
     )?;
     for (path, bytes) in mappings.artifacts() {
         if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
@@ -1105,7 +1103,7 @@ fn assemble_carrier(
         datasets.push(parse_into_graph(&bytes, media_type, &iri)?);
     }
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    let composed = std::sync::Arc::new(purrdf::RdfDataset::union(&refs));
+    let composed = std::sync::Arc::new(purrdf::RdfDataset::union(&refs)?);
 
     // Reasoner-derived gate verdicts (logic:ruleGateFatalVerdict). The reason stage's
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
@@ -1119,7 +1117,7 @@ fn assemble_carrier(
     // gmeow.gts carries the ontology's entailment and the SHACL up-set shape agrees. The
     // rule + wiring are read from the authored stage-source-load base graph, never re-typed.
     let gate_source = std::sync::Arc::new(
-        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
     );
     let gate = crate::stages::gate_verdict::GateProgram::from_program(
         compiled_logic_program(upstream)?,
@@ -1135,7 +1133,7 @@ fn assemble_carrier(
         std::sync::Arc::new(purrdf::RdfDataset::union(&[
             composed.as_ref(),
             verdicts.as_ref(),
-        ]))
+        ])?)
     };
 
     // Fold the SCOPED COHERENCE CERTIFICATE into the terminal bundle (graph/attestations),
@@ -1232,7 +1230,7 @@ fn fold_coherence_certificate(
     Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&[
         composed.as_ref(),
         cert.as_ref(),
-    ])))
+    ])?))
 }
 
 /// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
@@ -1365,8 +1363,8 @@ pub(crate) fn assemble_object_level_edb(
     // correspondence graphs are shipped by the presenter but stay meta-level, so no
     // external endpoint IRI can be mistaken for an authored object-level construct.
     let base = with_owl_rdfs_projection(
-        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
-    );
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
+    )?;
     let statements = upstream
         .get("stage-statements")
         .ok_or_else(|| stage_err("missing statements RDF 1.2 carrier"))?;
@@ -1391,7 +1389,7 @@ pub(crate) fn assemble_object_level_edb(
     // graph body) exactly as the snapshot twin `project_object_level_edb` does, so the shipped
     // reasoned closure and a consumer's fresh re-derivation cannot drift: a correspondence is
     // meta-level, re-projected into `graph/correspondence-laws`, never an object-level construct.
-    let unioned = purrdf::RdfDataset::union(&refs);
+    let unioned = purrdf::RdfDataset::union(&refs)?;
     let unioned = gmeow_logic::reasoning_graphs::exclude_grounding_correspondences(&unioned)?;
     without_recovery_case_envelopes(unioned.as_ref())
 }
@@ -1444,7 +1442,7 @@ fn compile_logic_graphs(
         .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
     graph_iris
         .iter()
-        .map(|iri| rooted_in_graph(&compile.bundle().dataset().project_named_graph(iri), iri))
+        .map(|iri| rooted_in_graph(&compile.bundle().dataset().project_named_graph(iri)?, iri))
         .collect()
 }
 
@@ -1852,31 +1850,34 @@ fn flat_stratum_union(
                 stage_err("too many medium digest strata to assign blank-node scopes")
             })?);
         for quad in source.quads() {
-            let s = intern_flat_term(&mut builder, source, &mut remap, quad.s, outer_scope);
-            let p = intern_flat_term(&mut builder, source, &mut remap, quad.p, outer_scope);
-            let o = intern_flat_term(&mut builder, source, &mut remap, quad.o, outer_scope);
+            let s = intern_flat_term(&mut builder, source, &mut remap, quad.s, outer_scope)?;
+            let p = intern_flat_term(&mut builder, source, &mut remap, quad.p, outer_scope)?;
+            let o = intern_flat_term(&mut builder, source, &mut remap, quad.o, outer_scope)?;
             let g = quad
                 .g
-                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope));
-            builder.push_quad(s, p, o, g);
+                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope))
+                .transpose()?;
+            builder.push_quad(s, p, o, g)?;
         }
 
-        let reifies = builder.intern_iri(purrdf::gts_compose::RDF_REIFIES);
+        let reifies = builder.intern_iri(purrdf::gts_compose::RDF_REIFIES)?;
         for (reifier, triple, graph) in source.reifiers_with_graph() {
-            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope);
-            let triple = intern_flat_term(&mut builder, source, &mut remap, triple, outer_scope);
+            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope)?;
+            let triple = intern_flat_term(&mut builder, source, &mut remap, triple, outer_scope)?;
             let graph = graph
-                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope));
-            builder.push_quad(reifier, reifies, triple, graph);
+                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope))
+                .transpose()?;
+            builder.push_quad(reifier, reifies, triple, graph)?;
         }
         for (reifier, predicate, object, graph) in source.annotations_with_graph() {
-            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope);
+            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope)?;
             let predicate =
-                intern_flat_term(&mut builder, source, &mut remap, predicate, outer_scope);
-            let object = intern_flat_term(&mut builder, source, &mut remap, object, outer_scope);
+                intern_flat_term(&mut builder, source, &mut remap, predicate, outer_scope)?;
+            let object = intern_flat_term(&mut builder, source, &mut remap, object, outer_scope)?;
             let graph = graph
-                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope));
-            builder.push_quad(reifier, predicate, object, graph);
+                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope))
+                .transpose()?;
+            builder.push_quad(reifier, predicate, object, graph)?;
         }
     }
 
@@ -1891,17 +1892,17 @@ fn intern_flat_term(
     remap: &mut [Option<purrdf::TermId>],
     source_id: purrdf::TermId,
     outer_scope: purrdf::BlankScope,
-) -> purrdf::TermId {
+) -> gmeow_errors::Result<purrdf::TermId> {
     if let Some(mapped) = remap[source_id.index()] {
-        return mapped;
+        return Ok(mapped);
     }
 
     let mapped = match source.resolve(source_id) {
-        purrdf::TermRef::Iri(iri) => builder.intern_iri(iri),
+        purrdf::TermRef::Iri(iri) => builder.intern_iri(iri)?,
         purrdf::TermRef::Blank { label, scope } => {
             let source_qualified = scope.qualify_label(label);
             let union_qualified = outer_scope.qualify_label(source_qualified.as_ref());
-            builder.intern_blank(union_qualified.as_ref(), purrdf::BlankScope::DEFAULT)
+            builder.intern_blank(union_qualified.as_ref(), purrdf::BlankScope::DEFAULT)?
         }
         purrdf::TermRef::Literal {
             lexical,
@@ -1918,17 +1919,17 @@ fn intern_flat_term(
                 datatype: Some(datatype),
                 language: language.map(str::to_owned),
                 direction,
-            })
+            })?
         }
         purrdf::TermRef::Triple { s, p, o } => {
-            let s = intern_flat_term(builder, source, remap, s, outer_scope);
-            let p = intern_flat_term(builder, source, remap, p, outer_scope);
-            let o = intern_flat_term(builder, source, remap, o, outer_scope);
-            builder.intern_triple(s, p, o)
+            let s = intern_flat_term(builder, source, remap, s, outer_scope)?;
+            let p = intern_flat_term(builder, source, remap, p, outer_scope)?;
+            let o = intern_flat_term(builder, source, remap, o, outer_scope)?;
+            builder.intern_triple(s, p, o)?
         }
     };
     remap[source_id.index()] = Some(mapped);
-    mapped
+    Ok(mapped)
 }
 
 #[path = "carrier.stratum_canonical_tests.rs"]
@@ -3606,7 +3607,7 @@ fn build_snapshot_bundle(
         DatasetProvenance::new(),
     );
     crate::bundle::pin_diagnostics(&mut bundle, "stage-snapshot", diagnostics)?;
-    let pinned_logic = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
+    let pinned_logic = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC)?;
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_LOGIC,
@@ -3614,7 +3615,7 @@ fn build_snapshot_bundle(
             pinned_logic,
         )
         .map_err(|e| stage_err(&format!("re-pin Logic handle on snapshot product: {e}")))?;
-    let pinned_reasoning = bundle.graph_digest(gmeow_logic::result_rdf::GRAPH_REASONING);
+    let pinned_reasoning = bundle.graph_digest(gmeow_logic::result_rdf::GRAPH_REASONING)?;
     bundle
         .pin_handle(
             gmeow_logic::result_rdf::GRAPH_REASONING,
@@ -3622,7 +3623,7 @@ fn build_snapshot_bundle(
             pinned_reasoning,
         )
         .map_err(|e| stage_err(&format!("re-pin Reasoning handle on snapshot product: {e}")))?;
-    let pinned_rc = bundle.graph_digest(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE);
+    let pinned_rc = bundle.graph_digest(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE)?;
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
@@ -3634,7 +3635,7 @@ fn build_snapshot_bundle(
                 "re-pin RelationalCore handle on snapshot product: {e}"
             ))
         })?;
-    let pinned_corr = bundle.graph_digest(crate::stages::compile_logic::GRAPH_CORRESPONDENCE);
+    let pinned_corr = bundle.graph_digest(crate::stages::compile_logic::GRAPH_CORRESPONDENCE)?;
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_CORRESPONDENCE,
@@ -3659,7 +3660,7 @@ fn build_snapshot_bundle(
 fn build_provenance_projection(
     sources: &crate::stages::source_load::ParsedAuthoredSources,
 ) -> Result<String, gmeow_errors::Diag> {
-    let (prov, expected) = crate::stages::source_load::attributed_parsed_provenance(sources);
+    let (prov, expected) = crate::stages::source_load::attributed_parsed_provenance(sources)?;
     // The hard-fail gate: every authored quad has ≥1 stage-origin occurrence and every
     // occurrence references a registered unit + artifact. A violation aborts the build.
     purrdf::provenance::check_provenance(&prov, &expected).map_err(|errors| {
@@ -3696,19 +3697,19 @@ pub(crate) fn rooted_in_graph(
     use purrdf::{RdfDatasetBuilder, RdfTerm};
     let graph = RdfTerm::Iri(graph_iri.to_owned());
     let mut builder = RdfDatasetBuilder::new();
-    let destination = builder.intern_iri(graph_iri);
-    builder.declare_named_graph(destination);
+    let destination = builder.intern_iri(graph_iri)?;
+    builder.declare_named_graph(destination)?;
     for mut quad in src.owned_quads() {
         quad.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&quad);
+        builder.push_owned_quad(&quad)?;
     }
     for mut reifier in src.owned_reifiers() {
         reifier.graph = Some(graph.clone());
-        builder.push_owned_reifier(&reifier);
+        builder.push_owned_reifier(&reifier)?;
     }
     for mut annotation in src.owned_annotations() {
         annotation.graph = Some(graph.clone());
-        builder.push_owned_annotation(&annotation);
+        builder.push_owned_annotation(&annotation)?;
     }
     builder
         .freeze()
@@ -3746,7 +3747,7 @@ fn load_authored_default(
             "authored default graph requires ontology/gmeow.ttl",
         ));
     }
-    let base = sources.authored_dataset();
+    let base = sources.authored_dataset()?;
 
     // The merged default graph as a flat native quad list (the union's standardized
     // blank labels), onto which multilingual translations are folded natively.
@@ -3821,7 +3822,8 @@ fn load_imports(
     if !std::fs::metadata(root.join("imports"))?.is_dir() {
         return Err(stage_err("imports source is not a directory"));
     }
-    normalize_dataset_xsd(&sources.imports_dataset())
+    let imports = sources.imports_dataset()?;
+    normalize_dataset_xsd(imports.as_ref())
 }
 
 // ── metadata (graph/metadata) ───────────────────────────────────────────────────
@@ -4251,17 +4253,32 @@ fn expand_curie(
 
 // ── small helpers ───────────────────────────────────────────────────────────────
 
-/// A plain RDF-1.1 N-Quads fixture must carry no quoted-triple (`<<>>`) object: the
-/// RDF-1.2 statement layer rides the dataset's reifier/annotation side-tables (which
-/// `add_dataset` folds), never a base quoted-triple object. A quoted triple here would
-/// be a real defect — HARD-fail rather than let it shrink the fold (no-optionality /
-/// no silent data loss).
-fn reject_quoted_triples(quads: &[RdfQuad], graph_name: &str) -> Result<(), gmeow_errors::Diag> {
-    if quads.iter().any(|q| matches!(q.object, RdfTerm::Triple(_))) {
+/// Canonicalize the authored graph and restore its complete native statement layer
+/// before checking the snapshot writer's ordinary-quad representability boundary.
+fn canonical_authored_base(
+    authored: &[u8],
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    let authored_canon = canonicalize_nq(authored, "base")?;
+    let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
+        .map_err(|error| stage_err(&format!("base parse: {error}")))?;
+    reject_base_quoted_triples(&base, "<default>")?;
+    Ok(base)
+}
+
+/// Native reifier bindings carry their quotation in the statement table. Only
+/// ordinary quads reach the snapshot's plain term slots; quotes there still fail
+/// closed. Flattening the binding table for this check would reject valid RDF 1.2.
+fn reject_base_quoted_triples(
+    dataset: &purrdf::RdfDataset,
+    graph_name: &str,
+) -> Result<(), gmeow_errors::Diag> {
+    if let Some(quad) = dataset.owned_quads().find(|quad| {
+        matches!(&quad.subject, RdfTerm::Triple(_)) || matches!(&quad.object, RdfTerm::Triple(_))
+    }) {
         return Err(stage_err(&format!(
-            "graph {graph_name} carries a quoted-triple (<<>>) object that the base-quad fold \
+            "graph {graph_name} carries a quoted-triple (<<>>) term that the base-quad fold \
              would not represent; the RDF-1.2 statement layer must ride the reifier/annotation \
-             tables, not a base quad"
+             tables, not a base quad: {quad:?}"
         )));
     }
     Ok(())
@@ -4337,13 +4354,13 @@ fn normalize_dataset_xsd(
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for quad in dataset.owned_quads() {
-        builder.push_owned_quad(&canonicalize_quad_xsd(quad)?);
+        builder.push_owned_quad(&canonicalize_quad_xsd(quad)?)?;
     }
     for reifier in dataset.owned_reifiers() {
-        builder.push_owned_reifier(&canonicalize_reifier_xsd(reifier)?);
+        builder.push_owned_reifier(&canonicalize_reifier_xsd(reifier)?)?;
     }
     for annotation in dataset.owned_annotations() {
-        builder.push_owned_annotation(&canonicalize_annotation_xsd(annotation)?);
+        builder.push_owned_annotation(&canonicalize_annotation_xsd(annotation)?)?;
     }
     builder
         .freeze()
@@ -4504,7 +4521,7 @@ pub(crate) fn lift_witness_subgraph(
     diag: &purrdf::RdfDataset,
     into: &RdfTerm,
     builder: &mut RdfDatasetBuilder,
-) {
+) -> gmeow_errors::Result<()> {
     use std::collections::BTreeSet;
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
@@ -4521,7 +4538,7 @@ pub(crate) fn lift_witness_subgraph(
         }
     }
     if witnesses.is_empty() {
-        return;
+        return Ok(());
     }
     // (3) The reifier IRI set R: every subject `r` with `(r, rdf:object, w)`, w ∈ W.
     let mut reifiers: BTreeSet<String> = BTreeSet::new();
@@ -4541,9 +4558,10 @@ pub(crate) fn lift_witness_subgraph(
         {
             let mut routed = q.clone();
             routed.graph_name = Some(into.clone());
-            builder.push_owned_quad(&routed);
+            builder.push_owned_quad(&routed)?;
         }
     }
+    Ok(())
 }
 
 /// Build the offline SPARQL-playground TriG asset from a committed GTS bundle's OWN named
@@ -4578,32 +4596,32 @@ fn playground_dataset_from_bundle(
         .filter_map(|graph| bundle.term_id_by_iri(graph))
         .collect();
     for role in roles {
-        let graph = pg.intern_iri(role);
-        pg.declare_named_graph(graph);
+        let graph = pg.intern_iri(role)?;
+        pg.declare_named_graph(graph)?;
     }
     let owns = |graph: Option<purrdf::TermId>| graph.is_some_and(|g| selected.contains(&g));
     for (index, quad) in bundle.quads().enumerate() {
         if owns(quad.g) {
-            pg.push_owned_quad(&bundle.to_owned_quad(index, quad));
+            pg.push_owned_quad(&bundle.to_owned_quad(index, quad))?;
         }
     }
     for (reifier, statement, graph) in bundle.reifiers_with_graph() {
         if owns(graph) {
-            pg.push_owned_reifier(&bundle.to_owned_reifier(reifier, statement, graph));
+            pg.push_owned_reifier(&bundle.to_owned_reifier(reifier, statement, graph))?;
         }
     }
     for (reifier, predicate, object, graph) in bundle.annotations_with_graph() {
         if owns(graph) {
             pg.push_owned_annotation(
                 &bundle.to_owned_annotation(reifier, predicate, object, graph),
-            );
+            )?;
         }
     }
     // The chase-invented witness-derivation subgraph, lifted from `graph/diagnostics` into
     // the reasoning graph so the "explain a witness" affordance can decompose an exact null.
-    let diag_graph = bundle.project_named_graph(GRAPH_DIAGNOSTICS);
+    let diag_graph = bundle.project_named_graph(GRAPH_DIAGNOSTICS)?;
     let reasoning_iri = RdfTerm::Iri(gmeow_logic::result_rdf::GRAPH_REASONING.to_owned());
-    lift_witness_subgraph(&diag_graph, &reasoning_iri, &mut pg);
+    lift_witness_subgraph(&diag_graph, &reasoning_iri, &mut pg)?;
 
     pg.freeze()
         .map_err(|e| stage_err(&format!("freeze playground dataset: {e}")))

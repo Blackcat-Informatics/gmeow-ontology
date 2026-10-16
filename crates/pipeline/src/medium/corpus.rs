@@ -459,7 +459,7 @@ pub fn assemble_with_cache(
                 let sample = match cache.graph_samples.get(graph) {
                     Some(sample) => Arc::clone(sample),
                     None => {
-                        let projected = sources.dataset.project_named_graph(graph);
+                        let projected = sources.dataset.project_named_graph(graph)?;
                         let ntriples =
                             purrdf::canonical_flat_nquads(&projected).map_err(|err| {
                                 invalid_declaration(format!(
@@ -670,7 +670,8 @@ pub fn term_table_sample(dataset: &RdfDataset) -> Vec<u8> {
     for index in 0..dataset.term_count() {
         let id = purrdf::TermId::from_index(
             u32::try_from(index).expect("a dataset term table is addressed by u32 index"),
-        );
+        )
+        .expect("an existing frozen term ordinal is representable");
         match dataset.resolve(id) {
             TermRef::Iri(value) => {
                 rendered.insert(format!("<{value}>"));

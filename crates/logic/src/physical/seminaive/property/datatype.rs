@@ -467,9 +467,15 @@ impl Compiler<'_> {
             return Ok(RawNode::Restriction { base, facets });
         }
         if fields.len() != 1 {
-            return Err(seminaive_err(
-                "a datatype expression requires one complete constructor",
-            ));
+            return Err(seminaive_err(format!(
+                "a datatype expression requires one complete constructor: {:?} has {}",
+                self.rel.interner().resolve(term),
+                if fields.is_empty() {
+                    "none and is not an intrinsic datatype".to_owned()
+                } else {
+                    format!("{:?}", fields.keys().collect::<Vec<_>>())
+                }
+            )));
         }
         let (predicate, operand) = fields.pop_first().expect("one datatype constructor");
         match predicate {

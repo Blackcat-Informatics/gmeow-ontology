@@ -18,7 +18,7 @@ pub use build_script::emit_action_identity;
 pub use cargo::{
     ProductionSelection, UnitSelection, cargo_policy_files, declared_path_dependency_manifests,
 };
-pub use cfg::CfgContext;
+pub use cfg::{CfgContext, cfg_excludes_production};
 pub use dep_info::{CompilerArtifact, CompilerInputs, GeneratedInputs};
 pub use embedded::VerifyQueries;
 pub use native::{NativeSources, native_extraction_paths};
@@ -96,6 +96,13 @@ pub fn production_extraction_paths(
     selection: &ProductionSelection,
 ) -> Result<Vec<String>> {
     modules::production_extraction_paths(workspace, selection)
+}
+
+/// Resolve external modules owned only by test/doc declarations from explicit
+/// production crate roots. Shared production ownership wins. This read-only
+/// source-policy query does not authenticate a producer or admit a corpus.
+pub fn test_only_module_paths(workspace: &Path, roots: &[&str]) -> Result<BTreeSet<String>> {
+    modules::test_only_module_paths(workspace, roots)
 }
 
 impl InputInventory {

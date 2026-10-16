@@ -66,9 +66,9 @@ fn example_merge_unions_base_and_example() {
 
     let mut builder = RdfDatasetBuilder::new();
     for q in &base_quads {
-        builder.push_owned_quad(q);
+        builder.push_owned_quad(q).unwrap();
     }
-    builder.push_dataset(&example);
+    builder.push_dataset(&example).unwrap();
     let merged = builder.freeze().unwrap();
     // The duplicate base quad collapses; the example-only quad is added → 2 total.
     assert_eq!(merged.quad_count(), 2, "duplicate base quad must dedup");

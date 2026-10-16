@@ -179,7 +179,7 @@ fn every_caveat_literal_component_participates_in_ir_and_cache_identity() {
         assert!(keys.insert(program.content_key()), "{suffix}");
         let restored = parse_correspondence(
             &purrdf::parse_dataset(
-                project_correspondence(&program).as_bytes(),
+                project_correspondence(&program).unwrap().as_bytes(),
                 "application/n-triples",
                 None,
             )
@@ -348,14 +348,16 @@ fn absent_axes_and_valid_boolean_lexicals_preserve_declared_semantics() {
 #[test]
 fn native_duplicate_rows_are_one_field_value_without_a_lexical_index() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let corr = builder.intern_iri(CORR);
-    let confidence = builder.intern_iri(&p_confidence());
-    let value = builder.intern_literal(purrdf::RdfLiteral::typed(
-        "0.25".to_owned(),
-        XSD_DECIMAL.to_owned(),
-    ));
-    builder.push_quad(corr, confidence, value, None);
-    builder.push_annotation(corr, confidence, value);
+    let corr = builder.intern_iri(CORR).unwrap();
+    let confidence = builder.intern_iri(&p_confidence()).unwrap();
+    let value = builder
+        .intern_literal(purrdf::RdfLiteral::typed(
+            "0.25".to_owned(),
+            XSD_DECIMAL.to_owned(),
+        ))
+        .unwrap();
+    builder.push_quad(corr, confidence, value, None).unwrap();
+    builder.push_annotation(corr, confidence, value).unwrap();
     let dataset = builder.freeze().unwrap();
     let view = CorrespondenceView::from_dataset(&dataset);
     assert_eq!(
@@ -467,7 +469,7 @@ fn correspondence_weight_retains_declared_double_domain() {
         .unwrap();
         let mut program = parse_correspondence(&source("")).unwrap();
         program.correspondences[0].weight = Some(value.clone());
-        let rendered = project_correspondence(&program);
+        let rendered = project_correspondence(&program).unwrap();
         let dataset =
             purrdf::parse_dataset(rendered.as_bytes(), "application/n-triples", None).unwrap();
         let parsed = parse_correspondence(&dataset).unwrap();

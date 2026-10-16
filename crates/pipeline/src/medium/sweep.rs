@@ -1101,7 +1101,7 @@ pub fn replay_runtime_store(
 /// # Errors
 /// The graph does not canonicalize.
 pub fn replay_corpus(dataset: &purrdf::RdfDataset) -> Result<Vec<String>, gmeow_errors::Diag> {
-    let projected = dataset.project_named_graph(crate::stages::carrier::GRAPH_STATEMENTS);
+    let projected = dataset.project_named_graph(crate::stages::carrier::GRAPH_STATEMENTS)?;
     let ntriples = purrdf::canonical_flat_nquads(&projected).map_err(|err| {
         invalid_declaration(format!(
             "the population-B replay corpus does not canonicalize: {err}"

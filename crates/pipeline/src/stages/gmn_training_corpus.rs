@@ -70,9 +70,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_lang_bridge::{
-    ConsumeProjection, Gmn0Model, Gmn1Document, GmnConsumeError, GmnDictionary, GmnOperatorForm,
-    RingLattice, consume_project, gmn0_canonically_equal, gmn1_read, gmn1_write,
-    resolved_schema_version,
+    Gmn0Model, Gmn1Document, GmnDictionary, GmnOperatorForm, RingLattice, consume_project,
+    gmn0_canonically_equal, gmn1_read, gmn1_write, resolved_schema_version,
 };
 use gmeow_logic::goal_directed::evaluate_reasoning_programs;
 use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
@@ -195,15 +194,13 @@ struct Candidate {
 impl Candidate {
     /// The GMN-0 model of this term: the operator triples as an [`Gmn0Model`] (the codec's
     /// canonical, deduped, sorted quad set). This is the `input` surface of the training pair.
-    fn model(&self) -> Gmn0Model {
+    fn model(&self) -> gmeow_errors::Result<Gmn0Model> {
         let mut builder = RdfDatasetBuilder::new();
         for (s, p, o) in &self.triples {
-            builder.push_owned_quad(&RdfQuad::new(s.clone(), p.clone(), o.clone()));
+            builder.push_owned_quad(&RdfQuad::new(s.clone(), p.clone(), o.clone()))?;
         }
-        let ds = builder
-            .freeze()
-            .expect("a candidate built from valid RdfTerms freezes cleanly");
-        Gmn0Model::from_dataset(&ds)
+        let ds = builder.freeze()?;
+        Ok(Gmn0Model::from_dataset(&ds))
     }
 
     /// Every atom IRI appearing in this term (subject or object), sorted + deduped. Blank nodes
@@ -362,23 +359,24 @@ const CLASS_NO_PROOF: &str = "https://blackcatinformatics.ca/lang/GmnProofObliga
 
 /// Rejection-sample one candidate through the five verifiers IN ORDER, short-circuiting at the
 /// first failure with its typed reason. All five pass ⇒ [`Outcome::Kept`] with the acceptance
-/// certificate. Pure + deterministic given `ctx`.
-fn sample(candidate: &Candidate, ctx: &GenContext) -> Outcome {
-    let model = candidate.model();
+/// certificate. Native construction and canonicalization failures terminate production;
+/// they never become semantic candidate rejections.
+fn sample(candidate: &Candidate, ctx: &GenContext) -> gmeow_errors::Result<Outcome> {
+    let model = candidate.model()?;
 
     // Verifier 1 — parses (write then read against the carrier dictionary).
     let doc: Gmn1Document = match gmn1_write(&model, &ctx.dict) {
         Ok(doc) => doc,
-        Err(e) => return reject(RejectStage::Parse, e.failure_class()),
+        Err(e) => return Ok(reject(RejectStage::Parse, e.failure_class())),
     };
     let back: Gmn0Model = match gmn1_read(&doc, &ctx.dict) {
         Ok(back) => back,
-        Err(e) => return reject(RejectStage::Parse, e.failure_class()),
+        Err(e) => return Ok(reject(RejectStage::Parse, e.failure_class())),
     };
 
     // Verifier 2 — round-trips (canonical N-Quads agreement).
-    if !gmn0_canonically_equal(&model, &back) {
-        return reject(RejectStage::RoundTrip, CLASS_ROUNDTRIP_MISMATCH);
+    if !gmn0_canonically_equal(&model, &back)? {
+        return Ok(reject(RejectStage::RoundTrip, CLASS_ROUNDTRIP_MISMATCH));
     }
 
     // Verifiers 3 + 4 — typechecks and discharges a proof obligation (via the logic-compile IR
@@ -386,23 +384,24 @@ fn sample(candidate: &Candidate, ctx: &GenContext) -> Outcome {
     let derivation_iri = match typecheck_and_prove(candidate, ctx) {
         ProofResult::Discharged(iri) => iri,
         ProofResult::TypecheckFailed => {
-            return reject(RejectStage::Typecheck, CLASS_TYPECHECK_FAIL);
+            return Ok(reject(RejectStage::Typecheck, CLASS_TYPECHECK_FAIL));
         }
         ProofResult::NoObligation => {
-            return reject(RejectStage::ProofObligation, CLASS_NO_PROOF);
+            return Ok(reject(RejectStage::ProofObligation, CLASS_NO_PROOF));
         }
     };
 
     // Verifier 5 — carries no security-ring leakage (the consume-path filter).
-    if let Err(e) = ring_admits(&model, ctx, RING_CORE, RING_TRUSTED) {
-        return reject(RejectStage::RingLeak, e.failure_class());
+    let tagged = tag_all_atoms(&model, RING_CORE)?;
+    if let Err(e) = consume_project(&tagged, &ctx.lattice, RING_TRUSTED, None, &ctx.dict) {
+        return Ok(reject(RejectStage::RingLeak, e.failure_class()));
     }
 
-    Outcome::Kept(Certificate {
-        input: model.canonical_nquads(),
+    Ok(Outcome::Kept(Certificate {
+        input: model.canonical_nquads()?,
         target: doc.text,
         derivation_iri,
-    })
+    }))
 }
 
 fn reject(stage: RejectStage, failure_class: &str) -> Outcome {
@@ -497,30 +496,11 @@ fn typecheck_and_prove(candidate: &Candidate, ctx: &GenContext) -> ProofResult {
     }
 }
 
-/// Run the consume-path filter over the term's atoms tagged at `content_ring`, admitting
-/// into `target_ring`. A clean admission is `Ok`; any ring-leak / lattice condition is the
-/// typed [`GmnConsumeError`]. Used by verifier 5 (all atoms at `gmnRingCore`, admitted into
-/// `gmnRingTrusted`) and by the negative test (an atom at `gmnRingRestricted`).
-fn ring_admits(
-    model: &Gmn0Model,
-    ctx: &GenContext,
-    content_ring: &str,
-    target_ring: &str,
-) -> Result<ConsumeProjection, GmnConsumeError> {
-    consume_project(
-        &tag_all_atoms(model, content_ring),
-        &ctx.lattice,
-        target_ring,
-        None,
-        &ctx.dict,
-    )
-}
-
 /// Tag every atom (subject AND object) of a model with a single `gmeow:gmnContentRing` at
 /// `ring`, returning the tagged model the consume filter classifies. The tags are the content
 /// classification the ring filter reads; they ride only the admissibility check, never the
 /// certificate's `input` surface.
-fn tag_all_atoms(model: &Gmn0Model, ring: &str) -> Gmn0Model {
+fn tag_all_atoms(model: &Gmn0Model, ring: &str) -> gmeow_errors::Result<Gmn0Model> {
     let mut atoms: Vec<String> = Vec::new();
     for quad in &model.quads {
         if let RdfTerm::Iri(s) = &quad.subject {
@@ -534,17 +514,17 @@ fn tag_all_atoms(model: &Gmn0Model, ring: &str) -> Gmn0Model {
     atoms.dedup();
     let mut builder = RdfDatasetBuilder::new();
     for quad in &model.quads {
-        builder.push_owned_quad(quad);
+        builder.push_owned_quad(quad)?;
     }
     for atom in atoms {
         builder.push_owned_quad(&RdfQuad::new(
             RdfTerm::Iri(atom),
             PRED_CONTENT_RING,
             RdfTerm::Iri(ring.to_owned()),
-        ));
+        ))?;
     }
-    let ds = builder.freeze().expect("tagged model freezes cleanly");
-    Gmn0Model::from_dataset(&ds)
+    let ds = builder.freeze()?;
+    Ok(Gmn0Model::from_dataset(&ds))
 }
 
 /// A stable, filesystem-safe key for a candidate (its triples joined) — the suffix of every
@@ -580,13 +560,13 @@ fn term_bytes(t: &RdfTerm) -> String {
 /// the five verdicts, the discharged proof-obligation derivation IRI, and the version quad;
 /// for a REJECTED candidate — a `gmeow:GmnRejectedCandidate` carrying its typed reason. Returns
 /// the quads (all in [`GRAPH_GMN_TRAINING_CORPUS`]) plus the kept/rejected counts.
-fn build_corpus(ctx: &GenContext) -> (Vec<RdfQuad>, usize, usize) {
+fn build_corpus(ctx: &GenContext) -> gmeow_errors::Result<(Vec<RdfQuad>, usize, usize)> {
     let schema_version = resolved_schema_version(&ctx.dict);
     let mut quads: Vec<RdfQuad> = Vec::new();
     let mut kept = 0usize;
     let mut rejected = 0usize;
     for (index, candidate) in enumerate(ctx).into_iter().enumerate() {
-        match sample(&candidate, ctx) {
+        match sample(&candidate, ctx)? {
             Outcome::Kept(cert) => {
                 emit_kept(&mut quads, index, &cert, &schema_version);
                 kept += 1;
@@ -597,7 +577,7 @@ fn build_corpus(ctx: &GenContext) -> (Vec<RdfQuad>, usize, usize) {
             }
         }
     }
-    (quads, kept, rejected)
+    Ok((quads, kept, rejected))
 }
 
 fn iri_quad(subject: &str, predicate: &str, object: &str) -> RdfQuad {
@@ -755,7 +735,7 @@ impl Stage for GmnTrainingCorpusStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let ctx = GenContext::resolve(crate::stages::parse_sources::catalog(&input)?)?;
-        let (quads, kept, _rejected) = build_corpus(&ctx);
+        let (quads, kept, _rejected) = build_corpus(&ctx)?;
         if kept == 0 {
             return Err(stage_err(
                 "the productive functor kept ZERO training pairs — every enumerated well-typed \
@@ -765,7 +745,7 @@ impl Stage for GmnTrainingCorpusStage {
         }
         let mut builder = RdfDatasetBuilder::new();
         for quad in &quads {
-            builder.push_owned_quad(quad);
+            builder.push_owned_quad(quad)?;
         }
         let dataset = builder
             .freeze()

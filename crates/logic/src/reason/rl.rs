@@ -356,7 +356,7 @@ fn lower_edb_for_rl(edb: &RdfDataset) -> gmeow_errors::Result<Option<std::sync::
         for predicate in super::edb_predicate_spellings(&quad.predicate) {
             let lowered = RdfQuad::new(quad.subject.clone(), predicate, object.clone())
                 .in_graph(RdfTerm::iri(world.clone()));
-            builder.push_owned_quad(&lowered);
+            builder.push_owned_quad(&lowered)?;
             pushed = true;
         }
     }

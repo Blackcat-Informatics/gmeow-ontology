@@ -65,10 +65,12 @@ pub fn canon(term: &str) -> String {
 fn edge_page(edges: &[(&str, &str)]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for (s, o) in edges {
-        builder.push_owned_quad(
-            &RdfQuad::new(RdfTerm::iri(iri(s)), edge_pred(), RdfTerm::iri(iri(o)))
-                .in_graph(RdfTerm::iri(WORLD)),
-        );
+        builder
+            .push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(iri(s)), edge_pred(), RdfTerm::iri(iri(o)))
+                    .in_graph(RdfTerm::iri(WORLD)),
+            )
+            .unwrap();
     }
     builder.freeze().expect("valid edge page")
 }

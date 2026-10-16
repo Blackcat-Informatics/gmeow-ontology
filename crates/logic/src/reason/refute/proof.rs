@@ -294,10 +294,17 @@ impl ContextualConflict {
     /// Validate the exact scope and finite framing of an authenticated native proof.
     /// This checks retained engine evidence, not arbitrary external theorem soundness.
     pub fn validate(&self, ledger: &super::NativeFamilyLedger) -> gmeow_errors::Result<()> {
-        if self.world != ledger.world {
+        self.validate_with(&ledger.proof_lookup())
+    }
+
+    pub(crate) fn validate_with(
+        &self,
+        proofs: &super::native::NativeProofLookup<'_>,
+    ) -> gmeow_errors::Result<()> {
+        if self.world != proofs.ledger().world {
             return Err(proof_error("contextual conflict belongs to another world"));
         }
-        self.proof.validate(ledger)
+        self.proof.validate(proofs)
     }
 }
 
@@ -309,7 +316,8 @@ fn proof_error(detail: &str) -> gmeow_errors::Diag {
 
 impl RefutationProof {
     /// Every frame names existing native support and retains its exact source leaves.
-    fn validate(&self, ledger: &super::NativeFamilyLedger) -> gmeow_errors::Result<()> {
+    fn validate(&self, proofs: &super::native::NativeProofLookup<'_>) -> gmeow_errors::Result<()> {
+        let ledger = proofs.ledger();
         let (support, source) = match self {
             Self::Conflict {
                 subjects,
@@ -343,7 +351,7 @@ impl RefutationProof {
                     ));
                 }
                 for branch in branches {
-                    branch.proof.validate(ledger)?;
+                    branch.proof.validate(proofs)?;
                 }
                 (support, choice)
             }
@@ -351,7 +359,7 @@ impl RefutationProof {
         if support.is_empty()
             || support.windows(2).any(|pair| pair[0] >= pair[1])
             || source.iter().any(|row| row.graph != ledger.graph)
-            || ledger.source_leaves(support)? != *source
+            || proofs.source_leaves(support)? != *source
         {
             return Err(proof_error(
                 "closing proof lost its exact native support or original source leaves",

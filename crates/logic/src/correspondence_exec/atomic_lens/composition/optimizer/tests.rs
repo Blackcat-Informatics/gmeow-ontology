@@ -139,11 +139,15 @@ fn two_inversions_cannot_fuse_away_a_literal_subject_failure() {
         .optimize(scope(), AtomicOptimizerLimits::default())
         .unwrap();
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let subject = builder.intern_iri(SUBJECT);
-    let predicate = builder.intern_iri(SOURCE);
-    let value = builder.intern_literal(purrdf::RdfLiteral::simple("literal endpoint"));
-    let graph = builder.intern_iri(GRAPH);
-    builder.push_quad(subject, predicate, value, Some(graph));
+    let subject = builder.intern_iri(SUBJECT).unwrap();
+    let predicate = builder.intern_iri(SOURCE).unwrap();
+    let value = builder
+        .intern_literal(purrdf::RdfLiteral::simple("literal endpoint"))
+        .unwrap();
+    let graph = builder.intern_iri(GRAPH).unwrap();
+    builder
+        .push_quad(subject, predicate, value, Some(graph))
+        .unwrap();
     let error = plan.acquire(builder.freeze().unwrap()).unwrap_err();
     assert!(format!("{error:#}").contains("literal"));
 }

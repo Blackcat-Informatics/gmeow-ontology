@@ -145,7 +145,7 @@ fn forward_and_demand_execution_refuse_a_failed_round_before_committing() {
         solution(2).source_facts.remove(0),
         solution(0).source_facts.remove(0),
     ];
-    let world = crate::store::WorldStore::new();
+    let world = crate::store::WorldStore::new().unwrap();
     for fact in &facts {
         world
             .insert_quad_terms(

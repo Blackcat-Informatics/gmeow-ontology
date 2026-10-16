@@ -132,7 +132,7 @@ fn bench_foundation(c: &mut Criterion) {
     for (name, nq) in &inputs {
         group.bench_function(*name, |b| {
             b.iter(|| {
-                let store = WorldStore::new();
+                let store = WorldStore::new().unwrap();
                 store.load_nquads(nq).expect("load_nquads");
                 let out =
                     evaluate(&store, AntiRigidityPolicy::WitnessObligation).expect("evaluate");
@@ -157,7 +157,7 @@ fn bench_foundation_large(c: &mut Criterion) {
     group.sample_size(10);
     group.bench_function(format!("large_synthetic_{quad_count}quads_40worlds"), |b| {
         b.iter(|| {
-            let store = WorldStore::new();
+            let store = WorldStore::new().unwrap();
             store.load_nquads(&nq).expect("load_nquads");
             let out = evaluate(&store, AntiRigidityPolicy::WitnessObligation).expect("evaluate");
             std::hint::black_box(out)

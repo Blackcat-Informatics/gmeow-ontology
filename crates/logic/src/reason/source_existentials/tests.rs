@@ -67,7 +67,7 @@ fn usual(world: Option<&str>) -> Vec<RdfQuad> {
 fn dataset(rows: &[RdfQuad]) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for row in rows {
-        builder.push_owned_quad(row);
+        builder.push_owned_quad(row).unwrap();
     }
     builder.freeze().unwrap()
 }
@@ -468,24 +468,32 @@ fn source_governor_backstop_restores_caller_limit_on_error_and_refusal() {
 fn annotation_owned_definitions_execute_once_with_original_source_evidence() {
     let rows = usual(Some(A));
     let mut builder = RdfDatasetBuilder::new();
-    let world = builder.intern_iri(A);
-    let quoted_subject = builder.intern_iri("urn:quoted:s");
-    let quoted_predicate = builder.intern_iri("urn:quoted:p");
-    let quoted_object = builder.intern_iri("urn:quoted:o");
-    let quoted = builder.intern_triple(quoted_subject, quoted_predicate, quoted_object);
+    let world = builder.intern_iri(A).unwrap();
+    let quoted_subject = builder.intern_iri("urn:quoted:s").unwrap();
+    let quoted_predicate = builder.intern_iri("urn:quoted:p").unwrap();
+    let quoted_object = builder.intern_iri("urn:quoted:o").unwrap();
+    let quoted = builder
+        .intern_triple(quoted_subject, quoted_predicate, quoted_object)
+        .unwrap();
     let mut reifiers = BTreeSet::new();
     for row in &rows {
-        let subject = builder.intern_owned_term(&row.subject);
+        let subject = builder.intern_owned_term(&row.subject).unwrap();
         if reifiers.insert(subject) {
-            builder.push_reifier_in_graph(subject, quoted, Some(world));
+            builder
+                .push_reifier_in_graph(subject, quoted, Some(world))
+                .unwrap();
         }
-        let predicate = builder.intern_iri(&row.predicate);
-        let object = builder.intern_owned_term(&row.object);
-        builder.push_annotation_in_graph(subject, predicate, object, Some(world));
+        let predicate = builder.intern_iri(&row.predicate).unwrap();
+        let object = builder.intern_owned_term(&row.object).unwrap();
+        builder
+            .push_annotation_in_graph(subject, predicate, object, Some(world))
+            .unwrap();
     }
     // The same defining statement in two physical tables is still one source slot.
-    builder.push_owned_quad(&rows[2]);
-    builder.push_owned_quad(&row(Some(A), X, SEED, term("urn:value")));
+    builder.push_owned_quad(&rows[2]).unwrap();
+    builder
+        .push_owned_quad(&row(Some(A), X, SEED, term("urn:value")))
+        .unwrap();
     let input = super::super::program::prepare_reasoning_input(&builder.freeze().unwrap()).unwrap();
     let sources = input.sources.prepare().unwrap();
     assert_eq!(sources.rules.len(), 1);
@@ -924,4 +932,31 @@ fn source_owned_effects_do_not_create_a_foreign_negative_cycle() {
             .iter()
             .any(|row| row.graph == B && row.predicate == SEED)
     );
+}
+
+#[test]
+fn each_demonstrator_world_publishes_its_own_certificate_class() {
+    // Rooted into their own worlds as the producer roots them, the demonstrators
+    // run under one joint execution admission, yet each world's published
+    // certificate is its own program's class, never a copy of the joint one.
+    let mut builder = RdfDatasetBuilder::new();
+    for (graph, ttl) in termination_ladder_demonstrators() {
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        for mut quad in dataset.owned_quads() {
+            quad.graph_name = Some(RdfTerm::iri(graph));
+            builder.push_owned_quad(&quad).unwrap();
+        }
+    }
+    let input = super::super::program::prepare_reasoning_input(&builder.freeze().unwrap()).unwrap();
+    let result =
+        crate::reason::reason_all(input, &crate::physical::SelectedDomains::new([]).unwrap())
+            .unwrap();
+    let certificates = &result.native_execution().unwrap().chase_certificates;
+    for (world, code) in crate::termination_demonstrators::termination_ladder_certificate_codes() {
+        let published = certificates
+            .iter()
+            .find(|certificate| certificate.world == world)
+            .map(|certificate| certificate.to_finding().code);
+        assert_eq!(published.as_deref(), Some(code), "{world}");
+    }
 }

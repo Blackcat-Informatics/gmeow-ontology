@@ -58,7 +58,7 @@ fn bench_evaluate(c: &mut Criterion) {
     let n = 17usize;
     let src = build_program_src(n);
     let prog = parse_query_program(&src).expect("parse probabilistic program");
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
 
     let mut group = c.benchmark_group("probabilistic_evaluate");
     // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates

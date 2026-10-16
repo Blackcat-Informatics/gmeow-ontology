@@ -478,3 +478,59 @@ msgstr "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId「examples-arch
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsProducerRuntimeStoreSegments|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite \"crates/mcp/src/storage.rs\" ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."
 msgstr "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite「crates/mcp/src/storage.rs」；gmeow:producerMedium gmeow:mediumProfileStoreL12 。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "snapshot input refusal"
+msgstr "快照输入拒绝"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The native snapshot producer refuses a selected source that cannot be completely and faithfully ingested. The typed cause retains source readiness failures, unrepresentable term positions, blank encoding collisions or prior builder poison; an accepted prefix cannot stand for the selected input."
+msgstr "原生快照生产者拒绝无法完整、忠实摄入的选定源。类型化原因保留源就绪故障、无法表示的项位置、空白节点编码冲突或构建器先前的污染状态；已接受的前缀不能代表所选输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when native snapshot input admission fails before a publishable snapshot exists."
+msgstr "在尚无可发布快照之前，原生快照输入准入失败时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a read-side parse failure or a frame-compression violation for this producer input refusal."
+msgstr "不要用读取端解析失败或帧压缩违规来替代此生产者输入拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original typed ingestion error, including its checkpoint, term position or colliding blank identities."
+msgstr "保留原始的类型化摄入错误，包括其检查点、项位置或发生冲突的空白节点身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The refusal governs input fidelity and producer readiness, independently of the mandated compression profile of emitted frames."
+msgstr "此拒绝约束输入保真度和生产者就绪状态，独立于已发出帧的强制压缩配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "An incomplete source view is refused at its ingestion checkpoint instead of publishing the rows read before its failure."
+msgstr "不完整的源视图在其摄入检查点被拒绝，而不是发布故障前已读取的行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native snapshot input admission"
+msgstr "原生快照输入准入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer input contract requiring complete source access, ready operational checkpoints and lossless representation of every selected native RDF term, reifier and annotation before a snapshot can be published."
+msgstr "生产者输入合同要求在快照发布前完整访问源、通过就绪的操作检查点，并无损表示每个选定的原生 RDF 项、重述器和注释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the native ingestion contract realized by the GMEOW snapshot authorship profile."
+msgstr "用于标识 GMEOW 快照创作配置所实现的原生摄入合同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret successful prefix ingestion as permission to publish after any selected source has failed."
+msgstr "不要将成功摄入前缀解释为在任何选定源失败后仍可发布的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Ingest every selected source through the native writer, check completion and retain its full ingestion receipt before publishing."
+msgstr "通过原生写入器摄入每个选定源，检查完成情况，并在发布前保留完整的摄入回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native statement bindings and annotations retain their own tables; the contract never authorizes flattening away their information."
+msgstr "原生陈述绑定和注释保留各自的表；此合同绝不授权通过扁平化丢弃其信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#example"
+msgid "A native rule source retains its reifier bindings when admitted to the snapshot alongside ordinary RDF statements."
+msgstr "原生规则源与普通 RDF 陈述一同准入快照时，保留其重述器绑定。"

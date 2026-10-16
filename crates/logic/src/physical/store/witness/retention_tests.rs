@@ -66,7 +66,12 @@ fn mint(registry: &mut SkolemRegistry, world: &str, premises: &[Fact]) -> (Strin
         object: witness.clone(),
     };
     registry
-        .record_head(&recipe.scope, &[witness.clone()], &head, premises)
+        .record_head(
+            &recipe.scope,
+            std::slice::from_ref(&witness),
+            &head,
+            premises,
+        )
         .unwrap();
     (witness.as_iri().unwrap().to_owned(), head)
 }

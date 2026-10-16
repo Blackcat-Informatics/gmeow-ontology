@@ -28,24 +28,32 @@ const PROVENANCE: &str = "https://blackcatinformatics.ca/logic/provenance";
 
 fn source(graph: &str, context: &str, attach_location: bool) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    let graph_id = builder.intern_iri(graph);
-    let subject = builder.intern_blank("member", BlankScope::DEFAULT);
-    let relation = builder.intern_iri(RELATION);
-    let object = builder.intern_iri("urn:compile-carrier:object");
-    let claim = builder.intern_blank("claim", BlankScope::DEFAULT);
-    let statement = builder.intern_triple(subject, relation, object);
-    let standpoint = builder.intern_iri(STANDPOINT);
-    let provenance = builder.intern_iri(PROVENANCE);
-    let context = builder.intern_iri(context);
-    let row = builder.push_quad_with_handle(subject, relation, object, Some(graph_id));
+    let graph_id = builder.intern_iri(graph).unwrap();
+    let subject = builder.intern_blank("member", BlankScope::DEFAULT).unwrap();
+    let relation = builder.intern_iri(RELATION).unwrap();
+    let object = builder.intern_iri("urn:compile-carrier:object").unwrap();
+    let claim = builder.intern_blank("claim", BlankScope::DEFAULT).unwrap();
+    let statement = builder.intern_triple(subject, relation, object).unwrap();
+    let standpoint = builder.intern_iri(STANDPOINT).unwrap();
+    let provenance = builder.intern_iri(PROVENANCE).unwrap();
+    let context = builder.intern_iri(context).unwrap();
+    let row = builder
+        .push_quad_with_handle(subject, relation, object, Some(graph_id))
+        .unwrap();
     if attach_location {
         builder.attach_location(row, RdfLocation::file("synthetic-projection.ttl"));
     }
-    builder.push_reifier_in_graph(claim, statement, Some(graph_id));
-    builder.push_annotation_in_graph(claim, standpoint, context, Some(graph_id));
-    builder.push_annotation_in_graph(claim, provenance, graph_id, Some(graph_id));
-    let declaration = builder.intern_iri(&format!("{graph}/empty"));
-    builder.declare_named_graph(declaration);
+    builder
+        .push_reifier_in_graph(claim, statement, Some(graph_id))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(claim, standpoint, context, Some(graph_id))
+        .unwrap();
+    builder
+        .push_annotation_in_graph(claim, provenance, graph_id, Some(graph_id))
+        .unwrap();
+    let declaration = builder.intern_iri(&format!("{graph}/empty")).unwrap();
+    builder.declare_named_graph(declaration).unwrap();
     builder.freeze().expect("freeze synthetic projection")
 }
 
@@ -113,7 +121,7 @@ fn composite_shares_inputs_and_routes_every_rdf_layer_in_one_materialization() {
         .chain([GRAPH_DIAGNOSTICS])
         .enumerate()
     {
-        let selected = dataset.project_named_graph(graph);
+        let selected = dataset.project_named_graph(graph).unwrap();
         let ordinary: Vec<_> = selected.owned_quads().collect();
         let reifiers: Vec<_> = selected.owned_reifiers().collect();
         let annotations: Vec<_> = selected.owned_annotations().collect();
@@ -170,8 +178,8 @@ fn composite_shares_inputs_and_routes_every_rdf_layer_in_one_materialization() {
 fn empty_projections_replace_source_declarations_and_preserve_diagnostic_declarations() {
     let empty = |graph: &str| {
         let mut builder = RdfDatasetBuilder::new();
-        let graph = builder.intern_iri(graph);
-        builder.declare_named_graph(graph);
+        let graph = builder.intern_iri(graph).unwrap();
+        builder.declare_named_graph(graph).unwrap();
         builder.freeze().unwrap()
     };
     let projections = std::array::from_fn(|index| empty(&format!("urn:old-empty:{index}")));
@@ -291,7 +299,7 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     for graph in CARRIER_GRAPHS {
         assert_eq!(
             bundle.handle(graph).unwrap().content_digest,
-            bundle.graph_digest(graph)
+            bundle.graph_digest(graph).unwrap()
         );
     }
     let PipelineHandle::CompiledLogic(publication) = &bundle.handle(GRAPH_LOGIC).unwrap().payload
@@ -315,7 +323,10 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
         panic!("native correspondence program missing");
     };
     assert_eq!(carried_correspondence.as_ref(), &expected_correspondence);
-    let diagnostics = bundle.dataset().project_named_graph(GRAPH_DIAGNOSTICS);
+    let diagnostics = bundle
+        .dataset()
+        .project_named_graph(GRAPH_DIAGNOSTICS)
+        .unwrap();
     let restored =
         crate::stages::carrier::rooted_in_graph(&diagnostics, GRAPH_DIAGNOSTICS).unwrap();
     assert_eq!(purrdf::canonicalize(&restored).nquads, expected_diagnostics);

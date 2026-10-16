@@ -78,6 +78,8 @@ pub enum MatrixError {
     Tokenizer(String),
     /// The grounding corpus could not be assembled (dictionary load, parse, serialization).
     Corpus(String),
+    /// A native operation failed; retain its complete shared diagnostic envelope.
+    Native(gmeow_errors::Diag),
     /// A command-line argument to the maint binary was missing or unrecognized.
     Cli(String),
 }
@@ -97,12 +99,26 @@ impl fmt::Display for MatrixError {
             ),
             MatrixError::Tokenizer(m) => write!(f, "tokenizer failure: {m}"),
             MatrixError::Corpus(m) => write!(f, "grounding corpus failure: {m}"),
+            MatrixError::Native(error) => write!(f, "native operation failed: {error}"),
             MatrixError::Cli(m) => write!(f, "argument error: {m}"),
         }
     }
 }
 
-impl std::error::Error for MatrixError {}
+impl std::error::Error for MatrixError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Native(error) => error.inner().source.as_deref().map(|source| source as _),
+            _ => None,
+        }
+    }
+}
+
+impl From<gmeow_errors::Diag> for MatrixError {
+    fn from(error: gmeow_errors::Diag) -> Self {
+        Self::Native(error)
+    }
+}
 
 /// A convenience alias for the crate's fallible operations.
 pub type Result<T> = std::result::Result<T, MatrixError>;
@@ -339,14 +355,13 @@ fn load_dictionary(root: &Path) -> Result<GmnDictionary> {
 /// Both are over the SAME frozen dataset the GMN writer lowered, so the three surfaces compare
 /// like for like — the identical construction [`gmeow_lang_bridge::compute_token_metrics`] uses.
 fn serialize_turtle_jsonld(model: &Gmn0Model) -> Result<(String, String)> {
-    let dataset = model.to_dataset();
+    let dataset = model.to_dataset()?;
     let turtle =
         purrdf::serialize_dataset_to_format(&*dataset, purrdf::NativeRdfFormat::Turtle, None)
-            .map_err(|e| MatrixError::Corpus(format!("Turtle serialization failed: {e}")))?;
-    let turtle = String::from_utf8(turtle.bytes)
-        .map_err(|e| MatrixError::Corpus(format!("Turtle bytes are not UTF-8: {e}")))?;
-    let jsonld = purrdf::serialize_dataset_to_jsonld(&*dataset)
-        .map_err(|e| MatrixError::Corpus(format!("JSON-LD serialization failed: {e}")))?;
+            .map_err(gmeow_errors::Diag::from)?;
+    let turtle = String::from_utf8(turtle.bytes).map_err(gmeow_errors::Diag::from)?;
+    let jsonld =
+        purrdf::serialize_dataset_to_jsonld(&*dataset).map_err(gmeow_errors::Diag::from)?;
     Ok((turtle, jsonld))
 }
 
@@ -376,7 +391,7 @@ pub fn build_corpus(root: &Path) -> Result<(GmnDictionary, Vec<Artifact>)> {
         let Ok(back) = gmn1_read(&doc, &dict) else {
             continue;
         };
-        if !gmn0_canonically_equal(&model, &back) {
+        if !gmn0_canonically_equal(&model, &back)? {
             continue;
         }
         let (turtle, jsonld) = serialize_turtle_jsonld(&model)?;

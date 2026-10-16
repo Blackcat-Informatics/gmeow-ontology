@@ -61,10 +61,6 @@ const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
 const SH_SPARQLTARGET: &str = "http://www.w3.org/ns/shacl#SPARQLTarget";
 /// `rdf:type`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-/// `rdf:first` / `rdf:rest` / `rdf:nil` — the RDF-list spine of `sh:in` / `sh:languageIn`.
-const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
-const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
-const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 /// `rdfs:label` — a presentation predicate the reader skips silently.
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 /// `rdfs:isDefinedBy` — an ontology-provenance annotation (which slice defines the shape); it
@@ -261,38 +257,8 @@ fn parse_facet(ds: &RdfDataset, id: TermId, ctx: &str) -> gmeow_errors::Result<F
 /// Walk an RDF list from `head`, returning its member term ids in order. An empty
 /// (`rdf:nil`) list yields the empty vector; a malformed node hard-fails.
 fn parse_rdf_list(ds: &RdfDataset, head: TermId, ctx: &str) -> gmeow_errors::Result<Vec<TermId>> {
-    let mut out = Vec::new();
-    let mut cur = head;
-    // Cyclic / adversarial lists are bounded — a real `sh:in` is tiny.
-    for _ in 0..1_000_000 {
-        if let TermRef::Iri(s) = ds.resolve(cur)
-            && s == RDF_NIL
-        {
-            return Ok(out);
-        }
-        let node = quads_of(ds, cur);
-        let first = node
-            .iter()
-            .find(|(p, _)| p == RDF_FIRST)
-            .ok_or_else(|| {
-                parse_err(format!(
-                    "{ctx}: malformed RDF list (a node has no rdf:first)"
-                ))
-            })?
-            .1;
-        let rest = node
-            .iter()
-            .find(|(p, _)| p == RDF_REST)
-            .ok_or_else(|| {
-                parse_err(format!(
-                    "{ctx}: malformed RDF list (a node has no rdf:rest)"
-                ))
-            })?
-            .1;
-        out.push(first);
-        cur = rest;
-    }
-    Err(parse_err(format!("{ctx}: RDF list is too long or cyclic")))
+    ds.rdf_list_strict(head, GraphMatch::Any)
+        .map_err(|error| parse_err(format!("{ctx}: {error}")))
 }
 
 /// A single value term (`sh:in` member or `sh:hasValue`) as a [`ShapeValue`]. A plain
@@ -1687,14 +1653,9 @@ pub fn cross_check(
             ))
         })?;
         let mut builder = RdfDatasetBuilder::new();
-        builder.push_dataset(data_graph);
-        builder.push_dataset(&witness_ds);
-        let dataset = builder.freeze().map_err(|e| {
-            parse_err(format!(
-                "cross_check: witness '{}' dataset freeze failed: {e}",
-                w.component
-            ))
-        })?;
+        builder.push_dataset(data_graph)?;
+        builder.push_dataset(&witness_ds)?;
+        let dataset = builder.freeze().map_err(gmeow_errors::Diag::from)?;
 
         let p = finding_keys(&dataset, &projected);
         let l = finding_keys(&dataset, &legacy);
@@ -2733,18 +2694,17 @@ pub fn semantic_witness_plan(
 }
 
 /// Multi-sibling near-miss witnesses for a negated-conjunction obligation over a focus class:
-/// `∀this. C(this) ∧ trigger(this, tv) → (p₁ v₁ ∧ … ∧ pₙ vₙ)`. This is the shape a De-Morgan
-/// lowering that splits `¬(p₁ ∧ … ∧ pₙ)` into an UNSCOPED `{¬p₁} UNION … UNION {¬pₙ}` silently
-/// mis-projects: each union arm binds no variable, so SPARQL evaluates it independently of the
-/// guard join — `$this` is unbound inside the arm and `NOT EXISTS { $this pᵢ vᵢ }` degrades to a
-/// GLOBAL existence check that ANY sibling carrying `pᵢ vᵢ` clears.
+/// `∀this. C(this) ∧ trigger(this, tv) → (p₁ v₁ ∧ … ∧ pₙ vₙ)`. They detect a lowering that
+/// replaces the focus subject with an unbound local variable inside its negated patterns:
+/// the resulting global existence checks can be cleared by unrelated siblings. Merely
+/// splitting the negation into UNION arms does not erase SHACL's pre-binding of `$this`.
 ///
 /// For each conjunct k it mints (a) a NEAR-MISS focus that triggers the obligation and satisfies
 /// every conjunct BUT k, paired with a SIBLING that carries conjunct k (so the unscoped union
 /// arm for k — and every other arm, which the focus itself satisfies — is globally cleared), with
 /// `expect_flagged = true`; plus one CONFORMING focus that satisfies every conjunct
 /// (`expect_flagged = false`). A scoped `FILTER NOT EXISTS { $this p₁ v₁ . … . $this pₙ vₙ }`
-/// record flags each near-miss and passes; an unscoped union record flags none and is caught.
+/// record flags each near-miss and passes; a union using unbound subjects flags none and is caught.
 ///
 /// Object terms (`trigger_obj`, each conjunct object) are already-serialized Turtle terms
 /// (`<iri>` or a literal like `'true'^^<…boolean>`), so a boolean-triggered obligation is

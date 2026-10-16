@@ -19,9 +19,9 @@ gmeow:GenComputeRule_rel_r0
     gmeow:graphBoxRole gmeow:boxABox ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/logic/rel> ?y . FILTER ( ?this != ?y ) }""" ;
+        sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/logic/rel> ?y . FILTER ( !sameTerm(?this, ?y) ) }""" ;
     ] ;
     sh:rule [
         a sh:SPARQLRule ;
-        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/logic/rel> ?y } WHERE { $this <https://blackcatinformatics.ca/logic/rel> ?y . FILTER ( $this != ?y ) }""" ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/logic/rel> ?y } WHERE { $this <https://blackcatinformatics.ca/logic/rel> ?y . FILTER ( !sameTerm($this, ?y) ) }""" ;
     ] .

@@ -62,18 +62,18 @@ fn product(result: ReasoningResult) -> StageProduct {
 /// valid original summary is retained while the native result is altered.
 fn product_over(result: ReasoningResult, summary: &RdfDataset) -> StageProduct {
     let mut builder = RdfDatasetBuilder::new();
-    let graph = builder.intern_iri(GRAPH_REASONING);
-    builder.declare_named_graph(graph);
+    let graph = builder.intern_iri(GRAPH_REASONING).unwrap();
+    builder.declare_named_graph(graph).unwrap();
     for mut row in purrdf::native_quads::flat_rdf_quads(summary) {
         row.graph_name = Some(RdfTerm::iri(GRAPH_REASONING));
-        builder.push_owned_quad(&row);
+        builder.push_owned_quad(&row).unwrap();
     }
     let mut bundle = bundle_from_artifacts_over(
         builder.freeze().expect("tiny reasoning summary"),
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(GRAPH_REASONING);
+    let pinned = bundle.graph_digest(GRAPH_REASONING).unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
@@ -201,7 +201,7 @@ fn missing_reason_product_handle_and_wrong_payloads_refuse() {
     );
     let mut wrong_arm = product(result(Vec::new()));
     let bundle = Arc::make_mut(&mut wrong_arm.bundle);
-    let pin = bundle.graph_digest(GRAPH_REASONING);
+    let pin = bundle.graph_digest(GRAPH_REASONING).unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
@@ -317,7 +317,7 @@ fn changed_native_payload_identity_refuses() {
     rows[0].object = TermValue::iri("urn:docs-verdict:substituted");
     let mut substituted = product(original);
     let bundle = Arc::make_mut(&mut substituted.bundle);
-    let pin = bundle.graph_digest(GRAPH_REASONING);
+    let pin = bundle.graph_digest(GRAPH_REASONING).unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
@@ -342,7 +342,7 @@ fn absent_graph_released_carrier_and_wrong_producer_refuse() {
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pin = bundle.graph_digest(GRAPH_REASONING);
+    let pin = bundle.graph_digest(GRAPH_REASONING).unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,

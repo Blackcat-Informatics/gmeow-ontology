@@ -12,11 +12,13 @@ const SUBCLASS: &str = "https://blackcatinformatics.ca/logic/subClassOf";
 fn input(rows: &[(&str, &str, &str)]) -> PreparedReasoningInput {
     let mut builder = RdfDatasetBuilder::new();
     for (subject, predicate, object) in rows {
-        builder.push_owned_quad(&RdfQuad::new(
-            RdfTerm::iri(*subject),
-            *predicate,
-            RdfTerm::iri(*object),
-        ));
+        builder
+            .push_owned_quad(&RdfQuad::new(
+                RdfTerm::iri(*subject),
+                *predicate,
+                RdfTerm::iri(*object),
+            ))
+            .unwrap();
     }
     super::super::prepare_reasoning_input(&builder.freeze().unwrap()).unwrap()
 }

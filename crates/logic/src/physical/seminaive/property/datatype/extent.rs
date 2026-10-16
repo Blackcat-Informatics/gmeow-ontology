@@ -7,7 +7,7 @@
 
 use super::{Facet, Node};
 use crate::reason::value::{LiteralMeaning, LiteralValue};
-use purrdf::xsd::{XsdDatatype, XsdValue, range, rational::Rational};
+use purrdf::xsd::{XsdDatatype, XsdValue, exact::Rational, range};
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct ValueSpaceBounds {
@@ -162,6 +162,7 @@ pub(super) fn named(iri: &str) -> ValueSpaceBounds {
             | "http://www.w3.org/2000/01/rdf-schema#Literal"
             | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
             | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+            | purrdf::xsd::datatype::XSD_ANY_URI
     ) {
         return ValueSpaceBounds::INFINITE;
     }
@@ -267,8 +268,8 @@ fn purrdf_facet(facet: &Facet) -> Option<range::Facet> {
     Some(match facet {
         Facet::Ordered { kind, bound } => {
             let value = match &bound.meaning {
-                LiteralMeaning::Rational(value) if value.denominator() == 1 => XsdValue::Integer {
-                    value: value.numerator(),
+                LiteralMeaning::Rational(value) if value.is_integer() => XsdValue::Integer {
+                    value: value.numerator().clone(),
                     datatype: XsdDatatype::Integer,
                 },
                 LiteralMeaning::Native(value) => value.clone(),
@@ -302,7 +303,7 @@ fn dense(facets: &[&Facet], decimal: bool) -> ValueSpaceBounds {
         let Facet::Ordered { kind, bound } = facet else {
             return ValueSpaceBounds::UNKNOWN;
         };
-        let LiteralMeaning::Rational(value) = bound.meaning else {
+        let LiteralMeaning::Rational(value) = &bound.meaning else {
             return ValueSpaceBounds::UNKNOWN;
         };
         let strict = *kind >= 2;
@@ -312,9 +313,9 @@ fn dense(facets: &[&Facet], decimal: bool) -> ValueSpaceBounds {
             (&mut upper, false)
         };
         match side {
-            Some((prior, prior_strict)) if *prior == value => *prior_strict |= strict,
-            Some((prior, _)) if (minimum && *prior > value) || (!minimum && *prior < value) => {}
-            _ => *side = Some((value, strict)),
+            Some((prior, prior_strict)) if prior == value => *prior_strict |= strict,
+            Some((prior, _)) if (minimum && *prior > *value) || (!minimum && *prior < *value) => {}
+            _ => *side = Some((value.clone(), strict)),
         }
     }
     match (lower, upper) {

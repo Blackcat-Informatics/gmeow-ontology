@@ -73,6 +73,7 @@ mod operator_rules;
 mod operator_scenes;
 pub mod production_shapes;
 pub(crate) mod registry_surface;
+pub(crate) mod reviewed_translations;
 mod source_admission;
 mod source_glyph_legend;
 mod source_lint;
@@ -467,12 +468,11 @@ fn grade_external_cases(
                 if let Some(expected) = profile
                     .get("source_admission_status")
                     .and_then(serde_json::Value::as_str)
+                    && expected != observation.admission.observation_status()
                 {
-                    if expected != observation.admission.observation_status() {
-                        return Err(stage_err(
-                            "source-admission observation violates its declared expected status",
-                        ));
-                    }
+                    return Err(stage_err(
+                        "source-admission observation violates its declared expected status",
+                    ));
                 }
                 observed.push(source_admission::grade(
                     &corpus,
@@ -791,7 +791,7 @@ impl Stage for ConformanceStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "conformance.v15-typed-source-admission-observations"
+        "conformance.v16-reviewed-translation-observations"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = external_case_input_files(root)?;
@@ -816,6 +816,7 @@ impl Stage for ConformanceStage {
         files.extend(action_policy::input_files(root));
         files.extend(medium_axis::input_files(root));
         files.extend(source_lint::input_files(root));
+        files.extend(reviewed_translations::input_files(root)?);
         files.extend(crate::stages::superset::source_contracts::input_files(root));
         files.push(root.join(crate::stages::yaml_ld::source_observation::SOURCE));
         files.sort();
@@ -915,6 +916,7 @@ impl Stage for ConformanceStage {
         )?;
         let lint_math = math_lowering::record(input.root, &mut artifacts)?;
         source_lint::record(input.root, lint_math, &mut artifacts)?;
+        reviewed_translations::record(input.root, &mut artifacts)?;
         wasm_gmn::record(
             input.root,
             crate::stages::parse_sources::catalog(&input)?,

@@ -152,9 +152,9 @@ const TARGET_SOURCES: &[TargetSource] = &[
 ];
 
 /// Parse Turtle bytes into a frozen dataset (native lenient codec).
-fn parse_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, SliceError> {
+fn parse_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     parse_dataset(bytes, NativeRdfFormat::Turtle.media_type(), None)
-        .map_err(|e| SliceError::Parse(format!("{context}: {e}")))
+        .map_err(|error| gmeow_errors::Diag::from(error).with_context(context))
 }
 
 /// Merge the ontology source set (`ontology/gmeow.ttl` ⊕ sorted slice `Module` artifacts) —
@@ -162,13 +162,13 @@ fn parse_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, SliceErr
 fn merge_ontology(
     root: &Path,
     catalog: Option<&SliceCatalog>,
-) -> Result<Arc<RdfDataset>, SliceError> {
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut b = RdfDatasetBuilder::new();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.is_file() {
         let bytes = std::fs::read(&onto).map_err(SliceError::Io)?;
         let ds = parse_turtle(&bytes, "ontology/gmeow.ttl")?;
-        b.push_dataset(&ds);
+        b.push_dataset(&ds)?;
     }
     if let Some(catalog) = catalog {
         let mut artifacts: Vec<(PathBuf, &[u8])> = Vec::new();
@@ -185,17 +185,17 @@ fn merge_ontology(
         artifacts.sort_by(|a, c| a.0.cmp(&c.0));
         for (path, bytes) in &artifacts {
             let ds = parse_turtle(bytes, &path.display().to_string())?;
-            b.push_dataset(&ds);
+            b.push_dataset(&ds)?;
         }
     }
-    let canonical = b.freeze().map_err(|e| SliceError::Parse(e.to_string()))?;
-    Ok(crate::stages::carrier::with_owl_rdfs_projection(&canonical))
+    let canonical = b.freeze()?;
+    crate::stages::carrier::with_owl_rdfs_projection(&canonical)
 }
 
 /// Recursively collect every `.ttl` file under `dir` (mirrors
 /// `correspondence_lower::collect_ttl_files`; duplicated here since this stage reads its
 /// own committed corpus independently, exactly like the four dialect lowerings do).
-fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError> {
+fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), gmeow_errors::Diag> {
     if !dir.is_dir() {
         return Ok(());
     }
@@ -215,7 +215,10 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceErro
 /// carrier of every `gmeow:ProjectionMapping` cell the EDOAL lowering renders from; the
 /// entity2 template-coherence check (`check_edoal_entity_kind`'s check B) re-parses it via
 /// [`get_leg::projections`] to correlate a committed EDOAL cell to its authoring template.
-fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDataset>, SliceError> {
+fn merge_dsl(
+    root: &Path,
+    catalog: Option<&SliceCatalog>,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut b = RdfDatasetBuilder::new();
     let mut files = Vec::new();
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
@@ -223,7 +226,7 @@ fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDatas
     for path in &files {
         let bytes = std::fs::read(path).map_err(SliceError::Io)?;
         let ds = parse_turtle(&bytes, &path.display().to_string())?;
-        b.push_dataset(&ds);
+        b.push_dataset(&ds)?;
     }
     if let Some(catalog) = catalog {
         let mut artifacts: Vec<(PathBuf, &[u8])> = Vec::new();
@@ -240,15 +243,15 @@ fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDatas
         artifacts.sort_by(|a, c| a.0.cmp(&c.0));
         for (path, bytes) in &artifacts {
             let ds = parse_turtle(bytes, &path.display().to_string())?;
-            b.push_dataset(&ds);
+            b.push_dataset(&ds)?;
         }
     }
-    b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
+    b.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Load every SSSOM mapping row from `generated/mappings/*.sssom.tsv` (sorted by path,
 /// the same source + order the retired `load_sssom_mappings` read).
-fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, SliceError> {
+fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, gmeow_errors::Diag> {
     // GENERATED-READ-OK: audit lane. `lint_correspondence_soundness` is NOT a pipeline
     // produce-stage — its only callers are the dev-CLI feedback surfaces
     // (`compile_diagnostics_report` → `py.rs`, the `scoreboards` audit, `py.rs` directly).
@@ -263,7 +266,8 @@ fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, SliceError> {
                 "missing SSSOM mappings directory {}",
                 mappings_dir.display()
             ),
-        )));
+        ))
+        .into());
     }
     let mut files: Vec<PathBuf> = Vec::new();
     for entry in std::fs::read_dir(&mappings_dir).map_err(SliceError::Io)? {
@@ -327,7 +331,10 @@ fn referenced_prefixes(mappings: &[Mapping], onto: &DslView<'_>) -> BTreeSet<Str
 
 /// Load + merge the target-axiom dataset for a prefix (snapshot ⊕ fixture), or `None`
 /// when neither exists.
-fn load_target_axioms(root: &Path, prefix: &str) -> Result<Option<Arc<RdfDataset>>, SliceError> {
+fn load_target_axioms(
+    root: &Path,
+    prefix: &str,
+) -> Result<Option<Arc<RdfDataset>>, gmeow_errors::Diag> {
     let mut b = RdfDatasetBuilder::new();
     let mut has = false;
 
@@ -338,7 +345,7 @@ fn load_target_axioms(root: &Path, prefix: &str) -> Result<Option<Arc<RdfDataset
     if snapshot.is_file() {
         let bytes = std::fs::read(&snapshot).map_err(SliceError::Io)?;
         let ds = parse_turtle(&bytes, &snapshot.display().to_string())?;
-        b.push_dataset(&ds);
+        b.push_dataset(&ds)?;
         has = true;
     }
     let fixture = root
@@ -349,25 +356,25 @@ fn load_target_axioms(root: &Path, prefix: &str) -> Result<Option<Arc<RdfDataset
     if fixture.is_file() {
         let bytes = std::fs::read(&fixture).map_err(SliceError::Io)?;
         let ds = parse_turtle(&bytes, &fixture.display().to_string())?;
-        b.push_dataset(&ds);
+        b.push_dataset(&ds)?;
         has = true;
     }
 
     if !has {
         return Ok(None);
     }
-    let ds = b.freeze().map_err(|e| SliceError::Parse(e.to_string()))?;
+    let ds = b.freeze()?;
     Ok(Some(ds))
 }
 
 /// The merged FnO catalog dataset (`functions.fno.ttl` ⊕ `transforms.fno.ttl`, the latter
 /// falling back to `dsl/mappings/transforms.fno.ttl`).
-fn fno_catalog(root: &Path, projections: &Path) -> Result<Arc<RdfDataset>, SliceError> {
+fn fno_catalog(root: &Path, projections: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut b = RdfDatasetBuilder::new();
     let functions = projections.join(FNO_FUNCTIONS_FILE);
     let bytes = std::fs::read(&functions).map_err(SliceError::Io)?;
     let functions_ds = parse_turtle(&bytes, &functions.display().to_string())?;
-    b.push_dataset(&functions_ds);
+    b.push_dataset(&functions_ds)?;
 
     let transforms = projections.join(FNO_TRANSFORMS_FILE);
     let transforms = if transforms.is_file() {
@@ -377,12 +384,14 @@ fn fno_catalog(root: &Path, projections: &Path) -> Result<Arc<RdfDataset>, Slice
     };
     let bytes = std::fs::read(&transforms).map_err(SliceError::Io)?;
     let transforms_ds = parse_turtle(&bytes, &transforms.display().to_string())?;
-    b.push_dataset(&transforms_ds);
-    b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
+    b.push_dataset(&transforms_ds)?;
+    b.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Every committed `*.edoal.ttl` under `projections`, sorted by path.
-fn edoal_datasets(projections: &Path) -> Result<Vec<(String, Arc<RdfDataset>)>, SliceError> {
+fn edoal_datasets(
+    projections: &Path,
+) -> Result<Vec<(String, Arc<RdfDataset>)>, gmeow_errors::Diag> {
     let mut files: Vec<PathBuf> = Vec::new();
     if projections.is_dir() {
         for entry in std::fs::read_dir(projections).map_err(SliceError::Io)? {
@@ -414,7 +423,7 @@ fn edoal_datasets(projections: &Path) -> Result<Vec<(String, Arc<RdfDataset>)>, 
 /// subset (domain/range/inverse + property types) in the target namespace. Mirrors the
 /// retired Python `target_axioms.fetch_target_axioms`. Only reachable with
 /// `allow_network=true` (the on-gate path uses `false`).
-fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, SliceError> {
+fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let source = TARGET_SOURCES
         .iter()
         .find(|s| s.prefix == prefix)
@@ -473,12 +482,12 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, SliceError> {
         // Re-intern this quad into the filtered dataset (subject is an IRI; predicate an
         // IRI; object an IRI or literal — the structural axioms only carry IRI objects,
         // but a permissive re-intern keeps any object kind).
-        let s = b.intern_iri(subj);
-        let p = b.intern_iri(pred);
-        let o = intern_object(&mut b, &parsed, q.o);
-        b.push_quad(s, p, o, None);
+        let s = b.intern_iri(subj)?;
+        let p = b.intern_iri(pred)?;
+        let o = intern_object(&mut b, &parsed, q.o)?;
+        b.push_quad(s, p, o, None)?;
     }
-    b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
+    b.freeze().map_err(gmeow_errors::Diag::from)
 }
 
 /// Re-intern an RDF 1.2 object through the native carrier's value-preserving door.
@@ -486,8 +495,8 @@ fn intern_object(
     b: &mut RdfDatasetBuilder,
     ds: &RdfDataset,
     obj: purrdf::TermId,
-) -> purrdf::TermId {
-    b.intern_owned_term(&ds.to_owned_term(obj))
+) -> gmeow_errors::Result<purrdf::TermId> {
+    Ok(b.intern_owned_term(&ds.to_owned_term(obj))?)
 }
 
 /// Whether a quad is a structural axiom or an `rdf:type` naming a property kind.
@@ -580,7 +589,7 @@ impl Corpus {
 pub fn lint_correspondence_soundness(
     root: &Path,
     allow_network: bool,
-) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
+) -> Result<Vec<ProjectionDiagnostic>, gmeow_errors::Diag> {
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(SliceCatalog::discover(

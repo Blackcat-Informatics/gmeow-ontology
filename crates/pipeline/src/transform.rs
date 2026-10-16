@@ -854,8 +854,7 @@ fn gts_from_maximal(
     let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
     // Fold the native quad stream with PurRDF's same RDF 1.2 ingestion authority.
     let fold = |quads: &[RdfQuad]| {
-        purrdf::native_quads::dataset_from_quads(quads)
-            .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
+        purrdf::native_quads::dataset_from_quads(quads).map_err(gmeow_errors::Diag::from)
     };
     let _ingestion = builder.add_view(&base_plus_derived.ds).map_err(|message| {
         gmeow_errors::Diag::of_kind(crate::error::Transform {

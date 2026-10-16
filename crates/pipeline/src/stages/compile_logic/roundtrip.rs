@@ -53,7 +53,7 @@ fn observe(raw: &LogicProgram) -> gmeow_errors::Result<[DialectObservation; 3]> 
     // Canonical RDF is the reference projection, whose first pass can normalize
     // serialization-dependent axiom identities. Share that reference across the
     // codecs without rendering and reparsing Turtle to pass native RDF around.
-    let canonical = rdf::project_canonical_rdf12_dataset(raw).map_err(gmeow_errors::Diag::from)?;
+    let canonical = rdf::project_canonical_rdf12_dataset(raw)?;
     let (fixed, _) = parse_logic_dataset(&canonical.dataset, source.clone())
         .map_err(gmeow_errors::Diag::from)?;
     Ok([

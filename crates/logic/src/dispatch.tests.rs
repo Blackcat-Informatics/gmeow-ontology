@@ -183,7 +183,7 @@ fn annotated_query_contract_hash_covers_algebra_identity() {
 
 /// Build a 3-element RDF list (x y z) at l0 → l1 → l2 → rdf:nil in a fresh world.
 fn list_world() -> (WorldStore, &'static str) {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let first = rdf("first");
     let rest = rdf("rest");
     let nil = rdf("nil");
@@ -200,7 +200,7 @@ fn list_world() -> (WorldStore, &'static str) {
 
 #[test]
 fn dispatch_query_recursive_ancestor_runs_native() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
     store.insert_quad(W, &p("b"), &p("parentOf"), &p("c"));
     store.insert_quad(W, &p("c"), &p("parentOf"), &p("d"));
@@ -240,7 +240,7 @@ fn dispatch_query_recursive_ancestor_runs_native() {
 
 #[test]
 fn annotated_dispatch_combines_body_scores_and_alternative_derivations() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
     store.insert_quad(W, &p("b"), &p("edge"), &p("c"));
     store.insert_quad(W, &p("a"), &p("edge"), &p("c"));
@@ -319,7 +319,7 @@ fn annotated_dispatch_combines_body_scores_and_alternative_derivations() {
 
 #[test]
 fn annotated_dispatch_scopes_declared_law_deviation_to_query_class() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
@@ -392,7 +392,7 @@ fn annotated_dispatch_scopes_declared_law_deviation_to_query_class() {
 
 #[test]
 fn annotated_dispatch_hard_fails_a_nonconvergent_recursive_algebra() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("edge"), &p("a"));
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
@@ -442,7 +442,7 @@ fn dispatch_query_ground_naf_only_rule_evaluates_under_all_free_goal() {
     );
     let prog = parse_query_program(&src).unwrap();
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let foreign = WorldFactSnapshot::from_world(&store, W, STRATIFIED_NAF_PROFILE).unwrap();
     let answer = dispatch_query(
         &foreign,
@@ -461,7 +461,7 @@ fn dispatch_query_ground_naf_only_rule_evaluates_under_all_free_goal() {
     assert_eq!(answer.bindings[0]["X"], format!("<{BASE}a>"));
     assert_eq!(answer.bindings[0]["Y"], format!("<{BASE}b>"));
 
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("q"), &p("b"));
     let foreign = WorldFactSnapshot::from_world(&store, W, STRATIFIED_NAF_PROFILE).unwrap();
     let answer = dispatch_query(
@@ -480,7 +480,7 @@ fn dispatch_query_ground_naf_only_rule_evaluates_under_all_free_goal() {
 
 #[test]
 fn dispatch_query_builtin_only_rule_evaluates_adjacent_assignments() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
@@ -556,7 +556,7 @@ fn exact_rational_answer_flows_through_dispatch() {
     // surface: a rule computing an exact rational (`H is 6 / 4` → 3/2) with the
     // distinct `/` operator resolves through `dispatch_query` and returns the
     // normalized rational transport binding.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("kind"), &p("item"));
     let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
     let src = format!(
@@ -582,7 +582,7 @@ fn dimension_composition_flows_through_dispatch() {
     // fed from EDB dimension-transport facts resolves through `dispatch_query` and
     // returns the composed dimension transport binding.
     let dim_dt = "urn:gmeow:transport:dimension";
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let length = purrdf::TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
     let time = purrdf::TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
     store
@@ -706,7 +706,7 @@ fn nary_comparison_program_is_a_typed_arithmetic_refusal() {
 /// answer set (a→b, a→c, a→d) to pin that the native path actually answered.
 #[test]
 fn dispatch_query_idb_resolved_by_native() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
     store.insert_quad(W, &p("b"), &p("parentOf"), &p("c"));
     store.insert_quad(W, &p("c"), &p("parentOf"), &p("d"));
@@ -760,7 +760,7 @@ fn dispatch_query_idb_resolved_by_native() {
 #[test]
 fn dispatch_query_parsed_triple4_decides_nary_goal() {
     // A single <p1> edge x→y; the sub-property rule derives x <p2> y.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("x"), &p("p1"), &p("y"));
     let world_nn = W.to_owned();
 
@@ -796,7 +796,7 @@ fn dispatch_query_parsed_triple4_decides_nary_goal() {
 /// seam: the native result is complete and production dispatch preserves it.
 #[test]
 fn dispatch_query_parsed_nary_over_binary_edb_decides() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
     store.insert_quad(W, &p("b"), &p("edge"), &p("c"));
     let world_nn = W.to_owned();
@@ -835,7 +835,7 @@ fn dispatch_query_parsed_nary_over_binary_edb_decides() {
 /// Cut is retained in the parser only to produce a stable retirement diagnostic.
 #[test]
 fn dispatch_query_rejects_retired_cut_under_procedural_profile() {
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
     store.insert_quad(W, &p("a"), &p("parentOf"), &p("c"));
     let world_nn = W.to_owned();
@@ -887,7 +887,7 @@ fn dispatch_budget_max_steps_runs_native_and_matches_reference() {
     // (no demotion) and stamps `Exhausted` at the ceiling. At a zero-step budget the
     // IDB goal derives nothing, so native and the reference oracle agree byte-for-byte
     // (both `Exhausted`, both empty); at an ample budget native completes with `Ok`.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     let base = "https://example.org/";
     store.insert_quad(
         W,
@@ -1015,7 +1015,7 @@ fn dispatch_budget_max_steps_pure_edb_goal_completes_native() {
     // reference oracle, which counts the EDB lookup as a step and stamps `Exhausted`
     // at 0. The two engines intentionally DIVERGE on the pure-EDB path (different step
     // units), so no cross-engine status parity is asserted here.
-    let store = WorldStore::new();
+    let store = WorldStore::new().unwrap();
     store.insert_quad(
         W,
         &format!("{BASE}a"),

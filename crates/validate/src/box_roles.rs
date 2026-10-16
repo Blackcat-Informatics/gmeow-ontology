@@ -160,16 +160,12 @@ pub fn audit_box_roles(
         }
         // Fold this file into the merged view under a fresh blank scope, reusing the
         // parse above instead of reading every file from disk a second time.
-        builder.push_dataset(&dataset);
+        builder.push_dataset(&dataset)?;
     }
 
     // The merged dataset (blank-scoped per file, deduped at freeze) backs the role
     // lookups and the role-typing check.
-    let merged = builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Serialize {
-            detail: format!("dataset freeze failed: {e}"),
-        })
-    })?;
+    let merged = builder.freeze().map_err(gmeow_errors::Diag::from)?;
     let role_pred_id = merged
         .as_ref()
         .term_id_by_value(&TermValue::iri(&graph_box_role));

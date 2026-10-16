@@ -99,20 +99,6 @@ fn one_thing_store() -> Arc<RdfDataset> {
     store_from_turtle("@prefix ex: <https://example.org/> .\nex:a a ex:Thing .\n")
 }
 
-fn authenticated_shape_union() -> &'static str {
-    static SHAPES: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    SHAPES.get_or_init(|| {
-        String::from_utf8(
-            gmeow_bundle_import::load_authenticated_corpus_artifact(
-                &paths::repo_root(),
-                "validate-conformance-shapes.ttl",
-            )
-            .expect("load producer-selected conformance shapes read-only"),
-        )
-        .expect("authenticated conformance shapes are UTF-8")
-    })
-}
-
 #[test]
 fn generated_shape_union_is_scoped_back_to_the_slice_authority() {
     let module = store_from_turtle(
@@ -373,166 +359,111 @@ fn cq_data_file_overlay_applies_and_is_removed() {
     );
 }
 
-/// `gmeow:expectedSoleFinding` can FAIL, on the production conformance surface.
-///
-/// The red half drives the shipped `compensation-typed-as-its-forward-receipt.ttl`
-/// counter-example — the one fixture in the enactment corpus whose single authored
-/// defect is MEASURED to cascade into three laws — through the real
-/// `run_conformance_cell`, against the real generated shape surface, with the
-/// sole-finding flag set. Without the flag the cell passes, because every check
-/// before it is an EXISTENCE check: some finding carries the code, and some finding
-/// carrying it came from the pinned shape. That is precisely the gap that made
-/// "and NO other finding" unfalsifiable everywhere it is written, so the green half
-/// is the SAME cell with the flag unbound, and the difference between them is the
-/// whole of what the new field buys.
-fn the_sole_finding_flag_rejects_a_fixture_that_trips_a_second_law() {
-    let slice_dir = paths::repo_root().join("slices/grounding/logic");
-    let shapes_ttl = authenticated_shape_union();
-    let shapes = parse_shapes(shapes_ttl, None).expect("authenticated shape surface parses");
-    let owned_module = native_query::with_owl_rdfs_projection(
-        &native_query::dataset_from_file(&paths::module_file(&slice_dir))
-            .expect("the logic module parses"),
-    );
-    let module = native_query::with_owl_rdfs_projection(
-        &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-            .expect("the grounding kernel modules parse"),
-    );
-    let local_shapes = slice_dir.join("shapes.ttl");
-    let shapes = scope_shapes_to_slice(
-        shapes,
-        &owned_module,
-        local_shapes.is_file().then_some(local_shapes.as_path()),
-    )
-    .expect("shape ownership scopes to the logic slice");
-    let shapes = ConformanceShapes::new(shapes);
-
-    let cell = |sole: Option<bool>| ExampleConformance {
-        iri: "https://example.org/ecSoleFindingProbe".to_owned(),
-        file: "tests/counter-examples/compensation-typed-as-its-forward-receipt.ttl".to_owned(),
+/// The actual conformance handler distinguishes a named sole law from a shared
+/// component code. Tiny synthetic laws exercise this contract without loading,
+/// projecting or constructing any repository corpus.
+#[test]
+fn sole_finding_contract_has_both_pinned_and_unpinned_teeth() {
+    let directory = tempfile::tempdir().expect("synthetic slice");
+    let module = store_from_turtle("");
+    let baseline = NativeChannelBaseline::measure(&module).expect("empty synthetic baseline");
+    // gmeow-test-input: synthetic-only
+    let shapes = ConformanceShapes::new(parse_shapes(r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <https://example.org/> .
+        ex:FirstLaw a sh:NodeShape ; sh:targetNode ex:item ;
+            sh:sparql [ sh:select "SELECT $this WHERE { FILTER NOT EXISTS { $this <https://example.org/first> ?value } }" ] .
+        ex:SecondLaw a sh:NodeShape ; sh:targetNode ex:item ;
+            sh:sparql [ sh:select "SELECT $this WHERE { FILTER NOT EXISTS { $this <https://example.org/second> ?value } }" ] .
+    "#, None).expect("two synthetic laws"));
+    let cell = |sole, pin: Option<&str>| ExampleConformance {
+        iri: "https://example.org/soleProbe".to_owned(),
+        file: "case.ttl".to_owned(),
         outcome: Outcome::Violates,
         violation_code: Some("shacl.SPARQLConstraintComponent".to_owned()),
-        expected_source_shape: Some(
-            "https://blackcatinformatics.ca/logic/\
-                 CompensationNotInverseConstraintProceduralConstraintShape"
-                .to_owned(),
-        ),
+        expected_source_shape: pin.map(ToOwned::to_owned),
         expected_sole_finding: sole,
         expected_failure_class: None,
         rationale: None,
     };
-
-    let baseline =
-        NativeChannelBaseline::measure(&module).expect("the logic module measures cleanly");
-
-    run_conformance_cell(&cell(None), &slice_dir, &module, &shapes, &baseline).expect(
-        "without the flag the cell passes on the existence checks alone — which is the \
-             behaviour every unmigrated cell keeps",
-    );
-
-    let err = run_conformance_cell(&cell(Some(true)), &slice_dir, &module, &shapes, &baseline)
-        .expect_err("the cascade must be caught once the cell claims sole-ness");
-    let message = err.message();
-    assert!(
-        message.contains("expectedSoleFinding") && message.contains("also raised"),
-        "the failure must name the flag and enumerate the intruding findings, so an \
-             author can see WHICH other law fired; got: {message}"
-    );
-    assert!(
-        message.contains("ReceiptRequiresAttemptConstraint")
-            || message.contains("CompensationBindsExactForwardEffectConstraint"),
-        "the intruder list must name the cascading laws by shape; got: {message}"
-    );
-}
-
-/// An UNPINNED `gmeow:expectedSoleFinding` is a hard failure, and the fixture that
-/// proves why is one the old fallback could not fail on.
-///
-/// `translation-unanalyzed-overclaim.ttl` trips TWO distinct lang laws —
-/// `lang:UnmarkedSourceOverclaimConstraintProceduralConstraintShape` and
-/// `lang:UnmarkedTargetOverclaimConstraintProceduralConstraintShape` — and BOTH raise
-/// `shacl.SPARQLConstraintComponent`. The first cut's unpinned reading asked only
-/// whether some OTHER shape raised a finding carrying the expected code, so on this
-/// fixture every violating shape answered "yes, I am one of them" and the intruder set
-/// came back empty: the cell claimed soleness, tripped two laws, and went green. That
-/// is the vacuity, and it is why the pin is now REQUIRED rather than a fallback.
-///
-/// The two halves are the same cell differing only in the pin: unpinned is rejected as
-/// a cell-configuration failure that names the missing property, and pinned is rejected
-/// for the real reason, naming the SECOND law by shape.
-fn an_unpinned_sole_finding_claim_is_a_hard_failure() {
-    let slice_dir = paths::repo_root().join("slices/grounding/lang");
-    let shapes_ttl = authenticated_shape_union();
-    let shapes = parse_shapes(shapes_ttl, None).expect("authenticated shape surface parses");
-    let owned_module = native_query::with_owl_rdfs_projection(
-        &native_query::dataset_from_file(&paths::module_file(&slice_dir))
-            .expect("the lang module parses"),
-    );
-    let module = native_query::with_owl_rdfs_projection(
-        &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-            .expect("the grounding kernel modules parse"),
-    );
-    let local_shapes = slice_dir.join("shapes.ttl");
-    let shapes = scope_shapes_to_slice(
-        shapes,
-        &owned_module,
-        local_shapes.is_file().then_some(local_shapes.as_path()),
+    std::fs::write(
+        directory.path().join("case.ttl"),
+        "<https://example.org/item> a <https://example.org/Thing> .\n",
     )
-    .expect("shape ownership scopes to the lang slice");
-    let shapes = ConformanceShapes::new(shapes);
-
-    let cell = |pin: Option<&str>| ExampleConformance {
-        iri: "https://example.org/ecUnpinnedSoleProbe".to_owned(),
-        file: "tests/counter-examples/translation-unanalyzed-overclaim.ttl".to_owned(),
-        outcome: Outcome::Violates,
-        violation_code: Some("shacl.SPARQLConstraintComponent".to_owned()),
-        expected_source_shape: pin.map(ToOwned::to_owned),
-        expected_sole_finding: Some(true),
-        expected_failure_class: None,
-        rationale: None,
-    };
-
-    let baseline =
-        NativeChannelBaseline::measure(&module).expect("the lang module measures cleanly");
-
-    let err = run_conformance_cell(&cell(None), &slice_dir, &module, &shapes, &baseline)
-        .expect_err(
-            "a soleness claim with no named law must be rejected outright — under the old \
-             fallback this very cell passed while the fixture tripped two laws",
-        );
-    let message = err.message();
-    assert!(
-        message.contains("expectedSoleFinding")
-            && message.contains("without gmeow:expectedSourceShape"),
-        "the failure must name both properties so an author knows what to bind; got: {message}"
-    );
-
-    let err = run_conformance_cell(
-        &cell(Some(
-            "https://blackcatinformatics.ca/lang/\
-                 UnmarkedSourceOverclaimConstraintProceduralConstraintShape",
-        )),
-        &slice_dir,
+    .expect("write two-law counter-example");
+    let first = Some("https://example.org/FirstLaw");
+    run_conformance_cell(
+        &cell(None, first),
+        directory.path(),
         &module,
         &shapes,
         &baseline,
     )
-    .expect_err("once the law is named, the SECOND law raising the same code is an intruder");
-    let message = err.message();
+    .expect("the expected finding exists when soleness is not claimed");
+    let error = run_conformance_cell(
+        &cell(Some(true), first),
+        directory.path(),
+        &module,
+        &shapes,
+        &baseline,
+    )
+    .expect_err("a second named law cannot hide behind the same component code");
     assert!(
-        message.contains("also raised")
-            && message.contains("UnmarkedTargetOverclaimConstraintProceduralConstraintShape"),
-        "the intruder list must name the second law by shape, not merely by component code \
-             (both laws raise shacl.SPARQLConstraintComponent); got: {message}"
+        error.message().contains("expectedSoleFinding")
+            && error.message().contains("also raised")
+            && error.message().contains("SecondLaw"),
+        "{error}"
     );
+    let error = run_conformance_cell(
+        &cell(Some(true), None),
+        directory.path(),
+        &module,
+        &shapes,
+        &baseline,
+    )
+    .expect_err("an unpinned soleness claim has no identified law");
+    assert!(
+        error.message().contains("expectedSoleFinding")
+            && error
+                .message()
+                .contains("without gmeow:expectedSourceShape"),
+        "{error}"
+    );
+    std::fs::write(
+        directory.path().join("case.ttl"),
+        "<https://example.org/item> <https://example.org/second> \"present\" .\n",
+    )
+    .expect("write a sole-law counter-example");
+    run_conformance_cell(
+        &cell(Some(true), first),
+        directory.path(),
+        &module,
+        &shapes,
+        &baseline,
+    )
+    .expect("the correctly pinned sole finding passes");
 }
 
 #[test]
-fn sole_finding_contract_has_both_pinned_and_unpinned_teeth() {
-    // One authenticated whole-shape parse serves both halves of this single
-    // contract. Under nextest, separate #[test] cases are separate processes and
-    // would each restore and parse the same corpus product.
-    the_sole_finding_flag_rejects_a_fixture_that_trips_a_second_law();
-    an_unpinned_sole_finding_claim_is_a_hard_failure();
+fn parsed_fixture_cache_observes_changed_invalid_and_missing_source() {
+    let directory = tempfile::tempdir().expect("synthetic source");
+    let path = directory.path().join("fixture.ttl");
+    let one = "<urn:s> <urn:p> <urn:o> .\n";
+    std::fs::write(&path, one).unwrap();
+    let first = native_query::dataset_from_file(&path).expect("first content");
+    let unchanged = native_query::dataset_from_file(&path).expect("unchanged content");
+    assert!(Arc::ptr_eq(&first, &unchanged));
+    std::fs::write(&path, format!("{one}<urn:s> <urn:q> <urn:new> .\n")).unwrap();
+    let changed = native_query::dataset_from_file(&path).expect("changed content");
+    assert_eq!(first.quad_count(), 1);
+    assert_eq!(changed.quad_count(), 2);
+    assert!(!Arc::ptr_eq(&first, &changed));
+    std::fs::write(&path, "not a Turtle document").unwrap();
+    let error = native_query::dataset_from_file(&path).unwrap_err();
+    assert!(error.message().contains("parse"), "{error}");
+    std::fs::remove_file(&path).unwrap();
+    let error = native_query::dataset_from_file(&path).unwrap_err();
+    assert!(error.message().contains("read"), "{error}");
 }
 
 /// The DECLARATIVE half of the same requirement has teeth.

@@ -19,7 +19,7 @@ use purrdf::RdfDataset;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 
-use crate::materialize::{Materialization, MaterializationLimits, MaterializeError};
+use crate::materialize::{Materialization, MaterializationLimits};
 use crate::program_analysis::{PreparedProgram, prepare_program};
 use crate::result::PreservationClaim;
 
@@ -170,7 +170,7 @@ impl PreparedOperatorRules {
         &self,
         input: &RdfDataset,
         limits: MaterializationLimits,
-    ) -> Result<Materialization, MaterializeError> {
+    ) -> gmeow_errors::Result<Materialization> {
         crate::materialize::materialize_prepared(&self.lowering, input, limits, self.profile)
     }
 
@@ -180,7 +180,7 @@ impl PreparedOperatorRules {
     pub(crate) fn materialize_store(
         &self,
         store: &crate::store::WorldStore,
-    ) -> Result<Materialization, MaterializeError> {
+    ) -> gmeow_errors::Result<Materialization> {
         crate::materialize::materialize_prepared_store(
             &self.lowering,
             store,
