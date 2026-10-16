@@ -1446,11 +1446,14 @@ fn is_facet_class(local: &str) -> bool {
 /// Route a facet value (its local name + its facet-class local name) into the
 /// correct field of `contract`. Single-valued facets reject conflicting values;
 /// repeated identical declarations and the set-valued facets remain idempotent.
+/// Refusals join the source compiler's error observations with their exact owner.
 fn route_facet_value(
     contract: &mut ReasoningContract,
     facet_class: &str,
     value_local: String,
-) -> Result<(), String> {
+    owner: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     let singleton = match facet_class {
         "FormulaFragment" => Some(&mut contract.formula_fragment),
         "ModelSemantics" => Some(&mut contract.model_semantics),
@@ -1467,14 +1470,17 @@ fn route_facet_value(
     if let Some(slot) = singleton {
         if let Some(previous) = slot.as_ref() {
             if previous != &value_local {
-                return Err(format!(
-                    "single-valued {facet_class} has conflicting values {previous:?} and {value_local:?}"
+                diagnostics.push(Diagnostic::error(
+                    "INVALID_CONTRACT_FACET",
+                    format!("single-valued {facet_class} has conflicting values {previous:?} and {value_local:?}"),
+                    Some(owner.to_owned()),
                 ));
+                return;
             }
         } else {
             *slot = Some(value_local);
         }
-        return Ok(());
+        return;
     }
     let values = match facet_class {
         "NegationOperator" => &mut contract.negation_operators,
@@ -1482,10 +1488,16 @@ fn route_facet_value(
         "UncertaintyMeasure" => &mut contract.uncertainty_measures,
         "ResourcePolicy" => &mut contract.resource_policies,
         "ProjectionTarget" => &mut contract.projection_targets,
-        _ => return Err(format!("unknown contract facet class {facet_class:?}")),
+        _ => {
+            diagnostics.push(Diagnostic::error(
+                "INVALID_CONTRACT_FACET",
+                format!("unknown contract facet class {facet_class:?}"),
+                Some(owner.to_owned()),
+            ));
+            return;
+        }
     };
     values.insert(value_local);
-    Ok(())
 }
 
 /// Whether the source graph declares a probability model: either a triple with
@@ -1605,13 +1617,7 @@ fn extract_contracts(
                             .or_else(|| facet_class_of(store, &value_iri));
                         match facet_class {
                     Some(facet_class) => {
-                        if let Err(detail) = route_facet_value(&mut contract, &facet_class, value_local) {
-                            diagnostics.push(Diagnostic::error(
-                                "INVALID_CONTRACT_FACET",
-                                detail,
-                                Some(iri_str.clone()),
-                            ));
-                        }
+                        route_facet_value(&mut contract, &facet_class, value_local, &iri_str, diagnostics);
                     }
                     None => diagnostics.push(Diagnostic::error(
                         "UNKNOWN_PROFILE",

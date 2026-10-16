@@ -203,11 +203,13 @@ fn conflicting_singleton_contract_facets_fail_native_admission() {
             "{PREFIXES}ex:contract a logic:ReasoningContract ; logic:{property} ex:first, ex:second ."
         ));
         assert!(
-            theory
-                .diagnostics()
-                .iter()
-                .any(|diagnostic| diagnostic.code == "INVALID_CONTRACT_FACET"
-                    && diagnostic.message.contains("conflicting values")),
+            theory.diagnostics().iter().any(|diagnostic| diagnostic.code
+                == "INVALID_CONTRACT_FACET"
+                && diagnostic.severity == crate::frontend::Severity::Error
+                && diagnostic.subject.as_deref() == Some("https://example.org/contract")
+                && diagnostic.message.contains("first")
+                && diagnostic.message.contains("second")
+                && diagnostic.message.contains("conflicting values")),
             "the native reader must reject conflicting {property}"
         );
         let admission =

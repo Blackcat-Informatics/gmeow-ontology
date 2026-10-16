@@ -91,6 +91,10 @@ fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
     assert_eq!(failure.kind, DlServiceFailureKind::NoModel);
     assert!(matches!(failure.cause.as_ref(), EntailError::Unsatisfiable));
     assert!(error.message().contains("unsatisfiable"), "{error}");
+    assert_eq!(
+        error.inner().failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal")
+    );
 }
 
 #[test]
@@ -122,6 +126,10 @@ fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped
     let recorded = gmeow_errors::DiagLedger::new()
         .record(error, gmeow_errors::StageId::new("native-dl-consumer"));
     assert_eq!(recorded.root.code, "logic.dl-service");
+    assert_eq!(
+        recorded.root.failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal")
+    );
     assert!(
         recorded
             .root
