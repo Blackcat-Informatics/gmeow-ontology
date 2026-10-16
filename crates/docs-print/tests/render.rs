@@ -174,7 +174,12 @@ fn fixture_model() -> DocsModel {
         competencies: vec![competency],
         linkages: vec![linkage],
         reasoning: Some(ReasoningVerdict {
-            is_consistent: true,
+            consistency: gmeow_docs::model::ConsistencyAssessment::Consistent,
+            input: "valid".into(),
+            evaluation: "completed".into(),
+            completeness: "complete-for-fragment".into(),
+            information: "supported".into(),
+            unsupported_constructs: Default::default(),
             unsatisfiable: Default::default(),
         }),
         ..Default::default()
@@ -242,6 +247,23 @@ fn render_typ_is_golden() {
     let model = fixture_model();
     let typ = render_typ(&model, &fixture_axioms(), &fixture_bib(), &losses());
     insta::assert_snapshot!(typ);
+}
+
+#[test]
+fn print_preserves_an_undecided_native_observation() {
+    let mut model = fixture_model();
+    let verdict = model.reasoning.as_mut().unwrap();
+    verdict.consistency = gmeow_docs::model::ConsistencyAssessment::Undetermined;
+    verdict.evaluation = "unsupported".into();
+    verdict.completeness = "incomplete".into();
+    verdict.information = "undetermined".into();
+    verdict
+        .unsupported_constructs
+        .insert("nominal-set-equality".into());
+    let typ = render_typ(&model, &fixture_axioms(), &fixture_bib(), &losses());
+    assert!(typ.contains("undetermined; evaluation=unsupported"));
+    assert!(typ.contains("1 unsupported observations"));
+    assert!(!typ.contains("consistent (no unsatisfiable classes)"));
 }
 
 #[test]

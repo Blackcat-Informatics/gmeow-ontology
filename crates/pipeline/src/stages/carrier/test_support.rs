@@ -356,7 +356,16 @@ pub(super) fn parse_example(
 /// "try it" asserted-vs-inferred surfaces. The graph is dropped (these are triples).
 #[cfg(test)]
 pub(super) fn format_triple(q: &RdfQuad) -> String {
-    triple_display(&q.subject, &q.predicate, &q.object)
+    let display = |term: &RdfTerm| match term {
+        RdfTerm::Iri(iri) => compact_iri(iri),
+        _ => purrdf::turtle::emit_term(term),
+    };
+    format!(
+        "{} {} {}",
+        display(&q.subject),
+        compact_iri(&q.predicate),
+        display(&q.object)
+    )
 }
 
 /// Canonicalize N-Quads bytes and route them into `graph_name` on `builder` — the

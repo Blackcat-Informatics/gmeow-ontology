@@ -168,7 +168,17 @@ sup:langWritingSystemSplit a logic:Correspondence ;
     logic:morphismClass logic:LossyLens ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "false"^^xsd:boolean ;
+    logic:getLeg sup:langWritingSystemSplitGet ;
+    logic:putLeg sup:langWritingSystemSplitPut ;
     logic:recoveryCase sup:langWritingSystemSplitRefutation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langWritingSystemSplitGet gmeow:path rdf:type .
+sup:langWritingSystemSplitPut gmeow:path sup:langWritingSystemSplitInverseType .
+sup:langWritingSystemSplitInverseType a gmeow:InversePath ;
+    rdfs:label "Writing System split inverse type path"@x-gmeow-english ;
+    skos:definition "The candidate inverse of the Writing System split's type-membership relation. The attached recovery case retains the kind and direction source facets this candidate cannot recover."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:pathStep rdf:type ;
     gmeow:graphBoxRole gmeow:boxABox .
 sup:langWritingSystemSplitRefutation a logic:RecoveryCase ;
     rdfs:label "Writing System split recovery refutation"@x-gmeow-english ;

@@ -1782,22 +1782,56 @@ pub struct DocsModel {
 /// The native reasoner's consistency verdict, attached to a [`DocsModel`] by the
 /// production build so the docs can surface a per-term reasoning-status badge.
 ///
-/// Carries the global consistency flag and the set of class IRIs the native DL
-/// reasoner proved unsatisfiable (each entailed `rdfs:subClassOf owl:Nothing` in
-/// the inferred closure). A term's three-state status is derived honestly:
-/// satisfiability is a CLASS notion, so a documented class is *evaluated* —
-/// satisfiable unless its IRI is in [`unsatisfiable`](Self::unsatisfiable) — while
-/// a property, individual, or datatype is *not-evaluated* (the reasoner decides no
-/// satisfiability for it). The not-evaluated state never collapses into
-/// satisfiable.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+/// The native axes and unsupported observations remain explicit. Proved class
+/// emptiness survives an undecided global result; other classes cannot acquire
+/// a satisfiability claim from the absence of a counterexample.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReasoningVerdict {
-    /// The global native-reasoner consistency flag (`ReasoningResult::is_consistent`).
-    pub is_consistent: bool,
+    /// Documentation projection of the validated native consistency evidence.
+    pub consistency: ConsistencyAssessment,
+    /// Exact native input-admission token.
+    pub input: String,
+    /// Exact native evaluation token, including unsupported or budget exhaustion.
+    pub evaluation: String,
+    /// Exact native completeness token.
+    pub completeness: String,
+    /// Exact native information-state token.
+    pub information: String,
+    /// Complete native unsupported observations, never discarded to render docs.
+    pub unsupported_constructs: BTreeSet<String>,
     /// The class IRIs proven unsatisfiable (entailed `rdfs:subClassOf owl:Nothing`).
     /// Empty for a healthy ontology; a non-empty set lights the affected class
     /// pages red.
     pub unsatisfiable: std::collections::BTreeSet<String>,
+}
+
+/// A documentation assessment is an observation, never repository gate approval.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ConsistencyAssessment {
+    /// A complete admitted native result establishes consistency.
+    Consistent,
+    /// Validated positive contradiction evidence establishes inconsistency.
+    Inconsistent,
+    /// The native result does not decide global consistency.
+    Undetermined,
+}
+
+impl ReasoningVerdict {
+    /// Shared status projection for RDF and badges. Absence of a proved empty
+    /// class only supports the positive status after conclusive global admission.
+    #[must_use]
+    pub fn term_status(&self, term: &DocTerm) -> &'static str {
+        if term.category != DocTermCategory::Class {
+            "not-evaluated"
+        } else if self.unsatisfiable.contains(&term.iri) {
+            "unsatisfiable"
+        } else if self.consistency == ConsistencyAssessment::Consistent {
+            "satisfiable"
+        } else {
+            "undetermined"
+        }
+    }
 }
 
 /// One `gmeow:ValidationRule` individual from the constraint catalog: the

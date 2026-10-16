@@ -396,17 +396,29 @@ fn dl_expressivity(model: &DocsModel) -> String {
 fn consistency_verdict(model: &DocsModel) -> String {
     match &model.reasoning {
         None => "not evaluated".to_string(),
-        Some(v) if v.is_consistent && v.unsatisfiable.is_empty() => {
+        Some(v)
+            if v.consistency == gmeow_docs::model::ConsistencyAssessment::Consistent
+                && v.unsatisfiable.is_empty() =>
+        {
             "consistent (no unsatisfiable classes)".to_string()
         }
-        Some(v) if v.is_consistent => {
+        Some(v) if v.consistency == gmeow_docs::model::ConsistencyAssessment::Consistent => {
             format!(
                 "consistent; {} unsatisfiable class(es)",
                 v.unsatisfiable.len()
             )
         }
+        Some(v) if v.consistency == gmeow_docs::model::ConsistencyAssessment::Inconsistent => {
+            format!(
+                "inconsistent; {} unsatisfiable class(es)",
+                v.unsatisfiable.len()
+            )
+        }
         Some(v) => format!(
-            "inconsistent; {} unsatisfiable class(es)",
+            "undetermined; evaluation={}, completeness={}; {} unsupported observations; {} proved-empty classes",
+            v.evaluation,
+            v.completeness,
+            v.unsupported_constructs.len(),
             v.unsatisfiable.len()
         ),
     }

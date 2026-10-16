@@ -89,7 +89,7 @@ pub const FAMILIES: [BadgeFamily; 7] = [
     BadgeFamily {
         label: "Reasoning",
         swatch: C_REASON_SAT,
-        description: "The native reasoner's per-class verdict: green satisfiable, red unsatisfiable, grey not-evaluated (non-class terms).",
+        description: "The native reasoner's per-class observation: green satisfiable, red unsatisfiable, amber undetermined, grey not-evaluated (non-class terms).",
     },
     BadgeFamily {
         label: "Stability",
@@ -187,28 +187,22 @@ fn stability_badge(stability: DocTermStability) -> Badge {
 /// The native-reasoner status badge — a three-state verdict that never collapses
 /// not-evaluated into satisfiable.
 ///
-/// Satisfiability is a CLASS notion, so a documented class is *evaluated*:
-/// unsatisfiable when its IRI is in the verdict's unsat set (the reasoner entailed
-/// `rdfs:subClassOf owl:Nothing`), satisfiable otherwise. A property, individual,
-/// or datatype is *not-evaluated* — the reasoner decides no satisfiability for it,
-/// and the badge says so rather than implying it is fine.
+/// Class emptiness remains positive evidence. Other classes require conclusive
+/// admission before receiving a satisfiable badge; unsupported work is amber.
 fn reasoning_badge(term: &DocTerm, verdict: &ReasoningVerdict) -> Badge {
-    let (value, label, fill) = match term.category {
-        DocTermCategory::Class => {
-            if verdict.unsatisfiable.contains(&term.iri) {
-                ("unsatisfiable", "unsatisfiable", C_REASON_UNSAT)
-            } else {
-                ("satisfiable", "satisfiable", C_REASON_SAT)
-            }
-        }
-        _ => ("not-evaluated", "not reasoned", C_REASON_NA),
+    let value = verdict.term_status(term);
+    let (label, fill) = match value {
+        "unsatisfiable" => ("unsatisfiable", C_REASON_UNSAT),
+        "satisfiable" => ("satisfiable", C_REASON_SAT),
+        "undetermined" => ("undetermined", C_COMPLETE_MID),
+        _ => ("not reasoned", C_REASON_NA),
     };
     Badge {
         family: "reasoning",
         value: value.to_string(),
         label: label.to_string(),
         fill,
-        text: WHITE,
+        text: text_color_for(fill),
     }
 }
 

@@ -51,7 +51,8 @@ const ANONYMOUS_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/anon
 const RECEIPT_RULE_IDENTITY_WIRE_PREFIX: &str = "gmeow-receipt-rule-identity-v1:";
 
 /// Resolve an engine rule label to the canonical full IRI exposed by public artifacts.
-pub(crate) fn canonical_rule_iri(rule: &str) -> String {
+#[must_use]
+pub fn canonical_rule_iri(rule: &str) -> String {
     if rule.starts_with("https://") || rule.starts_with("http://") || rule.starts_with("urn:") {
         rule.to_owned()
     } else {
