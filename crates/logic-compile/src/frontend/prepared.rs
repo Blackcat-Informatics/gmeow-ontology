@@ -5,9 +5,10 @@
 
 use std::collections::{BTreeSet, HashMap};
 
+use gmeow_errors::Diag;
 use purrdf::{CanonicalRelabeling, RdfDataset, TermId, TermRef, canonical_relabel_with_mapping};
 
-use super::{Diagnostic, LogicParseError, LogicProgram};
+use super::{Diagnostic, LogicProgram};
 
 /// An admitted native source selection, canonicalized once before extraction.
 ///
@@ -29,10 +30,10 @@ impl PreparedLogicSource {
     ///
     /// # Errors
     /// Refuses empty input and every canonicalization failure.
-    pub fn new(dataset: &RdfDataset) -> Result<Self, LogicParseError> {
+    pub fn new(dataset: &RdfDataset) -> Result<Self, Diag> {
         super::require_nonempty_source(dataset)?;
         let canonical = canonical_relabel_with_mapping(dataset).map_err(|error| {
-            LogicParseError(format!("native blank-node canonicalization: {error}"))
+            Diag::from(error).with_context("native blank-node canonicalization")
         })?;
         let source_graph = super::StructuralSourceGraph::new(canonical.dataset());
         Ok(Self {
@@ -77,8 +78,8 @@ impl PreparedLogicSource {
         &mut self,
         document: super::SourceDocument,
         original: &RdfDataset,
-        mut selection_term: impl FnMut(TermId) -> Result<TermId, LogicParseError>,
-    ) -> Result<(), LogicParseError> {
+        mut selection_term: impl FnMut(TermId) -> Result<TermId, Diag>,
+    ) -> Result<(), Diag> {
         if document.path.is_empty()
             || document.content_digest.is_empty()
             || document.role.is_empty()
@@ -87,9 +88,9 @@ impl PreparedLogicSource {
                 .iter()
                 .any(|entry| entry.document.path == document.path)
         {
-            return Err(LogicParseError(
-                "incomplete or duplicate source document receipt".into(),
-            ));
+            return Err(Diag::of_kind(crate::error::Frontend {
+                detail: "incomplete or duplicate source document receipt".into(),
+            }));
         }
 
         // Fixed-size native IDs make this a bounded per-document lookup cache.
@@ -98,16 +99,20 @@ impl PreparedLogicSource {
         let mut remap = HashMap::new();
         let mut bindings = BTreeSet::new();
         let mut statements = Vec::new();
-        let mut map_term = |term: TermId| -> Result<TermId, LogicParseError> {
+        let mut map_term = |term: TermId| -> Result<TermId, Diag> {
             if let Some(mapped) = remap.get(&term) {
                 return Ok(*mapped);
             }
-            let selected = selection_term(term)?;
+            let selected = selection_term(term).map_err(|error| {
+                error.with_context(format!("source document {:?}", document.path))
+            })?;
             let mapped = self.source_term(selected).ok_or_else(|| {
-                LogicParseError(format!(
-                    "source term in {:?} has no canonical binding",
-                    document.path
-                ))
+                Diag::of_kind(crate::error::Frontend {
+                    detail: format!(
+                        "source term in {:?} has no canonical binding",
+                        document.path
+                    ),
+                })
             })?;
             if remap.len() < MAX_REMAP_ENTRIES {
                 remap.insert(term, mapped);
@@ -204,10 +209,9 @@ impl PreparedLogicSource {
                     .is_some_and(|graph| graph.index() >= original.term_count())
                 || self.source_graph.unit(binding.canonical).is_none()
             {
-                return Err(LogicParseError(format!(
-                    "invalid structural source binding for {}",
-                    document.path
-                )));
+                return Err(Diag::of_kind(crate::error::Frontend {
+                    detail: format!("invalid structural source binding for {}", document.path),
+                }));
             }
         }
         for binding in &statements {
@@ -223,10 +227,9 @@ impl PreparedLogicSource {
                     .g
                     .is_none_or(|graph| graph.index() < self.dataset().term_count());
             if !valid_canonical {
-                return Err(LogicParseError(format!(
-                    "invalid statement source binding for {}",
-                    document.path
-                )));
+                return Err(Diag::of_kind(crate::error::Frontend {
+                    detail: format!("invalid statement source binding for {}", document.path),
+                }));
             }
         }
         statements.sort_unstable();
@@ -265,7 +268,7 @@ impl PreparedLogicSource {
     pub fn compile(
         &self,
         source_iri: Option<String>,
-    ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+    ) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
         let compiled = self.compile_with_sources(source_iri)?;
         Ok((compiled.program, compiled.diagnostics))
     }
@@ -279,7 +282,7 @@ impl PreparedLogicSource {
     pub fn compile_with_sources(
         &self,
         source_iri: Option<String>,
-    ) -> Result<super::SourceCompilation<'_>, LogicParseError> {
+    ) -> Result<super::SourceCompilation<'_>, Diag> {
         let (program, diagnostics, trace) =
             super::compile_source_graph(self.dataset(), &self.source_graph, source_iri)?;
         Ok(super::SourceCompilation {
@@ -296,10 +299,7 @@ impl PreparedLogicSource {
     /// # Errors
     /// Retains all frontend compilation errors; successful extraction may still
     /// contain explicit diagnostics and excluded source units.
-    pub fn into_compiled(
-        self,
-        source_iri: Option<String>,
-    ) -> Result<super::CompiledTheory, LogicParseError> {
+    pub fn into_compiled(self, source_iri: Option<String>) -> Result<super::CompiledTheory, Diag> {
         let super::SourceCompilation {
             program,
             diagnostics,

@@ -88,7 +88,7 @@ fn dialect_fixpoints(
         |p| project_content("clif", project_clif(p)),
         |text| {
             parse_clif_str(text, program.source_iri.clone())
-                .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+                .map_err(|error| error.with_context("Common Logic round-trip source admission"))
         },
     )?;
     let cgif = dialect_fixpoint(
@@ -97,7 +97,7 @@ fn dialect_fixpoints(
         |p| project_content("cgif", project_cgif(p)),
         |text| {
             parse_cgif_str(text, program.source_iri.clone())
-                .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+                .map_err(|error| error.with_context("Common Logic round-trip source admission"))
         },
     )?;
     let xcl = dialect_fixpoint(
@@ -106,7 +106,7 @@ fn dialect_fixpoints(
         |p| project_content("xcl", project_xcl(p)),
         |text| {
             parse_xcl_str(text, program.source_iri.clone())
-                .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+                .map_err(|error| error.with_context("Common Logic round-trip source admission"))
         },
     )?;
     Ok([("clif", clif), ("cgif", cgif), ("xcl", xcl)])

@@ -127,6 +127,15 @@ Each is a declared property of the IR, never an unstated convention:
   chains stay coherent.
 - **Stratification of any truth or `holds` predicate** — a predicate that reflects truth of other
   statements is stratified so the IR cannot encode a self-referential paradox by accident.
+- **Atomic context indexing** — `logic:contextualApplication(c, r, a₀, …, aₙ)`
+  retains the context, the first-order individual reifying the relation, and all
+  original ordered arguments. The original relation's ordinary arity is unchanged:
+  contextual `p(a)` is never ordinary `p(c, a)`. Modal and temporal standard
+  translations use this family for their atomic bodies; accessibility and temporal
+  order guards remain ordinary relations between worlds. This is an atomic
+  indexing relation, not a truth evaluator over formula or statement values.
+  Native RDF and all faithful dialects retain its coordinates through ordinary
+  formula argument carriers, including quantified world variables.
 - **Module (theory) membership, orthogonal to world/standpoint** — which named theory a statement
   belongs to is an explicit contextual-scope dimension (`logic:Module`, carried per statement by
   `logic:inModule`, composed by `logic:imports`), distinct from the epistemic world/standpoint

@@ -13,7 +13,7 @@
 //! * **Preserve diagnostics** — malformed rules, formulas and contracts are
 //!   excluded with error diagnostics. A malformed rule body never becomes a weaker
 //!   rule. Recoverable projection/annotation issues retain their named warnings.
-//! * **Raise** ([`LogicParseError`]) on unparsable input: an empty graph or a
+//! * **Raise** ([`Diag`]) on unparsable input: an empty graph or a
 //!   file that cannot be read/parsed.
 //! * **Never silently skip** — every skipped element produces a named diagnostic.
 //!
@@ -174,18 +174,6 @@ impl Diagnostic {
         }
     }
 }
-
-/// Raised for unparsable input (empty graph, unreadable / malformed file).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LogicParseError(pub String);
-
-impl fmt::Display for LogicParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-
-impl std::error::Error for LogicParseError {}
 
 // --------------------------------------------------------------------------- //
 // Scope extraction
@@ -6433,23 +6421,22 @@ fn extract_sugar_constraints(
 pub fn parse_logic_dataset(
     dataset: &RdfDataset,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     require_nonempty_source(dataset)?;
 
     // Ordinary callers retain the mapping-free canonicalization path. Source-aware
     // callers use PreparedLogicSource and share the same extraction boundary below.
-    let canon =
-        canonicalize_blank_nodes(dataset).map_err(|e| LogicParseError(e.message().to_owned()))?;
+    let canon = canonicalize_blank_nodes(dataset)?;
     compile_canonical_source(canon.as_ref(), source_iri)
 }
 
-fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), LogicParseError> {
+fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), Diag> {
     if is_empty(dataset) {
-        return Err(LogicParseError(
-            "Source graph is empty — nothing to parse.  Pass a non-empty graph or a \
+        return Err(Diag::of_kind(crate::error::Frontend {
+            detail: "Source graph is empty — nothing to parse.  Pass a non-empty graph or a \
              Turtle file with logic: triples."
                 .to_owned(),
-        ));
+        }));
     }
 
     Ok(())
@@ -6458,7 +6445,7 @@ fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), LogicParseError> 
 fn compile_canonical_source(
     store: &RdfDataset,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     let (program, diagnostics, _) =
         compile_source_graph(store, &StructuralSourceGraph::new(store), source_iri)?;
     Ok((program, diagnostics))
@@ -6468,7 +6455,7 @@ fn compile_source_graph(
     store: &RdfDataset,
     source_graph: &StructuralSourceGraph,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>, EmissionTrace), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>, EmissionTrace), Diag> {
     let mut diagnostics = source_graph.ownership_diagnostics(store);
     let mut owner_lowerings = emission::excluded_owners(source_graph);
     let mut reader = FormulaReader::new(store);
@@ -6624,8 +6611,7 @@ fn compile_source_graph(
     reasoning_programs.sort_by(|a, b| a.value.iri.cmp(&b.value.iri));
     // Leg extraction already visits sorted unique source IRIs.
     let mut program = LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), source_iri)
-        .with_ordered_correspondences(finish_owners(correspondences, &mut owner_lowerings))
-        .map_err(|e| LogicParseError(e.message().to_owned()))?
+        .with_ordered_correspondences(finish_owners(correspondences, &mut owner_lowerings))?
         .with_ordered_constraints(finish_owners(constraints, &mut owner_lowerings))
         .with_ordered_reasoning_programs(finish_owners(reasoning_programs, &mut owner_lowerings));
     program.rules = finish_owners(rules, &mut owner_lowerings);
@@ -6660,11 +6646,15 @@ fn compile_source_graph(
 pub fn parse_logic_str(
     turtle: &str,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     // Native codec parse → frozen wasm-clean IR dataset, straight into the parser
     // (no oxigraph Store hop).
-    let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
-        .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
+    let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None).map_err(|e| {
+        Diag::of_kind(crate::error::SourceParse {
+            format: "Turtle",
+            cause: std::sync::Arc::new(e),
+        })
+    })?;
     parse_logic_dataset(dataset.as_ref(), source_iri)
 }
 
@@ -6677,17 +6667,16 @@ pub fn parse_logic_str(
 pub fn parse_logic_path(
     path: &Path,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
-    if !path.exists() {
-        return Err(LogicParseError(format!(
-            "Source file does not exist: {}",
-            path.display()
-        )));
-    }
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     let source_iri = source_iri.or_else(|| path_to_file_uri(path));
-    let turtle = std::fs::read_to_string(path)
-        .map_err(|e| LogicParseError(format!("Failed to read {}: {e}", path.display())))?;
+    let turtle = std::fs::read_to_string(path).map_err(|e| {
+        Diag::of_kind(crate::error::SourceRead {
+            path: path.to_path_buf(),
+            cause: std::sync::Arc::new(e),
+        })
+    })?;
     parse_logic_str(&turtle, source_iri)
+        .map_err(|error| error.with_context(format!("source file {}", path.display())))
 }
 
 /// A content-dedup key including scope (the Rust analogue of frozen-dataclass

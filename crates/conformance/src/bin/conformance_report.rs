@@ -116,7 +116,9 @@ fn main() -> gmeow_errors::Result<()> {
             })
         })?;
         let (program, diagnostics) = gmeow_logic_compile::frontend::parse_logic_str(&source, None)
-            .map_err(|e| Diag::of_kind(Cli { detail: e.0 }))?;
+            .map_err(|error| {
+                error.with_context(format!("compile rule library {}", path.display()))
+            })?;
         if let Some(error) = diagnostics
             .iter()
             .find(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)

@@ -19,8 +19,8 @@ use gmeow_logic::external_evidence::{
     extract_szs_artifacts,
 };
 use gmeow_logic_compile::frontend::{
-    LogicParseError, PreparedLogicSource, SourceAdmission, SourceBase, SourceBaseOrigin,
-    SourceDocument, SourceSelection,
+    PreparedLogicSource, SourceAdmission, SourceBase, SourceBaseOrigin, SourceDocument,
+    SourceSelection,
 };
 use gmeow_logic_compile::tptp::{
     FofProjection, FofProjectionBlocker, FofProjectionStatus, FofSentence, FofTask, SzsAdmission,
@@ -976,10 +976,11 @@ fn load_theory(paths: &[PathBuf]) -> gmeow_errors::Result<LoadedTheory> {
     })?;
     let mut prepared = PreparedLogicSource::new(&materialized).map_err(|error| {
         with_inputs(
-            caused_failure(
+            caused_diagnostic(
                 "SOURCE_PREPARATION_FAILED",
                 error,
                 "compile selected theory",
+                serde_json::Value::Null,
             ),
             &identities,
         )
@@ -995,25 +996,34 @@ fn load_theory(paths: &[PathBuf]) -> gmeow_errors::Result<LoadedTheory> {
                     }
                 };
                 mapped.ok_or_else(|| {
-                    LogicParseError(format!(
-                        "source term in {:?} has no materialized binding",
-                        receipt.path
-                    ))
+                    failure(
+                        "SOURCE_BINDING_FAILED",
+                        format!(
+                            "source term in {:?} has no materialized binding",
+                            receipt.path
+                        ),
+                    )
                 })
             })
             .map_err(|error| {
                 with_inputs(
-                    caused_failure("SOURCE_BINDING_FAILED", error, "compile selected theory"),
+                    caused_diagnostic(
+                        "SOURCE_BINDING_FAILED",
+                        error,
+                        "compile selected theory",
+                        serde_json::Value::Null,
+                    ),
                     &identities,
                 )
             })?;
     }
     let theory = prepared.into_compiled(None).map_err(|error| {
         with_inputs(
-            caused_failure(
+            caused_diagnostic(
                 "SOURCE_COMPILATION_FAILED",
                 error,
                 "compile selected theory",
+                serde_json::Value::Null,
             ),
             &identities,
         )

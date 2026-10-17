@@ -12,7 +12,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 mod classes;
+mod contexts;
 mod contracts;
+mod origins;
 
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 
@@ -34,7 +36,7 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
 /// Classical object-theory task with explicit metatheory catalogue accounting.
 pub const FOF_SOURCE_PROFILE: &str =
-    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v2";
+    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v4";
 
 /// The only graph placement admitted by the initial external classical profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -142,7 +144,7 @@ impl Default for FofSemanticProfile {
             equality: "denotational equality without a unique-name assumption".into(),
             blank_nodes: "source-scoped existential blanks skolemized for satisfiability".into(),
             free_variables: "top-level free variables universally closed".into(),
-            context: "unscoped sentences only; no standpoint, time, modality, confidence, provenance, or module erasure".into(),
+            context: "explicit inContext and typed modal standard translations use contextualApplication with separate context, reified relation and original argument coordinates; ordinary relation arity is unchanged; other source scope on a formula or any descendant requires typed translation and cannot be erased".into(),
             contracts: "configuration declarations are metatheory catalogue evidence; this classical object-theory task does not execute them or assert their grammar as object axioms".into(),
         }
     }
@@ -361,6 +363,7 @@ impl SourceAdmission {
 
 struct AdmissionBuilder<'a> {
     theory: &'a CompiledTheory,
+    origins: origins::OriginIndex<'a>,
     selection: SourceSelection,
     selected_documents: BTreeSet<String>,
     units: Vec<SemanticUnitAdmission>,
@@ -368,9 +371,11 @@ struct AdmissionBuilder<'a> {
     declared_builtins: BTreeSet<String>,
     certified_classes: BTreeSet<SourceNode>,
     class_support: BTreeSet<SourceStatementBinding>,
+    untranslated_formula_contexts: BTreeSet<SourceNode>,
 }
 
 impl<'a> AdmissionBuilder<'a> {
+    /// Bind one immutable compilation and its occurrence index to the exact selection.
     fn new(theory: &'a CompiledTheory, selection: SourceSelection) -> Self {
         let selected_documents = match &selection.documents {
             DocumentSelection::AnonymousSource => BTreeSet::new(),
@@ -378,6 +383,7 @@ impl<'a> AdmissionBuilder<'a> {
         };
         Self {
             theory,
+            origins: origins::OriginIndex::new(theory.source().origins()),
             selection,
             selected_documents,
             units: Vec::new(),
@@ -385,6 +391,7 @@ impl<'a> AdmissionBuilder<'a> {
             declared_builtins: BTreeSet::new(),
             certified_classes: BTreeSet::new(),
             class_support: BTreeSet::new(),
+            untranslated_formula_contexts: contexts::untranslated_formulas(theory.source()),
         }
     }
 
@@ -779,6 +786,16 @@ impl<'a> AdmissionBuilder<'a> {
                 continue;
             }
             let disposition = match &lowering.disposition {
+                FormulaDisposition::Formula(_) | FormulaDisposition::Axiom(_)
+                    if self
+                        .untranslated_formula_contexts
+                        .contains(&lowering.source) =>
+                {
+                    blocked(
+                        "CONTEXT_ERASURE_FORBIDDEN",
+                        "formula source scope requires typed translation; only logic:inContext is already represented in the emitted formula",
+                    )
+                }
                 FormulaDisposition::Formula(index) => {
                     self.theory.program().formulas.get(*index).map_or_else(
                         || malformed("MISSING_FORMULA_IR", "formula trace index is out of range"),
@@ -1130,22 +1147,12 @@ impl<'a> AdmissionBuilder<'a> {
         is_known_procedural(predicate) || self.declared_builtins.contains(predicate)
     }
 
+    /// Resolve provenance before document selection, preserving the statement carrier.
     fn statement_documents(&self, quad: QuadIds, carrier: SourceCarrier) -> BTreeSet<String> {
-        self.theory
-            .source()
-            .origins()
-            .iter()
-            .filter(|origin| {
-                origin
-                    .statements
-                    .binary_search(&SourceStatementBinding {
-                        canonical: quad,
-                        carrier,
-                    })
-                    .is_ok()
-            })
-            .map(|origin| origin.document.path.clone())
-            .collect()
+        self.origins.statement_documents(SourceStatementBinding {
+            canonical: quad,
+            carrier,
+        })
     }
 
     fn statement_selected(&self, quad: QuadIds, carrier: SourceCarrier) -> bool {
@@ -1153,19 +1160,9 @@ impl<'a> AdmissionBuilder<'a> {
         self.documents_selected(&documents)
     }
 
+    /// Resolve a native node's contributing documents without erasing its graph.
     fn node_documents(&self, node: SourceNode) -> BTreeSet<String> {
-        self.theory
-            .source()
-            .origins()
-            .iter()
-            .filter(|origin| {
-                origin
-                    .bindings
-                    .iter()
-                    .any(|binding| binding.canonical == node)
-            })
-            .map(|origin| origin.document.path.clone())
-            .collect()
+        self.origins.node_documents(node)
     }
 
     fn documents_selected(&self, documents: &BTreeSet<String>) -> bool {
@@ -1352,6 +1349,11 @@ fn assertion_from_quad(
             detail: "RDF predicate is not an IRI".into(),
         }));
     };
+    if predicate == crate::ir::CONTEXTUAL_APPLICATION_IRI {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "a contextual application requires a formula carrying context, relation and original arguments, not a binary RDF assertion".into(),
+        }));
+    }
     let object = atomic_term(dataset, quad.o, true)?;
     Ok(SourceAssertion {
         subject,

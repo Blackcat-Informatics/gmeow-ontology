@@ -345,6 +345,23 @@ impl Bundle {
         self.archive(REP_REASONING)
     }
 
+    /// Read the producer's complete-source admission observation, including refusals.
+    /// This does not prepare or authorize a native proof and never compiles RDF.
+    ///
+    /// # Errors
+    /// Rejects absent, ambiguous, oversized, corrupt or incompatible observations.
+    pub fn canon_proof_admission(
+        &self,
+        max_bytes: usize,
+    ) -> Result<gmeow_logic_compile::tptp::CanonAdmissionPublication, gmeow_errors::Diag> {
+        let bytes = self.required_archive_member(
+            REP_REASONING,
+            gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
+            max_bytes,
+        )?;
+        gmeow_logic_compile::tptp::CanonAdmissionPublication::from_bytes(&bytes)
+    }
+
     /// Every folded OKF document as `{bundle-relative-path: md-bytes}`
     /// ([`REP_OKF`]).
     pub fn okf(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {

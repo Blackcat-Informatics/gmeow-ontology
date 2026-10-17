@@ -9,11 +9,13 @@ use purrdf_lex::cbor::Value;
 use super::*;
 use crate::bundle_blobs::REP_REASONING;
 
+/// Package inert members through the real archive codec, without invoking producers.
 fn graph(members: &[(&str, &[u8])]) -> Graph {
     let bytes = purrdf::ustar::write_archive_borrowed(members.iter().copied()).unwrap();
     archive_graph(bytes)
 }
 
+/// Bind retained archive bytes to their actual digest and reasoning representation.
 fn archive_graph(bytes: Vec<u8>) -> Graph {
     let digest = format!("blake3:{}", blake3::hash(&bytes).to_hex());
     let mut graph = Graph::default();
@@ -28,6 +30,7 @@ fn archive_graph(bytes: Vec<u8>) -> Graph {
     graph
 }
 
+/// Give the reader an isolated retained bundle and an initially empty member cache.
 fn bundle(graph: Graph) -> Bundle {
     Bundle {
         view: GtsFoldView::new(graph).unwrap(),
@@ -89,4 +92,73 @@ fn selected_native_laws_do_not_hide_a_malformed_later_archive_member() {
     // the following member's size while retaining a correct whole-blob digest.
     bytes[1024 + 124] = b'8';
     assert!(read_member(&archive_graph(bytes)).is_err());
+}
+
+#[test]
+/// Admission access consumes only the retained archive, never a source checkout.
+fn canon_admission_reader_retains_typed_observation_and_rejects_bad_members() {
+    use gmeow_logic_compile::frontend::{
+        DocumentSelection, FofSemanticProfile, RootSelection, SourceGraphSelection, SourceSelection,
+    };
+    use gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER;
+
+    let selection = SourceSelection {
+        graph: SourceGraphSelection::DefaultGraph,
+        documents: DocumentSelection::AnonymousSource,
+        formulas: RootSelection::All,
+        rules: RootSelection::All,
+        owners: RootSelection::All,
+    };
+    // Inert observation fixture: no source compilation, stages or corpus producer.
+    let bytes = serde_json::to_vec(&serde_json::json!({
+        "schema_version": 1,
+        "admission": {
+            "profile": FofSemanticProfile::default(),
+            "source_digest": "synthetic source identity",
+            "program_digest": "synthetic program identity",
+            "selection_digest": selection.digest(),
+            "selection": selection,
+            "status": "Empty",
+            "units": [], "declared_classes": [], "declared_builtins": []
+        }
+    }))
+    .unwrap();
+    let selected = bundle(graph(&[(CANON_ADMISSION_MEMBER, &bytes)]));
+    let observation = selected.canon_proof_admission(bytes.len()).unwrap();
+    assert_eq!(
+        observation.admission().source_digest,
+        "synthetic source identity"
+    );
+    assert!(selected.canon_proof_admission(bytes.len() - 1).is_err());
+    assert!(
+        bundle(Graph::default())
+            .canon_proof_admission(bytes.len())
+            .is_err()
+    );
+    assert!(
+        bundle(graph(&[("other.json", &bytes)]))
+            .canon_proof_admission(bytes.len())
+            .is_err()
+    );
+    assert!(
+        bundle(graph(&[
+            (CANON_ADMISSION_MEMBER, &bytes),
+            (CANON_ADMISSION_MEMBER, &bytes)
+        ]))
+        .canon_proof_admission(bytes.len())
+        .is_err()
+    );
+    assert!(
+        bundle(archive_graph(b"not an archive".to_vec()))
+            .canon_proof_admission(bytes.len())
+            .is_err()
+    );
+    let error = bundle(graph(&[(CANON_ADMISSION_MEMBER, b"not JSON")]))
+        .canon_proof_admission(bytes.len())
+        .unwrap_err();
+    assert_eq!(
+        gmeow_errors::code::code_str(error.code()),
+        "logic-compile.frontend"
+    );
+    assert!(error.to_string().contains("decode canon proof admission"));
 }

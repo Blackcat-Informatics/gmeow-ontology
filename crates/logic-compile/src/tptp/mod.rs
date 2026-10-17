@@ -39,8 +39,20 @@
 //! proof operation. Referenced closure entries and
 //! facet-type support must belong to the selected source; compiler errors and
 //! scoped declarations still refuse admission.
+//!
+//! The source profile retains explicit `inContext` and typed modal standard
+//! translations through the canonical context-application family, keeping the
+//! context, reified relation and original argument coordinates separate. Other scope annotations on
+//! selected formulas or their owned descendants block the complete problem;
+//! atomic routing must not discard them. A graph-local source index propagates
+//! these requirements once rather than rescanning shared trees per formula.
 
 mod writer;
+
+mod canon_admission;
+pub use canon_admission::{
+    CANON_ADMISSION_CHANNEL, CANON_ADMISSION_MEMBER, CanonAdmissionPublication,
+};
 
 mod protocol;
 pub use protocol::{

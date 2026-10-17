@@ -22916,3 +22916,31 @@ msgstr "Cette frontière régit la publication des résultats du service sans af
 msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#example"
 msgid "A malformed role chain retains the original native hierarchy error in the diagnostic."
 msgstr "Une chaîne de rôles mal formée conserve l'erreur native de hiérarchie d'origine dans le diagnostic."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contextual atomic application"
+msgstr "application atomique contextualisée"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The first-order atomic application family indexed by a context and a reified relation. For an original relation of arity n, where n is at least one, its n unchanged ordered arguments follow the context and relation coordinates. It does not evaluate formula or statement values, and does not identify a contextual application with an ordinary application of a different arity."
+msgstr "La famille d’applications atomiques du premier ordre indexée par un contexte et une relation réifiée. Pour une relation d’arité n, avec n au moins égal à un, ses n arguments ordonnés inchangés suivent les coordonnées du contexte et de la relation. Elle n’évalue pas des valeurs de formule ou d’énoncé et n’identifie pas une application contextualisée à une application ordinaire d’une autre arité."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain context when lowering an atomic formula or a modal or temporal body."
+msgstr "À utiliser pour conserver le contexte lors de l’abaissement d’une formule atomique ou d’un corps modal ou temporel."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not prepend a world argument to the original relation, identify different contexts, or interpret arbitrary formula values as truth."
+msgstr "Ne pas ajouter un argument de monde en tête de la relation d’origine, identifier des contextes différents ni interpréter des valeurs de formule arbitraires comme des vérités."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit contextualApplication(context, relation, argument0, ...), retaining argument order and native term identities; use typed accessibility relations between worlds."
+msgstr "Émettre contextualApplication(context, relation, argument0, ...) en conservant l’ordre des arguments et les identités natives des termes ; utiliser des relations d’accessibilité typées entre les mondes."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an atomic indexing family, not a truth evaluator or a merge of world, standpoint, module and provenance coordinates."
+msgstr "Il s’agit d’une famille d’indexation atomique, pas d’un évaluateur de vérité ni d’une fusion des coordonnées de monde, de point de vue, de module et de provenance."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."
+msgstr "L’application de ex:p à ex:a dans ex:w est contextualApplication(ex:w, ex:p, ex:a), distincte de ex:p(ex:w, ex:a)."
