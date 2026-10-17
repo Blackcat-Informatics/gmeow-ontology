@@ -5,8 +5,8 @@
 //! The selected native interpretation preserves raw operators and terms. RDF 1.2 native
 //! statements remain available to the selected program in their original world.
 
+use crate::timing::Instant;
 use std::collections::BTreeMap;
-use std::time::Instant;
 
 #[cfg(test)]
 mod test_support;

@@ -83,7 +83,10 @@ fn native_rule_statement_layer_survives_the_production_gts_profile() {
         purrdf::gts::read_graph(&emission.bytes, true).expect("read native GTS"),
     )
     .expect("import complete statement layer");
-    let graph = imported.dataset.project_named_graph(GRAPH_LOGIC).unwrap();
+    let graph = imported
+        .dataset
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_LOGIC)))
+        .unwrap();
     assert_eq!(
         imported
             .dataset
@@ -395,7 +398,7 @@ fn graph_relational_core_fold_byte_golden() {
     let imported = purrdf::import_gts_graph(purrdf::gts::read_graph(&gts, true).unwrap()).unwrap();
     let graph = imported
         .dataset
-        .project_named_graph(GRAPH_RELATIONAL_CORE)
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_RELATIONAL_CORE)))
         .unwrap();
     let restored = gmeow_logic_compile::relational_core::parse_relational_core(&graph).unwrap();
     assert_eq!(

@@ -13,6 +13,20 @@
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
 define_diag_kind! {
+    /// A recorded-input consumer failed while reading, decoding, checking or
+    /// reporting its explicitly selected immutable input. Preserve the native cause.
+    pub struct RecordedInput {
+        operation: &'static str,
+        cause: std::sync::Arc<dyn std::error::Error + Send + Sync>
+    }
+    code = "pipeline.recorded-input";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "Recorded input {} failed: {}", operation, cause;
+    failure_class = "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure";
+    source = failure => Some(failure.cause.as_ref());
+}
+
+define_diag_kind! {
     /// A hard defect raised inside the native MAXIMAL(G) transform (skolemization,
     /// saturation, projection, GTS emission): a malformed cell, an unparsable
     /// input graph, or a serialization failure. The RDF value is invalid or the
@@ -424,6 +438,7 @@ define_diag_kind! {
 /// exactly once — [`register_all`] seeds them and the collision test proves the
 /// code strings are distinct.
 pub const PIPELINE_DIAG_CODES: &[&str] = &[
+    RecordedInput::CODE,
     Io::CODE,
     Parse::CODE,
     Decode::CODE,
@@ -473,6 +488,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
 /// test forbids.
 pub fn register_all() -> Vec<Code> {
     vec![
+        RecordedInput::register(),
         Io::register(),
         Parse::register(),
         Decode::register(),

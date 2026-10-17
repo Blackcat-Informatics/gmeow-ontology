@@ -22944,3 +22944,59 @@ msgstr "Il s’agit d’une famille d’indexation atomique, pas d’un évaluat
 msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#example"
 msgid "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."
 msgstr "L’application de ex:p à ex:a dans ex:w est contextualApplication(ex:w, ex:p, ex:a), distincte de ex:p(ex:w, ex:a)."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compiler source refusal"
+msgstr "refus de source du compilateur"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal to acquire or decode explicitly selected compiler source, retaining the selected path or format and original typed cause."
+msgstr "Un refus opérationnel d’acquérir ou de décoder une source du compilateur explicitement sélectionnée, conservant le chemin ou le format sélectionné et la cause typée d’origine."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a selected source cannot be read or parsed."
+msgstr "À utiliser lorsqu’une source sélectionnée ne peut pas être lue ou analysée."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify file-access failure as a false formula."
+msgstr "Ne pas classer un échec d’accès au fichier comme une formule fausse."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the access or codec disposition and original native cause."
+msgstr "Préserver la nature du refus d’accès ou du codec et la cause native d’origine."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The refusal precedes compiler admission and makes no consistency claim."
+msgstr "Le refus précède l’admission par le compilateur et ne prétend pas établir la cohérence."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed RDF source retains its native parser diagnostic."
+msgstr "Une source RDF mal formée conserve le diagnostic de son analyseur natif."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compiler source boundary"
+msgstr "frontière des sources du compilateur"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary requiring every selected compiler source to be readable and accepted by its declared codec before compilation."
+msgstr "La frontière opérationnelle imposant que chaque source sélectionnée soit lisible et acceptée par son codec déclaré avant la compilation."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary enforced by source-read and source-parse diagnostics."
+msgstr "À utiliser pour identifier la frontière contrôlée par les diagnostics de lecture et d’analyse des sources."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a refused source with an empty program."
+msgstr "Ne pas remplacer une source refusée par un programme vide."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the source, retain its path or format, and propagate the original failure."
+msgstr "Sélectionner la source, conserver son chemin ou son format et propager l’échec d’origine."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Successful source decoding does not establish semantic completeness."
+msgstr "Un décodage réussi de la source n’établit pas la complétude sémantique."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "An unreadable source file fails before a theory is emitted."
+msgstr "Un fichier source illisible provoque un échec avant l’émission d’une théorie."

@@ -50,7 +50,7 @@ gmeow-cli-core = { path = "../cli-core" }
 # Native RDF text codecs + native flat RDFC-1.0: the comparator parses
 # serialized RDF via `purrdf::parse_dataset` (oxigraph-free text ingress through the
 # gmeow-gts codecs), canonicalizes via `purrdf::canonical_flat_nquads`, and buckets
-# named graphs via `RdfDataset::project_named_graph` + `serialize_dataset` — all on the
+# named graphs via `RdfDataset::project_graph` + `serialize_dataset` — all on the
 # native, oxigraph-free path (no `oxigraph` feature). `gmeow-logic` already
 # depends on this crate, so no new layering edge is created.
 gmeow-ns = { path = "../ns" }

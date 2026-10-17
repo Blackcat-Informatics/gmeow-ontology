@@ -224,7 +224,9 @@ fn invented_witness_skeletons_land_in_diagnostics_and_certificate_cites_them() {
     );
     let dataset = Arc::clone(&reasoned.dataset);
     let diagnostics = dataset
-        .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS)
+        .project_graph(Some(&purrdf::RdfTerm::iri(
+            crate::stages::carrier::GRAPH_DIAGNOSTICS,
+        )))
         .unwrap();
     let quads: Vec<_> = diagnostics.owned_quads().collect();
 
@@ -342,7 +344,9 @@ ex:world {
             && quad.predicate == "https://blackcatinformatics.ca/logic/contextualResult"
     }));
     let dataset = &reasoned.dataset;
-    let graph = dataset.project_named_graph(GRAPH_REASONING).unwrap();
+    let graph = dataset
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_REASONING)))
+        .unwrap();
     assert!(
         graph.owned_reifiers().next().is_some(),
         "native source receipts retain their quoted conclusions"
@@ -552,7 +556,7 @@ fn reason_product_projects_modal_verdict_and_counterexample_into_stage_reason() 
     let product = reason_product(nq).expect("stage-reason product");
     let reasoning_graph = product
         .dataset()
-        .project_named_graph(GRAPH_REASONING)
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_REASONING)))
         .unwrap();
     let projected = reasoning_graph.owned_quads().collect::<Vec<_>>();
     assert!(projected.iter().any(|quad| {

@@ -1970,7 +1970,7 @@ ex:cqLogicFailureClasses a gmeow:CompetencyQuestion ;
     gmeow:cqRationale "Reads the exact set of typed failures from the constraints that enforce them. Removing enforcement drops a class; adding a different failure changes the roster. Contextual admission refusals and formula resource exhaustion are distinguished from semantic opposition and from incomplete closure." ;
     gmeow:cqResultShape ex:cqKernelRosterShape ;
     gmeow:cqExactRows true ;
-    gmeow:cqExpectRow ex:cqLogicFailureClassesRowEnactmentIntegrityViolation , ex:cqLogicFailureClassesRowIncompleteClosure , ex:cqLogicFailureClassesRowSectionObligationViolated , ex:cqLogicFailureClassesRowUncertifiedChase , ex:cqLogicFailureClassesRowUnentrenchedCounterfactual , ex:cqLogicFailureClassesRowUnwiredFlagshipScenario , ex:cqLogicFailureClassesRowUnwitnessedRefutation , ex:cqLogicFailureClassesRowBrokenToolRegistration , ex:cqLogicFailureClassesRowDevToolSurfaceFailure , ex:cqLogicFailureClassesRowDuplicateToolRegistration , ex:cqLogicFailureClassesRowUnadvertisedResourceRead , ex:cqLogicFailureClassesRowUnadvertisedToolInvocation , ex:cqLogicFailureClassesRowUnloadedEngineSegment , ex:cqLogicFailureClassesRowContextualFragmentRefusal , ex:cqLogicFailureClassesRowFormulaAdmissionExhaustion .
+    gmeow:cqExpectRow ex:cqLogicFailureClassesRowEnactmentIntegrityViolation , ex:cqLogicFailureClassesRowIncompleteClosure , ex:cqLogicFailureClassesRowSectionObligationViolated , ex:cqLogicFailureClassesRowUncertifiedChase , ex:cqLogicFailureClassesRowUnentrenchedCounterfactual , ex:cqLogicFailureClassesRowUnwiredFlagshipScenario , ex:cqLogicFailureClassesRowUnwitnessedRefutation , ex:cqLogicFailureClassesRowBrokenToolRegistration , ex:cqLogicFailureClassesRowDevToolSurfaceFailure , ex:cqLogicFailureClassesRowDuplicateToolRegistration , ex:cqLogicFailureClassesRowUnadvertisedResourceRead , ex:cqLogicFailureClassesRowUnadvertisedToolInvocation , ex:cqLogicFailureClassesRowUnloadedEngineSegment , ex:cqLogicFailureClassesRowContextualFragmentRefusal , ex:cqLogicFailureClassesRowFormulaAdmissionExhaustion , ex:cqLogicFailureClassesRowNativeSourceAdmissionRefusal , ex:cqLogicFailureClassesRowTemporalJournalAdmissionExhaustion , ex:cqLogicFailureClassesRowDirectSemanticsServiceRefusal , ex:cqLogicFailureClassesRowNativeSourceCoverageRefusal , ex:cqLogicFailureClassesRowHelperSourceAdmissionRefusal , ex:cqLogicFailureClassesRowCompilerSourceRefusal .
 
 ex:cqLogicFailureClassesRowBrokenToolRegistration a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:BrokenToolRegistration ] .
@@ -2660,3 +2660,21 @@ ex:cqContextVocabularyRole39 a gmeow:ExpectedRow ;
 
 ex:cqContextVocabularyRole40 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:successorMember ] .
+
+ex:cqLogicFailureClassesRowNativeSourceAdmissionRefusal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:NativeSourceAdmissionRefusal ] .
+
+ex:cqLogicFailureClassesRowTemporalJournalAdmissionExhaustion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:TemporalJournalAdmissionExhaustion ] .
+
+ex:cqLogicFailureClassesRowDirectSemanticsServiceRefusal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:DirectSemanticsServiceRefusal ] .
+
+ex:cqLogicFailureClassesRowNativeSourceCoverageRefusal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:NativeSourceCoverageRefusal ] .
+
+ex:cqLogicFailureClassesRowHelperSourceAdmissionRefusal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:HelperSourceAdmissionRefusal ] .
+
+ex:cqLogicFailureClassesRowCompilerSourceRefusal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:CompilerSourceRefusal ] .

@@ -112,7 +112,7 @@ impl Observations {
                 // This view defers only the wildcard observation made by outcome
                 // finish. Actual constructor/list/admission reads are unchanged.
                 let raw = input.defer_world_completion();
-                let started = std::time::Instant::now();
+                let started = crate::timing::Instant::now();
                 super::evaluate(&[*family], &raw, values, lists, ledger)?;
                 observation.evaluated += 1;
                 observation.nanos += started.elapsed().as_nanos();

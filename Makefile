@@ -95,7 +95,7 @@ define REQUIRE_WASM_OPT
 	[ "$$have" = "$(BINARYEN_NUM)" ] || { echo "ERROR: wasm-opt is binaryen $$have but the pin is $(BINARYEN_NUM) ($(BINARYEN_VER)) — wasm-opt output is part of the shipped bytes, so a different binaryen vendors different artifacts; install the pinned release"; exit 1; }
 endef
 
-# The four engine packages are built by ONE recipe. They were four verbatim copies, and
+# The six engine packages are built by ONE recipe. They were verbatim copies, and
 # the copy-paste is what let a descriptor name a refresh target that did not exist. The
 # rules stay explicit (a canned recipe, not a pattern rule) for two reasons: GNU make does
 # not apply pattern rules to `.PHONY` targets, and `make help` awks this file's raw source
@@ -111,12 +111,12 @@ $(REQUIRE_WASM_OPT)
 @# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
 $(WASM_CARGO) build -p gmeow-$(1)-wasm --target wasm32-unknown-unknown --release
 PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-	$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_$(1)_wasm.wasm \
+	$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_$(subst -,_,$(1))_wasm.wasm \
 	--out-dir crates/$(1)-wasm/js/pkg --target web
 @# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact).
 wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt $(2) \
-	-o crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm \
-	   crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm
+	-o crates/$(1)-wasm/js/pkg/gmeow_$(subst -,_,$(1))_wasm_bg.wasm \
+	   crates/$(1)-wasm/js/pkg/gmeow_$(subst -,_,$(1))_wasm_bg.wasm
 @echo "OK: gmeow-$(1)-wasm npm package built (crates/$(1)-wasm/js/, pkg/ generated)"
 endef
 
@@ -218,7 +218,7 @@ print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exa
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate perf-sample perf-accept perf-ci-receipt \
-	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-conjecture-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
+	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-reason-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
 	maint-extract maint-refresh-target-axioms maint-refresh-mcp-witness maint-refresh-mcp-asset maint-refresh-mcp-core-asset maint-refresh-mcp-assets \
 	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
@@ -862,11 +862,11 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(call BUILD_WASM_PKG,reason,)
 
-maint-refresh-conjecture-witness: ## Refresh the verified native conjecture attestation consumed read-only by native/wasm parity tests.
-	cargo run -p gmeow-reason-wasm --example refresh-witness-conjecture
+maint-refresh-reason-witness: ## Refresh both verified native reasoner attestations consumed read-only by parity tests.
+	cargo run -p gmeow-reason-wasm --example refresh-witness-reason
 
-maint-refresh-reason-asset: ## Refresh the conjecture witness, prove Node parity, then re-vendor the reasoner and its BLAKE3 manifest.
-	$(MAKE) maint-refresh-conjecture-witness
+maint-refresh-reason-asset: ## Refresh both native witnesses, prove Node parity, then re-vendor the reasoner and its BLAKE3 manifest.
+	$(MAKE) maint-refresh-reason-witness
 	$(MAKE) reason-wasm-pkg
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
@@ -910,7 +910,7 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	@# substrate identities. Parity consumers run after that producer, never against
 	@# an obsolete bundle which the new substrate may correctly reject.
 	$(MAKE) query-wasm-pkg validate-wasm-pkg reason-wasm-pkg gmn-wasm-pkg mcp-wasm-pkg mcp-core-wasm-pkg
-	$(MAKE) maint-refresh-conjecture-witness maint-refresh-mcp-witness
+	$(MAKE) maint-refresh-reason-witness maint-refresh-mcp-witness
 	$(call COPY_WASM_ASSET,query,)
 	$(call COPY_WASM_ASSET,validate,)
 	$(call COPY_WASM_ASSET,reason,)
@@ -956,21 +956,8 @@ maint-bump-purrdf: ## Select VERSION within the declared PurRDF requirements, up
 	@echo "OK: purrdf selected at $(VERSION); both locks, the full gate, and all six wasm parity lanes passed."
 
 mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_mcp_wasm.wasm \
-		--out-dir crates/mcp-wasm/js/pkg --target web
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	@# `--enable-nontrapping-float-to-int` is REQUIRED here and absent from the three
-	@# sibling lanes because this image genuinely uses that instruction family: the MCP
-	@# engine links the transcode hub + the numeric-literal canonicalization paths, whose
-	@# codegen emits `i64.trunc_sat_f64_{s,u}`. binaryen validates the input against
-	@# exactly the feature set named on the command line, so without the flag wasm-opt
-	@# HARD-FAILS ("all used features should be allowed") — the flag DECLARES what rustc
-	@# emitted, it does not relax a check.
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
-	@echo "OK: wasm-opt -Oz applied"
-	@echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
+	@# Both MCP segments use saturating float conversions from their transcode paths.
+	$(call BUILD_WASM_PKG,mcp,--enable-nontrapping-float-to-int)
 maint-refresh-mcp-witness: ## Refresh the deterministic native MCP response attestation consumed read-only by native/wasm parity tests.
 	cargo run -p gmeow-mcp-wasm --example refresh-witness-mcp
 
@@ -1006,19 +993,7 @@ mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its 
 	cd crates/mcp-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-mcp-wasm Node native↔wasm parity witness lane passed"
 mcp-core-wasm-pkg: ## Build the gmeow-mcp-core-wasm npm/ESM package (the LEAN first-load engine: release wasm + wasm-bindgen web bindings).
-	$(WASM_CARGO) build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_mcp_core_wasm.wasm \
-		--out-dir crates/mcp-core-wasm/js/pkg --target web
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	@# The SAME feature declaration the full MCP image needs, and for the same reason: the
-	@# core engine still links the transcode hub + the numeric-literal canonicalization
-	@# paths, whose codegen emits `i64.trunc_sat_f64_{s,u}`. binaryen validates the input
-	@# against exactly the feature set named on the command line, so without the flag
-	@# wasm-opt HARD-FAILS — the flag DECLARES what rustc emitted, it does not relax a check.
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm
-	@echo "OK: wasm-opt -Oz applied"
-	@echo "OK: gmeow-mcp-core-wasm npm package built (crates/mcp-core-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,mcp-core,--enable-nontrapping-float-to-int)
 mcp-core-wasm-pkg-test: mcp-core-wasm-pkg mcp-wasm-pkg ## Build the lean core npm package and run its Node parity + demand-load lane.
 	@# Depends on BOTH packages: the lane does not merely assert the deferral signal, it
 	@# executes the demand loader against the REAL reasoning segment (`gmeow-mcp-wasm`) and
@@ -1224,6 +1199,13 @@ bench-class-evidence-build: ## Compile the class-evidence benchmark without runn
 CLASS_EVIDENCE_FILTER ?= class_restrictions
 bench-class-evidence: ## Measure native class evidence; CLASS_EVIDENCE_FILTER selects cases.
 	cargo bench -p gmeow-logic --bench reason -- '$(CLASS_EVIDENCE_FILTER)'
+
+.PHONY: bench-recorded-class-consistency check-recorded-class-consistency
+check-recorded-class-consistency: ## Type-check the explicit recorded-input benchmark without running it.
+	cargo check -p gmeow-pipeline --example recorded-class-consistency
+
+bench-recorded-class-consistency: ## Consume verified recorded pipeline inputs; select a world or list, without producing corpus.
+	cargo run --profile bench -p gmeow-pipeline --example recorded-class-consistency -- "$(RECORDED_CLASS_CACHE_REPO)" "$(RECORDED_CLASS_SOURCE_RECEIPT)" "$(RECORDED_CLASS_STATEMENTS_RECEIPT)" "$(RECORDED_CLASS_COMPILE_RECEIPT)" "$(RECORDED_CLASS_WORLD)"
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare

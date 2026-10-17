@@ -23914,3 +23914,29 @@ logic:HelperSourceAdmission
     skos:scopeNote "This contract governs operational input admission; the admitted census separately evaluates duplication and forbidden implementations."@x-gmeow-english ;
     skos:example "A ledger job naming a missing source implementation is refused before its copy count can be reported."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+logic:CompilerSourceRefusal
+    a logic:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compiler source refusal"@x-gmeow-english ;
+    skos:definition "An operational refusal to acquire or decode explicitly selected compiler source, retaining the selected path or format and original typed cause."@x-gmeow-english ;
+    gmeow:useWhen "Use when a selected source cannot be read or parsed."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not classify file-access failure as a false formula."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the access or codec disposition and original native cause."@x-gmeow-english ;
+    skos:scopeNote "The refusal precedes compiler admission and makes no consistency claim."@x-gmeow-english ;
+    skos:example "A malformed RDF source retains its native parser diagnostic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CompilerSourceBoundary
+    a logic:NamedIndividual ;
+    gmeow:enforcesFailureClass logic:CompilerSourceRefusal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compiler source boundary"@x-gmeow-english ;
+    skos:definition "The operational boundary requiring every selected compiler source to be readable and accepted by its declared codec before compilation."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the boundary enforced by source-read and source-parse diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace a refused source with an empty program."@x-gmeow-english ;
+    gmeow:howToUse "Select the source, retain its path or format, and propagate the original failure."@x-gmeow-english ;
+    skos:scopeNote "Successful source decoding does not establish semantic completeness."@x-gmeow-english ;
+    skos:example "An unreadable source file fails before a theory is emitted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

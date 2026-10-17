@@ -221,7 +221,7 @@ impl PreparedProgram {
             }
             return template.input(facts, possible, contextual_effects);
         }
-        let template_started = std::time::Instant::now();
+        let template_started = crate::timing::Instant::now();
         if trace_large_input {
             tracing::info!(
                 target: "pipeline_reasoning_detail",

@@ -158,45 +158,26 @@ fn framed_native_component_source() -> String {
     contract
 }
 
-/// A deterministic, `purrdf`-PROVIDED identity of the external substrate the moved
-/// reasoning lanes now stand on — the value [`native_contract_hash`] folds in so a
-/// purrdf pin bump that changes those lanes is detected even though no native source
-/// byte moved.
+/// Portable semantic identity supplied by the pinned PurRDF substrate.
 ///
-/// It is composed of three purrdf-owned, side-effect-free identities, all pure
-/// functions of the pinned purrdf rule tables and version constant (no I/O, no git
-/// shell-out, no wall-clock):
+/// Fold the evaluator's `CALCULUS_VERSION` and its canonical ordered OWL-RL and
+/// datatype rule hashes. Source, calculus and rule changes still invalidate the
+/// semantic seal on every target.
 ///
-/// * [`purrdf::datalog::cache::CALCULUS_VERSION`] — the datalog evaluator SEMANTICS
-///   (code, not data), the shared substrate under both the RL chase and every DL entail
-///   service that runs the datalog kernel. purrdf bumps it exactly when the evaluator's
-///   answers can change.
-/// * the OWL 2 RL calculus `contract_hash` — `purrdf`'s own BLAKE3 over the OWL-RL rule
-///   program PLUS the version PLUS the three evaluation ceilings
-///   (`contract_hash(&calculus_program(Regime::OwlRl))`, the exact identity
-///   `purrdf::entail`'s report carries for the RL lane the cutover moved to). Any change
-///   to the RL rule set the RL lane closes under moves this digest.
-/// * the `D` (datatype-entailment) calculus `contract_hash` — the finest purrdf-provided
-///   identity for the datatype rule surface the value-space decider
-///   ([`crate::reason::refute::datatype`]) sits beside. (`purrdf::xsd`'s pure value-space
-///   algebra exposes no independent version/contract const of its own, so the whole
-///   `purrdf::xsd` surface is pinned transitively by the git rev in `Cargo.lock`; this D
-///   digest is the closest purrdf-owned rule-surface identity available.)
-///
-/// This is NOT purrdf's per-result `contract_hash` re-badged as the native identity: it
-/// is one framed INPUT to [`native_contract_hash`]'s own SHA-1 fold. The two identities
-/// stay distinct — `native_contract_hash` remains a SHA-1 over native source plus this
-/// input; purrdf's `contract_hash` remains a BLAKE3 over a purrdf calculus — and are
-/// never assumed interchangeable.
+/// PurRDF's execution `contract_hash` additionally commits the selected evaluation
+/// limits, whose defaults differ between native and WebAssembly. Those contracts
+/// belong to operation receipts; folding them here makes the same semantic kernel
+/// mint different domain witnesses and verdict identities on different targets.
+/// No execution limit is selected, changed or discarded by this semantic identity.
 fn purrdf_substrate_identity() -> String {
-    let owl_rl = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
-        purrdf::entail::Regime::OwlRl,
+    let owl_rl = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+        &purrdf::entail::calculus_program(purrdf::entail::Regime::OwlRl),
     ));
-    let datatype = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
-        purrdf::entail::Regime::D,
+    let datatype = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+        &purrdf::entail::calculus_program(purrdf::entail::Regime::D),
     ));
     format!(
-        "purrdf-substrate-v1|calculus:{}|owl-rl:{}|datatype:{}",
+        "purrdf-substrate-semantics-v2|calculus:{}|owl-rl:{}|datatype:{}",
         purrdf::datalog::cache::CALCULUS_VERSION,
         owl_rl.to_hex(),
         datatype.to_hex(),

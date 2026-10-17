@@ -22944,3 +22944,59 @@ msgstr "这是原子索引族，不是真值求值器，也不合并世界、立
 msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#example"
 msgid "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."
 msgstr "ex:w 中 ex:p 对 ex:a 的应用为 contextualApplication(ex:w, ex:p, ex:a)，与 ex:p(ex:w, ex:a) 不同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compiler source refusal"
+msgstr "编译器源输入拒绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal to acquire or decode explicitly selected compiler source, retaining the selected path or format and original typed cause."
+msgstr "获取或解码显式选定的编译器源输入时发生的操作拒绝，保留所选路径或格式以及原始类型化原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a selected source cannot be read or parsed."
+msgstr "用于无法读取或解析所选源输入的情况。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify file-access failure as a false formula."
+msgstr "不要将文件访问故障归类为公式为假。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the access or codec disposition and original native cause."
+msgstr "保留访问或编解码器拒绝类别以及原生层的原始原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The refusal precedes compiler admission and makes no consistency claim."
+msgstr "此拒绝发生在编译器接纳之前，不作一致性断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed RDF source retains its native parser diagnostic."
+msgstr "格式错误的 RDF 源输入保留其原生解析器诊断。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compiler source boundary"
+msgstr "编译器源输入边界"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary requiring every selected compiler source to be readable and accepted by its declared codec before compilation."
+msgstr "要求每项所选编译器源输入在编译前均可读取并被其声明的编解码器接纳的操作边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary enforced by source-read and source-parse diagnostics."
+msgstr "用于标识源读取和源解析诊断所执行的边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a refused source with an empty program."
+msgstr "不要以空程序替代被拒绝的源输入。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the source, retain its path or format, and propagate the original failure."
+msgstr "选择源输入，保留其路径或格式，并传播原始故障。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Successful source decoding does not establish semantic completeness."
+msgstr "成功解码源输入并不证明语义完整性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "An unreadable source file fails before a theory is emitted."
+msgstr "无法读取的源文件会在输出理论之前导致失败。"

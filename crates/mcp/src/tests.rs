@@ -6555,7 +6555,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
     fn search_documentation_matches_facets_ranks_and_is_deterministic() {
         let dataset_arc = synthetic_docs_dataset();
         let dataset = Arc::new(
-            dataset_arc.project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION).unwrap(),
+            dataset_arc.project_graph(Some(&purrdf::RdfTerm::iri(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION))).unwrap(),
         );
         let cat_iri = "https://blackcatinformatics.ca/gmeow/Cat";
         let feline_iri = "https://blackcatinformatics.ca/gmeow/Feline";

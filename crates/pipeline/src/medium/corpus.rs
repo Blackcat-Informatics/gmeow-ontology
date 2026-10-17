@@ -459,7 +459,9 @@ pub fn assemble_with_cache(
                 let sample = match cache.graph_samples.get(graph) {
                     Some(sample) => Arc::clone(sample),
                     None => {
-                        let projected = sources.dataset.project_named_graph(graph)?;
+                        let projected = sources
+                            .dataset
+                            .project_graph(Some(&purrdf::RdfTerm::iri(graph)))?;
                         let ntriples =
                             purrdf::canonical_flat_nquads(&projected).map_err(|err| {
                                 invalid_declaration(format!(

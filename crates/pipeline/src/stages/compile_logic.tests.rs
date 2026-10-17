@@ -857,7 +857,9 @@ fn native_relational_carrier_and_terminal_share_the_complete_program() {
     let projection = project_relational_core_dataset(&program).unwrap();
     let carrier =
         crate::stages::carrier::rooted_in_graph(&projection, GRAPH_RELATIONAL_CORE).unwrap();
-    let carried = carrier.project_named_graph(GRAPH_RELATIONAL_CORE).unwrap();
+    let carried = carrier
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_RELATIONAL_CORE)))
+        .unwrap();
     let restored = gmeow_logic_compile::relational_core::parse_relational_core(&carried).unwrap();
     assert_eq!(restored, program);
     assert_eq!(
@@ -876,7 +878,9 @@ fn native_correspondence_carrier_and_terminal_share_the_complete_program() {
     assert_eq!(restored.compositions, program.compositions);
     let carrier = crate::stages::carrier::rooted_in_graph(&projection, GRAPH_CORRESPONDENCE)
         .expect("native carrier placement");
-    let carried = carrier.project_named_graph(GRAPH_CORRESPONDENCE).unwrap();
+    let carried = carrier
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_CORRESPONDENCE)))
+        .unwrap();
     assert_eq!(
         parse_correspondence(&carried).unwrap().correspondences,
         program.correspondences

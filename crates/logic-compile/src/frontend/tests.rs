@@ -204,6 +204,10 @@ fn parse_nonexistent_file_raises() {
         "logic-compile.source-read"
     );
     let failure = err.downcast_ref::<crate::error::SourceRead>().unwrap();
+    assert_eq!(
+        err.inner().failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/CompilerSourceRefusal")
+    );
     assert_eq!(failure.path, path);
     assert_eq!(failure.cause.kind(), std::io::ErrorKind::NotFound);
 }
@@ -217,6 +221,10 @@ fn parse_invalid_turtle_raises() {
         "logic-compile.source-parse"
     );
     let failure = err.downcast_ref::<crate::error::SourceParse>().unwrap();
+    assert_eq!(
+        err.inner().failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/CompilerSourceRefusal")
+    );
     assert_eq!(failure.format, "Turtle");
     assert!(!failure.cause.to_string().is_empty());
 }

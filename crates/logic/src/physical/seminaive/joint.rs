@@ -7,8 +7,8 @@
 //! families against the same frozen round, then commits one ordered, budgeted
 //! delta. No family is re-seeded from a materialized intermediate closure.
 
+use crate::timing::Instant;
 use std::sync::Arc;
-use std::time::Instant;
 
 use super::property::PreparedPropertyRule;
 use super::{

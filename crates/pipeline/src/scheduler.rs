@@ -1408,9 +1408,15 @@ fn check_lane(
 
 /// The action-key identity available from either a live product or its authenticated
 /// immutable receipt.
-trait ActionIdentity {
+pub trait ActionIdentity {
+    /// Producer that owns this product or receipt.
     fn producer_id(&self) -> &str;
+    /// Complete native product commitment.
     fn product_digest(&self) -> &str;
+    /// Selected graph commitment, including its typed handle when present.
+    ///
+    /// # Errors
+    /// Propagates invalid native graph or handle commitments.
     fn entity_digest(&self, entity: &str) -> gmeow_errors::Result<Option<String>>;
 }
 

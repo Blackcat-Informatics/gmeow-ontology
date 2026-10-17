@@ -742,31 +742,31 @@ fn native_contract_hash_folds_the_purrdf_substrate_identity() {
     // participates in `native_contract_hash`, so such a bump is detected.
 
     // 1. The purrdf identity is deterministic and carries every claimed sub-identity:
-    //    the datalog CALCULUS_VERSION and the two 64-hex calculus contract hashes.
+    //    the datalog CALCULUS_VERSION and the two canonical 64-hex rule hashes.
     let id = purrdf_substrate_identity();
     assert_eq!(id, purrdf_substrate_identity(), "purrdf identity is stable");
     assert!(
         id.contains(purrdf::datalog::cache::CALCULUS_VERSION),
         "the datalog calculus version must reach the folded identity: {id}"
     );
-    let owl_rl = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
-        purrdf::entail::Regime::OwlRl,
+    let owl_rl = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+        &purrdf::entail::calculus_program(purrdf::entail::Regime::OwlRl),
     ));
-    let datatype = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
-        purrdf::entail::Regime::D,
+    let datatype = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+        &purrdf::entail::calculus_program(purrdf::entail::Regime::D),
     ));
     assert!(
-        id.contains(&owl_rl.to_hex()),
-        "the OWL 2 RL calculus contract hash must reach the folded identity"
+        id.contains(owl_rl.to_hex().as_str()),
+        "the OWL 2 RL canonical rule hash must reach the folded identity"
     );
     assert!(
-        id.contains(&datatype.to_hex()),
-        "the datatype calculus contract hash must reach the folded identity"
+        id.contains(datatype.to_hex().as_str()),
+        "the datatype canonical rule hash must reach the folded identity"
     );
     assert_ne!(
         owl_rl.to_hex(),
         datatype.to_hex(),
-        "distinct calculi must carry distinct purrdf contract hashes"
+        "distinct calculi must carry distinct canonical rule hashes"
     );
 
     // 2. Participation proof: recompute the digest over the native component source
@@ -802,11 +802,11 @@ fn native_contract_hash_folds_the_purrdf_substrate_identity() {
     );
 
     // The purrdf identity is a DISTINCT surface from the native contract hash — a
-    // BLAKE3 purrdf calculus digest is never the SHA-1 native engine seal.
+    // BLAKE3 canonical rule digest is never the SHA-1 native engine seal.
     assert_ne!(
-        owl_rl.to_hex(),
-        native_contract_hash(),
-        "purrdf's contract_hash and native_contract_hash are distinct identities"
+        owl_rl.to_hex().as_str(),
+        native_contract_hash().as_str(),
+        "purrdf's canonical rule hash and native_contract_hash are distinct identities"
     );
 }
 
@@ -2514,4 +2514,35 @@ fn reason_program_routes_modal_evaluation_through_the_native_closure() {
             .any(|axiom| axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD),
         "the counterexample world must reach the program closure too"
     );
+}
+
+#[test]
+fn portable_semantic_identity_excludes_target_execution_contracts() {
+    use purrdf::datalog::seminaive::{
+        EvalOptions, NATIVE_DEFAULT_MAX_STORED_FACTS, WASM_DEFAULT_MAX_STORED_FACTS,
+    };
+    let semantic = purrdf_substrate_identity();
+    for regime in [purrdf::entail::Regime::OwlRl, purrdf::entail::Regime::D] {
+        let rules = purrdf::entail::calculus_program(regime);
+        // Hash two real operation profiles without evaluating under either one.
+        let native = purrdf::datalog::cache::contract_hash_with(
+            &rules,
+            &EvalOptions::default().with_max_stored_facts(NATIVE_DEFAULT_MAX_STORED_FACTS),
+        );
+        let browser = purrdf::datalog::cache::contract_hash_with(
+            &rules,
+            &EvalOptions::default().with_max_stored_facts(WASM_DEFAULT_MAX_STORED_FACTS),
+        );
+        assert_ne!(
+            native, browser,
+            "actual execution contracts retain their selected limits"
+        );
+        assert!(!semantic.contains(&native.to_hex()));
+        assert!(!semantic.contains(&browser.to_hex()));
+        let rules_hash = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(&rules));
+        assert!(
+            semantic.contains(rules_hash.to_hex().as_str()),
+            "the full ordered rule program still owns the semantic seal"
+        );
+    }
 }

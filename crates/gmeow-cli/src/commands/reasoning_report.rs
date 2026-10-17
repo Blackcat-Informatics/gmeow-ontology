@@ -271,6 +271,7 @@ pub(crate) struct ReportDiagnostic {
 pub(crate) struct DiagnosticEvidence {
     pub(crate) code: String,
     pub(crate) grade: gmeow_errors::Grade,
+    pub(crate) failure_class: Option<String>,
     pub(crate) source_context: gmeow_errors::SourceContext,
     pub(crate) context: Vec<String>,
     pub(crate) causes: Vec<String>,
@@ -370,6 +371,7 @@ impl ReportDiagnostic {
             diagnostic: Some(DiagnosticEvidence {
                 code: gmeow_errors::code::code_str(diag.code()).to_owned(),
                 grade: diag.grade(),
+                failure_class: inner.failure_class.clone(),
                 source_context: inner.source_ctx.clone(),
                 context: inner
                     .context
@@ -743,6 +745,29 @@ mod tests {
             )
             .exit_code(false),
             EXIT_EXECUTION
+        );
+    }
+
+    #[test]
+    fn parser_diagnostic_report_retains_its_ontology_failure_class() {
+        let diagnostic =
+            gmeow_logic_compile::frontend::parse_logic_str("this is not turtle <<<", None)
+                .expect_err("the selected source is malformed");
+        let report = ReportDiagnostic::from_diag(&diagnostic);
+        let evidence = report.diagnostic.as_ref().expect("native diagnostic");
+        assert_eq!(
+            evidence.failure_class.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/CompilerSourceRefusal")
+        );
+        assert_eq!(evidence.grade, diagnostic.grade());
+        let json = serde_json::to_value(&report).expect("diagnostic report");
+        assert_eq!(
+            json["diagnostic"]["failure_class"],
+            "https://blackcatinformatics.ca/logic/CompilerSourceRefusal"
+        );
+        assert_eq!(
+            serde_json::to_value(ReportDiagnostic::from_diag(&diagnostic)).unwrap(),
+            json
         );
     }
 

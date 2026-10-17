@@ -1241,7 +1241,7 @@ gmeow:stage-export-lpg
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: LPG"@x-gmeow-english ;
-    skos:definition "Emit the labeled-property-graph artifacts — generic CSV, Neo4j Admin Import CSV, openCypher, and GraphML 1.0 — via purrdf's native LPG projections (project_lpg_csv/project_neo4j_csv/project_lpg_cypher/project_lpg_graphml), retiring gmeow's hand-rolled node/edge model and CSV/Cypher/GraphML writers. The projected view is the carrier's graph/statements named graph ONLY, scoped via purrdf's project_named_graph_full (plus the RDF-1.2 reifiers/annotations attached to those statements-graph triples) — the same business-layer typed-resource scope the retired hand-rolled emitter used, never the whole composed carrier. A fold-reading export leaf: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
+    skos:definition "Emit labeled-property-graph artifacts — generic CSV, Neo4j Admin Import CSV, openCypher, and GraphML 1.0 — through PurRDF's native LPG projections. Select only the carrier's graph/statements world through native graph projection, preserving its RDF 1.2 reifier declarations and annotations by their own graph slots. This business-layer export reads the gmeow:stage-snapshot bundle directly; GTS bytes are an exit format, not an intermediate carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -2969,4 +2969,29 @@ gmeow:receiptOfExecutionFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:receiptOfExecution, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects OWL FunctionalProperty from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:receiptOfExecution and nothing else. It is not a definition of the term (that lives on the term itself), not a shape, and not a second place to state its meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:receiptOfExecutionFunctionality logic:characterizes gmeow:receiptOfExecution ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:RecordedConsumerFailure
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "recorded consumer failure"@x-gmeow-english ;
+    skos:definition "An operational failure while reading, checking, evaluating or reporting explicitly selected recorded inputs, retaining the selected operation and original typed cause."@x-gmeow-english ;
+    gmeow:useWhen "Use for failures of an explicit recorded-input consumer operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not interpret an operational failure as a semantic verdict."@x-gmeow-english ;
+    gmeow:howToUse "Retain the operation, input focus and complete original cause chain."@x-gmeow-english ;
+    skos:scopeNote "This class concerns availability of the requested consumer result."@x-gmeow-english ;
+    skos:example "A missing selected receipt retains its original file-access error."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:RecordedConsumerBoundary
+    a logic:NamedIndividual ;
+    gmeow:enforcesFailureClass gmeow:RecordedConsumerFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "recorded consumer boundary"@x-gmeow-english ;
+    skos:definition "The operational boundary requiring an explicit recorded-input consumer to preserve every selected input, requested output and original failure cause."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the boundary enforced by recorded-consumer diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not repair missing inputs by executing a corpus producer."@x-gmeow-english ;
+    gmeow:howToUse "Admit existing products read-only and fail if any selected operation fails."@x-gmeow-english ;
+    skos:scopeNote "The boundary does not certify current canonical source completeness."@x-gmeow-english ;
+    skos:example "A report-writing failure prevents successful consumer completion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

@@ -10,6 +10,11 @@ license.workspace = true
 repository.workspace = true
 keywords = ["rdf", "reasoning", "datalog", "wasm", "knowledge-graph"]
 
+[[example]]
+name = "refresh-witness-reason"
+path = "examples/refresh-witness-reason.rs"
+test = false
+
 [lib]
 # cdylib for the wasm-bindgen build (the shipped npm/ESM artifact); rlib so the thin
 # binding logic still compiles + unit-tests on the native workspace gate.

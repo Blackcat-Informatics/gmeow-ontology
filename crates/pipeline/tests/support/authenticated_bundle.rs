@@ -53,7 +53,9 @@ pub fn graph_triples(graph_iri: &str) -> Vec<(String, String, String)> {
 
 /// Ground triples of one named graph from another authenticated stage product.
 pub fn graph_triples_from(dataset: &RdfDataset, graph_iri: &str) -> Vec<(String, String, String)> {
-    let scoped = dataset.project_named_graph(graph_iri).unwrap();
+    let scoped = dataset
+        .project_graph(Some(&purrdf::RdfTerm::iri(graph_iri)))
+        .unwrap();
     scoped
         .quad_refs()
         .map(|quad| (term_value(quad.s), term_value(quad.p), term_value(quad.o)))

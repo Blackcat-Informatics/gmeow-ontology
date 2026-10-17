@@ -603,7 +603,7 @@ impl JointTemplate {
                 "contextual output envelope has no admitted owner world",
             ));
         }
-        let flow_started = std::time::Instant::now();
+        let flow_started = crate::timing::Instant::now();
         if trace_large_input {
             tracing::info!(
                 target: "pipeline_reasoning_detail",
@@ -641,7 +641,7 @@ impl JointTemplate {
                     .chain(possible.iter().map(|(_, fact)| fact)),
             ),
         );
-        let operators_started = std::time::Instant::now();
+        let operators_started = crate::timing::Instant::now();
         if trace_large_input {
             tracing::info!(
                 target: "pipeline_reasoning_detail",
@@ -674,7 +674,7 @@ impl JointTemplate {
                 flow.vocabulary_identity(),
             ),
         );
-        let summary_started = std::time::Instant::now();
+        let summary_started = crate::timing::Instant::now();
         if trace_large_input {
             tracing::info!(
                 target: "pipeline_reasoning_detail",
@@ -705,7 +705,7 @@ impl JointTemplate {
             );
         }
         let shape = summary.identity(&flow_contract);
-        let effects_started = std::time::Instant::now();
+        let effects_started = crate::timing::Instant::now();
         if trace_large_input {
             tracing::info!(
                 target: "pipeline_reasoning_detail",
@@ -730,7 +730,7 @@ impl JointTemplate {
         let mut constructor_lists = BTreeMap::new();
         let mut world_shapes = Vec::new();
         for (world, local) in facts {
-            let world_started = std::time::Instant::now();
+            let world_started = crate::timing::Instant::now();
             if trace_large_input {
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
@@ -809,7 +809,7 @@ impl JointTemplate {
                 );
             }
         }
-        let termination_started = std::time::Instant::now();
+        let termination_started = crate::timing::Instant::now();
         if trace_large_input {
             tracing::info!(
                 target: "pipeline_reasoning_detail",

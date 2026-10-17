@@ -1761,7 +1761,7 @@ impl ChaseAdmission {
             families: &families,
             semantics,
         };
-        let started = std::time::Instant::now();
+        let started = crate::timing::Instant::now();
         let mut admission = if summarized.is_empty() {
             let ladder = if rules.iter().any(|rule| rule.position_only) {
                 Ladder::Polynomial
@@ -2107,7 +2107,7 @@ impl ChaseAdmission {
             datalog_rules = datalog.rules.len(),
             "restricted joint acyclicity candidates"
         );
-        let started = std::time::Instant::now();
+        let started = crate::timing::Instant::now();
         let mut closures = 0usize;
         let mut edges: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); graph.existentials.len()];
         let mut blocked = 0usize;

@@ -121,7 +121,9 @@ fn composite_shares_inputs_and_routes_every_rdf_layer_in_one_materialization() {
         .chain([GRAPH_DIAGNOSTICS])
         .enumerate()
     {
-        let selected = dataset.project_named_graph(graph).unwrap();
+        let selected = dataset
+            .project_graph(Some(&purrdf::RdfTerm::iri(graph)))
+            .unwrap();
         let ordinary: Vec<_> = selected.owned_quads().collect();
         let reifiers: Vec<_> = selected.owned_reifiers().collect();
         let annotations: Vec<_> = selected.owned_annotations().collect();
@@ -325,7 +327,7 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     assert_eq!(carried_correspondence.as_ref(), &expected_correspondence);
     let diagnostics = bundle
         .dataset()
-        .project_named_graph(GRAPH_DIAGNOSTICS)
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_DIAGNOSTICS)))
         .unwrap();
     let restored =
         crate::stages::carrier::rooted_in_graph(&diagnostics, GRAPH_DIAGNOSTICS).unwrap();

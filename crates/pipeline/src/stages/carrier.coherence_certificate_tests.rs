@@ -44,7 +44,9 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
     let folded = fold_coherence_certificate(composed, &upstream).expect("fold certificate");
 
     let attestations = folded
-        .project_named_graph(crate::stages::release::GRAPH_ATTESTATIONS)
+        .project_graph(Some(&purrdf::RdfTerm::iri(
+            crate::stages::release::GRAPH_ATTESTATIONS,
+        )))
         .unwrap();
     let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     let coherence_typed = attestations.owned_quads().any(|q| {

@@ -346,7 +346,16 @@ fn malformed_model_retains_the_typed_parser_cause_and_serialized_evidence() {
         Some("math.lift.proof.parse")
     );
     assert_eq!(evidence.grade, diagnostic.grade());
+    assert_eq!(
+        evidence.source_failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/math/MalformedTSTPDerivation")
+    );
+    assert_eq!(evidence.failure_class, diagnostic.inner().failure_class);
     assert!(!evidence.causes.is_empty());
+    assert_eq!(
+        serde_json::to_value(&checked).unwrap()["diagnostic"]["source_failure_class"],
+        "https://blackcatinformatics.ca/math/MalformedTSTPDerivation"
+    );
     let first = serde_json::to_string(&checked).expect("report JSON");
     let repeated = check_external_artifact(
         &artifact("FiniteModel", source),
