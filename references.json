@@ -1,0 +1,251 @@
+{
+  "paths": [
+    {
+      "ref": "logic/src/reason/refute/casesplit.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/logic/src/reason/refute/casesplit.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "logic/src/physical/chase.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/logic/src/physical/chase.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "reason/value.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/reason/value.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "property/datatype/extent.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/property/datatype/extent.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "Cargo.lock",
+      "path": "/home/paudley/Active/gmeow-ontology/Cargo.lock",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 6388,
+      "licence": "",
+      "commits": [
+        "a8ffd250e fix(logic): pin sound native length-space exhaustion",
+        "9d992189d refactor(logic): delegate anyURI values to the native substrate",
+        "ec2222790 fix(logic): preserve portable browser reasoning identities and timing",
+        "7db11af84 fix(pipeline): select recorded worlds after complete object assembly",
+        "645a9db7a chore(deps): bump rustls (#1824)",
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "1d5d7f36d chore(logic): remove unused corpus loader dependencies",
+        "a631f73e6 perf(1757): make native reasoning fit and finish on the production corpus (#1791)",
+        "7cfc7049f feat(dev): helper census: one home per job, PurRDF's where it exists (#1785)",
+        "41ec956a4 deps: adopt purrdf 3.0 and enforce a major-3 substrate floor (#1784)"
+      ]
+    },
+    {
+      "ref": "graph/imports",
+      "path": "/home/paudley/Active/gmeow-ontology/graph/imports",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "graph/logic",
+      "path": "/home/paudley/Active/gmeow-ontology/graph/logic",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "graph/rl_default",
+      "path": "/home/paudley/Active/gmeow-ontology/graph/rl_default",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "docs/RUST-OPTIMIZATION.md",
+      "path": "/home/paudley/Active/gmeow-ontology/docs/RUST-OPTIMIZATION.md",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 327,
+      "licence": "SPDX: CC-BY-4.0",
+      "commits": [
+        "3bcbc1007 docs: clarify partial validation telemetry (Principles 4, 7)",
+        "1510a48a3 perf: reuse authenticated validation state (Principles 4, 7, 18)",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "e049a22a2 fix: preserve optimized producer authority across checkouts",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer",
+        "108d350d2 docs(1668): rename gmeow-rdf references to purrdf in documentation",
+        "a76168cc6 build(gate): one producer, one run \u2014 remove make regen as an entry point",
+        "6bb22778d build(gate): schedule check on accurate dependencies, and move breadth lanes to CI",
+        "ab0ed267e fix(1211): strip tracker references from published-crate metadata, and hoist shared dependencies to the workspace",
+        "92e42bea0 docs(1402): sweep all `make sync` references to `make regen`/`make check-sync`"
+      ]
+    },
+    {
+      "ref": ".stage/split-gmeow-purrdf-responsibilities/plan.md",
+      "path": "/home/paudley/Active/gmeow-ontology/.stage/split-gmeow-purrdf-responsibilities/plan.md",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/.stage/split-gmeow-purrdf-responsibilities",
+      "path": "/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/.stage/split-gmeow-purrdf-responsibilities",
+      "where": "absolute",
+      "exists": true,
+      "kind": "dir",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "gmeow.gts",
+      "files": 456
+    },
+    {
+      "name": "gmeow",
+      "files": 8978
+    },
+    {
+      "name": "DlProof",
+      "files": 1
+    },
+    {
+      "name": "ChaseProof",
+      "files": 1
+    },
+    {
+      "name": "ServiceProof",
+      "files": 1
+    },
+    {
+      "name": "StopSignal",
+      "files": 4
+    },
+    {
+      "name": "entail::owl_dl",
+      "files": 1
+    },
+    {
+      "name": "Reasoner::consistency",
+      "files": 2
+    },
+    {
+      "name": "DlCertificate",
+      "files": 3
+    },
+    {
+      "name": "casesplit",
+      "files": 12
+    },
+    {
+      "name": "anyURI",
+      "files": 46
+    },
+    {
+      "name": "DlReasoner::consistency",
+      "files": 2
+    },
+    {
+      "name": "false",
+      "files": 1359
+    },
+    {
+      "name": "incomplete",
+      "files": 631
+    },
+    {
+      "name": "consistent",
+      "files": 1477
+    },
+    {
+      "name": "rl_default",
+      "files": 0
+    },
+    {
+      "name": "dateTimeStamp",
+      "files": 5
+    },
+    {
+      "name": "unsupported",
+      "files": 636
+    },
+    {
+      "name": "oneOf",
+      "files": 162
+    },
+    {
+      "name": "hasValue",
+      "files": 94
+    },
+    {
+      "name": "members",
+      "files": 940
+    },
+    {
+      "name": "sameAs",
+      "files": 175
+    },
+    {
+      "name": "differentFrom",
+      "files": 77
+    },
+    {
+      "name": "eb1fd88b0283a8a53efea6374243c4e5c2ff3161",
+      "files": 0
+    },
+    {
+      "name": "purrdf",
+      "files": 1113
+    },
+    {
+      "name": "af8936e6f22c70dcbc3f3dc1224be887aba51cc5",
+      "files": 0
+    }
+  ],
+  "packages": [
+    "gmeow-ontology"
+  ],
+  "urls": [
+    "https://blackcatinformatics.ca/gmeow/graph/",
+    "https://github.com/Blackcat-Informatics/purrdf/issues/566",
+    "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure"
+  ],
+  "truncated": []
+}

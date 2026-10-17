@@ -1,0 +1,94 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-slicetest) | test(reason::value::) | test(physical::seminaive::property::datatype::) | test(reason::program::datatype_) | test(native_substrate_binds) | test(native_contract_hash_folds) | test(portable_semantic_identity) | test(native_reason_closure_matches) | test(native_conjecture_verdicts_match)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 33s
+────────────
+ Nextest run ID 50f6d758-0015-4a84-ae20-760ed4f578e4 with nextest profile: ci
+    Starting 62 tests across 225 binaries (7430 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.010s] ( 1/62) gmeow-build-inputs::native_substrate native_substrate_binds_the_git_source_and_refuses_mutable_selectors
+        PASS [   0.019s] ( 2/62) gmeow-logic reason::value::tests::native_literal_interpretation_does_not_repair_a_malformed_decimal
+        PASS [   0.019s] ( 3/62) gmeow-logic reason::value::tests::native_any_uri_values_preserve_xml_whitespace_and_reject_invalid_characters
+        PASS [   0.019s] ( 4/62) gmeow-logic reason::value::tests::native_string_admission_preserves_valid_bytes_and_rejects_non_xml_characters
+        PASS [   0.019s] ( 5/62) gmeow-logic reason::value::tests::native_literal_membership_and_equality_preserve_large_exact_values
+        PASS [   0.019s] ( 6/62) gmeow-logic reason::value::tests::native_xsd_admission_does_not_repair_source_whitespace
+        PASS [   0.020s] ( 7/62) gmeow-logic reason::value::tests::native_rational_admission_preserves_the_datatypes_own_lexical_space
+        PASS [   0.021s] ( 8/62) gmeow-logic reason::tests::native_contract_hash_folds_public_admission_and_services
+        PASS [   0.021s] ( 9/62) gmeow-logic reason::value::tests::cardinality_accepts_the_complete_native_count_domain
+        PASS [   0.021s] (10/62) gmeow-logic reason::value::native_cache_tests::native_schema_values_reuse_interpretations_with_bounded_retention
+        PASS [   0.023s] (11/62) gmeow-logic reason::value::tests::native_exact_decimal_interpretation_keeps_arbitrary_scale_without_a_retry
+        PASS [   0.024s] (12/62) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_is_an_intrinsic_primitive_datatype
+        PASS [   0.024s] (13/62) gmeow-logic reason::tests::portable_semantic_identity_excludes_target_execution_contracts
+        PASS [   0.025s] (14/62) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_length_facets_measure_collapsed_characters
+        PASS [   0.025s] (15/62) gmeow-logic physical::seminaive::property::datatype::tests::malformed_decimal_does_not_satisfy_a_rational_enumeration
+        PASS [   0.026s] (16/62) gmeow-logic physical::seminaive::property::datatype::tests::shared_datatype_subexpressions_do_not_expand_and_completed_plans_survive_rounds
+        PASS [   0.026s] (17/62) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_enumeration_compares_collapsed_values
+        PASS [   0.028s] (18/62) gmeow-logic physical::seminaive::property::datatype::tests::datatype_cache_capacity_and_payload_misses_preserve_execution
+        PASS [   0.028s] (19/62) gmeow-logic reason::tests::native_contract_hash_folds_the_purrdf_substrate_identity
+        PASS [   0.008s] (20/62) gmeow-slicetest exec::tests::parsed_fixture_cache_observes_changed_invalid_and_missing_source
+        PASS [   0.009s] (21/62) gmeow-slicetest exec::tests::is_satisfiable_by_surfaces_missing_required_column
+        PASS [   0.009s] (22/62) gmeow-slicetest error::tests::every_slicetest_code_interns_with_no_collision
+        PASS [   0.005s] (23/62) gmeow-slicetest paths::tests::example_file_is_slice_relative_query_file_is_repo_relative
+        PASS [   0.006s] (24/62) gmeow-slicetest paths::tests::conformance_data_is_slice_local_except_for_the_grounding_kernel
+        PASS [   0.006s] (25/62) gmeow-slicetest paths::tests::explicit_root_is_portable_immutable_and_missing_roots_fail_closed
+        PASS [   0.005s] (26/62) gmeow-slicetest paths::tests::module_and_migrated_shapes_resolve_to_their_authorities
+        PASS [   0.005s] (27/62) gmeow-slicetest paths::tests::slice_dir_is_the_spec_grandparent
+        PASS [   0.005s] (28/62) gmeow-slicetest paths::tests::partially_migrated_slice_adds_local_residue_after_generated_authorities
+        PASS [   0.014s] (29/62) gmeow-slicetest exec::tests::result_shape_term_kind_mismatch_hard_fails
+        PASS [   0.005s] (30/62) gmeow-slicetest repository::tests::worker_paths_survive_a_relative_checkout_and_changed_working_directory
+        PASS [   0.005s] (31/62) gmeow-slicetest repository::tests::worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices
+        PASS [   0.012s] (32/62) gmeow-slicetest exec::tests::structural_fail_witness_requires_the_ban_to_trip
+        PASS [   0.035s] (33/62) gmeow-slicetest dsl::tests::rejects_conflicting_duplicate_competency_questions
+        PASS [   0.025s] (34/62) gmeow-slicetest dsl::tests::rejects_result_shape_with_unknown_term_kind
+        PASS [   0.035s] (35/62) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_binding
+        PASS [   0.035s] (36/62) gmeow-slicetest dsl::tests::rejects_expected_rows_for_unknown_competency_question
+        PASS [   0.035s] (37/62) gmeow-slicetest dsl::tests::rejects_malformed_boolean_literal
+        PASS [   0.015s] (38/62) gmeow-slicetest exec::tests::generated_shape_union_is_scoped_back_to_the_slice_authority
+        PASS [   0.035s] (39/62) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_variable
+        PASS [   0.015s] (40/62) gmeow-slicetest exec::tests::cq_data_file_overlay_applies_and_is_removed
+        PASS [   0.005s] (41/62) gmeow-slicetest repository::tests::worker_snapshot_does_not_remove_an_existing_cross_device_destination
+        PASS [   0.015s] (42/62) gmeow-slicetest exec::tests::result_shape_conforming_bindings_pass
+        PASS [   0.004s] (43/62) gmeow-slicetest repository::tests::worker_snapshot_fails_closed_for_other_link_errors
+        PASS [   0.013s] (44/62) gmeow-slicetest exec::tests::source_shape_pins_preserve_laws_without_namespace_or_shared_owner_guessing
+        PASS [   0.016s] (45/62) gmeow-slicetest dsl::tests::well_formed_multi_column_shape_still_parses
+        PASS [   0.036s] (46/62) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_term_kind
+        PASS [   0.037s] (47/62) gmeow-slicetest dsl::tests::parses_cq_result_shape_into_the_canonical_type
+        PASS [   0.036s] (48/62) gmeow-slicetest dsl::tests::parses_conformance_exemplars
+        PASS [   0.037s] (49/62) gmeow-slicetest dsl::tests::parses_structural_exemplars
+        PASS [   0.008s] (50/62) gmeow-slicetest repository::tests::concurrent_cross_device_snapshots_use_unique_owned_paths
+        PASS [   0.008s] (51/62) gmeow-slicetest repository::tests::worker_receipt_follows_only_the_exact_executable_bytes
+        PASS [   0.037s] (52/62) gmeow-slicetest dsl::tests::parses_competency_exemplars
+        PASS [   0.037s] (53/62) gmeow-slicetest dsl::tests::identical_duplicate_competency_solutions_are_harmless
+        PASS [   0.018s] (54/62) gmeow-slicetest exec::tests::lang_gmn_nonlexical_guard_rejects_word_form_subclasses
+        PASS [   0.005s] (55/62) gmeow-slicetest stores::world_routing_tests::competency_empty_selection_declares_the_reasoner_world_only
+        PASS [   0.005s] (56/62) gmeow-slicetest::owl_rdfs_projection class_position_marker_projects_but_endpoint_data_does_not
+        PASS [   0.006s] (57/62) gmeow-slicetest stores::world_routing_tests::competency_world_keeps_attributed_claims_and_their_shared_native_subject
+        PASS [   0.009s] (58/62) gmeow-slicetest stores::tests::rdfs_close_infers_type_and_subclass
+        PASS [   0.019s] (59/62) gmeow-slicetest exec::tests::the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration
+        PASS [   0.086s] (60/62) gmeow-reason-wasm::witness_reason native_reason_closure_matches_the_witness_attestation
+        PASS [   0.233s] (61/62) gmeow-reason-wasm::witness_conjecture native_conjecture_verdicts_match_the_witness_attestation
+        PASS [   0.353s] (62/62) gmeow-slicetest exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth
+────────────
+     Summary [   0.435s] 62 tests run: 62 passed, 7430 skipped

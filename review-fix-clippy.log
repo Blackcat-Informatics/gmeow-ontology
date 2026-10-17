@@ -1,0 +1,8 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy -p gmeow-logic -p gmeow-reason-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+    Finished `dev` profile [optimized] target(s) in 29.45s

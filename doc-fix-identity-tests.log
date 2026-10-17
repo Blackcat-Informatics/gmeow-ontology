@@ -1,0 +1,18 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(native_contract_hash_folds) | test(portable_semantic_identity) | test(native_reason_closure_matches) | test(native_conjecture_verdicts_match)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+    Finished `test` profile [optimized] target(s) in 1m 43s
+────────────
+ Nextest run ID ccf8b9a1-4e15-4eaa-9e73-d7e1a47f748f with nextest profile: ci
+    Starting 5 tests across 225 binaries (7487 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.006s] (1/5) gmeow-logic reason::tests::portable_semantic_identity_excludes_target_execution_contracts
+        PASS [   0.006s] (2/5) gmeow-logic reason::tests::native_contract_hash_folds_public_admission_and_services
+        PASS [   0.007s] (3/5) gmeow-logic reason::tests::native_contract_hash_folds_the_purrdf_substrate_identity
+        PASS [   0.065s] (4/5) gmeow-reason-wasm::witness_reason native_reason_closure_matches_the_witness_attestation
+        PASS [   0.193s] (5/5) gmeow-reason-wasm::witness_conjecture native_conjecture_verdicts_match_the_witness_attestation
+────────────
+     Summary [   0.247s] 5 tests run: 5 passed, 7487 skipped

@@ -1,0 +1,126 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-slicetest)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-form)
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/perf-evidence)
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cli-core)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/xtask)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/helper-census)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0994332d93bc89747f95e5a942715faf36129648#0994332d)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-import)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/foundation-corpus)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/query-wasm)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/music)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect-ingest)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 11m 44s
+────────────
+ Nextest run ID 23e6b8a9-bd59-45f3-b22f-7cf193c42aee with nextest profile: ci
+    Starting 41 tests across 2 binaries (224 binaries skipped)
+        PASS [   0.007s] ( 1/41) gmeow-slicetest paths::tests::partially_migrated_slice_adds_local_residue_after_generated_authorities
+        PASS [   0.008s] ( 2/41) gmeow-slicetest paths::tests::slice_dir_is_the_spec_grandparent
+        PASS [   0.010s] ( 3/41) gmeow-slicetest paths::tests::conformance_data_is_slice_local_except_for_the_grounding_kernel
+        PASS [   0.012s] ( 4/41) gmeow-slicetest paths::tests::module_and_migrated_shapes_resolve_to_their_authorities
+        PASS [   0.011s] ( 5/41) gmeow-slicetest paths::tests::example_file_is_slice_relative_query_file_is_repo_relative
+        PASS [   0.005s] ( 6/41) gmeow-slicetest repository::tests::worker_snapshot_does_not_remove_an_existing_cross_device_destination
+        PASS [   0.005s] ( 7/41) gmeow-slicetest repository::tests::worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices
+        PASS [   0.005s] ( 8/41) gmeow-slicetest repository::tests::worker_snapshot_fails_closed_for_other_link_errors
+        PASS [   0.019s] ( 9/41) gmeow-slicetest exec::tests::is_satisfiable_by_surfaces_missing_required_column
+        PASS [   0.017s] (10/41) gmeow-slicetest repository::tests::concurrent_cross_device_snapshots_use_unique_owned_paths
+        PASS [   0.018s] (11/41) gmeow-slicetest error::tests::every_slicetest_code_interns_with_no_collision
+        PASS [   0.009s] (12/41) gmeow-slicetest repository::tests::worker_paths_survive_a_relative_checkout_and_changed_working_directory
+        PASS [   0.011s] (13/41) gmeow-slicetest repository::tests::worker_receipt_follows_only_the_exact_executable_bytes
+        PASS [   0.005s] (14/41) gmeow-slicetest::owl_rdfs_projection class_position_marker_projects_but_endpoint_data_does_not
+        PASS [   0.025s] (15/41) gmeow-slicetest paths::tests::explicit_root_is_portable_immutable_and_missing_roots_fail_closed
+        PASS [   0.025s] (16/41) gmeow-slicetest exec::tests::parsed_fixture_cache_observes_changed_invalid_and_missing_source
+        PASS [   0.009s] (17/41) gmeow-slicetest stores::world_routing_tests::competency_empty_selection_declares_the_reasoner_world_only
+        PASS [   0.009s] (18/41) gmeow-slicetest stores::world_routing_tests::competency_world_keeps_attributed_claims_and_their_shared_native_subject
+        PASS [   0.032s] (19/41) gmeow-slicetest exec::tests::generated_shape_union_is_scoped_back_to_the_slice_authority
+        PASS [   0.034s] (20/41) gmeow-slicetest exec::tests::source_shape_pins_preserve_laws_without_namespace_or_shared_owner_guessing
+        PASS [   0.042s] (21/41) gmeow-slicetest exec::tests::result_shape_conforming_bindings_pass
+        PASS [   0.042s] (22/41) gmeow-slicetest dsl::tests::identical_duplicate_competency_solutions_are_harmless
+        PASS [   0.042s] (23/41) gmeow-slicetest exec::tests::result_shape_term_kind_mismatch_hard_fails
+        PASS [   0.042s] (24/41) gmeow-slicetest dsl::tests::rejects_conflicting_duplicate_competency_questions
+        PASS [   0.041s] (25/41) gmeow-slicetest exec::tests::structural_fail_witness_requires_the_ban_to_trip
+        PASS [   0.042s] (26/41) gmeow-slicetest dsl::tests::rejects_expected_rows_for_unknown_competency_question
+        PASS [   0.043s] (27/41) gmeow-slicetest dsl::tests::rejects_result_shape_with_unknown_term_kind
+        PASS [   0.043s] (28/41) gmeow-slicetest dsl::tests::parses_cq_result_shape_into_the_canonical_type
+        PASS [   0.043s] (29/41) gmeow-slicetest dsl::tests::parses_conformance_exemplars
+        PASS [   0.043s] (30/41) gmeow-slicetest dsl::tests::well_formed_multi_column_shape_still_parses
+        PASS [   0.043s] (31/41) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_variable
+        PASS [   0.043s] (32/41) gmeow-slicetest dsl::tests::rejects_malformed_boolean_literal
+        PASS [   0.043s] (33/41) gmeow-slicetest exec::tests::cq_data_file_overlay_applies_and_is_removed
+        PASS [   0.043s] (34/41) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_term_kind
+        PASS [   0.042s] (35/41) gmeow-slicetest dsl::tests::rejects_result_shape_column_missing_column_binding
+        PASS [   0.042s] (36/41) gmeow-slicetest dsl::tests::parses_structural_exemplars
+        PASS [   0.044s] (37/41) gmeow-slicetest exec::tests::lang_gmn_nonlexical_guard_rejects_word_form_subclasses
+        PASS [   0.027s] (38/41) gmeow-slicetest stores::tests::rdfs_close_infers_type_and_subclass
+        PASS [   0.045s] (39/41) gmeow-slicetest dsl::tests::parses_competency_exemplars
+        PASS [   0.046s] (40/41) gmeow-slicetest exec::tests::the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration
+        PASS [   0.380s] (41/41) gmeow-slicetest exec::tests::sole_finding_contract_has_both_pinned_and_unpinned_teeth
+────────────
+     Summary [   0.399s] 41 tests run: 41 passed, 0 skipped

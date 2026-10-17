@@ -1,0 +1,7 @@
+Acceptance is established by the already-landed implementation and fresh qualification in PR #1839. The complete gmeow-slicetest synthetic selection passed all 41 cases with GMEOW_TEST_FIXTURE_MANIFEST, GMEOW_TEST_FIXTURE_MANIFEST_SHA256, GMEOW_BUNDLE_IMPORT_CACHE and GMEOW_BUNDLE_IMPORT_SOURCE_SHA256 explicitly unset.
+
+The actual conformance handler retains unbound expected finding, pinned rejection of a second named law sharing a component code, unpinned soleness configuration refusal and correctly pinned sole-finding success. The source reader test retains unchanged-content Arc reuse, changed-content freshness, original dataset immutability, malformed-source refusal and deleted-source refusal. The test uses explicit tiny laws/data and no repository bundle dependency or selector fallback.
+
+The corpus-purity scanner and source-flow seals pass. The selected-manifest admission regression also passes wrong digest, stale schema and missing file refusals, and the unchanged common loader requires the runner-selected path and digest before reading. No test path constructs corpus. The current qualification includes 82 distinct synthetic cases and strict affected all-target clippy, with five identity/witness controls repeated after test documentation only. Evidence is retained at refs/ghprsq/pr/1839/stage.
+
+This completes this issue's synthetic-inventory contract. Full corpus/browser qualification and the broader native reasoning ownership work remain separately open; no full-gate pass is inferred. Principles 4, 7 and 18.
