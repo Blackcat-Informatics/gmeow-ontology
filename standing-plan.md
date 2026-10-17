@@ -1,0 +1,11 @@
+# Standing logic plan
+
+The original engine-separation issue remains open. Its body and all 26 retrieved comments were read. The complete capture is retained in `master-issue-1803.json`.
+
+The agreed boundary is generic mechanisms in PurRDF and logic-language semantics in GMEOW, with one owner for every overlap and deletion of the inferior implementation. The boundary must retain source-bound proofs, world scope, caller budgets and stop signals, shared-store or delta input, and an appropriate upstream release cadence.
+
+The latest standing plan requires checked source-bound native conflict support, an actual shared or borrowed native store with monotone updates, and eventual joint class-family delegation with removal of the obsolete class engine. It explicitly forbids turning global inconsistency into a local clash for every individual. These requirements must be checked against current source and real production acceptance; a constructor, dependency pin, or synthetic test does not discharge them.
+
+The related joint-completion, external competency, canonical proof admission and pipeline-performance issues remain part of the full goal. This review correction does not replace that queue. After this correction lands, resume the actual native-boundary plan from its source and retained evidence, refreshing the relevant issue discussions and upstream state before choosing the next implementation step. The imported-closure fix already has a separate active native owner and PR; do not duplicate it.
+
+Current native source inspection confirms that checked clash replay exposes current-support status, an optional original source node, and the complete check report. Its source-node documentation explicitly says this identity alone does not authorize a local contradiction or consequences for unrelated individuals. GMEOW currently exposes native proof contexts through its service adapter but does not consume these clash replay APIs in the class producer. The next boundary assessment must therefore establish the actual local-head license and premise support, not guess private node ordinals or treat an inhabitant identity as sufficient authority. The joint class family still selects the existing case-analysis engine; no delegation or deletion is claimed here.

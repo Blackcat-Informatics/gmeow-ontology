@@ -1,0 +1,47 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --locked -p gmeow-reason-wasm -E 'test(native_reason_closure_matches_the_witness_attestation) | test(native_conjecture_verdicts_match_the_witness_attestation)' --no-tests=fail
+   Compiling either v1.17.0
+   Compiling getrandom v0.3.4
+   Compiling wasm-bindgen-shared v0.2.125
+   Compiling bumpalo v3.20.3
+   Compiling indexmap v2.14.0
+   Compiling num-traits v0.2.19
+   Compiling wasm-bindgen v0.2.125
+   Compiling petgraph v0.8.3
+   Compiling rayon v1.12.0
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling chrono v0.4.45
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/math-lift)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/logic-compile)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/math)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/logic)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/reason-wasm)
+    Finished `test` profile [optimized] target(s) in 14m 53s
+────────────
+ Nextest run ID 7ce67c6f-b20c-42bc-8ebd-dda38ebcd60e with nextest profile: ci
+    Starting 2 tests across 4 binaries (1 test skipped)
+        PASS [   0.039s] (1/2) gmeow-reason-wasm::witness_reason native_reason_closure_matches_the_witness_attestation
+        PASS [   0.139s] (2/2) gmeow-reason-wasm::witness_conjecture native_conjecture_verdicts_match_the_witness_attestation
+────────────
+     Summary [   0.160s] 2 tests run: 2 passed, 1 skipped

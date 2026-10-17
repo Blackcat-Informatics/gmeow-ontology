@@ -1,0 +1,98 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --locked -p gmeow-logic -p gmeow-logic-compile -E '(package(gmeow-logic) & (test(reason::enactment::term_kind_tests::) | test(error::tests::) | test(physical::builtin_eval::input::tests::) | test(reason::builtin_gap::tests::) | test(physical::seminaive::builtin_tests::))) | (package(gmeow-logic-compile) & test(relational_core::))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1845-logic-preserve-existential-integrity/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 5m 43s
+────────────
+ Nextest run ID e3742eba-338e-4b03-af47-60ab07c405df with nextest profile: ci
+    Starting 84 tests across 28 binaries (3297 tests skipped)
+        PASS [   0.024s] ( 1/84) gmeow-logic physical::builtin_eval::input::tests::native_binding_failure_modes_preserve_error_and_filter_distinctions
+        PASS [   0.023s] ( 2/84) gmeow-logic physical::builtin_eval::input::tests::native_cell_probes_borrow_iris_and_keep_all_builtin_modes
+        PASS [   0.023s] ( 3/84) gmeow-logic reason::builtin_gap::tests::zero_divisor_overflow_and_dimension_mismatch_are_distinct_ledgered_findings
+        PASS [   0.024s] ( 4/84) gmeow-logic physical::builtin_eval::input::tests::integrity_kind_bindings_keep_native_identity_and_decline_surface_guesses
+        PASS [   0.024s] ( 5/84) gmeow-logic physical::builtin_eval::input::tests::native_generators_and_bound_targets_share_the_exact_value_algebra
+        PASS [   0.025s] ( 6/84) gmeow-logic reason::builtin_gap::tests::native_builtin_refusal_keeps_the_original_typed_error_owner
+        PASS [   0.021s] ( 7/84) gmeow-logic error::tests::native_integrity_diagnostics_are_eagerly_registered
+        PASS [   0.027s] ( 8/84) gmeow-logic reason::enactment::term_kind_tests::equality_filters_use_native_value_semantics_and_preserve_source_polarity
+        PASS [   0.021s] ( 9/84) gmeow-logic error::tests::every_logic_code_interns_with_no_collision
+        PASS [   0.023s] (10/84) gmeow-logic physical::seminaive::builtin_tests::a_later_ordinary_builtin_gap_discards_all_prior_candidates
+        PASS [   0.030s] (11/84) gmeow-logic physical::seminaive::builtin_tests::native_post_join_generators_feed_later_filters_and_retain_lineage
+        PASS [   0.037s] (12/84) gmeow-logic reason::enactment::term_kind_tests::malformed_kind_is_a_diagnostic_not_a_silently_omitted_check
+        PASS [   0.038s] (13/84) gmeow-logic reason::enactment::term_kind_tests::iri_kind_enforces_native_values_and_exact_law_identity
+        PASS [   0.039s] (14/84) gmeow-logic physical::seminaive::builtin_tests::tagged_violation_filters_retain_only_false_defined_candidates
+        PASS [   0.043s] (15/84) gmeow-logic reason::builtin_gap::tests::successful_division_produces_no_gap_finding
+        PASS [   0.048s] (16/84) gmeow-logic reason::enactment::term_kind_tests::equality_expression_errors_drop_only_the_affected_candidate
+        PASS [   0.040s] (17/84) gmeow-logic physical::builtin_eval::input::tests::native_type_components_govern_numeric_admission
+        PASS [   0.058s] (18/84) gmeow-logic reason::enactment::term_kind_tests::literal_kind_accepts_datatype_language_and_direction_without_coercion
+        PASS [   0.058s] (19/84) gmeow-logic-compile relational_core::head::tests::nested_and_sibling_binders_do_not_capture_each_other_or_the_body
+        PASS [   0.060s] (20/84) gmeow-logic reason::enactment::term_kind_tests::predicate_scoped_kind_checks_every_subject_with_the_selected_path
+        PASS [   0.060s] (21/84) gmeow-logic reason::enactment::term_kind_tests::blank_or_iri_kind_accepts_blank_values_and_rejects_literals
+        PASS [   0.058s] (22/84) gmeow-logic-compile relational_core::head::tests::single_head_witness_and_noninventing_conjunction_are_distinguished
+        PASS [   0.036s] (23/84) gmeow-logic-compile relational_core::numeric::tests::numeric_modes_and_head_assertions_remain_honest_residue
+        PASS [   0.061s] (24/84) gmeow-logic-compile relational_core::formula_analysis::tests::carrier_and_native_adapter_share_exact_source_clausification
+        PASS [   0.061s] (25/84) gmeow-logic-compile relational_core::head::tests::one_dependency_shares_witness_across_binary_and_reified_heads
+        PASS [   0.061s] (26/84) gmeow-logic-compile relational_core::head::tests::unsafe_or_nonpositive_heads_remain_whole_residue
+        PASS [   0.061s] (27/84) gmeow-logic-compile relational_core::formula_analysis::tests::oversized_lowering_is_recomputed_without_dropping_rules
+        PASS [   0.061s] (28/84) gmeow-logic-compile relational_core::identity::tests::fact_polarity_and_source_presence_affect_identity
+        PASS [   0.065s] (29/84) gmeow-logic reason::enactment::term_kind_tests::required_single_metadata_still_rejects_distinct_iri_values
+        PASS [   0.045s] (30/84) gmeow-logic-compile relational_core::identity::tests::program_identity_preserves_shared_blanks_under_renaming_and_reordering
+        PASS [   0.070s] (31/84) gmeow-logic reason::enactment::term_kind_tests::iri_kind_rejects_blank_values_without_changing_the_focus_identity
+        PASS [   0.045s] (32/84) gmeow-logic-compile relational_core::identity::tests::native_literal_identity_does_not_collide_with_the_variable_envelope
+        PASS [   0.046s] (33/84) gmeow-logic-compile relational_core::identity::tests::framed_atom_and_rule_keys_separate_embedded_delimiters
+        PASS [   0.051s] (34/84) gmeow-logic-compile relational_core::numeric::tests::canonical_numeric_chain_is_scheduled_and_transport_is_lossless
+        PASS [   0.077s] (35/84) gmeow-logic reason::enactment::term_kind_tests::cooccurrence_guards_preserve_both_directions_and_absence
+        PASS [   0.040s] (36/84) gmeow-logic-compile relational_core::projection_tests::named_graph_fields_cannot_repair_missing_default_graph_fields
+        PASS [   0.054s] (37/84) gmeow-logic-compile relational_core::identity::tests::malformed_native_input_returns_an_error_without_a_fallback_key
+        PASS [   0.077s] (38/84) gmeow-logic reason::enactment::term_kind_tests::triple_values_do_not_masquerade_as_any_supported_node_kind
+        PASS [   0.053s] (39/84) gmeow-logic-compile relational_core::projection_tests::contextual_statements_cannot_become_unscoped_relational_facts_or_rules
+        PASS [   0.042s] (40/84) gmeow-logic-compile relational_core::projection_tests::negative_rule_head_is_residue_instead_of_a_positive_consequence
+        PASS [   0.059s] (41/84) gmeow-logic-compile relational_core::projection_tests::duplicate_or_gapped_body_positions_refuse
+        PASS [   0.018s] (42/84) gmeow-logic-compile relational_core::tests::existential_with_unbound_universal_is_carried_and_named
+        PASS [   0.026s] (43/84) gmeow-logic-compile relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join
+        PASS [   0.024s] (44/84) gmeow-logic-compile relational_core::tests::existential_negation_cannot_become_a_positive_prohibition
+        PASS [   0.025s] (45/84) gmeow-logic-compile relational_core::tests::equality_cannot_generate_an_unbound_operand
+        PASS [   0.064s] (46/84) gmeow-logic-compile relational_core::numeric::tests::numeric_output_and_existential_witness_keep_distinct_scope
+        PASS [   0.026s] (47/84) gmeow-logic-compile relational_core::tests::existential_guard_shadowing_and_siblings_keep_their_lexical_scopes
+        PASS [   0.028s] (48/84) gmeow-logic-compile relational_core::tests::an_unguarded_universal_cannot_become_existential_negation
+        PASS [   0.030s] (49/84) gmeow-logic-compile relational_core::tests::an_existential_relation_cannot_capture_the_outer_focus
+        PASS [   0.059s] (50/84) gmeow-logic-compile relational_core::projection_tests::malformed_relational_fields_refuse_instead_of_selecting_or_skipping
+        PASS [   0.029s] (51/84) gmeow-logic-compile relational_core::tests::an_outer_existential_guard_preserves_its_shared_witness_and_focus
+        PASS [   0.066s] (52/84) gmeow-logic-compile relational_core::numeric::tests::numeric_projection_cannot_drop_required_operands_or_invent_an_operator
+        PASS [   0.048s] (53/84) gmeow-logic-compile relational_core::tests::a_guard_binder_cannot_replace_the_outer_focus
+        PASS [   0.032s] (54/84) gmeow-logic-compile relational_core::tests::existential_guards_cannot_bind_free_consequent_operands
+        PASS [   0.034s] (55/84) gmeow-logic-compile relational_core::tests::distinct_nary_body_atoms_do_not_collide
+        PASS [   0.035s] (56/84) gmeow-logic-compile relational_core::tests::disjunctive_head_is_carried_and_named
+        PASS [   0.025s] (57/84) gmeow-logic-compile relational_core::tests::horn_expressible_formula_lowers_to_rcrule_exact
+        PASS [   0.037s] (58/84) gmeow-logic-compile relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus
+        PASS [   0.024s] (59/84) gmeow-logic-compile relational_core::tests::intrinsic_consequent_requires_a_positive_operand_binding
+        PASS [   0.107s] (60/84) gmeow-logic physical::seminaive::builtin_tests::forward_and_demand_execution_refuse_a_failed_round_before_committing
+        PASS [   0.034s] (61/84) gmeow-logic-compile relational_core::tests::forbidden_equality_is_a_native_filter_not_a_stored_relation
+        PASS [   0.022s] (62/84) gmeow-logic-compile relational_core::tests::nary_head_with_unbound_arg_is_residue
+        PASS [   0.036s] (63/84) gmeow-logic-compile relational_core::tests::formula_and_compact_lowering_share_complete_native_body_order
+        PASS [   0.053s] (64/84) gmeow-logic-compile relational_core::tests::declared_literal_starting_with_question_mark_is_not_a_var
+        PASS [   0.030s] (65/84) gmeow-logic-compile relational_core::tests::negative_kind_consequent_keeps_its_truth_polarity
+        PASS [   0.037s] (66/84) gmeow-logic-compile relational_core::tests::nary_body_atom_lowers_to_reified_rules
+        PASS [   0.030s] (67/84) gmeow-logic-compile relational_core::tests::projection_is_byte_deterministic
+        PASS [   0.044s] (68/84) gmeow-logic-compile relational_core::tests::formula_derived_rules_round_trip_through_the_graph
+        PASS [   0.041s] (69/84) gmeow-logic-compile relational_core::tests::horn_floor_lowers_exactly
+        PASS [   0.034s] (70/84) gmeow-logic-compile relational_core::tests::nary_head_rule_with_duplicate_rc_index_is_rejected
+        PASS [   0.072s] (71/84) gmeow-logic-compile relational_core::projection_tests::projection_identity_preserves_execution_order_and_blank_sharing
+        PASS [   0.037s] (72/84) gmeow-logic-compile relational_core::tests::malformed_graph_hard_fails
+        PASS [   0.026s] (73/84) gmeow-logic-compile relational_core::tests::residue_round_trips_through_the_graph
+        PASS [   0.077s] (74/84) gmeow-logic-compile relational_core::projection_tests::native_projection_retains_signs_typed_terms_and_occurrences
+        PASS [   0.026s] (75/84) gmeow-logic-compile relational_core::tests::projection_round_trips_through_the_graph
+        PASS [   0.026s] (76/84) gmeow-logic-compile relational_core::tests::sequence_marker_atom_is_carried_and_named
+        PASS [   0.038s] (77/84) gmeow-logic-compile relational_core::tests::nary_head_atom_derives_a_reified_tuple
+        PASS [   0.028s] (78/84) gmeow-logic-compile relational_core::tests::sibling_free_variables_cannot_be_captured_by_an_existential
+        PASS [   0.028s] (79/84) gmeow-logic-compile relational_core::tests::universal_guards_remain_unsupported_without_partial_enforcement
+        PASS [   0.027s] (80/84) gmeow-logic-compile relational_core::tests::unsupported_construct_becomes_flagged_residue_and_sound_under
+        PASS [   0.029s] (81/84) gmeow-logic-compile relational_core::tests::unsupported_conjunct_never_leaves_a_partially_enforced_law
+        PASS [   0.044s] (82/84) gmeow-logic-compile relational_core::tests::nary_head_rule_round_trips_through_the_graph
+        PASS [   0.042s] (83/84) gmeow-logic-compile relational_core::tests::shadowed_universal_is_refused_instead_of_capturing_the_focus
+        PASS [   0.044s] (84/84) gmeow-logic-compile relational_core::tests::repeated_body_atom_round_trips_with_distinct_indices
+────────────
+     Summary [   0.238s] 84 tests run: 84 passed, 3297 skipped

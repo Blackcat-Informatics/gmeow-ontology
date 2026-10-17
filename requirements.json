@@ -1,0 +1,16 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "1. Positive existential guards are rejected by direct atom lowering. The co-occurrence frontend actually emits such guards. Lower them with capture-avoiding binder renaming, preserving outer variables and sibling scopes. Universal guards must remain unsupported; do not restore indiscriminate quantifier stripping.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    }
+  ],
+  "silent_comments": []
+}

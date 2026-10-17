@@ -1,0 +1,106 @@
+{
+  "issue": 1845,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "logic: preserve existential integrity guards and register refusal diagnostics",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {},
+  "link_relations": {},
+  "related": [
+    {
+      "number": 1843,
+      "title": "logic: lower node-kind integrity into executable violation rules",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1742,
+      "title": "logic: implement correspondence composition and standpoint-indexed merge",
+      "state": "OPEN"
+    },
+    {
+      "number": 1747,
+      "title": "logic: reachability discharge (Arm A) never consults the corpus's own compiled rule heads",
+      "state": "OPEN"
+    },
+    {
+      "number": 1704,
+      "title": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+      "state": "OPEN"
+    },
+    {
+      "number": 1803,
+      "title": "Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow",
+      "state": "OPEN"
+    },
+    {
+      "number": 1757,
+      "title": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+      "state": "OPEN"
+    },
+    {
+      "number": 1745,
+      "title": "perf: adopt typed correspondence execution throughout the production pipeline",
+      "state": "OPEN"
+    },
+    {
+      "number": 1732,
+      "title": "perf: persist completed producer fixtures across CI runs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1755,
+      "title": "[bug] Compact LogicAxiom lowering collapses distinct RDF literal identities",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1429,
+      "title": "logic: Nemo deletion dossier & gate \u2014 retire the forward substrate and its toolchain regime",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1610,
+      "title": "logic: remediate round-3 certifier-hardening defects shipped with #1602 (MSA critical-instance bound, atomic authored-rule reject, soundness-differential ordering)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1295,
+      "title": "META-EPIC: subsume Scryer/Nemo into the native physical engine (oracle-gated, fragment-by-fragment)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1300,
+      "title": "logic: native existential chase with termination classification in physical/seminaive",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "missing-intrinsic-runtime": 1,
+    "none": 10,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 2,
+    "consumer-artifact-path-coupling": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1845-logic-preserve-existential-integrity"
+  },
+  "coverage": [
+    "issue #1845 + 0 comment(s) via github",
+    "link crawl: no `#N` references in the issue or its comments",
+    "forge search on ['logic:', 'preserve', 'existential']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 6 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1845 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1845: 0",
+    "requirement candidates: 1 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 0 path(s) (0 on disk), 0 identifier(s), 0 workspace package(s), 3 URL(s)"
+  ]
+}
