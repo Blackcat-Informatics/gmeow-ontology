@@ -40,6 +40,23 @@ fn malformed_decimal_does_not_satisfy_a_rational_enumeration() {
         plan.contains(&literal("0.25", DECIMAL), &mut values),
         Some(false)
     );
+    for lexical in [
+        "\u{a0}0.5\u{a0}",
+        "\u{2003}0.5\u{2003}",
+        "\u{202f}0.5\u{202f}",
+    ] {
+        assert_eq!(plan.contains(&literal(lexical, DECIMAL), &mut values), None);
+    }
+    for (lexical, datatype) in [
+        (" 1/2 ", "http://www.w3.org/2002/07/owl#rational"),
+        ("0.5", "http://www.w3.org/2002/07/owl#rational"),
+        ("1/2", "http://www.w3.org/2002/07/owl#real"),
+    ] {
+        assert_eq!(
+            plan.contains(&literal(lexical, datatype), &mut values),
+            None
+        );
+    }
 }
 
 fn iri(value: &str) -> TermValue {

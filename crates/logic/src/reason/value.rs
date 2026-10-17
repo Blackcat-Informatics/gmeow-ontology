@@ -11,7 +11,6 @@ use purrdf_hash::fixed::FixedState;
 
 const OWL_RATIONAL: &str = "http://www.w3.org/2002/07/owl#rational";
 const OWL_REAL: &str = "http://www.w3.org/2002/07/owl#real";
-const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 
 #[derive(Clone, Debug)]
 pub(crate) enum LiteralMeaning {
@@ -161,27 +160,18 @@ impl LiteralValue {
                 language: language.to_ascii_lowercase(),
                 direction,
             }
+        } else if datatype == OWL_RATIONAL {
+            lexical_form
+                .parse::<Rational>()
+                .map(LiteralMeaning::Rational)
+                .unwrap_or_else(|_| opaque())
         } else {
-            let lexical = if matches!(
-                datatype,
-                purrdf::xsd::datatype::XSD_STRING | purrdf::xsd::datatype::XSD_ANY_URI
-            ) {
-                lexical_form
-            } else {
-                lexical_form.trim()
-            };
-            if matches!(datatype, OWL_RATIONAL | OWL_REAL) {
-                rational(lexical)
-                    .map(LiteralMeaning::Rational)
-                    .unwrap_or_else(opaque)
-            } else {
-                match purrdf::xsd::parse_by_iri(lexical, datatype) {
-                    Ok(Some(value)) => match Rational::from_xsd(&value) {
-                        Some(value) => LiteralMeaning::Rational(value),
-                        None => LiteralMeaning::Native(value),
-                    },
-                    _ => opaque(),
-                }
+            match purrdf::xsd::parse_by_iri(lexical_form, datatype) {
+                Ok(Some(value)) => match Rational::from_xsd(&value) {
+                    Some(value) => LiteralMeaning::Rational(value),
+                    None => LiteralMeaning::Native(value),
+                },
+                _ => opaque(),
             }
         };
         Self { meaning }
@@ -344,18 +334,6 @@ impl NativeValues {
 #[path = "value.native_cache_tests.rs"]
 #[cfg(test)]
 mod native_cache_tests;
-
-/// Exact rational parsing shared by the value and datatype-obligation readers.
-pub(crate) fn rational(lexical: &str) -> Option<Rational> {
-    let lexical = lexical.trim();
-    if lexical.contains('/') {
-        return lexical.parse().ok();
-    }
-    purrdf::xsd::parse_by_iri(lexical, XSD_DECIMAL)
-        .ok()
-        .flatten()
-        .and_then(|value| Rational::from_xsd(&value))
-}
 
 #[path = "value.tests.rs"]
 #[cfg(test)]
