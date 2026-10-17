@@ -333,6 +333,9 @@ jobs:
         with:
           key: source-helper-hygiene
 
+      - name: Fetch locked workspace dependencies
+        run: cargo fetch --locked
+
       - name: Helper ownership and dependency hygiene
         run: make helpers-hygiene
 
