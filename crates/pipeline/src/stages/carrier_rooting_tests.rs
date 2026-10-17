@@ -181,8 +181,12 @@ fn compile_project_reinsert_keeps_all_selected_graph_layers_and_world_boundaries
     assert_eq!(shipped.len(), CARRIER_GRAPHS.len());
     for (graph, dataset) in CARRIER_GRAPHS.iter().zip(&shipped) {
         assert_graph_owner(dataset, graph);
-        let expected = source.project_named_graph(graph).unwrap();
-        let recovered = dataset.project_named_graph(graph).unwrap();
+        let expected = source
+            .project_graph(Some(&purrdf::RdfTerm::iri(*graph)))
+            .unwrap();
+        let recovered = dataset
+            .project_graph(Some(&purrdf::RdfTerm::iri(*graph)))
+            .unwrap();
         assert_eq!(
             recovered.owned_quads().collect::<Vec<_>>(),
             expected.owned_quads().collect::<Vec<_>>()
@@ -280,7 +284,9 @@ fn ordinary_projection_reinsert_preserves_content_and_source_location() {
     let source = builder.freeze().unwrap();
     let rooted = rooted_in_graph(&source, GRAPH_LOGIC).unwrap();
     assert_graph_owner(&rooted, GRAPH_LOGIC);
-    let recovered = rooted.project_named_graph(GRAPH_LOGIC).unwrap();
+    let recovered = rooted
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_LOGIC)))
+        .unwrap();
     assert_eq!(recovered.owned_quads().collect::<Vec<_>>(), [ordinary]);
     assert_eq!(recovered.owned_reifiers().count(), 0);
     assert_eq!(recovered.owned_annotations().count(), 0);

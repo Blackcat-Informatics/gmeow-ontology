@@ -73,7 +73,9 @@ fn lpg_lift_round_trips_a_synthetic_scoped_statements_graph() {
     );
     let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .expect("parse the tiny synthetic statements graph");
-    let scoped = dataset.project_named_graph(STATEMENTS_GRAPH).unwrap();
+    let scoped = dataset
+        .project_graph(Some(&purrdf::RdfTerm::iri(STATEMENTS_GRAPH)))
+        .unwrap();
     let config = lpg_config().expect("lpg_config");
 
     let csv = purrdf::project_lpg_csv(&scoped, &config).expect("project_lpg_csv");

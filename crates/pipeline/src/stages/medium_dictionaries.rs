@@ -309,7 +309,7 @@ pub(crate) fn realization_quads(
             "missing {STAGE_ID} product for the medium-registry graph"
         ))
     })?;
-    // Filter rather than `project_named_graph`: projecting RE-ROOTS the quads into
+    // Filter rather than `project_graph`: projecting RE-ROOTS the quads into
     // the default graph, so the realizations would fold into the snapshot payload
     // unrooted — present in the bundle but no longer IN graph/medium-registry, which
     // is exactly where a consumer looks for them.

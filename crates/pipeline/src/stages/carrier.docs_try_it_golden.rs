@@ -258,7 +258,7 @@ ex:shared a ex:Dog .
 }
 
 /// `build_executable_docs_data`'s core correctness claim: reasoning the reduced seed
-/// `source_load_dataset(upstream).project_named_graph(GRAPH_AUTHORED_DEFAULT)`
+/// `source_load_dataset(upstream).project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))`
 /// reproduces the attribution `assemble_object_level_edb`'s FULL object-level EDB
 /// would give, because worked examples parse into the default world and the calculus
 /// is same-world (imports/statements/alignments/logic ride NAMED worlds the examples
@@ -292,10 +292,10 @@ fn reduced_seed_attribution_matches_full_edb_attribution() {
     let raw_source_load = parse_dataset(raw_source_load_trig.as_bytes(), "application/trig", None)
         .expect("parse raw source-load fixture");
     // The reduced seed: exactly `build_executable_docs_data`'s
-    // `source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)`
+    // `source_load_dataset(upstream)?.project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))`
     // call — the authored chain re-rooted into the true default graph.
     let reduced_seed = raw_source_load
-        .project_named_graph(GRAPH_AUTHORED_DEFAULT)
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))
         .unwrap();
 
     // A SEPARATE named "import" world (standing in for GRAPH_IMPORTS /

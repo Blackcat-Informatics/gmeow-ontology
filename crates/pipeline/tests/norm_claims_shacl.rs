@@ -21,7 +21,7 @@ const ADVICE_FAMILY: &str = "advice.";
 
 fn norm_claims_dataset() -> Arc<RdfDataset> {
     let scoped = authenticated_bundle::dataset()
-        .project_named_graph(GRAPH_NORM_CLAIMS)
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_NORM_CLAIMS)))
         .unwrap();
     let mut quads = flat_rdf_quads_from_dataset(&scoped);
     for quad in &mut quads {

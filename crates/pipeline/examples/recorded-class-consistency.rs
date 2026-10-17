@@ -16,7 +16,7 @@ use gmeow_pipeline::cache::{CACHE_CODEC_IDENTITY, PipelineCache, StageReceipt};
 use gmeow_pipeline::error::{InvalidDeclaration, RecordedInput};
 use gmeow_pipeline::node::StageProduct;
 use gmeow_pipeline::scheduler::ActionIdentity;
-use gmeow_pipeline::stages::carrier::{assemble_object_level_edb, authored_object_level_dataset};
+use gmeow_pipeline::stages::carrier::assemble_object_level_edb;
 use purrdf::TermRef;
 use purrdf::entail::Question;
 use serde::Deserialize;
@@ -75,13 +75,14 @@ fn selected_receipt(path: &Path) -> Result<StageReceipt> {
 }
 
 fn load_inputs(cache_root: &Path, paths: &[PathBuf]) -> Result<BTreeMap<String, StageProduct>> {
-    let cache = PipelineCache::open_existing_default_read_only(cache_root)?;
-    let mut inputs = BTreeMap::new();
-    let mut receipts = BTreeMap::<String, StageReceipt>::new();
+    let selections = paths
+        .iter()
+        .map(|path| selected_receipt(path).map(|receipt| (path, receipt)))
+        .collect::<Result<Vec<_>>>()?;
+    let mut receipts = BTreeMap::new();
     let mut raw_inputs = BTreeMap::new();
     let mut build = None;
-    for path in paths {
-        let expected = selected_receipt(path)?;
+    for (_, expected) in &selections {
         let stage = &expected.context.stage_id;
         if !matches!(
             stage.as_str(),
@@ -100,19 +101,6 @@ fn load_inputs(cache_root: &Path, paths: &[PathBuf]) -> Result<BTreeMap<String, 
         } else {
             build = Some(expected.context.build.clone());
         }
-        let started = Instant::now();
-        let hit = cache.get(&expected.context)?.ok_or_else(|| {
-            invalid(format!(
-                "missing recorded action {}; recomputation is forbidden",
-                expected.action_key
-            ))
-        })?;
-        if hit.receipt != expected {
-            return Err(
-                invalid("selected stage receipt differs from the verified store receipt")
-                    .with_focus(path.display().to_string()),
-            );
-        }
         for raw in &expected.context.raw_inputs {
             if let Some(previous) = raw_inputs.insert(raw.path.clone(), raw.digest.clone())
                 && previous != raw.digest
@@ -123,21 +111,13 @@ fn load_inputs(cache_root: &Path, paths: &[PathBuf]) -> Result<BTreeMap<String, 
                 )));
             }
         }
-        emit(&json!({
-            "phase": "hydrated", "stage": stage, "action_key": expected.action_key,
-            "receipt_digest": expected.digest(), "product_digest": expected.product_digest,
-            "product_blob_digest": expected.product_blob_digest,
-            "product_bytes": expected.product_blob_bytes,
-            "elapsed_ms": started.elapsed().as_millis(),
-        }))?;
-        if inputs.insert(stage.clone(), hit.product).is_some() {
+        if receipts.insert(stage.clone(), expected).is_some() {
             return Err(invalid(format!(
                 "duplicate recorded reasoning input {stage}"
             )));
         }
-        receipts.insert(stage.clone(), expected);
     }
-    if inputs.len() != 3 {
+    if receipts.len() != 3 {
         return Err(invalid(
             "exactly source-load, statements and compile-logic products are required",
         ));
@@ -160,6 +140,34 @@ fn load_inputs(cache_root: &Path, paths: &[PathBuf]) -> Result<BTreeMap<String, 
             }
         }
     }
+    // Selection metadata is only a preflight. Every product is still admitted
+    // exclusively by the native read-only cache and exact verified receipt match.
+    let cache = PipelineCache::open_existing_default_read_only(cache_root)?;
+    let mut inputs = BTreeMap::new();
+    for (path, expected) in selections {
+        let stage = &expected.context.stage_id;
+        let started = Instant::now();
+        let hit = cache.get(&expected.context)?.ok_or_else(|| {
+            invalid(format!(
+                "missing recorded reasoning input {stage}; recomputation is forbidden"
+            ))
+            .with_focus(path.display().to_string())
+        })?;
+        if hit.receipt != expected {
+            return Err(
+                invalid("selected stage receipt differs from the verified store receipt")
+                    .with_focus(path.display().to_string()),
+            );
+        }
+        emit(&json!({
+            "phase": "hydrated", "stage": stage, "action_key": expected.action_key,
+            "receipt_digest": expected.digest(), "product_digest": expected.product_digest,
+            "product_blob_digest": expected.product_blob_digest,
+            "product_bytes": expected.product_blob_bytes,
+            "elapsed_ms": started.elapsed().as_millis(),
+        }))?;
+        inputs.insert(stage.clone(), hit.product);
+    }
     Ok(inputs)
 }
 
@@ -177,11 +185,7 @@ fn run() -> Result<()> {
         .ok_or_else(|| invalid("world selection must be UTF-8"))?;
     let inputs = load_inputs(&cache_root, &receipts)?;
     let started = Instant::now();
-    let edb = if operation == "default" {
-        authored_object_level_dataset(&inputs)?
-    } else {
-        assemble_object_level_edb(&inputs)?
-    };
+    let edb = assemble_object_level_edb(&inputs)?;
     drop(inputs);
     emit(&json!({"phase": "assembled", "elapsed_ms": started.elapsed().as_millis()}))?;
     if operation == "list" {
@@ -205,14 +209,14 @@ fn run() -> Result<()> {
         }
         return emit(&json!({"operation": "list", "world_assertions": worlds}));
     }
-    let dataset = if operation == "default" {
-        edb
-    } else {
-        Arc::new(
-            edb.project_named_graph(operation)
-                .map_err(|error| foreign("world selection", error))?,
-        )
-    };
+    let started = Instant::now();
+    let graph = (operation != "default").then(|| purrdf::RdfTerm::iri(operation));
+    let dataset = Arc::new(
+        edb.project_graph(graph.as_ref())
+            .map_err(|error| foreign("world selection", error))?,
+    );
+    drop(edb);
+    let selected_ms = started.elapsed().as_millis();
     if dataset.quads().next().is_none() {
         return Err(invalid(format!(
             "selected recorded world {operation} is empty or absent"
@@ -246,6 +250,7 @@ fn run() -> Result<()> {
         "gmeow_canon_admission": "not-evaluated",
         "world": operation, "source_graph": (operation != "default").then_some(operation),
         "assertions": assertions,
+        "selected_ms": selected_ms,
         "prepared_ms": prepared_ms, "decided_ms": decided_ms,
         "verified_ms": started.elapsed().as_millis(),
         "answer": format!("{:?}", result.answer()),

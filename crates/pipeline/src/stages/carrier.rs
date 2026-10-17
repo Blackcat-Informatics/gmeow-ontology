@@ -812,7 +812,7 @@ fn source_load_graph(
     graph_iri: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     rooted_in_graph(
-        &source_load_dataset(upstream)?.project_named_graph(graph_iri)?,
+        &source_load_dataset(upstream)?.project_graph(Some(&purrdf::RdfTerm::iri(graph_iri)))?,
         graph_iri,
     )
 }
@@ -840,7 +840,10 @@ pub(crate) fn producer_graph(
         ))
     })?;
     rooted_in_graph(
-        &product.bundle().dataset().project_named_graph(graph_iri)?,
+        &product
+            .bundle()
+            .dataset()
+            .project_graph(Some(&purrdf::RdfTerm::iri(graph_iri)))?,
         graph_iri,
     )
 }
@@ -853,10 +856,11 @@ fn assemble_carrier(
     // imports, metadata, alignments, slice-analysis, and provenance
     // were all built ONCE at the parallel DAG root (`build_self_description_dataset`) and
     // are read here as pure projections. The authored default rides its own named graph;
-    // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
+    // re-rooting it with `project_graph` lands it back in the carrier's DEFAULT
     // graph (label dropped).
     let base = with_owl_rdfs_projection(
-        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
+        &source_load_dataset(upstream)?
+            .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
     )?;
     // ── the first-class carrier graphs ride in from their producers' datasets ───
     // Each is read off the PRODUCER's attached named graph (a pure keyed fold), NOT
@@ -1022,7 +1026,7 @@ fn assemble_carrier(
         &reason
             .bundle()
             .dataset()
-            .project_named_graph(reasoning_iri)?,
+            .project_graph(Some(&purrdf::RdfTerm::iri(reasoning_iri)))?,
         reasoning_iri,
     )?);
     // graph/goal-directed ← the native proof-carrying backward engine's checked answers +
@@ -1039,7 +1043,7 @@ fn assemble_carrier(
         &goal_directed
             .bundle()
             .dataset()
-            .project_named_graph(goal_directed_iri)?,
+            .project_graph(Some(&purrdf::RdfTerm::iri(goal_directed_iri)))?,
         goal_directed_iri,
     )?);
     // graph/gmn-training-corpus ← the rejection-sampled, proof-carrying GMN training corpus
@@ -1055,7 +1059,7 @@ fn assemble_carrier(
         &gmn_training
             .bundle()
             .dataset()
-            .project_named_graph(gmn_training_iri)?,
+            .project_graph(Some(&purrdf::RdfTerm::iri(gmn_training_iri)))?,
         gmn_training_iri,
     )?);
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
@@ -1073,7 +1077,8 @@ fn assemble_carrier(
     // memory — a source input, not the bundle being produced), so the carrier's attach set
     // and the superset gate's claim set read ONE inventory (no hand-list to drift).
     let rdf_fanout_classes = crate::stages::superset::RdfFanoutClasses::from_source(
-        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
+        &source_load_dataset(upstream)?
+            .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
     )?;
     for (path, bytes) in mappings.artifacts() {
         if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
@@ -1117,7 +1122,8 @@ fn assemble_carrier(
     // gmeow.gts carries the ontology's entailment and the SHACL up-set shape agrees. The
     // rule + wiring are read from the authored stage-source-load base graph, never re-typed.
     let gate_source = std::sync::Arc::new(
-        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
+        source_load_dataset(upstream)?
+            .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
     );
     let gate = crate::stages::gate_verdict::GateProgram::from_program(
         compiled_logic_program(upstream)?,
@@ -1334,21 +1340,6 @@ fn rdf_fanout_members(
     Ok(out)
 }
 
-/// Read the authored default world and apply its native OWL/RDFS reader projection.
-///
-/// Uses only the already-produced source-load contribution. This is the default
-/// world used by [`assemble_object_level_edb`] and recorded-input consumers.
-///
-/// # Errors
-/// Rejects a missing source contribution, an invalid graph or a failed projection.
-pub fn authored_object_level_dataset(
-    upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-    with_owl_rdfs_projection(
-        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
-    )
-}
-
 /// Assemble the OBJECT-LEVEL reasoned EDB: the authored default graph plus the
 /// statement / import / logic / relational-core / example / demonstrator worlds, in the
 /// EXACT graph layout [`assemble_carrier`] uses (so the reasoned closure's worlds
@@ -1382,7 +1373,10 @@ pub fn assemble_object_level_edb(
     // worlds match the bundle's by construction, with ONE load. Mapping and
     // correspondence graphs are shipped by the presenter but stay meta-level, so no
     // external endpoint IRI can be mistaken for an authored object-level construct.
-    let base = authored_object_level_dataset(upstream)?;
+    let base = with_owl_rdfs_projection(
+        &source_load_dataset(upstream)?
+            .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
+    )?;
     let statements = upstream
         .get("stage-statements")
         .ok_or_else(|| stage_err("missing statements RDF 1.2 carrier"))?;
@@ -1460,7 +1454,16 @@ fn compile_logic_graphs(
         .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
     graph_iris
         .iter()
-        .map(|iri| rooted_in_graph(&compile.bundle().dataset().project_named_graph(iri)?, iri))
+        .copied()
+        .map(|iri| {
+            rooted_in_graph(
+                &compile
+                    .bundle()
+                    .dataset()
+                    .project_graph(Some(&purrdf::RdfTerm::iri(iri)))?,
+                iri,
+            )
+        })
         .collect()
 }
 
@@ -3438,7 +3441,7 @@ fn build_provenance_projection(
 /// no rows; source graph declarations collapse into that destination.
 ///
 /// This is explicit graph placement, not a merge preserving source worlds. A
-/// carrier subgraph extracted with [`RdfDataset::project_named_graph`](purrdf::RdfDataset::project_named_graph)
+/// carrier subgraph extracted with [`RdfDataset::project_graph`](purrdf::RdfDataset::project_graph)
 /// returns with its complete statement layer in its original carrier graph,
 /// never in the authored default graph. Changing placement changes RDF graph
 /// ownership and its commitments; it does not promise unchanged dataset bytes.
@@ -4371,7 +4374,7 @@ fn playground_dataset_from_bundle(
     }
     // The chase-invented witness-derivation subgraph, lifted from `graph/diagnostics` into
     // the reasoning graph so the "explain a witness" affordance can decompose an exact null.
-    let diag_graph = bundle.project_named_graph(GRAPH_DIAGNOSTICS)?;
+    let diag_graph = bundle.project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_DIAGNOSTICS)))?;
     let reasoning_iri = RdfTerm::Iri(gmeow_logic::result_rdf::GRAPH_REASONING.to_owned());
     lift_witness_subgraph(&diag_graph, &reasoning_iri, &mut pg)?;
 

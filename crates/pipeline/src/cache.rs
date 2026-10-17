@@ -451,7 +451,9 @@ impl StageReceipt {
         let graphs = graph_names
             .into_iter()
             .map(|graph| {
-                let projected = bundle.dataset().project_named_graph(&graph)?;
+                let projected = bundle
+                    .dataset()
+                    .project_graph(Some(&purrdf::RdfTerm::iri(&graph)))?;
                 Ok(ReceiptEntity {
                     identity: graph.clone(),
                     digest: bundle.graph_digest(&graph)?.to_hex(),
@@ -1378,7 +1380,9 @@ impl CachedBundle {
                     }));
                 }
             }
-            let backing = bundle.dataset().project_named_graph(graph)?;
+            let backing = bundle
+                .dataset()
+                .project_graph(Some(&purrdf::RdfTerm::iri(graph)))?;
             validate_handle_projection(&entry.payload, &backing)?;
             let arm = handle_arm_tag(&entry.payload);
             let payload_digest = handle_payload_digest(&entry.payload);
@@ -1497,7 +1501,11 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
         // Assemble the bundle, then re-pin every handle (re-checks the digest invariant).
         let mut bundle = PipelineBundleAlias::new(dataset, lookaside, Arc::new(store), provenance);
         for h in self.handles {
-            let subgraph = Arc::new(bundle.dataset().project_named_graph(&h.graph)?);
+            let subgraph = Arc::new(
+                bundle
+                    .dataset()
+                    .project_graph(Some(&purrdf::RdfTerm::iri(&h.graph)))?,
+            );
             // Derive the pin and typed payload from the SAME live graph projection.
             // `pin_handle` independently checks that pin against the restored carrier,
             // preserving the hard-fail invariant without a duplicate persisted graph.

@@ -30,7 +30,7 @@
 //! graph's triples (statement metadata folded in as edge/node properties).
 //! [`render_from_dataset`] preserves that EXACT scope by first projecting the
 //! carrier down to `STATEMENTS_GRAPH` via
-//! [`purrdf::RdfDataset::project_named_graph`] — purrdf's own established
+//! [`purrdf::RdfDataset::project_graph`] — purrdf's own established
 //! "graph-scoped fold with full RDF-star sidecar" primitive (used elsewhere in
 //! this pipeline, e.g. the superset gate's per-graph fold) — and THEN hands
 //! that small scoped dataset to purrdf's four LPG projections. Do not "fix"
@@ -176,7 +176,7 @@ pub(crate) fn render_from_dataset(
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     // Scope to the business-layer statements graph ONLY — see the module doc
     // for why the whole carrier is never projected here.
-    let scoped = dataset.project_named_graph(STATEMENTS_GRAPH)?;
+    let scoped = dataset.project_graph(Some(&purrdf::RdfTerm::iri(STATEMENTS_GRAPH)))?;
     let config = lpg_config()?;
 
     let csv = purrdf::project_lpg_csv(&scoped, &config)

@@ -2644,10 +2644,9 @@ impl McpView {
         if let Some(dataset) = self.documentation.get() {
             return Ok(dataset);
         }
-        let dataset = Arc::new(
-            self.dataset
-                .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION)?,
-        );
+        let dataset = Arc::new(self.dataset.project_graph(Some(&purrdf::RdfTerm::iri(
+            gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION,
+        )))?);
         Ok(self.documentation.get_or_init(|| dataset))
     }
 
@@ -2658,10 +2657,9 @@ impl McpView {
         if let Some(dataset) = self.authoring_briefs.get() {
             return Ok(dataset);
         }
-        let dataset = Arc::new(
-            self.dataset
-                .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS)?,
-        );
+        let dataset = Arc::new(self.dataset.project_graph(Some(&purrdf::RdfTerm::iri(
+            gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS,
+        )))?);
         Ok(self.authoring_briefs.get_or_init(|| dataset))
     }
 
@@ -8725,9 +8723,9 @@ pub fn slice_brief_from_bundle(
 ) -> gmeow_errors::Result<Value> {
     let bundle =
         purrdf::import_gts_events(snapshot).with_ctx(|| "read snapshot gmeow.gts".to_string())?;
-    let briefs = bundle
-        .dataset
-        .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS)?;
+    let briefs = bundle.dataset.project_graph(Some(&purrdf::RdfTerm::iri(
+        gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS,
+    )))?;
     let slice_iri = expand_slice_iri(slice);
     extract_authoring_packets(&briefs, &slice_iri, axis, batch)
 }

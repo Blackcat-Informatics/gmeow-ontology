@@ -709,7 +709,9 @@ fn stage_validate_emits_both_advice_projections() {
     let norm_claims = output
         .product
         .dataset()
-        .project_named_graph(crate::stages::carrier::GRAPH_NORM_CLAIMS)
+        .project_graph(Some(&purrdf::RdfTerm::iri(
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        )))
         .unwrap();
     assert_compliance_assessment_present(&norm_claims);
 }
@@ -759,7 +761,9 @@ ex:RequiredShape a sh:NodeShape ;\n\
     let norm_claims = output
         .product
         .dataset()
-        .project_named_graph(crate::stages::carrier::GRAPH_NORM_CLAIMS)
+        .project_graph(Some(&purrdf::RdfTerm::iri(
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        )))
         .unwrap();
     assert_compliance_assessment_present(&norm_claims);
 }

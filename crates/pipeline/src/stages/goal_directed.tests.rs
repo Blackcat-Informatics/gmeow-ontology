@@ -133,7 +133,9 @@ fn goal_directed_stage_attaches_a_nonempty_goal_directed_graph() {
         })
         .expect("goal-directed run");
     let dataset = out.product.bundle().dataset();
-    let graph = dataset.project_named_graph(GRAPH_GOAL_DIRECTED).unwrap();
+    let graph = dataset
+        .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_GOAL_DIRECTED)))
+        .unwrap();
     let quads: Vec<_> = graph.owned_quads().collect();
     assert!(
         !quads.is_empty(),

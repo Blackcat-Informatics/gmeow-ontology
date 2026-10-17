@@ -1178,7 +1178,7 @@ fn reconstruct_graph(
     dataset: &RdfDataset,
     rep: &GraphRep,
 ) -> gmeow_errors::Result<Option<Vec<u8>>> {
-    let projected = dataset.project_named_graph(&rep.iri)?;
+    let projected = dataset.project_graph(Some(&purrdf::RdfTerm::iri(&rep.iri)))?;
     if projected.quad_count() == 0 {
         return Ok(None);
     }

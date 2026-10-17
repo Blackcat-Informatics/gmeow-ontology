@@ -30,7 +30,9 @@ fn fixture() -> (Arc<RdfDataset>, gmeow_logic::result::ReasoningResult) {
 
 fn assessments(dataset: &RdfDataset) -> usize {
     dataset
-        .project_named_graph(crate::stages::carrier::GRAPH_VERIFY)
+        .project_graph(Some(&purrdf::RdfTerm::iri(
+            crate::stages::carrier::GRAPH_VERIFY,
+        )))
         .unwrap()
         .owned_quads()
         .filter(|quad| {

@@ -160,7 +160,7 @@ pub fn authenticated_bundle_dataset() -> &'static Arc<RdfDataset> {
 /// view for validation. A missing graph fails; no RDF text is emitted or reparsed.
 pub fn authenticated_named_graph_dataset(graph_iri: &str) -> Arc<RdfDataset> {
     let graph = authenticated_bundle_dataset()
-        .project_named_graph(graph_iri)
+        .project_graph(Some(&purrdf::RdfTerm::iri(graph_iri)))
         .expect("select authenticated named graph");
     assert!(
         graph.quad_count() > 0,
