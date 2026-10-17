@@ -7,8 +7,8 @@
 //! remain possible here even when the current input cannot satisfy their bodies.
 //! The expanded metadata is run-local; no second executable or source compiler runs.
 
+use crate::timing::Instant;
 use std::sync::Arc;
-use std::time::Instant;
 
 use super::{
     JointInput, JointTemplate, ProducerEffect, StatementPattern, ValueFlow, producer_effects,

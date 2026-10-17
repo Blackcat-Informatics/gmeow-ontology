@@ -397,7 +397,7 @@ impl Template {
         // variables exactly like an immutable relation. When that cannot complete
         // within its bound, join immutable relations only, and say so on refusal.
         let mut notes = Vec::new();
-        let started = std::time::Instant::now();
+        let started = crate::timing::Instant::now();
         let closed = match &evidence.closable {
             Ok(closable) => self.close(evidence, closable, semantics)?,
             Err(reason) => Err(reason.clone()),

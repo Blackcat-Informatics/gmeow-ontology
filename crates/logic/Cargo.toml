@@ -119,6 +119,11 @@ sha2.workspace = true
 # parser (weeks/days/hours/minutes/seconds), not chrono.
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+# Existing workspace binding ABI: browser execution observations require the
+# host's monotonic Performance clock; std::time::Instant traps on this target.
+wasm-bindgen.workspace = true
+
 [dev-dependencies]
 gmeow-build-inputs = { path = "../build-inputs" }
 gmeow-action-cache = { path = "../action-cache" }

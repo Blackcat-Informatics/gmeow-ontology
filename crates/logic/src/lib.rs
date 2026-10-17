@@ -138,6 +138,7 @@ pub mod term_serde;
 /// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general
 /// existential program per broader chase-termination class, each in its own world).
 pub mod termination_demonstrators;
+mod timing;
 pub mod transaction;
 pub mod transition;
 pub mod verify;

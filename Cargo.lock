@@ -1804,6 +1804,7 @@ dependencies = [
  "smallvec",
  "tempfile",
  "tracing",
+ "wasm-bindgen",
 ]
 
 [[package]]

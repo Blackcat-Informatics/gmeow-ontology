@@ -12,7 +12,8 @@
 //!
 //! - **The real chase.** `reason` parses authored RDF, runs
 //!   [`gmeow_logic::reason::reason_closure_dataset`] (the structured-DL closure), and
-//!   serializes the INFERRED triples to N-Quads. On wasm the chase runs SERIALLY (the
+//!   serializes the complete selected closure to N-Quads, including asserted facts
+//!   and its explicit nonempty-domain witness. On wasm the chase runs SERIALLY (the
 //!   single-threaded rayon fallback + the `should_parallelize` gate), byte-identical
 //!   to the parallel path (proven natively by the rule-parallel evidence probe), so
 //!   the browser reasoner is functionally complete — it sheds only performance.
@@ -33,7 +34,8 @@ pub fn version() -> String {
 }
 
 /// Run the structured-DL chase over `data` (RDF text in `format`) and return the
-/// **reasoned closure** — the inferred triples — as N-Quads text.
+/// **reasoned closure** as N-Quads text, retaining asserted facts, inferred facts,
+/// and the selected nonempty-domain witness.
 ///
 /// - `data` — the RDF document to reason over (UTF-8 text).
 /// - `format` — a media type / short id purrdf understands (`turtle`/`ttl`,

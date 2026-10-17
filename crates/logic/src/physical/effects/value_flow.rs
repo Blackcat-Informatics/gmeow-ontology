@@ -2592,7 +2592,7 @@ impl ValueFlow {
                     .indices()
                     .filter(|value| self.conditioned.contains(*value))
                     .count();
-                let started = std::time::Instant::now();
+                let started = crate::timing::Instant::now();
                 if candidates >= 1_000 {
                     tracing::info!(
                         target: "pipeline_reasoning_detail",
@@ -2633,7 +2633,7 @@ impl ValueFlow {
                 .indices()
                 .filter(|value| self.conditioned.contains(*value))
                 .collect();
-            let started = std::time::Instant::now();
+            let started = crate::timing::Instant::now();
             if candidates.len() >= 1_000 {
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
@@ -2661,11 +2661,11 @@ impl ValueFlow {
                 // reschedules every affected reader, including recursive and
                 // dynamic readers, so a later fixed-point visit sees support added
                 // by sibling candidates.
-                let partitioned = std::time::Instant::now();
+                let partitioned = crate::timing::Instant::now();
                 let classes = self.value_classes(rule, state, bindings, &candidates);
                 classes_evaluated = classes.len();
                 timings[0] = partitioned.elapsed().as_millis();
-                let evaluated = std::time::Instant::now();
+                let evaluated = crate::timing::Instant::now();
                 let mut supports = Vec::with_capacity(classes.len());
                 for batch in classes.chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE) {
                     supports.par_extend(batch.par_iter().map(|members| {
@@ -2675,7 +2675,7 @@ impl ValueFlow {
                     }));
                 }
                 timings[1] = evaluated.elapsed().as_millis();
-                let published = std::time::Instant::now();
+                let published = crate::timing::Instant::now();
                 let mut publications: Vec<(usize, usize)> = classes
                     .iter()
                     .enumerate()

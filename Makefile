@@ -218,7 +218,7 @@ print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exa
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate perf-sample perf-accept perf-ci-receipt \
-	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-conjecture-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
+	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-reason-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
 	maint-extract maint-refresh-target-axioms maint-refresh-mcp-witness maint-refresh-mcp-asset maint-refresh-mcp-core-asset maint-refresh-mcp-assets \
 	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
@@ -862,11 +862,11 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(call BUILD_WASM_PKG,reason,)
 
-maint-refresh-conjecture-witness: ## Refresh the verified native conjecture attestation consumed read-only by native/wasm parity tests.
-	cargo run -p gmeow-reason-wasm --example refresh-witness-conjecture
+maint-refresh-reason-witness: ## Refresh both verified native reasoner attestations consumed read-only by parity tests.
+	cargo run -p gmeow-reason-wasm --example refresh-witness-reason
 
-maint-refresh-reason-asset: ## Refresh the conjecture witness, prove Node parity, then re-vendor the reasoner and its BLAKE3 manifest.
-	$(MAKE) maint-refresh-conjecture-witness
+maint-refresh-reason-asset: ## Refresh both native witnesses, prove Node parity, then re-vendor the reasoner and its BLAKE3 manifest.
+	$(MAKE) maint-refresh-reason-witness
 	$(MAKE) reason-wasm-pkg
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
@@ -910,7 +910,7 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	@# substrate identities. Parity consumers run after that producer, never against
 	@# an obsolete bundle which the new substrate may correctly reject.
 	$(MAKE) query-wasm-pkg validate-wasm-pkg reason-wasm-pkg gmn-wasm-pkg mcp-wasm-pkg mcp-core-wasm-pkg
-	$(MAKE) maint-refresh-conjecture-witness maint-refresh-mcp-witness
+	$(MAKE) maint-refresh-reason-witness maint-refresh-mcp-witness
 	$(call COPY_WASM_ASSET,query,)
 	$(call COPY_WASM_ASSET,validate,)
 	$(call COPY_WASM_ASSET,reason,)
