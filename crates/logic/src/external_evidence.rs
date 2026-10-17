@@ -145,6 +145,8 @@ pub struct ArtifactDiagnostic {
     pub code: String,
     /// The diagnostic's complete grade.
     pub grade: Grade,
+    /// Ontological failure class retained from the live checker diagnostic.
+    pub failure_class: Option<String>,
     /// Typed checker evidence.
     pub evidence: EvidenceFailure,
     /// Ordered causal error descriptions, preserved at serialization.
@@ -153,6 +155,8 @@ pub struct ArtifactDiagnostic {
     pub source_code: Option<String>,
     /// Original parser diagnostic grade.
     pub source_grade: Option<Grade>,
+    /// Original parser failure class, before checker context was attached.
+    pub source_failure_class: Option<String>,
     /// Original parser source coordinates and focus.
     pub source_context: Option<gmeow_errors::SourceContext>,
     /// Ordered propagation contexts.
@@ -374,6 +378,7 @@ fn failed_check(
     result.diagnostic = Some(ArtifactDiagnostic {
         code: gmeow_errors::code::code_str(diagnostic.code()).to_owned(),
         grade: diagnostic.grade(),
+        failure_class: diagnostic.inner().failure_class.clone(),
         evidence,
         causes,
         source_code: failure
@@ -381,6 +386,10 @@ fn failed_check(
             .as_ref()
             .map(|cause| gmeow_errors::code::code_str(cause.code()).to_owned()),
         source_grade: failure.cause.as_ref().map(Diag::grade),
+        source_failure_class: failure
+            .cause
+            .as_ref()
+            .and_then(|cause| cause.inner().failure_class.clone()),
         source_context: failure
             .cause
             .as_ref()
