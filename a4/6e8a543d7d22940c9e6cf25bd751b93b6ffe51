@@ -1,21 +1,21 @@
-ghprsq structured squash audit metadata
+ghprsq PR head backlink metadata
 
-parent_hashes: 9d74ccafba9c7630fb16f7db54ef92750691148c 94b5979d9a7736c9095eecb461e63b4bdc1da60b
+parent_hashes: a46e8a543d7d22940c9e6cf25bd751b93b6ffe51 9d74ccafba9c7630fb16f7db54ef92750691148c 94b5979d9a7736c9095eecb461e63b4bdc1da60b
 
 GhpRsq-Schema: 1
-GhpRsq-Merge-Style: structured-squash
+GhpRsq-Merge-Style: structured-squash-head-backlink
 GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
-GhpRsq-GitHub-Pull-Request: 1835
-GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1835
-GhpRsq-Base-Ref: paudley/1829-fixtures-goal-directed-aggregate
-GhpRsq-Base-OID: ab1a26067c60dd5f0f05e84362abcfb9f2e4d61e
-GhpRsq-Head-Ref: paudley/1834-repair-shared-helper-ownership-and
-GhpRsq-Head-OID: 9d74ccafba9c7630fb16f7db54ef92750691148c
+GhpRsq-GitHub-Pull-Request: 1830
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1830
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 645a9db7a6588fcdcdb483e97208e9eb921c430f
+GhpRsq-Head-Ref: paudley/1829-fixtures-goal-directed-aggregate
+GhpRsq-Head-OID: a46e8a543d7d22940c9e6cf25bd751b93b6ffe51
 GhpRsq-Result-Tree: a16f1e02c93f9ee6e39d8415963f9b5c38cc2894
-GhpRsq-Result-Commit: a46e8a543d7d22940c9e6cf25bd751b93b6ffe51
-GhpRsq-Parent-Hashes: 9d74ccafba9c7630fb16f7db54ef92750691148c 94b5979d9a7736c9095eecb461e63b4bdc1da60b
-GhpRsq-Squash-Notes-SHA256: 9b0c1959e31d5bd0d25c42f40d5d8de7ddc87b415862949a15eee865271df60b
+GhpRsq-Result-Commit: 2f474d2400d2a2450e0db0d7f8644431fd73b7d8
+GhpRsq-Parent-Hashes: a46e8a543d7d22940c9e6cf25bd751b93b6ffe51 9d74ccafba9c7630fb16f7db54ef92750691148c 94b5979d9a7736c9095eecb461e63b4bdc1da60b
+GhpRsq-Squash-Notes-SHA256: b0923db942fca89a6c91c37f6aefd50b4067655598bec6c778a36f4e460a7050
 GhpRsq-Defect-Class: none
-GhpRsq-Stage-Tree: 8dc946699e6ae84521f5851bc73b1ca82b6aa104
-GhpRsq-Stage-Ref: refs/ghprsq/pr/1835/stage
-GhpRsq-Stage-Files: 116
+GhpRsq-Stage-Tree: 51a3dbd3907f3f2a37e84eaff5edc557ae18dec7
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1830/stage
+GhpRsq-Stage-Files: 165
