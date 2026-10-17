@@ -4,6 +4,7 @@
 use super::*;
 use crate::ir::{ContextualScope, LogicAxiom, LogicRule};
 
+/// Build an independent intrinsic atom from its declared relation and operands.
 fn intrinsic_atom(local: &str, variables: &[&str]) -> Formula {
     Formula::atom(
         Term::iri(format!("{}{}", crate::ir::LOGIC_NAMESPACE, local)).unwrap(),
@@ -15,6 +16,7 @@ fn intrinsic_atom(local: &str, variables: &[&str]) -> Formula {
     .unwrap()
 }
 
+/// Build a class-scoped integrity law with the supplied condition.
 fn intrinsic_constraint(consequent: Formula) -> LogicProgram {
     let guard = Formula::atom(
         Term::iri("urn:scope").unwrap(),
@@ -28,6 +30,7 @@ fn intrinsic_constraint(consequent: Formula) -> LogicProgram {
     integrity_constraint(formula)
 }
 
+/// Attach a failure marker to a test program with the supplied integrity formula.
 fn integrity_constraint(formula: Formula) -> LogicProgram {
     let constraint = ConstraintIr::new(
         "urn:KindLaw",
@@ -41,6 +44,7 @@ fn integrity_constraint(formula: Formula) -> LogicProgram {
     LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![constraint])
 }
 
+/// An object-target guard shares one existential subject across its class and role atoms.
 #[test]
 fn an_outer_existential_guard_preserves_its_shared_witness_and_focus() {
     let program = integrity_constraint(Formula::Forall {
@@ -75,6 +79,7 @@ fn an_outer_existential_guard_preserves_its_shared_witness_and_focus() {
     assert_ne!(role.subject, RcTerm::Var("?subject".into()));
 }
 
+/// Nested guards restore outer bindings while sibling witnesses remain independent.
 #[test]
 fn existential_guard_shadowing_and_siblings_keep_their_lexical_scopes() {
     let program = integrity_constraint(Formula::Forall {
@@ -120,6 +125,7 @@ fn existential_guard_shadowing_and_siblings_keep_their_lexical_scopes() {
     assert_ne!(operand("right"), operand("inner"));
 }
 
+/// A guard-local witness cannot satisfy a free operand in the consequent.
 #[test]
 fn existential_guards_cannot_bind_free_consequent_operands() {
     for operand in ["value", "existG0"] {
@@ -136,6 +142,7 @@ fn existential_guards_cannot_bind_free_consequent_operands() {
     }
 }
 
+/// Shadowing inside a guard cannot bind the outer violation subject.
 #[test]
 fn a_guard_binder_cannot_replace_the_outer_focus() {
     let program = integrity_constraint(Formula::Forall {
@@ -153,6 +160,7 @@ fn a_guard_binder_cannot_replace_the_outer_focus() {
     assert_eq!(residue[0].gap, RcViolationGap::UnsafeFocusVariable);
 }
 
+/// An unsupported universal guard refuses the whole law rather than emitting partial rules.
 #[test]
 fn universal_guards_remain_unsupported_without_partial_enforcement() {
     let kind = intrinsic_atom("termIsIri", &["this"]);

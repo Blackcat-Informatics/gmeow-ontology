@@ -5,6 +5,7 @@ use super::*;
 use gmeow_errors::intern_code;
 use std::collections::HashSet;
 
+/// Both native integrity kinds appear exactly once in the catalog and eager registration.
 #[test]
 fn native_integrity_diagnostics_are_eagerly_registered() {
     let handles = register_all();
@@ -25,6 +26,7 @@ fn native_integrity_diagnostics_are_eagerly_registered() {
     }
 }
 
+/// The complete catalog and eager registration retain unique, matching diagnostic codes.
 #[test]
 fn every_logic_code_interns_with_no_collision() {
     let handles = register_all();

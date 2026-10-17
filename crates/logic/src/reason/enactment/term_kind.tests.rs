@@ -11,6 +11,7 @@ const PREFIXES: &str = "@prefix logic: <https://blackcatinformatics.ca/logic/> .
     @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
     @prefix ex: <https://example.org/> .";
 
+/// Run a selected node-kind law against independently authored RDF input.
 fn findings(kind: &str, class_scoped: bool, data: &str) -> Vec<(String, String, String)> {
     let target = if class_scoped {
         "logic:onClass ex:Record ;"
@@ -30,6 +31,7 @@ fn findings(kind: &str, class_scoped: bool, data: &str) -> Vec<(String, String, 
     )
 }
 
+/// Check the exact compiled rule count before executing an authored law through the native gate.
 fn authored_findings(law: &str, data: &str, rule_count: usize) -> Vec<(String, String, String)> {
     let source = purrdf::parse_dataset(format!("{PREFIXES} {law}").as_bytes(), "text/turtle", None)
         .expect("independent authored law parses");
@@ -49,6 +51,7 @@ fn authored_findings(law: &str, data: &str, rule_count: usize) -> Vec<(String, S
         .collect()
 }
 
+/// Expect one finding with the original focus, law and failure-class identities.
 fn bad_record() -> Vec<(String, String, String)> {
     vec![(
         "https://example.org/bad".into(),
@@ -168,6 +171,7 @@ fn malformed_kind_is_a_diagnostic_not_a_silently_omitted_check() {
     assert!(!diagnostics.is_empty());
 }
 
+/// Distinct resource values violate single-valued metadata only on the selected class.
 #[test]
 fn required_single_metadata_still_rejects_distinct_iri_values() {
     assert_eq!(
@@ -189,6 +193,7 @@ fn required_single_metadata_still_rejects_distinct_iri_values() {
     );
 }
 
+/// Exercise canonical value-comparison sugar through native enactment.
 fn comparison_findings(operator: &str, data: &str) -> Vec<(String, String, String)> {
     authored_findings(
         &format!(
@@ -204,6 +209,7 @@ fn comparison_findings(operator: &str, data: &str) -> Vec<(String, String, Strin
     )
 }
 
+/// Either missing role violates co-occurrence; complete, absent and unrelated records pass.
 #[test]
 fn cooccurrence_guards_preserve_both_directions_and_absence() {
     let law = r#"
