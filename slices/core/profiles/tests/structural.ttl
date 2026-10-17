@@ -23,6 +23,27 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/profiles/tests/> .
 
+ex:saDescriptiveMetadataRequired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+ASK {
+    gmeow:ProfileLabelRequiredConstraint a logic:DisjunctiveRequirednessConstraint ;
+        logic:onClass gmeow:Profile ; logic:anyOf rdfs:label .
+    gmeow:ProfileDefinitionRequiredConstraint a logic:DisjunctiveRequirednessConstraint ;
+        logic:onClass gmeow:Profile ; logic:anyOf skos:definition .
+    gmeow:ProfileDescriptorRequiredConstraint a logic:DisjunctiveRequirednessConstraint ;
+        logic:onClass gmeow:Profile ; logic:anyOf gmeow:profileDescriptor .
+    FILTER NOT EXISTS {
+        VALUES ?path { rdfs:label skos:definition gmeow:profileDescriptor }
+        ?restriction logic:onProperty ?path .
+    }
+}""" ;
+    gmeow:saRationale "The descriptive spine MUST be required by closed-world integrity while annotation paths stay outside logical object-role restrictions." .
+
 # --- 1. Profile is an owl:Class subClassOf InformationObject (MUST) -----------
 ex:saProfileClassExists a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

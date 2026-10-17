@@ -187,10 +187,37 @@ logic:povuDescLink a logic:Formula ; logic:relation logic:linkVia ;
 
 # Required descriptive spine of a Profile (self-description is the point of the
 # meta-pattern): at least one label, a definition, and one descriptor property.
-# The min-qualified idiom (logic:onClass OWL Thing) is the in-fragment form the
-# native reasoner decides — it degrades to the unqualified sh:minCount 1 the
-# retired hand-authored shape enforced, without minting existential witnesses.
-gmeow:Profile logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty skos:definition ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:profileDescriptor ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+# These are annotation paths, so requiredness is integrity rather than an OWL
+# object-role existential. Literal labels and definitions remain ordinary values.
+gmeow:ProfileLabelRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Profile label requiredness constraint"@x-gmeow-english ;
+    skos:definition "Every Profile carries at least one label as closed-world metadata, without creating a logical role witness."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:Profile ;
+    logic:anyOf rdfs:label ;
+    logic:formalizes gmeow:Profile ;
+    logic:message "A Profile must carry at least one label." .
+
+gmeow:ProfileDefinitionRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Profile definition requiredness constraint"@x-gmeow-english ;
+    skos:definition "Every Profile carries at least one definition as closed-world metadata, without creating a logical role witness."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:Profile ;
+    logic:anyOf skos:definition ;
+    logic:formalizes gmeow:Profile ;
+    logic:message "A Profile must carry at least one definition." .
+
+gmeow:ProfileDescriptorRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Profile descriptor requiredness constraint"@x-gmeow-english ;
+    skos:definition "Every Profile names at least one descriptor property as closed-world metadata, without treating the descriptor annotation as a logical object role."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:Profile ;
+    logic:anyOf gmeow:profileDescriptor ;
+    logic:formalizes gmeow:Profile ;
+    logic:message "A Profile must name at least one descriptor property." .

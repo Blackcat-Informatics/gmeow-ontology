@@ -1269,14 +1269,9 @@ gmeow:docSearchAlignment
 # gmeow:docGroundedBy and gmeow:docOwnerSlice are DELIBERATELY OWL AnnotationProperty
 # (docGroundedBy mixes IRI and literal objects; docOwnerSlice's object is a slice
 # node that is simultaneously an OWL Ontology) — a plain OWL Restriction cannot
-# target an AnnotationProperty without leaving OWL 2 DL. The canonical logic:
-# restriction vocabulary (logic:subClassOf / logic:Restriction / logic:onProperty,
-# of which OWL Restriction is a generated dialect form, per logic:Restriction's own
-# skos:definition) is not so constrained, so their cardinality obligations are
-# authored there, with an explicit logic:ClosureEntry opt-in — the exact idiom
-# already proven in THIS slice's own gmeow:HasGranularityShape / gmeow:CoarsenToShape
-# migration and in slices/core/citations/module.ttl's CitationAct "Wave B1"
-# migration. gmeow:docEvidenceKind and gmeow:docCategory are ordinary
+# target an AnnotationProperty without leaving OWL 2 DL. Their metadata
+# obligations are canonical integrity constraints, projected to validation rather
+# than logical object-role restrictions. gmeow:docEvidenceKind and docCategory are ordinary
 # object/datatype properties and get the usual OWL restrictions.
 # =========================================================================== #
 
@@ -1304,13 +1299,7 @@ gmeow:DocumentedTerm logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:docCategory ; logic:allValuesFrom xsd:string ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-# gmeow:DocumentedTermShape's gmeow:docOwnerSlice min1/max1 pair is already fully
-# grounded above (the OWL Thing-qualified logic:Restriction pair a few lines up
-# in this file); its remaining ungrounded facet is gmeow:docCategory's
-# sh:minCount 1 (the allValuesFrom restriction just above types the value but
-# never requires one). Authored procedurally (P3 disjunctive-requiredness
-# sugar degenerated to a single predicate, the same "at least one value" idiom
-# as gmeow:DocEvidenceGroundingConstraint below), formalizing the exact shape IRI.
+# Category requiredness is closed-world integrity, independent of owner metadata.
 gmeow:DocumentedTermCategoryConstraint
     a logic:DisjunctiveRequirednessConstraint ;
     rdfs:label "Documented-term category requiredness constraint"@x-gmeow-english ;
@@ -1345,22 +1334,43 @@ gmeow:DocEvidenceGroundingConstraint
     logic:formalizes gmeow:DocEvidenceGroundingShape ;
     logic:message "A gmeow:DocEvidence node must carry at least one gmeow:docGroundedBy truthmaker — an ungrounded evidence node is the doc-layer analogue of a DARK finding." .
 
-# gmeow:DocumentedTermShape — every gmeow:DocumentedTerm names exactly one
-# gmeow:docOwnerSlice (the slice whose module defines the term). The min1+max1
-# pair below is fully grounded (OWL Thing-qualified, the proven CitationAct
-# idiom); the legacy shape's sh:nodeKind sh:IRI facet is a GENUINE boundary for
-# an OWL AnnotationProperty — classify() can only ever emit NodeKindShacl
-# BlankNodeOrIri for an OWL Thing filler (never bare Iri), and the oracle's
-# automatic "object property ⇒ IRI" credit does not extend to annotation
-# properties (docOwnerSlice must stay an AnnotationProperty: its object is
-# simultaneously an OWL Ontology, so an OWL ObjectProperty would pun). No
-# declarative or procedural GMEOW builtin currently tests "is this term an
-# IRI", so the nodeKind:IRI sub-facet is retained as an honest, undischarged
-# residue rather than faked.
-gmeow:DocumentedTerm logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:someValuesFrom logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docOwnerSlice" ; logic:closureValue logic:ClosedWorldClosure ] .
+# Owner metadata remains an annotation pointing to an ontology IRI. Its required
+# single-IRI contract is integrity, never an OWL restriction on an annotation role.
+gmeow:DocumentedTermOwnerRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Documented-term owner requiredness constraint"@x-gmeow-english ;
+    skos:definition "Every DocumentedTerm names an owning slice in its annotation metadata."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:DocumentedTerm ;
+    logic:anyOf gmeow:docOwnerSlice ;
+    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:message "A DocumentedTerm must name its owning slice." .
+
+gmeow:DocumentedTermOwnerSingleValueConstraint
+    a logic:ComparisonConstraint ;
+    rdfs:label "Documented-term single owner constraint"@x-gmeow-english ;
+    skos:definition "A DocumentedTerm cannot name two distinct owning-slice IRIs; annotation cardinality counts the named resources without identifying them through logical equality."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:DocumentedTerm ;
+    logic:leftPath gmeow:docOwnerSlice ;
+    logic:rightPath gmeow:docOwnerSlice ;
+    logic:compareOp "!=" ;
+    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:message "A DocumentedTerm must name at most one owning slice." .
+
+gmeow:DocumentedTermOwnerIriConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "Documented-term owner IRI constraint"@x-gmeow-english ;
+    skos:definition "Every owning-slice value on a DocumentedTerm is an IRI, including when the named slice is itself an ontology."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:DocumentedTerm ;
+    logic:valuePath gmeow:docOwnerSlice ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:message "A DocumentedTerm owner must be an IRI." .
 
 <https://blackcatinformatics.ca/gmeow/slices/documentation>
     a logic:Ontology ;

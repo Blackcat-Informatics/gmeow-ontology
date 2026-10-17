@@ -9,6 +9,23 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
 
+ex:saEnvelopeStandpointMetadataIntegrity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+ASK {
+    lang:GmnEnvelopeStandpointRequiredConstraint a logic:DisjunctiveRequirednessConstraint ;
+        logic:onClass gmeow:GmnEnvelope ; logic:anyOf gmeow:accordingTo ;
+        gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField .
+    lang:GmnEnvelopeStandpointResourceConstraint a logic:PathNodeKindConstraint ;
+        logic:onClass gmeow:GmnEnvelope ; logic:valuePath gmeow:accordingTo ; logic:nodeKind "BlankNodeOrIRI" ;
+        gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField .
+    FILTER NOT EXISTS { ?restriction logic:onProperty gmeow:accordingTo }
+}""" ;
+    gmeow:saRationale "Envelope standpoint metadata MUST retain required-resource integrity and its failure identity without a logical restriction on the accordingTo annotation." .
+
 # --- 1. The form-AST strata subclass lang:Form (MUST) ----------------------- #
 ex:saFormStrata a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

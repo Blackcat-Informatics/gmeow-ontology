@@ -50,6 +50,10 @@ A property belonging to this Profile's *closed* descriptor schema. An
 annotation form keeps the ontology in OWL 2 DL (Principle 3). Closure of the descriptor
 set is documentation-and-SHACL discipline, not an OWL axiom.
 
+The profile label, definition and descriptor are required by canonical integrity
+constraints. Their validation projection checks the authored metadata without
+turning annotation properties into logical roles or creating existential values.
+
 ### gmeow:profileOpenValue
 
 An open value-vocabulary class used by this Profile — a class whose instances are

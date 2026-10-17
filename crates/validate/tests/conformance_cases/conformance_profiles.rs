@@ -27,6 +27,39 @@ const PREFIXES: &str = "\
 ";
 
 #[batch_cases]
+#[case::profile_requires_label_in_production_shapes(
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:myProfile a gmeow:Profile ;
+    skos:definition \"A definition without a label.\" ;
+    gmeow:profileDescriptor gmeow:hasProfile .\n"
+    ))
+    .shape_union()
+    .fails()
+    .violations(&["A Profile must carry at least one label."])
+)]
+#[case::profile_requires_definition_in_production_shapes(
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:myProfile a gmeow:Profile ;
+    rdfs:label \"A label without a definition\" ;
+    gmeow:profileDescriptor gmeow:hasProfile .\n"
+    ))
+    .shape_union()
+    .fails()
+    .violations(&["A Profile must carry at least one definition."])
+)]
+#[case::profile_requires_descriptor_in_production_shapes(
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:myProfile a gmeow:Profile ;
+    rdfs:label \"A profile without a descriptor\" ;
+    skos:definition \"The descriptive spine requires a descriptor.\" .\n"
+    ))
+    .shape_union()
+    .fails()
+    .violations(&["A Profile must name at least one descriptor property."])
+)]
 #[case::profile_shape_passes_for_wellformed_profile(
     Case::inline(format!(
         "{PREFIXES}\

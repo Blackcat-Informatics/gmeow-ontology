@@ -28,14 +28,6 @@ gmeow:DocumentedTermShape
     logic:formalizes gmeow:DocumentedTermCategoryConstraint ;
     sh:targetClass gmeow:DocumentedTerm ;
     sh:property [
-        sh:path gmeow:docOwnerSlice ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:DocumentedTerm must name exactly one gmeow:docOwnerSlice (the slice whose module defines the term)." ;
-    ] ;
-    sh:property [
         sh:path gmeow:docCategory ;
         sh:minCount 1 ;
         sh:datatype xsd:string ;

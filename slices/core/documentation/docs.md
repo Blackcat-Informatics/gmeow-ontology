@@ -46,6 +46,11 @@ emitter ever grows a term this TBox does not cover.
   `slices/core/versions`; this slice declares only the genuinely-orphaned `gmeow:doc*`
   terms.
 
+Each documented term names exactly one owning-slice IRI through `gmeow:docOwnerSlice`.
+That link remains an annotation even when its target is an ontology. Canonical
+integrity constraints enforce requiredness, the single value and IRI kind; their
+generated validation surface does not turn ownership metadata into a logical role.
+
 ## Realized state
 
 | Document | Genre | Realized state | Contents |
