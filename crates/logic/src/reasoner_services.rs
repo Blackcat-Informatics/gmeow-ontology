@@ -50,14 +50,7 @@ fn map_entail_err(error: EntailError) -> gmeow_errors::Diag {
         EntailError::Parse(_) | EntailError::MalformedList(_) => DlServiceFailureKind::Malformed,
         EntailError::RoleHierarchy(role) => {
             use purrdf::entail::RoleHierarchyError;
-            let mut original = role;
-            while let RoleHierarchyError::Witness {
-                original: cause, ..
-            } = original
-            {
-                original = cause;
-            }
-            match original {
+            match role.classification() {
                 RoleHierarchyError::Storage(_)
                 | RoleHierarchyError::Graph(_)
                 | RoleHierarchyError::Stopped => DlServiceFailureKind::Execution,

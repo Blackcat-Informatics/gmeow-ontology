@@ -130,6 +130,12 @@ it is a declared status (Principles 9, 11, 12). Cage's 4′33″ is fully specif
 by a set of such cells: duration constrained, tacet fixed, sound content
 delegated to the environment, instrumentation free.
 
+`gmeow:dofConstraintText`, `gmeow:constraintText`, `gmeow:ornamentDescription`,
+and `gmeow:processRuleText` are datatype properties carrying language-tagged
+text. Their class restrictions require `rdf:langString` values, and their
+integrity constraints permit at most one value for each language tag. Required
+constraint and process text use data-range cardinalities over `rdf:langString`.
+
 ### gmeow:TraversalConstraint
 
 A `gmeow:TraversalConstraint` is mobile form as data: fragments, allowed
