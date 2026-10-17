@@ -28,15 +28,7 @@ fn native_upstream(axioms: Vec<InferredAxiom>) -> BTreeMap<String, StageProduct>
         ResultPayload::Inferred(axioms),
     );
     let reason = crate::stages::docs_render::reasoning_tests::product(result);
-    let snapshot =
-        StageProduct::from_bundle("stage-snapshot", std::sync::Arc::clone(reason.bundle()));
-    BTreeMap::from([
-        ("stage-snapshot".to_owned(), snapshot),
-        (
-            "stage-reason".to_owned(),
-            reason.into_carrier_released().unwrap(),
-        ),
-    ])
+    BTreeMap::from([("stage-reason".to_owned(), reason)])
 }
 
 fn derived(object: TermValue) -> InferredAxiom {
@@ -54,7 +46,7 @@ fn derived(object: TermValue) -> InferredAxiom {
 
 /// Every native head and premise joins once, retaining the actual source world.
 #[test]
-fn native_term_panels_from_retained_snapshot_preserve_multiple_heads_sources_and_worlds() {
+fn native_term_panels_from_reason_preserve_multiple_heads_sources_and_worlds() {
     let mut edb = derived(TermValue::iri("urn:asserted-only"));
     edb.is_edb = true;
     edb.rule_name = None;
@@ -178,8 +170,8 @@ fn term_panels_refuse_missing_native_source_even_when_explanation_bytes_exist() 
     assert!(term_entailments_from_upstream(&BTreeMap::new(), &terms).is_err());
     let native = native_upstream(vec![derived(TermValue::iri(ANIMAL))]);
     let wrong_owner = StageProduct::from_bundle(
-        "stage-reason",
-        std::sync::Arc::clone(native["stage-snapshot"].bundle()),
+        "stage-snapshot",
+        std::sync::Arc::clone(native["stage-reason"].bundle()),
     );
     assert!(
         term_entailments_from_upstream(
@@ -190,7 +182,7 @@ fn term_panels_refuse_missing_native_source_even_when_explanation_bytes_exist() 
         "a different retained owner must never be probed as a fallback"
     );
     let serialized = StageProduct::from_artifacts(
-        "stage-snapshot",
+        "stage-reason",
         BTreeMap::from([(
             crate::stages::reason::EXPLANATIONS_PATH.to_owned(),
             b"outward artifact only".to_vec(),
@@ -198,11 +190,40 @@ fn term_panels_refuse_missing_native_source_even_when_explanation_bytes_exist() 
     );
     assert!(
         term_entailments_from_upstream(
-            &BTreeMap::from([("stage-snapshot".to_owned(), serialized)]),
+            &BTreeMap::from([("stage-reason".to_owned(), serialized)]),
             &terms
         )
         .is_err()
     );
+}
+
+/// Production documentation retains reason before the snapshot can exist.
+#[test]
+fn term_panels_follow_the_actual_documentation_stage_dependencies() {
+    use crate::node::Stage;
+    use crate::stages::{docs_render::DocsRenderStage, reason::ReasonStage};
+
+    let docs = DocsRenderStage::new();
+    let reason = ReasonStage::new();
+    let snapshot = SnapshotStage::new();
+    assert!(docs.carrier_consumes().iter().any(|id| id == reason.id()));
+    assert!(!docs.consumes().iter().any(|id| id == snapshot.id()));
+    assert!(snapshot.consumes().iter().any(|id| id == docs.id()));
+
+    let product = native_upstream(vec![derived(TermValue::iri(ANIMAL))])
+        .remove(reason.id())
+        .unwrap();
+    let upstream = BTreeMap::from([(reason.id().to_owned(), product)]);
+    let terms = [CAT.to_owned()].into_iter().collect();
+    assert_eq!(
+        term_entailments_from_upstream(&upstream, &terms).unwrap()[CAT].len(),
+        1
+    );
+    let released = upstream
+        .into_iter()
+        .map(|(id, product)| (id, product.into_carrier_released().unwrap()))
+        .collect();
+    assert!(term_entailments_from_upstream(&released, &terms).is_err());
 }
 
 /// Missing native firing identity is a hard refusal, never an empty display rule.
