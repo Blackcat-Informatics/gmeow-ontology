@@ -1,0 +1,231 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Rule (agreed)\nSplit by **generic mechanism versus gmeow semantics**, not strictly by RDF versus beyond-RDF:\n\n- **purrdf owns** the generic, logic-agnostic engines and decision procedures, wherever their theory is general:\n  - RDF parsing and serialization, SPARQL and its pushdown;\n  - XSD/OWL datatype value spaces;\n  - Datalog and existential-chase execution;\n  - chase termination certification (WA/JA/SWA/MSA/RJA, Datalog-first);\n  - the OWL-Direct DL hypertableau with absorption, proofs and certificates;\n  - module extraction.\n- **gmeow owns** the `logic:` language, its semantics and its compilation onto those engines:\n  - modal and contextual worlds;\n  - grounding and correspondence laws;\n  - world-scoped refutation ledgers and provenance policy;\n  - the slices and the `gmeow.gts` / `gmeow` CLI deliverables.\n- **Each overlap gets exactly one owner.** The inferior copy is deleted (greenfield), never kept as a fallback.\n- **CLAUDE.md** currently says \"the native `logic:` reasoner is the single reasoning authority\". It should read: the authority on `logic:` **semantics**, executed on purrdf engines.\n\n## Boundary requirements\nThe split only pays if crossing it is cheap and lossless:\n1. **Proofs bound to source premises,** so gmeow ledgers can cite purrdf derivations. purrdf already has `DlProof`, `ChaseProof` and `ServiceProof`.\n2. **World-scoped input:** named graphs as worlds.\n3. **Budgets and stop signals** (`StopSignal` exists).\n4. **Shared-store or delta seams,** so production does not copy a ~690k-fact store per call. These may need adding upstream.\n5. **purrdf release cadence** that keeps up with boundary moves (gmeow pins `purrdf = \"3\"`).\n\n## Current overlap inventory\n| Overlap | gmeow today | purrdf home | Status |\n|---|---|---|---|\n| OWL DL class-model consistency | `logic/src/reason/refute/casesplit.rs`: partial case-split; refuses defined classes and domain/range, about 21k production obstructions (#1757, PR #1802) | `entail::owl_dl`: SHOIQ(D) hypertableau, absorption, `Reasoner::consistency` with `DlCertificate`/`DlProof` | **Next:** benchmark on the production class-model worlds, then delegate and delete `casesplit` |\n| Existential chase and termination ladder | `logic/src/physical/chase.rs` and the joint materializer (WA/JA/SWA/MSA/RJA, Datalog-first, #1796) | `purrdf-datalog` (seminaive, chase, WA only) | #1797 tracks lifting RJA/Datalog-first; the full engine move follows |\n| Datatype semantics | `reason/value.rs` named-datatype membership; `property/datatype/extent.rs`; `anyURI` added in #1802 | `purrdf-xsd` (value-space datatypes; lexical-space types are only constants today) | Upstream lexical-space datatype membership, then drop gmeow's layer |\n| Class-producer per-round re-evaluation | joint family round re-runs the class model every round | goes away with delegation | Folded into the class-model item |\n\nFurther overlaps found along the way get added here, not left implicit.",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABZhu30g",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Benchmark: the class-model worlds on the locked purrdf 3.0.0 hypertableau\n\nThis is the \"benchmark on the production class-model worlds\" step from the overlap table. It goes through gmeow's own `DlReasoner::consistency` seam, using the crates.io `purrdf-entail 3.0.0` that `Cargo.lock` selects. The inputs are the class worlds dumped from the producer after the corpus repairs in #1804. Each run was capped at 60 min and 16 GB.\n\n| World | Answer | Completeness | Boundaries | Time |\n|---|---|---|---|---|\n| Fixture worlds (36: one example, 35 W3C) | 34 answered (26 true, 8 false; the example clash fixture answers `false`). Checked against each case's expected verdict: 33 match W3C. That includes `webont-description-logic-035`, which the native reasoner records as `incomplete`. `webont-Thing-005` answers `consistent` where W3C says inconsistent: `owl:Thing owl:oneOf (s)` is satisfiable under Direct Semantics with a one-element domain, and only inconsistent under the RDF-Based Semantics that case is written for. That is a semantics divergence, not an engine error | 33 decided; one decided-within-boundaries | `fs2rdf-domain-range-expression-ar`: `data-range`, `unrecognized-term` | at most a few ms each |\n| W3C `webont-I5.26-006`, `-007` | **refused** at open: `Malformed: cyclic OWL class expression`. This is an OWL Full-only construct; W3C says consistent | none | none | n/a |\n| `graph/imports` | true | decided-within-boundaries | `data-range` | 24 ms |\n| `graph/logic` | none | timed out | none reported | over 60 min |\n| `graph/rl_default` | none | timed out | none reported | over 60 min |\n\n- The `graph/imports` boundary comes entirely from `rdfs:range xsd:dateTimeStamp`. purrdf 3.0.0 does not decide that datatype exactly, while `xsd:date`, `xsd:dateTime` and `xsd:integer` all decide cleanly. Filed upstream as Blackcat-Informatics/purrdf#451.\n- `graph/logic` and `rl_default` do not decide within the producer budget on the released engine.\n\n**Consequence for the delegation row:** delegating the class model to the released hypertableau cannot make the production verdict conclusive yet. Two things block it: the speed of the engine on the two large worlds, and the `dateTimeStamp` boundary. `casesplit` stays in place until a purrdf release decides these worlds. Deleting it now would replace an honest `unsupported` verdict with timeouts.\n",
+      "createdAt": "2026-10-06T02:25:16Z",
+      "includesCreatedEdit": true,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6008059858",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABZiZwcw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Follow-up: ABox summarization, and the source of every boundary\n\n**Structure.** Neither large world has any role assertion between individuals. The individuals carry only types and data:\n\n| World | Typed individuals | Distinct assertion signatures | Couplers |\n|---|---|---|---|\n| `graph/logic` | 3,047 | 50 | `oneOf` 17, `hasValue` 18, `members` 10 |\n| `graph/rl_default` | 16,887 | 698 | `sameAs` 420, `differentFrom` 2, `hasValue` 25, `oneOf` 18 |\n\n**Summarization.** I kept one representative per identical assertion signature. Any individual that a nominal, a coupler or another axiom names was kept verbatim (862 and 3,032 respectively, most of them punned class terms). Without role edges this is sound and complete for consistency. Results on the locked purrdf 3.0.0:\n\n| Summarized world | Individuals | Result |\n|---|---|---|\n| `graph/imports` | 722 \u2192 5 | true in 2 ms; `data-range` |\n| `graph/logic` | 3,047 \u2192 893 | true, but in **53 min**; `data-range`, `property-chain`, `unrecognized-term` |\n| `graph/rl_default` | 16,887 \u2192 3,673 | no answer in 60 min |\n\nSummarization does not bring `graph/logic` within budget, so the cost is driven by the TBox and not by the individuals.\n\n**Each boundary, reduced to a one-axiom probe:**\n- `data-range`: `rdfs:range xsd:dateTimeStamp`, filed as Blackcat-Informatics/purrdf#451.\n- `property-chain`: any `owl:propertyChainAxiom`, of which `graph/logic` has 9. Filed as Blackcat-Informatics/purrdf#452.\n- `unrecognized-term`, from two separate sources:\n  - `rdfs:range rdf:langString`, filed as Blackcat-Informatics/purrdf#453;\n  - `rdf:type rdf:Statement` on 232 rule-atom nodes. That one is a gmeow defect: the `logic:` rule projection uses RDF 1.1 classic reification. Filed as #1805. The RDF 1.2 `rdf:reifies` triple-term form decides with no boundary on the same engine.\n\n**Where delegation stands.** Even with all four boundary causes fixed, the released engine does not decide `graph/logic` or `rl_default` within the producer budget.\n",
+      "createdAt": "2026-10-06T03:31:22Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6008762483",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcdj4sA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Refreshed the upstream delivery state against the current forge and official\nregistry index:\n\n- PurRDF issues #451 and #453 close against\n  `866765b3e88bb6ae5108e387708d29a85c101b17`; #452 closes against\n  `eb1fd88b0283a8a53efea6374243c4e5c2ff3161`. These are no longer open upstream\n  defects as the earlier benchmark discussion recorded.\n- Both closure commits are strictly after `rust-v3.0.1`: 783 and 800 commits ahead,\n  respectively, with zero commits behind. The official crates.io Git index still\n  lists 3.0.1 as its newest non-yanked `purrdf` entry. GMEOW locks 3.0.0, and a\n  registry update to 3.0.1 would not bring in these fixes.\n- This is publication evidence, not a new performance or semantic benchmark.\n  The old large-world timings are not measurements of the current upstream\n  implementation. Exact production-world decisions, source-bound proofs,\n  world/budget/stop semantics and store seams still need actual consumer evidence\n  before delegation and deletion can qualify.\n\nNo dependency, compiler profile, fallback, selected world or verification gate\nwas changed during this check. The current GMEOW source qualification and normal\noptimized producer build continue; no production completion is claimed.\n",
+      "createdAt": "2026-10-16T00:13:54Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6205012144",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABce0t-g",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "The source-pinned generated-profile bootstrap has now terminated with a real production refusal. Source loading completed in 47.255s, conformance in 359.899s and native reasoning in 1,735.830s (28m55.830s). GTS composition, verification attestation and validation actions completed, but `stage-docs-render` correctly rejected the retained native result: `input=valid`, `evaluation=unsupported`, 16,575 unsupported constructs. This is a failed generation, not a conclusive reasoning certificate.\n\nThe production warnings still include class-expression equivalence, nominal set-equality admission, domain/range and blocked completed reads. Their world-specific log counts are not additive and do not replace the final preservation inventory. These timings describe the current GMEOW native path on the locked 3.0.0 substrate; they are not measurements of the latest PurRDF implementation.\n\nThe official crates.io Git index was refreshed through the GitHub API and still lists 3.0.1 as the latest stable non-yanked `purrdf`. The previously captured ancestry places the three closed upstream boundary fixes after that release. A version bump to 3.0.1 alone therefore does not establish those capabilities or the required production-world decisions.\n\nThe declared ownership split remains in force: benchmark the actual upstream decision procedure on the exact production inputs, preserve source-bound proofs/worlds/budgets/store semantics, then delegate and remove the inferior copy when its acceptance is demonstrated. The unsupported result remains visible. No world selection, verdict guard, dependency source, compiler profile or mandatory gate was weakened.\n\nSeparately, the incorporated list-traversal and empty-generative-round review findings now have local runtime repairs and 135/135 passing affected synthetic controls. Those performance repairs do not claim to resolve this native DL capability boundary. Full generation, asset parity, local/hosted qualification, final review and merge remain open.\n\nPrinciples 4, 7, 17 and 18.\n",
+      "createdAt": "2026-10-16T02:00:42Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6206336506",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcxu9lQ",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Native DL evidence boundary\n\nCommit 10c6e175f removes CertifiedAnswer entirely. Every DL service returns the\nunchanged PurRDF Certified value instead of calling into_parts and copying only\nsix observations. The complete certificate, work/search-shape/preparation/storage\nobservations and any selected ServiceProof now cross the GMEOW boundary intact.\nThere is no compatibility alias, duplicate certificate or new generic engine.\nThe actual consistency/classification/realization CLI callers read answer and\ncertificate directly, preserving their existing grading rules.\n\nExplicit recording and native proof-context construction use the same typed\nGMEOW refusal adapter. The boundary control checks a retained proof and full\ncertificate against a separately prepared consumer context and the exact source,\nand rejects a different source. Unrecorded selection retains absence and cannot\nfabricate an empty checking context. No-model, malformed and execution categories\nand original causes remain distinct. Default execution and dependency identity\n7734b013 are unchanged. Principles 4, 6, 7 and 18 apply.\n\nAll nine selected service tests passed in 0.056s. Strict producer-independent\nworkspace/all-target Clippy passed with warnings denied in 7m06s. All normal\nsigned commit hooks passed. Logs: dl-native-certificate-tests.log,\ndl-native-certificate-clippy.log and dl-native-certificate-commit.log. Push output\nis in dl-native-certificate-push.log.\n\nFour authenticated consumer packages, including the CLI, are excluded by the\nlocal producer-independent targets; their final type/runtime qualification remains\nhosted. No local optimized producer, full gate or machine probe ran. This is a\nprerequisite for the owner split in 1803 and the full 1770 plan, not completed\nclass-engine delegation, a prepared native canon, zero admission blockers, an\ninstalled full-canon proof, or measured pipeline speedup.\n",
+      "createdAt": "2026-10-16T22:50:27Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6226165141",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcybjmg",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Remove the obsolete decimal retry\n\nActual source inspection found that LiteralValue::from_parts retries a rejected xsd:decimal through rational(), which accepts slash syntax. Consequently malformed decimal lexical forms such as 1/2 acquire the value of a valid owl:rational. This is a semantic admission defect, not a performance-only cleanup. The comment justifying the retry assumes a fixed decimal scale, but the pinned PurRDF value parser already returns its arbitrary-scale exact Decimal.\n\nDelete the retry so PurRDF remains the single decimal lexical authority. Retain rejected native literals as opaque observations; do not invent numeric membership or equality. Leave the explicitly separate OWL rational reader and unsupported lexical spaces unchanged. No dependency bump is needed: both local and remote PurRDF main are newer, but the exact pinned implementation already supplies this capability. Principles 4, 6, 7, 17 and 18 apply.\n\nVerification exercises the real NativeValues membership/equality path for malformed fractional/exponent/empty-magnitude decimal syntax, a valid scale-80 exact decimal, and the actual datatype-enumeration consumer: a malformed decimal cannot satisfy the rational half enumeration, while valid decimal half is included and quarter excluded. Run the surrounding synthetic native datatype/refutation/program controls and strict producer-independent Clippy, normal commit hooks, then publish the coherent fix in the existing proof branch and PR. Hosted corpus and full-canon qualification remain required; this does not close the whole engine-ownership issue.\n",
+      "createdAt": "2026-10-16T23:52:09Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6226895770",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcyg9OA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Decimal interpretation keeps one native authority\n\nRemoved the obsolete Err(xsd:decimal) retry from the shared native literal interpreter. PurRDF rejects slash syntax for decimal, but GMEOW retried the rejected text through the OWL rational reader and thereby treated 1/2 typed as decimal as a valid half. That could satisfy a rational value enumeration and establish numeric membership/equality without a valid decimal interpretation.\n\nThe pinned PurRDF parser already returns arbitrary-scale exact Decimal values, so the fixed-scale justification was stale. The replacement deletes six production lines and retains the normal uninterpreted-literal path on native rejection. No alternate parser, compatibility fallback, runtime dependency or dependency bump is introduced. Exact native values, RDF term identity and unsupported observations remain distinct. The remaining GMEOW OWL rational reader is still used for its explicitly selected domain and was not removed wholesale.\n\nRegressions exercise the real NativeValues path with malformed decimal spellings, a valid scale-80 decimal, and the DatatypePlan enumeration consumer. A malformed decimal cannot become the rational half; valid decimal half remains included and quarter excluded. All 27 selected value/datatype/refutation cases passed in 0.180s; decimal-native-owner-tests.log. The initial filter missed the nested program-level modules, so their actual selection ran separately: all 19 passed in 0.625s; decimal-native-owner-program-tests.log. These are 46 passing focused cases, not a whole-canon qualification. Strict producer-independent workspace/all-target Clippy passed in 2m10; decimal-native-owner-clippy.log. All normal commit hooks and push passed for 9fa28c6fe; decimal-native-owner-commit.log and decimal-native-owner-push.log. Source is clean. Hosted new-source acceptance and updated independent review remain pending.\n\nSource/recipe assessment: the pipeline action key includes the exact producer build fingerprint, including called workspace code, so this logic change invalidates stale products without inventing a second cache or weakening authentication. Reasoning already declares recomputation. No local optimized producer, fingerprint, full gate or machine probe ran. No production speedup or full canon/engine-ownership completion is claimed. Principles 4, 6, 7, 17 and 18 apply.\n",
+      "createdAt": "2026-10-16T23:59:25Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6226984248",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABc0bH9g",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# One owner for generic decision procedures\n\nThe complete contract is issue 1803 and its comments. Preserve all logic issue/PR scope. Principles 4, 7, 12, 17, 18 and 19, the repository goals/baseline, and docs/RUST-OPTIMIZATION.md govern this work. GMEOW owns language, worlds, grounding and source-bound evidence; PurRDF owns generic engines. Replaced copies must be deleted, without a fallback or weakened verdict. The separate stable proof PR 1836 is waiting on CI and review; this worktree keeps that qualification source unchanged.\n\n## Task 1: Measure actual recorded production inputs\n\nRecovered stage-source-load, stage-statements and stage-compile-logic contributions from the existing purrdf-3 action store. All declare the pipeline profile, one identical recorded build, stable-prefix persistent contributions, and the current native cache codec. The code may only deserialize their recorded StageKeyContexts and call the strict read-only native PipelineCache getter. Require exact verified receipt equality, all three unique producers and shared build identity. Never derive a current context/fingerprint, run a DAG/fixture producer, recreate a missing contribution or weaken a codec/hash check. The cache reader already checks the complete restored product. No test may call the consumer or rebuild corpus.\n\nAdd one explicit Make-driven example consumer, excluded from Cargo test execution. Reuse the sole production object-EDB assembler, not a copied world reconstruction. List actual nonempty worlds first, then explicitly select the production class-model worlds. Measure native hydration, assembly, preparation, decision and proof replay separately under the unchanged bench profile and locked substrate. Retain native certificate observations, exact input action/receipt/product identities and actual checked proofs. Human certificate Debug output is report-only, never parsed into semantic authority. No process/host probes, environment inspection, caps or compiler/profile changes.\n\nAcceptance: real recorded inputs hydrate through digest and structure checks; missing/edited/wrong-profile/wrong-producer inputs hard-fail with original causes and no writes/recomputation; list reflects the real assembled carrier; selected absent worlds refuse. Native decisions retain completion/boundary/budget/stop observations and their source-checked proofs. A frozen historical input benchmark does not establish current complete-canon qualification. Record the exact source selection and report refusals honestly.\n\n## Task 2: Delegate class reasoning through the native engine\n\nUse measured source/world evidence to choose the real owner path. Preserve every original selected premise and its GMEOW grounding/translation evidence, empty-domain selection, shared-world/store semantics, per-operation budgets and stop signals. Native Certified values remain intact. Add missing generic engine seams upstream rather than implement another generic decision procedure in GMEOW. The current pinned and current upstream public constructors still require RdfDataset; with_stop and with_proofs are separate. Verify the required combined/store seam before claiming readiness. Production unknown/unsupported cannot become a false conclusive answer. Complete class-world qualification and proof controls precede deletion of the inferior casesplit engine and its per-round re-evaluation path.\n\n## Task 3: Complete the remaining overlap inventory\n\nLift generic existential chase and the full termination ladder/Datalog-first scheduling into purrdf-datalog under the owning work. Consume it and remove the duplicate generic implementation while preserving native GMEOW world/contract/evidence policy. Complete native datatype membership in its PurRDF owner, then remove the GMEOW overlap; the already-landed decimal retry deletion is not the whole item. Maintain the live overlap inventory and clarify architecture documentation: GMEOW owns logic semantics executed on PurRDF engines. Dependency changes must use measured exact upstream identities and preserve gates. No new runtime dependency, shim or silent fallback.\n\n## Task 4: Qualify, review and integrate\n\nUse actual consumer operations and focused meaningful controls. Keep benchmark execution outside tests and source lint/corpus-purity seals intact. Run appropriate source/Clippy/helper gates and normal signed hooks, publish concrete evidence to the owning issue/PR and incorporate current-source reviews where possible. Full hosted production/consumer qualification remains required; no local optimized producer/fingerprint is authorized. Final merges use ghprsq with exact Stage evidence, preserving sibling work and the full remaining goal. Missing independent tooling must be reported, never represented as a passed audit.\n",
+      "createdAt": "2026-10-17T03:22:01Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6228985846",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABc0uNDg",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Recorded world consumer: execution evidence\n\nThe consumer is committed and pushed as `0327fb993`. Strict affected-example\nClippy passed with warnings denied; normal commit and push hooks passed.\nThe first bench-profile compilation completed in 25m 39s. This is compilation,\nnot a native reasoning measurement.\n\nThree existing pipeline-profile contributions sharing one recorded build were\nhydrated through the strict native read-only cache. Exact action, receipt,\nproduct and blob identities are retained in the logs and input locator. The\nfirst list operation spent 933ms, 2ms and 3637ms hydrating source-load, statements\nand compile-logic respectively, then 2774ms assembling the object-level carrier.\nIt produced no corpus and wrote nothing to the selected input store.\n\nThe actual assembled assertion census is:\n\n| World | Assertions |\n| --- | ---: |\n| default | 179177 |\n| demo/jointly-acyclic | 22 |\n| demo/model-summarizing-acyclic | 18 |\n| demo/super-weakly-acyclic | 22 |\n| examples | 13436 |\n| imports | 8099 |\n| logic | 52366 |\n| relational-core | 377397 |\n| statements | 114 |\n\nNamed-world IRIs use the `https://blackcatinformatics.ca/gmeow/graph/`\nprefix. Named projection used the native graph operation, including its RDF 1.2\nstatement-layer selection rules.\n\n| Selected world | Prepare | Decision | Proof replay | Native answer | Retained boundaries |\n| --- | ---: | ---: | ---: | --- | --- |\n| imports | 15ms | 13ms | 11ms | True / DecidedWithinBoundaries | DataRange |\n| logic | 259ms | 180ms | 209ms | True / DecidedWithinBoundaries | DataRange, UnrecognizedTerm |\n\nEach decision retained its original native certificate and one proof run, which\nreplayed successfully against the same dataset and Consistency question.\nBoundary-bearing answers are not unrestricted consistency claims and do not\nestablish GMEOW complete-canon admission. There is no measured speedup ratio\nagainst the old class engine on these exact inputs.\n\nAll six actual refusal controls terminated with a failure exit: empty CLI\narguments, missing receipt, wrong producer profile, wrong producer stage,\naltered receipt payload and duplicate source selector. The missing receipt\nretained its original I/O cause. No control invoked a producer or repaired the\ncache. Logs are `control-*.log`; edited selectors are separate Stage files,\nnever mutations of the input store.\n\nThe default operation exposed a defect in this new benchmark: its authored-default\nshortcut selected 180062 assertions before complete object-level filtering,\nwhereas the actual assembled default has 179177. The broader input refused with\nthe original native role-hierarchy InvalidProperty failure at term 6745. That\nrefusal is not a result for the actual assembled default world. The shortcut\nmust be deleted, not retained as a fallback.\n\nActive correction: [PurRDF 566](https://github.com/Blackcat-Informatics/purrdf/issues/566)\nreplaces the named-only projection with one native default-or-named graph\nprojection, migrating existing callers without a legacy alias. Its isolated\nimplementation and graph-isolation controls are in progress. After integration,\nthe GMEOW benchmark will project every selected world from the full production\nassembler and rerun the actual default world. No class-engine deletion or full\nengine migration is claimed yet.\n",
+      "createdAt": "2026-10-17T03:53:29Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6229298446",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABc1AMew",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "The recorded-world benchmark previously selected the authored default before\nobject-level filtering: 180062 assertions instead of the assembled world's\n179177. It now completes the production object-world assembly first, then uses\nthe native graph projection for every selected world. The broader default\nshortcut is removed, and the full EDB is released before native reasoning.\n\nPin PurRDF to `af8936e6f22c70dcbc3f3dc1224be887aba51cc5`, the paired native\nimplementation in Blackcat-Informatics/purrdf#567. Migrate all named graph\ncallers to the unified API without retaining the old method or an alias. Recorded\ninput metadata is checked before hydration; the read-only native cache remains\nthe sole product admission authority. Native certificates and question-bound\nproof replay remain intact.\n\nAdvances #1803. This PR supplies the recorded-input consumer and graph API\nintegration; the complete class-engine delegation and deletion remain open in\nthat issue. The upstream PR must land before this dependent PR is merged.\n\nValidation: the corrected consumer type-check passed against the new API; normal\nsigned commit hooks passed. The earlier authenticated world listing, imports and\nlogic proof replays and six refusal controls are recorded against the earlier\nconsumer commit, not claimed as executions of this corrected default path.\nStrict producer-independent workspace Clippy and the optimized corrected-default\noperation are running on the final pin. Full hosted qualification is pending.\nNo test or local producer rebuilt a corpus. The benchmark is an explicit\nconsumer excluded from Cargo test execution. Its recorded historical inputs\ndo not establish complete admission of today's canonical sources.\n",
+      "createdAt": "2026-10-17T04:23:39Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6229593211",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABc1a8lw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Recorded-input consumer qualification\n\n## Current acceptance update\n\nPurRDF PR 567 merged through ghprsq as ff302c091db9b7aebc497221512549e82a7ab729;\nthe reviewed af8936e6 source remains the exact dependency pin. Its task worktree\nand branch are cleaned up. The source shortcut and retired graph API are deleted.\n\n646bf451f fixes CodeRabbit's listing finding by explicitly flagging zero-count\nworlds as unselectable. Focused type-check, normal signed hooks and push passed;\nthe review reply is published and the thread resolved. Doc comments now explain\nthe recorded consumer boundaries. No independent completion auditor is available;\nowner assessment must not be represented as independent judgment.\n\nFinal executable observations: native-final-list.log lists nine real worlds,\ndefault 179177, imports 8099, logic 52366. native-final-imports.log records native\nTrue/DecidedWithinBoundaries with DataRange, one replayed proof and prepare/decide/\nreplay times 27/36/29ms. native-final-logic.log records the same bounded answer\nwith DataRange and UnrecognizedTerm, one replayed proof, 152/132/97ms. Selection\ntook 287ms and 260ms respectively. These concurrent observations establish no\nspeedup ratio or unrestricted canonical admission.\n\nThe corrected default run completed selection of exactly 179177 assertions,\nthen native preparation REFUSED invalid object property at private term 9336.\nnative-projection-default.log contains no verdict or proof replay. The earlier\n180062-row shortcut refusal is historical, not the actual default result.\nSix final-control-*.log operations passed refusal expectations on the current\nexecutable: empty arguments, missing selector (original I/O cause retained),\nduplicate producer, wrong profile, unexpected producer and altered receipt.\nNo operation rebuilt corpus, derived a current fingerprint, or repaired cache.\n\nHosted run 39002241472 passed producer-build, rust-prebuild, lint and helpers,\nbut generation (both lanes) and fixture-prefix correctly refused a missed fuzz\ndependency pin. Downstream jobs skipped and quality failed. The fuzz manifest\nis corrected; make maint-pin-purrdf changed only its 31 native source references\nand left the production lock unchanged. A TOML comparison passed for all 31\nPurRDF package identities across both locks. Full hosted repair qualification\nremains pending. See fuzz-pin-resolution.log and fuzz-pin-commit.log.\n\nThe full logic goal and issue 1803 remain open, including full class delegation\nand engine deletion. The historical input store is preserved. Its authenticated\nproducts do not establish that current sources have completed the production\npipeline. Native proof and certificate values remain authoritative in memory;\nJSON Debug observations are never reconstructed into a proof authority.\n",
+      "createdAt": "2026-10-17T05:13:34Z",
+      "includesCreatedEdit": true,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6230031511",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABc1dMUA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Recorded native world results\n\nExplicit read-only consumers of the same three authenticated historical products.\nThe implementation is 646bf451f, with the af8936e6 native pin. The later fuzz-only\ndependency alignment does not change these executable paths. All worlds use the\ncomplete production object EDB before native graph selection. No corpus producer,\ncurrent fingerprint, cache repair, profile change or host probe ran. Principles\n4 and 7. Raw results are native-final-*.log; the corrected default operation is\nnative-projection-default.log. Exact input identities remain in\nrecorded-input-locator.json and each operation's hydration observations.\n\nWorld suffixes below use https://blackcatinformatics.ca/gmeow/graph/.\nTimes are prepare / decide / source-bound proof replay in milliseconds. These\nconcurrently observed runs are not a controlled speedup comparison.\n\n| World | Assertions | Native result | Boundaries | Times (ms) | Replayed runs |\n| --- | ---: | --- | --- | --- | ---: |\n| default | 179177 | Preparation refused | Invalid object property, private term 9336 | no decision | 0 |\n| imports | 8099 | True / DecidedWithinBoundaries | DataRange | 27 / 36 / 29 | 1 |\n| logic | 52366 | True / DecidedWithinBoundaries | DataRange, UnrecognizedTerm | 152 / 132 / 97 | 1 |\n| examples | 13436 | True / DecidedWithinBoundaries | DataRange, UnrecognizedTerm | 28 / 6 / 55 | 1 |\n| relational-core | 377397 | True / DecidedWithinBoundaries | DataRange | 921 / 654 / 515 | 1 |\n| statements | 114 | True / Decided | none | 0 / 0 / 0 | 1 |\n| demo/jointly-acyclic | 22 | True / Decided | none | 0 / 0 / 0 | 1 |\n| demo/model-summarizing-acyclic | 18 | True / Decided | none | 0 / 0 / 0 | 1 |\n| demo/super-weakly-acyclic | 22 | True / Decided | none | 0 / 0 / 0 | 1 |\n\nAll eight named selections exited successfully and retained their native\ncertificates and proof contexts. A bounded result is not unrestricted consistency.\nThe default refusal is malformed-input admission, not False or an Unknown\ndecision. None of these OWL Direct operations evaluates GMEOW canonical admission\nor authenticates current complete sources. Native delegation must preserve GMEOW\nclass/source/world/domain semantics before deleting the still-active class\nimplementation. Dropping unsupported premises is not a repair.\n",
+      "createdAt": "2026-10-17T05:17:18Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6230068304",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABc24hMw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "fix(logic): preserve native evidence and portable reasoning identities\n\nAdvances #1803, #1761 and #1762. The complete logic goal remains active; this integration does not close the full class-engine delegation issue.\n\nThe recorded-input consumer assembles the complete production object EDB before selecting a world through the sole native graph projection. Default, IRI and scoped blank graphs preserve independent base, reifier and annotation slots. The source shortcut and retired named-only API are removed. Production and fuzz locks select the reviewed native implementation merged through PurRDF PR 567.\n\nSource and recorded-consumer diagnostics retain ontology failure classes and original causes through report serialization. New terms carry their required annotations and paired translations. All six browser packages share the pinned build recipe. Browser observations use the required monotonic host clock; native observations retain the standard clock. Semantic identity uses canonical PurRDF rule hashes and calculus version, preserving distinct operation contracts and their actual limits. No execution limits, budgets or optimization contracts changed (Principles 4, 7 and 17).\n\nThe incomplete conjecture-only refresher is deleted without an alias. Its replacement verifies the selected seven-fact closure, both conjecture lifecycles and determinism before refreshing both attestations. Tests consume those attestations read-only. The unused historical-codebook restore prototype was removed after the original packet correctly failed current-source admission.\n\nValidation: 41 affected native controls passed in 1.212 seconds, including semantic identity, native parity, failure classes/causes, report projections and numeric execution. All four optimized WebAssembly Node controls passed byte-for-byte against native attestations. Current main compiler changes were synchronized before the final native refresh and browser build. The unchanged query package passed seven Node controls. Helper hygiene and translation lint pass; translation lint reports 427 existing warnings. Normal signed commit hooks and push passed. The final two-line ledger/translation delta changes no qualified Rust/kernel input.\n\nCodeRabbit reviewed 673132cd5 with low merge risk and 88.10 percent doc coverage. Its listing finding is resolved; the sole later minor translation finding is corrected in 9a4d8af8a. The helper census retains the same group and allowance under the replacement refresher name. No merge conflict required discarding either side. No unavailable independent completion audit is represented as passed.\n\nFull hosted CI remains pending, not green. The previous run had killed/canceled producer lanes; the latest helper failure was a stale renamed census member and is repaired locally. The user explicitly requested ghprsq integration now with subsequent CI findings tracked as issues; validation.md retains that instruction verbatim. Full shipped-browser qualification, translation-floor assessment, consumer CLI acceptance and complete-canon acceptance remain open. Historical recorded inputs establish no current-canon verdict. The recorded default selects 179177 assertions then refuses invalid property 9336; no premise was dropped to obtain a verdict.\n\nAuthoritative plan: .stage/split-gmeow-purrdf-responsibilities/plan.md. Selected evidence: .stage/split-gmeow-purrdf-responsibilities. Integration is against origin/main 9cb2cb1fc with the compiler change included in the qualified branch.\n\nDefect-Class: https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure\n",
+      "createdAt": "2026-10-17T08:08:59Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6231564595",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABc29U5A",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "PR 1837 merged through ghprsq as 11c04b49d4fc4d1c594f70b2b7462d128c41f000.\nLocal affected acceptance passed 41 native controls, four browser controls,\nhelper hygiene and translation lint; the two review findings are resolved.\nFull hosted production acceptance remains pending, not passed.\n\nGitHub automatically closed this broader issue on integration. Reopening it:\nthe PR deliberately advances the complete contract and does not satisfy full\nclass-engine delegation/deletion, generic chase/datatype overlap removal, or\ncomplete-canon qualification. Those tasks and the full logic goal remain active.\nThe native default-world preparation refusal is still explicitly recorded; no\npremise or diagnostic boundary was removed to manufacture an answer.\n\nSource and selected Stage evidence are archived separately by ghprsq. This\nstatus is a scope/ownership correction, not a claim of complete issue acceptance.\n",
+      "createdAt": "2026-10-17T08:17:35Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803#issuecomment-6231643364",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-05T13:50:41Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1803,
+  "state": "OPEN",
+  "title": "Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow",
+  "updatedAt": "2026-10-17T08:17:35Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1803"
+}

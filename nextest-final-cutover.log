@@ -1,0 +1,56 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-build-inputs) & binary(native_substrate)) | (package(gmeow-logic) & (test(reason::value::) | test(physical::seminaive::property::datatype) | test(reason::tests::native_contract_hash) | test(reason::tests::portable_semantic_identity))) | (package(gmeow-reason-wasm) & (binary(witness_reason) | binary(witness_conjecture)))' --no-tests=fail
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/build-inputs)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slicetest)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/action-cache)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/xtask)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 47s
+────────────
+ Nextest run ID b8d2a01f-145a-4bc6-abd8-29a6ea93d221 with nextest profile: ci
+    Starting 19 tests across 29 binaries (2315 tests and 197 binaries skipped)
+        PASS [   0.024s] ( 1/19) gmeow-build-inputs::native_substrate native_substrate_binds_the_git_source_and_refuses_mutable_selectors
+        PASS [   0.038s] ( 2/19) gmeow-logic reason::value::tests::cardinality_accepts_the_complete_native_count_domain
+        PASS [   0.038s] ( 3/19) gmeow-logic reason::value::tests::native_literal_membership_and_equality_preserve_large_exact_values
+        PASS [   0.039s] ( 4/19) gmeow-logic reason::value::tests::native_exact_decimal_interpretation_keeps_arbitrary_scale_without_a_retry
+        PASS [   0.040s] ( 5/19) gmeow-logic reason::value::tests::native_any_uri_values_preserve_xml_whitespace_and_reject_invalid_characters
+        PASS [   0.042s] ( 6/19) gmeow-logic reason::value::native_cache_tests::native_schema_values_reuse_interpretations_with_bounded_retention
+        PASS [   0.040s] ( 7/19) gmeow-logic reason::value::tests::native_literal_interpretation_does_not_repair_a_malformed_decimal
+        PASS [   0.044s] ( 8/19) gmeow-logic reason::tests::portable_semantic_identity_excludes_target_execution_contracts
+        PASS [   0.052s] ( 9/19) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_enumeration_compares_collapsed_values
+        PASS [   0.053s] (10/19) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_length_facets_measure_collapsed_characters
+        PASS [   0.054s] (11/19) gmeow-logic physical::seminaive::property::datatype::tests::shared_datatype_subexpressions_do_not_expand_and_completed_plans_survive_rounds
+        PASS [   0.054s] (12/19) gmeow-logic physical::seminaive::property::datatype::tests::malformed_decimal_does_not_satisfy_a_rational_enumeration
+        PASS [   0.056s] (13/19) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_is_an_intrinsic_primitive_datatype
+        PASS [   0.058s] (14/19) gmeow-logic physical::seminaive::property::datatype::tests::datatype_cache_capacity_and_payload_misses_preserve_execution
+        PASS [   0.064s] (15/19) gmeow-logic reason::tests::native_contract_hash_folds_public_admission_and_services
+        PASS [   0.070s] (16/19) gmeow-logic reason::tests::native_contract_hash_folds_the_purrdf_substrate_identity
+        PASS [   0.148s] (17/19) gmeow-reason-wasm::witness_reason native_reason_closure_matches_the_witness_attestation
+        PASS [   0.383s] (18/19) gmeow-reason-wasm::witness_conjecture native_conjecture_verdicts_match_the_witness_attestation
+        PASS [   2.787s] (19/19) gmeow-logic reason::tests::native_contract_hash_frames_every_load_bearing_engine_component
+────────────
+     Summary [   2.817s] 19 tests run: 19 passed, 2315 skipped

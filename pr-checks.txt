@@ -1,0 +1,11 @@
+$ stagectl pr-checks 1838
+IN_PROGRESS generation (a)
+IN_PROGRESS generation (b)
+IN_PROGRESS fixture-prefix
+SUCCESS    producer-build
+SUCCESS    lint
+SUCCESS    helpers
+SUCCESS    rust-prebuild
+SUCCESS    CodeRabbit
+SUCCESS    license/cla
+state: pending

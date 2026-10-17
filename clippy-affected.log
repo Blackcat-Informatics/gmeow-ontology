@@ -1,0 +1,111 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy -p gmeow-build-inputs -p gmeow-logic -p gmeow-reason-wasm --all-targets --keep-going -- -D warnings
+    Checking purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+   Compiling serde_core v1.0.229
+    Checking purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking either v1.17.0
+    Checking regex-automata v0.4.16
+    Checking memchr v2.8.3
+    Checking indexmap v2.14.0
+   Compiling syn v3.0.3
+   Compiling syn v2.0.119
+    Checking purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking arrayvec v0.7.8
+    Checking bitflags v2.13.1
+   Compiling num-traits v0.2.19
+    Checking smallvec v1.15.2
+    Checking tracing-core v0.1.36
+    Checking clap_builder v4.6.2
+    Checking rand v0.9.5
+    Checking gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cost-measure)
+    Checking rayon v1.12.0
+    Checking itertools v0.10.5
+    Checking rustix v1.1.4
+    Checking blake3 v1.8.5
+    Checking petgraph v0.8.3
+    Checking clap v4.6.4
+    Checking criterion-plot v0.5.0
+    Checking chrono v0.4.45
+    Checking tempfile v3.27.0
+    Checking regex v1.13.1
+    Checking rusty-fork v0.3.1
+    Checking serde_json v1.0.151
+    Checking serde_spanned v1.1.1
+    Checking toml_datetime v1.1.1+spec-1.1.0
+    Checking purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-form)
+   Compiling proc-macro-error3 v3.1.1
+   Compiling serde_derive v1.0.229
+    Checking toml v1.1.3+spec-1.1.0
+    Checking purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking serde v1.0.229
+    Checking serde_spanned v0.6.9
+    Checking toml_datetime v0.6.11
+    Checking cargo-config2 v0.1.45
+    Checking either-or-both v0.3.1
+    Checking bincode-next v3.1.1
+    Checking tinytemplate v1.2.1
+    Checking insta v1.48.0
+    Checking toml_edit v0.22.27
+    Checking gungraun-runner v0.19.4
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling zerocopy-derive v0.8.55
+   Compiling tracing-attributes v0.1.31
+   Compiling derive_more-impl v2.1.1
+    Checking toml v0.8.23
+    Checking gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/build-inputs)
+    Checking purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/action-cache)
+    Checking purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+   Compiling derive_more v2.1.1
+    Checking zerocopy v0.8.55
+   Compiling gungraun-macros v0.9.1
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-import)
+    Checking tracing v0.1.44
+    Checking gungraun v0.19.4
+   Compiling wasm-bindgen-macro v0.2.125
+    Checking wasm-bindgen v0.2.125
+    Checking half v2.7.1
+    Checking ppv-lite86 v0.2.21
+    Checking ciborium-ll v0.2.2
+    Checking rand_chacha v0.9.0
+    Checking ciborium v0.2.2
+    Checking proptest v1.11.0
+    Checking criterion v0.5.1
+    Checking purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+    Checking purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=128dda6bfa9926c3bab6ab9e19c148182ee9fec7#128dda6b)
+    Checking gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+    Checking gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+    Checking gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+    Checking gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+    Finished `dev` profile [optimized] target(s) in 2m 03s

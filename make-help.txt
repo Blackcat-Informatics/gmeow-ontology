@@ -1,0 +1,183 @@
+GMEOW task plan
+  [36mprint-binaryen-ver          [0m Print the pinned binaryen release tag (CI provisions exactly this).
+  [36mprint-mdbook-ver            [0m Print the pinned mdBook lane-tool version (Pages caches exactly this).
+
+Core Workflows
+  [36mhelp                        [0m Show the task plan.
+  [36minstall                     [0m Bootstrap a clean clone source-first: build ONLY the producer, materialize generated/ via sync, then build the consumer CLIs that embed the bundle.
+  [36mfmt                         [0m Rewrite Rust formatting with cargo fmt.
+  [36mlint-issue-refs             [0m Reject tracker/reviewer provenance across authored prose and branch-added lines.
+  [36mtest-corpus-scanner         [0m Verify the corpus-purity scanner with inert source fixtures.
+  [36mtest-corpus-purity          [0m Reject every direct or indirect corpus producer reachable from tests.
+  [36mlint                        [0m Run fast source hygiene and inert docs prerequisite controls.
+  [36mvalidate                    [0m Validate syntax, term annotations, merged SHACL, and central mapping/statement/test DSL SHACL.
+  [36mreason                      [0m Run the native Docker-free EL/DL reasoning authority.
+  [36mverify                      [0m Run native reasoned-graph negative tests.
+  [36mreason-verify               [0m Run native reasoning + reasoned-graph verify with one closure.
+  [36mrust-build                  [0m Compile Rust workspace test binaries without running them.
+  [36mrust-prebuild               [0m Compile producer-independent CI test units separately from the optimized corpus producer.
+  [36mclippy-prebuild             [0m Diagnose producer-independent Rust targets before corpus production; the full clippy gate remains required.
+  [36mrust-test                   [0m Run the Rust workspace tests (including carrier/coherence proofs) and doctests.
+  [36mgts-frame-profile-gate      [0m Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with.
+  [36mmedium-gate                 [0m Audit the whole medium axis of the materialized bundle: every frame decoded, every envelope re-derived, every dictionary paid for, and the declared reader contract matched.
+  [36mmedium-consumer-surface     [0m HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites over the authenticated producer-materialized bundle.
+  [36mrust-docs                   [0m Build Rust API docs and fail on broken or redundant public rustdoc links.
+  [36mlsp-build                   [0m Build the gmeow-lsp binary.
+  [36mlsp-release                 [0m Build the gmeow-lsp release binary and stage it into dist/bin/ without compiling unrelated test binaries.
+  [36mproducer-build              [0m Build and authenticate the O3/full-LTO producer independently of test/debug builds.
+  [36mproducer-verify             [0m Authenticate the staged producer against the current build recipe without compiling it.
+  [36mproducer-recipe             [0m Print the resolved producer recipe digest for exact binary-cache admission.
+  [36mproducer-contract-test      [0m Verify executable authentication and resolved build-policy rejection on synthetic inputs.
+  [36msource-identity-test        [0m Exercise source identity and extraction controls on inert synthetic trees; no corpus production.
+  [36msource-extraction-plan      [0m Write a read-only native-kernel test-extraction plan with exact body-preservation evidence.
+  [36msource-extraction-apply     [0m Apply the exact reviewed zero-blocker native test-extraction plan; changed source or plan refuses.
+  [36msource-extraction-verify-format[0m Verify every formatted parent and moved test against the reviewed native extraction plan.
+  [36mproducer-source-extraction-plan[0m Plan test extraction from the exact selected producer/controller module closure without producing a corpus.
+  [36mproducer-source-extraction-apply[0m Apply the reviewed producer test-extraction plan, refusing any changed source or unresolved blocker.
+  [36mproducer-source-extraction-verify-format[0m Verify formatted producer test moves against the exact reviewed extraction plan.
+  [36mcli-build                   [0m Build the self-contained consumer CLI from a clean source checkout.
+  [36mlsp-sarif                   [0m Emit SARIF from all .ttl files in the workspace root (report-only).
+  [36mdiagnostics-rust-sarif      [0m Emit the user-facing rust diagnostics SARIF via gmeow-lsp.
+  [36mcheck                       [0m Synchronize generated outputs, then run the local gate DAG (every task, accurate dependencies). THE developer entry point: it materializes generated/ AND gates, in one host-locked run.
+  [36mheavy                       [0m CI-ONLY breadth lane: the soak / whole-corpus / cross-toolchain gates lifted off `make check`. Refuses to run outside CI.
+  [36mcheck-sync                  [0m The one pipeline producer: materialize (SYNC_MODE=update) or read-only verify (default) generated/ + the bundle. Scope with SYNC_OUTPUTS={generated,docs,all}, stream stages with SYNC_VERBOSE=1. You almost never want this directly — `make check` runs it for you and then gates.
+  [36mcheck-sync-prerequisite-test[0m Verify docs prerequisite failure propagation using inert producer stubs.
+  [36mi18n-lint                   [0m Reject malformed or mechanically corrupted committed translations.
+
+Generated Artifacts And Outputs
+  [36mregen                       [0m REFUSES — the pipeline has ONE producer. Run `make check` (materializes AND gates, one host-locked run) or, for artifacts without the gate, `make check-sync SYNC_MODE=update`.
+  [36mfanout                      [0m Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
+  [36mcommit                      [0m Synchronize artifacts, stage generator-owned outputs, and commit.
+  [36mnormalize                   [0m Rewrite authored ontology sources into canonical serialization.
+  [36mbuild                       [0m Build the Rust CLIs plus serializations and JSON-LD context into dist/.
+  [36mproject                     [0m Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles.
+  [36mrelease                     [0m Materialize from source (update mode), native-reason, build, report, docs, and emit CrossRef deposit.
+  [36mrelease-sign-gts            [0m Sign the regenerated GTS bundle for release packaging.
+  [36mfull-release                [0m Signed release-as-evidence: gate + oracle lane + conformance + perf, folded + signed + DOI (§18).
+  [36mverify-release              [0m Consumer verification of a signed release bundle: signature + trust policy + attestation frames (§18).
+  [36mrelease-publish             [0m USER-driven publish of a verified signed bundle: content-addressed GitHub release + Crossref DOI deposit (§18 step 7).
+  [36mclean                       [0m Remove ephemeral build artifacts.
+
+Project Gates
+  [36mmappings                    [0m Build alignment axioms and VoID linksets from SSSOM mappings.
+  [36mwikidata                    [0m Validate Wikidata QID/PID syntax in mappings, offline.
+  [36mcoverage                    [0m Gate vendored entity-slice class and predicate coverage.
+  [36mslice-quality               [0m Score one slice against the slice-quality rubric (advisory). Usage: make slice-quality SLICE=slices/core/tags
+  [36mslice-quality-gate          [0m Enforce the opt-in slice-quality tier ratchet (reads the recorded quality-assessment record; never re-scores).
+  [36mslice-quality-seed-floors   [0m Emit gmeow:AxisFloorCommitment TTL for live scores to seed a NEW axis's floors (one-shot). Usage: make slice-quality-seed-floors AXIS=axisShapeMigration (or ALL_AXES=1)
+  [36macceptance                  [0m HEAVY (CI-only lane, `make heavy`) full transpile-recall gate over every external RDF snapshot.
+  [36mcrossref                    [0m Generate the CrossRef DOI deposit XML.
+  [36maudit                       [0m Run claim audit gates over the worked fixture.
+  [36mconstitution-check          [0m Verify every constitutional principle has live enforcement.
+  [36mcrate-check                 [0m Verify Rust crate layering and acyclic crate DAGs.
+  [36mhelpers-hygiene             [0m Prove helpers-ledger.toml holds (one home per job, PurRDF's where it exists), duplication debt only shrinks, and no replaced dependency returns.
+  [36mlint-alignment              [0m Lint SSSOM mappings for inverse and domain/range mismatches.
+  [36mdoc-lint                    [0m Lint ontology-docs for dangling links and coverage gaps.
+  [36mrust-gate                   [0m Aggregate alias: the whole Rust surface; nextest owns carrier/coherence proofs from the shared inventory.
+  [36mproduce-test-fixtures       [0m Explicitly produce exact content-addressed corpus fixtures with the optimized producer before tests.
+  [36mproduce-producer-independent-test-fixtures[0m Explicitly produce optimized DAG-stage fixtures before generated/ is available.
+  [36mproduce-producer-bound-test-fixtures[0m Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
+  [36mproduce-bundle-import-test-fixture[0m Explicitly produce only exact bundle-bound fixtures for focused consumer diagnosis.
+  [36mproduce-conformance-heavy-test-fixtures[0m Explicitly produce exhaustive native divergence observations after the required fixture selector exists.
+  [36mverify-conformance-heavy-test-fixtures[0m Authenticate the separately selected exhaustive divergence observations read-only.
+  [36mconformance-heavy           [0m HEAVY (CI-only lane, `make heavy`) exhaustive native OWL-Full divergence and class-diagnostic corpus.
+  [36mverify-test-fixtures        [0m Authenticate all required test fixtures read-only; fail on every miss or identity mismatch.
+  [36mverify-producer-independent-test-fixtures[0m Authenticate producer-selected DAG-stage fixtures read-only.
+  [36mverify-wasm-codebook        [0m Authenticate the exact producer-built browser codebook read-only.
+  [36mverify-producer-bound-test-fixtures[0m Authenticate docs and exact generated-bundle import fixtures read-only.
+  [36mverify-bundle-import-test-fixture[0m Authenticate only the exact generated-bundle import fixture read-only.
+  [36mnextest                     [0m Run the Rust workspace test suite on the gate profile without any corpus producer path.
+  [36mnextest-synthetic           [0m Run an explicit NEXTEST_FILTER over synthetic tests without admitting any corpus fixture; development only.
+  [36mnextest-evidence-tools      [0m Build the exact report-only resource/JUnit tools shipped beside the test archive.
+  [36mnextest-archive             [0m Build one authenticated CI-profile nextest archive after read-only fixture verification.
+  [36mnextest-archive-verify      [0m Verify an existing nextest archive receipt and exact slice partition coverage.
+  [36mdoctests                    [0m Run the Rust workspace doctests.
+  [36mcoherence-gate-teeth        [0m Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
+  [36mclippy                      [0m Run cargo clippy on all Rust targets with warnings as errors.
+  [36mcarrier-purity              [0m Prove the pipeline inter-stage carrier/transport path uses no oxigraph Store accumulation (C11).
+  [36mwasm                        [0m Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + reasoner + GMN codec + MCP engine) build for wasm32.
+  [36mvalidate-wasm-pkg           [0m Build the gmeow-validate-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+  [36mvalidate-wasm-pkg-test      [0m Build the validator npm package and run its Node real-execution round-trip lane.
+  [36mreason-wasm-pkg             [0m Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+  [36mmaint-refresh-reason-witness[0m Refresh both verified native reasoner attestations consumed read-only by parity tests.
+  [36mmaint-refresh-reason-asset  [0m Refresh both native witnesses, prove Node parity, then re-vendor the reasoner and its BLAKE3 manifest.
+  [36mreason-wasm-pkg-test        [0m Build the reasoner npm package and run its Node native↔wasm parity witness lane.
+  [36mgmn-wasm-pkg                [0m Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+  [36mmaint-refresh-gmn-asset     [0m Re-vendor the gmeow-gmn-wasm engine into crates/docs/assets/gmn/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+  [36mgmn-wasm-pkg-test           [0m Build the GMN codec npm package and run its Node native↔wasm parity witness lane.
+  [36mquery-wasm-pkg              [0m Build the gmeow-query-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+  [36mmaint-refresh-query-asset   [0m Prove the fresh query package, re-vendor it, then verify the shipped engine and its BLAKE3 manifest.
+  [36mquery-wasm-pkg-test         [0m Build the query engine npm package and run its Node native↔wasm parity witness lane.
+  [36mmaint-refresh-validate-witness[0m Refresh the native validation attestation from the existing bundle; review the diff, then run native and Node parity.
+  [36mmaint-prepare-wasm-assets   [0m Prepare all six browser assets and stamps; verification remains mandatory through maint-refresh-wasm-assets.
+  [36mmaint-refresh-wasm-assets   [0m Prepare all browser assets, produce and gate once, then verify every Node parity lane against that bundle.
+  [36mmaint-pin-purrdf            [0m Resolve the authored exact PurRDF Git revision in production and fuzz locks; qualification is separate.
+  [36mmaint-bump-purrdf           [0m Select VERSION within the declared PurRDF requirements, update both locks, and gate every wasm engine.
+  [36mmcp-wasm-pkg                [0m Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+  [36mmaint-refresh-mcp-witness   [0m Refresh the deterministic native MCP response attestation consumed read-only by native/wasm parity tests.
+  [36mmaint-refresh-mcp-asset     [0m Refresh mcp and mcp-core together and verify their complete joint contract.
+  [36mmaint-refresh-mcp-core-asset[0m Refresh mcp-core and mcp together and verify their complete joint contract.
+  [36mmaint-refresh-mcp-assets    [0m Rebuild and verify both MCP segments, then publish both before their joint asset gate.
+  [36mmcp-wasm-pkg-test           [0m Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
+  [36mmcp-core-wasm-pkg           [0m Build the gmeow-mcp-core-wasm npm/ESM package (the LEAN first-load engine: release wasm + wasm-bindgen web bindings).
+  [36mmcp-core-wasm-pkg-test      [0m Build the lean core npm package and run its Node parity + demand-load lane.
+  [36mconsole-test                [0m Run the standalone console's DOM-free acceptance lane against the shipped wasm engine.
+  [36mconsole                     [0m Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) — the tree `console-smoke` drives.
+  [36mconsole-smoke               [0m HEAVY (CI-only lane, `make heavy`) drive the assembled console's whole browser/package breadth sweep.
+  [36mnpm-publish-dry             [0m Network-safe `npm publish --dry-run` over every package this repo publishes.
+  [36mnpm-consumable              [0m Prove every published package is CONSUMABLE: pack -> install the tarball into a temp project -> run the witness against the INSTALLED package.
+  [36mconsole-assemble            [0m Assemble the standalone <gmeow-console> tree for local preview (the `console` target, under its long name).
+  [36mwasm-parity                 [0m HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the six Node lanes that RUN the shipped wasm and assert byte-identity to native.
+  [36mmaint-rust-heavy            [0m Run the Rust suite INCLUDING the off-gate heavy and #[ignore]d tests, with corpus fixtures strictly read-only.
+  [36mmaint-lang-corpus-sweeps    [0m Round-trip a real UD treebank and OntoLex lexicon. Requires GMEOW_UD_TREEBANK and GMEOW_ONTOLEX_LEXICON; no corpus data ships with the repo.
+  [36mmaint-docs-measure-determinism[0m Verify two independent documentation productions and their size accounting with the admitted O3/full-LTO producer.
+  [36mslicetest                   [0m Run focused synthetic checks for the slice engine; declarative repository specs are already covered by the authenticated producer verdict.
+  [36mconformance                 [0m Grade authenticated native conformance results and run focused conformance machinery checks.
+  [36mconformance-report          [0m Materialize the logic conformance suite verdicts as a foldable release artifact (§18).
+  [36minsta-review                [0m Regenerate intentional insta snapshot goldens, then verify determinism.
+
+CI And Report-Only Work
+  [36mfuzz-substrate-check        [0m Verify identical committed PurRDF resolutions for production and fuzzing, without updating them.
+  [36mfuzz-smoke                  [0m Run bounded coverage-guided fuzz smoke tests for each format frontend.
+  [36mbench                       [0m Run criterion benchmarks with host-tuned codegen.
+  [36mbench-class-evidence-build  [0m Compile the class-evidence benchmark without running measurements.
+  [36mbench-class-evidence        [0m Measure native class evidence; CLASS_EVIDENCE_FILTER selects cases.
+  [36mcheck-recorded-class-consistency[0m Type-check the explicit recorded-input benchmark without running it.
+  [36mbench-recorded-class-consistency[0m Consume verified recorded pipeline inputs; select a world or list, without producing corpus.
+  [36mbench-compare               [0m Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
+  [36mbench-golden-gate           [0m On-gate native-vs-golden agreement gate: run the native engine over the committed mini corpora and hard-fail on any golden divergence (no live oracle — cheap).
+  [36mbench-soak                  [0m HEAVY (CI-only lane, `make heavy`) divergence-ledger soak window: run the deterministic native-vs-golden check 3× and require gap-zero with a byte-identical digest (no live oracle).
+  [36mperf-gate                   [0m Report-only timings for validate, generated drift, reason, and verify.
+  [36mperf-sample                 [0m Record one exact paired wall/CPU/RSS/I/O sample (PERF_SAMPLE_ARGS required).
+  [36mperf-accept                 [0m Report paired cold/warm/partial samples with explicitly selected timing targets.
+  [36mperf-ci-receipt             [0m Capture one successful Actions run's actual job graph and critical path.
+  [36mrust-coverage               [0m Generate report-only Rust region coverage.
+  [36mmutants                     [0m Run report-only cargo-mutants over the configured scope.
+  [36mcompliance-report           [0m Emit dist/compliance-report.ttl from already-passing gates.
+
+Maintainer Tasks
+  [36mmaint-mdbook-smoke          [0m Build and audit the emitted interactive mdBook with pinned off-gate mdBook lane tooling.
+  [36mmaint-extract               [0m Run import/extract policy for TARGET.
+  [36mmaint-refresh-target-axioms [0m Re-vendor minimal target-axiom snapshots.
+  [36mmaint-refresh-reviewed-coverage-golden[0m Refresh the deterministic reviewed-translation coverage golden from all live slice catalogs.
+  [36mmaint-refresh-describe-witness[0m Refresh the verified explorer description attestation using O3/full LTO.
+  [36mmaint-refresh-validate-asset[0m Re-vendor the gmeow-validate-wasm engine into crates/docs/assets/validate/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+  [36mmaint-wikidata-live         [0m Verify Wikidata identifiers resolve over the network.
+  [36mmaint-wikidata-coverage     [0m Report Wikidata mapping coverage by domain.
+  [36mmaint-wikidata-audit        [0m Audit fixtures and modules for Wikidata misuse.
+  [36mmaint-quality               [0m Run OOPS! network pitfall scan.
+  [36mmaint-evals-score           [0m Score committed model emissions against the eval contract.
+  [36mmaint-compliance-report-full[0m Run in-process gates and emit dist/compliance-report.ttl.
+  [36mmaint-bench-baseline        [0m (maintainer) Refresh bench/baseline.json from a fresh criterion run.
+  [36mmaint-bench-instructions    [0m (maintainer) Deterministic retired-instruction counts for the engines via Gungraun under Valgrind (off-gate corroboration; NOT wired into `make check`).
+  [36mmaint-bench-engines         [0m (maintainer) Native benchmark over the committed mini corpora: emit deterministic cost/agreement + report-only wall/RSS evidence.
+  [36mmaint-cl-ingest-fixture     [0m (maintainer) Produce the committed CLIF ingestion fixture from its canonical logic source with O3/full LTO.
+  [36mmaint-medium-sweep          [0m (maintainer) Refresh bench/medium-baseline.json — the full dictionary strategy x target-length sweep plus the global codec x level sweep.
+  [36mmaint-refresh-term-release-authority[0m (maintainer) Advance the computed term-changelog authority at an accepted release boundary.
+  [36mmaint-medium-model-facing-diff[0m (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
+  [36mmaint-bench-cost-baseline   [0m (maintainer) Refresh bench/cost-baseline.json from a fresh native run (offline; the drift-gated cost-ledger source).
+  [36mmaint-external-corpora      [0m Grade the native reasoner against the full Lane-B external corpora (W3C OWL 2 suite + ORE 2015) over the network; record divergences as a gmeow:Finding graph.
+  [36mmaint-tptp-corpus           [0m Grade the native FOL path against a live/local TPTP subset (Lane-B, per-problem licensed, NEVER vendored); record divergences as a gmeow:Finding graph.
+  [36mmaint-ontouml-corpus        [0m Grade the native foundation disciplines against a live/local FAIR OntoUML/UFO catalog subset (Lane-B, CC BY-SA — NEVER vendored); record divergences as a gmeow:Finding graph.
+  [36mmaint-chasebench-corpus     [0m (maintainer) Fetch dbunibas/chasebench, check its license, and HARD-FAIL (no license -> ReferenceOnly; NEVER in `make check`).
+  [36mmaint-gmn-cost-matrix       [0m (maintainer) Full five-family GMN token-cost matrix over the emitted GMN/Turtle/JSON-LD grounding serializations; flags byte-fragmenting glyphs per vocab. OFF-gate (INFORMS; never in `make check`).
