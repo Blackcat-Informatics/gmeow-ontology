@@ -382,10 +382,12 @@ define_diag_kind! {
 /// exactly once — [`register_all`] seeds them and the collision test proves the
 /// code strings are distinct.
 pub const LOGIC_DIAG_CODES: &[&str] = &[
+    BuiltinRefusal::CODE,
     Ir::CODE,
     Query::CODE,
     Reason::CODE,
     DlService::CODE,
+    NativeBuiltin::CODE,
     NativeCoverage::CODE,
     NativeSourceAdmission::CODE,
     Engine::CODE,
@@ -414,10 +416,12 @@ pub const LOGIC_DIAG_CODES: &[&str] = &[
 /// Eagerly intern every reasoning-core diagnostic code (idempotent).
 pub fn register_all() -> Vec<Code> {
     vec![
+        BuiltinRefusal::register(),
         Ir::register(),
         Query::register(),
         Reason::register(),
         DlService::register(),
+        NativeBuiltin::register(),
         NativeCoverage::register(),
         NativeSourceAdmission::register(),
         Engine::register(),

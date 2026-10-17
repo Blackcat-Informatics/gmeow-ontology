@@ -876,14 +876,8 @@ fn lower_one_violation_constraint(
 
     // The antecedent: ordinary positive body atoms, the same per-atom reification the
     // formula lane uses. These are what BIND the focus variable.
-    let mut ante_conjuncts: Vec<&Formula> = Vec::new();
-    flatten_and(antecedent, &mut ante_conjuncts);
-    let mut ante_atoms: Vec<RcAtom> = Vec::new();
-    for conjunct in &ante_conjuncts {
-        let atoms = formula_atom_to_rc_atoms(conjunct, AtomPosition::Body)
-            .map_err(|_| RcViolationGap::UnsupportedAntecedent)?;
-        ante_atoms.extend(atoms);
-    }
+    let mut guard_lowering = GuardLowering::new(&constraint.integrity);
+    let ante_atoms = guard_lowering.lower(antecedent)?;
     let subject = RcTerm::Var(format!("?{focus}"));
     // Safety: only a POSITIVE literal can bind the head's subject. A NAF literal is a
     // membership test over already-bound terms, never a generator.
@@ -904,10 +898,7 @@ fn lower_one_violation_constraint(
     for (conjunct_index, (guards, universals, conjunct)) in cons_conjuncts.into_iter().enumerate() {
         let mut body = ante_atoms.clone();
         for guard in guards {
-            body.extend(
-                formula_atom_to_rc_atoms(guard, AtomPosition::Body)
-                    .map_err(|_| RcViolationGap::UnsupportedAntecedent)?,
-            );
+            body.extend(guard_lowering.lower(guard)?);
         }
         if let Formula::Atom {
             relation: Term::Iri(relation),
@@ -978,6 +969,132 @@ fn lower_one_violation_constraint(
         });
     }
     Ok(out)
+}
+
+/// Reserve every authored variable and binder before inventing fresh names.
+fn collect_names(formula: &Formula, names: &mut BTreeSet<String>) {
+    match formula {
+        Formula::Atom { relation, args } => {
+            collect_term_names(relation, names);
+            for arg in args {
+                collect_term_names(arg, names);
+            }
+        }
+        Formula::Exists { vars, body } | Formula::Forall { vars, body } => {
+            names.extend(vars.iter().map(|name| format!("?{name}")));
+            collect_names(body, names);
+        }
+        Formula::And(parts) | Formula::Or(parts) => {
+            for part in parts {
+                collect_names(part, names);
+            }
+        }
+        Formula::Not(body) => collect_names(body, names),
+        Formula::Implies(left, right) | Formula::Iff(left, right) => {
+            collect_names(left, names);
+            collect_names(right, names);
+        }
+    }
+}
+
+fn collect_term_names(term: &Term, names: &mut BTreeSet<String>) {
+    match term {
+        Term::Var(name) | Term::SequenceMarker(name) => {
+            names.insert(format!("?{name}"));
+        }
+        Term::App { args, .. } => {
+            for arg in args {
+                collect_term_names(arg, names);
+            }
+        }
+        Term::Iri(_) | Term::Literal(_) => {}
+    }
+}
+
+/// Rename a term through its innermost lexical binder, preserving native constants.
+fn rename_scoped_term(term: &Term, scope: &[(String, String)]) -> Term {
+    match term {
+        Term::Var(name) => scope
+            .iter()
+            .rev()
+            .find(|(authored, _)| authored == name)
+            .map_or_else(|| term.clone(), |(_, fresh)| Term::Var(fresh.clone())),
+        Term::App { symbol, args } => Term::App {
+            symbol: symbol.clone(),
+            args: args
+                .iter()
+                .map(|arg| rename_scoped_term(arg, scope))
+                .collect(),
+        },
+        _ => term.clone(),
+    }
+}
+
+/// Positive guard matches use fresh lexical bindings, never head witnesses.
+struct GuardLowering {
+    used: BTreeSet<String>,
+    scope: Vec<(String, String)>,
+    next: usize,
+}
+
+impl GuardLowering {
+    fn new(integrity: &Formula) -> Self {
+        let mut used = BTreeSet::new();
+        collect_names(integrity, &mut used);
+        Self {
+            used,
+            scope: Vec::new(),
+            next: 0,
+        }
+    }
+
+    fn lower(&mut self, formula: &Formula) -> Result<Vec<RcAtom>, RcViolationGap> {
+        let mut atoms = Vec::new();
+        self.visit(formula, &mut atoms)?;
+        Ok(atoms)
+    }
+
+    fn visit(&mut self, formula: &Formula, atoms: &mut Vec<RcAtom>) -> Result<(), RcViolationGap> {
+        match formula {
+            Formula::And(parts) => {
+                for part in parts {
+                    self.visit(part, atoms)?;
+                }
+                Ok(())
+            }
+            Formula::Exists { vars, body } => {
+                let depth = self.scope.len();
+                for name in vars {
+                    let fresh = loop {
+                        let candidate = format!("existG{}", self.next);
+                        self.next += 1;
+                        if self.used.insert(format!("?{candidate}")) {
+                            break candidate;
+                        }
+                    };
+                    self.scope.push((name.clone(), fresh));
+                }
+                let result = self.visit(body, atoms);
+                self.scope.truncate(depth);
+                result
+            }
+            Formula::Atom { relation, args } => {
+                let atom = Formula::Atom {
+                    relation: relation.clone(),
+                    args: args
+                        .iter()
+                        .map(|term| rename_scoped_term(term, &self.scope))
+                        .collect(),
+                };
+                atoms.extend(
+                    formula_atom_to_rc_atoms(&atom, AtomPosition::Body)
+                        .map_err(|_| RcViolationGap::UnsupportedAntecedent)?,
+                );
+                Ok(())
+            }
+            _ => Err(RcViolationGap::UnsupportedAntecedent),
+        }
+    }
 }
 
 /// Only a positive stored relation can generate an operand binding.

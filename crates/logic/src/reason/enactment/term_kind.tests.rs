@@ -26,10 +26,11 @@ fn findings(kind: &str, class_scoped: bool, data: &str) -> Vec<(String, String, 
                 logic:formalizes ex:Projection ; gmeow:enforcesFailureClass ex:BadMetadata ."
         ),
         data,
+        1,
     )
 }
 
-fn authored_findings(law: &str, data: &str) -> Vec<(String, String, String)> {
+fn authored_findings(law: &str, data: &str, rule_count: usize) -> Vec<(String, String, String)> {
     let source = purrdf::parse_dataset(format!("{PREFIXES} {law}").as_bytes(), "text/turtle", None)
         .expect("independent authored law parses");
     let (constraints, diagnostics) = extract_all_constraints(&source);
@@ -38,7 +39,7 @@ fn authored_findings(law: &str, data: &str) -> Vec<(String, String, String)> {
     let program = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(constraints);
     let laws = crate::relational_core::lower_violation_rules(&program).unwrap();
     assert!(laws.residue.is_empty(), "{:?}", laws.residue);
-    assert_eq!(laws.rules.len(), 1);
+    assert_eq!(laws.rules.len(), rule_count);
     let edb = purrdf::parse_dataset(format!("{PREFIXES} {data}").as_bytes(), "text/turtle", None)
         .expect("independent input parses");
     enactment_gate_markers_with_laws(&edb, &[], &laws)
@@ -181,7 +182,8 @@ fn required_single_metadata_still_rejects_distinct_iri_values() {
             ex:good a ex:Record ; ex:metadata ex:One .
             ex:bad a ex:Record ; ex:metadata ex:One, ex:Two .
             ex:unrelated a ex:Other ; ex:metadata ex:One, ex:Two .
-        "#
+        "#,
+            1,
         ),
         bad_record()
     );
@@ -198,7 +200,32 @@ fn comparison_findings(operator: &str, data: &str) -> Vec<(String, String, Strin
     "#
         ),
         data,
+        1,
     )
+}
+
+#[test]
+fn cooccurrence_guards_preserve_both_directions_and_absence() {
+    let law = r#"
+        ex:KindLaw a logic:CrossNodeConstraint ; logic:onClass ex:Record ;
+            logic:roleA ex:left ; logic:roleB ex:right ; logic:crossMode "co-occur" ;
+            logic:formalizes ex:Projection ; gmeow:enforcesFailureClass ex:BadMetadata .
+    "#;
+    for data in [
+        "ex:bad a ex:Record ; ex:left ex:Value .",
+        "ex:bad a ex:Record ; ex:right ex:Value .",
+    ] {
+        assert_eq!(authored_findings(law, data, 2), bad_record());
+    }
+    assert!(
+        authored_findings(
+            law,
+            "ex:complete a ex:Record ; ex:left ex:A ; ex:right ex:B .
+         ex:absent a ex:Record . ex:unrelated a ex:Other ; ex:left ex:A .",
+            2,
+        )
+        .is_empty()
+    );
 }
 
 #[test]
