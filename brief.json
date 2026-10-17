@@ -1,0 +1,119 @@
+{
+  "issue": 1770,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "feat: certify and precompile the complete canon for consumer proof",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1768": "feat: add a first-class consumer prover entry point",
+    "1755": "[bug] Compact LogicAxiom lowering collapses distinct RDF literal identities",
+    "1712": "logic/mappings: salvage the correspondence frontend \u2014 dsl/mappings cells as logic:Correspondence IR",
+    "1737": "logic: project certified protocol roles into orchestrations",
+    "1738": "perf: execute the production pipeline as a certified deontic work graph",
+    "1770": "feat: certify and precompile the complete canon for consumer proof",
+    "1825": "build: reconcile producer input selection with compiled docs-print sources",
+    "1827": "fix(build): preserve producer identity and fail docs prerequisites closed",
+    "1826": "build: stop docs synchronization when a prerequisite fails",
+    "1751": "logic: TPTP-FOF export + external prover harness (whole-corpus FOL verdicts)",
+    "1704": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+    "1748": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+    "1741": "logic: complete typed correspondence execution and law-bearing source recovery",
+    "1743": "perf: certify correspondence normalization and physical fusion",
+    "1744": "logic: complete correspondence targets and executable openEHR exemplars",
+    "1745": "perf: adopt typed correspondence execution throughout the production pipeline",
+    "1735": "logic: derive per-step deontic work-graph assessments",
+    "1736": "logic: implement compositional intent algebra and revision",
+    "1742": "logic: implement correspondence composition and standpoint-indexed merge",
+    "1731": "build: authenticate an O3 full-LTO pipeline producer",
+    "1732": "perf: persist completed producer fixtures across CI runs",
+    "1734": "logic: evaluate LTLf operators over enactment journals",
+    "1746": "logic: non-entailment obligation discharge misses logic:instanceOf-typed obligations",
+    "1752": "slice-quality: an external-corpus mode for sacred/consumer slices outside the GMEOW checkout",
+    "1750": "cli: consistency-family commands need gate-able exit codes and machine-readable verdicts"
+  },
+  "link_relations": {
+    "1768": "mentions",
+    "1755": "mentions",
+    "1712": "depends on",
+    "1737": "mentions",
+    "1738": "mentions",
+    "1770": "mentions",
+    "1825": "mentions",
+    "1827": "mentions",
+    "1826": "mentions",
+    "1751": "2-hop",
+    "1704": "2-hop",
+    "1748": "2-hop",
+    "1741": "2-hop",
+    "1743": "2-hop",
+    "1744": "2-hop",
+    "1745": "2-hop",
+    "1735": "2-hop",
+    "1736": "2-hop",
+    "1742": "2-hop",
+    "1731": "2-hop",
+    "1732": "2-hop",
+    "1734": "2-hop",
+    "1746": "2-hop",
+    "1752": "2-hop",
+    "1750": "2-hop"
+  },
+  "related": [],
+  "defect_classes": {
+    "none": 4,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 2,
+    "consumer-artifact-path-coupling": 1
+  },
+  "prior_attempts": {
+    "commits": [
+      "e82713091 fix(proof): retain formula context requirements at FOF admission",
+      "816a604cd fix(logic): prepare exact questions for native proof checking",
+      "10c6e175f refactor(logic): retain native DL certificates and proofs",
+      "4b733c636 docs(logic): describe admission ownership and archive guarantees"
+    ],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1831,
+        "title": "feat(logic): extend certified source laws and contract admission",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1831",
+        "this_stage": true
+      },
+      {
+        "number": 1771,
+        "title": "fix(1768): ship self-contained prover binary",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1771",
+        "this_stage": false
+      },
+      {
+        "number": 1802,
+        "title": "fix(logic): integrate PurRDF main and production reasoning repairs",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1802",
+        "this_stage": false
+      },
+      {
+        "number": 1832,
+        "title": "feat(logic): preserve canon admission and native proof evidence",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1832",
+        "this_stage": true
+      }
+    ],
+    "own_branch": "paudley/1770-certify-and-precompile-the-complete"
+  },
+  "coverage": [
+    "issue #1770 + 17 comment(s) via github",
+    "link crawl: 25 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['feat:', 'certify', 'precompile']: 0 other item(s)",
+    "GhpRsq-Defect-Class trailers: 4 distinct class(es) in the last 200 commits",
+    "prior attempts: 4 commit(s) citing #1770 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1770: 4",
+    "requirement candidates: 43 line(s); 3 comment(s) matched no rule",
+    "referenced artifacts: 1 path(s) (0 on disk), 8 identifier(s), 1 workspace package(s), 1 URL(s)"
+  ]
+}

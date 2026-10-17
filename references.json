@@ -1,0 +1,55 @@
+{
+  "paths": [
+    {
+      "ref": ".stage/certify-and-precompile-the-complete/plan.md",
+      "path": "/home/paudley/Active/gmeow-ontology/.stage/certify-and-precompile-the-complete/plan.md",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "UNSUPPORTED_CLASS_EXPRESSION",
+      "files": 4
+    },
+    {
+      "name": "CONTEXT_ERASURE_FORBIDDEN",
+      "files": 6
+    },
+    {
+      "name": "UNSUPPORTED_SELECTED_OWNER",
+      "files": 2
+    },
+    {
+      "name": "RULE_TERM_DISTINCT_REQUIRES_BINDING_SEMANTICS",
+      "files": 1
+    },
+    {
+      "name": "COMPILER_ERROR_IN_SELECTED_THEORY",
+      "files": 2
+    },
+    {
+      "name": "gmeow.gts",
+      "files": 456
+    },
+    {
+      "name": "FullIndependence",
+      "files": 21
+    },
+    {
+      "name": "ProbabilityModel",
+      "files": 41
+    }
+  ],
+  "packages": [
+    "xtask"
+  ],
+  "urls": [
+    "https://www.w3.org/TR/rdf12-concepts/#section-Datatypes"
+  ],
+  "truncated": []
+}

@@ -1,0 +1,75 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic-compile) & (test(frontend::tests::) | test(tptp::tests))) | (package(gmeow-logic) & test(probabilistic::tests))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic-compile)
+error[E0277]: the trait bound `purrdf_core::QuadIds: std::cmp::Ord` is not satisfied
+   --> crates/logic-compile/src/frontend/source_admission/contracts.rs:83:35
+    |
+ 83 |                     facet_support.insert(quad);
+    |                                   ^^^^^^ ---- `purrdf_core::QuadIds` doesn't satisfy the trait bound
+    |                                   |
+    |                                   the trait `std::cmp::Ord` is not implemented for `purrdf_core::QuadIds`
+    |
+note: required by a bound in `std::collections::BTreeSet::<T, A>::insert`
+   --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/collections/btree/set.rs:901:12
+    |
+349 | impl<T, A: AllocatorClone> BTreeSet<T, A> {
+...
+899 |     pub fn insert(&mut self, value: T) -> bool
+900 |     where
+901 |         T: Ord,
+    |            ^^^ required by this bound in `BTreeSet::<T, A>::insert`
+
+error[E0599]: no method named `extend` found for struct `std::collections::BTreeSet<T, A>` in the current scope
+   --> crates/logic-compile/src/frontend/source_admission/contracts.rs:119:31
+    |
+119 |         self.contract_support.extend(facet_support);
+    |                               ^^^^^^ method not found in `std::collections::BTreeSet<purrdf_core::QuadIds>`
+
+error[E0277]: the trait bound `purrdf_core::QuadIds: std::cmp::Ord` is not satisfied
+    --> crates/logic-compile/src/frontend/source_admission.rs:1112:34
+     |
+1112 |         if self.contract_support.contains(&quad) {
+     |                                  ^^^^^^^^ the trait `std::cmp::Ord` is not implemented for `purrdf_core::QuadIds`
+     |
+note: required by a bound in `std::collections::BTreeSet::<T, A>::contains`
+    --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/collections/btree/set.rs:607:24
+     |
+ 349 | impl<T, A: AllocatorClone> BTreeSet<T, A> {
+...
+ 605 |     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+ 606 |     where
+ 607 |         T: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeSet::<T, A>::contains`
+
+error[E0277]: the trait bound `purrdf_core::QuadIds: std::cmp::Ord` is not satisfied
+    --> crates/logic-compile/src/frontend/source_admission.rs:1112:43
+     |
+1112 |         if self.contract_support.contains(&quad) {
+     |                                  -------- ^^^^^ the trait `std::cmp::Ord` is not implemented for `purrdf_core::QuadIds`
+     |                                  |
+     |                                  required by a bound introduced by this call
+     |
+note: required by a bound in `std::collections::BTreeSet::<T, A>::contains`
+    --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/collections/btree/set.rs:608:12
+     |
+ 349 | impl<T, A: AllocatorClone> BTreeSet<T, A> {
+...
+ 605 |     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
+...
+ 608 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeSet::<T, A>::contains`
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-logic-compile` (lib) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic-compile` (lib test) due to 4 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:713: nextest-synthetic] Error 101

@@ -1,0 +1,301 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic-compile) & (test(frontend::tests::) | test(tptp::tests))) | (package(gmeow-logic) & test(probabilistic::tests))' --no-tests=fail
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 45.82s
+────────────
+ Nextest run ID f7cb790a-5685-476e-9b40-28873507c882 with nextest profile: ci
+    Starting 287 tests across 28 binaries (3052 tests and 197 binaries skipped)
+        PASS [   0.008s] (  1/287) gmeow-logic-compile frontend::tests::derive_all_values_from_emits_bare_class_not_wrapped
+        PASS [   0.008s] (  2/287) gmeow-logic-compile frontend::tests::derive_blank_restriction_domain_without_opt_in_derives_nothing
+        PASS [   0.008s] (  3/287) gmeow-logic-compile frontend::tests::derive_class_optout_suppresses_the_whole_class_shape
+        PASS [   0.008s] (  4/287) gmeow-logic-compile frontend::tests::derive_anonymous_one_of_filler_lowers_to_sh_in
+        PASS [   0.008s] (  5/287) gmeow-logic-compile frontend::tests::closed_world_closure_under_counterfactual_revision_is_a_hard_compile_failure
+        PASS [   0.009s] (  6/287) gmeow-logic-compile frontend::tests::confidence_scoped_axiom_case_produces_expected_ir
+        PASS [   0.009s] (  7/287) gmeow-logic-compile frontend::tests::authoring_namespaces_is_pinned_to_the_four_dogfooded_namespaces
+        PASS [   0.011s] (  8/287) gmeow-logic-compile frontend::tests::box_atom_expands_via_standard_translation
+        PASS [   0.010s] (  9/287) gmeow-logic-compile frontend::tests::compound_function_term_parses_into_nested_term_app
+        PASS [   0.010s] ( 10/287) gmeow-logic-compile frontend::tests::derive_all_values_from_faceted_datatype_emits_numeric_range_facets
+        PASS [   0.011s] ( 11/287) gmeow-logic-compile frontend::tests::closure_entry_missing_value_is_a_hard_error
+        PASS [   0.011s] ( 12/287) gmeow-logic-compile frontend::tests::derive_blank_restriction_domain_lowers_to_subjects_of_property_shape
+        PASS [   0.011s] ( 13/287) gmeow-logic-compile frontend::tests::derive_all_disjoint_classes_cross_links_not_class
+        PASS [   0.011s] ( 14/287) gmeow-logic-compile frontend::tests::derive_all_values_from_faceted_datatype_emits_length_and_pattern_facets
+        PASS [   0.012s] ( 15/287) gmeow-logic-compile frontend::tests::contract_facet_config_does_not_leak_into_domain_axioms
+        PASS [   0.013s] ( 16/287) gmeow-logic-compile frontend::tests::cyclic_function_term_is_rejected
+        PASS [   0.005s] ( 17/287) gmeow-logic-compile frontend::tests::derive_datatype_target_lowers_to_sh_datatype_not_sh_class
+        PASS [   0.006s] ( 18/287) gmeow-logic-compile frontend::tests::derive_class_scoped_closed_entry_derives_no_global_domain_range_shape
+        PASS [   0.006s] ( 19/287) gmeow-logic-compile frontend::tests::derive_colourspace_maxqualified_thing_idiom_unchanged_by_carrier
+        PASS [   0.005s] ( 20/287) gmeow-logic-compile frontend::tests::derive_complement_of_emits_not_class
+        PASS [   0.006s] ( 21/287) gmeow-logic-compile frontend::tests::derive_class_scoped_closed_all_values_from_requires_the_path
+        PASS [   0.006s] ( 22/287) gmeow-logic-compile frontend::tests::derive_complement_has_value_lowers_to_not_has_value
+        PASS [   0.006s] ( 23/287) gmeow-logic-compile frontend::tests::derive_closed_world_closure_entry_does_not_suppress
+        PASS [   0.006s] ( 24/287) gmeow-logic-compile frontend::tests::derive_disjoint_with_emits_not_class
+        PASS [   0.007s] ( 25/287) gmeow-logic-compile frontend::tests::derive_class_scoped_open_entry_does_not_suppress_globally
+        PASS [   0.006s] ( 26/287) gmeow-logic-compile frontend::tests::derive_contradictory_cardinality_hard_fails
+        PASS [   0.006s] ( 27/287) gmeow-logic-compile frontend::tests::derive_composite_has_key_derives_no_single_path_shape
+        PASS [   0.006s] ( 28/287) gmeow-logic-compile frontend::tests::derive_default_is_derive_all_without_any_closure_annotation
+        PASS [   0.007s] ( 29/287) gmeow-logic-compile frontend::tests::derive_class_target_stays_sh_class
+        PASS [   0.007s] ( 30/287) gmeow-logic-compile frontend::tests::derive_domain_and_functional_merge_into_one_subjects_of_shape
+        PASS [   0.018s] ( 31/287) gmeow-logic probabilistic::tests::prob_unknown_is_unsupported_not_evaluated
+        PASS [   0.006s] ( 32/287) gmeow-logic-compile frontend::tests::derive_functional_carrier_caps_domain_class_node_shape
+        PASS [   0.006s] ( 33/287) gmeow-logic-compile frontend::tests::derive_functional_property_deprecated_owl_marker_is_not_projected
+        PASS [   0.022s] ( 34/287) gmeow-logic probabilistic::tests::prob_status_string_round_trips
+        PASS [   0.005s] ( 35/287) gmeow-logic-compile frontend::tests::derive_inverse_functional_property_objects_of_inverted_max_one
+        PASS [   0.007s] ( 36/287) gmeow-logic-compile frontend::tests::derive_has_value_iri_emits_sh_has_value
+        PASS [   0.006s] ( 37/287) gmeow-logic-compile frontend::tests::derive_inverse_functional_carrier_caps_range_class_node_shape
+        PASS [   0.010s] ( 38/287) gmeow-logic-compile frontend::tests::derive_functional_carrier_no_domain_fabricates_no_class
+        PASS [   0.007s] ( 39/287) gmeow-logic-compile frontend::tests::derive_grounding_namespaces_are_authoring_ground
+        PASS [   0.006s] ( 40/287) gmeow-logic-compile frontend::tests::derive_non_faceted_blank_filler_is_skipped
+        PASS [   0.007s] ( 41/287) gmeow-logic-compile frontend::tests::derive_has_value_blank_hard_fails
+        PASS [   0.006s] ( 42/287) gmeow-logic-compile frontend::tests::derive_merges_cardinality_and_class_on_same_path_into_one_property
+        PASS [   0.006s] ( 43/287) gmeow-logic-compile frontend::tests::derive_min_qualified_cardinality_uses_the_owl2_standard_keyword
+        PASS [   0.007s] ( 44/287) gmeow-logic-compile frontend::tests::derive_has_value_typed_literal_preserves_datatype
+        PASS [   0.007s] ( 45/287) gmeow-logic-compile frontend::tests::derive_has_value_plain_literal_stays_untyped
+        PASS [   0.008s] ( 46/287) gmeow-logic-compile frontend::tests::derive_functional_property_subjects_of_max_one
+        PASS [   0.006s] ( 47/287) gmeow-logic-compile frontend::tests::derive_owl_thing_on_a_datatype_property_lowers_to_literal_node_kind
+        PASS [   0.006s] ( 48/287) gmeow-logic-compile frontend::tests::derive_one_of_emits_sh_in
+        PASS [   0.007s] ( 49/287) gmeow-logic-compile frontend::tests::derive_owl_cardinality_lifts_with_owl_provenance
+        PASS [   0.027s] ( 50/287) gmeow-logic probabilistic::tests::no_declared_model_refuses_with_unknown
+        PASS [   0.005s] ( 51/287) gmeow-logic-compile frontend::tests::derive_owl_thing_target_lowers_to_node_kind_not_sh_class
+        PASS [   0.005s] ( 52/287) gmeow-logic-compile frontend::tests::derive_property_global_closed_entry_is_unaffected_by_a_class_scoped_sibling
+        PASS [   0.006s] ( 53/287) gmeow-logic-compile frontend::tests::derive_pinned_forbidden_pattern_record_lowers_to_not_has_value_on_the_class_shape
+        PASS [   0.005s] ( 54/287) gmeow-logic-compile frontend::tests::derive_qualified_cardinality_emits_qualified_value_shape
+        PASS [   0.007s] ( 55/287) gmeow-logic-compile frontend::tests::derive_owl_thing_on_an_object_property_keeps_the_individual_top
+        PASS [   0.029s] ( 56/287) gmeow-logic probabilistic::tests::duplicate_probability_fact_is_rejected
+        PASS [   0.029s] ( 57/287) gmeow-logic probabilistic::tests::joint_probabilities_must_sum_to_one
+        PASS [   0.006s] ( 58/287) gmeow-logic-compile frontend::tests::derive_qualified_cardinality_emits_plain_class_when_a_closed_range_backs_it
+        PASS [   0.029s] ( 59/287) gmeow-logic probabilistic::tests::cut_is_rejected
+        PASS [   0.006s] ( 60/287) gmeow-logic-compile frontend::tests::derive_qualified_cardinality_without_on_class_hard_fails
+        PASS [   0.006s] ( 61/287) gmeow-logic-compile frontend::tests::derive_range_facets_lower_to_numeric_range
+        PASS [   0.007s] ( 62/287) gmeow-logic-compile frontend::tests::derive_property_optout_suppresses_that_property_shape
+        PASS [   0.012s] ( 63/287) gmeow-logic-compile frontend::tests::derive_logic_restrictions_matches_the_lowered_owl_spelling
+        PASS [   0.006s] ( 64/287) gmeow-logic-compile frontend::tests::derive_qualified_numeric_data_ranges_retains_union_and_integer_bounds
+        PASS [   0.030s] ( 65/287) gmeow-logic probabilistic::tests::too_many_independent_facts_is_rejected
+        PASS [   0.006s] ( 66/287) gmeow-logic-compile frontend::tests::derive_qualified_cardinality_on_data_range_emits_plain_datatype_and_count
+        PASS [   0.006s] ( 67/287) gmeow-logic-compile frontend::tests::derive_rdfs_domain_range_is_open_world_by_default_without_optin
+        PASS [   0.006s] ( 68/287) gmeow-logic-compile frontend::tests::derive_rdfs_range_targets_objects_of_class_and_datatype
+        PASS [   0.007s] ( 69/287) gmeow-logic-compile frontend::tests::derive_rdfs_domain_targets_subjects_of_with_node_class
+        PASS [   0.009s] ( 70/287) gmeow-logic-compile frontend::tests::derive_owl_thing_target_lowers_to_node_kind_even_when_classified_as_datatype
+        PASS [   0.009s] ( 71/287) gmeow-logic-compile frontend::tests::derive_qualified_cardinality_omits_plain_class_without_a_backing_universal
+        PASS [   0.032s] ( 72/287) gmeow-logic probabilistic::tests::independent_or_marginal_is_noisy_or
+        PASS [   0.033s] ( 73/287) gmeow-logic probabilistic::tests::dependency_joint_marginal_uses_the_joint
+        PASS [   0.033s] ( 74/287) gmeow-logic probabilistic::tests::independent_and_marginal_is_product
+        PASS [   0.033s] ( 75/287) gmeow-logic probabilistic::tests::confidence_is_not_a_probability_guard
+        PASS [   0.033s] ( 76/287) gmeow-logic probabilistic::tests::a_model_in_the_world_does_not_replace_the_query_selected_model
+        PASS [   0.033s] ( 77/287) gmeow-logic probabilistic::tests::edb_fact_is_deterministic_probability_one
+        PASS [   0.008s] ( 78/287) gmeow-logic-compile frontend::tests::derive_rdfs_resource_range_domain_is_vacuous_no_class_component
+        PASS [   0.006s] ( 79/287) gmeow-logic-compile frontend::tests::derive_single_property_has_key_emits_inverse_functional_shape
+        PASS [   0.035s] ( 80/287) gmeow-logic probabilistic::tests::declared_schema_mismatch_returns_err
+        PASS [   0.006s] ( 81/287) gmeow-logic-compile frontend::tests::derived_shape_failure_class_dedupes_identical_values
+        PASS [   0.006s] ( 82/287) gmeow-logic-compile frontend::tests::derived_domain_shape_carries_the_propertys_failure_class
+        PASS [   0.012s] ( 83/287) gmeow-logic-compile frontend::tests::derive_rdfs_literal_target_lowers_to_node_kind_not_sh_datatype
+        PASS [   0.008s] ( 84/287) gmeow-logic-compile frontend::tests::derive_some_values_from_uses_class_membership_under_approximation
+        PASS [   0.008s] ( 85/287) gmeow-logic-compile frontend::tests::derive_span_offset_axioms_project_the_declared_data_range
+        PASS [   0.008s] ( 86/287) gmeow-logic-compile frontend::tests::derive_union_of_bare_existential_restrictions_lowers_to_or_properties
+        PASS [   0.006s] ( 87/287) gmeow-logic-compile frontend::tests::distinct_body_guard_requires_variables
+        PASS [   0.009s] ( 88/287) gmeow-logic-compile frontend::tests::derived_domain_shape_rejects_distinct_property_failure_classes
+        PASS [   0.009s] ( 89/287) gmeow-logic-compile frontend::tests::derive_union_with_a_non_existential_member_stays_in_the_canon
+        PASS [   0.009s] ( 90/287) gmeow-logic-compile frontend::tests::derive_value_keyed_general_class_inclusion
+        PASS [   0.009s] ( 91/287) gmeow-logic-compile frontend::tests::derived_shape_failure_class_rejects_distinct_values
+        PASS [   0.010s] ( 92/287) gmeow-logic-compile frontend::tests::derive_value_range_record_lowers_to_min_and_max_inclusive_on_the_class_shape
+        PASS [   0.010s] ( 93/287) gmeow-logic-compile frontend::tests::derive_unpinned_and_iri_pinned_forbidden_pattern_records_derive_no_component
+        PASS [   0.010s] ( 94/287) gmeow-logic-compile frontend::tests::derived_range_shape_carries_the_propertys_failure_class
+        PASS [   0.011s] ( 95/287) gmeow-logic-compile frontend::tests::derive_union_of_filler_lowers_to_sh_or
+        PASS [   0.040s] ( 96/287) gmeow-logic probabilistic::tests::declared_schema_matching_attaches_row_schema
+        PASS [   0.010s] ( 97/287) gmeow-logic-compile frontend::tests::distinct_body_constant_term_rejected
+        PASS [   0.008s] ( 98/287) gmeow-logic-compile frontend::tests::dual_typing_does_not_duplicate_rules_or_promote_rdf_reification
+        PASS [   0.010s] ( 99/287) gmeow-logic-compile frontend::tests::diamond_atom_expands_via_standard_translation
+        PASS [   0.009s] (100/287) gmeow-logic-compile frontend::tests::formula_cycle_identity_and_message_are_traversal_order_independent
+        PASS [   0.010s] (101/287) gmeow-logic-compile frontend::tests::every_constraint_sugar_reports_malformed_native_typed_records
+        PASS [   0.009s] (102/287) gmeow-logic-compile frontend::tests::functional_carrier_integrity_flags_duplicate_carrier
+        PASS [   0.010s] (103/287) gmeow-logic-compile frontend::tests::dual_typed_orphan_recovery_is_rejected_once_and_never_becomes_a_domain_axiom
+        PASS [   0.009s] (104/287) gmeow-logic-compile frontend::tests::functional_carrier_integrity_flags_orphan_carrier
+        PASS [   0.009s] (105/287) gmeow-logic-compile frontend::tests::function_term_without_symbol_is_rejected
+        PASS [   0.007s] (106/287) gmeow-logic-compile frontend::tests::functional_completeness_invariant_flags_carrierless_and_clears_when_carried
+        PASS [   0.006s] (107/287) gmeow-logic-compile frontend::tests::is_authoring_namespace_accepts_every_dogfooded_namespace_and_rejects_external
+        PASS [   0.011s] (108/287) gmeow-logic-compile frontend::tests::empty_complexity_class_emits_diagnostic
+        PASS [   0.009s] (109/287) gmeow-logic-compile frontend::tests::functional_carrier_integrity_flags_reintroduced_owl_marker
+        PASS [   0.007s] (110/287) gmeow-logic-compile frontend::tests::join_aggregate_leg_rejects_a_literal_value_for_every_structural_predicate
+        PASS [   0.009s] (111/287) gmeow-logic-compile frontend::tests::independent_constraint_defect_survives_formula_deduplication
+        PASS [   0.011s] (112/287) gmeow-logic-compile frontend::tests::formula_constructor_is_exclusive_and_cardinalities_are_strict
+        PASS [   0.008s] (113/287) gmeow-logic-compile frontend::tests::invalid_confidence_emits_diagnostic
+        PASS [   0.009s] (114/287) gmeow-logic-compile frontend::tests::join_aggregate_leg_rejects_a_blank_node_value_for_every_structural_predicate
+        PASS [   0.011s] (115/287) gmeow-logic-compile frontend::tests::functional_carrier_ledger_drift_names_missing_and_unexpected
+        PASS [   0.009s] (116/287) gmeow-logic-compile frontend::tests::join_aggregate_leg_missing_a_value_predicate_is_a_malformed_record
+        PASS [   0.009s] (117/287) gmeow-logic-compile frontend::tests::join_aggregate_single_leg_is_not_a_join
+        PASS [   0.008s] (118/287) gmeow-logic-compile frontend::tests::malformed_child_reports_once_at_the_exact_child_not_a_prefix_colliding_ancestor
+        PASS [   0.008s] (119/287) gmeow-logic-compile frontend::tests::malformed_path_shape_min_above_max_is_skipped_with_diagnostic
+        PASS [   0.008s] (120/287) gmeow-logic-compile frontend::tests::malformed_path_shape_both_named_and_wildcard_is_skipped_with_diagnostic
+        PASS [   0.011s] (121/287) gmeow-logic-compile frontend::tests::join_aggregate_record_expands_and_contributes_nothing_to_the_reasoned_axiom_set
+        PASS [   0.006s] (122/287) gmeow-logic-compile frontend::tests::parse_empty_graph_raises
+        PASS [   0.006s] (123/287) gmeow-logic-compile frontend::tests::no_rule_nodes_yields_empty_rules
+        PASS [   0.011s] (124/287) gmeow-logic-compile frontend::tests::malformed_constraint_integrity_has_one_authoritative_formula_diagnostic
+        PASS [   0.009s] (125/287) gmeow-logic-compile frontend::tests::nested_modal_threads_inner_world
+        PASS [   0.011s] (126/287) gmeow-logic-compile frontend::tests::native_structural_typing_extracts_rules_contracts_and_constraints_without_aliasing_domain_types
+        PASS [   0.011s] (127/287) gmeow-logic-compile frontend::tests::negated_body_atom_yields_negated_axiom
+        PASS [   0.011s] (128/287) gmeow-logic-compile frontend::tests::malformed_term_carrier_reports_once_at_its_owning_formula
+        PASS [   0.012s] (129/287) gmeow-logic-compile frontend::tests::malformed_path_shape_no_step_is_skipped_with_diagnostic
+        PASS [   0.009s] (130/287) gmeow-logic-compile frontend::tests::parse_invalid_turtle_raises
+        PASS [   0.009s] (131/287) gmeow-logic-compile frontend::tests::parse_classic_reification_with_scope
+        PASS [   0.010s] (132/287) gmeow-logic-compile frontend::tests::orphan_recovery_case_is_hard_failed
+        PASS [   0.012s] (133/287) gmeow-logic-compile frontend::tests::native_member_condition_stays_owned_and_exposes_its_evaluation_boundary
+        PASS [   0.010s] (134/287) gmeow-logic-compile frontend::tests::nullary_function_term_is_rejected
+        PASS [   0.010s] (135/287) gmeow-logic-compile frontend::tests::parse_is_order_independent
+        PASS [   0.012s] (136/287) gmeow-logic-compile frontend::tests::modal_over_accessibleFrom_is_hard_error
+        PASS [   0.011s] (137/287) gmeow-logic-compile frontend::tests::parse_literal_object_sets_flag
+        PASS [   0.014s] (138/287) gmeow-logic-compile frontend::tests::malformed_reification_missing_predicate_emits_diagnostic
+        PASS [   0.010s] (139/287) gmeow-logic-compile frontend::tests::parse_logic_relation_axiom
+        PASS [   0.006s] (140/287) gmeow-logic-compile frontend::tests::path_shape_max_depth_above_cap_is_skipped_with_diagnostic
+        PASS [   0.006s] (141/287) gmeow-logic-compile frontend::tests::path_shape_empty_namespace_scope_is_skipped_with_diagnostic
+        PASS [   0.011s] (142/287) gmeow-logic-compile frontend::tests::paraconsistent_valuation_under_counterfactual_revision_is_a_hard_compile_failure
+        PASS [   0.009s] (143/287) gmeow-logic-compile frontend::tests::parse_unbounded_path_shape_has_no_max
+        PASS [   0.007s] (144/287) gmeow-logic-compile frontend::tests::path_shape_literal_step_predicate_is_skipped_with_diagnostic
+        PASS [   0.009s] (145/287) gmeow-logic-compile frontend::tests::parse_named_predicate_bounded_path_shape_defaults_min_one
+        PASS [   0.016s] (146/287) gmeow-logic-compile frontend::tests::malformed_rule_parts_exclude_the_entire_rule
+        PASS [   0.007s] (147/287) gmeow-logic-compile frontend::tests::path_shape_wildcard_rejects_unrecognized_literal
+        PASS [   0.009s] (148/287) gmeow-logic-compile frontend::tests::path_shape_wildcard_accepts_xsd_boolean_one
+        PASS [   0.010s] (149/287) gmeow-logic-compile frontend::tests::parse_nonexistent_file_raises
+        PASS [   0.006s] (150/287) gmeow-logic-compile frontend::tests::probabilistic_measure_declaration_without_model_preserves_configuration
+        PASS [   0.007s] (151/287) gmeow-logic-compile frontend::tests::pinned_forbidden_pattern_record_contributes_nothing_to_the_reasoned_axiom_set
+        PASS [   0.014s] (152/287) gmeow-logic-compile frontend::tests::parse_minimal_graph_succeeds
+        PASS [   0.007s] (153/287) gmeow-logic-compile frontend::tests::probabilistic_measure_with_declared_model_is_supported
+        PASS [   0.007s] (154/287) gmeow-logic-compile frontend::tests::probabilistic_preset_declaration_does_not_request_inference
+        PASS [   0.007s] (155/287) gmeow-logic-compile frontend::tests::path_shapes_are_canonically_ordered
+        PASS [   0.014s] (156/287) gmeow-logic-compile frontend::tests::parse_multiple_contracts_with_complexity
+        PASS [   0.007s] (157/287) gmeow-logic-compile frontend::tests::quantifier_with_malformed_bound_var_is_malformed_not_silently_narrowed
+        PASS [   0.011s] (158/287) gmeow-logic-compile frontend::tests::path_shape_wildcard_false_literal_yields_no_wildcard
+        PASS [   0.013s] (159/287) gmeow-logic-compile frontend::tests::parse_wildcard_namespace_scoped_bounded_path_shape
+        PASS [   0.015s] (160/287) gmeow-logic-compile frontend::tests::parse_modality_annotation_strips_namespace
+        PASS [   0.009s] (161/287) gmeow-logic-compile frontend::tests::reasoning_program_missing_query_is_hard_failed
+        PASS [   0.010s] (162/287) gmeow-logic-compile frontend::tests::reasoning_program_parse_is_deterministic
+        PASS [   0.008s] (163/287) gmeow-logic-compile frontend::tests::reasoning_program_with_conflicting_variable_sorts_within_one_scope_is_hard_failed
+        PASS [   0.008s] (164/287) gmeow-logic-compile frontend::tests::reasoning_program_with_non_atomic_verdict_probe_is_hard_failed
+        PASS [   0.006s] (165/287) gmeow-logic-compile frontend::tests::recursive_formula_cycle_is_an_error_even_without_a_top_level_root
+        PASS [   0.010s] (166/287) gmeow-logic-compile frontend::tests::reasoning_program_same_name_different_sorts_across_scopes_is_accepted
+        PASS [   0.007s] (167/287) gmeow-logic-compile frontend::tests::term_application_carrier_excludes_other_value_kinds
+        PASS [   0.011s] (168/287) gmeow-logic-compile frontend::tests::recovery_case_requires_named_identity
+        PASS [   0.008s] (169/287) gmeow-logic-compile frontend::tests::supported_contract_compiles_clean
+        PASS [   0.013s] (170/287) gmeow-logic-compile frontend::tests::reasoning_program_identical_clauses_distinct_sorts_are_accepted_and_scoped
+        PASS [   0.007s] (171/287) gmeow-logic-compile frontend::tests::unknown_semantic_profile_is_a_hard_error
+        PASS [   0.011s] (172/287) gmeow-logic-compile frontend::tests::recovery_case_owns_its_formula_and_typed_term_carriers
+        PASS [   0.012s] (173/287) gmeow-logic-compile frontend::tests::reasoning_program_with_zero_clauses_is_hard_failed
+        PASS [   0.005s] (174/287) gmeow-logic-compile projections::correspondence_frontend::tests::correspondence_iris_are_content_stable
+        PASS [   0.008s] (175/287) gmeow-logic-compile frontend::tests::vacuous_quantifier_is_malformed
+        PASS [   0.012s] (176/287) gmeow-logic-compile frontend::tests::reasoning_program_with_unknown_evaluation_mode_is_hard_failed
+        PASS [   0.007s] (177/287) gmeow-logic-compile frontend::tests::unknown_semantic_profile_emits_diagnostic
+        PASS [   0.013s] (178/287) gmeow-logic-compile frontend::tests::reasoning_program_with_compound_clause_and_negation_parses
+        PASS [   0.008s] (179/287) gmeow-logic-compile frontend::tests::unsupported_contract_is_a_hard_compile_failure
+        PASS [   0.010s] (180/287) gmeow-logic-compile frontend::tests::reified_trivially_horn_formula_routes_to_axioms_not_panics
+        PASS [   0.015s] (181/287) gmeow-logic-compile frontend::tests::reasoning_program_captures_constant_rdf_type_as_sort_declarations
+        PASS [   0.011s] (182/287) gmeow-logic-compile frontend::tests::redundant_contract_typing_does_not_turn_a_preset_declaration_into_execution
+        PASS [   0.009s] (183/287) gmeow-logic-compile frontend::tests::unselected_probability_model_does_not_change_a_contract_declaration
+        PASS [   0.009s] (184/287) gmeow-logic-compile frontend::tests::term_carrier_values_and_indices_are_total_and_unambiguous
+        PASS [   0.007s] (185/287) gmeow-logic-compile projections::correspondence_frontend::tests::divergent_duplicate_alignment_cell_fails_closed
+        PASS [   0.009s] (186/287) gmeow-logic-compile frontend::tests::value_range_record_without_any_bound_is_a_malformed_record
+        PASS [   0.007s] (187/287) gmeow-logic-compile projections::correspondence_frontend::tests::evidence_retains_full_identity_without_implicit_warrant_scores
+        PASS [   0.010s] (188/287) gmeow-logic-compile frontend::tests::value_range_record_expands_to_one_constraint_and_leaks_no_axiom
+        PASS [   0.013s] (189/287) gmeow-logic-compile frontend::tests::rule_missing_head_emits_diagnostic
+        PASS [   0.016s] (190/287) gmeow-logic-compile frontend::tests::reasoning_program_with_two_queries_is_hard_failed
+        PASS [   0.016s] (191/287) gmeow-logic-compile frontend::tests::reasoning_program_with_non_ground_verdict_probe_is_hard_failed
+        PASS [   0.013s] (192/287) gmeow-logic-compile frontend::tests::rule_node_extracted
+        PASS [   0.008s] (193/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_accepts_an_honest_commitment_shift
+        PASS [   0.007s] (194/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_missing_metadata_and_target_drift
+        PASS [   0.007s] (195/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_lowers_to_the_same_typed_ir
+        PASS [   0.008s] (196/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_a_commitment_shift_with_equivalence_relation
+        PASS [   0.006s] (197/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_requires_explicit_judgments
+        PASS [   0.006s] (198/287) gmeow-logic-compile projections::correspondence_frontend::tests::same_fact_in_two_sssom_sets_collapses_not_conflicts
+        PASS [   0.007s] (199/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_requires_exactly_one_binding_target_form
+        PASS [   0.006s] (200/287) gmeow-logic-compile tptp::tests::blank_schema_class_support_does_not_admit_literal_class_objects
+        PASS [   0.007s] (201/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_keeps_typed_commitment_and_endpoints
+        PASS [   0.016s] (202/287) gmeow-logic-compile frontend::tests::rule_source_declaration_has_one_semantic_home_on_round_trip
+        PASS [   0.007s] (203/287) gmeow-logic-compile projections::correspondence_frontend::tests::same_assertion_keeps_each_declared_morphism_and_overclaim_gate
+        PASS [   0.007s] (204/287) gmeow-logic-compile tptp::tests::boolean_class_laws_compose_with_restrictions_and_retain_source_blank_identity
+        PASS [   0.008s] (205/287) gmeow-logic-compile tptp::tests::boolean_class_lists_fail_closed_instead_of_admitting_a_prefix
+        PASS [   0.008s] (206/287) gmeow-logic-compile projections::correspondence_frontend::tests::transpile_round_trips_with_no_extract_errors
+        PASS [   0.007s] (207/287) gmeow-logic-compile tptp::tests::boolean_source_class_laws_define_membership_without_asserting_list_syntax
+        PASS [   0.009s] (208/287) gmeow-logic-compile tptp::tests::admission_identity_includes_empty_named_graph_declarations
+        PASS [   0.016s] (209/287) gmeow-logic-compile projections::correspondence_frontend::tests::bridge_cell_surfacing_equivalence_fails_end_to_end
+        PASS [   0.011s] (210/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_multiple_bindings
+        PASS [   0.011s] (211/287) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_cannot_surface_exact_match
+        PASS [   0.012s] (212/287) gmeow-logic-compile projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input
+        PASS [   0.008s] (213/287) gmeow-logic-compile tptp::tests::cardinality_tests::qualified_count_roles_cannot_be_erased_or_invented
+        PASS [   0.010s] (214/287) gmeow-logic-compile tptp::tests::canon_admission_tests::canon_admission_roundtrip_preserves_complete_source_without_authorizing_proof
+        PASS [   0.008s] (215/287) gmeow-logic-compile tptp::tests::cardinality_tests::qualified_object_bounds_preserve_witnesses_qualification_and_logical_inequality
+        PASS [   0.007s] (216/287) gmeow-logic-compile tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application
+        PASS [   0.011s] (217/287) gmeow-logic-compile tptp::tests::canon_admission_tests::canon_admission_keeps_refusals_and_rejects_incompatible_observations
+        PASS [   0.008s] (218/287) gmeow-logic-compile tptp::tests::context_tests::contextual_application_roundtrips_through_native_rdf_and_common_logic
+        PASS [   0.011s] (219/287) gmeow-logic-compile tptp::tests::class_dependencies_cannot_read_definitions_from_excluded_documents
+        PASS [   0.013s] (220/287) gmeow-logic-compile tptp::tests::boolean_classes_refuse_malformed_uninterpreted_and_excluded_support
+        PASS [   0.009s] (221/287) gmeow-logic-compile tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor
+        PASS [   0.012s] (222/287) gmeow-logic-compile tptp::tests::cardinality_tests::qualified_bounds_are_conjunctive_and_keep_count_lexical_evidence
+        PASS [   0.008s] (223/287) gmeow-logic-compile tptp::tests::contract_tests::closure_entries_retain_blank_identity_keys_and_native_configuration
+        PASS [   0.012s] (224/287) gmeow-logic-compile tptp::tests::cardinality_tests::qualified_count_value_admission_fails_closed
+        PASS [   0.006s] (225/287) gmeow-logic-compile tptp::tests::contract_tests::conflicting_closure_values_do_not_get_an_arbitrary_native_winner
+        PASS [   0.012s] (226/287) gmeow-logic-compile tptp::tests::context_tests::malformed_contextual_applications_and_binary_uses_fail_closed
+        PASS [   0.013s] (227/287) gmeow-logic-compile tptp::tests::class_constraint_ambiguity_is_malformed_but_identical_repetition_is_not
+        PASS [   0.014s] (228/287) gmeow-logic-compile tptp::tests::cardinality_tests::qualified_count_dependencies_require_the_selected_definition
+        PASS [   0.011s] (229/287) gmeow-logic-compile tptp::tests::context_tests::unselected_formula_scope_does_not_block_an_independent_selection
+        PASS [   0.014s] (230/287) gmeow-logic-compile tptp::tests::class_restrictions_do_not_erase_context_datatypes_or_procedural_semantics
+        PASS [   0.010s] (231/287) gmeow-logic-compile tptp::tests::contract_tests::closure_entries_cannot_choose_one_of_several_keys_or_values
+        PASS [   0.008s] (232/287) gmeow-logic-compile tptp::tests::contract_tests::configuration_catalogue_alone_does_not_authorize_a_proof
+        PASS [   0.014s] (233/287) gmeow-logic-compile tptp::tests::context_tests::contextual_application_keeps_original_arity_relation_and_world_coordinates
+        PASS [   0.009s] (234/287) gmeow-logic-compile tptp::tests::contract_tests::configuration_declarations_preserve_facets_without_switching_proof_semantics
+        PASS [   0.006s] (235/287) gmeow-logic-compile tptp::tests::contract_tests::scoped_contracts_and_other_unsupported_owner_families_remain_blocked
+        PASS [   0.006s] (236/287) gmeow-logic-compile tptp::tests::contract_tests::redundant_contract_typing_keeps_the_same_probabilistic_catalogue
+        PASS [   0.013s] (237/287) gmeow-logic-compile tptp::tests::context_tests::named_graph_scope_does_not_contaminate_default_graph_formulas
+        PASS [   0.006s] (238/287) gmeow-logic-compile tptp::tests::contract_tests::probabilistic_preset_is_retained_as_metatheory_without_a_selected_model
+        PASS [   0.008s] (239/287) gmeow-logic-compile tptp::tests::contract_tests::probabilistic_preset_catalogue_alone_cannot_authorize_a_proof
+        PASS [   0.013s] (240/287) gmeow-logic-compile tptp::tests::context_tests::translated_in_context_formulas_remain_admitted
+        PASS [   0.005s] (241/287) gmeow-logic-compile tptp::tests::disjoint_union_class_law_carries_covering_and_every_pairwise_exclusion
+        PASS [   0.011s] (242/287) gmeow-logic-compile tptp::tests::contract_tests::direct_probabilistic_contract_is_a_declaration_without_executing_a_query
+        PASS [   0.011s] (243/287) gmeow-logic-compile tptp::tests::contract_tests::conflicting_singleton_contract_facets_fail_native_admission
+        PASS [   0.011s] (244/287) gmeow-logic-compile tptp::tests::contract_tests::facet_support_does_not_consume_other_facts_about_the_same_resource
+        PASS [   0.008s] (245/287) gmeow-logic-compile tptp::tests::deduplicated_class_axiom_remains_required_with_one_selected_contributor
+        PASS [   0.008s] (246/287) gmeow-logic-compile tptp::tests::deleting_blocker_rows_cannot_authorize_a_partial_proof_problem
+        PASS [   0.006s] (247/287) gmeow-logic-compile tptp::tests::disjoint_union_repetition_does_not_create_self_disjointness
+        PASS [   0.005s] (248/287) gmeow-logic-compile tptp::tests::ordinary_domain_assertions_and_subclass_law_reach_the_problem
+        PASS [   0.008s] (249/287) gmeow-logic-compile tptp::tests::denotational_identity_uses_equality_without_a_unique_name_axiom
+        PASS [   0.006s] (250/287) gmeow-logic-compile tptp::tests::native_rule_carriers_use_reflected_properties_in_both_head_and_body
+        PASS [   0.012s] (251/287) gmeow-logic-compile tptp::tests::contract_tests::repeated_values_and_set_valued_facets_remain_valid
+        PASS [   0.009s] (252/287) gmeow-logic-compile tptp::tests::intrinsic_operator_aliases_have_profile_meanings_for_every_direct_schema_lowering
+        PASS [   0.018s] (253/287) gmeow-logic-compile tptp::tests::context_tests::translated_modal_formulas_keep_their_typed_accessibility
+        PASS [   0.009s] (254/287) gmeow-logic-compile tptp::tests::exact_document_selection_uses_composition_bindings_without_reparsing
+        PASS [   0.015s] (255/287) gmeow-logic-compile tptp::tests::contract_tests::contract_support_requires_selected_closure_and_facet_type_facts
+        PASS [   0.010s] (256/287) gmeow-logic-compile tptp::tests::full_literal_identity_survives_as_an_ordinary_constant
+        PASS [   0.007s] (257/287) gmeow-logic-compile tptp::tests::property_object_equality_reaches_positive_and_negative_applications
+        PASS [   0.007s] (258/287) gmeow-logic-compile tptp::tests::property_characteristic_record_emits_the_law_once
+        PASS [   0.007s] (259/287) gmeow-logic-compile tptp::tests::procedural_term_comparison_blocks_the_whole_problem
+        PASS [   0.008s] (260/287) gmeow-logic-compile tptp::tests::owner_tests::excluded_owner_roots_remain_in_the_complete_admission_inventory
+        PASS [   0.008s] (261/287) gmeow-logic-compile tptp::tests::owner_tests::rejected_selected_owners_report_malformed_instead_of_missing_semantics
+        PASS [   0.009s] (262/287) gmeow-logic-compile tptp::tests::owner_tests::excluded_owner_documents_keep_their_source_receipt
+        PASS [   0.009s] (263/287) gmeow-logic-compile tptp::tests::quoted_payload_remains_unasserted
+        PASS [   0.008s] (264/287) gmeow-logic-compile tptp::tests::reified_applications_preserve_property_identity_at_admitted_source_arities
+        PASS [   0.012s] (265/287) gmeow-logic-compile tptp::tests::edited_profile_selection_and_symbol_tables_cannot_change_proof_semantics
+        PASS [   0.006s] (266/287) gmeow-logic-compile tptp::tests::singleton_boolean_classes_keep_formula_arity
+        PASS [   0.009s] (267/287) gmeow-logic-compile tptp::tests::profile_class_laws_cannot_authorize_an_empty_source_selection
+        PASS [   0.006s] (268/287) gmeow-logic-compile tptp::tests::shared_boolean_list_cells_keep_each_selected_class_owner
+        PASS [   0.007s] (269/287) gmeow-logic-compile tptp::tests::source_identity_binds_the_complete_base_receipt
+        PASS [   0.012s] (270/287) gmeow-logic-compile tptp::tests::owner_tests::emitted_owner_ir_does_not_hide_its_compiler_errors
+        PASS [   0.009s] (271/287) gmeow-logic-compile tptp::tests::serialized_admission_is_observation_data_not_compiler_authority
+        PASS [   0.008s] (272/287) gmeow-logic-compile tptp::tests::scalar_formula_grammar_never_becomes_domain_predicates
+        PASS [   0.007s] (273/287) gmeow-logic-compile tptp::tests::structural_owner_does_not_hide_an_unrelated_domain_assertion
+        PASS [   0.012s] (274/287) gmeow-logic-compile tptp::tests::restriction_dependencies_are_class_laws_not_recursive_syntax_expansion
+        PASS [   0.012s] (275/287) gmeow-logic-compile tptp::tests::restriction_roles_can_alias_intrinsic_schema_operators
+        PASS [   0.013s] (276/287) gmeow-logic-compile tptp::tests::missing_required_atomic_arguments_remain_a_malformed_source_refusal
+        PASS [   0.008s] (277/287) gmeow-logic-compile tptp::tests::source_restriction_laws_preserve_blank_identity_and_do_not_assert_syntax
+        PASS [   0.011s] (278/287) gmeow-logic-compile tptp::tests::rewriting_an_admitted_assertion_cannot_reuse_its_old_source_unit_identity
+        PASS [   0.010s] (279/287) gmeow-logic-compile tptp::tests::selected_formula_with_term_equal_is_a_required_blocker
+        PASS [   0.007s] (280/287) gmeow-logic-compile tptp::tests::top_and_bottom_class_membership_have_their_defined_meaning
+        PASS [   0.026s] (281/287) gmeow-logic-compile tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure
+        PASS [   0.008s] (282/287) gmeow-logic-compile tptp::tests::unary_application_and_membership_share_one_interpretation_without_a_declaration_switch
+        PASS [   0.010s] (283/287) gmeow-logic-compile tptp::tests::source_self_restrictions_are_local_laws_with_native_boolean_flags
+        PASS [   0.009s] (284/287) gmeow-logic-compile tptp::tests::source_self_restrictions_refuse_false_untyped_invalid_and_scoped_flags
+        PASS [   0.009s] (285/287) gmeow-logic-compile tptp::tests::unselected_class_expression_does_not_block_selected_document
+        PASS [   0.009s] (286/287) gmeow-logic-compile tptp::tests::unselected_contextual_reification_does_not_block_selected_document
+        PASS [   0.225s] (287/287) gmeow-logic probabilistic::tests::power_set_weights_simd_bit_identical_to_scalar
+────────────
+     Summary [   0.252s] 287 tests run: 287 passed, 3052 skipped

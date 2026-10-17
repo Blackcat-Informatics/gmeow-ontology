@@ -1,0 +1,363 @@
+./scripts/test-check-sync-prerequisites.sh
+check-sync prerequisites fail closed OK
+pre-commit run --all-files --show-diff-on-failure
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check json...............................................................Passed
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.................................................................Passed
+Lint GitHub Actions workflow files.......................................Passed
+markdownlint-cli2........................................................Passed
+shellcheck...............................................................Passed
+zizmor...................................................................Passed
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Failed
+- hook id: lint-issue-refs
+- exit code: 1
+
+Found process provenance in authored Markdown:
+./.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:3:The full plan.md and issue 1770 remain authoritative. This increment repairs the concrete probabilistic-profile blocker without inventing a probability model or excluding required source. Principles 4, 7, 17, 18 and 19.
+./.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:7:Task 1: reproduce the canonical preset declaration refusal with a synthetic source using both structural typing spellings. Preserve the exact native preset ID and uncertainty facet in its compiled declaration. Prove real direct contracts and dual-typed preset/contracts still hard-fail without a model. Existing selected/default-graph support and malformed-facet cases remain required.
+./.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:9:Task 2: apply the source-dependent model requirement to actual contract owners, including dual-typed preset/contracts. Preserve compatibility checking and unknown/malformed preset rejection. Explain the declaration/execution distinction in the governing design; add no ontology term, compatibility path, fake model or dependency.
+./.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:11:Task 3: exercise the actual complete source-admission and FOF projection: preset plus ordinary domain facts reaches Complete; an applied probabilistic contract still blocks without its model; empty configuration-only source cannot manufacture an authorized theory. Run affected source/contract/FOF tests, native probabilistic refusal tests, strict producer-independent Clippy, source lint and normal hooks. Publish one coherent commit/PR with the unchanged full-goal requirements explicit. Independent reviewer tooling is unavailable; do not fabricate a review. Request concrete published CodeRabbit review.
+./.stage/certify-and-precompile-the-complete/references.md:1:# Referenced artifacts — issue #1770
+./.stage/certify-and-precompile-the-complete/prior-art.md:1:# Prior art — issue #1770: feat: certify and precompile the complete canon for consumer proof
+./.stage/certify-and-precompile-the-complete/prior-art.md:14:- #1768: feat: add a first-class consumer prover entry point  [OPEN]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:15:- #1755: [bug] Compact LogicAxiom lowering collapses distinct RDF literal identities  [OPEN]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:16:- #1712: logic/mappings: salvage the correspondence frontend — dsl/mappings cells as logic:Correspondence IR  [OPEN]  (depends on)
+./.stage/certify-and-precompile-the-complete/prior-art.md:17:- #1737: logic: project certified protocol roles into orchestrations  [OPEN]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:18:- #1738: perf: execute the production pipeline as a certified deontic work graph  [OPEN]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:19:- #1770: feat: certify and precompile the complete canon for consumer proof  [OPEN]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:20:- #1825: build: reconcile producer input selection with compiled docs-print sources  [CLOSED]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:21:- #1827: fix(build): preserve producer identity and fail docs prerequisites closed  [MERGED]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:22:- #1826: build: stop docs synchronization when a prerequisite fails  [CLOSED]  (mentions)
+./.stage/certify-and-precompile-the-complete/prior-art.md:23:- #1751: logic: TPTP-FOF export + external prover harness (whole-corpus FOL verdicts)  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:24:- #1704: Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:25:- #1748: logic: a pure logic:-native corpus gets a vacuous consistency verdict — laws never reach a clash-capable surface  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:26:- #1741: logic: complete typed correspondence execution and law-bearing source recovery  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:27:- #1743: perf: certify correspondence normalization and physical fusion  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:28:- #1744: logic: complete correspondence targets and executable openEHR exemplars  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:29:- #1745: perf: adopt typed correspondence execution throughout the production pipeline  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:30:- #1735: logic: derive per-step deontic work-graph assessments  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:31:- #1736: logic: implement compositional intent algebra and revision  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:32:- #1742: logic: implement correspondence composition and standpoint-indexed merge  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:33:- #1731: build: authenticate an O3 full-LTO pipeline producer  [CLOSED]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:34:- #1732: perf: persist completed producer fixtures across CI runs  [CLOSED]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:35:- #1734: logic: evaluate LTLf operators over enactment journals  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:36:- #1746: logic: non-entailment obligation discharge misses logic:instanceOf-typed obligations  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:37:- #1752: slice-quality: an external-corpus mode for sacred/consumer slices outside the GMEOW checkout  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:38:- #1750: cli: consistency-family commands need gate-able exit codes and machine-readable verdicts  [OPEN]  (2-hop)
+./.stage/certify-and-precompile-the-complete/prior-art.md:55:- #1831: feat(logic): extend certified source laws and contract admission  [MERGED]  (this stage's own PR)
+./.stage/certify-and-precompile-the-complete/prior-art.md:56:- #1771: fix(1768): ship self-contained prover binary  [MERGED]
+./.stage/certify-and-precompile-the-complete/prior-art.md:57:- #1802: fix(logic): integrate PurRDF main and production reasoning repairs  [MERGED]
+./.stage/certify-and-precompile-the-complete/prior-art.md:58:- #1832: feat(logic): preserve canon admission and native proof evidence  [MERGED]  (this stage's own PR)
+./.stage/certify-and-precompile-the-complete/prior-art.md:77:- issue #1770 + 17 comment(s) via github
+./.stage/certify-and-precompile-the-complete/prior-art.md:81:- prior attempts: 4 commit(s) citing #1770 (second parents walked), 0 other branch(es) named for it
+./.stage/certify-and-precompile-the-complete/prior-art.md:82:- PRs citing #1770: 4
+./.stage/certify-and-precompile-the-complete/plan.md:3:The full contract is issue #1770, including its comment and dependencies. The
+./.stage/certify-and-precompile-the-complete/plan.md:10:## Task 1: Complete certified source-class laws
+./.stage/certify-and-precompile-the-complete/plan.md:22:## Task 2: Complete selected nonclass semantics
+./.stage/certify-and-precompile-the-complete/plan.md:42:## Task 3: Produce and carry the prepared native canon
+./.stage/certify-and-precompile-the-complete/plan.md:52:prepared native base required below. The prior increments merged as PR 1831 by
+./.stage/certify-and-precompile-the-complete/plan.md:62:## Task 4: Compose and execute installed consumer requests
+./.stage/certify-and-precompile-the-complete/plan.md:71:## Task 5: Qualify, review, publish and integrate
+./.stage/certify-and-precompile-the-complete/plan.md:75:gates precisely. Open the complete issue PR, incorporate available CodeRabbit
+./.stage/certify-and-precompile-the-complete/requirements-candidates.md:1:# Requirement candidates — issue #1770
+./.stage/certify-and-precompile-the-complete/requirements-candidates.md:21:| B10 | body | 26 | list-under-requirement-heading | - the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic; |
+./.stage/certify-and-precompile-the-complete/requirements-candidates.md:24:| B13 | body | 30 | dependency | Depends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply. |
+./.stage/certify-and-precompile-the-complete/requirements-candidates.md:53:| C17.1 | comment 17 (paudley, 2026-10-17T02:22:18Z) | 14 | modal | The actual PR base is paudley/1834-repair-shared-helper-ownership-and (PR 1835), incorporating pipeline PR 1830. The fetched base has no commits missing from this head. The candidate merge is clean and contains the tested head tree; no conflict resolution or base synchronization is required. This integrates into the existing helper branch, not directly into main. |
+./.stage/certify-and-precompile-the-complete/issue.md:1:# Issue #1770: feat: certify and precompile the complete canon for consumer proof
+./.stage/certify-and-precompile-the-complete/issue.md:17:This is the concrete unsupported-grounding set behind the full-canon acceptance criterion in #1768. Silently dropping these units would violate the source-admission contract and cannot be justified by bounded-corpus evidence.
+./.stage/certify-and-precompile-the-complete/issue.md:32:- the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic;
+./.stage/certify-and-precompile-the-complete/issue.md:36:Depends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply.
+./.stage/certify-and-precompile-the-complete/issue.md:74:The full contract is issue #1770, including its comment and dependencies. The
+./.stage/certify-and-precompile-the-complete/issue.md:81:## Task 1: Complete certified source-class laws
+./.stage/certify-and-precompile-the-complete/issue.md:93:## Task 2: Complete selected nonclass semantics
+./.stage/certify-and-precompile-the-complete/issue.md:101:## Task 3: Produce and carry the prepared native canon
+./.stage/certify-and-precompile-the-complete/issue.md:110:## Task 4: Compose and execute installed consumer requests
+./.stage/certify-and-precompile-the-complete/issue.md:119:## Task 5: Qualify, review, publish and integrate
+./.stage/certify-and-precompile-the-complete/issue.md:123:gates precisely. Open the complete issue PR, incorporate available CodeRabbit
+./.stage/certify-and-precompile-the-complete/issue.md:154:| Full gate / hosted CI | Merged base CI run 38927612921 failed producer authentication after compilation; lint and rust-prebuild passed. Quality is an aggregate failure; remaining gates skipped. Filed #1825 with exact job evidence and source diagnosis. No local full gate run for this issue. |
+./.stage/certify-and-precompile-the-complete/issue.md:155:| Producer identity repair | Isolated and pushed in PR #1827 on the 1825 worktree, with the related #1826 docs failure fix. Final stable-source identity selection passed 3/3 in producer-identity-final.log. Earlier producer-identity-tests.log executed only the old test during overlapping hook stashing and is not repair coverage. Strict prebuild Clippy passed. The duplicate uncommitted producer patch was removed from this checkout after publication; no unrelated work was changed. Hosted producer remains unqualified. |
+./.stage/certify-and-precompile-the-complete/issue.md:238:The full contract is issue #1770, including its comment and dependencies. The
+./.stage/certify-and-precompile-the-complete/issue.md:245:## Task 1: Complete certified source-class laws
+./.stage/certify-and-precompile-the-complete/issue.md:257:## Task 2: Complete selected nonclass semantics
+./.stage/certify-and-precompile-the-complete/issue.md:277:## Task 3: Produce and carry the prepared native canon
+./.stage/certify-and-precompile-the-complete/issue.md:286:## Task 4: Compose and execute installed consumer requests
+./.stage/certify-and-precompile-the-complete/issue.md:295:## Task 5: Qualify, review, publish and integrate
+./.stage/certify-and-precompile-the-complete/issue.md:299:gates precisely. Open the complete issue PR, incorporate available CodeRabbit
+./.stage/certify-and-precompile-the-complete/issue.md:342:Related to #1770; the issue remains open.
+./.stage/certify-and-precompile-the-complete/issue.md:350:Related to #1770. This PR does not complete or close that issue: remaining datatype/context/distinct-body semantics, authenticated prepared native canon, installed caller composition and full-canon performance/acceptance evidence remain outstanding.
+./.stage/certify-and-precompile-the-complete/issue.md:403:(canon-admission-commit.log). PR 1832 publishes this increment without closing the
+./.stage/certify-and-precompile-the-complete/issue.md:407:CodeRabbit review are pending; no merge-ready verdict is claimed.
+./.stage/certify-and-precompile-the-complete/issue.md:412:are unavailable; current-head CodeRabbit review will be requested through the PR.
+./.stage/certify-and-precompile-the-complete/issue.md:414:Separately, issue 1768 was found closed despite its last status comment explicitly
+./.stage/certify-and-precompile-the-complete/issue.md:466:CodeRabbit explicitly reviewed executable-source head 9086140cf, reporting no actionable findings and 88.71% documentation coverage. The only subsequent source delta is the measured one-line ledger decrease. Linked-issue/scope checks were skipped; they do not establish full issue completion. The separate pipeline review request was rate limited and is recorded as unavailable.
+./.stage/certify-and-precompile-the-complete/issue.md:602:The actual PR base is paudley/1834-repair-shared-helper-ownership-and (PR 1835), incorporating pipeline PR 1830. The fetched base has no commits missing from this head. The candidate merge is clean and contains the tested head tree; no conflict resolution or base synchronization is required. This integrates into the existing helper branch, not directly into main.
+Found process provenance in lines this branch added:
+.stage/certify-and-precompile-the-complete/brief.json:110:    "issue #1770 + 17 comment(s) via github",
+.stage/certify-and-precompile-the-complete/brief.json:114:    "prior attempts: 4 commit(s) citing #1770 (second parents walked), 0 other branch(es) named for it",
+.stage/certify-and-precompile-the-complete/brief.json:115:    "PRs citing #1770: 4",
+.stage/certify-and-precompile-the-complete/issue.md:1:# Issue #1770: feat: certify and precompile the complete canon for consumer proof
+.stage/certify-and-precompile-the-complete/issue.md:17:This is the concrete unsupported-grounding set behind the full-canon acceptance criterion in #1768. Silently dropping these units would violate the source-admission contract and cannot be justified by bounded-corpus evidence.
+.stage/certify-and-precompile-the-complete/issue.md:32:- the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic;
+.stage/certify-and-precompile-the-complete/issue.md:36:Depends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply.
+.stage/certify-and-precompile-the-complete/issue.md:74:The full contract is issue #1770, including its comment and dependencies. The
+.stage/certify-and-precompile-the-complete/issue.md:81:## Task 1: Complete certified source-class laws
+.stage/certify-and-precompile-the-complete/issue.md:93:## Task 2: Complete selected nonclass semantics
+.stage/certify-and-precompile-the-complete/issue.md:101:## Task 3: Produce and carry the prepared native canon
+.stage/certify-and-precompile-the-complete/issue.md:110:## Task 4: Compose and execute installed consumer requests
+.stage/certify-and-precompile-the-complete/issue.md:119:## Task 5: Qualify, review, publish and integrate
+.stage/certify-and-precompile-the-complete/issue.md:123:gates precisely. Open the complete issue PR, incorporate available CodeRabbit
+.stage/certify-and-precompile-the-complete/issue.md:154:| Full gate / hosted CI | Merged base CI run 38927612921 failed producer authentication after compilation; lint and rust-prebuild passed. Quality is an aggregate failure; remaining gates skipped. Filed #1825 with exact job evidence and source diagnosis. No local full gate run for this issue. |
+.stage/certify-and-precompile-the-complete/issue.md:155:| Producer identity repair | Isolated and pushed in PR #1827 on the 1825 worktree, with the related #1826 docs failure fix. Final stable-source identity selection passed 3/3 in producer-identity-final.log. Earlier producer-identity-tests.log executed only the old test during overlapping hook stashing and is not repair coverage. Strict prebuild Clippy passed. The duplicate uncommitted producer patch was removed from this checkout after publication; no unrelated work was changed. Hosted producer remains unqualified. |
+.stage/certify-and-precompile-the-complete/issue.md:238:The full contract is issue #1770, including its comment and dependencies. The
+.stage/certify-and-precompile-the-complete/issue.md:245:## Task 1: Complete certified source-class laws
+.stage/certify-and-precompile-the-complete/issue.md:257:## Task 2: Complete selected nonclass semantics
+.stage/certify-and-precompile-the-complete/issue.md:277:## Task 3: Produce and carry the prepared native canon
+.stage/certify-and-precompile-the-complete/issue.md:286:## Task 4: Compose and execute installed consumer requests
+.stage/certify-and-precompile-the-complete/issue.md:295:## Task 5: Qualify, review, publish and integrate
+.stage/certify-and-precompile-the-complete/issue.md:299:gates precisely. Open the complete issue PR, incorporate available CodeRabbit
+.stage/certify-and-precompile-the-complete/issue.md:342:Related to #1770; the issue remains open.
+.stage/certify-and-precompile-the-complete/issue.md:350:Related to #1770. This PR does not complete or close that issue: remaining datatype/context/distinct-body semantics, authenticated prepared native canon, installed caller composition and full-canon performance/acceptance evidence remain outstanding.
+.stage/certify-and-precompile-the-complete/issue.md:403:(canon-admission-commit.log). PR 1832 publishes this increment without closing the
+.stage/certify-and-precompile-the-complete/issue.md:407:CodeRabbit review are pending; no merge-ready verdict is claimed.
+.stage/certify-and-precompile-the-complete/issue.md:412:are unavailable; current-head CodeRabbit review will be requested through the PR.
+.stage/certify-and-precompile-the-complete/issue.md:414:Separately, issue 1768 was found closed despite its last status comment explicitly
+.stage/certify-and-precompile-the-complete/issue.md:466:CodeRabbit explicitly reviewed executable-source head 9086140cf, reporting no actionable findings and 88.71% documentation coverage. The only subsequent source delta is the measured one-line ledger decrease. Linked-issue/scope checks were skipped; they do not establish full issue completion. The separate pipeline review request was rate limited and is recorded as unavailable.
+.stage/certify-and-precompile-the-complete/issue.md:602:The actual PR base is paudley/1834-repair-shared-helper-ownership-and (PR 1835), incorporating pipeline PR 1830. The fetched base has no commits missing from this head. The candidate merge is clean and contains the tested head tree; no conflict resolution or base synchronization is required. This integrates into the existing helper branch, not directly into main.
+.stage/certify-and-precompile-the-complete/plan.md:3:The full contract is issue #1770, including its comment and dependencies. The
+.stage/certify-and-precompile-the-complete/plan.md:10:## Task 1: Complete certified source-class laws
+.stage/certify-and-precompile-the-complete/plan.md:22:## Task 2: Complete selected nonclass semantics
+.stage/certify-and-precompile-the-complete/plan.md:42:## Task 3: Produce and carry the prepared native canon
+.stage/certify-and-precompile-the-complete/plan.md:52:prepared native base required below. The prior increments merged as PR 1831 by
+.stage/certify-and-precompile-the-complete/plan.md:62:## Task 4: Compose and execute installed consumer requests
+.stage/certify-and-precompile-the-complete/plan.md:71:## Task 5: Qualify, review, publish and integrate
+.stage/certify-and-precompile-the-complete/plan.md:75:gates precisely. Open the complete issue PR, incorporate available CodeRabbit
+.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:3:The full plan.md and issue 1770 remain authoritative. This increment repairs the concrete probabilistic-profile blocker without inventing a probability model or excluding required source. Principles 4, 7, 17, 18 and 19.
+.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:7:Task 1: reproduce the canonical preset declaration refusal with a synthetic source using both structural typing spellings. Preserve the exact native preset ID and uncertainty facet in its compiled declaration. Prove real direct contracts and dual-typed preset/contracts still hard-fail without a model. Existing selected/default-graph support and malformed-facet cases remain required.
+.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:9:Task 2: apply the source-dependent model requirement to actual contract owners, including dual-typed preset/contracts. Preserve compatibility checking and unknown/malformed preset rejection. Explain the declaration/execution distinction in the governing design; add no ontology term, compatibility path, fake model or dependency.
+.stage/certify-and-precompile-the-complete/preset-declaration-plan.md:11:Task 3: exercise the actual complete source-admission and FOF projection: preset plus ordinary domain facts reaches Complete; an applied probabilistic contract still blocks without its model; empty configuration-only source cannot manufacture an authorized theory. Run affected source/contract/FOF tests, native probabilistic refusal tests, strict producer-independent Clippy, source lint and normal hooks. Publish one coherent commit/PR with the unchanged full-goal requirements explicit. Independent reviewer tooling is unavailable; do not fabricate a review. Request concrete published CodeRabbit review.
+.stage/certify-and-precompile-the-complete/prior-art.md:1:# Prior art — issue #1770: feat: certify and precompile the complete canon for consumer proof
+.stage/certify-and-precompile-the-complete/prior-art.md:14:- #1768: feat: add a first-class consumer prover entry point  [OPEN]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:15:- #1755: [bug] Compact LogicAxiom lowering collapses distinct RDF literal identities  [OPEN]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:16:- #1712: logic/mappings: salvage the correspondence frontend — dsl/mappings cells as logic:Correspondence IR  [OPEN]  (depends on)
+.stage/certify-and-precompile-the-complete/prior-art.md:17:- #1737: logic: project certified protocol roles into orchestrations  [OPEN]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:18:- #1738: perf: execute the production pipeline as a certified deontic work graph  [OPEN]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:19:- #1770: feat: certify and precompile the complete canon for consumer proof  [OPEN]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:20:- #1825: build: reconcile producer input selection with compiled docs-print sources  [CLOSED]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:21:- #1827: fix(build): preserve producer identity and fail docs prerequisites closed  [MERGED]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:22:- #1826: build: stop docs synchronization when a prerequisite fails  [CLOSED]  (mentions)
+.stage/certify-and-precompile-the-complete/prior-art.md:23:- #1751: logic: TPTP-FOF export + external prover harness (whole-corpus FOL verdicts)  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:24:- #1704: Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:25:- #1748: logic: a pure logic:-native corpus gets a vacuous consistency verdict — laws never reach a clash-capable surface  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:26:- #1741: logic: complete typed correspondence execution and law-bearing source recovery  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:27:- #1743: perf: certify correspondence normalization and physical fusion  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:28:- #1744: logic: complete correspondence targets and executable openEHR exemplars  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:29:- #1745: perf: adopt typed correspondence execution throughout the production pipeline  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:30:- #1735: logic: derive per-step deontic work-graph assessments  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:31:- #1736: logic: implement compositional intent algebra and revision  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:32:- #1742: logic: implement correspondence composition and standpoint-indexed merge  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:33:- #1731: build: authenticate an O3 full-LTO pipeline producer  [CLOSED]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:34:- #1732: perf: persist completed producer fixtures across CI runs  [CLOSED]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:35:- #1734: logic: evaluate LTLf operators over enactment journals  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:36:- #1746: logic: non-entailment obligation discharge misses logic:instanceOf-typed obligations  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:37:- #1752: slice-quality: an external-corpus mode for sacred/consumer slices outside the GMEOW checkout  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:38:- #1750: cli: consistency-family commands need gate-able exit codes and machine-readable verdicts  [OPEN]  (2-hop)
+.stage/certify-and-precompile-the-complete/prior-art.md:55:- #1831: feat(logic): extend certified source laws and contract admission  [MERGED]  (this stage's own PR)
+.stage/certify-and-precompile-the-complete/prior-art.md:56:- #1771: fix(1768): ship self-contained prover binary  [MERGED]
+.stage/certify-and-precompile-the-complete/prior-art.md:57:- #1802: fix(logic): integrate PurRDF main and production reasoning repairs  [MERGED]
+.stage/certify-and-precompile-the-complete/prior-art.md:58:- #1832: feat(logic): preserve canon admission and native proof evidence  [MERGED]  (this stage's own PR)
+.stage/certify-and-precompile-the-complete/prior-art.md:77:- issue #1770 + 17 comment(s) via github
+.stage/certify-and-precompile-the-complete/prior-art.md:81:- prior attempts: 4 commit(s) citing #1770 (second parents walked), 0 other branch(es) named for it
+.stage/certify-and-precompile-the-complete/prior-art.md:82:- PRs citing #1770: 4
+.stage/certify-and-precompile-the-complete/raw/issue.json:9:  "body": "## Problem\n\nComposing the installed `gmeow prove` operation with the complete embedded canon currently makes every request stop before external prover execution. The exact current bundle produces 327 classical-FOF admission blockers:\n\n- 266 `UNSUPPORTED_CLASS_EXPRESSION` (213 uncertified class-expression lowerings; 53 restriction/enumeration reachability cases)\n- 51 `CONTEXT_ERASURE_FORBIDDEN` (standpoint/modal translation required)\n- 7 `UNSUPPORTED_SELECTED_OWNER` (Contract owners lack a classical execution contract)\n- 2 `RULE_TERM_DISTINCT_REQUIRES_BINDING_SEMANTICS`\n- 1 `COMPILER_ERROR_IN_SELECTED_THEORY` (the probabilistic profile carries a measure without a declared probability model)\n\nThis is the concrete unsupported-grounding set behind the full-canon acceptance criterion in #1768. Silently dropping these units would violate the source-admission contract and cannot be justified by bounded-corpus evidence.\n\n## Scope\n\n- give every selected canonical unit a typed, certified FOF disposition;\n- implement the missing class-expression, standpoint/modal, contract-owner, distinct-body, and probabilistic-profile semantics, or give an explicit typed proof-task selection that excludes a unit for a sound documented reason;\n- preserve standpoint, provenance, complements, loss evidence, and stage contracts;\n- produce the canon FOF base once in the O3/full-LTO producer and carry it in `gmeow.gts`, rather than recompiling the flattened canon on every consumer invocation;\n- compose caller premises/goals with that prepared native base in memory, with no serialization/reparse step;\n- make `gmeow prove` reach the selected native/external prover against the complete admitted canon from a blinded cwd;\n- report the exact bundle and prepared-canon identities.\n\n## Acceptance\n\n- complete-canon admission has zero blockers for the supported proof profile;\n- the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic;\n- focused product tests cover GMEOW proof behavior without duplicating PurRDF or external-prover conformance;\n- runtime evidence records elapsed time, peak memory, and intermediate bytes for prepared-canon load plus request composition.\n\nDepends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply.\n",
+.stage/certify-and-precompile-the-complete/raw/issue.json:33:      "body": "# Complete canon proof preparation\n\nThe full contract is issue #1770, including its comment and dependencies. The\nhistorical blocker count is not a current measurement. Principles 4, 7, 12,\n17, 18 and 19 govern implementation. Existing source restrictions retain source\nidentity and dependency certificates; extend that path rather than create a\nsecond class compiler. The production CLI still compiles caller inputs and does\nnot establish complete-canon acceptance.\n\n## Task 1: Complete certified source-class laws\n\nLower canonical Boolean classes, enumeration and restrictions through the\nexisting formula core. Retain exact selected support, scoped blank identity,\ndependency refusal, datatype semantics, context and loss evidence. Begin with\nBoolean membership and resource enumeration, then cover remaining constructors\nrequired by the authenticated canon. Synthetic tests exercise actual source\nadmission and FOF projection, including malformed lists, excluded support,\ndependencies, empty/singleton lists and unsupported value/context controls.\nCommit and push coherent verified changes; partial constructor coverage does not\ncomplete this task or the issue.\n\n## Task 2: Complete selected nonclass semantics\n\nInspect the current standpoint/modal, Contract, rule distinct-body and probability\npaths. Implement their typed certified execution contracts or a sound explicit\nproof-task selection. Test positive production semantics and negative erasure\ncontrols. The existing probability tests establish selected structural typing,\nnot a current complete-canon blocker count.\n\n## Task 3: Produce and carry the prepared native canon\n\nCompile the complete admitted base once in the authenticated O3/full-LTO producer;\nembed it in gmeow.gts with exact bundle/prepared identities and fail-closed loading.\nUse the native carrier, without text serialization/reparse. Producer execution\nremains subject to the unresolved authority conflict: its current fingerprinting\nreads host CPU/environment data forbidden by the user. Do not invoke it locally\nor weaken authentication. Current hosted CI can provide existing evidence.\n\n## Task 4: Compose and execute installed consumer requests\n\nWire gmeow prove to the prepared native base, compose caller premises/goals in\nmemory, and invoke the chosen native/external solver from a blinded cwd. Exercise\nthe canonical navigation obligation and its ordinary-domain grounding rejection.\nRecord load/composition elapsed, intermediate bytes, and permitted peak-memory\nevidence; do not add banned host probes. Complete-canon admission must show zero\nblockers for the supported profile, with exact identities.\n\n## Task 5: Qualify, review, publish and integrate\n\nUse focused synthetic checks during development and required normal commit/push\nhooks. Reserve one full qualification for settled source; report unrun or failed\ngates precisely. Open the complete issue PR, incorporate available CodeRabbit\nfeedback, and merge through ghprsq under standing user authorization. No runtime\ndependency, fallback parser or silent exclusion is authorized.\n\n## Current process limitations and retained evidence\n\nNo independent-agent API is available in this session. Local implementation and\nanalysis proceed; no independent review or completion audit is claimed. Required\nindependent completion judgment remains unverified. Existing prior-art coverage\nrecords two counted repeated-unshared-reasoning-analysis instances and one\nconsumer-artifact-path-coupling instance; unsearched recurrence remains unknown.\nThe previous PR's evidence remains in the sibling Stage directory and its remote\naudit ref. Reused the current checkout; did not add a new worktree. Five clean\nancestor worktrees/branches were removed; fourteen/fifteen remain respectively.\n",
+.stage/certify-and-precompile-the-complete/raw/issue.json:48:      "body": "# Current acceptance\n\nAuthoritative plan: plan.md. Full issue remains incomplete.\n\n| Criterion | Evidence / current state |\n| --- | --- |\n| Boolean/resource-enumeration source laws | Committed and pushed f9dbb7ae7. 62/62 selected TPTP/list/identity controls passed in fof-tests-repaired.log (60 compiler cases and 2 xtask controls). Includes shared owner provenance, nested restriction/nominal, blank identity, singleton arity, invalid empty/malformed lists and refusal controls. |\n| Remaining selected class expressions | Not complete; datatype, qualified cardinality and remaining constructors require certified semantics. |\n| Modal/context, Contract, distinct-body semantics | Not yet verified complete. |\n| Selected probability model typing | Earlier merged synthetic controls, as recorded in issue comment. Not a new canon measurement. |\n| Prepared canon in authenticated bundle | Not complete. Local producer fingerprinting conflicts with user host-probing ban; no execution or auth weakening authorized. |\n| Installed blinded full-canon proof / negative grounding | Not run. Consumer currently compiles caller input. |\n| Load/composition elapsed, memory, intermediate bytes and identities | Not established. |\n| Full gate / hosted CI | Merged base CI run 38927612921 failed producer authentication after compilation; lint and rust-prebuild passed. Quality is an aggregate failure; remaining gates skipped. Filed #1825 with exact job evidence and source diagnosis. No local full gate run for this issue. |\n| Producer identity repair | Isolated and pushed in PR #1827 on the 1825 worktree, with the related #1826 docs failure fix. Final stable-source identity selection passed 3/3 in producer-identity-final.log. Earlier producer-identity-tests.log executed only the old test during overlapping hook stashing and is not repair coverage. Strict prebuild Clippy passed. The duplicate uncommitted producer patch was removed from this checkout after publication; no unrelated work was changed. Hosted producer remains unqualified. |\n| Independent review | Unavailable: no delegation API. No independent verdict claimed. |\n| Normal commit/push hooks | Class commit hooks passed, including source purity, formatting and issue-reference policy; class-commit-retry.log. Normal branch push succeeded. |\n\nInitial make fmt refused the stale target symlink after worktree move. Relocated\nthe existing managed cache to the wrapper-required new worktree path, preserving\nits contents; make fmt then completed successfully. No flags, profiles, caps or\nhost probes were added. Focused tests use the existing nextest-synthetic target,\nwhich removes corpus credentials and does not produce fixtures.\n\nThe first commit attempt failed because stagectl open removed the prior local\n/.stage/ exclusion. The issue-reference gate documents that untracked ignored\nlocal tool records are outside authored product source and tracked files remain\nscanned. Restored that local artifact classification in common Git info/exclude;\nno hook, policy scanner, source exclusion, invocation or verification setting was\nchanged. All Stage evidence stays intact for selected ghprsq audit archival;\nthe failed attempt remains in class-commit.log. Normal retry passed every hook.\n",
+.stage/certify-and-precompile-the-complete/raw/issue.json:108:      "body": "# Complete canon proof preparation\n\nThe full contract is issue #1770, including its comment and dependencies. The\nhistorical blocker count is not a current measurement. Principles 4, 7, 12,\n17, 18 and 19 govern implementation. Existing source restrictions retain source\nidentity and dependency certificates; extend that path rather than create a\nsecond class compiler. The production CLI still compiles caller inputs and does\nnot establish complete-canon acceptance.\n\n## Task 1: Complete certified source-class laws\n\nLower canonical Boolean classes, enumeration and restrictions through the\nexisting formula core. Retain exact selected support, scoped blank identity,\ndependency refusal, datatype semantics, context and loss evidence. Begin with\nBoolean membership and resource enumeration, then cover remaining constructors\nrequired by the authenticated canon. Synthetic tests exercise actual source\nadmission and FOF projection, including malformed lists, excluded support,\ndependencies, empty/singleton lists and unsupported value/context controls.\nCommit and push coherent verified changes; partial constructor coverage does not\ncomplete this task or the issue.\n\n## Task 2: Complete selected nonclass semantics\n\nInspect the current standpoint/modal, Contract, rule distinct-body and probability\npaths. Implement their typed certified execution contracts or a sound explicit\nproof-task selection. Test positive production semantics and negative erasure\ncontrols. The existing probability tests establish selected structural typing,\nnot a current complete-canon blocker count.\n\nReasoningContract/ReasoningPreset declarations use the compiler's existing\nmetatheory boundary: extract_contracts explicitly excludes configuration syntax\nfrom domain axioms. The classical proof profile must catalogue these units with\ntheir native configuration, exact selected support facts and a typed reason;\ndeclaring a configuration neither executes it nor asserts its grammar as object\naxioms. A catalogue alone must not authorize an empty proof. Retain rejected\nowners, hard extraction errors, scope refusals and excluded-support failures.\nUse a versioned shared profile identity for this explicit proof-task disposition.\nThe initial object-fact prototype is not qualifying evidence for this final\nboundary and will not be committed. Other selected owner families still require\ntheir real execution semantics or sound explicit task selection.\n\n## Task 3: Produce and carry the prepared native canon\n\nCompile the complete admitted base once in the authenticated O3/full-LTO producer;\nembed it in gmeow.gts with exact bundle/prepared identities and fail-closed loading.\nUse the native carrier, without text serialization/reparse. Producer execution\nremains subject to the unresolved authority conflict: its current fingerprinting\nreads host CPU/environment data forbidden by the user. Do not invoke it locally\nor weaken authentication. Current hosted CI can provide existing evidence.\n\n## Task 4: Compose and execute installed consumer requests\n\nWire gmeow prove to the prepared native base, compose caller premises/goals in\nmemory, and invoke the chosen native/external solver from a blinded cwd. Exercise\nthe canonical navigation obligation and its ordinary-domain grounding rejection.\nRecord load/composition elapsed, intermediate bytes, and permitted peak-memory\nevidence; do not add banned host probes. Complete-canon admission must show zero\nblockers for the supported profile, with exact identities.\n\n## Task 5: Qualify, review, publish and integrate\n\nUse focused synthetic checks during development and required normal commit/push\nhooks. Reserve one full qualification for settled source; report unrun or failed\ngates precisely. Open the complete issue PR, incorporate available CodeRabbit\nfeedback, and merge through ghprsq under standing user authorization. No runtime\ndependency, fallback parser or silent exclusion is authorized.\n\n## Current process limitations and retained evidence\n\nNo independent-agent API is available in this session. Local implementation and\nanalysis proceed; no independent review or completion audit is claimed. Required\nindependent completion judgment remains unverified. Existing prior-art coverage\nrecords two counted repeated-unshared-reasoning-analysis instances and one\nconsumer-artifact-path-coupling instance; unsearched recurrence remains unknown.\nThe previous PR's evidence remains in the sibling Stage directory and its remote\naudit ref. Reused the current checkout; did not add a new worktree. Five clean\nancestor worktrees/branches were removed; fourteen/fifteen remain respectively.\n",
+.stage/certify-and-precompile-the-complete/raw/issue.json:138:      "body": "feat(logic): extend certified source laws and contract admission\n\nRelated to #1770; the issue remains open.\n\nThe source-admission compiler now lowers Boolean classes, resource enumerations, disjoint partitions, local-self restrictions and qualified object cardinalities into certified source laws. It retains complete owner accounting and represents reasoning-contract configuration as typed metatheory, with explicit conflicting-value failures and a shared versioned proof profile.\n\nPrinciples 4, 7, 17, 18 and 19: canonical source ownership, explicit support evidence and refusal of unsupported semantics remain intact.\n\nValidation: focused compiler/source-admission tests and strict producer-independent workspace/all-target Clippy passed, as indexed in the selected Stage validation report. Normal commit hooks passed. No full local gate or installed full-canon acceptance is claimed. Hosted CI will qualify this published branch; failures will be tracked visibly under the user's explicit merge-now instruction.\n\nRelated to #1770. This PR does not complete or close that issue: remaining datatype/context/distinct-body semantics, authenticated prepared native canon, installed caller composition and full-canon performance/acceptance evidence remain outstanding.\n\nMerge authorization: \"Please ghprsq this branch now, we'll create issues for anything that comes up in CI, but we need to get this code pushed and merged.\"\n\nIntegration: clean merge-tree against main; producer identity/document prerequisite changes do not alter this source-admission implementation. No conflicts. Existing evidence retains its recorded scope; no combined full gate is claimed.\n\nAuthoritative plan: .stage/certify-and-precompile-the-complete/plan.md. Selected Stage directory: .stage/certify-and-precompile-the-complete. See validation.md and merge-now-decision.md for incomplete original criteria and explicit publication authority. Independent reviewer APIs are unavailable; no independent completion audit is claimed.\n\nDefect-Class: none\n",
+.stage/certify-and-precompile-the-complete/raw/issue.json:153:      "body": "# Complete-source admission publication\n\nThe producer now inventories its original compiled catalog before OPT/example\naugmentation. Every document, formula root, rule and semantic owner is selected;\nblocked and malformed dispositions remain explicit. The compile-logic artifact is\nmandatory in the snapshot reasoning archive, and both changed stage implementation\nidentities invalidate stale publications. Bundle::canon_proof_admission reads the\nrequired archived observation with no source or corpus producer path. Its byte\nlimit is an explicit caller input to the existing authenticated archive selector.\n\nThis is an admission observation, not the prepared native proof base. Hydration\ndoes not restore SourceAdmission's private live-compiler commitment. Original\nprepared-canon composition, context/distinct-body/datatype semantics and installed\nfull-canon acceptance remain required by the original issue.\n\nSource contribution lookup now builds one invocation-local reverse index over\ncanonical native node/graph and statement/carrier keys. Document positions are\ndeduplicated within each contribution; document paths are borrowed once, and query\nresults retain the old owned, sorted path-set contract. No RDF, public ledger,\nselection policy, compiler profile, dependency or host setting changed. The index\nis transient; no cumulative carrier cache is added.\n\nThe baseline selected all 68 existing TPTP tests and passed (origin-index-baseline.log).\nInitial implementation passed all 72 selected tests (canon-admission-tests.log):\nthe 68 existing cases, original-scan/index differential, two publication tests and\ninert archive wiring. These are correctness executions, not performance benchmarks;\nno elapsed speedup, peak-memory result or current whole-canon blocker count is\nclaimed. Final typed-diagnostic and direct bundle-reader controls passed with all\n73 selected tests in canon-admission-repaired-tests.log. The first final build\nfailed on a test-only diagnostic function module path; that failure remains in\ncanon-admission-final-tests.log, not acceptance evidence. The corrected run is\nthe final test evidence. The full local producer/gate remains unrun under\nthe standing host-probing prohibition; no admission/authentication weakening is\nauthorized or implemented. Hosted exact-source production remains required.\n\nStrict producer-independent workspace/all-target Clippy passed with warnings\ndenied in canon-admission-clippy.log (3m05s); its existing four corpus-dependent\nconsumer exclusions are unchanged.\n\nCommitted and pushed as 41d204773 with every normal commit hook passing\n(canon-admission-commit.log). PR 1832 publishes this increment without closing the\nfull original issues. stagectl created the PR but could not parse the resulting\nURL as JSON; the existing PR was resolved through stagectl pr, without repeating\ncreation. The source worktree is clean. Exact-source hosted production and current\nCodeRabbit review are pending; no merge-ready verdict is claimed.\n\nThe missing/malformed/unsupported report paths use the shared diagnostic substrate.\nThe producer and consumer retain the decoder's typed diagnostic instead of\nreplacing its code with text. No independent review is claimed: delegation APIs\nare unavailable; current-head CodeRabbit review will be requested through the PR.\n\nSeparately, issue 1768 was found closed despite its last status comment explicitly\nsaying complete-canon semantics remained open. It was reopened, with source-path\nevidence and preserved distribution acceptance, in comment 6223532303. This does\nnot represent the original consumer proof contract as completed by a report.\n",
+.stage/certify-and-precompile-the-complete/raw/issue.json:258:      "body": "fix(logic): preserve canon admission, native proofs and contextual applications\n\nPreserve original-source canon admission and exact selection identity in the reasoning archive. Decoded observations remain inert. Use one document-contribution index and refuse untranslated contextual scope rather than silently asserting it unconditionally.\n\nReturn native PurRDF Certified values, including certificate/proof/checking context and typed refusals, from DL services. Prepare the exact selected question. Remove the obsolete answer wrapper and rejected-decimal-to-rational retry. Valid native exact decimals remain supported.\n\nReplace the string-only frontend parse error and identity adapters with the shared diagnostic boundary through actual CLI, pipeline, dialect and conformance consumers. Preserve native kind/grade/focus/evidence and original parser/read causes.\n\nReplace ambiguous world-prepended atoms with canonical contextualApplication coordinates. Remove the old translation and ternary-guessing decoder. Ordinary predicate arity is preserved; malformed family uses fail explicitly. Update source/cache versions and canonical documentation with French/Chinese annotations. Principles 4, 6, 7, 12, 17, 18 and 19.\n\nValidation and integration:\n277 focused source/FOF/native IR/RDF/Common Logic/modal/temporal tests pass after the final context fix. Strict producer-independent workspace/all-target Clippy, full helper hygiene, source lint, normal signed hooks and push pass. Prior unchanged implementation evidence includes 138 source diagnostic cases plus three final round-trip cases, 46 datatype controls and native proof/preparation controls. No test produces corpus. No local optimized producer, fingerprint or host probe ran.\n\nThe actual PR base is paudley/1834-repair-shared-helper-ownership-and (PR 1835), incorporating pipeline PR 1830. The fetched base has no commits missing from this head. The candidate merge is clean and contains the tested head tree; no conflict resolution or base synchronization is required. This integrates into the existing helper branch, not directly into main.\n\nHosted generation, authenticated consumers, translation-floor qualification and current independent completion review remain incomplete. The earlier review request ended rate-limited; green outer bot status is not current-head review evidence. Pipeline prerequisite generation (a) and fixture-prefix failed following explicit runner shutdown signals, with generation (b) still live at readback. Existing source/pipeline work is being integrated under the user's explicit instruction: \"Please ghprsq this branch now, we'll create issues for anything that comes up in CI, but we need to get this code pushed and merged.\" No check is relabeled as passed and no independent audit is fabricated.\n\nThis increment advances issues 1770, 1768, 1762 and 1803; it does not close them. Complete canon semantics, prepared native canon, blinded installed consumer proofs and production-world performance remain under the authoritative plan. No compatibility path, test weakening or additional runtime dependency is retained.\n\nAuthoritative plan: .stage/certify-and-precompile-the-complete/plan.md\nSelected Stage directory: .stage/certify-and-precompile-the-complete\nCurrent evidence: context-application-report.md, validation.md and review-debt.md in that directory. Historical failed and successful receipts are retained.\n\nDefect-Class: none\n",
+.stage/certify-and-precompile-the-complete/references.md:1:# Referenced artifacts — issue #1770
+.stage/certify-and-precompile-the-complete/requirements-candidates.md:1:# Requirement candidates — issue #1770
+.stage/certify-and-precompile-the-complete/requirements-candidates.md:21:| B10 | body | 26 | list-under-requirement-heading | - the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic; |
+.stage/certify-and-precompile-the-complete/requirements-candidates.md:24:| B13 | body | 30 | dependency | Depends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply. |
+.stage/certify-and-precompile-the-complete/requirements-candidates.md:53:| C17.1 | comment 17 (paudley, 2026-10-17T02:22:18Z) | 14 | modal | The actual PR base is paudley/1834-repair-shared-helper-ownership-and (PR 1835), incorporating pipeline PR 1830. The fetched base has no commits missing from this head. The candidate merge is clean and contains the tested head tree; no conflict resolution or base synchronization is required. This integrates into the existing helper branch, not directly into main. |
+.stage/certify-and-precompile-the-complete/requirements.json:108:      "text": "- the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic;",
+.stage/certify-and-precompile-the-complete/requirements.json:141:      "text": "Depends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply.",
+.stage/certify-and-precompile-the-complete/requirements.json:460:      "text": "The actual PR base is paudley/1834-repair-shared-helper-ownership-and (PR 1835), incorporating pipeline PR 1830. The fetched base has no commits missing from this head. The candidate merge is clean and contains the tested head tree; no conflict resolution or base synchronization is required. This integrates into the existing helper branch, not directly into main.",
+
+pre-commit hook(s) made changes.
+If you are seeing this message in CI, reproduce locally with: `pre-commit run --all-files`.
+To run `pre-commit` as part of git workflow, use `pre-commit install`.
+All changes made by hooks:
+diff --git crates/logic-compile/src/frontend.rs crates/logic-compile/src/frontend.rs
+index 1e62c517b..f54078fc1 100644
+--- crates/logic-compile/src/frontend.rs
++++ crates/logic-compile/src/frontend.rs
+@@ -1726,13 +1726,19 @@ fn extract_contracts(
+                     ));
+                 }
+ 
+-                // Graph-dependent RuleProbabilisticRequiresModel: a
+-                // probabilistic measure demands a declared logic:ProbabilityModel; absent
+-                // one, refuse rather than silently assume independence.
++                // A preset declares a reusable facet bundle, not an inference
++                // request. Applied contracts still require a probability model,
++                // including owners explicitly typed as both preset and contract.
+                 if contract
+                     .uncertainty_measures
+                     .contains("ProbabilisticMeasure")
+                     && !has_probability_model
++                    && (!is_preset
++                        || has_structural_class(
++                            store,
++                            &individual,
++                            &Node::iri(logic_iri("ReasoningContract")),
++                        ))
+                 {
+                     diagnostics.push(Diagnostic::error(
+                 "UNSUPPORTED_CONTRACT",
+diff --git crates/logic-compile/src/frontend/tests.rs crates/logic-compile/src/frontend/tests.rs
+index 8d88fa212..f099ba204 100644
+--- crates/logic-compile/src/frontend/tests.rs
++++ crates/logic-compile/src/frontend/tests.rs
+@@ -459,6 +459,45 @@ fn probabilistic_measure_without_model_is_unsupported() {
+     );
+ }
+ 
++#[test]
++fn probabilistic_preset_declaration_does_not_request_inference() {
++    for typing in ["a", "logic:instanceOf"] {
++        let (program, diagnostics) = parse(&format!(
++            "logic:ProbabilisticProfile {typing} logic:ReasoningPreset ;
++                logic:expandsToFacet logic:ProbabilisticMeasure .
++             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure ."
++        ));
++        assert!(diagnostics.is_empty(), "{typing}: {diagnostics:?}");
++        assert_eq!(program.contracts.len(), 1);
++        assert_eq!(
++            program.contracts[0].preset,
++            Some(crate::ir::SemanticProfileId::Probabilistic)
++        );
++        assert!(
++            program.contracts[0]
++                .uncertainty_measures
++                .contains("ProbabilisticMeasure")
++        );
++    }
++}
++
++#[test]
++fn probabilistic_preset_that_is_also_a_contract_still_requires_a_model() {
++    for typing in ["a", "logic:instanceOf"] {
++        let (_, diagnostics) = parse(&format!(
++            "logic:ProbabilisticProfile {typing} logic:ReasoningPreset, logic:ReasoningContract ;
++                logic:expandsToFacet logic:ProbabilisticMeasure .
++             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure ."
++        ));
++        assert!(
++            diagnostics.iter().any(|diagnostic| {
++                diagnostic.code == "UNSUPPORTED_CONTRACT" && diagnostic.severity == Severity::Error
++            }),
++            "{typing}: an applied contract cannot bypass its model requirement: {diagnostics:?}"
++        );
++    }
++}
++
+ #[test]
+ fn paraconsistent_valuation_under_counterfactual_revision_is_a_hard_compile_failure() {
+     // Forbidden combo (RuleNoParaconsistentCounterfactualRevision), exercised end-to-end
+diff --git crates/logic-compile/src/tptp/contracts.tests.rs crates/logic-compile/src/tptp/contracts.tests.rs
+index a17786a01..112f346a1 100644
+--- crates/logic-compile/src/tptp/contracts.tests.rs
++++ crates/logic-compile/src/tptp/contracts.tests.rs
+@@ -184,6 +184,61 @@ fn configuration_catalogue_alone_does_not_authorize_a_proof() {
+     );
+ }
+ 
++#[test]
++fn probabilistic_preset_is_retained_as_metatheory_without_a_selected_model() {
++    for typing in ["a", "logic:instanceOf"] {
++        let (admission, projection) = project(&format!(
++            "{PREFIXES}
++             logic:ProbabilisticProfile {typing} logic:ReasoningPreset ;
++                 logic:expandsToFacet logic:ProbabilisticMeasure .
++             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure .
++             ex:subject ex:property ex:object ."
++        ));
++        assert_eq!(
++            projection.status,
++            FofProjectionStatus::Complete,
++            "{typing}: {:?}",
++            projection.blockers
++        );
++        let declarations = declarations(&admission);
++        assert_eq!(declarations.len(), 1);
++        assert!(
++            declarations[0]
++                .configuration
++                .uncertainty_measures
++                .contains("ProbabilisticMeasure")
++        );
++        assert!(declarations[0].facts.iter().any(|fact| {
++            fact.predicate == "https://blackcatinformatics.ca/logic/expandsToFacet"
++                && matches!(&fact.object, crate::ir::AtomicTerm::Iri(iri)
++                    if iri == "https://blackcatinformatics.ca/logic/ProbabilisticMeasure")
++        }));
++        let problem = projection.problem.unwrap();
++        assert!(problem.contains("https://example.org/property"));
++        assert!(!problem.contains("ProbabilisticMeasure"));
++        assert!(!problem.contains("ProbabilisticProfile"));
++    }
++}
++
++#[test]
++fn applied_probabilistic_contract_without_model_still_blocks_the_proof() {
++    let (_, projection) = project(&format!(
++        "{PREFIXES}
++         logic:ProbabilisticProfile a logic:ReasoningPreset, logic:ReasoningContract ;
++             logic:expandsToFacet logic:ProbabilisticMeasure .
++         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .
++         ex:subject ex:property ex:object ."
++    ));
++    assert_eq!(projection.status, FofProjectionStatus::Blocked);
++    assert!(projection.problem.is_none());
++    assert!(
++        projection
++            .blockers
++            .iter()
++            .any(|blocker| blocker.reason.contains("ProbabilityModel"))
++    );
++}
++
+ /// Every singleton facet rejects a source that would otherwise choose its last value.
+ #[test]
+ fn conflicting_singleton_contract_facets_fail_native_admission() {
+diff --git slices/grounding/logic/design/LOGIC-SEMANTICS.md slices/grounding/logic/design/LOGIC-SEMANTICS.md
+index 8fc77cf24..56eb6747b 100644
+--- slices/grounding/logic/design/LOGIC-SEMANTICS.md
++++ slices/grounding/logic/design/LOGIC-SEMANTICS.md
+@@ -157,6 +157,13 @@ expands before anything else runs (see [LOGIC-CONTRACT.md § Presets](LOGIC-CONT
+ historical `procedural` preset now selects least-model semantics with the closed set of checked
+ builtins under a bounded `Resource`; it does not license cut or a second search engine.
+ 
++A preset declaration records that reusable bundle; it does not request its execution.
++Declaring `logic:ProbabilisticProfile` therefore does not require an attached probability
++model. An applied `logic:ReasoningContract` carrying the probabilistic measure still
++requires a declared model, including a node also typed as `logic:ReasoningPreset`.
++Executing a probabilistic query without its required model remains a refusal; neither
++the declaration nor confidence metadata supplies an independence assumption.
++
+ The governing rule on combinations is the contract's, restated here for the semantics:
+ 
+ > Not every point in the facet product has a defined semantics. **Unsupported combinations resolve to
+make: *** [Makefile:260: lint] Error 1
