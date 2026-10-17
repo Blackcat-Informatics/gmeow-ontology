@@ -1,0 +1,1013 @@
+﻿2026-10-17T14:48:14.6884138Z Current runner version: '2.337.0'
+2026-10-17T14:48:14.6901289Z ##[group]Runner Image Provisioner
+2026-10-17T14:48:14.6901886Z Hosted Compute Agent
+2026-10-17T14:48:14.6902244Z Version: 20261012.601
+2026-10-17T14:48:14.6902717Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-17T14:48:14.6903157Z Build Date: 2026-10-12T17:48:21Z
+2026-10-17T14:48:14.6903912Z Worker ID: {6c80930e-e8c3-4733-9aa5-4eb2b2e4552f}
+2026-10-17T14:48:14.6904355Z Region: centralus
+2026-10-17T14:48:14.6904702Z Cloud: Azure
+2026-10-17T14:48:14.6905107Z ##[endgroup]
+2026-10-17T14:48:14.6905880Z ##[group]Operating System
+2026-10-17T14:48:14.6906311Z Ubuntu
+2026-10-17T14:48:14.6906645Z 24.04.5
+2026-10-17T14:48:14.6906964Z LTS
+2026-10-17T14:48:14.6907635Z ##[endgroup]
+2026-10-17T14:48:14.6907976Z ##[group]Runner Image
+2026-10-17T14:48:14.6908344Z Image: ubuntu-24.04
+2026-10-17T14:48:14.6908733Z Version: 20261012.334.1
+2026-10-17T14:48:14.6909479Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-17T14:48:14.6910427Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-17T14:48:14.6910973Z ##[endgroup]
+2026-10-17T14:48:14.6911674Z ##[group]GITHUB_TOKEN Permissions
+2026-10-17T14:48:14.6912939Z Contents: read
+2026-10-17T14:48:14.6913420Z Metadata: read
+2026-10-17T14:48:14.6913766Z ##[endgroup]
+2026-10-17T14:48:14.6915144Z Secret source: Actions
+2026-10-17T14:48:14.6915673Z Cache mode: write
+2026-10-17T14:48:14.6916146Z Prepare workflow directory
+2026-10-17T14:48:14.7130810Z Prepare all required actions
+2026-10-17T14:48:14.7162474Z Getting action download info
+2026-10-17T14:48:14.9555907Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-17T14:48:15.0522033Z Download action repository 'dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8' (SHA:29eef336d9b2848a0b548edc03f92a220660cdb8)
+2026-10-17T14:48:15.2336937Z Download action repository 'Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6' (SHA:6323deb102c322ba6fcbdcafc7e3dddab59af2b6)
+2026-10-17T14:48:15.7330610Z Download action repository 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9' (SHA:55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+2026-10-17T14:48:15.8678358Z Download action repository 'actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d' (SHA:45bfe0192ca1faeb007ade9deae92b16b8254a0d)
+2026-10-17T14:48:16.2533650Z Download action repository 'actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9' (SHA:fc324d3547104276b827a68afc52ff2a11cc49c9)
+2026-10-17T14:48:16.5183328Z Getting action download info
+2026-10-17T14:48:16.6174492Z Download action repository 'actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f' (SHA:bbbca2ddaa5d8feaa63e36b76fdaad77386f024f)
+2026-10-17T14:48:16.7985613Z Complete job name: build
+2026-10-17T14:48:16.8473700Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-10-17T14:48:16.8474062Z with:
+2026-10-17T14:48:16.8474189Z   persist-credentials: false
+2026-10-17T14:48:16.8474354Z   repository: Blackcat-Informatics/gmeow-ontology
+2026-10-17T14:48:16.8475700Z   token: ***
+2026-10-17T14:48:16.8475811Z   ssh-strict: true
+2026-10-17T14:48:16.8475935Z   ssh-user: git
+2026-10-17T14:48:16.8476045Z   clean: true
+2026-10-17T14:48:16.8476173Z   sparse-checkout-cone-mode: true
+2026-10-17T14:48:16.8476325Z   fetch-depth: 1
+2026-10-17T14:48:16.8476436Z   fetch-tags: false
+2026-10-17T14:48:16.8476559Z   show-progress: true
+2026-10-17T14:48:16.8476676Z   lfs: false
+2026-10-17T14:48:16.8476780Z   submodules: false
+2026-10-17T14:48:16.8476900Z   set-safe-directory: true
+2026-10-17T14:48:16.8477039Z   allow-unsafe-pr-checkout: false
+2026-10-17T14:48:16.8477392Z ##[endgroup]
+2026-10-17T14:48:16.9088553Z Syncing repository: Blackcat-Informatics/gmeow-ontology
+2026-10-17T14:48:16.9089404Z ##[group]Getting Git version info
+2026-10-17T14:48:16.9089648Z Working directory is '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-17T14:48:16.9090277Z [command]/usr/bin/git version
+2026-10-17T14:48:16.9148115Z git version 2.55.0
+2026-10-17T14:48:16.9159632Z ##[endgroup]
+2026-10-17T14:48:16.9166837Z Temporarily overriding HOME='/home/runner/work/_temp/8982691f-aa0f-49d6-99e1-c731640c84c3' before making global git config changes
+2026-10-17T14:48:16.9167774Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-17T14:48:16.9170574Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-17T14:48:16.9208618Z Deleting the contents of '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-17T14:48:16.9210747Z ##[group]Determining repository object format
+2026-10-17T14:48:16.9211577Z ##[endgroup]
+2026-10-17T14:48:16.9211908Z ##[group]Initializing the repository
+2026-10-17T14:48:16.9214533Z [command]/usr/bin/git init /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-17T14:48:16.9316247Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-17T14:48:16.9316699Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-17T14:48:16.9316998Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-17T14:48:16.9317384Z hint: call:
+2026-10-17T14:48:16.9317491Z hint:
+2026-10-17T14:48:16.9317666Z hint: 	git config --global init.defaultBranch <name>
+2026-10-17T14:48:16.9317839Z hint:
+2026-10-17T14:48:16.9318098Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-17T14:48:16.9318537Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-17T14:48:16.9318864Z hint:
+2026-10-17T14:48:16.9319045Z hint: 	git branch -m <name>
+2026-10-17T14:48:16.9319241Z hint:
+2026-10-17T14:48:16.9319553Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-17T14:48:16.9320083Z Initialized empty Git repository in /home/runner/work/gmeow-ontology/gmeow-ontology/.git/
+2026-10-17T14:48:16.9325942Z [command]/usr/bin/git remote add origin https://github.com/Blackcat-Informatics/gmeow-ontology
+2026-10-17T14:48:16.9370489Z ##[endgroup]
+2026-10-17T14:48:16.9370755Z ##[group]Disabling automatic garbage collection
+2026-10-17T14:48:16.9372455Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-17T14:48:16.9393981Z ##[endgroup]
+2026-10-17T14:48:16.9394282Z ##[group]Setting up auth
+2026-10-17T14:48:16.9394557Z Removing SSH command configuration
+2026-10-17T14:48:16.9397706Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-17T14:48:16.9419637Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-17T14:48:16.9731744Z Removing HTTP extra header
+2026-10-17T14:48:16.9735117Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-17T14:48:16.9756545Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-17T14:48:16.9910991Z Removing includeIf entries pointing to credentials config files
+2026-10-17T14:48:16.9914916Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-17T14:48:16.9942844Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-17T14:48:17.0105030Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-17T14:48:17.0131186Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path /home/runner/work/_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:17.0154517Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:17.0178844Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:17.0202436Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:17.0223922Z ##[endgroup]
+2026-10-17T14:48:17.0224198Z ##[group]Fetching the repository
+2026-10-17T14:48:17.0228176Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +96f49762c586180bcc4ad954dc48e7fc633d57b3:refs/remotes/origin/main
+2026-10-17T14:48:20.4096992Z From https://github.com/Blackcat-Informatics/gmeow-ontology
+2026-10-17T14:48:20.4097732Z  * [new ref]         96f49762c586180bcc4ad954dc48e7fc633d57b3 -> origin/main
+2026-10-17T14:48:20.4104311Z [command]/usr/bin/git branch --list --remote origin/main
+2026-10-17T14:48:20.4132690Z   origin/main
+2026-10-17T14:48:20.4138510Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-10-17T14:48:20.4155762Z 96f49762c586180bcc4ad954dc48e7fc633d57b3
+2026-10-17T14:48:20.4158992Z ##[endgroup]
+2026-10-17T14:48:20.4159376Z ##[group]Determining the checkout info
+2026-10-17T14:48:20.4159792Z ##[endgroup]
+2026-10-17T14:48:20.4162515Z [command]/usr/bin/git sparse-checkout disable
+2026-10-17T14:48:20.4258862Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-17T14:48:20.4281190Z ##[group]Checking out the ref
+2026-10-17T14:48:20.4292728Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-17T14:48:21.1272372Z Switched to a new branch 'main'
+2026-10-17T14:48:21.1276326Z branch 'main' set up to track 'origin/main'.
+2026-10-17T14:48:21.1302633Z ##[endgroup]
+2026-10-17T14:48:21.1343582Z [command]/usr/bin/git log -1 --format=%H
+2026-10-17T14:48:21.1365542Z 96f49762c586180bcc4ad954dc48e7fc633d57b3
+2026-10-17T14:48:21.1373631Z ##[group]Removing auth
+2026-10-17T14:48:21.1373863Z Removing SSH command configuration
+2026-10-17T14:48:21.1376972Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-17T14:48:21.1406922Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-17T14:48:21.1598835Z Removing HTTP extra header
+2026-10-17T14:48:21.1602436Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-17T14:48:21.1632081Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-17T14:48:21.1797010Z Removing includeIf entries pointing to credentials config files
+2026-10-17T14:48:21.1799527Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-17T14:48:21.1821366Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+2026-10-17T14:48:21.1821915Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+2026-10-17T14:48:21.1822302Z includeif.gitdir:/github/workspace/.git.path
+2026-10-17T14:48:21.1822581Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-17T14:48:21.1827651Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+2026-10-17T14:48:21.1845227Z /home/runner/work/_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:21.1851428Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-99ba053a\-6144\-4028\-8e9d\-6b4d9c6ee45f\.config
+2026-10-17T14:48:21.1875700Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+2026-10-17T14:48:21.1892567Z /home/runner/work/_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:21.1900897Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-99ba053a\-6144\-4028\-8e9d\-6b4d9c6ee45f\.config
+2026-10-17T14:48:21.1927419Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-17T14:48:21.1944650Z /github/runner_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:21.1951495Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-99ba053a\-6144\-4028\-8e9d\-6b4d9c6ee45f\.config
+2026-10-17T14:48:21.1974406Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-17T14:48:21.1990223Z /github/runner_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config
+2026-10-17T14:48:21.1994770Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-99ba053a\-6144\-4028\-8e9d\-6b4d9c6ee45f\.config
+2026-10-17T14:48:21.2017936Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-17T14:48:21.2185123Z Removing credentials config '/home/runner/work/_temp/git-credentials-99ba053a-6144-4028-8e9d-6b4d9c6ee45f.config'
+2026-10-17T14:48:21.2191850Z ##[endgroup]
+2026-10-17T14:48:21.2402745Z ##[group]Run dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+2026-10-17T14:48:21.2402975Z with:
+2026-10-17T14:48:21.2403112Z   toolchain: nightly-2026-09-05
+2026-10-17T14:48:21.2403257Z ##[endgroup]
+2026-10-17T14:48:21.2461158Z ##[start-action display=Run : parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+2026-10-17T14:48:21.2487017Z ##[group]Run : parse toolchain version
+2026-10-17T14:48:21.2487453Z : parse toolchain version
+2026-10-17T14:48:21.2487615Z if [[ -z $toolchain ]]; then
+2026-10-17T14:48:21.2487916Z   # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070
+2026-10-17T14:48:21.2488224Z   echo "'toolchain' is a required input" >&2
+2026-10-17T14:48:21.2488391Z   exit 1
+2026-10-17T14:48:21.2488578Z elif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then
+2026-10-17T14:48:21.2488832Z   if [[ Linux == macOS ]]; then
+2026-10-17T14:48:21.2489130Z     echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2489410Z   else
+2026-10-17T14:48:21.2489634Z     echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2489878Z   fi
+2026-10-17T14:48:21.2490046Z elif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then
+2026-10-17T14:48:21.2490338Z   echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2490589Z elif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then
+2026-10-17T14:48:21.2490876Z   echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2491140Z else
+2026-10-17T14:48:21.2491283Z   echo "toolchain=$toolchain" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2491447Z fi
+2026-10-17T14:48:21.2715846Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:21.2716197Z env:
+2026-10-17T14:48:21.2716316Z   toolchain: nightly-2026-09-05
+2026-10-17T14:48:21.2716462Z ##[endgroup]
+2026-10-17T14:48:21.2820475Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=35]
+2026-10-17T14:48:21.2834252Z ##[start-action display=Run : construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+2026-10-17T14:48:21.2847789Z ##[group]Run : construct rustup command line
+2026-10-17T14:48:21.2847985Z : construct rustup command line
+2026-10-17T14:48:21.2848230Z echo "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2848566Z echo "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2848831Z echo "downgrade=" >> $GITHUB_OUTPUT
+2026-10-17T14:48:21.2895777Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:21.2895966Z env:
+2026-10-17T14:48:21.2896070Z   targets: 
+2026-10-17T14:48:21.2896175Z   components: 
+2026-10-17T14:48:21.2896283Z ##[endgroup]
+2026-10-17T14:48:21.2966361Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=13]
+2026-10-17T14:48:21.2968724Z ##[start-action display=Run : set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+2026-10-17T14:48:21.2980890Z ##[group]Run : set $CARGO_HOME
+2026-10-17T14:48:21.2981054Z : set $CARGO_HOME
+2026-10-17T14:48:21.2981235Z echo CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV
+2026-10-17T14:48:21.3026448Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:21.3026659Z ##[endgroup]
+2026-10-17T14:48:21.3111709Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=14]
+2026-10-17T14:48:21.3113297Z ##[start-action display=Run : install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+2026-10-17T14:48:21.3129436Z ##[group]Run : install rustup if needed
+2026-10-17T14:48:21.3129628Z : install rustup if needed
+2026-10-17T14:48:21.3129793Z if ! command -v rustup &>/dev/null; then
+2026-10-17T14:48:21.3130202Z   curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+2026-10-17T14:48:21.3130590Z   echo "$CARGO_HOME/bin" >> $GITHUB_PATH
+2026-10-17T14:48:21.3130746Z fi
+2026-10-17T14:48:21.3174061Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:21.3174240Z env:
+2026-10-17T14:48:21.3174354Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:21.3174493Z ##[endgroup]
+2026-10-17T14:48:21.3234680Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=12]
+2026-10-17T14:48:21.3237437Z ##[start-action display=Run : install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+2026-10-17T14:48:21.3241062Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-10-17T14:48:21.3242832Z ##[start-action display=rustup toolchain install nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_4]
+2026-10-17T14:48:21.3255210Z ##[group]Run rustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update
+2026-10-17T14:48:21.3255554Z rustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update
+2026-10-17T14:48:21.3299093Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:21.3299270Z env:
+2026-10-17T14:48:21.3299383Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:21.3299530Z   RUSTUP_PERMIT_COPY_RENAME: 1
+2026-10-17T14:48:21.3299663Z ##[endgroup]
+2026-10-17T14:48:21.3745793Z info: syncing channel updates for nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-17T14:48:21.7219695Z info: latest update on 2026-09-05 for version 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T14:48:21.7220463Z info: downloading 3 components
+2026-10-17T14:48:27.8193279Z 
+2026-10-17T14:48:27.8249280Z   nightly-2026-09-05-x86_64-unknown-linux-gnu installed - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T14:48:27.8249573Z 
+2026-10-17T14:48:27.8305479Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=6506]
+2026-10-17T14:48:27.8310387Z ##[start-action display=Run rustup default nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_5]
+2026-10-17T14:48:27.8325794Z ##[group]Run rustup default nightly-2026-09-05
+2026-10-17T14:48:27.8326027Z rustup default nightly-2026-09-05
+2026-10-17T14:48:27.8378926Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:27.8379147Z env:
+2026-10-17T14:48:27.8379276Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:27.8379432Z ##[endgroup]
+2026-10-17T14:48:27.8492425Z info: using existing install for nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-17T14:48:27.8498592Z info: default toolchain set to nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-17T14:48:27.8498907Z 
+2026-10-17T14:48:27.8552095Z   nightly-2026-09-05-x86_64-unknown-linux-gnu unchanged - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T14:48:27.8552405Z 
+2026-10-17T14:48:27.8553611Z info: note that the toolchain 'nightly-x86_64-unknown-linux-gnu' is currently in use (overridden by '/home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml')
+2026-10-17T14:48:27.8566943Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=25]
+2026-10-17T14:48:27.8570397Z ##[start-action display=Run : create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+2026-10-17T14:48:27.8584642Z ##[group]Run : create cachekey
+2026-10-17T14:48:27.8584820Z : create cachekey
+2026-10-17T14:48:27.8585309Z DATE=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')
+2026-10-17T14:48:27.8585732Z HASH=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-hash: //p')
+2026-10-17T14:48:27.8586043Z echo "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT
+2026-10-17T14:48:27.8636865Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:27.8637074Z env:
+2026-10-17T14:48:27.8637349Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:27.8637495Z ##[endgroup]
+2026-10-17T14:48:27.8918033Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=34]
+2026-10-17T14:48:27.8920094Z ##[start-action display=Run : disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+2026-10-17T14:48:27.8935048Z ##[group]Run : disable incremental compilation
+2026-10-17T14:48:27.8935280Z : disable incremental compilation
+2026-10-17T14:48:27.8935489Z if [ -z "${CARGO_INCREMENTAL+set}" ]; then
+2026-10-17T14:48:27.8935687Z   echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV
+2026-10-17T14:48:27.8935856Z fi
+2026-10-17T14:48:27.8987031Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:27.8987429Z env:
+2026-10-17T14:48:27.8987563Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:27.8987729Z ##[endgroup]
+2026-10-17T14:48:27.9059264Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=13]
+2026-10-17T14:48:27.9061041Z ##[start-action display=Run : enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+2026-10-17T14:48:27.9075213Z ##[group]Run : enable colors in Cargo output
+2026-10-17T14:48:27.9075486Z : enable colors in Cargo output
+2026-10-17T14:48:27.9075687Z if [ -z "${CARGO_TERM_COLOR+set}" ]; then
+2026-10-17T14:48:27.9075880Z   echo CARGO_TERM_COLOR=always >> $GITHUB_ENV
+2026-10-17T14:48:27.9076044Z fi
+2026-10-17T14:48:27.9125686Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:27.9125882Z env:
+2026-10-17T14:48:27.9126002Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:27.9126299Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:27.9126428Z ##[endgroup]
+2026-10-17T14:48:27.9197313Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=13]
+2026-10-17T14:48:27.9200700Z ##[start-action display=Run : enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+2026-10-17T14:48:27.9214451Z ##[group]Run : enable Cargo sparse registry
+2026-10-17T14:48:27.9214640Z : enable Cargo sparse registry
+2026-10-17T14:48:27.9214838Z # implemented in 1.66, stabilized in 1.68, made default in 1.70
+2026-10-17T14:48:27.9215218Z if [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then
+2026-10-17T14:48:27.9215639Z   if rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[89]\.'; then
+2026-10-17T14:48:27.9215986Z     touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true
+2026-10-17T14:48:27.9216297Z     echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV
+2026-10-17T14:48:27.9216584Z   elif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[67]\.'; then
+2026-10-17T14:48:27.9216899Z     touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true
+2026-10-17T14:48:27.9217362Z     echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
+2026-10-17T14:48:27.9217549Z   fi
+2026-10-17T14:48:27.9217653Z fi
+2026-10-17T14:48:27.9263997Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:27.9264178Z env:
+2026-10-17T14:48:27.9264294Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:27.9264436Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:27.9264562Z   CARGO_TERM_COLOR: always
+2026-10-17T14:48:27.9264827Z ##[endgroup]
+2026-10-17T14:48:27.9508333Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=30]
+2026-10-17T14:48:27.9511554Z ##[start-action display=Run : work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+2026-10-17T14:48:27.9524962Z ##[group]Run : work around spurious network errors in curl 8.0
+2026-10-17T14:48:27.9525220Z : work around spurious network errors in curl 8.0
+2026-10-17T14:48:27.9525528Z # https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation
+2026-10-17T14:48:27.9525876Z if rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.7[01]\.'; then
+2026-10-17T14:48:27.9526144Z   echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV
+2026-10-17T14:48:27.9526319Z fi
+2026-10-17T14:48:27.9576086Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:27.9576277Z env:
+2026-10-17T14:48:27.9576413Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:27.9576557Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:27.9576684Z   CARGO_TERM_COLOR: always
+2026-10-17T14:48:27.9576822Z ##[endgroup]
+2026-10-17T14:48:27.9727474Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=21]
+2026-10-17T14:48:27.9730642Z ##[start-action display=Run rustc +nightly-2026-09-05 --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+2026-10-17T14:48:27.9761978Z ##[group]Run rustc +nightly-2026-09-05 --version --verbose
+2026-10-17T14:48:27.9762219Z rustc +nightly-2026-09-05 --version --verbose
+2026-10-17T14:48:27.9810268Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T14:48:27.9810451Z env:
+2026-10-17T14:48:27.9810566Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:27.9810705Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:27.9810827Z   CARGO_TERM_COLOR: always
+2026-10-17T14:48:27.9810953Z ##[endgroup]
+2026-10-17T14:48:27.9952479Z rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T14:48:27.9952950Z binary: rustc
+2026-10-17T14:48:27.9953267Z commit-hash: 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+2026-10-17T14:48:27.9953912Z commit-date: 2026-09-04
+2026-10-17T14:48:27.9954230Z host: x86_64-unknown-linux-gnu
+2026-10-17T14:48:27.9954602Z release: 1.100.0-nightly
+2026-10-17T14:48:27.9954873Z LLVM version: 23.1.1
+2026-10-17T14:48:27.9966431Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=23]
+2026-10-17T14:48:28.0031450Z ##[group]Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+2026-10-17T14:48:28.0031663Z with:
+2026-10-17T14:48:28.0031778Z   prefix-key: v0-rust
+2026-10-17T14:48:28.0031909Z   add-job-id-key: true
+2026-10-17T14:48:28.0032049Z   add-rust-environment-hash-key: true
+2026-10-17T14:48:28.0032200Z   cache-targets: true
+2026-10-17T14:48:28.0032323Z   cache-all-crates: false
+2026-10-17T14:48:28.0032460Z   cache-workspace-crates: false
+2026-10-17T14:48:28.0032598Z   save-if: true
+2026-10-17T14:48:28.0032713Z   cache-provider: github
+2026-10-17T14:48:28.0032836Z   cache-bin: true
+2026-10-17T14:48:28.0032948Z   lookup-only: false
+2026-10-17T14:48:28.0033080Z   cmd-format: {0}
+2026-10-17T14:48:28.0033190Z env:
+2026-10-17T14:48:28.0033305Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:28.0033451Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:28.0033573Z   CARGO_TERM_COLOR: always
+2026-10-17T14:48:28.0033702Z ##[endgroup]
+2026-10-17T14:48:36.8343516Z ##[group]Cache Configuration
+2026-10-17T14:48:36.8343889Z Cache Provider:
+2026-10-17T14:48:36.8344063Z     github
+2026-10-17T14:48:36.8344218Z Workspaces:
+2026-10-17T14:48:36.8344417Z     /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-17T14:48:36.8344678Z Cache Paths:
+2026-10-17T14:48:36.8344852Z     /home/runner/.cargo/bin
+2026-10-17T14:48:36.8345061Z     /home/runner/.cargo/.crates.toml
+2026-10-17T14:48:36.8345289Z     /home/runner/.cargo/.crates2.json
+2026-10-17T14:48:36.8345509Z     /home/runner/.cargo/registry
+2026-10-17T14:48:36.8345734Z     /home/runner/.cargo/git
+2026-10-17T14:48:36.8345977Z     /home/runner/work/gmeow-ontology/gmeow-ontology/target
+2026-10-17T14:48:36.8346245Z Restore Key:
+2026-10-17T14:48:36.8346440Z     v0-rust-build-Linux-x64-5bf315ca
+2026-10-17T14:48:36.8346655Z Cache Key:
+2026-10-17T14:48:36.8346844Z     v0-rust-build-Linux-x64-5bf315ca-fc33d756
+2026-10-17T14:48:36.8347077Z .. Prefix:
+2026-10-17T14:48:36.8347526Z   - v0-rust-build-Linux-x64
+2026-10-17T14:48:36.8347740Z .. Environment considered:
+2026-10-17T14:48:36.8347951Z   - Rust Versions:
+2026-10-17T14:48:36.8348246Z     - 1.100.0-nightly x86_64-unknown-linux-gnu 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+2026-10-17T14:48:36.8348695Z     - 1.101.0-nightly x86_64-unknown-linux-gnu 5d8fec0669a64607db9ccbf663e7c23125bf4748
+2026-10-17T14:48:36.8349104Z     - 1.99.0 x86_64-unknown-linux-gnu b940084d7eb6a299eb4bfeb8e34901bc051e7ac4
+2026-10-17T14:48:36.8349413Z   - CARGO_HOME
+2026-10-17T14:48:36.8349581Z   - CARGO_INCREMENTAL
+2026-10-17T14:48:36.8349762Z   - CARGO_TERM_COLOR
+2026-10-17T14:48:36.8349946Z .. Lockfiles considered:
+2026-10-17T14:48:36.8350219Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/.cargo/config.toml
+2026-10-17T14:48:36.8350613Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/Cargo.lock
+2026-10-17T14:48:36.8351003Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache/Cargo.toml
+2026-10-17T14:48:36.8351459Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect-ingest/Cargo.toml
+2026-10-17T14:48:36.8351900Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect/Cargo.toml
+2026-10-17T14:48:36.8358337Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bench-engines/Cargo.toml
+2026-10-17T14:48:36.8358958Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs/Cargo.toml
+2026-10-17T14:48:36.8359617Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import/Cargo.toml
+2026-10-17T14:48:36.8360079Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view/Cargo.toml
+2026-10-17T14:48:36.8360503Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cli-core/Cargo.toml
+2026-10-17T14:48:36.8360940Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/conformance/Cargo.toml
+2026-10-17T14:48:36.8361977Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cost-measure/Cargo.toml
+2026-10-17T14:48:36.8362406Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog/Cargo.toml
+2026-10-17T14:48:36.8363032Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model/Cargo.toml
+2026-10-17T14:48:36.8363453Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-print/Cargo.toml
+2026-10-17T14:48:36.8363851Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs/Cargo.toml
+2026-10-17T14:48:36.8364170Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors/Cargo.toml
+2026-10-17T14:48:36.8364446Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/foundation-corpus/Cargo.toml
+2026-10-17T14:48:36.8364725Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-cli/Cargo.toml
+2026-10-17T14:48:36.8364991Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli/Cargo.toml
+2026-10-17T14:48:36.8365273Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix/Cargo.toml
+2026-10-17T14:48:36.8365543Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-wasm/Cargo.toml
+2026-10-17T14:48:36.8365815Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile/Cargo.toml
+2026-10-17T14:48:36.8366086Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/helper-census/Cargo.toml
+2026-10-17T14:48:36.8366353Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge/Cargo.toml
+2026-10-17T14:48:36.8366614Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form/Cargo.toml
+2026-10-17T14:48:36.8366869Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/license/Cargo.toml
+2026-10-17T14:48:36.8367756Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile/Cargo.toml
+2026-10-17T14:48:36.8368064Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic/Cargo.toml
+2026-10-17T14:48:36.8368314Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lsp/Cargo.toml
+2026-10-17T14:48:36.8368685Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift/Cargo.toml
+2026-10-17T14:48:36.8369035Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math/Cargo.toml
+2026-10-17T14:48:36.8369296Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-core-wasm/Cargo.toml
+2026-10-17T14:48:36.8369558Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev/Cargo.toml
+2026-10-17T14:48:36.8369811Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-wasm/Cargo.toml
+2026-10-17T14:48:36.8370083Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp/Cargo.toml
+2026-10-17T14:48:36.8370331Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/music/Cargo.toml
+2026-10-17T14:48:36.8370577Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns/Cargo.toml
+2026-10-17T14:48:36.8370835Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/perf-evidence/Cargo.toml
+2026-10-17T14:48:36.8371102Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline/Cargo.toml
+2026-10-17T14:48:36.8371362Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/query-wasm/Cargo.toml
+2026-10-17T14:48:36.8371640Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/reason-wasm/Cargo.toml
+2026-10-17T14:48:36.8371900Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-brief/Cargo.toml
+2026-10-17T14:48:36.8372165Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality/Cargo.toml
+2026-10-17T14:48:36.8372429Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest/Cargo.toml
+2026-10-17T14:48:36.8372709Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena/Cargo.toml
+2026-10-17T14:48:36.8372987Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/test-batch-macros/Cargo.toml
+2026-10-17T14:48:36.8373260Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode/Cargo.toml
+2026-10-17T14:48:36.8373676Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate-wasm/Cargo.toml
+2026-10-17T14:48:36.8373939Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate/Cargo.toml
+2026-10-17T14:48:36.8374282Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/xtask/Cargo.toml
+2026-10-17T14:48:36.8374523Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml
+2026-10-17T14:48:36.8374951Z ##[endgroup]
+2026-10-17T14:48:36.8375019Z 
+2026-10-17T14:48:36.8375072Z ... Restoring cache ...
+2026-10-17T14:48:36.9640250Z No cache found.
+2026-10-17T14:48:36.9742889Z ##[group]Run echo "version=$(make --no-print-directory print-mdbook-ver)" >> "$GITHUB_OUTPUT"
+2026-10-17T14:48:36.9743251Z echo "version=$(make --no-print-directory print-mdbook-ver)" >> "$GITHUB_OUTPUT"
+2026-10-17T14:48:36.9795972Z shell: /usr/bin/bash -e {0}
+2026-10-17T14:48:36.9796108Z env:
+2026-10-17T14:48:36.9796223Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:36.9796373Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:36.9796495Z   CARGO_TERM_COLOR: always
+2026-10-17T14:48:36.9796622Z   CACHE_ON_FAILURE: false
+2026-10-17T14:48:36.9796748Z ##[endgroup]
+2026-10-17T14:48:37.0020641Z ##[group]Run actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+2026-10-17T14:48:37.0020844Z with:
+2026-10-17T14:48:37.0020961Z   path: .cache/gmeow-tools/mdbook/0.5.4
+2026-10-17T14:48:37.0021120Z   key: mdbook-v1-Linux-X64-0.5.4
+2026-10-17T14:48:37.0021264Z   enableCrossOsArchive: false
+2026-10-17T14:48:37.0021401Z   fail-on-cache-miss: false
+2026-10-17T14:48:37.0021530Z   lookup-only: false
+2026-10-17T14:48:37.0021648Z   save-always: false
+2026-10-17T14:48:37.0021758Z env:
+2026-10-17T14:48:37.0021866Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:37.0022002Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:37.0022121Z   CARGO_TERM_COLOR: always
+2026-10-17T14:48:37.0022248Z   CACHE_ON_FAILURE: false
+2026-10-17T14:48:37.0022369Z ##[endgroup]
+2026-10-17T14:48:37.1903954Z Cache not found for input keys: mdbook-v1-Linux-X64-0.5.4
+2026-10-17T14:48:37.1975426Z ##[group]Run make maint-mdbook-smoke
+2026-10-17T14:48:37.1975618Z make maint-mdbook-smoke
+2026-10-17T14:48:37.2026513Z shell: /usr/bin/bash -e {0}
+2026-10-17T14:48:37.2026649Z env:
+2026-10-17T14:48:37.2026760Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T14:48:37.2026901Z   CARGO_INCREMENTAL: 0
+2026-10-17T14:48:37.2027025Z   CARGO_TERM_COLOR: always
+2026-10-17T14:48:37.2027335Z   CACHE_ON_FAILURE: false
+2026-10-17T14:48:37.2027483Z ##[endgroup]
+2026-10-17T14:48:37.2193827Z make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
+2026-10-17T14:48:37.2210493Z make[1]: Entering directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-17T14:48:37.2387470Z make[2]: Entering directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-17T14:48:37.2554831Z cargo xtask producer run -- sync --mode update --outputs generated  
+2026-10-17T14:50:09.7086966Z    Compiling proc-macro2 v1.0.107
+2026-10-17T14:50:09.7087494Z    Compiling quote v1.0.47
+2026-10-17T14:50:09.7087692Z    Compiling unicode-ident v1.0.24
+2026-10-17T14:50:09.7088100Z    Compiling serde_core v1.0.229
+2026-10-17T14:50:09.7484764Z    Compiling cfg-if v1.0.4
+2026-10-17T14:50:09.7718374Z    Compiling memchr v2.8.3
+2026-10-17T14:50:09.8658678Z    Compiling serde v1.0.229
+2026-10-17T14:50:10.1146173Z    Compiling typenum v1.20.1
+2026-10-17T14:50:10.6778644Z    Compiling syn v2.0.119
+2026-10-17T14:50:10.9234728Z    Compiling syn v3.0.3
+2026-10-17T14:50:11.4829307Z    Compiling hashbrown v0.17.1
+2026-10-17T14:50:11.8743085Z    Compiling libc v0.2.189
+2026-10-17T14:50:11.9711656Z    Compiling regex-syntax v0.8.11
+2026-10-17T14:50:12.8988690Z    Compiling aho-corasick v1.1.4
+2026-10-17T14:50:14.8250034Z    Compiling regex-automata v0.4.16
+2026-10-17T14:50:14.9190200Z    Compiling version_check v0.9.5
+2026-10-17T14:50:15.4669038Z    Compiling hybrid-array v0.4.15
+2026-10-17T14:50:15.8458610Z    Compiling crypto-common v0.2.2
+2026-10-17T14:50:16.4410878Z    Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:20.1048908Z    Compiling regex v1.13.1
+2026-10-17T14:50:20.5578645Z    Compiling block-buffer v0.12.1
+2026-10-17T14:50:20.6459165Z    Compiling cpufeatures v0.3.0
+2026-10-17T14:50:20.6654886Z    Compiling zmij v1.0.23
+2026-10-17T14:50:20.9108615Z    Compiling crossbeam-utils v0.8.22
+2026-10-17T14:50:21.1068489Z    Compiling synstructure v0.13.2
+2026-10-17T14:50:21.2128491Z    Compiling smallvec v1.15.2
+2026-10-17T14:50:21.3363317Z    Compiling crossbeam-epoch v0.9.20
+2026-10-17T14:50:21.4608805Z    Compiling serde_json v1.0.151
+2026-10-17T14:50:21.8879334Z    Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:25.9208610Z    Compiling crossbeam-deque v0.8.7
+2026-10-17T14:50:26.2107705Z    Compiling rayon-core v1.13.0
+2026-10-17T14:50:26.2653965Z    Compiling const-oid v0.10.2
+2026-10-17T14:50:26.3818643Z    Compiling digest v0.11.3
+2026-10-17T14:50:26.5589287Z    Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:28.4794484Z    Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:29.3829172Z    Compiling serde_derive v1.0.229
+2026-10-17T14:50:30.1362010Z    Compiling zerofrom-derive v0.1.7
+2026-10-17T14:50:30.2768924Z    Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:30.3399871Z    Compiling itoa v1.0.18
+2026-10-17T14:50:31.0038658Z    Compiling sha2 v0.11.0
+2026-10-17T14:50:31.5348656Z    Compiling stable_deref_trait v1.2.1
+2026-10-17T14:50:31.5534265Z    Compiling equivalent v1.0.2
+2026-10-17T14:50:31.5790324Z    Compiling either v1.17.0
+2026-10-17T14:50:31.6810270Z    Compiling rayon v1.12.0
+2026-10-17T14:50:33.4056536Z    Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:35.7495100Z    Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:36.3929061Z    Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:40.0788716Z    Compiling zerofrom v0.1.8
+2026-10-17T14:50:40.1277871Z    Compiling arrayvec v0.7.8
+2026-10-17T14:50:40.2548479Z    Compiling displaydoc v0.2.6
+2026-10-17T14:50:41.5278955Z    Compiling shlex v2.0.1
+2026-10-17T14:50:41.6799140Z    Compiling find-msvc-tools v0.1.9
+2026-10-17T14:50:41.8908674Z    Compiling cc v1.4.0
+2026-10-17T14:50:42.0719027Z    Compiling generic-array v0.14.7
+2026-10-17T14:50:42.1329105Z    Compiling once_cell v1.21.4
+2026-10-17T14:50:42.2398506Z    Compiling autocfg v1.5.1
+2026-10-17T14:50:43.0454692Z    Compiling num-traits v0.2.19
+2026-10-17T14:50:44.2678632Z    Compiling getrandom v0.3.4
+2026-10-17T14:50:44.5669042Z    Compiling indexmap v2.14.0
+2026-10-17T14:50:44.8622919Z    Compiling arrayref v0.3.9
+2026-10-17T14:50:44.8848724Z    Compiling yoke-derive v0.8.2
+2026-10-17T14:50:45.4578495Z    Compiling inout v0.2.2
+2026-10-17T14:50:45.5228603Z    Compiling cmov v0.5.4
+2026-10-17T14:50:45.6328506Z    Compiling zerocopy v0.8.55
+2026-10-17T14:50:45.7960529Z    Compiling log v0.4.33
+2026-10-17T14:50:45.8914468Z    Compiling ctutils v0.4.2
+2026-10-17T14:50:46.1949596Z    Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:47.5803270Z    Compiling zerocopy-derive v0.8.55
+2026-10-17T14:50:53.8559109Z    Compiling yoke v0.8.3
+2026-10-17T14:50:53.9549104Z    Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:56.5279161Z    Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:50:58.5699200Z    Compiling zerovec-derive v0.11.3
+2026-10-17T14:51:01.1738933Z    Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:51:01.2578629Z    Compiling cpubits v0.1.1
+2026-10-17T14:51:01.2778836Z    Compiling fastrand v2.5.0
+2026-10-17T14:51:03.2998592Z    Compiling zerovec v0.11.6
+2026-10-17T14:51:04.0950360Z    Compiling universal-hash v0.6.1
+2026-10-17T14:51:04.1346796Z    Compiling cipher v0.5.2
+2026-10-17T14:51:04.2678593Z    Compiling bitflags v2.13.1
+2026-10-17T14:51:04.4348155Z    Compiling polyval v0.7.3
+2026-10-17T14:51:04.5192978Z    Compiling crc32fast v1.5.0
+2026-10-17T14:51:04.6728619Z    Compiling twox-hash v2.1.3
+2026-10-17T14:51:04.7238635Z    Compiling simd-adler32 v0.3.10
+2026-10-17T14:51:04.8298894Z    Compiling structured-zstd v0.0.49
+2026-10-17T14:51:05.0179555Z    Compiling ghash v0.6.0
+2026-10-17T14:51:05.0544780Z    Compiling aes v0.9.3
+2026-10-17T14:51:05.3558602Z    Compiling ctr v0.10.1
+2026-10-17T14:51:05.4394968Z    Compiling aead v0.6.1
+2026-10-17T14:51:05.4968689Z    Compiling adler2 v2.0.1
+2026-10-17T14:51:05.7809137Z    Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:51:18.6798771Z    Compiling miniz_oxide v0.8.9
+2026-10-17T14:51:19.3688505Z    Compiling aes-gcm v0.11.1
+2026-10-17T14:51:19.5133387Z    Compiling tinystr v0.8.3
+2026-10-17T14:51:19.6049613Z    Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:51:20.0568950Z    Compiling visual-hashing v1.0.0
+2026-10-17T14:51:20.2249366Z    Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:51:34.1101356Z    Compiling flate2 v1.1.9
+2026-10-17T14:51:35.5305005Z    Compiling base64 v0.22.1
+2026-10-17T14:51:36.0021866Z    Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:51:42.0079313Z    Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:51:48.2958978Z    Compiling utf8_iter v1.0.4
+2026-10-17T14:51:48.3568470Z    Compiling writeable v0.6.3
+2026-10-17T14:51:48.4515748Z    Compiling litemap v0.8.2
+2026-10-17T14:51:48.5528419Z    Compiling bit-vec v0.8.0
+2026-10-17T14:51:48.6778538Z    Compiling tinyvec_macros v0.1.1
+2026-10-17T14:51:48.6988604Z    Compiling tinyvec v1.12.0
+2026-10-17T14:51:48.9898582Z    Compiling bit-set v0.8.0
+2026-10-17T14:51:49.0580056Z    Compiling icu_locale_core v2.2.0
+2026-10-17T14:51:50.1959277Z    Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:51:55.7028519Z    Compiling potential_utf v0.1.5
+2026-10-17T14:51:55.7548645Z    Compiling zerotrie v0.2.4
+2026-10-17T14:51:55.9338682Z    Compiling icu_properties_data v2.2.0
+2026-10-17T14:51:55.9968406Z    Compiling parking_lot_core v0.9.12
+2026-10-17T14:51:56.1178552Z    Compiling winnow v1.0.4
+2026-10-17T14:51:56.8753635Z    Compiling icu_normalizer_data v2.2.0
+2026-10-17T14:51:57.5474587Z    Compiling toml_parser v1.1.2+spec-1.1.0
+2026-10-17T14:51:58.4148791Z    Compiling icu_provider v2.2.0
+2026-10-17T14:51:58.6588838Z    Compiling icu_collections v2.2.0
+2026-10-17T14:51:58.9918656Z    Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:52:16.8699039Z    Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:52:41.4738743Z    Compiling crypto-common v0.1.7
+2026-10-17T14:52:41.5168976Z    Compiling block-buffer v0.10.4
+2026-10-17T14:52:41.5768679Z    Compiling serde_spanned v0.6.9
+2026-10-17T14:52:41.6208681Z    Compiling toml_datetime v0.6.11
+2026-10-17T14:52:41.8109371Z    Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:52:50.5499233Z    Compiling half v2.7.1
+2026-10-17T14:52:50.7238638Z    Compiling toml_datetime v1.1.1+spec-1.1.0
+2026-10-17T14:52:50.9328493Z    Compiling serde_spanned v1.1.1
+2026-10-17T14:52:50.9748589Z    Compiling num-integer v0.1.46
+2026-10-17T14:52:51.2008939Z    Compiling winnow v0.7.15
+2026-10-17T14:52:52.1468896Z    Compiling scopeguard v1.2.0
+2026-10-17T14:52:52.1789073Z    Compiling ciborium-io v0.2.2
+2026-10-17T14:52:52.2058972Z    Compiling toml_write v0.1.2
+2026-10-17T14:52:52.3158569Z    Compiling ciborium-ll v0.2.2
+2026-10-17T14:52:52.4128429Z    Compiling lock_api v0.4.14
+2026-10-17T14:52:52.5438659Z    Compiling toml v1.1.3+spec-1.1.0
+2026-10-17T14:52:52.8088682Z    Compiling toml_edit v0.22.27
+2026-10-17T14:52:54.8888831Z    Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:52:59.8078634Z    Compiling digest v0.10.7
+2026-10-17T14:52:59.9079126Z    Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:03.9339063Z    Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:04.3059402Z    Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:04.3389256Z    Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:06.8136676Z    Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:06.8259097Z    Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:08.6879306Z    Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:09.7498249Z    Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:10.4938687Z    Compiling blake3 v1.8.5
+2026-10-17T14:53:11.7719195Z    Compiling allocator-api2 v0.2.21
+2026-10-17T14:53:12.0818935Z    Compiling percent-encoding v2.3.2
+2026-10-17T14:53:12.1853190Z    Compiling cpufeatures v0.2.17
+2026-10-17T14:53:14.3768758Z    Compiling sha2 v0.10.9
+2026-10-17T14:53:15.3999509Z    Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+2026-10-17T14:53:16.6538829Z    Compiling icu_normalizer v2.2.0
+2026-10-17T14:53:16.7368723Z    Compiling parking_lot v0.12.5
+2026-10-17T14:53:17.0938693Z    Compiling icu_properties v2.2.0
+2026-10-17T14:53:17.2298678Z    Compiling toml v0.8.23
+2026-10-17T14:53:17.9738664Z    Compiling cargo-config2 v0.1.45
+2026-10-17T14:53:19.1538683Z    Compiling ciborium v0.2.2
+2026-10-17T14:53:19.2198906Z    Compiling num-bigint v0.4.8
+2026-10-17T14:53:19.5878510Z    Compiling bytemuck_derive v1.11.0
+2026-10-17T14:53:20.9678654Z    Compiling constant_time_eq v0.4.2
+2026-10-17T14:53:21.0358643Z    Compiling unicode-script v0.5.8
+2026-10-17T14:53:21.2428828Z    Compiling libm v0.2.16
+2026-10-17T14:53:21.5039179Z    Compiling glob v0.3.4
+2026-10-17T14:53:22.1168925Z    Compiling gmeow-build-inputs v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs)
+2026-10-17T14:53:24.1639039Z    Compiling idna_adapter v1.2.2
+2026-10-17T14:53:25.4659101Z    Compiling idna v1.1.0
+2026-10-17T14:53:26.3238964Z    Compiling gmeow-errors v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors)
+2026-10-17T14:53:26.7299325Z    Compiling bytemuck v1.25.2
+2026-10-17T14:53:27.7528863Z    Compiling unicode-normalization v0.1.25
+2026-10-17T14:53:28.0489108Z    Compiling yoke-derive v0.7.5
+2026-10-17T14:53:30.8968409Z    Compiling thiserror v2.0.19
+2026-10-17T14:53:31.2069235Z    Compiling foldhash v0.1.5
+2026-10-17T14:53:31.6248503Z    Compiling hashbrown v0.15.5
+2026-10-17T14:53:32.0248694Z    Compiling zerovec-derive v0.10.3
+2026-10-17T14:53:32.1378644Z    Compiling thiserror-impl v2.0.19
+2026-10-17T14:53:36.9018617Z    Compiling gmeow-term-arena v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena)
+2026-10-17T14:53:36.9249071Z    Compiling yoke v0.7.5
+2026-10-17T14:53:37.0318635Z    Compiling zerovec v0.10.4
+2026-10-17T14:53:37.3719137Z    Compiling siphasher v1.0.3
+2026-10-17T14:53:37.4728942Z    Compiling lazy_static v1.5.0
+2026-10-17T14:53:37.5038691Z    Compiling heck v0.5.0
+2026-10-17T14:53:38.0861560Z    Compiling tracing-core v0.1.36
+2026-10-17T14:53:38.0898270Z    Compiling litemap v0.7.5
+2026-10-17T14:53:38.2549455Z    Compiling tinystr v0.7.6
+2026-10-17T14:53:38.4146090Z    Compiling core_maths v0.1.1
+2026-10-17T14:53:38.4508928Z    Compiling gmeow-ns v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns)
+2026-10-17T14:53:38.5218632Z    Compiling ring v0.17.14
+2026-10-17T14:53:38.7559568Z    Compiling tracing-attributes v0.1.31
+2026-10-17T14:53:39.6517330Z    Compiling writeable v0.5.5
+2026-10-17T14:53:39.8308680Z    Compiling pin-project-lite v0.2.17
+2026-10-17T14:53:40.6701756Z    Compiling icu_locid v1.5.0
+2026-10-17T14:53:41.4909622Z    Compiling cobs v0.3.0
+2026-10-17T14:53:41.5798554Z    Compiling postcard v1.1.3
+2026-10-17T14:53:42.0819149Z    Compiling gmeow-logic-compile v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile)
+2026-10-17T14:53:47.4483402Z    Compiling gmeow-gts-profile v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile)
+2026-10-17T14:53:49.0528588Z    Compiling tracing v0.1.44
+2026-10-17T14:53:49.2085506Z    Compiling fdeflate v0.3.7
+2026-10-17T14:53:49.6058832Z    Compiling icu_provider_macros v1.5.0
+2026-10-17T14:53:49.8877550Z    Compiling slotmap v1.1.1
+2026-10-17T14:53:50.1778704Z    Compiling float-cmp v0.9.0
+2026-10-17T14:53:50.2218493Z    Compiling ref-cast v1.0.26
+2026-10-17T14:53:50.4678591Z    Compiling getrandom v0.4.3
+2026-10-17T14:53:50.5942948Z    Compiling rustversion v1.0.23
+2026-10-17T14:53:50.9591560Z    Compiling rustix v1.1.4
+2026-10-17T14:53:51.2959477Z    Compiling zeroize v1.9.0
+2026-10-17T14:53:51.3698808Z    Compiling rustls-pki-types v1.15.1
+2026-10-17T14:53:51.8248920Z    Compiling strict-num v0.1.1
+2026-10-17T14:53:52.5348725Z    Compiling icu_provider v1.5.0
+2026-10-17T14:53:53.2178671Z    Compiling ttf-parser v0.24.1
+2026-10-17T14:53:53.3249947Z    Compiling gmeow-math-lift v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift)
+2026-10-17T14:53:55.7292506Z    Compiling gmeow-lang-form v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form)
+2026-10-17T14:53:56.1579298Z    Compiling gmeow-logic v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic)
+2026-10-17T14:53:56.2892900Z    Compiling ref-cast-impl v1.0.26
+2026-10-17T14:53:58.7238717Z    Compiling ahash v0.8.12
+2026-10-17T14:53:58.8158692Z    Compiling getrandom v0.2.17
+2026-10-17T14:53:58.8774851Z    Compiling ryu v1.0.23
+2026-10-17T14:53:58.9036215Z    Compiling roxmltree v0.20.0
+2026-10-17T14:53:58.9855430Z    Compiling time-core v0.1.9
+2026-10-17T14:53:59.0818879Z    Compiling weezl v0.1.12
+2026-10-17T14:53:59.5079373Z    Compiling num-conv v0.2.2
+2026-10-17T14:53:59.5696654Z    Compiling fixedbitset v0.5.7
+2026-10-17T14:53:59.8018869Z    Compiling linux-raw-sys v0.12.1
+2026-10-17T14:53:59.8498820Z    Compiling color_quant v1.1.0
+2026-10-17T14:53:59.9648640Z    Compiling untrusted v0.9.0
+2026-10-17T14:54:00.0036838Z    Compiling httparse v1.10.1
+2026-10-17T14:54:00.0150349Z    Compiling icu_locid_transform_data v1.5.1
+2026-10-17T14:54:01.8128470Z    Compiling petgraph v0.8.3
+2026-10-17T14:54:02.6338838Z    Compiling time-macros v0.2.32
+2026-10-17T14:54:03.4158663Z    Compiling fontconfig-parser v0.5.8
+2026-10-17T14:54:05.8048593Z    Compiling gmeow-math v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/math)
+2026-10-17T14:54:14.9747807Z    Compiling tiny-skia-path v0.11.4
+2026-10-17T14:54:16.4941117Z    Compiling num-rational v0.4.2
+2026-10-17T14:54:17.1068483Z    Compiling num-iter v0.1.46
+2026-10-17T14:54:17.1457371Z    Compiling chrono v0.4.45
+2026-10-17T14:54:17.1541725Z    Compiling num-complex v0.4.6
+2026-10-17T14:54:17.4828752Z    Compiling kurbo v0.11.3
+2026-10-17T14:54:18.4698742Z    Compiling memmap2 v0.9.11
+2026-10-17T14:54:18.5908704Z    Compiling unicode-properties v0.1.4
+2026-10-17T14:54:18.6758371Z    Compiling borrow-or-share v0.2.4
+2026-10-17T14:54:18.7098809Z    Compiling foldhash v0.2.0
+2026-10-17T14:54:18.7894721Z    Compiling unicode-bidi-mirroring v0.3.0
+2026-10-17T14:54:18.9092252Z    Compiling unicode-ccc v0.3.0
+2026-10-17T14:54:18.9148507Z    Compiling powerfmt v0.2.0
+2026-10-17T14:54:19.0164873Z    Compiling bytes v1.12.1
+2026-10-17T14:54:19.0599104Z    Compiling deranged v0.5.8
+2026-10-17T14:54:19.5229019Z    Compiling portable-atomic v1.14.0
+2026-10-17T14:54:19.9805990Z    Compiling paste v1.0.15
+2026-10-17T14:54:20.1458693Z    Compiling bitflags v1.3.2
+2026-10-17T14:54:20.2384064Z    Compiling byteorder-lite v0.1.0
+2026-10-17T14:54:20.4018901Z    Compiling unicode-general-category v1.1.0
+2026-10-17T14:54:20.5658688Z    Compiling rustls v0.23.46
+2026-10-17T14:54:20.6248685Z    Compiling rustc-hash v2.1.3
+2026-10-17T14:54:20.6682497Z    Compiling rand_core v0.6.4
+2026-10-17T14:54:20.7668781Z    Compiling rand v0.8.7
+2026-10-17T14:54:20.7864281Z    Compiling phf_shared v0.11.3
+2026-10-17T14:54:21.1988589Z    Compiling png v0.17.16
+2026-10-17T14:54:22.2770025Z    Compiling time v0.3.54
+2026-10-17T14:54:24.3648666Z    Compiling http v1.4.2
+2026-10-17T14:54:25.2518474Z    Compiling rustybuzz v0.18.0
+2026-10-17T14:54:28.6639333Z    Compiling hashbrown v0.16.1
+2026-10-17T14:54:29.3318827Z    Compiling fluent-uri v0.4.1
+2026-10-17T14:54:29.9306218Z    Compiling fontdb v0.21.0
+2026-10-17T14:54:30.0989071Z    Compiling svgtypes v0.15.3
+2026-10-17T14:54:30.8368880Z    Compiling num v0.4.3
+2026-10-17T14:54:30.8640257Z    Compiling strum_macros v0.26.4
+2026-10-17T14:54:35.1008601Z    Compiling tempfile v3.27.0
+2026-10-17T14:54:35.6328440Z    Compiling rustls-webpki v0.103.15
+2026-10-17T14:54:37.1409038Z    Compiling simplecss v0.2.2
+2026-10-17T14:54:37.2129047Z    Compiling quick-xml v0.41.0
+2026-10-17T14:54:37.6419170Z    Compiling micromap v0.3.0
+2026-10-17T14:54:37.8900028Z    Compiling downcast-rs v1.2.1
+2026-10-17T14:54:37.9228655Z    Compiling data-url v0.3.2
+2026-10-17T14:54:38.2789729Z    Compiling unicode-vo v0.1.0
+2026-10-17T14:54:38.3180356Z    Compiling anyhow v1.0.104
+2026-10-17T14:54:38.3259237Z    Compiling xmlwriter v0.1.0
+2026-10-17T14:54:38.4605141Z    Compiling same-file v1.0.6
+2026-10-17T14:54:38.5135385Z    Compiling vsimd v0.8.0
+2026-10-17T14:54:38.5458893Z    Compiling unscanny v0.1.0
+2026-10-17T14:54:38.6948827Z    Compiling pxfm v0.1.30
+2026-10-17T14:54:38.8045009Z    Compiling outref v0.5.2
+2026-10-17T14:54:38.8356840Z    Compiling icu_properties_data v1.5.1
+2026-10-17T14:54:38.9049145Z    Compiling subtle v2.6.1
+2026-10-17T14:54:38.9698769Z    Compiling pico-args v0.5.0
+2026-10-17T14:54:39.0878744Z    Compiling unicode-bidi v0.3.18
+2026-10-17T14:54:39.6849184Z    Compiling thiserror v1.0.69
+2026-10-17T14:54:39.8768813Z    Compiling wasmparser v0.221.3
+2026-10-17T14:54:40.0299517Z    Compiling zune-core v0.5.1
+2026-10-17T14:54:40.1698730Z    Compiling imagesize v0.13.0
+2026-10-17T14:54:40.5159139Z    Compiling linked-hash-map v0.5.6
+2026-10-17T14:54:40.6224682Z    Compiling yaml-rust v0.4.5
+2026-10-17T14:54:40.8862619Z    Compiling strum v0.26.3
+2026-10-17T14:54:40.9204956Z    Compiling moxcms v0.8.1
+2026-10-17T14:54:41.7108655Z    Compiling usvg v0.43.0
+2026-10-17T14:54:41.8208105Z    Compiling zune-jpeg v0.5.15
+2026-10-17T14:54:46.9998608Z    Compiling uuid-simd v0.8.0
+2026-10-17T14:54:47.1508523Z    Compiling walkdir v2.5.0
+2026-10-17T14:54:47.4238689Z    Compiling wasmi_core v0.40.0
+2026-10-17T14:54:47.8098807Z    Compiling referencing v0.46.10
+2026-10-17T14:54:48.1508908Z    Compiling plist v1.10.0
+2026-10-17T14:54:49.0438671Z    Compiling icu_locid_transform v1.5.0
+2026-10-17T14:54:50.2254526Z    Compiling ureq-proto v0.6.0
+2026-10-17T14:54:50.3787368Z    Compiling gmeow-action-cache v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache)
+2026-10-17T14:54:50.5636129Z    Compiling fraction v0.15.4
+2026-10-17T14:54:51.5489137Z    Compiling phf_generator v0.11.3
+2026-10-17T14:54:51.8221698Z    Compiling gif v0.14.2
+2026-10-17T14:54:52.0388715Z    Compiling webpki-roots v1.0.9
+2026-10-17T14:54:52.0838830Z    Compiling png v0.18.1
+2026-10-17T14:54:52.6769242Z    Compiling icu_collections v1.5.0
+2026-10-17T14:54:53.4094306Z    Compiling form_urlencoded v1.2.2
+2026-10-17T14:54:53.4189379Z    Compiling fancy-regex v0.18.0
+2026-10-17T14:54:53.5085984Z    Compiling fancy-regex v0.16.2
+2026-10-17T14:54:54.9679208Z    Compiling unic-langid-impl v0.9.6
+2026-10-17T14:54:55.3788549Z    Compiling ppv-lite86 v0.2.21
+2026-10-17T14:54:55.5458925Z    Compiling bincode v1.3.3
+2026-10-17T14:54:55.6075120Z    Compiling email_address v0.2.9
+2026-10-17T14:54:55.8408793Z    Compiling quick-xml v0.36.2
+2026-10-17T14:54:55.8458424Z    Compiling thiserror-impl v1.0.69
+2026-10-17T14:54:57.4608692Z    Compiling enum-ordinalize-derive v4.4.1
+2026-10-17T14:54:59.5248762Z    Compiling jsonschema-regex v0.46.10
+2026-10-17T14:54:59.6918637Z    Compiling utf8-zero v0.8.1
+2026-10-17T14:54:59.7508644Z    Compiling unsafe-libyaml v0.2.11
+2026-10-17T14:55:00.7729124Z    Compiling unicode-segmentation v1.13.3
+2026-10-17T14:55:00.8409524Z    Compiling rust_decimal v1.42.1
+2026-10-17T14:55:01.0857942Z    Compiling num-cmp v0.1.0
+2026-10-17T14:55:01.1242931Z    Compiling bytecount v0.6.9
+2026-10-17T14:55:01.2089242Z    Compiling fnv v1.0.7
+2026-10-17T14:55:01.2401794Z    Compiling codex v0.1.1
+2026-10-17T14:55:01.2531184Z    Compiling palette v0.7.6
+2026-10-17T14:55:01.3324554Z    Compiling by_address v1.2.1
+2026-10-17T14:55:01.3838687Z    Compiling data-encoding v2.11.0
+2026-10-17T14:55:01.8329352Z    Compiling thin-vec v0.2.18
+2026-10-17T14:55:02.0199199Z    Compiling unicode-math-class v0.1.0
+2026-10-17T14:55:02.0839254Z    Compiling numerals v0.1.4
+2026-10-17T14:55:02.1614822Z    Compiling biblatex v0.10.0
+2026-10-17T14:55:02.5144883Z    Compiling typst-utils v0.13.1
+2026-10-17T14:55:02.8047360Z    Compiling jsonschema v0.46.10
+2026-10-17T14:55:02.8323737Z    Compiling palette_derive v0.7.6
+2026-10-17T14:55:04.6938488Z    Compiling syntect v5.3.0
+2026-10-17T14:55:09.3048789Z    Compiling enum-ordinalize v4.4.1
+2026-10-17T14:55:09.3254672Z    Compiling serde_yaml v0.9.34+deprecated
+2026-10-17T14:55:11.0109902Z    Compiling ureq v3.3.0
+2026-10-17T14:55:11.9358738Z    Compiling citationberg v0.5.0
+2026-10-17T14:55:12.8069117Z    Compiling rand_chacha v0.3.1
+2026-10-17T14:55:13.0169124Z    Compiling unic-langid v0.9.6
+2026-10-17T14:55:13.0448911Z    Compiling url v2.5.8
+2026-10-17T14:55:14.1638722Z    Compiling image v0.25.10
+2026-10-17T14:55:14.4368823Z    Compiling phf_macros v0.11.3
+2026-10-17T14:55:17.7668739Z    Compiling wasmi_ir v0.40.0
+2026-10-17T14:55:24.3678700Z    Compiling zerotrie v0.1.3
+2026-10-17T14:55:25.3369797Z    Compiling typst-timing v0.13.1
+2026-10-17T14:55:25.4230601Z    Compiling fancy-regex v0.17.0
+2026-10-17T14:55:26.1695405Z    Compiling approx v0.5.1
+2026-10-17T14:55:26.2308699Z    Compiling ecow v0.2.6
+2026-10-17T14:55:26.4379165Z    Compiling comemo-macros v0.4.0
+2026-10-17T14:55:26.9668551Z    Compiling bstr v1.13.0
+2026-10-17T14:55:27.6028680Z    Compiling csv-core v0.1.13
+2026-10-17T14:55:27.7579915Z    Compiling semver v1.0.28
+2026-10-17T14:55:27.9879136Z    Compiling wasmi_collections v0.40.0
+2026-10-17T14:55:28.2619323Z    Compiling chinese-variant v1.1.6
+2026-10-17T14:55:28.2851246Z    Compiling fast-srgb8 v1.0.0
+2026-10-17T14:55:28.3258654Z    Compiling spin v0.9.9
+2026-10-17T14:55:28.3982823Z    Compiling mutate_once v0.1.2
+2026-10-17T14:55:28.4368249Z    Compiling multi-stash v0.2.0
+2026-10-17T14:55:28.4429841Z    Compiling object v0.37.3
+2026-10-17T14:55:28.5195291Z    Compiling wasmi v0.40.0
+2026-10-17T14:55:28.6218597Z    Compiling kamadak-exif v0.6.1
+2026-10-17T14:55:30.4369325Z    Compiling comemo v0.4.0
+2026-10-17T14:55:30.7088579Z    Compiling chinese-number v0.7.8
+2026-10-17T14:55:30.9537610Z    Compiling gmeow-validate v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate)
+2026-10-17T14:55:33.3678756Z    Compiling csv v1.4.0
+2026-10-17T14:55:33.8788589Z    Compiling tiktoken-rs v0.12.0
+2026-10-17T14:55:35.2188668Z    Compiling typst-syntax v0.13.1
+2026-10-17T14:55:37.9498668Z    Compiling phf v0.11.3
+2026-10-17T14:55:38.0368676Z    Compiling icu_provider_blob v1.5.0
+2026-10-17T14:55:38.3194781Z    Compiling lipsum v0.9.1
+2026-10-17T14:55:38.5339046Z    Compiling icu_properties v1.5.1
+2026-10-17T14:55:38.7139128Z    Compiling hayagriva v0.8.1
+2026-10-17T14:55:41.4911980Z    Compiling two-face v0.4.5
+2026-10-17T14:55:43.6508645Z    Compiling typst-macros v0.13.1
+2026-10-17T14:55:54.2499197Z    Compiling unicode-security v0.1.2
+2026-10-17T14:55:54.6648660Z    Compiling az v1.3.0
+2026-10-17T14:55:55.6070382Z    Compiling bumpalo v3.20.3
+2026-10-17T14:55:56.1348843Z    Compiling qcms v0.3.0
+2026-10-17T14:55:57.0098905Z    Compiling typst-assets v0.13.1
+2026-10-17T14:55:57.0538588Z    Compiling typed-arena v2.0.2
+2026-10-17T14:55:57.1168643Z    Compiling typst-library v0.13.1
+2026-10-17T14:55:57.5968839Z    Compiling gmeow-lang-bridge v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge)
+2026-10-17T14:56:14.9943071Z    Compiling utf8parse v0.2.2
+2026-10-17T14:56:15.0309056Z    Compiling gmeow-docs-model v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model)
+2026-10-17T14:56:15.9789025Z    Compiling ar_archive_writer v0.5.2
+2026-10-17T14:56:17.5589084Z    Compiling font-types v0.11.3
+2026-10-17T14:56:17.7694489Z    Compiling read-fonts v0.39.2
+2026-10-17T14:56:28.7228869Z    Compiling psm v0.1.31
+2026-10-17T14:56:29.6278501Z    Compiling polycool v0.4.0
+2026-10-17T14:56:30.0375658Z    Compiling anstyle v1.0.14
+2026-10-17T14:56:30.1539052Z    Compiling anstyle-query v1.1.5
+2026-10-17T14:56:30.1858897Z    Compiling colorchoice v1.0.5
+2026-10-17T14:56:30.2218019Z    Compiling is_terminal_polyfill v1.70.2
+2026-10-17T14:56:30.2509143Z    Compiling icu_segmenter_data v1.5.1
+2026-10-17T14:56:30.3246781Z    Compiling kurbo v0.13.1
+2026-10-17T14:56:31.8368719Z    Compiling anstyle-parse v1.0.0
+2026-10-17T14:56:31.9209174Z    Compiling stacker v0.1.24
+2026-10-17T14:56:32.1209954Z    Compiling zune-core v0.4.12
+2026-10-17T14:56:32.2298650Z    Compiling quick-error v2.0.1
+2026-10-17T14:56:32.2598668Z    Compiling pulldown-cmark v0.13.4
+2026-10-17T14:56:32.3238661Z    Compiling image-webp v0.1.3
+2026-10-17T14:56:33.3258590Z    Compiling zune-jpeg v0.4.21
+2026-10-17T14:56:33.9215996Z    Compiling anstream v1.0.0
+2026-10-17T14:56:34.1558683Z    Compiling write-fonts v0.48.1
+2026-10-17T14:56:47.2798643Z    Compiling skrifa v0.42.1
+2026-10-17T14:56:54.1370344Z    Compiling tiny-skia v0.11.4
+2026-10-17T14:56:54.2230288Z    Compiling gif v0.13.3
+2026-10-17T14:56:54.8758698Z    Compiling rgb v0.8.53
+2026-10-17T14:56:55.0808680Z    Compiling xmlparser v0.13.6
+2026-10-17T14:56:55.4997951Z    Compiling clap_lex v1.1.0
+2026-10-17T14:56:55.6368795Z    Compiling pulldown-cmark-escape v0.11.0
+2026-10-17T14:56:55.6778652Z    Compiling unicase v2.9.0
+2026-10-17T14:56:55.7898663Z    Compiling memo-map v0.3.3
+2026-10-17T14:56:55.8558508Z    Compiling strsim v0.11.1
+2026-10-17T14:56:55.9169121Z    Compiling minijinja v2.21.0
+2026-10-17T14:56:56.1964318Z    Compiling clap_builder v4.6.2
+2026-10-17T14:56:58.6549351Z    Compiling typst-svg v0.13.1
+2026-10-17T14:57:00.5008928Z    Compiling resvg v0.43.0
+2026-10-17T14:57:00.9329117Z    Compiling subsetter v0.2.6
+2026-10-17T14:57:02.5508898Z    Compiling icu_segmenter v1.5.0
+2026-10-17T14:57:03.5488766Z    Compiling anstyle-parse v0.2.7
+2026-10-17T14:57:03.6319053Z    Compiling icu_provider_adapters v1.5.0
+2026-10-17T14:57:03.7348668Z    Compiling pdf-writer v0.12.1
+2026-10-17T14:57:03.9758497Z    Compiling tracing-log v0.2.0
+2026-10-17T14:57:04.1054268Z    Compiling clap_derive v4.6.4
+2026-10-17T14:57:05.7989010Z    Compiling sharded-slab v0.1.7
+2026-10-17T14:57:06.2278708Z    Compiling matchers v0.2.0
+2026-10-17T14:57:06.2768655Z    Compiling thread_local v1.1.10
+2026-10-17T14:57:06.4168763Z    Compiling if_chain v1.0.3
+2026-10-17T14:57:06.4384061Z    Compiling hypher v0.1.7
+2026-10-17T14:57:06.6239244Z    Compiling nu-ansi-term v0.50.3
+2026-10-17T14:57:06.8499413Z    Compiling tracing-subscriber v0.3.23
+2026-10-17T14:57:07.5963629Z    Compiling typst-layout v0.13.1
+2026-10-17T14:57:09.7183630Z    Compiling typst-eval v0.13.1
+2026-10-17T14:57:15.3000628Z    Compiling svg2pdf v0.12.0
+2026-10-17T14:57:15.9009221Z    Compiling clap v4.6.4
+2026-10-17T14:57:15.9258986Z    Compiling anstream v0.6.21
+2026-10-17T14:57:16.1739293Z    Compiling typst-html v0.13.1
+2026-10-17T14:57:18.2618716Z    Compiling gmeow-docs v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs)
+2026-10-17T14:57:18.4409189Z    Compiling gmeow-slice-quality v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality)
+2026-10-17T14:57:19.7389129Z    Compiling gmeow-bundle-view v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view)
+2026-10-17T14:57:31.5109791Z    Compiling typst-realize v0.13.1
+2026-10-17T14:57:33.0879062Z    Compiling gmeow-bundle-import v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import)
+2026-10-17T14:57:33.2118665Z    Compiling xmp-writer v0.3.3
+2026-10-17T14:57:33.4399297Z    Compiling typst-pdf v0.13.1
+2026-10-17T14:57:33.6838633Z    Compiling typst v0.13.1
+2026-10-17T14:57:34.4479141Z    Compiling gmeow-docs-catalog v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog)
+2026-10-17T14:57:35.3289270Z    Compiling gmeow-cli-core v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/cli-core)
+2026-10-17T14:57:35.3712754Z    Compiling gmeow-transcode v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode)
+2026-10-17T14:57:37.5489380Z    Compiling gmeow-pipeline v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline)
+2026-10-17T14:57:37.6659321Z    Compiling gmeow-license v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/license)
+2026-10-17T14:57:37.8139670Z    Compiling gmeow-conformance v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/conformance)
+2026-10-17T14:57:38.2599129Z    Compiling docs-print v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-print)
+2026-10-17T14:57:42.0378985Z    Compiling gmeow-slice-brief v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-brief)
+2026-10-17T14:57:44.6929126Z    Compiling gmeow-affect v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect)
+2026-10-17T14:57:45.2868941Z    Compiling gmeow-slicetest v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest)
+2026-10-17T14:57:48.4609431Z    Compiling gmeow-mcp v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp)
+2026-10-17T14:57:59.4889256Z    Compiling gmeow-foundation-corpus v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/foundation-corpus)
+2026-10-17T14:58:04.6260029Z    Compiling gmeow-mcp-dev v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev)
+2026-10-17T14:58:05.5103393Z    Compiling gmeow-dev-cli v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli)
+2026-10-17T15:10:36.8033945Z     Finished `pipeline` profile [optimized] target(s) in 20m 27s
+2026-10-17T15:10:43.2684097Z optimized producer staged at /home/runner/work/gmeow-ontology/gmeow-ontology/dist/bin/gmeow-dev
+2026-10-17T15:10:54.4470722Z 2026-10-17T15:10:54.445017Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-el/webont-thing-004/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/07/owl#Thing> requires complete set-equality model admission
+2026-10-17T15:10:54.4910099Z 2026-10-17T15:10:54.489378Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-el/webont-thing-005/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/07/owl#Thing> requires complete set-equality model admission
+2026-10-17T15:10:54.4933837Z 2026-10-17T15:10:54.489865Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-el/webont-thing-005/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/07/owl#Thing> requires complete set-equality model admission
+2026-10-17T15:10:55.1949940Z 2026-10-17T15:10:55.191919Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/fs2rdf-domain-range-expression-ar/w" property_admission_blocked=false obstructions=10 detail=class: UnsupportedCombination: selected class model does not complete <http://example.org/p1> <http://www.w3.org/2000/01/rdf-schema#range> Iri("https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da") | class: UnsupportedCombination: selected class model does not complete <http://example.org/p2> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1") | class: UnsupportedCombination: selected class model does not complete <http://example.org/p3> <http://www.w3.org/2000/01/rdf-schema#range> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f") | class: UnsupportedCombination: selected class model does not complete <http://example.org/p4> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("https://blackcatinformatics.ca/gmeow/skolem/7349638b85baac13a9289ba42775e96df2402b6d") | class: UnsupportedCombination: selected class model does not complete <http://example.org/p6> <http://www.w3.org/2002/07/owl#inverseOf> Iri("https://blackcatinformatics.ca/gmeow/skolem/23dfb5f2958f45ac8edab83ef6ca6a7bb390de5d") | class: UnsupportedCombination: selected class model does not complete <http://example.org/p7> <http://www.w3.org/2002/07/owl#inverseOf> Iri("https://blackcatinformatics.ca/gmeow/skolem/74e72b63189661a8f59ad2b7e528e10034badb68") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/23dfb5f2958f45ac8edab83ef6ca6a7bb390de5d> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("https://blackcatinformatics.ca/gmeow/skolem/e6c97b60810e7c40dd87efbc1766a5be70492c08") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/23dfb5f2958f45ac8edab83ef6ca6a7bb390de5d> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://example.org/p6") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/74e72b63189661a8f59ad2b7e528e10034badb68> <http://www.w3.org/2000/01/rdf-schema#range> Iri("https://blackcatinformatics.ca/gmeow/skolem/23dddde8e1a47112f3d95a0239f327e67010e239") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/74e72b63189661a8f59ad2b7e528e10034badb68> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://example.org/p7")
+2026-10-17T15:10:58.7542161Z 2026-10-17T15:10:58.753873Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-oneof/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://owl2.test/rules#Cb> requires complete set-equality model admission
+2026-10-17T15:10:58.7599498Z 2026-10-17T15:10:58.754407Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-oneof/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://owl2.test/rules#Cb> requires complete set-equality model admission
+2026-10-17T15:10:59.3420175Z 2026-10-17T15:10:59.336978Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/owl2-rl-valid-oneof/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> requires complete set-equality model admission
+2026-10-17T15:10:59.3423735Z 2026-10-17T15:10:59.337521Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/owl2-rl-valid-oneof/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> requires complete set-equality model admission
+2026-10-17T15:10:59.3427499Z 2026-10-17T15:10:59.338071Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/owl2-rl-valid-oneof/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> requires complete set-equality model admission
+2026-10-17T15:11:00.9699023Z 2026-10-17T15:11:00.966567Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/rdfbased-sem-enum-inst-included/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://www.example.org#e> requires complete set-equality model admission
+2026-10-17T15:11:00.9719725Z 2026-10-17T15:11:00.967039Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/rdfbased-sem-enum-inst-included/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://www.example.org#e> requires complete set-equality model admission
+2026-10-17T15:11:01.4880017Z 2026-10-17T15:11:01.485867Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w" property_admission_blocked=false obstructions=1 detail=admission HasValue (Obstructed): SourceShape: a selected restriction requires exactly one property IRI
+2026-10-17T15:11:01.8761748Z 2026-10-17T15:11:01.873318Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-functionalproperty-004/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/FunctionalProperty/premises004#Singleton> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/FunctionalProperty/premises004#prop> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://www.w3.org/2002/03owlt/FunctionalProperty/premises004#Singleton")
+2026-10-17T15:11:01.8790543Z 2026-10-17T15:11:01.873863Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-functionalproperty-004/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/FunctionalProperty/premises004#Singleton> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/FunctionalProperty/premises004#prop> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://www.w3.org/2002/03owlt/FunctionalProperty/premises004#Singleton")
+2026-10-17T15:11:02.0046700Z 2026-10-17T15:11:01.999100Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-i4-5-001/w" property_admission_blocked=false obstructions=8 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/I4.5/premises001#EUCountry> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#EuroMP> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da") | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#hasEuroMP> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#EUCountry") | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#hasEuroMP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#isEuroMPFrom") | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#isEuroMPFrom> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#hasEuroMP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#isEuroMPFrom") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("http://www.w3.org/2002/07/owl#Thing") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:11:02.0063722Z 2026-10-17T15:11:02.000484Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-i4-5-001/w" property_admission_blocked=false obstructions=8 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/I4.5/premises001#EUCountry> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#EuroMP> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da") | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#hasEuroMP> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#EUCountry") | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#hasEuroMP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#isEuroMPFrom") | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/I4.5/premises001#isEuroMPFrom> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#hasEuroMP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://www.w3.org/2002/03owlt/I4.5/premises001#isEuroMPFrom") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("http://www.w3.org/2002/07/owl#Thing") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:11:02.8802343Z 2026-10-17T15:11:02.879475Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-i5-26-006/w" property_admission_blocked=false obstructions=4 detail=class: UnsupportedCombination: unsupported selected definition on <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: unsupported selected definition on <https://blackcatinformatics.ca/gmeow/skolem/ae4f281df5a5d0ff3cad6371f76d5c29b6d953ec> | class: UnsupportedCombination: unsupported subsumer <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> of <http://www.w3.org/2002/03owlt/I5.26/consistent006#C> | class: UnsupportedCombination: unsupported subsumer <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> of <https://blackcatinformatics.ca/gmeow/skolem/ae4f281df5a5d0ff3cad6371f76d5c29b6d953ec>
+2026-10-17T15:11:02.9485782Z 2026-10-17T15:11:02.945940Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-i5-26-007/w" property_admission_blocked=false obstructions=7 detail=class: UnsupportedCombination: unsupported membership expression <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> on <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> | class: UnsupportedCombination: unsupported membership expression <https://blackcatinformatics.ca/gmeow/skolem/ae4f281df5a5d0ff3cad6371f76d5c29b6d953ec> on <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> | class: UnsupportedCombination: unsupported selected definition on <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: unsupported selected definition on <https://blackcatinformatics.ca/gmeow/skolem/ae4f281df5a5d0ff3cad6371f76d5c29b6d953ec> | class: UnsupportedCombination: unsupported subsumer <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> of <http://www.w3.org/2002/03owlt/I5.26/consistent007#C> | class: UnsupportedCombination: unsupported subsumer <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> of <https://blackcatinformatics.ca/gmeow/skolem/ae4f281df5a5d0ff3cad6371f76d5c29b6d953ec> | class: UnsupportedCombination: class source choice requires an unsupported recursive model completion
+2026-10-17T15:11:03.8380233Z 2026-10-17T15:11:03.837217Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w" property_admission_blocked=false obstructions=1 detail=obligation Datatype: UnsupportedCombination: capacity of the selected datatype intersection is undecidable
+2026-10-17T15:11:04.1220007Z 2026-10-17T15:11:04.120530Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-i5-8-015/w" property_admission_blocked=false obstructions=1 detail=obligation Datatype: UnsupportedValue: an asserted datatype value has no admitted interpretation
+2026-10-17T15:11:04.1778604Z 2026-10-17T15:11:04.175922Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-i5-8-016/w" property_admission_blocked=false obstructions=1 detail=obligation Datatype: UnsupportedValue: an asserted datatype value has no admitted interpretation
+2026-10-17T15:11:04.6471353Z 2026-10-17T15:11:04.645702Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-inversefunctionalproperty-004/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/InverseFunctionalProperty/premises004#Singleton> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/InverseFunctionalProperty/premises004#prop> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://www.w3.org/2002/03owlt/InverseFunctionalProperty/premises004#Singleton")
+2026-10-17T15:11:04.6500497Z 2026-10-17T15:11:04.646210Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-inversefunctionalproperty-004/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/InverseFunctionalProperty/premises004#Singleton> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/InverseFunctionalProperty/premises004#prop> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://www.w3.org/2002/03owlt/InverseFunctionalProperty/premises004#Singleton")
+2026-10-17T15:11:05.2004021Z 2026-10-17T15:11:05.197813Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-oneof-001/w" property_admission_blocked=false obstructions=4 detail=class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> to <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f")
+2026-10-17T15:11:05.2013716Z 2026-10-17T15:11:05.198803Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-oneof-001/w" property_admission_blocked=false obstructions=4 detail=class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> to <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f")
+2026-10-17T15:11:05.2070223Z 2026-10-17T15:11:05.202188Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-oneof-001/w" property_admission_blocked=false obstructions=4 detail=class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> to <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f")
+2026-10-17T15:11:05.2617513Z 2026-10-17T15:11:05.261369Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-oneof-002/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/oneOf/premises002#TShirt> requires complete set-equality model admission
+2026-10-17T15:11:05.2650630Z 2026-10-17T15:11:05.262512Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-oneof-002/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/oneOf/premises002#TShirt> requires complete set-equality model admission
+2026-10-17T15:11:05.3230855Z 2026-10-17T15:11:05.321369Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-oneof-003/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/oneOf/premises003#T1> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/oneOf/premises003#T2> requires complete set-equality model admission
+2026-10-17T15:11:05.3273219Z 2026-10-17T15:11:05.322416Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-oneof-003/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/oneOf/premises003#T1> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/oneOf/premises003#T2> requires complete set-equality model admission
+2026-10-17T15:11:05.6491173Z 2026-10-17T15:11:05.648631Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-restriction-003/w" property_admission_blocked=false obstructions=2 detail=obligation Datatype: IncompleteDefinition: a datatype expression requires one complete constructor: Iri("http://www.w3.org/2002/03owlt/Restriction/consistent003#superC") has none and is not an intrinsic datatype | obligation Datatype: IncompleteDefinition: a datatype expression requires one complete constructor: Iri("http://www.w3.org/2002/03owlt/Restriction/consistent003#superD") has none and is not an intrinsic datatype
+2026-10-17T15:11:05.7178272Z 2026-10-17T15:11:05.717324Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-restriction-004/w" property_admission_blocked=false obstructions=2 detail=obligation Datatype: IncompleteDefinition: a datatype expression requires one complete constructor: Iri("http://www.w3.org/2002/03owlt/Restriction/consistent004#superC") has none and is not an intrinsic datatype | obligation Datatype: IncompleteDefinition: a datatype expression requires one complete constructor: Iri("http://www.w3.org/2002/03owlt/Restriction/consistent004#superD") has none and is not an intrinsic datatype
+2026-10-17T15:11:06.3292697Z 2026-10-17T15:11:06.326633Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-transitiveproperty-002/w" property_admission_blocked=false obstructions=3 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://www.w3.org/2002/03owlt/TransitiveProperty/premises002#symProp> <http://www.w3.org/2000/01/rdf-schema#range> Iri("https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da") | class: UnsupportedCombination: selected class model does not complete declaration <http://www.w3.org/2002/03owlt/TransitiveProperty/premises002#symProp> Iri("http://www.w3.org/2002/07/owl#SymmetricProperty")
+2026-10-17T15:11:06.5174520Z 2026-10-17T15:11:06.516897Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-unionof-003/w" property_admission_blocked=false obstructions=3 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises003#A-and-B> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises003#A> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises003#B> requires complete set-equality model admission
+2026-10-17T15:11:06.5211650Z 2026-10-17T15:11:06.518528Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-unionof-003/w" property_admission_blocked=false obstructions=3 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises003#A-and-B> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises003#A> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises003#B> requires complete set-equality model admission
+2026-10-17T15:11:06.5830765Z 2026-10-17T15:11:06.580474Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-unionof-004/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises004#A> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <http://www.w3.org/2002/03owlt/unionOf/premises004#B> requires complete set-equality model admission
+2026-10-17T15:11:09.3271821Z 2026-10-17T15:11:09.325920Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-001/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.3351537Z 2026-10-17T15:11:09.332020Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-001/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.4091496Z 2026-10-17T15:11:09.407076Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-001/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.4120555Z 2026-10-17T15:11:09.411182Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-001/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.5391490Z 2026-10-17T15:11:09.538032Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-101/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.5420367Z 2026-10-17T15:11:09.539352Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-101/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.5814577Z 2026-10-17T15:11:09.580970Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-101/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.5839232Z 2026-10-17T15:11:09.581478Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-101/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.6637549Z 2026-10-17T15:11:09.663249Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-103/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.6670734Z 2026-10-17T15:11:09.665397Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-103/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.7041366Z 2026-10-17T15:11:09.700826Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-103/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.7070630Z 2026-10-17T15:11:09.701328Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-103/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: class expression equivalence <http://oiled.man.example.net/test#Unsatisfiable> to <https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268> | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("https://blackcatinformatics.ca/gmeow/skolem/066df207d435c4aa0aaaf876e789070088ad9268")
+2026-10-17T15:11:09.8120902Z 2026-10-17T15:11:09.809227Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-104/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("http://oiled.man.example.net/test#c1")
+2026-10-17T15:11:09.8134516Z 2026-10-17T15:11:09.813202Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-104/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("http://oiled.man.example.net/test#c1")
+2026-10-17T15:11:09.8781994Z 2026-10-17T15:11:09.876039Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-104/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("http://oiled.man.example.net/test#c1")
+2026-10-17T15:11:09.8809540Z 2026-10-17T15:11:09.876431Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-104/w" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2002/07/owl#equivalentClass> Iri("http://oiled.man.example.net/test#c1")
+2026-10-17T15:11:10.5178228Z 2026-10-17T15:11:10.517358Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://example.org/nominal-counting/oneof-differentfrom-clash/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <https://example.org/nominal-counting/oneof-differentfrom-clash/oneA2> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://example.org/nominal-counting/oneof-differentfrom-clash/oneA> requires complete set-equality model admission
+2026-10-17T15:11:10.5199780Z 2026-10-17T15:11:10.518105Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://example.org/nominal-counting/oneof-differentfrom-clash/w" property_admission_blocked=false obstructions=2 detail=class: UnsupportedCombination: nominal class <https://example.org/nominal-counting/oneof-differentfrom-clash/oneA2> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://example.org/nominal-counting/oneof-differentfrom-clash/oneA> requires complete set-equality model admission
+2026-10-17T15:11:48.8036324Z 2026-10-17T15:11:48.802400Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w" property_admission_blocked=false obstructions=9 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#invP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#p> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#maxCardinality> Literal { lexical_form: "2", datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", language: None, direction: None } | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> Iri("http://www.w3.org/2002/07/owl#Restriction") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:11:48.8057417Z 2026-10-17T15:11:48.803217Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w" property_admission_blocked=false obstructions=9 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#invP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#p> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#maxCardinality> Literal { lexical_form: "2", datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", language: None, direction: None } | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> Iri("http://www.w3.org/2002/07/owl#Restriction") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:11:48.8075301Z 2026-10-17T15:11:48.803882Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w" property_admission_blocked=false obstructions=9 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#invP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#p> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#maxCardinality> Literal { lexical_form: "2", datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", language: None, direction: None } | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> Iri("http://www.w3.org/2002/07/owl#Restriction") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:11:48.8093721Z 2026-10-17T15:11:48.805075Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w" property_admission_blocked=false obstructions=9 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#invP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#p> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#maxCardinality> Literal { lexical_form: "2", datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", language: None, direction: None } | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> Iri("http://www.w3.org/2002/07/owl#Restriction") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:11:48.8111624Z 2026-10-17T15:11:48.805605Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w" property_admission_blocked=false obstructions=9 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#invP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#p> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#maxCardinality> Literal { lexical_form: "2", datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", language: None, direction: None } | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> Iri("http://www.w3.org/2002/07/owl#Restriction") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:11:48.8129717Z 2026-10-17T15:11:48.806128Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w" property_admission_blocked=false obstructions=9 detail=class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f> requires complete set-equality model admission | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#invP> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <http://oiled.man.example.net/test#p> <http://www.w3.org/2002/07/owl#inverseOf> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#maxCardinality> Literal { lexical_form: "2", datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", language: None, direction: None } | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#invP") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#onProperty> Iri("http://oiled.man.example.net/test#p") | class: UnsupportedCombination: selected class model does not complete <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> <http://www.w3.org/2002/07/owl#someValuesFrom> Iri("https://blackcatinformatics.ca/gmeow/skolem/0d99caa0f0396f675d07477acd25fcb91e23df8f") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/5b148bf74797b4291afc5e5fa1f6f7dc9ed9dea1> Iri("http://www.w3.org/2002/07/owl#Restriction") | class: UnsupportedCombination: selected class model does not complete declaration <https://blackcatinformatics.ca/gmeow/skolem/eca600fd5e8f5884324a59fc7ffbf75a377475da> Iri("http://www.w3.org/2002/07/owl#Restriction")
+2026-10-17T15:12:27.7560095Z 2026-10-17T15:12:27.753858Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/rl-default" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <https://gmeow.example/dl/oneof#Colour> requires complete set-equality model admission
+2026-10-17T15:12:27.7569693Z 2026-10-17T15:12:27.754478Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/rl-default" property_admission_blocked=false obstructions=1 detail=class: UnsupportedCombination: nominal class <https://gmeow.example/dl/oneof#Colour> requires complete set-equality model admission
+2026-10-17T15:54:43.3647849Z 2026-10-17T15:54:43.363918Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/imports" property_admission_blocked=false obstructions=198 detail=class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#Event") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Situation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("https://blackcatinformatics.ca/gmeow/skolem/9b2b97561b48cfec333219f293970d4babb5c98b") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Type") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryConstitutionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Endurant") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryInstantiationSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#NonRigidType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#EndurantType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsReifiedQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation")
+2026-10-17T15:54:44.1054046Z 2026-10-17T15:54:44.104647Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/logic" property_admission_blocked=false obstructions=7322 detail=class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/logic/class-expression/44c8c845683a> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/logic/class-expression/68d13aa2d266> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/logic/class-expression/0457a0f959e4> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/logic/class-expression/e3cfd13be0ab> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/logic/class-expression/e09cf237837d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/logic/class-expression/77e6f0b288b8> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/logic/enumeration/1c7351fcecd5> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/logic/class-expression/9f763f909380> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/JournalBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/PathBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> requires complete set-equality model admission
+2026-10-17T15:55:08.4307366Z 2026-10-17T15:55:08.429385Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/rl-default" property_admission_blocked=false obstructions=14034 detail=class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/gmeow/skolem/cc582314aea615f26686db57ce757fd75b9b51fb> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/gmeow/skolem/e62e94599e4fbcdb823083d1a09509833e9c54fc> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/gmeow/skolem/dca45ad793b6d600fed20c5624c1402bc5e28f13> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/gmeow/skolem/5b19ff19fca463c314013efa77728f0eaf7dd841> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/gmeow/skolem/720d60b76b3e6955a1a93a88ffa4e3d7543988f5> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/gmeow/skolem/f79358ceaa56e9ffdc43e0bf9ec40de27932550d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/gmeow/skolem/79f01f02d6e98c9ddb8280959717898010def365> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/gmeow/skolem/798da05a0ca6aae104d31d987a399bf4ddfcd519> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/gmeow/skolem/e5d352bc3f21b8a734e5b9ed02f722c99324e5f9> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0eb3b532d6d2d45af54da1b9ac748d485c470a44> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/10e760ee682bcfc46c91543b4cb5c9f389e957fb> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/12bf162de822e6768077c1f8c00cbf9c543d8958> requires complete set-equality model admission
+2026-10-17T15:55:10.9738881Z 2026-10-17T15:55:10.972479Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/imports" property_admission_blocked=false obstructions=198 detail=class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#Event") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Situation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("https://blackcatinformatics.ca/gmeow/skolem/9b2b97561b48cfec333219f293970d4babb5c98b") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Type") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryConstitutionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Endurant") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryInstantiationSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#NonRigidType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#EndurantType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsReifiedQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation")
+2026-10-17T15:55:12.6628687Z 2026-10-17T15:55:12.661675Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/logic" property_admission_blocked=false obstructions=7322 detail=class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/logic/class-expression/44c8c845683a> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/logic/class-expression/68d13aa2d266> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/logic/class-expression/0457a0f959e4> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/logic/class-expression/e3cfd13be0ab> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/logic/class-expression/e09cf237837d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/logic/class-expression/77e6f0b288b8> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/logic/enumeration/1c7351fcecd5> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/logic/class-expression/9f763f909380> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/JournalBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/PathBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> requires complete set-equality model admission
+2026-10-17T15:57:21.5823579Z 2026-10-17T15:57:21.581062Z  WARN native_obstruction: retained native obstruction withholds completed reads world="https://blackcatinformatics.ca/gmeow/graph/rl-default" property_admission_blocked=false obstructions=14034 detail=class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/gmeow/skolem/cc582314aea615f26686db57ce757fd75b9b51fb> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/gmeow/skolem/e62e94599e4fbcdb823083d1a09509833e9c54fc> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/gmeow/skolem/dca45ad793b6d600fed20c5624c1402bc5e28f13> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/gmeow/skolem/5b19ff19fca463c314013efa77728f0eaf7dd841> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/gmeow/skolem/720d60b76b3e6955a1a93a88ffa4e3d7543988f5> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/gmeow/skolem/f79358ceaa56e9ffdc43e0bf9ec40de27932550d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/gmeow/skolem/79f01f02d6e98c9ddb8280959717898010def365> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/gmeow/skolem/798da05a0ca6aae104d31d987a399bf4ddfcd519> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/gmeow/skolem/e5d352bc3f21b8a734e5b9ed02f722c99324e5f9> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0eb3b532d6d2d45af54da1b9ac748d485c470a44> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/10e760ee682bcfc46c91543b4cb5c9f389e957fb> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/12bf162de822e6768077c1f8c00cbf9c543d8958> requires complete set-equality model admission
+2026-10-17T15:59:56.1056565Z make[1]: *** wait: No child processes.  Stop.
+2026-10-17T15:59:56.1065810Z make[1]: *** Waiting for unfinished jobs....
+2026-10-17T15:59:56.1066074Z make[1]: *** wait: No child processes.  Stop.
+2026-10-17T15:59:56.1068326Z make: *** [Makefile:1249: maint-mdbook-smoke] Error 2
+2026-10-17T15:59:56.1068542Z make[2]: *** [Makefile:443: check-sync] Terminated
+2026-10-17T15:59:56.1687967Z ##[error]The runner has received a shutdown signal. This can happen when the runner service is stopped, or a manually started runner is canceled.
+2026-10-17T15:59:57.0368606Z ##[error]The operation was canceled.
+2026-10-17T15:59:57.1418066Z Cleaning up orphan processes
+

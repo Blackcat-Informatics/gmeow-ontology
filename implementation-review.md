@@ -1,0 +1,15 @@
+# Recorded cancellation adoption self-review
+
+This is explicitly the implementing agent's review. Independent dispatch is unavailable; no independent approval is claimed.
+
+The public GMEOW boundary delegates directly to the merged native recorded constructor with the caller's exact Arc and preparation budget. It uses the existing sole EntailError-to-Diag mapper; the complete Certified result and ServiceProof remain unchanged. The original source can be dropped after a construction refusal without losing its original typed cause. No local error carrier, certificate copy, data filter, cancellation adapter, timer, new default ceiling or fallback is introduced.
+
+The three new regressions exercise the actual public GMEOW boundary, including healthy proof replay and later cancellation, stable typed execution diagnostics/cause ownership, and exact native budget-exhaustion proof/certificate equality. The existing annotation-role refusal now covers all three construction selections and still checks source spelling in the actual diagnostic ledger. All fifteen service tests passed before the metadata-only upstream repair; final-pin tests are running separately.
+
+Root/fuzz declarations and all thirty-one native package tuples select the exact same merged revision. The intervening native50172ad55 change is helper proof metadata only; no upstream Rust/build/manifests differ from the initially tested1ce411424 code. Strict producer-independent workspace/all-target Clippy passed for those identical Rust inputs, with its four excluded embedded consumer crates clearly outside that claim. Final source-identity, diagnostic source seal, substrate controls and adapter tests are in the settled combined run.
+
+The explicit tiny witness producer completed in7m20s and verified a deterministic seven-fact closure, corroborated proof and standpoint refutation before publishing bytes. Review confirms the six named closure facts are unchanged and only its source-bound domain-witness identity changes. The conjecture packet retains127 lines and the same line multiset outside forty/sixty-four-digit identity strings. That latter comparison is a limited diff-review aid, not an isomorphism or proof claim; actual witness consumers must compare the complete unredacted bytes. Both committed witnesses retain full identity strings and original assertions.
+
+The accidental make fuzz-substrate-check invocation was interrupted because its controller can cross the no-local-producer/fingerprint boundary. It is not counted as acceptance. Direct file comparison and read-only Cargo metadata establish the selected root/fuzz agreement. No weakening of that Make target or producer contract was added to bypass it.
+
+This is public API adoption, not production joint class-engine delegation. The authenticated benchmark example has no caller stop selection, so it is not changed to invent a non-firing signal. The existing partial class engine remains until the plan's real checked source-support/shared-store/equivalence criteria qualify its removal. The next concrete source seams are in native-boundary-next.md. Full issue1803 and the entire logic goal remain open.

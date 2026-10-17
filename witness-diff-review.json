@@ -1,0 +1,12 @@
+{
+  "WITNESS.reason.nq": {
+    "before_lines": 7,
+    "after_lines": 7,
+    "line_multisets_equal_outside_identity_strings": true
+  },
+  "WITNESS.conjecture.nq": {
+    "before_lines": 127,
+    "after_lines": 127,
+    "line_multisets_equal_outside_identity_strings": true
+  }
+}
