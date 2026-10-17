@@ -2383,7 +2383,7 @@
     "gmeow_mcp::example_crate::refresh_witness_describe::explorer_describe::fail",
     "gmeow_mcp::example_crate::refresh_witness_describe::fail",
     "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail",
-    "gmeow_reason_wasm::example_crate::refresh_witness_conjecture::conjecture_witness::fail"
+    "gmeow_reason_wasm::example_crate::refresh_witness_reason::conjecture_witness::fail"
    ]
   },
   {

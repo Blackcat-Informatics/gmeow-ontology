@@ -22963,7 +22963,7 @@ msgstr "不要将文件访问故障归类为公式为假。"
 
 msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Preserve the access or codec disposition and original native cause."
-msgstr "保留访问或编解码器拒绝类别以及原始本地原因。"
+msgstr "保留访问或编解码器拒绝类别以及原生层的原始原因。"
 
 msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The refusal precedes compiler admission and makes no consistency claim."
