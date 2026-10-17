@@ -1334,6 +1334,21 @@ fn rdf_fanout_members(
     Ok(out)
 }
 
+/// Read the authored default world and apply its native OWL/RDFS reader projection.
+///
+/// Uses only the already-produced source-load contribution. This is the default
+/// world used by [`assemble_object_level_edb`] and recorded-input consumers.
+///
+/// # Errors
+/// Rejects a missing source contribution, an invalid graph or a failed projection.
+pub fn authored_object_level_dataset(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    with_owl_rdfs_projection(
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
+    )
+}
+
 /// Assemble the OBJECT-LEVEL reasoned EDB: the authored default graph plus the
 /// statement / import / logic / relational-core / example / demonstrator worlds, in the
 /// EXACT graph layout [`assemble_carrier`] uses (so the reasoned closure's worlds
@@ -1353,8 +1368,13 @@ fn rdf_fanout_members(
 /// positive-demonstrator ABox corpus — see
 /// [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`]) — never on mapping/
 /// correspondence projections or the snapshot, so reasoning need not wait on either.
-/// `stage-reason` consumes exactly those three producers (see `run.rs`).
-pub(crate) fn assemble_object_level_edb(
+/// `stage-reason` consumes exactly those three producers (see `run.rs`). Explicit
+/// recorded-input consumers use this same assembly instead of copying its world
+/// selection or invoking the pipeline to recreate a missing contribution.
+///
+/// # Errors
+/// Rejects missing producer contributions, invalid native graphs and failed projections.
+pub fn assemble_object_level_edb(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     // The authored default and imports are read (not re-loaded) off stage-source-load —
@@ -1362,9 +1382,7 @@ pub(crate) fn assemble_object_level_edb(
     // worlds match the bundle's by construction, with ONE load. Mapping and
     // correspondence graphs are shipped by the presenter but stay meta-level, so no
     // external endpoint IRI can be mistaken for an authored object-level construct.
-    let base = with_owl_rdfs_projection(
-        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)?,
-    )?;
+    let base = authored_object_level_dataset(upstream)?;
     let statements = upstream
         .get("stage-statements")
         .ok_or_else(|| stage_err("missing statements RDF 1.2 carrier"))?;

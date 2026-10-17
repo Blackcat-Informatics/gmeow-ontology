@@ -11,6 +11,11 @@ repository.workspace = true
 keywords = ["pipeline", "dag", "build", "rdf", "gmeow"]
 autobins = false
 
+[[example]]
+name = "recorded-class-consistency"
+path = "examples/recorded-class-consistency.rs"
+test = false
+
 [[bin]]
 name = "bench-compare"
 path = "src/bin/bench-compare.rs"

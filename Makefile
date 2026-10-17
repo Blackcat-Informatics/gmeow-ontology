@@ -1225,6 +1225,13 @@ CLASS_EVIDENCE_FILTER ?= class_restrictions
 bench-class-evidence: ## Measure native class evidence; CLASS_EVIDENCE_FILTER selects cases.
 	cargo bench -p gmeow-logic --bench reason -- '$(CLASS_EVIDENCE_FILTER)'
 
+.PHONY: bench-recorded-class-consistency check-recorded-class-consistency
+check-recorded-class-consistency: ## Type-check the explicit recorded-input benchmark without running it.
+	cargo check -p gmeow-pipeline --example recorded-class-consistency
+
+bench-recorded-class-consistency: ## Consume verified recorded pipeline inputs; select a world or list, without producing corpus.
+	cargo run --profile bench -p gmeow-pipeline --example recorded-class-consistency -- "$(RECORDED_CLASS_CACHE_REPO)" "$(RECORDED_CLASS_SOURCE_RECEIPT)" "$(RECORDED_CLASS_STATEMENTS_RECEIPT)" "$(RECORDED_CLASS_COMPILE_RECEIPT)" "$(RECORDED_CLASS_WORLD)"
+
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
 
