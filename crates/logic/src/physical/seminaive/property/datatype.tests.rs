@@ -47,6 +47,16 @@ fn malformed_decimal_does_not_satisfy_a_rational_enumeration() {
     ] {
         assert_eq!(plan.contains(&literal(lexical, DECIMAL), &mut values), None);
     }
+    for (lexical, datatype) in [
+        (" 1/2 ", "http://www.w3.org/2002/07/owl#rational"),
+        ("0.5", "http://www.w3.org/2002/07/owl#rational"),
+        ("1/2", "http://www.w3.org/2002/07/owl#real"),
+    ] {
+        assert_eq!(
+            plan.contains(&literal(lexical, datatype), &mut values),
+            None
+        );
+    }
 }
 
 fn iri(value: &str) -> TermValue {

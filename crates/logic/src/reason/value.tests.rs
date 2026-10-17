@@ -2,6 +2,57 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use purrdf::xsd::datatype::XSD_DECIMAL;
+
+#[test]
+fn native_rational_admission_preserves_the_datatypes_own_lexical_space() {
+    let mut values = NativeValues::default();
+    let fraction = TermValue::typed_literal("+2/4", OWL_RATIONAL);
+    let decimal = TermValue::typed_literal("0.5", XSD_DECIMAL);
+    assert_eq!(values.same_value(&fraction, &decimal), Some(true));
+    assert_eq!(
+        values.literal(&fraction).named_datatype(OWL_RATIONAL),
+        Some(true)
+    );
+    assert_eq!(
+        values.literal(&fraction).named_datatype(OWL_REAL),
+        Some(true)
+    );
+    assert_eq!(
+        values.literal(&decimal).named_datatype(OWL_REAL),
+        Some(true)
+    );
+    for lexical in [
+        "0.5",
+        "1",
+        " 1/2 ",
+        "\t1/2\n",
+        "1/2\u{a0}",
+        "1 /2",
+        "1/ 2",
+        "1/+2",
+        "1/-2",
+        "1/0",
+    ] {
+        let source = TermValue::typed_literal(lexical, OWL_RATIONAL);
+        assert!(matches!(
+            values.literal(&source).meaning,
+            LiteralMeaning::Opaque(_)
+        ));
+        assert_eq!(values.same_value(&source, &fraction), None);
+        assert_eq!(values.literal(&source).named_datatype(OWL_RATIONAL), None);
+    }
+    // owl:real names a value space but supplies no direct lexical forms.
+    for lexical in ["", "1/2", "0.5", "1", " 0.5\u{a0}"] {
+        let source = TermValue::typed_literal(lexical, OWL_REAL);
+        assert!(matches!(
+            values.literal(&source).meaning,
+            LiteralMeaning::Opaque(_)
+        ));
+        assert_eq!(values.same_value(&source, &fraction), None);
+        assert_eq!(values.literal(&source).named_datatype(OWL_REAL), None);
+    }
+}
 
 #[test]
 fn native_xsd_admission_does_not_repair_source_whitespace() {
