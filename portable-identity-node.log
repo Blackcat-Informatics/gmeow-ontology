@@ -1,0 +1,12 @@
+✔ the wasm .d.ts, index.mjs and index.d.ts declare the same export set (11.314037ms)
+✔ version() equals the published package version (2.141459ms)
+✔ wasm reasoned closure is byte-identical to the native witness attestation (147.462743ms)
+✔ wasm conjecture verdicts are byte-identical to the native witness attestation (362.293625ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 545.600956

@@ -1,0 +1,16 @@
+wasm://wasm/024c18de:1
+
+
+RuntimeError: unreachable
+    at wasm://wasm/024c18de:wasm-function[8243]:0x8ce72a
+    at wasm://wasm/024c18de:wasm-function[8229]:0x8ce6db
+    at wasm://wasm/024c18de:wasm-function[8023]:0x8cdc86
+    at wasm://wasm/024c18de:wasm-function[5172]:0x87bcbb
+    at wasm://wasm/024c18de:wasm-function[6431]:0x8b1d90
+    at wasm://wasm/024c18de:wasm-function[8216]:0x8ce66c
+    at wasm://wasm/024c18de:wasm-function[7556]:0x8cacae
+    at wasm://wasm/024c18de:wasm-function[7333]:0x8c7a44
+    at wasm://wasm/024c18de:wasm-function[8024]:0x8cdc9b
+    at wasm://wasm/024c18de:wasm-function[3]:0x2ec40
+
+Node.js v26.12.0

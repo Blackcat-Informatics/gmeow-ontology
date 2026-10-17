@@ -1,0 +1,153 @@
+cargo build -p gmeow-mcp-wasm --target wasm32-unknown-unknown --release
+    Blocking waiting for file lock on build directory
+   Compiling proc-macro2 v1.0.107
+   Compiling memchr v2.8.3
+   Compiling once_cell v1.21.4
+   Compiling version_check v0.9.5
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.151
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling equivalent v1.0.2
+   Compiling allocator-api2 v0.2.21
+   Compiling foldhash v0.1.5
+   Compiling itoa v1.0.18
+   Compiling smallvec v1.15.2
+   Compiling zerocopy v0.8.55
+   Compiling typenum v1.20.1
+   Compiling hashbrown v0.17.1
+   Compiling winnow v1.0.4
+   Compiling tinyvec_macros v0.1.1
+   Compiling toml_write v0.1.2
+   Compiling ciborium-io v0.2.2
+   Compiling winnow v0.7.15
+   Compiling cfg-if v1.0.4
+   Compiling autocfg v1.5.1
+   Compiling cpufeatures v0.2.17
+   Compiling tinyvec v1.12.0
+   Compiling glob v0.3.4
+   Compiling unicode-script v0.5.8
+   Compiling aho-corasick v1.1.4
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.0
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling unicode-normalization v0.1.25
+   Compiling tracing-core v0.1.36
+   Compiling pin-project-lite v0.2.17
+   Compiling num-traits v0.2.19
+   Compiling fixedbitset v0.5.7
+   Compiling generic-array v0.14.7
+   Compiling unicode-security v0.1.2
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling serde_spanned v1.1.1
+   Compiling regex-automata v0.4.16
+   Compiling toml v1.1.3+spec-1.1.0
+   Compiling petgraph v0.8.3
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling quote v1.0.47
+   Compiling digest v0.10.7
+   Compiling syn v2.0.119
+   Compiling syn v3.0.3
+   Compiling sha2 v0.10.9
+   Compiling chrono v0.4.45
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-form)
+   Compiling serde_derive v1.0.229
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling zerocopy-derive v0.8.55
+   Compiling tracing-attributes v0.1.31
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling cargo-config2 v0.1.45
+   Compiling toml_edit v0.22.27
+   Compiling tracing v0.1.44
+   Compiling regex v1.13.1
+   Compiling toml v0.8.23
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/build-inputs)
+   Compiling wasm-bindgen v0.2.125
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling half v2.7.1
+   Compiling ciborium-ll v0.2.2
+   Compiling ciborium v0.2.2
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-wasm)
+    Finished `release` profile [optimized] target(s) in 36m 09s
+PATH="$HOME/.cargo/bin:$PATH" wasm-bindgen target/wasm32-unknown-unknown/release/gmeow_mcp_wasm.wasm --out-dir crates/mcp-wasm/js/pkg --target web
+wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
+OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)
+cargo build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown --release
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling syn v3.0.3
+   Compiling zerocopy-derive v0.8.55
+   Compiling tracing-attributes v0.1.31
+   Compiling wasm-bindgen v0.2.125
+   Compiling tracing v0.1.44
+   Compiling zerocopy v0.8.55
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+   Compiling half v2.7.1
+   Compiling ciborium-ll v0.2.2
+   Compiling ciborium v0.2.2
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/transcode)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-core-wasm)
+    Finished `release` profile [optimized] target(s) in 22m 38s
+PATH="$HOME/.cargo/bin:$PATH" wasm-bindgen target/wasm32-unknown-unknown/release/gmeow_mcp_core_wasm.wasm --out-dir crates/mcp-core-wasm/js/pkg --target web
+wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm
+OK: gmeow-mcp-core-wasm npm package built (crates/mcp-core-wasm/js/, pkg/ generated)

@@ -1,0 +1,12 @@
+cargo run --profile bench -p gmeow-pipeline --example recorded-class-consistency -- "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3" ".stage/split-gmeow-purrdf-responsibilities/missing-receipt.json" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa.json" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30.json" "list"
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+    Finished `bench` profile [optimized] target(s) in 1.26s
+     Running `/opt/.cargo/target/1803-split-gmeow-purrdf-responsibilities-d06214f6/release/examples/recorded-class-consistency /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3 .stage/split-gmeow-purrdf-responsibilities/missing-receipt.json /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa.json /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30.json list`
+Recorded input receipt reading failed: No such file or directory (os error 2)
+  caused by: Recorded input receipt reading failed: No such file or directory (os error 2)
+  caused by: No such file or directory (os error 2)
+make: *** [Makefile:1233: bench-recorded-class-consistency] Error 1

@@ -1,0 +1,7 @@
+cargo build -p gmeow-reason-wasm --target wasm32-unknown-unknown --release
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+    Finished `release` profile [optimized] target(s) in 5m 36s
+PATH="$HOME/.cargo/bin:$PATH" wasm-bindgen target/wasm32-unknown-unknown/release/gmeow_reason_wasm.wasm --out-dir crates/reason-wasm/js/pkg --target web
+wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt  -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
+OK: gmeow-reason-wasm npm package built (crates/reason-wasm/js/, pkg/ generated)

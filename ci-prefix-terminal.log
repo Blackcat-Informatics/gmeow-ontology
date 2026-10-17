@@ -1,0 +1,549 @@
+fixture-prefix	Set up job	﻿2026-10-17T05:15:30.4571985Z Current runner version: '2.337.0'
+fixture-prefix	Set up job	2026-10-17T05:15:30.4606485Z ##[group]Runner Image Provisioner
+fixture-prefix	Set up job	2026-10-17T05:15:30.4607640Z Hosted Compute Agent
+fixture-prefix	Set up job	2026-10-17T05:15:30.4608573Z Version: 20261012.601
+fixture-prefix	Set up job	2026-10-17T05:15:30.4609414Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+fixture-prefix	Set up job	2026-10-17T05:15:30.4610390Z Build Date: 2026-10-12T17:48:21Z
+fixture-prefix	Set up job	2026-10-17T05:15:30.4611237Z Worker ID: {ec6c322a-57eb-4679-ba6c-01b8e7047333}
+fixture-prefix	Set up job	2026-10-17T05:15:30.4612110Z Region: centralus
+fixture-prefix	Set up job	2026-10-17T05:15:30.4613160Z Cloud: Azure
+fixture-prefix	Set up job	2026-10-17T05:15:30.4613882Z ##[endgroup]
+fixture-prefix	Set up job	2026-10-17T05:15:30.4616191Z ##[group]Operating System
+fixture-prefix	Set up job	2026-10-17T05:15:30.4617005Z Ubuntu
+fixture-prefix	Set up job	2026-10-17T05:15:30.4617622Z 24.04.5
+fixture-prefix	Set up job	2026-10-17T05:15:30.4618329Z LTS
+fixture-prefix	Set up job	2026-10-17T05:15:30.4619046Z ##[endgroup]
+fixture-prefix	Set up job	2026-10-17T05:15:30.4619782Z ##[group]Runner Image
+fixture-prefix	Set up job	2026-10-17T05:15:30.4620579Z Image: ubuntu-24.04
+fixture-prefix	Set up job	2026-10-17T05:15:30.4621292Z Version: 20261012.334.1
+fixture-prefix	Set up job	2026-10-17T05:15:30.4623045Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+fixture-prefix	Set up job	2026-10-17T05:15:30.4625371Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+fixture-prefix	Set up job	2026-10-17T05:15:30.4626691Z ##[endgroup]
+fixture-prefix	Set up job	2026-10-17T05:15:30.4628175Z ##[group]GITHUB_TOKEN Permissions
+fixture-prefix	Set up job	2026-10-17T05:15:30.4631182Z Contents: read
+fixture-prefix	Set up job	2026-10-17T05:15:30.4631978Z Metadata: read
+fixture-prefix	Set up job	2026-10-17T05:15:30.4633080Z ##[endgroup]
+fixture-prefix	Set up job	2026-10-17T05:15:30.4635792Z Secret source: Actions
+fixture-prefix	Set up job	2026-10-17T05:15:30.4637131Z Cache mode: write
+fixture-prefix	Set up job	2026-10-17T05:15:30.4637998Z Prepare workflow directory
+fixture-prefix	Set up job	2026-10-17T05:15:30.5080316Z Prepare all required actions
+fixture-prefix	Set up job	2026-10-17T05:15:30.5130665Z Getting action download info
+fixture-prefix	Set up job	2026-10-17T05:15:30.7928081Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+fixture-prefix	Set up job	2026-10-17T05:15:30.8776616Z Download action repository 'dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8' (SHA:29eef336d9b2848a0b548edc03f92a220660cdb8)
+fixture-prefix	Set up job	2026-10-17T05:15:31.0923398Z Download action repository 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' (SHA:9000827ccba6bdab643e8b6fd33ac0654aef8333)
+fixture-prefix	Set up job	2026-10-17T05:15:31.5645830Z Download action repository 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9' (SHA:55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+fixture-prefix	Set up job	2026-10-17T05:15:31.7313845Z Download action repository 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+fixture-prefix	Set up job	2026-10-17T05:15:32.5316535Z Complete job name: fixture-prefix
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	﻿2026-10-17T05:15:32.6192893Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6194641Z with:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6195612Z   persist-credentials: false
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6196740Z   repository: Blackcat-Informatics/gmeow-ontology
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6203838Z   token: ***
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6204815Z   ssh-strict: true
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6205683Z   ssh-user: git
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6206586Z   clean: true
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6207483Z   sparse-checkout-cone-mode: true
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6208506Z   fetch-depth: 1
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6209410Z   fetch-tags: false
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6210280Z   show-progress: true
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6211183Z   lfs: false
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6212008Z   submodules: false
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6212982Z   set-safe-directory: true
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6214020Z   allow-unsafe-pr-checkout: false
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6215220Z env:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6217071Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6219317Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6220699Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6221940Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6223102Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6224138Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.6225097Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7310285Z Syncing repository: Blackcat-Informatics/gmeow-ontology
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7313493Z ##[group]Getting Git version info
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7314905Z Working directory is '/home/runner/work/gmeow-ontology/gmeow-ontology'
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7317020Z [command]/usr/bin/git version
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7376097Z git version 2.55.0
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7395969Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7407058Z Temporarily overriding HOME='/home/runner/work/_temp/abf9da02-aeb9-4e58-9d6d-3ef0ce693f5e' before making global git config changes
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7410468Z Adding repository directory to the temporary git global config as a safe directory
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7413682Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7462461Z Deleting the contents of '/home/runner/work/gmeow-ontology/gmeow-ontology'
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7466192Z ##[group]Determining repository object format
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7468684Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7470812Z ##[group]Initializing the repository
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7472992Z [command]/usr/bin/git init /home/runner/work/gmeow-ontology/gmeow-ontology
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7577066Z hint: Using 'master' as the name for the initial branch. This default branch name
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7579635Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7582015Z hint: to use in all of your new repositories, which will suppress this warning,
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7584142Z hint: call:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7585355Z hint:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7587133Z hint: 	git config --global init.defaultBranch <name>
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7588806Z hint:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7590403Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7592904Z hint: 'development'. The just-created branch can be renamed via this command:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7594771Z hint:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7596233Z hint: 	git branch -m <name>
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7597356Z hint:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7598644Z hint: Disable this message with "git config set advice.defaultBranchName false"
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7600555Z Initialized empty Git repository in /home/runner/work/gmeow-ontology/gmeow-ontology/.git/
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7605035Z [command]/usr/bin/git remote add origin https://github.com/Blackcat-Informatics/gmeow-ontology
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7642021Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7644442Z ##[group]Disabling automatic garbage collection
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7646383Z [command]/usr/bin/git config --local gc.auto 0
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7676298Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7679124Z ##[group]Setting up auth
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7680706Z Removing SSH command configuration
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7682916Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.7711565Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8030260Z Removing HTTP extra header
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8035688Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8070783Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8249204Z Removing includeIf entries pointing to credentials config files
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8253805Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8284927Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8472979Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8507798Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path /home/runner/work/_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8537455Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8572306Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8602626Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8628756Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8630268Z ##[group]Fetching the repository
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:32.8635122Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +c8d3887618dd0500ff035d58759b29b5fa35cf58:refs/remotes/pull/1837/merge
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.5983320Z From https://github.com/Blackcat-Informatics/gmeow-ontology
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.5984332Z  * [new ref]         c8d3887618dd0500ff035d58759b29b5fa35cf58 -> pull/1837/merge
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.6000394Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.6001190Z ##[group]Determining the checkout info
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.6001908Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.6002282Z [command]/usr/bin/git sparse-checkout disable
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.6217982Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.6246953Z ##[group]Checking out the ref
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:36.6250222Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/1837/merge
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4498243Z Note: switching to 'refs/remotes/pull/1837/merge'.
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4498811Z 
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4499033Z You are in 'detached HEAD' state. You can look around, make experimental
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4499557Z changes and commit them, and you can discard any commits you make in this
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4500072Z state without impacting any branches by switching back to a branch.
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4500353Z 
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4500609Z If you want to create a new branch to retain commits you create, you may
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4501065Z do so (now or later) by using -c with the switch command. Example:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4501316Z 
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4501449Z   git switch -c <new-branch-name>
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4501623Z 
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4501953Z Or undo this operation with:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4502203Z 
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4502574Z   git switch -
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4504619Z 
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4505017Z Turn off this advice by setting config variable advice.detachedHead to false
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4505516Z 
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4505989Z HEAD is now at c8d3887 Merge 271463204390e193c1706009feb89f8994476038 into 9cb2cb1fc97a55605d818f10c1e5912e25cc8a75
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4523513Z ##[endgroup]
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4567455Z [command]/usr/bin/git log -1 --format=%H
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4591389Z c8d3887618dd0500ff035d58759b29b5fa35cf58
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4603939Z ##[group]Removing auth
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4604458Z Removing SSH command configuration
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4605077Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4631488Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4823604Z Removing HTTP extra header
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4828212Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.4859088Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5044595Z Removing includeIf entries pointing to credentials config files
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5048044Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5071768Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5072664Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5073462Z includeif.gitdir:/github/workspace/.git.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5074021Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5079139Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5129850Z /home/runner/work/_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5139168Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-047f7303\-c9e1\-4c4d\-922a\-6a9b2c29f393\.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5170818Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5190077Z /home/runner/work/_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5202705Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-047f7303\-c9e1\-4c4d\-922a\-6a9b2c29f393\.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5234206Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5259154Z /github/runner_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5263686Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-047f7303\-c9e1\-4c4d\-922a\-6a9b2c29f393\.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5300617Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5318431Z /github/runner_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5330482Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-047f7303\-c9e1\-4c4d\-922a\-6a9b2c29f393\.config
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5518747Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5701068Z Removing credentials config '/home/runner/work/_temp/git-credentials-047f7303-c9e1-4c4d-922a-6a9b2c29f393.config'
+fixture-prefix	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-17T05:15:37.5712690Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	﻿2026-10-17T05:15:37.6016986Z ##[group]Run dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6017460Z with:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6017750Z   toolchain: nightly-2026-09-05
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6018037Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6018624Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6019299Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6019775Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6020168Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6020471Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6020781Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6021040Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6114369Z ##[start-action display=Run : parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6165137Z ##[group]Run : parse toolchain version
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6165597Z ^[[36;1m: parse toolchain version^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6165980Z ^[[36;1mif [[ -z $toolchain ]]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6166514Z ^[[36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6167227Z ^[[36;1m  echo "'toolchain' is a required input" >&2^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6167544Z ^[[36;1m  exit 1^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6167897Z ^[[36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6168303Z ^[[36;1m  if [[ Linux == macOS ]]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6168844Z ^[[36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6169344Z ^[[36;1m  else^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6169757Z ^[[36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6170234Z ^[[36;1m  fi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6170589Z ^[[36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6171118Z ^[[36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6171617Z ^[[36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6172138Z ^[[36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6172767Z ^[[36;1melse^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6173039Z ^[[36;1m  echo "toolchain=$toolchain" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6173363Z ^[[36;1mfi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6364993Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6365465Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6366010Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6366658Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6367074Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6367406Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6367677Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6367955Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6368223Z   toolchain: nightly-2026-09-05
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6368465Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6488166Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=37]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6511660Z ##[start-action display=Run : construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6546249Z ##[group]Run : construct rustup command line
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6546615Z ^[[36;1m: construct rustup command line^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6547051Z ^[[36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6547609Z ^[[36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6548200Z ^[[36;1mecho "downgrade=" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6585291Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6585682Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6586254Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6586912Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6587303Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6587643Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6587915Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6588182Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6588432Z   targets: 
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6588643Z   components: 
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6588859Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6659508Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=14]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6663629Z ##[start-action display=Run : set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6695618Z ##[group]Run : set $CARGO_HOME
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6696078Z ^[[36;1m: set $CARGO_HOME^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6696444Z ^[[36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6730914Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6731268Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6731800Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6732601Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6733114Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6733446Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6733708Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6733972Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6734239Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6801398Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=13]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6804204Z ##[start-action display=Run : install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6840900Z ##[group]Run : install rustup if needed
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6841265Z ^[[36;1m: install rustup if needed^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6841581Z ^[[36;1mif ! command -v rustup &>/dev/null; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6842296Z ^[[36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6843299Z ^[[36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6843595Z ^[[36;1mfi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6878081Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6878453Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6879008Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6879731Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6880218Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6880564Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6880833Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6881110Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6881376Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6881626Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6942677Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=13]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6947441Z ##[start-action display=Run : install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6954656Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6958305Z ##[start-action display=rustup toolchain install nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_4]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6989143Z ##[group]Run rustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.6989769Z ^[[36;1mrustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7022779Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7023144Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7023687Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7024321Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7024706Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7025029Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7025281Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7025534Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7025790Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7026060Z   RUSTUP_PERMIT_COPY_RENAME: 1
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.7026308Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:37.8255305Z info: syncing channel updates for nightly-2026-09-05-x86_64-unknown-linux-gnu
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:38.5209553Z info: latest update on 2026-09-05 for version 1.100.0-nightly (0ed41eb41 2026-09-04)
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:38.5210097Z info: downloading 3 components
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5794624Z 
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5859950Z   nightly-2026-09-05-x86_64-unknown-linux-gnu installed - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5860524Z 
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5899602Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=9894]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5906027Z ##[start-action display=Run rustup default nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_5]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5929861Z ##[group]Run rustup default nightly-2026-09-05
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5930225Z ^[[36;1mrustup default nightly-2026-09-05^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5970193Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5970598Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5971163Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5971857Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5972260Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5972841Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5973166Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5973433Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5973700Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.5973946Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6077443Z info: using existing install for nightly-2026-09-05-x86_64-unknown-linux-gnu
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6088977Z info: default toolchain set to nightly-2026-09-05-x86_64-unknown-linux-gnu
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6089432Z 
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6152742Z   nightly-2026-09-05-x86_64-unknown-linux-gnu unchanged - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6153384Z 
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6155711Z info: note that the toolchain 'nightly-x86_64-unknown-linux-gnu' is currently in use (overridden by '/home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml')
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6166085Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=25]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6170487Z ##[start-action display=Run : create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6194022Z ##[group]Run : create cachekey
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6194351Z ^[[36;1m: create cachekey^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6194884Z ^[[36;1mDATE=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6195572Z ^[[36;1mHASH=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-hash: //p')^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6196084Z ^[[36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6231334Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6231682Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6232208Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6233113Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6233495Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6233822Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6234078Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6234338Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6234594Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6234828Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6528536Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=35]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6531210Z ##[start-action display=Run : disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6553839Z ##[group]Run : disable incremental compilation
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6554319Z ^[[36;1m: disable incremental compilation^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6554640Z ^[[36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6554984Z ^[[36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6555268Z ^[[36;1mfi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6596730Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6597110Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6597710Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6598411Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6598843Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6599200Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6599473Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6599763Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6600038Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6600302Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6660499Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=12]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6663059Z ##[start-action display=Run : enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6684331Z ##[group]Run : enable colors in Cargo output
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6684676Z ^[[36;1m: enable colors in Cargo output^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6684986Z ^[[36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6685324Z ^[[36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6685641Z ^[[36;1mfi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6718258Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6718590Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6719123Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6719759Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6720155Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6720488Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6720745Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6721003Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6721266Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6721507Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6721728Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6779465Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=11]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6784574Z ##[start-action display=Run : enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6806728Z ##[group]Run : enable Cargo sparse registry
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6807082Z ^[[36;1m: enable Cargo sparse registry^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6807567Z ^[[36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6808205Z ^[[36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6808902Z ^[[36;1m  if rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[89]\.'; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6809446Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6809933Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6810448Z ^[[36;1m  elif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[67]\.'; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6810992Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6811473Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6811807Z ^[[36;1m  fi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6812021Z ^[[36;1mfi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6844543Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6845029Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6845558Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6846199Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6846581Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6846898Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6847152Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6847418Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6847678Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6847924Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6848150Z   CARGO_TERM_COLOR: always
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.6848374Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7120235Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=33]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7124820Z ##[start-action display=Run : work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7148487Z ##[group]Run : work around spurious network errors in curl 8.0
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7148956Z ^[[36;1m: work around spurious network errors in curl 8.0^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7149484Z ^[[36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7150102Z ^[[36;1mif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.7[01]\.'; then^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7150579Z ^[[36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7150903Z ^[[36;1mfi^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7188987Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7189336Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7189861Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7190521Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7190897Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7191230Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7191495Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7191753Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7192014Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7192255Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7192713Z   CARGO_TERM_COLOR: always
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7192955Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7366333Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=24]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7371068Z ##[start-action display=Run rustc +nightly-2026-09-05 --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7398536Z ##[group]Run rustc +nightly-2026-09-05 --version --verbose
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7399022Z ^[[36;1mrustc +nightly-2026-09-05 --version --verbose^[[0m
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7436481Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7436997Z env:
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7437663Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7438386Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7438879Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7439285Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7439643Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7439975Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7440296Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7440675Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7440995Z   CARGO_TERM_COLOR: always
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7441386Z ##[endgroup]
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7594828Z rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7595474Z binary: rustc
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7595955Z commit-hash: 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7596650Z commit-date: 2026-09-04
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7597571Z host: x86_64-unknown-linux-gnu
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7598097Z release: 1.100.0-nightly
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7598599Z LLVM version: 23.1.1
+fixture-prefix	Install Rust (nightly)	2026-10-17T05:15:47.7611376Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=23]
+fixture-prefix	Resolve exact Rust toolchain cache identity	﻿2026-10-17T05:15:47.7678479Z ##[group]Run set -euo pipefail
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7678937Z ^[[36;1mset -euo pipefail^[[0m
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7679386Z ^[[36;1mecho "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"^[[0m
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7718184Z shell: /usr/bin/bash -e {0}
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7718562Z env:
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7719321Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7720129Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7720620Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7721108Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7721471Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7721863Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7722253Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7722875Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7723237Z   CARGO_TERM_COLOR: always
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7723701Z ##[endgroup]
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:47.7830157Z info: syncing channel updates for nightly-x86_64-unknown-linux-gnu
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:48.0061318Z info: latest update on 2026-10-17 for version 1.101.0-nightly (5d8fec066 2026-10-16)
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:48.0061981Z info: downloading 6 components
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:59.4484948Z warn: the missing active toolchain `nightly-x86_64-unknown-linux-gnu` has been auto-installed
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:59.4487771Z warn: this might cause rustup commands to take longer time to finish than expected
+fixture-prefix	Resolve exact Rust toolchain cache identity	2026-10-17T05:15:59.4488703Z info: you may opt out with `RUSTUP_AUTO_INSTALL=0` or `rustup set auto-install disable`
+fixture-prefix	Download the authenticated optimized producer	﻿2026-10-17T05:15:59.5088395Z ##[group]Run actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5088965Z with:
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5089369Z   name: gmeow-dev-producer-c8d3887618dd0500ff035d58759b29b5fa35cf58
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5089808Z   path: dist/bin
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5090160Z   merge-multiple: false
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5090558Z   repository: Blackcat-Informatics/gmeow-ontology
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5091006Z   run-id: 39005456875
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5091322Z   skip-decompress: false
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5091638Z   digest-mismatch: error
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5091992Z env:
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5092759Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5093515Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5093981Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5094386Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5094863Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5095206Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5095583Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5095904Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5096212Z   CARGO_TERM_COLOR: always
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.5096551Z ##[endgroup]
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.6423490Z Downloading single artifact
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.8145144Z Preparing to download the following artifacts:
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:15:59.8146340Z - gmeow-dev-producer-c8d3887618dd0500ff035d58759b29b5fa35cf58 (ID: 12091106501, Size: 78588441, Expected Digest: sha256:9797947f4ff902e5eb43ea4ff26aee02c704d63693f269b104144fcb480ecd8e)
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:00.1126863Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/0844a4df-ce42-8ea9-807d-843b377996ae/workflow-job-run-ada2ac4b-317c-5795-8e5d-e952a5a71372/artifacts/6c8cb2acf05788b370b4f6947221db71ab46f50d00c579e919eb861017ed99d9.zip
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:00.1128900Z Starting download of artifact to: /home/runner/work/gmeow-ontology/gmeow-ontology/dist/bin
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:00.3411414Z (node:2530) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:00.3413144Z (Use `node --trace-deprecation ...` to show where the warning was created)
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:02.7802960Z SHA256 digest of downloaded artifact is 9797947f4ff902e5eb43ea4ff26aee02c704d63693f269b104144fcb480ecd8e
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:02.7803954Z Artifact download completed successfully.
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:02.7804460Z Total of 1 artifact(s) downloaded
+fixture-prefix	Download the authenticated optimized producer	2026-10-17T05:16:02.7808181Z Download artifact has finished successfully
+fixture-prefix	Make the optimized producer executable	﻿2026-10-17T05:16:02.9081798Z ##[group]Run chmod +x dist/bin/gmeow-dev
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9082257Z ^[[36;1mchmod +x dist/bin/gmeow-dev^[[0m
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9122054Z shell: /usr/bin/bash -e {0}
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9122733Z env:
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9123412Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9124225Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9124774Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9125202Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9125571Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9234950Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9235297Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9235629Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9235914Z   CARGO_TERM_COLOR: always
+fixture-prefix	Make the optimized producer executable	2026-10-17T05:16:02.9236305Z ##[endgroup]
+fixture-prefix	Restore reusable completed actions	﻿2026-10-17T05:16:04.4836989Z ##[group]Run actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4837419Z with:
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4837798Z   path: .cache/gmeow-sync/actions
+fixture-prefix	Restore reusable completed actions	.cache/gmeow-sync/stage-fixture-candidate-v2.json
+fixture-prefix	Restore reusable completed actions	
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4838874Z   key: test-actions-v5-Linux-X64-92a3fffb3ddc4909c867125b6396887df764765d2bb774b297e3f1a12370992a-b80cca77351bce04a477a44164dcf653f4ba3536ed8d4382017ec89b8fc57fb3-prefix-c8d3887618dd0500ff035d58759b29b5fa35cf58-39005456875-1
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4842551Z   restore-keys: test-actions-v5-Linux-X64-92a3fffb3ddc4909c867125b6396887df764765d2bb774b297e3f1a12370992a-b80cca77351bce04a477a44164dcf653f4ba3536ed8d4382017ec89b8fc57fb3-complete-c8d3887618dd0500ff035d58759b29b5fa35cf58-
+fixture-prefix	Restore reusable completed actions	test-actions-v5-Linux-X64-92a3fffb3ddc4909c867125b6396887df764765d2bb774b297e3f1a12370992a-b80cca77351bce04a477a44164dcf653f4ba3536ed8d4382017ec89b8fc57fb3-prefix-c8d3887618dd0500ff035d58759b29b5fa35cf58-
+fixture-prefix	Restore reusable completed actions	test-actions-v5-Linux-X64-92a3fffb3ddc4909c867125b6396887df764765d2bb774b297e3f1a12370992a-b80cca77351bce04a477a44164dcf653f4ba3536ed8d4382017ec89b8fc57fb3-complete-
+fixture-prefix	Restore reusable completed actions	test-actions-v5-Linux-X64-92a3fffb3ddc4909c867125b6396887df764765d2bb774b297e3f1a12370992a-b80cca77351bce04a477a44164dcf653f4ba3536ed8d4382017ec89b8fc57fb3-prefix-
+fixture-prefix	Restore reusable completed actions	
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4845564Z   enableCrossOsArchive: false
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4845827Z   fail-on-cache-miss: false
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4846086Z   lookup-only: false
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4846301Z env:
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4846806Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4847422Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4847802Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4848122Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4848369Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4848617Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4848880Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4849129Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4849355Z   CARGO_TERM_COLOR: always
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.4849582Z ##[endgroup]
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:04.7367060Z Cache hit for restore-key: test-actions-v5-Linux-X64-92a3fffb3ddc4909c867125b6396887df764765d2bb774b297e3f1a12370992a-b80cca77351bce04a477a44164dcf653f4ba3536ed8d4382017ec89b8fc57fb3-prefix-b5074ec9cdcb2fdd848ef8cd9098ca73557e53ee-39002241472-1
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:05.7808788Z Received 65970140 of 65970140 (100.0%), 70.9 MBs/sec
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:05.7809389Z Cache Size: ~63 MB (65970140 B)
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:05.7917844Z [command]/usr/bin/tar -xf /home/runner/work/_temp/42c9da1a-c75d-408b-8a21-65b4cfa7c309/cache.tzst -P -C /home/runner/work/gmeow-ontology/gmeow-ontology --use-compress-program unzstd
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:06.2917123Z Cache restored successfully
+fixture-prefix	Restore reusable completed actions	2026-10-17T05:16:06.3014147Z Cache restored from key: test-actions-v5-Linux-X64-92a3fffb3ddc4909c867125b6396887df764765d2bb774b297e3f1a12370992a-b80cca77351bce04a477a44164dcf653f4ba3536ed8d4382017ec89b8fc57fb3-prefix-b5074ec9cdcb2fdd848ef8cd9098ca73557e53ee-39002241472-1
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	﻿2026-10-17T05:16:06.3099939Z ##[group]Run make produce-producer-independent-test-fixtures FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3100879Z ^[[36;1mmake produce-producer-independent-test-fixtures FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json^[[0m
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3140975Z shell: /usr/bin/bash -e {0}
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3141292Z env:
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3141846Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3142659Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3143054Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3143387Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3143658Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3143925Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3144198Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3144503Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3144742Z   CARGO_TERM_COLOR: always
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3144979Z ##[endgroup]
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:06.3336884Z ./dist/bin/gmeow-dev test-fixtures produce --scope producer-independent --timings-json dist/nextest/fixture-timings-producer-independent.json
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:10.1066825Z pipeline fixture warm admission: miss reason=candidate-not-found
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T05:16:10.1067692Z test fixture producer: phase=pipeline-stages state=started targets=31 jobs=4
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:33:51.1573500Z ^[[2m2026-10-17T06:33:51.155841Z^[[0m ^[[33m WARN^[[0m ^[[2mnative_obstruction^[[0m^[[2m:^[[0m retained native obstruction withholds completed reads ^[[3mworld^[[0m^[[2m=^[[0m"https://blackcatinformatics.ca/gmeow/graph/imports" ^[[3mproperty_admission_blocked^[[0m^[[2m=^[[0mfalse ^[[3mobstructions^[[0m^[[2m=^[[0m198 ^[[3mdetail^[[0m^[[2m=^[[0mclass: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#Event") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Situation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("https://blackcatinformatics.ca/gmeow/skolem/962c9eda94210d7f04891cf6442bef4f6d7dd98c") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Type") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryConstitutionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Endurant") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryInstantiationSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#NonRigidType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#EndurantType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsReifiedQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation")
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:33:52.3375574Z ^[[2m2026-10-17T06:33:52.336494Z^[[0m ^[[33m WARN^[[0m ^[[2mnative_obstruction^[[0m^[[2m:^[[0m retained native obstruction withholds completed reads ^[[3mworld^[[0m^[[2m=^[[0m"https://blackcatinformatics.ca/gmeow/graph/logic" ^[[3mproperty_admission_blocked^[[0m^[[2m=^[[0mfalse ^[[3mobstructions^[[0m^[[2m=^[[0m7322 ^[[3mdetail^[[0m^[[2m=^[[0mclass: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/logic/class-expression/44c8c845683a> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/logic/class-expression/68d13aa2d266> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/logic/class-expression/0457a0f959e4> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/logic/class-expression/e3cfd13be0ab> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/logic/class-expression/e09cf237837d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/logic/class-expression/77e6f0b288b8> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/logic/enumeration/1c7351fcecd5> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/logic/class-expression/9f763f909380> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/JournalBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/PathBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> requires complete set-equality model admission
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:34:32.8099932Z ^[[2m2026-10-17T06:34:32.808167Z^[[0m ^[[33m WARN^[[0m ^[[2mnative_obstruction^[[0m^[[2m:^[[0m retained native obstruction withholds completed reads ^[[3mworld^[[0m^[[2m=^[[0m"https://blackcatinformatics.ca/gmeow/graph/rl-default" ^[[3mproperty_admission_blocked^[[0m^[[2m=^[[0mfalse ^[[3mobstructions^[[0m^[[2m=^[[0m14469 ^[[3mdetail^[[0m^[[2m=^[[0mclass: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/gmeow/skolem/cc582314aea615f26686db57ce757fd75b9b51fb> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/gmeow/skolem/559f9474348833d764bf9b5526f0d372d9f72cd6> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/gmeow/skolem/dca45ad793b6d600fed20c5624c1402bc5e28f13> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/gmeow/skolem/e6faf24a612d80898c90fc4f0a49286b37012cb7> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/gmeow/skolem/c68556067efa41527d88c556872364719cc2fe7f> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/gmeow/skolem/f79358ceaa56e9ffdc43e0bf9ec40de27932550d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/gmeow/skolem/410c53d2174f370f06d230e419bb1f5e4e8f6091> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/gmeow/skolem/16d6ea6c3017675d4222bbc36286ab9553341a86> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/gmeow/skolem/f026169940ca9e9f418d659a49efad7a0cfa30c0> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0eb3b532d6d2d45af54da1b9ac748d485c470a44> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/10e760ee682bcfc46c91543b4cb5c9f389e957fb> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/12bf162de822e6768077c1f8c00cbf9c543d8958> requires complete set-equality model admission
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:34:35.8977042Z ^[[2m2026-10-17T06:34:35.896575Z^[[0m ^[[33m WARN^[[0m ^[[2mnative_obstruction^[[0m^[[2m:^[[0m retained native obstruction withholds completed reads ^[[3mworld^[[0m^[[2m=^[[0m"https://blackcatinformatics.ca/gmeow/graph/imports" ^[[3mproperty_admission_blocked^[[0m^[[2m=^[[0mfalse ^[[3mobstructions^[[0m^[[2m=^[[0m198 ^[[3mdetail^[[0m^[[2m=^[[0mclass: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#Event") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#broughtAbout> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Situation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("https://blackcatinformatics.ca/gmeow/skolem/962c9eda94210d7f04891cf6442bef4f6d7dd98c") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#categorizes> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Type") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryConstitutionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsConstitutedEndurant> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#Endurant") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#TemporaryInstantiationSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsNonRigidType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#NonRigidType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityType> <http://www.w3.org/2000/01/rdf-schema#range> Iri("http://purl.org/nemo/gufo#EndurantType") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation") | class: UnsupportedCombination: selected class model does not complete <http://purl.org/nemo/gufo#concernsReifiedQualityValue> <http://www.w3.org/2000/01/rdf-schema#domain> Iri("http://purl.org/nemo/gufo#QualityValueAttributionSituation")
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:34:38.6901471Z ^[[2m2026-10-17T06:34:38.688541Z^[[0m ^[[33m WARN^[[0m ^[[2mnative_obstruction^[[0m^[[2m:^[[0m retained native obstruction withholds completed reads ^[[3mworld^[[0m^[[2m=^[[0m"https://blackcatinformatics.ca/gmeow/graph/logic" ^[[3mproperty_admission_blocked^[[0m^[[2m=^[[0mfalse ^[[3mobstructions^[[0m^[[2m=^[[0m7322 ^[[3mdetail^[[0m^[[2m=^[[0mclass: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/logic/class-expression/44c8c845683a> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/logic/class-expression/68d13aa2d266> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/logic/class-expression/0457a0f959e4> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/logic/class-expression/e3cfd13be0ab> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/logic/class-expression/e09cf237837d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/logic/class-expression/77e6f0b288b8> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/logic/enumeration/1c7351fcecd5> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/logic/class-expression/9f763f909380> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/JournalBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/PathBoundary> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/logic/enumeration/0a564e307358> requires complete set-equality model admission
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:38:19.7601353Z ^[[2m2026-10-17T06:38:19.758465Z^[[0m ^[[33m WARN^[[0m ^[[2mnative_obstruction^[[0m^[[2m:^[[0m retained native obstruction withholds completed reads ^[[3mworld^[[0m^[[2m=^[[0m"https://blackcatinformatics.ca/gmeow/graph/rl-default" ^[[3mproperty_admission_blocked^[[0m^[[2m=^[[0mfalse ^[[3mobstructions^[[0m^[[2m=^[[0m14469 ^[[3mdetail^[[0m^[[2m=^[[0mclass: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/AttackTarget> to <https://blackcatinformatics.ca/gmeow/skolem/cc582314aea615f26686db57ce757fd75b9b51fb> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/DayOfWeek> to <https://blackcatinformatics.ca/gmeow/skolem/559f9474348833d764bf9b5526f0d372d9f72cd6> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/Defeater> to <https://blackcatinformatics.ca/gmeow/skolem/dca45ad793b6d600fed20c5624c1402bc5e28f13> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationGround> to <https://blackcatinformatics.ca/gmeow/skolem/e6faf24a612d80898c90fc4f0a49286b37012cb7> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/JustificationSubject> to <https://blackcatinformatics.ca/gmeow/skolem/c68556067efa41527d88c556872364719cc2fe7f> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/PlaceNaming> to <https://blackcatinformatics.ca/gmeow/skolem/f79358ceaa56e9ffdc43e0bf9ec40de27932550d> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ProfilePage> to <https://blackcatinformatics.ca/gmeow/skolem/410c53d2174f370f06d230e419bb1f5e4e8f6091> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> to <https://blackcatinformatics.ca/gmeow/skolem/16d6ea6c3017675d4222bbc36286ab9553341a86> | class: UnsupportedCombination: class expression equivalence <https://blackcatinformatics.ca/gmeow/SupportSource> to <https://blackcatinformatics.ca/gmeow/skolem/f026169940ca9e9f418d659a49efad7a0cfa30c0> | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/0eb3b532d6d2d45af54da1b9ac748d485c470a44> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/10e760ee682bcfc46c91543b4cb5c9f389e957fb> requires complete set-equality model admission | class: UnsupportedCombination: nominal class <https://blackcatinformatics.ca/gmeow/skolem/12bf162de822e6768077c1f8c00cbf9c543d8958> requires complete set-equality model admission
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:42:00.5279926Z make: *** [Makefile:670: produce-producer-independent-test-fixtures] Killed
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-17T06:42:00.7138622Z ##[error]The operation was canceled.
+fixture-prefix	Complete job	﻿2026-10-17T06:42:00.7872855Z Evaluate and set job outputs
+fixture-prefix	Complete job	2026-10-17T06:42:00.8056328Z Cleaning up orphan processes

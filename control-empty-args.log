@@ -1,0 +1,11 @@
+cargo run --profile bench -p gmeow-pipeline --example recorded-class-consistency -- "" "" "" "" ""
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+    Finished `bench` profile [optimized] target(s) in 1.22s
+     Running `/opt/.cargo/target/1803-split-gmeow-purrdf-responsibilities-d06214f6/release/examples/recorded-class-consistency '' '' '' '' ''`
+invalid gmeow declaration: usage: recorded-class-consistency REPO_WITH_CACHE SOURCE_RECEIPT STATEMENTS_RECEIPT COMPILE_RECEIPT WORLD_OR_list
+  caused by: invalid gmeow declaration: usage: recorded-class-consistency REPO_WITH_CACHE SOURCE_RECEIPT STATEMENTS_RECEIPT COMPILE_RECEIPT WORLD_OR_list
+make: *** [Makefile:1233: bench-recorded-class-consistency] Error 1

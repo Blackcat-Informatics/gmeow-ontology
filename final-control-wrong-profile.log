@@ -1,0 +1,4 @@
+invalid gmeow declaration: recorded inputs require the pipeline profile and the current native cache codec
+  caused by: invalid gmeow declaration: recorded inputs require the pipeline profile and the current native cache codec
+
+exit=1

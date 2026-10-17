@@ -1,0 +1,281 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Checking purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking either v1.17.0
+    Checking aho-corasick v1.1.4
+   Compiling getrandom v0.3.4
+    Checking purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking bit-vec v0.8.0
+    Checking quote v1.0.47
+    Checking serde_spanned v1.1.1
+    Checking toml_parser v1.1.2+spec-1.1.0
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/build-inputs)
+    Checking gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/license)
+    Checking gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cost-measure)
+   Compiling semver v1.0.28
+   Compiling derive_more-impl v2.1.1
+    Checking wait-timeout v0.2.1
+   Compiling proc-macro-error-attr3 v3.1.1
+   Compiling bincode-next v3.1.1
+    Checking rapidhash v4.5.1
+    Checking either-or-both v0.3.1
+    Checking rayon v1.12.0
+    Checking itertools v0.10.5
+   Compiling pastey v0.2.3
+   Compiling gungraun v0.19.4
+    Checking bit-set v0.8.0
+    Checking cast v0.3.0
+    Checking syn v2.0.119
+    Checking unty-next v0.1.2
+    Checking toml v1.1.3+spec-1.1.0
+   Compiling rustc_version v0.4.1
+   Compiling proc-macro-error3 v3.1.1
+    Checking tinytemplate v1.2.1
+    Checking is-terminal v0.4.17
+    Checking anes v0.1.6
+    Checking regex-automata v0.4.16
+    Checking oorandom v11.1.5
+    Checking gungraun-runner v0.19.4
+    Checking diff v0.1.13
+    Checking yansi v1.0.1
+   Compiling gungraun-macros v0.9.1
+    Checking quick-error v1.2.3
+    Checking unarray v0.1.4
+    Checking inventory v0.3.24
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/test-batch-macros)
+   Compiling derive_more v2.1.1
+    Checking criterion-plot v0.5.0
+    Checking cargo-config2 v0.1.45
+    Checking typst-utils v0.13.1
+   Compiling wasm-bindgen-shared v0.2.125
+   Compiling bumpalo v3.20.3
+   Compiling wasm-bindgen v0.2.125
+    Checking normalize-line-endings v0.3.0
+    Checking predicates-core v1.0.10
+    Checking ahash v0.8.12
+    Checking rand_core v0.9.5
+    Checking rusty-fork v0.3.1
+    Checking snapbox-macros v0.4.0
+    Checking pretty_assertions v1.4.1
+    Checking float-cmp v0.10.0
+    Checking os_pipe v1.2.3
+    Checking toml_datetime v0.7.5+spec-1.1.0
+    Checking filetime v0.2.29
+    Checking content_inspector v0.2.4
+   Compiling assert_cmd v2.2.2
+    Checking difflib v0.4.0
+    Checking humantime v2.4.0
+    Checking termtree v0.5.1
+    Checking toml_writer v1.1.2+spec-1.1.0
+    Checking dunce v1.0.5
+   Compiling automod v1.0.17
+    Checking shlex v1.3.0
+   Compiling fnv v1.0.7
+   Compiling ident_case v1.0.1
+    Checking typst-syntax v0.13.1
+    Checking humantime-serde v1.1.1
+    Checking predicates-tree v1.0.13
+    Checking toml_edit v0.23.10+spec-1.0.0
+   Compiling strsim v0.11.1
+    Checking snapbox v0.6.24
+    Checking minimal-lexical v0.2.1
+    Checking static_assertions v1.1.0
+   Compiling esaxx-rs v0.1.10
+    Checking itertools v0.14.0
+    Checking rand_chacha v0.9.0
+    Checking rand_xorshift v0.4.0
+    Checking castaway v0.2.4
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling monostate-impl v0.1.18
+   Compiling macro_rules_attribute-proc_macro v0.2.2
+   Compiling darling_core v0.20.11
+    Checking base64 v0.13.1
+    Checking dary_heap v0.3.9
+    Checking referencing v0.46.10
+    Checking unicode-normalization-alignments v0.1.12
+    Checking nom v7.1.3
+    Checking macro_rules_attribute v0.2.2
+    Checking compact_str v0.9.1
+    Checking monostate v0.1.18
+    Checking unicode_categories v0.1.1
+    Checking rand v0.9.5
+    Checking trycmd v0.15.11
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slicetest)
+    Checking regex v1.13.1
+    Checking fancy-regex v0.18.0
+    Checking bstr v1.13.0
+    Checking fancy-regex v0.17.0
+    Checking matchers v0.2.0
+    Checking fancy-regex v0.16.2
+    Checking fancy-regex v0.14.0
+   Compiling darling_macro v0.20.11
+    Checking proptest v1.11.0
+    Checking purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-form)
+    Checking tracing-subscriber v0.3.23
+    Checking criterion v0.5.1
+    Checking predicates v3.1.4
+   Compiling darling v0.20.11
+    Checking spm_precompiled v0.1.4
+    Checking syntect v5.3.0
+    Checking rayon-cond v0.4.0
+    Checking jsonschema v0.46.10
+    Checking tiktoken-rs v0.12.0
+   Compiling derive_builder_core v0.20.2
+    Checking two-face v0.4.5
+   Compiling derive_builder_macro v0.20.2
+    Checking typst-library v0.13.1
+    Checking derive_builder v0.20.2
+    Checking tokenizers v0.22.2
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/action-cache)
+    Checking purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/perf-evidence)
+    Checking typst-svg v0.13.1
+    Checking typst-eval v0.13.1
+    Checking typst-layout v0.13.1
+    Checking typst-realize v0.13.1
+    Checking typst-pdf v0.13.1
+    Checking typst-html v0.13.1
+    Checking typst v0.13.1
+    Checking purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+    Checking gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cli-core)
+    Checking xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/xtask)
+    Checking helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/helper-census)
+    Checking purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=03902c2f586fba5680db14c7d9c5abb2e7fd040f#03902c2f)
+    Checking gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+    Checking gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+    Checking gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+    Checking gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/foundation-corpus)
+    Checking gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/query-wasm)
+    Checking gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/music)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+    Checking gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+    Checking gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect-ingest)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+    Checking gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/transcode)
+    Checking gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmn-cost-matrix)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bench-engines)
+    Checking gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+    Checking gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+    Checking docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+    Checking gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-wasm)
+    Checking gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-core-wasm)
+error[E0277]: the trait bound `std::string::String: std::convert::From<&&str>` is not satisfied
+   --> crates/pipeline/src/stages/carrier_rooting_tests.rs:185:55
+    |
+185 |             .project_graph(Some(&purrdf::RdfTerm::iri(graph)))
+    |                                  -------------------- ^^^^^ the trait `std::convert::From<&&str>` is not implemented for `std::string::String`
+    |                                  |
+    |                                  required by a bound introduced by this call
+    |
+    = help: consider casting the `&&str` value to `&str`
+    = note: required for `&&str` to implement `std::convert::Into<std::string::String>`
+note: required by a bound in `purrdf::RdfTerm::iri`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/03902c2/crates/lex/src/constructors.rs:148:35
+    |
+104 |           impl $type {
+...
+148 |           $vis fn $name($text: impl ::core::convert::Into<::std::string::String>) -> Self {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `RdfTerm::iri`
+    |
+   ::: /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/03902c2/crates/rdf-core/src/model.rs:198:1
+    |
+198 | / purrdf_lex::constructors! {
+199 | |     impl RdfTerm {
+200 | |         /// An IRI term from its full string.
+201 | |         #[must_use]
+202 | |         pub fn iri(value) -> Self::Iri;
+...   |
+207 | | }
+    | |_- in this macro invocation
+    = note: this error originates in the macro `$crate::constructors` which comes from the expansion of the macro `purrdf_lex::constructors` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider dereferencing here
+    |
+185 |             .project_graph(Some(&purrdf::RdfTerm::iri(*graph)))
+    |                                                       +
+
+error[E0277]: the trait bound `std::string::String: std::convert::From<&&str>` is not satisfied
+   --> crates/pipeline/src/stages/carrier_rooting_tests.rs:188:55
+    |
+188 |             .project_graph(Some(&purrdf::RdfTerm::iri(graph)))
+    |                                  -------------------- ^^^^^ the trait `std::convert::From<&&str>` is not implemented for `std::string::String`
+    |                                  |
+    |                                  required by a bound introduced by this call
+    |
+    = help: consider casting the `&&str` value to `&str`
+    = note: required for `&&str` to implement `std::convert::Into<std::string::String>`
+note: required by a bound in `purrdf::RdfTerm::iri`
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/03902c2/crates/lex/src/constructors.rs:148:35
+    |
+104 |           impl $type {
+...
+148 |           $vis fn $name($text: impl ::core::convert::Into<::std::string::String>) -> Self {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `RdfTerm::iri`
+    |
+   ::: /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/03902c2/crates/rdf-core/src/model.rs:198:1
+    |
+198 | / purrdf_lex::constructors! {
+199 | |     impl RdfTerm {
+200 | |         /// An IRI term from its full string.
+201 | |         #[must_use]
+202 | |         pub fn iri(value) -> Self::Iri;
+...   |
+207 | | }
+    | |_- in this macro invocation
+    = note: this error originates in the macro `$crate::constructors` which comes from the expansion of the macro `purrdf_lex::constructors` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider dereferencing here
+    |
+188 |             .project_graph(Some(&purrdf::RdfTerm::iri(*graph)))
+    |                                                       +
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-pipeline` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+    Checking gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-dev)
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmeow-dev-cli)
+make: *** [Makefile:289: clippy-prebuild] Error 101

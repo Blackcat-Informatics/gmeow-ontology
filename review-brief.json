@@ -1,0 +1,58 @@
+{
+  "issue": 1803,
+  "branch": "paudley/1803-split-gmeow-purrdf-responsibilities",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "7db11af84126e7157f1a084d3ef3722d73d524ef",
+      "subject": "fix(pipeline): select recorded worlds after complete object assembly",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "0327fb9933f003f406ca74c5ef6cdb9f29f7a191",
+      "subject": "feat(pipeline): consume recorded reasoning inputs without a producer",
+      "date": "2026-10-16"
+    }
+  ],
+  "files": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile",
+    "crates/bundle-view/src/diagnostics_reader.rs",
+    "crates/conformance/Cargo.toml",
+    "crates/conformance/src/compare.rs",
+    "crates/mcp/src/lib.rs",
+    "crates/mcp/src/tests.rs",
+    "crates/pipeline/Cargo.toml",
+    "crates/pipeline/examples/recorded-class-consistency.rs",
+    "crates/pipeline/src/cache.rs",
+    "crates/pipeline/src/error.rs",
+    "crates/pipeline/src/medium/corpus.rs",
+    "crates/pipeline/src/medium/sweep.rs",
+    "crates/pipeline/src/scheduler.rs",
+    "crates/pipeline/src/stages/carrier.coherence_certificate_tests.rs",
+    "crates/pipeline/src/stages/carrier.docs_try_it_golden.rs",
+    "crates/pipeline/src/stages/carrier.logic_graph_golden_tests.rs",
+    "crates/pipeline/src/stages/carrier.rs",
+    "crates/pipeline/src/stages/carrier_rooting_tests.rs",
+    "crates/pipeline/src/stages/compile_logic.tests.rs",
+    "crates/pipeline/src/stages/compile_logic/native_carrier/tests.rs",
+    "crates/pipeline/src/stages/goal_directed.tests.rs",
+    "crates/pipeline/src/stages/lpg.rs",
+    "crates/pipeline/src/stages/lpg.tests.rs",
+    "crates/pipeline/src/stages/medium_dictionaries.rs",
+    "crates/pipeline/src/stages/reason.tests.rs",
+    "crates/pipeline/src/stages/reason/witness_tests.rs",
+    "crates/pipeline/src/stages/slice_brief.tests.rs",
+    "crates/pipeline/src/stages/superset.rs",
+    "crates/pipeline/src/stages/validate.tests.rs",
+    "crates/pipeline/src/stages/validate/norm_claims.rs",
+    "crates/pipeline/src/stages/verify_attestation.rs",
+    "crates/pipeline/src/stages/verify_attestation.tests.rs",
+    "crates/pipeline/tests/norm_claims_shacl.rs",
+    "crates/pipeline/tests/support/authenticated_bundle.rs",
+    "crates/validate/tests/conformance_support/mod.rs",
+    "slices/core/pipeline/module.ttl"
+  ],
+  "adrs_touched": []
+}

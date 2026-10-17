@@ -1,0 +1,8 @@
+cargo run -p gmeow-reason-wasm --example refresh-witness-reason
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+    Finished `dev` profile [optimized] target(s) in 1m 44s
+     Running `/opt/.cargo/target/1803-split-gmeow-purrdf-responsibilities-d06214f6/debug/examples/refresh-witness-reason`
+refreshed /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm/tests/WITNESS.reason.nq (838 bytes)
+refreshed /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm/tests/WITNESS.conjecture.nq from verified corroborated + refuted-in-standpoint verdicts (34609 bytes)

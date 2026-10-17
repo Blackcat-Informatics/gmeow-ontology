@@ -1,0 +1,77 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-reason-wasm) | (package(gmeow-logic) & (test(external_evidence::tests::) | test(physical::numeric::tests::) | test(native_contract_hash) | test(portable_semantic_identity_excludes_target_execution_contracts))) | (package(gmeow-logic-compile) & (test(parse_nonexistent_file_raises) | test(parse_invalid_turtle_raises) | test(malformed_xml_hard_fails) | test(every_logic_compile_code_interns_with_no_collision))) | (package(gmeow-pipeline) & (test(every_medium_kind_carries_its_ontology_failure_class) | test(every_pipeline_code_interns_with_no_collision)))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 9m 24s
+────────────
+ Nextest run ID 93deab7e-431b-4943-9884-3902b4f85dbd with nextest profile: ci
+    Starting 41 tests across 57 binaries (4338 tests and 168 binaries skipped)
+        PASS [   0.019s] ( 1/41) gmeow-logic external_evidence::tests::model_table_representation_overflow_is_typed_resource_evidence
+        PASS [   0.019s] ( 2/41) gmeow-logic external_evidence::tests::artifact_problem_binding_accepts_the_exact_submitted_path_alias
+        PASS [   0.019s] ( 3/41) gmeow-logic external_evidence::tests::foreign_and_unbalanced_artifact_markers_are_protocol_failures
+        PASS [   0.019s] ( 4/41) gmeow-logic reason::tests::native_contract_hash_folds_public_admission_and_services
+        PASS [   0.019s] ( 5/41) gmeow-logic physical::numeric::tests::numeric_execution_diagnostics_keep_operator_rule_and_operand_evidence
+        PASS [   0.018s] ( 6/41) gmeow-logic external_evidence::tests::framed_artifact_capture_is_exact_and_problem_bound
+        PASS [   0.019s] ( 7/41) gmeow-logic external_evidence::tests::vampire_single_sorted_model_is_independently_checked
+        PASS [   0.019s] ( 8/41) gmeow-logic external_evidence::tests::structural_refutation_never_becomes_a_certificate_without_rule_replay
+        PASS [   0.018s] ( 9/41) gmeow-logic external_evidence::tests::unsupported_model_sort_retains_a_typed_refusal_instead_of_invalidity
+        PASS [   0.018s] (10/41) gmeow-logic external_evidence::tests::model_that_falsifies_an_emitted_sentence_is_invalid
+        PASS [   0.018s] (11/41) gmeow-logic external_evidence::tests::model_budget_refusal_preserves_resource_class_usage_and_sentence_locus
+        PASS [   0.019s] (12/41) gmeow-logic external_evidence::tests::domain_size_refusal_is_resource_evidence_not_a_false_model_claim
+        PASS [   0.019s] (13/41) gmeow-logic physical::numeric::tests::numeric_binding_schedule_failure_is_a_registered_diagnostic
+        PASS [   0.019s] (14/41) gmeow-logic physical::numeric::tests::numeric_operand_and_language_refusals_keep_native_term_evidence
+        PASS [   0.019s] (15/41) gmeow-logic external_evidence::tests::partial_model_table_is_invalid_before_formula_evaluation
+        PASS [   0.019s] (16/41) gmeow-logic physical::numeric::tests::numeric_decode_failures_retain_typed_datatype_and_lexical_evidence
+        PASS [   0.020s] (17/41) gmeow-logic external_evidence::tests::incomplete_table_diagnostic_retains_the_symbol_and_source
+        PASS [   0.019s] (18/41) gmeow-logic external_evidence::tests::normalized_model_parse_failure_retains_original_and_exact_parsed_text
+        PASS [   0.020s] (19/41) gmeow-logic physical::numeric::tests::undefined_numeric_operation_refuses_the_whole_solution_batch
+        PASS [   0.021s] (20/41) gmeow-logic external_evidence::tests::protocol_diagnostic_retains_channel_marker_and_expected_identity
+        PASS [   0.021s] (21/41) gmeow-logic external_evidence::tests::malformed_model_retains_the_typed_parser_cause_and_serialized_evidence
+        PASS [   0.021s] (22/41) gmeow-logic reason::tests::portable_semantic_identity_excludes_target_execution_contracts
+        PASS [   0.021s] (23/41) gmeow-logic external_evidence::tests::foreign_refutation_leaf_is_invalid_even_with_a_false_terminal
+        PASS [   0.023s] (24/41) gmeow-logic physical::numeric::tests::numeric_plan_reuses_typed_results_and_keeps_source_support
+        PASS [   0.024s] (25/41) gmeow-logic physical::numeric::tests::cached_numeric_preparation_failure_mints_independent_complete_diagnostics
+        PASS [   0.025s] (26/41) gmeow-logic reason::tests::native_contract_hash_folds_the_purrdf_substrate_identity
+        PASS [   0.026s] (27/41) gmeow-logic physical::numeric::tests::invalid_numeric_instructions_fail_before_empty_world_execution
+        PASS [   0.003s] (28/41) gmeow-reason-wasm::npm_package_version js_package_version_equals_the_crate_version
+        PASS [   0.027s] (29/41) gmeow-logic physical::numeric::tests::recursive_numeric_invention_needs_a_position_certificate
+        PASS [   0.028s] (30/41) gmeow-logic external_evidence::tests::equal_property_objects_cannot_receive_a_split_predicate_countermodel
+        PASS [   0.028s] (31/41) gmeow-logic physical::numeric::tests::authored_numeric_formula_executes_in_both_native_rule_shapes
+        PASS [   0.006s] (32/41) gmeow-logic-compile frontend::tests::parse_nonexistent_file_raises
+        PASS [   0.006s] (33/41) gmeow-pipeline error::tests::every_pipeline_code_interns_with_no_collision
+        PASS [   0.007s] (34/41) gmeow-pipeline error::tests::every_medium_kind_carries_its_ontology_failure_class
+        PASS [   0.012s] (35/41) gmeow-logic-compile error::tests::every_logic_compile_code_interns_with_no_collision
+        PASS [   0.011s] (36/41) gmeow-logic-compile xcl::tests::malformed_xml_hard_fails
+        PASS [   0.019s] (37/41) gmeow-logic-compile frontend::tests::parse_invalid_turtle_raises
+        PASS [   0.041s] (38/41) gmeow-logic physical::numeric::tests::public_scalar_materialization_keeps_certification_and_annotation
+        PASS [   0.057s] (39/41) gmeow-reason-wasm::witness_reason native_reason_closure_matches_the_witness_attestation
+        PASS [   0.199s] (40/41) gmeow-reason-wasm::witness_conjecture native_conjecture_verdicts_match_the_witness_attestation
+        PASS [   1.177s] (41/41) gmeow-logic reason::tests::native_contract_hash_frames_every_load_bearing_engine_component
+────────────
+     Summary [   1.212s] 41 tests run: 41 passed, 4338 skipped

@@ -1,0 +1,69 @@
+cargo run --profile bench -p gmeow-pipeline --example recorded-class-consistency -- "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292.json" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa.json" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30.json" "default"
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-form)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cli-core)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-import)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/music)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/transcode)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+    Finished `bench` profile [optimized] target(s) in 39m 07s
+     Running `/opt/.cargo/target/1803-split-gmeow-purrdf-responsibilities-d06214f6/release/examples/recorded-class-consistency /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3 /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292.json /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa.json /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30.json default`
+{"action_key":"e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292","elapsed_ms":2028,"phase":"hydrated","product_blob_digest":"39eaea0eaccf34b6b6d8b16f7ab7ec9d5a6e2cc23ad18a1e56ec924a874465de","product_bytes":72643599,"product_digest":"fba26ceb4d4cda07c5a8219846999ceab6f9ac11a953cb7c5b2e0cc1430d7c9d","receipt_digest":"a458932bf877df66d2406723a35c2c980c905ac74f9fa330a3ed2df33f2d9f12","stage":"stage-source-load"}
+{"action_key":"9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa","elapsed_ms":4,"phase":"hydrated","product_blob_digest":"51b59b999ad6147e58b04f9d19cefdec2f572850b41546c093a846145b1e715d","product_bytes":478476,"product_digest":"1674aaf8b92b9f229db8a9f6954a83867284a8da73ad3b0426115fd96a6cd231","receipt_digest":"e172fbdd0cbed692abcaa1f1f6a0823fedd024b1619b90016c1a0c9505d58414","stage":"stage-statements"}
+{"action_key":"0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30","elapsed_ms":6283,"phase":"hydrated","product_blob_digest":"1234adc10311bb22475554d54855fc7e01f530bc4e48df35d4f55690b48ce0c0","product_bytes":369596630,"product_digest":"41a1df0d0f85da2e6f7469df031c09e0540550296b5858399cd524d3e34052f5","receipt_digest":"de82bb75f1aa3cc28a6f77914d2218eec3bb19d4025c42c8f6c69cc157cfeaad","stage":"stage-compile-logic"}
+{"elapsed_ms":4087,"phase":"assembled"}
+{"assertions":179177,"phase":"prepare","world":"default"}
+purrdf entail service refused: entailment role-hierarchy error: invalid object property at term 9336
+  caused by: purrdf entail service refused: entailment role-hierarchy error: invalid object property at term 9336
+  caused by: entailment role-hierarchy error: invalid object property at term 9336
+  caused by: invalid object property at term 9336
+make: *** [Makefile:1233: bench-recorded-class-consistency] Error 1

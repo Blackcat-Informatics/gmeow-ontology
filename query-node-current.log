@@ -1,0 +1,15 @@
+✔ version() returns the crate semver (2.462585ms)
+✔ wasm query results are byte-identical to the native witness attestation (98.771462ms)
+✔ the corpus round-trips through the wasm engine preserving named graphs (1.012053ms)
+✔ a malformed document throws rather than parsing to an empty dataset (0.936875ms)
+✔ an unknown format throws rather than falling back to a default codec (0.211104ms)
+✔ a malformed query throws rather than returning zero bindings (1.463991ms)
+✔ a SERVICE clause throws — the browser cannot resolve it (21.638984ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 463.37454

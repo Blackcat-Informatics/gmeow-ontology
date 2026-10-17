@@ -1,0 +1,67 @@
+cargo run -p gmeow-reason-wasm --example refresh-witness-reason
+    Blocking waiting for file lock on build directory
+   Compiling regex-automata v0.4.16
+   Compiling serde_core v1.0.229
+   Compiling syn v3.0.3
+   Compiling syn v2.0.119
+   Compiling wasm-bindgen-shared v0.2.125
+   Compiling smallvec v1.15.2
+   Compiling num-traits v0.2.19
+   Compiling bumpalo v3.20.3
+   Compiling indexmap v2.14.0
+   Compiling tracing-core v0.1.36
+   Compiling wasm-bindgen v0.2.125
+   Compiling petgraph v0.8.3
+   Compiling serde_derive v1.0.229
+   Compiling regex v1.13.1
+   Compiling chrono v0.4.45
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling serde_json v1.0.151
+   Compiling serde v1.0.229
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling cargo-config2 v0.1.45
+   Compiling toml_edit v0.22.27
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling zerocopy-derive v0.8.55
+   Compiling tracing-attributes v0.1.31
+   Compiling toml v0.8.23
+   Compiling zerocopy v0.8.55
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/build-inputs)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling tracing v0.1.44
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling half v2.7.1
+   Compiling ciborium-ll v0.2.2
+   Compiling ciborium v0.2.2
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=af8936e6f22c70dcbc3f3dc1224be887aba51cc5#af8936e6)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+    Finished `dev` profile [optimized] target(s) in 13m 01s
+     Running `/opt/.cargo/target/1803-split-gmeow-purrdf-responsibilities-d06214f6/debug/examples/refresh-witness-reason`
+refreshed /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm/tests/WITNESS.reason.nq (838 bytes)
+refreshed /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm/tests/WITNESS.conjecture.nq from verified corroborated + refuted-in-standpoint verdicts (34609 bytes)

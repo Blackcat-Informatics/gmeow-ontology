@@ -1,0 +1,48 @@
+{
+  "cache_repo": "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3",
+  "inputs": [
+    {
+      "stage": "stage-compile-logic",
+      "selector_path": "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30.json",
+      "common_receipt_digest": "77311bc06fe992cb97fe7a22fd7fbab91071e6020e2d83cb0d4776bbaa9eb544",
+      "action_key": "0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30",
+      "product_digest": "41a1df0d0f85da2e6f7469df031c09e0540550296b5858399cd524d3e34052f5",
+      "product_blob": {
+        "digest": "1234adc10311bb22475554d54855fc7e01f530bc4e48df35d4f55690b48ce0c0",
+        "bytes": 369596630
+      },
+      "producer_fingerprint": "aba2c72f8887c77eb165400491b0b4721c66068330aaf611b09f24f9cbe53ba7",
+      "producer_profile": "pipeline",
+      "codec": "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor1+receipt-json-2"
+    },
+    {
+      "stage": "stage-source-load",
+      "selector_path": "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292.json",
+      "common_receipt_digest": "730db518e6e45a4551a32e53262ed784a977d38a07279794b9a72acb27cd4304",
+      "action_key": "e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292",
+      "product_digest": "fba26ceb4d4cda07c5a8219846999ceab6f9ac11a953cb7c5b2e0cc1430d7c9d",
+      "product_blob": {
+        "digest": "39eaea0eaccf34b6b6d8b16f7ab7ec9d5a6e2cc23ad18a1e56ec924a874465de",
+        "bytes": 72643599
+      },
+      "producer_fingerprint": "aba2c72f8887c77eb165400491b0b4721c66068330aaf611b09f24f9cbe53ba7",
+      "producer_profile": "pipeline",
+      "codec": "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor1+receipt-json-2"
+    },
+    {
+      "stage": "stage-statements",
+      "selector_path": "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa.json",
+      "common_receipt_digest": "2f34ff4bc8c5497a0bd6db265b8a0e601b3103f7e04e0ce0d8be406ae1a14cbc",
+      "action_key": "9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa",
+      "product_digest": "1674aaf8b92b9f229db8a9f6954a83867284a8da73ad3b0426115fd96a6cd231",
+      "product_blob": {
+        "digest": "51b59b999ad6147e58b04f9d19cefdec2f572850b41546c093a846145b1e715d",
+        "bytes": 478476
+      },
+      "producer_fingerprint": "aba2c72f8887c77eb165400491b0b4721c66068330aaf611b09f24f9cbe53ba7",
+      "producer_profile": "pipeline",
+      "codec": "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor1+receipt-json-2"
+    }
+  ],
+  "status": "selected recorded metadata; native hydration/integrity run pending"
+}

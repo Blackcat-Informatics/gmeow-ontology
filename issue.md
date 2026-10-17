@@ -1,0 +1,192 @@
+# Issue #1803: Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow
+
+State: OPEN   Repo: Blackcat-Informatics/gmeow-ontology   Forge: github
+
+## Body
+
+## Rule (agreed)
+Split by **generic mechanism versus gmeow semantics**, not strictly by RDF versus beyond-RDF:
+
+- **purrdf owns** the generic, logic-agnostic engines and decision procedures, wherever their theory is general:
+  - RDF parsing and serialization, SPARQL and its pushdown;
+  - XSD/OWL datatype value spaces;
+  - Datalog and existential-chase execution;
+  - chase termination certification (WA/JA/SWA/MSA/RJA, Datalog-first);
+  - the OWL-Direct DL hypertableau with absorption, proofs and certificates;
+  - module extraction.
+- **gmeow owns** the `logic:` language, its semantics and its compilation onto those engines:
+  - modal and contextual worlds;
+  - grounding and correspondence laws;
+  - world-scoped refutation ledgers and provenance policy;
+  - the slices and the `gmeow.gts` / `gmeow` CLI deliverables.
+- **Each overlap gets exactly one owner.** The inferior copy is deleted (greenfield), never kept as a fallback.
+- **CLAUDE.md** currently says "the native `logic:` reasoner is the single reasoning authority". It should read: the authority on `logic:` **semantics**, executed on purrdf engines.
+
+## Boundary requirements
+The split only pays if crossing it is cheap and lossless:
+1. **Proofs bound to source premises,** so gmeow ledgers can cite purrdf derivations. purrdf already has `DlProof`, `ChaseProof` and `ServiceProof`.
+2. **World-scoped input:** named graphs as worlds.
+3. **Budgets and stop signals** (`StopSignal` exists).
+4. **Shared-store or delta seams,** so production does not copy a ~690k-fact store per call. These may need adding upstream.
+5. **purrdf release cadence** that keeps up with boundary moves (gmeow pins `purrdf = "3"`).
+
+## Current overlap inventory
+| Overlap | gmeow today | purrdf home | Status |
+|---|---|---|---|
+| OWL DL class-model consistency | `logic/src/reason/refute/casesplit.rs`: partial case-split; refuses defined classes and domain/range, about 21k production obstructions (#1757, PR #1802) | `entail::owl_dl`: SHOIQ(D) hypertableau, absorption, `Reasoner::consistency` with `DlCertificate`/`DlProof` | **Next:** benchmark on the production class-model worlds, then delegate and delete `casesplit` |
+| Existential chase and termination ladder | `logic/src/physical/chase.rs` and the joint materializer (WA/JA/SWA/MSA/RJA, Datalog-first, #1796) | `purrdf-datalog` (seminaive, chase, WA only) | #1797 tracks lifting RJA/Datalog-first; the full engine move follows |
+| Datatype semantics | `reason/value.rs` named-datatype membership; `property/datatype/extent.rs`; `anyURI` added in #1802 | `purrdf-xsd` (value-space datatypes; lexical-space types are only constants today) | Upstream lexical-space datatype membership, then drop gmeow's layer |
+| Class-producer per-round re-evaluation | joint family round re-runs the class model every round | goes away with delegation | Folded into the class-model item |
+
+Further overlaps found along the way get added here, not left implicit.
+
+## Comments (7)
+
+### paudley — 2026-10-06T02:25:16Z
+
+## Benchmark: the class-model worlds on the locked purrdf 3.0.0 hypertableau
+
+This is the "benchmark on the production class-model worlds" step from the overlap table. It goes through gmeow's own `DlReasoner::consistency` seam, using the crates.io `purrdf-entail 3.0.0` that `Cargo.lock` selects. The inputs are the class worlds dumped from the producer after the corpus repairs in #1804. Each run was capped at 60 min and 16 GB.
+
+| World | Answer | Completeness | Boundaries | Time |
+|---|---|---|---|---|
+| Fixture worlds (36: one example, 35 W3C) | 34 answered (26 true, 8 false; the example clash fixture answers `false`). Checked against each case's expected verdict: 33 match W3C. That includes `webont-description-logic-035`, which the native reasoner records as `incomplete`. `webont-Thing-005` answers `consistent` where W3C says inconsistent: `owl:Thing owl:oneOf (s)` is satisfiable under Direct Semantics with a one-element domain, and only inconsistent under the RDF-Based Semantics that case is written for. That is a semantics divergence, not an engine error | 33 decided; one decided-within-boundaries | `fs2rdf-domain-range-expression-ar`: `data-range`, `unrecognized-term` | at most a few ms each |
+| W3C `webont-I5.26-006`, `-007` | **refused** at open: `Malformed: cyclic OWL class expression`. This is an OWL Full-only construct; W3C says consistent | none | none | n/a |
+| `graph/imports` | true | decided-within-boundaries | `data-range` | 24 ms |
+| `graph/logic` | none | timed out | none reported | over 60 min |
+| `graph/rl_default` | none | timed out | none reported | over 60 min |
+
+- The `graph/imports` boundary comes entirely from `rdfs:range xsd:dateTimeStamp`. purrdf 3.0.0 does not decide that datatype exactly, while `xsd:date`, `xsd:dateTime` and `xsd:integer` all decide cleanly. Filed upstream as Blackcat-Informatics/purrdf#451.
+- `graph/logic` and `rl_default` do not decide within the producer budget on the released engine.
+
+**Consequence for the delegation row:** delegating the class model to the released hypertableau cannot make the production verdict conclusive yet. Two things block it: the speed of the engine on the two large worlds, and the `dateTimeStamp` boundary. `casesplit` stays in place until a purrdf release decides these worlds. Deleting it now would replace an honest `unsupported` verdict with timeouts.
+
+
+### paudley — 2026-10-06T03:31:22Z
+
+## Follow-up: ABox summarization, and the source of every boundary
+
+**Structure.** Neither large world has any role assertion between individuals. The individuals carry only types and data:
+
+| World | Typed individuals | Distinct assertion signatures | Couplers |
+|---|---|---|---|
+| `graph/logic` | 3,047 | 50 | `oneOf` 17, `hasValue` 18, `members` 10 |
+| `graph/rl_default` | 16,887 | 698 | `sameAs` 420, `differentFrom` 2, `hasValue` 25, `oneOf` 18 |
+
+**Summarization.** I kept one representative per identical assertion signature. Any individual that a nominal, a coupler or another axiom names was kept verbatim (862 and 3,032 respectively, most of them punned class terms). Without role edges this is sound and complete for consistency. Results on the locked purrdf 3.0.0:
+
+| Summarized world | Individuals | Result |
+|---|---|---|
+| `graph/imports` | 722 → 5 | true in 2 ms; `data-range` |
+| `graph/logic` | 3,047 → 893 | true, but in **53 min**; `data-range`, `property-chain`, `unrecognized-term` |
+| `graph/rl_default` | 16,887 → 3,673 | no answer in 60 min |
+
+Summarization does not bring `graph/logic` within budget, so the cost is driven by the TBox and not by the individuals.
+
+**Each boundary, reduced to a one-axiom probe:**
+- `data-range`: `rdfs:range xsd:dateTimeStamp`, filed as Blackcat-Informatics/purrdf#451.
+- `property-chain`: any `owl:propertyChainAxiom`, of which `graph/logic` has 9. Filed as Blackcat-Informatics/purrdf#452.
+- `unrecognized-term`, from two separate sources:
+  - `rdfs:range rdf:langString`, filed as Blackcat-Informatics/purrdf#453;
+  - `rdf:type rdf:Statement` on 232 rule-atom nodes. That one is a gmeow defect: the `logic:` rule projection uses RDF 1.1 classic reification. Filed as #1805. The RDF 1.2 `rdf:reifies` triple-term form decides with no boundary on the same engine.
+
+**Where delegation stands.** Even with all four boundary causes fixed, the released engine does not decide `graph/logic` or `rl_default` within the producer budget.
+
+
+### paudley — 2026-10-16T00:13:54Z
+
+Refreshed the upstream delivery state against the current forge and official
+registry index:
+
+- PurRDF issues #451 and #453 close against
+  `866765b3e88bb6ae5108e387708d29a85c101b17`; #452 closes against
+  `eb1fd88b0283a8a53efea6374243c4e5c2ff3161`. These are no longer open upstream
+  defects as the earlier benchmark discussion recorded.
+- Both closure commits are strictly after `rust-v3.0.1`: 783 and 800 commits ahead,
+  respectively, with zero commits behind. The official crates.io Git index still
+  lists 3.0.1 as its newest non-yanked `purrdf` entry. GMEOW locks 3.0.0, and a
+  registry update to 3.0.1 would not bring in these fixes.
+- This is publication evidence, not a new performance or semantic benchmark.
+  The old large-world timings are not measurements of the current upstream
+  implementation. Exact production-world decisions, source-bound proofs,
+  world/budget/stop semantics and store seams still need actual consumer evidence
+  before delegation and deletion can qualify.
+
+No dependency, compiler profile, fallback, selected world or verification gate
+was changed during this check. The current GMEOW source qualification and normal
+optimized producer build continue; no production completion is claimed.
+
+
+### paudley — 2026-10-16T02:00:42Z
+
+The source-pinned generated-profile bootstrap has now terminated with a real production refusal. Source loading completed in 47.255s, conformance in 359.899s and native reasoning in 1,735.830s (28m55.830s). GTS composition, verification attestation and validation actions completed, but `stage-docs-render` correctly rejected the retained native result: `input=valid`, `evaluation=unsupported`, 16,575 unsupported constructs. This is a failed generation, not a conclusive reasoning certificate.
+
+The production warnings still include class-expression equivalence, nominal set-equality admission, domain/range and blocked completed reads. Their world-specific log counts are not additive and do not replace the final preservation inventory. These timings describe the current GMEOW native path on the locked 3.0.0 substrate; they are not measurements of the latest PurRDF implementation.
+
+The official crates.io Git index was refreshed through the GitHub API and still lists 3.0.1 as the latest stable non-yanked `purrdf`. The previously captured ancestry places the three closed upstream boundary fixes after that release. A version bump to 3.0.1 alone therefore does not establish those capabilities or the required production-world decisions.
+
+The declared ownership split remains in force: benchmark the actual upstream decision procedure on the exact production inputs, preserve source-bound proofs/worlds/budgets/store semantics, then delegate and remove the inferior copy when its acceptance is demonstrated. The unsupported result remains visible. No world selection, verdict guard, dependency source, compiler profile or mandatory gate was weakened.
+
+Separately, the incorporated list-traversal and empty-generative-round review findings now have local runtime repairs and 135/135 passing affected synthetic controls. Those performance repairs do not claim to resolve this native DL capability boundary. Full generation, asset parity, local/hosted qualification, final review and merge remain open.
+
+Principles 4, 7, 17 and 18.
+
+
+### paudley — 2026-10-16T22:50:27Z
+
+# Native DL evidence boundary
+
+Commit 10c6e175f removes CertifiedAnswer entirely. Every DL service returns the
+unchanged PurRDF Certified value instead of calling into_parts and copying only
+six observations. The complete certificate, work/search-shape/preparation/storage
+observations and any selected ServiceProof now cross the GMEOW boundary intact.
+There is no compatibility alias, duplicate certificate or new generic engine.
+The actual consistency/classification/realization CLI callers read answer and
+certificate directly, preserving their existing grading rules.
+
+Explicit recording and native proof-context construction use the same typed
+GMEOW refusal adapter. The boundary control checks a retained proof and full
+certificate against a separately prepared consumer context and the exact source,
+and rejects a different source. Unrecorded selection retains absence and cannot
+fabricate an empty checking context. No-model, malformed and execution categories
+and original causes remain distinct. Default execution and dependency identity
+7734b013 are unchanged. Principles 4, 6, 7 and 18 apply.
+
+All nine selected service tests passed in 0.056s. Strict producer-independent
+workspace/all-target Clippy passed with warnings denied in 7m06s. All normal
+signed commit hooks passed. Logs: dl-native-certificate-tests.log,
+dl-native-certificate-clippy.log and dl-native-certificate-commit.log. Push output
+is in dl-native-certificate-push.log.
+
+Four authenticated consumer packages, including the CLI, are excluded by the
+local producer-independent targets; their final type/runtime qualification remains
+hosted. No local optimized producer, full gate or machine probe ran. This is a
+prerequisite for the owner split in 1803 and the full 1770 plan, not completed
+class-engine delegation, a prepared native canon, zero admission blockers, an
+installed full-canon proof, or measured pipeline speedup.
+
+
+### paudley — 2026-10-16T23:52:09Z
+
+# Remove the obsolete decimal retry
+
+Actual source inspection found that LiteralValue::from_parts retries a rejected xsd:decimal through rational(), which accepts slash syntax. Consequently malformed decimal lexical forms such as 1/2 acquire the value of a valid owl:rational. This is a semantic admission defect, not a performance-only cleanup. The comment justifying the retry assumes a fixed decimal scale, but the pinned PurRDF value parser already returns its arbitrary-scale exact Decimal.
+
+Delete the retry so PurRDF remains the single decimal lexical authority. Retain rejected native literals as opaque observations; do not invent numeric membership or equality. Leave the explicitly separate OWL rational reader and unsupported lexical spaces unchanged. No dependency bump is needed: both local and remote PurRDF main are newer, but the exact pinned implementation already supplies this capability. Principles 4, 6, 7, 17 and 18 apply.
+
+Verification exercises the real NativeValues membership/equality path for malformed fractional/exponent/empty-magnitude decimal syntax, a valid scale-80 exact decimal, and the actual datatype-enumeration consumer: a malformed decimal cannot satisfy the rational half enumeration, while valid decimal half is included and quarter excluded. Run the surrounding synthetic native datatype/refutation/program controls and strict producer-independent Clippy, normal commit hooks, then publish the coherent fix in the existing proof branch and PR. Hosted corpus and full-canon qualification remain required; this does not close the whole engine-ownership issue.
+
+
+### paudley — 2026-10-16T23:59:25Z
+
+# Decimal interpretation keeps one native authority
+
+Removed the obsolete Err(xsd:decimal) retry from the shared native literal interpreter. PurRDF rejects slash syntax for decimal, but GMEOW retried the rejected text through the OWL rational reader and thereby treated 1/2 typed as decimal as a valid half. That could satisfy a rational value enumeration and establish numeric membership/equality without a valid decimal interpretation.
+
+The pinned PurRDF parser already returns arbitrary-scale exact Decimal values, so the fixed-scale justification was stale. The replacement deletes six production lines and retains the normal uninterpreted-literal path on native rejection. No alternate parser, compatibility fallback, runtime dependency or dependency bump is introduced. Exact native values, RDF term identity and unsupported observations remain distinct. The remaining GMEOW OWL rational reader is still used for its explicitly selected domain and was not removed wholesale.
+
+Regressions exercise the real NativeValues path with malformed decimal spellings, a valid scale-80 decimal, and the DatatypePlan enumeration consumer. A malformed decimal cannot become the rational half; valid decimal half remains included and quarter excluded. All 27 selected value/datatype/refutation cases passed in 0.180s; decimal-native-owner-tests.log. The initial filter missed the nested program-level modules, so their actual selection ran separately: all 19 passed in 0.625s; decimal-native-owner-program-tests.log. These are 46 passing focused cases, not a whole-canon qualification. Strict producer-independent workspace/all-target Clippy passed in 2m10; decimal-native-owner-clippy.log. All normal commit hooks and push passed for 9fa28c6fe; decimal-native-owner-commit.log and decimal-native-owner-push.log. Source is clean. Hosted new-source acceptance and updated independent review remain pending.
+
+Source/recipe assessment: the pipeline action key includes the exact producer build fingerprint, including called workspace code, so this logic change invalidates stale products without inventing a second cache or weakening authentication. Reasoning already declares recomputation. No local optimized producer, fingerprint, full gate or machine probe ran. No production speedup or full canon/engine-ownership completion is claimed. Principles 4, 6, 7, 17 and 18 apply.
+
+

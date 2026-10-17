@@ -1,0 +1,24 @@
+cargo check -p gmeow-pipeline --example recorded-class-consistency
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+error[E0308]: `if` and `else` have incompatible types
+   --> crates/pipeline/examples/recorded-class-consistency.rs:203:9
+    |
+200 |        let dataset = if operation == "default" {
+    |  ____________________-
+201 | |          edb.as_ref().clone()
+    | |          -------------------- expected because of this
+202 | |      } else {
+203 | |/         edb.project_named_graph(operation)
+204 | ||             .map_err(|error| foreign("world selection", error))?
+    | ||________________________________________________________________^ expected `&RdfDataset`, found `RdfDataset`
+205 | |      };
+    | |______- `if` and `else` have incompatible types
+    |
+help: consider borrowing here
+    |
+203 |         &edb.project_named_graph(operation)
+    |         +
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-pipeline` (example "recorded-class-consistency") due to 1 previous error
+make: *** [Makefile:1230: check-recorded-class-consistency] Error 101

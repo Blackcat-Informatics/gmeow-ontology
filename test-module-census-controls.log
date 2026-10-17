@@ -1,0 +1,32 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-validate) & test(/repo_static::tests::(cfg_predicate_test|extracted_test_ownership|feature_enabled_inline|unresolved_module_ownership|blank_pass_blanks_a_composed|hand_rolled_temp_dir_inside_cfg|seal_[abc]_|live_repo_producer_map|live_repo_has_no_gts)/)' --no-tests=fail
+    Finished `test` profile [optimized] target(s) in 0.54s
+────────────
+ Nextest run ID 10950ebf-85f4-4872-b283-c9e993e10a08 with nextest profile: ci
+    Starting 20 tests across 23 binaries (745 tests and 202 binaries skipped)
+        PASS [   0.011s] ( 1/20) gmeow-validate repo_static::tests::blank_pass_blanks_a_composed_cfg_test_module_body
+        PASS [   0.012s] ( 2/20) gmeow-validate repo_static::tests::seal_b_follows_a_renamed_free_function_import
+        PASS [   0.012s] ( 3/20) gmeow-validate repo_static::tests::seal_b_fails_on_a_writer_with_layout_caller
+        PASS [   0.012s] ( 4/20) gmeow-validate repo_static::tests::seal_a_fails_on_any_raw_production_emit_gts_caller
+        PASS [   0.012s] ( 5/20) gmeow-validate repo_static::tests::feature_enabled_inline_module_cannot_hide_a_raw_gts_writer
+        PASS [   0.013s] ( 6/20) gmeow-validate repo_static::tests::seal_c_fails_when_the_census_is_below_the_non_vacuity_floor
+        PASS [   0.013s] ( 7/20) gmeow-validate repo_static::tests::seal_b_fails_on_to_gts_pack_entries_and_from_tar_callers
+        PASS [   0.013s] ( 8/20) gmeow-validate repo_static::tests::seal_b_fails_on_a_compact_streamable_caller
+        PASS [   0.013s] ( 9/20) gmeow-validate repo_static::tests::seal_a_refuses_borrowed_unchecked_or_receipt_discarding_snapshot_exits
+        PASS [   0.015s] (10/20) gmeow-validate repo_static::tests::hand_rolled_temp_dir_inside_cfg_test_module_still_fails
+        PASS [   0.016s] (11/20) gmeow-validate repo_static::tests::cfg_predicate_test_gating_is_recognised_in_composed_forms
+        PASS [   0.020s] (12/20) gmeow-validate repo_static::tests::seal_b_follows_a_renamed_writer_import
+        PASS [   0.022s] (13/20) gmeow-validate repo_static::tests::unresolved_module_ownership_retains_the_typed_policy_failure
+        PASS [   0.022s] (14/20) gmeow-validate repo_static::tests::extracted_test_ownership_keeps_all_production_seals_armed
+        PASS [   0.023s] (15/20) gmeow-validate repo_static::tests::seal_c_fails_on_a_producer_with_no_declared_medium_source_kind
+        PASS [   0.023s] (16/20) gmeow-validate repo_static::tests::seal_c_passes_when_every_producer_is_declared
+        PASS [   0.022s] (17/20) gmeow-validate repo_static::tests::seal_c_fails_when_a_declared_medium_carries_no_source_kind
+        PASS [   0.023s] (18/20) gmeow-validate repo_static::tests::seal_c_fails_on_a_stale_call_site
+        PASS [   3.954s] (19/20) gmeow-validate repo_static::tests::live_repo_producer_map_is_total_and_exercises_all_three_source_kinds
+        PASS [   5.058s] (20/20) gmeow-validate repo_static::tests::live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate
+────────────
+     Summary [   5.065s] 20 tests run: 20 passed, 745 skipped

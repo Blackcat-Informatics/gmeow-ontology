@@ -1,0 +1,4 @@
+invalid gmeow declaration: usage: recorded-class-consistency REPO_WITH_CACHE SOURCE_RECEIPT STATEMENTS_RECEIPT COMPILE_RECEIPT WORLD_OR_list
+  caused by: invalid gmeow declaration: usage: recorded-class-consistency REPO_WITH_CACHE SOURCE_RECEIPT STATEMENTS_RECEIPT COMPILE_RECEIPT WORLD_OR_list
+
+exit=1

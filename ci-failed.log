@@ -1,0 +1,58 @@
+quality	Require all quality jobs to have succeeded	﻿2026-10-17T06:42:09.3077259Z ##[group]Run printf '%s\n' \
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3078746Z ^[[36;1mprintf '%s\n' \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3080204Z ^[[36;1m  "results: producer=$PRODUCER lint=$LINT helpers=$HELPERS" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3082200Z ^[[36;1m  "rust-archive=$RUST_ARCHIVE rust=$RUST rust-static=$RUST_STATIC" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3084270Z ^[[36;1m  "heavy=$HEAVY medium-consumer-surface=$MEDIUM_CONSUMER_SURFACE" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3086065Z ^[[36;1m  "ontology-validate=$ONTOLOGY_VALIDATE" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3087540Z ^[[36;1m  "ontology-generated=$ONTOLOGY_GENERATED" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3089494Z ^[[36;1m  "ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3091088Z ^[[36;1mfor r in \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3092047Z ^[[36;1m  "$PRODUCER" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3093064Z ^[[36;1m  "$LINT" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3094007Z ^[[36;1m  "$HELPERS" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3095043Z ^[[36;1m  "$RUST_ARCHIVE" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3096103Z ^[[36;1m  "$RUST" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3097128Z ^[[36;1m  "$RUST_STATIC" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3098184Z ^[[36;1m  "$HEAVY" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3099357Z ^[[36;1m  "$MEDIUM_CONSUMER_SURFACE" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3100604Z ^[[36;1m  "$ONTOLOGY_VALIDATE" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3101749Z ^[[36;1m  "$ONTOLOGY_GENERATED" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3102904Z ^[[36;1m  "$ONTOLOGY_REASON" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3104263Z ^[[36;1m  "$ONTOLOGY_MISC"^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3105293Z ^[[36;1mdo^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3106268Z ^[[36;1m  if [ "$r" != "success" ]; then^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3107673Z ^[[36;1m    echo "::error::a quality job did not succeed ($r)"^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3109227Z ^[[36;1m    exit 1^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3110184Z ^[[36;1m  fi^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3111070Z ^[[36;1mdone^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3112141Z ^[[36;1mecho "all required quality jobs succeeded" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3113705Z ^[[36;1m  "(single producer artifact; native reasoning +" \^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3115300Z ^[[36;1m  "reasoned-graph verify run in the reason lane)"^[[0m
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3395749Z shell: /usr/bin/bash -e {0}
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3397425Z env:
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3400432Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3403658Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3405338Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3406775Z   CARGO_ENV_CFLAGS_FORCE: true
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3407855Z   CARGO_ENV_CXXFLAGS_FORCE: true
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3409074Z   PRODUCER: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3409984Z   LINT: success
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3410856Z   HELPERS: success
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3411766Z   RUST_ARCHIVE: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3412703Z   RUST: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3413593Z   RUST_STATIC: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3414525Z   HEAVY: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3415468Z   MEDIUM_CONSUMER_SURFACE: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3416633Z   ONTOLOGY_VALIDATE: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3417715Z   ONTOLOGY_GENERATED: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3418889Z   ONTOLOGY_REASON: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3419902Z   ONTOLOGY_MISC: skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3420862Z ##[endgroup]
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3601189Z results: producer=skipped lint=success helpers=success
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3602973Z rust-archive=skipped rust=skipped rust-static=skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3604592Z heavy=skipped medium-consumer-surface=skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3605929Z ontology-validate=skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3607004Z ontology-generated=skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3608186Z ontology-reason=skipped ontology-misc=skipped
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3639052Z ##[error]a quality job did not succeed (skipped)
+quality	Require all quality jobs to have succeeded	2026-10-17T06:42:09.3655389Z ##[error]Process completed with exit code 1.

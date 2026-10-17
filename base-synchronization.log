@@ -1,0 +1,21 @@
+Auto-merging crates/logic-compile/src/frontend/tests.rs
+Auto-merging slices/grounding/logic/i18n/fr.po
+Auto-merging slices/grounding/logic/i18n/zh.po
+Auto-merging slices/grounding/logic/module.ttl
+Merge made by the 'ort' strategy.
+ crates/logic-compile/src/compat.rs                 |  11 +-
+ crates/logic-compile/src/frontend.rs               |  45 ++-------
+ .../logic-compile/src/frontend/source_admission.rs |   8 +-
+ .../src/frontend/source_admission/classes.rs       |   2 +-
+ .../src/frontend/source_admission/contracts.rs     |  14 ++-
+ crates/logic-compile/src/frontend/tests.rs         | 105 +++++++++++++------
+ crates/logic-compile/src/graphutil.rs              |  10 --
+ crates/logic-compile/src/tptp/contracts.tests.rs   | 111 +++++++++++++++++++++
+ crates/logic-compile/src/tptp/owners.tests.rs      |   7 +-
+ crates/logic/src/probabilistic.tests.rs            |  26 +++++
+ slices/grounding/logic/design/LOGIC-CONTRACT.md    |   2 +-
+ slices/grounding/logic/design/LOGIC-SEMANTICS.md   |  16 ++-
+ slices/grounding/logic/i18n/fr.po                  |   4 +-
+ slices/grounding/logic/i18n/zh.po                  |   4 +-
+ slices/grounding/logic/module.ttl                  |   2 +-
+ 15 files changed, 265 insertions(+), 102 deletions(-)

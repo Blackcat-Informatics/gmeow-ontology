@@ -1,0 +1,23 @@
+# One owner for generic decision procedures
+
+The complete contract is issue 1803 and its comments. Preserve all logic issue/PR scope. Principles 4, 7, 12, 17, 18 and 19, the repository goals/baseline, and docs/RUST-OPTIMIZATION.md govern this work. GMEOW owns language, worlds, grounding and source-bound evidence; PurRDF owns generic engines. Replaced copies must be deleted, without a fallback or weakened verdict. Stable proof PR 1836 merged at 2026-10-17T03:31:04Z; this worktree preserves that work.
+
+## Task 1: Measure actual recorded production inputs
+
+Recovered stage-source-load, stage-statements and stage-compile-logic contributions from the existing purrdf-3 action store. All declare the pipeline profile, one identical recorded build, stable-prefix persistent contributions, and the current native cache codec. The code may only deserialize their recorded StageKeyContexts and call the strict read-only native PipelineCache getter. Require exact verified receipt equality, all three unique producers and shared build identity. Never derive a current context/fingerprint, run a DAG/fixture producer, recreate a missing contribution or weaken a codec/hash check. The cache reader already checks the complete restored product. No test may call the consumer or rebuild corpus.
+
+Add one explicit Make-driven example consumer, excluded from Cargo test execution. Reuse the sole production object-EDB assembler, not a copied world reconstruction. List actual nonempty worlds first, then explicitly select the production class-model worlds. Measure native hydration, assembly, preparation, decision and proof replay separately under the unchanged bench profile and locked substrate. Retain native certificate observations, exact input action/receipt/product identities and actual checked proofs. Human certificate Debug output is report-only, never parsed into semantic authority. No process/host probes, environment inspection, caps or compiler/profile changes.
+
+Acceptance: real recorded inputs hydrate through digest and structure checks; missing/edited/wrong-profile/wrong-producer inputs hard-fail with original causes and no writes/recomputation; list reflects the real assembled carrier; selected absent worlds refuse. Native decisions retain completion/boundary/budget/stop observations and their source-checked proofs. A frozen historical input benchmark does not establish current complete-canon qualification. Record the exact source selection and report refusals honestly.
+
+## Task 2: Delegate class reasoning through the native engine
+
+Use measured source/world evidence to choose the real owner path. Preserve every original selected premise and its GMEOW grounding/translation evidence, empty-domain selection, shared-world/store semantics, per-operation budgets and stop signals. Native Certified values remain intact. Add missing generic engine seams upstream rather than implement another generic decision procedure in GMEOW. The current pinned and current upstream public constructors still require RdfDataset; with_stop and with_proofs are separate. Verify the required combined/store seam before claiming readiness. Production unknown/unsupported cannot become a false conclusive answer. Complete class-world qualification and proof controls precede deletion of the inferior casesplit engine and its per-round re-evaluation path.
+
+## Task 3: Complete the remaining overlap inventory
+
+Lift generic existential chase and the full termination ladder/Datalog-first scheduling into purrdf-datalog under the owning work. Consume it and remove the duplicate generic implementation while preserving native GMEOW world/contract/evidence policy. Complete native datatype membership in its PurRDF owner, then remove the GMEOW overlap; the already-landed decimal retry deletion is not the whole item. Maintain the live overlap inventory and clarify architecture documentation: GMEOW owns logic semantics executed on PurRDF engines. Dependency changes must use measured exact upstream identities and preserve gates. No new runtime dependency, shim or silent fallback.
+
+## Task 4: Qualify, review and integrate
+
+Use actual consumer operations and focused meaningful controls. Keep benchmark execution outside tests and source lint/corpus-purity seals intact. Run appropriate source/Clippy/helper gates and normal signed hooks, publish concrete evidence to the owning issue/PR and incorporate current-source reviews where possible. Full hosted production/consumer qualification remains required; no local optimized producer/fingerprint is authorized. Final merges use ghprsq with exact Stage evidence, preserving sibling work and the full remaining goal. Missing independent tooling must be reported, never represented as a passed audit.

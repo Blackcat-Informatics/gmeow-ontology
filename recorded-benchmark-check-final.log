@@ -1,0 +1,5 @@
+cargo check -p gmeow-pipeline --example recorded-class-consistency
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+    Finished `dev` profile [optimized] target(s) in 1.95s

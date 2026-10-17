@@ -1,0 +1,25 @@
+# Both MCP segments use saturating float conversions from their transcode paths.
+# The binaryen refusal comes FIRST: wasm-opt output is part of the shipped bytes, so a
+# wrong version invalidates this build — and checking it after the release wasm build and
+# wasm-bindgen meant paying for both before a string comparison rejected the result.
+command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen version_130"; exit 1; }
+have=$(wasm-opt --version 2>/dev/null | sed -n 's/^wasm-opt version \([0-9][0-9]*\).*/\1/p'); [ -n "$have" ] || { echo "ERROR: cannot read 'wasm-opt --version' — refusing to optimize with an unidentified binaryen"; exit 1; }; [ "$have" = "130" ] || { echo "ERROR: wasm-opt is binaryen $have but the pin is 130 (version_130) — wasm-opt output is part of the shipped bytes, so a different binaryen vendors different artifacts; install the pinned release"; exit 1; }
+# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
+# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
+cargo build -p gmeow-mcp-wasm --target wasm32-unknown-unknown --release
+PATH="$HOME/.cargo/bin:$PATH" wasm-bindgen target/wasm32-unknown-unknown/release/gmeow_mcp_wasm.wasm --out-dir crates/mcp-wasm/js/pkg --target web
+# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact).
+wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
+echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
+# The binaryen refusal comes FIRST: wasm-opt output is part of the shipped bytes, so a
+# wrong version invalidates this build — and checking it after the release wasm build and
+# wasm-bindgen meant paying for both before a string comparison rejected the result.
+command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen version_130"; exit 1; }
+have=$(wasm-opt --version 2>/dev/null | sed -n 's/^wasm-opt version \([0-9][0-9]*\).*/\1/p'); [ -n "$have" ] || { echo "ERROR: cannot read 'wasm-opt --version' — refusing to optimize with an unidentified binaryen"; exit 1; }; [ "$have" = "130" ] || { echo "ERROR: wasm-opt is binaryen $have but the pin is 130 (version_130) — wasm-opt output is part of the shipped bytes, so a different binaryen vendors different artifacts; install the pinned release"; exit 1; }
+# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
+# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
+cargo build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown --release
+PATH="$HOME/.cargo/bin:$PATH" wasm-bindgen target/wasm32-unknown-unknown/release/gmeow_mcp_core_wasm.wasm --out-dir crates/mcp-core-wasm/js/pkg --target web
+# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact).
+wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm
+echo "OK: gmeow-mcp-core-wasm npm package built (crates/mcp-core-wasm/js/, pkg/ generated)"

@@ -1,0 +1,26 @@
+✔ version() equals the published package version (1.220547ms)
+✖ wasm reasoned closure is byte-identical to the native witness attestation (35.024538ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 231.083151
+
+✖ failing tests:
+
+test at tests/witness.test.mjs:31:1
+✖ wasm reasoned closure is byte-identical to the native witness attestation (35.024538ms)
+  Error [RuntimeError]: unreachable
+      at wasm://wasm/021cf93e:wasm-function[3886]:0x78936a
+      at wasm://wasm/021cf93e:wasm-function[5296]:0x7e58f9
+      at wasm://wasm/021cf93e:wasm-function[5765]:0x7eef1a
+      at wasm://wasm/021cf93e:wasm-function[1]:0x29bf
+      at wasm://wasm/021cf93e:wasm-function[3558]:0x7115f8
+      at wasm://wasm/021cf93e:wasm-function[3918]:0x792089
+      at reason (file:///home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm/js/pkg/gmeow_reason_wasm.js:88:14)
+      at TestContext.<anonymous> (file:///home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm/js/tests/witness.test.mjs:36:23)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
