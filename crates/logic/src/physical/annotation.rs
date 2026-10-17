@@ -397,8 +397,8 @@ pub(crate) fn evaluate_annotations<A: TupleAnnotationAlgebra>(
             if !builtin_gap.is_empty() {
                 // Name each gap's `math:` class + operation rather than an anonymous
                 // "unsupported arithmetic binding".
-                return Err(annotation_err(
-                    crate::reason::builtin_gap::builtin_gap_refusal_detail(&builtin_gap),
+                return Err(crate::reason::builtin_gap::builtin_gap_refusal(
+                    &builtin_gap,
                 ));
             }
 

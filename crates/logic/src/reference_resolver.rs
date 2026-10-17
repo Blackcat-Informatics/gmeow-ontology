@@ -365,7 +365,8 @@ impl<'a> ResolveState<'a> {
             // into a ledgered builtin-gap finding naming its `math:` conformance class,
             // the operation, and the antecedent operands — never an anonymous "domain
             // error" — through the single shared helper.
-            outcome @ crate::physical::BuiltinOutcome::Error(_) => {
+            outcome @ (crate::physical::BuiltinOutcome::Error(_)
+            | crate::physical::BuiltinOutcome::NativeFailure(_)) => {
                 let bindings: Vec<(String, String)> =
                     subst.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
                 let gap = crate::physical::BuiltinGap::from_outcome(builtin, &outcome, bindings)
@@ -680,6 +681,24 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
     fn rename_builtin(b: &crate::query_ir::QBuiltin, suffix: &str) -> crate::query_ir::QBuiltin {
         use crate::query_ir::QBuiltin;
         match b {
+            QBuiltin::TermEqual {
+                left,
+                right,
+                expected,
+            } => QBuiltin::TermEqual {
+                left: left.map_variable(|name| format!("{name}{suffix}")),
+                right: right.map_variable(|name| format!("{name}{suffix}")),
+                expected: *expected,
+            },
+            QBuiltin::TermKind {
+                term,
+                predicate,
+                expected,
+            } => QBuiltin::TermKind {
+                term: term.map_variable(|name| format!("{name}{suffix}")),
+                predicate: *predicate,
+                expected: *expected,
+            },
             QBuiltin::Is {
                 target,
                 lhs,

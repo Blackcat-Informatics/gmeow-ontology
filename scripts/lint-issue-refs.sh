@@ -66,6 +66,15 @@ while IFS= read -r -d '' derived_path; do
   DERIVED_GLOBS+=(--glob "!${derived_path}" --glob "!${derived_path}/**")
   DERIVED_EXCLUDE_LIST+="${derived_path}"$'\n'
 done < <(git ls-files -z --others --ignored --exclude-standard --directory)
+
+# Local audit material is archived separately from authored source. Keep this
+# boundary narrow: tracked audit files and nested lookalike directories still
+# undergo every provenance check.
+tracked_stage_files=$(git ls-files -- .stage/)
+if [[ -d .stage && -z "$tracked_stage_files" ]]; then
+  DERIVED_GLOBS+=(--glob '!.stage/**')
+  DERIVED_EXCLUDE_LIST+='.stage'$'\n'
+fi
 export DERIVED_EXCLUDE_LIST
 
 # Hidden authored files are in scope. These globs are an early performance and

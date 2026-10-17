@@ -55,6 +55,15 @@ impl PartialEq for AtomicTerm {
 impl Eq for AtomicTerm {}
 
 impl AtomicTerm {
+    /// Rename a logical variable while retaining every typed constant unchanged.
+    #[must_use]
+    pub fn map_variable(&self, rename: impl FnOnce(&str) -> String) -> Self {
+        match self {
+            Self::Var(variable) => Self::Var(rename(variable)),
+            _ => self.clone(),
+        }
+    }
+
     /// Parse a compact resource token: an explicit variable, absolute IRI or blank label.
     /// Literal values never pass through this resource-only constructor.
     pub fn resource(value: impl Into<String>) -> Self {

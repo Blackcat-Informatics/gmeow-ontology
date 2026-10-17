@@ -48,7 +48,9 @@ use gmeow_math::{InnerProductSpace, Rational, bounded_index};
 use std::borrow::Cow;
 
 mod input;
-use input::{Binding, resolve_iri_operand, resolve_operand};
+use input::{
+    Binding, resolve_iri_operand, resolve_native_term, resolve_operand, resolve_term_kind,
+};
 
 /// Namespace root of the `math:` measure-and-form vocabulary — the owner of the
 /// Gram/vector cell predicates the bilinear builtin reads (never re-authored here).
@@ -122,7 +124,10 @@ pub(super) fn read_patterns(
 ) -> impl Iterator<Item = (&'static str, Option<&'static str>)> {
     use crate::query_ir::QBuiltin;
     let (predicates, reads_types): (&[&str], bool) = match builtin {
-        QBuiltin::Is { .. } | QBuiltin::Compare { .. } => (&[], false),
+        QBuiltin::TermEqual { .. }
+        | QBuiltin::TermKind { .. }
+        | QBuiltin::Is { .. }
+        | QBuiltin::Compare { .. } => (&[], false),
         QBuiltin::BilinearSqDist { .. } => (MATH_CELL_PREDICATES, false),
         QBuiltin::DimEqual { .. } | QBuiltin::DimProduct { .. } => {
             (MATH_DIMENSION_PREDICATES, true)
@@ -321,8 +326,11 @@ impl BuiltinError {
 /// is a *domain* fault (÷0, overflow, incommensurable dimensions — a typed
 /// `math:` conformance failure). Collapsing the two would lose the reason a program
 /// was refused, so they stay disjoint all the way to the ledger.
+/// Native operational refusals separately retain their original typed owner.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum BuiltinGapKind {
+    /// Original native operational refusal, never a boolean or expression error.
+    NativeFailure(std::sync::Arc<purrdf::sparql::EvalError>),
     /// An operand was unbound in its required mode.
     Unbound,
     /// A domain / precision / dimensional fault (a typed `math:` failure class).
@@ -337,6 +345,7 @@ impl BuiltinGapKind {
     #[must_use]
     pub(crate) fn code_suffix_or_unbound(&self) -> &'static str {
         match self {
+            BuiltinGapKind::NativeFailure(_) => "native-operational",
             BuiltinGapKind::Unbound => "unbound",
             BuiltinGapKind::Error(e) => e.code_suffix(),
         }
@@ -347,6 +356,7 @@ impl BuiltinGapKind {
     #[must_use]
     pub(crate) fn math_class(&self) -> Option<&'static str> {
         match self {
+            BuiltinGapKind::NativeFailure(_) => None,
             BuiltinGapKind::Unbound => None,
             BuiltinGapKind::Error(e) => Some(e.math_class()),
         }
@@ -384,6 +394,7 @@ impl BuiltinGap {
         bindings: Vec<(String, String)>,
     ) -> Option<Self> {
         let kind = match outcome {
+            BuiltinOutcome::NativeFailure(error) => BuiltinGapKind::NativeFailure(error.clone()),
             BuiltinOutcome::Unbound => BuiltinGapKind::Unbound,
             BuiltinOutcome::Error(e) => BuiltinGapKind::Error(*e),
             BuiltinOutcome::Filter(_) | BuiltinOutcome::Generate { .. } => return None,
@@ -402,6 +413,18 @@ impl BuiltinGap {
 #[must_use]
 pub(crate) fn render_builtin_op(builtin: &QBuiltin) -> String {
     match builtin {
+        QBuiltin::TermEqual {
+            left,
+            right,
+            expected,
+        } => format!("termEqual({}, {}) = {expected}", left.key(), right.key()),
+        QBuiltin::TermKind {
+            term,
+            predicate,
+            expected,
+        } => {
+            format!("{}({}) = {expected}", predicate.local_name(), term.key())
+        }
         QBuiltin::Is {
             target,
             lhs,
@@ -451,6 +474,8 @@ fn render_term(term: &QTerm) -> Cow<'static, str> {
 /// The outcome of moded builtin evaluation against a partial substitution.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum BuiltinOutcome {
+    /// Original native operational refusal; it refuses the whole program.
+    NativeFailure(std::sync::Arc<purrdf::sparql::EvalError>),
     /// A filter verdict: `true` keeps the current solution, `false` prunes it.
     Filter(bool),
     /// A generator result: bind `var` to the computed `value`.
@@ -1257,6 +1282,35 @@ fn eval_inputs<'a>(
     resolver: &dyn CellResolver,
 ) -> BuiltinOutcome {
     match builtin {
+        QBuiltin::TermEqual {
+            left,
+            right,
+            expected,
+        } => {
+            let (Some(left), Some(right)) = (
+                resolve_native_term(left, lookup),
+                resolve_native_term(right, lookup),
+            ) else {
+                return BuiltinOutcome::Unbound;
+            };
+            match purrdf::sparql::equal_values(
+                &left,
+                &right,
+                purrdf::sparql::LanguageStringEquality::Core,
+                &purrdf::sparql::WorkspaceCapability::resident(),
+            ) {
+                Ok(Some(equal)) => BuiltinOutcome::Filter(equal == *expected),
+                Ok(None) => BuiltinOutcome::Filter(false),
+                Err(error) => BuiltinOutcome::NativeFailure(std::sync::Arc::new(error)),
+            }
+        }
+        QBuiltin::TermKind {
+            term,
+            predicate,
+            expected,
+        } => resolve_term_kind(term, *predicate, lookup).map_or(BuiltinOutcome::Unbound, |holds| {
+            BuiltinOutcome::Filter(holds == *expected)
+        }),
         QBuiltin::Is {
             target,
             lhs,

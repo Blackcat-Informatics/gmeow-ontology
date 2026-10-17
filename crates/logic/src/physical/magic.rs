@@ -212,6 +212,25 @@ fn prefix_builtin_term(t: &QTerm) -> QTerm {
 /// surface changes.
 fn builtin_of(b: &QBuiltin) -> QBuiltin {
     match b {
+        QBuiltin::TermEqual {
+            left,
+            right,
+            expected,
+        } => QBuiltin::TermEqual {
+            left: left.map_variable(|name| format!("?{}", name.strip_prefix('?').unwrap_or(name))),
+            right: right
+                .map_variable(|name| format!("?{}", name.strip_prefix('?').unwrap_or(name))),
+            expected: *expected,
+        },
+        QBuiltin::TermKind {
+            term,
+            predicate,
+            expected,
+        } => QBuiltin::TermKind {
+            term: term.map_variable(|name| format!("?{}", name.strip_prefix('?').unwrap_or(name))),
+            predicate: *predicate,
+            expected: *expected,
+        },
         QBuiltin::Is {
             target,
             lhs,
@@ -510,6 +529,8 @@ fn negated_body_flounders(body: &[EvalAtom], builtins: &[QBuiltin]) -> bool {
             // gate builtins (`DimEqual`/`DimProduct`, never authored on the query
             // surface this backward-magic analysis covers) never generate a value.
             QBuiltin::Is { .. }
+            | QBuiltin::TermKind { .. }
+            | QBuiltin::TermEqual { .. }
             | QBuiltin::Compare { .. }
             | QBuiltin::BilinearSqDist { .. }
             | QBuiltin::DimEqual { .. }

@@ -901,6 +901,18 @@ fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
     use crate::query_ir::QBuiltin;
     let term = atom_str_term;
     match b {
+        QBuiltin::TermEqual {
+            left,
+            right,
+            expected,
+        } => format!("termEqual({}, {}) = {expected}", left.key(), right.key()),
+        QBuiltin::TermKind {
+            term,
+            predicate,
+            expected,
+        } => {
+            format!("{}({}) = {expected}", predicate.local_name(), term.key())
+        }
         QBuiltin::Is {
             target,
             lhs,

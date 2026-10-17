@@ -186,6 +186,26 @@ fn rust_block_scan_stops_at_each_comment_boundary() {
     assert_lint(repo.path(), 0);
 }
 
+#[test]
+fn local_audit_material_is_separate_but_tracked_audit_prose_is_checked() {
+    let repo = FixtureRepo::new();
+    let path = ".stage/local/plan.md";
+    repo.write(path, "The audit records issue 42.\n");
+    assert_lint(repo.path(), 0);
+
+    git(repo.path(), &["add", "--", path]);
+    assert_lint(repo.path(), 1);
+    repo.commit_index_as_origin();
+    assert_lint(repo.path(), 1);
+}
+
+#[test]
+fn nested_audit_lookalikes_remain_authored_content() {
+    let repo = FixtureRepo::new();
+    repo.write("docs/.stage/plan.md", "The delivery follows issue 42.\n");
+    assert_lint(repo.path(), 1);
+}
+
 /// Structural exclusions: reproducible build products, scratch state, and
 /// secrets, all of which are named because they are properties of *this*
 /// repository's layout rather than of whatever tools a developer has installed.

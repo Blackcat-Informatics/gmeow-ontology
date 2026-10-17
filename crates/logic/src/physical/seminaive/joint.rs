@@ -746,8 +746,8 @@ impl JointProgram {
                     inference_cut |= round.inference_cut;
                     blocked.extend(round.blocked);
                     if !runtime.gaps.is_empty() {
-                        return Err(seminaive_err(
-                            crate::reason::builtin_gap::builtin_gap_refusal_detail(&runtime.gaps),
+                        return Err(crate::reason::builtin_gap::builtin_gap_refusal(
+                            &runtime.gaps,
                         ));
                     }
                     rounds.insert(world.clone(), round.candidates);
