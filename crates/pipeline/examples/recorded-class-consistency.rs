@@ -34,12 +34,14 @@ struct Payload {
     payload: StageReceipt,
 }
 
+/// Report an invalid recorded-input contract or consumer invocation.
 fn invalid(message: impl Into<String>) -> Diag {
     Diag::of_kind(InvalidDeclaration {
         message: message.into(),
     })
 }
 
+/// Retain the original typed failure through the shared diagnostic cause chain.
 fn foreign(operation: &'static str, cause: impl std::error::Error + Send + Sync + 'static) -> Diag {
     Diag::of_kind(RecordedInput {
         operation,
@@ -47,6 +49,7 @@ fn foreign(operation: &'static str, cause: impl std::error::Error + Send + Sync 
     })
 }
 
+/// Write one JSON observation, retaining encoding and output failures.
 fn emit(value: &Value) -> Result<()> {
     use std::io::Write;
     let mut stdout = std::io::stdout().lock();
@@ -56,6 +59,7 @@ fn emit(value: &Value) -> Result<()> {
         .map_err(|error| foreign("report writing", error))
 }
 
+/// Read an expected payload; the native cache authenticates the actual receipt.
 fn selected_receipt(path: &Path) -> Result<StageReceipt> {
     let bytes = std::fs::read(path).map_err(|error| {
         foreign("receipt reading", error).with_focus(path.display().to_string())
@@ -74,6 +78,7 @@ fn selected_receipt(path: &Path) -> Result<StageReceipt> {
     Ok(receipt)
 }
 
+/// Preflight a coherent selection before admitting its three products read-only.
 fn load_inputs(cache_root: &Path, paths: &[PathBuf]) -> Result<BTreeMap<String, StageProduct>> {
     let selections = paths
         .iter()
@@ -171,6 +176,7 @@ fn load_inputs(cache_root: &Path, paths: &[PathBuf]) -> Result<BTreeMap<String, 
     Ok(inputs)
 }
 
+/// Run the selected observation without executing a producer or repairing inputs.
 fn run() -> Result<()> {
     let arguments: Vec<_> = std::env::args_os().skip(1).collect();
     if arguments.len() != 5 || arguments.iter().any(|argument| argument.is_empty()) {
@@ -207,7 +213,15 @@ fn run() -> Result<()> {
             );
             *worlds.entry(graph).or_default() += 1;
         }
-        return emit(&json!({"operation": "list", "world_assertions": worlds}));
+        let unselectable: BTreeMap<_, _> = worlds
+            .iter()
+            .filter(|(_, count)| **count == 0)
+            .map(|(world, _)| (world, "no-base-assertions"))
+            .collect();
+        return emit(&json!({
+            "operation": "list", "world_assertions": worlds,
+            "unselectable_worlds": unselectable,
+        }));
     }
     let started = Instant::now();
     let graph = (operation != "default").then(|| purrdf::RdfTerm::iri(operation));
@@ -219,7 +233,7 @@ fn run() -> Result<()> {
     let selected_ms = started.elapsed().as_millis();
     if dataset.quads().next().is_none() {
         return Err(invalid(format!(
-            "selected recorded world {operation} is empty or absent"
+            "selected recorded world {operation} has no base assertions"
         )));
     }
     let assertions = dataset.quads().count();
@@ -260,6 +274,7 @@ fn run() -> Result<()> {
     }))
 }
 
+/// Return a failing exit status for any input, native-service or output refusal.
 fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
