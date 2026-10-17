@@ -22860,3 +22860,87 @@ msgstr "此契约约束操作性输入准入；获准的普查另行评估重复
 msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
 msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
 msgstr "台账任务若指定缺失的源实现，则在报告其副本数前被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service refusal"
+msgstr "直接语义服务拒绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal to produce a selected OWL Direct-Semantics service answer, retaining whether the ontology has no model, the input is malformed, or execution failed."
+msgstr "无法生成所选 OWL 直接语义服务答案的操作性拒绝，保留本体无模型、输入格式错误和执行失败之间的区别。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a selected direct-semantics service cannot produce its requested answer."
+msgstr "在所选直接语义服务无法生成请求的答案时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret every refusal as malformed input or as an unknown consistency verdict."
+msgstr "不要将所有拒绝都解释为输入格式错误或一致性判定未知。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the typed refusal disposition and original upstream cause with the shared diagnostic."
+msgstr "在共享诊断中保留带类型的拒绝类别及原始上游原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The class describes availability of the requested service product; a no-model disposition remains a decided semantic observation."
+msgstr "该类描述所请求服务结果的可用性；无模型类别仍是已确定的语义观察。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classification of an ontology with no model is refused with the no-model disposition."
+msgstr "对无模型本体的分类请求以无模型类别被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service boundary"
+msgstr "直接语义服务边界"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary that preserves typed upstream refusals from the OWL Direct-Semantics service through the shared diagnostic substrate."
+msgstr "通过共享诊断基础保留 OWL 直接语义服务上游带类型拒绝的操作边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary that raises direct semantics service refusals."
+msgstr "用于标识发出直接语义服务拒绝的边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a refusal with an empty classification or a fabricated entailment answer."
+msgstr "不要用空分类或虚构的蕴涵答案替代拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the original cause as no-model, malformed or execution, and keep that cause available for inspection."
+msgstr "将原始原因归为无模型、格式错误或执行失败，并保留该原因以供检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boundary governs service result publication and makes no whole-canon consistency claim."
+msgstr "该边界管理服务结果的发布，不对整个规范语料的一致性作出断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed role chain retains the original native hierarchy error in the diagnostic."
+msgstr "格式错误的角色链在诊断中保留原始的原生层级错误。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contextual atomic application"
+msgstr "语境化原子应用"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The first-order atomic application family indexed by a context and a reified relation. For an original relation of arity n, where n is at least one, its n unchanged ordered arguments follow the context and relation coordinates. It does not evaluate formula or statement values, and does not identify a contextual application with an ordinary application of a different arity."
+msgstr "由语境和具体化关系索引的一阶原子应用族。对于原先元数为 n 且 n 至少为一的关系，其 n 个保持不变的有序实参位于语境坐标和关系坐标之后。该应用族不求值公式或陈述值，也不把语境化应用等同于不同元数的普通应用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain context when lowering an atomic formula or a modal or temporal body."
+msgstr "用于在把原子公式、模态主体或时态主体转换为较低层表示时保留语境。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not prepend a world argument to the original relation, identify different contexts, or interpret arbitrary formula values as truth."
+msgstr "不要在原关系的实参之前插入世界实参，不要等同不同语境，也不要把任意公式值解释为真值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit contextualApplication(context, relation, argument0, ...), retaining argument order and native term identities; use typed accessibility relations between worlds."
+msgstr "发出 contextualApplication(context, relation, argument0, ...)，保留实参顺序和原生项标识；在世界之间使用有类型的可达关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an atomic indexing family, not a truth evaluator or a merge of world, standpoint, module and provenance coordinates."
+msgstr "这是原子索引族，不是真值求值器，也不合并世界、立场、模块和出处坐标。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."
+msgstr "ex:w 中 ex:p 对 ex:a 的应用为 contextualApplication(ex:w, ex:p, ex:a)，与 ex:p(ex:w, ex:a) 不同。"

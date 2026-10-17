@@ -612,9 +612,9 @@ fn sentences_without_meta_carrier_fails_closed() {
                </sentences></gmeow-xcl>\n";
     let err = parse_xcl_str(xcl, Some("urn:test:sentencesonly".to_owned())).unwrap_err();
     assert!(
-        err.0.contains("no <gmeow-rdf-meta> carrier"),
+        err.message().contains("no <gmeow-rdf-meta> carrier"),
         "expected a fail-closed error for sentences-only input, got: {}",
-        err.0
+        err.message()
     );
 }
 
@@ -630,9 +630,9 @@ fn empty_meta_carrier_with_sentences_fails_closed() {
                </sentences><gmeow-rdf-meta></gmeow-rdf-meta></gmeow-xcl>\n";
     let err = parse_xcl_str(xcl, Some("urn:test:emptymeta".to_owned())).unwrap_err();
     assert!(
-        err.0.contains("empty <gmeow-rdf-meta> carrier"),
+        err.message().contains("empty <gmeow-rdf-meta> carrier"),
         "expected a fail-closed error for empty-meta-carrier input, got: {}",
-        err.0
+        err.message()
     );
 }
 
@@ -642,11 +642,13 @@ fn malformed_xml_hard_fails() {
     // must hard-fail with a bounded error rather than silently return an empty program.
     let err = parse_xcl_str("<gmeow-xcl><sentences>", Some("urn:test:bad".to_owned()))
         .expect_err("malformed XML must be rejected");
-    assert!(
-        err.0.contains("not well-formed XML"),
-        "expected a 'not well-formed XML' error, got: {}",
-        err.0
+    assert_eq!(
+        gmeow_errors::code::code_str(err.code()),
+        "logic-compile.source-parse"
     );
+    let failure = err.downcast_ref::<crate::error::SourceParse>().unwrap();
+    assert_eq!(failure.format, "XCL XML");
+    assert!(!failure.cause.to_string().is_empty());
     // A wrong root element is also rejected.
     let err2 = parse_xcl_str(
         "<?xml version=\"1.0\"?><wrong-root/>",
@@ -654,9 +656,9 @@ fn malformed_xml_hard_fails() {
     )
     .expect_err("wrong root must be rejected");
     assert!(
-        err2.0.contains("root element must be"),
+        err2.message().contains("root element must be"),
         "expected a root-element error, got: {}",
-        err2.0
+        err2.message()
     );
 }
 

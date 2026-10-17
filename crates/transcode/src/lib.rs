@@ -502,11 +502,8 @@ fn transcode_to_projection(
     })?;
 
     // Parse with the logic front-end.
-    let (program, _diagnostics) = parse_logic_str(&turtle_str, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::CodecError {
-            message: format!("logic front-end parse: {e}"),
-        })
-    })?;
+    let (program, _diagnostics) = parse_logic_str(&turtle_str, None)
+        .map_err(|error| error.with_context("logic front-end parse for projection"))?;
 
     // Run the appropriate projection back-end. Each lossy back-end interns its per-run drops
     // into this local loss store; the realized-loss count is read back from it via

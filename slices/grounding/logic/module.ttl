@@ -23038,6 +23038,18 @@ logic:queryContext
 logic:ContextualEvaluationRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:queryContext ; logic:allValuesFrom logic:AttributedContext ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContextualEvaluationRequest ; logic:closureKey "https://blackcatinformatics.ca/logic/queryContext" ; logic:closureValue logic:ClosedWorldClosure ] .
 
+logic:contextualApplication
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contextual atomic application"@x-gmeow-english ;
+    skos:definition "The first-order atomic application family indexed by a context and a reified relation. For an original relation of arity n, where n is at least one, its n unchanged ordered arguments follow the context and relation coordinates. It does not evaluate formula or statement values, and does not identify a contextual application with an ordinary application of a different arity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain context when lowering an atomic formula or a modal or temporal body."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not prepend a world argument to the original relation, identify different contexts, or interpret arbitrary formula values as truth."@x-gmeow-english ;
+    gmeow:howToUse "Emit contextualApplication(context, relation, argument0, ...), retaining argument order and native term identities; use typed accessibility relations between worlds."@x-gmeow-english ;
+    skos:scopeNote "This is an atomic indexing family, not a truth evaluator or a merge of world, standpoint, module and provenance coordinates."@x-gmeow-english ;
+    skos:example "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:inContext
     a logic:ObjectProperty ;
     gmeow:graphBoxRole gmeow:boxCBox ;
@@ -23809,6 +23821,32 @@ logic:finite-journal-infinite-trace
     gmeow:howToUse "Retain the exact prefix and open or finalized boundary with the result; do not extrapolate from those positions to an infinite continuation."@x-gmeow-english ;
     skos:scopeNote "FirstOrder names the expressibility class of the relational standard translation. It does not certify finite observations as evidence for an infinite temporal domain."@x-gmeow-english ;
     skos:example "ex:observation logic:journalBoundary logic:OpenJournalBoundary ."@x-gmeow-english .
+
+logic:DirectSemanticsServiceRefusal
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:label "direct semantics service refusal"@x-gmeow-english ;
+    skos:definition "An operational refusal to produce a selected OWL Direct-Semantics service answer, retaining whether the ontology has no model, the input is malformed, or execution failed."@x-gmeow-english ;
+    gmeow:useWhen "Use when a selected direct-semantics service cannot produce its requested answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not interpret every refusal as malformed input or as an unknown consistency verdict."@x-gmeow-english ;
+    gmeow:howToUse "Retain the typed refusal disposition and original upstream cause with the shared diagnostic."@x-gmeow-english ;
+    skos:scopeNote "The class describes availability of the requested service product; a no-model disposition remains a decided semantic observation."@x-gmeow-english ;
+    skos:example "Classification of an ontology with no model is refused with the no-model disposition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DirectSemanticsServiceBoundary
+    a logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:DirectSemanticsServiceRefusal ;
+    rdfs:label "direct semantics service boundary"@x-gmeow-english ;
+    skos:definition "The operational boundary that preserves typed upstream refusals from the OWL Direct-Semantics service through the shared diagnostic substrate."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the boundary that raises direct semantics service refusals."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace a refusal with an empty classification or a fabricated entailment answer."@x-gmeow-english ;
+    gmeow:howToUse "Classify the original cause as no-model, malformed or execution, and keep that cause available for inspection."@x-gmeow-english ;
+    skos:scopeNote "This boundary governs service result publication and makes no whole-canon consistency claim."@x-gmeow-english ;
+    skos:example "A malformed role chain retains the original native hierarchy error in the diagnostic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 logic:NativeSourceCoverageRefusal
     a logic:Class ;

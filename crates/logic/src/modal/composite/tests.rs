@@ -83,14 +83,34 @@ impl Frame for Model {
 }
 
 fn atom(world: Term) -> Formula {
-    Formula::Atom {
-        relation: Term::Iri("urn:predicate".into()),
-        args: vec![
-            world,
+    Formula::contextual_atom(
+        world,
+        Term::Iri("urn:predicate".into()),
+        vec![
             Term::Iri("urn:subject".into()),
             Term::Iri("urn:object".into()),
         ],
-    }
+    )
+    .unwrap()
+}
+
+/// Positional arguments do not authorize a contextual evaluation instruction.
+#[test]
+fn an_ordinary_ternary_relation_cannot_impersonate_a_contextual_binary_atom() {
+    let ordinary = Formula::atom(
+        Term::Iri("urn:predicate".into()),
+        vec![
+            Term::Iri("urn:w0".into()),
+            Term::Iri("urn:subject".into()),
+            Term::Iri("urn:object".into()),
+        ],
+    )
+    .unwrap();
+    assert!(matches!(
+        Program::lower(&ordinary, "urn:w0"),
+        Err(AdmissionError::OutsideFragment(_))
+    ));
+    assert!(Program::lower(&atom(Term::Iri("urn:w0".into())), "urn:w0").is_ok());
 }
 
 fn necessity(source: Term, variable: &str, axis: usize, body: Formula) -> Formula {

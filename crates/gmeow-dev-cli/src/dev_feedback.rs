@@ -524,8 +524,9 @@ fn logic_compile_surface(root: &Path) -> gmeow_errors::Result<Report> {
 /// A parse or compile hard error is returned as `Err` for the caller to surface
 /// as a single `logic-compile.failed` finding.
 fn compile_logic_report(source_ttl: &str) -> gmeow_errors::Result<Report> {
-    let (program, diagnostics) = gmeow_logic_compile::frontend::parse_logic_str(source_ttl, None)
-        .map_err(|e| error::feedback(e.0))?;
+    let (program, diagnostics) =
+        gmeow_logic_compile::frontend::parse_logic_str(source_ttl, None)
+            .map_err(|error| error.with_context("compile logic feedback source"))?;
     // Discharge every authored correspondence's lens law by EXECUTION so the five
     // correspondence gates inside `compile_program` read a real per-correspondence verdict
     // instead of hitting their missing-verdict hard-fail on a correspondence-bearing source.

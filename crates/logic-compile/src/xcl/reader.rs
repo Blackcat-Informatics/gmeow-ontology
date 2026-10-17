@@ -14,7 +14,7 @@
 
 use gmeow_errors::Diag;
 
-use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
+use crate::frontend::{Diagnostic, Severity, parse_logic_dataset};
 use crate::ir::LogicProgram;
 
 use super::{RDF_META_ELEMENT, ROOT_ELEMENT};
@@ -29,28 +29,34 @@ const SENTENCES_ELEMENT: &str = "sentences";
 /// Fail-soft: a foreign/unexpected sentence element is recorded as an `XCL_MALFORMED_SENTENCE`
 /// warning (and does not affect the reconstructed IR). A document that is not well-formed XML,
 /// or that carries idiomatic sentences with no `<gmeow-rdf-meta>` carrier to reconstruct from,
-/// raises [`LogicParseError`] — a construct is never silently dropped.
+/// raises [`Diag`] — a construct is never silently dropped.
 pub fn parse_xcl_str(
     xcl: &str,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     if xcl.trim().is_empty() {
-        return Err(LogicParseError(
-            "XCL source is empty — nothing to parse.".to_owned(),
-        ));
+        return Err(Diag::of_kind(crate::error::Xcl {
+            detail: "XCL source is empty — nothing to parse.".to_owned(),
+        }));
     }
 
     // A real XML parse enforces well-formedness. A parse failure means we can reconstruct
     // nothing (the meta carrier lives in the same document), so fail closed.
-    let doc = purrdf_lex::xml::Document::parse(xcl)
-        .map_err(|e| LogicParseError(format!("XCL is not well-formed XML: {e}")))?;
+    let doc = purrdf_lex::xml::Document::parse(xcl).map_err(|e| {
+        Diag::of_kind(crate::error::SourceParse {
+            format: "XCL XML",
+            cause: std::sync::Arc::new(e),
+        })
+    })?;
 
     let root = doc.root_element();
     if !root.has_tag_name(ROOT_ELEMENT) {
-        return Err(LogicParseError(format!(
-            "XCL root element must be <{ROOT_ELEMENT}>, found <{}>",
-            root.tag_name().name()
-        )));
+        return Err(Diag::of_kind(crate::error::Xcl {
+            detail: format!(
+                "XCL root element must be <{ROOT_ELEMENT}>, found <{}>",
+                root.tag_name().name()
+            ),
+        }));
     }
 
     let mut diagnostics: Vec<Diagnostic> = Vec::new();
@@ -77,10 +83,12 @@ pub fn parse_xcl_str(
             .collect(),
         None => {
             if !sentence_children.is_empty() {
-                return Err(LogicParseError(format!(
-                    "XCL has idiomatic <{SENTENCES_ELEMENT}> but no <{RDF_META_ELEMENT}> carrier \
+                return Err(Diag::of_kind(crate::error::Xcl {
+                    detail: format!(
+                        "XCL has idiomatic <{SENTENCES_ELEMENT}> but no <{RDF_META_ELEMENT}> carrier \
                      element; reconstruction from the sentence view alone is lossy and unsupported."
-                )));
+                    ),
+                }));
             }
             String::new()
         }
@@ -101,11 +109,13 @@ pub fn parse_xcl_str(
     // Reconstruct the WHOLE program from the meta carrier's N-Triples.
     if meta_text.trim().is_empty() {
         if !sentence_children.is_empty() {
-            return Err(LogicParseError(format!(
-                "XCL has idiomatic <{SENTENCES_ELEMENT}> but an empty <{RDF_META_ELEMENT}> \
+            return Err(Diag::of_kind(crate::error::Xcl {
+                detail: format!(
+                    "XCL has idiomatic <{SENTENCES_ELEMENT}> but an empty <{RDF_META_ELEMENT}> \
                  carrier element; reconstruction from the sentence view alone is lossy and \
                  unsupported."
-            )));
+                ),
+            }));
         }
         // No meta payload: a legitimately empty program (there were no sentences either).
         return Ok((
@@ -115,7 +125,10 @@ pub fn parse_xcl_str(
     }
 
     let ds = parse_dataset(meta_text.as_bytes(), "application/n-triples", None).map_err(|e| {
-        LogicParseError(format!("XCL meta carrier: N-Triples re-parse failed: {e}"))
+        Diag::of_kind(crate::error::SourceParse {
+            format: "XCL RDF carrier",
+            cause: std::sync::Arc::new(e),
+        })
     })?;
     let (program, meta_diags) = parse_logic_dataset(ds.as_ref(), source_iri)?;
     diagnostics.extend(meta_diags);

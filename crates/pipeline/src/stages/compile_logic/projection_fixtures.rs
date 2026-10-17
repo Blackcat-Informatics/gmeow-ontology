@@ -49,8 +49,7 @@ pub(super) fn record(
                 let bytes = std::fs::read(path).map_err(gmeow_errors::Diag::from)?;
                 let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
                     .map_err(gmeow_errors::Diag::from)?;
-                let (program, diagnostics) =
-                    parse_logic_dataset(&dataset, None).map_err(gmeow_errors::Diag::from)?;
+                let (program, diagnostics) = parse_logic_dataset(&dataset, None)?;
                 Ok(ProjectionObservation {
                     diagnostics,
                     projections: super::observed(project(&program)),

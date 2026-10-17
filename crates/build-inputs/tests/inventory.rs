@@ -976,6 +976,29 @@ fn standard_output_macros_retain_nested_input_ownership() {
     }
 }
 
+/// Diagnostic syntax retains nested file bytes while unknown capabilities fail closed.
+#[test]
+fn diagnostic_macros_retain_nested_inputs_and_refuse_unowned_capabilities() {
+    for name in ["define_diag_kind", "impl_diag_kind"] {
+        let root = fixture(&format!(
+            "gmeow_errors::{name}! {{ Payload; code = \"fixture.failed\"; grade = include_str!(\"grade.txt\"); }}",
+        ));
+        write(root.path(), "crate/src/grade.txt", "first");
+        let before = inventory(root.path());
+        assert!(before.files.contains_key("crate/src/grade.txt"));
+        write(root.path(), "crate/src/grade.txt", "second");
+        assert_ne!(before, inventory(root.path()));
+        write(
+            root.path(),
+            "crate/src/lib.rs",
+            &format!(
+                "gmeow_errors::{name}! {{ Payload; code = \"fixture.failed\"; grade = unknown_input!(); }}",
+            ),
+        );
+        assert!(InputInventory::collect(root.path(), &selection()).is_err());
+    }
+}
+
 #[test]
 fn test_reexport_wiring_is_hashed_but_external_helper_bodies_are_not() {
     let root = fixture("#[cfg(test)] mod support; #[cfg(test)] pub(crate) use support::helper;");

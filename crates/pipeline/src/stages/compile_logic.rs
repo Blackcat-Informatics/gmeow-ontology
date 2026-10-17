@@ -478,8 +478,9 @@ impl Stage for CompileLogicStage {
         // program would violate no-optionality.
         CachePolicy::Persistent
     }
+    /// Invalidate prior products that lack original complete-source admission evidence.
     fn impl_version(&self) -> &str {
-        "compile-logic.v41-native-rule-quotations"
+        "compile-logic.v43-contextual-application"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
@@ -499,6 +500,7 @@ impl Stage for CompileLogicStage {
         files.extend(projection_fixtures::input_files(root));
         Ok(files)
     }
+    /// Keep original-source admission separate from the augmented projection program.
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let catalog = crate::stages::parse_sources::catalog(&input)?;
         let theory = catalog.compiled_logic()?;
@@ -585,7 +587,7 @@ impl Stage for CompileLogicStage {
             &path_shapes_source,
             Some(PATH_SHAPES_EXAMPLE_PATH.to_string()),
         )
-        .map_err(|e| stage_err(format!("parse {PATH_SHAPES_EXAMPLE_PATH}: {}", e.0)))?;
+        .map_err(|error| error.with_context(format!("parse {PATH_SHAPES_EXAMPLE_PATH}")))?;
         diagnostics.extend(path_shapes_diagnostics);
         let mut path_shapes = program.path_shapes.clone();
         path_shapes.extend(path_shapes_program.path_shapes);
@@ -609,7 +611,7 @@ impl Stage for CompileLogicStage {
             &reasoning_programs_source,
             Some(REASONING_PROGRAMS_EXAMPLE_PATH.to_string()),
         )
-        .map_err(|e| stage_err(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}: {}", e.0)))?;
+        .map_err(|error| error.with_context(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}")))?;
         diagnostics.extend(reasoning_programs_diagnostics);
         if reasoning_programs_program.reasoning_programs.is_empty() {
             return Err(stage_err(format!(
@@ -719,6 +721,13 @@ impl Stage for CompileLogicStage {
         arts.report_header.claimed_uplift_count = 0;
 
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        // Use the original compiled catalog, not the OPT/example-augmented
+        // projection program. Retain refusals as evidence, not a weaker theory.
+        artifacts.insert(
+            gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL.into(),
+            gmeow_logic_compile::tptp::CanonAdmissionPublication::from_compiled_source(&theory)
+                .to_bytes()?,
+        );
         artifacts.insert(
             CORRESPONDENCE_PLANS_PATH.into(),
             physical_plans.report_json()?,

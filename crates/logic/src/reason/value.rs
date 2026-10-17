@@ -209,12 +209,6 @@ impl LiteralValue {
                         Some(value) => LiteralMeaning::Rational(value),
                         None => LiteralMeaning::Native(value),
                     },
-                    // Preserve the native exact-rational domain beyond the fixed
-                    // decimal scale of XsdValue; integer subtype failures never
-                    // pass through this wider decimal admission.
-                    Err(_) if datatype == XSD_DECIMAL => rational(lexical)
-                        .map(LiteralMeaning::Rational)
-                        .unwrap_or_else(opaque),
                     _ => opaque(),
                 }
             }

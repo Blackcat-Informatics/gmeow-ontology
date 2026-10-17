@@ -314,7 +314,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
                 };
                 let relation =
                     Term::iri(relation_iri.clone()).map_err(|e| formula_err(node, e.message()))?;
-                let mut args = parse_term_carriers(store, node, "argument", &mut Vec::new())?;
+                let args = parse_term_carriers(store, node, "argument", &mut Vec::new())?;
                 if args.is_empty() {
                     return Err(formula_err(
                         node,
@@ -323,10 +323,13 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
                         ),
                     ));
                 }
-                if let Translation::AtWorld { world, .. } = context {
-                    args.insert(0, world.clone());
+                match context {
+                    Translation::Plain => Formula::atom(relation, args),
+                    Translation::AtWorld { world, .. } => {
+                        Formula::contextual_atom(world.clone(), relation, args)
+                    }
                 }
-                Formula::atom(relation, args).map_err(|e| formula_err(node, e.message()))
+                .map_err(|e| formula_err(node, e.message()))
             }
             "not" => {
                 let child = one_child_subject(store, node, "not")?;

@@ -83,6 +83,7 @@ define_diag_kind! {
     code = "logic.dl-service";
     grade = logic_grade!();
     message = "purrdf entail service refused: {}", cause;
+    failure_class = "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal";
     source = failure => Some(failure.cause.as_ref());
 }
 

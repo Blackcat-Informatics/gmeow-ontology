@@ -187,19 +187,38 @@ fn has_axiom(
 #[test]
 fn parse_empty_graph_raises() {
     let err = parse_logic_str(PREFIXES, None).unwrap_err();
-    assert!(err.0.contains("empty"), "got: {}", err.0);
+    assert!(err.message().contains("empty"), "got: {}", err.message());
+    assert!(err.is::<crate::error::Frontend>());
+    assert_eq!(
+        gmeow_errors::code::code_str(err.code()),
+        "logic-compile.frontend"
+    );
 }
 
 #[test]
 fn parse_nonexistent_file_raises() {
-    let err = parse_logic_path(Path::new("/no/such/file-xyz.ttl"), None).unwrap_err();
-    assert!(err.0.contains("does not exist"));
+    let path = Path::new("/no/such/file-xyz.ttl");
+    let err = parse_logic_path(path, None).unwrap_err();
+    assert_eq!(
+        gmeow_errors::code::code_str(err.code()),
+        "logic-compile.source-read"
+    );
+    let failure = err.downcast_ref::<crate::error::SourceRead>().unwrap();
+    assert_eq!(failure.path, path);
+    assert_eq!(failure.cause.kind(), std::io::ErrorKind::NotFound);
 }
 
 #[test]
 fn parse_invalid_turtle_raises() {
     let err = parse_logic_str("this is not turtle <<<", None).unwrap_err();
-    assert!(err.0.contains("Failed to parse"));
+    assert!(err.message().contains("Failed to parse"));
+    assert_eq!(
+        gmeow_errors::code::code_str(err.code()),
+        "logic-compile.source-parse"
+    );
+    let failure = err.downcast_ref::<crate::error::SourceParse>().unwrap();
+    assert_eq!(failure.format, "Turtle");
+    assert!(!failure.cause.to_string().is_empty());
 }
 
 // ── Trivially-Horn top-level formula routing (F2) ─────────────────────────────
@@ -4941,14 +4960,18 @@ fn nested_modal_threads_inner_world() {
     let Formula::Atom { relation, args } = &parts[1] else {
         panic!("inner head is an atom, got {:?}", parts[1]);
     };
-    assert_eq!(*relation, Term::Iri(format!("{ex}P")));
-    assert_eq!(args.len(), 2);
+    assert_eq!(
+        *relation,
+        Term::Iri(crate::ir::CONTEXTUAL_APPLICATION_IRI.into())
+    );
+    assert_eq!(args.len(), 3);
     assert_eq!(
         args[0],
         Term::Var("__w1".to_owned()),
         "the head is relativized to the innermost world __w1"
     );
-    assert_eq!(args[1], Term::Iri(format!("{ex}a")));
+    assert_eq!(args[1], Term::Iri(format!("{ex}P")));
+    assert_eq!(args[2], Term::Iri(format!("{ex}a")));
 }
 
 #[test]

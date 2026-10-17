@@ -41,6 +41,9 @@ use error::{
 // finding rather than silently skipping.
 pub use error::{IndexOutOfRange, MATH_DIAG_CODES, register_all};
 
+/// Shared RDF emission primitives for the math producers and their domain ingesters.
+pub use gmeow_math_lift::sink::{Sink as RdfSink, f64_decimal_lexical};
+
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 

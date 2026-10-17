@@ -54,6 +54,22 @@ a direct property and an expanded facet bundle. A closure-map key likewise
 rejects different closure values. Repeated identical values are idempotent;
 set-valued facets retain all selected values.
 
+### Complete-source admission observations
+
+The source compiler publishes the complete original catalog's classical admission
+as `pipeline/canon-proof-admission.json`. The snapshot carries those exact bytes
+in `reason/canon-proof-admission.json` inside its reasoning archive. This inventory
+selects every recorded document, formula root, rule and semantic owner, retaining
+blocked and malformed dispositions alongside admitted units. Worked-example
+augmentation of the projection program is not the input to this observation.
+
+The bundle reader decodes this inventory without parsing source RDF. The source,
+program, profile and selection identities describe the producer's observation;
+decoding does not restore the live compiler authority needed to project a proof.
+An admission observation is not a prepared native proof base and does not establish
+that a blocked canon can execute. Missing or incompatible observations fail
+explicitly, rather than yielding a shorter theory.
+
 ## The facets
 
 A `logic:ReasoningContract` makes a selection on each facet below. Each facet draws from an open
