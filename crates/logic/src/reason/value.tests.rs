@@ -4,6 +4,55 @@
 use super::*;
 
 #[test]
+fn native_xsd_admission_does_not_repair_source_whitespace() {
+    use purrdf::xsd::datatype::{XSD_BOOLEAN, XSD_DATE_TIME, XSD_INTEGER};
+    let mut values = NativeValues::default();
+    for (lexical, datatype) in [
+        ("1", XSD_DECIMAL),
+        ("1", XSD_INTEGER),
+        ("true", XSD_BOOLEAN),
+        ("2026-10-17T12:00:00Z", XSD_DATE_TIME),
+    ] {
+        let valid = TermValue::typed_literal(lexical, datatype);
+        assert_eq!(values.literal(&valid).named_datatype(datatype), Some(true));
+        for boundary in [" ", "\t", "\r\n", "\u{a0}", "\u{2003}", "\u{202f}"] {
+            let source =
+                TermValue::typed_literal(format!("{boundary}{lexical}{boundary}"), datatype);
+            let parsed = values.literal(&source);
+            assert!(matches!(parsed.meaning, LiteralMeaning::Opaque(_)));
+            assert_eq!(parsed.named_datatype(datatype), None);
+            assert_eq!(values.same_value(&source, &valid), None);
+        }
+    }
+}
+
+#[test]
+fn native_string_admission_preserves_valid_bytes_and_rejects_non_xml_characters() {
+    use purrdf::xsd::datatype::XSD_STRING;
+    let mut values = NativeValues::default();
+    let text = " \té\r\n 文\u{a0} ";
+    let valid = TermValue::typed_literal(text, XSD_STRING);
+    let parsed = values.literal(&valid);
+    assert!(
+        matches!(&parsed.meaning, LiteralMeaning::Native(XsdValue::String(value)) if value == text)
+    );
+    assert_eq!(parsed.named_datatype(XSD_STRING), Some(true));
+    for lexical in ["invalid\0", "\u{fffe}", "\u{ffff}"] {
+        let invalid = values.literal(&TermValue::typed_literal(lexical, XSD_STRING));
+        assert!(matches!(invalid.meaning, LiteralMeaning::Opaque(_)));
+        assert_eq!(invalid.named_datatype(XSD_STRING), None);
+        assert_eq!(invalid.facet_length(), None);
+    }
+    for lexical in ["\u{1}", "\u{b}", "\u{c}", "\u{1f}"] {
+        let valid = values.literal(&TermValue::typed_literal(lexical, XSD_STRING));
+        assert!(
+            matches!(&valid.meaning, LiteralMeaning::Native(XsdValue::String(value)) if value == lexical)
+        );
+        assert_eq!(valid.named_datatype(XSD_STRING), Some(true));
+    }
+}
+
+#[test]
 fn native_any_uri_values_preserve_xml_whitespace_and_reject_invalid_characters() {
     use purrdf::xsd::datatype::{XSD_ANY_URI, XSD_STRING};
     let mut values = NativeValues::default();

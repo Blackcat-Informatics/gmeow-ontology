@@ -162,20 +162,12 @@ impl LiteralValue {
                 direction,
             }
         } else {
-            let lexical = if matches!(
-                datatype,
-                purrdf::xsd::datatype::XSD_STRING | purrdf::xsd::datatype::XSD_ANY_URI
-            ) {
-                lexical_form
-            } else {
-                lexical_form.trim()
-            };
             if matches!(datatype, OWL_RATIONAL | OWL_REAL) {
-                rational(lexical)
+                rational(lexical_form)
                     .map(LiteralMeaning::Rational)
                     .unwrap_or_else(opaque)
             } else {
-                match purrdf::xsd::parse_by_iri(lexical, datatype) {
+                match purrdf::xsd::parse_by_iri(lexical_form, datatype) {
                     Ok(Some(value)) => match Rational::from_xsd(&value) {
                         Some(value) => LiteralMeaning::Rational(value),
                         None => LiteralMeaning::Native(value),
