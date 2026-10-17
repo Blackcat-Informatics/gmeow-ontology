@@ -3,6 +3,7 @@
 
 use super::*;
 use purrdf::RdfDatasetBuilder;
+use purrdf::entail::{ClaimSubject, DlCompleteness, Question};
 
 /// Reserved vocabulary the fixtures below assert over.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -46,11 +47,14 @@ fn consistency_true_on_a_satisfiable_abox() {
     let dataset = consistent_dataset();
     let reasoner = DlReasoner::new(&dataset).expect("reverse-map the consistent ontology");
     let certified = reasoner.consistency();
-    assert_eq!(certified.answer, Verdict::True);
+    assert_eq!(*certified.answer(), Verdict::True);
     // The whole ontology was read and every search finished: an exact answer.
-    assert!(certified.is_decided());
-    assert!(certified.is_exact());
-    assert!(certified.boundaries.is_empty());
+    assert!(certified.certificate().completeness().is_decided());
+    assert_eq!(
+        certified.certificate().completeness(),
+        DlCompleteness::Decided
+    );
+    assert!(certified.certificate().boundaries().is_empty());
 }
 
 #[test]
@@ -60,8 +64,8 @@ fn consistency_false_on_a_disjointness_violation() {
     let certified = reasoner.consistency();
     // Detected, not errored: consistency is the one service that reports an
     // unsatisfiable ontology as a verdict rather than as a refusal.
-    assert_eq!(certified.answer, Verdict::False);
-    assert!(certified.is_decided());
+    assert_eq!(*certified.answer(), Verdict::False);
+    assert!(certified.certificate().completeness().is_decided());
 }
 
 #[test]
@@ -74,10 +78,14 @@ fn entailed_subsumption_is_certified_true() {
     };
     // `tom a Animal` is not asserted but IS entailed through `Cat ⊑ Animal`.
     let certified = reasoner.entails(&axiom).expect("consistent ontology");
-    assert_eq!(certified.answer, Verdict::True);
-    assert!(certified.is_exact());
+    assert_eq!(*certified.answer(), Verdict::True);
+    assert_eq!(
+        certified.certificate().completeness(),
+        DlCompleteness::Decided
+    );
 }
 
+/// No-model refusal retains its semantic category, upstream cause and canonical failure class.
 #[test]
 fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
     let dataset = inconsistent_dataset();
@@ -91,8 +99,13 @@ fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
     assert_eq!(failure.kind, DlServiceFailureKind::NoModel);
     assert!(matches!(failure.cause.as_ref(), EntailError::Unsatisfiable));
     assert!(error.message().contains("unsatisfiable"), "{error}");
+    assert_eq!(
+        error.inner().failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal")
+    );
 }
 
+/// Recording owns the original hierarchy error after the input dataset is released.
 #[test]
 fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped() {
     let dataset = purrdf::parse_dataset(
@@ -122,6 +135,10 @@ fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped
     let recorded = gmeow_errors::DiagLedger::new()
         .record(error, gmeow_errors::StageId::new("native-dl-consumer"));
     assert_eq!(recorded.root.code, "logic.dl-service");
+    assert_eq!(
+        recorded.root.failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal")
+    );
     assert!(
         recorded
             .root
@@ -159,9 +176,11 @@ fn a_narrowed_step_cap_reports_unknown_rather_than_a_fabricated_verdict() {
     let decided = DlReasoner::new(&dataset)
         .expect("reverse-map the consistent ontology")
         .consistency();
-    assert_eq!(decided.answer, Verdict::True);
-    assert!(decided.is_exact());
-    assert_eq!(decided.completeness, DlCompleteness::Decided);
+    assert_eq!(*decided.answer(), Verdict::True);
+    assert_eq!(
+        decided.certificate().completeness(),
+        DlCompleteness::Decided
+    );
 
     // Now narrow the per-decision step cap to one round — the one ceiling this
     // repository can move, and only downward. One round decides nothing, so the
@@ -177,13 +196,110 @@ fn a_narrowed_step_cap_reports_unknown_rather_than_a_fabricated_verdict() {
     // certificate reports `BudgetExhausted`, and both completeness predicates read
     // `false` — the answer is not presented as if it were decided or exact.
     assert_eq!(
-        answer.answer,
+        *answer.answer(),
         Verdict::Unknown,
         "an exhausted search is Unknown, never True/False as if decided"
     );
-    assert_ne!(answer.answer, Verdict::True);
-    assert_ne!(answer.answer, Verdict::False);
-    assert_eq!(answer.completeness, DlCompleteness::BudgetExhausted);
-    assert!(!answer.is_decided());
-    assert!(!answer.is_exact());
+    assert_ne!(*answer.answer(), Verdict::True);
+    assert_ne!(*answer.answer(), Verdict::False);
+    assert_eq!(
+        answer.certificate().completeness(),
+        DlCompleteness::BudgetExhausted
+    );
+    assert!(!answer.certificate().completeness().is_decided());
+}
+
+/// The GMEOW adapter retains the complete native proof/certificate and their source binding.
+#[test]
+fn recorded_service_result_survives_the_gmeow_boundary_without_evidence_loss() {
+    let dataset = consistent_dataset();
+    let result = DlReasoner::with_proofs(&dataset)
+        .expect("recording service")
+        .consistency();
+    let proof = result
+        .proof()
+        .expect("selected recording cannot lose its proof");
+    proof
+        .covers(&[ClaimSubject::Consistent])
+        .expect("reported answer is covered");
+    let context = DlReasoner::with_proofs(&dataset)
+        .expect("consumer-owned source preparation")
+        .proof_context()
+        .expect("exact checking context");
+    let replay = proof
+        .verify(
+            &dataset,
+            &Question::Consistency,
+            Some(result.certificate()),
+            &context,
+        )
+        .expect("the retained proof and complete certificate check together");
+    assert_eq!(replay.runs(), replay.replayed());
+    assert!(result.certificate().work_budget() > 0);
+    assert!(
+        proof
+            .verify(
+                &inconsistent_dataset(),
+                &Question::Consistency,
+                Some(result.certificate()),
+                &context
+            )
+            .is_err(),
+        "a GMEOW result cannot be rebound to different source premises"
+    );
+}
+
+/// Explicitly unrecorded service selection cannot manufacture a checking context.
+#[test]
+fn unrecorded_service_keeps_absence_distinct_from_an_empty_proof() {
+    let dataset = consistent_dataset();
+    let reasoner = DlReasoner::new(&dataset).unwrap();
+    assert!(reasoner.consistency().proof().is_none());
+    let error = match reasoner.proof_context() {
+        Ok(_) => panic!("unrecorded services cannot create a proof context"),
+        Err(error) => error,
+    };
+    let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
+    assert_eq!(failure.kind, DlServiceFailureKind::Execution);
+    assert!(matches!(
+        failure.cause.as_ref(),
+        EntailError::ProofsNotRecorded
+    ));
+}
+
+/// A consumer prepares fresh question terms without executing another service decision.
+#[test]
+fn native_proof_checker_prepares_the_selected_question_through_the_gmeow_adapter() {
+    let dataset = consistent_dataset();
+    let class = TermValue::iri("urn:proof-check:fresh-class");
+    let question = Question::ClassSatisfiability {
+        class: class.clone(),
+    };
+    let result = DlReasoner::with_proofs(&dataset)
+        .unwrap()
+        .class_satisfiability(&class)
+        .unwrap();
+    let proof = result.proof().expect("selected proof recording");
+    proof
+        .covers(&[ClaimSubject::ClassSatisfiable { class }])
+        .unwrap();
+    let mut checker = DlReasoner::with_proofs(&dataset).unwrap();
+    checker
+        .prepare(&question)
+        .expect("prepare the exact consumer question");
+    let context = checker.proof_context().unwrap();
+    proof
+        .verify(&dataset, &question, Some(result.certificate()), &context)
+        .expect("the GMEOW boundary preserves a checkable question-bound proof");
+    assert!(
+        proof
+            .verify(
+                &dataset,
+                &Question::Consistency,
+                Some(result.certificate()),
+                &context
+            )
+            .is_err(),
+        "a different question is not the selected proof task"
+    );
 }

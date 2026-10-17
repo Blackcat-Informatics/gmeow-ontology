@@ -108,12 +108,14 @@ impl std::error::Error for PreservedDiagnostic {
 }
 
 impl std::fmt::Display for ProverFailed {
+    /// Render the prover failure summary without flattening its retained evidence.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.detail)
     }
 }
 
 impl std::error::Error for ProverFailed {
+    /// Expose the preserved upstream diagnostic, when this failure has one.
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         self.cause
             .as_deref()
@@ -121,25 +123,14 @@ impl std::error::Error for ProverFailed {
     }
 }
 
-impl ProverFailed {
-    pub(crate) const CODE: &'static str = "gmeow-cli.prove.failed";
-
-    pub(crate) fn register() -> Code {
-        gmeow_errors::register_code(Self::CODE)
-    }
-}
-
-impl gmeow_errors::DiagKind for ProverFailed {
-    fn code(&self) -> Code {
-        Self::register()
-    }
-    fn grade(&self) -> Grade {
-        Grade::new(
-            Severity::Error,
-            FindingCategory::IncompleteCheck,
-            Standpoint::Binding,
-        )
-    }
+gmeow_errors::impl_diag_kind! {
+    ProverFailed;
+    code = "gmeow-cli.prove.failed";
+    grade = Grade::new(
+        Severity::Error,
+        FindingCategory::IncompleteCheck,
+        Standpoint::Binding,
+    );
 }
 
 /// The complete shippable-CLI diagnostic-code catalog, in registration order —
@@ -186,6 +177,7 @@ mod tests {
     use gmeow_errors::intern_code;
     use std::collections::HashSet;
 
+    /// Registration remains idempotent and distinct for the complete CLI catalog.
     #[test]
     fn every_gmeow_cli_code_interns_with_no_collision() {
         let handles = register_all();
@@ -200,13 +192,15 @@ mod tests {
                 "gmeow-cli code `{code}` did not intern after register_all()"
             );
         }
-        let distinct_strings: HashSet<&&str> = GMEOW_CLI_DIAG_CODES.iter().collect();
+        let distinct_strings: HashSet<&&str, purrdf_hash::fixed::FixedState> =
+            GMEOW_CLI_DIAG_CODES.iter().collect();
         assert_eq!(
             distinct_strings.len(),
             GMEOW_CLI_DIAG_CODES.len(),
             "duplicate gmeow-cli diagnostic code string detected"
         );
-        let distinct_handles: HashSet<Code> = handles.iter().copied().collect();
+        let distinct_handles: HashSet<Code, purrdf_hash::fixed::FixedState> =
+            handles.iter().copied().collect();
         assert_eq!(distinct_handles.len(), handles.len());
     }
 }

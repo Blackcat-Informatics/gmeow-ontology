@@ -3,12 +3,13 @@
 
 use std::collections::BTreeSet;
 
+use gmeow_errors::Diag;
 use purrdf::{CompositeDatasetView, ViewLimits, parse_dataset};
 
 use super::{FofProjectionStatus, project_tptp_fof};
 use crate::frontend::{
-    DocumentSelection, LogicParseError, PreparedLogicSource, SourceAdmission, SourceBase,
-    SourceBaseOrigin, SourceDocument, SourceSelection,
+    DocumentSelection, PreparedLogicSource, SourceAdmission, SourceBase, SourceBaseOrigin,
+    SourceDocument, SourceSelection,
 };
 
 #[path = "cardinality.tests.rs"]
@@ -20,6 +21,13 @@ mod owner_tests;
 #[path = "contracts.tests.rs"]
 mod contract_tests;
 
+#[path = "canon_admission.tests.rs"]
+mod canon_admission_tests;
+
+#[path = "contexts.tests.rs"]
+mod context_tests;
+
+/// Compile only the supplied synthetic RDF source, with no corpus or repository inputs.
 fn compile(source: &str) -> crate::frontend::CompiledTheory {
     let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).expect("valid RDF 1.2");
     PreparedLogicSource::new(&dataset)
@@ -28,6 +36,7 @@ fn compile(source: &str) -> crate::frontend::CompiledTheory {
         .expect("compiled source")
 }
 
+/// Compose synthetic documents while retaining original-to-canonical term receipts.
 fn compile_documents(
     sources: &[(&str, &str, Option<SourceBase>)],
 ) -> crate::frontend::CompiledTheory {
@@ -66,10 +75,12 @@ fn compile_documents(
                     .as_ref()
                     .term_id_by_value(&value)
                     .ok_or_else(|| {
-                        LogicParseError(format!(
-                            "source term in {:?} has no materialized binding",
-                            receipt.path
-                        ))
+                        Diag::of_kind(crate::error::Frontend {
+                            detail: format!(
+                                "source term in {:?} has no materialized binding",
+                                receipt.path
+                            ),
+                        })
                     })
             })
             .expect("document receipt");
@@ -79,6 +90,7 @@ fn compile_documents(
         .expect("compiled source selection")
 }
 
+/// Exercise complete-root admission and the real FOF writer over one tiny source.
 fn project(source: &str) -> (SourceAdmission, super::FofProjection) {
     let theory = compile(source);
     let selection = SourceSelection::all_classical_roots(&theory);

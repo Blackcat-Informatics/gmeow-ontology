@@ -627,9 +627,8 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
         Ok(p) => p,
         Err(e) => {
             return fail(format!(
-                "certify: cannot compile {}: {}",
-                input_path.display(),
-                e.0
+                "certify: cannot compile {}: {e:#}",
+                input_path.display()
             ));
         }
     };

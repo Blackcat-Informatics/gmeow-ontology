@@ -1,62 +1,28 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Thin, HONEST wrappers over the purrdf `entail` Description-Logic services.
+//! GMEOW diagnostic adaptation of PurRDF's native DL services.
 //!
-//! The reasoning core takes its OWL 2 Direct-Semantics answers from the purrdf
-//! `entail` crate: consistency, class satisfiability, classification, realization,
-//! instance retrieval and axiom entailment through [`purrdf::entail::Reasoner`],
-//! plus the two services that need no tableau at all — profile certification
-//! ([`purrdf::entail::profile()`]) and syntactic-locality module extraction
-//! ([`purrdf::entail::extract_module`]) — and the query-directed combined and
-//! certain-answer surfaces.
+//! Every service returns the upstream [`Certified`] value unchanged: its answer,
+//! complete [`purrdf::entail::DlCertificate`] and recorded
+//! [`purrdf::entail::ServiceProof`] remain together. GMEOW owns no copied
+//! certificate or decision engine at this boundary.
 //!
-//! These wrappers add exactly two things and remove nothing:
+//! Refusals become [`crate::error::DlService`] diagnostics without flattening
+//! original causes. No-model, malformed-input and execution failures stay distinct.
+//! Consistency reports no-model as [`Verdict::False`]; exhausted or stopped work
+//! remains [`Verdict::Unknown`] with the original native certificate.
 //!
-//! * they classify OWL-DL service refusals as [`crate::error::DlService`] so no-model,
-//!   malformed-input and execution failures remain distinct on the shared
-//!   [`gmeow_errors`] substrate, retaining their native causes; and
-//! * they carry every [`purrdf::entail::Certified`] answer WITH its
-//!   [`purrdf::entail::DlCertificate`] completeness verdict and construct boundaries
-//!   as one value, [`CertifiedAnswer`](crate::reasoner_services::CertifiedAnswer), so a service's answer is never read apart
-//!   from how complete it is.
-//!
-//! Nothing is flattened: a [`Verdict::Unknown`](purrdf::entail::Verdict::Unknown) stays `Unknown`, a boundary residue
-//! stays on the answer, and an unsatisfiable ontology stays the typed error every
-//! service but [`DlReasoner::consistency`](crate::reasoner_services::DlReasoner::consistency) returns for it. The dataset type is
-//! purrdf's own [`RdfDataset`](purrdf::RdfDataset), which is already the reasoning core's carrier — no
-//! conversion sits between the caller and the service.
-//!
-//! # Evaluation ceilings are external, and exhaustion is never a fabricated answer
-//!
-//! Every service here runs under a purrdf ceiling this repository cannot raise: the
-//! datalog engine's `pub const` budgets (`MAX_JOIN_STEPS`, `MAX_STORED_FACTS`,
-//! `MAX_TERM_ARENA_BYTES`) for the chase-backed surfaces ([`certain_answers`](crate::reasoner_services::certain_answers),
-//! [`materialize_combined`](crate::reasoner_services::materialize_combined)), and the size-derived per-decision hypertableau step cap
-//! for the tableau surfaces on [`DlReasoner`](crate::reasoner_services::DlReasoner). Raising any of them is an
-//! upstream-purrdf change, never an in-repo tune. What this module guarantees is that
-//! exhaustion is HONEST, taking exactly one of two shapes and never a third:
-//!
-//! * a service that answers through a [`Certified`](purrdf::entail::Certified) value
-//!   carries the exhaustion in its certificate — an exhausted hypertableau run reports
-//!   [`DlCompleteness::BudgetExhausted`](purrdf::entail::DlCompleteness::BudgetExhausted), its [`CertifiedAnswer::is_decided`](crate::reasoner_services::CertifiedAnswer::is_decided) and
-//!   [`CertifiedAnswer::is_exact`](crate::reasoner_services::CertifiedAnswer::is_exact) both read `false`, and a boolean service returns
-//!   [`Verdict::Unknown`](purrdf::entail::Verdict::Unknown) rather than guessing `True`/`False`; and
-//! * a service that returns a bare [`Result`] maps every [`EntailError`](purrdf::entail::EntailError) — including
-//!   the budget refusals — onto a hard [`Diag`](gmeow_errors::Diag) through
-//!   `map_entail_err`, so an exhausted chase becomes a refusal, never a partial
-//!   answer passed off as complete.
-//!
-//! Neither shape truncates silently. The per-decision step cap is the one ceiling that
-//! CAN be narrowed in-repo — only downward, through [`DlReasoner::with_step_cap`](crate::reasoner_services::DlReasoner::with_step_cap) —
-//! which exists so the exhaustion path is reachable and testable rather than a branch
-//! nothing exercises.
+//! Construction explicitly selects recording through [`DlReasoner::with_proofs`]
+//! or unrecorded services through [`DlReasoner::new`]. An absent proof is never
+//! fabricated as an empty trace. All upstream limits and observations remain on
+//! the native result; the step-cap constructor only narrows the native ceiling.
 
 use gmeow_errors::Result;
 use purrdf::entail::{
-    Boundary, CertainAnswers, ClassHierarchy, CombinedMaterialization, DlAxiom, DlCertificate,
-    DlCompleteness, EntailError, ImportMap, ModuleExtraction, ModuleMethod, ProfileCertificate,
-    QTriple, Realization, Reasoner, Regime, Verdict,
+    CertainAnswers, Certified, ClassHierarchy, CombinedMaterialization, DlAxiom, EntailError,
+    ImportMap, ModuleExtraction, ModuleMethod, ProfileCertificate, QTriple, Question, Realization,
+    Reasoner, Regime, Verdict,
 };
 use purrdf::{RdfDataset, TermValue};
 
@@ -106,74 +72,8 @@ fn map_entail_err(error: EntailError) -> gmeow_errors::Diag {
     })
 }
 
-/// A DL reasoning answer together with the completeness verdict and construct
-/// boundaries the purrdf reasoner measured while producing it.
-///
-/// Neither the answer's own three-valued content (a [`Verdict::Unknown`]) nor the
-/// certificate's residue is discarded: [`completeness`](Self::completeness) says how
-/// complete the answer is w.r.t. the DL-clause set that was actually decided, and
-/// [`boundaries`](Self::boundaries) names every construct the reverse mapping could
-/// not turn into a DL clause. A caller that wants "the Direct-Semantics answer for
-/// the ontology as supplied" checks [`is_exact`](Self::is_exact); a caller that only
-/// needs "the search finished" checks [`is_decided`](Self::is_decided).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CertifiedAnswer<T> {
-    /// The service's answer, carried exactly as the service produced it.
-    pub answer: T,
-    /// How complete the answer is w.r.t. the DL-clause set the hypertableau decided.
-    pub completeness: DlCompleteness,
-    /// The constructs the reverse mapping could not turn into DL clauses, in
-    /// [`Construct`](purrdf::entail::Construct) declaration order.
-    pub boundaries: Vec<Boundary>,
-    /// Derivation rounds consumed, summed over every hypertableau run the service
-    /// made — a measurement in the round cap's own units.
-    pub steps: u64,
-    /// The per-decision round cap every run of this service ran under.
-    pub budget: u64,
-    /// How many hypertableau runs the service made.
-    pub decisions: u64,
-}
-
-impl<T> CertifiedAnswer<T> {
-    /// Pair `answer` with the completeness and boundaries the certificate measured.
-    fn from_parts(answer: T, certificate: &DlCertificate) -> Self {
-        Self {
-            answer,
-            completeness: certificate.completeness(),
-            boundaries: certificate.boundaries().to_vec(),
-            steps: certificate.steps(),
-            budget: certificate.budget(),
-            decisions: certificate.decisions(),
-        }
-    }
-
-    /// Split a purrdf [`Certified`](purrdf::entail::Certified) answer into its answer
-    /// and its measured certificate, keeping both.
-    fn from_certified(certified: purrdf::entail::Certified<T>) -> Self {
-        let (answer, certificate) = certified.into_parts();
-        Self::from_parts(answer, &certificate)
-    }
-
-    /// Whether every hypertableau run the service made decided its question — i.e.
-    /// no run reached its step cap. `True` for both [`DlCompleteness::Decided`] and
-    /// [`DlCompleteness::DecidedWithinBoundaries`]; the second still carries
-    /// [`boundaries`](Self::boundaries), so a caller wanting the answer for the WHOLE
-    /// ontology must check [`is_exact`](Self::is_exact) as well.
-    #[must_use]
-    pub fn is_decided(&self) -> bool {
-        self.completeness.is_decided()
-    }
-
-    /// Whether the answer is the OWL 2 Direct-Semantics answer for the ontology
-    /// exactly as supplied: every run finished AND no construct was left out.
-    #[must_use]
-    pub fn is_exact(&self) -> bool {
-        matches!(self.completeness, DlCompleteness::Decided)
-    }
-}
-
 /// The OWL 2 Direct-Semantics reasoning services over one [`RdfDataset`], each
-/// answering a [`CertifiedAnswer`].
+/// answering with the unchanged native [`Certified`] value.
 ///
 /// Owns a purrdf [`Reasoner`], whose three question-taking services
 /// ([`class_satisfiability`](Self::class_satisfiability),
@@ -200,6 +100,33 @@ impl DlReasoner {
         Reasoner::new(dataset)
             .map(|inner| Self { inner })
             .map_err(map_entail_err)
+    }
+
+    /// Record native proofs while retaining the complete upstream certificate.
+    ///
+    /// # Errors
+    /// Original source, execution or canonicalization refusals, as typed diagnostics.
+    pub fn with_proofs(dataset: &RdfDataset) -> Result<Self> {
+        Reasoner::with_proofs(dataset)
+            .map(|inner| Self { inner })
+            .map_err(map_entail_err)
+    }
+
+    /// Prepare the exact checking question without performing another solver decision.
+    ///
+    /// # Errors
+    /// Original question preparation refusals, retained as typed diagnostics.
+    pub fn prepare(&mut self, question: &Question) -> Result<()> {
+        self.inner.prepare(question).map_err(map_entail_err)
+    }
+
+    /// Consume this session into the native context for checking its selected question.
+    /// Call [`Self::prepare`] with that question before consuming the session.
+    ///
+    /// # Errors
+    /// A typed execution refusal if the session did not record proofs.
+    pub fn proof_context(self) -> Result<purrdf::entail::DlProofContext> {
+        self.inner.proof_context().map_err(map_entail_err)
     }
 
     /// Open the reasoning services over `dataset` with the per-decision step cap
@@ -243,11 +170,11 @@ impl DlReasoner {
     /// The one service that never errors on an unsatisfiable ontology, because it is
     /// the service that DETECTS one: it answers [`Verdict::False`] where every other
     /// service returns the unsatisfiable error. An exhausted search answers
-    /// [`Verdict::Unknown`], which the [`CertifiedAnswer`] carries rather than
+    /// [`Verdict::Unknown`], which the [`Certified`] carries rather than
     /// collapsing to `False`.
     #[must_use]
-    pub fn consistency(&self) -> CertifiedAnswer<Verdict> {
-        CertifiedAnswer::from_certified(self.inner.consistency())
+    pub fn consistency(&self) -> Certified<Verdict> {
+        self.inner.consistency()
     }
 
     /// Whether `class` can have an instance in some model of the ontology.
@@ -257,10 +184,9 @@ impl DlReasoner {
     /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model at all — every class is then vacuously unsatisfiable and the answer
     /// would say nothing.
-    pub fn class_satisfiability(&mut self, class: &TermValue) -> Result<CertifiedAnswer<Verdict>> {
+    pub fn class_satisfiability(&mut self, class: &TermValue) -> Result<Certified<Verdict>> {
         self.inner
             .class_satisfiability(class)
-            .map(CertifiedAnswer::from_certified)
             .map_err(map_entail_err)
     }
 
@@ -270,11 +196,8 @@ impl DlReasoner {
     ///
     /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model.
-    pub fn classify(&self) -> Result<CertifiedAnswer<ClassHierarchy>> {
-        self.inner
-            .classify()
-            .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+    pub fn classify(&self) -> Result<Certified<ClassHierarchy>> {
+        self.inner.classify().map_err(map_entail_err)
     }
 
     /// The entailed types of the ontology's named individuals, and the most specific
@@ -284,11 +207,8 @@ impl DlReasoner {
     ///
     /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model.
-    pub fn realize(&self) -> Result<CertifiedAnswer<Realization>> {
-        self.inner
-            .realize()
-            .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+    pub fn realize(&self) -> Result<Certified<Realization>> {
+        self.inner.realize().map_err(map_entail_err)
     }
 
     /// The named individuals entailed to be instances of `class`, sorted.
@@ -297,11 +217,8 @@ impl DlReasoner {
     ///
     /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model.
-    pub fn instances(&mut self, class: &TermValue) -> Result<CertifiedAnswer<Vec<TermValue>>> {
-        self.inner
-            .instances(class)
-            .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+    pub fn instances(&mut self, class: &TermValue) -> Result<Certified<Vec<TermValue>>> {
+        self.inner.instances(class).map_err(map_entail_err)
     }
 
     /// Whether the ontology entails `axiom`, decided by refutation.
@@ -311,11 +228,8 @@ impl DlReasoner {
     /// [`crate::error::DlService`] with [`DlServiceFailureKind::NoModel`] if the ontology has
     /// no model, in which case every axiom is entailed and the answer would be
     /// worthless.
-    pub fn entails(&mut self, axiom: &DlAxiom) -> Result<CertifiedAnswer<Verdict>> {
-        self.inner
-            .entails(axiom)
-            .map(CertifiedAnswer::from_certified)
-            .map_err(map_entail_err)
+    pub fn entails(&mut self, axiom: &DlAxiom) -> Result<Certified<Verdict>> {
+        self.inner.entails(axiom).map_err(map_entail_err)
     }
 }
 

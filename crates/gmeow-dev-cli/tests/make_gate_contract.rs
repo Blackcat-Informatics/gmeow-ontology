@@ -77,6 +77,44 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
         .collect()
 }
 
+/// Helper failures block quality without waiting for corpus or workspace compilation.
+#[test]
+fn helper_ownership_gate_is_independent_and_required_by_quality() {
+    let ci = ci_workflow();
+    let helpers = ci
+        .split_once("\n  helpers:\n")
+        .unwrap()
+        .1
+        .split("\n  lint:\n")
+        .next()
+        .unwrap();
+    assert!(
+        job_needs(helpers).is_empty(),
+        "source checks have no generated inputs"
+    );
+    assert!(helpers.contains("run: make helpers-hygiene"));
+    assert!(!helpers.contains("generated-tree-") && !helpers.contains("make rust-"));
+    assert_eq!(ci.matches("run: make helpers-hygiene").count(), 1);
+    assert!(
+        workflow_step(helpers, "Fetch locked workspace dependencies")
+            .contains("run: cargo fetch --locked")
+    );
+    assert!(
+        helpers
+            .find("name: Fetch locked workspace dependencies")
+            .unwrap()
+            < helpers
+                .find("name: Helper ownership and dependency hygiene")
+                .unwrap(),
+        "the offline workspace census requires its locked dependency sources first"
+    );
+    let quality = ci.split_once("\n  quality:\n").unwrap().1;
+    assert!(job_needs(quality).contains(&"helpers"));
+    let verdict = workflow_step(quality, "Require all quality jobs to have succeeded");
+    assert!(verdict.contains("HELPERS: ${{ needs.helpers.result }}"));
+    assert!(verdict.contains("\"$HELPERS\" \\"));
+}
+
 /// Extract a job's `needs` dependencies from either YAML's compact flow form or
 /// its line-wrapped block form. The workflow contract is the dependency set, not
 /// the presentation chosen to keep the authored YAML lint-clean.
@@ -152,6 +190,22 @@ const CI_JOB_COVERED: &[&str] = &[
     "clippy",
     "check-lint",
     "console",
+];
+
+/// One complete required-job inventory shared by the independent CI contracts.
+const REQUIRED_QUALITY_JOBS: &[&str] = &[
+    "producer",
+    "lint",
+    "helpers",
+    "rust-archive",
+    "rust",
+    "rust-static",
+    "heavy",
+    "medium-consumer-surface",
+    "ontology-validate",
+    "ontology-generated",
+    "ontology-reason",
+    "ontology-misc",
 ];
 
 /// The tasks lifted off `make check` onto the CI-only `make heavy` lane. Moving a
@@ -274,9 +328,17 @@ fn browser_codebook_builds_require_exact_read_only_producer_selection() {
     }
 
     let ci = ci_workflow();
-    for (job_name, compilation) in [
-        ("rust-static", "- name: Workspace clippy"),
-        ("heavy", "- name: Heavy DAG branch — ${{ matrix.task }}"),
+    for (job_name, compilation, download) in [
+        (
+            "rust-static",
+            "- name: Workspace clippy",
+            "Download the producer-selected prefix fixtures",
+        ),
+        (
+            "heavy",
+            "- name: Heavy DAG branch — ${{ matrix.task }}",
+            "Download the producer-selected browser codebook fixtures",
+        ),
     ] {
         let marker = format!("\n  {job_name}:\n");
         let job = ci
@@ -288,7 +350,7 @@ fn browser_codebook_builds_require_exact_read_only_producer_selection() {
             .expect("job body exists");
         assert!(job_needs(job).contains(&"fixture-prefix")
             && job.contains("FIXTURE_MANIFEST_SHA256: ${{ needs.fixture-prefix.outputs.selector_sha256 }}")
-            && workflow_step(job, "Download the producer-selected browser codebook fixtures")
+            && workflow_step(job, download)
                 .contains("uses: actions/download-artifact@")
             && job.contains("name: prefix-test-fixtures-${{ github.sha }}")
             && !job.contains("test-actions-v")
@@ -467,6 +529,7 @@ fn term_release_authority_has_only_the_authenticated_producer_entry_point() {
     );
 }
 
+/// Every required task appears once, without reintroducing subsumed expensive aliases.
 #[test]
 fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
     let source = xtask();
@@ -474,6 +537,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "sync",
         "check-lint",
         "crate-check",
+        "helpers-hygiene",
         "i18n-lint",
         "rust-build",
         "test-fixtures",
@@ -640,7 +704,7 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
     assert!(
         makefile.contains("GMEOW_DEV ?= cargo xtask producer run --")
             && controller.contains("let staged = root.join(\"dist/bin/gmeow-dev\");")
-            && controller.contains("verify(&staged, &receipt_path, &recipe)?;")
+            && controller.contains("verify(&root, &staged, &receipt_path, recipe)?;")
             && controller.contains("Command::new(&staged)"),
         "the default producer launcher must verify and execute the same staged binary used by fixture consumers"
     );
@@ -890,19 +954,7 @@ fn the_heavy_lane_still_runs_on_every_pr() {
         .1;
     assert_eq!(
         job_needs(quality_job),
-        [
-            "producer",
-            "lint",
-            "rust-archive",
-            "rust",
-            "rust-static",
-            "heavy",
-            "medium-consumer-surface",
-            "ontology-validate",
-            "ontology-generated",
-            "ontology-reason",
-            "ontology-misc",
-        ],
+        REQUIRED_QUALITY_JOBS,
         "the aggregate quality gate must require both heavy scheduling branches"
     );
 }
@@ -1426,6 +1478,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
 }
 
+/// Standalone hygiene keeps its inert prerequisite checks and complete hook inventory.
 #[test]
 fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     let source = makefile();
@@ -1514,8 +1567,13 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     );
 
     assert_eq!(
-        target_header(&source, "lint"),
-        "lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, and source-policy seals)."
+        target_header(&source, "lint")
+            .split("##")
+            .next()
+            .unwrap()
+            .trim(),
+        "lint: check-sync-prerequisite-test",
+        "standalone hygiene also executes the inert docs-prerequisite controls"
     );
     let lint = target_recipe(&source, "lint");
     assert!(lint.contains("pre-commit run --all-files --show-diff-on-failure"));
@@ -1743,19 +1801,7 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         .1;
     assert_eq!(
         job_needs(quality_job),
-        [
-            "producer",
-            "lint",
-            "rust-archive",
-            "rust",
-            "rust-static",
-            "heavy",
-            "medium-consumer-surface",
-            "ontology-validate",
-            "ontology-generated",
-            "ontology-reason",
-            "ontology-misc",
-        ],
+        REQUIRED_QUALITY_JOBS,
         "the aggregate quality gate must require the retained quality jobs"
     );
 }

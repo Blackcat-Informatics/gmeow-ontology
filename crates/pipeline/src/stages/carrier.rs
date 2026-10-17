@@ -25,8 +25,8 @@ use purrdf::gts_compose::emit_gts;
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
 use purrdf::provenance::DatasetProvenance;
 use purrdf::{
-    RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SerializeGraph, flat_rdf_quads_from_dataset,
-    parse_dataset, serialize_dataset,
+    RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, flat_rdf_quads_from_dataset, parse_dataset,
+    serialize_dataset,
 };
 // The archive reps the `archive-blobs` stage owns. The presenter reads them ONLY to
 // answer the superset gate's "which rep carries which committed `generated/` path"
@@ -42,7 +42,7 @@ use crate::stages::archive_blobs::{
 #[cfg(test)]
 use crate::stages::archive_blobs::AXIOM_FILES;
 
-use gmeow_ns::{GMEOW_NS, LOGIC_NS};
+use gmeow_ns::GMEOW_NS;
 
 #[cfg(test)]
 mod test_support;
@@ -2758,6 +2758,16 @@ fn build_reasoning_blob(
     // owned by `stage-export-logic`.
     let members = vec![
         (
+            gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER.to_owned(),
+            upstream
+                .get("stage-compile-logic")
+                .and_then(|product| {
+                    product.artifact(gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL)
+                })
+                .ok_or_else(|| stage_err("missing stage-compile-logic canon proof admission"))?
+                .to_vec(),
+        ),
+        (
             gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER.to_owned(),
             upstream
                 .get("stage-conformance")
@@ -2801,246 +2811,126 @@ fn build_reasoning_blob(
     archive_blob(REP_REASONING, &members)
 }
 
-/// One reasoner-derivation's raw shape, accumulated per resource subject while
-/// walking the explanations Turtle (see [`term_entailments_from_explanations`]).
-#[derive(Default)]
-struct RawDerivation {
-    /// Whether an `rdf:type gmeow:Derivation` triple was seen for this subject — a
-    /// defensive check so a stray resource in the explanations graph (there should
-    /// be none) can never masquerade as a derivation.
-    is_derivation: bool,
-    /// Every distinct `gmeow:concludes` quoted-triple object seen. A derivation
-    /// identifies one rule firing from one exact source set, so a multi-head firing
-    /// legitimately carries more than one conclusion under the same identity.
-    conclusions: Vec<RdfTriple>,
-    /// Every `gmeow:hasPremise` quoted-triple object seen (zero or more).
-    premises: Vec<RdfTriple>,
-    /// The `gmeow:viaRule` object IRI, if seen.
-    via_rule: Option<String>,
-    /// The `logic:derivationIdentifier` literal, which must repeat the resource IRI.
-    identifier: Option<String>,
-}
-
-/// Whether any documented term IRI appears in `triple`'s subject, predicate, or
-/// object position, added to `out` (a term appearing twice in one triple is recorded
-/// once — `out` is a set).
-fn collect_term_matches(
-    triple: &RdfTriple,
-    term_iris: &std::collections::BTreeSet<String>,
-    out: &mut std::collections::BTreeSet<String>,
+/// Match documented IRIs in a native RDF 1.2 value without serializing it.
+fn collect_native_term_matches(
+    value: &purrdf::TermValue,
+    terms: &std::collections::BTreeSet<String>,
+    matched: &mut std::collections::BTreeSet<String>,
 ) {
-    if let RdfTerm::Iri(iri) = &triple.subject
-        && term_iris.contains(iri)
-    {
-        out.insert(iri.clone());
-    }
-    if term_iris.contains(&triple.predicate) {
-        out.insert(triple.predicate.clone());
-    }
-    if let RdfTerm::Iri(iri) = &triple.object
-        && term_iris.contains(iri)
-    {
-        out.insert(iri.clone());
+    let mut pending = vec![value];
+    while let Some(value) = pending.pop() {
+        match value {
+            purrdf::TermValue::Iri(iri) if terms.contains(iri) => {
+                matched.insert(iri.clone());
+            }
+            purrdf::TermValue::Triple { s, p, o } => {
+                pending.extend([s.as_ref(), p.as_ref(), o.as_ref()])
+            }
+            _ => {}
+        }
     }
 }
 
-/// Fetch `stage-reason`'s materialized `reasoning-explanations` artifact off the
-/// upstream product and fold it into the B3 per-term entailment digest. HARD-fails if
-/// `stage-reason` (or its explanations artifact) is absent — the pipeline path never
-/// falls back to an empty digest silently; only the model-only
-/// `ExecutableDocsData::default()` seam is allowed to be empty (F-2).
+/// Project term panels from the authenticated native result, retaining source worlds.
+/// Explanation Turtle is an outward artifact and is never reparsed as pipeline input.
 pub(crate) fn term_entailments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     term_iris: &std::collections::BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
-    let bytes = upstream
-        .get("stage-reason")
-        .and_then(|p| p.artifact(crate::stages::reason::EXPLANATIONS_PATH))
-        .ok_or_else(|| {
-            stage_err(&format!(
-                "missing stage-reason artifact {} for term entailments",
-                crate::stages::reason::EXPLANATIONS_PATH
-            ))
-        })?;
-    term_entailments_from_explanations(bytes, term_iris)
-}
-
-/// Parse `stage-reason`'s materialized `reasoning-explanations` proof skeletons
-/// (RDF 1.2 Turtle; see `crate::stages::reason::EXPLANATIONS_PATH` and
-/// `gmeow_logic::reason::artifacts::build_explanations_ttl`) into the B3 per-term
-/// entailment digest.
-///
-/// For every `gmeow:Derivation`, any IRI in `term_iris` that appears in the subject,
-/// predicate, or object position of EITHER a `gmeow:concludes` conclusion OR any
-/// `gmeow:hasPremise` premise gets that derivation's rule + a display of each
-/// conclusion + displays of its premises appended to its panel. Pure function of the
-/// bytes + the term-IRI set — independently testable without a pipeline product map
-/// (mirrors [`executable_docs_from_sources`]'s fixture-only core).
-fn term_entailments_from_explanations(
-    explanations_bytes: &[u8],
-    term_iris: &std::collections::BTreeSet<String>,
-) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    let dataset = parse_dataset(explanations_bytes, "text/turtle", None).map_err(|e| {
-        stage_err(&format!(
-            "parse reasoning-explanations for term entailments: {e}"
-        ))
+    // Documentation runs before snapshot assembly and already retains this native
+    // carrier for its verdict. No extra dependency or lifetime extension is needed.
+    use crate::stages::docs_render::reasoning_verdict_error;
+    let reason = upstream.get("stage-reason").ok_or_else(|| {
+        reasoning_verdict_error("missing stage-reason product for term entailments".into())
     })?;
-
-    // `gmeow_logic::reason::artifacts::build_explanations_ttl` emits each
-    // `gmeow:concludes` / `gmeow:hasPremise` object in canonical parenthesized RDF 1.2
-    // triple-term form, `<<( s p o )>>`, which parses directly as `RdfTerm::Triple`.
-    // The equivalent bare reifying-triple syntax, `<< s p o >>`, instead puts its minted
-    // reifier in the object position and records the statement in
-    // `dataset.owned_reifiers()`. Resolve that RDF-level spelling to the same typed triple
-    // so syntax alone cannot change a term's entailment digest.
-    let reifier_triples: std::collections::HashMap<RdfTerm, RdfTriple> = dataset
-        .owned_reifiers()
-        .map(|r| (r.reifier, r.statement))
-        .collect();
-    let resolve_triple = |term: &RdfTerm| -> Option<RdfTriple> {
-        match term {
-            RdfTerm::Triple(t) => Some((**t).clone()),
-            other => reifier_triples.get(other).cloned(),
-        }
-    };
-
-    let derivation_ty = format!("{GMEOW_NS}Derivation");
-    let concludes_p = format!("{GMEOW_NS}concludes");
-    let has_premise_p = format!("{GMEOW_NS}hasPremise");
-    let via_rule_p = format!("{GMEOW_NS}viaRule");
-    let derivation_identifier_p = format!("{LOGIC_NS}derivationIdentifier");
-
-    // Production explanations name every derivation with its content-addressed IRI.
-    // A blank node or an unrelated IRI would erase that identity at the documentation
-    // seam, so reject either instead of accepting an alternate representation.
-    let derivation_prefix = gmeow_logic::provenance::DERIVATION_PREFIX;
-    let mut raw: BTreeMap<String, RawDerivation> = BTreeMap::new();
-    for q in dataset.owned_quads() {
-        let is_derivation_type = q.predicate == RDF_TYPE
-            && matches!(&q.object, RdfTerm::Iri(iri) if iri == &derivation_ty);
-        let RdfTerm::Iri(subject) = &q.subject else {
-            if is_derivation_type {
-                return Err(stage_err(
-                    "reasoning explanation derivation must be named by its content-addressed IRI",
-                ));
+    let result = crate::stages::docs_render::reasoning_result_from_product(reason, "stage-reason")?;
+    let mut entailments: BTreeMap<String, Vec<gmeow_docs::Entailment>> = BTreeMap::new();
+    for axiom in result.inferred().iter().filter(|axiom| !axiom.is_edb) {
+        let raw_rule = axiom
+            .rule_name
+            .as_deref()
+            .filter(|rule| !rule.is_empty())
+            .ok_or_else(|| {
+                reasoning_verdict_error(
+                    "a native inferred term entailment has no firing rule".into(),
+                )
+            })?;
+        let mut matched = std::collections::BTreeSet::new();
+        for iri in [&axiom.subject, &axiom.predicate] {
+            if term_iris.contains(iri) {
+                matched.insert(iri.clone());
             }
-            continue;
+        }
+        collect_native_term_matches(&axiom.object, term_iris, &mut matched);
+        let modal_premises = axiom
+            .modal_evaluation
+            .as_ref()
+            .map(|evidence| evidence.positive_premises());
+        let source_premises: Vec<(&str, &str, &str, &str)> = match &modal_premises {
+            Some(premises) => premises
+                .iter()
+                .map(|p| {
+                    (
+                        p.context.as_str(),
+                        p.subject.as_str(),
+                        p.predicate.as_str(),
+                        p.object.as_str(),
+                    )
+                })
+                .collect(),
+            None => axiom
+                .premises
+                .iter()
+                .map(|(s, p, o)| (axiom.world.as_str(), s.as_str(), p.as_str(), o.as_str()))
+                .collect(),
         };
-        if is_derivation_type && !subject.starts_with(derivation_prefix) {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {subject} is outside the content-addressed \
-                 {derivation_prefix} namespace"
-            )));
+        let mut premises = Vec::with_capacity(source_premises.len());
+        for (world, subject, predicate, object) in source_premises {
+            // The native premise object is already its canonical display value;
+            // compare its resource spelling directly rather than parsing RDF.
+            let object_iri = object
+                .strip_prefix('<')
+                .and_then(|o| o.strip_suffix('>'))
+                .unwrap_or(object);
+            for iri in [subject, predicate, object_iri] {
+                if term_iris.contains(iri) {
+                    matched.insert(iri.to_owned());
+                }
+            }
+            premises.push(format!(
+                "[{}] {} {} {}",
+                compact_iri(world),
+                compact_iri(subject),
+                compact_iri(predicate),
+                object
+            ));
         }
-        let entry = raw.entry(subject.clone()).or_default();
-        if is_derivation_type {
-            entry.is_derivation = true;
-        } else if q.predicate == concludes_p {
-            let Some(triple) = resolve_triple(&q.object) else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-triple conclusion"
-                )));
-            };
-            if !entry.conclusions.contains(&triple) {
-                entry.conclusions.push(triple);
-            }
-        } else if q.predicate == has_premise_p {
-            let Some(triple) = resolve_triple(&q.object) else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-triple premise"
-                )));
-            };
-            entry.premises.push(triple);
-        } else if q.predicate == via_rule_p {
-            let RdfTerm::Iri(iri) = &q.object else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-IRI firing rule"
-                )));
-            };
-            if let Some(previous) = entry.via_rule.replace(iri.clone())
-                && previous != iri.as_str()
-            {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has conflicting firing rules"
-                )));
-            }
-        } else if q.predicate == derivation_identifier_p {
-            let RdfTerm::Literal(literal) = &q.object else {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has a non-literal derivation identifier"
-                )));
-            };
-            if let Some(previous) = entry.identifier.replace(literal.lexical_form.clone())
-                && previous != literal.lexical_form.as_str()
-            {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has conflicting derivation identifiers"
-                )));
-            }
-        }
-    }
-
-    let mut term_entailments: BTreeMap<String, Vec<gmeow_docs::Entailment>> = BTreeMap::new();
-    for (derivation_iri, derivation) in raw {
-        if !derivation.is_derivation {
+        if matched.is_empty() {
             continue;
         }
-        if derivation.conclusions.is_empty() {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {derivation_iri} has no conclusion"
-            )));
-        }
-        let Some(rule) = derivation.via_rule.as_deref() else {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {derivation_iri} has no firing rule"
-            )));
-        };
-        let Some(identifier) = derivation.identifier.as_deref() else {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation {derivation_iri} has no derivation identifier"
-            )));
-        };
-        if identifier != derivation_iri.as_str() {
-            return Err(stage_err(&format!(
-                "reasoning explanation derivation identifier {identifier} does not match its resource IRI {derivation_iri}"
-            )));
-        }
-        let rule = compact_iri(rule);
-        let mut premises: Vec<String> = derivation
-            .premises
-            .iter()
-            .map(|p| triple_display(&p.subject, &p.predicate, &p.object))
-            .collect();
         premises.sort();
         premises.dedup();
-        for conclusion in &derivation.conclusions {
-            let mut matched: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-            collect_term_matches(conclusion, term_iris, &mut matched);
-            for premise in &derivation.premises {
-                collect_term_matches(premise, term_iris, &mut matched);
-            }
-            if matched.is_empty() {
-                continue;
-            }
-            let entailment = gmeow_docs::Entailment {
-                rule: rule.clone(),
-                conclusion: triple_display(
-                    &conclusion.subject,
-                    &conclusion.predicate,
-                    &conclusion.object,
-                ),
-                premises: premises.clone(),
-            };
-            for term_iri in matched {
-                term_entailments
-                    .entry(term_iri)
-                    .or_default()
-                    .push(entailment.clone());
-            }
+        let object = axiom
+            .object
+            .as_iri()
+            .map(compact_iri)
+            .unwrap_or_else(|| gmeow_logic::provenance::term_display(&axiom.object));
+        let entailment = gmeow_docs::Entailment {
+            rule: compact_iri(&gmeow_logic::explain::canonical_rule_iri(raw_rule)),
+            conclusion: format!(
+                "[{}] {} {} {}",
+                compact_iri(&axiom.world),
+                compact_iri(&axiom.subject),
+                compact_iri(&axiom.predicate),
+                object
+            ),
+            premises,
+        };
+        for iri in matched {
+            entailments.entry(iri).or_default().push(entailment.clone());
         }
     }
-    for entries in term_entailments.values_mut() {
+    for entries in entailments.values_mut() {
         entries.sort_by(|a, b| {
             a.conclusion
                 .cmp(&b.conclusion)
@@ -3049,21 +2939,7 @@ fn term_entailments_from_explanations(
         });
         entries.dedup();
     }
-    Ok(term_entailments)
-}
-
-/// The shared `s p o` compact display form (CURIE-compacted subject/predicate/object)
-/// underlying [`format_triple`] and the B3 entailment displays
-/// ([`term_entailments_from_explanations`]) — a `gmeow:Derivation`'s `gmeow:concludes`
-/// / `gmeow:hasPremise` quoted triple has the identical `(subject, predicate, object)`
-/// shape as an owned quad, so both render through this one function.
-fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
-    format!(
-        "{} {} {}",
-        term_display(subject),
-        compact_iri(predicate),
-        term_display(object)
-    )
+    Ok(entailments)
 }
 
 // The canonical prefix registry (generated from the ontology's prefix config,
@@ -3088,35 +2964,6 @@ fn compact_iri(iri: &str) -> String {
         }
     }
     format!("<{iri}>")
-}
-
-/// A compact display form for a term (IRI as CURIE, literal with datatype/lang, blank).
-fn term_display(term: &RdfTerm) -> String {
-    match term {
-        RdfTerm::Iri(iri) => compact_iri(iri),
-        RdfTerm::BlankNode(label) => format!("_:{label}"),
-        RdfTerm::Literal(lit) => format_literal(lit),
-        RdfTerm::Triple(t) => format!(
-            "<< {} {} {} >>",
-            term_display(&t.subject),
-            compact_iri(&t.predicate),
-            term_display(&t.object)
-        ),
-    }
-}
-
-/// A Turtle-ish display form for a literal.
-fn format_literal(lit: &RdfLiteral) -> String {
-    let lex = lit.lexical_form.replace('"', "\\\"");
-    if let Some(lang) = &lit.language {
-        return format!("\"{lex}\"@{lang}");
-    }
-    match &lit.datatype {
-        Some(dt) if dt != "http://www.w3.org/2001/XMLSchema#string" => {
-            format!("\"{lex}\"^^{}", compact_iri(dt))
-        }
-        _ => format!("\"{lex}\""),
-    }
 }
 
 /// Every `*.<ext>` directly under `dir`, sorted by path (empty if the dir is absent).
@@ -3365,122 +3212,9 @@ impl Stage for SnapshotStage {
     fn attaches_blob_reps(&self) -> &[String] {
         crate::stages::attach::blob_reps(self.id())
     }
+    /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        // v5: fold the `schemas-archive` from the in-memory
-        // `stage-export-json-schema` product (THIS run's fresh bytes) instead of
-        // re-reading the committed `generated/schemas/*.json` from disk —
-        // a single regenerate now folds the fresh schema. v4: render+tar+embed the
-        // full ontology-docs site as the `ontology-docs` blob. v3 added the
-        // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
-        // v7 folds both the JSON-LD-star/YAML-LD-star archive and the
-        // DAG-native SHACL diagnostics graph/report blobs. v8 folds
-        // the Rust-rendered OKF archive into gmeow.gts. v9 folds the full
-        // SHACL shape surface (REP_SHAPES) and the compiled logic/DL axiom surface
-        // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient.
-        // v10 wires the orphaned REP_REASONING reader to a writer: folds the native
-        // reasoner's explanation + DL/EL cross-check ledger reports from stage-reason's
-        // in-memory product routed through the first-class-output rail. v11 folds the compiler's projection-report
-        // loss ledger as the projection-ledger named graph, unions the logic-compile
-        // diagnostics into the diagnostics graph, and sources REP_AXIOMS from the
-        // in-memory stage-compile-logic product (single-pass freshness).
-        // v12 folds the external-corpus divergence Findings (graph/conformance) from
-        // the stage-conformance product, when any committed case diverges from its
-        // published expected verdict. v13 folds the dogfooded occurrence-based
-        // provenance projection (graph/provenance) — the public compilation-unit +
-        // per-lane carrier manifest (no runtime ids, S0.5) — and gates that every
-        // authored quad carries ≥1 stage-origin. v14 folds the byte-exact
-        // generated metadata, statement, reasoning, and preservation projections into
-        // REP_GENERATED so the superset gate can reconstruct every committed
-        // generated file without re-reading disk.
-        // v15 embeds the executable-docs surfaces in the ontology-docs site — the
-        // offline SPARQL playground asset and the reasoner "try it"
-        // asserted-vs-inferred diffs (a docs-only side computation that never folds
-        // into the reasoned production graphs) — and folds the CLIF projection
-        // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
-        // (a non-RDF text dialect with generated comments / section markers) and the
-        // executable-docs surfaces (offline SPARQL playground + reasoner "try it" diffs).
-        // v16: the presenter reads the self-description graphs off stage-source-load (no
-        // in-snapshot source load or canonicalize) — PIPELINE_SPINE §3.2/§4.
-        // v17: the RDF fanout members (profiles / evals scores / research-object graphs)
-        // ride in from their producing export leaves — `rdf_fanout_members` reads them
-        // off those products instead of re-rendering from disk (§3.2 transform-once).
-        // v18 additionally consumes stage-constraint-catalog and folds its generated
-        // `.nq` as the graph/fanout/catalog/constraint-catalog.nq named graph.
-        // v19 sources REP_SHAPES' generated members (result-shapes.ttl +
-        // frame-shapes.ttl) from the consumed export-leaf products instead of the
-        // stale disk read, matching the validation-shapes.ttl freshness rule — a
-        // new competency ResultShape now reaches the bundle (and the fanout) in one
-        // regenerate.
-        // v20 embeds the repo-wide slice-quality HTML report, produced by stage-source-load
-        // from the same sweep as graph/quality-assessment, into the ontology-docs archive.
-        // v21 folds two NEW documentation-projection blobs: the mdbook `src/` source tree
-        // (REP_DOCS_BOOK, English-tagged) and the print documentation projection
-        // (REP_DOCS_PRINT — the byte-reproducible gmeow.pdf + its deterministic gmeow.typ),
-        // built concurrently with the ontology-docs site render so the PDF compile overlaps
-        // the per-language renders; the print blob additionally consumes stage-export-references
-        // for the bibliography.
-        // v22 additionally consumes stage-math-producers and folds its five math flagship
-        // producer graphs into gmeow.gts as bundle-internal named graphs (Design A).
-        // v23: the embedded ontology-docs site now carries conformance Do/Don't fixtures
-        // (`DocsModel::fixtures`, joined to each slice's `tests/example-conformance.ttl`
-        // binding) — a new `Page::FixtureIndex` page and a per-term "Conformance examples"
-        // section, so the rendered site bytes change shape for an unchanged model schema.
-        // v24: `DocCompetency` grows the resolved `query_text` / `exact_rows` /
-        // `expected_row_count` / structured `expected_rows` surface (T2) — a new
-        // `Page::CompetencyIndex` page renders the full copy-paste-runnable SPARQL
-        // question set, so the rendered site bytes change shape again.
-        // v25 removes every derived documentation/presentation payload from the
-        // logical bundle: site, mdbook, print, slice guides, OKF, JSON-LD, and
-        // YAML-LD are regenerated externally by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`.
-        // v26 additionally folds `stage-math-producers`' SIXTH graph
-        // (graph/math-producers/probability-model, `gmeow_math::producers::
-        // probability_model_seam`) — the probability layer's live
-        // `logic:probabilityModel` A-box crossing triple now ships inside
-        // `gmeow.gts` itself (Design A), not only in the illustrative
-        // `examples/probability.ttl` fixture validated on disk.
-        // v27 additionally folds `stage-math-producers`' SEVENTH graph
-        // (graph/math-producers/pvalue-tri-slice, `gmeow_math::producers::
-        // pvalue_tri_slice`) — the charter's signature lang: -> logic: -> math:
-        // round-trip ("the p-value was 0.03" grounded as a lang:SurfaceForm
-        // denoting a logic:Formula that predicates over a well-framed math:PValue)
-        // now ships inside `gmeow.gts` itself (Design A), not only in the
-        // illustrative `examples/pvalue-tri-slice.ttl` fixture validated on disk.
-        // v28 additionally folds stage-slice-brief's authoring-packets graph
-        // (graph/authoring-briefs, a gmeow:AuthoringPacket per in-repo slice batch) into
-        // gmeow.gts as a bundle-internal named graph, plus its fanout twin into
-        // generated/briefs/authoring-packets.nt (RDF travels as RDF — the shippable
-        // authoring deliverable lands in `generated/` too, not only in the bundle graph).
-        // v29 additionally folds `stage-math-producers`' EIGHTH graph
-        // (graph/math-producers/clifford-12-13, `gmeow_math::producers::
-        // clifford_twelve_thirteen`) carrying both exact Cl12 -> Cl13 positive extensions.
-        // v30 additionally folds `stage-math-producers`' NINTH, TENTH, and ELEVENTH graphs
-        // (graph/math-producers/{r-lift,onnx-lift,proof-lift}, `gmeow_math::producers::
-        // {r_lift,onnx_lift,proof_lift}`): the output of the SHIPPED executable
-        // `gmeow_math_lift` R / ONNX / TSTP front-ends over real committed artifacts
-        // embedded at compile time, so the bundle carries what the actual parsers derive
-        // rather than a hand-written imitation of them.
-        // v31 DROPS `graph/math-producers/r-bridge`: the `r_bridge_lift` producer parsed
-        // nothing (it pushed a fixed Turtle string) and is strictly subsumed by `r_lift`,
-        // which the `rBridge` flagship now names. Ten math-producer graphs fold, not eleven.
-        // v32 is the MERGE of the two independent v30/v31 lines: main's grounding-seam fold
-        // (graph/grounding-seams, one gmeow:Seam block per authored seam with its labels,
-        // directed legs, carrying terms, and owning docs — the closed set of sanctioned
-        // cross-grounding reference channels, which lives only in the slice manifests and so
-        // reaches no committed artifact without this fold) AND the executable-lift folds
-        // above. Both change the bundle's content, so neither version string alone busts the
-        // cache correctly for the merged product.
-        // v33 folds a THIRD independent line on top of v32: `stage-source-load`'s
-        // graph/examples — EVERY slice's whole examples/*.ttl positive-demonstrator corpus —
-        // so that corpus reaches the shipped bundle (and, through
-        // `assemble_object_level_edb`, the reasoned closure) instead of being read only by
-        // the docs/competency-question harvest. Same reasoning as v32: the merged product
-        // differs from either line alone, so it needs its own key.
-        // v34 reads graph/verify from its dedicated downstream producer rather than
-        // treating it as part of stage-reason's cumulative product.
-        // v35 ships the three termination-ladder EDB worlds that stage-reason consumes,
-        // so repo-free object-level projection reconstructs the producer's exact EDB.
-        // v36 shares both final native diagnostic reports for retained docs consumers.
-        "snapshot.v36-native-diagnostic-reports"
+        "snapshot.v38-contextual-application"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

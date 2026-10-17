@@ -14,7 +14,7 @@
 
 use gmeow_errors::Diag;
 
-use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
+use crate::frontend::{Diagnostic, Severity, parse_logic_dataset};
 use crate::ir::LogicProgram;
 use crate::nt::{nt_escape_iri, nt_escape_literal};
 
@@ -26,16 +26,16 @@ use purrdf::parse_dataset;
 ///
 /// Fail-soft: a malformed graph-channel view is recorded as a `CGIF_MALFORMED_SENTENCE`
 /// warning (and does not affect the reconstructed IR); a truly unparsable document
-/// (unbalanced brackets / empty) raises [`LogicParseError`]. A construct is never silently
+/// (unbalanced brackets / empty) raises [`Diag`]. A construct is never silently
 /// dropped.
 pub fn parse_cgif_str(
     cgif: &str,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     if cgif.trim().is_empty() {
-        return Err(LogicParseError(
-            "CGIF source is empty — nothing to parse.".to_owned(),
-        ));
+        return Err(Diag::of_kind(crate::error::Cgif {
+            detail: "CGIF source is empty — nothing to parse.".to_owned(),
+        }));
     }
 
     let (graph_src, meta_src) = split_on_sentinel(cgif);
@@ -58,12 +58,13 @@ pub fn parse_cgif_str(
             // (an idiomatic conceptual graph alone is lossy for the byte-exact IR), so fail
             // CLOSED rather than silently returning an empty program.
             if meta_src.trim().is_empty() && !forms.is_empty() {
-                return Err(LogicParseError(
-                    "CGIF has idiomatic conceptual graphs but no `/* @@gmeow-rdf-meta@@ */` \
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail:
+                        "CGIF has idiomatic conceptual graphs but no `/* @@gmeow-rdf-meta@@ */` \
                      carrier block; reconstruction from the graph view alone is lossy and \
                      unsupported."
-                        .to_owned(),
-                ));
+                            .to_owned(),
+                }));
             }
             for form in &forms {
                 if let Err(msg) = validate_graph_form(form) {
@@ -81,11 +82,13 @@ pub fn parse_cgif_str(
             // no meta carrier either, we cannot reconstruct anything — fail closed. Otherwise
             // the authority (meta) already reconstructed the IR; record a fail-soft diagnostic.
             if meta_src.trim().is_empty() && !graph_src.trim().is_empty() {
-                return Err(LogicParseError(format!(
-                    "CGIF graph channel is malformed and there is no \
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail: format!(
+                        "CGIF graph channel is malformed and there is no \
                      `/* @@gmeow-rdf-meta@@ */` carrier block to reconstruct from: {}",
-                    msg.message()
-                )));
+                        msg.message()
+                    ),
+                }));
             }
             diagnostics.push(Diagnostic {
                 severity: Severity::Warning,
@@ -109,7 +112,7 @@ pub fn parse_cgif_str(
 fn parse_meta_block(
     meta_src: &str,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     if meta_src.trim().is_empty() {
         // No meta channel: an empty program (the graph channel carries everything).
         return Ok((
@@ -118,19 +121,21 @@ fn parse_meta_block(
         ));
     }
 
-    let forms = parse_forms(meta_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
+    let forms = parse_forms(meta_src)?;
     let mut nt_lines: Vec<String> = Vec::new();
     for form in &forms {
         let CExpr::Paren(items) = form else {
-            return Err(LogicParseError(format!(
-                "CGIF meta block: expected a (P S O) predication, found: {form:?}"
-            )));
+            return Err(Diag::of_kind(crate::error::Cgif {
+                detail: format!("CGIF meta block: expected a (P S O) predication, found: {form:?}"),
+            }));
         };
         if items.len() != 3 {
-            return Err(LogicParseError(format!(
-                "CGIF meta block: predication must have exactly 3 terms (P S O), found {}",
-                items.len()
-            )));
+            return Err(Diag::of_kind(crate::error::Cgif {
+                detail: format!(
+                    "CGIF meta block: predication must have exactly 3 terms (P S O), found {}",
+                    items.len()
+                ),
+            }));
         }
         let p = nt_term(&items[0])?;
         let s = nt_term(&items[1])?;
@@ -146,13 +151,17 @@ fn parse_meta_block(
     }
 
     let nt = nt_lines.join("\n");
-    let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| LogicParseError(format!("CGIF meta block: N-Triples re-parse failed: {e}")))?;
+    let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None).map_err(|e| {
+        Diag::of_kind(crate::error::SourceParse {
+            format: "CGIF RDF carrier",
+            cause: std::sync::Arc::new(e),
+        })
+    })?;
     parse_logic_dataset(ds.as_ref(), source_iri)
 }
 
 /// Encode one CGIF meta-predication term as an N-Triples term (`<iri>`, `_:b`, or a literal).
-fn nt_term(expr: &CExpr) -> Result<String, LogicParseError> {
+fn nt_term(expr: &CExpr) -> Result<String, Diag> {
     match expr {
         CExpr::Str(name) => {
             if let Some(blank) = name.strip_prefix("_:") {
@@ -163,9 +172,9 @@ fn nt_term(expr: &CExpr) -> Result<String, LogicParseError> {
         }
         CExpr::Paren(items) if items.first().and_then(sym_of) == Some("triple") => {
             let [_, subject, predicate, object] = items.as_slice() else {
-                return Err(LogicParseError(
-                    "CGIF triple term requires exactly three operands".into(),
-                ));
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail: "CGIF triple term requires exactly three operands".into(),
+                }));
             };
             Ok(format!(
                 "<<( {} {} {} )>>",
@@ -179,9 +188,11 @@ fn nt_term(expr: &CExpr) -> Result<String, LogicParseError> {
             let lit = parse_lit_form(items)?;
             Ok(lit.to_ntriples())
         }
-        other => Err(LogicParseError(format!(
-            "CGIF meta term must be a quoted name or a (lit …) form, found: {other:?}"
-        ))),
+        other => Err(Diag::of_kind(crate::error::Cgif {
+            detail: format!(
+                "CGIF meta term must be a quoted name or a (lit …) form, found: {other:?}"
+            ),
+        })),
     }
 }
 
@@ -204,26 +215,28 @@ impl LitTerm {
 }
 
 /// Parse a `(lit "lex")` / `(lit "lex" "dt")` / `(lit "lex" @lang)` form.
-fn parse_lit_form(items: &[CExpr]) -> Result<LitTerm, LogicParseError> {
+fn parse_lit_form(items: &[CExpr]) -> Result<LitTerm, Diag> {
     let head = items.first().and_then(sym_of);
     if head != Some("lit") {
-        return Err(LogicParseError(format!(
-            "expected a (lit …) form, found head {head:?}"
-        )));
+        return Err(Diag::of_kind(crate::error::Cgif {
+            detail: format!("expected a (lit …) form, found head {head:?}"),
+        }));
     }
     // A `(lit …)` form is `(lit "x")` or `(lit "x" "dt")` / `(lit "x" @lang)` — never more.
     if items.len() > 3 {
-        return Err(LogicParseError(format!(
-            "(lit …) form has {} operands; expected 2 or 3 (lexical + optional datatype/lang)",
-            items.len()
-        )));
+        return Err(Diag::of_kind(crate::error::Cgif {
+            detail: format!(
+                "(lit …) form has {} operands; expected 2 or 3 (lexical + optional datatype/lang)",
+                items.len()
+            ),
+        }));
     }
     let lexical = match items.get(1) {
         Some(CExpr::Str(s)) => s.clone(),
         other => {
-            return Err(LogicParseError(format!(
-                "(lit …) first argument must be a \"string\", found {other:?}"
-            )));
+            return Err(Diag::of_kind(crate::error::Cgif {
+                detail: format!("(lit …) first argument must be a \"string\", found {other:?}"),
+            }));
         }
     };
     match items.get(2) {
@@ -242,9 +255,11 @@ fn parse_lit_form(items: &[CExpr]) -> Result<LitTerm, LogicParseError> {
             datatype: None,
             language: Some(lang.clone()),
         }),
-        other => Err(LogicParseError(format!(
-            "(lit …) third argument must be a \"datatype\" or @lang, found {other:?}"
-        ))),
+        other => Err(Diag::of_kind(crate::error::Cgif {
+            detail: format!(
+                "(lit …) third argument must be a \"datatype\" or @lang, found {other:?}"
+            ),
+        })),
     }
 }
 

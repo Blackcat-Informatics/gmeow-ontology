@@ -204,6 +204,28 @@ fn malformed_later_source_preserves_prior_and_failing_input_identity() {
     assert!(diagnostic.observed.is_some());
 }
 
+/// A frontend refusal keeps its native diagnostic inside the consumer report.
+#[test]
+fn empty_selected_source_preserves_the_frontend_refusal_and_input_identity() {
+    let directory = tempfile::tempdir().expect("synthetic source directory");
+    let source = directory.path().join("empty.ttl");
+    std::fs::write(&source, "@prefix ex: <urn:example:> .").expect("empty valid Turtle");
+    let error = match super::load_theory(&[source]) {
+        Ok(_) => panic!("an empty selected theory cannot authorize proof"),
+        Err(error) => error,
+    };
+    let report = super::ProveReport::blank(super::DecisionClass::Malformed, error);
+    assert_eq!(report.common.inputs.len(), 1);
+    let diagnostic = &report.common.diagnostics[0];
+    assert_eq!(diagnostic.code, "SOURCE_PREPARATION_FAILED");
+    let evidence = diagnostic.diagnostic.as_ref().expect("structured evidence");
+    assert_eq!(
+        evidence.fields["evidence"]["cause_diagnostic"]["code"],
+        "logic-compile.frontend"
+    );
+    assert!(evidence.causes.iter().any(|cause| cause.contains("empty")));
+}
+
 #[test]
 fn exited_parent_does_not_leave_descendant_pipe_unbounded() {
     let (_directory, binary) = script("sleep 30 &\nprintf 'done'; exit 0");

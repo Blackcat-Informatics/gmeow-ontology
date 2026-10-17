@@ -87,8 +87,7 @@ pub(super) fn record(
 
 fn observe(clif: &[u8], edb: &[u8]) -> Result<Observation, gmeow_errors::Diag> {
     let clif = std::str::from_utf8(clif).map_err(gmeow_errors::Diag::from)?;
-    let (program, diagnostics) =
-        parse_clif_str(clif, Some(format!("{GENEALOGY}kb"))).map_err(gmeow_errors::Diag::from)?;
+    let (program, diagnostics) = parse_clif_str(clif, Some(format!("{GENEALOGY}kb")))?;
     let dataset = purrdf::parse_dataset(edb, purrdf::NativeRdfFormat::NQuads.media_type(), None)
         .map_err(gmeow_errors::Diag::from)?;
     let limits = MaterializationLimits::default();

@@ -61,7 +61,7 @@ fn term_badges_lead_with_completeness_stability_category() {
 }
 
 #[test]
-fn reasoning_badge_is_three_state_and_never_collapses() {
+fn reasoning_badge_preserves_undetermined_and_not_evaluated() {
     let class = DocTerm {
         iri: "https://x/Klass".to_string(),
         category: DocTermCategory::Class,
@@ -74,15 +74,51 @@ fn reasoning_badge_is_three_state_and_never_collapses() {
     };
     let mut unsat = std::collections::BTreeSet::new();
     unsat.insert("https://x/Klass".to_string());
-    let bad = ReasoningVerdict {
-        is_consistent: false,
-        unsatisfiable: unsat,
+    let good = ReasoningVerdict {
+        consistency: crate::model::ConsistencyAssessment::Consistent,
+        input: "valid".into(),
+        evaluation: "completed".into(),
+        completeness: "complete-for-fragment".into(),
+        information: "supported".into(),
+        unsupported_constructs: Default::default(),
+        unsatisfiable: Default::default(),
     };
-    let good = ReasoningVerdict::default();
+    let bad = ReasoningVerdict {
+        consistency: crate::model::ConsistencyAssessment::Inconsistent,
+        unsatisfiable: unsat,
+        ..good.clone()
+    };
+    let undecided = ReasoningVerdict {
+        consistency: crate::model::ConsistencyAssessment::Undetermined,
+        evaluation: "unsupported".into(),
+        completeness: "incomplete".into(),
+        information: "undetermined".into(),
+        unsupported_constructs: std::collections::BTreeSet::from(["nominal".into()]),
+        ..good.clone()
+    };
 
     // An evaluated class flips satisfiable → unsatisfiable on the unsat set.
     assert_eq!(reasoning_badge(&class, &good).value, "satisfiable");
     assert_eq!(reasoning_badge(&class, &bad).value, "unsatisfiable");
+    assert_eq!(reasoning_badge(&class, &undecided).value, "undetermined");
+    assert_eq!(
+        reasoning_badge(&property, &undecided).value,
+        "not-evaluated"
+    );
+    assert_eq!(reasoning_badge(&class, &undecided).text, INK);
+    let other_class = DocTerm {
+        iri: "urn:other-class".into(),
+        ..class.clone()
+    };
+    assert_eq!(reasoning_badge(&other_class, &bad).value, "undetermined");
+    let empty_but_undecided = ReasoningVerdict {
+        unsatisfiable: bad.unsatisfiable.clone(),
+        ..undecided.clone()
+    };
+    assert_eq!(
+        reasoning_badge(&class, &empty_but_undecided).value,
+        "unsatisfiable"
+    );
     // A non-class is not-evaluated — never silently "satisfiable".
     assert_eq!(reasoning_badge(&property, &good).value, "not-evaluated");
 

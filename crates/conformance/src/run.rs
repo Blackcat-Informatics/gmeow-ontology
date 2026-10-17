@@ -546,7 +546,7 @@ fn compile_case_program(
     let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
         .map_err(|e| prefix(format!("input.logic.ttl RDF parse failed: {e}")))?;
     let (program, diagnostics) = parse_logic_dataset(&dataset, None)
-        .map_err(|e| prefix(format!("compile parse failed: {}", e.0)))?;
+        .map_err(|error| error.with_context(format!("case {case_id}: compile source")))?;
 
     if expect_unsupported {
         if !has_unsupported_contract_error(&diagnostics) {

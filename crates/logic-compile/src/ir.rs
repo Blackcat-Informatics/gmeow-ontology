@@ -48,6 +48,10 @@ const SEP: char = '\u{0}';
 /// `gmeow_logic::provenance::LOGIC_NAMESPACE`).
 pub const LOGIC_NAMESPACE: &str = "https://blackcatinformatics.ca/logic/";
 
+/// Canonical first-order application indexed by context and reified relation.
+pub const CONTEXTUAL_APPLICATION_IRI: &str =
+    "https://blackcatinformatics.ca/logic/contextualApplication";
+
 /// The `logic:ResourcePolicy` facet value (local name) that licenses native
 /// operational builtins. Only the procedural preset expands to it
 /// (`logic:expandsToFacet`).
@@ -658,6 +662,11 @@ impl LogicAxiom {
         if predicate.is_empty() {
             return Err(Diag::of_kind(crate::error::Ir {
                 detail: "LogicAxiom.predicate must be a non-empty IRI string".to_owned(),
+            }));
+        }
+        if predicate == CONTEXTUAL_APPLICATION_IRI {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "a contextual application requires a formula with context, relation and original argument coordinates, not a binary RDF axiom".into(),
             }));
         }
         if let AtomicTerm::Literal(literal) = &mut obj {
@@ -2652,6 +2661,25 @@ impl Formula {
     /// [`Term::Iri`] (a reified relation / HiLog individual), never a variable, literal,
     /// or sequence marker.
     pub fn atom(relation: Term, args: Vec<Term>) -> gmeow_errors::Result<Self> {
+        Self::check_atom(&relation, &args)?;
+        Ok(Self::Atom { relation, args })
+    }
+
+    /// Index an atomic predication without changing its relation's ordinary arity.
+    /// Context and relation are separate first-order arguments of the canonical
+    /// application family; this is not reflection over arbitrary formula values.
+    pub fn contextual_atom(
+        context: Term,
+        relation: Term,
+        mut args: Vec<Term>,
+    ) -> gmeow_errors::Result<Self> {
+        Self::check_atom(&relation, &args)?;
+        args.splice(0..0, [context, relation]);
+        Self::atom(Term::Iri(CONTEXTUAL_APPLICATION_IRI.to_owned()), args)
+    }
+
+    /// Share atomic well-formedness between construction and checked projection.
+    pub(crate) fn check_atom(relation: &Term, args: &[Term]) -> gmeow_errors::Result<()> {
         if !matches!(relation, Term::Iri(_)) {
             return Err(Diag::of_kind(crate::error::Ir {
                 detail: "Formula::Atom relation must be a Term::Iri (the reified relation / HiLog \
@@ -2659,7 +2687,17 @@ impl Formula {
                     .to_owned(),
             }));
         }
-        Ok(Self::Atom { relation, args })
+        if matches!(relation, Term::Iri(iri) if iri == CONTEXTUAL_APPLICATION_IRI)
+            && (args.len() < 3
+                || !args[..2]
+                    .iter()
+                    .all(|arg| matches!(arg, Term::Iri(_) | Term::Var(_))))
+        {
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "a contextual application requires resource-valued context and relation coordinates followed by at least one original argument".into(),
+            }));
+        }
+        Ok(())
     }
 
     /// `true` when this formula is a *trivially-Horn* leaf that belongs in
@@ -2823,6 +2861,14 @@ impl Formula {
     /// than fabricating one.
     pub fn principal_predicate(&self) -> Option<String> {
         match self {
+            Self::Atom { relation, args } if matches!(relation, Term::Iri(iri) if iri == CONTEXTUAL_APPLICATION_IRI) =>
+            {
+                Self::check_atom(relation, args).ok()?;
+                match args.get(1) {
+                    Some(Term::Iri(predicate)) => Some(predicate.clone()),
+                    _ => None,
+                }
+            }
             Self::Atom { relation, .. } => match relation {
                 Term::Iri(iri) => Some(iri.clone()),
                 _ => None,

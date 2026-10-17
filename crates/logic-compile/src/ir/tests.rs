@@ -1287,6 +1287,54 @@ fn atom_relation_must_be_an_iri() {
     assert!(Formula::atom(ti("p"), vec![tv("x")]).is_ok());
 }
 
+/// Context indexing preserves source arity, the intended head and native term identity.
+#[test]
+fn contextual_application_is_not_an_ordinary_binary_atom_or_axiom() {
+    let indexed = Formula::contextual_atom(ti("world"), ti("p"), vec![ti("a")]).unwrap();
+    let ordinary = Formula::atom(ti("p"), vec![ti("world"), ti("a")]).unwrap();
+    assert_ne!(indexed.content_key(), ordinary.content_key());
+    assert!(!indexed.is_trivially_horn());
+    assert_eq!(indexed.principal_predicate(), Some(format!("{LOGIC}p")));
+    assert!(
+        LogicAxiom::ground(
+            "urn:w",
+            CONTEXTUAL_APPLICATION_IRI,
+            AtomicTerm::resource("urn:p")
+        )
+        .is_err()
+    );
+    assert!(
+        Formula::contextual_atom(
+            Term::literal("world", None).unwrap(),
+            ti("p"),
+            vec![ti("a")]
+        )
+        .is_err()
+    );
+    assert!(Formula::contextual_atom(ti("world"), ti("p"), vec![]).is_err());
+    assert!(Formula::contextual_atom(ti("world"), tv("p"), vec![ti("a")]).is_err());
+    assert!(
+        Formula::atom(
+            Term::Iri(CONTEXTUAL_APPLICATION_IRI.into()),
+            vec![ti("w"), ti("p")]
+        )
+        .is_err()
+    );
+}
+
+/// Quantified world coordinates retain the existing alpha-equivalence contract.
+#[test]
+fn contextual_application_keys_bind_worlds_without_erasing_original_arguments() {
+    let at = |world: &str| Formula::Forall {
+        vars: vec![world.into()],
+        body: Box::new(Formula::contextual_atom(tv(world), ti("p"), vec![ti("a")]).unwrap()),
+    };
+    assert_eq!(at("left").content_key(), at("right").content_key());
+    let left = Formula::contextual_atom(ti("left"), ti("p"), vec![ti("a")]).unwrap();
+    let right = Formula::contextual_atom(ti("right"), ti("p"), vec![ti("a")]).unwrap();
+    assert_ne!(left.content_key(), right.content_key());
+}
+
 #[test]
 fn canonical_key_is_unchanged_for_formula_free_program() {
     // Corpus safety: attaching no formulas must not alter the historical key.

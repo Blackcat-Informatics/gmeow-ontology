@@ -50,7 +50,7 @@ fn malformed_projection_is_recorded_without_aborting_the_other_observations() {
     let mut projection = xcl::project_xcl(&program).unwrap();
     projection.content = "<broken>".to_owned();
     let result = dialect("xcl", &program, Ok(projection), |text| {
-        xcl::parse_xcl_str(text, None).map_err(gmeow_errors::Diag::from)
+        xcl::parse_xcl_str(text, None)
     });
     assert!(result.result.is_err());
     assert!(observe(&program).unwrap().iter().all(|r| r.result.is_ok()));

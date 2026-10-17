@@ -37,6 +37,19 @@ fn receipts() -> Vec<StageReceipt> {
 }
 
 #[test]
+/// Every selected fixture must be readable across processes without a producer.
+fn selected_fixture_stages_are_stable_persistent_contributions() {
+    let spec = full_spec();
+    let graph = spec.validate().unwrap();
+    let stages = bind(&spec, &graph, &default_registry()).unwrap();
+    for id in AUTHENTICATED_TEST_STAGE_IDS {
+        let stage = stages.iter().find(|stage| stage.id() == *id).unwrap();
+        assert_eq!(stage.stability(), StageStability::StablePrefix, "{id}");
+        assert_eq!(stage.cache_policy(), CachePolicy::Persistent, "{id}");
+    }
+}
+
+#[test]
 fn full_sync_receipts_select_the_same_fixture_closure_as_the_prefix_producer() {
     let all = receipts();
     let full = stage_fixture_manifest(&all).unwrap();

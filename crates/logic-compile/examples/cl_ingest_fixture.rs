@@ -6,10 +6,14 @@
 
 use gmeow_logic_compile::frontend::{Severity, parse_logic_path};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> gmeow_errors::Result<()> {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
     let [source, output, source_iri] = arguments.as_slice() else {
-        return Err("expected SOURCE_TTL OUTPUT_CLIF SOURCE_IRI".into());
+        return Err(gmeow_errors::Diag::of_kind(
+            gmeow_logic_compile::error::Frontend {
+                detail: "expected SOURCE_TTL OUTPUT_CLIF SOURCE_IRI".into(),
+            },
+        ));
     };
     let (program, diagnostics) =
         parse_logic_path(std::path::Path::new(source), Some(source_iri.clone()))?;
@@ -25,10 +29,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .any(|diagnostic| diagnostic.severity == Severity::Error)
     {
-        return Err("fixture source has compiler errors".into());
+        return Err(gmeow_errors::Diag::of_kind(
+            gmeow_logic_compile::error::Frontend {
+                detail: "fixture source has compiler errors".into(),
+            },
+        ));
     }
-    let clif = gmeow_logic_compile::clif::writer::project_clif(&program)
-        .map_err(|error| error.to_string())?;
+    let clif = gmeow_logic_compile::clif::writer::project_clif(&program)?;
     std::fs::write(output, clif.content)?;
     Ok(())
 }

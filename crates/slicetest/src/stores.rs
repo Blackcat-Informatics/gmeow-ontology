@@ -156,13 +156,8 @@ fn build_native_closed_store() -> Result<Arc<RdfDataset>> {
     // explicitly joins this selected source set into one default logical theory;
     // a named graph alias of the native default world is invalid.
     let (program, diagnostics) =
-        gmeow_logic_compile::frontend::parse_logic_dataset(store.as_ref(), None).map_err(|e| {
-            Diag::of_kind(LogicReasoning {
-                detail: format!(
-                    "compiling the logic program from the native-reasoning sources: {e}"
-                ),
-            })
-        })?;
+        gmeow_logic_compile::frontend::parse_logic_dataset(store.as_ref(), None)
+            .map_err(|error| error.with_context("compile selected native-reasoning sources"))?;
     // The front-end is fail-soft (a malformed cell becomes a WARNING and is skipped), but a
     // Severity::Error diagnostic is a hard, non-recoverable fault — refuse to reason over a
     // program the compiler flagged as erroneous rather than silently under-reasoning.

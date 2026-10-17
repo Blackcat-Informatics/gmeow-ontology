@@ -103,48 +103,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_affect_ingest::Sink::boolean",
-    "gmeow_math_lift::sink::Sink::boolean"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_affect_ingest::Sink::decimal",
-    "gmeow_math_lift::sink::Sink::decimal"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_affect_ingest::Sink::iri",
-    "gmeow_math_lift::sink::Sink::iri"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_affect_ingest::Sink::lit",
-    "gmeow_math_lift::sink::Sink::lit"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_affect_ingest::Sink::serialize",
-    "gmeow_math_lift::sink::Sink::serialize"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_affect_ingest::format_decimal",
-    "gmeow_math_lift::sink::format_decimal"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_build_inputs::relative",
     "xtask::producer::workspace_relative"
    ]
@@ -1248,13 +1206,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_pipeline::stages::correspondence_lower::parse_turtle",
-    "gmeow_pipeline::stages::correspondence_soundness::parse_turtle"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_pipeline::stages::distribution_catalog::SerializationDist::consumer",
     "gmeow_pipeline::stages::distribution_catalog::SerializationDist::media_type",
     "gmeow_pipeline::stages::distribution_catalog::SerializationDist::slug"
@@ -2025,7 +1976,6 @@
    "kind": "shim",
    "members": [
     "gmeow_foundation_corpus::importer::FoundationImporter::default",
-    "gmeow_logic::store::WorldStore::default",
     "gmeow_logic::transaction::StepCounter::default",
     "gmeow_mcp::storage::InMemoryStorage::default",
     "gmeow_pipeline::stages::agreement::AgreementMatrixStage::default",
@@ -2803,7 +2753,7 @@
   "cli-shared-stdin": 1,
   "counting-allocator": 2,
   "escape-decode": 8,
-  "fixed-hasher-everywhere": 702,
+  "fixed-hasher-everywhere": 701,
   "fnv1a64": 5,
   "frame-le": 52,
   "grammar-ws": 14,

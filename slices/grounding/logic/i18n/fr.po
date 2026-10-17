@@ -22860,3 +22860,87 @@ msgstr "Ce contrat régit l’admission opérationnelle des entrées ; le recens
 msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w3.org/2004/02/skos/core#example"
 msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
 msgstr "Une tâche du registre nommant une implémentation source absente est refusée avant que son nombre de copies puisse être rapporté."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service refusal"
+msgstr "refus du service de sémantique directe"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational refusal to produce a selected OWL Direct-Semantics service answer, retaining whether the ontology has no model, the input is malformed, or execution failed."
+msgstr "Un refus opérationnel de produire la réponse demandée à un service de sémantique directe OWL, qui conserve la distinction entre une ontologie sans modèle, une entrée mal formée et un échec d'exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a selected direct-semantics service cannot produce its requested answer."
+msgstr "À utiliser lorsqu'un service de sémantique directe sélectionné ne peut pas produire la réponse demandée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret every refusal as malformed input or as an unknown consistency verdict."
+msgstr "Ne pas interpréter chaque refus comme une entrée mal formée ou comme un verdict de cohérence inconnu."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the typed refusal disposition and original upstream cause with the shared diagnostic."
+msgstr "Conserver la catégorie typée du refus et sa cause amont d'origine avec le diagnostic partagé."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The class describes availability of the requested service product; a no-model disposition remains a decided semantic observation."
+msgstr "La classe décrit la disponibilité du résultat de service demandé ; la catégorie sans modèle reste une observation sémantique décidée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classification of an ontology with no model is refused with the no-model disposition."
+msgstr "La classification d'une ontologie sans modèle est refusée avec la catégorie sans modèle."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "direct semantics service boundary"
+msgstr "frontière du service de sémantique directe"
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary that preserves typed upstream refusals from the OWL Direct-Semantics service through the shared diagnostic substrate."
+msgstr "La frontière opérationnelle qui conserve les refus amont typés du service de sémantique directe OWL dans le substrat de diagnostic partagé."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary that raises direct semantics service refusals."
+msgstr "À utiliser pour identifier la frontière qui émet les refus du service de sémantique directe."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a refusal with an empty classification or a fabricated entailment answer."
+msgstr "Ne pas remplacer un refus par une classification vide ou une réponse d'implication fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the original cause as no-model, malformed or execution, and keep that cause available for inspection."
+msgstr "Classer la cause d'origine comme absence de modèle, entrée mal formée ou échec d'exécution, et la conserver pour inspection."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boundary governs service result publication and makes no whole-canon consistency claim."
+msgstr "Cette frontière régit la publication des résultats du service sans affirmer la cohérence du corpus canonique complet."
+
+msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A malformed role chain retains the original native hierarchy error in the diagnostic."
+msgstr "Une chaîne de rôles mal formée conserve l'erreur native de hiérarchie d'origine dans le diagnostic."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contextual atomic application"
+msgstr "application atomique contextualisée"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The first-order atomic application family indexed by a context and a reified relation. For an original relation of arity n, where n is at least one, its n unchanged ordered arguments follow the context and relation coordinates. It does not evaluate formula or statement values, and does not identify a contextual application with an ordinary application of a different arity."
+msgstr "La famille d’applications atomiques du premier ordre indexée par un contexte et une relation réifiée. Pour une relation d’arité n, avec n au moins égal à un, ses n arguments ordonnés inchangés suivent les coordonnées du contexte et de la relation. Elle n’évalue pas des valeurs de formule ou d’énoncé et n’identifie pas une application contextualisée à une application ordinaire d’une autre arité."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain context when lowering an atomic formula or a modal or temporal body."
+msgstr "À utiliser pour conserver le contexte lors de l’abaissement d’une formule atomique ou d’un corps modal ou temporel."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not prepend a world argument to the original relation, identify different contexts, or interpret arbitrary formula values as truth."
+msgstr "Ne pas ajouter un argument de monde en tête de la relation d’origine, identifier des contextes différents ni interpréter des valeurs de formule arbitraires comme des vérités."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit contextualApplication(context, relation, argument0, ...), retaining argument order and native term identities; use typed accessibility relations between worlds."
+msgstr "Émettre contextualApplication(context, relation, argument0, ...) en conservant l’ordre des arguments et les identités natives des termes ; utiliser des relations d’accessibilité typées entre les mondes."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an atomic indexing family, not a truth evaluator or a merge of world, standpoint, module and provenance coordinates."
+msgstr "Il s’agit d’une famille d’indexation atomique, pas d’un évaluateur de vérité ni d’une fusion des coordonnées de monde, de point de vue, de module et de provenance."
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."
+msgstr "L’application de ex:p à ex:a dans ex:w est contextualApplication(ex:w, ex:p, ex:a), distincte de ex:p(ex:w, ex:a)."
