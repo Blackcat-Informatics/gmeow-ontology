@@ -13,7 +13,7 @@
 //! committed content-addressed attestation (`crates/reason-wasm/tests/WITNESS.conjecture.nq`).
 //! The Node lane runs the WASM `conjecture` over the SAME inputs and asserts byte-identity with
 //! that attestation. Both matching the one attestation proves native ≡ wasm. The
-//! attestation is refreshed only by `make maint-refresh-conjecture-witness`.
+//! attestation is refreshed only by `make maint-refresh-reason-witness`.
 
 use std::path::PathBuf;
 
@@ -63,7 +63,7 @@ fn native_conjecture_verdicts_match_the_witness_attestation() {
     let path = attestation_path();
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "conjecture witness attestation {} missing; run `make maint-refresh-conjecture-witness`: {e}",
+            "conjecture witness attestation {} missing; run `make maint-refresh-reason-witness`: {e}",
             path.display()
         )
     });

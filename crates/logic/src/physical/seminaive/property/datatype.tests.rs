@@ -157,7 +157,7 @@ fn datatype_cache_capacity_and_payload_misses_preserve_execution() {
 #[test]
 fn any_uri_is_an_intrinsic_primitive_datatype() {
     // `xsd:anyURI` is an OWL 2 datatype-map primitive. A data range naming it compiles
-    // without a constructor, admits every anyURI literal, excludes every interpreted
+    // without a constructor, admits valid anyURI literals, excludes every interpreted
     // value of another primitive, and leaves an uninterpreted foreign datatype unknown.
     const ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
     let mut rel = RelationStore::new();
@@ -229,13 +229,16 @@ fn any_uri_enumeration_compares_collapsed_values() {
             Some(true)
         );
     }
-    for (value, datatype) in [
-        ("a%20b", ANY_URI),
-        ("a\u{a0}b", ANY_URI),
-        ("a b", "urn:foreign"),
-    ] {
-        assert_eq!(plan.contains(&literal(value, datatype), &mut values), None);
+    for value in ["a%20b", "a\u{a0}b"] {
+        assert_eq!(
+            plan.contains(&literal(value, ANY_URI), &mut values),
+            Some(false)
+        );
     }
+    assert_eq!(
+        plan.contains(&literal("a b", "urn:foreign"), &mut values),
+        None
+    );
 }
 
 #[test]

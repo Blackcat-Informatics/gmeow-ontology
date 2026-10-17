@@ -21,7 +21,7 @@ pub use cargo::{
 pub use cfg::{CfgContext, cfg_excludes_production};
 pub use dep_info::{CompilerArtifact, CompilerInputs, GeneratedInputs};
 pub use embedded::VerifyQueries;
-pub use native::{NativeSources, native_extraction_paths};
+pub use native::{NativeSources, native_extraction_paths, native_substrate_source};
 pub use resolution::{CargoResolutionEvidence, CargoResolutionInputs};
 
 use serde::{Deserialize, Serialize};

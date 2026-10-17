@@ -13,6 +13,32 @@ const NATIVE_ROOTS: &[&str] = &[
     "crates/ns/src/lib.rs",
 ];
 
+/// The immutable upstream source behind native datatype and entailment semantics.
+/// Reading the declared pin is portable and performs no compiler or host discovery.
+pub fn native_substrate_source(workspace: &Path) -> Result<String> {
+    let manifest = std::fs::read_to_string(workspace.join("Cargo.toml")).map_err(fail)?;
+    let manifest: toml::Value = toml::from_str(&manifest).map_err(fail)?;
+    let dependency = manifest
+        .get("workspace")
+        .and_then(|workspace| workspace.get("dependencies"))
+        .and_then(|dependencies| dependencies.get("purrdf"))
+        .ok_or_else(|| fail("native substrate requires workspace.dependencies.purrdf"))?;
+    let git = dependency.get("git").and_then(toml::Value::as_str);
+    let revision = dependency.get("rev").and_then(toml::Value::as_str);
+    match (git, revision) {
+        (Some(git), Some(revision))
+            if !git.is_empty()
+                && revision.len() == 40
+                && revision.bytes().all(|byte| byte.is_ascii_hexdigit()) =>
+        {
+            Ok(format!("{git}#{}", revision.to_ascii_lowercase()))
+        }
+        _ => Err(fail(
+            "native substrate requires a Git URL and full immutable revision",
+        )),
+    }
+}
+
 /// Resolve the native kernel's production module paths for an offline extraction
 /// plan. This does not admit any source identity or produce a semantic digest.
 pub fn native_extraction_paths(workspace: &Path) -> Result<Vec<String>> {

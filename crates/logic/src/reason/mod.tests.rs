@@ -745,6 +745,7 @@ fn native_contract_hash_folds_the_purrdf_substrate_identity() {
     //    the datalog CALCULUS_VERSION and the two canonical 64-hex rule hashes.
     let id = purrdf_substrate_identity();
     assert_eq!(id, purrdf_substrate_identity(), "purrdf identity is stable");
+    assert!(id.contains(crate::runtime::NATIVE_SUBSTRATE_SOURCE));
     assert!(
         id.contains(purrdf::datalog::cache::CALCULUS_VERSION),
         "the datalog calculus version must reach the folded identity: {id}"

@@ -161,8 +161,9 @@ fn framed_native_component_source() -> String {
 /// Portable semantic identity supplied by the pinned PurRDF substrate.
 ///
 /// Fold the evaluator's `CALCULUS_VERSION` and its canonical ordered OWL-RL and
-/// datatype rule hashes. Source, calculus and rule changes still invalidate the
-/// semantic seal on every target.
+/// datatype rule hashes, together with the immutable upstream Git source pin.
+/// Datatype implementation changes need not alter rule syntax, so rule hashes
+/// alone cannot bind the delegated semantics. All inputs are target independent.
 ///
 /// PurRDF's execution `contract_hash` additionally commits the selected evaluation
 /// limits, whose defaults differ between native and WebAssembly. Those contracts
@@ -177,7 +178,8 @@ fn purrdf_substrate_identity() -> String {
         &purrdf::entail::calculus_program(purrdf::entail::Regime::D),
     ));
     format!(
-        "purrdf-substrate-semantics-v2|calculus:{}|owl-rl:{}|datatype:{}",
+        "purrdf-substrate-semantics-v3|source:{}|calculus:{}|owl-rl:{}|datatype:{}",
+        crate::runtime::NATIVE_SUBSTRATE_SOURCE,
         purrdf::datalog::cache::CALCULUS_VERSION,
         owl_rl.to_hex(),
         datatype.to_hex(),
