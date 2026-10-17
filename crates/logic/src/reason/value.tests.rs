@@ -4,6 +4,7 @@
 use super::*;
 use purrdf::xsd::datatype::XSD_DECIMAL;
 
+/// Native fraction grammar owns rational admission; real membership adds no lexical forms.
 #[test]
 fn native_rational_admission_preserves_the_datatypes_own_lexical_space() {
     let mut values = NativeValues::default();
@@ -54,6 +55,7 @@ fn native_rational_admission_preserves_the_datatypes_own_lexical_space() {
     }
 }
 
+/// Source whitespace cannot repair a malformed native numeric, boolean or temporal value.
 #[test]
 fn native_xsd_admission_does_not_repair_source_whitespace() {
     use purrdf::xsd::datatype::{XSD_BOOLEAN, XSD_DATE_TIME, XSD_INTEGER};
@@ -77,6 +79,7 @@ fn native_xsd_admission_does_not_repair_source_whitespace() {
     }
 }
 
+/// String admission preserves the selected XML 1.1 domain and exact valid source bytes.
 #[test]
 fn native_string_admission_preserves_valid_bytes_and_rejects_non_xml_characters() {
     use purrdf::xsd::datatype::XSD_STRING;
@@ -103,6 +106,7 @@ fn native_string_admission_preserves_valid_bytes_and_rejects_non_xml_characters(
     }
 }
 
+/// URI interpretation applies only native XML whitespace collapse and character admission.
 #[test]
 fn native_any_uri_values_preserve_xml_whitespace_and_reject_invalid_characters() {
     use purrdf::xsd::datatype::{XSD_ANY_URI, XSD_STRING};
@@ -134,6 +138,7 @@ fn native_any_uri_values_preserve_xml_whitespace_and_reject_invalid_characters()
     assert_eq!(invalid.facet_length(), None);
 }
 
+/// Authored counts preserve the full unsigned domain and valid zero aliases.
 #[test]
 fn cardinality_accepts_the_complete_native_count_domain() {
     let term = TermValue::Literal {
@@ -161,6 +166,7 @@ fn cardinality_accepts_the_complete_native_count_domain() {
     }
 }
 
+/// Native integer and rational interpretations retain exact cross-datatype equality.
 #[test]
 fn native_literal_membership_and_equality_preserve_large_exact_values() {
     let integer = TermValue::Literal {
