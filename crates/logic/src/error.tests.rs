@@ -5,6 +5,28 @@ use super::*;
 use gmeow_errors::intern_code;
 use std::collections::HashSet;
 
+/// Both native integrity kinds appear exactly once in the catalog and eager registration.
+#[test]
+fn native_integrity_diagnostics_are_eagerly_registered() {
+    let handles = register_all();
+    for code in [BuiltinRefusal::CODE, NativeBuiltin::CODE] {
+        assert_eq!(
+            LOGIC_DIAG_CODES
+                .iter()
+                .filter(|listed| **listed == code)
+                .count(),
+            1
+        );
+    }
+    for expected in [BuiltinRefusal::register(), NativeBuiltin::register()] {
+        assert_eq!(
+            handles.iter().filter(|handle| **handle == expected).count(),
+            1
+        );
+    }
+}
+
+/// The complete catalog and eager registration retain unique, matching diagnostic codes.
 #[test]
 fn every_logic_code_interns_with_no_collision() {
     let handles = register_all();

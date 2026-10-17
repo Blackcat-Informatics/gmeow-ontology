@@ -84,28 +84,13 @@ impl Head {
                 Ok(())
             }
             Formula::Atom { relation, args } => {
-                let terms = args.iter().map(|term| self.rename(term)).collect();
+                let terms = args
+                    .iter()
+                    .map(|term| rename_scoped_term(term, &self.scope))
+                    .collect();
                 self.atom(relation.clone(), terms)
             }
             _ => Err("head is not a positive existential conjunction of atoms"),
-        }
-    }
-
-    fn rename(&self, term: &Term) -> Term {
-        match term {
-            Term::Var(name) => self
-                .scope
-                .iter()
-                .rev()
-                .find(|(authored, _)| authored == name)
-                .map_or_else(|| term.clone(), |(_, fresh)| Term::Var(fresh.clone())),
-            // Applications remain unsupported by the shared atom converter. Renaming
-            // their arguments still preserves lexical scope at this legalization seam.
-            Term::App { symbol, args } => Term::App {
-                symbol: symbol.clone(),
-                args: args.iter().map(|arg| self.rename(arg)).collect(),
-            },
-            _ => term.clone(),
         }
     }
 
@@ -171,45 +156,6 @@ impl Head {
                 negated: false,
             }));
         Ok(())
-    }
-}
-
-fn collect_names(formula: &Formula, names: &mut BTreeSet<String>) {
-    match formula {
-        Formula::Atom { relation, args } => {
-            collect_term_names(relation, names);
-            for arg in args {
-                collect_term_names(arg, names);
-            }
-        }
-        Formula::Exists { vars, body } | Formula::Forall { vars, body } => {
-            names.extend(vars.iter().map(|name| format!("?{name}")));
-            collect_names(body, names);
-        }
-        Formula::And(parts) | Formula::Or(parts) => {
-            for part in parts {
-                collect_names(part, names);
-            }
-        }
-        Formula::Not(body) => collect_names(body, names),
-        Formula::Implies(left, right) | Formula::Iff(left, right) => {
-            collect_names(left, names);
-            collect_names(right, names);
-        }
-    }
-}
-
-fn collect_term_names(term: &Term, names: &mut BTreeSet<String>) {
-    match term {
-        Term::Var(name) | Term::SequenceMarker(name) => {
-            names.insert(format!("?{name}"));
-        }
-        Term::App { args, .. } => {
-            for arg in args {
-                collect_term_names(arg, names);
-            }
-        }
-        Term::Iri(_) | Term::Literal(_) => {}
     }
 }
 
