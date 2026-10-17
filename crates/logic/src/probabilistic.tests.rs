@@ -132,6 +132,32 @@ fn no_declared_model_refuses_with_unknown() {
 }
 
 #[test]
+fn a_model_in_the_world_does_not_replace_the_query_selected_model() {
+    let store = WorldStore::new().unwrap();
+    store.insert_quad(
+        WORLD,
+        &format!("{BASE}catalogue-model"),
+        "https://blackcatinformatics.ca/logic/instanceOf",
+        "https://blackcatinformatics.ca/logic/ProbabilityModel",
+    );
+    let body = format!(
+        ":- prefix(ex, '{BASE}').\n\
+         :- probability(ex:rain(ex:today, ex:true), 0.5).\n\
+         ?- ex:rain(ex:today, X).\n"
+    );
+    let unselected = parse_query_program(&body).unwrap();
+    let refused = evaluate(&store, WORLD, &unselected, PROFILE, None).unwrap();
+    assert_eq!(refused.status_str(), "unknown");
+    assert!(refused.bindings.is_empty());
+
+    let selected =
+        parse_query_program(&format!(":- probability_model(full_independence).\n{body}")).unwrap();
+    let answered = evaluate(&store, WORLD, &selected, PROFILE, None).unwrap();
+    assert_eq!(answered.status_str(), "ok");
+    assert_eq!(marginal_for(&answered, "X", "true"), Some(0.5));
+}
+
+#[test]
 fn prob_status_string_round_trips() {
     // The typed ReasoningResult losslessly carries the prob status.
     assert_eq!(

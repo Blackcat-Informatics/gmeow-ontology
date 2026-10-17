@@ -1631,7 +1631,7 @@ logic:RuleProbabilisticRequiresModel
         logic:CompatibilityRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Rule: Probabilistic Measure Requires A Declared Probability Model"@x-gmeow-english ;
-    skos:definition "The graph-dependent compatibility rule requiring that whenever a contract carries logic:ProbabilisticMeasure, the source graph declares a logic:ProbabilityModel (via logic:probabilityModel or an individual typed logic:ProbabilityModel). Absent a declared model the contract is unsupported: a probabilistic measure is never inferred from confidence metadata and independence is never silently assumed. Because it inspects the surrounding graph it is enforced in the front-end rather than the contract-internal rule table; authored canonically in crates/logic (Rust), projected here lossily (Principle 17)."@x-gmeow-english .
+    skos:definition "The execution-dependent compatibility rule requiring an explicitly selected probability model when probabilistic facts are evaluated. Contract and preset declarations record reusable configurations; they do not request probabilistic inference. A logic:ProbabilityModel merely present elsewhere in a source graph cannot authorize the query. Without the query's selected model the evaluator refuses probabilities, never deriving them from confidence metadata or silently assuming independence. Enforced by the native probabilistic evaluator rather than the contract-internal rule table; this individual is its lossy documentation projection (Principle 17)."@x-gmeow-english .
 
 logic:SemiRigidType
     a logic:Class ;
